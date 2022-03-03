@@ -1,7 +1,7 @@
-import Chunk from '../Chunk';
-import Graph from '../Graph';
-import Module from '../Module';
-import {
+import type Chunk from '../Chunk';
+import type Graph from '../Graph';
+import type Module from '../Module';
+import type {
 	AddonHookFunction,
 	AsyncPluginHooks,
 	EmitFile,
@@ -22,6 +22,7 @@ import {
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
 import { errInputHookInOutputPlugin, error } from './error';
+import { addUnresolvedAction, resolveAction } from './hookActions';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 /**
@@ -54,6 +55,7 @@ const inputHookNames: {
 	options: 1,
 	resolveDynamicImport: 1,
 	resolveId: 1,
+	shouldTransformCachedModule: 1,
 	transform: 1,
 	watchChange: 1
 };
@@ -61,7 +63,7 @@ const inputHooks = Object.keys(inputHookNames);
 
 export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
-function throwInvalidHookError(hookName: string, pluginName: string) {
+function throwInvalidHookError(hookName: string, pluginName: string): never {
 	return error({
 		code: 'INVALID_PLUGIN_HOOK',
 		message: `Error running plugin hook ${hookName} for ${pluginName}, expected a function hook.`
@@ -69,24 +71,24 @@ function throwInvalidHookError(hookName: string, pluginName: string) {
 }
 
 export class PluginDriver {
-	public emitFile: EmitFile;
+	public readonly emitFile: EmitFile;
 	public finaliseAssets: () => void;
 	public getFileName: (fileReferenceId: string) => string;
-	public setOutputBundle: (
+	public readonly setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: Map<Module, Chunk>
+		facadeChunkByModule: ReadonlyMap<Module, Chunk>
 	) => void;
 
-	private fileEmitter: FileEmitter;
-	private pluginCache: Record<string, SerializablePluginCache> | undefined;
-	private pluginContexts = new Map<Plugin, PluginContext>();
-	private plugins: Plugin[];
+	private readonly fileEmitter: FileEmitter;
+	private readonly pluginCache: Record<string, SerializablePluginCache> | undefined;
+	private readonly pluginContexts: ReadonlyMap<Plugin, PluginContext>;
+	private readonly plugins: readonly Plugin[];
 
 	constructor(
 		private readonly graph: Graph,
 		private readonly options: NormalizedInputOptions,
-		userPlugins: Plugin[],
+		userPlugins: readonly Plugin[],
 		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		basePluginDriver?: PluginDriver
 	) {
@@ -103,12 +105,14 @@ export class PluginDriver {
 		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
 		const existingPluginNames = new Set<string>();
-		for (const plugin of this.plugins) {
-			this.pluginContexts.set(
+
+		this.pluginContexts = new Map(
+			this.plugins.map(plugin => [
 				plugin,
 				getPluginContext(plugin, pluginCache, graph, options, this.fileEmitter, existingPluginNames)
-			);
-		}
+			])
+		);
+
 		if (basePluginDriver) {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {
@@ -120,7 +124,7 @@ export class PluginDriver {
 		}
 	}
 
-	public createOutputPluginDriver(plugins: Plugin[]): PluginDriver {
+	public createOutputPluginDriver(plugins: readonly Plugin[]): PluginDriver {
 		return new PluginDriver(this.graph, this.options, plugins, this.pluginCache, this);
 	}
 
@@ -129,7 +133,7 @@ export class PluginDriver {
 		hookName: H,
 		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext | null,
-		skipped?: Set<Plugin> | null
+		skipped?: ReadonlySet<Plugin> | null
 	): EnsurePromise<ReturnType<PluginHooks[H]>> {
 		let promise: EnsurePromise<ReturnType<PluginHooks[H]>> = Promise.resolve(undefined as any);
 		for (const plugin of this.plugins) {
@@ -314,6 +318,7 @@ export class PluginDriver {
 			context = hookContext(context, plugin);
 		}
 
+		let action: [string, string, Parameters<any>] | null = null;
 		return Promise.resolve()
 			.then(() => {
 				// permit values allows values to be returned instead of a functional hook
@@ -322,9 +327,38 @@ export class PluginDriver {
 					return throwInvalidHookError(hookName, plugin.name);
 				}
 				// eslint-disable-next-line @typescript-eslint/ban-types
-				return (hook as Function).apply(context, args);
+				const hookResult = (hook as Function).apply(context, args);
+
+				if (!hookResult || !hookResult.then) {
+					// short circuit for non-thenables and non-Promises
+					return hookResult;
+				}
+
+				// Track pending hook actions to properly error out when
+				// unfulfilled promises cause rollup to abruptly and confusingly
+				// exit with a successful 0 return code but without producing any
+				// output, errors or warnings.
+				action = [plugin.name, hookName, args];
+				addUnresolvedAction(action);
+
+				// Although it would be more elegant to just return hookResult here
+				// and put the .then() handler just above the .catch() handler below,
+				// doing so would subtly change the defacto async event dispatch order
+				// which at least one test and some plugins in the wild may depend on.
+				const promise = Promise.resolve(hookResult);
+				return promise.then(() => {
+					// action was fulfilled
+					resolveAction(action as [string, string, Parameters<any>]);
+					return promise;
+				});
 			})
-			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
+			.catch(err => {
+				if (action !== null) {
+					// action considered to be fulfilled since error being handled
+					resolveAction(action);
+				}
+				return throwPluginError(err, plugin.name, { hook: hookName });
+			});
 	}
 
 	/**

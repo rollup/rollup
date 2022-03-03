@@ -4,7 +4,7 @@ module.exports = {
 	output: {
 		format: 'cjs',
 		paths: {
-			'foo': 'bar'
+			foo: 'bar'
 		},
 		interop: false
 	}

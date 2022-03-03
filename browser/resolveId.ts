@@ -1,5 +1,5 @@
-import { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../src/rollup/types';
-import { PluginDriver } from '../src/utils/PluginDriver';
+import type { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../src/rollup/types';
+import type { PluginDriver } from '../src/utils/PluginDriver';
 import { resolveIdViaPlugins } from '../src/utils/resolveIdViaPlugins';
 import { throwNoFileSystem } from './error';
 
@@ -13,9 +13,9 @@ export async function resolveId(
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
-		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null
+		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 	) => Promise<ResolvedId | null>,
-	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
+	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean
 ): Promise<ResolveIdResult> {

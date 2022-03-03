@@ -4,7 +4,7 @@ module.exports = {
 		external: ['external'],
 		output: {
 			compact: true,
-			namespaceToStringTag: true
+			generatedCode: { symbols: true }
 		}
 	},
 	warnings: [

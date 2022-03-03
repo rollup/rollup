@@ -1,6 +1,6 @@
-import { Plugin } from 'rollup';
+import type { Plugin } from 'rollup';
 
-export default function addBinShebangAndEsmImport(): Plugin {
+export default function esmDynamicImport(): Plugin {
 	let importFound = false;
 	return {
 		generateBundle() {

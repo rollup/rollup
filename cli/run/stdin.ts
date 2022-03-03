@@ -1,4 +1,5 @@
-import { Plugin } from '../../src/rollup/types';
+import process from 'process';
+import type { Plugin } from '../../src/rollup/types';
 
 export const stdinName = '-';
 

@@ -1,11 +1,11 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { NormalizedOutputOptions } from '../rollup/types';
+import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { NormalizedOutputOptions } from '../rollup/types';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 export default function amd(
 	magicString: MagicStringBundle,
@@ -86,8 +86,7 @@ export default function amd(
 		namedExportsMode && hasExports,
 		isEntryFacade && esModule,
 		isModuleFacade && namespaceToStringTag,
-		_,
-		n
+		snippets
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;

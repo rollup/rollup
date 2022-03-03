@@ -1,16 +1,21 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
-	NodeRenderOptions,
-	RenderOptions,
+	type NodeRenderOptions,
+	type RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shared/Node';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type * as NodeType from './NodeType';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	NodeBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
-	declare consequent: StatementNode[];
+	declare consequent: readonly StatementNode[];
 	declare needsBoundaries: true;
 	declare test: ExpressionNode | null;
 	declare type: NodeType.tSwitchCase;

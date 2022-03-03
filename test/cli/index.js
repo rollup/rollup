@@ -1,33 +1,48 @@
 const assert = require('assert');
 const { exec } = require('child_process');
-const path = require('path');
-const sander = require('sander');
+const { existsSync, readFileSync } = require('fs');
+const { basename, resolve, sep } = require('path');
+const process = require('process');
+const { copySync, removeSync, statSync } = require('fs-extra');
 const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
-	assertDirectoriesAreEqual
+	assertDirectoriesAreEqual,
+	getFileNamesAndRemoveOutput
 } = require('../utils.js');
 
 const cwd = process.cwd();
 
-sander.rimrafSync(__dirname, 'node_modules');
-sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
+removeSync(resolve(__dirname, 'node_modules'));
+copySync(resolve(__dirname, 'node_modules_rename_me'), resolve(__dirname, 'node_modules'));
 
 runTestSuiteWithSamples(
 	'cli',
-	path.resolve(__dirname, 'samples'),
+	resolve(__dirname, 'samples'),
 	(dir, config) => {
-		(config.skip ? it.skip : config.solo ? it.only : it)(
-			path.basename(dir) + ': ' + config.description,
-			done => {
-				process.chdir(config.cwd || dir);
-				if (config.before) config.before();
+		// allow to repeat flaky tests for debugging on CLI
+		for (let pass = 0; pass < (config.repeat || 1); pass++) {
+			runTest(dir, config, pass);
+		}
+	},
+	() => process.chdir(cwd)
+);
 
-				const command = config.command.replace(
-					/(^| )rollup($| )/g,
-					`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
-				);
+function runTest(dir, config, pass) {
+	const name = basename(dir) + ': ' + config.description;
+	(config.skip ? it.skip : config.solo ? it.only : it)(
+		pass > 0 ? `${name} (pass ${pass + 1})` : name,
+		done => {
+			process.chdir(config.cwd || dir);
+			if (pass > 0) {
+				getFileNamesAndRemoveOutput(dir);
+			}
+			const command = config.command.replace(
+				/(^| )rollup($| )/g,
+				`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
+			);
 
+			Promise.resolve(config.before && config.before()).then(() => {
 				const childProcess = exec(
 					command,
 					{
@@ -35,7 +50,7 @@ runTestSuiteWithSamples(
 						env: { ...process.env, FORCE_COLOR: '0', ...config.env }
 					},
 					(err, code, stderr) => {
-						if (config.after) config.after();
+						if (config.after) config.after(err, code, stderr);
 						if (err && !err.killed) {
 							if (config.error) {
 								const shouldContinue = config.error(err);
@@ -98,10 +113,7 @@ runTestSuiteWithSamples(
 							} catch (err) {
 								done(err);
 							}
-						} else if (
-							sander.existsSync('_expected') &&
-							sander.statSync('_expected').isDirectory()
-						) {
+						} else if (existsSync('_expected') && statSync('_expected').isDirectory()) {
 							try {
 								assertDirectoriesAreEqual('_actual', '_expected');
 								done();
@@ -109,7 +121,7 @@ runTestSuiteWithSamples(
 								done(err);
 							}
 						} else {
-							const expected = sander.readFileSync('_expected.js').toString();
+							const expected = readFileSync('_expected.js', 'utf8');
 							try {
 								assert.equal(normaliseOutput(code), normaliseOutput(expected));
 								done();
@@ -132,8 +144,7 @@ runTestSuiteWithSamples(
 						}
 					}
 				});
-			}
-		).timeout(50000);
-	},
-	() => process.chdir(cwd)
-);
+			});
+		}
+	).timeout(50000);
+}

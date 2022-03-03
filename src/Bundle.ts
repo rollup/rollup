@@ -1,8 +1,8 @@
 import Chunk from './Chunk';
-import ExternalModule from './ExternalModule';
-import Graph from './Graph';
+import type ExternalModule from './ExternalModule';
+import type Graph from './Graph';
 import Module from './Module';
-import {
+import type {
 	GetManualChunk,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -13,8 +13,8 @@ import {
 	WarningHandler
 } from './rollup/types';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
-import { PluginDriver } from './utils/PluginDriver';
-import { Addons, createAddons } from './utils/addons';
+import type { PluginDriver } from './utils/PluginDriver';
+import { type Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
 import {
@@ -25,17 +25,17 @@ import {
 	warnDeprecation
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
-import { GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
+import { type GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import { basename, isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {
-	private facadeChunkByModule = new Map<Module, Chunk>();
-	private includedNamespaces = new Set<Module>();
+	private readonly facadeChunkByModule = new Map<Module, Chunk>();
+	private readonly includedNamespaces = new Set<Module>();
 
 	constructor(
 		private readonly outputOptions: NormalizedOutputOptions,
-		private readonly unsetOptions: Set<string>,
+		private readonly unsetOptions: ReadonlySet<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
 		private readonly graph: Graph
@@ -82,7 +82,7 @@ export default class Bundle {
 	}
 
 	private async addFinalizedChunksToBundle(
-		chunks: Chunk[],
+		chunks: readonly Chunk[],
 		inputBase: string,
 		addons: Addons,
 		outputBundle: OutputBundleWithPlaceholders,
@@ -104,7 +104,7 @@ export default class Bundle {
 	}
 
 	private async addManualChunks(
-		manualChunks: Record<string, string[]>
+		manualChunks: Record<string, readonly string[]>
 	): Promise<Map<Module, string>> {
 		const manualChunkAliasByEntry = new Map<Module, string>();
 		const chunkEntries = await Promise.all(
@@ -122,11 +122,11 @@ export default class Bundle {
 	}
 
 	private assignChunkIds(
-		chunks: Chunk[],
+		chunks: readonly Chunk[],
 		inputBase: string,
 		addons: Addons,
 		bundle: OutputBundleWithPlaceholders
-	) {
+	): void {
 		const entryChunks: Chunk[] = [];
 		const otherChunks: Chunk[] = [];
 		for (const chunk of chunks) {
@@ -137,7 +137,7 @@ export default class Bundle {
 		}
 
 		// make sure entry chunk names take precedence with regard to deconflicting
-		const chunksForNaming: Chunk[] = entryChunks.concat(otherChunks);
+		const chunksForNaming = entryChunks.concat(otherChunks);
 		for (const chunk of chunksForNaming) {
 			if (this.outputOptions.file) {
 				chunk.id = basename(this.outputOptions.file);
@@ -156,7 +156,7 @@ export default class Bundle {
 	}
 
 	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
-		const manualChunkAliasByEntry = new Map<Module, string>();
+		const manualChunkAliasesWithEntry: [alias: string, module: Module][] = [];
 		const manualChunksApi = {
 			getModuleIds: () => this.graph.modulesById.keys(),
 			getModuleInfo: this.graph.getModuleInfo
@@ -165,9 +165,16 @@ export default class Bundle {
 			if (module instanceof Module) {
 				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
 				if (typeof manualChunkAlias === 'string') {
-					addModuleToManualChunk(manualChunkAlias, module, manualChunkAliasByEntry);
+					manualChunkAliasesWithEntry.push([manualChunkAlias, module]);
 				}
 			}
+		}
+		manualChunkAliasesWithEntry.sort(([aliasA], [aliasB]) =>
+			aliasA > aliasB ? 1 : aliasA < aliasB ? -1 : 0
+		);
+		const manualChunkAliasByEntry = new Map<Module, string>();
+		for (const [alias, module] of manualChunkAliasesWithEntry) {
+			addModuleToManualChunk(alias, module, manualChunkAliasByEntry);
 		}
 		return manualChunkAliasByEntry;
 	}
@@ -182,14 +189,14 @@ export default class Bundle {
 				);
 				(file as OutputAsset).type = 'asset';
 			}
-			if (this.outputOptions.validate && typeof (file as OutputChunk).code == 'string') {
+			if (this.outputOptions.validate && 'code' in file) {
 				try {
-					this.graph.contextParse((file as OutputChunk).code, {
+					this.graph.contextParse(file.code, {
 						allowHashBang: true,
 						ecmaVersion: 'latest'
 					});
 				} catch (err: any) {
-					this.inputOptions.onwarn(errChunkInvalid(file as OutputChunk, err));
+					this.inputOptions.onwarn(errChunkInvalid(file, err));
 				}
 			}
 		}
@@ -241,7 +248,7 @@ export default class Bundle {
 	}
 
 	private prerenderChunks(
-		chunks: Chunk[],
+		chunks: readonly Chunk[],
 		inputBase: string,
 		snippets: GenerateCodeSnippets
 	): void {
@@ -254,7 +261,7 @@ export default class Bundle {
 	}
 }
 
-function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
+function getAbsoluteEntryModulePaths(chunks: readonly Chunk[]): string[] {
 	const absoluteEntryModulePaths: string[] = [];
 	for (const chunk of chunks) {
 		for (const entryModule of chunk.entryModules) {
@@ -305,7 +312,7 @@ function validateOptionsForMultiChunkOutput(
 		);
 }
 
-function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {
+function getIncludedModules(modulesById: ReadonlyMap<string, Module | ExternalModule>): Module[] {
 	return [...modulesById.values()].filter(
 		(module): module is Module =>
 			module instanceof Module &&
@@ -317,7 +324,7 @@ function addModuleToManualChunk(
 	alias: string,
 	module: Module,
 	manualChunkAliasByEntry: Map<Module, string>
-) {
+): void {
 	const existingAlias = manualChunkAliasByEntry.get(module);
 	if (typeof existingAlias === 'string' && existingAlias !== alias) {
 		return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));

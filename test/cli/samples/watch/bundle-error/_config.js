@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 const { atomicWriteFileSync } = require('../../../../utils');
 
@@ -9,11 +9,11 @@ module.exports = {
 	command: 'rollup -cw',
 	before() {
 		mainFile = path.resolve(__dirname, 'main.js');
-		fs.writeFileSync(mainFile, '<=>');
+		writeFileSync(mainFile, '<=>');
 	},
 	after() {
 		// synchronous sometimes does not seem to work, probably because the watch is not yet removed properly
-		setTimeout(() => fs.unlinkSync(mainFile), 300);
+		setTimeout(() => unlinkSync(mainFile), 300);
 	},
 	abortOnStderr(data) {
 		if (data.includes('Error: Unexpected token')) {

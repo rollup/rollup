@@ -59,11 +59,11 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 	console.log(externalDefault__namespace);
 	console.log(externalDefaultOnly__namespace);
 
-	var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	var main = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
 		get a () { return exports.a; },
 		foo: foo
-	}, [defaultLegacy__namespace]));
+	}, [defaultLegacy__namespace]);
 
 	Object.defineProperty(exports, 'foo', {
 		enumerable: true,

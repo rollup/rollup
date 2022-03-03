@@ -1,6 +1,6 @@
-import { DecodedSourceMap, SourceMap } from 'magic-string';
-import Module from '../Module';
-import {
+import { type DecodedSourceMap, SourceMap } from 'magic-string';
+import type Module from '../Module';
+import type {
 	DecodedSourceMapOrMissing,
 	ExistingDecodedSourceMap,
 	SourceMapSegment,
@@ -10,8 +10,8 @@ import { error } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
-	content: string;
-	filename: string;
+	readonly content: string;
+	readonly filename: string;
 	isOriginal = true;
 
 	constructor(filename: string, content: string) {
@@ -32,12 +32,12 @@ interface SourceMapSegmentObject {
 }
 
 class Link {
-	mappings: SourceMapSegment[][];
-	names: string[];
-	sources: (Source | Link)[];
+	readonly mappings: readonly SourceMapSegment[][];
+	readonly names: readonly string[];
+	readonly sources: (Source | Link)[];
 
 	constructor(
-		map: { mappings: SourceMapSegment[][]; names: string[] },
+		map: { mappings: readonly SourceMapSegment[][]; names: readonly string[] },
 		sources: (Source | Link)[]
 	) {
 		this.sources = sources;
@@ -49,7 +49,7 @@ class Link {
 		const sources: string[] = [];
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
-		const nameIndexMap: Map<string, number> = new Map();
+		const nameIndexMap = new Map<string, number>();
 
 		const mappings = [];
 
@@ -153,7 +153,7 @@ class Link {
 }
 
 function getLinkMap(warn: WarningHandler) {
-	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing) {
+	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing): Link {
 		if (map.mappings) {
 			return new Link(map, [source]);
 		}
@@ -182,7 +182,7 @@ function getCollapsedSourcemap(
 	id: string,
 	originalCode: string,
 	originalSourcemap: ExistingDecodedSourceMap | null,
-	sourcemapChain: DecodedSourceMapOrMissing[],
+	sourcemapChain: readonly DecodedSourceMapOrMissing[],
 	linkMap: (source: Source | Link, map: DecodedSourceMapOrMissing) => Link
 ): Source | Link {
 	let source: Source | Link;
@@ -206,8 +206,8 @@ function getCollapsedSourcemap(
 export function collapseSourcemaps(
 	file: string,
 	map: DecodedSourceMap,
-	modules: Module[],
-	bundleSourcemapChain: DecodedSourceMapOrMissing[],
+	modules: readonly Module[],
+	bundleSourcemapChain: readonly DecodedSourceMapOrMissing[],
 	excludeContent: boolean | undefined,
 	warn: WarningHandler
 ): SourceMap {
@@ -224,12 +224,8 @@ export function collapseSourcemaps(
 			)
 		);
 
-	// DecodedSourceMap (from magic-string) uses a number[] instead of the more
-	// correct SourceMapSegment tuples. Cast it here to gain type safety.
-	let source = new Link(map as ExistingDecodedSourceMap, moduleSources);
-
-	source = bundleSourcemapChain.reduce(linkMap, source);
-
+	const link = new Link(map, moduleSources);
+	const source = bundleSourcemapChain.reduce(linkMap, link);
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 
 	if (file) {
@@ -247,7 +243,7 @@ export function collapseSourcemap(
 	id: string,
 	originalCode: string,
 	originalSourcemap: ExistingDecodedSourceMap | null,
-	sourcemapChain: DecodedSourceMapOrMissing[],
+	sourcemapChain: readonly DecodedSourceMapOrMissing[],
 	warn: WarningHandler
 ): ExistingDecodedSourceMap | null {
 	if (!sourcemapChain.length) {

@@ -1,9 +1,9 @@
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { CallOptions } from '../CallOptions';
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
-import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { CallOptions } from '../CallOptions';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import type * as NodeType from './NodeType';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
 	declare arguments: ExpressionNode[];

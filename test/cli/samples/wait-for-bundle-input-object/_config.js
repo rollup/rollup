@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync } = require('fs');
 const path = require('path');
 const { atomicWriteFileSync } = require('../../../utils');
 
@@ -13,8 +13,8 @@ module.exports = {
 		third = path.resolve(__dirname, 'third.js');
 	},
 	after() {
-		fs.unlinkSync(second);
-		fs.unlinkSync(third);
+		unlinkSync(second);
+		unlinkSync(third);
 	},
 	abortOnStderr(data) {
 		if (data.includes('waiting for input second')) {

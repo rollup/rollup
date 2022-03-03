@@ -3,6 +3,7 @@ flowchart TB
     classDef hook-sequential fill:#ffd2b3,stroke:#000;
     classDef hook-first fill:#fff2b3,stroke:#000;
     classDef hook-sequential-sync fill:#ffd2b3,stroke:#f00;
+    classDef hook-first-sync fill:#fff2b3,stroke:#f00;
 
 	buildend("buildEnd"):::hook-parallel
 	click buildend "/guide/en/#buildend" _parent
@@ -25,6 +26,9 @@ flowchart TB
 	resolveid("resolveId"):::hook-first
 	click resolveid "/guide/en/#resolveid" _parent
 
+	shouldtransformcachedmodule("shouldTransformCachedModule"):::hook-first
+	click shouldtransformcachedmodule "/guide/en/#shouldtransformcachedmodule" _parent
+
 	transform("transform"):::hook-sequential
 	click transform "/guide/en/#transform" _parent
 
@@ -41,16 +45,26 @@ flowchart TB
 
     resolveid
     --> |non-external|load
-    --> transform
+    --> |not cached|transform
     --> moduleparsed
     .-> |no imports|buildend
+
+    load
+    --> |cached|shouldtransformcachedmodule
+    --> |false|moduleparsed
+
+    shouldtransformcachedmodule
+    --> |true|transform
 
     moduleparsed
     --> |"each import()"|resolvedynamicimport
     --> |non-external|load
 
     moduleparsed
-    --> |each import|resolveid
+    --> |"each import\n(cached)"|load
+
+    moduleparsed
+    --> |"each import\n(not cached)"|resolveid
 
     resolvedynamicimport
     .-> |external|buildend

@@ -5,7 +5,7 @@ module.exports = {
 			return id.startsWith('external');
 		},
 		output: {
-			namespaceToStringTag: true,
+			generatedCode: { symbols: true },
 			interop(id) {
 				switch (id) {
 					case 'external-auto':

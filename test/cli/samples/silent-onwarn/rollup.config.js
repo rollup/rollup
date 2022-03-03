@@ -16,5 +16,4 @@ export default {
 			assert.strictEqual(warnings[0].code, 'CIRCULAR_DEPENDENCY');
 		}
 	}
-
-}
+};

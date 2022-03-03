@@ -1,13 +1,13 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
-	RenderOptions
+	type RenderOptions
 } from '../../utils/renderHelpers';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import Identifier from './Identifier';
-import * as NodeType from './NodeType';
-import { IncludeChildren, StatementBase, StatementNode } from './shared/Node';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type Identifier from './Identifier';
+import type * as NodeType from './NodeType';
+import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
 
 export default class LabeledStatement extends StatementBase {
 	declare body: StatementNode;

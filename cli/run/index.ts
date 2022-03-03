@@ -1,8 +1,10 @@
-import { MergedRollupOptions } from '../../src/rollup/types';
+import { env } from 'process';
+import type { MergedRollupOptions } from '../../src/rollup/types';
+import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { loadFsEvents } from '../../src/watch/fsevents-importer';
 import { handleError } from '../logging';
-import { BatchWarnings } from './batchWarnings';
+import type { BatchWarnings } from './batchWarnings';
 import build from './build';
 import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';
@@ -25,13 +27,13 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 	}
 
 	if (inputSource && inputSource.length > 0) {
-		if (inputSource.some((input: string) => input.indexOf('=') !== -1)) {
+		if (inputSource.some((input: string) => input.includes('='))) {
 			command.input = {};
 			inputSource.forEach((input: string) => {
 				const equalsIndex = input.indexOf('=');
-				const value = input.substr(equalsIndex + 1);
-				let key = input.substr(0, equalsIndex);
-				if (!key) key = getAliasName(input);
+				const value = input.substring(equalsIndex + 1);
+				const key = input.substring(0, equalsIndex) || getAliasName(input);
+
 				command.input[key] = value;
 			});
 		} else {
@@ -47,16 +49,12 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 		environment.forEach((arg: string) => {
 			arg.split(',').forEach((pair: string) => {
 				const [key, ...value] = pair.split(':');
-				if (value.length) {
-					process.env[key] = value.join(':');
-				} else {
-					process.env[key] = String(true);
-				}
+				env[key] = value.length === 0 ? String(true) : value.join(':');
 			});
 		});
 	}
 
-	if (command.watch) {
+	if (isWatchEnabled(command.watch)) {
 		await loadFsEvents();
 		const { watch } = await import('./watch-cli');
 		watch(command);
@@ -88,7 +86,7 @@ async function getConfigs(
 	command: any
 ): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
 	if (command.config) {
-		const configFile = getConfigPath(command.config);
+		const configFile = await getConfigPath(command.config);
 		const { options, warnings } = await loadAndParseConfigFile(configFile, command);
 		return { options, warnings };
 	}

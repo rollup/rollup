@@ -1,13 +1,13 @@
-import { AstContext } from '../../Module';
-import { InternalModuleFormat } from '../../rollup/types';
-import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import type { AstContext } from '../../Module';
+import type { InternalModuleFormat } from '../../rollup/types';
+import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
+import type Variable from '../variables/Variable';
 import ChildScope from './ChildScope';
-import GlobalScope from './GlobalScope';
+import type GlobalScope from './GlobalScope';
 
 export default class ModuleScope extends ChildScope {
 	context: AstContext;
@@ -33,8 +33,8 @@ export default class ModuleScope extends ChildScope {
 
 	deconflict(
 		format: InternalModuleFormat,
-		exportNamesByVariable: Map<Variable, string[]>,
-		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
 		// all module level variables are already deconflicted when deconflicting the chunk
 		for (const scope of this.children)

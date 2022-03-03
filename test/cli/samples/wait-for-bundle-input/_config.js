@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync } = require('fs');
 const path = require('path');
 const { atomicWriteFileSync } = require('../../../utils');
 
@@ -11,12 +11,14 @@ module.exports = {
 		mainFile = path.resolve(__dirname, 'main.js');
 	},
 	after() {
-		fs.unlinkSync(mainFile);
+		unlinkSync(mainFile);
 	},
 	abortOnStderr(data) {
 		if (data.includes('waiting for input main.js')) {
 			// wait longer than one polling interval
 			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 600);
 		}
+		// We wait for a regular abort as we do not watch
+		return false;
 	}
 };

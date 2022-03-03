@@ -1,4 +1,4 @@
-import {
+import type {
 	InternalModuleFormat,
 	InteropType,
 	NormalizedInputOptions,
@@ -12,7 +12,7 @@ import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import {
 	generatedCodePresets,
-	GenericConfigObject,
+	type GenericConfigObject,
 	getOptionWithPreset,
 	warnUnknownOptions
 } from './options';
@@ -20,7 +20,7 @@ import {
 export function normalizeOutputOptions(
 	config: OutputOptions,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>
+	unsetInputOptions: ReadonlySet<string>
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
@@ -32,6 +32,7 @@ export function normalizeOutputOptions(
 	const preserveModules = getPreserveModules(config, inlineDynamicImports, inputOptions);
 	const file = getFile(config, preserveModules, inputOptions);
 	const preferConst = getPreferConst(config, inputOptions);
+	const generatedCode = getGeneratedCode(config, preferConst);
 
 	const outputOptions: NormalizedOutputOptions & OutputOptions = {
 		amd: getAmd(config),
@@ -50,7 +51,7 @@ export function normalizeOutputOptions(
 		footer: getAddon(config, 'footer'),
 		format,
 		freeze: config.freeze ?? true,
-		generatedCode: getGeneratedCode(config, preferConst),
+		generatedCode,
 		globals: config.globals || {},
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
 		indent: getIndent(config, compact),
@@ -60,7 +61,7 @@ export function normalizeOutputOptions(
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name,
-		namespaceToStringTag: config.namespaceToStringTag || false,
+		namespaceToStringTag: getNamespaceToStringTag(config, generatedCode, inputOptions),
 		noConflict: config.noConflict || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
@@ -345,7 +346,8 @@ const getGeneratedCode = (
 		arrowFunctions: configWithPreset.arrowFunctions === true,
 		constBindings: configWithPreset.constBindings === true || preferConst,
 		objectShorthand: configWithPreset.objectShorthand === true,
-		reservedNamesAsProps: configWithPreset.reservedNamesAsProps === true
+		reservedNamesAsProps: configWithPreset.reservedNamesAsProps === true,
+		symbols: configWithPreset.symbols === true
 	};
 };
 
@@ -357,7 +359,14 @@ const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOpt
 	return configIndent === false ? '' : configIndent ?? true;
 };
 
-const ALLOWED_INTEROP_TYPES = new Set(['auto', 'esModule', 'default', 'defaultOnly', true, false]);
+const ALLOWED_INTEROP_TYPES: ReadonlySet<string | boolean> = new Set([
+	'auto',
+	'esModule',
+	'default',
+	'defaultOnly',
+	true,
+	false
+]);
 
 const getInterop = (
 	config: OutputOptions,
@@ -373,9 +382,9 @@ const getInterop = (
 					errInvalidOption(
 						'output.interop',
 						'outputinterop',
-						`use one of ${Array.from(ALLOWED_INTEROP_TYPES.values(), value =>
-							JSON.stringify(value)
-						).join(', ')}`,
+						`use one of ${Array.from(ALLOWED_INTEROP_TYPES, value => JSON.stringify(value)).join(
+							', '
+						)}`,
 						interop
 					)
 				);
@@ -445,3 +454,20 @@ const getMinifyInternalExports = (
 	compact: boolean
 ): NormalizedOutputOptions['minifyInternalExports'] =>
 	config.minifyInternalExports ?? (compact || format === 'es' || format === 'system');
+
+const getNamespaceToStringTag = (
+	config: OutputOptions,
+	generatedCode: NormalizedOutputOptions['generatedCode'],
+	inputOptions: NormalizedInputOptions
+): NormalizedOutputOptions['namespaceToStringTag'] => {
+	const configNamespaceToStringTag = config.namespaceToStringTag;
+	if (configNamespaceToStringTag != null) {
+		warnDeprecation(
+			`The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.`,
+			false,
+			inputOptions
+		);
+		return configNamespaceToStringTag;
+	}
+	return generatedCode.symbols || false;
+};

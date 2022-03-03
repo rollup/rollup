@@ -1,11 +1,11 @@
-import {
+import type {
 	CustomPluginOptions,
 	Plugin,
 	PluginContext,
 	ResolvedId,
 	ResolveIdResult
 } from '../rollup/types';
-import { PluginDriver, ReplaceContext } from './PluginDriver';
+import type { PluginDriver, ReplaceContext } from './PluginDriver';
 import { BLANK } from './blank';
 
 export function resolveIdViaPlugins(
@@ -17,9 +17,9 @@ export function resolveIdViaPlugins(
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
-		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null
+		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 	) => Promise<ResolvedId | null>,
-	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
+	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean
 ): Promise<ResolveIdResult> {

@@ -1,4 +1,4 @@
-import {
+import type {
 	InputOptions,
 	NormalizedGeneratedCodeOptions,
 	NormalizedOutputOptions,
@@ -17,7 +17,7 @@ export const defaultOnWarn: WarningHandler = warning => console.warn(warning.mes
 
 export function warnUnknownOptions(
 	passedOptions: GenericConfigObject,
-	validOptions: string[],
+	validOptions: readonly string[],
 	optionType: string,
 	warn: WarningHandler,
 	ignoredKeys = /$./
@@ -80,19 +80,24 @@ export const generatedCodePresets: {
 		arrowFunctions: true,
 		constBindings: true,
 		objectShorthand: true,
-		reservedNamesAsProps: true
+		reservedNamesAsProps: true,
+		symbols: true
 	},
 	es5: {
 		arrowFunctions: false,
 		constBindings: false,
 		objectShorthand: false,
-		reservedNamesAsProps: true
+		reservedNamesAsProps: true,
+		symbols: false
 	}
 };
 
 type ObjectOptionWithPresets =
 	| Partial<NormalizedTreeshakingOptions>
 	| Partial<NormalizedGeneratedCodeOptions>;
+
+export const objectifyOption = (value: unknown): Record<string, unknown> =>
+	value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
 export const objectifyOptionWithPresets =
 	<T extends ObjectOptionWithPresets>(
@@ -117,7 +122,7 @@ export const objectifyOptionWithPresets =
 				)
 			);
 		}
-		return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+		return objectifyOption(value);
 	};
 
 export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(

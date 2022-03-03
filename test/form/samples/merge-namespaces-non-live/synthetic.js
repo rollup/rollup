@@ -1,1 +1,1 @@
-export const __synthetic = { foo: 'foo' };
+export const __synthetic = { module: 'synthetic' };

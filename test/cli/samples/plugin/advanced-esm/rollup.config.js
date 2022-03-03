@@ -2,9 +2,7 @@ const buble = require('@rollup/plugin-buble');
 
 export default {
 	input: 'main.js',
-	plugins: [
-		buble()
-	],
+	plugins: [buble()],
 	output: [
 		{
 			file: '_actual/cjs.js',

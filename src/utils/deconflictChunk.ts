@@ -1,11 +1,11 @@
-import Chunk from '../Chunk';
+import type Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
-import Module from '../Module';
-import ChildScope from '../ast/scopes/ChildScope';
+import type Module from '../Module';
+import type ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
-import SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
-import Variable from '../ast/variables/Variable';
-import { GetInterop, InternalModuleFormat } from '../rollup/types';
+import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
+import type Variable from '../ast/variables/Variable';
+import type { GetInterop, InternalModuleFormat } from '../rollup/types';
 import {
 	canDefaultBeTakenFromNamespace,
 	defaultInteropHelpersByInteropType,
@@ -15,21 +15,21 @@ import {
 import { getSafeName } from './safeName';
 
 export interface DependenciesToBeDeconflicted {
-	deconflictedDefault: Set<ExternalModule>;
-	deconflictedNamespace: Set<ExternalModule | Chunk>;
-	dependencies: Set<ExternalModule | Chunk>;
+	deconflictedDefault: ReadonlySet<ExternalModule>;
+	deconflictedNamespace: ReadonlySet<ExternalModule | Chunk>;
+	dependencies: ReadonlySet<ExternalModule | Chunk>;
 }
 
 const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 	[format in InternalModuleFormat]: (
 		usedNames: Set<string>,
-		imports: Set<Variable>,
+		imports: ReadonlySet<Variable>,
 		dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 		interop: GetInterop,
 		preserveModules: boolean,
 		externalLiveBindings: boolean,
-		chunkByModule: Map<Module, Chunk>,
-		syntheticExports: Set<SyntheticNamedExportVariable>
+		chunkByModule: ReadonlyMap<Module, Chunk>,
+		syntheticExports: ReadonlySet<SyntheticNamedExportVariable>
 	) => void;
 } = {
 	amd: deconflictImportsOther,
@@ -41,19 +41,19 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 };
 
 export function deconflictChunk(
-	modules: Module[],
+	modules: readonly Module[],
 	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
-	imports: Set<Variable>,
+	imports: ReadonlySet<Variable>,
 	usedNames: Set<string>,
 	format: InternalModuleFormat,
 	interop: GetInterop,
 	preserveModules: boolean,
 	externalLiveBindings: boolean,
-	chunkByModule: Map<Module, Chunk>,
-	syntheticExports: Set<SyntheticNamedExportVariable>,
-	exportNamesByVariable: Map<Variable, string[]>,
-	accessedGlobalsByScope: Map<ChildScope, Set<string>>,
-	includedNamespaces: Set<Module>
+	chunkByModule: ReadonlyMap<Module, Chunk>,
+	syntheticExports: ReadonlySet<SyntheticNamedExportVariable>,
+	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
+	accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>,
+	includedNamespaces: ReadonlySet<Module>
 ): void {
 	const reversedModules = modules.slice().reverse();
 	for (const module of reversedModules) {
@@ -83,13 +83,13 @@ export function deconflictChunk(
 
 function deconflictImportsEsmOrSystem(
 	usedNames: Set<string>,
-	imports: Set<Variable>,
+	imports: ReadonlySet<Variable>,
 	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 	_interop: GetInterop,
 	preserveModules: boolean,
 	_externalLiveBindings: boolean,
-	chunkByModule: Map<Module, Chunk>,
-	syntheticExports: Set<SyntheticNamedExportVariable>
+	chunkByModule: ReadonlyMap<Module, Chunk>,
+	syntheticExports: ReadonlySet<SyntheticNamedExportVariable>
 ) {
 	// This is needed for namespace reexports
 	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
@@ -128,13 +128,13 @@ function deconflictImportsEsmOrSystem(
 
 function deconflictImportsOther(
 	usedNames: Set<string>,
-	imports: Set<Variable>,
+	imports: ReadonlySet<Variable>,
 	{ deconflictedDefault, deconflictedNamespace, dependencies }: DependenciesToBeDeconflicted,
 	interop: GetInterop,
 	preserveModules: boolean,
 	externalLiveBindings: boolean,
-	chunkByModule: Map<Module, Chunk>
-) {
+	chunkByModule: ReadonlyMap<Module, Chunk>
+): void {
 	for (const chunkOrExternalModule of dependencies) {
 		chunkOrExternalModule.variableName = getSafeName(
 			chunkOrExternalModule.suggestedVariableName,
@@ -206,9 +206,9 @@ function deconflictImportsOther(
 
 function deconflictTopLevelVariables(
 	usedNames: Set<string>,
-	modules: Module[],
-	includedNamespaces: Set<Module>
-) {
+	modules: readonly Module[],
+	includedNamespaces: ReadonlySet<Module>
+): void {
 	for (const module of modules) {
 		for (const variable of module.scope.variables.values()) {
 			if (

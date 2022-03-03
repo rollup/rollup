@@ -1,4 +1,4 @@
-import {
+import type {
 	ExternalOption,
 	InputOptions,
 	MergedRollupOptions,
@@ -8,11 +8,12 @@ import {
 	WarningHandlerWithDefault
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { CommandConfigObject } from './normalizeInputOptions';
+import type { CommandConfigObject } from './normalizeInputOptions';
 import {
 	defaultOnWarn,
 	generatedCodePresets,
-	GenericConfigObject,
+	type GenericConfigObject,
+	objectifyOption,
 	objectifyOptionWithPresets,
 	treeshakePresets,
 	warnUnknownOptions
@@ -86,7 +87,7 @@ function getCommandOptions(rawCommandOptions: GenericConfigObject): CommandConfi
 				? rawCommandOptions.globals.split(',').reduce((globals, globalDefinition) => {
 						const [id, variableName] = globalDefinition.split(':');
 						globals[id] = variableName;
-						if (external.indexOf(id) === -1) {
+						if (!external.includes(id)) {
 							external.push(id);
 						}
 						return globals;
@@ -135,7 +136,7 @@ function mergeInputOptions(
 			'treeshake',
 			objectifyOptionWithPresets(treeshakePresets, 'treeshake', 'false, true, ')
 		),
-		watch: getWatch(config, overrides, 'watch')
+		watch: getWatch(config, overrides)
 	};
 
 	warnUnknownOptions(
@@ -155,7 +156,7 @@ const getExternal = (
 	const configExternal = config.external as ExternalOption | undefined;
 	return typeof configExternal === 'function'
 		? (source: string, importer: string | undefined, isResolved: boolean) =>
-				configExternal(source, importer, isResolved) || overrides.external.indexOf(source) !== -1
+				configExternal(source, importer, isResolved) || overrides.external.includes(source)
 		: ensureArray(configExternal).concat(overrides.external);
 };
 
@@ -171,8 +172,7 @@ const getObjectOption = (
 	config: GenericConfigObject,
 	overrides: GenericConfigObject,
 	name: string,
-	objectifyValue: (value: unknown) => Record<string, unknown> | undefined = value =>
-		(typeof value === 'object' ? value : {}) as Record<string, unknown> | undefined
+	objectifyValue = objectifyOption
 ) => {
 	const commandOption = normalizeObjectOptionValue(overrides[name], objectifyValue);
 	const configOption = normalizeObjectOptionValue(config[name], objectifyValue);
@@ -182,8 +182,18 @@ const getObjectOption = (
 	return configOption;
 };
 
-const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject, name: string) =>
-	config.watch !== false && getObjectOption(config, overrides, name);
+export const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject) =>
+	config.watch !== false && getObjectOption(config, overrides, 'watch');
+
+export const isWatchEnabled = (optionValue: unknown): boolean => {
+	if (Array.isArray(optionValue)) {
+		return optionValue.reduce(
+			(result, value) => (typeof value === 'boolean' ? value : result),
+			false
+		);
+	}
+	return optionValue === true;
+};
 
 export const normalizeObjectOptionValue = (
 	optionValue: unknown,

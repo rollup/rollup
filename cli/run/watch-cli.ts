@@ -1,14 +1,15 @@
-import fs from 'fs';
+import { promises as fs, type FSWatcher } from 'fs';
+import process from 'process';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import * as rollup from '../../src/node-entry';
-import { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
+import type { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
 import { bold, cyan, green, underline } from '../../src/utils/colors';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import { BatchWarnings } from './batchWarnings';
+import type { BatchWarnings } from './batchWarnings';
 import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';
 import loadConfigFromCommand from './loadConfigFromCommand';
@@ -19,56 +20,46 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	process.env.ROLLUP_WATCH = 'true';
 	const isTTY = process.stderr.isTTY;
 	const silent = command.silent;
-	let configs: MergedRollupOptions[];
-	let warnings: BatchWarnings;
 	let watcher: RollupWatcher;
-	let configWatcher: fs.FSWatcher;
-	const configFile = command.config ? getConfigPath(command.config) : null;
+	let configWatcher: FSWatcher;
+	let resetScreen: (heading: string) => void;
+	const configFile = command.config ? await getConfigPath(command.config) : null;
 
 	onExit(close);
-	process.on('uncaughtException' as any, close);
+	process.on('uncaughtException', close);
 	if (!process.stdin.isTTY) {
 		process.stdin.on('end', close);
 		process.stdin.resume();
 	}
 
-	async function loadConfigFromFileAndTrack(configFile: string) {
-		let reloadingConfig = false;
-		let aborted = false;
+	async function loadConfigFromFileAndTrack(configFile: string): Promise<void> {
 		let configFileData: string | null = null;
+		let configFileRevision = 0;
 
-		configWatcher = chokidar.watch(configFile).on('change', () => reloadConfigFile());
+		configWatcher = chokidar.watch(configFile).on('change', reloadConfigFile);
 		await reloadConfigFile();
 
 		async function reloadConfigFile() {
 			try {
-				const newConfigFileData = fs.readFileSync(configFile, 'utf-8');
+				const newConfigFileData = await fs.readFile(configFile, 'utf8');
 				if (newConfigFileData === configFileData) {
 					return;
 				}
-				if (reloadingConfig) {
-					aborted = true;
-					return;
-				}
+				configFileRevision++;
+				const currentConfigFileRevision = configFileRevision;
 				if (configFileData) {
 					stderr(`\nReloading updated config...`);
 				}
 				configFileData = newConfigFileData;
-				reloadingConfig = true;
-				({ options: configs, warnings } = await loadAndParseConfigFile(configFile, command));
-				reloadingConfig = false;
-				if (aborted) {
-					aborted = false;
-					reloadConfigFile();
-				} else {
-					if (watcher) {
-						watcher.close();
-					}
-					start(configs);
+				const { options, warnings } = await loadAndParseConfigFile(configFile, command);
+				if (currentConfigFileRevision !== configFileRevision) {
+					return;
 				}
+				if (watcher) {
+					watcher.close();
+				}
+				start(options, warnings);
 			} catch (err: any) {
-				configs = [];
-				reloadingConfig = false;
 				handleError(err, true);
 			}
 		}
@@ -77,13 +68,11 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	if (configFile) {
 		await loadConfigFromFileAndTrack(configFile);
 	} else {
-		({ options: configs, warnings } = await loadConfigFromCommand(command));
-		start(configs);
+		const { options, warnings } = await loadConfigFromCommand(command);
+		start(options, warnings);
 	}
 
-	const resetScreen = getResetScreen(configs!, isTTY);
-
-	function start(configs: MergedRollupOptions[]) {
+	function start(configs: MergedRollupOptions[], warnings: BatchWarnings): void {
 		try {
 			watcher = rollup.watch(configs as any);
 		} catch (err: any) {
@@ -99,6 +88,9 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 				case 'START':
 					if (!silent) {
+						if (!resetScreen) {
+							resetScreen = getResetScreen(configs, isTTY);
+						}
 						resetScreen(underline(`rollup v${rollup.VERSION}`));
 					}
 					break;
@@ -144,7 +136,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		});
 	}
 
-	function close(code: number | null) {
+	function close(code: number | null): void {
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);

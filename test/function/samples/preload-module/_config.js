@@ -33,11 +33,14 @@ module.exports = {
 						assert.deepStrictEqual(moduleInfo, {
 							code: "import './dep';\nassert.ok(true);\n",
 							dynamicImporters: [],
+							hasDefaultExport: false,
+							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
-							hasModuleSideEffects: true,
+							moduleSideEffects: true,
 							id: ID_MAIN,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [],
 							importedIds: [],
 							importers: [],
 							isEntry: false,
@@ -55,7 +58,7 @@ module.exports = {
 						// No dependencies have been loaded yet
 						assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN]);
 						await this.load({ id: ID_OTHER });
-						assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN, ID_OTHER]);
+						assert.deepStrictEqual([...this.getModuleIds()].sort(), [ID_MAIN, ID_OTHER]);
 						return resolvedId;
 					}
 				},
@@ -71,11 +74,14 @@ module.exports = {
 					assert.deepStrictEqual(moduleInfo, {
 						code: 'assert.ok(true);\n',
 						dynamicImporters: [],
+						hasDefaultExport: false,
+						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],
-						hasModuleSideEffects: true,
+						moduleSideEffects: true,
 						id: ID_DEP,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
+						importedIdResolutions: [],
 						importedIds: [],
 						importers: [ID_MAIN],
 						isEntry: false,
@@ -90,7 +96,7 @@ module.exports = {
 						1
 					);
 					assert.strictEqual(parsedModules.filter(id => id === ID_DEP, 'parsed').length, 1);
-					assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN, ID_OTHER, ID_DEP]);
+					assert.deepStrictEqual([...this.getModuleIds()].sort(), [ID_DEP, ID_MAIN, ID_OTHER]);
 				}
 			}
 		]

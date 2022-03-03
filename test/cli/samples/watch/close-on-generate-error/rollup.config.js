@@ -4,11 +4,11 @@ export default {
 		{
 			name: 'faulty-close',
 			closeBundle() {
-				console.error('Bundle closed')
+				console.error('Bundle closed');
 			}
 		}
 	],
 	output: {
-		format: "es"
+		format: 'es'
 	}
 };

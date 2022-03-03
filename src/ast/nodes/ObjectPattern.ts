@@ -1,21 +1,21 @@
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
+import type LocalVariable from '../variables/LocalVariable';
+import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import Property from './Property';
-import RestElement from './RestElement';
-import { ExpressionEntity } from './shared/Expression';
+import type Property from './Property';
+import type RestElement from './RestElement';
+import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { PatternNode } from './shared/Pattern';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
-	declare properties: (Property | RestElement)[];
+	declare properties: readonly (Property | RestElement)[];
 	declare type: NodeType.tObjectPattern;
 
 	addExportedVariables(
-		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const property of this.properties) {
 			if (property.type === NodeType.Property) {

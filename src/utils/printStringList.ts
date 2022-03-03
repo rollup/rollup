@@ -1,4 +1,7 @@
-export function printQuotedStringList(list: string[], verbs?: [string, string]): string {
+export function printQuotedStringList(
+	list: readonly string[],
+	verbs?: readonly [string, string]
+): string {
 	const isSingleItem = list.length <= 1;
 	const quotedList = list.map(item => `"${item}"`);
 	let output = isSingleItem

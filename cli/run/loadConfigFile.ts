@@ -1,19 +1,20 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { promises as fs } from 'fs';
+import { extname, isAbsolute } from 'path';
+import { version } from 'process';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
-import { MergedRollupOptions } from '../../src/rollup/types';
+import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import { error } from '../../src/utils/error';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
-import { GenericConfigObject } from '../../src/utils/options/options';
+import type { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
-import batchWarnings, { BatchWarnings } from './batchWarnings';
+import batchWarnings, { type BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
-function supportsNativeESM() {
-	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
+function supportsNativeESM(): boolean {
+	return Number(/^v(\d+)/.exec(version)![1]) >= 13;
 }
 
 interface NodeModuleWithCompile extends NodeModule {
@@ -44,7 +45,7 @@ async function loadConfigFile(
 	fileName: string,
 	commandOptions: Record<string, unknown>
 ): Promise<GenericConfigObject[]> {
-	const extension = path.extname(fileName);
+	const extension = extname(fileName);
 
 	const configFileExport =
 		commandOptions.configPlugin ||
@@ -57,7 +58,7 @@ async function loadConfigFile(
 	return getConfigList(configFileExport, commandOptions);
 }
 
-function getDefaultFromCjs(namespace: GenericConfigObject) {
+function getDefaultFromCjs(namespace: GenericConfigObject): unknown {
 	return namespace.__esModule ? namespace.default : namespace;
 }
 
@@ -68,7 +69,7 @@ async function getDefaultFromTranspiledConfigFile(
 	const warnings = batchWarnings();
 	const inputOptions = {
 		external: (id: string) =>
-			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
+			(id[0] !== '.' && !isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
 		plugins: [],
@@ -102,9 +103,9 @@ async function getDefaultFromTranspiledConfigFile(
 	return loadConfigFromBundledFile(fileName, code);
 }
 
-async function loadConfigFromBundledFile(fileName: string, bundledCode: string) {
-	const resolvedFileName = fs.realpathSync(fileName);
-	const extension = path.extname(resolvedFileName);
+async function loadConfigFromBundledFile(fileName: string, bundledCode: string): Promise<unknown> {
+	const resolvedFileName = await fs.realpath(fileName);
+	const extension = extname(resolvedFileName);
 	const defaultLoader = require.extensions[extension];
 	require.extensions[extension] = (module: NodeModule, requiredFileName: string) => {
 		if (requiredFileName === resolvedFileName) {
@@ -132,7 +133,7 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 	}
 }
 
-async function getConfigList(configFileExport: any, commandOptions: any) {
+async function getConfigList(configFileExport: any, commandOptions: any): Promise<any[]> {
 	const config = await (typeof configFileExport === 'function'
 		? configFileExport(commandOptions)
 		: configFileExport);

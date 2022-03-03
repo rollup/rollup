@@ -3,7 +3,7 @@ import {
 	METHOD_RETURNS_STRING,
 	METHOD_RETURNS_UNKNOWN
 } from './MethodTypes';
-import { ObjectEntity, PropertyMap } from './ObjectEntity';
+import { ObjectEntity, type PropertyMap } from './ObjectEntity';
 
 export const OBJECT_PROTOTYPE = new ObjectEntity(
 	{

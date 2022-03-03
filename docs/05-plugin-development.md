@@ -102,7 +102,7 @@ Notifies a plugin when watcher process closes and all open resources should be c
 
 #### `load`
 
-**Type:** `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](guide/en/#thisload) to preload the module corresponding to an id.<br> **Next Hook:** [`transform`](guide/en/#transform) to transform the loaded file.
+**Type:** `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](guide/en/#thisload) to preload the module corresponding to an id.<br> **Next Hook:** [`transform`](guide/en/#transform) to transform the loaded file if no cache was used, or there was no cached copy with the same `code`, otherwise [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule).
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -116,13 +116,13 @@ You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo) to find out the 
 
 #### `moduleParsed`
 
-**Type:** `(moduleInfo: ModuleInfo) => void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`transform`](guide/en/#transform) where the currently handled file was transformed.<br> NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
+**Type:** `(moduleInfo: ModuleInfo) => void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`transform`](guide/en/#transform) where the currently handled file was transformed.<br> **Next Hook:** [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
 
 This hook is called each time a module has been fully parsed by Rollup. See [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo) for what information is passed to this hook.
 
 In contrast to the [`transform`](guide/en/#transform) hook, this hook is never cached and can be used to get information about both cached and other modules, including the final shape of the `meta` property, the `code` and the `ast`.
 
-This hook will wait until all imports are resolved so that the information in `moduleInfo.importedIds` and `moduleInfo.dynamicallyImportedIds` is complete and accurate. Note however that information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
+This hook will wait until all imports are resolved so that the information in `moduleInfo.importedIds`, `moduleInfo.dynamicallyImportedIds`, `moduleInfo.importedIdResolutions`, and `moduleInfo.dynamicallyImportedIdResolutions` is complete and accurate. Note however that information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
 
 #### `options`
 
@@ -164,27 +164,67 @@ The `importer` is the fully resolved id of the importing module. When resolving 
 
 For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](guide/en/#thisresolve) context function.
 
-You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
+You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will proxy all entry points to inject a polyfill import.
 
 ```js
-function onlyDefaultForEntriesPlugin() {
+// We prefix the polyfill id with \0 to tell other plugins not to try to load or
+// transform it
+const POLYFILL_ID = '\0polyfill';
+const PROXY_SUFFIX = '?inject-polyfill-proxy';
+
+function injectPolyfillPlugin() {
   return {
-    name: 'only-default-for-entries',
+    name: 'inject-polyfill',
     async resolveId(source, importer, options) {
+      if (source === POLYFILL_ID) {
+        // It is important that side effects are always respected for polyfills,
+        // otherwise using "treeshake.moduleSideEffects: false" may prevent the
+        // polyfill from being included.
+        return { id: POLYFILL_ID, moduleSideEffects: true };
+      }
       if (options.isEntry) {
-        // We need to skip this plugin to avoid an infinite loop
+        // Determine what the actual entry would have been. We need "skipSelf"
+        // to avoid an infinite loop.
         const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
-        // If it cannot be resolved, return `null` so that Rollup displays an error
-        if (!resolution) return null;
-        return `${resolution.id}?entry-proxy`;
+        // If it cannot be resolved or is external, just return it so that
+        // Rollup can display an error
+        if (!resolution || resolution.external) return resolution;
+        // In the load hook of the proxy, we need to know if the entry has a
+        // default export. There, however, we no longer have the full
+        // "resolution" object that may contain meta-data from other plugins
+        // that is only added on first load. Therefore we trigger loading here.
+        const moduleInfo = await this.load(resolution);
+        // We need to make sure side effects in the original entry point
+        // are respected even for treeshake.moduleSideEffects: false.
+        // "moduleSideEffects" is a writable property on ModuleInfo.
+        moduleInfo.moduleSideEffects = true;
+        // It is important that the new entry does not start with \0 and
+        // has the same directory as the original one to not mess up
+        // relative external import generation. Also keeping the name and
+        // just adding a "?query" to the end ensures that preserveModules
+        // will generate the original entry name for this entry.
+        return `${resolution.id}${PROXY_SUFFIX}`;
       }
       return null;
     },
     load(id) {
-      if (id.endsWith('?entry-proxy')) {
-        const importee = id.slice(0, -'?entry-proxy'.length);
-        // Note that this will throw if there is no default export
-        return `export {default} from '${importee}';`;
+      if (id === POLYFILL_ID) {
+        // Replace with actual polyfill
+        return "console.log('polyfill');";
+      }
+      if (id.endsWith(PROXY_SUFFIX)) {
+        const entryId = id.slice(0, -PROXY_SUFFIX.length);
+        // We know ModuleInfo.hasDefaultExport is reliable because we awaited
+        // this.load in resolveId
+        const { hasDefaultExport } = this.getModuleInfo(entryId);
+        let code =
+          `import ${JSON.stringify(POLYFILL_ID)};` + `export * from ${JSON.stringify(entryId)};`;
+        // Namespace reexports do not reexport default, so we need special
+        // handling here
+        if (hasDefaultExport) {
+          code += `export { default } from ${JSON.stringify(entryId)};`;
+        }
+        return code;
       }
       return null;
     }
@@ -222,13 +262,27 @@ Note that while `resolveId` will be called for each import of a module and can t
 
 When triggering this hook from a plugin via [`this.resolve`](guide/en/#thisresolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](guide/en/#custom-resolver-options).
 
+In watch mode or when using the cache explicitly, the resolved imports of a cached module are also taken from the cache and not determined via the `resolveId` hook again. To prevent this, you can return `true` from the [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule) hook for that module. This will remove the module and its import resolutions from cache and call `transform` and `resolveId` again.
+
+#### `shouldTransformCachedModule`
+
+**Type:** `({id: string, code: string, ast: ESTree.Program, resoledSources: {[source: string]: ResolvedId}, meta: {[plugin: string]: any}, moduleSideEffects: boolean | "no-treeshake", syntheticNamedExports: string | boolean}) => boolean`<br> **Kind:** `async, first`<br> **Previous Hook:** [`load`](guide/en/#load) where the cached file was loaded to compare its code with the cached version.<br> **Next Hook:** [`moduleParsed`](guide/en/#moduleparsed) if no plugin returns `true`, otherwise [`transform`](guide/en/#transform).
+
+If the Rollup cache is used (e.g. in watch mode or explicitly via the JavaScript API), Rollup will skip the [`transform`](guide/en/#transform) hook of a module if after the [`load`](guide/en/#transform) hook, the loaded `code` is identical to the code of the cached copy. To prevent this, discard the cached copy and instead transform a module, plugins can implement this hook and return `true`.
+
+This hook can also be used to find out which modules were cached and access their cached meta information.
+
+If a plugin does not return `true`, Rollup will trigger this hook for other plugins, otherwise all remaining plugins will be skipped.
+
 #### `transform`
 
-**Type:** `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`load`](guide/en/#load) where the currently handled file was loaded.<br> NextHook: [`moduleParsed`](guide/en/#moduleparsed) once the file has been processed and parsed.
+**Type:** `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`load`](guide/en/#load) where the currently handled file was loaded. If caching is used and there was a cached copy of that module, [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule) if a plugin returned `true` for that hook.<br> **Next Hook:** [`moduleParsed`](guide/en/#moduleparsed) once the file has been processed and parsed.
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
-Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
+Note that in watch mode or when using the cache explicitly, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
+
+In all other cases, the [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule) hook is triggered instead, which gives access to the cached module. Returning `true` from `shouldTransformCachedModule` will remove the module from cache and instead call `transform` again.
 
 You can also use the object form of the return value to configure additional properties of the module. Note that it's possible to return only properties and no code transformations.
 
@@ -663,22 +717,42 @@ type ModuleInfo = {
   id: string; // the id of the module, for convenience
   code: string | null; // the source code of the module, `null` if external or not yet available
   ast: ESTree.Program; // the parsed abstract syntax tree if available
+  hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
   isEntry: boolean; // is this a user- or plugin-defined entry point
   isExternal: boolean; // for external modules that are referenced but not included in the graph
   isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
   importedIds: string[]; // the module ids statically imported by this module
+  importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
   importers: string[]; // the ids of all modules that statically import this module
   dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
+  dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
   dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
   implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
   implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
-  hasModuleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
   meta: { [plugin: string]: any }; // custom module meta-data
+  moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
   syntheticNamedExports: boolean | string; // final value of synthetic named exports
+};
+
+type ResolvedId = {
+  id: string; // the id of the imported module
+  external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
+  moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
+  syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
+  meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
 };
 ```
 
-During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g. the `importedIds` are not yet resolved or additional `importers` are discovered.
+During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](guide/en/#buildend) hook:
+
+- `id` and `isExternal` will never change.
+- `code`, `ast` and `hasDefaultExport` are only available after parsing, i.e. in the [`moduleParsed`](guide/en/#moduleparsed) hook or after awaiting [`this.load`](guide/en/#thisload). At that point, they will no longer change.
+- if `isEntry` is `true`, it will no longer change. It is however possible for modules to become entry points after they are parsed, either via [`this.emitFile`](guide/en/#thisemitfile) or because a plugin inspects a potential entry point via [`this.load`](guide/en/#thisload) in the [`resolveId`](guide/en/#resolveid) hook when resolving an entry point. Therefore, it is not recommended relying on this flag in the [`transform`](guide/en/#transform) hook. It will no longer change after `buildEnd`.
+- Similarly, `implicitlyLoadedAfterOneOf` can receive additional entries at any time before `buildEnd` via [`this.emitFile`](guide/en/#thisemitfile).
+- `importers`, `dynamicImporters` and `implicitlyLoadedBefore` will start as empty arrays, which receive additional entries as new importers and implicit dependents are discovered. They will no longer change after `buildEnd`.
+- `isIncluded` is only available after `buildEnd`, at which point it will no longer change.
+- `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](guide/en/#thisload) with the `resolveDependencies` flag. At that point, they will no longer change.
+- `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](guide/en/#load) and [`transform`](guide/en/#transform) hooks. Moreover, while most properties are read-only, `moduleSideEffects` is writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
 
 Returns `null` if the module id cannot be found.
 
@@ -690,15 +764,15 @@ Get ids of the files which has been watched previously. Include both files added
 
 #### `this.load`
 
-**Type:** `({id: string, moduleSideEffects?: boolean | 'no-treeshake' | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}) => Promise<ModuleInfo>`
+**Type:** `({id: string, moduleSideEffects?: boolean | 'no-treeshake' | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null, resolveDependencies?: boolean}) => Promise<ModuleInfo>`
 
 Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](guide/en/#load), [`transform`](guide/en/#transform) and [`moduleParsed`](guide/en/#moduleparsed) hooks that would be triggered if the module were imported by another module.
 
 This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](guide/en/#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](guide/en/#thisresolve) to this function as long as it is neither `null` nor external.
 
-The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds` and `dynamicallyImportedIds`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you should implement a `moduleParsed` hook.
+The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the promise returned by `this.load` wait until all dependency ids have been resolved.
 
-Note that with regard to the `moduleSideEffects`, `syntheticNamedExports` and `meta` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment:
+Note that with regard to the `moduleSideEffects`, `syntheticNamedExports` and `meta` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment. Note the special handling for re-exporting the default export:
 
 ```js
 export default function addProxyPlugin() {
@@ -714,7 +788,7 @@ export default function addProxyPlugin() {
       if (resolution && !resolution.external) {
         // we pass on the entire resolution information
         const moduleInfo = await this.load(resolution);
-        if (moduleInfo.code.indexOf('/* use proxy */') >= 0) {
+        if (moduleInfo.code.includes('/* use proxy */')) {
           return `${resolution.id}?proxy`;
         }
       }
@@ -724,7 +798,16 @@ export default function addProxyPlugin() {
     load(id) {
       if (id.endsWith('?proxy')) {
         const importee = id.slice(0, -'?proxy'.length);
-        return `console.log('proxy for ${importee}'); export * from ${JSON.stringify(importee)};`;
+        // Note that namespace reexports do not reexport default exports
+        let code = `console.log('proxy for ${importee}'); export * from ${JSON.stringify(
+          importee
+        )};`;
+        // We know that while resolving the proxy, importee was already fully
+        // loaded and parsed, so we can rely on hasDefaultExport
+        if (this.getModuleInfo(importee).hasDefaultExport) {
+          code += `export { default } from ${JSON.stringify(importee)};`;
+        }
+        return code;
       }
       return null;
     }
@@ -732,9 +815,76 @@ export default function addProxyPlugin() {
 }
 ```
 
-If the module was already loaded, this will just wait for the parsing to complete and then return its module information. If the module was not yet imported by another module, this will not automatically trigger loading other modules imported by this module. Instead, static and dynamic dependencies will only be loaded once this module has actually been imported at least once.
+If the module was already loaded, `this.load` will just wait for the parsing to complete and then return its module information. If the module was not yet imported by another module, it will not automatically trigger loading other modules imported by this module. Instead, static and dynamic dependencies will only be loaded once this module has actually been imported at least once.
 
 While it is safe to use `this.load` in a `resolveId` hook, you should be very careful when awaiting it in a `load` or `transform` hook. If there are cyclic dependencies in the module graph, this can easily lead to a deadlock, so any plugin needs to manually take care to avoid waiting for `this.load` inside the `load` or `transform` of the any module that is in a cycle with the loaded module.
+
+Here is another, more elaborate example where we scan entire dependency sub-graphs via the `resolveDependencies` option and repeated calls to `this.load`. We use a `Set` of handled module ids to handle cyclic dependencies. The goal of the plugin is to add a log to each dynamically imported chunk that just lists all modules in the chunk. While this is just a toy example, the technique could be used to e.g. create a single style tag for all CSS imported in the sub-graph.
+
+```js
+// The leading \0 instructs other plugins not to try to resolve, load or
+// transform our proxy modules
+const DYNAMIC_IMPORT_PROXY_PREFIX = '\0dynamic-import:';
+
+export default function dynamicChunkLogsPlugin() {
+  return {
+    name: 'dynamic-chunk-logs',
+    async resolveDynamicImport(specifier, importer) {
+      // Ignore non-static targets
+      if (!(typeof specifier === 'string')) return;
+      // Get the id and initial meta information of the import target
+      const resolved = await this.resolve(specifier, importer);
+      // Ignore external targets. Explicit externals have the "external"
+      // property while unresolved imports are "null".
+      if (resolved && !resolved.external) {
+        // We trigger loading the module without waiting for it here
+        // because meta information attached by resolveId hooks, that may
+        // be contained in "resolved" and that plugins like "commonjs" may
+        // depend upon, is only attached to a module the first time it is
+        // loaded.
+        // This ensures that this meta information is not lost when we later
+        // use "this.load" again in the load hook with just the module id.
+        this.load(resolved);
+        return `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`;
+      }
+    },
+    async load(id) {
+      // Ignore all files except our dynamic import proxies
+      if (!id.startsWith('\0dynamic-import:')) return null;
+      const actualId = id.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
+      // To allow loading modules in parallel while keeping complexity low,
+      // we do not directly await each "this.load" call but put their
+      // promises into an array where we await them via an async for loop.
+      const moduleInfoPromises = [this.load({ id: actualId, resolveDependencies: true })];
+      // We track each loaded dependency here so that we do not load a file
+      // twice and also do  not get stuck when there are circular
+      // dependencies.
+      const dependencies = new Set([actualId]);
+      // "importedIdResolutions" tracks the objects created by resolveId
+      // hooks. We are using those instead of "importedIds" so that again,
+      // important meta information is not lost.
+      for await (const { importedIdResolutions } of moduleInfoPromises) {
+        for (const resolved of importedIdResolutions) {
+          if (!dependencies.has(resolved.id)) {
+            dependencies.add(resolved.id);
+            moduleInfoPromises.push(this.load({ ...resolved, resolveDependencies: true }));
+          }
+        }
+      }
+      // We log all modules in a dynamic chunk when it is loaded.
+      let code = `console.log([${[...dependencies]
+        .map(JSON.stringify)
+        .join(', ')}]); export * from ${JSON.stringify(actualId)};`;
+      // Namespace reexports do not reexport default exports, which is why
+      // we reexport it manually if it exists
+      if (this.getModuleInfo(actualId).hasDefaultExport) {
+        code += `export { default } from ${JSON.stringify(actualId)};`;
+      }
+      return code;
+    }
+  };
+}
+```
 
 #### `this.meta`
 
@@ -1055,7 +1205,7 @@ Note the convention that custom options should be added using a property corresp
 
 #### Custom module meta-data
 
-Plugins can annotate modules with custom meta-data which can be accessed by themselves and other plugins via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load), and [`transform`](guide/en/#transform) hooks. This meta-data should always be JSON.stringifyable and will be persisted in the cache e.g. in watch mode.
+Plugins can annotate modules with custom meta-data which can be set by themselves and other plugins via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load), and [`transform`](guide/en/#transform) hooks and accessed via [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo), [`this.load`](guide/en/#thisload) and the [`moduleParsed`](guide/en/#moduleparsed) hook. This meta-data should always be JSON.stringifyable and will be persisted in the cache e.g. in watch mode.
 
 ```js
 function annotatingPlugin() {
@@ -1087,6 +1237,26 @@ Note the convention that plugins that add or modify data should use a property c
 
 If several plugins add meta-data or meta-data is added in different hooks, then these `meta` objects will be merged shallowly. That means if plugin `first` adds `{meta: {first: {resolved: "first"}}}` in the resolveId hook and `{meta: {first: {loaded: "first"}}}` in the load hook while plugin `second` adds `{meta: {second: {transformed: "second"}}}` in the `transform` hook, then the resulting `meta` object will be `{first: {loaded: "first"}, second: {transformed: "second"}}`. Here the result of the `resolveId` hook will be overwritten by the result of the `load` hook as the plugin was both storing them under its `first` top-level property. The `transform` data of the other plugin on the other hand will be placed next to it.
 
+The `meta` object of a module is created as soon as Rollup starts loading a module and is updated for each lifecycle hook of the module. If you store a reference to this object, you can also update it manually. To access the meta object of a module that has not been loaded yet, you can trigger its creation and loading the module via [`this.load`](guide/en/#thisload):
+
+```js
+function plugin() {
+  return {
+    name: 'test',
+    buildStart() {
+      // trigger loading a module. We could also pass an initial "meta" object
+      // here, but it would be ignored if the module was already loaded via
+      // other means
+      this.load({ id: 'my-id' });
+      // the module info is now available, we do not need to await this.load
+      const meta = this.getModuleInfo('my-id').meta;
+      // we can also modify meta manually now
+      meta.test = { some: 'data' };
+    }
+  };
+}
+```
+
 #### Direct plugin communication
 
 For any other kind of inter-plugin communication, we recommend the pattern below. Note that `api` will never conflict with any upcoming plugin hooks.
@@ -1102,7 +1272,7 @@ function parentPlugin() {
       }
     }
     // ...plugin hooks
-  }
+  };
 }
 
 function dependentPlugin() {
@@ -1111,20 +1281,19 @@ function dependentPlugin() {
     name: 'dependent',
     buildStart({ plugins }) {
       const parentName = 'parent';
-      const parentPlugin = options.plugins
-              .find(plugin => plugin.name === parentName);
+      const parentPlugin = plugins.find(plugin => plugin.name === parentName);
       if (!parentPlugin) {
         // or handle this silently if it is optional
         throw new Error(`This plugin depends on the "${parentName}" plugin.`);
       }
       // now you can access the API methods in subsequent hooks
       parentApi = parentPlugin.api;
-    }
+    },
     transform(code, id) {
       if (thereIsAReasonToDoSomething(id)) {
         parentApi.doSomething(id);
       }
     }
-  }
+  };
 }
 ```

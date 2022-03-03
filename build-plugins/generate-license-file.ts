@@ -1,24 +1,24 @@
-import fs from 'fs';
-import { PluginImpl } from 'rollup';
-import license, { Dependency, Person } from 'rollup-plugin-license';
+import { promises as fs } from 'fs';
+import type { PluginImpl } from 'rollup';
+import license, { type Dependency, type Person } from 'rollup-plugin-license';
 
-function generateLicenseFile(dependencies: Dependency[]) {
-	const coreLicense = fs.readFileSync('LICENSE-CORE.md');
-	const licenses = new Set();
-	const dependencyLicenseTexts = dependencies
+async function generateLicenseFile(dependencies: readonly Dependency[]): Promise<void> {
+	const coreLicense = await fs.readFile('LICENSE-CORE.md', 'utf8');
+	const licenses = new Set<string>();
+	const dependencyLicenseTexts = Array.from(dependencies)
 		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
 		.map(({ name, license, licenseText, author, maintainers, contributors, repository }) => {
 			let text = `## ${name}\n`;
 			if (license) {
 				text += `License: ${license}\n`;
 			}
-			const names = new Set();
-			if (author && author.name) {
+			const names = new Set<string>();
+			if (author?.name) {
 				names.add(author.name);
 			}
 			// TODO there is an inconsistency in the rollup-plugin-license types
 			for (const person of contributors.concat(maintainers as unknown as Person[])) {
-				if (person && person.name) {
+				if (person?.name) {
 					names.add(person.name);
 				}
 			}
@@ -39,7 +39,7 @@ function generateLicenseFile(dependencies: Dependency[]) {
 						.join('\n') +
 					'\n';
 			}
-			licenses.add(license);
+			licenses.add(license!);
 			return text;
 		})
 		.join('\n---------------------------------------\n\n');
@@ -52,23 +52,25 @@ function generateLicenseFile(dependencies: Dependency[]) {
 		`${Array.from(licenses).join(', ')}\n\n` +
 		`# Bundled dependencies:\n` +
 		dependencyLicenseTexts;
-	const existingLicenseText = fs.readFileSync('LICENSE.md', 'utf8');
+	const existingLicenseText = await fs.readFile('LICENSE.md', 'utf8');
 	if (existingLicenseText !== licenseText) {
-		fs.writeFileSync('LICENSE.md', licenseText);
+		await fs.writeFile('LICENSE.md', licenseText);
 		console.warn('LICENSE.md updated. You should commit the updated file.');
 	}
 }
 
-export default function getLicenseHandler(): {
+interface LicenseHandler {
 	collectLicenses: PluginImpl;
 	writeLicense: PluginImpl;
-} {
-	const licenses = new Map();
+}
+
+export default function getLicenseHandler(): LicenseHandler {
+	const licenses = new Map<string, Dependency>();
 	return {
 		collectLicenses() {
-			function addLicenses(dependencies: Dependency[]) {
+			function addLicenses(dependencies: readonly Dependency[]) {
 				for (const dependency of dependencies) {
-					licenses.set(dependency.name, dependency);
+					licenses.set(dependency.name!, dependency);
 				}
 			}
 
@@ -78,7 +80,7 @@ export default function getLicenseHandler(): {
 			return {
 				name: 'write-license',
 				writeBundle() {
-					generateLicenseFile(Array.from(licenses.values()));
+					return generateLicenseFile(Array.from(licenses.values()));
 				}
 			};
 		}

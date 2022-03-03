@@ -1,4 +1,4 @@
-import { RollupWarning } from '../../src/rollup/types';
+import type { RollupWarning } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
 import { getOrCreate } from '../../src/utils/getOrCreate';
 import { printQuotedStringList } from '../../src/utils/printStringList';
@@ -14,11 +14,11 @@ export interface BatchWarnings {
 
 export default function batchWarnings(): BatchWarnings {
 	let count = 0;
-	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
+	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
 	let warningOccurred = false;
 
 	return {
-		add: (warning: RollupWarning) => {
+		add(warning: RollupWarning) {
 			count += 1;
 			warningOccurred = true;
 
@@ -48,7 +48,7 @@ export default function batchWarnings(): BatchWarnings {
 			return count;
 		},
 
-		flush: () => {
+		flush() {
 			if (count === 0) return;
 
 			const codes = Array.from(deferredWarnings.keys()).sort(
@@ -59,7 +59,7 @@ export default function batchWarnings(): BatchWarnings {
 				deferredHandlers[code](deferredWarnings.get(code)!);
 			}
 
-			deferredWarnings = new Map();
+			deferredWarnings.clear();
 			count = 0;
 		},
 
@@ -72,7 +72,7 @@ export default function batchWarnings(): BatchWarnings {
 const immediateHandlers: {
 	[code: string]: (warning: RollupWarning) => void;
 } = {
-	MISSING_NODE_BUILTINS: warning => {
+	MISSING_NODE_BUILTINS(warning) {
 		title(`Missing shims for Node.js built-ins`);
 
 		stderr(
@@ -82,7 +82,7 @@ const immediateHandlers: {
 		);
 	},
 
-	UNKNOWN_OPTION: warning => {
+	UNKNOWN_OPTION(warning) {
 		title(`You have passed an unrecognized option`);
 		stderr(warning.message);
 	}
@@ -138,10 +138,11 @@ const deferredHandlers: {
 		}
 	},
 
-	MIXED_EXPORTS: warnings => {
+	MIXED_EXPORTS(warnings) {
 		title('Mixing named and default exports');
 		info(`https://rollupjs.org/guide/en/#outputexports`);
 		stderr(bold('The following entry modules are using named and default exports together:'));
+		warnings.sort((a, b) => (a.id! < b.id! ? -1 : 1));
 		const displayedWarnings = warnings.length > 5 ? warnings.slice(0, 3) : warnings;
 		for (const warning of displayedWarnings) {
 			stderr(relativeId(warning.id!));
@@ -203,9 +204,7 @@ const deferredHandlers: {
 		title(`Broken sourcemap`);
 		info('https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect');
 
-		const plugins = [
-			...new Set(warnings.map(warning => warning.plugin).filter(Boolean))
-		] as string[];
+		const plugins = [...new Set(warnings.map(({ plugin }) => plugin).filter(Boolean))] as string[];
 		stderr(
 			`Plugins that transform code (such as ${printQuotedStringList(
 				plugins
@@ -223,13 +222,12 @@ const deferredHandlers: {
 		title('Unresolved dependencies');
 		info('https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency');
 
-		const dependencies = new Map();
+		const dependencies = new Map<string, string[]>();
 		for (const warning of warnings) {
-			getOrCreate(dependencies, warning.source, () => []).push(warning.importer);
+			getOrCreate(dependencies, warning.source, () => []).push(warning.importer!);
 		}
 
-		for (const dependency of dependencies.keys()) {
-			const importers = dependencies.get(dependency);
+		for (const [dependency, importers] of dependencies) {
 			stderr(`${bold(dependency)} (imported by ${importers.join(', ')})`);
 		}
 	},
@@ -242,26 +240,31 @@ const deferredHandlers: {
 					' imported from external module "' +
 					warning.source +
 					'" but never used in ' +
-					printQuotedStringList((warning.sources as string[]).map(id => relativeId(id)))
+					printQuotedStringList(warning.sources!.map(id => relativeId(id)))
 			);
 		}
 	}
 };
 
-function title(str: string) {
+function title(str: string): void {
 	stderr(bold(yellow(`(!) ${str}`)));
 }
 
-function info(url: string) {
+function info(url: string): void {
 	stderr(gray(url));
 }
 
-function nest<T>(array: T[], prop: string) {
-	const nested: { items: T[]; key: string }[] = [];
-	const lookup = new Map<string, { items: T[]; key: string }>();
+interface Nested<T> {
+	items: T[];
+	key: string;
+}
+
+function nest<T extends Record<string, any>>(array: readonly T[], prop: string): Nested<T>[] {
+	const nested: Nested<T>[] = [];
+	const lookup = new Map<string, Nested<T>>();
 
 	for (const item of array) {
-		const key = (item as any)[prop];
+		const key = item[prop];
 		getOrCreate(lookup, key, () => {
 			const items = {
 				items: [],
@@ -275,7 +278,7 @@ function nest<T>(array: T[], prop: string) {
 	return nested;
 }
 
-function showTruncatedWarnings(warnings: RollupWarning[]) {
+function showTruncatedWarnings(warnings: readonly RollupWarning[]): void {
 	const nestedByModule = nest(warnings, 'id');
 
 	const displayedByModule = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;

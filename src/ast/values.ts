@@ -1,8 +1,8 @@
-import { CallOptions, NO_ARGS } from './CallOptions';
-import { HasEffectsContext } from './ExecutionContext';
-import { LiteralValue } from './nodes/Literal';
+import { type CallOptions, NO_ARGS } from './CallOptions';
+import type { HasEffectsContext } from './ExecutionContext';
+import type { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
-import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
+import { EMPTY_PATH, type ObjectPath, type ObjectPathKey } from './utils/PathTracker';
 
 export interface MemberDescription {
 	callsArgs: number[] | null;
@@ -236,9 +236,8 @@ export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>
 			return literalNumberMembers;
 		case 'string':
 			return literalStringMembers;
-		default:
-			return Object.create(null);
 	}
+	return Object.create(null);
 }
 
 export function hasMemberEffectWhenCalled(

@@ -5,7 +5,7 @@ export default {
 			format: 'cjs',
 			dir: '_actual',
 			entryFileNames: '[name]-[format].js',
-			sourcemap: true,
+			sourcemap: true
 		},
 		{
 			format: 'es',

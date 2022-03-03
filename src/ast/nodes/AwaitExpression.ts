@@ -1,9 +1,9 @@
-import { InclusionContext } from '../ExecutionContext';
+import type { InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
-import { ExpressionNode, IncludeChildren, Node, NodeBase } from './shared/Node';
+import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from './shared/Node';
 
 export default class AwaitExpression extends NodeBase {
 	declare argument: ExpressionNode;

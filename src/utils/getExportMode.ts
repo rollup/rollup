@@ -1,5 +1,5 @@
-import Chunk from '../Chunk';
-import { NormalizedOutputOptions, WarningHandler } from '../rollup/types';
+import type Chunk from '../Chunk';
+import type { NormalizedOutputOptions, WarningHandler } from '../rollup/types';
 import {
 	errIncompatibleExportOptionValue,
 	errMixedExport,
@@ -10,7 +10,7 @@ import {
 export default function getExportMode(
 	chunk: Chunk,
 	{ exports: exportMode, name, format }: NormalizedOutputOptions,
-	unsetOptions: Set<string>,
+	unsetOptions: ReadonlySet<string>,
 	facadeModuleId: string,
 	warn: WarningHandler
 ): 'default' | 'named' | 'none' {
@@ -33,7 +33,7 @@ export default function getExportMode(
 			}
 			exportMode = 'default';
 		} else {
-			if (format !== 'es' && format !== 'system' && exportKeys.indexOf('default') !== -1) {
+			if (format !== 'es' && format !== 'system' && exportKeys.includes('default')) {
 				warn(errMixedExport(facadeModuleId, name));
 			}
 			exportMode = 'named';

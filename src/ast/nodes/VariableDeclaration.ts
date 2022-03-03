@@ -1,28 +1,28 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
 	getCommaSeparatedNodesWithBoundaries,
-	NodeRenderOptions,
-	RenderOptions
+	type NodeRenderOptions,
+	type RenderOptions
 } from '../../utils/renderHelpers';
 import {
 	getSystemExportStatement,
 	renderSystemExportExpression
 } from '../../utils/systemJsRendering';
-import { InclusionContext } from '../ExecutionContext';
+import type { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
-import Identifier, { IdentifierWithVariable } from './Identifier';
+import type Variable from '../variables/Variable';
+import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
-import VariableDeclarator from './VariableDeclarator';
-import { IncludeChildren, NodeBase } from './shared/Node';
+import type VariableDeclarator from './VariableDeclarator';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
 function areAllDeclarationsIncludedAndNotExported(
-	declarations: VariableDeclarator[],
-	exportNamesByVariable: Map<Variable, string[]>
+	declarations: readonly VariableDeclarator[],
+	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 ): boolean {
 	for (const declarator of declarations) {
 		if (!declarator.id.included) return false;
@@ -38,7 +38,7 @@ function areAllDeclarationsIncludedAndNotExported(
 }
 
 export default class VariableDeclaration extends NodeBase {
-	declare declarations: VariableDeclarator[];
+	declare declarations: readonly VariableDeclarator[];
 	declare kind: 'var' | 'let' | 'const';
 	declare type: NodeType.tVariableDeclaration;
 
@@ -107,7 +107,7 @@ export default class VariableDeclaration extends NodeBase {
 		lastSeparatorPos: number | null,
 		actualContentEnd: number,
 		renderedContentEnd: number,
-		systemPatternExports: Variable[],
+		systemPatternExports: readonly Variable[],
 		options: RenderOptions,
 		isNoStatement: boolean | undefined
 	): void {
@@ -238,7 +238,7 @@ export default class VariableDeclaration extends NodeBase {
 }
 
 function gatherSystemExportsAndGetSingleExport(
-	separatedNodes: {
+	separatedNodes: readonly {
 		node: VariableDeclarator;
 	}[],
 	options: RenderOptions,

@@ -1,4 +1,4 @@
-import ExternalModule from '../ExternalModule';
+import type ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import relativeId from './relativeId';
 
@@ -13,7 +13,7 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]): void {
 	units.sort(compareExecIndex);
 }
 
-export function analyseModuleExecution(entryModules: Module[]): {
+export function analyseModuleExecution(entryModules: readonly Module[]): {
 	cyclePaths: string[][];
 	orderedModules: Module[];
 } {
@@ -71,8 +71,8 @@ export function analyseModuleExecution(entryModules: Module[]): {
 function getCyclePath(
 	module: Module,
 	parent: Module,
-	parents: Map<Module | ExternalModule, Module | null>
-) {
+	parents: ReadonlyMap<Module | ExternalModule, Module | null>
+): string[] {
 	const cycleSymbol = Symbol(module.id);
 	const path = [relativeId(module.id)];
 	let nextModule = parent;

@@ -19,7 +19,8 @@ module.exports = {
 		'!/test/*.js',
 		'!/test/*/*.js',
 		'/test/node_modules/*.*',
-		'!/test/*/samples/**/_config.js'
+		'!/test/*/samples/**/_config.js',
+		'!/test/*/samples/**/rollup.config.js'
 	],
 	overrides: [
 		{
@@ -73,7 +74,10 @@ module.exports = {
 		'dot-notation': 'error',
 		'import/no-unresolved': [
 			'error',
-			{ ignore: ['package.json', 'is-reference', 'help.md', 'types'] }
+			{
+				// 'fsevents' is ony available on macOS, and not installed on linux/windows
+				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types']
+			}
 		],
 		'import/order': ['error', { alphabetize: { order: 'asc' } }],
 		'no-constant-condition': ['error', { checkLoops: false }],

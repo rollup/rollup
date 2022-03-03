@@ -4,4 +4,4 @@ export default {
 		file: 'my-file',
 		format: 'es'
 	}
-}
+};

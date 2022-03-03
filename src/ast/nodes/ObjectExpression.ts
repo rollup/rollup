@@ -1,29 +1,33 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UnknownKey
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import Property from './Property';
+import type Property from './Property';
 import SpreadElement from './SpreadElement';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import {
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+	UnknownValue
+} from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
+import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
-	declare properties: (Property | SpreadElement)[];
+	declare properties: readonly (Property | SpreadElement)[];
 	declare type: NodeType.tObjectExpression;
 	private objectEntity: ObjectEntity | null = null;
 

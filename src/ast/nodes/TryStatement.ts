@@ -1,9 +1,9 @@
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import BlockStatement from './BlockStatement';
-import CatchClause from './CatchClause';
-import * as NodeType from './NodeType';
-import { INCLUDE_PARAMETERS, IncludeChildren, StatementBase } from './shared/Node';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type BlockStatement from './BlockStatement';
+import type CatchClause from './CatchClause';
+import type * as NodeType from './NodeType';
+import { INCLUDE_PARAMETERS, type IncludeChildren, StatementBase } from './shared/Node';
 
 export default class TryStatement extends StatementBase {
 	declare block: BlockStatement;

@@ -1,12 +1,12 @@
-import { InternalModuleFormat } from '../../rollup/types';
+import type { InternalModuleFormat } from '../../rollup/types';
 import { getSafeName } from '../../utils/safeName';
-import ImportExpression from '../nodes/ImportExpression';
-import { ExpressionEntity } from '../nodes/shared/Expression';
-import Variable from '../variables/Variable';
+import type ImportExpression from '../nodes/ImportExpression';
+import type { ExpressionEntity } from '../nodes/shared/Expression';
+import type Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
-	accessedOutsideVariables = new Map<string, Variable>();
+	readonly accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
 	private declare accessedDynamicImports?: Set<ImportExpression>;
 
@@ -26,7 +26,7 @@ export default class ChildScope extends Scope {
 	}
 
 	addAccessedGlobals(
-		globals: string[],
+		globals: readonly string[],
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
 		const accessedGlobals = accessedGlobalsByScope.get(this) || new Set();
@@ -51,8 +51,8 @@ export default class ChildScope extends Scope {
 	addUsedOutsideNames(
 		usedNames: Set<string>,
 		format: InternalModuleFormat,
-		exportNamesByVariable: Map<Variable, string[]>,
-		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
@@ -76,8 +76,8 @@ export default class ChildScope extends Scope {
 
 	deconflict(
 		format: InternalModuleFormat,
-		exportNamesByVariable: Map<Variable, string[]>,
-		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
 		const usedNames = new Set<string>();
 		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable, accessedGlobalsByScope);

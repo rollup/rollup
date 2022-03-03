@@ -1,5 +1,9 @@
 import { decode } from 'sourcemap-codec';
-import { ExistingDecodedSourceMap, ExistingRawSourceMap, SourceMapInput } from '../rollup/types';
+import type {
+	ExistingDecodedSourceMap,
+	ExistingRawSourceMap,
+	SourceMapInput
+} from '../rollup/types';
 
 type Input = SourceMapInput | ExistingDecodedSourceMap | undefined;
 
@@ -18,12 +22,7 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 		};
 	}
 
-	let mappings;
-	if (typeof map.mappings === 'string') {
-		mappings = decode(map.mappings);
-	} else {
-		mappings = map.mappings;
-	}
+	const mappings = typeof map.mappings === 'string' ? decode(map.mappings) : map.mappings;
 
 	return { ...(map as ExistingRawSourceMap | ExistingDecodedSourceMap), mappings };
 }

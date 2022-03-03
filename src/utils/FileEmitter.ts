@@ -1,7 +1,7 @@
-import Chunk from '../Chunk';
-import Graph from '../Graph';
-import Module from '../Module';
-import {
+import type Chunk from '../Chunk';
+import type Graph from '../Graph';
+import type Module from '../Module';
+import type {
 	EmittedChunk,
 	FilePlaceholder,
 	NormalizedInputOptions,
@@ -42,16 +42,17 @@ function generateAssetFileName(
 				: outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
-				ext: () => extname(emittedName).substr(1),
+				ext: () => extname(emittedName).substring(1),
 				extname: () => extname(emittedName),
 				hash() {
-					const hash = createHash();
-					hash.update(emittedName);
-					hash.update(':');
-					hash.update(source);
-					return hash.digest('hex').substr(0, 8);
+					return createHash()
+						.update(emittedName)
+						.update(':')
+						.update(source)
+						.digest('hex')
+						.substring(0, 8);
 				},
-				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
+				name: () => emittedName.substring(0, emittedName.length - extname(emittedName).length)
 			}
 		),
 		bundle
@@ -141,7 +142,7 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 
 function getChunkFileName(
 	file: ConsumedChunk,
-	facadeChunkByModule: Map<Module, Chunk> | null
+	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null
 ): string {
 	const fileName = file.fileName || (file.module && facadeChunkByModule?.get(file.module)?.id);
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
@@ -150,8 +151,8 @@ function getChunkFileName(
 
 export class FileEmitter {
 	private bundle: OutputBundleWithPlaceholders | null = null;
-	private facadeChunkByModule: Map<Module, Chunk> | null = null;
-	private filesByReferenceId: Map<string, ConsumedFile>;
+	private facadeChunkByModule: ReadonlyMap<Module, Chunk> | null = null;
+	private readonly filesByReferenceId: Map<string, ConsumedFile>;
 	private outputOptions: NormalizedOutputOptions | null = null;
 
 	constructor(
@@ -165,7 +166,7 @@ export class FileEmitter {
 	}
 
 	public assertAssetsFinalized = (): void => {
-		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
+		for (const [referenceId, emittedFile] of this.filesByReferenceId) {
 			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
 				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
 		}
@@ -192,9 +193,8 @@ export class FileEmitter {
 		}
 		if (emittedFile.type === 'chunk') {
 			return this.emitChunk(emittedFile);
-		} else {
-			return this.emitAsset(emittedFile);
 		}
+		return this.emitAsset(emittedFile);
 	};
 
 	public getFileName = (fileReferenceId: string): string => {
@@ -202,9 +202,8 @@ export class FileEmitter {
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
 			return getChunkFileName(emittedFile, this.facadeChunkByModule);
-		} else {
-			return getAssetFileName(emittedFile, fileReferenceId);
 		}
+		return getAssetFileName(emittedFile, fileReferenceId);
 	};
 
 	public setAssetSource = (referenceId: string, requestedSource: unknown): void => {
@@ -231,7 +230,7 @@ export class FileEmitter {
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: Map<Module, Chunk>
+		facadeChunkByModule: ReadonlyMap<Module, Chunk>
 	): void => {
 		this.outputOptions = outputOptions;
 		this.bundle = outputBundle;
@@ -241,7 +240,7 @@ export class FileEmitter {
 				reserveFileNameInBundle(emittedFile.fileName, this.bundle, this.options.onwarn);
 			}
 		}
-		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
+		for (const [referenceId, consumedFile] of this.filesByReferenceId) {
 			if (consumedFile.type === 'asset' && consumedFile.source !== undefined) {
 				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, this.bundle);
 			}
@@ -250,15 +249,14 @@ export class FileEmitter {
 
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
 		let referenceId: string | undefined;
+
 		do {
-			const hash = createHash();
-			if (referenceId) {
-				hash.update(referenceId);
-			} else {
-				hash.update(idBase);
-			}
-			referenceId = hash.digest('hex').substr(0, 8);
+			referenceId = createHash()
+				.update(referenceId || idBase)
+				.digest('hex')
+				.substring(0, 8);
 		} while (this.filesByReferenceId.has(referenceId));
+
 		this.filesByReferenceId.set(referenceId, file);
 		return referenceId;
 	}

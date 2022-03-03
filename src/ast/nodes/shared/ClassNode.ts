@@ -1,23 +1,23 @@
-import { CallOptions } from '../../CallOptions';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { NodeEvent } from '../../NodeEvents';
+import type { CallOptions } from '../../CallOptions';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type { NodeEvent } from '../../NodeEvents';
 import ChildScope from '../../scopes/ChildScope';
-import Scope from '../../scopes/Scope';
+import type Scope from '../../scopes/Scope';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UnknownKey
 } from '../../utils/PathTracker';
-import ClassBody from '../ClassBody';
+import type ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
-import Literal from '../Literal';
+import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './Node';
-import { ObjectEntity, ObjectProperty } from './ObjectEntity';
+import { type ExpressionEntity, type LiteralValueOrUnknown, UnknownValue } from './Expression';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
+import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 

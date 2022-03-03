@@ -1,3 +1,8 @@
+// since we don't run the browser tests in an actual browser, we need to make `performance`
+// globally accessible same as in the browser. this can be removed once `performance` is
+// available globally in all supported platforms. [currently global for node.js v16+].
+global.performance = require('perf_hooks').performance;
+
 const { basename, resolve } = require('path');
 const fixturify = require('fixturify');
 const { rollup } = require('../../dist/rollup.browser.js');
@@ -12,7 +17,7 @@ runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) 
 				bundle = await rollup({
 					input: 'main',
 					onwarn: warning => {
-						if (!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)) {
+						if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 							throw new Error(
 								`Unexpected warnings (${warning.code}): ${warning.message}\n` +
 									'If you expect warnings, list their codes in config.expectedWarnings'

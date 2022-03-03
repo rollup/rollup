@@ -4,7 +4,7 @@ module.exports = {
 	description: 'avoids name conflicts with local variables named Symbol',
 	options: {
 		output: {
-			namespaceToStringTag: true
+			generatedCode: { symbols: true }
 		}
 	},
 	exports(exports) {

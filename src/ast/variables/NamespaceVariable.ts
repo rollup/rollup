@@ -1,9 +1,10 @@
-import Module, { AstContext } from '../../Module';
-import { MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
-import { RenderOptions } from '../../utils/renderHelpers';
+import type Module from '../../Module';
+import type { AstContext } from '../../Module';
+import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import Identifier from '../nodes/Identifier';
-import ChildScope from '../scopes/ChildScope';
+import type Identifier from '../nodes/Identifier';
+import type ChildScope from '../scopes/ChildScope';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -12,7 +13,7 @@ export default class NamespaceVariable extends Variable {
 	module: Module;
 
 	private memberVariables: { [name: string]: Variable } | null = null;
-	private mergedNamespaces: Variable[] = [];
+	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
 
@@ -76,11 +77,6 @@ export default class NamespaceVariable extends Variable {
 				return [name, original.getName(getPropertyAccess)];
 			}
 		);
-
-		if (namespaceToStringTag) {
-			members.unshift([null, `[Symbol.toStringTag]:${_}'Module'`]);
-		}
-
 		members.unshift([null, `__proto__:${_}null`]);
 
 		let output = getObject(members, { lineBreakIndent: { base: '', t } });
@@ -88,12 +84,19 @@ export default class NamespaceVariable extends Variable {
 			const assignmentArgs = this.mergedNamespaces.map(variable =>
 				variable.getName(getPropertyAccess)
 			);
-			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output}, [${assignmentArgs.join(
+			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output},${_}[${assignmentArgs.join(
 				`,${_}`
 			)}])`;
-		}
-		if (freeze) {
-			output = `/*#__PURE__*/Object.freeze(${output})`;
+		} else {
+			// The helper to merge namespaces will also take care of freezing and toStringTag
+			if (namespaceToStringTag) {
+				output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}${getToStringTagValue(
+					getObject
+				)})`;
+			}
+			if (freeze) {
+				output = `/*#__PURE__*/Object.freeze(${output})`;
+			}
 		}
 
 		const name = this.getName(getPropertyAccess);
@@ -110,7 +113,7 @@ export default class NamespaceVariable extends Variable {
 		return this.referencedEarly;
 	}
 
-	setMergedNamespaces(mergedNamespaces: Variable[]): void {
+	setMergedNamespaces(mergedNamespaces: readonly Variable[]): void {
 		this.mergedNamespaces = mergedNamespaces;
 		const moduleExecIndex = this.context.getModuleExecIndex();
 		for (const identifier of this.references) {

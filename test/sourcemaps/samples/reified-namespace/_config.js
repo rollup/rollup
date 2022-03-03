@@ -1,5 +1,5 @@
 const assert = require('assert');
-const fs = require('fs');
+const { readFileSync } = require('fs');
 const path = require('path');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
@@ -9,7 +9,7 @@ module.exports = {
 	async test(code, map) {
 		const smc = await new SourceMapConsumer(map);
 
-		const main = fs.readFileSync(path.join(__dirname, 'main.js'), 'utf-8');
+		const main = readFileSync(path.join(__dirname, 'main.js'), 'utf-8');
 		const generatedLoc = getLocation(code, 'deepEqual');
 
 		const actual = smc.originalPositionFor(generatedLoc);

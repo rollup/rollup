@@ -1,13 +1,13 @@
 import { platform } from 'os';
-import chokidar, { FSWatcher } from 'chokidar';
-import { ChangeEvent, ChokidarOptions } from '../rollup/types';
-import { Task } from './watch';
+import chokidar, { type FSWatcher } from 'chokidar';
+import type { ChangeEvent, ChokidarOptions } from '../rollup/types';
+import type { Task } from './watch';
 
 export class FileWatcher {
-	private chokidarOptions: ChokidarOptions;
-	private task: Task;
-	private transformWatchers = new Map<string, FSWatcher>();
-	private watcher: FSWatcher;
+	private readonly chokidarOptions: ChokidarOptions;
+	private readonly task: Task;
+	private readonly transformWatchers = new Map<string, FSWatcher>();
+	private readonly watcher: FSWatcher;
 
 	constructor(task: Task, chokidarOptions: ChokidarOptions) {
 		this.chokidarOptions = chokidarOptions;
@@ -33,7 +33,7 @@ export class FileWatcher {
 
 	watch(id: string, isTransformDependency: boolean): void {
 		if (isTransformDependency) {
-			const watcher = this.transformWatchers.get(id) || this.createWatcher(id);
+			const watcher = this.transformWatchers.get(id) ?? this.createWatcher(id);
 			watcher.add(id);
 			this.transformWatchers.set(id, watcher);
 		} else {

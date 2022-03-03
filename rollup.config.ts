@@ -1,11 +1,12 @@
-import fs from 'fs';
-import path from 'path';
+import { promises as fs } from 'fs';
+import { resolve } from 'path';
+import { env } from 'process';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
-import resolve from '@rollup/plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import { RollupOptions, WarningHandlerWithDefault } from 'rollup';
+import type { RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
@@ -14,31 +15,31 @@ import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
-import pkg from './package.json';
+import { version } from './package.json';
 
-const commitHash = (function () {
+async function getBanner(): Promise<string> {
+	let commitHash: string;
+
 	try {
-		return fs.readFileSync('.commithash', 'utf-8');
+		commitHash = await fs.readFile('.commithash', 'utf8');
 	} catch {
-		return 'unknown';
+		commitHash = 'unknown';
 	}
-})();
 
-const now = new Date(
-	process.env.SOURCE_DATE_EPOCH
-		? 1000 * parseInt(process.env.SOURCE_DATE_EPOCH)
-		: new Date().getTime()
-).toUTCString();
+	const date = new Date(
+		env.SOURCE_DATE_EPOCH ? 1000 * +env.SOURCE_DATE_EPOCH : Date.now()
+	).toUTCString();
 
-const banner = `/*
+	return `/*
   @license
-	Rollup.js v${pkg.version}
-	${now} - commit ${commitHash}
+	Rollup.js v${version}
+	${date} - commit ${commitHash}
 
 	https://github.com/rollup/rollup
 
 	Released under the MIT License.
 */`;
+}
 
 const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
@@ -50,11 +51,11 @@ const onwarn: WarningHandlerWithDefault = warning => {
 };
 
 const moduleAliases = {
-	entries: [
-		{ find: 'help.md', replacement: path.resolve('cli/help.md') },
-		{ find: 'package.json', replacement: path.resolve('package.json') },
-		{ find: 'acorn', replacement: path.resolve('node_modules/acorn/dist/acorn.mjs') }
-	],
+	entries: {
+		acorn: resolve('node_modules/acorn/dist/acorn.mjs'),
+		'help.md': resolve('cli/help.md'),
+		'package.json': resolve('package.json')
+	},
 	resolve: ['.js', '.json', '.md']
 };
 
@@ -66,7 +67,7 @@ const treeshake = {
 
 const nodePlugins = [
 	alias(moduleAliases),
-	resolve(),
+	nodeResolve(),
 	json(),
 	conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
@@ -77,25 +78,15 @@ const nodePlugins = [
 	typescript()
 ];
 
-export default (command: Record<string, unknown>): RollupOptions | RollupOptions[] => {
+export default async function (
+	command: Record<string, unknown>
+): Promise<RollupOptions | RollupOptions[]> {
+	const banner = await getBanner();
 	const { collectLicenses, writeLicense } = getLicenseHandler();
+
 	const commonJSBuild: RollupOptions = {
-		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
-		external: [
-			'buffer',
-			'@rollup/plugin-typescript',
-			'assert',
-			'crypto',
-			'events',
-			'fs',
-			'fsevents',
-			'module',
-			'path',
-			'os',
-			'stream',
-			'url',
-			'util'
-		],
+		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
+		external: ['fsevents'],
 		input: {
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
 			'rollup.js': 'src/node-entry.ts'
@@ -112,12 +103,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			format: 'cjs',
 			freeze: false,
 			generatedCode: 'es2015',
-			interop: id => {
-				if (id === 'fsevents') {
-					return 'defaultOnly';
-				}
-				return 'default';
-			},
+			interop: 'default',
 			manualChunks: { rollup: ['src/node-entry.ts'] },
 			sourcemap: true
 		},
@@ -125,8 +111,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			...nodePlugins,
 			addCliEntry(),
 			esmDynamicImport(),
-			// TODO this relied on an unpublished type update
-			(!command.configTest && collectLicenses()) as Plugin
+			!command.configTest && collectLicenses()
 		],
 		strictDeprecations: true,
 		treeshake
@@ -159,7 +144,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 		plugins: [
 			replaceBrowserModules(),
 			alias(moduleAliases),
-			resolve({ browser: true }),
+			nodeResolve({ browser: true }),
 			json(),
 			commonjs(),
 			typescript(),
@@ -172,4 +157,4 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 	};
 
 	return [commonJSBuild, esmBuild, browserBuilds];
-};
+}

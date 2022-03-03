@@ -30,12 +30,12 @@ export function renderNamePattern(
 	});
 }
 
-export function makeUnique(name: string, existingNames: Record<string, any>): string {
+export function makeUnique(name: string, existingNames: Record<string, unknown>): string {
 	const existingNamesLowercase = new Set(Object.keys(existingNames).map(key => key.toLowerCase()));
 	if (!existingNamesLowercase.has(name.toLocaleLowerCase())) return name;
 
 	const ext = extname(name);
-	name = name.substr(0, name.length - ext.length);
+	name = name.substring(0, name.length - ext.length);
 	let uniqueName: string,
 		uniqueIndex = 1;
 	while (existingNamesLowercase.has((uniqueName = name + ++uniqueIndex + ext).toLowerCase()));

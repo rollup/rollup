@@ -1,5 +1,5 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { NormalizedOutputOptions } from '../rollup/types';
+import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
@@ -8,7 +8,7 @@ import { keypath } from './shared/sanitize';
 import setupNamespace from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 export default function iife(
 	magicString: MagicStringBundle,
@@ -38,7 +38,7 @@ export default function iife(
 	}: NormalizedOutputOptions
 ): Bundle {
 	const { _, cnst, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
-	const isNamespaced = name && name.indexOf('.') !== -1;
+	const isNamespaced = name && name.includes('.');
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {
@@ -122,8 +122,7 @@ export default function iife(
 		namedExportsMode && hasExports,
 		esModule,
 		namespaceToStringTag,
-		_,
-		n
+		snippets
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;

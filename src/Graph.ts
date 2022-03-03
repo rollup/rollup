@@ -1,10 +1,10 @@
 import * as acorn from 'acorn';
-import ExternalModule from './ExternalModule';
+import type ExternalModule from './ExternalModule';
 import Module from './Module';
-import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
+import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
-import {
+import type {
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
@@ -23,7 +23,7 @@ import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
 function normalizeEntryModules(
-	entryModules: string[] | Record<string, string>
+	entryModules: readonly string[] | Record<string, string>
 ): UnresolvedModule[] {
 	if (Array.isArray(entryModules)) {
 		return entryModules.map(id => ({
@@ -44,20 +44,20 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	acornParser: typeof acorn.Parser;
-	cachedModules = new Map<string, ModuleJSON>();
-	deoptimizationTracker = new PathTracker();
+	readonly acornParser: typeof acorn.Parser;
+	readonly cachedModules = new Map<string, ModuleJSON>();
+	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
-	moduleLoader: ModuleLoader;
-	modulesById = new Map<string, Module | ExternalModule>();
+	readonly moduleLoader: ModuleLoader;
+	readonly modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
-	pluginDriver: PluginDriver;
-	scope = new GlobalScope();
-	watchFiles: Record<string, true> = Object.create(null);
+	readonly pluginDriver: PluginDriver;
+	readonly scope = new GlobalScope();
+	readonly watchFiles: Record<string, true> = Object.create(null);
 	watchMode = false;
 
-	private externalModules: ExternalModule[] = [];
+	private readonly externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
 	private modules: Module[] = [];
 	private declare pluginCache?: Record<string, SerializablePluginCache>;
@@ -178,7 +178,7 @@ export default class Graph {
 		}
 	}
 
-	private includeStatements() {
+	private includeStatements(): void {
 		for (const module of [...this.entryModules, ...this.implicitEntryModules]) {
 			markModuleAndImpureDependenciesAsExecuted(module);
 		}
@@ -189,7 +189,7 @@ export default class Graph {
 				this.needsTreeshakingPass = false;
 				for (const module of this.modules) {
 					if (module.isExecuted) {
-						if (module.info.hasModuleSideEffects === 'no-treeshake') {
+						if (module.info.moduleSideEffects === 'no-treeshake') {
 							module.includeAllInBundle();
 						} else {
 							module.include();
@@ -221,7 +221,7 @@ export default class Graph {
 		}
 	}
 
-	private sortModules() {
+	private sortModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
 			this.options.onwarn({
@@ -238,21 +238,21 @@ export default class Graph {
 		this.warnForMissingExports();
 	}
 
-	private warnForMissingExports() {
+	private warnForMissingExports(): void {
 		for (const module of this.modules) {
-			for (const importDescription of Object.values(module.importDescriptions)) {
+			for (const importDescription of module.importDescriptions.values()) {
 				if (
 					importDescription.name !== '*' &&
-					!(importDescription.module as Module).getVariableForExportName(importDescription.name)
+					!importDescription.module.getVariableForExportName(importDescription.name)[0]
 				) {
 					module.warn(
 						{
 							code: 'NON_EXISTENT_EXPORT',
 							message: `Non-existent export '${
 								importDescription.name
-							}' is imported from ${relativeId((importDescription.module as Module).id)}`,
+							}' is imported from ${relativeId(importDescription.module.id)}`,
 							name: importDescription.name,
-							source: (importDescription.module as Module).id
+							source: importDescription.module.id
 						},
 						importDescription.start
 					);
