@@ -7,7 +7,7 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			transform() {
-				return { code: 'export default this', map: { mappings: 'X' } };
+				return { code: 'export default this', map: { mappings: '' } };
 			}
 		}
 	},

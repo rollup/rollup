@@ -58,7 +58,7 @@ class Link {
 			const tracedLine: SourceMapSegment[] = [];
 
 			for (const segment of line) {
-				if (segment.length == 1) continue;
+				if (segment.length === 1) continue;
 				const source = this.sources[segment[1]];
 				if (!source) continue;
 
@@ -130,9 +130,7 @@ class Link {
 			if (segment[0] === column || searchStart === searchEnd) {
 				if (segment.length == 1) return null;
 				const source = this.sources[segment[1]];
-				if (!source) {
-					return null;
-				}
+				if (!source) return null;
 
 				return source.traceSegment(
 					segment[2],

@@ -11,7 +11,7 @@ module.exports = {
 				// each entry of each line consist of
 				// [generatedColumn, sourceIndex, sourceLine, sourceColumn];
 				// this mapping only maps the first line to itself
-				const decodedMap = [[[0, 0, 0, 0]]];
+				const decodedMap = [[[0], [0, 0, 0, 0], [1]]];
 				return { code: 'export default this', map: { mappings: encode(decodedMap), sources: [] } };
 			}
 		}
