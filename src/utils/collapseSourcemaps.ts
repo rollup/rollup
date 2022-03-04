@@ -47,6 +47,7 @@ class Link {
 
 	traceMappings() {
 		const sources: string[] = [];
+		const sourceIndexMap = new Map<string, number>();
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
 		const nameIndexMap = new Map<string, number>();
@@ -57,7 +58,7 @@ class Link {
 			const tracedLine: SourceMapSegment[] = [];
 
 			for (const segment of line) {
-				if (segment.length == 1) continue;
+				if (segment.length === 1) continue;
 				const source = this.sources[segment[1]];
 				if (!source) continue;
 
@@ -68,36 +69,34 @@ class Link {
 				);
 
 				if (traced) {
-					// newer sources are more likely to be used, so search backwards.
-					let sourceIndex = sources.lastIndexOf(traced.source.filename);
-					if (sourceIndex === -1) {
+					const {
+						column,
+						line,
+						name,
+						source: { content, filename }
+					} = traced;
+					let sourceIndex = sourceIndexMap.get(filename);
+					if (sourceIndex === undefined) {
 						sourceIndex = sources.length;
-						sources.push(traced.source.filename);
-						sourcesContent[sourceIndex] = traced.source.content;
+						sources.push(filename);
+						sourceIndexMap.set(filename, sourceIndex);
+						sourcesContent[sourceIndex] = content;
 					} else if (sourcesContent[sourceIndex] == null) {
-						sourcesContent[sourceIndex] = traced.source.content;
-					} else if (
-						traced.source.content != null &&
-						sourcesContent[sourceIndex] !== traced.source.content
-					) {
+						sourcesContent[sourceIndex] = content;
+					} else if (content != null && sourcesContent[sourceIndex] !== content) {
 						return error({
-							message: `Multiple conflicting contents for sourcemap source ${traced.source.filename}`
+							message: `Multiple conflicting contents for sourcemap source ${filename}`
 						});
 					}
 
-					const tracedSegment: SourceMapSegment = [
-						segment[0],
-						sourceIndex,
-						traced.line,
-						traced.column
-					];
+					const tracedSegment: SourceMapSegment = [segment[0], sourceIndex, line, column];
 
-					if (traced.name) {
-						let nameIndex = nameIndexMap.get(traced.name);
+					if (name) {
+						let nameIndex = nameIndexMap.get(name);
 						if (nameIndex === undefined) {
 							nameIndex = names.length;
-							names.push(traced.name);
-							nameIndexMap.set(traced.name, nameIndex);
+							names.push(name);
+							nameIndexMap.set(name, nameIndex);
 						}
 
 						(tracedSegment as SourceMapSegment)[4] = nameIndex;
@@ -118,13 +117,17 @@ class Link {
 		if (!segments) return null;
 
 		// binary search through segments for the given column
-		let i = 0;
-		let j = segments.length - 1;
+		let searchStart = 0;
+		let searchEnd = segments.length - 1;
 
-		while (i <= j) {
-			const m = (i + j) >> 1;
+		while (searchStart <= searchEnd) {
+			const m = (searchStart + searchEnd) >> 1;
 			const segment = segments[m];
-			if (segment[0] === column) {
+
+			// If a sourcemap does not have sufficient resolution to contain a
+			// necessary mapping, e.g. because it only contains line information, we
+			// use the best approximation we could find
+			if (segment[0] === column || searchStart === searchEnd) {
 				if (segment.length == 1) return null;
 				const source = this.sources[segment[1]];
 				if (!source) return null;
@@ -136,9 +139,9 @@ class Link {
 				);
 			}
 			if (segment[0] > column) {
-				j = m - 1;
+				searchEnd = m - 1;
 			} else {
-				i = m + 1;
+				searchStart = m + 1;
 			}
 		}
 

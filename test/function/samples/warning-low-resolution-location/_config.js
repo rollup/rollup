@@ -1,38 +1,30 @@
 const path = require('path');
+const { encode } = require('sourcemap-codec');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
-	description: 'handles when a sourcemap cannot be resolved in a warning',
+	description: 'handles when a low resolution sourcemap is used to report an error',
 	options: {
 		plugins: {
 			name: 'test-plugin',
 			transform() {
-				return { code: 'export default this', map: { mappings: '' } };
+				// each entry of each line consist of
+				// [generatedColumn, sourceIndex, sourceLine, sourceColumn];
+				// this mapping only maps the first line to itself
+				const decodedMap = [[[0], [0, 0, 0, 0], [1]]];
+				return { code: 'export default this', map: { mappings: encode(decodedMap), sources: [] } };
 			}
 		}
 	},
 	warnings: [
 		{
-			code: 'SOURCEMAP_ERROR',
-			id: ID_MAIN,
-			loc: {
-				column: 15,
-				file: ID_MAIN,
-				line: 1
-			},
-			message:
-				"Error when using sourcemap for reporting an error: Can't resolve original location of error.",
-			pos: 15
-		},
-		{
 			code: 'THIS_IS_UNDEFINED',
 			frame: `
-			1: export default this
-			                  ^
-		`,
+1: console.log('original source');
+   ^`,
 			id: ID_MAIN,
 			loc: {
-				column: 15,
+				column: 0,
 				file: ID_MAIN,
 				line: 1
 			},
