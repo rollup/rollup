@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.69.1
+
+_2022-03-04_
+
+### Bug Fixes
+
+- Approximate source position instead of ignoring it when using a low-resolution source map in a transform hook (#4334)
+
+### Pull Requests
+
+- [#4334](https://github.com/rollup/rollup/pull/4334): fix(sourcemap): fall back to low-resolution line mapping (@aleclarson and @lukastaegert)
+
 ## 2.69.0
 
 _2022-03-02_
