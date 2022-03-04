@@ -89,12 +89,21 @@ export class Watcher {
 
 		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = null;
-			for (const [id, event] of this.invalidatedIds) {
-				this.emitter.emit('change', id, { event });
+			try {
+				for (const [id, event] of this.invalidatedIds) {
+					this.emitter.emit('change', id, { event });
+				}
+				this.invalidatedIds.clear();
+				this.emitter.emit('restart');
+				this.run();
+			} catch (error: any) {
+				this.invalidatedIds.clear();
+				this.emitter.emit('event', {
+					code: 'ERROR',
+					error,
+					result: null
+				});
 			}
-			this.invalidatedIds.clear();
-			this.emitter.emit('restart');
-			this.run();
 		}, this.buildDelay);
 	}
 

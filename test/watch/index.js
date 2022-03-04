@@ -592,6 +592,49 @@ describe('rollup.watch', () => {
 		]);
 	});
 
+	it('recovers from a plugin error in the watchChange hook', async () => {
+		let fail = true;
+		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		watcher = rollup.watch({
+			input: 'test/_tmp/input/main.js',
+			plugins: {
+				watchChange(id) {
+					console.log('change', id);
+					if (fail) {
+						this.error('Failed in watchChange');
+					}
+				}
+			},
+			output: {
+				file: 'test/_tmp/output/bundle.js',
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 21;');
+			},
+			'ERROR',
+			() => {
+				fail = false;
+				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+			}
+		]);
+	});
+
 	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({
