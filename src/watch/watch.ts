@@ -103,6 +103,9 @@ export class Watcher {
 					error,
 					result: null
 				});
+				this.emitter.emit('event', {
+					code: 'END'
+				});
 			}
 		}, this.buildDelay);
 	}

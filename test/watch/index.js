@@ -43,11 +43,20 @@ describe('rollup.watch', () => {
 					watcher.close();
 					fulfil();
 				} else if (typeof next === 'string') {
+					const [eventCode, eventMessage] = next.split(':');
 					watcher.once('event', event => {
-						if (event.code !== next) {
+						if (event.code !== eventCode) {
 							watcher.close();
 							if (event.code === 'ERROR') console.log(event.error);
-							reject(new Error(`Expected ${next} event, got ${event.code}`));
+							reject(new Error(`Expected ${eventCode} event, got ${event.code}`));
+						} else if (
+							eventCode === 'ERROR' &&
+							eventMessage &&
+							event.error.message !== eventMessage
+						) {
+							reject(
+								new Error(`Expected to throw "${eventMessage}" but got "${event.error.message}".`)
+							);
 						} else {
 							go(event);
 						}
@@ -514,7 +523,8 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR',
+			'ERROR:Unexpected token',
+			'END',
 			() => {
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 			},
@@ -541,7 +551,8 @@ describe('rollup.watch', () => {
 		return sequence(watcher, [
 			'START',
 			'BUNDLE_START',
-			'ERROR',
+			'ERROR:Unexpected token',
+			'END',
 			() => {
 				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
@@ -577,7 +588,8 @@ describe('rollup.watch', () => {
 		return sequence(watcher, [
 			'START',
 			'BUNDLE_START',
-			'ERROR',
+			'ERROR:The first run failed, try again.',
+			'END',
 			() => {
 				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
@@ -599,7 +611,6 @@ describe('rollup.watch', () => {
 			input: 'test/_tmp/input/main.js',
 			plugins: {
 				watchChange(id) {
-					console.log('change', id);
 					if (fail) {
 						this.error('Failed in watchChange');
 					}
@@ -620,7 +631,8 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 21;');
 			},
-			'ERROR',
+			'ERROR:Failed in watchChange',
+			'END',
 			() => {
 				fail = false;
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
@@ -657,7 +669,8 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR',
+			'ERROR:Unexpected token',
+			'END',
 			() => {
 				unlinkSync('test/_tmp/input/main.js');
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
@@ -694,7 +707,8 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR',
+			'ERROR:Unexpected token',
+			'END',
 			() => {
 				unlinkSync('test/_tmp/input/dep.js');
 				atomicWriteFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
@@ -822,9 +836,9 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR',
-			event => {
-				assert.strictEqual(event.error.message, 'Cannot import the generated bundle');
+			'ERROR:Cannot import the generated bundle',
+			'END',
+			() => {
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 			},
 			'START',
@@ -1130,56 +1144,56 @@ describe('rollup.watch', () => {
 		]);
 	});
 
-	it('runs transforms again on previously erroring files that were changed back', () => {
+	it('runs transforms again on previously erroring files that were changed back', async () => {
 		const brokenFiles = new Set();
+		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		const INITIAL_CONTENT = 'export default 42;';
-		fs.writeFile('test/_tmp/input/main.js', INITIAL_CONTENT).then(() => {
-			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
-				plugins: {
-					transform(code, id) {
-						if (code.includes('broken')) {
-							brokenFiles.add(id);
-							throw new Error('Broken in transform');
-						}
-						brokenFiles.delete(id);
-					},
-					generateBundle() {
-						if (brokenFiles.size > 0) {
-							throw new Error('Broken in generate');
-						}
+		atomicWriteFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
+		watcher = rollup.watch({
+			input: 'test/_tmp/input/main.js',
+			plugins: {
+				transform(code, id) {
+					if (code.includes('broken')) {
+						brokenFiles.add(id);
+						throw new Error('Broken in transform');
 					}
+					brokenFiles.delete(id);
 				},
-				output: {
-					file: 'test/_tmp/output/bundle.js',
-					format: 'cjs',
-					exports: 'auto'
+				generateBundle() {
+					if (brokenFiles.size > 0) {
+						throw new Error('Broken in generate');
+					}
 				}
-			});
-			return sequence(watcher, [
-				'START',
-				'BUNDLE_START',
-				'BUNDLE_END',
-				'END',
-				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-					atomicWriteFileSync('test/_tmp/input/main.js', 'export default "broken";');
-				},
-				'START',
-				'BUNDLE_START',
-				'ERROR',
-				() => {
-					atomicWriteFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
-				},
-				'START',
-				'BUNDLE_START',
-				'BUNDLE_END',
-				'END',
-				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				}
-			]);
+			},
+			output: {
+				file: 'test/_tmp/output/bundle.js',
+				format: 'cjs',
+				exports: 'auto'
+			}
 		});
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				atomicWriteFileSync('test/_tmp/input/main.js', 'export default "broken";');
+			},
+			'START',
+			'BUNDLE_START',
+			'ERROR:Broken in transform',
+			() => {
+				atomicWriteFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+			}
+		]);
 	});
 
 	it('skips filesystem writes when configured', async () => {
