@@ -57,12 +57,12 @@ export class Watcher {
 		process.nextTick(() => this.run());
 	}
 
-	close(): void {
+	async close(): Promise<void> {
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 		for (const task of this.tasks) {
 			task.close();
 		}
-		this.emitter.emit('close');
+		await this.emitter.emitAndAwait('close');
 		this.emitter.removeAllListeners();
 	}
 
@@ -87,14 +87,17 @@ export class Watcher {
 
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 
-		this.buildTimeout = setTimeout(() => {
+		this.buildTimeout = setTimeout(async () => {
 			this.buildTimeout = null;
 			try {
-				for (const [id, event] of this.invalidatedIds) {
-					this.emitter.emit('change', id, { event });
-				}
+				await Promise.all(
+					[...this.invalidatedIds].map(([id, event]) =>
+						this.emitter.emitAndAwait('change', id, { event })
+					)
+				);
 				this.invalidatedIds.clear();
 				this.emitter.emit('restart');
+				this.emitter.removeAwaited();
 				this.run();
 			} catch (error: any) {
 				this.invalidatedIds.clear();

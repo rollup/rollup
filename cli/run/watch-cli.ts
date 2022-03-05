@@ -56,7 +56,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					return;
 				}
 				if (watcher) {
-					watcher.close();
+					await watcher.close();
 				}
 				start(options, warnings);
 			} catch (err: any) {
@@ -136,12 +136,12 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		});
 	}
 
-	function close(code: number | null): void {
+	async function close(code: number | null): Promise<void> {
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);
 
-		if (watcher) watcher.close();
+		if (watcher) await watcher.close();
 		if (configWatcher) configWatcher.close();
 
 		if (code) {

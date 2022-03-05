@@ -604,13 +604,14 @@ describe('rollup.watch', () => {
 		]);
 	});
 
-	it('recovers from a plugin error in the watchChange hook', async () => {
+	it('awaits and recovers from a plugin error in the watchChange hook', async () => {
 		let fail = true;
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
 			plugins: {
-				watchChange(id) {
+				async watchChange() {
+					await new Promise(resolve => setTimeout(resolve, 300));
 					if (fail) {
 						this.error('Failed in watchChange');
 					}

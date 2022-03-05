@@ -344,7 +344,7 @@ export type WatchChangeHook = (
 	this: PluginContext,
 	id: string,
 	change: { event: ChangeEvent }
-) => void;
+) => Promise<void> | void;
 
 /**
  * use this type for plugin annotation
@@ -375,7 +375,7 @@ export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
 	closeBundle: (this: PluginContext) => Promise<void> | void;
-	closeWatcher: (this: PluginContext) => void;
+	closeWatcher: (this: PluginContext) => Promise<void> | void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
 	options: (
@@ -440,7 +440,9 @@ export type AsyncPluginHooks =
 	| 'shouldTransformCachedModule'
 	| 'transform'
 	| 'writeBundle'
-	| 'closeBundle';
+	| 'closeBundle'
+	| 'closeWatcher'
+	| 'watchChange';
 
 export type PluginValueHooks = 'banner' | 'footer' | 'intro' | 'outro';
 
@@ -458,13 +460,11 @@ export type FirstPluginHooks =
 
 export type SequentialPluginHooks =
 	| 'augmentChunkHash'
-	| 'closeWatcher'
 	| 'generateBundle'
 	| 'options'
 	| 'outputOptions'
 	| 'renderChunk'
-	| 'transform'
-	| 'watchChange';
+	| 'transform';
 
 export type ParallelPluginHooks =
 	| 'banner'
@@ -477,7 +477,9 @@ export type ParallelPluginHooks =
 	| 'renderError'
 	| 'renderStart'
 	| 'writeBundle'
-	| 'closeBundle';
+	| 'closeBundle'
+	| 'closeWatcher'
+	| 'watchChange';
 
 interface OutputPluginValueHooks {
 	banner: AddonHook;
@@ -898,6 +900,24 @@ interface TypedEventEmitter<T extends { [event: string]: (...args: any) => any }
 	setMaxListeners(n: number): this;
 }
 
+export interface RollupAwaitingEmitter<T extends { [event: string]: (...args: any) => any }>
+	extends TypedEventEmitter<T> {
+	close(): Promise<void>;
+	emitAndAwait<K extends keyof T>(event: K, ...args: Parameters<T[K]>): Promise<ReturnType<T[K]>[]>;
+	/**
+	 * Registers an event listener that will be awaited before Rollup continues
+	 * for events emitted via emitAndAwait. All listeners will be awaited in
+	 * parallel while rejections are tracked via Promise.all.
+	 * Listeners are removed automatically when removeAwaited is called, which
+	 * happens automatically after each run.
+	 */
+	onCurrentAwaited<K extends keyof T>(
+		event: K,
+		listener: (...args: Parameters<T[K]>) => Promise<ReturnType<T[K]>>
+	): this;
+	removeAwaited(): this;
+}
+
 export type RollupWatcherEvent =
 	| { code: 'START' }
 	| { code: 'BUNDLE_START'; input?: InputOption; output: readonly string[] }
@@ -911,15 +931,12 @@ export type RollupWatcherEvent =
 	| { code: 'END' }
 	| { code: 'ERROR'; error: RollupError; result: RollupBuild | null };
 
-export interface RollupWatcher
-	extends TypedEventEmitter<{
-		change: (id: string, change: { event: ChangeEvent }) => void;
-		close: () => void;
-		event: (event: RollupWatcherEvent) => void;
-		restart: () => void;
-	}> {
-	close(): void;
-}
+export type RollupWatcher = RollupAwaitingEmitter<{
+	change: (id: string, change: { event: ChangeEvent }) => void;
+	close: () => void;
+	event: (event: RollupWatcherEvent) => void;
+	restart: () => void;
+}>;
 
 export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
 

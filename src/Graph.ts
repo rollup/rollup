@@ -78,15 +78,11 @@ export default class Graph {
 
 		if (watcher) {
 			this.watchMode = true;
-			const handleChange: WatchChangeHook = (...args) =>
-				this.pluginDriver.hookSeqSync('watchChange', args);
-			const handleClose = () => this.pluginDriver.hookSeqSync('closeWatcher', []);
-			watcher.on('change', handleChange);
-			watcher.on('close', handleClose);
-			watcher.once('restart', () => {
-				watcher.removeListener('change', handleChange);
-				watcher.removeListener('close', handleClose);
-			});
+			const handleChange = (...args: Parameters<WatchChangeHook>) =>
+				this.pluginDriver.hookParallel('watchChange', args);
+			const handleClose = () => this.pluginDriver.hookParallel('closeWatcher', []);
+			watcher.onCurrentAwaited('change', handleChange);
+			watcher.onCurrentAwaited('close', handleClose);
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));

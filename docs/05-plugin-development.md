@@ -96,7 +96,7 @@ Called on each `rollup.rollup` build. This is the recommended hook to use when y
 
 #### `closeWatcher`
 
-**Type:** `() => void`<br> **Kind:** `sync, sequential`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchchange) events will be triggered ever.
+**Type:** `() => void`<br> **Kind:** `async, parallel`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchchange) events will be triggered ever.
 
 Notifies a plugin when watcher process closes and all open resources should be closed too. This hook cannot be used by output plugins.
 
@@ -302,9 +302,9 @@ You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo) to find out the 
 
 #### `watchChange`
 
-**Type:** `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br> **Kind:** `sync, sequential`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
+**Type:** `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br> **Kind:** `async, parallel`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
-Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins. Second argument contains additional details of change event.
+Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. If a promise is returned, Rollup will wait for the promise to resolve before scheduling another build. This hook cannot be used by output plugins. The second argument contains additional details of change event.
 
 ### Output Generation Hooks
 
