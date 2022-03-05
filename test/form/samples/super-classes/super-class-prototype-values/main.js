@@ -1,5 +1,4 @@
 class SuperValues {
-	isTrueProp = true;
 	get isTrue() {
 		return true;
 	}
@@ -12,9 +11,6 @@ if (Values.prototype.isTrue) console.log('retained');
 else console.log('removed');
 if (Values.prototype.prop.isTrue) console.log('retained');
 else console.log('removed');
-// Note that isTrueProp is not part of the prototype
-if (Values.prototype.isTrueProp) console.log('removed');
-else console.log('retained');
 
 const prop = { isTrue: true };
 class SuperDeopt {

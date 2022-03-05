@@ -10,7 +10,7 @@ else console.log('removed');
 class Used {
 	static method() {}
 	static get getter() {
-		return { foo: {} };
+		return { foo: { throws: null }, throws: null };
 	}
 }
 
@@ -30,5 +30,5 @@ Used.method.reassigned = 1;
 Used.getter.reassigned = 2;
 
 class ValueEffect {
-	static foo
+	static foo;
 }
