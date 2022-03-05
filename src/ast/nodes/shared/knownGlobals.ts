@@ -182,6 +182,8 @@ const knownGlobals: GlobalDescription = {
 		isFrozen: PF,
 		isSealed: PF,
 		keys: PF,
+		fromEntries: PF,
+		entries: PF,
 		prototype: O
 	},
 	parseFloat: PF,
