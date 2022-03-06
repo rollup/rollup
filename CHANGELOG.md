@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.69.2
+
+_2022-03-06_
+
+### Bug Fixes
+
+- Mark `Object.entries` and `Object.fromEntries` as pure (#4429)
+- Make sure new properties on Array.prototype and Object.prototype are not evaluated as "undefined" (#4428)
+
+### Pull Requests
+
+- [#4428](https://github.com/rollup/rollup/pull/4428): Treat unknown prototype props as unknown (@lukastaegert)
+- [#4429](https://github.com/rollup/rollup/pull/4429): Treat unknown prototype props as unknown (@869288142)
+
 ## 2.69.1
 
 _2022-03-04_
