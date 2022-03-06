@@ -12,7 +12,8 @@ module.exports = {
 		writeFileSync(configFile, 'throw new Error("Config contains initial errors");');
 	},
 	after() {
-		unlinkSync(configFile);
+		// synchronous sometimes does not seem to work, probably because the watch is not yet removed properly
+		setTimeout(() => unlinkSync(configFile), 300);
 	},
 	async abortOnStderr(data) {
 		if (data.includes('Config contains initial errors')) {

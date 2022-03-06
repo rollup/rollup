@@ -47,10 +47,3 @@ const obj5 = {
 obj5.mutateNestedProp();
 if (obj5.nested.prop) console.log('unimportant');
 else console.log('retained');
-
-const obj6 = {
-	prop: true
-};
-obj6.doesNotExist();
-if (obj6.prop) console.log('retained');
-else console.log('removed');

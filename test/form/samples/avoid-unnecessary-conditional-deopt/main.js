@@ -1,6 +1,6 @@
 let x1 = false;
 modifyX1();
-const obj1 = {};
+const obj1 = { modified: false };
 x1 ? obj1 : {};
 
 if (obj1.modified) console.log('should not happen');
@@ -12,7 +12,7 @@ function modifyX1() {
 
 let x2 = false;
 modifyX2();
-const obj2 = {};
+const obj2 = { modified: false };
 (x2 ? obj2 : {}).modified = true;
 
 if (obj2.modified) console.log('modified');
@@ -24,7 +24,7 @@ function modifyX2() {
 
 let x3 = false;
 modifyX3();
-const obj3 = {};
+const obj3 = { modified: false };
 x3 && obj3;
 
 if (obj3.modified) console.log('should not happen');
@@ -36,7 +36,7 @@ function modifyX3() {
 
 let x4 = false;
 modifyX4();
-const obj4 = {};
+const obj4 = { modified: false };
 (x4 && obj4).modified = true;
 
 if (obj4.modified) console.log('modified');

@@ -23,7 +23,12 @@ class RetainedSuper {
 }
 class RetainedSub extends RetainedSuper {}
 RetainedSub.a;
-log();
+
+// class fields are not part of the prototype
+class RemovedProtoValue {
+	a = true;
+}
+if (!RemovedProtoValue.prototype.a) log();
 
 class DeoptProto {
 	a = true;

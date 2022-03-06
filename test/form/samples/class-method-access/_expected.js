@@ -3,7 +3,7 @@ console.log('retained');
 class Used {
 	static method() {}
 	static get getter() {
-		return { foo: {} };
+		return { foo: { throws: null }, throws: null };
 	}
 }
 Used.method.doesNotExist.throws;
