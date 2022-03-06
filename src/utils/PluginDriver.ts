@@ -270,17 +270,6 @@ export class PluginDriver {
 		return promise;
 	}
 
-	// chains synchronously, ignores returns
-	hookSeqSync<H extends SyncPluginHooks & SequentialPluginHooks>(
-		hookName: H,
-		args: Parameters<PluginHooks[H]>,
-		replaceContext?: ReplaceContext
-	): void {
-		for (const plugin of this.plugins) {
-			this.runHookSync(hookName, args, plugin, replaceContext);
-		}
-	}
-
 	/**
 	 * Run an async plugin hook and return the result.
 	 * @param hookName Name of the plugin hook. Must be either in `PluginHooks` or `OutputPluginValueHooks`.
