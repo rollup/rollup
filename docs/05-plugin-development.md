@@ -50,7 +50,7 @@ export default ({
 
 - Plugins should have a clear name with `rollup-plugin-` prefix.
 - Include `rollup-plugin` keyword in `package.json`.
-- Plugins should be tested. We recommend [mocha](https://github.com/mochajs/mocha) or [ava](https://github.com/avajs/ava) which support promises out of the box.
+- Plugins should be tested. We recommend [mocha](https://github.com/mochajs/mocha) or [ava](https://github.com/avajs/ava) which support Promises out of the box.
 - Use asynchronous methods when it is possible.
 - Document your plugin in English.
 - Make sure your plugin outputs correct source mappings if appropriate.
@@ -68,7 +68,7 @@ The name of the plugin, for use in error messages and warnings.
 
 To interact with the build process, your plugin object includes 'hooks'. Hooks are functions which are called at various stages of the build. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
 
-- `async`: The hook may also return a promise resolving to the same type of value; otherwise, the hook is marked as `sync`.
+- `async`: The hook may also return a Promise resolving to the same type of value; otherwise, the hook is marked as `sync`.
 - `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`.
 - `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
 - `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
@@ -96,9 +96,9 @@ Called on each `rollup.rollup` build. This is the recommended hook to use when y
 
 #### `closeWatcher`
 
-**Type:** `() => void`<br> **Kind:** `sync, sequential`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchchange) events will be triggered ever.
+**Type:** `() => void`<br> **Kind:** `async, parallel`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchchange) events will be triggered ever.
 
-Notifies a plugin when watcher process closes and all open resources should be closed too. This hook cannot be used by output plugins.
+Notifies a plugin when the watcher process will close so that all open resources can be closed too. If a Promise is returned, Rollup will wait for the Promise to resolve before closing the process. This hook cannot be used by output plugins.
 
 #### `load`
 
@@ -302,9 +302,9 @@ You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo) to find out the 
 
 #### `watchChange`
 
-**Type:** `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br> **Kind:** `sync, sequential`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
+**Type:** `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br> **Kind:** `async, parallel`<br> **Previous/Next Hook:** This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
-Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins. Second argument contains additional details of change event.
+Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. If a Promise is returned, Rollup will wait for the Promise to resolve before scheduling another build. This hook cannot be used by output plugins. The second argument contains additional details of the change event.
 
 ### Output Generation Hooks
 
@@ -770,7 +770,7 @@ Loads and parses the module corresponding to the given id, attaching additional 
 
 This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](guide/en/#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](guide/en/#thisresolve) to this function as long as it is neither `null` nor external.
 
-The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the promise returned by `this.load` wait until all dependency ids have been resolved.
+The returned Promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the Promise returned by `this.load` wait until all dependency ids have been resolved.
 
 Note that with regard to the `moduleSideEffects`, `syntheticNamedExports` and `meta` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment. Note the special handling for re-exporting the default export:
 

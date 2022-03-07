@@ -32,10 +32,10 @@ flowchart TB
 	transform("transform"):::hook-sequential
 	click transform "/guide/en/#transform" _parent
 
-	watchchange("watchChange"):::hook-sequential-sync
+	watchchange("watchChange"):::hook-parallel
 	click watchchange "/guide/en/#watchchange" _parent
 
-    closewatcher("closeWatcher"):::hook-sequential-sync
+    closewatcher("closeWatcher"):::hook-parallel
 	click closewatcher "/guide/en/#closewatcher" _parent
 
     options
