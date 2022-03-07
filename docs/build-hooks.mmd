@@ -5,6 +5,12 @@ flowchart TB
     classDef hook-sequential-sync fill:#ffd2b3,stroke:#f00;
     classDef hook-first-sync fill:#fff2b3,stroke:#f00;
 
+	watchchange("watchChange"):::hook-parallel
+	click watchchange "/guide/en/#watchchange" _parent
+
+    closewatcher("closeWatcher"):::hook-parallel
+	click closewatcher "/guide/en/#closewatcher" _parent
+
 	buildend("buildEnd"):::hook-parallel
 	click buildend "/guide/en/#buildend" _parent
 
@@ -31,12 +37,6 @@ flowchart TB
 
 	transform("transform"):::hook-sequential
 	click transform "/guide/en/#transform" _parent
-
-	watchchange("watchChange"):::hook-parallel
-	click watchchange "/guide/en/#watchchange" _parent
-
-    closewatcher("closeWatcher"):::hook-parallel
-	click closewatcher "/guide/en/#closewatcher" _parent
 
     options
     --> buildstart
