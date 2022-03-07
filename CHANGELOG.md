@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 2.70.0
+
+_2022-03-07_
+
+### Features
+
+- Make the `watchChange` and `closeWatcher` hooks asynchronous and make Rollup wait for these hooks before continuing (#4427)
+
+### Bug Fixes
+
+- Do not abort watch mode for errors in `watchChange` but display them properly (#4427)
+
+### Pull Requests
+
+- [#4427](https://github.com/rollup/rollup/pull/4427): Do not abort watch mode on errors in watchChange (@lukastaegert)
+
 ## 2.69.2
 
 _2022-03-06_
