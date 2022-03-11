@@ -1,7 +1,7 @@
 // https://datatracker.ietf.org/doc/html/rfc2396
 // eslint-disable-next-line no-control-regex
 const INVALID_CHAR_REGEX = /[\x00-\x1F\x7F<>*#"{}|^[\]`;?:&=+$,]/g;
-const DRIVE_LETTER_REGEX = /^[a-z]:/i;
+const DRIVE_LETTER_REGEX = /^[a-zA-Z]:/i;
 
 export function sanitizeFileName(name: string): string {
 	const match = DRIVE_LETTER_REGEX.exec(name);
