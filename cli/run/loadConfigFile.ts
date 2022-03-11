@@ -8,7 +8,6 @@ import { bold } from '../../src/utils/colors';
 import { error } from '../../src/utils/error';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import type { GenericConfigObject } from '../../src/utils/options/options';
-import { isSamePath } from '../../src/utils/path';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { type BatchWarnings } from './batchWarnings';
@@ -102,6 +101,13 @@ async function getDefaultFromTranspiledConfigFile(
 		]
 	});
 	return loadConfigFromBundledFile(fileName, code);
+}
+
+function isSamePath(fileName1: string, fileName2: string): boolean {
+	if (process.platform === 'win32') {
+		return fileName1.toUpperCase() === fileName2.toUpperCase();
+	}
+	return fileName1 === fileName2;
 }
 
 async function loadConfigFromBundledFile(fileName: string, bundledCode: string): Promise<unknown> {
