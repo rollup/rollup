@@ -28,7 +28,7 @@ exports.loadPerfConfig = async () => {
 function loadConfigFromCode(code) {
 	const defaultLoader = require.extensions['.js'];
 	require.extensions['.js'] = (module, filename) => {
-		if (filename === configFile) {
+		if (rollup.isSamePath(filename, configFile)) {
 			module._compile(code, filename);
 		} else {
 			defaultLoader(module, filename);

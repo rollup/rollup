@@ -15,4 +15,11 @@ export function normalize(path: string): string {
 	return path.replace(BACKSLASH_REGEX, '/');
 }
 
+export function isSamePath(fileName1: string, fileName2: string): boolean {
+	if (process.platform === 'win32') {
+		return fileName1.toUpperCase() === fileName2.toUpperCase();
+	}
+	return fileName1 === fileName2;
+}
+
 export { basename, dirname, extname, relative, resolve } from 'path';

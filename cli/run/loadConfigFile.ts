@@ -8,6 +8,7 @@ import { bold } from '../../src/utils/colors';
 import { error } from '../../src/utils/error';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import type { GenericConfigObject } from '../../src/utils/options/options';
+import { isSamePath } from '../../src/utils/path';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { type BatchWarnings } from './batchWarnings';
@@ -108,7 +109,7 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string):
 	const extension = extname(resolvedFileName);
 	const defaultLoader = require.extensions[extension];
 	require.extensions[extension] = (module: NodeModule, requiredFileName: string) => {
-		if (requiredFileName === resolvedFileName) {
+		if (isSamePath(requiredFileName, resolvedFileName)) {
 			(module as NodeModuleWithCompile)._compile(bundledCode, requiredFileName);
 		} else {
 			defaultLoader(module, requiredFileName);
