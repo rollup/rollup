@@ -1,3 +1,8 @@
-export function addUnresolvedAction(_actionTuple: [string, string, Parameters<any>]): void {}
+import { PluginDriver } from '../src/utils/PluginDriver';
 
-export function resolveAction(_actionTuple: [string, string, Parameters<any>]): void {}
+export function catchUnfinishedHookActions<T>(
+	_pluginDriver: PluginDriver,
+	callback: () => Promise<T>
+): Promise<T> {
+	return callback();
+}

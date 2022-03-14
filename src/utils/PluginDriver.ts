@@ -22,7 +22,6 @@ import type {
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
 import { errInputHookInOutputPlugin, error } from './error';
-import { addUnresolvedAction, resolveAction } from './hookActions';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 /**
@@ -70,6 +69,8 @@ function throwInvalidHookError(hookName: string, pluginName: string): never {
 	});
 }
 
+export type HookAction = [plugin: string, hook: string, args: unknown[]];
+
 export class PluginDriver {
 	public readonly emitFile: EmitFile;
 	public finaliseAssets: () => void;
@@ -84,6 +85,7 @@ export class PluginDriver {
 	private readonly pluginCache: Record<string, SerializablePluginCache> | undefined;
 	private readonly pluginContexts: ReadonlyMap<Plugin, PluginContext>;
 	private readonly plugins: readonly Plugin[];
+	private readonly unfulfilledActions = new Set<HookAction>();
 
 	constructor(
 		private readonly graph: Graph,
@@ -126,6 +128,10 @@ export class PluginDriver {
 
 	public createOutputPluginDriver(plugins: readonly Plugin[]): PluginDriver {
 		return new PluginDriver(this.graph, this.options, plugins, this.pluginCache, this);
+	}
+
+	getUnfulfilledHookActions(): Set<HookAction> {
+		return this.unfulfilledActions;
 	}
 
 	// chains, first non-null result stops and returns
@@ -328,23 +334,22 @@ export class PluginDriver {
 				// exit with a successful 0 return code but without producing any
 				// output, errors or warnings.
 				action = [plugin.name, hookName, args];
-				addUnresolvedAction(action);
+				this.unfulfilledActions.add(action);
 
 				// Although it would be more elegant to just return hookResult here
 				// and put the .then() handler just above the .catch() handler below,
 				// doing so would subtly change the defacto async event dispatch order
 				// which at least one test and some plugins in the wild may depend on.
-				const promise = Promise.resolve(hookResult);
-				return promise.then(() => {
+				return Promise.resolve(hookResult).then(result => {
 					// action was fulfilled
-					resolveAction(action as [string, string, Parameters<any>]);
-					return promise;
+					this.unfulfilledActions.delete(action!);
+					return result;
 				});
 			})
 			.catch(err => {
 				if (action !== null) {
 					// action considered to be fulfilled since error being handled
-					resolveAction(action);
+					this.unfulfilledActions.delete(action);
 				}
 				return throwPluginError(err, plugin.name, { hook: hookName });
 			});

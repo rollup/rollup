@@ -5,6 +5,7 @@ import type { PluginDriver } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
 import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { promises as fs } from '../utils/fs';
+import { catchUnfinishedHookActions } from '../utils/hookActions';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
 import type { GenericConfigObject } from '../utils/options/options';
@@ -48,20 +49,21 @@ export async function rollupInternal(
 
 	timeStart('BUILD', 1);
 
-	try {
-		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
-		await graph.build();
-	} catch (err: any) {
-		const watchFiles = Object.keys(graph.watchFiles);
-		if (watchFiles.length > 0) {
-			err.watchFiles = watchFiles;
+	await catchUnfinishedHookActions(graph.pluginDriver, async () => {
+		try {
+			await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
+			await graph.build();
+		} catch (err: any) {
+			const watchFiles = Object.keys(graph.watchFiles);
+			if (watchFiles.length > 0) {
+				err.watchFiles = watchFiles;
+			}
+			await graph.pluginDriver.hookParallel('buildEnd', [err]);
+			await graph.pluginDriver.hookParallel('closeBundle', []);
+			throw err;
 		}
-		await graph.pluginDriver.hookParallel('buildEnd', [err]);
-		await graph.pluginDriver.hookParallel('closeBundle', []);
-		throw err;
-	}
-
-	await graph.pluginDriver.hookParallel('buildEnd', []);
+		await graph.pluginDriver.hookParallel('buildEnd', []);
+	});
 
 	timeEnd('BUILD', 1);
 
@@ -144,7 +146,7 @@ function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): 
 	});
 }
 
-async function handleGenerateWrite(
+function handleGenerateWrite(
 	isWrite: boolean,
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>,
@@ -161,19 +163,23 @@ async function handleGenerateWrite(
 		inputOptions,
 		unsetInputOptions
 	);
-	const bundle = new Bundle(outputOptions, unsetOptions, inputOptions, outputPluginDriver, graph);
-	const generated = await bundle.generate(isWrite);
-	if (isWrite) {
-		if (!outputOptions.dir && !outputOptions.file) {
-			return error({
-				code: 'MISSING_OPTION',
-				message: 'You must specify "output.file" or "output.dir" for the build.'
-			});
+	return catchUnfinishedHookActions(outputPluginDriver, async () => {
+		const bundle = new Bundle(outputOptions, unsetOptions, inputOptions, outputPluginDriver, graph);
+		const generated = await bundle.generate(isWrite);
+		if (isWrite) {
+			if (!outputOptions.dir && !outputOptions.file) {
+				return error({
+					code: 'MISSING_OPTION',
+					message: 'You must specify "output.file" or "output.dir" for the build.'
+				});
+			}
+			await Promise.all(
+				Object.values(generated).map(chunk => writeOutputFile(chunk, outputOptions))
+			);
+			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
 		}
-		await Promise.all(Object.values(generated).map(chunk => writeOutputFile(chunk, outputOptions)));
-		await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
-	}
-	return createOutput(generated);
+		return createOutput(generated);
+	});
 }
 
 function getOutputOptionsAndPluginDriver(

@@ -228,7 +228,20 @@ exports.assertIncludes = function assertIncludes(actual, expected) {
 	try {
 		assert.ok(
 			actual.includes(expected),
-			`${JSON.stringify(actual)}\nincludes\n${JSON.stringify(expected)}`
+			`${JSON.stringify(actual)}\nshould include\n${JSON.stringify(expected)}`
+		);
+	} catch (err) {
+		err.actual = actual;
+		err.expected = expected;
+		throw err;
+	}
+};
+
+exports.assertDoesNotInclude = function assertDoesNotInclude(actual, expected) {
+	try {
+		assert.ok(
+			!actual.includes(expected),
+			`${JSON.stringify(actual)}\nshould not include\n${JSON.stringify(expected)}`
 		);
 	} catch (err) {
 		err.actual = actual;
