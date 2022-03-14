@@ -13,7 +13,11 @@ module.exports = {
 		return true;
 	},
 	stderr(stderr) {
-		assertIncludes(stderr, '[!] Error: unfinished hook action(s) on exit');
+		console.error(stderr);
+		assertIncludes(
+			stderr,
+			'Error: Unexpected early exit. This happens when Promises returned by plugins cannot resolve. Unfinished hook action(s) on exit:'
+		);
 
 		// these unfulfilled async hook actions may occur in random order
 		assertIncludes(stderr, '(buggy-plugin) resolveId "./c.js" "main.js"');
