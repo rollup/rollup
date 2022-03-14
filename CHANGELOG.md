@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.70.1
+
+_2022-03-14_
+
+### Bug Fixes
+
+- Handle unfinished hook action errors as regular errors and avoid console logging (#4434)
+- Allow access to "dist" folder in a Node 17 compatible way (#4436)
+
+### Pull Requests
+
+- [#4434](https://github.com/rollup/rollup/pull/4434): Track unfinished hook actions as regular errors (@lukastaegert)
+- [#4436](https://github.com/rollup/rollup/pull/4436): Update package.json (@frank-dspeed)
+
 ## 2.70.0
 
 _2022-03-07_
