@@ -138,7 +138,6 @@
     },
     "./dist/*": "./dist/*.js",
     "./dist/*.js": "./dist/*.js",
-    "./dist/**/*.js": "./dist/**/*.js",
     "./dist/es/*.json": "./dist/es/*.json",
     "./dist/*.d.ts": "./dist/*.d.ts"
   }
