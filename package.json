@@ -130,7 +130,7 @@
   "exports": {
       "types": "./dist/rollup.d.ts",
       "require": "./dist/rollup.js",
-      "import": "./dist/es/rollup.js"
+      "import": "./dist/es/rollup.js",
       "default": "./dist/es/rollup.browser.js"
   }
 }
