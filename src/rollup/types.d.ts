@@ -1,3 +1,5 @@
+import { string } from 'rollup-plugin-string';
+
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
@@ -868,7 +870,11 @@ export interface ChokidarOptions {
 	usePolling?: boolean;
 }
 
-export interface WatcherOptions {
+export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
+
+export type WatcherHookOptions = Partial<Record<RollupWatchHooks, string>>;
+
+export interface WatcherOptions extends WatcherHookOptions {
 	buildDelay?: number;
 	chokidar?: ChokidarOptions;
 	clearScreen?: boolean;

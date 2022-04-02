@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import { promises as fs, type FSWatcher } from 'fs';
 import process from 'process';
 import chokidar from 'chokidar';
@@ -15,6 +14,7 @@ import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';
 import loadConfigFromCommand from './loadConfigFromCommand';
 import { getResetScreen } from './resetScreen';
+import { runWatchHook } from './runWatchHook';
 import { printTimings } from './timings';
 
 export async function watch(command: Record<string, any>): Promise<void> {
@@ -85,9 +85,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 				case 'ERROR':
 					warnings.flush();
 					handleError(event.error, true);
-					if (command.onError) {
-						run(command.onError);
-					}
+					runWatchHook(configs, 'onError', command.silent);
 					break;
 
 				case 'START':
@@ -97,9 +95,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 						}
 						resetScreen(underline(`rollup v${rollup.VERSION}`));
 					}
-					if (command.onStart) {
-						run(command.onStart);
-					}
+					runWatchHook(configs, 'onStart', command.silent);
 
 					break;
 
@@ -115,9 +111,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 							cyan(`bundles ${bold(input)} → ${bold(event.output.map(relativeId).join(', '))}...`)
 						);
 					}
-					if (command.onBundleStart) {
-						run(command.onBundleStart);
-					}
+					runWatchHook(configs, 'onBundleStart', command.silent);
 					break;
 
 				case 'BUNDLE_END':
@@ -130,18 +124,14 @@ export async function watch(command: Record<string, any>): Promise<void> {
 								)}`
 							)
 						);
-					if (command.onBundleEnd) {
-						run(command.onBundleEnd);
-					}
+					runWatchHook(configs, 'onBundleEnd', command.silent);
 					if (event.result && event.result.getTimings) {
 						printTimings(event.result.getTimings());
 					}
 					break;
 
 				case 'END':
-					if (command.onEnd) {
-						run(command.onEnd);
-					}
+					runWatchHook(configs, 'onEnd', command.silent);
 					if (!silent && isTTY) {
 						stderr(`\n[${dateTime()}] waiting for changes...`);
 					}
@@ -163,16 +153,6 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 		if (code) {
 			process.exit(code);
-		}
-	}
-
-	function run(cmdString: string) {
-		try {
-			execSync(cmdString, {
-				stdio: command.silent ? 'ignore' : 'inherit'
-			});
-		} catch (e) {
-			process.stderr.write((e as Error).message);
 		}
 	}
 }
