@@ -1,5 +1,3 @@
-import { string } from 'rollup-plugin-string';
-
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
