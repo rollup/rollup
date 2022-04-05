@@ -872,9 +872,7 @@ export interface ChokidarOptions {
 
 export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
 
-export type WatcherHookOptions = Partial<Record<RollupWatchHooks, string>>;
-
-export interface WatcherOptions extends WatcherHookOptions {
+export interface WatcherOptions {
 	buildDelay?: number;
 	chokidar?: ChokidarOptions;
 	clearScreen?: boolean;
