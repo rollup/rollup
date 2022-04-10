@@ -4,6 +4,7 @@ import ExternalModule from './ExternalModule';
 import Module from './Module';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
+import ImportExpression from './ast/nodes/ImportExpression';
 import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import LocalVariable from './ast/variables/LocalVariable';
@@ -18,11 +19,13 @@ import type {
 	InternalModuleFormat,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
+	OutputBundleWithPlaceholders,
+	OutputChunk,
 	PreRenderedChunk,
-	RenderedChunk,
 	RenderedModule,
 	WarningHandler
 } from './rollup/types';
+import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
 import type { Addons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
@@ -44,6 +47,12 @@ import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
 import { getOrCreate } from './utils/getOrCreate';
 import { getStaticDependencies } from './utils/getStaticDependencies';
+import {
+	HashPlaceholderGenerator,
+	replacePlaceholders,
+	replacePlaceholdersByPosition,
+	replacePlaceholdersWithDefaultAndGetPositions
+} from './utils/hashPlaceholders';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
@@ -51,7 +60,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
+import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
 import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import type { RenderOptions } from './utils/renderHelpers';
@@ -59,14 +68,41 @@ import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
+// TODO Lukas ideally, the finally generated bundle does not contain getters so that memory can be freed when bundles are retained
+// TODO Lukas in the end, make as much private as possible and thing about extracting the rendering logic
 export interface ModuleDeclarations {
 	dependencies: ModuleDeclarationDependency[];
 	exports: ChunkExports;
 }
 
+type PreliminaryFileName = PreliminaryFileNameWithPlaceholder | FixedPreliminaryFileName;
+
+interface PreliminaryFileNameWithPlaceholder {
+	fileName: string;
+	hashPlaceholder: string;
+}
+
+interface FixedPreliminaryFileName {
+	fileName: string;
+	hashPlaceholder: null;
+}
+
+interface RenderedChunkWithPlaceholders {
+	code: string;
+	containedPlaceholders: Map<string, Chunk>;
+	map: SourceMap | null;
+	preliminaryFileName: string;
+}
+
+type ResolvedDynamicImport = (
+	| { chunk: Chunk; facadeChunk: Chunk | undefined; resolution: Module }
+	| { chunk: null; facadeChunk: null; resolution: ExternalModule | string | null }
+) & { node: ImportExpression };
+
 export interface ModuleDeclarationDependency {
 	defaultVariableName: string | undefined;
 	globalName: string;
+	// TODO Lukas this is probably not an id but a relative import path, rename
 	id: string;
 	imports: ImportSpecifier[] | null;
 	isChunk: boolean;
@@ -153,10 +189,11 @@ export default class Chunk {
 	// This may only be updated in the constructor
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
+	private preliminaryFileName: PreliminaryFileName | null = null;
+	private renderedChunk: OutputChunk | RenderedChunkWithPlaceholders | null = null;
 	private renderedDependencies: Map<ExternalModule | Chunk, ModuleDeclarationDependency> | null =
 		null;
 	private renderedExports: ChunkExports | null = null;
-	private renderedHash: string | undefined = undefined;
 	private readonly renderedModuleSources = new Map<Module, MagicString>();
 	private readonly renderedModules: {
 		[moduleId: string]: RenderedModule;
@@ -164,7 +201,6 @@ export default class Chunk {
 	private renderedSource: MagicStringBundle | null = null;
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
-	private usedModules: Module[] = undefined as never;
 
 	constructor(
 		private readonly orderedModules: readonly Module[],
@@ -407,82 +443,8 @@ export default class Chunk {
 		return facades;
 	}
 
-	generateId(
-		addons: Addons,
-		options: NormalizedOutputOptions,
-		existingNames: Record<string, unknown>,
-		includeHash: boolean
-	): string {
-		if (this.fileName !== null) {
-			return this.fileName;
-		}
-		const [pattern, patternName] =
-			this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
-				? [options.entryFileNames, 'output.entryFileNames']
-				: [options.chunkFileNames, 'output.chunkFileNames'];
-		return makeUnique(
-			renderNamePattern(
-				typeof pattern === 'function' ? pattern(this.getChunkInfo()) : pattern,
-				patternName,
-				{
-					format: () => options.format,
-					hash: () =>
-						includeHash
-							? this.computeContentHashWithDependencies(addons, options, existingNames)
-							: '[hash]',
-					name: () => this.getChunkName()
-				}
-			),
-			existingNames
-		);
-	}
-
-	generateIdPreserveModules(
-		preserveModulesRelativeDir: string,
-		options: NormalizedOutputOptions,
-		existingNames: Record<string, unknown>,
-		unsetOptions: ReadonlySet<string>
-	): string {
-		const [{ id }] = this.orderedModules;
-		const sanitizedId = this.outputOptions.sanitizeFileName(id.split(QUERY_HASH_REGEX, 1)[0]);
-		let path: string;
-
-		const patternOpt = unsetOptions.has('entryFileNames')
-			? '[name][assetExtname].js'
-			: options.entryFileNames;
-		const pattern = typeof patternOpt === 'function' ? patternOpt(this.getChunkInfo()) : patternOpt;
-
-		if (isAbsolute(sanitizedId)) {
-			const currentDir = dirname(sanitizedId);
-			const extension = extname(sanitizedId);
-			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
-				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substring(1),
-				extname: () => extension,
-				format: () => options.format as string,
-				name: () => this.getChunkName()
-			});
-			const currentPath = `${currentDir}/${fileName}`;
-			const { preserveModulesRoot } = options;
-			if (preserveModulesRoot && currentPath.startsWith(preserveModulesRoot)) {
-				path = currentPath.slice(preserveModulesRoot.length).replace(/^[\\/]/, '');
-			} else {
-				path = relative(preserveModulesRelativeDir, currentPath);
-			}
-		} else {
-			const extension = extname(sanitizedId);
-			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
-				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substring(1),
-				extname: () => extension,
-				format: () => options.format as string,
-				name: () => getAliasName(sanitizedId)
-			});
-			path = `_virtual/${fileName}`;
-		}
-		return makeUnique(normalize(path), existingNames);
-	}
-
+	// TODO Lukas rename type?
+	// TODO Lukas only create once?
 	getChunkInfo(): PreRenderedChunk {
 		const facadeModule = this.facadeModule;
 		const getChunkName = this.getChunkName.bind(this);
@@ -500,19 +462,6 @@ export default class Chunk {
 		};
 	}
 
-	getChunkInfoWithFileNames(): RenderedChunk {
-		return Object.assign(this.getChunkInfo(), {
-			code: undefined,
-			dynamicImports: Array.from(this.dynamicDependencies, getId),
-			fileName: this.id!,
-			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
-			importedBindings: this.getImportedBindingsPerDependency(),
-			imports: Array.from(this.dependencies, getId),
-			map: undefined,
-			referencedFiles: this.getReferencedFiles()
-		});
-	}
-
 	getChunkName(): string {
 		return (this.name ??= this.outputOptions.sanitizeFileName(this.getFallbackChunkName()));
 	}
@@ -521,33 +470,62 @@ export default class Chunk {
 		return (this.sortedExportNames ??= Array.from(this.exportsByName.keys()).sort());
 	}
 
-	getRenderedHash(): string {
-		if (this.renderedHash) return this.renderedHash;
-		const hash = createHash();
-		const hashAugmentation = this.pluginDriver.hookReduceValueSync(
-			'augmentChunkHash',
-			'',
-			[this.getChunkInfo()],
-			(augmentation, pluginHash) => {
-				if (pluginHash) {
-					augmentation += pluginHash;
-				}
-				return augmentation;
-			}
-		);
-		hash.update(hashAugmentation);
-		hash.update(this.renderedSource!.toString());
-		hash.update(
-			this.getExportNames()
-				.map(exportName => {
-					const variable = this.exportsByName.get(exportName)!;
-					return `${relativeId((variable.module as Module).id).replace(/\\/g, '/')}:${
-						variable.name
-					}:${exportName}`;
-				})
-				.join(',')
-		);
-		return (this.renderedHash = hash.digest('hex'));
+	// TODO Lukas to fill these fields, we need to get all these ids first
+	// Problematic is implicitlyLoadedBefore because we cannot get them during the initial render to not confuse the cycle logic
+	getOutputChunk(code: string, map: SourceMap | null): OutputChunk {
+		return Object.assign(this.getChunkInfo(), {
+			code,
+			dynamicImports: Array.from(this.dynamicDependencies, getId),
+			fileName: this.id!,
+			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
+			importedBindings: this.getImportedBindingsPerDependency(),
+			imports: Array.from(this.dependencies, getId),
+			map,
+			referencedFiles: this.getReferencedFiles()
+		});
+	}
+
+	getPreliminaryFileName(
+		inputBase: string,
+		getPlaceholder: HashPlaceholderGenerator,
+		bundle: OutputBundleWithPlaceholders
+	): PreliminaryFileName {
+		if (this.preliminaryFileName) {
+			return this.preliminaryFileName;
+		}
+		let fileName: string;
+		let hashPlaceholder: string | null = null;
+		const { chunkFileNames, entryFileNames, file, format, preserveModules } = this.outputOptions;
+		if (file) {
+			fileName = basename(file);
+		} else if (preserveModules) {
+			fileName = this.generateIdPreserveModules(inputBase, bundle, this.unsetOptions);
+		} else if (this.fileName !== null) {
+			fileName = this.fileName;
+		} else {
+			const [pattern, patternName] =
+				this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
+					? [entryFileNames, 'output.entryFileNames']
+					: [chunkFileNames, 'output.chunkFileNames'];
+			fileName = makeUnique(
+				renderNamePattern(
+					typeof pattern === 'function' ? pattern(this.getChunkInfo()) : pattern,
+					patternName,
+					{
+						format: () => format,
+						hash: () => hashPlaceholder || (hashPlaceholder = getPlaceholder(8)),
+						name: () => this.getChunkName()
+					}
+				),
+				bundle
+			);
+		}
+		// TODO Lukas test double placeholder
+		if (!hashPlaceholder) {
+			bundle[fileName] = FILE_PLACEHOLDER;
+		}
+		// Caching is essential to not conflict with the file name reservation above
+		return (this.preliminaryFileName = { fileName, hashPlaceholder });
 	}
 
 	getVariableExportName(variable: Variable): string {
@@ -560,37 +538,62 @@ export default class Chunk {
 	link(): void {
 		this.dependencies = getStaticDependencies(this, this.orderedModules, this.chunkByModule);
 		for (const module of this.orderedModules) {
+			// TODO Lukas Instead of doing this, we generate dynamicDependencies during render
 			this.addDependenciesToChunk(module.dynamicDependencies, this.dynamicDependencies);
 			this.addDependenciesToChunk(module.implicitlyLoadedBefore, this.implicitlyLoadedBefore);
 			this.setUpChunkImportsAndExportsForModule(module);
 		}
 	}
 
-	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(
+	/* TODO Lukas alternative approach
+	    - we have a function getPreliminaryFileName. This one returns an object with information if the file name is hashed and what the hash is. Cache on the chunk to avoid conflicts with own reservation. First call this for all entries and pass along the bundle to reserve spots on the bundle.
+	    - In render, we pass along a list of chunks that depend on the file name. We also pass along the bundle to reserve further spots.
+	    - we have a function getFileNameForRendering that is used by render to figure out file names. Pass along a list of chunks that depend on the file name
+	      - if a chunk would depend on itself or if the preliminary file name is not hashed, it returns its preliminary file name
+	      - otherwise it calls its render method
+      - if there are import metas, we also use our preliminary file name there
+      - compile a list of all hash placeholders we depend upon
+      - if the chunk does no depend on hashes we return an OutputChunk, but without empty implicitlyLoadedBefore
+      - otherwise we return a ChunkWithPlaceholders
+      - there is a final step to fill in implicitlyLoadedBefore information
+      - There is a method on the Chunk "completeChunkInfo" that receives a fixed code an map
+	 */
+	// TODO Lukas optimization: if a chunk would only depend on itself, replace own placeholder at the end of rendering
+	async render(
 		options: NormalizedOutputOptions,
 		inputBase: string,
-		snippets: GenerateCodeSnippets
-	): void {
-		const { _, getPropertyAccess, n } = snippets;
-		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
-		this.usedModules = [];
-		this.indentString = getIndentString(this.orderedModules, options);
-
-		const renderOptions: RenderOptions = {
-			dynamicImportFunction: options.dynamicImportFunction,
-			exportNamesByVariable: this.exportNamesByVariable,
-			format: options.format,
-			freeze: options.freeze,
-			indent: this.indentString,
-			namespaceToStringTag: options.namespaceToStringTag,
-			outputPluginDriver: this.pluginDriver,
-			snippets
-		};
+		addons: Addons,
+		snippets: GenerateCodeSnippets,
+		getHashPlaceholder: HashPlaceholderGenerator,
+		dependentChunks: Set<Chunk>,
+		bundle: OutputBundleWithPlaceholders
+	): Promise<OutputChunk | RenderedChunkWithPlaceholders> {
+		if (this.renderedChunk) {
+			return this.renderedChunk;
+		}
+		const {
+			compact,
+			dynamicImportFunction,
+			format,
+			freeze,
+			hoistTransitiveImports,
+			namespaceToStringTag
+		} = options;
+		// TODO Lukas move to output option generation
+		if (dynamicImportFunction && format !== 'es') {
+			this.inputOptions.onwarn(
+				errInvalidOption(
+					'output.dynamicImportFunction',
+					'outputdynamicImportFunction',
+					'this option is ignored for formats other than "es"'
+				)
+			);
+		}
 
 		// for static and dynamic entry points, inline the execution list to avoid loading latency
+		// TODO Lukas this just extends the dependencies of the current chunk
 		if (
-			options.hoistTransitiveImports &&
+			hoistTransitiveImports &&
 			!this.outputOptions.preserveModules &&
 			this.facadeModule !== null
 		) {
@@ -599,22 +602,151 @@ export default class Chunk {
 			}
 		}
 
-		this.prepareModulesForRendering(snippets);
+		// TODO Lukas can we do this stateless? Combine it with the next?
+		this.setExternalRenderPaths(options, inputBase);
+
+		// TODO Lukas now that we know all dependencies, we should first determine all file names but not yet change state
+		const dependencyResolutions = new Map<Chunk | ExternalModule, string>();
+
+		const preliminaryFileName = this.getPreliminaryFileName(inputBase, getHashPlaceholder, bundle);
+
+		// TODO Lukas get dependency file names
+		const containedHashPlaceholders = new Map<string, Chunk>();
+		const includedDynamicImports = this.getIncludedDynamicImports();
+		await Promise.all(
+			[
+				...this.dependencies,
+				...includedDynamicImports
+					.map(
+						resolvedDynamicImport =>
+							resolvedDynamicImport.facadeChunk ||
+							resolvedDynamicImport.chunk ||
+							resolvedDynamicImport.resolution
+					)
+					.filter(
+						(resolution): resolution is Chunk | ExternalModule =>
+							(resolution instanceof Chunk || resolution instanceof ExternalModule) &&
+							resolution !== this
+					)
+			].map(async dependency => {
+				if (dependency instanceof ExternalModule) {
+					const originalId = dependency.renderPath;
+					// TODO Lukas we need to strip JS extensions for AMD
+					dependencyResolutions.set(
+						dependency,
+						escapeId(
+							dependency.renormalizeRenderPath
+								? getImportPath(preliminaryFileName.fileName, originalId, false, false)
+								: originalId
+						)
+					);
+				} else {
+					const { fileName, hashPlaceholder } = await dependency.getFileNameForRendering(
+						options,
+						inputBase,
+						addons,
+						snippets,
+						getHashPlaceholder,
+						new Set([...dependentChunks, this]),
+						bundle
+					);
+					if (hashPlaceholder) {
+						containedHashPlaceholders.set(hashPlaceholder, dependency);
+					}
+					dependencyResolutions.set(
+						dependency,
+						escapeId(getImportPath(preliminaryFileName.fileName, fileName, false, true))
+					);
+				}
+			})
+		);
+
+		// The next two steps are stateful. No other render should happen between this and actual rendering
+		// TODO Lukas extract stateful sync part into separate sync function
+
+		// TODO Lukas This prepares dynamic imports before rendering
+		const accessedGlobalsByScope = this.accessedGlobalsByScope;
+		for (const resolvedDynamicImport of includedDynamicImports) {
+			if (resolvedDynamicImport.chunk) {
+				const { chunk, facadeChunk, node, resolution } = resolvedDynamicImport;
+				if (chunk === this) {
+					node.setInternalResolution(resolution.namespace);
+				} else {
+					node.setExternalResolution(
+						(facadeChunk || chunk).exportMode,
+						resolution,
+						this.outputOptions,
+						snippets,
+						this.pluginDriver,
+						accessedGlobalsByScope,
+						`'${dependencyResolutions.get(facadeChunk || chunk)}'`,
+						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0]
+					);
+				}
+			} else {
+				const { resolution } = resolvedDynamicImport;
+				resolvedDynamicImport.node.setExternalResolution(
+					'external',
+					resolution,
+					this.outputOptions,
+					snippets,
+					this.pluginDriver,
+					accessedGlobalsByScope,
+					resolution instanceof ExternalModule
+						? `'${dependencyResolutions.get(resolution)}'`
+						: resolution || '',
+					false
+				);
+			}
+		}
+
+		for (const module of this.orderedModules) {
+			for (const importMeta of module.importMetas) {
+				importMeta.setResolution(
+					this.outputOptions.format,
+					accessedGlobalsByScope,
+					preliminaryFileName.fileName
+				);
+				if (preliminaryFileName.hashPlaceholder) {
+					containedHashPlaceholders.set(preliminaryFileName.hashPlaceholder, this);
+				}
+			}
+			if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
+				module.namespace.prepare(accessedGlobalsByScope);
+			}
+		}
+
 		this.setIdentifierRenderResolutions(options);
 
+		const { _, getPropertyAccess, n } = snippets;
+		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
+		this.indentString = getIndentString(this.orderedModules, options);
+		const usedModules: Module[] = [];
 		let hoistedSource = '';
 		const renderedModules = this.renderedModules;
 
+		const renderOptions: RenderOptions = {
+			dynamicImportFunction,
+			exportNamesByVariable: this.exportNamesByVariable,
+			format,
+			freeze,
+			indent: this.indentString,
+			namespaceToStringTag,
+			outputPluginDriver: this.pluginDriver,
+			snippets
+		};
+
+		// TODO Lukas actually render and generate renderedModules
 		for (const module of this.orderedModules) {
 			let renderedLength = 0;
 			if (module.isIncluded() || this.includedNamespaces.has(module)) {
 				const source = module.render(renderOptions).trim();
 				renderedLength = source.length();
 				if (renderedLength) {
-					if (options.compact && source.lastLine().includes('//')) source.append('\n');
+					if (compact && source.lastLine().includes('//')) source.append('\n');
 					this.renderedModuleSources.set(module, source);
 					magicString.addSource(source);
-					this.usedModules.push(module);
+					usedModules.push(module);
 				}
 				const namespace = module.namespace;
 				if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
@@ -643,13 +775,11 @@ export default class Chunk {
 				`${n}${snippets.cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
-		if (options.compact) {
+		if (compact) {
 			this.renderedSource = magicString;
 		} else {
 			this.renderedSource = magicString.trim();
 		}
-
-		this.renderedHash = undefined;
 
 		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.size === 0) {
 			const chunkName = this.getChunkName();
@@ -660,54 +790,16 @@ export default class Chunk {
 			});
 		}
 
-		this.setExternalRenderPaths(options, inputBase);
-
-		this.renderedDependencies = this.getChunkDependencyDeclarations(options, getPropertyAccess);
+		this.renderedDependencies = this.getChunkDependencyDeclarations(
+			options,
+			dependencyResolutions,
+			getPropertyAccess
+		);
 		this.renderedExports =
-			this.exportMode === 'none'
-				? []
-				: this.getChunkExportDeclarations(options.format, getPropertyAccess);
-	}
+			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(format, getPropertyAccess);
 
-	async render(
-		options: NormalizedOutputOptions,
-		addons: Addons,
-		outputChunk: RenderedChunk,
-		snippets: GenerateCodeSnippets
-	): Promise<{ code: string; map: SourceMap }> {
 		timeStart('render format', 2);
-
-		const format = options.format;
 		const finalise = finalisers[format];
-		if (options.dynamicImportFunction && format !== 'es') {
-			this.inputOptions.onwarn(
-				errInvalidOption(
-					'output.dynamicImportFunction',
-					'outputdynamicImportFunction',
-					'this option is ignored for formats other than "es"'
-				)
-			);
-		}
-
-		// populate ids in the rendered declarations only here
-		// as chunk ids known only after prerender
-		for (const dependency of this.dependencies) {
-			const renderedDependency = this.renderedDependencies!.get(dependency)!;
-			if (dependency instanceof ExternalModule) {
-				const originalId = dependency.renderPath;
-				renderedDependency.id = escapeId(
-					dependency.renormalizeRenderPath
-						? getImportPath(this.id!, originalId, false, false)
-						: originalId
-				);
-			} else {
-				renderedDependency.namedExportsMode = dependency.exportMode !== 'default';
-				renderedDependency.id = escapeId(getImportPath(this.id!, dependency.id!, false, true));
-			}
-		}
-
-		this.finaliseDynamicImports(options, snippets);
-		this.finaliseImportMetas(format, snippets);
 
 		const hasExports =
 			this.renderedExports!.length !== 0 ||
@@ -737,19 +829,20 @@ export default class Chunk {
 			});
 		}
 
-		/* istanbul ignore next */
-		if (!this.id) {
-			throw new Error('Internal Error: expecting chunk id');
+		// TODO Lukas only do this on demand for usages below
+		if (preliminaryFileName.hashPlaceholder) {
+			containedHashPlaceholders.set(preliminaryFileName.hashPlaceholder, this);
 		}
-
-		const magicString = finalise(
+		// TODO Lukas we do not need to return magicString from finalisers
+		finalise(
 			this.renderedSource!,
 			{
 				accessedGlobals,
 				dependencies: [...this.renderedDependencies!.values()],
 				exports: this.renderedExports!,
 				hasExports,
-				id: this.id,
+				// TODO Lukas this is only needed for AMD ids here. If we replace this with a getter, we can either use the actual id or an id with hash placeholder; in the latter case, this module becomes a module with placeholder dependency
+				id: preliminaryFileName.fileName,
 				indent: this.indentString,
 				intro: addons.intro,
 				isEntryFacade:
@@ -770,29 +863,60 @@ export default class Chunk {
 
 		timeEnd('render format', 2);
 
-		let map: SourceMap = null as never;
+		// TODO Lukas improve type
+		let map: SourceMap | null = null;
 		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 		let code = await renderChunk({
 			code: prevCode,
 			options,
 			outputPluginDriver: this.pluginDriver,
-			renderChunk: outputChunk,
+			renderChunk: this.getChunkInfo(),
 			sourcemapChain: chunkSourcemapChain
 		});
+
+		// TODO Lukas handle the case where we have dependencies
+		// TODO Lukas unify hashing logic
+		if (
+			preliminaryFileName.hashPlaceholder &&
+			containedHashPlaceholders.size === 1 &&
+			containedHashPlaceholders.has(preliminaryFileName.hashPlaceholder)
+		) {
+			const hash = createHash();
+			const { positions, result } = replacePlaceholdersWithDefaultAndGetPositions(
+				code,
+				new Set([preliminaryFileName.hashPlaceholder])
+			);
+			hash.update(result);
+			const hashString = hash
+				.digest('hex')
+				.substring(0, preliminaryFileName.hashPlaceholder.length);
+			const placeholderValues = new Map([[preliminaryFileName.hashPlaceholder, hashString]]);
+			if (positions.size) {
+				code = replacePlaceholdersByPosition(result, positions, placeholderValues);
+			}
+			preliminaryFileName.fileName = replacePlaceholders(
+				preliminaryFileName.fileName,
+				placeholderValues
+			);
+			(preliminaryFileName as PreliminaryFileName).hashPlaceholder = null;
+			containedHashPlaceholders.clear();
+		}
+
+		// TODO Lukas we also need to replace hash placeholders in the source maps
 		if (options.sourcemap) {
 			timeStart('sourcemap', 2);
 
 			let file: string;
 			if (options.file) file = resolve(options.sourcemapFile || options.file);
-			else if (options.dir) file = resolve(options.dir, this.id);
-			else file = resolve(this.id);
+			else if (options.dir) file = resolve(options.dir, preliminaryFileName.fileName);
+			else file = resolve(preliminaryFileName.fileName);
 
 			const decodedMap = magicString.generateDecodedMap({});
 			map = collapseSourcemaps(
 				file,
 				decodedMap,
-				this.usedModules,
+				usedModules,
 				chunkSourcemapChain,
 				options.sourcemapExcludeSources,
 				this.inputOptions.onwarn
@@ -817,8 +941,18 @@ export default class Chunk {
 
 			timeEnd('sourcemap', 2);
 		}
-		if (!options.compact && code[code.length - 1] !== '\n') code += '\n';
-		return { code, map };
+		if (!compact && code[code.length - 1] !== '\n') code += '\n';
+		if (containedHashPlaceholders.size === 0) {
+			this.id = preliminaryFileName.fileName;
+			return this.getOutputChunk(code, map);
+		}
+		return {
+			code,
+			// TODO Lukas unify naming
+			containedPlaceholders: containedHashPlaceholders,
+			map,
+			preliminaryFileName: preliminaryFileName.fileName
+		};
 	}
 
 	private addDependenciesToChunk(
@@ -882,30 +1016,6 @@ export default class Chunk {
 		}
 	}
 
-	private computeContentHashWithDependencies(
-		addons: Addons,
-		options: NormalizedOutputOptions,
-		existingNames: Record<string, unknown>
-	): string {
-		const hash = createHash();
-		hash.update([addons.intro, addons.outro, addons.banner, addons.footer].join(':'));
-		hash.update(options.format);
-		const dependenciesForHashing = new Set<Chunk | ExternalModule>([this]);
-		for (const current of dependenciesForHashing) {
-			if (current instanceof ExternalModule) {
-				hash.update(`:${current.renderPath}`);
-			} else {
-				hash.update(current.getRenderedHash());
-				hash.update(current.generateId(addons, options, existingNames, false));
-			}
-			if (current instanceof ExternalModule) continue;
-			for (const dependency of [...current.dependencies, ...current.dynamicDependencies]) {
-				dependenciesForHashing.add(dependency);
-			}
-		}
-		return hash.digest('hex').substr(0, 8);
-	}
-
 	private ensureReexportsAreAvailableForModule(module: Module): void {
 		const includedReexports: Variable[] = [];
 		const map = module.getExportNamesByVariable();
@@ -934,48 +1044,49 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseDynamicImports(
-		options: NormalizedOutputOptions,
-		snippets: GenerateCodeSnippets
-	): void {
-		const stripKnownJsExtensions = options.format === 'amd';
-		for (const [module, code] of this.renderedModuleSources) {
-			for (const { node, resolution } of module.dynamicImports) {
-				const chunk = this.chunkByModule.get(resolution as Module);
-				const facadeChunk = this.facadeChunkByModule.get(resolution as Module);
-				if (!resolution || !node.included || chunk === this) {
-					continue;
-				}
-				const renderedResolution =
-					resolution instanceof Module
-						? `'${escapeId(
-								getImportPath(this.id!, (facadeChunk || chunk!).id!, stripKnownJsExtensions, true)
-						  )}'`
-						: resolution instanceof ExternalModule
-						? `'${escapeId(
-								resolution.renormalizeRenderPath
-									? getImportPath(this.id!, resolution.renderPath, stripKnownJsExtensions, false)
-									: resolution.renderPath
-						  )}'`
-						: resolution;
-				node.renderFinalResolution(
-					code,
-					renderedResolution,
-					resolution instanceof Module &&
-						!facadeChunk?.strictFacade &&
-						chunk!.exportNamesByVariable.get(resolution.namespace)![0],
-					snippets
-				);
-			}
-		}
-	}
+	private generateIdPreserveModules(
+		preserveModulesRelativeDir: string,
+		existingNames: Record<string, unknown>,
+		unsetOptions: ReadonlySet<string>
+	): string {
+		const [{ id }] = this.orderedModules;
+		const { entryFileNames, format, preserveModulesRoot, sanitizeFileName } = this.outputOptions;
+		const sanitizedId = sanitizeFileName(id.split(QUERY_HASH_REGEX, 1)[0]);
+		let path: string;
 
-	private finaliseImportMetas(format: InternalModuleFormat, snippets: GenerateCodeSnippets): void {
-		for (const [module, code] of this.renderedModuleSources) {
-			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id!, format, snippets, this.pluginDriver);
+		const patternOpt = unsetOptions.has('entryFileNames')
+			? '[name][assetExtname].js'
+			: entryFileNames;
+		const pattern = typeof patternOpt === 'function' ? patternOpt(this.getChunkInfo()) : patternOpt;
+
+		if (isAbsolute(sanitizedId)) {
+			const currentDir = dirname(sanitizedId);
+			const extension = extname(sanitizedId);
+			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
+				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
+				ext: () => extension.substring(1),
+				extname: () => extension,
+				format: () => format as string,
+				name: () => this.getChunkName()
+			});
+			const currentPath = `${currentDir}/${fileName}`;
+			if (preserveModulesRoot && currentPath.startsWith(preserveModulesRoot)) {
+				path = currentPath.slice(preserveModulesRoot.length).replace(/^[\\/]/, '');
+			} else {
+				path = relative(preserveModulesRelativeDir, currentPath);
 			}
+		} else {
+			const extension = extname(sanitizedId);
+			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
+				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
+				ext: () => extension.substring(1),
+				extname: () => extension,
+				format: () => format as string,
+				name: () => getAliasName(sanitizedId)
+			});
+			path = `_virtual/${fileName}`;
 		}
+		return makeUnique(normalize(path), existingNames);
 	}
 
 	private generateVariableName(): string {
@@ -995,6 +1106,7 @@ export default class Chunk {
 
 	private getChunkDependencyDeclarations(
 		options: NormalizedOutputOptions,
+		dependencyResolutions: Map<Chunk | ExternalModule, string>,
 		getPropertyAccess: (name: string) => string
 	): Map<Chunk | ExternalModule, ModuleDeclarationDependency> {
 		const importSpecifiers = this.getImportSpecifiers(getPropertyAccess);
@@ -1007,6 +1119,7 @@ export default class Chunk {
 
 			dependencyDeclaration.set(dep, {
 				defaultVariableName: (dep as ExternalModule).defaultVariableName,
+				// TODO Lukas globalName should probably not be typed as string?
 				globalName: (dep instanceof ExternalModule &&
 					(options.format === 'umd' || options.format === 'iife') &&
 					getGlobalName(
@@ -1015,7 +1128,7 @@ export default class Chunk {
 						(imports || reexports) !== null,
 						this.inputOptions.onwarn
 					)) as string,
-				id: undefined as never, // chunk id updated on render
+				id: dependencyResolutions.get(dep)!,
 				imports,
 				isChunk: dep instanceof Chunk,
 				name: dep.variableName,
@@ -1132,6 +1245,38 @@ export default class Chunk {
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
+	private async getFileNameForRendering(
+		options: NormalizedOutputOptions,
+		inputBase: string,
+		addons: Addons,
+		snippets: GenerateCodeSnippets,
+		getHashPlaceholder: HashPlaceholderGenerator,
+		dependentChunks: Set<Chunk>,
+		bundle: OutputBundleWithPlaceholders
+	): Promise<PreliminaryFileName> {
+		const preliminaryFileName = this.getPreliminaryFileName(inputBase, getHashPlaceholder, bundle);
+		if (!preliminaryFileName.hashPlaceholder || dependentChunks.has(this)) {
+			return preliminaryFileName;
+		}
+		// rendering is cached
+		const renderedChunk = await this.render(
+			options,
+			inputBase,
+			addons,
+			snippets,
+			getHashPlaceholder,
+			dependentChunks,
+			bundle
+		);
+		if ('fileName' in renderedChunk) {
+			return (this.preliminaryFileName = {
+				fileName: renderedChunk.fileName,
+				hashPlaceholder: null
+			});
+		}
+		return preliminaryFileName;
+	}
+
 	private getImportSpecifiers(
 		getPropertyAccess: (name: string) => string
 	): Map<Chunk | ExternalModule, ImportSpecifier[]> {
@@ -1176,6 +1321,28 @@ export default class Chunk {
 			importSpecifiers[dependency.id!] = [...specifiers];
 		}
 		return importSpecifiers;
+	}
+
+	private getIncludedDynamicImports(): ResolvedDynamicImport[] {
+		const includedDynamicImports: ResolvedDynamicImport[] = [];
+		for (const module of this.orderedModules) {
+			for (const { node, resolution } of module.dynamicImports) {
+				if (!resolution || !node.included) {
+					continue;
+				}
+				includedDynamicImports.push(
+					resolution instanceof Module
+						? {
+								chunk: this.chunkByModule.get(resolution)!,
+								facadeChunk: this.facadeChunkByModule.get(resolution),
+								node,
+								resolution
+						  }
+						: { chunk: null, facadeChunk: null, node, resolution }
+				);
+			}
+		}
+		return includedDynamicImports;
 	}
 
 	private getReexportSpecifiers(): Map<Chunk | ExternalModule, ReexportSpecifier[]> {
@@ -1241,46 +1408,6 @@ export default class Chunk {
 			this.dependencies.add(dep);
 			if (dep instanceof Chunk) {
 				this.inlineChunkDependencies(dep);
-			}
-		}
-	}
-
-	private prepareModulesForRendering(snippets: GenerateCodeSnippets): void {
-		const accessedGlobalsByScope = this.accessedGlobalsByScope;
-		for (const module of this.orderedModules) {
-			for (const { node, resolution } of module.dynamicImports) {
-				if (node.included) {
-					if (resolution instanceof Module) {
-						const chunk = this.chunkByModule.get(resolution);
-						if (chunk === this) {
-							node.setInternalResolution(resolution.namespace);
-						} else {
-							node.setExternalResolution(
-								this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
-								resolution,
-								this.outputOptions,
-								snippets,
-								this.pluginDriver,
-								accessedGlobalsByScope
-							);
-						}
-					} else {
-						node.setExternalResolution(
-							'external',
-							resolution,
-							this.outputOptions,
-							snippets,
-							this.pluginDriver,
-							accessedGlobalsByScope
-						);
-					}
-				}
-			}
-			for (const importMeta of module.importMetas) {
-				importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
-			}
-			if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
-				module.namespace.prepare(accessedGlobalsByScope);
 			}
 		}
 	}

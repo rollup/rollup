@@ -20,13 +20,16 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
+// TODO Lukas clean up this file
 export default class ImportExpression extends NodeBase {
 	inlineNamespace: NamespaceVariable | null = null;
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 
 	private mechanism: DynamicImportMechanism | null = null;
+	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
+	private resolutionString: string | null = null;
 
 	hasEffects(): boolean {
 		return true;
@@ -46,10 +49,10 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
+		const {
+			snippets: { getDirectReturnFunction, getPropertyAccess }
+		} = options;
 		if (this.inlineNamespace) {
-			const {
-				snippets: { getDirectReturnFunction, getPropertyAccess }
-			} = options;
 			const [left, right] = getDirectReturnFunction([], {
 				functionReturn: true,
 				lineBreakIndent: null,
@@ -73,36 +76,37 @@ export default class ImportExpression extends NodeBase {
 			);
 			code.overwrite(this.end - 1, this.end, this.mechanism.right, { contentOnly: true });
 		}
-		this.source.render(code, options);
-	}
-
-	renderFinalResolution(
-		code: MagicString,
-		resolution: string,
-		namespaceExportName: string | false | undefined,
-		{ getDirectReturnFunction }: GenerateCodeSnippets
-	): void {
-		code.overwrite(this.source.start, this.source.end, resolution);
-		if (namespaceExportName) {
-			const [left, right] = getDirectReturnFunction(['n'], {
-				functionReturn: true,
-				lineBreakIndent: null,
-				name: null
-			});
-			code.prependLeft(this.end, `.then(${left}n.${namespaceExportName}${right})`);
+		// TODO Lukas is this really mutually exclusive? Can we get rid of some of this? Should this be this.resolution?
+		if (this.resolutionString) {
+			code.overwrite(this.source.start, this.source.end, this.resolutionString);
+			if (this.namespaceExportName) {
+				const [left, right] = getDirectReturnFunction(['n'], {
+					functionReturn: true,
+					lineBreakIndent: null,
+					name: null
+				});
+				code.prependLeft(this.end, `.then(${left}n.${this.namespaceExportName}${right})`);
+			}
+		} else {
+			this.source.render(code, options);
 		}
 	}
 
+	// TODO Lukas we may need fewer options here, i.e. no snippets or pluginDriver
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		resolution: Module | ExternalModule | string | null,
 		options: NormalizedOutputOptions,
 		snippets: GenerateCodeSnippets,
 		pluginDriver: PluginDriver,
-		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
+		resolutionString: string,
+		namespaceExportName: string | false | undefined
 	): void {
 		const { format } = options;
 		this.resolution = resolution;
+		this.resolutionString = resolutionString;
+		this.namespaceExportName = namespaceExportName;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
 		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(

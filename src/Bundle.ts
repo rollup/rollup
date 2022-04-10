@@ -8,12 +8,10 @@ import type {
 	NormalizedOutputOptions,
 	OutputBundle,
 	OutputBundleWithPlaceholders,
-	OutputChunk,
 	WarningHandler
 } from './rollup/types';
-import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
-import { type Addons, createAddons } from './utils/addons';
+import { createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
 import {
@@ -23,8 +21,9 @@ import {
 	error
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
-import { type GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
-import { basename, isAbsolute } from './utils/path';
+import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
+import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
+import { isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {
@@ -43,6 +42,8 @@ export default class Bundle {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions, this.facadeChunkByModule);
+		// TODO Lukas clean up by extracting functions in the end
+		// TODO Lukas rethink time measuring points
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
@@ -54,16 +55,43 @@ export default class Bundle {
 			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 			timeEnd('generate chunks', 2);
 
-			timeStart('render modules', 2);
+			timeStart('render chunks', 2);
+			// generate exports
+			for (const chunk of chunks) {
+				chunk.generateExports();
+			}
 
-			// We need to create addons before prerender because at the moment, there
-			// can be no async code between prerender and render due to internal state
+			// TODO Lukas addons could now be created per chunk; check if chunks can be generated in parallel first (there used to be problems with internal state)
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
 			const snippets = getGenerateCodeSnippets(this.outputOptions);
-			this.prerenderChunks(chunks, inputBase, snippets);
-			timeEnd('render modules', 2);
+			const getHashPlaceholder = getHashPlaceholderGenerator();
 
-			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle, snippets);
+			// first we reserve room for entry chunks
+			for (const chunk of chunks) {
+				if (chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint) {
+					// reserves name in bundle as side effect
+					chunk.getPreliminaryFileName(inputBase, getHashPlaceholder, outputBundle);
+				}
+			}
+
+			for (const chunk of chunks) {
+				// TODO Lukas we need to provide all existing names for deconflicting
+				const renderedChunk = await chunk.render(
+					this.outputOptions,
+					inputBase,
+					addons,
+					snippets,
+					getHashPlaceholder,
+					new Set(),
+					outputBundle
+				);
+				if ('fileName' in renderedChunk) {
+					outputBundle[renderedChunk.fileName] = renderedChunk;
+				} else {
+					throw new Error('Could not get file name from render');
+				}
+			}
+			timeEnd('render chunks', 2);
 		} catch (err: any) {
 			await this.pluginDriver.hookParallel('renderError', [err]);
 			throw err;
@@ -77,28 +105,6 @@ export default class Bundle {
 
 		timeEnd('GENERATE', 1);
 		return outputBundle as OutputBundle;
-	}
-
-	private async addFinalizedChunksToBundle(
-		chunks: readonly Chunk[],
-		inputBase: string,
-		addons: Addons,
-		outputBundle: OutputBundleWithPlaceholders,
-		snippets: GenerateCodeSnippets
-	): Promise<void> {
-		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
-		for (const chunk of chunks) {
-			outputBundle[chunk.id!] = chunk.getChunkInfoWithFileNames() as OutputChunk;
-		}
-		await Promise.all(
-			chunks.map(async chunk => {
-				const outputChunk = outputBundle[chunk.id!] as OutputChunk;
-				Object.assign(
-					outputChunk,
-					await chunk.render(this.outputOptions, addons, outputChunk, snippets)
-				);
-			})
-		);
 	}
 
 	private async addManualChunks(
@@ -117,40 +123,6 @@ export default class Bundle {
 			}
 		}
 		return manualChunkAliasByEntry;
-	}
-
-	private assignChunkIds(
-		chunks: readonly Chunk[],
-		inputBase: string,
-		addons: Addons,
-		bundle: OutputBundleWithPlaceholders
-	): void {
-		const entryChunks: Chunk[] = [];
-		const otherChunks: Chunk[] = [];
-		for (const chunk of chunks) {
-			(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
-				? entryChunks
-				: otherChunks
-			).push(chunk);
-		}
-
-		// make sure entry chunk names take precedence with regard to deconflicting
-		const chunksForNaming = entryChunks.concat(otherChunks);
-		for (const chunk of chunksForNaming) {
-			if (this.outputOptions.file) {
-				chunk.id = basename(this.outputOptions.file);
-			} else if (this.outputOptions.preserveModules) {
-				chunk.id = chunk.generateIdPreserveModules(
-					inputBase,
-					this.outputOptions,
-					bundle,
-					this.unsetOptions
-				);
-			} else {
-				chunk.id = chunk.generateId(addons, this.outputOptions, bundle, true);
-			}
-			bundle[chunk.id] = FILE_PLACEHOLDER;
-		}
 	}
 
 	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
@@ -235,19 +207,6 @@ export default class Bundle {
 			facades.push(...chunk.generateFacades());
 		}
 		return [...chunks, ...facades];
-	}
-
-	private prerenderChunks(
-		chunks: readonly Chunk[],
-		inputBase: string,
-		snippets: GenerateCodeSnippets
-	): void {
-		for (const chunk of chunks) {
-			chunk.generateExports();
-		}
-		for (const chunk of chunks) {
-			chunk.preRender(this.outputOptions, inputBase, snippets);
-		}
 	}
 }
 

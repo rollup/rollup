@@ -1,3 +1,4 @@
+// TODO Lukas review which types are part of the external interface
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
@@ -274,7 +275,8 @@ export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => Promis
 export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
-	chunk: RenderedChunk,
+	// TODO Lukas rethink type here
+	chunk: PreRenderedChunk,
 	options: NormalizedOutputOptions
 ) =>
 	| Promise<{ code: string; map?: SourceMapInput } | null>
@@ -742,6 +744,7 @@ export interface RenderedModule {
 	renderedLength: number;
 }
 
+// TODO Lukas improve type names
 export interface PreRenderedChunk {
 	exports: string[];
 	facadeModuleId: string | null;
@@ -770,6 +773,7 @@ export interface RenderedChunk extends PreRenderedChunk {
 
 export interface OutputChunk extends RenderedChunk {
 	code: string;
+	map: SourceMap | null;
 }
 
 export interface SerializablePluginCache {
