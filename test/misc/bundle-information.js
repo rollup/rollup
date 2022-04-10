@@ -539,7 +539,7 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
-								renderedLength: 141
+								renderedLength: 151
 							}
 						},
 						{

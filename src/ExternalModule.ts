@@ -29,7 +29,6 @@ export default class ExternalModule {
 	private readonly declarations = new Map<string, ExternalVariable>();
 	private mostCommonSuggestion = 0;
 	private readonly nameSuggestions = new Map<string, number>();
-	private renderPath: string | null = null;
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
@@ -79,11 +78,20 @@ export default class ExternalModule {
 		});
 	}
 
-	getImportPath(importer: string, options: NormalizedOutputOptions, inputBase: string): string {
-		const renderPath = this.getRenderPath(options, inputBase);
-		return escapeId(
-			this.renormalizeRenderPath ? getImportPath(importer, renderPath, false, false) : renderPath
-		);
+	getImportPath(
+		importer: string,
+		options: NormalizedOutputOptions,
+		inputBase: string
+	): { fileName: string; import: string } {
+		const fileName =
+			(typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id]) ||
+			(this.renormalizeRenderPath ? normalize(relative(inputBase, this.id)) : this.id);
+		return {
+			fileName,
+			import: escapeId(
+				this.renormalizeRenderPath ? getImportPath(importer, fileName, false, false) : fileName
+			)
+		};
 	}
 
 	getVariableForExportName(name: string): [variable: ExternalVariable] {
@@ -134,15 +142,5 @@ export default class ExternalModule {
 			source: this.id,
 			sources: importersArray
 		});
-	}
-
-	// Cached to avoid execution the paths function more than once
-	private getRenderPath(options: NormalizedOutputOptions, inputBase: string): string {
-		return (
-			this.renderPath ||
-			(this.renderPath =
-				(typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id]) ||
-				(this.renormalizeRenderPath ? normalize(relative(inputBase, this.id)) : this.id))
-		);
 	}
 }
