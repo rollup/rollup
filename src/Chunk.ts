@@ -558,7 +558,6 @@ export default class Chunk {
       - there is a final step to fill in implicitlyLoadedBefore information
       - There is a method on the Chunk "completeChunkInfo" that receives a fixed code an map
 	 */
-	// TODO Lukas optimization: if a chunk would only depend on itself, replace own placeholder at the end of rendering
 	async render(
 		options: NormalizedOutputOptions,
 		inputBase: string,
@@ -602,9 +601,6 @@ export default class Chunk {
 			}
 		}
 
-		// TODO Lukas can we do this stateless? Combine it with the next?
-		this.setExternalRenderPaths(options, inputBase);
-
 		// TODO Lukas now that we know all dependencies, we should first determine all file names but not yet change state
 		const dependencyResolutions = new Map<Chunk | ExternalModule, string>();
 
@@ -630,15 +626,10 @@ export default class Chunk {
 					)
 			].map(async dependency => {
 				if (dependency instanceof ExternalModule) {
-					const originalId = dependency.renderPath;
 					// TODO Lukas we need to strip JS extensions for AMD
 					dependencyResolutions.set(
 						dependency,
-						escapeId(
-							dependency.renormalizeRenderPath
-								? getImportPath(preliminaryFileName.fileName, originalId, false, false)
-								: originalId
-						)
+						dependency.getImportPath(preliminaryFileName.fileName, options, inputBase)
 					);
 				} else {
 					const { fileName, hashPlaceholder } = await dependency.getFileNameForRendering(
@@ -1408,14 +1399,6 @@ export default class Chunk {
 			this.dependencies.add(dep);
 			if (dep instanceof Chunk) {
 				this.inlineChunkDependencies(dep);
-			}
-		}
-	}
-
-	private setExternalRenderPaths(options: NormalizedOutputOptions, inputBase: string): void {
-		for (const dependency of [...this.dependencies, ...this.dynamicDependencies]) {
-			if (dependency instanceof ExternalModule) {
-				dependency.setRenderPath(options, inputBase);
 			}
 		}
 	}

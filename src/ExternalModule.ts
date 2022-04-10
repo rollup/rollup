@@ -7,34 +7,36 @@ import type {
 } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
 import { warnDeprecation } from './utils/error';
+import { escapeId } from './utils/escapeId';
 import { makeLegal } from './utils/identifierHelpers';
 import { normalize, relative } from './utils/path';
 import { printQuotedStringList } from './utils/printStringList';
-import relativeId from './utils/relativeId';
+import relativeId, { getImportPath } from './utils/relativeId';
 
 export default class ExternalModule {
-	readonly declarations = new Map<string, ExternalVariable>();
 	defaultVariableName = '';
 	readonly dynamicImporters: string[] = [];
 	execIndex = Infinity;
 	readonly exportedVariables = new Map<ExternalVariable, string>();
 	readonly importers: string[] = [];
 	readonly info: ModuleInfo;
-	mostCommonSuggestion = 0;
-	readonly nameSuggestions = new Map<string, number>();
 	namespaceVariableName = '';
 	reexported = false;
-	renderPath: string = undefined as never;
 	suggestedVariableName: string;
 	used = false;
 	variableName = '';
+
+	private readonly declarations = new Map<string, ExternalVariable>();
+	private mostCommonSuggestion = 0;
+	private readonly nameSuggestions = new Map<string, number>();
+	private renderPath: string | null = null;
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
 		public readonly id: string,
 		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
-		public readonly renormalizeRenderPath: boolean
+		private readonly renormalizeRenderPath: boolean
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
 
@@ -77,6 +79,13 @@ export default class ExternalModule {
 		});
 	}
 
+	getImportPath(importer: string, options: NormalizedOutputOptions, inputBase: string): string {
+		const renderPath = this.getRenderPath(options, inputBase);
+		return escapeId(
+			this.renormalizeRenderPath ? getImportPath(importer, renderPath, false, false) : renderPath
+		);
+	}
+
 	getVariableForExportName(name: string): [variable: ExternalVariable] {
 		const declaration = this.declarations.get(name);
 		if (declaration) return [declaration];
@@ -85,16 +94,6 @@ export default class ExternalModule {
 		this.declarations.set(name, externalVariable);
 		this.exportedVariables.set(externalVariable, name);
 		return [externalVariable];
-	}
-
-	setRenderPath(options: NormalizedOutputOptions, inputBase: string): void {
-		this.renderPath =
-			typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
-		if (!this.renderPath) {
-			this.renderPath = this.renormalizeRenderPath
-				? normalize(relative(inputBase, this.id))
-				: this.id;
-		}
 	}
 
 	suggestName(name: string): void {
@@ -135,5 +134,15 @@ export default class ExternalModule {
 			source: this.id,
 			sources: importersArray
 		});
+	}
+
+	// Cached to avoid execution the paths function more than once
+	private getRenderPath(options: NormalizedOutputOptions, inputBase: string): string {
+		return (
+			this.renderPath ||
+			(this.renderPath =
+				(typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id]) ||
+				(this.renormalizeRenderPath ? normalize(relative(inputBase, this.id)) : this.id))
+		);
 	}
 }
