@@ -1,4 +1,4 @@
-import Chunk from './Chunk';
+import Chunk, { RenderedChunkWithPlaceholders } from './Chunk';
 import type ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module from './Module';
@@ -10,10 +10,12 @@ import type {
 	OutputBundleWithPlaceholders,
 	WarningHandler
 } from './rollup/types';
+import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
 import { createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
+import { createHash } from './utils/crypto';
 import {
 	errCannotAssignModuleToChunk,
 	errChunkInvalid,
@@ -22,7 +24,13 @@ import {
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
-import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
+import {
+	getHashPlaceholderGenerator,
+	replacePlaceholders,
+	replacePlaceholdersByPosition,
+	replacePlaceholdersWithDefaultAndGetPositions,
+	replaceSinglePlaceholder
+} from './utils/hashPlaceholders';
 import { isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -38,6 +46,7 @@ export default class Bundle {
 		private readonly graph: Graph
 	) {}
 
+	// TODO Lukas extract and clean up
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
@@ -74,8 +83,14 @@ export default class Bundle {
 				}
 			}
 
+			// TODO Lukas maybe it is simpler if we start with a mapping preliminary Chunk <-> name
+			//  (and placeholder -> chunk) which we pass to each render and always search
+			const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
+			const chunksByPlaceholder = new Map<
+				string,
+				RenderedChunkWithPlaceholders & { contentHash: string; positions: Map<number, string> }
+			>();
 			for (const chunk of chunks) {
-				// TODO Lukas we need to provide all existing names for deconflicting
 				const renderedChunk = await chunk.render(
 					this.outputOptions,
 					inputBase,
@@ -88,9 +103,92 @@ export default class Bundle {
 				if ('fileName' in renderedChunk) {
 					outputBundle[renderedChunk.fileName] = renderedChunk;
 				} else {
-					throw new Error('Could not get file name from render');
+					const {
+						code,
+						containedPlaceholders,
+						preliminaryFileName: { hashPlaceholder }
+					} = renderedChunk;
+					if (hashPlaceholder) {
+						const hash = createHash();
+						const { positions, result } = replacePlaceholdersWithDefaultAndGetPositions(
+							code,
+							new Set(containedPlaceholders.keys())
+						);
+						hash.update(result);
+						chunksByPlaceholder.set(hashPlaceholder, {
+							...renderedChunk,
+							contentHash: hash.digest('hex'),
+							positions
+						});
+					} else {
+						// TODO Lukas no need to hash, but we still need to replace stuff. Test this!
+						nonHashedChunksWithPlaceholders.push(renderedChunk);
+					}
 				}
 			}
+			// generate final hashes by placeholder
+			const hashesByPlaceholder = new Map<string, string>();
+			// TODO Lukas deduplicate with logic in Chunk.render
+			for (const [
+				placeholder,
+				{
+					contentHash,
+					preliminaryFileName: { fileName }
+				}
+			] of chunksByPlaceholder) {
+				const hash = createHash();
+				const hashDependenciesByPlaceholder = new Map<string, string>([[placeholder, contentHash]]);
+				for (const [dependencyPlaceholder, dependencyHash] of hashDependenciesByPlaceholder) {
+					hash.update(dependencyHash);
+					for (const containedPlaceholder of chunksByPlaceholder
+						.get(dependencyPlaceholder)!
+						.containedPlaceholders.keys()) {
+						// When looping over a map, setting an entry only causes a new iteration if the key is new
+						hashDependenciesByPlaceholder.set(
+							containedPlaceholder,
+							chunksByPlaceholder.get(containedPlaceholder)!.contentHash
+						);
+					}
+				}
+				// TODO Lukas now determine the file name and update hash if necessary
+				let finalFileName: string | undefined;
+				let finalHash: string;
+				do {
+					if (finalFileName) {
+						// TODO Lukas test and instead do a hash.update()
+						// But as a matter of fact, we need to recreate the entire hash unless we can use copy in Node 14
+						throw new Error(`Need to deduplicate hash for ${finalFileName}`);
+					}
+					finalHash = hash.digest('hex').slice(0, placeholder.length);
+					finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash);
+				} while (outputBundle[finalFileName]);
+				outputBundle[finalFileName] = FILE_PLACEHOLDER;
+				hashesByPlaceholder.set(placeholder, finalHash.slice(0, placeholder.length));
+			}
+			// TODO Lukas update content and file names
+			// TODO Lukas also replace in sourcemaps
+			for (const [
+				placeholder,
+				{ chunk, code, map, positions, preliminaryFileName }
+			] of chunksByPlaceholder) {
+				const updatedCode = replacePlaceholdersByPosition(code, positions, hashesByPlaceholder);
+				const fileName = replaceSinglePlaceholder(
+					preliminaryFileName.fileName,
+					placeholder,
+					hashesByPlaceholder.get(placeholder)!
+				);
+				outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
+			}
+			for (const {
+				chunk,
+				code,
+				map,
+				preliminaryFileName: { fileName }
+			} of nonHashedChunksWithPlaceholders) {
+				const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
+				outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
+			}
+
 			timeEnd('render chunks', 2);
 		} catch (err: any) {
 			await this.pluginDriver.hookParallel('renderError', [err]);

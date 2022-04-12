@@ -36,10 +36,20 @@ const REPLACER_REGEX = new RegExp(
 	'g'
 );
 
-export const replacePlaceholders = (code: string, placeholderValues: Map<string, string>): string =>
-	code.replace(REPLACER_REGEX, match => placeholderValues.get(match) || match);
+export const replacePlaceholders = (
+	code: string,
+	hashesByPlaceholder: Map<string, string>
+): string => code.replace(REPLACER_REGEX, match => hashesByPlaceholder.get(match) || match);
+
+// TODO Lukas check if we could just use replaceAll in Node 14
+export const replaceSinglePlaceholder = (
+	code: string,
+	placeholder: string,
+	value: string
+): string => code.replace(REPLACER_REGEX, match => (match === placeholder ? value : match));
 
 // TODO Lukas test random match
+// TODO Lukas "result" should rather be transformedCode or similar
 export const replacePlaceholdersWithDefaultAndGetPositions = (
 	code: string,
 	placeholders: Set<string>

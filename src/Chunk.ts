@@ -43,7 +43,6 @@ import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import type { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
-import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
 import { getOrCreate } from './utils/getOrCreate';
 import { getStaticDependencies } from './utils/getStaticDependencies';
@@ -51,7 +50,8 @@ import {
 	HashPlaceholderGenerator,
 	replacePlaceholders,
 	replacePlaceholdersByPosition,
-	replacePlaceholdersWithDefaultAndGetPositions
+	replacePlaceholdersWithDefaultAndGetPositions,
+	replaceSinglePlaceholder
 } from './utils/hashPlaceholders';
 import { makeLegal } from './utils/identifierHelpers';
 import {
@@ -87,11 +87,12 @@ interface FixedPreliminaryFileName {
 	hashPlaceholder: null;
 }
 
-interface RenderedChunkWithPlaceholders {
+export interface RenderedChunkWithPlaceholders {
+	chunk: Chunk;
 	code: string;
 	containedPlaceholders: Map<string, Chunk>;
 	map: SourceMap | null;
-	preliminaryFileName: string;
+	preliminaryFileName: PreliminaryFileName;
 }
 
 type ResolvedDynamicImport = (
@@ -177,6 +178,8 @@ export default class Chunk {
 
 	private readonly accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
 	private dependencies = new Set<ExternalModule | Chunk>();
+	dependencyResolutions: DependencyResolutions | null = null;
+	private dynamicDependencies: (Chunk | ExternalModule)[] | null = null;
 	private readonly dynamicEntryModules: Module[] = [];
 	private dynamicName: string | null = null;
 	private readonly exportNamesByVariable = new Map<Variable, string[]>();
@@ -193,6 +196,8 @@ export default class Chunk {
 	private name: string | null = null;
 	private preliminaryFileName: PreliminaryFileName | null = null;
 	private renderedChunk: OutputChunk | RenderedChunkWithPlaceholders | null = null;
+	private renderedDependencies: Map<Chunk | ExternalModule, ModuleDeclarationDependency> | null =
+		null;
 	private readonly renderedModules: {
 		[moduleId: string]: RenderedModule;
 	} = Object.create(null);
@@ -440,22 +445,30 @@ export default class Chunk {
 		return facades;
 	}
 
-	// TODO Lukas rename type?
-	// TODO Lukas only create once?
-	getChunkInfo(): PreRenderedChunk {
-		const facadeModule = this.facadeModule;
-		const getChunkName = this.getChunkName.bind(this);
+	// TODO Lukas what to do with implicitlyLoadedBefore? These are not handled during initial render
+	generateOutputChunk(
+		code: string,
+		map: SourceMap | null,
+		hashesByPlaceholder: Map<string, string>
+	): OutputChunk {
+		const resolveFileName = (dependency: Chunk | ExternalModule) =>
+			replacePlaceholders(
+				this.dependencyResolutions!.get(dependency)!.fileName,
+				hashesByPlaceholder
+			);
 		return {
-			exports: this.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			isDynamicEntry: this.dynamicEntryModules.length > 0,
-			isEntry: facadeModule !== null && facadeModule.info.isEntry,
-			isImplicitEntry: this.implicitEntryModules.length > 0,
-			modules: this.renderedModules,
-			get name() {
-				return getChunkName();
-			},
-			type: 'chunk'
+			code,
+			dynamicImports: this.dynamicDependencies!.map(resolveFileName),
+			fileName: resolveFileName(this),
+			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, resolveFileName),
+			importedBindings: getImportedBindingsPerDependency(
+				this.renderedDependencies!,
+				resolveFileName
+			),
+			imports: Array.from(this.dependencies, resolveFileName),
+			map,
+			referencedFiles: this.getReferencedFiles(),
+			...this.getChunkInfo()
 		};
 	}
 
@@ -465,35 +478,6 @@ export default class Chunk {
 
 	getExportNames(): string[] {
 		return (this.sortedExportNames ??= Array.from(this.exportsByName.keys()).sort());
-	}
-
-	// TODO Lukas to fill these fields, we need to get all these ids first
-	// Problematic is implicitlyLoadedBefore because we cannot get them during the initial render to not confuse the cycle logic
-	getOutputChunk(
-		code: string,
-		map: SourceMap | null,
-		dynamicDependencies: (Chunk | ExternalModule)[],
-		dependencyResolutions: DependencyResolutions,
-		renderedDependencies: RenderedDependencies
-	): OutputChunk {
-		return Object.assign(this.getChunkInfo(), {
-			code,
-			dynamicImports: dynamicDependencies.map(
-				dependency => dependencyResolutions.get(dependency)!.fileName
-			),
-			fileName: this.id!,
-			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
-			importedBindings: this.getImportedBindingsPerDependency(
-				renderedDependencies,
-				dependencyResolutions
-			),
-			imports: Array.from(
-				this.dependencies,
-				dependency => dependencyResolutions.get(dependency)!.fileName
-			),
-			map,
-			referencedFiles: this.getReferencedFiles()
-		});
 	}
 
 	getPreliminaryFileName(
@@ -554,19 +538,11 @@ export default class Chunk {
 		}
 	}
 
-	/* TODO Lukas alternative approach
-	    - we have a function getPreliminaryFileName. This one returns an object with information if the file name is hashed and what the hash is. Cache on the chunk to avoid conflicts with own reservation. First call this for all entries and pass along the bundle to reserve spots on the bundle.
-	    - In render, we pass along a list of chunks that depend on the file name. We also pass along the bundle to reserve further spots.
-	    - we have a function getFileNameForRendering that is used by render to figure out file names. Pass along a list of chunks that depend on the file name
-	      - if a chunk would depend on itself or if the preliminary file name is not hashed, it returns its preliminary file name
-	      - otherwise it calls its render method
-      - if there are import metas, we also use our preliminary file name there
-      - compile a list of all hash placeholders we depend upon
-      - if the chunk does no depend on hashes we return an OutputChunk, but without empty implicitlyLoadedBefore
-      - otherwise we return a ChunkWithPlaceholders
-      - there is a final step to fill in implicitlyLoadedBefore information
-      - There is a method on the Chunk "completeChunkInfo" that receives a fixed code an map
-	 */
+	// TODO Lukas can we always return a preliminary result?
+	// TODO Lukas try easier solution?
+	//  * during render, always use preliminary file names
+	//  * pass along a shared, mutable fileNameResolutions map (Chunk|External) -> name and other mutable stuff
+	//  * We do not need positions
 	async render(
 		options: NormalizedOutputOptions,
 		inputBase: string,
@@ -871,6 +847,7 @@ export default class Chunk {
 
 		// TODO Lukas handle the case where we have dependencies
 		// TODO Lukas unify hashing logic
+		// TODO Lukas handle tha case where we have a name conflict on the bundle
 		if (
 			preliminaryFileName.hashPlaceholder &&
 			containedHashPlaceholders.size === 1 &&
@@ -889,9 +866,10 @@ export default class Chunk {
 			if (positions.size) {
 				code = replacePlaceholdersByPosition(result, positions, placeholderValues);
 			}
-			preliminaryFileName.fileName = replacePlaceholders(
+			preliminaryFileName.fileName = replaceSinglePlaceholder(
 				preliminaryFileName.fileName,
-				placeholderValues
+				preliminaryFileName.hashPlaceholder,
+				hashString
 			);
 			(preliminaryFileName as PreliminaryFileName).hashPlaceholder = null;
 			containedHashPlaceholders.clear();
@@ -936,22 +914,22 @@ export default class Chunk {
 			timeEnd('sourcemap', 2);
 		}
 		if (!compact && code[code.length - 1] !== '\n') code += '\n';
+		// TODO Lukas not very nice. Maybe keep ids separate from imports? Or determine imports when needed?
+		dependencyResolutions.set(this, { fileName: preliminaryFileName.fileName, import: '' });
+		this.dynamicDependencies = dynamicDependencies;
+		this.renderedDependencies = renderedDependencies;
+		this.dependencyResolutions = dependencyResolutions;
 		if (containedHashPlaceholders.size === 0) {
 			this.id = preliminaryFileName.fileName;
-			return this.getOutputChunk(
-				code,
-				map,
-				dynamicDependencies,
-				dependencyResolutions,
-				renderedDependencies
-			);
+			return this.generateOutputChunk(code, map, new Map());
 		}
 		return {
+			chunk: this,
 			code,
 			// TODO Lukas unify naming
 			containedPlaceholders: containedHashPlaceholders,
 			map,
-			preliminaryFileName: preliminaryFileName.fileName
+			preliminaryFileName
 		};
 	}
 
@@ -1179,6 +1157,22 @@ export default class Chunk {
 		return exports;
 	}
 
+	// TODO Lukas rename type?
+	// TODO Lukas only create once?
+	private getChunkInfo(): PreRenderedChunk {
+		const { facadeModule } = this;
+		return {
+			exports: this.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			isDynamicEntry: this.dynamicEntryModules.length > 0,
+			isEntry: facadeModule !== null && facadeModule.info.isEntry,
+			isImplicitEntry: this.implicitEntryModules.length > 0,
+			modules: this.renderedModules,
+			name: this.getChunkName(),
+			type: 'chunk'
+		};
+	}
+
 	private getDependenciesToBeDeconflicted(
 		addNonNamespacesAndInteropHelpers: boolean,
 		addDependenciesWithoutBindings: boolean,
@@ -1296,30 +1290,6 @@ export default class Chunk {
 			});
 		}
 		return importsByDependency;
-	}
-
-	private getImportedBindingsPerDependency(
-		renderedDependencies: RenderedDependencies,
-		dependencyResolutions: DependencyResolutions
-	): {
-		[imported: string]: string[];
-	} {
-		const importSpecifiers: { [imported: string]: string[] } = {};
-		for (const [dependency, declaration] of renderedDependencies) {
-			const specifiers = new Set<string>();
-			if (declaration.imports) {
-				for (const { imported } of declaration.imports) {
-					specifiers.add(imported);
-				}
-			}
-			if (declaration.reexports) {
-				for (const { imported } of declaration.reexports) {
-					specifiers.add(imported);
-				}
-			}
-			importSpecifiers[dependencyResolutions.get(dependency)!.fileName] = [...specifiers];
-		}
-		return importSpecifiers;
 	}
 
 	private getIncludedDynamicImports(): ResolvedDynamicImport[] {
@@ -1540,6 +1510,30 @@ function getChunkNameFromModule(module: Module): string {
 		module.chunkNames[0]?.name ??
 		getAliasName(module.id)
 	);
+}
+
+function getImportedBindingsPerDependency(
+	renderedDependencies: RenderedDependencies,
+	resolveFileName: (dependency: Chunk | ExternalModule) => string
+): {
+	[imported: string]: string[];
+} {
+	const importSpecifiers: { [imported: string]: string[] } = {};
+	for (const [dependency, declaration] of renderedDependencies) {
+		const specifiers = new Set<string>();
+		if (declaration.imports) {
+			for (const { imported } of declaration.imports) {
+				specifiers.add(imported);
+			}
+		}
+		if (declaration.reexports) {
+			for (const { imported } of declaration.reexports) {
+				specifiers.add(imported);
+			}
+		}
+		importSpecifiers[resolveFileName(dependency)] = [...specifiers];
+	}
+	return importSpecifiers;
 }
 
 const QUERY_HASH_REGEX = /[?#]/;
