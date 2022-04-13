@@ -381,7 +381,7 @@ export interface PluginHooks extends OutputPluginHooks {
 	options: (
 		this: MinimalPluginContext,
 		options: InputOptions
-	) => Promise<InputOptions | null | undefined> | InputOptions | null | undefined;
+	) => Promise<InputOptions | null | void> | InputOptions | null | void;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
 	shouldTransformCachedModule: ShouldTransformCachedModuleHook;
