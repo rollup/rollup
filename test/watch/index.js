@@ -402,6 +402,7 @@ describe('rollup.watch', () => {
 			plugins: [
 				{
 					buildStart() {
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						ctx1 = this;
 					},
 					closeWatcher() {
@@ -411,6 +412,7 @@ describe('rollup.watch', () => {
 				},
 				{
 					buildStart() {
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						ctx2 = this;
 					},
 					closeWatcher() {
