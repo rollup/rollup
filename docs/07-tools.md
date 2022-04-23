@@ -100,9 +100,7 @@ export default {
   plugins: [
     resolve({
       // pass custom options to the resolve plugin
-      customResolveOptions: {
-        moduleDirectory: 'node_modules'
-      }
+      moduleDirectories: ['node_modules']
     })
   ],
   // indicate which modules should be treated as external
