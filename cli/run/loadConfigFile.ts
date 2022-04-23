@@ -111,7 +111,9 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string):
 		if (requiredFileName === resolvedFileName) {
 			(module as NodeModuleWithCompile)._compile(bundledCode, requiredFileName);
 		} else {
-			defaultLoader(module, requiredFileName);
+			if (defaultLoader) {
+				defaultLoader(module, requiredFileName);
+			}
 		}
 	};
 	delete require.cache[resolvedFileName];
