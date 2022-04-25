@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['10', '12', '17']
+        node: ['10', '12', '18']
     name: Node ${{ matrix.node }} (Linux)
     steps:
       - name: Checkout Commit
