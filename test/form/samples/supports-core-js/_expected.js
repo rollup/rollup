@@ -1,5 +1,11 @@
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
+var coreJs = {exports: {}};
+
+var features = {exports: {}};
+
+var full = {exports: {}};
+
 var check = function (it) {
   return it && it.Math == Math && it;
 };
@@ -17656,3 +17662,15 @@ $({ target: 'URL', proto: true, enumerable: true }, {
     return call(URL.prototype.toString, this);
   }
 });
+
+(function (module) {
+	module.exports = path$1;
+} (full));
+
+(function (module) {
+	module.exports = full.exports;
+} (features));
+
+(function (module) {
+	module.exports = features.exports;
+} (coreJs));
