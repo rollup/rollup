@@ -79,7 +79,7 @@
     "colorette": "^2.0.16",
     "core-js": "^3.22.2",
     "date-time": "^4.0.0",
-    "es5-shim": "^4.6.5",
+    "es5-shim": "^4.6.6",
     "es6-shim": "^0.35.6",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",

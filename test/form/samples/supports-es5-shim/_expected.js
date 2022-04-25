@@ -808,6 +808,7 @@ var es5Shim = {exports: {}};
         ArrayPrototype.splice.call(obj, 0, 0, 1);
         return obj.length === 1;
     }());
+    var hasES6Defaults = [0, 1, 2].splice(0).length === 3;
     defineProperties(ArrayPrototype, {
         splice: function splice(start, deleteCount) {
             if (arguments.length === 0) {
@@ -825,7 +826,7 @@ var es5Shim = {exports: {}};
             }
             return array_splice.apply(this, args);
         }
-    }, !spliceWorksWithEmptyObject);
+    }, !spliceWorksWithEmptyObject || !hasES6Defaults);
     var spliceWorksWithLargeSparseArrays = (function () {
         // Per https://github.com/es-shims/es5-shim/issues/295
         // Safari 7/8 breaks with sparse arrays of size 1e5 or greater
@@ -1506,9 +1507,11 @@ var es5Shim = {exports: {}};
                         seconds += sToShift;
                         millis -= sToShift * 1e3;
                     }
-                    date = length === 1 && $String(Y) === Y // isString(Y)
+                    var parsed = DateShim.parse(Y);
+                    var hasNegTimestampParseBug = isNaN(parsed);
+                    date = length === 1 && $String(Y) === Y && !hasNegTimestampParseBug // isString(Y)
                         // We explicitly pass it through parse:
-                        ? new NativeDate(DateShim.parse(Y))
+                        ? new NativeDate(parsed)
                         // We have to manually make calls depending on argument
                         // length here
                         : length >= 7 ? new NativeDate(Y, M, D, h, m, seconds, millis)
@@ -1844,6 +1847,10 @@ var es5Shim = {exports: {}};
             }
 
             if (f < 0 || f > 20) {
+                if (!isFinite(f)) {
+                    // IE 6 doesn't throw in the native one
+                    throw new RangeError('toExponential() argument must be between 0 and 20');
+                }
                 // this will probably have thrown already
                 return originalToExponential(x, f);
             }
@@ -2139,6 +2146,7 @@ var es5Shim = {exports: {}};
         // https://blog.stevenlevithan.com/archives/faster-trim-javascript
         // http://perfectionkills.com/whitespace-deviations/
         trim: function trim() {
+
             if (typeof this === 'undefined' || this === null) {
                 throw new TypeError("can't convert " + this + ' to object');
             }
@@ -2186,6 +2194,7 @@ var es5Shim = {exports: {}};
         // eslint-disable-next-line no-global-assign, no-implicit-globals
         parseInt = (function (origParseInt) {
             return function parseInt(str, radix) {
+                if (this instanceof parseInt) { new origParseInt(); } // eslint-disable-line new-cap, no-new, max-statements-per-line
                 var string = trim(String(str));
                 var defaultedRadix = $Number(radix) || (hexRegex.test(string) ? 16 : 10);
                 return origParseInt(string, defaultedRadix);
@@ -2216,6 +2225,7 @@ var es5Shim = {exports: {}};
         // eslint-disable-next-line no-global-assign, no-implicit-globals
         parseInt = (function (origParseInt) {
             return function parseInt(str, radix) {
+                if (this instanceof parseInt) { new origParseInt(); } // eslint-disable-line new-cap, no-new, max-statements-per-line
                 var isSym = typeof str === 'symbol';
                 if (!isSym && str && typeof str === 'object') {
                     try {
