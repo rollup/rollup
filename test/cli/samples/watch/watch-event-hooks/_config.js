@@ -1,11 +1,7 @@
-const { assertIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../../utils.js');
 
 module.exports = {
-	description: 'warns when eval is used',
+	description: 'onStart event hoot shell command executes correctly',
 	command: 'rollup -cw --watch.onStart="echo onStart"',
-	stdout: stdout =>
-		assertIncludes(
-			stdout,
-			'onStart'
-		)
+	stdout: stdout => assertIncludes(stdout, 'onStart')
 };
