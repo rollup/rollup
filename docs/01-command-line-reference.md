@@ -503,13 +503,11 @@ Do not read files from `stdin`. Setting this flag will prevent piping content to
 
 #### `--watch.onStart <cmd>`, `--watch.onBundleStart <cmd>`, `--watch.onBundleEnd <cmd>`, `--watch.onEnd <cmd>`, `--watch.onError <cmd>`
 
-When in watch mode, each of these flags run a shell command `<cmd>` for their respective watch events, `"START"`, `"BUNDLE_START"`, `"BUNDLE_END"`, `"END"`, `"ERROR"`.
+When in watch mode, run a shell command `<cmd>` for a watch event code. See also [rollup.watch](guide/en/#rollupwatch).
 
 ```sh
-rollup -c --watch --watch.onEnd="node ./onEndScript.js"
+rollup -c --watch --watch.onEnd="node ./afterBuildScript.js"
 ```
-
-`child_process#execSync` is used to run each `<cmd>`
 
 ### Reading a file from stdin
 
