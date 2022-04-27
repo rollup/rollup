@@ -113,7 +113,7 @@ const getIdMatcher = <T extends Array<any>>(
 		| string
 		| RegExp
 		| (string | RegExp)[]
-		| ((id: string, ...args: T) => boolean | null | undefined)
+		| ((id: string, ...args: T) => boolean | null | void)
 ): ((id: string, ...args: T) => boolean) => {
 	if (option === true) {
 		return () => true;

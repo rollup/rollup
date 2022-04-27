@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.70.2
+
+_2022-04-15_
+
+### Bug Fixes
+
+- Do not enforce undefined return values in TypeScript types (#4463)
+
+### Pull Requests
+
+- [#4463](https://github.com/rollup/rollup/pull/4463): use void for options hook instead of undefined (@ycmjason)
+
 ## 2.70.1
 
 _2022-03-14_

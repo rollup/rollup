@@ -237,7 +237,7 @@ interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	id: string;
 }
 
-export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;
+export type ResolveIdResult = string | false | null | void | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
@@ -265,11 +265,11 @@ export type IsExternal = (
 	isResolved: boolean
 ) => boolean;
 
-export type IsPureModule = (id: string) => boolean | null | undefined;
+export type IsPureModule = (id: string) => boolean | null | void;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
-type LoadResult = SourceDescription | string | null | undefined;
+type LoadResult = SourceDescription | string | null | void;
 
 export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
 
@@ -277,7 +277,7 @@ export interface TransformPluginContext extends PluginContext {
 	getCombinedSourcemap: () => SourceMap;
 }
 
-export type TransformResult = string | null | undefined | Partial<SourceDescription>;
+export type TransformResult = string | null | void | Partial<SourceDescription>;
 
 export type TransformHook = (
 	this: TransformPluginContext,
@@ -309,7 +309,7 @@ export type ResolveImportMetaHook = (
 	this: PluginContext,
 	prop: string | null,
 	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
-) => string | null | undefined;
+) => string | null | void;
 
 export type ResolveAssetUrlHook = (
 	this: PluginContext,
@@ -320,7 +320,7 @@ export type ResolveAssetUrlHook = (
 		moduleId: string;
 		relativeAssetPath: string;
 	}
-) => string | null | undefined;
+) => string | null | void;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
@@ -334,7 +334,7 @@ export type ResolveFileUrlHook = (
 		referenceId: string;
 		relativePath: string;
 	}
-) => string | null | undefined;
+) => string | null | void;
 
 export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
@@ -381,7 +381,7 @@ export interface PluginHooks extends OutputPluginHooks {
 	options: (
 		this: MinimalPluginContext,
 		options: InputOptions
-	) => Promise<InputOptions | null | undefined> | InputOptions | null | undefined;
+	) => Promise<InputOptions | null | void> | InputOptions | null | void;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
 	shouldTransformCachedModule: ShouldTransformCachedModuleHook;
@@ -397,7 +397,7 @@ interface OutputPluginHooks {
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
-	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
+	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | void;
 	renderChunk: RenderChunkHook;
 	renderDynamicImport: (
 		this: PluginContext,
@@ -407,7 +407,7 @@ interface OutputPluginHooks {
 			moduleId: string;
 			targetModuleId: string | null;
 		}
-	) => { left: string; right: string } | null | undefined;
+	) => { left: string; right: string } | null | void;
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart: (
 		this: PluginContext,
@@ -522,17 +522,13 @@ interface GetManualChunkApi {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
-export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | undefined;
+export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | void;
 
 export type ExternalOption =
 	| (string | RegExp)[]
 	| string
 	| RegExp
-	| ((
-			source: string,
-			importer: string | undefined,
-			isResolved: boolean
-	  ) => boolean | null | undefined);
+	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | null | void);
 export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
@@ -558,7 +554,7 @@ export interface InputOptions {
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
 	maxParallelFileReads?: number;
-	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
+	moduleContext?: ((id: string) => string | null | void) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: (Plugin | null | false | undefined)[];
