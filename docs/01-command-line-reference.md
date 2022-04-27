@@ -379,6 +379,11 @@ Many options have command line equivalents. In those cases, any arguments passed
 --watch.skipWrite           Do not write files to disk when watching
 --watch.exclude <files>     Exclude files from being watched
 --watch.include <files>     Limit watching to specified files
+--watch.onStart <cmd>       Shell command to run on `"START"` event
+--watch.onBundleStart <cmd> Shell command to run on `"BUNDLE_START"` event
+--watch.onBundleEnd <cmd>   Shell command to run on `"BUNDLE_END"` event
+--watch.onEnd <cmd>         Shell command to run on `"END"` event
+--watch.onError <cmd>       Shell command to run on `"ERROR"` event
 --validate                  Validate output
 ```
 
@@ -495,6 +500,16 @@ Specify a virtual file extension when reading content from stdin. By default, Ro
 #### `--no-stdin`
 
 Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` and `-.[ext]` as a regular file names instead of interpreting these as the name of `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
+
+#### `--watch.onStart <cmd>`, `--watch.onBundleStart <cmd>`, `--watch.onBundleEnd <cmd>`, `--watch.onEnd <cmd>`, `--watch.onError <cmd>`
+
+When in watch mode, each of these flags run a shell command `<cmd>` for their respective watch events, `"START"`, `"BUNDLE_START"`, `"BUNDLE_END"`, `"END"`, `"ERROR"`.
+
+```sh
+rollup -c --watch --watch.onEnd="node ./onEndScript.js"
+```
+
+`child_process#execSync` is used to run each `<cmd>`
 
 ### Reading a file from stdin
 
