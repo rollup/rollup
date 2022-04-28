@@ -905,7 +905,7 @@ Use Rollup's internal acorn instance to parse code to an AST.
 
 #### `this.resolve`
 
-**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, isEntry?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
+**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](guide/en/#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
