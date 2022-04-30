@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['10', '12', '17']
+        node: ['10', '12', '18']
     name: Node ${{ matrix.node }} (Linux)
     steps:
       - name: Checkout Commit
@@ -70,6 +70,8 @@ jobs:
         run: npm run ci:test:only
         env:
           CI: true
+          # temporary workaround for: https://github.com/nodejs/node/issues/42638
+          NODE_OPTIONS: ${{ matrix.node == '18' && '--no-experimental-fetch' }}
 
   macos:
     runs-on: macos-latest
