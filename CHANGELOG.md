@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 2.71.0
+
+_2022-04-30_
+
+## Features
+
+- Mark `Object.hasOwn` as pure (#4482)
+
+### Bug Fixes
+
+- Prevent infinite recursion and display proper warning for recursive reexports (#4472)
+- Fix type issue in TypeScript nightly (#4471)
+
+### Pull Requests
+
+- [#4467](https://github.com/rollup/rollup/pull/4467): docs: update deprecated option in tools.md (@kimjh96)
+- [#4471](https://github.com/rollup/rollup/pull/4471): Fix: tsc did not build (@frank-dspeed)
+- [#4472](https://github.com/rollup/rollup/pull/4472): Throw proper error when indirectly reexporting a recursive binding (@lukastaegert)
+- [#4475](https://github.com/rollup/rollup/pull/4475): chore: bump deps (#4475) (@dnalborczyk)
+- [#4477](https://github.com/rollup/rollup/pull/4477): chore: bump github actions (@dnalborczyk)
+- [#4478](https://github.com/rollup/rollup/pull/4478): ci: test with node.js v18, remove v17 (@dnalborczyk)
+- [#4479](https://github.com/rollup/rollup/pull/4479): chore(repo): replace `git.io` in the issue template (@SukkaW)
+- [#4482](https://github.com/rollup/rollup/pull/4482): feat: add Object.hasOwn as pure function (@dnalborczyk)
+
 ## 2.70.2
 
 _2022-04-15_
