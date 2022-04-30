@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.71.1
+
+_2022-04-30_
+
+### Bug Fixes
+
+- Allow importing loadConfigFile without extension (#4483)
+
+### Pull Requests
+
+- [#4483](https://github.com/rollup/rollup/pull/4483): Add exports exception for loadConfigFile (@lukastaegert)
+
 ## 2.71.0
 
 _2022-04-30_
