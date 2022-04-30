@@ -136,6 +136,8 @@
       },
       "default": "./dist/es/rollup.browser.js"
     },
+    "./loadConfigFile": "./dist/loadConfigFile.js",
+    "./dist/loadConfigFile": "./dist/loadConfigFile.js",
     "./dist/*": "./dist/*"
   }
 }
