@@ -17,4 +17,5 @@ var print = function(value) {
   }, Foo;
 }();
 
-console.log("esm-test: main.js"), new Foo(123).output(), exports.Bar = Foo;
+console.log("esm-test: main.js"), new Foo(123).output(), console.log("esm-test: main.js?commonjs-entry"), 
+exports.Bar = Foo;

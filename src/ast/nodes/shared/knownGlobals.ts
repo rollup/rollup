@@ -177,6 +177,7 @@ const knownGlobals: GlobalDescription = {
 		getOwnPropertyNames: PF,
 		getOwnPropertySymbols: PF,
 		getPrototypeOf: PF,
+		hasOwn: PF,
 		is: PF,
 		isExtensible: PF,
 		isFrozen: PF,
