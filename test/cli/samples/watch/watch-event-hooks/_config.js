@@ -1,24 +1,35 @@
 const { assertIncludes } = require('../../../../utils.js');
 
 module.exports = {
-	description: 'onStart event hoot shell command executes correctly',
+	description: 'event hook shell commands write to stderr',
 	command:
-		'rollup -cw --watch --watch.onStart "echo start" --watch.onBundleStart "echo bundleStart" --watch.onBundleEnd "echo bundleEnd" --watch.onEnd "echo onEnd" --watch.onError "echo onError"',
+		'rollup -cw --watch.onStart "echo start" --watch.onBundleStart "echo bundleStart" --watch.onBundleEnd "echo bundleEnd" --watch.onEnd "echo end"',
+	abortOnStderr(data) {
+		if (data.includes('waiting for changes')) {
+			return true;
+		}
+	},
 	stderr(stderr) {
+		// assert each hook individually
 		assertIncludes(
 			stderr,
 			`watch.onStart $ echo start
-start
-bundles main.js → _actual...
-watch.onBundleStart $ echo bundleStart
-bundleStart
-created _actual in 16ms
-watch.onBundleEnd $ echo bundleEnd
-bundleEnd
-watch.onEnd $ echo onEnd
-onEnd
-`
+start`
 		);
-		// assert.strictEqual(stderr.slice(0, 12), `${CLEAR_SCREEN}${UNDERLINE}rollup`);
+		assertIncludes(
+			stderr,
+			`watch.onBundleStart $ echo bundleStart
+bundleStart`
+		);
+		assertIncludes(
+			stderr,
+			`watch.onBundleEnd $ echo bundleEnd
+bundleEnd`
+		);
+		assertIncludes(
+			stderr,
+			`watch.onEnd $ echo end
+end`
+		);
 	}
 };

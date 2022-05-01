@@ -25,7 +25,9 @@ export function createWatchHooks(command: Record<string, any>): (hook: RollupWat
 			}
 
 			try {
-				execSync(cmd, { stdio: command.silent ? 'ignore' : 'inherit' });
+				// !! important - use stderr for all writes from execSync
+				const stdio = [process.stdin, process.stderr, process.stderr];
+				execSync(cmd, { stdio: command.silent ? 'ignore' : stdio });
 			} catch (e) {
 				stderr((e as Error).message);
 			}
