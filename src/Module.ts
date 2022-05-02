@@ -134,7 +134,7 @@ function getVariableForExportNameRecursive(
 	target: Module | ExternalModule,
 	name: string,
 	importerForSideEffects: Module | undefined,
-	isExportAllSearch: boolean,
+	isExportAllSearch: boolean | undefined,
 	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
 ): [variable: Variable | null, indirectExternal?: boolean] {
 	const searchedModules = searchedNamesAndModules.get(name);
@@ -561,7 +561,10 @@ export default class Module {
 				return [this.exportShimVariable];
 			}
 			const name = exportDeclaration.localName;
-			const variable = this.traceVariable(name, importerForSideEffects)!;
+			const variable = this.traceVariable(name, {
+				importerForSideEffects,
+				searchedNamesAndModules
+			})!;
 			if (importerForSideEffects) {
 				getOrCreate(
 					importerForSideEffects.sideEffectDependenciesByVariable,
@@ -793,7 +796,18 @@ export default class Module {
 		};
 	}
 
-	traceVariable(name: string, importerForSideEffects?: Module): Variable | null {
+	traceVariable(
+		name: string,
+		{
+			importerForSideEffects,
+			isExportAllSearch,
+			searchedNamesAndModules
+		}: {
+			importerForSideEffects?: Module;
+			isExportAllSearch?: boolean;
+			searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>;
+		} = EMPTY_OBJECT
+	): Variable | null {
 		const localVariable = this.scope.variables.get(name);
 		if (localVariable) {
 			return localVariable;
@@ -807,9 +821,13 @@ export default class Module {
 				return otherModule.namespace;
 			}
 
-			const [declaration] = otherModule.getVariableForExportName(importDeclaration.name, {
-				importerForSideEffects: importerForSideEffects || this
-			});
+			const [declaration] = getVariableForExportNameRecursive(
+				otherModule,
+				importDeclaration.name,
+				importerForSideEffects || this,
+				isExportAllSearch,
+				searchedNamesAndModules
+			);
 
 			if (!declaration) {
 				return this.error(
@@ -1057,7 +1075,9 @@ export default class Module {
 				name,
 				importerForSideEffects,
 				true,
-				searchedNamesAndModules
+				// We are creating a copy to handle the case where the same binding is
+				// imported through different namespace reexports gracefully
+				copyNameToModulesMap(searchedNamesAndModules)
 			);
 
 			if (module instanceof ExternalModule || indirectExternal) {
@@ -1199,3 +1219,9 @@ function setAlternativeExporterIfCyclic(
 		}
 	}
 }
+
+const copyNameToModulesMap = (
+	searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
+): Map<string, Set<Module | ExternalModule>> | undefined =>
+	searchedNamesAndModules &&
+	new Map(Array.from(searchedNamesAndModules, ([name, modules]) => [name, new Set(modules)]));

@@ -1,11 +1,7 @@
-define(['../custom_modules/@my-scope/my-base-pkg/index', '../_virtual/index'], (function (index$1, index) { 'use strict';
+define(['./module2'], (function (module) { 'use strict';
 
-  const base2 = index.__exports;
 
-  var module = {
-    base2,
-  };
 
-  return module;
+	return module;
 
 }));
