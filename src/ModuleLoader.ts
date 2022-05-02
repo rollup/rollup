@@ -40,6 +40,7 @@ import transform from './utils/transform';
 export interface UnresolvedModule {
 	fileName: string | null;
 	id: string;
+	implicitlyLoadedAfter?: string[];
 	importer: string | undefined;
 	name: string | null;
 }

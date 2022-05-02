@@ -23,6 +23,7 @@ import type {
 	RollupBuild,
 	RollupOptions,
 	RollupOutput,
+	RollupService,
 	RollupWatcher
 } from './types';
 
@@ -30,15 +31,54 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 	return rollupInternal(rawInputOptions, null);
 }
 
-export async function rollupInternal(
+export async function startService(
 	rawInputOptions: GenericConfigObject,
 	watcher: RollupWatcher | null
-): Promise<RollupBuild> {
+): Promise<RollupService> {
+	const { graph, inputOptions } = await graphSetup(rawInputOptions, watcher);
+
+	const service: RollupService = {
+		async close(err?: any) {
+			if (service.closed) return;
+
+			service.closed = true;
+
+			if (err) {
+				const watchFiles = Object.keys(graph.watchFiles);
+				if (watchFiles.length > 0) {
+					err.watchFiles = watchFiles;
+				}
+			}
+
+			await graph.pluginDriver.hookParallel('buildEnd', err ? [err] : []);
+			await graph.pluginDriver.hookParallel('closeBundle', []);
+		},
+		closed: false,
+		resolve(source: string, importer?: string | undefined) {
+			return graph.moduleLoader.resolveId(source, importer, undefined, false);
+		},
+		load(id: string) {
+			return graph.moduleLoader.preloadModule({ id, resolveDependencies: true });
+		}
+	};
+
+	await catchUnfinishedHookActions(graph.pluginDriver, async () => {
+		try {
+			await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
+		} catch (err: any) {
+			await service.close(err);
+			throw err;
+		}
+	});
+
+	return service;
+}
+
+async function graphSetup(rawInputOptions: GenericConfigObject, watcher: RollupWatcher | null) {
 	const { options: inputOptions, unsetOptions: unsetInputOptions } = await getInputOptions(
 		rawInputOptions,
 		watcher !== null
 	);
-	initialiseTimers(inputOptions);
 
 	const graph = new Graph(inputOptions, watcher);
 
@@ -46,6 +86,25 @@ export async function rollupInternal(
 	const useCache = rawInputOptions.cache !== false;
 	delete inputOptions.cache;
 	delete rawInputOptions.cache;
+
+	return {
+		graph,
+		inputOptions,
+		unsetInputOptions,
+		useCache
+	};
+}
+
+export async function rollupInternal(
+	rawInputOptions: GenericConfigObject,
+	watcher: RollupWatcher | null
+): Promise<RollupBuild> {
+	const { graph, inputOptions, unsetInputOptions, useCache } = await graphSetup(
+		rawInputOptions,
+		watcher
+	);
+
+	initialiseTimers(inputOptions);
 
 	timeStart('BUILD', 1);
 

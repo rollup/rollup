@@ -166,9 +166,20 @@ export default class Graph {
 			throw new Error('You must supply options.input to rollup');
 		}
 		for (const module of this.modulesById.values()) {
-			if (module instanceof Module) {
+			this.ensureModule(module);
+		}
+	}
+
+	ensureModule(module: Module | ExternalModule) {
+		// Make sure that the same module / external module can only be added to the
+		// graph once since it may be requested multiple times over the life of a
+		// service.
+		if (module instanceof Module) {
+			if (this.modules.indexOf(module) === -1) {
 				this.modules.push(module);
-			} else {
+			}
+		} else {
+			if (this.externalModules.indexOf(module) === -1) {
 				this.externalModules.push(module);
 			}
 		}
