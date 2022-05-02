@@ -177,12 +177,15 @@ export class ModuleLoader {
 	}
 
 	public async preloadModule(
-		resolvedId: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
+		resolvedId: { id: string; isEntry?: boolean; resolveDependencies?: boolean } & Partial<
+			PartialNull<ModuleOptions>
+		>
 	): Promise<ModuleInfo> {
+		const isEntry = resolvedId.isEntry !== false;
 		const module = await this.fetchModule(
 			this.getResolvedIdWithDefaults(resolvedId)!,
 			undefined,
-			false,
+			isEntry,
 			resolvedId.resolveDependencies ? RESOLVE_DEPENDENCIES : true
 		);
 		return module.info;

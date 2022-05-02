@@ -135,6 +135,21 @@ export default class Graph {
 		return ast;
 	}
 
+	ensureModule(module: Module | ExternalModule) {
+		// Make sure that the same module / external module can only be added to the
+		// graph once since it may be requested multiple times over the life of a
+		// service.
+		if (module instanceof Module) {
+			if (this.modules.indexOf(module) === -1) {
+				this.modules.push(module);
+			}
+		} else {
+			if (this.externalModules.indexOf(module) === -1) {
+				this.externalModules.push(module);
+			}
+		}
+	}
+
 	getCache(): RollupCache {
 		// handle plugin cache eviction
 		for (const name in this.pluginCache) {
@@ -167,21 +182,6 @@ export default class Graph {
 		}
 		for (const module of this.modulesById.values()) {
 			this.ensureModule(module);
-		}
-	}
-
-	ensureModule(module: Module | ExternalModule) {
-		// Make sure that the same module / external module can only be added to the
-		// graph once since it may be requested multiple times over the life of a
-		// service.
-		if (module instanceof Module) {
-			if (this.modules.indexOf(module) === -1) {
-				this.modules.push(module);
-			}
-		} else {
-			if (this.externalModules.indexOf(module) === -1) {
-				this.externalModules.push(module);
-			}
 		}
 	}
 

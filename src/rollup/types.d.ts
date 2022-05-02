@@ -833,7 +833,11 @@ export interface RollupBuild {
 export interface RollupService {
 	close: (err?: any) => Promise<void>;
 	closed: boolean;
-	load(id: string): Promise<ModuleInfo>;
+	load: (
+		source: string,
+		options?: { resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
+	) => Promise<ModuleInfo>;
+	getModuleInfo: GetModuleInfo;
 	resolve(
 		source: string,
 		importer?: string,

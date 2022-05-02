@@ -54,11 +54,12 @@ export async function startService(
 			await graph.pluginDriver.hookParallel('closeBundle', []);
 		},
 		closed: false,
-		resolve(source: string, importer?: string | undefined) {
-			return graph.moduleLoader.resolveId(source, importer, undefined, false);
+		getModuleInfo: graph.getModuleInfo,
+		load(id, options) {
+			return graph.moduleLoader.preloadModule({ ...options, id });
 		},
-		load(id: string) {
-			return graph.moduleLoader.preloadModule({ id, resolveDependencies: true });
+		resolve(source, importer, options) {
+			return graph.moduleLoader.resolveId(source, importer, options, false);
 		}
 	};
 
