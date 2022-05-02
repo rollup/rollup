@@ -3,8 +3,9 @@ const { assertIncludes } = require('../../../../utils.js');
 module.exports = {
 	description: 'event hook shell commands write to stderr',
 	command:
-		'rollup -cw --watch.onStart "echo start" --watch.onBundleStart "echo bundleStart" --watch.onBundleEnd "echo bundleEnd" --watch.onEnd "echo end"',
+		'node wrapper.js -cw --watch.onStart "echo start" --watch.onBundleStart "echo bundleStart" --watch.onBundleEnd "echo bundleEnd" --watch.onEnd "echo end"',
 	abortOnStderr(data) {
+		process.stderr.write(data);
 		if (data.includes('waiting for changes')) {
 			return true;
 		}
