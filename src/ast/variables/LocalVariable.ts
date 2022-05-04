@@ -155,7 +155,7 @@ export default class LocalVariable extends Variable {
 		if (path.length === 0) return false;
 		if (this.isReassigned) return true;
 		return (this.init &&
-			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
+			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
 			this.init.hasEffectsWhenAssignedAtPath(path, context))!;
 	}
 
