@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 2.72.0
+
+_2022-05-05_
+
+### Features
+
+- Add CLI hooks to run external commands at certain points in watch mode (#4457)
+
+### Bug Fixes
+
+- Fix an issue that could accidentally treat relevant assignments as side effect free (#4486)
+
+### Pull Requests
+
+- [#4457](https://github.com/rollup/rollup/pull/4457): feat: CLI event hook flags (@Harris-Miller)
+- [#4486](https://github.com/rollup/rollup/pull/4486): Fix reassignment tracking (@lukastaegert)
+
 ## 2.71.1
 
 _2022-04-30_
