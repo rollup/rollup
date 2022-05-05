@@ -73,6 +73,11 @@ Basic options:
 --watch.skipWrite           Do not write files to disk when watching
 --watch.exclude <files>     Exclude files from being watched
 --watch.include <files>     Limit watching to specified files
+--watch.onStart <cmd>       Shell command to run on `"START"` event
+--watch.onBundleStart <cmd> Shell command to run on `"BUNDLE_START"` event
+--watch.onBundleEnd <cmd>   Shell command to run on `"BUNDLE_END"` event
+--watch.onEnd <cmd>         Shell command to run on `"END"` event
+--watch.onError <cmd>       Shell command to run on `"ERROR"` event
 --validate                  Validate output
 
 Examples:

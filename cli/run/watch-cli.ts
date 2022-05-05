@@ -15,6 +15,7 @@ import loadAndParseConfigFile from './loadConfigFile';
 import loadConfigFromCommand from './loadConfigFromCommand';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
+import { createWatchHooks } from './watchHooks';
 
 export async function watch(command: Record<string, any>): Promise<void> {
 	process.env.ROLLUP_WATCH = 'true';
@@ -24,6 +25,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	let configWatcher: FSWatcher;
 	let resetScreen: (heading: string) => void;
 	const configFile = command.config ? await getConfigPath(command.config) : null;
+	const runWatchHook = createWatchHooks(command);
 
 	onExit(close);
 	process.on('uncaughtException', close);
@@ -84,6 +86,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 				case 'ERROR':
 					warnings.flush();
 					handleError(event.error, true);
+					runWatchHook('onError');
 					break;
 
 				case 'START':
@@ -93,6 +96,8 @@ export async function watch(command: Record<string, any>): Promise<void> {
 						}
 						resetScreen(underline(`rollup v${rollup.VERSION}`));
 					}
+					runWatchHook('onStart');
+
 					break;
 
 				case 'BUNDLE_START':
@@ -107,6 +112,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 							cyan(`bundles ${bold(input)} → ${bold(event.output.map(relativeId).join(', '))}...`)
 						);
 					}
+					runWatchHook('onBundleStart');
 					break;
 
 				case 'BUNDLE_END':
@@ -119,12 +125,14 @@ export async function watch(command: Record<string, any>): Promise<void> {
 								)}`
 							)
 						);
+					runWatchHook('onBundleEnd');
 					if (event.result && event.result.getTimings) {
 						printTimings(event.result.getTimings());
 					}
 					break;
 
 				case 'END':
+					runWatchHook('onEnd');
 					if (!silent && isTTY) {
 						stderr(`\n[${dateTime()}] waiting for changes...`);
 					}

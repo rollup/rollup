@@ -864,6 +864,8 @@ export interface ChokidarOptions {
 	usePolling?: boolean;
 }
 
+export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
+
 export interface WatcherOptions {
 	buildDelay?: number;
 	chokidar?: ChokidarOptions;
