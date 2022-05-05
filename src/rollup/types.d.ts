@@ -830,7 +830,15 @@ export interface RollupBuild {
 	write: (options: OutputOptions) => Promise<RollupOutput>;
 }
 
+export interface BuildOptions {
+	signal?: {
+		aborted: boolean;
+	};
+	shouldIncludeInBundle?: (resolvedId: ResolvedId, source: string, fromId: string) => boolean;
+}
+
 export interface RollupService {
+	build: (input: InputOption, options: BuildOptions) => Promise<RollupBuild>;
 	close: (err?: any) => Promise<void>;
 	closed: boolean;
 	load: (
@@ -838,11 +846,11 @@ export interface RollupService {
 		options?: { resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
 	getModuleInfo: GetModuleInfo;
-	resolve(
+	resolve: (
 		source: string,
 		importer?: string,
 		options?: { custom?: CustomPluginOptions; isEntry?: boolean }
-	): Promise<ResolvedId | null>;
+	) => Promise<ResolvedId | null>;
 }
 
 export interface RollupOptions extends InputOptions {

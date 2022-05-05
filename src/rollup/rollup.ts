@@ -26,18 +26,96 @@ import type {
 	RollupService,
 	RollupWatcher
 } from './types';
+import type Module from '../Module';
 
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	return rollupInternal(rawInputOptions, null);
 }
 
 export async function startService(
-	rawInputOptions: GenericConfigObject,
+	{ input, ...rawInputOptions }: GenericConfigObject,
 	watcher: RollupWatcher | null
 ): Promise<RollupService> {
+	if (input) {
+		throw new Error(
+			`The 'input' option must not be specified when starting Rollup in service mode.`
+		);
+	}
+
 	const { graph, inputOptions } = await graphSetup(rawInputOptions, watcher);
 
 	const service: RollupService = {
+		async build(input, options) {
+			const normalizedInput = input == null ? [] : typeof input === 'string' ? [input] : input;
+			const seen: Set<string> = new Set();
+			const entrypoints = Array.isArray(normalizedInput)
+				? [...normalizedInput]
+				: Object.values(normalizedInput);
+
+			const modules: Module[] = [];
+
+			const entrypointIdPromises = entrypoints.map(async source => {
+				const resolvedId = await graph.moduleLoader.resolveId(source, undefined, {}, true);
+
+				if (!resolvedId) {
+					throw new Error(`Failed to resolve the entrypoint ${source}`);
+				}
+
+				if (resolvedId.external) {
+					throw new Error(`An entrypoint cannot be marked as external ${source}`);
+				}
+
+				return resolvedId.id;
+			});
+
+			const queue = await Promise.all(entrypointIdPromises);
+
+			while (queue.length && options.signal?.aborted !== true) {
+				const moduleId = queue.shift()!;
+
+				if (seen.has(moduleId)) {
+					continue;
+				}
+				seen.add(moduleId);
+
+				console.log('preloading', moduleId);
+
+				const moduleInfo = await graph.moduleLoader.preloadModule({
+					id: moduleId,
+					isEntry: false,
+					resolveDependencies: true
+				});
+
+				const module = graph.modulesById.get(moduleInfo.id)! as Module;
+
+				modules.push(module);
+
+				for (const [source, resolvedDependencyId] of Object.entries(module.resolvedIds)) {
+					const shouldIncludeInBundleFn = options.shouldIncludeInBundle;
+
+					// If `source` is nullish, this means it came from a plugin. We want synthetic files
+					// to be included.
+					if (
+						shouldIncludeInBundleFn &&
+						source != null &&
+						!resolvedDependencyId.id.startsWith('\0')
+					) {
+						if (!shouldIncludeInBundleFn(resolvedDependencyId, source, module.id)) {
+							continue;
+						}
+					}
+
+					queue.push(resolvedDependencyId.id);
+				}
+			}
+
+			console.log(
+				'finished traversing',
+				modules.map(m => m.info.id)
+			);
+
+			return {} as any;
+		},
 		async close(err?: any) {
 			if (service.closed) return;
 
