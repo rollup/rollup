@@ -26,7 +26,7 @@ import type {
 	RollupService,
 	RollupWatcher
 } from './types';
-import type Module from '../Module';
+import Module from '../Module';
 
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	return rollupInternal(rawInputOptions, null);
@@ -42,17 +42,21 @@ export async function startService(
 		);
 	}
 
-	const { graph, inputOptions } = await graphSetup(rawInputOptions, watcher);
+	const { graph, inputOptions, unsetInputOptions } = await graphSetup(rawInputOptions, watcher);
 
 	const service: RollupService = {
-		async build(input, options) {
+		async build(
+			input,
+			{ signal, shouldIncludeInBundle: shouldIncludeInBundleFn, ...rawOutputOptions }
+		) {
 			const normalizedInput = input == null ? [] : typeof input === 'string' ? [input] : input;
 			const seen: Set<string> = new Set();
 			const entrypoints = Array.isArray(normalizedInput)
 				? [...normalizedInput]
 				: Object.values(normalizedInput);
 
-			const modules: Module[] = [];
+			const modulesById: Map<string, Module> = new Map();
+			const entryModules: Module[] = [];
 
 			const entrypointIdPromises = entrypoints.map(async source => {
 				const resolvedId = await graph.moduleLoader.resolveId(source, undefined, {}, true);
@@ -68,9 +72,10 @@ export async function startService(
 				return resolvedId.id;
 			});
 
-			const queue = await Promise.all(entrypointIdPromises);
+			const entrypointIds = new Set(await Promise.all(entrypointIdPromises));
+			const queue = [...entrypointIds];
 
-			while (queue.length && options.signal?.aborted !== true) {
+			while (queue.length && signal?.aborted !== true) {
 				const moduleId = queue.shift()!;
 
 				if (seen.has(moduleId)) {
@@ -86,13 +91,19 @@ export async function startService(
 					resolveDependencies: true
 				});
 
-				const module = graph.modulesById.get(moduleInfo.id)! as Module;
+				const module = graph.modulesById.get(moduleInfo.id)!;
+				
+				if (!(module instanceof Module)) {
+					continue;
+				}
 
-				modules.push(module);
+				modulesById.set(module.id, module);
+
+				if (entrypointIds.has(moduleId)) {
+					entryModules.push(module);
+				}
 
 				for (const [source, resolvedDependencyId] of Object.entries(module.resolvedIds)) {
-					const shouldIncludeInBundleFn = options.shouldIncludeInBundle;
-
 					// If `source` is nullish, this means it came from a plugin. We want synthetic files
 					// to be included.
 					if (
@@ -111,10 +122,39 @@ export async function startService(
 
 			console.log(
 				'finished traversing',
-				modules.map(m => m.info.id)
+				Array.from(modulesById.values()).map(m => m.info.id)
 			);
 
-			return {} as any;
+			for (const module of modulesById.values()) {
+				graph.ensureModule(module);
+			}
+
+			// for (const module of modulesById.values()) {
+			// 	module.bindReferences();
+			// }
+
+			const {
+				options: outputOptions,
+				outputPluginDriver,
+				unsetOptions
+			} = getOutputOptionsAndPluginDriver(
+				rawOutputOptions as GenericConfigObject,
+				graph.pluginDriver,
+				inputOptions,
+				unsetInputOptions
+			);
+
+			const outputBundle = await Bundle.fromModules(
+				outputOptions,
+				unsetOptions,
+				inputOptions,
+				outputPluginDriver,
+				graph,
+				entryModules,
+				modulesById
+			);
+
+			return createOutput(outputBundle);
 		},
 		async close(err?: any) {
 			if (service.closed) return;

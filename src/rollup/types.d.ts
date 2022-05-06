@@ -830,7 +830,7 @@ export interface RollupBuild {
 	write: (options: OutputOptions) => Promise<RollupOutput>;
 }
 
-export interface BuildOptions {
+export interface BuildOptions extends OutputOptions {
 	signal?: {
 		aborted: boolean;
 	};
@@ -838,7 +838,7 @@ export interface BuildOptions {
 }
 
 export interface RollupService {
-	build: (input: InputOption, options: BuildOptions) => Promise<RollupBuild>;
+	build: (input: InputOption, options: BuildOptions) => Promise<RollupOutput>;
 	close: (err?: any) => Promise<void>;
 	closed: boolean;
 	load: (
