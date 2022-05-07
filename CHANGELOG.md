@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.72.1
+
+_2022-05-07_
+
+### Bug Fixes
+
+- Improve tree-shaking of classes with super classes in certain scenarios (#4489)
+
+### Pull Requests
+
+- [#4489](https://github.com/rollup/rollup/pull/4489): Do not deoptimize entire super class when adding a property (@lukastaegert)
+- 
 ## 2.72.0
 
 _2022-05-05_
