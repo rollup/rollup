@@ -128,7 +128,7 @@ export class ObjectEntity extends ExpressionEntity {
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
-		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [UnknownKey, UnknownKey] : path);
+		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [...path, UnknownKey] : path);
 	}
 
 	deoptimizeThisOnEventAtPath(
