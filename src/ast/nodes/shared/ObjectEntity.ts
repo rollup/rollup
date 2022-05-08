@@ -302,7 +302,11 @@ export class ObjectEntity extends ExpressionEntity {
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAssignedAtPath(
+		path: ObjectPath,
+		context: HasEffectsContext,
+		ignoreAccessors: boolean
+	): boolean {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
 			if (typeof key !== 'string') {
@@ -310,14 +314,19 @@ export class ObjectEntity extends ExpressionEntity {
 			}
 			const expressionAtPath = this.getMemberExpression(key);
 			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
+				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context, ignoreAccessors);
 			}
 			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
+				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(
+					path,
+					context,
+					ignoreAccessors
+				);
 			}
 			return true;
 		}
 
+		if (ignoreAccessors) return false;
 		if (this.hasUnknownDeoptimizedProperty) return true;
 		// We do not need to test for unknown properties as in that case, hasUnknownDeoptimizedProperty is true
 		if (typeof key === 'string') {

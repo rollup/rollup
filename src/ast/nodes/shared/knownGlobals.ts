@@ -5,7 +5,11 @@ import type { ObjectPath } from '../../utils/PathTracker';
 const ValueProperties = Symbol('Value Properties');
 
 interface ValueDescription {
-	pure: boolean;
+	// Denotes a proper function except for the side effects listed explicitly
+	function: boolean;
+	// This assumes that mutation itself cannot have side effects and that this
+	// does not trigger setters or getters
+	mutatesArg1: boolean;
 }
 
 interface GlobalDescription {
@@ -14,8 +18,8 @@ interface GlobalDescription {
 	__proto__: null;
 }
 
-const PURE: ValueDescription = { pure: true };
-const IMPURE: ValueDescription = { pure: false };
+const PURE: ValueDescription = { function: true, mutatesArg1: false };
+const IMPURE: ValueDescription = { function: false, mutatesArg1: false };
 
 // We use shortened variables to reduce file size here
 /* OBJECT */
@@ -28,6 +32,12 @@ const O: GlobalDescription = {
 const PF: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE
+};
+
+/* FUNCTION THAT MUTATES FIRST ARG WITHOUT TRIGGERING ACCESSORS */
+const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: { function: true, mutatesArg1: true }
 };
 
 /* CONSTRUCTOR */
@@ -173,6 +183,11 @@ const knownGlobals: GlobalDescription = {
 		__proto__: null,
 		[ValueProperties]: PURE,
 		create: PF,
+		// Technically those can throw in certain situations, but we ignore this as
+		// code that relies on this will hopefully wrap this in a try-catch, which
+		// deoptimizes everything anyway
+		defineProperty: MUTATES_ARG_WITHOUT_ACCESSOR,
+		defineProperties: MUTATES_ARG_WITHOUT_ACCESSOR,
 		getOwnPropertyDescriptor: PF,
 		getOwnPropertyNames: PF,
 		getOwnPropertySymbols: PF,
@@ -847,7 +862,7 @@ for (const global of ['window', 'global', 'self', 'globalThis']) {
 	knownGlobals[global] = knownGlobals;
 }
 
-function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
+export function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
 	let currentGlobal: GlobalDescription | null = knownGlobals;
 	for (const pathSegment of path) {
 		if (typeof pathSegment !== 'string') {
@@ -859,16 +874,4 @@ function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
 		}
 	}
 	return currentGlobal[ValueProperties];
-}
-
-export function isPureGlobal(path: ObjectPath): boolean {
-	const globalAtPath = getGlobalAtPath(path);
-	return globalAtPath !== null && globalAtPath.pure;
-}
-
-export function isGlobalMember(path: ObjectPath): boolean {
-	if (path.length === 1) {
-		return path[0] === 'undefined' || getGlobalAtPath(path) !== null;
-	}
-	return getGlobalAtPath(path.slice(0, -1)) !== null;
 }
