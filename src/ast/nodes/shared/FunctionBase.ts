@@ -3,17 +3,31 @@ import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
 	BROKEN_FLOW_NONE,
+	createInclusionContext,
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
 import { NodeEvent } from '../../NodeEvents';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
-import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH,
+	UnknownKey
+} from '../../utils/PathTracker';
+import AssignmentPattern from '../AssignmentPattern';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
-import { type ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
+import {
+	type ExpressionEntity,
+	LiteralValueOrUnknown,
+	UNKNOWN_EXPRESSION,
+	UnknownValue
+} from './Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -23,7 +37,7 @@ import {
 import { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
 
-export default abstract class FunctionBase extends NodeBase {
+export default abstract class FunctionBase extends NodeBase implements DeoptimizableEntity {
 	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
 	declare params: readonly PatternNode[];
@@ -32,12 +46,27 @@ export default abstract class FunctionBase extends NodeBase {
 	protected objectEntity: ObjectEntity | null = null;
 	private deoptimizedReturn = false;
 
+	// TODO Lukas test
+	deoptimizeCache() {
+		this.deoptimizeParameterDefaults();
+	}
+
+	deoptimizeParameterDefaults() {
+		const context = createInclusionContext();
+		for (const parameter of this.params) {
+			if (parameter instanceof AssignmentPattern) {
+				parameter.includeDefault(context);
+			}
+		}
+	}
+
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
 		if (path.length === 1 && path[0] === UnknownKey) {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the return expression needs to be reassigned
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+			this.deoptimizeParameterDefaults();
 		}
 	}
 
@@ -137,10 +166,26 @@ export default abstract class FunctionBase extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
+	// TODO Lukas by default, we need to include everything -> new function on Node to include ignoring parameter defaults
 	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionNode | SpreadElement)[]
 	): void {
+		for (let position = 0; position < this.params.length; position++) {
+			const parameter = this.params[position];
+			if (parameter instanceof AssignmentPattern) {
+				const argument = args[position];
+				if (argument) {
+					const argumentValue = argument.getLiteralValueAtPath(
+						EMPTY_PATH,
+						SHARED_RECURSION_TRACKER,
+						this
+					);
+					if (argumentValue !== undefined && argumentValue !== UnknownValue) continue;
+				}
+				parameter.includeDefault(context);
+			}
+		}
 		this.scope.includeCallArguments(context, args);
 	}
 

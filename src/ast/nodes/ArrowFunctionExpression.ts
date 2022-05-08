@@ -3,6 +3,7 @@ import { type HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import type Scope from '../scopes/Scope';
 import { type ObjectPath } from '../utils/PathTracker';
+import AssignmentPattern from './AssignmentPattern';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -52,7 +53,12 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		super.include(context, includeChildrenRecursively);
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
-				param.include(context, includeChildrenRecursively);
+				// TODO Lukas this should not be part of standard inclusion
+				if (!includeChildrenRecursively && param instanceof AssignmentPattern) {
+					param.includeWithoutDefault(context);
+				} else {
+					param.include(context, includeChildrenRecursively);
+				}
 			}
 		}
 	}
