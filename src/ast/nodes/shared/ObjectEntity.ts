@@ -96,6 +96,7 @@ export class ObjectEntity extends ExpressionEntity {
 		this.deoptimizeCachedIntegerEntities();
 	}
 
+	// Assumption: If only a specific path is deoptimized, no accessors are created
 	deoptimizePath(path: ObjectPath): void {
 		if (this.hasUnknownDeoptimizedProperty || this.immutable) return;
 		const key = path[0];
@@ -137,6 +138,7 @@ export class ObjectEntity extends ExpressionEntity {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
+		if (path.length === 0) return;
 		const [key, ...subPath] = path;
 
 		if (

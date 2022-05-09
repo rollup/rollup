@@ -1,5 +1,6 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import { type CallOptions, NO_ARGS } from '../../CallOptions';
+import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
 	BROKEN_FLOW_NONE,
 	type HasEffectsContext,
@@ -7,12 +8,12 @@ import {
 } from '../../ExecutionContext';
 import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
-import { type ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { type ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -23,6 +24,7 @@ import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import type { PatternNode } from './Pattern';
 
+// TODO Lukas create shared base with arrow functions
 export default class FunctionNode extends NodeBase {
 	declare async: boolean;
 	declare body: BlockStatement;
@@ -31,44 +33,60 @@ export default class FunctionNode extends NodeBase {
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	private deoptimizedReturn = false;
-	private isPrototypeDeoptimized = false;
+	private objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: FunctionScope): void {
 		this.scope = new FunctionScope(parentScope, this.context);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		if (path.length === 1) {
-			if (path[0] === 'prototype') {
-				this.isPrototypeDeoptimized = true;
-			} else if (path[0] === UnknownKey) {
-				this.isPrototypeDeoptimized = true;
-
-				// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
-				// which means the return expression needs to be reassigned as well
-				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-			}
+		this.getObjectEntity().deoptimizePath(path);
+		if (path.length === 1 && path[0] === UnknownKey) {
+			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
+			// which means the return expression needs to be reassigned as well
+			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 
-	// TODO for completeness, we should also track other events here
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
 	): void {
-		if (event === EVENT_CALLED) {
-			if (path.length > 0) {
-				thisParameter.deoptimizePath(UNKNOWN_PATH);
-			} else {
-				this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
-			}
+		if (path.length > 0) {
+			this.getObjectEntity().deoptimizeThisOnEventAtPath(
+				event,
+				path,
+				thisParameter,
+				recursionTracker
+			);
+		} else if (event === EVENT_CALLED) {
+			this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
 		}
 	}
 
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		if (path.length !== 0) {
-			return UNKNOWN_EXPRESSION;
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
+	): ExpressionEntity {
+		if (path.length > 0) {
+			return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				recursionTracker,
+				origin
+			);
 		}
 		if (this.async) {
 			if (!this.deoptimizedReturn) {
@@ -85,16 +103,16 @@ export default class FunctionNode extends NodeBase {
 		return this.id !== null && this.id.hasEffects();
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		if (path.length <= 1) return false;
-		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeDeoptimized;
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-		if (path.length <= 1) {
-			return false;
-		}
-		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeDeoptimized;
+	hasEffectsWhenAssignedAtPath(
+		path: ObjectPath,
+		context: HasEffectsContext,
+		ignoreAccessors: boolean
+	): boolean {
+		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context, ignoreAccessors);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -102,7 +120,9 @@ export default class FunctionNode extends NodeBase {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length > 0) return true;
+		if (path.length > 0) {
+			return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
+		}
 		if (this.async) {
 			const { propertyReadSideEffects } = this.context.options
 				.treeshake as NormalizedTreeshakingOptions;
@@ -184,6 +204,22 @@ export default class FunctionNode extends NodeBase {
 	parseNode(esTreeNode: GenericEsTreeNode): void {
 		this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
 		super.parseNode(esTreeNode);
+	}
+
+	private getObjectEntity(): ObjectEntity {
+		if (this.objectEntity !== null) {
+			return this.objectEntity;
+		}
+		return (this.objectEntity = new ObjectEntity(
+			[
+				{
+					key: 'prototype',
+					kind: 'init',
+					property: new ObjectEntity([], OBJECT_PROTOTYPE)
+				}
+			],
+			OBJECT_PROTOTYPE
+		));
 	}
 }
 
