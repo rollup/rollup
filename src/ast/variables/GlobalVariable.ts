@@ -2,14 +2,16 @@ import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { getGlobalAtPath } from '../nodes/shared/knownGlobals';
 import type { ObjectPath } from '../utils/PathTracker';
-import { UNKNOWN_NON_ACCESSOR_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
+	// Ensure we use live-bindings for globals as we do not know if they have
+	// been reassigned
 	isReassigned = true;
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		if (path.length === 0) {
+			// Technically, "undefined" is a global variable of sorts
 			return this.name !== 'undefined' && getGlobalAtPath([this.name]) === null;
 		}
 		return getGlobalAtPath([this.name, ...path].slice(0, -1)) === null;
@@ -21,12 +23,6 @@ export default class GlobalVariable extends Variable {
 		context: HasEffectsContext
 	): boolean {
 		const globalAtPath = getGlobalAtPath([this.name, ...path]);
-		return (
-			globalAtPath === null ||
-			!globalAtPath.function ||
-			(globalAtPath.mutatesArg1 &&
-				(!callOptions.args.length ||
-					callOptions.args[0].hasEffectsWhenAssignedAtPath(UNKNOWN_NON_ACCESSOR_PATH, context)))
-		);
+		return globalAtPath === null || globalAtPath.hasEffectsWhenCalled(callOptions, context);
 	}
 }

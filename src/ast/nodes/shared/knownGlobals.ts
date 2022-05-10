@@ -1,15 +1,14 @@
 /* eslint sort-keys: "off" */
 
+import { CallOptions } from '../../CallOptions';
+import { HasEffectsContext } from '../../ExecutionContext';
+import { UNKNOWN_NON_ACCESSOR_PATH } from '../../utils/PathTracker';
 import type { ObjectPath } from '../../utils/PathTracker';
 
 const ValueProperties = Symbol('Value Properties');
 
 interface ValueDescription {
-	// Denotes a proper function except for the side effects listed explicitly
-	function: boolean;
-	// This assumes that mutation itself cannot have side effects and that this
-	// does not trigger setters or getters
-	mutatesArg1: boolean;
+	hasEffectsWhenCalled(callOptions: CallOptions, context: HasEffectsContext): boolean;
 }
 
 interface GlobalDescription {
@@ -18,8 +17,17 @@ interface GlobalDescription {
 	__proto__: null;
 }
 
-const PURE: ValueDescription = { function: true, mutatesArg1: false };
-const IMPURE: ValueDescription = { function: false, mutatesArg1: false };
+const PURE: ValueDescription = {
+	hasEffectsWhenCalled() {
+		return false;
+	}
+};
+
+const IMPURE: ValueDescription = {
+	hasEffectsWhenCalled() {
+		return true;
+	}
+};
 
 // We use shortened variables to reduce file size here
 /* OBJECT */
@@ -37,7 +45,14 @@ const PF: GlobalDescription = {
 /* FUNCTION THAT MUTATES FIRST ARG WITHOUT TRIGGERING ACCESSORS */
 const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 	__proto__: null,
-	[ValueProperties]: { function: true, mutatesArg1: true }
+	[ValueProperties]: {
+		hasEffectsWhenCalled(callOptions, context) {
+			return (
+				!callOptions.args.length ||
+				callOptions.args[0].hasEffectsWhenAssignedAtPath(UNKNOWN_NON_ACCESSOR_PATH, context)
+			);
+		}
+	}
 };
 
 /* CONSTRUCTOR */
