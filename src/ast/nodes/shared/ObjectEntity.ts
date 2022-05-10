@@ -9,7 +9,8 @@ import {
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
-	UnknownKey
+	UnknownKey,
+	UnknownNonAccessorKey
 } from '../../utils/PathTracker';
 import {
 	ExpressionEntity,
@@ -35,6 +36,7 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> =
 		Object.create(null);
 	private readonly gettersByKey: PropertyMap = Object.create(null);
+	private hasLostTrack = false;
 	private hasUnknownDeoptimizedInteger = false;
 	private hasUnknownDeoptimizedProperty = false;
 	private readonly propertiesAndGettersByKey: PropertyMap = Object.create(null);
@@ -64,11 +66,17 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 	}
 
-	deoptimizeAllProperties(): void {
-		if (this.hasUnknownDeoptimizedProperty) {
+	// TODO Lukas check other usages
+	deoptimizeAllProperties(noAccessors?: boolean): void {
+		const isDeoptimized = this.hasLostTrack || this.hasUnknownDeoptimizedProperty;
+		if (noAccessors) {
+			this.hasUnknownDeoptimizedProperty = true;
+		} else {
+			this.hasLostTrack = true;
+		}
+		if (isDeoptimized) {
 			return;
 		}
-		this.hasUnknownDeoptimizedProperty = true;
 		for (const properties of Object.values(this.propertiesAndGettersByKey).concat(
 			Object.values(this.settersByKey)
 		)) {
@@ -82,7 +90,11 @@ export class ObjectEntity extends ExpressionEntity {
 	}
 
 	deoptimizeIntegerProperties(): void {
-		if (this.hasUnknownDeoptimizedProperty || this.hasUnknownDeoptimizedInteger) {
+		if (
+			this.hasLostTrack ||
+			this.hasUnknownDeoptimizedProperty ||
+			this.hasUnknownDeoptimizedInteger
+		) {
 			return;
 		}
 		this.hasUnknownDeoptimizedInteger = true;
@@ -98,14 +110,16 @@ export class ObjectEntity extends ExpressionEntity {
 
 	// Assumption: If only a specific path is deoptimized, no accessors are created
 	deoptimizePath(path: ObjectPath): void {
-		if (this.hasUnknownDeoptimizedProperty || this.immutable) return;
+		if (this.hasLostTrack || this.immutable) {
+			return;
+		}
 		const key = path[0];
 		if (path.length === 1) {
 			if (typeof key !== 'string') {
 				if (key === UnknownInteger) {
 					return this.deoptimizeIntegerProperties();
 				}
-				return this.deoptimizeAllProperties();
+				return this.deoptimizeAllProperties(key === UnknownNonAccessorKey);
 			}
 			if (!this.deoptimizedPaths[key]) {
 				this.deoptimizedPaths[key] = true;
@@ -142,11 +156,11 @@ export class ObjectEntity extends ExpressionEntity {
 		const [key, ...subPath] = path;
 
 		if (
-			this.hasUnknownDeoptimizedProperty ||
+			this.hasLostTrack ||
 			// single paths that are deoptimized will not become getters or setters
 			((event === EVENT_CALLED || path.length > 1) &&
-				typeof key === 'string' &&
-				this.deoptimizedPaths[key])
+				(this.hasUnknownDeoptimizedProperty ||
+					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
 			thisParameter.deoptimizePath(UNKNOWN_PATH);
 			return;
@@ -275,7 +289,7 @@ export class ObjectEntity extends ExpressionEntity {
 			return true;
 		}
 
-		if (this.hasUnknownDeoptimizedProperty) return true;
+		if (this.hasLostTrack) return true;
 		if (typeof key === 'string') {
 			if (this.propertiesAndGettersByKey[key]) {
 				const getters = this.gettersByKey[key];
@@ -329,8 +343,7 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 
 		if (ignoreAccessors) return false;
-		if (this.hasUnknownDeoptimizedProperty) return true;
-		// We do not need to test for unknown properties as in that case, hasUnknownDeoptimizedProperty is true
+		if (this.hasLostTrack) return true;
 		if (typeof key === 'string') {
 			if (this.propertiesAndSettersByKey[key]) {
 				const setters = this.settersByKey[key];
@@ -344,6 +357,12 @@ export class ObjectEntity extends ExpressionEntity {
 			for (const property of this.unmatchableSetters) {
 				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) {
 					return true;
+				}
+			}
+		} else {
+			for (const setters of Object.values(this.settersByKey).concat([this.unmatchableSetters])) {
+				for (const setter of setters) {
+					if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
 				}
 			}
 		}
@@ -445,6 +464,7 @@ export class ObjectEntity extends ExpressionEntity {
 
 	private getMemberExpression(key: ObjectPathKey): ExpressionEntity | null {
 		if (
+			this.hasLostTrack ||
 			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
 			(this.hasUnknownDeoptimizedInteger && INTEGER_REG_EXP.test(key)) ||

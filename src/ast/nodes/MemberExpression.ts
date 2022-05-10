@@ -14,7 +14,8 @@ import {
 	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
-	UnknownKey
+	UnknownKey,
+	UnknownNonAccessorKey
 } from '../utils/PathTracker';
 import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
@@ -378,9 +379,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	private getPropertyKey(): ObjectPathKey {
 		if (this.propertyKey === null) {
-			this.propertyKey = UnknownKey;
+			this.propertyKey = UnknownNonAccessorKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			return (this.propertyKey = value === UnknownValue ? UnknownKey : String(value));
+			return (this.propertyKey = value === UnknownValue ? UnknownNonAccessorKey : String(value));
 		}
 		return this.propertyKey;
 	}
