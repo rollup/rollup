@@ -16,6 +16,7 @@ export interface WritableEntity extends Entity {
 	hasEffectsWhenAssignedAtPath(
 		path: ObjectPath,
 		context: HasEffectsContext,
+		// TODO Lukas use the new key value instead?
 		ignoreAccessors?: boolean
 	): boolean;
 }
