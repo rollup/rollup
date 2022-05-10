@@ -317,11 +317,7 @@ export class ObjectEntity extends ExpressionEntity {
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(
-		path: ObjectPath,
-		context: HasEffectsContext,
-		ignoreAccessors: boolean
-	): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
 			if (typeof key !== 'string') {
@@ -329,19 +325,15 @@ export class ObjectEntity extends ExpressionEntity {
 			}
 			const expressionAtPath = this.getMemberExpression(key);
 			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context, ignoreAccessors);
+				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
 			}
 			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(
-					path,
-					context,
-					ignoreAccessors
-				);
+				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
 			}
 			return true;
 		}
 
-		if (ignoreAccessors) return false;
+		if (key === UnknownNonAccessorKey) return false;
 		if (this.hasLostTrack) return true;
 		if (typeof key === 'string') {
 			if (this.propertiesAndSettersByKey[key]) {

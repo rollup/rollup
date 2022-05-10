@@ -13,10 +13,5 @@ export interface WritableEntity extends Entity {
 	 */
 	deoptimizePath(path: ObjectPath): void;
 
-	hasEffectsWhenAssignedAtPath(
-		path: ObjectPath,
-		context: HasEffectsContext,
-		// TODO Lukas use the new key value instead?
-		ignoreAccessors?: boolean
-	): boolean;
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean;
 }

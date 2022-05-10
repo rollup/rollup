@@ -73,14 +73,10 @@ export default class ThisVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(
-		path: ObjectPath,
-		context: HasEffectsContext,
-		ignoreAccessors: boolean
-	): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			this.getInit(context).hasEffectsWhenAssignedAtPath(path, context) ||
-			super.hasEffectsWhenAssignedAtPath(path, context, ignoreAccessors)
+			super.hasEffectsWhenAssignedAtPath(path, context)
 		);
 	}
 

@@ -150,17 +150,13 @@ export default class LocalVariable extends Variable {
 			this.init.hasEffectsWhenAccessedAtPath(path, context))!;
 	}
 
-	hasEffectsWhenAssignedAtPath(
-		path: ObjectPath,
-		context: HasEffectsContext,
-		ignoreAccessors: boolean
-	): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.included) return true;
 		if (path.length === 0) return false;
 		if (this.isReassigned) return true;
 		return (this.init &&
 			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.init.hasEffectsWhenAssignedAtPath(path, context, ignoreAccessors))!;
+			this.init.hasEffectsWhenAssignedAtPath(path, context))!;
 	}
 
 	hasEffectsWhenCalledAtPath(

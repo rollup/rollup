@@ -86,12 +86,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(
-		path: ObjectPath,
-		context: HasEffectsContext,
-		ignoreAccessors: boolean
-	): boolean {
-		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context, ignoreAccessors);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(

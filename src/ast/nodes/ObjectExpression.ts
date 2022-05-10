@@ -79,12 +79,8 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(
-		path: ObjectPath,
-		context: HasEffectsContext,
-		ignoreAccessors: boolean
-	): boolean {
-		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context, ignoreAccessors);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(

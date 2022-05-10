@@ -13,6 +13,12 @@ export type ObjectPathKey =
 export type ObjectPath = ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
+// For deoptimizations, this means we are modifying an unknown property but did
+// not lose track of the object or are creating a setter/getter;
+// For assignment effects it means we do not check for setter/getter effects
+// but only if something is mutated that is included, which is relevant for
+// Object.defineProperty
+export const UNKNOWN_NON_ACCESSOR_PATH: ObjectPath = [UnknownNonAccessorKey];
 export const UNKNOWN_INTEGER_PATH: ObjectPath = [UnknownInteger];
 
 const EntitiesKey = Symbol('Entities');

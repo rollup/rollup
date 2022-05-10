@@ -144,17 +144,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(
-		path: ObjectPath,
-		context: HasEffectsContext,
-		ignoreAccessors: boolean
-	): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			!this.variable ||
 			(path.length > 0
 				? this.getVariableRespectingTDZ()
 				: this.variable
-			).hasEffectsWhenAssignedAtPath(path, context, ignoreAccessors)
+			).hasEffectsWhenAssignedAtPath(path, context)
 		);
 	}
 

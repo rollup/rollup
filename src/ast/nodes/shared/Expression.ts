@@ -52,11 +52,7 @@ export class ExpressionEntity implements WritableEntity {
 		return true;
 	}
 
-	hasEffectsWhenAssignedAtPath(
-		_path: ObjectPath,
-		_context: HasEffectsContext,
-		_ignoreAccessors?: boolean
-	): boolean {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
 		return true;
 	}
 

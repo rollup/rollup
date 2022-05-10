@@ -1,8 +1,8 @@
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { getGlobalAtPath } from '../nodes/shared/knownGlobals';
-import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type { ObjectPath } from '../utils/PathTracker';
+import { UNKNOWN_NON_ACCESSOR_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
@@ -26,7 +26,7 @@ export default class GlobalVariable extends Variable {
 			!globalAtPath.function ||
 			(globalAtPath.mutatesArg1 &&
 				(!callOptions.args.length ||
-					callOptions.args[0].hasEffectsWhenAssignedAtPath(UNKNOWN_PATH, context, true)))
+					callOptions.args[0].hasEffectsWhenAssignedAtPath(UNKNOWN_NON_ACCESSOR_PATH, context)))
 		);
 	}
 }
