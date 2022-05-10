@@ -66,7 +66,6 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 	}
 
-	// TODO Lukas check other usages
 	deoptimizeAllProperties(noAccessors?: boolean): void {
 		const isDeoptimized = this.hasLostTrack || this.hasUnknownDeoptimizedProperty;
 		if (noAccessors) {

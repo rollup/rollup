@@ -18,3 +18,6 @@ Object.defineProperty(removed3, 'foo', { value: true });
 
 function removed4() {}
 Object.defineProperty(removed4, 'foo', { value: true });
+
+const removed5 = () => {};
+Object.defineProperty(removed5, 'foo', { value: true });
