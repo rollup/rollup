@@ -129,7 +129,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.variable.deoptimizePath(path);
 		} else if (!this.replacement) {
 			if (path.length < MAX_PATH_DEPTH) {
-				this.object.deoptimizePath([this.getPropertyKey(), ...path]);
+				const propertyKey = this.getPropertyKey();
+				this.object.deoptimizePath([
+					propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
+					...path
+				]);
 			}
 		}
 	}
@@ -379,9 +383,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	private getPropertyKey(): ObjectPathKey {
 		if (this.propertyKey === null) {
-			this.propertyKey = UnknownNonAccessorKey;
+			this.propertyKey = UnknownKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			return (this.propertyKey = value === UnknownValue ? UnknownNonAccessorKey : String(value));
+			return (this.propertyKey = value === UnknownValue ? UnknownKey : String(value));
 		}
 		return this.propertyKey;
 	}

@@ -151,7 +151,6 @@ export class ObjectEntity extends ExpressionEntity {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (path.length === 0) return;
 		const [key, ...subPath] = path;
 
 		if (

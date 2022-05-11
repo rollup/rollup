@@ -21,10 +21,9 @@ import {
 	NodeBase
 } from './Node';
 import { ObjectEntity } from './ObjectEntity';
-import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import type { PatternNode } from './Pattern';
 
-export default class FunctionBase extends NodeBase {
+export default abstract class FunctionBase extends NodeBase {
 	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
 	declare params: readonly PatternNode[];
@@ -164,12 +163,7 @@ export default class FunctionBase extends NodeBase {
 		super.parseNode(esTreeNode);
 	}
 
-	protected getObjectEntity(): ObjectEntity {
-		if (this.objectEntity !== null) {
-			return this.objectEntity;
-		}
-		return (this.objectEntity = new ObjectEntity([], OBJECT_PROTOTYPE));
-	}
+	protected abstract getObjectEntity(): ObjectEntity;
 }
 
 FunctionBase.prototype.preventChildBlockScope = true;
