@@ -10,7 +10,6 @@ import {
 } from './utils/PathTracker';
 
 export interface MemberDescription {
-	callsArgs: number[] | null;
 	hasEffectsWhenCalled: ((callOptions: CallOptions, context: HasEffectsContext) => boolean) | null;
 	returns: ExpressionEntity;
 }
@@ -39,7 +38,6 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity =
 
 const returnsUnknown: RawMemberDescription = {
 	value: {
-		callsArgs: null,
 		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_EXPRESSION
 	}
@@ -72,7 +70,6 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 
 const returnsBoolean: RawMemberDescription = {
 	value: {
-		callsArgs: null,
 		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_LITERAL_BOOLEAN
 	}
@@ -105,7 +102,6 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 
 const returnsNumber: RawMemberDescription = {
 	value: {
-		callsArgs: null,
 		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_LITERAL_NUMBER
 	}
@@ -138,7 +134,6 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 
 const returnsString: RawMemberDescription = {
 	value: {
-		callsArgs: null,
 		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_LITERAL_STRING
 	}
@@ -146,7 +141,6 @@ const returnsString: RawMemberDescription = {
 
 const stringReplace: RawMemberDescription = {
 	value: {
-		callsArgs: null,
 		hasEffectsWhenCalled(callOptions, context) {
 			const arg1 = callOptions.args[1];
 			return (
@@ -274,27 +268,7 @@ export function hasMemberEffectWhenCalled(
 	if (typeof memberName !== 'string' || !members[memberName]) {
 		return true;
 	}
-	const { callsArgs, hasEffectsWhenCalled } = members[memberName];
-	if (hasEffectsWhenCalled) {
-		return hasEffectsWhenCalled(callOptions, context);
-	}
-	if (!callsArgs) return false;
-	for (const argIndex of callsArgs) {
-		if (
-			callOptions.args[argIndex] &&
-			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				{
-					args: NO_ARGS,
-					thisParam: null,
-					withNew: false
-				},
-				context
-			)
-		)
-			return true;
-	}
-	return false;
+	return members[memberName].hasEffectsWhenCalled?.(callOptions, context) || false;
 }
 
 export function getMemberReturnExpressionWhenCalled(
