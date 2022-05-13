@@ -46,7 +46,6 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 	protected objectEntity: ObjectEntity | null = null;
 	private deoptimizedReturn = false;
 
-	// TODO Lukas test
 	deoptimizeCache() {
 		this.deoptimizeParameterDefaults();
 	}

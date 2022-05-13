@@ -44,9 +44,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		if (path.length === 1 && path[0] === UnknownKey) {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the constructor needs to be reassigned
-			// TODO Lukas test
 			this.classConstructor?.deoptimizePath(UNKNOWN_PATH);
-			// TODO Lukas test
 			this.superClass?.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
@@ -140,7 +138,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			if (this.classConstructor) {
 				this.classConstructor.includeArgumentsWhenCalledAtPath(path, context, args);
 			} else {
-				// TODO Lukas test
 				this.superClass?.includeArgumentsWhenCalledAtPath(path, context, args);
 			}
 		} else {
