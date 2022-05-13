@@ -1,12 +1,11 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 const unaryOperators: {
 	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
@@ -54,11 +53,6 @@ export default class UnaryExpression extends NodeBase {
 			return path.length > 0;
 		}
 		return path.length > 1;
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		super.include(context, includeChildrenRecursively);
 	}
 
 	protected applyDeoptimizations(): void {

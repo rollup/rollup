@@ -1,11 +1,10 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { InclusionContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
-import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SpreadElement extends NodeBase {
 	declare argument: ExpressionNode;
@@ -38,11 +37,6 @@ export default class SpreadElement extends NodeBase {
 				(propertyReadSideEffects === 'always' ||
 					this.argument.hasEffectsWhenAccessedAtPath(UNKNOWN_PATH, context)))
 		);
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		super.include(context, includeChildrenRecursively);
 	}
 
 	protected applyDeoptimizations(): void {

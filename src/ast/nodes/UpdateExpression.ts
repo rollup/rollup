@@ -6,11 +6,10 @@ import {
 	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
@@ -29,11 +28,6 @@ export default class UpdateExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		super.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

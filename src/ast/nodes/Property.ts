@@ -1,13 +1,13 @@
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { HasEffectsContext } from '../ExecutionContext';
 import { UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type * as NodeType from './NodeType';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type { ExpressionNode } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 
 export default class Property extends MethodBase implements PatternNode {
@@ -33,11 +33,6 @@ export default class Property extends MethodBase implements PatternNode {
 			this.key.hasEffects(context) ||
 			this.value.hasEffects(context)
 		);
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		super.include(context, includeChildrenRecursively);
 	}
 
 	markDeclarationReached(): void {
