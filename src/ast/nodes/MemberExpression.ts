@@ -14,7 +14,8 @@ import {
 	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
-	UnknownKey
+	UnknownKey,
+	UnknownNonAccessorKey
 } from '../utils/PathTracker';
 import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
@@ -128,7 +129,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.variable.deoptimizePath(path);
 		} else if (!this.replacement) {
 			if (path.length < MAX_PATH_DEPTH) {
-				this.object.deoptimizePath([this.getPropertyKey(), ...path]);
+				const propertyKey = this.getPropertyKey();
+				this.object.deoptimizePath([
+					propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
+					...path
+				]);
 			}
 		}
 	}

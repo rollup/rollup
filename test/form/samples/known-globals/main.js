@@ -1,4 +1,7 @@
-console.log('main');
+// retained
+Math[globalThis.unknown].foo;
+
+// removed
 const a = setTimeout;
 const b = globalThis.setTimeout;
 const c = Math.max(1, 2);

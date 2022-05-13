@@ -12,5 +12,6 @@ export interface WritableEntity extends Entity {
 	 * expression of this node is reassigned as well.
 	 */
 	deoptimizePath(path: ObjectPath): void;
+
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean;
 }

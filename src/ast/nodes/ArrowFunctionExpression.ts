@@ -1,104 +1,40 @@
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { type CallOptions, NO_ARGS } from '../CallOptions';
-import {
-	BROKEN_FLOW_NONE,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
+import { type CallOptions } from '../CallOptions';
+import { type HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import type Scope from '../scopes/Scope';
-import { type ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import { type ObjectPath } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import RestElement from './RestElement';
-import type SpreadElement from './SpreadElement';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
-import {
-	type ExpressionNode,
-	type GenericEsTreeNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
+import FunctionBase from './shared/FunctionBase';
+import { type ExpressionNode, IncludeChildren } from './shared/Node';
+import { ObjectEntity } from './shared/ObjectEntity';
+import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import type { PatternNode } from './shared/Pattern';
 
-export default class ArrowFunctionExpression extends NodeBase {
+export default class ArrowFunctionExpression extends FunctionBase {
 	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
 	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 	declare type: NodeType.tArrowFunctionExpression;
-	private deoptimizedReturn = false;
+	protected objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: Scope): void {
 		this.scope = new ReturnValueScope(parentScope, this.context);
-	}
-
-	deoptimizePath(path: ObjectPath): void {
-		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
-		// which means the return expression needs to be reassigned
-		if (path.length === 1 && path[0] === UnknownKey) {
-			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-		}
-	}
-
-	// Arrow functions do not mutate their context
-	deoptimizeThisOnEventAtPath(): void {}
-
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		if (path.length !== 0) {
-			return UNKNOWN_EXPRESSION;
-		}
-		if (this.async) {
-			if (!this.deoptimizedReturn) {
-				this.deoptimizedReturn = true;
-				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-				this.context.requestTreeshakingPass();
-			}
-			return UNKNOWN_EXPRESSION;
-		}
-		return this.scope.getReturnExpression();
 	}
 
 	hasEffects(): boolean {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
-	}
-
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
-		_callOptions: CallOptions,
+		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length > 0) return true;
-		if (this.async) {
-			const { propertyReadSideEffects } = this.context.options
-				.treeshake as NormalizedTreeshakingOptions;
-			const returnExpression = this.scope.getReturnExpression();
-			if (
-				returnExpression.hasEffectsWhenCalledAtPath(
-					['then'],
-					{ args: NO_ARGS, thisParam: null, withNew: false },
-					context
-				) ||
-				(propertyReadSideEffects &&
-					(propertyReadSideEffects === 'always' ||
-						returnExpression.hasEffectsWhenAccessedAtPath(['then'], context)))
-			) {
-				return true;
-			}
-		}
-		for (const param of this.params) {
-			if (param.hasEffects(context)) return true;
-		}
+		if (super.hasEffectsWhenCalledAtPath(path, callOptions, context)) return true;
 		const { ignore, brokenFlow } = context;
 		context.ignore = {
 			breaks: false,
@@ -113,43 +49,18 @@ export default class ArrowFunctionExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		this.included = true;
+		super.include(context, includeChildrenRecursively);
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
 				param.include(context, includeChildrenRecursively);
 			}
 		}
-		const { brokenFlow } = context;
-		context.brokenFlow = BROKEN_FLOW_NONE;
-		this.body.include(context, includeChildrenRecursively);
-		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
-	): void {
-		this.scope.includeCallArguments(context, args);
-	}
-
-	initialise(): void {
-		this.scope.addParameterVariables(
-			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
-			this.params[this.params.length - 1] instanceof RestElement
-		);
-		if (this.body instanceof BlockStatement) {
-			this.body.addImplicitReturnExpressionToScope();
-		} else {
-			this.scope.addReturnExpression(this.body);
+	protected getObjectEntity(): ObjectEntity {
+		if (this.objectEntity !== null) {
+			return this.objectEntity;
 		}
-	}
-
-	parseNode(esTreeNode: GenericEsTreeNode): void {
-		if (esTreeNode.body.type === NodeType.BlockStatement) {
-			this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
-		}
-		super.parseNode(esTreeNode);
+		return (this.objectEntity = new ObjectEntity([], OBJECT_PROTOTYPE));
 	}
 }
-
-ArrowFunctionExpression.prototype.preventChildBlockScope = true;

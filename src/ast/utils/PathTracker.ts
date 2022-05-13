@@ -2,12 +2,23 @@ import { getOrCreate } from '../../utils/getOrCreate';
 import type { Entity } from '../Entity';
 
 export const UnknownKey = Symbol('Unknown Key');
+export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
-export type ObjectPathKey = string | typeof UnknownKey | typeof UnknownInteger;
+export type ObjectPathKey =
+	| string
+	| typeof UnknownKey
+	| typeof UnknownNonAccessorKey
+	| typeof UnknownInteger;
 
 export type ObjectPath = ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
+// For deoptimizations, this means we are modifying an unknown property but did
+// not lose track of the object or are creating a setter/getter;
+// For assignment effects it means we do not check for setter/getter effects
+// but only if something is mutated that is included, which is relevant for
+// Object.defineProperty
+export const UNKNOWN_NON_ACCESSOR_PATH: ObjectPath = [UnknownNonAccessorKey];
 export const UNKNOWN_INTEGER_PATH: ObjectPath = [UnknownInteger];
 
 const EntitiesKey = Symbol('Entities');
@@ -16,6 +27,7 @@ interface EntityPaths {
 	[EntitiesKey]: Set<Entity>;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
+	[UnknownNonAccessorKey]?: EntityPaths;
 }
 
 export class PathTracker {
@@ -62,6 +74,7 @@ interface DiscriminatedEntityPaths {
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
+	[UnknownNonAccessorKey]?: DiscriminatedEntityPaths;
 }
 
 export class DiscriminatedPathTracker {
