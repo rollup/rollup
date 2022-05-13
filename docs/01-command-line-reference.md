@@ -444,6 +444,7 @@ rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
 ```
 
 Note for Typescript: make sure you have the Rollup config file in your `tsconfig.json`'s `include` paths. For example:
+
 ```
 "include": ["src/**/*", "rollup.config.ts"],
 ```
