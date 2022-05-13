@@ -18,6 +18,7 @@ import type Variable from '../variables/Variable';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import type VariableDeclarator from './VariableDeclarator';
+import { InclusionOptions } from './shared/Expression';
 import { type IncludeChildren, NodeBase } from './shared/Node';
 
 function areAllDeclarationsIncludedAndNotExported(
@@ -52,22 +53,16 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		{ asSingleStatement }: InclusionOptions = BLANK
+	): void {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
 				declarator.include(context, includeChildrenRecursively);
-		}
-	}
-
-	includeAsSingleStatement(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
-		for (const declarator of this.declarations) {
-			if (includeChildrenRecursively || declarator.shouldBeIncluded(context)) {
-				declarator.include(context, includeChildrenRecursively);
+			if (asSingleStatement) {
 				declarator.id.include(context, includeChildrenRecursively);
 			}
 		}

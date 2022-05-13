@@ -67,15 +67,6 @@ export interface Node extends Entity {
 		options?: InclusionOptions
 	): void;
 
-	/**
-	 * Alternative version of include to override the default behaviour of
-	 * declarations to not include the id by default if the declarator has an effect.
-	 */
-	includeAsSingleStatement(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void;
-
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -168,7 +159,11 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		_options?: InclusionOptions
+	): void {
 		if (this.deoptimized === false) this.applyDeoptimizations();
 		this.included = true;
 		for (const key of this.keys) {
@@ -182,14 +177,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				value.include(context, includeChildrenRecursively);
 			}
 		}
-	}
-
-	// TODO Lukas use parameter instead
-	includeAsSingleStatement(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.include(context, includeChildrenRecursively);
 	}
 
 	/**

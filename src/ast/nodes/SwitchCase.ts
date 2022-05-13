@@ -21,7 +21,7 @@ export default class SwitchCase extends NodeBase {
 	declare type: NodeType.tSwitchCase;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (this.test && this.test.hasEffects(context)) return true;
+		if (this.test?.hasEffects(context)) return true;
 		for (const node of this.consequent) {
 			if (context.brokenFlow) break;
 			if (node.hasEffects(context)) return true;
@@ -31,7 +31,7 @@ export default class SwitchCase extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		if (this.test) this.test.include(context, includeChildrenRecursively);
+		this.test?.include(context, includeChildrenRecursively);
 		for (const node of this.consequent) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
 				node.include(context, includeChildrenRecursively);

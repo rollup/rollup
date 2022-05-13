@@ -13,6 +13,10 @@ export const UnknownValue = Symbol('Unknown Value');
 export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
 
 export interface InclusionOptions {
+	/**
+	 * Include the id of a declarator even if unused to ensure it is a valid statement.
+	 */
+	asSingleStatement?: boolean;
 	skipPatternDefaults?: boolean;
 }
 
