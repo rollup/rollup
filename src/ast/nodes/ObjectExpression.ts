@@ -3,7 +3,7 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
@@ -26,6 +26,8 @@ import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 
+// TODO Lukas ensure deoptimizations always happen twice in hasEffects and include
+// TODO Lukas Use ?. everywhere to call methods on optional properties
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	declare properties: readonly (Property | SpreadElement)[];
 	declare type: NodeType.tObjectExpression;
@@ -89,6 +91,14 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		context: HasEffectsContext
 	): boolean {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
+	}
+
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		context: InclusionContext,
+		args: readonly (ExpressionEntity | SpreadElement)[]
+	) {
+		this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	render(

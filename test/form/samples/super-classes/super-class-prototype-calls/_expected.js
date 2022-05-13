@@ -4,9 +4,7 @@ class SuperValues {
 			effect(used) {
 				console.log('effect', used);
 			},
-			isTrue() {
-				return true;
-			}
+
 		};
 	}
 	effect(used) {
@@ -17,7 +15,6 @@ class SuperValues {
 	}
 }
 class Values extends SuperValues {}
-console.log('retained');
 console.log('retained');
 Values.prototype.effect();
 Values.prototype.prop.effect();

@@ -6,6 +6,7 @@ import type TemplateElement from './TemplateElement';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
+// TODO Lukas test and ensure that all expressions are deoptimized like call parameters
 export default class TemplateLiteral extends NodeBase {
 	declare expressions: ExpressionNode[];
 	declare quasis: TemplateElement[];

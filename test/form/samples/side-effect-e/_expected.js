@@ -4,13 +4,7 @@ function foo () {
 			console.log( 'side-effect' );
 		}
 	};
-
-	var obj = { foo: 1, bar: 2 };
-	Object.keys( obj );
+	Object.keys();
 }
 
 foo();
-
-var main = 42;
-
-export { main as default };

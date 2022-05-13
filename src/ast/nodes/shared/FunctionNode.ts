@@ -3,7 +3,6 @@ import { type HasEffectsContext, type InclusionContext } from '../../ExecutionCo
 import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
 import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
-import AssignmentPattern from '../AssignmentPattern';
 import BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
@@ -79,12 +78,9 @@ export default class FunctionNode extends FunctionBase {
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const param of this.params) {
 			if (!(param instanceof Identifier) || hasArguments) {
-				// TODO Lukas this should not be part of standard inclusion
-				if (!includeChildrenRecursively && param instanceof AssignmentPattern) {
-					param.includeWithoutDefault(context);
-				} else {
-					param.include(context, includeChildrenRecursively);
-				}
+				param.include(context, includeChildrenRecursively, {
+					skipPatternDefaults: !includeChildrenRecursively
+				});
 			}
 		}
 	}

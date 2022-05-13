@@ -9,8 +9,6 @@ class SuperValues {
 class Values extends SuperValues {}
 if (Values.prototype.isTrue) console.log('retained');
 else console.log('removed');
-if (Values.prototype.prop.isTrue) console.log('retained');
-else console.log('removed');
 
 const prop = { isTrue: true };
 class SuperDeopt {

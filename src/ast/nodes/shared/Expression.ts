@@ -6,11 +6,15 @@ import { NodeEvent } from '../../NodeEvents';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { LiteralValue } from '../Literal';
 import SpreadElement from '../SpreadElement';
-import { ExpressionNode, IncludeChildren } from './Node';
+import { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
 
 export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
+
+export interface InclusionOptions {
+	skipPatternDefaults?: boolean;
+}
 
 export class ExpressionEntity implements WritableEntity {
 	included = false;
@@ -64,17 +68,26 @@ export class ExpressionEntity implements WritableEntity {
 		return true;
 	}
 
-	include(_context: InclusionContext, _includeChildrenRecursively: IncludeChildren): void {
+	include(
+		_context: InclusionContext,
+		_includeChildrenRecursively: IncludeChildren,
+		_options?: InclusionOptions
+	): void {
 		this.included = true;
 	}
 
-	includeCallArguments(
+	includeArgumentsWhenCalledAtPath(
+		_path: ObjectPath,
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		for (const arg of args) {
 			arg.include(context, false);
 		}
+	}
+
+	shouldBeIncluded(_context: InclusionContext): boolean {
+		return true;
 	}
 }
 

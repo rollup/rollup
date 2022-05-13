@@ -1,19 +1,26 @@
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
-import { type ObjectPath, type PathTracker, UnknownInteger } from '../utils/PathTracker';
+import {
+	type ObjectPath,
+	type PathTracker,
+	UNKNOWN_PATH,
+	UnknownInteger
+} from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import type * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 
 export default class ArrayExpression extends NodeBase {
 	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
 	declare type: NodeType.tArrayExpression;
+	protected deoptimized = false;
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizePath(path: ObjectPath): void {
@@ -56,6 +63,11 @@ export default class ArrayExpression extends NodeBase {
 		);
 	}
 
+	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		return super.hasEffects(context);
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
@@ -72,6 +84,32 @@ export default class ArrayExpression extends NodeBase {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		super.include(context, includeChildrenRecursively);
+	}
+
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		context: InclusionContext,
+		args: readonly (ExpressionEntity | SpreadElement)[]
+	) {
+		this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
+	}
+
+	protected applyDeoptimizations(): void {
+		let hasSpread = false;
+		for (let index = 0; index < this.elements.length; index++) {
+			const element = this.elements[index];
+			if (hasSpread || element instanceof SpreadElement) {
+				if (element) {
+					hasSpread = true;
+					element.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
+		}
+	}
+
 	private getObjectEntity(): ObjectEntity {
 		if (this.objectEntity !== null) {
 			return this.objectEntity;
@@ -82,7 +120,7 @@ export default class ArrayExpression extends NodeBase {
 		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {
 			const element = this.elements[index];
-			if (element instanceof SpreadElement || hasSpread) {
+			if (hasSpread || element instanceof SpreadElement) {
 				if (element) {
 					hasSpread = true;
 					properties.unshift({ key: UnknownInteger, kind: 'init', property: element });

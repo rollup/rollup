@@ -14,7 +14,7 @@ import { getAndCreateKeys, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
 import type Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
-import { ExpressionEntity } from './Expression';
+import { ExpressionEntity, InclusionOptions } from './Expression';
 
 export interface GenericEsTreeNode extends acorn.Node {
 	[key: string]: any;
@@ -23,6 +23,7 @@ export interface GenericEsTreeNode extends acorn.Node {
 export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
+// TODO Lukas consider deoptimizing all properties by default unless explicitly overridden
 export interface Node extends Entity {
 	annotations?: acorn.Comment[];
 	context: AstContext;
@@ -60,7 +61,11 @@ export interface Node extends Entity {
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void;
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		options?: InclusionOptions
+	): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
@@ -179,6 +184,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		}
 	}
 
+	// TODO Lukas use parameter instead
 	includeAsSingleStatement(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren

@@ -55,7 +55,7 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		const context = createInclusionContext();
 		for (const parameter of this.params) {
 			if (parameter instanceof AssignmentPattern) {
-				parameter.includeDefault(context);
+				parameter.include(context, false);
 			}
 		}
 	}
@@ -166,27 +166,31 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		context.brokenFlow = brokenFlow;
 	}
 
-	// TODO Lukas by default, we need to include everything -> new function on Node to include ignoring parameter defaults
-	includeCallArguments(
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		for (let position = 0; position < this.params.length; position++) {
-			const parameter = this.params[position];
-			if (parameter instanceof AssignmentPattern) {
-				const argument = args[position];
-				if (argument) {
-					const argumentValue = argument.getLiteralValueAtPath(
-						EMPTY_PATH,
-						SHARED_RECURSION_TRACKER,
-						this
-					);
-					if (argumentValue !== undefined && argumentValue !== UnknownValue) continue;
+		if (path.length === 0) {
+			for (let position = 0; position < this.params.length; position++) {
+				const parameter = this.params[position];
+				if (parameter instanceof AssignmentPattern) {
+					const argument = args[position];
+					if (argument) {
+						const argumentValue = argument.getLiteralValueAtPath(
+							EMPTY_PATH,
+							SHARED_RECURSION_TRACKER,
+							this
+						);
+						if (argumentValue !== undefined && argumentValue !== UnknownValue) continue;
+					}
+					parameter.include(context, false);
 				}
-				parameter.includeDefault(context);
 			}
+			this.scope.includeCallArguments(context, args);
+		} else {
+			this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
 		}
-		this.scope.includeCallArguments(context, args);
 	}
 
 	initialise(): void {

@@ -19,7 +19,7 @@ import {
 	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION
 } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
@@ -175,11 +175,12 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	includeCallArguments(
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.getVariableRespectingTDZ().includeCallArguments(context, args);
+		this.getVariableRespectingTDZ().includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	isPossibleTDZ(): boolean {
