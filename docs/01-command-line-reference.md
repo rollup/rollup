@@ -443,7 +443,13 @@ Allows specifying Rollup plugins to transpile or otherwise control the parsing o
 rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
 ```
 
-It supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+Note for Typescript: make sure you have the Rollup config file in your `tsconfig.json`'s `include` paths. For example:
+
+```
+"include": ["src/**/*", "rollup.config.ts"],
+```
+
+This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
 
 #### `-v`/`--version`
 
