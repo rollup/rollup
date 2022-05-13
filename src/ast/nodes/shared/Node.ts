@@ -5,11 +5,7 @@ import type { AstContext } from '../../../Module';
 import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { Entity } from '../../Entity';
-import {
-	createHasEffectsContext,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../../ExecutionContext';
+import { createHasEffectsContext, type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
 import type Variable from '../../variables/Variable';
@@ -54,7 +50,7 @@ export interface Node extends Entity {
 	 * which only have an effect if their surrounding loop or switch statement is included.
 	 * The options pass on information like this about the current execution path.
 	 */
-	hasEffects(context: HasEffectsContext): boolean;
+	hasEffects(context: HasEffectsContext): boolean | undefined;
 
 	/**
 	 * Includes the node in the bundle. If the flag is not set, children are usually included
@@ -84,7 +80,7 @@ export interface Node extends Entity {
 	 * visits as the inclusion of additional variables may require the inclusion of more child
 	 * nodes in e.g. block statements.
 	 */
-	shouldBeIncluded(context: InclusionContext): boolean;
+	shouldBeIncluded(context: InclusionContext): boolean | undefined;
 }
 
 export type StatementNode = Node;
@@ -139,7 +135,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.bind();
+					child?.bind();
 				}
 			} else {
 				value.bind();
@@ -154,14 +150,14 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		this.scope = parentScope;
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (this.deoptimized === false) this.applyDeoptimizations();
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null && child.hasEffects(context)) return true;
+					if (child?.hasEffects(context)) return true;
 				}
 			} else if (value.hasEffects(context)) return true;
 		}
@@ -176,7 +172,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include(context, includeChildrenRecursively);
+					child?.include(context, includeChildrenRecursively);
 				}
 			} else {
 				value.include(context, includeChildrenRecursively);
@@ -241,7 +237,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.render(code, options);
+					child?.render(code, options);
 				}
 			} else {
 				value.render(code, options);
@@ -249,7 +245,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		}
 	}
 
-	shouldBeIncluded(context: InclusionContext): boolean {
+	shouldBeIncluded(context: InclusionContext): boolean | undefined {
 		return this.included || (!context.brokenFlow && this.hasEffects(createHasEffectsContext()));
 	}
 

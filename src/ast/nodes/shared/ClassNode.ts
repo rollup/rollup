@@ -87,7 +87,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		const initEffect = this.superClass?.hasEffects(context) || this.body.hasEffects(context);
 		this.id?.markDeclarationReached();
@@ -112,8 +112,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 				!callOptions.withNew ||
 				(this.classConstructor !== null
 					? this.classConstructor.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, context)
-					: this.superClass !== null &&
-					  this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, context))
+					: this.superClass?.hasEffectsWhenCalledAtPath(path, callOptions, context)) ||
+				false
 			);
 		} else {
 			return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);

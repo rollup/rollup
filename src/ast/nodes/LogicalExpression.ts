@@ -20,11 +20,7 @@ import {
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import {
-	type ExpressionEntity,
-	type LiteralValueOrUnknown,
-	UnknownValue
-} from './shared/Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
@@ -104,7 +100,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (this.left.hasEffects(context)) {
 			return true;
 		}

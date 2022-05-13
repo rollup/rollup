@@ -1,11 +1,7 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import {
-	BROKEN_FLOW_NONE,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
+import { BROKEN_FLOW_NONE, type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
@@ -36,7 +32,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.testValue = UnknownValue;
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (this.test.hasEffects(context)) {
 			return true;
 		}
@@ -54,7 +50,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 		return testValue
 			? this.consequent.hasEffects(context)
-			: this.alternate !== null && this.alternate.hasEffects(context);
+			: this.alternate?.hasEffects(context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -149,7 +145,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
 			this.consequent.includeAsSingleStatement(context, false);
 		}
-		if (this.alternate !== null && !testValue && this.alternate.shouldBeIncluded(context)) {
+		if (!testValue && this.alternate?.shouldBeIncluded(context)) {
 			this.alternate.includeAsSingleStatement(context, false);
 		}
 	}
@@ -160,9 +156,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	) {
 		this.test.include(context, includeChildrenRecursively);
 		this.consequent.include(context, includeChildrenRecursively);
-		if (this.alternate !== null) {
-			this.alternate.include(context, includeChildrenRecursively);
-		}
+		this.alternate?.include(context, includeChildrenRecursively);
 	}
 
 	private includeUnknownTest(context: InclusionContext) {
@@ -174,7 +168,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
-		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
+		if (this.alternate?.shouldBeIncluded(context)) {
 			this.alternate.includeAsSingleStatement(context, false);
 			context.brokenFlow =
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;

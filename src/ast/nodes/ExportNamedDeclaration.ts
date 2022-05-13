@@ -6,8 +6,8 @@ import type ExportSpecifier from './ExportSpecifier';
 import type FunctionDeclaration from './FunctionDeclaration';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import type VariableDeclaration from './VariableDeclaration';
 import { type Node, NodeBase } from './shared/Node';
+import type VariableDeclaration from './VariableDeclaration';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
@@ -18,11 +18,11 @@ export default class ExportNamedDeclaration extends NodeBase {
 
 	bind(): void {
 		// Do not bind specifiers
-		if (this.declaration !== null) this.declaration.bind();
+		this.declaration?.bind();
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
-		return this.declaration !== null && this.declaration.hasEffects(context);
+	hasEffects(context: HasEffectsContext): boolean | undefined {
+		return this.declaration?.hasEffects(context);
 	}
 
 	initialise(): void {

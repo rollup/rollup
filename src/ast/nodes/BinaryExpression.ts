@@ -71,7 +71,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		// support some implicit type coercion runtime errors
 		if (
 			this.operator === '+' &&

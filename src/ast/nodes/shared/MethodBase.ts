@@ -2,19 +2,10 @@ import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import { EVENT_ACCESSED, EVENT_ASSIGNED, EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
-import {
-	EMPTY_PATH,
-	type ObjectPath,
-	type PathTracker,
-	SHARED_RECURSION_TRACKER
-} from '../../utils/PathTracker';
+import { EMPTY_PATH, type ObjectPath, type PathTracker, SHARED_RECURSION_TRACKER } from '../../utils/PathTracker';
 import type PrivateIdentifier from '../PrivateIdentifier';
 import SpreadElement from '../SpreadElement';
-import {
-	type ExpressionEntity,
-	type LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION
-} from './Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
 import { type ExpressionNode, NodeBase } from './Node';
 import type { PatternNode } from './Pattern';
 
@@ -91,7 +82,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		return this.key.hasEffects(context);
 	}
 

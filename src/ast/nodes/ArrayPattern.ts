@@ -16,9 +16,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const element of this.elements) {
-			if (element !== null) {
-				element.addExportedVariables(variables, exportNamesByVariable);
-			}
+			element?.addExportedVariables(variables, exportNamesByVariable);
 		}
 	}
 
@@ -35,9 +33,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	deoptimizePath(path: ObjectPath): void {
 		if (path.length === 0) {
 			for (const element of this.elements) {
-				if (element !== null) {
-					element.deoptimizePath(path);
-				}
+				element?.deoptimizePath(path);
 			}
 		}
 	}
@@ -45,17 +41,14 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length > 0) return true;
 		for (const element of this.elements) {
-			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
-				return true;
+			if (element?.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;
 		}
 		return false;
 	}
 
 	markDeclarationReached(): void {
 		for (const element of this.elements) {
-			if (element !== null) {
-				element.markDeclarationReached();
-			}
+			element?.markDeclarationReached();
 		}
 	}
 }

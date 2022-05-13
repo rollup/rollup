@@ -5,7 +5,6 @@ import type { NodeEvent } from '../NodeEvents';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
-import SpreadElement from './SpreadElement';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -13,6 +12,7 @@ import {
 	UnknownValue
 } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 
 export default class PropertyDefinition extends NodeBase {
 	declare computed: boolean;
@@ -55,10 +55,9 @@ export default class PropertyDefinition extends NodeBase {
 			: UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		return (
-			this.key.hasEffects(context) ||
-			(this.static && this.value !== null && this.value.hasEffects(context))
+			this.key.hasEffects(context) || (this.static && this.value?.hasEffects(context))
 		);
 	}
 

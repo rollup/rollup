@@ -11,11 +11,9 @@ export default class YieldExpression extends NodeBase {
 	declare type: NodeType.tYieldExpression;
 	protected deoptimized = false;
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		return (
-			!context.ignore.returnYield || (this.argument !== null && this.argument.hasEffects(context))
-		);
+		return !context.ignore.returnYield || this.argument?.hasEffects(context);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

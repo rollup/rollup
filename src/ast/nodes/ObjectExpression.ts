@@ -16,18 +16,13 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import type Property from './Property';
-import SpreadElement from './SpreadElement';
-import {
-	type ExpressionEntity,
-	type LiteralValueOrUnknown,
-	UnknownValue
-} from './shared/Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
+import SpreadElement from './SpreadElement';
 
 // TODO Lukas ensure deoptimizations always happen twice in hasEffects and include
-// TODO Lukas Use ?. everywhere to call methods on optional properties
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	declare properties: readonly (Property | SpreadElement)[];
 	declare type: NodeType.tObjectExpression;

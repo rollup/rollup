@@ -86,7 +86,7 @@ export class ExpressionEntity implements WritableEntity {
 		}
 	}
 
-	shouldBeIncluded(_context: InclusionContext): boolean {
+	shouldBeIncluded(_context: InclusionContext): boolean | undefined {
 		return true;
 	}
 }

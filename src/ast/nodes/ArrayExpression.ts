@@ -3,19 +3,14 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { InclusionContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
-import {
-	type ObjectPath,
-	type PathTracker,
-	UNKNOWN_PATH,
-	UnknownInteger
-} from '../utils/PathTracker';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH, UnknownInteger } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import type * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
+import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
 	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
@@ -63,7 +58,7 @@ export default class ArrayExpression extends NodeBase {
 		);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		return super.hasEffects(context);
 	}

@@ -37,8 +37,8 @@ export default class FunctionNode extends FunctionBase {
 		}
 	}
 
-	hasEffects(): boolean {
-		return this.id !== null && this.id.hasEffects();
+	hasEffects(): boolean | undefined {
+		return this.id?.hasEffects();
 	}
 
 	hasEffectsWhenCalledAtPath(

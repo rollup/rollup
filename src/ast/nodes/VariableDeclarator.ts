@@ -1,11 +1,7 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
-import {
-	findFirstOccurrenceOutsideComment,
-	findNonWhiteSpace,
-	type RenderOptions
-} from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, findNonWhiteSpace, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
@@ -27,8 +23,8 @@ export default class VariableDeclarator extends NodeBase {
 		this.id.deoptimizePath(path);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
-		const initEffect = this.init !== null && this.init.hasEffects(context);
+	hasEffects(context: HasEffectsContext): boolean | undefined {
+		const initEffect = this.init?.hasEffects(context);
 		this.id.markDeclarationReached();
 		return initEffect || this.id.hasEffects(context);
 	}
