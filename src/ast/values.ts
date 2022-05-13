@@ -1,11 +1,16 @@
 import { type CallOptions, NO_ARGS } from './CallOptions';
 import type { HasEffectsContext } from './ExecutionContext';
 import type { LiteralValue } from './nodes/Literal';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
-import { EMPTY_PATH, type ObjectPath, type ObjectPathKey } from './utils/PathTracker';
+import { ExpressionEntity, UNKNOWN_EXPRESSION, UnknownValue } from './nodes/shared/Expression';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	type ObjectPathKey,
+	SHARED_RECURSION_TRACKER
+} from './utils/PathTracker';
 
 export interface MemberDescription {
-	callsArgs: number[] | null;
+	hasEffectsWhenCalled: ((callOptions: CallOptions, context: HasEffectsContext) => boolean) | null;
 	returns: ExpressionEntity;
 }
 
@@ -33,7 +38,7 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity =
 
 const returnsUnknown: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_EXPRESSION
 	}
 };
@@ -65,7 +70,7 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 
 const returnsBoolean: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_LITERAL_BOOLEAN
 	}
 };
@@ -97,7 +102,7 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 
 const returnsNumber: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_LITERAL_NUMBER
 	}
 };
@@ -129,7 +134,31 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 
 const returnsString: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
+		returns: UNKNOWN_LITERAL_STRING
+	}
+};
+
+const stringReplace: RawMemberDescription = {
+	value: {
+		hasEffectsWhenCalled(callOptions, context) {
+			const arg1 = callOptions.args[1];
+			return (
+				callOptions.args.length < 2 ||
+				(arg1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+					deoptimizeCache() {}
+				}) === UnknownValue &&
+					arg1.hasEffectsWhenCalledAtPath(
+						EMPTY_PATH,
+						{
+							args: NO_ARGS,
+							thisParam: null,
+							withNew: false
+						},
+						context
+					))
+			);
+		},
 		returns: UNKNOWN_LITERAL_STRING
 	}
 };
@@ -189,18 +218,8 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		padEnd: returnsString,
 		padStart: returnsString,
 		repeat: returnsString,
-		replace: {
-			value: {
-				callsArgs: [1],
-				returns: UNKNOWN_LITERAL_STRING
-			}
-		},
-		replaceAll: {
-			value: {
-				callsArgs: [1],
-				returns: UNKNOWN_LITERAL_STRING
-			}
-		},
+		replace: stringReplace,
+		replaceAll: stringReplace,
 		search: returnsNumber,
 		slice: returnsString,
 		small: returnsString,
@@ -249,23 +268,7 @@ export function hasMemberEffectWhenCalled(
 	if (typeof memberName !== 'string' || !members[memberName]) {
 		return true;
 	}
-	if (!members[memberName].callsArgs) return false;
-	for (const argIndex of members[memberName].callsArgs!) {
-		if (
-			callOptions.args[argIndex] &&
-			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				{
-					args: NO_ARGS,
-					thisParam: null,
-					withNew: false
-				},
-				context
-			)
-		)
-			return true;
-	}
-	return false;
+	return members[memberName].hasEffectsWhenCalled?.(callOptions, context) || false;
 }
 
 export function getMemberReturnExpressionWhenCalled(
