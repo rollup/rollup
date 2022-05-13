@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 2.73.0
+
+_2022-05-13_
+
+### Features
+
+- Do not treat Object.defineProperty/ies as side effect when called on an unused object (#4493)
+- Do not assume that assigning a property can create a getter with side effects (#4493)
+- Do not treat string.prototype.replace(All) as side effect when used with two literals (#4493)
+
+### Bug Fixes
+
+- Detect side effects when manually declaring getters on functions (#4493)
+
+### Pull Requests
+
+- [#4493](https://github.com/rollup/rollup/pull/4493): Handle getters on functions and improve property deoptimization (@lukastaegert)
+- [#4494](https://github.com/rollup/rollup/pull/4494): Do not treat string.replace as side effect when used with a literal (@lukastaegert)
+- [#4495](https://github.com/rollup/rollup/pull/4495): Update docs for --configPlugin using typescript (@Jimmydalecleveland)
+
 ## 2.72.1
 
 _2022-05-07_
