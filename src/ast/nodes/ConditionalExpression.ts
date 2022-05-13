@@ -12,12 +12,18 @@ import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
-import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
+import SpreadElement from './SpreadElement';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
-import SpreadElement from './SpreadElement';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	declare alternate: ExpressionNode;

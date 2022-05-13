@@ -1,9 +1,10 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class YieldExpression extends NodeBase {
 	declare argument: ExpressionNode | null;
@@ -14,6 +15,11 @@ export default class YieldExpression extends NodeBase {
 	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		return !context.ignore.returnYield || this.argument?.hasEffects(context);
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		super.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

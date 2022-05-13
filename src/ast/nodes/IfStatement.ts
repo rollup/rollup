@@ -1,7 +1,11 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { BROKEN_FLOW_NONE, type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
+import {
+	BROKEN_FLOW_NONE,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
@@ -48,9 +52,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 			return false;
 		}
-		return testValue
-			? this.consequent.hasEffects(context)
-			: this.alternate?.hasEffects(context);
+		return testValue ? this.consequent.hasEffects(context) : this.alternate?.hasEffects(context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

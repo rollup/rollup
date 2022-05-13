@@ -5,7 +5,11 @@ import type { AstContext } from '../../../Module';
 import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { Entity } from '../../Entity';
-import { createHasEffectsContext, type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
+import {
+	createHasEffectsContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
 import type Variable from '../../variables/Variable';

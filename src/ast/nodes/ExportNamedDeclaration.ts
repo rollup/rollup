@@ -6,8 +6,8 @@ import type ExportSpecifier from './ExportSpecifier';
 import type FunctionDeclaration from './FunctionDeclaration';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import { type Node, NodeBase } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
+import { type Node, NodeBase } from './shared/Node';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
