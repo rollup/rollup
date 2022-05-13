@@ -12,6 +12,7 @@ import {
 } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
+import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
 import { ExpressionEntity, InclusionOptions } from './Expression';
@@ -23,7 +24,6 @@ export interface GenericEsTreeNode extends acorn.Node {
 export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
-// TODO Lukas consider deoptimizing all properties by default unless explicitly overridden
 export interface Node extends Entity {
 	annotations?: acorn.Comment[];
 	context: AstContext;
@@ -240,14 +240,33 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		return this.included || (!context.brokenFlow && this.hasEffects(createHasEffectsContext()));
 	}
 
-	protected applyDeoptimizations(): void {}
+	/**
+	 * Just deoptimize everything by default so that when e.g. we do not track
+	 * something properly, it is deoptimized.
+	 * @protected
+	 */
+	protected applyDeoptimizations(): void {
+		for (const key of this.keys) {
+			const value = (this as GenericEsTreeNode)[key];
+			if (value === null) continue;
+			if (Array.isArray(value)) {
+				for (const child of value) {
+					child?.deoptimizePath(UNKNOWN_PATH);
+				}
+			} else {
+				value.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
+	}
 }
 
 export { NodeBase as StatementBase };
 
-export function locateNode(node: Node): Location {
-	const location = locate(node.context.code, node.start, { offsetLine: 1 });
-	(location as any).file = node.context.fileName;
+export function locateNode(node: Node): Location & { file: string } {
+	const location = locate(node.context.code, node.start, { offsetLine: 1 }) as Location & {
+		file: string;
+	};
+	location.file = node.context.fileName;
 	location.toString = () => JSON.stringify(location);
 
 	return location;

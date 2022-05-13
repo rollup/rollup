@@ -26,7 +26,6 @@ import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 
-// TODO Lukas ensure deoptimizations always happen twice in hasEffects and include
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	declare properties: readonly (Property | SpreadElement)[];
 	declare type: NodeType.tObjectExpression;
