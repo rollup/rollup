@@ -68,7 +68,7 @@ export default class ArrayExpression extends NodeBase {
 		return super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 

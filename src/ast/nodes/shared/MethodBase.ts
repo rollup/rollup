@@ -95,7 +95,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		return this.key.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		if (this.kind === 'get' && path.length === 0) {
 			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
 		}

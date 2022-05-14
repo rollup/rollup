@@ -118,7 +118,7 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		return this.scope.getReturnExpression();
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 

@@ -56,7 +56,10 @@ export class ExpressionEntity implements WritableEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(
+		_path: ObjectPath,
+		_context: HasEffectsContext
+	): boolean | undefined {
 		return true;
 	}
 

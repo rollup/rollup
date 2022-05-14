@@ -43,13 +43,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 		variables: Variable[],
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
-		if (this.variable !== null && exportNamesByVariable.has(this.variable)) {
-			variables.push(this.variable);
+		if (exportNamesByVariable.has(this.variable!)) {
+			variables.push(this.variable!);
 		}
 	}
 
 	bind(): void {
-		if (this.variable === null && isReference(this, this.parent as NodeWithFieldDefinition)) {
+		if (!this.variable && isReference(this, this.parent as NodeWithFieldDefinition)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
@@ -108,7 +108,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return this.getVariableRespectingTDZ().getLiteralValueAtPath(path, recursionTracker, origin);
+		return this.getVariableRespectingTDZ()!.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -117,7 +117,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		return this.getVariableRespectingTDZ().getReturnExpressionWhenCalledAtPath(
+		return this.getVariableRespectingTDZ()!.getReturnExpressionWhenCalledAtPath(
 			path,
 			callOptions,
 			recursionTracker,
@@ -137,21 +137,14 @@ export default class Identifier extends NodeBase implements PatternNode {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			this.variable !== null &&
-			this.getVariableRespectingTDZ().hasEffectsWhenAccessedAtPath(path, context)
-		);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
+		return this.getVariableRespectingTDZ()?.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
-			!this.variable ||
-			(path.length > 0
-				? this.getVariableRespectingTDZ()
-				: this.variable
-			).hasEffectsWhenAssignedAtPath(path, context)
-		);
+			path.length > 0 ? this.getVariableRespectingTDZ() : this.variable
+		)!.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -159,10 +152,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		return (
-			!this.variable ||
-			this.getVariableRespectingTDZ().hasEffectsWhenCalledAtPath(path, callOptions, context)
-		);
+		return this.getVariableRespectingTDZ()!.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	include(): void {
@@ -180,7 +170,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.getVariableRespectingTDZ().includeArgumentsWhenCalledAtPath(path, context, args);
+		this.variable!.includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	isPossibleTDZ(): boolean {
@@ -267,11 +257,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 		);
 	}
 
-	private getVariableRespectingTDZ(): ExpressionEntity {
+	private getVariableRespectingTDZ(): ExpressionEntity | null {
 		if (this.isPossibleTDZ()) {
 			return UNKNOWN_EXPRESSION;
 		}
-		return this.variable!;
+		return this.variable;
 	}
 }
 

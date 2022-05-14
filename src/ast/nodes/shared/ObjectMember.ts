@@ -50,7 +50,7 @@ export class ObjectMember extends ExpressionEntity {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		if (path.length === 0) return false;
 		return this.object.hasEffectsWhenAccessedAtPath([this.key, ...path], context);
 	}

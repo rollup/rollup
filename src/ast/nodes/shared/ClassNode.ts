@@ -49,6 +49,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		}
 	}
 
+	// TODO Lukas also track arguments -> track and deoptimize call parameters?
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,
@@ -92,7 +93,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		return initEffect || super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 

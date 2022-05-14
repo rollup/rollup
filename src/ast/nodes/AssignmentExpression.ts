@@ -54,7 +54,7 @@ export default class AssignmentExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
 	}
 

@@ -58,7 +58,7 @@ export default class SequenceExpression extends NodeBase {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return (
 			path.length > 0 &&
 			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)

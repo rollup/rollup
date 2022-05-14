@@ -272,7 +272,7 @@ export class ObjectEntity extends ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
 			if (typeof key !== 'string') {

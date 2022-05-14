@@ -116,7 +116,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return (
 			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
 			this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context)
