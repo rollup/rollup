@@ -171,6 +171,7 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (path.length === 0) {
+			// TODO Lukas move to paramter scope?
 			for (let position = 0; position < this.params.length; position++) {
 				const parameter = this.params[position];
 				if (parameter instanceof AssignmentPattern) {

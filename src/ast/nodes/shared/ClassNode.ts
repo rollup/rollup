@@ -49,7 +49,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		}
 	}
 
-	// TODO Lukas also track arguments -> track and deoptimize call parameters?
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,

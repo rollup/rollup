@@ -14,7 +14,7 @@ import type * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 
 export default class ArrayExpression extends NodeBase {
@@ -63,11 +63,6 @@ export default class ArrayExpression extends NodeBase {
 		);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		return super.hasEffects(context);
-	}
-
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
@@ -82,11 +77,6 @@ export default class ArrayExpression extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		super.include(context, includeChildrenRecursively);
 	}
 
 	includeArgumentsWhenCalledAtPath(

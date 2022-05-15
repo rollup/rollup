@@ -122,7 +122,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.getAccessedValue()?.includeArgumentsWhenCalledAtPath(path, context, args);
+		this.getAccessedValue().includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	protected getAccessedValue(): ExpressionEntity {
