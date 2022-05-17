@@ -10,11 +10,12 @@ import {
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
+import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import type TemplateLiteral from './TemplateLiteral';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren } from './shared/Node';
+import { type ExpressionNode, IncludeChildren } from './shared/Node';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;
@@ -55,20 +56,9 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
-			if (
-				includeChildrenRecursively === INCLUDE_PARAMETERS &&
-				this.tag instanceof Identifier &&
-				this.tag.variable
-			) {
-				this.tag.variable.markCalledFromTryStatement();
-			}
-		} else {
-			this.included = true;
-			this.tag.include(context, false);
-			this.quasi.include(context, false);
-		}
+		this.included = true;
+		this.tag.include(context, includeChildrenRecursively);
+		this.quasi.include(context, includeChildrenRecursively);
 		this.tag.includeArgumentsWhenCalledAtPath(EMPTY_PATH, context, this.callOptions.args);
 		const returnExpression = this.getReturnExpression();
 		if (!returnExpression.included) {
@@ -79,7 +69,8 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	initialise(): void {
 		this.callOptions = {
 			args: [UNKNOWN_EXPRESSION, ...this.quasi.expressions],
-			thisParam: null,
+			thisParam:
+				this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
 			withNew: false
 		};
 	}
