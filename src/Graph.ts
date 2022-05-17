@@ -139,14 +139,11 @@ export default class Graph {
 		// Make sure that the same module / external module can only be added to the
 		// graph once since it may be requested multiple times over the life of a
 		// service.
-		if (module instanceof Module) {
-			if (this.modules.indexOf(module) === -1) {
-				this.modules.push(module);
-			}
-		} else {
-			if (this.externalModules.indexOf(module) === -1) {
-				this.externalModules.push(module);
-			}
+		const modules: Array<Module | ExternalModule> =
+			module instanceof Module ? this.modules : this.externalModules;
+
+		if (!modules.includes(module)) {
+			modules.push(module);
 		}
 	}
 
