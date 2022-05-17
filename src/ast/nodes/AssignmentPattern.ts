@@ -36,7 +36,6 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
-	// TODO Lukas we need special handling for non-literal values
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.left.include(context, includeChildrenRecursively);

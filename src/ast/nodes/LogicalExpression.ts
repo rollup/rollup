@@ -211,7 +211,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (!this.isBranchResolutionAnalysed) {
 			this.isBranchResolutionAnalysed = true;
 			const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			if (leftValue === UnknownValue) {
+			if (typeof leftValue === 'symbol') {
 				return null;
 			} else {
 				this.usedBranch =

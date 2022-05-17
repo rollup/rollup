@@ -22,12 +22,7 @@ import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
-import {
-	type ExpressionEntity,
-	LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
-} from './Expression';
+import { type ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -182,7 +177,7 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 						this
 					);
 					if (
-						(argumentValue === undefined || argumentValue === UnknownValue) &&
+						(argumentValue === undefined || typeof argumentValue === 'symbol') &&
 						(this.parameterVariables[position].some(variable => variable.included) ||
 							parameter.right.shouldBeIncluded(context))
 					) {

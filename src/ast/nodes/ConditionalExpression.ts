@@ -226,7 +226,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 		this.isBranchResolutionAnalysed = true;
 		const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-		return testValue === UnknownValue
+		return typeof testValue === 'symbol'
 			? null
 			: (this.usedBranch = testValue ? this.consequent : this.alternate);
 	}

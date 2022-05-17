@@ -41,7 +41,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			return true;
 		}
 		const testValue = this.getTestValue();
-		if (testValue === UnknownValue) {
+		if (typeof testValue === 'symbol') {
 			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
 			const consequentBrokenFlow = context.brokenFlow;
@@ -61,7 +61,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			this.includeRecursively(includeChildrenRecursively, context);
 		} else {
 			const testValue = this.getTestValue();
-			if (testValue === UnknownValue) {
+			if (typeof testValue === 'symbol') {
 				this.includeUnknownTest(context);
 			} else {
 				this.includeKnownTest(context, testValue);
@@ -101,14 +101,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		} else {
 			code.remove(this.start, this.consequent.start);
 		}
-		if (this.consequent.included && (noTreeshake || testValue === UnknownValue || testValue)) {
+		if (this.consequent.included && (noTreeshake || typeof testValue === 'symbol' || testValue)) {
 			this.consequent.render(code, options);
 		} else {
 			code.overwrite(this.consequent.start, this.consequent.end, includesIfElse ? ';' : '');
 			hoistedDeclarations.push(...this.consequentScope.hoistedDeclarations);
 		}
 		if (this.alternate) {
-			if (this.alternate.included && (noTreeshake || testValue === UnknownValue || !testValue)) {
+			if (this.alternate.included && (noTreeshake || typeof testValue === 'symbol' || !testValue)) {
 				if (includesIfElse) {
 					if (code.original.charCodeAt(this.alternate.start - 1) === 101) {
 						code.prependLeft(this.alternate.start, ' ');

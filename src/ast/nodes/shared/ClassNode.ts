@@ -17,7 +17,7 @@ import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import SpreadElement from '../SpreadElement';
-import { type ExpressionEntity, type LiteralValueOrUnknown, UnknownValue } from './Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
@@ -192,7 +192,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 					SHARED_RECURSION_TRACKER,
 					this
 				);
-				if (keyValue === UnknownValue) {
+				if (typeof keyValue === 'symbol') {
 					properties.push({ key: UnknownKey, kind, property: definition });
 					continue;
 				} else {
