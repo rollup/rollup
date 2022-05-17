@@ -5,7 +5,7 @@ const test2 = [
 ];
 
 const test = [
-	(a = 'retained', b = 'retained', c, d = 'retained') => console.log(a, b, c),
+	(a = 'retained', b = 'retained', c, d) => console.log(a, b, c),
 	...test2,
 	(a = 'retained') => console.log(a)
 ];

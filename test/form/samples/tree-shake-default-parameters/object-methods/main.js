@@ -1,7 +1,7 @@
 var isUndefined;
 
 const test = {
-	method(a = 'retained', b = 'retained', c = 'removed', d = 'retained') {
+	method(a = 'retained', b = 'retained', c = 'removed', d = 'removed') {
 		console.log(a, b, c);
 	}
 };

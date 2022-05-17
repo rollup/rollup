@@ -1,7 +1,7 @@
 var isUndefined;
 
 class Test {
-	constructor(a = 'retained', b = 'retained', c = 'removed', d = 'retained') {
+	constructor(a = 'retained', b = 'retained', c = 'removed', d = 'removed') {
 		console.log(a, b, c);
 	}
 
@@ -11,11 +11,11 @@ class Test {
 
 	prop = (a = 'retained') => console.log(a);
 
-	static staticMethod(a = 'retained', b = 'retained', c = 'removed', d = 'retained') {
+	static staticMethod(a = 'retained', b = 'retained', c = 'removed', d = 'removed') {
 		console.log(a, b, c);
 	}
 
-	static staticProp = (a = 'retained', b = 'retained', c = 'removed', d = 'retained') =>
+	static staticProp = (a = 'retained', b = 'retained', c = 'removed', d = 'removed') =>
 		console.log(a, b, c);
 }
 

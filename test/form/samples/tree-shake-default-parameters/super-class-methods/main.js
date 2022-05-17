@@ -1,15 +1,15 @@
 var isUndefined;
 
 class TestSuper {
-	constructor(a = 'retained', b = 'retained', c = 'removed', d = 'retained') {
+	constructor(a = 'retained', b = 'retained', c = 'removed', d = 'removed') {
 		console.log(a, b, c);
 	}
 
-	static staticMethod(a = 'retained', b = 'retained', c = 'removed', d = 'retained') {
+	static staticMethod(a = 'retained', b = 'retained', c = 'removed', d = 'removed') {
 		console.log(a, b, c);
 	}
 
-	static staticProp = (a = 'retained', b = 'retained', c = 'removed', d = 'retained') =>
+	static staticProp = (a = 'retained', b = 'retained', c = 'removed', d = 'removed') =>
 		console.log(a, b, c);
 }
 

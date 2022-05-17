@@ -3,7 +3,6 @@ import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
 	BROKEN_FLOW_NONE,
-	createInclusionContext,
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
@@ -17,6 +16,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
+import LocalVariable from '../../variables/LocalVariable';
 import AssignmentPattern from '../AssignmentPattern';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
@@ -43,20 +43,14 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
+	// By default, parameters are included via includeArgumentsWhenCalledAtPath
+	protected alwaysIncludeParameters = false;
 	protected objectEntity: ObjectEntity | null = null;
 	private deoptimizedReturn = false;
+	private declare parameterVariables: LocalVariable[][];
 
 	deoptimizeCache() {
-		this.deoptimizeParameterDefaults();
-	}
-
-	deoptimizeParameterDefaults() {
-		const context = createInclusionContext();
-		for (const parameter of this.params) {
-			if (parameter instanceof AssignmentPattern) {
-				parameter.include(context, false);
-			}
-		}
+		this.alwaysIncludeParameters = true;
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -64,8 +58,8 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		if (path.length === 1 && path[0] === UnknownKey) {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the return expression needs to be reassigned
+			this.alwaysIncludeParameters = true;
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-			this.deoptimizeParameterDefaults();
 		}
 	}
 
@@ -163,6 +157,11 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		context.brokenFlow = BROKEN_FLOW_NONE;
 		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
+		if (includeChildrenRecursively || this.alwaysIncludeParameters) {
+			for (const param of this.params) {
+				param.include(context, includeChildrenRecursively);
+			}
+		}
 	}
 
 	includeArgumentsWhenCalledAtPath(
@@ -171,19 +170,25 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (path.length === 0) {
-			// TODO Lukas move to paramter scope?
 			for (let position = 0; position < this.params.length; position++) {
 				const parameter = this.params[position];
 				if (parameter instanceof AssignmentPattern) {
-					const argument = args[position];
-					if (argument) {
-						const argumentValue = argument.getLiteralValueAtPath(
-							EMPTY_PATH,
-							SHARED_RECURSION_TRACKER,
-							this
-						);
-						if (argumentValue !== undefined && argumentValue !== UnknownValue) continue;
+					if (parameter.left.shouldBeIncluded(context)) {
+						parameter.left.include(context, false);
 					}
+					const argumentValue = args[position]?.getLiteralValueAtPath(
+						EMPTY_PATH,
+						SHARED_RECURSION_TRACKER,
+						this
+					);
+					if (
+						(argumentValue === undefined || argumentValue === UnknownValue) &&
+						(this.parameterVariables[position].some(variable => variable.included) ||
+							parameter.right.shouldBeIncluded(context))
+					) {
+						parameter.right.include(context, false);
+					}
+				} else if (parameter.shouldBeIncluded(context)) {
 					parameter.include(context, false);
 				}
 			}
@@ -194,8 +199,11 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 	}
 
 	initialise(): void {
+		this.parameterVariables = this.params.map(param =>
+			param.declare('parameter', UNKNOWN_EXPRESSION)
+		);
 		this.scope.addParameterVariables(
-			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
+			this.parameterVariables,
 			this.params[this.params.length - 1] instanceof RestElement
 		);
 		if (this.body instanceof BlockStatement) {

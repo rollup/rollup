@@ -4,7 +4,7 @@ import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
 import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
-import Identifier, { type IdentifierWithVariable } from '../Identifier';
+import { type IdentifierWithVariable } from '../Identifier';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
@@ -73,16 +73,12 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		super.include(context, includeChildrenRecursively);
-		this.id?.include();
-		const hasArguments = this.scope.argumentsVariable.included;
-		for (const param of this.params) {
-			if (!(param instanceof Identifier) || hasArguments) {
-				param.include(context, includeChildrenRecursively, {
-					skipPatternDefaults: !includeChildrenRecursively
-				});
-			}
+		// This ensures that super.include will also include all parameters
+		if (this.scope.argumentsVariable.included) {
+			this.alwaysIncludeParameters = true;
 		}
+		this.id?.include();
+		super.include(context, includeChildrenRecursively);
 	}
 
 	initialise(): void {

@@ -88,6 +88,7 @@ export default class ArrayExpression extends NodeBase {
 	}
 
 	protected applyDeoptimizations(): void {
+		this.deoptimized = true;
 		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {
 			const element = this.elements[index];
@@ -98,6 +99,7 @@ export default class ArrayExpression extends NodeBase {
 				}
 			}
 		}
+		this.context.requestTreeshakingPass();
 	}
 
 	private getObjectEntity(): ObjectEntity {

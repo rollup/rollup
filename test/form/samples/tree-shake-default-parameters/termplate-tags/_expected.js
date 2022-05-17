@@ -1,4 +1,4 @@
-const templateTag = (_, a = 'retained', b = 'retained', c, d = 'retained') => {
+const templateTag = (_, a = 'retained', b = 'retained', c, d) => {
 	console.log(a, b, c);
 };
 

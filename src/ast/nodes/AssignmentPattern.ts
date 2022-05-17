@@ -7,7 +7,7 @@ import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker'
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
-import type { ExpressionEntity, InclusionOptions } from './shared/Expression';
+import type { ExpressionEntity } from './shared/Expression';
 import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 
@@ -36,16 +36,11 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
-	include(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren,
-		{ skipPatternDefaults }: InclusionOptions = BLANK
-	): void {
+	// TODO Lukas we need special handling for non-literal values
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.left.include(context, includeChildrenRecursively);
-		if (includeChildrenRecursively || !skipPatternDefaults) {
-			this.right.include(context, includeChildrenRecursively);
-		}
+		this.right.include(context, includeChildrenRecursively);
 	}
 
 	markDeclarationReached(): void {

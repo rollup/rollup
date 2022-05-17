@@ -170,6 +170,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 				definition.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
+		this.context.requestTreeshakingPass();
 	}
 
 	private getObjectEntity(): ObjectEntity {

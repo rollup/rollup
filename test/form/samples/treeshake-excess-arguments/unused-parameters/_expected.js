@@ -1,11 +1,11 @@
 function test(a, b, c) {}
-test(1, 2);
+test();
 
 function noEffect() {}
 test(1, 2, noEffect(), globalThis.unknown());
 
 const testArr = (a, b, c) => {};
-testArr(1, 2);
+testArr();
 
 function noEffectArr() {}
 testArr(1, 2, noEffectArr(), globalThis.unknown());
