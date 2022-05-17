@@ -9,8 +9,9 @@ import SpreadElement from '../SpreadElement';
 import { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
+export const UnknownTruthyValue = Symbol('Unknown Truthy Value');
 
-export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
+export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue | typeof UnknownTruthyValue;
 
 export interface InclusionOptions {
 	/**

@@ -17,6 +17,7 @@ import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
+	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
 
@@ -226,7 +227,7 @@ export class ObjectEntity extends ExpressionEntity {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
-			return UnknownValue;
+			return UnknownTruthyValue;
 		}
 		const key = path[0];
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
