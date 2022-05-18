@@ -206,8 +206,8 @@ export default class Module {
 	readonly importMetas: MetaProperty[] = [];
 	importedFromNotTreeshaken = false;
 	readonly importers: string[] = [];
-	readonly imports = new Set<Variable>();
 	readonly includedDynamicImporters: Module[] = [];
+	readonly includedImports = new Set<Variable>();
 	readonly info: ModuleInfo;
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
@@ -383,7 +383,7 @@ export default class Module {
 		this.relevantDependencies = new Set<Module | ExternalModule>();
 		const necessaryDependencies = new Set<Module | ExternalModule>();
 		const alwaysCheckedDependencies = new Set<Module>();
-		const dependencyVariables = new Set(this.imports);
+		const dependencyVariables = new Set(this.includedImports);
 
 		if (
 			this.info.isEntry ||
@@ -1134,12 +1134,12 @@ export default class Module {
 			if (module instanceof ExternalModule) {
 				const [externalVariable] = module.getVariableForExportName('*');
 				externalVariable.include();
-				this.imports.add(externalVariable);
+				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
 				syntheticNamespace.include();
-				this.imports.add(syntheticNamespace);
+				this.includedImports.add(syntheticNamespace);
 				syntheticNamespaces.add(syntheticNamespace);
 			}
 		}
@@ -1183,7 +1183,7 @@ export default class Module {
 		this.includeVariable(variable);
 		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {
-			this.imports.add(variable);
+			this.includedImports.add(variable);
 		}
 	}
 
