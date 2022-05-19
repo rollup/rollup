@@ -682,7 +682,7 @@ export default class Module {
 			} else if (module instanceof Module) {
 				this.exportAllModules.push(module);
 			} else {
-				this.exportAllModules.push(
+				externalExportAllModules.push(
 					new ExternalModule(this.options, this.resolvedIds[source].id, true, {}, true)
 				);
 			}
