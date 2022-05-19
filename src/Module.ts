@@ -676,12 +676,16 @@ export default class Module {
 		this.addModulesToImportDescriptions(this.reexportDescriptions);
 		const externalExportAllModules: ExternalModule[] = [];
 		for (const source of this.exportAllSources) {
-			const module = this.graph.modulesById.get(this.resolvedIds[source].id)!;
+			const module = this.graph.modulesById.get(this.resolvedIds[source].id);
 			if (module instanceof ExternalModule) {
 				externalExportAllModules.push(module);
-				continue;
+			} else if (module instanceof Module) {
+				this.exportAllModules.push(module);
+			} else {
+				this.exportAllModules.push(
+					new ExternalModule(this.options, this.resolvedIds[source].id, true, {}, true)
+				);
 			}
-			this.exportAllModules.push(module);
 		}
 		this.exportAllModules.push(...externalExportAllModules);
 	}
@@ -1019,7 +1023,8 @@ export default class Module {
 	): void {
 		for (const specifier of importDescription.values()) {
 			const { id } = this.resolvedIds[specifier.source];
-			specifier.module = this.graph.modulesById.get(id)!;
+			specifier.module =
+				this.graph.modulesById.get(id) ?? new ExternalModule(this.options, id, true, {}, true);
 		}
 	}
 

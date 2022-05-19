@@ -129,9 +129,11 @@ export async function startService(
 				graph.ensureModule(module);
 			}
 
-			// for (const module of modulesById.values()) {
-			// 	module.bindReferences();
-			// }
+			for (const module of modulesById.values()) {
+				module.linkImports();
+				module.bindReferences();
+				module.includeAllInBundle();
+			}
 
 			const {
 				options: outputOptions,
