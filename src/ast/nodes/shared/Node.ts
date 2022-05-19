@@ -12,10 +12,9 @@ import {
 } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
-import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
-import { ExpressionEntity, InclusionOptions } from './Expression';
+import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode extends acorn.Node {
 	[key: string]: any;
@@ -54,17 +53,22 @@ export interface Node extends Entity {
 	 * which only have an effect if their surrounding loop or switch statement is included.
 	 * The options pass on information like this about the current execution path.
 	 */
-	hasEffects(context: HasEffectsContext): boolean | undefined;
+	hasEffects(context: HasEffectsContext): boolean;
 
 	/**
 	 * Includes the node in the bundle. If the flag is not set, children are usually included
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void;
+
+	/**
+	 * Alternative version of include to override the default behaviour of
+	 * declarations to not include the id by default if the declarator has an effect.
+	 */
+	includeAsSingleStatement(
 		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren,
-		options?: InclusionOptions
+		includeChildrenRecursively: IncludeChildren
 	): void;
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
@@ -75,7 +79,7 @@ export interface Node extends Entity {
 	 * visits as the inclusion of additional variables may require the inclusion of more child
 	 * nodes in e.g. block statements.
 	 */
-	shouldBeIncluded(context: InclusionContext): boolean | undefined;
+	shouldBeIncluded(context: InclusionContext): boolean;
 }
 
 export type StatementNode = Node;
@@ -130,7 +134,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.bind();
+					if (child !== null) child.bind();
 				}
 			} else {
 				value.bind();
@@ -145,25 +149,21 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		this.scope = parentScope;
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.deoptimized === false) this.applyDeoptimizations();
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child?.hasEffects(context)) return true;
+					if (child !== null && child.hasEffects(context)) return true;
 				}
 			} else if (value.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	include(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren,
-		_options?: InclusionOptions
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (this.deoptimized === false) this.applyDeoptimizations();
 		this.included = true;
 		for (const key of this.keys) {
@@ -171,12 +171,19 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.include(context, includeChildrenRecursively);
+					if (child !== null) child.include(context, includeChildrenRecursively);
 				}
 			} else {
 				value.include(context, includeChildrenRecursively);
 			}
 		}
+	}
+
+	includeAsSingleStatement(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
+		this.include(context, includeChildrenRecursively);
 	}
 
 	/**
@@ -228,7 +235,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.render(code, options);
+					if (child !== null) child.render(code, options);
 				}
 			} else {
 				value.render(code, options);
@@ -236,39 +243,18 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		}
 	}
 
-	shouldBeIncluded(context: InclusionContext): boolean | undefined {
+	shouldBeIncluded(context: InclusionContext): boolean {
 		return this.included || (!context.brokenFlow && this.hasEffects(createHasEffectsContext()));
 	}
 
-	/**
-	 * Just deoptimize everything by default so that when e.g. we do not track
-	 * something properly, it is deoptimized.
-	 * @protected
-	 */
-	protected applyDeoptimizations(): void {
-		this.deoptimized = true;
-		for (const key of this.keys) {
-			const value = (this as GenericEsTreeNode)[key];
-			if (value === null) continue;
-			if (Array.isArray(value)) {
-				for (const child of value) {
-					child?.deoptimizePath(UNKNOWN_PATH);
-				}
-			} else {
-				value.deoptimizePath(UNKNOWN_PATH);
-			}
-		}
-		this.context.requestTreeshakingPass();
-	}
+	protected applyDeoptimizations(): void {}
 }
 
 export { NodeBase as StatementBase };
 
-export function locateNode(node: Node): Location & { file: string } {
-	const location = locate(node.context.code, node.start, { offsetLine: 1 }) as Location & {
-		file: string;
-	};
-	location.file = node.context.fileName;
+export function locateNode(node: Node): Location {
+	const location = locate(node.context.code, node.start, { offsetLine: 1 });
+	(location as any).file = node.context.fileName;
 	location.toString = () => JSON.stringify(location);
 
 	return location;

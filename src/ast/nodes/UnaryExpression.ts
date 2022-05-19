@@ -33,7 +33,7 @@ export default class UnaryExpression extends NodeBase {
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;
 		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (typeof argumentValue === 'symbol') return UnknownValue;
+		if (argumentValue === UnknownValue) return UnknownValue;
 
 		return unaryOperators[this.operator](argumentValue);
 	}

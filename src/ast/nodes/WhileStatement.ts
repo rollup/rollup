@@ -31,7 +31,7 @@ export default class WhileStatement extends StatementBase {
 		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
+		this.body.includeAsSingleStatement(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
 }

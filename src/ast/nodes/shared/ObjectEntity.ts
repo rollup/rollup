@@ -1,6 +1,6 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { HasEffectsContext } from '../../ExecutionContext';
 import { EVENT_ACCESSED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import {
 	ObjectPath,
@@ -12,12 +12,10 @@ import {
 	UnknownKey,
 	UnknownNonAccessorKey
 } from '../../utils/PathTracker';
-import SpreadElement from '../SpreadElement';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
-	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
 
@@ -227,7 +225,7 @@ export class ObjectEntity extends ExpressionEntity {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
-			return UnknownTruthyValue;
+			return UnknownValue;
 		}
 		const key = path[0];
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
@@ -273,7 +271,7 @@ export class ObjectEntity extends ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
 			if (typeof key !== 'string') {
@@ -378,21 +376,6 @@ export class ObjectEntity extends ExpressionEntity {
 			return this.prototypeExpression.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		return true;
-	}
-
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
-		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
-	) {
-		const key = path[0];
-		const expressionAtPath = this.getMemberExpression(key);
-		if (expressionAtPath) {
-			return expressionAtPath.includeArgumentsWhenCalledAtPath(path.slice(1), context, args);
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.includeArgumentsWhenCalledAtPath(path, context, args);
-		}
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {

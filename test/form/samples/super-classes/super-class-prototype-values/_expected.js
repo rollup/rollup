@@ -1,4 +1,5 @@
 console.log('retained');
+console.log('retained');
 
 const prop = { isTrue: true };
 class SuperDeopt {

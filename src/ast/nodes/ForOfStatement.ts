@@ -38,7 +38,7 @@ export default class ForOfStatement extends StatementBase {
 		this.left.include(context, includeChildrenRecursively || true);
 		this.right.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
+		this.body.includeAsSingleStatement(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
 

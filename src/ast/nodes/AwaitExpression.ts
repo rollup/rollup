@@ -1,4 +1,5 @@
 import type { InclusionContext } from '../ExecutionContext';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -28,5 +29,11 @@ export default class AwaitExpression extends NodeBase {
 			}
 		}
 		this.argument.include(context, includeChildrenRecursively);
+	}
+
+	protected applyDeoptimizations(): void {
+		this.deoptimized = true;
+		this.argument.deoptimizePath(UNKNOWN_PATH);
+		this.context.requestTreeshakingPass();
 	}
 }

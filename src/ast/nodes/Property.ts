@@ -24,7 +24,7 @@ export default class Property extends MethodBase implements PatternNode {
 		return (this.value as PatternNode).declare(kind, UNKNOWN_EXPRESSION);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions)
 			.propertyReadSideEffects;

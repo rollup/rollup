@@ -1,3 +1,5 @@
+'use strict';
+
 function foo () {
 	var Object = {
 		keys: function () {
@@ -6,9 +8,11 @@ function foo () {
 	};
 
 	var obj = { foo: 1, bar: 2 };
-	var keys = Object.keys( obj );
+	Object.keys( obj );
 }
 
 foo();
 
-export default 42;
+var main = 42;
+
+module.exports = main;

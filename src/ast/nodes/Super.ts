@@ -1,29 +1,18 @@
-import { NodeEvent } from '../NodeEvents';
 import type { ObjectPath } from '../utils/PathTracker';
-import { PathTracker } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
+import type ThisVariable from '../variables/ThisVariable';
 import type * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 
 export default class Super extends NodeBase {
 	declare type: NodeType.tSuper;
-	declare variable: Variable;
+	declare variable: ThisVariable;
 
 	bind(): void {
-		this.variable = this.scope.findVariable('this');
+		this.variable = this.scope.findVariable('this') as ThisVariable;
 	}
 
 	deoptimizePath(path: ObjectPath): void {
 		this.variable.deoptimizePath(path);
-	}
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
-		path: ObjectPath,
-		thisParameter: ExpressionEntity,
-		recursionTracker: PathTracker
-	) {
-		this.variable.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
 	include(): void {

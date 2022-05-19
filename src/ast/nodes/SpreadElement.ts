@@ -27,7 +27,7 @@ export default class SpreadElement extends NodeBase {
 		}
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;

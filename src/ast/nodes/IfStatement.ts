@@ -36,12 +36,12 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.testValue = UnknownValue;
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) {
 			return true;
 		}
 		const testValue = this.getTestValue();
-		if (typeof testValue === 'symbol') {
+		if (testValue === UnknownValue) {
 			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
 			const consequentBrokenFlow = context.brokenFlow;
@@ -52,7 +52,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 			return false;
 		}
-		return testValue ? this.consequent.hasEffects(context) : this.alternate?.hasEffects(context);
+		return testValue
+			? this.consequent.hasEffects(context)
+			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -61,7 +63,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			this.includeRecursively(includeChildrenRecursively, context);
 		} else {
 			const testValue = this.getTestValue();
-			if (typeof testValue === 'symbol') {
+			if (testValue === UnknownValue) {
 				this.includeUnknownTest(context);
 			} else {
 				this.includeKnownTest(context, testValue);
@@ -101,14 +103,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		} else {
 			code.remove(this.start, this.consequent.start);
 		}
-		if (this.consequent.included && (noTreeshake || typeof testValue === 'symbol' || testValue)) {
+		if (this.consequent.included && (noTreeshake || testValue === UnknownValue || testValue)) {
 			this.consequent.render(code, options);
 		} else {
 			code.overwrite(this.consequent.start, this.consequent.end, includesIfElse ? ';' : '');
 			hoistedDeclarations.push(...this.consequentScope.hoistedDeclarations);
 		}
 		if (this.alternate) {
-			if (this.alternate.included && (noTreeshake || typeof testValue === 'symbol' || !testValue)) {
+			if (this.alternate.included && (noTreeshake || testValue === UnknownValue || !testValue)) {
 				if (includesIfElse) {
 					if (code.original.charCodeAt(this.alternate.start - 1) === 101) {
 						code.prependLeft(this.alternate.start, ' ');
@@ -145,10 +147,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			this.test.include(context, false);
 		}
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false, { asSingleStatement: true });
+			this.consequent.includeAsSingleStatement(context, false);
 		}
-		if (!testValue && this.alternate?.shouldBeIncluded(context)) {
-			this.alternate.include(context, false, { asSingleStatement: true });
+		if (this.alternate !== null && !testValue && this.alternate.shouldBeIncluded(context)) {
+			this.alternate.includeAsSingleStatement(context, false);
 		}
 	}
 
@@ -158,7 +160,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	) {
 		this.test.include(context, includeChildrenRecursively);
 		this.consequent.include(context, includeChildrenRecursively);
-		this.alternate?.include(context, includeChildrenRecursively);
+		if (this.alternate !== null) {
+			this.alternate.include(context, includeChildrenRecursively);
+		}
 	}
 
 	private includeUnknownTest(context: InclusionContext) {
@@ -166,12 +170,12 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		const { brokenFlow } = context;
 		let consequentBrokenFlow = BROKEN_FLOW_NONE;
 		if (this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false, { asSingleStatement: true });
+			this.consequent.includeAsSingleStatement(context, false);
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
-		if (this.alternate?.shouldBeIncluded(context)) {
-			this.alternate.include(context, false, { asSingleStatement: true });
+		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
+			this.alternate.includeAsSingleStatement(context, false);
 			context.brokenFlow =
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 		}

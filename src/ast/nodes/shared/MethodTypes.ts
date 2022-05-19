@@ -9,6 +9,7 @@ import {
 } from '../../values';
 import type SpreadElement from '../SpreadElement';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import type { ExpressionNode } from './Node';
 
 type MethodDescription = {
 	callsArgs: number[] | null;
@@ -95,10 +96,9 @@ export class Method extends ExpressionEntity {
 		return false;
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		_path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		args: readonly (ExpressionNode | SpreadElement)[]
 	): void {
 		for (const arg of args) {
 			arg.include(context, false);

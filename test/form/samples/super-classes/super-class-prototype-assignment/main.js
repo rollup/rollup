@@ -1,8 +1,10 @@
 class SuperRemovedAssign {
+	method() {}
 	set prop(v) {}
 }
 class RemovedAssign extends SuperRemovedAssign {}
 RemovedAssign.prototype.doesNotExist = 1;
+RemovedAssign.prototype.method.doesNotExist = 1;
 RemovedAssign.prototype.prop = 1;
 
 class SuperUsedAssign {

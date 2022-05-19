@@ -211,7 +211,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;
@@ -230,7 +230,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
 		}
@@ -289,17 +289,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		args: readonly (ExpressionNode | SpreadElement)[]
 	): void {
 		if (this.variable) {
-			this.variable.includeArgumentsWhenCalledAtPath(path, context, args);
-		} else if (this.replacement) {
-			super.includeArgumentsWhenCalledAtPath(path, context, args);
-		} else if (path.length < MAX_PATH_DEPTH) {
-			this.object.includeArgumentsWhenCalledAtPath([this.getPropertyKey(), ...path], context, args);
+			this.variable.includeCallArguments(context, args);
+		} else {
+			super.includeCallArguments(context, args);
 		}
 	}
 
@@ -388,7 +385,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.propertyKey === null) {
 			this.propertyKey = UnknownKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			return (this.propertyKey = typeof value === 'symbol' ? UnknownKey : String(value));
+			return (this.propertyKey = value === UnknownValue ? UnknownKey : String(value));
 		}
 		return this.propertyKey;
 	}

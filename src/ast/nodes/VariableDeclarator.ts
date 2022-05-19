@@ -27,15 +27,17 @@ export default class VariableDeclarator extends NodeBase {
 		this.id.deoptimizePath(path);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
-		const initEffect = this.init?.hasEffects(context);
+	hasEffects(context: HasEffectsContext): boolean {
+		const initEffect = this.init !== null && this.init.hasEffects(context);
 		this.id.markDeclarationReached();
 		return initEffect || this.id.hasEffects(context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		this.init?.include(context, includeChildrenRecursively);
+		if (this.init) {
+			this.init.include(context, includeChildrenRecursively);
+		}
 		this.id.markDeclarationReached();
 		if (includeChildrenRecursively || this.id.shouldBeIncluded(context)) {
 			this.id.include(context, includeChildrenRecursively);

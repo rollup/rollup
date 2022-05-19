@@ -108,7 +108,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean | undefined {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
@@ -117,7 +117,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return usedBranch.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			return (
@@ -166,17 +166,16 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		args: readonly (ExpressionNode | SpreadElement)[]
 	): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
-			this.consequent.includeArgumentsWhenCalledAtPath(path, context, args);
-			this.alternate.includeArgumentsWhenCalledAtPath(path, context, args);
+			this.consequent.includeCallArguments(context, args);
+			this.alternate.includeCallArguments(context, args);
 		} else {
-			usedBranch.includeArgumentsWhenCalledAtPath(path, context, args);
+			usedBranch.includeCallArguments(context, args);
 		}
 	}
 
@@ -226,7 +225,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 		this.isBranchResolutionAnalysed = true;
 		const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-		return typeof testValue === 'symbol'
+		return testValue === UnknownValue
 			? null
 			: (this.usedBranch = testValue ? this.consequent : this.alternate);
 	}
