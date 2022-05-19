@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 2.74.1
+
+_2022-05-19_
+
+### Bug Fixes
+
+- Revert #4498 until some issues are understood and resolved
+
 ## 2.74.0
 
 _2022-05-19_
