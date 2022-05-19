@@ -148,6 +148,7 @@ export default class Chunk {
 	private implicitEntryModules: Module[] = [];
 	private readonly implicitlyLoadedBefore = new Set<Chunk>();
 	private readonly imports = new Set<Variable>();
+	private readonly includedReexportsByModule = new Map<Module, Variable[]>();
 	private indentString: string = undefined as never;
 	// This may only be updated in the constructor
 	private readonly isEmpty: boolean = true;
@@ -164,6 +165,7 @@ export default class Chunk {
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
 	private usedModules: Module[] = undefined as never;
+
 	constructor(
 		private readonly orderedModules: readonly Module[],
 		private readonly inputOptions: NormalizedInputOptions,
@@ -398,6 +400,9 @@ export default class Chunk {
 				this.includedNamespaces.add(module);
 				this.exports.add(module.namespace);
 			}
+		}
+		if (!this.outputOptions.preserveModules) {
+			this.addNecessaryImportsForFacades();
 		}
 		return facades;
 	}
@@ -832,6 +837,16 @@ export default class Chunk {
 		}
 	}
 
+	private addNecessaryImportsForFacades() {
+		for (const [module, variables] of this.includedReexportsByModule) {
+			if (this.includedNamespaces.has(module)) {
+				for (const variable of variables) {
+					this.imports.add(variable);
+				}
+			}
+		}
+	}
+
 	private assignFacadeName({ fileName, name }: FacadeName, facadedModule: Module): void {
 		if (fileName) {
 			this.fileName = fileName;
@@ -892,6 +907,7 @@ export default class Chunk {
 	}
 
 	private ensureReexportsAreAvailableForModule(module: Module): void {
+		const includedReexports: Variable[] = [];
 		const map = module.getExportNamesByVariable();
 		for (const exportedVariable of map.keys()) {
 			const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
@@ -905,12 +921,16 @@ export default class Chunk {
 					const chunk = this.chunkByModule.get(exportingModule);
 					if (chunk && chunk !== this) {
 						chunk.exports.add(importedVariable);
+						includedReexports.push(importedVariable);
 						if (isSynthetic) {
 							this.imports.add(importedVariable);
 						}
 					}
 				}
 			}
+		}
+		if (includedReexports.length) {
+			this.includedReexportsByModule.set(module, includedReexports);
 		}
 	}
 
@@ -1345,7 +1365,7 @@ export default class Chunk {
 	}
 
 	private setUpChunkImportsAndExportsForModule(module: Module): void {
-		const moduleImports = new Set(module.imports);
+		const moduleImports = new Set(module.includedImports);
 		// when we are not preserving modules, we need to make all namespace variables available for
 		// rendering the namespace object
 		if (!this.outputOptions.preserveModules) {
