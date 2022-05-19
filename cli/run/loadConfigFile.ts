@@ -1,4 +1,3 @@
-import { promises as fs } from 'fs';
 import { extname, isAbsolute } from 'path';
 import { version } from 'process';
 import { pathToFileURL } from 'url';
@@ -103,8 +102,8 @@ async function getDefaultFromTranspiledConfigFile(
 	return loadConfigFromBundledFile(fileName, code);
 }
 
-async function loadConfigFromBundledFile(fileName: string, bundledCode: string): Promise<unknown> {
-	const resolvedFileName = await fs.realpath(fileName);
+function loadConfigFromBundledFile(fileName: string, bundledCode: string): unknown {
+	const resolvedFileName = require.resolve(fileName);
 	const extension = extname(resolvedFileName);
 	const defaultLoader = require.extensions[extension];
 	require.extensions[extension] = (module: NodeModule, requiredFileName: string) => {
