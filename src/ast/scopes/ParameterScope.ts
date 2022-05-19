@@ -2,8 +2,7 @@ import type { AstContext } from '../../Module';
 import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
-import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import type { ExpressionNode } from '../nodes/shared/Node';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 import type Scope from './Scope';
@@ -49,7 +48,7 @@ export default class ParameterScope extends ChildScope {
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		let calledFromTryStatement = false;
 		let argIncluded = false;

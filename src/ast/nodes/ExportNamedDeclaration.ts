@@ -18,11 +18,11 @@ export default class ExportNamedDeclaration extends NodeBase {
 
 	bind(): void {
 		// Do not bind specifiers
-		if (this.declaration !== null) this.declaration.bind();
+		this.declaration?.bind();
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
-		return this.declaration !== null && this.declaration.hasEffects(context);
+	hasEffects(context: HasEffectsContext): boolean | undefined {
+		return this.declaration?.hasEffects(context);
 	}
 
 	initialise(): void {

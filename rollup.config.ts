@@ -6,7 +6,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import type { RollupOptions, WarningHandlerWithDefault } from 'rollup';
+import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
@@ -65,7 +65,7 @@ const treeshake = {
 	tryCatchDeoptimization: false
 };
 
-const nodePlugins = [
+const nodePlugins: Plugin[] = [
 	alias(moduleAliases),
 	nodeResolve(),
 	json(),

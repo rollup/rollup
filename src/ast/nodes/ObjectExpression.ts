@@ -3,7 +3,7 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
@@ -17,11 +17,7 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import type Property from './Property';
 import SpreadElement from './SpreadElement';
-import {
-	type ExpressionEntity,
-	type LiteralValueOrUnknown,
-	UnknownValue
-} from './shared/Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
@@ -75,7 +71,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
@@ -89,6 +85,14 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		context: HasEffectsContext
 	): boolean {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
+	}
+
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		context: InclusionContext,
+		args: readonly (ExpressionEntity | SpreadElement)[]
+	) {
+		this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	render(
@@ -124,7 +128,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 					SHARED_RECURSION_TRACKER,
 					this
 				);
-				if (keyValue === UnknownValue) {
+				if (typeof keyValue === 'symbol') {
 					properties.push({ key: UnknownKey, kind: property.kind, property });
 					continue;
 				} else {

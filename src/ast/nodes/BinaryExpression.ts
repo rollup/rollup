@@ -60,10 +60,10 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (leftValue === UnknownValue) return UnknownValue;
+		if (typeof leftValue === 'symbol') return UnknownValue;
 
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (rightValue === UnknownValue) return UnknownValue;
+		if (typeof rightValue === 'symbol') return UnknownValue;
 
 		const operatorFn = binaryOperators[this.operator];
 		if (!operatorFn) return UnknownValue;
@@ -71,7 +71,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		// support some implicit type coercion runtime errors
 		if (
 			this.operator === '+' &&

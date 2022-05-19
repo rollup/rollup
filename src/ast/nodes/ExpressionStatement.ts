@@ -30,7 +30,7 @@ export default class ExpressionStatement extends StatementBase {
 		if (this.included) this.insertSemicolon(code);
 	}
 
-	shouldBeIncluded(context: InclusionContext): boolean {
+	shouldBeIncluded(context: InclusionContext): boolean | undefined {
 		if (this.directive && this.directive !== 'use strict')
 			return this.parent.type !== NodeType.Program;
 

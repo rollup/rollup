@@ -104,7 +104,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		);
 	}
 
-	hasEffects(context: HasEffectsContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean | undefined {
 		if (this.left.hasEffects(context)) {
 			return true;
 		}
@@ -114,7 +114,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean | undefined {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			return (
@@ -211,7 +211,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (!this.isBranchResolutionAnalysed) {
 			this.isBranchResolutionAnalysed = true;
 			const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			if (leftValue === UnknownValue) {
+			if (typeof leftValue === 'symbol') {
 				return null;
 			} else {
 				this.usedBranch =
