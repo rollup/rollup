@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 2.74.0
+
+_2022-05-19_
+
+### Features
+
+- Remove unneeded default values for function parameters (#4498)
+
+### Bug Fixes
+
+- Use a consistent mechanism to resolve the config file to avoid issues on Windows (#4501)
+- Avoid an inaccurate warning about an event emitter leak for complicated builds (#4502)
+- Ensure that reexporting values from other chunks via dynamic imports does not reference non-imported variables (#4499)
+
+### Pull Requests
+
+- [#4498](https://github.com/rollup/rollup/pull/4498): Tree shake parameter defaults (@lukastaegert)
+- [#4499](https://github.com/rollup/rollup/pull/4499): Ensure reexports are available for namespaces (@lukastaegert)
+- [#4501](https://github.com/rollup/rollup/pull/4501): fix: config path problem on windows (@pos777)
+- [#4502](https://github.com/rollup/rollup/pull/4502): Avoid maximum listeners exceeded warning (@lukastaegert)
+
 ## 2.73.0
 
 _2022-05-13_
