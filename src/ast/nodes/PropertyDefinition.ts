@@ -1,10 +1,11 @@
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
+import SpreadElement from './SpreadElement';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -55,10 +56,7 @@ export default class PropertyDefinition extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		return (
-			this.key.hasEffects(context) ||
-			(this.static && this.value !== null && this.value.hasEffects(context))
-		);
+		return this.key.hasEffects(context) || (this.static && !!this.value?.hasEffects(context));
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -75,5 +73,13 @@ export default class PropertyDefinition extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		return !this.value || this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
+	}
+
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
+		context: InclusionContext,
+		args: readonly (ExpressionEntity | SpreadElement)[]
+	) {
+		this.value?.includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 }

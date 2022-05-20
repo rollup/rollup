@@ -16,9 +16,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const element of this.elements) {
-			if (element !== null) {
-				element.addExportedVariables(variables, exportNamesByVariable);
-			}
+			element?.addExportedVariables(variables, exportNamesByVariable);
 		}
 	}
 
@@ -32,30 +30,24 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		return variables;
 	}
 
-	deoptimizePath(path: ObjectPath): void {
-		if (path.length === 0) {
-			for (const element of this.elements) {
-				if (element !== null) {
-					element.deoptimizePath(path);
-				}
-			}
+	// Patterns can only be deoptimized at the empty path at the moment
+	deoptimizePath(): void {
+		for (const element of this.elements) {
+			element?.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length > 0) return true;
+	// Patterns are only checked at the emtpy path at the moment
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, context: HasEffectsContext): boolean {
 		for (const element of this.elements) {
-			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
-				return true;
+			if (element?.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;
 		}
 		return false;
 	}
 
 	markDeclarationReached(): void {
 		for (const element of this.elements) {
-			if (element !== null) {
-				element.markDeclarationReached();
-			}
+			element?.markDeclarationReached();
 		}
 	}
 }

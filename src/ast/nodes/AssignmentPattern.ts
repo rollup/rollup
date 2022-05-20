@@ -2,12 +2,13 @@ import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
@@ -35,6 +36,12 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		this.included = true;
+		this.left.include(context, includeChildrenRecursively);
+		this.right.include(context, includeChildrenRecursively);
+	}
+
 	markDeclarationReached(): void {
 		this.left.markDeclarationReached();
 	}
@@ -45,7 +52,11 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		{ isShorthandProperty }: NodeRenderOptions = BLANK
 	): void {
 		this.left.render(code, options, { isShorthandProperty });
-		this.right.render(code, options);
+		if (this.right.included) {
+			this.right.render(code, options);
+		} else {
+			code.remove(this.left.end, this.end);
+		}
 	}
 
 	protected applyDeoptimizations(): void {

@@ -31,7 +31,7 @@ export default class DoWhileStatement extends StatementBase {
 		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		this.body.includeAsSingleStatement(context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
 		context.brokenFlow = brokenFlow;
 	}
 }

@@ -25,9 +25,9 @@ export default class ForStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (
-			(this.init && this.init.hasEffects(context)) ||
-			(this.test && this.test.hasEffects(context)) ||
-			(this.update && this.update.hasEffects(context))
+			this.init?.hasEffects(context) ||
+			this.test?.hasEffects(context) ||
+			this.update?.hasEffects(context)
 		)
 			return true;
 		const {
@@ -45,18 +45,18 @@ export default class ForStatement extends StatementBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		if (this.init) this.init.includeAsSingleStatement(context, includeChildrenRecursively);
-		if (this.test) this.test.include(context, includeChildrenRecursively);
+		this.init?.include(context, includeChildrenRecursively, { asSingleStatement: true });
+		this.test?.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		if (this.update) this.update.include(context, includeChildrenRecursively);
-		this.body.includeAsSingleStatement(context, includeChildrenRecursively);
+		this.update?.include(context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
 		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		if (this.init) this.init.render(code, options, NO_SEMICOLON);
-		if (this.test) this.test.render(code, options, NO_SEMICOLON);
-		if (this.update) this.update.render(code, options, NO_SEMICOLON);
+		this.init?.render(code, options, NO_SEMICOLON);
+		this.test?.render(code, options, NO_SEMICOLON);
+		this.update?.render(code, options, NO_SEMICOLON);
 		this.body.render(code, options);
 	}
 }

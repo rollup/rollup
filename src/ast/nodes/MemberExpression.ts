@@ -289,14 +289,17 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeCallArguments(
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, args);
-		} else {
-			super.includeCallArguments(context, args);
+			this.variable.includeArgumentsWhenCalledAtPath(path, context, args);
+		} else if (this.replacement) {
+			super.includeArgumentsWhenCalledAtPath(path, context, args);
+		} else if (path.length < MAX_PATH_DEPTH) {
+			this.object.includeArgumentsWhenCalledAtPath([this.getPropertyKey(), ...path], context, args);
 		}
 	}
 
@@ -385,7 +388,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.propertyKey === null) {
 			this.propertyKey = UnknownKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			return (this.propertyKey = value === UnknownValue ? UnknownKey : String(value));
+			return (this.propertyKey = typeof value === 'symbol' ? UnknownKey : String(value));
 		}
 		return this.propertyKey;
 	}

@@ -1,5 +1,4 @@
-import type Module from '../../Module';
-import type { AstContext } from '../../Module';
+import Module, { AstContext } from '../../Module';
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -14,7 +13,7 @@ import {
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
-import type { ExpressionNode, Node } from '../nodes/shared/Node';
+import type { Node } from '../nodes/shared/Node';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
@@ -190,9 +189,10 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(
+	includeArgumentsWhenCalledAtPath(
+		path: ObjectPath,
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.isReassigned || (this.init && context.includedCallArguments.has(this.init))) {
 			for (const arg of args) {
@@ -200,7 +200,7 @@ export default class LocalVariable extends Variable {
 			}
 		} else if (this.init) {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, args);
+			this.init.includeArgumentsWhenCalledAtPath(path, context, args);
 			context.includedCallArguments.delete(this.init);
 		}
 	}
