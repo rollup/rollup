@@ -38,8 +38,12 @@ export default class NewExpression extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		this.callee.include(context, includeChildrenRecursively);
+		if (includeChildrenRecursively) {
+			super.include(context, includeChildrenRecursively);
+		} else {
+			this.included = true;
+			this.callee.include(context, false);
+		}
 		this.callee.includeArgumentsWhenCalledAtPath(EMPTY_PATH, context, this.arguments);
 	}
 

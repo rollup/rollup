@@ -145,8 +145,26 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 				return true;
 			}
 		}
-		for (const param of this.params) {
-			if (param.hasEffects(context)) return true;
+		for (let position = 0; position < this.params.length; position++) {
+			const parameter = this.params[position];
+			if (parameter instanceof AssignmentPattern) {
+				if (parameter.left.hasEffects(context)) {
+					return true;
+				}
+				const argumentValue = callOptions.args[position]?.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					this
+				);
+				if (
+					(argumentValue === undefined || argumentValue === UnknownValue) &&
+					parameter.right.hasEffects(context)
+				) {
+					return true;
+				}
+			} else if (parameter.hasEffects(context)) {
+				return true;
+			}
 		}
 		return false;
 	}

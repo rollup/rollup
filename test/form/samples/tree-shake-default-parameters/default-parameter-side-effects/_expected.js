@@ -10,7 +10,7 @@ c();
 const d = (p) => console.log('effect');
 d();
 
-const e = (p) => {};
+const e = (p) => console.log('effect');
 e();
 
 const f = ({ x = console.log('retained') }) => {};
