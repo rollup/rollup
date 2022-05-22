@@ -121,7 +121,13 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		this.superClass?.include(context, includeChildrenRecursively);
+		if (this.superClass) {
+			this.superClass.include(context, includeChildrenRecursively);
+			// As we cannot yet safely track if a constructor calls the super class
+			// constructor and with which arguments, we need to ensure that all super
+			// class parameter defaults are included.
+			this.superClass.includeArgumentsWhenCalledAtPath(EMPTY_PATH, context, []);
+		}
 		this.body.include(context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
