@@ -36,7 +36,9 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
-	// TODO Lukas dedicated methods to include left and right would improve readability
+	// Note that FunctionBase may directly include .left and .right without
+	// including the pattern itself. This is how default parameter tree-shaking
+	// works at the moment.
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.left.include(context, includeChildrenRecursively);
