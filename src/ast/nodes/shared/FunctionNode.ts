@@ -1,3 +1,4 @@
+import { BLANK } from '../../../utils/blank';
 import { type CallOptions } from '../../CallOptions';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
@@ -5,7 +6,7 @@ import FunctionScope from '../../scopes/FunctionScope';
 import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import { type IdentifierWithVariable } from '../Identifier';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { type ExpressionEntity, InclusionOptions, UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
@@ -72,13 +73,16 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		// This ensures that super.include will also include all parameters
-		if (this.scope.argumentsVariable.included) {
-			this.alwaysIncludeParameters = true;
-		}
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		{ includeWithoutParameterDefaults }: InclusionOptions = BLANK
+	): void {
 		this.id?.include();
-		super.include(context, includeChildrenRecursively);
+		super.include(context, includeChildrenRecursively, {
+			includeWithoutParameterDefaults:
+				includeWithoutParameterDefaults && !this.scope.argumentsVariable.included
+		});
 	}
 
 	initialise(): void {

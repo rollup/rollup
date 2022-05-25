@@ -3,7 +3,7 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
@@ -85,14 +85,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		context: HasEffectsContext
 	): boolean {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
-		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
-	) {
-		this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	render(

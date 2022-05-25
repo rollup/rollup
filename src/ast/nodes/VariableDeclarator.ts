@@ -35,7 +35,9 @@ export default class VariableDeclarator extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		this.init?.include(context, includeChildrenRecursively);
+		this.init?.include(context, includeChildrenRecursively, {
+			includeWithoutParameterDefaults: true
+		});
 		this.id.markDeclarationReached();
 		if (includeChildrenRecursively || this.id.shouldBeIncluded(context)) {
 			this.id.include(context, includeChildrenRecursively);

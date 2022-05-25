@@ -296,10 +296,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	): void {
 		if (this.variable) {
 			this.variable.includeArgumentsWhenCalledAtPath(path, context, args);
-		} else if (this.replacement) {
+		} else {
 			super.includeArgumentsWhenCalledAtPath(path, context, args);
-		} else if (path.length < MAX_PATH_DEPTH) {
-			this.object.includeArgumentsWhenCalledAtPath([this.getPropertyKey(), ...path], context, args);
 		}
 	}
 

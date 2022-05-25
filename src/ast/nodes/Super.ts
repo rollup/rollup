@@ -17,6 +17,7 @@ export default class Super extends NodeBase {
 	deoptimizePath(path: ObjectPath): void {
 		this.variable.deoptimizePath(path);
 	}
+
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,

@@ -18,6 +18,7 @@ export interface InclusionOptions {
 	 * Include the id of a declarator even if unused to ensure it is a valid statement.
 	 */
 	asSingleStatement?: boolean;
+	includeWithoutParameterDefaults?: boolean;
 }
 
 export class ExpressionEntity implements WritableEntity {
@@ -80,6 +81,7 @@ export class ExpressionEntity implements WritableEntity {
 		this.included = true;
 	}
 
+	// TODO Lukas remove path again
 	includeArgumentsWhenCalledAtPath(
 		_path: ObjectPath,
 		context: InclusionContext,

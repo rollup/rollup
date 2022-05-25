@@ -1,9 +1,8 @@
 import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type { HasEffectsContext } from '../../ExecutionContext';
 import { type NodeEvent } from '../../NodeEvents';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
-import SpreadElement from '../SpreadElement';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -142,17 +141,6 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
 			this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context)
 		);
-	}
-
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
-		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
-	) {
-		const returnExpression = this.getReturnExpression();
-		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
-			returnExpression.includeArgumentsWhenCalledAtPath(path, context, args);
-		}
 	}
 
 	protected abstract getReturnExpression(recursionTracker?: PathTracker): ExpressionEntity;

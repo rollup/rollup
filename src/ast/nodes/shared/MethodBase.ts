@@ -1,6 +1,6 @@
 import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type { HasEffectsContext } from '../../ExecutionContext';
 import { EVENT_ACCESSED, EVENT_ASSIGNED, EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
 import {
 	EMPTY_PATH,
@@ -9,7 +9,6 @@ import {
 	SHARED_RECURSION_TRACKER
 } from '../../utils/PathTracker';
 import type PrivateIdentifier from '../PrivateIdentifier';
-import SpreadElement from '../SpreadElement';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -115,14 +114,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		context: HasEffectsContext
 	): boolean {
 		return this.getAccessedValue().hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
-		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		this.getAccessedValue().includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	protected getAccessedValue(): ExpressionEntity {

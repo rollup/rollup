@@ -1,4 +1,5 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
+import { BLANK } from '../../../utils/blank';
 import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
@@ -24,6 +25,7 @@ import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
 import {
 	type ExpressionEntity,
+	InclusionOptions,
 	LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
@@ -43,14 +45,13 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
-	// By default, parameters are included via includeArgumentsWhenCalledAtPath
-	protected alwaysIncludeParameters = false;
 	protected objectEntity: ObjectEntity | null = null;
 	private deoptimizedReturn = false;
+	private forceIncludeParameters = false;
 	private declare parameterVariables: LocalVariable[][];
 
 	deoptimizeCache() {
-		this.alwaysIncludeParameters = true;
+		this.forceIncludeParameters = true;
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -58,7 +59,7 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		if (path.length === 1 && path[0] === UnknownKey) {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the return expression needs to be reassigned
-			this.alwaysIncludeParameters = true;
+			this.forceIncludeParameters = true;
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 		}
 	}
@@ -169,13 +170,21 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		{ includeWithoutParameterDefaults }: InclusionOptions = BLANK
+	): void {
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = BROKEN_FLOW_NONE;
 		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
-		if (includeChildrenRecursively || this.alwaysIncludeParameters) {
+		if (
+			!includeWithoutParameterDefaults ||
+			includeChildrenRecursively ||
+			this.forceIncludeParameters
+		) {
 			for (const param of this.params) {
 				param.include(context, includeChildrenRecursively);
 			}

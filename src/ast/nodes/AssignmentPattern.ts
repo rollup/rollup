@@ -36,6 +36,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
+	// TODO Lukas dedicated methods to include left and right would improve readability
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.left.include(context, includeChildrenRecursively);

@@ -16,7 +16,6 @@ import type ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
-import SpreadElement from '../SpreadElement';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
@@ -121,33 +120,11 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		if (this.superClass) {
-			this.superClass.include(context, includeChildrenRecursively);
-			// As we cannot yet safely track if a constructor calls the super class
-			// constructor and with which arguments, we need to ensure that all super
-			// class parameter defaults are included.
-			this.superClass.includeArgumentsWhenCalledAtPath(EMPTY_PATH, context, []);
-		}
+		this.superClass?.include(context, includeChildrenRecursively);
 		this.body.include(context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
 			this.id.include();
-		}
-	}
-
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
-		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		if (path.length === 0) {
-			if (this.classConstructor) {
-				this.classConstructor.includeArgumentsWhenCalledAtPath(path, context, args);
-			} else {
-				this.superClass?.includeArgumentsWhenCalledAtPath(path, context, args);
-			}
-		} else {
-			this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
 		}
 	}
 
@@ -171,8 +148,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 					(definition instanceof MethodDefinition && definition.kind === 'constructor')
 				)
 			) {
-				// Calls to methods are not tracked, ensure that parameter defaults are
-				// included and the return value is deoptimized
+				// Calls to methods are not tracked, ensure that the return value is deoptimized
 				definition.deoptimizePath(UNKNOWN_PATH);
 			}
 		}

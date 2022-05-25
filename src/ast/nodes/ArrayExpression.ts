@@ -1,7 +1,6 @@
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { InclusionContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
 import {
 	type ObjectPath,
@@ -77,14 +76,6 @@ export default class ArrayExpression extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
-		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
-	) {
-		this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
 	}
 
 	protected applyDeoptimizations(): void {

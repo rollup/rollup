@@ -1,5 +1,5 @@
 import type { AstContext } from '../../Module';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
+import ClassNode from '../nodes/shared/ClassNode';
 import LocalVariable from '../variables/LocalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ChildScope from './ChildScope';
@@ -9,7 +9,7 @@ export default class ClassBodyScope extends ChildScope {
 	instanceScope: ChildScope;
 	thisVariable: LocalVariable;
 
-	constructor(parent: Scope, classNode: ExpressionEntity, context: AstContext) {
+	constructor(parent: Scope, classNode: ClassNode, context: AstContext) {
 		super(parent);
 		this.variables.set(
 			'this',

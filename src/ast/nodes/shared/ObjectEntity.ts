@@ -1,6 +1,6 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { HasEffectsContext } from '../../ExecutionContext';
 import { EVENT_ACCESSED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import {
 	ObjectPath,
@@ -12,7 +12,6 @@ import {
 	UnknownKey,
 	UnknownNonAccessorKey
 } from '../../utils/PathTracker';
-import SpreadElement from '../SpreadElement';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
@@ -378,21 +377,6 @@ export class ObjectEntity extends ExpressionEntity {
 			return this.prototypeExpression.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		return true;
-	}
-
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
-		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
-	) {
-		const key = path[0];
-		const expressionAtPath = this.getMemberExpression(key);
-		if (expressionAtPath) {
-			return expressionAtPath.includeArgumentsWhenCalledAtPath(path.slice(1), context, args);
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.includeArgumentsWhenCalledAtPath(path, context, args);
-		}
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {
