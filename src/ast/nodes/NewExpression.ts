@@ -44,7 +44,7 @@ export default class NewExpression extends NodeBase {
 			this.included = true;
 			this.callee.include(context, false);
 		}
-		this.callee.includeArgumentsWhenCalledAtPath(EMPTY_PATH, context, this.arguments);
+		this.callee.includeCallArguments(context, this.arguments);
 	}
 
 	initialise(): void {

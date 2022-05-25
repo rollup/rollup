@@ -81,9 +81,7 @@ export class ExpressionEntity implements WritableEntity {
 		this.included = true;
 	}
 
-	// TODO Lukas remove path again
-	includeArgumentsWhenCalledAtPath(
-		_path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {

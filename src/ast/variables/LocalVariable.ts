@@ -189,8 +189,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
@@ -200,7 +199,7 @@ export default class LocalVariable extends Variable {
 			}
 		} else if (this.init) {
 			context.includedCallArguments.add(this.init);
-			this.init.includeArgumentsWhenCalledAtPath(path, context, args);
+			this.init.includeCallArguments(context, args);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

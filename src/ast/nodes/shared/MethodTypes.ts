@@ -95,8 +95,7 @@ export class Method extends ExpressionEntity {
 		return false;
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		_path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {

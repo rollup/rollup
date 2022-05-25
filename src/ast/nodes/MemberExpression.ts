@@ -289,15 +289,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.variable) {
-			this.variable.includeArgumentsWhenCalledAtPath(path, context, args);
+			this.variable.includeCallArguments(context, args);
 		} else {
-			super.includeArgumentsWhenCalledAtPath(path, context, args);
+			super.includeCallArguments(context, args);
 		}
 	}
 

@@ -168,12 +168,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.variable!.includeArgumentsWhenCalledAtPath(path, context, args);
+		this.variable!.includeCallArguments(context, args);
 	}
 
 	isPossibleTDZ(): boolean {

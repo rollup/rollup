@@ -191,40 +191,35 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		}
 	}
 
-	includeArgumentsWhenCalledAtPath(
-		path: ObjectPath,
+	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		if (path.length === 0) {
-			for (let position = 0; position < this.params.length; position++) {
-				const parameter = this.params[position];
-				if (parameter instanceof AssignmentPattern) {
-					if (parameter.left.shouldBeIncluded(context)) {
-						parameter.left.include(context, false);
-					}
-					const argumentValue = args[position]?.getLiteralValueAtPath(
-						EMPTY_PATH,
-						SHARED_RECURSION_TRACKER,
-						this
-					);
-					// If argumentValue === UnknownTruthyValue, then we do not need to
-					// include the default
-					if (
-						(argumentValue === undefined || argumentValue === UnknownValue) &&
-						(this.parameterVariables[position].some(variable => variable.included) ||
-							parameter.right.shouldBeIncluded(context))
-					) {
-						parameter.right.include(context, false);
-					}
-				} else if (parameter.shouldBeIncluded(context)) {
-					parameter.include(context, false);
+		for (let position = 0; position < this.params.length; position++) {
+			const parameter = this.params[position];
+			if (parameter instanceof AssignmentPattern) {
+				if (parameter.left.shouldBeIncluded(context)) {
+					parameter.left.include(context, false);
 				}
+				const argumentValue = args[position]?.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					this
+				);
+				// If argumentValue === UnknownTruthyValue, then we do not need to
+				// include the default
+				if (
+					(argumentValue === undefined || argumentValue === UnknownValue) &&
+					(this.parameterVariables[position].some(variable => variable.included) ||
+						parameter.right.shouldBeIncluded(context))
+				) {
+					parameter.right.include(context, false);
+				}
+			} else if (parameter.shouldBeIncluded(context)) {
+				parameter.include(context, false);
 			}
-			this.scope.includeCallArguments(context, args);
-		} else {
-			this.getObjectEntity().includeArgumentsWhenCalledAtPath(path, context, args);
 		}
+		this.scope.includeCallArguments(context, args);
 	}
 
 	initialise(): void {
