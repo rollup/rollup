@@ -92,7 +92,7 @@ export default class VariableDeclaration extends NodeBase {
 				code.appendLeft(this.end, ';');
 			}
 		} else {
-			this.renderReplacedDeclarations(code, options, nodeRenderOptions);
+			this.renderReplacedDeclarations(code, options);
 		}
 	}
 
@@ -103,15 +103,12 @@ export default class VariableDeclaration extends NodeBase {
 		actualContentEnd: number,
 		renderedContentEnd: number,
 		systemPatternExports: readonly Variable[],
-		options: RenderOptions,
-		isNoStatement: boolean | undefined
+		options: RenderOptions
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		if (!isNoStatement) {
-			separatorString += ';';
-		}
+		separatorString += ';';
 		if (lastSeparatorPos !== null) {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
@@ -140,11 +137,7 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	private renderReplacedDeclarations(
-		code: MagicString,
-		options: RenderOptions,
-		{ isNoStatement }: NodeRenderOptions
-	): void {
+	private renderReplacedDeclarations(code: MagicString, options: RenderOptions): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
@@ -226,8 +219,7 @@ export default class VariableDeclaration extends NodeBase {
 			actualContentEnd!,
 			renderedContentEnd,
 			aggregatedSystemExports,
-			options,
-			isNoStatement
+			options
 		);
 	}
 }
