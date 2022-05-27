@@ -40,9 +40,10 @@ const binaryOperators: {
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
-	in: () => UnknownValue,
-	instanceof: () => UnknownValue,
 	'|': (left: any, right: any) => left | right
+	// We use the fallback for cases where we return something unknown
+	// in: () => UnknownValue,
+	// instanceof: () => UnknownValue,
 };
 
 export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
