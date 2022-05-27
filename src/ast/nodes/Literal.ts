@@ -57,10 +57,6 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-		return path.length > 0;
-	}
-
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
