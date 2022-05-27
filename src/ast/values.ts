@@ -1,7 +1,7 @@
 import { type CallOptions, NO_ARGS } from './CallOptions';
 import type { HasEffectsContext } from './ExecutionContext';
 import type { LiteralValue } from './nodes/Literal';
-import { ExpressionEntity, UNKNOWN_EXPRESSION, UnknownValue } from './nodes/shared/Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -145,9 +145,9 @@ const stringReplace: RawMemberDescription = {
 			const arg1 = callOptions.args[1];
 			return (
 				callOptions.args.length < 2 ||
-				(arg1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+				(typeof arg1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
 					deoptimizeCache() {}
-				}) === UnknownValue &&
+				}) === 'symbol' &&
 					arg1.hasEffectsWhenCalledAtPath(
 						EMPTY_PATH,
 						{

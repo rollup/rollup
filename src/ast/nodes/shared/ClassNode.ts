@@ -9,13 +9,14 @@ import {
 	type ObjectPath,
 	type PathTracker,
 	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
 import type ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
-import { type ExpressionEntity, type LiteralValueOrUnknown, UnknownValue } from './Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
@@ -25,6 +26,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare body: ClassBody;
 	declare id: Identifier | null;
 	declare superClass: ExpressionNode | null;
+	protected deoptimized = false;
 	private declare classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 
@@ -38,6 +40,12 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
+		if (path.length === 1 && path[0] === UnknownKey) {
+			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
+			// which means the constructor needs to be reassigned
+			this.classConstructor?.deoptimizePath(UNKNOWN_PATH);
+			this.superClass?.deoptimizePath(UNKNOWN_PATH);
+		}
 	}
 
 	deoptimizeThisOnEventAtPath(
@@ -77,6 +85,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		const initEffect = this.superClass?.hasEffects(context) || this.body.hasEffects(context);
 		this.id?.markDeclarationReached();
 		return initEffect || super.hasEffects(context);
@@ -100,8 +109,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 				!callOptions.withNew ||
 				(this.classConstructor !== null
 					? this.classConstructor.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, context)
-					: this.superClass !== null &&
-					  this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, context))
+					: this.superClass?.hasEffectsWhenCalledAtPath(path, callOptions, context)) ||
+				false
 			);
 		} else {
 			return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
@@ -109,6 +118,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		this.superClass?.include(context, includeChildrenRecursively);
 		this.body.include(context, includeChildrenRecursively);
@@ -127,6 +137,22 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			}
 		}
 		this.classConstructor = null;
+	}
+
+	protected applyDeoptimizations(): void {
+		this.deoptimized = true;
+		for (const definition of this.body.body) {
+			if (
+				!(
+					definition.static ||
+					(definition instanceof MethodDefinition && definition.kind === 'constructor')
+				)
+			) {
+				// Calls to methods are not tracked, ensure that the return value is deoptimized
+				definition.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
+		this.context.requestTreeshakingPass();
 	}
 
 	private getObjectEntity(): ObjectEntity {
@@ -148,7 +174,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 					SHARED_RECURSION_TRACKER,
 					this
 				);
-				if (keyValue === UnknownValue) {
+				if (typeof keyValue === 'symbol') {
 					properties.push({ key: UnknownKey, kind, property: definition });
 					continue;
 				} else {

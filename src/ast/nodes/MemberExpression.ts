@@ -291,7 +291,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.variable) {
 			this.variable.includeCallArguments(context, args);
@@ -385,7 +385,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.propertyKey === null) {
 			this.propertyKey = UnknownKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			return (this.propertyKey = value === UnknownValue ? UnknownKey : String(value));
+			return (this.propertyKey = typeof value === 'symbol' ? UnknownKey : String(value));
 		}
 		return this.propertyKey;
 	}

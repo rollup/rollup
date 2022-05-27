@@ -55,10 +55,7 @@ export default class PropertyDefinition extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		return (
-			this.key.hasEffects(context) ||
-			(this.static && this.value !== null && this.value.hasEffects(context))
-		);
+		return this.key.hasEffects(context) || (this.static && !!this.value?.hasEffects(context));
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
