@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.75.0
+
+_2022-05-27_
+
+### Features
+
+- Re-implement default parameter tree-shaking for top-level functions (#4510)
+- Do not consider calling string methods like `.trim()` on template literals a side effect (#4511)
+
+### Pull Requests
+
+- [#4510](https://github.com/rollup/rollup/pull/4510): Tree-shake parameter defaults (replaces #4498) (@lukastaegert)
+- [#4511](https://github.com/rollup/rollup/pull/4511): Tree-shake side-effect-free string methods on template literals (@lukastaegert)
+
 ## 2.74.1
 
 _2022-05-19_
