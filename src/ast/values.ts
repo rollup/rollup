@@ -190,7 +190,7 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
-const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
+export const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		anchor: returnsString,
 
