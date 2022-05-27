@@ -48,7 +48,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	deoptimizePath(path: ObjectPath): void {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			this.consequent.deoptimizePath(path);
 			this.alternate.deoptimizePath(path);
 		} else {
@@ -72,7 +72,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) return UnknownValue;
+		if (!usedBranch) return UnknownValue;
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
@@ -84,7 +84,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null)
+		if (!usedBranch)
 			return new MultiExpression([
 				this.consequent.getReturnExpressionWhenCalledAtPath(
 					path,
@@ -111,7 +111,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			return this.consequent.hasEffects(context) || this.alternate.hasEffects(context);
 		}
 		return usedBranch.hasEffects(context);
@@ -119,7 +119,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			return (
 				this.consequent.hasEffectsWhenAccessedAtPath(path, context) ||
 				this.alternate.hasEffectsWhenAccessedAtPath(path, context)
@@ -130,7 +130,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			return (
 				this.consequent.hasEffectsWhenAssignedAtPath(path, context) ||
 				this.alternate.hasEffectsWhenAssignedAtPath(path, context)
@@ -145,7 +145,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		context: HasEffectsContext
 	): boolean {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			return (
 				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
 				this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, context)
@@ -168,10 +168,10 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionNode | SpreadElement)[]
+		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			this.consequent.includeCallArguments(context, args);
 			this.alternate.includeCallArguments(context, args);
 		} else {
@@ -225,7 +225,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 		this.isBranchResolutionAnalysed = true;
 		const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-		return testValue === UnknownValue
+		return typeof testValue === 'symbol'
 			? null
 			: (this.usedBranch = testValue ? this.consequent : this.alternate);
 	}

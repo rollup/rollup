@@ -1,9 +1,10 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { CallOptions } from '../CallOptions';
 import type { HasEffectsContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
 	declare arguments: ExpressionNode[];
@@ -13,23 +14,37 @@ export default class NewExpression extends NodeBase {
 	private declare callOptions: CallOptions;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		for (const argument of this.arguments) {
-			if (argument.hasEffects(context)) return true;
+		try {
+			for (const argument of this.arguments) {
+				if (argument.hasEffects(context)) return true;
+			}
+			if (
+				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
+				this.annotations
+			)
+				return false;
+			return (
+				this.callee.hasEffects(context) ||
+				this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+			);
+		} finally {
+			if (!this.deoptimized) this.applyDeoptimizations();
 		}
-		if (
-			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-			this.annotations
-		)
-			return false;
-		return (
-			this.callee.hasEffects(context) ||
-			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
-		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 0;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		if (includeChildrenRecursively) {
+			super.include(context, includeChildrenRecursively);
+		} else {
+			this.included = true;
+			this.callee.include(context, false);
+		}
+		this.callee.includeCallArguments(context, this.arguments);
 	}
 
 	initialise(): void {

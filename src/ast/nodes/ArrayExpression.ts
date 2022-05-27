@@ -2,7 +2,12 @@ import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeEvent } from '../NodeEvents';
-import { type ObjectPath, type PathTracker, UnknownInteger } from '../utils/PathTracker';
+import {
+	type ObjectPath,
+	type PathTracker,
+	UNKNOWN_PATH,
+	UnknownInteger
+} from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import type * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
@@ -14,6 +19,7 @@ import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 export default class ArrayExpression extends NodeBase {
 	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
 	declare type: NodeType.tArrayExpression;
+	protected deoptimized = false;
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizePath(path: ObjectPath): void {
@@ -72,6 +78,21 @@ export default class ArrayExpression extends NodeBase {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
+	protected applyDeoptimizations(): void {
+		this.deoptimized = true;
+		let hasSpread = false;
+		for (let index = 0; index < this.elements.length; index++) {
+			const element = this.elements[index];
+			if (hasSpread || element instanceof SpreadElement) {
+				if (element) {
+					hasSpread = true;
+					element.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
+		}
+		this.context.requestTreeshakingPass();
+	}
+
 	private getObjectEntity(): ObjectEntity {
 		if (this.objectEntity !== null) {
 			return this.objectEntity;
@@ -82,7 +103,7 @@ export default class ArrayExpression extends NodeBase {
 		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {
 			const element = this.elements[index];
-			if (element instanceof SpreadElement || hasSpread) {
+			if (hasSpread || element instanceof SpreadElement) {
 				if (element) {
 					hasSpread = true;
 					properties.unshift({ key: UnknownInteger, kind: 'init', property: element });

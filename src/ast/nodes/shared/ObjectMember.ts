@@ -51,7 +51,6 @@ export class ObjectMember extends ExpressionEntity {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return false;
 		return this.object.hasEffectsWhenAccessedAtPath([this.key, ...path], context);
 	}
 

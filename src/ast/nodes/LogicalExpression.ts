@@ -54,7 +54,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	deoptimizePath(path: ObjectPath): void {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			this.left.deoptimizePath(path);
 			this.right.deoptimizePath(path);
 		} else {
@@ -78,7 +78,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) return UnknownValue;
+		if (!usedBranch) return UnknownValue;
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
@@ -90,7 +90,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null)
+		if (!usedBranch)
 			return new MultiExpression([
 				this.left.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin),
 				this.right.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
@@ -116,7 +116,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			return (
 				this.left.hasEffectsWhenAccessedAtPath(path, context) ||
 				this.right.hasEffectsWhenAccessedAtPath(path, context)
@@ -127,7 +127,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			return (
 				this.left.hasEffectsWhenAssignedAtPath(path, context) ||
 				this.right.hasEffectsWhenAssignedAtPath(path, context)
@@ -142,7 +142,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		context: HasEffectsContext
 	): boolean {
 		const usedBranch = this.getUsedBranch();
-		if (usedBranch === null) {
+		if (!usedBranch) {
 			return (
 				this.left.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
 				this.right.hasEffectsWhenCalledAtPath(path, callOptions, context)
@@ -157,7 +157,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (
 			includeChildrenRecursively ||
 			(usedBranch === this.right && this.left.shouldBeIncluded(context)) ||
-			usedBranch === null
+			!usedBranch
 		) {
 			this.left.include(context, includeChildrenRecursively);
 			this.right.include(context, includeChildrenRecursively);
@@ -211,7 +211,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (!this.isBranchResolutionAnalysed) {
 			this.isBranchResolutionAnalysed = true;
 			const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			if (leftValue === UnknownValue) {
+			if (typeof leftValue === 'symbol') {
 				return null;
 			} else {
 				this.usedBranch =

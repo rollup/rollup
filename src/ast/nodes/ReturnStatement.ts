@@ -14,20 +14,14 @@ export default class ReturnStatement extends StatementBase {
 	declare type: NodeType.tReturnStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (
-			!context.ignore.returnYield ||
-			(this.argument !== null && this.argument.hasEffects(context))
-		)
-			return true;
+		if (!context.ignore.returnYield || this.argument?.hasEffects(context)) return true;
 		context.brokenFlow = BROKEN_FLOW_ERROR_RETURN_LABEL;
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		if (this.argument) {
-			this.argument.include(context, includeChildrenRecursively);
-		}
+		this.argument?.include(context, includeChildrenRecursively);
 		context.brokenFlow = BROKEN_FLOW_ERROR_RETURN_LABEL;
 	}
 

@@ -17,11 +17,7 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import type Property from './Property';
 import SpreadElement from './SpreadElement';
-import {
-	type ExpressionEntity,
-	type LiteralValueOrUnknown,
-	UnknownValue
-} from './shared/Expression';
+import { type ExpressionEntity, type LiteralValueOrUnknown } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
@@ -124,7 +120,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 					SHARED_RECURSION_TRACKER,
 					this
 				);
-				if (keyValue === UnknownValue) {
+				if (typeof keyValue === 'symbol') {
 					properties.push({ key: UnknownKey, kind: property.kind, property });
 					continue;
 				} else {

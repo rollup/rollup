@@ -18,8 +18,7 @@ export default class TryStatement extends StatementBase {
 		return (
 			((this.context.options.treeshake as NormalizedTreeshakingOptions).tryCatchDeoptimization
 				? this.block.body.length > 0
-				: this.block.hasEffects(context)) ||
-			(this.finalizer !== null && this.finalizer.hasEffects(context))
+				: this.block.hasEffects(context)) || !!this.finalizer?.hasEffects(context)
 		);
 	}
 
@@ -47,8 +46,6 @@ export default class TryStatement extends StatementBase {
 			this.handler.include(context, includeChildrenRecursively);
 			context.brokenFlow = brokenFlow;
 		}
-		if (this.finalizer !== null) {
-			this.finalizer.include(context, includeChildrenRecursively);
-		}
+		this.finalizer?.include(context, includeChildrenRecursively);
 	}
 }
