@@ -49,7 +49,7 @@ describe('misc', () => {
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,
-					`Creating a browser bundle that depends on Node.js built-in modules ("util"). You might need to include https://github.com/snowpackjs/rollup-plugin-polyfill-node`
+					`Creating a browser bundle that depends on Node.js built-in modules ("util"). You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node`
 				);
 			});
 	});
