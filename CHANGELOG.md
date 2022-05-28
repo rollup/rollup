@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 2.75.1
+
+_2022-05-28_
+
+### Pull Requests
+
+- [#4513](https://github.com/rollup/rollup/pull/4513): Update link to node polyfill repo (@lukastaegert)
+
 ## 2.75.0
 
 _2022-05-27_
