@@ -38,7 +38,7 @@ export default function warnOnBuiltins(
 		code: 'MISSING_NODE_BUILTINS',
 		message: `Creating a browser bundle that depends on Node.js built-in modules (${printQuotedStringList(
 			externalBuiltins
-		)}). You might need to include https://github.com/snowpackjs/rollup-plugin-polyfill-node`,
+		)}). You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node`,
 		modules: externalBuiltins
 	});
 }
