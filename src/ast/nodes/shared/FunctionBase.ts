@@ -175,6 +175,7 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		includeChildrenRecursively: IncludeChildren,
 		{ includeWithoutParameterDefaults }: InclusionOptions = BLANK
 	): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = BROKEN_FLOW_NONE;
@@ -242,6 +243,16 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 			this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
 		}
 		super.parseNode(esTreeNode);
+	}
+
+	protected applyDeoptimizations() {
+		// We currently do not track deoptimizations of default values, deoptimize them
+		// just as we deoptimize call arguments
+		for (const param of this.params) {
+			if (param instanceof AssignmentPattern) {
+				param.right.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
 	}
 
 	protected abstract getObjectEntity(): ObjectEntity;
