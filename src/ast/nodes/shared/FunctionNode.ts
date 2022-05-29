@@ -39,6 +39,7 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	hasEffects(): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return !!this.id?.hasEffects();
 	}
 
