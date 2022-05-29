@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.75.3
+
+_2022-05-29_
+
+### Bug Fixes
+
+- Retain parameter defaults for functions that are defaults themselves (#4515)
+- Track mutations for objects as default values (#4515)
+
+### Pull Requests
+
+- [#4515](https://github.com/rollup/rollup/pull/4515): Ensure parameter defaults are deoptimized (@lukastaegert)
+
 ## 2.75.1
 
 _2022-05-28_
