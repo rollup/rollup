@@ -37,4 +37,6 @@ export default class ClassBody extends NodeBase {
 		}
 		super.parseNode(esTreeNode);
 	}
+
+	protected applyDeoptimizations() {}
 }

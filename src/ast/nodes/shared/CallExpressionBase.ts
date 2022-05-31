@@ -13,7 +13,6 @@ import { NodeBase } from './Node';
 
 export default abstract class CallExpressionBase extends NodeBase implements DeoptimizableEntity {
 	protected declare callOptions: CallOptions;
-	protected deoptimized = false;
 	protected returnExpression: ExpressionEntity | null = null;
 	private readonly deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
 	private readonly expressionsToBeDeoptimized = new Set<ExpressionEntity>();

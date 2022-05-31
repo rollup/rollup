@@ -7,7 +7,6 @@ import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from '
 export default class AwaitExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare type: NodeType.tAwaitExpression;
-	protected deoptimized = false;
 
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

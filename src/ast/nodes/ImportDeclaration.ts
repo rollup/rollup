@@ -27,6 +27,8 @@ export default class ImportDeclaration extends NodeBase {
 	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		code.remove(nodeRenderOptions!.start!, nodeRenderOptions!.end!);
 	}
+
+	protected applyDeoptimizations() {}
 }
 
 ImportDeclaration.prototype.needsBoundaries = true;

@@ -9,7 +9,6 @@ import { type ExpressionNode, NodeBase } from './shared/Node';
 export default class SpreadElement extends NodeBase {
 	declare argument: ExpressionNode;
 	declare type: NodeType.tSpreadElement;
-	protected deoptimized = false;
 
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,

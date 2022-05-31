@@ -73,4 +73,6 @@ export default class PropertyDefinition extends NodeBase {
 	): boolean {
 		return !this.value || this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
+
+	protected applyDeoptimizations() {}
 }

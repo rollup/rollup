@@ -36,4 +36,6 @@ export default class ExpressionStatement extends StatementBase {
 
 		return super.shouldBeIncluded(context);
 	}
+
+	protected applyDeoptimizations() {}
 }

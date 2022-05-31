@@ -96,6 +96,8 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
+	protected applyDeoptimizations() {}
+
 	private renderDeclarationEnd(
 		code: MagicString,
 		separatorString: string,

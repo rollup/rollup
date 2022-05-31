@@ -38,4 +38,6 @@ export default class Program extends NodeBase {
 			super.render(code, options);
 		}
 	}
+
+	protected applyDeoptimizations() {}
 }

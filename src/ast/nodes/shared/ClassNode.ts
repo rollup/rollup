@@ -16,6 +16,7 @@ import type ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
+import PropertyDefinition from '../PropertyDefinition';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
@@ -26,7 +27,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare body: ClassBody;
 	declare id: Identifier | null;
 	declare superClass: ExpressionNode | null;
-	protected deoptimized = false;
 	private declare classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 
@@ -150,8 +150,11 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			) {
 				// Calls to methods are not tracked, ensure that the return value is deoptimized
 				definition.deoptimizePath(UNKNOWN_PATH);
+			} else if (definition instanceof PropertyDefinition) {
+				definition.value?.deoptimizeCallParameters();
 			}
 		}
+		this.superClass?.deoptimizeCallParameters();
 		this.context.requestTreeshakingPass();
 	}
 

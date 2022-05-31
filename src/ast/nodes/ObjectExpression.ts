@@ -15,7 +15,7 @@ import {
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import type Property from './Property';
+import Property from './Property';
 import SpreadElement from './SpreadElement';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './shared/Expression';
 import { NodeBase } from './shared/Node';
@@ -99,6 +99,15 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');
+		}
+	}
+
+	protected applyDeoptimizations() {
+		this.deoptimized = true;
+		for (const property of this.properties) {
+			if (property instanceof Property) {
+				property.value.deoptimizeCallParameters();
+			}
 		}
 	}
 

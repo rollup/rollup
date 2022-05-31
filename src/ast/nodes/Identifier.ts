@@ -36,7 +36,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 	declare name: string;
 	declare type: NodeType.tIdentifier;
 	variable: Variable | null = null;
-	protected deoptimized = false;
 	private isTDZAccess: boolean | null = null;
 
 	addExportedVariables(
@@ -87,11 +86,17 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return [(this.variable = variable)];
 	}
 
+	deoptimizeCallParameters() {
+		this.variable!.deoptimizeCallParameters();
+	}
+
 	deoptimizePath(path: ObjectPath): void {
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
 		}
-		this.variable!.deoptimizePath(path);
+		// We keep conditional chaining because an unknown Node could have an
+		// Identifier as property that might be deoptimized by default
+		this.variable?.deoptimizePath(path);
 	}
 
 	deoptimizeThisOnEventAtPath(

@@ -10,7 +10,6 @@ export default class NewExpression extends NodeBase {
 	declare arguments: ExpressionNode[];
 	declare callee: ExpressionNode;
 	declare type: NodeType.tNewExpression;
-	protected deoptimized = false;
 	private declare callOptions: CallOptions;
 
 	hasEffects(context: HasEffectsContext): boolean {

@@ -129,6 +129,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.renderHoistedDeclarations(hoistedDeclarations, code, getPropertyAccess);
 	}
 
+	protected applyDeoptimizations() {}
+
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
 			return (this.testValue = this.test.getLiteralValueAtPath(

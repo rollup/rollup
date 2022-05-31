@@ -22,6 +22,8 @@ export default class ExportAllDeclaration extends NodeBase {
 	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		code.remove(nodeRenderOptions!.start!, nodeRenderOptions!.end!);
 	}
+
+	protected applyDeoptimizations() {}
 }
 
 ExportAllDeclaration.prototype.needsBoundaries = true;

@@ -19,7 +19,6 @@ export default class ForInStatement extends StatementBase {
 	declare left: VariableDeclaration | PatternNode;
 	declare right: ExpressionNode;
 	declare type: NodeType.tForInStatement;
-	protected deoptimized = false;
 
 	createScope(parentScope: Scope): void {
 		this.scope = new BlockScope(parentScope);
