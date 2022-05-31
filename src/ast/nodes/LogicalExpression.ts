@@ -42,13 +42,16 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	private usedBranch: ExpressionNode | null = null;
 
 	deoptimizeCache(): void {
-		if (this.usedBranch !== null) {
+		if (this.usedBranch) {
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
+			// Request another pass because we need to ensure "include" runs again if
+			// it is rendered
+			this.context.requestTreeshakingPass();
 		}
 	}
 
