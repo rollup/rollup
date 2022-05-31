@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.75.4
+
+_2022-05-31_
+
+### Bug Fixes
+
+- Ensure parameter defaults are retained when a function is used as an object property (#4516)
+
+### Pull Requests
+
+- [#4516](https://github.com/rollup/rollup/pull/4516): Deoptimize parameter defaults when referenced from object/array/class literals (@lukastaegert)
+
 ## 2.75.3
 
 _2022-05-29_
