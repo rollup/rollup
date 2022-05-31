@@ -24,7 +24,7 @@
     "perf:init": "node scripts/perf-init.js",
     "postpublish": "git push && git push --tags",
     "prepare": "husky install && npm run build",
-    "prepublishOnly": "npm ci && npm run lint:nofix && npm run security && npm run build:bootstrap && npm run test:all",
+    "prepublishOnly": "git pull --ff-only && npm ci && npm run lint:nofix && npm run security && npm run build:bootstrap && npm run test:all",
     "security": "npm audit",
     "test": "npm run build && npm run test:all",
     "test:cjs": "npm run build:cjs && npm run test:only",
