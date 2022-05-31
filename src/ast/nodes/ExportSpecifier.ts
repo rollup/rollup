@@ -6,4 +6,6 @@ export default class ExportSpecifier extends NodeBase {
 	declare exported: Identifier;
 	declare local: Identifier;
 	declare type: NodeType.tExportSpecifier;
+
+	protected applyDeoptimizations() {}
 }

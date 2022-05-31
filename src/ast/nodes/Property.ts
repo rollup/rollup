@@ -16,7 +16,6 @@ export default class Property extends MethodBase implements PatternNode {
 	declare method: boolean;
 	declare shorthand: boolean;
 	declare type: NodeType.tProperty;
-	protected deoptimized = false;
 	private declarationInit: ExpressionEntity | null = null;
 
 	declare(kind: string, init: ExpressionEntity): LocalVariable[] {

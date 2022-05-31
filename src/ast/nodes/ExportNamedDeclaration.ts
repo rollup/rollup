@@ -38,6 +38,8 @@ export default class ExportNamedDeclaration extends NodeBase {
 			(this.declaration as Node).render(code, options, { end, start });
 		}
 	}
+
+	protected applyDeoptimizations() {}
 }
 
 ExportNamedDeclaration.prototype.needsBoundaries = true;

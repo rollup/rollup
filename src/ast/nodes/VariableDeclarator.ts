@@ -69,4 +69,6 @@ export default class VariableDeclarator extends NodeBase {
 			code.appendLeft(this.end, `${_}=${_}void 0`);
 		}
 	}
+
+	protected applyDeoptimizations() {}
 }

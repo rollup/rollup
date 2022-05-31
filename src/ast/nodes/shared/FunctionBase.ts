@@ -54,6 +54,10 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		this.forceIncludeParameters = true;
 	}
 
+	deoptimizeCallParameters() {
+		this.forceIncludeParameters = true;
+	}
+
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
 		if (path.length === 1 && path[0] === UnknownKey) {

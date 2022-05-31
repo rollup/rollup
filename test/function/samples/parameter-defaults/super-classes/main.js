@@ -33,3 +33,11 @@ assert.strictEqual(B.staticMethod(), 'superStaticDefault');
 const b = new B();
 assert.strictEqual(b.a, 'superConstructorDefault');
 assert.strictEqual(b.method(), 'superMethodDefault');
+
+function SuperFunction(a = 'functionDefault') {
+	assert.strictEqual(a, 'functionDefault');
+}
+
+class C extends SuperFunction {}
+
+new C();

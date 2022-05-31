@@ -15,7 +15,6 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	declare left: PatternNode;
 	declare right: ExpressionNode;
 	declare type: NodeType.tAssignmentPattern;
-	protected deoptimized = false;
 
 	addExportedVariables(
 		variables: readonly Variable[],

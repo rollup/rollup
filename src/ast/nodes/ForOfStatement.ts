@@ -20,7 +20,6 @@ export default class ForOfStatement extends StatementBase {
 	declare left: VariableDeclaration | PatternNode;
 	declare right: ExpressionNode;
 	declare type: NodeType.tForOfStatement;
-	protected deoptimized = false;
 
 	createScope(parentScope: Scope): void {
 		this.scope = new BlockScope(parentScope);

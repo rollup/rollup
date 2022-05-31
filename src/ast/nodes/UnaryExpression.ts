@@ -24,7 +24,6 @@ export default class UnaryExpression extends NodeBase {
 	declare operator: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
 	declare prefix: boolean;
 	declare type: NodeType.tUnaryExpression;
-	protected deoptimized = false;
 
 	getLiteralValueAtPath(
 		path: ObjectPath,

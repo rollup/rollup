@@ -116,6 +116,8 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		return this.getAccessedValue().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
+	protected applyDeoptimizations() {}
+
 	protected getAccessedValue(): ExpressionEntity {
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {

@@ -43,7 +43,6 @@ export default class AssignmentExpression extends NodeBase {
 		| '**=';
 	declare right: ExpressionNode;
 	declare type: NodeType.tAssignmentExpression;
-	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

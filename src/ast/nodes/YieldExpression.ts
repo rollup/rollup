@@ -8,7 +8,6 @@ export default class YieldExpression extends NodeBase {
 	declare argument: ExpressionNode | null;
 	declare delegate: boolean;
 	declare type: NodeType.tYieldExpression;
-	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

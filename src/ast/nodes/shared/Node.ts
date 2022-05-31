@@ -96,7 +96,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	// executed code. To do this, they must initialize this as false, implement
 	// applyDeoptimizations and call this from include and hasEffects if they
 	// have custom handlers
-	protected deoptimized?: boolean;
+	protected deoptimized = false;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
@@ -146,7 +146,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (this.deoptimized === false) this.applyDeoptimizations();
+		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
@@ -164,7 +164,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
 	): void {
-		if (this.deoptimized === false) this.applyDeoptimizations();
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];

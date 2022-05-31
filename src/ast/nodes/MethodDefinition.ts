@@ -10,4 +10,6 @@ export default class MethodDefinition extends MethodBase {
 	declare static: boolean;
 	declare type: NodeType.tMethodDefinition;
 	declare value: FunctionExpression;
+
+	protected applyDeoptimizations() {}
 }

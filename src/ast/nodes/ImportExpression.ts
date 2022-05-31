@@ -124,6 +124,8 @@ export default class ImportExpression extends NodeBase {
 		this.inlineNamespace = inlineNamespace;
 	}
 
+	protected applyDeoptimizations() {}
+
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',

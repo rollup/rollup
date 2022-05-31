@@ -109,6 +109,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.declaration.render(code, options);
 	}
 
+	protected applyDeoptimizations() {}
+
 	private renderNamedDeclaration(
 		code: MagicString,
 		declarationStart: number,
