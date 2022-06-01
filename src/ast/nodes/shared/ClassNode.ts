@@ -16,7 +16,6 @@ import type ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
-import PropertyDefinition from '../PropertyDefinition';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
@@ -139,6 +138,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.classConstructor = null;
 	}
 
+	// TODO Lukas also deoptimize all static methods when losing track of this one
+	// TODO Lukas ensure we always request a pass when deoptimizing something? Or only where it matters e.g. in variables?
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		for (const definition of this.body.body) {
@@ -150,11 +151,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			) {
 				// Calls to methods are not tracked, ensure that the return value is deoptimized
 				definition.deoptimizePath(UNKNOWN_PATH);
-			} else if (definition instanceof PropertyDefinition) {
-				definition.value?.deoptimizeCallParameters();
 			}
 		}
-		this.superClass?.deoptimizeCallParameters();
 		this.context.requestTreeshakingPass();
 	}
 

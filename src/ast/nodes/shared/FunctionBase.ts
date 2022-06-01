@@ -50,11 +50,8 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 	private forceIncludeParameters = false;
 	private declare parameterVariables: LocalVariable[][];
 
+	// TODO Lukas we may no longer need forceIncludeParameters, and we no longer need deoptimize Cache. How was this handled before?
 	deoptimizeCache() {
-		this.forceIncludeParameters = true;
-	}
-
-	deoptimizeCallParameters() {
 		this.forceIncludeParameters = true;
 	}
 

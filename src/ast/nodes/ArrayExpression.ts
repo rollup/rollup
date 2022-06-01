@@ -85,11 +85,7 @@ export default class ArrayExpression extends NodeBase {
 			if (element) {
 				if (hasSpread || element instanceof SpreadElement) {
 					hasSpread = true;
-					// This also deoptimizes parameter defaults
 					element.deoptimizePath(UNKNOWN_PATH);
-				} else {
-					// We do not track parameter defaults in arrays
-					element.deoptimizeCallParameters();
 				}
 			}
 		}

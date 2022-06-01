@@ -24,8 +24,6 @@ export interface InclusionOptions {
 export class ExpressionEntity implements WritableEntity {
 	included = false;
 
-	deoptimizeCallParameters(): void {}
-
 	deoptimizePath(_path: ObjectPath): void {}
 
 	deoptimizeThisOnEventAtPath(
