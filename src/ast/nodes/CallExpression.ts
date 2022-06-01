@@ -1,11 +1,8 @@
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import {
-	findFirstOccurrenceOutsideComment,
-	type NodeRenderOptions,
-	type RenderOptions
-} from '../../utils/renderHelpers';
+import { renderCallArguments } from '../../utils/renderCallArguments';
+import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EVENT_CALLED } from '../NodeEvents';
@@ -116,36 +113,7 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 			isCalleeOfRenderedParent: true,
 			renderedSurroundingElement
 		});
-		if (this.arguments.length > 0) {
-			if (this.arguments[this.arguments.length - 1].included) {
-				for (const arg of this.arguments) {
-					arg.render(code, options);
-				}
-			} else {
-				let lastIncludedIndex = this.arguments.length - 2;
-				while (lastIncludedIndex >= 0 && !this.arguments[lastIncludedIndex].included) {
-					lastIncludedIndex--;
-				}
-				if (lastIncludedIndex >= 0) {
-					for (let index = 0; index <= lastIncludedIndex; index++) {
-						this.arguments[index].render(code, options);
-					}
-					code.remove(
-						findFirstOccurrenceOutsideComment(
-							code.original,
-							',',
-							this.arguments[lastIncludedIndex].end
-						),
-						this.end - 1
-					);
-				} else {
-					code.remove(
-						findFirstOccurrenceOutsideComment(code.original, '(', this.callee.end) + 1,
-						this.end - 1
-					);
-				}
-			}
-		}
+		renderCallArguments(code, options, this);
 	}
 
 	protected applyDeoptimizations(): void {

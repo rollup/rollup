@@ -1,4 +1,7 @@
+import MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import { renderCallArguments } from '../../utils/renderCallArguments';
+import { RenderOptions } from '../../utils/renderHelpers';
 import type { CallOptions } from '../CallOptions';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { InclusionContext } from '../ExecutionContext';
@@ -52,6 +55,11 @@ export default class NewExpression extends NodeBase {
 			thisParam: null,
 			withNew: true
 		};
+	}
+
+	render(code: MagicString, options: RenderOptions) {
+		this.callee.render(code, options);
+		renderCallArguments(code, options, this);
 	}
 
 	protected applyDeoptimizations(): void {
