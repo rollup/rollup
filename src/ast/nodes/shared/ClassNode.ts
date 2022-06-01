@@ -39,12 +39,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
-		if (path.length === 1 && path[0] === UnknownKey) {
-			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
-			// which means the constructor needs to be reassigned
-			this.classConstructor?.deoptimizePath(UNKNOWN_PATH);
-			this.superClass?.deoptimizePath(UNKNOWN_PATH);
-		}
 	}
 
 	deoptimizeThisOnEventAtPath(
@@ -138,8 +132,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.classConstructor = null;
 	}
 
-	// TODO Lukas also deoptimize all static methods when losing track of this one
-	// TODO Lukas ensure we always request a pass when deoptimizing something? Or only where it matters e.g. in variables?
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		for (const definition of this.body.body) {

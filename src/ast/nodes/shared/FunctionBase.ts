@@ -9,7 +9,6 @@ import {
 import { NodeEvent } from '../../NodeEvents';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
 import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
-import AssignmentPattern from '../AssignmentPattern';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
@@ -165,16 +164,7 @@ export default abstract class FunctionBase extends NodeBase {
 		super.parseNode(esTreeNode);
 	}
 
-	// TODO Lukas move to AssignmentPattern
-	protected applyDeoptimizations() {
-		// We currently do not track deoptimizations of default values, deoptimize them
-		// just as we deoptimize call arguments
-		for (const param of this.params) {
-			if (param instanceof AssignmentPattern) {
-				param.right.deoptimizePath(UNKNOWN_PATH);
-			}
-		}
-	}
+	protected applyDeoptimizations() {}
 
 	protected abstract getObjectEntity(): ObjectEntity;
 }
