@@ -6,7 +6,7 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import { NodeEvent } from '../../NodeEvents';
+import { NodeInteraction } from '../../NodeInteractions';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
 import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
@@ -41,15 +41,15 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		if (path.length > 0) {
-			this.getObjectEntity().deoptimizeThisOnEventAtPath(
-				event,
+			this.getObjectEntity().deoptimizeThisOnInteractionAtPath(
+				interaction,
 				path,
 				thisParameter,
 				recursionTracker

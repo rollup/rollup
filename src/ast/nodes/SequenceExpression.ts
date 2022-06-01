@@ -10,7 +10,7 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteraction } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
@@ -25,14 +25,14 @@ export default class SequenceExpression extends NodeBase {
 		this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
-			event,
+		this.expressions[this.expressions.length - 1].deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
 			thisParameter,
 			recursionTracker

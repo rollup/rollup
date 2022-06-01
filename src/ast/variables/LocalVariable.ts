@@ -2,7 +2,7 @@ import Module, { AstContext } from '../../Module';
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteraction } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
@@ -81,8 +81,8 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
@@ -93,7 +93,13 @@ export default class LocalVariable extends Variable {
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() => this.init!.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker),
+			() =>
+				this.init!.deoptimizeThisOnInteractionAtPath(
+					interaction,
+					path,
+					thisParameter,
+					recursionTracker
+				),
 			undefined
 		);
 	}

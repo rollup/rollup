@@ -4,7 +4,7 @@ import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteraction } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -35,14 +35,14 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.getObjectEntity().deoptimizeThisOnEventAtPath(
-			event,
+		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
 			thisParameter,
 			recursionTracker

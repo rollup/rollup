@@ -1,7 +1,7 @@
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteraction } from '../NodeInteractions';
 import {
 	type ObjectPath,
 	type PathTracker,
@@ -25,14 +25,14 @@ export default class ArrayExpression extends NodeBase {
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.getObjectEntity().deoptimizeThisOnEventAtPath(
-			event,
+		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
 			thisParameter,
 			recursionTracker

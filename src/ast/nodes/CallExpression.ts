@@ -5,7 +5,7 @@ import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED } from '../NodeEvents';
+import { INTERACTION_CALLED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type PathTracker,
@@ -120,8 +120,8 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 		this.deoptimized = true;
 		const { thisParam } = this.callOptions;
 		if (thisParam) {
-			this.callee.deoptimizeThisOnEventAtPath(
-				EVENT_CALLED,
+			this.callee.deoptimizeThisOnInteractionAtPath(
+				INTERACTION_CALLED,
 				EMPTY_PATH,
 				thisParam,
 				SHARED_RECURSION_TRACKER

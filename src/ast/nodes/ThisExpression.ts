@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteraction } from '../NodeInteractions';
 import ModuleScope from '../scopes/ModuleScope';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
@@ -21,14 +21,14 @@ export default class ThisExpression extends NodeBase {
 		this.variable.deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.variable.deoptimizeThisOnEventAtPath(
-			event,
+		this.variable.deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
 			// We rewrite the parameter so that a ThisVariable can detect self-mutations
 			thisParameter === this ? this.variable : thisParameter,

@@ -1,7 +1,7 @@
 import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { type NodeEvent } from '../../NodeEvents';
+import { type NodeInteraction } from '../../NodeInteractions';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
 	type ExpressionEntity,
@@ -42,8 +42,8 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
@@ -57,8 +57,8 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 				returnExpression,
 				() => {
 					this.expressionsToBeDeoptimized.add(thisParameter);
-					returnExpression.deoptimizeThisOnEventAtPath(
-						event,
+					returnExpression.deoptimizeThisOnInteractionAtPath(
+						interaction,
 						path,
 						thisParameter,
 						recursionTracker

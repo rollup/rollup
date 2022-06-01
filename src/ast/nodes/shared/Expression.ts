@@ -2,7 +2,7 @@ import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { NodeEvent } from '../../NodeEvents';
+import { NodeInteraction } from '../../NodeInteractions';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { LiteralValue } from '../Literal';
 import SpreadElement from '../SpreadElement';
@@ -25,8 +25,8 @@ export class ExpressionEntity implements WritableEntity {
 
 	deoptimizePath(_path: ObjectPath): void {}
 
-	deoptimizeThisOnEventAtPath(
-		_event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		_interaction: NodeInteraction,
 		_path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		_recursionTracker: PathTracker

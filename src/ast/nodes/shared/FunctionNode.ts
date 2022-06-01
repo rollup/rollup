@@ -1,6 +1,6 @@
 import { type CallOptions } from '../../CallOptions';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
+import { INTERACTION_CALLED, type NodeInteraction } from '../../NodeInteractions';
 import FunctionScope from '../../scopes/FunctionScope';
 import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
@@ -25,14 +25,14 @@ export default class FunctionNode extends FunctionBase {
 		this.scope = new FunctionScope(parentScope, this.context);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		super.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-		if (event === EVENT_CALLED && path.length === 0) {
+		super.deoptimizeThisOnInteractionAtPath(interaction, path, thisParameter, recursionTracker);
+		if (interaction === INTERACTION_CALLED && path.length === 0) {
 			this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
 		}
 	}

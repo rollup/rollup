@@ -1,6 +1,6 @@
 import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
+import { INTERACTION_CALLED, type NodeInteraction } from '../../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
@@ -28,12 +28,16 @@ export class Method extends ExpressionEntity {
 		super();
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity
 	): void {
-		if (event === EVENT_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
+		if (
+			interaction === INTERACTION_CALLED &&
+			path.length === 0 &&
+			this.description.mutatesSelfAsArray
+		) {
 			thisParameter.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}
 	}

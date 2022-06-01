@@ -6,7 +6,11 @@ import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_ACCESSED, EVENT_ASSIGNED, type NodeEvent } from '../NodeEvents';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	type NodeInteraction
+} from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -137,18 +141,23 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		if (this.variable) {
-			this.variable.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+			this.variable.deoptimizeThisOnInteractionAtPath(
+				interaction,
+				path,
+				thisParameter,
+				recursionTracker
+			);
 		} else if (!this.replacement) {
 			if (path.length < MAX_PATH_DEPTH) {
-				this.object.deoptimizeThisOnEventAtPath(
-					event,
+				this.object.deoptimizeThisOnInteractionAtPath(
+					interaction,
 					[this.getPropertyKey(), ...path],
 					thisParameter,
 					recursionTracker
@@ -343,16 +352,16 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		) {
 			// Regular Assignments do not access the property before assigning
 			if (!(this.parent instanceof AssignmentExpression && this.parent.operator === '=')) {
-				this.object.deoptimizeThisOnEventAtPath(
-					EVENT_ACCESSED,
+				this.object.deoptimizeThisOnInteractionAtPath(
+					INTERACTION_ACCESSED,
 					[this.propertyKey!],
 					this.object,
 					SHARED_RECURSION_TRACKER
 				);
 			}
 			if (this.parent instanceof AssignmentExpression) {
-				this.object.deoptimizeThisOnEventAtPath(
-					EVENT_ASSIGNED,
+				this.object.deoptimizeThisOnInteractionAtPath(
+					INTERACTION_ASSIGNED,
 					[this.propertyKey!],
 					this.object,
 					SHARED_RECURSION_TRACKER

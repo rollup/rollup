@@ -2,7 +2,7 @@ import type MagicString from 'magic-string';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED } from '../NodeEvents';
+import { INTERACTION_CALLED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	PathTracker,
@@ -88,8 +88,8 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		this.deoptimized = true;
 		const { thisParam } = this.callOptions;
 		if (thisParam) {
-			this.tag.deoptimizeThisOnEventAtPath(
-				EVENT_CALLED,
+			this.tag.deoptimizeThisOnInteractionAtPath(
+				INTERACTION_CALLED,
 				EMPTY_PATH,
 				thisParam,
 				SHARED_RECURSION_TRACKER

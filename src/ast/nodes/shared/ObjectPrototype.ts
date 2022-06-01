@@ -1,4 +1,4 @@
-import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
+import { INTERACTION_CALLED, NodeInteraction } from '../../NodeInteractions';
 import { ObjectPath, ObjectPathKey, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
 import {
@@ -16,12 +16,12 @@ const isInteger = (prop: ObjectPathKey): boolean => typeof prop === 'string' && 
 // will improve tree-shaking for out-of-bounds array properties
 const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 	new (class ObjectPrototypeFallbackExpression extends ExpressionEntity {
-		deoptimizeThisOnEventAtPath(
-			event: NodeEvent,
+		deoptimizeThisOnInteractionAtPath(
+			interaction: NodeInteraction,
 			path: ObjectPath,
 			thisParameter: ExpressionEntity
 		): void {
-			if (event === EVENT_CALLED && path.length === 1 && !isInteger(path[0])) {
+			if (interaction === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {
 				thisParameter.deoptimizePath(UNKNOWN_PATH);
 			}
 		}

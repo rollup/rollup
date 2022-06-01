@@ -1,7 +1,7 @@
 import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import type { NodeEvent } from '../../NodeEvents';
+import type { NodeInteraction } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 
@@ -14,14 +14,14 @@ export class ObjectMember extends ExpressionEntity {
 		this.object.deoptimizePath([this.key, ...path]);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.object.deoptimizeThisOnEventAtPath(
-			event,
+		this.object.deoptimizeThisOnInteractionAtPath(
+			interaction,
 			[this.key, ...path],
 			thisParameter,
 			recursionTracker

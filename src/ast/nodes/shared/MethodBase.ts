@@ -1,7 +1,12 @@
 import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { EVENT_ACCESSED, EVENT_ASSIGNED, EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	type NodeInteraction
+} from '../../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -38,30 +43,30 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		this.getAccessedValue().deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (event === EVENT_ACCESSED && this.kind === 'get' && path.length === 0) {
-			return this.value.deoptimizeThisOnEventAtPath(
-				EVENT_CALLED,
+		if (interaction === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
+			return this.value.deoptimizeThisOnInteractionAtPath(
+				INTERACTION_CALLED,
 				EMPTY_PATH,
 				thisParameter,
 				recursionTracker
 			);
 		}
-		if (event === EVENT_ASSIGNED && this.kind === 'set' && path.length === 0) {
-			return this.value.deoptimizeThisOnEventAtPath(
-				EVENT_CALLED,
+		if (interaction === INTERACTION_ASSIGNED && this.kind === 'set' && path.length === 0) {
+			return this.value.deoptimizeThisOnInteractionAtPath(
+				INTERACTION_CALLED,
 				EMPTY_PATH,
 				thisParameter,
 				recursionTracker
 			);
 		}
-		this.getAccessedValue().deoptimizeThisOnEventAtPath(
-			event,
+		this.getAccessedValue().deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
 			thisParameter,
 			recursionTracker
