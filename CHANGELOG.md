@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.75.5
+
+_2022-06-01_
+
+### Bug Fixes
+
+- Avoid crashes when using logical expressions for unused constructor arguments (#4519)
+- Fix missing parameter defaults for calls from try statements and functions returned by functions (#4520)
+
+### Pull Requests
+
+- [#4519](https://github.com/rollup/rollup/pull/4519): Try to make logical expression deoptimization more robust (@lukastaegert)
+- [#4520](https://github.com/rollup/rollup/pull/4520): Roll back parameter default tree shaking (@lukastaegert)
+
 ## 2.75.4
 
 _2022-05-31_
