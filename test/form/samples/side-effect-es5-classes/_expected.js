@@ -22,7 +22,7 @@ var Arrow = ( x ) => {
 console.log( 'before' );
 new Bar(5);
 new Baz(5);
-new Qux(5);
+new Qux();
 Corge(5);
 new Arrow(5);
 
