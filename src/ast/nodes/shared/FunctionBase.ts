@@ -1,5 +1,4 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { BLANK } from '../../../utils/blank';
 import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
@@ -25,7 +24,6 @@ import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
 import {
 	type ExpressionEntity,
-	InclusionOptions,
 	LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
@@ -171,22 +169,15 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		return false;
 	}
 
-	include(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren,
-		{ includeWithoutParameterDefaults }: InclusionOptions = BLANK
-	): void {
+	// TODO Lukas revert to old logic
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = BROKEN_FLOW_NONE;
 		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
-		if (
-			!includeWithoutParameterDefaults ||
-			includeChildrenRecursively ||
-			this.forceIncludeParameters
-		) {
+		if (includeChildrenRecursively || this.forceIncludeParameters) {
 			for (const param of this.params) {
 				param.include(context, includeChildrenRecursively);
 			}
