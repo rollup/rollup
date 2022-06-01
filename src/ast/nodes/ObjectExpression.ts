@@ -102,14 +102,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	protected applyDeoptimizations() {
-		this.deoptimized = true;
-		for (const property of this.properties) {
-			if (property instanceof Property) {
-				property.value.deoptimizeCallParameters();
-			}
-		}
-	}
+	protected applyDeoptimizations() {}
 
 	private getObjectEntity(): ObjectEntity {
 		if (this.objectEntity !== null) {

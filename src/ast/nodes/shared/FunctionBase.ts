@@ -1,5 +1,4 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { BLANK } from '../../../utils/blank';
 import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
@@ -9,27 +8,12 @@ import {
 } from '../../ExecutionContext';
 import { NodeEvent } from '../../NodeEvents';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
-import {
-	EMPTY_PATH,
-	type ObjectPath,
-	PathTracker,
-	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH,
-	UnknownKey
-} from '../../utils/PathTracker';
-import LocalVariable from '../../variables/LocalVariable';
-import AssignmentPattern from '../AssignmentPattern';
+import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
-import {
-	type ExpressionEntity,
-	InclusionOptions,
-	LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
-} from './Expression';
+import { type ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -39,7 +23,7 @@ import {
 import { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
 
-export default abstract class FunctionBase extends NodeBase implements DeoptimizableEntity {
+export default abstract class FunctionBase extends NodeBase {
 	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
 	declare params: readonly PatternNode[];
@@ -47,23 +31,12 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 	declare scope: ReturnValueScope;
 	protected objectEntity: ObjectEntity | null = null;
 	private deoptimizedReturn = false;
-	private forceIncludeParameters = false;
-	private declare parameterVariables: LocalVariable[][];
-
-	deoptimizeCache() {
-		this.forceIncludeParameters = true;
-	}
-
-	deoptimizeCallParameters() {
-		this.forceIncludeParameters = true;
-	}
 
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
 		if (path.length === 1 && path[0] === UnknownKey) {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the return expression needs to be reassigned
-			this.forceIncludeParameters = true;
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 		}
 	}
@@ -150,89 +123,31 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 				return true;
 			}
 		}
-		for (let position = 0; position < this.params.length; position++) {
-			const parameter = this.params[position];
-			if (parameter instanceof AssignmentPattern) {
-				if (parameter.left.hasEffects(context)) {
-					return true;
-				}
-				const argumentValue = callOptions.args[position]?.getLiteralValueAtPath(
-					EMPTY_PATH,
-					SHARED_RECURSION_TRACKER,
-					this
-				);
-				if (
-					(argumentValue === undefined || argumentValue === UnknownValue) &&
-					parameter.right.hasEffects(context)
-				) {
-					return true;
-				}
-			} else if (parameter.hasEffects(context)) {
-				return true;
-			}
+		for (const param of this.params) {
+			if (param.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	include(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren,
-		{ includeWithoutParameterDefaults }: InclusionOptions = BLANK
-	): void {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = BROKEN_FLOW_NONE;
 		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
-		if (
-			!includeWithoutParameterDefaults ||
-			includeChildrenRecursively ||
-			this.forceIncludeParameters
-		) {
-			for (const param of this.params) {
-				param.include(context, includeChildrenRecursively);
-			}
-		}
 	}
 
 	includeCallArguments(
 		context: InclusionContext,
 		args: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		for (let position = 0; position < this.params.length; position++) {
-			const parameter = this.params[position];
-			if (parameter instanceof AssignmentPattern) {
-				if (parameter.left.shouldBeIncluded(context)) {
-					parameter.left.include(context, false);
-				}
-				const argumentValue = args[position]?.getLiteralValueAtPath(
-					EMPTY_PATH,
-					SHARED_RECURSION_TRACKER,
-					this
-				);
-				// If argumentValue === UnknownTruthyValue, then we do not need to
-				// include the default
-				if (
-					(argumentValue === undefined || argumentValue === UnknownValue) &&
-					(this.parameterVariables[position].some(variable => variable.included) ||
-						parameter.right.shouldBeIncluded(context))
-				) {
-					parameter.right.include(context, false);
-				}
-			} else if (parameter.shouldBeIncluded(context)) {
-				parameter.include(context, false);
-			}
-		}
 		this.scope.includeCallArguments(context, args);
 	}
 
 	initialise(): void {
-		this.parameterVariables = this.params.map(param =>
-			param.declare('parameter', UNKNOWN_EXPRESSION)
-		);
 		this.scope.addParameterVariables(
-			this.parameterVariables,
+			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
 			this.params[this.params.length - 1] instanceof RestElement
 		);
 		if (this.body instanceof BlockStatement) {
@@ -249,15 +164,7 @@ export default abstract class FunctionBase extends NodeBase implements Deoptimiz
 		super.parseNode(esTreeNode);
 	}
 
-	protected applyDeoptimizations() {
-		// We currently do not track deoptimizations of default values, deoptimize them
-		// just as we deoptimize call arguments
-		for (const param of this.params) {
-			if (param instanceof AssignmentPattern) {
-				param.right.deoptimizePath(UNKNOWN_PATH);
-			}
-		}
-	}
+	protected applyDeoptimizations() {}
 
 	protected abstract getObjectEntity(): ObjectEntity;
 }

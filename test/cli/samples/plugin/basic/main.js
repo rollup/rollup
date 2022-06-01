@@ -1,5 +1,5 @@
 export class Bar {
-	constructor(x) {
+	constructor(value) {
 		this.x = value;
 	}
 	value() {

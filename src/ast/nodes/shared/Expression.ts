@@ -18,13 +18,10 @@ export interface InclusionOptions {
 	 * Include the id of a declarator even if unused to ensure it is a valid statement.
 	 */
 	asSingleStatement?: boolean;
-	includeWithoutParameterDefaults?: boolean;
 }
 
 export class ExpressionEntity implements WritableEntity {
 	included = false;
-
-	deoptimizeCallParameters(): void {}
 
 	deoptimizePath(_path: ObjectPath): void {}
 

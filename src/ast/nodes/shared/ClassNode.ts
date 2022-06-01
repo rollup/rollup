@@ -16,7 +16,6 @@ import type ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
-import PropertyDefinition from '../PropertyDefinition';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
@@ -40,12 +39,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
-		if (path.length === 1 && path[0] === UnknownKey) {
-			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
-			// which means the constructor needs to be reassigned
-			this.classConstructor?.deoptimizePath(UNKNOWN_PATH);
-			this.superClass?.deoptimizePath(UNKNOWN_PATH);
-		}
 	}
 
 	deoptimizeThisOnEventAtPath(
@@ -150,11 +143,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			) {
 				// Calls to methods are not tracked, ensure that the return value is deoptimized
 				definition.deoptimizePath(UNKNOWN_PATH);
-			} else if (definition instanceof PropertyDefinition) {
-				definition.value?.deoptimizeCallParameters();
 			}
 		}
-		this.superClass?.deoptimizeCallParameters();
 		this.context.requestTreeshakingPass();
 	}
 

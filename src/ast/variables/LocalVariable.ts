@@ -59,10 +59,6 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	deoptimizeCallParameters() {
-		this.init?.deoptimizeCallParameters();
-	}
-
 	deoptimizePath(path: ObjectPath): void {
 		if (
 			this.isReassigned ||

@@ -86,10 +86,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return [(this.variable = variable)];
 	}
 
-	deoptimizeCallParameters() {
-		this.variable!.deoptimizeCallParameters();
-	}
-
 	deoptimizePath(path: ObjectPath): void {
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();

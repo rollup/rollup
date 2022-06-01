@@ -95,7 +95,7 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 			}
 		} else {
 			this.included = true;
-			this.callee.include(context, false, { includeWithoutParameterDefaults: true });
+			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
 		const returnExpression = this.getReturnExpression();
