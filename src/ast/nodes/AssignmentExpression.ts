@@ -20,6 +20,7 @@ import {
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
+import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
@@ -46,10 +47,14 @@ export default class AssignmentExpression extends NodeBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		const { right, left } = this;
+		// MemberExpressions do not access the property before assignments if the
+		// operator is '='. Moreover, they imply a "this" value for setters.
 		return (
-			this.right.hasEffects(context) ||
-			this.left.hasEffects(context) ||
-			this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
+			right.hasEffects(context) ||
+			(left instanceof MemberExpression
+				? left.hasEffectsAsAssignmentTarget(context, this.operator !== '=')
+				: left.hasEffects(context) || left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
 		);
 	}
 
@@ -61,17 +66,25 @@ export default class AssignmentExpression extends NodeBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		let hasEffectsContext;
+		const { left, right, operator } = this;
+		const isMemberExpression = left instanceof MemberExpression;
 		if (
 			includeChildrenRecursively ||
-			this.operator !== '=' ||
-			this.left.included ||
+			operator !== '=' ||
+			left.included ||
 			((hasEffectsContext = createHasEffectsContext()),
-			this.left.hasEffects(hasEffectsContext) ||
-				this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, hasEffectsContext))
+			isMemberExpression
+				? left.hasEffectsAsAssignmentTarget(hasEffectsContext, false)
+				: left.hasEffects(hasEffectsContext) ||
+				  left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, hasEffectsContext))
 		) {
-			this.left.include(context, includeChildrenRecursively);
+			if (isMemberExpression) {
+				left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
+			} else {
+				left.include(context, includeChildrenRecursively);
+			}
 		}
-		this.right.include(context, includeChildrenRecursively);
+		right.include(context, includeChildrenRecursively);
 	}
 
 	render(
@@ -79,36 +92,37 @@ export default class AssignmentExpression extends NodeBase {
 		options: RenderOptions,
 		{ preventASI, renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
-		if (this.left.included) {
-			this.left.render(code, options);
-			this.right.render(code, options);
+		const { left, right, start, end, parent } = this;
+		if (left.included) {
+			left.render(code, options);
+			right.render(code, options);
 		} else {
 			const inclusionStart = findNonWhiteSpace(
 				code.original,
-				findFirstOccurrenceOutsideComment(code.original, '=', this.left.end) + 1
+				findFirstOccurrenceOutsideComment(code.original, '=', left.end) + 1
 			);
-			code.remove(this.start, inclusionStart);
+			code.remove(start, inclusionStart);
 			if (preventASI) {
-				removeLineBreaks(code, inclusionStart, this.right.start);
+				removeLineBreaks(code, inclusionStart, right.start);
 			}
-			this.right.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
-				renderedSurroundingElement: renderedSurroundingElement || this.parent.type
+			right.render(code, options, {
+				renderedParentType: renderedParentType || parent.type,
+				renderedSurroundingElement: renderedSurroundingElement || parent.type
 			});
 		}
 		if (options.format === 'system') {
-			if (this.left instanceof Identifier) {
-				const variable = this.left.variable!;
+			if (left instanceof Identifier) {
+				const variable = left.variable!;
 				const exportNames = options.exportNamesByVariable.get(variable);
 				if (exportNames) {
 					if (exportNames.length === 1) {
-						renderSystemExportExpression(variable, this.start, this.end, code, options);
+						renderSystemExportExpression(variable, start, end, code, options);
 					} else {
 						renderSystemExportSequenceAfterExpression(
 							variable,
-							this.start,
-							this.end,
-							this.parent.type !== NodeType.ExpressionStatement,
+							start,
+							end,
+							parent.type !== NodeType.ExpressionStatement,
 							code,
 							options
 						);
@@ -117,12 +131,12 @@ export default class AssignmentExpression extends NodeBase {
 				}
 			} else {
 				const systemPatternExports: Variable[] = [];
-				this.left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
+				left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
 				if (systemPatternExports.length > 0) {
 					renderSystemExportFunction(
 						systemPatternExports,
-						this.start,
-						this.end,
+						start,
+						end,
 						renderedSurroundingElement === NodeType.ExpressionStatement,
 						code,
 						options
@@ -132,13 +146,13 @@ export default class AssignmentExpression extends NodeBase {
 			}
 		}
 		if (
-			this.left.included &&
-			this.left instanceof ObjectPattern &&
+			left.included &&
+			left instanceof ObjectPattern &&
 			(renderedSurroundingElement === NodeType.ExpressionStatement ||
 				renderedSurroundingElement === NodeType.ArrowFunctionExpression)
 		) {
-			code.appendRight(this.start, '(');
-			code.prependLeft(this.end, ')');
+			code.appendRight(start, '(');
+			code.prependLeft(end, ')');
 		}
 	}
 

@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import relativeId from '../../utils/relativeId';
@@ -24,7 +25,6 @@ import {
 import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type Variable from '../variables/Variable';
-import AssignmentExpression from './AssignmentExpression';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import type * as NodeType from './NodeType';
@@ -93,6 +93,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
+	private assignmentDeoptimized = false;
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
@@ -102,7 +103,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable && baseVariable.isNamespace) {
-			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path!.slice(1));
+			const resolvedVariable = resolveNamespaceVariables(
+				baseVariable,
+				path!.slice(1),
+				this.context
+			);
 			if (!resolvedVariable) {
 				super.bind();
 			} else if (typeof resolvedVariable === 'string') {
@@ -173,7 +178,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.variable !== null) {
+		if (this.variable) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
 		if (this.replacement) {
@@ -196,7 +201,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		if (this.variable !== null) {
+		if (this.variable) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(
 				path,
 				callOptions,
@@ -221,25 +226,25 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		const { propertyReadSideEffects } = this.context.options
-			.treeshake as NormalizedTreeshakingOptions;
 		return (
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
-			// Assignments do not access the property before assigning
-			(!(
-				this.variable ||
-				this.replacement ||
-				(this.parent instanceof AssignmentExpression && this.parent.operator === '=')
-			) &&
-				propertyReadSideEffects &&
-				(propertyReadSideEffects === 'always' ||
-					this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey()], context)))
+			this.hasAccessEffect(context)
+		);
+	}
+
+	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean {
+		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
+		return (
+			this.property.hasEffects(context) ||
+			this.object.hasEffects(context) ||
+			(checkAccess && this.hasAccessEffect(context)) ||
+			this.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
 		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.variable !== null) {
+		if (this.variable) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
 		}
 		if (this.replacement) {
@@ -252,7 +257,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.variable !== null) {
+		if (this.variable) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 		}
 		if (this.replacement) {
@@ -269,7 +274,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		if (this.variable !== null) {
+		if (this.variable) {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		if (this.replacement) {
@@ -287,14 +292,20 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (!this.included) {
-			this.included = true;
-			if (this.variable !== null) {
-				this.context.includeVariableInModule(this.variable);
-			}
+		this.includeProperties(context, includeChildrenRecursively);
+	}
+
+	includeAsAssignmentTarget(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		deoptimizeAccess: boolean
+	): void {
+		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
+		if (deoptimizeAccess) {
+			this.include(context, includeChildrenRecursively);
+		} else {
+			this.includeProperties(context, includeChildrenRecursively);
 		}
-		this.object.include(context, includeChildrenRecursively);
-		this.property.include(context, includeChildrenRecursively);
 	}
 
 	includeCallArguments(
@@ -350,23 +361,33 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			propertyReadSideEffects &&
 			!(this.variable || this.replacement)
 		) {
-			// Regular Assignments do not access the property before assigning
-			if (!(this.parent instanceof AssignmentExpression && this.parent.operator === '=')) {
-				this.object.deoptimizeThisOnInteractionAtPath(
-					INTERACTION_ACCESSED,
-					[this.propertyKey!],
-					this.object,
-					SHARED_RECURSION_TRACKER
-				);
-			}
-			if (this.parent instanceof AssignmentExpression) {
-				this.object.deoptimizeThisOnInteractionAtPath(
-					INTERACTION_ASSIGNED,
-					[this.propertyKey!],
-					this.object,
-					SHARED_RECURSION_TRACKER
-				);
-			}
+			const propertyKey = this.getPropertyKey();
+			this.object.deoptimizeThisOnInteractionAtPath(
+				INTERACTION_ACCESSED,
+				[propertyKey],
+				this.object,
+				SHARED_RECURSION_TRACKER
+			);
+			this.context.requestTreeshakingPass();
+		}
+	}
+
+	private applyAssignmentDeoptimization(): void {
+		this.assignmentDeoptimized = true;
+		const { propertyReadSideEffects } = this.context.options
+			.treeshake as NormalizedTreeshakingOptions;
+		if (
+			// Namespaces are not bound and should not be deoptimized
+			this.bound &&
+			propertyReadSideEffects &&
+			!(this.variable || this.replacement)
+		) {
+			this.object.deoptimizeThisOnInteractionAtPath(
+				INTERACTION_ASSIGNED,
+				[this.getPropertyKey()],
+				this.object,
+				SHARED_RECURSION_TRACKER
+			);
 			this.context.requestTreeshakingPass();
 		}
 	}
@@ -398,29 +419,55 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		return this.propertyKey;
 	}
 
-	private resolveNamespaceVariables(
-		baseVariable: Variable,
-		path: PathWithPositions
-	): Variable | string | null {
-		if (path.length === 0) return baseVariable;
-		if (!baseVariable.isNamespace || baseVariable instanceof ExternalVariable) return null;
-		const exportName = path[0].key;
-		const variable = (baseVariable as NamespaceVariable).context.traceExport(exportName);
-		if (!variable) {
-			const fileName = (baseVariable as NamespaceVariable).context.fileName;
-			this.context.warn(
-				{
-					code: 'MISSING_EXPORT',
-					exporter: relativeId(fileName),
-					importer: relativeId(this.context.fileName),
-					message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
-					missing: exportName,
-					url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
-				},
-				path[0].pos
-			);
-			return 'undefined';
-		}
-		return this.resolveNamespaceVariables(variable, path.slice(1));
+	private hasAccessEffect(context: HasEffectsContext) {
+		const { propertyReadSideEffects } = this.context.options
+			.treeshake as NormalizedTreeshakingOptions;
+		return (
+			!(this.variable || this.replacement) &&
+			propertyReadSideEffects &&
+			(propertyReadSideEffects === 'always' ||
+				this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey()], context))
+		);
 	}
+
+	private includeProperties(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	) {
+		if (!this.included) {
+			this.included = true;
+			if (this.variable) {
+				this.context.includeVariableInModule(this.variable);
+			}
+		}
+		this.object.include(context, includeChildrenRecursively);
+		this.property.include(context, includeChildrenRecursively);
+	}
+}
+
+function resolveNamespaceVariables(
+	baseVariable: Variable,
+	path: PathWithPositions,
+	astContext: AstContext
+): Variable | string | null {
+	if (path.length === 0) return baseVariable;
+	if (!baseVariable.isNamespace || baseVariable instanceof ExternalVariable) return null;
+	const exportName = path[0].key;
+	const variable = (baseVariable as NamespaceVariable).context.traceExport(exportName);
+	if (!variable) {
+		const fileName = (baseVariable as NamespaceVariable).context.fileName;
+		astContext.warn(
+			{
+				code: 'MISSING_EXPORT',
+				exporter: relativeId(fileName),
+				importer: relativeId(astContext.fileName),
+				message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
+				missing: exportName,
+				url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
+			},
+			path[0].pos
+		);
+		return 'undefined';
+	}
+	return resolveNamespaceVariables(variable, path.slice(1), astContext);
 }
