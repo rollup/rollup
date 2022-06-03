@@ -2,6 +2,7 @@ import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { NodeInteractionCalled } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -44,12 +45,12 @@ export default class PropertyDefinition extends NodeBase {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.value
-			? this.value.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
+			? this.value.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
 			: UNKNOWN_EXPRESSION;
 	}
 

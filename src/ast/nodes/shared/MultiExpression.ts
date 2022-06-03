@@ -1,6 +1,7 @@
 import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity } from './Expression';
 import type { IncludeChildren } from './Node';
@@ -20,13 +21,13 @@ export class MultiExpression extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return new MultiExpression(
 			this.expressions.map(expression =>
-				expression.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
+				expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
 			)
 		);
 	}

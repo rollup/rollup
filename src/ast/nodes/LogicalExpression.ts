@@ -12,6 +12,7 @@ import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { NodeInteractionCalled } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -87,20 +88,20 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch)
 			return new MultiExpression([
-				this.left.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin),
-				this.right.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
+				this.left.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin),
+				this.right.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
 			]);
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getReturnExpressionWhenCalledAtPath(
 			path,
-			callOptions,
+			interaction,
 			recursionTracker,
 			origin
 		);

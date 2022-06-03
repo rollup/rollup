@@ -4,6 +4,7 @@ import { HasEffectsContext } from '../../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,
+	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
 import {
@@ -246,7 +247,7 @@ export class ObjectEntity extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
@@ -258,7 +259,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (expressionAtPath) {
 			return expressionAtPath.getReturnExpressionWhenCalledAtPath(
 				path.slice(1),
-				callOptions,
+				interaction,
 				recursionTracker,
 				origin
 			);
@@ -266,7 +267,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (this.prototypeExpression) {
 			return this.prototypeExpression.getReturnExpressionWhenCalledAtPath(
 				path,
-				callOptions,
+				interaction,
 				recursionTracker,
 				origin
 			);

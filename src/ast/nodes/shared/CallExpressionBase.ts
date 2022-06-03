@@ -1,7 +1,7 @@
 import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { NodeInteractionWithThisArg } from '../../NodeInteractions';
+import { NodeInteractionCalled, NodeInteractionWithThisArg } from '../../NodeInteractions';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
 	type ExpressionEntity,
@@ -12,7 +12,7 @@ import {
 import { NodeBase } from './Node';
 
 export default abstract class CallExpressionBase extends NodeBase implements DeoptimizableEntity {
-	protected declare callOptions: CallOptions;
+	protected declare interaction: NodeInteractionCalled;
 	protected returnExpression: ExpressionEntity | null = null;
 	private readonly deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
 	private readonly expressionsToBeDeoptimized = new Set<ExpressionEntity>();
@@ -85,7 +85,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
@@ -100,7 +100,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 				this.deoptimizableDependentExpressions.push(origin);
 				return returnExpression.getReturnExpressionWhenCalledAtPath(
 					path,
-					callOptions,
+					interaction,
 					recursionTracker,
 					origin
 				);

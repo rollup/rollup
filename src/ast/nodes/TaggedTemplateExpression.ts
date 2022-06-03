@@ -2,7 +2,7 @@ import type MagicString from 'magic-string';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { InclusionContext } from '../ExecutionContext';
-import { INTERACTION_CALLED } from '../NodeInteractions';
+import { INTERACTION_CALLED, NodeInteractionWithThisArg } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	PathTracker,
@@ -47,7 +47,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			}
 			return (
 				this.tag.hasEffects(context) ||
-				this.tag.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+				this.tag.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.interaction, context)
 			);
 		} finally {
 			if (!this.deoptimized) this.applyDeoptimizations();
@@ -63,7 +63,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			this.tag.include(context, includeChildrenRecursively);
 			this.quasi.include(context, includeChildrenRecursively);
 		}
-		this.tag.includeCallArguments(context, this.callOptions.args);
+		this.tag.includeCallArguments(context, this.interaction.args);
 		const returnExpression = this.getReturnExpression();
 		if (!returnExpression.included) {
 			returnExpression.include(context, false);
@@ -71,9 +71,10 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	initialise(): void {
-		this.callOptions = {
+		this.interaction = {
 			args: [UNKNOWN_EXPRESSION, ...this.quasi.expressions],
 			thisArg: this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
+			type: INTERACTION_CALLED,
 			withNew: false
 		};
 	}
@@ -85,11 +86,9 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		const { args, thisArg, withNew } = this.callOptions;
-		if (thisArg) {
-			// TODO Lukas cache interaction
+		if (this.interaction.thisArg) {
 			this.tag.deoptimizeThisOnInteractionAtPath(
-				{ args, thisArg, type: INTERACTION_CALLED, withNew },
+				this.interaction as NodeInteractionWithThisArg,
 				EMPTY_PATH,
 				SHARED_RECURSION_TRACKER
 			);
@@ -108,7 +107,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			return (this.returnExpression = this.tag.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
-				this.callOptions,
+				this.interaction,
 				recursionTracker,
 				this
 			));

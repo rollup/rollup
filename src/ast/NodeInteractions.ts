@@ -16,7 +16,7 @@ interface NodeInteractionAssigned {
 	value: ExpressionEntity;
 }
 
-interface NodeInteractionCalled {
+export interface NodeInteractionCalled {
 	args: (ExpressionEntity | SpreadElement)[];
 	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_CALLED;

@@ -11,7 +11,7 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { NodeInteractionCalled, NodeInteractionWithThisArg } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -78,7 +78,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
@@ -87,13 +87,13 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			return new MultiExpression([
 				this.consequent.getReturnExpressionWhenCalledAtPath(
 					path,
-					callOptions,
+					interaction,
 					recursionTracker,
 					origin
 				),
 				this.alternate.getReturnExpressionWhenCalledAtPath(
 					path,
-					callOptions,
+					interaction,
 					recursionTracker,
 					origin
 				)
@@ -101,7 +101,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getReturnExpressionWhenCalledAtPath(
 			path,
-			callOptions,
+			interaction,
 			recursionTracker,
 			origin
 		);

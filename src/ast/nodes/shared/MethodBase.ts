@@ -6,6 +6,7 @@ import {
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
 	NO_ARGS,
+	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
 import {
@@ -30,11 +31,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	declare value: ExpressionNode | (ExpressionNode & PatternNode);
 
 	private accessedValue: ExpressionEntity | null = null;
-	private accessorCallOptions: CallOptions = {
-		args: NO_ARGS,
-		thisArg: null,
-		withNew: false
-	};
 
 	// As getter properties directly receive their values from fixed function
 	// expressions, there is no known situation where a getter is deoptimized.
@@ -83,13 +79,13 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.getAccessedValue().getReturnExpressionWhenCalledAtPath(
 			path,
-			callOptions,
+			interaction,
 			recursionTracker,
 			origin
 		);
@@ -99,16 +95,26 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		return this.key.hasEffects(context);
 	}
 
+	// TODO Lukas this should use the assigned thisArg
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.kind === 'get' && path.length === 0) {
-			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
+			return this.value.hasEffectsWhenCalledAtPath(
+				EMPTY_PATH,
+				{ args: NO_ARGS, thisArg: null, withNew: false },
+				context
+			);
 		}
 		return this.getAccessedValue().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
+	// TODO Lukas this should use the assigned value and thisArg
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.kind === 'set') {
-			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
+			return this.value.hasEffectsWhenCalledAtPath(
+				EMPTY_PATH,
+				{ args: NO_ARGS, thisArg: null, withNew: false },
+				context
+			);
 		}
 		return this.getAccessedValue().hasEffectsWhenAssignedAtPath(path, context);
 	}
@@ -123,13 +129,14 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 
 	protected applyDeoptimizations() {}
 
+	// TODO Lukas this should get the thisArg as parameter from the interaction if accessed, null otherwise
 	protected getAccessedValue(): ExpressionEntity {
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {
 				this.accessedValue = UNKNOWN_EXPRESSION;
 				return (this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(
 					EMPTY_PATH,
-					this.accessorCallOptions,
+					{ args: NO_ARGS, thisArg: null, type: INTERACTION_CALLED, withNew: false },
 					SHARED_RECURSION_TRACKER,
 					this
 				));

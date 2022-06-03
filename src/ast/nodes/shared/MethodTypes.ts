@@ -1,6 +1,11 @@
 import { type CallOptions } from '../../CallOptions';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { INTERACTION_CALLED, NO_ARGS, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import {
+	INTERACTION_CALLED,
+	NO_ARGS,
+	NodeInteraction,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
@@ -39,7 +44,7 @@ export class Method extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions
+		interaction: NodeInteraction
 	): ExpressionEntity {
 		if (path.length > 0) {
 			return UNKNOWN_EXPRESSION;
@@ -47,7 +52,7 @@ export class Method extends ExpressionEntity {
 		return (
 			this.description.returnsPrimitive ||
 			(this.description.returns === 'self'
-				? callOptions.thisArg || UNKNOWN_EXPRESSION
+				? interaction.thisArg || UNKNOWN_EXPRESSION
 				: this.description.returns())
 		);
 	}

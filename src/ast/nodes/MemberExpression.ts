@@ -10,6 +10,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
+	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../NodeInteractions';
 import {
@@ -190,14 +191,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (this.variable) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(
 				path,
-				callOptions,
+				interaction,
 				recursionTracker,
 				origin
 			);
@@ -209,7 +210,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (path.length < MAX_PATH_DEPTH) {
 			return this.object.getReturnExpressionWhenCalledAtPath(
 				[this.getPropertyKey(), ...path],
-				callOptions,
+				interaction,
 				recursionTracker,
 				origin
 			);
