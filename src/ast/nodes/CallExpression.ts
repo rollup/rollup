@@ -55,7 +55,7 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 		}
 		this.callOptions = {
 			args: this.arguments,
-			thisParam:
+			thisArg:
 				this.callee instanceof MemberExpression && !this.callee.variable
 					? this.callee.object
 					: null,
@@ -118,13 +118,13 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		const { thisParam } = this.callOptions;
-		if (thisParam) {
+		const { args, thisArg, withNew } = this.callOptions;
+		if (thisArg) {
 			// TODO Lukas cache interaction
 			this.callee.deoptimizeThisOnInteractionAtPath(
-				{ callOptions: this.callOptions, type: INTERACTION_CALLED },
+				{ args, thisArg, type: INTERACTION_CALLED, withNew },
 				EMPTY_PATH,
-				thisParam,
+				thisArg,
 				SHARED_RECURSION_TRACKER
 			);
 		}

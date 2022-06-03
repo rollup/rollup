@@ -73,8 +73,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	initialise(): void {
 		this.callOptions = {
 			args: [UNKNOWN_EXPRESSION, ...this.quasi.expressions],
-			thisParam:
-				this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
+			thisArg: this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
 			withNew: false
 		};
 	}
@@ -86,13 +85,13 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		const { thisParam } = this.callOptions;
-		if (thisParam) {
+		const { args, thisArg, withNew } = this.callOptions;
+		if (thisArg) {
 			// TODO Lukas cache interaction
 			this.tag.deoptimizeThisOnInteractionAtPath(
-				{ callOptions: this.callOptions, type: INTERACTION_CALLED },
+				{ args, thisArg, type: INTERACTION_CALLED, withNew },
 				EMPTY_PATH,
-				thisParam,
+				thisArg,
 				SHARED_RECURSION_TRACKER
 			);
 		}

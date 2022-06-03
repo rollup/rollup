@@ -52,7 +52,7 @@ export default class NewExpression extends NodeBase {
 	initialise(): void {
 		this.callOptions = {
 			args: this.arguments,
-			thisParam: null,
+			thisArg: null,
 			withNew: true
 		};
 	}

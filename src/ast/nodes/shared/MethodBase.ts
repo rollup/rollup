@@ -1,10 +1,11 @@
-import { type CallOptions, NO_ARGS } from '../../CallOptions';
+import { type CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
+	NO_ARGS,
 	type NodeInteraction
 } from '../../NodeInteractions';
 import {
@@ -31,7 +32,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	private accessedValue: ExpressionEntity | null = null;
 	private accessorCallOptions: CallOptions = {
 		args: NO_ARGS,
-		thisParam: null,
+		thisArg: null,
 		withNew: false
 	};
 
@@ -52,7 +53,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		// TODO Lukas cache and share interaction with hasEffects
 		if (interaction.type === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
-				{ callOptions: this.accessorCallOptions, type: INTERACTION_CALLED },
+				{ args: NO_ARGS, thisArg: interaction.thisArg, type: INTERACTION_CALLED, withNew: false },
 				EMPTY_PATH,
 				thisParameter,
 				recursionTracker
@@ -61,7 +62,12 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		// TODO Lukas cache and share interaction with hasEffects
 		if (interaction.type === INTERACTION_ASSIGNED && this.kind === 'set' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
-				{ callOptions: this.accessorCallOptions, type: INTERACTION_CALLED },
+				{
+					args: [interaction.value],
+					thisArg: interaction.thisArg,
+					type: INTERACTION_CALLED,
+					withNew: false
+				},
 				EMPTY_PATH,
 				thisParameter,
 				recursionTracker

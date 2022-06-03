@@ -1,6 +1,6 @@
-import { type CallOptions, NO_ARGS } from '../../CallOptions';
+import { type CallOptions } from '../../CallOptions';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { INTERACTION_CALLED, type NodeInteraction } from '../../NodeInteractions';
+import { INTERACTION_CALLED, NO_ARGS, type NodeInteraction } from '../../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
@@ -52,7 +52,7 @@ export class Method extends ExpressionEntity {
 		return (
 			this.description.returnsPrimitive ||
 			(this.description.returns === 'self'
-				? callOptions.thisParam || UNKNOWN_EXPRESSION
+				? callOptions.thisArg || UNKNOWN_EXPRESSION
 				: this.description.returns())
 		);
 	}
@@ -73,7 +73,7 @@ export class Method extends ExpressionEntity {
 		if (
 			path.length > 0 ||
 			(this.description.mutatesSelfAsArray === true &&
-				callOptions.thisParam?.hasEffectsWhenAssignedAtPath(UNKNOWN_INTEGER_PATH, context))
+				callOptions.thisArg?.hasEffectsWhenAssignedAtPath(UNKNOWN_INTEGER_PATH, context))
 		) {
 			return true;
 		}
@@ -86,7 +86,7 @@ export class Method extends ExpressionEntity {
 					EMPTY_PATH,
 					{
 						args: NO_ARGS,
-						thisParam: null,
+						thisArg: null,
 						withNew: false
 					},
 					context

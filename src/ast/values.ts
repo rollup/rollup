@@ -1,5 +1,6 @@
-import { type CallOptions, NO_ARGS } from './CallOptions';
+import { type CallOptions } from './CallOptions';
 import type { HasEffectsContext } from './ExecutionContext';
+import { NO_ARGS } from './NodeInteractions';
 import type { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import {
@@ -152,7 +153,7 @@ const stringReplace: RawMemberDescription = {
 						EMPTY_PATH,
 						{
 							args: NO_ARGS,
-							thisParam: null,
+							thisArg: null,
 							withNew: false
 						},
 						context

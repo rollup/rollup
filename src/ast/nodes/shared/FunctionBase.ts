@@ -1,12 +1,12 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { type CallOptions, NO_ARGS } from '../../CallOptions';
+import { type CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
 	BROKEN_FLOW_NONE,
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import { NodeInteraction } from '../../NodeInteractions';
+import { NO_ARGS, NodeInteraction } from '../../NodeInteractions';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
 import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
@@ -113,7 +113,7 @@ export default abstract class FunctionBase extends NodeBase {
 			if (
 				returnExpression.hasEffectsWhenCalledAtPath(
 					['then'],
-					{ args: NO_ARGS, thisParam: null, withNew: false },
+					{ args: NO_ARGS, thisArg: null, withNew: false },
 					context
 				) ||
 				(propertyReadSideEffects &&

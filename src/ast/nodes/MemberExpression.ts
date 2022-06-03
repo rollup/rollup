@@ -233,8 +233,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean {
-		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
+	hasEffectsAsAssignmentTarget(
+		context: HasEffectsContext,
+		checkAccess: boolean,
+		value: ExpressionEntity
+	): boolean {
+		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization(value);
 		return (
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
@@ -298,9 +302,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	includeAsAssignmentTarget(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
-		deoptimizeAccess: boolean
+		deoptimizeAccess: boolean,
+		value: ExpressionEntity
 	): void {
-		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
+		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization(value);
 		if (deoptimizeAccess) {
 			this.include(context, includeChildrenRecursively);
 		} else {
@@ -364,7 +369,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			const propertyKey = this.getPropertyKey();
 			// TODO Lukas cache interaction
 			this.object.deoptimizeThisOnInteractionAtPath(
-				{ type: INTERACTION_ACCESSED },
+				{ thisArg: this.object, type: INTERACTION_ACCESSED },
 				[propertyKey],
 				this.object,
 				SHARED_RECURSION_TRACKER
@@ -373,7 +378,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	private applyAssignmentDeoptimization(): void {
+	private applyAssignmentDeoptimization(value: ExpressionEntity): void {
 		this.assignmentDeoptimized = true;
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;
@@ -385,7 +390,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		) {
 			// TODO Lukas cache interaction
 			this.object.deoptimizeThisOnInteractionAtPath(
-				{ type: INTERACTION_ASSIGNED },
+				{ thisArg: this.object, type: INTERACTION_ASSIGNED, value },
 				[this.getPropertyKey()],
 				this.object,
 				SHARED_RECURSION_TRACKER

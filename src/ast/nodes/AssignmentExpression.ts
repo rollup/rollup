@@ -53,7 +53,7 @@ export default class AssignmentExpression extends NodeBase {
 		return (
 			right.hasEffects(context) ||
 			(left instanceof MemberExpression
-				? left.hasEffectsAsAssignmentTarget(context, this.operator !== '=')
+				? left.hasEffectsAsAssignmentTarget(context, this.operator !== '=', right)
 				: left.hasEffects(context) || left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
 		);
 	}
@@ -74,12 +74,17 @@ export default class AssignmentExpression extends NodeBase {
 			left.included ||
 			((hasEffectsContext = createHasEffectsContext()),
 			isMemberExpression
-				? left.hasEffectsAsAssignmentTarget(hasEffectsContext, false)
+				? left.hasEffectsAsAssignmentTarget(hasEffectsContext, false, right)
 				: left.hasEffects(hasEffectsContext) ||
 				  left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, hasEffectsContext))
 		) {
 			if (isMemberExpression) {
-				left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
+				left.includeAsAssignmentTarget(
+					context,
+					includeChildrenRecursively,
+					operator !== '=',
+					right
+				);
 			} else {
 				left.include(context, includeChildrenRecursively);
 			}
