@@ -28,6 +28,7 @@ export class ExpressionEntity implements WritableEntity {
 	deoptimizeThisOnInteractionAtPath(
 		_interaction: NodeInteraction,
 		_path: ObjectPath,
+		// TODO Lukas remove
 		thisParameter: ExpressionEntity,
 		_recursionTracker: PathTracker
 	): void {

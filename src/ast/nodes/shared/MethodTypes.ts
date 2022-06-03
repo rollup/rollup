@@ -34,7 +34,7 @@ export class Method extends ExpressionEntity {
 		thisParameter: ExpressionEntity
 	): void {
 		if (
-			interaction === INTERACTION_CALLED &&
+			interaction.type === INTERACTION_CALLED &&
 			path.length === 0 &&
 			this.description.mutatesSelfAsArray
 		) {

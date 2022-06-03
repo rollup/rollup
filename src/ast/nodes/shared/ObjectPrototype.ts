@@ -21,7 +21,7 @@ const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 			path: ObjectPath,
 			thisParameter: ExpressionEntity
 		): void {
-			if (interaction === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {
+			if (interaction.type === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {
 				thisParameter.deoptimizePath(UNKNOWN_PATH);
 			}
 		}

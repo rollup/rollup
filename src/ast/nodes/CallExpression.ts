@@ -120,8 +120,9 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 		this.deoptimized = true;
 		const { thisParam } = this.callOptions;
 		if (thisParam) {
+			// TODO Lukas cache interaction
 			this.callee.deoptimizeThisOnInteractionAtPath(
-				INTERACTION_CALLED,
+				{ callOptions: this.callOptions, type: INTERACTION_CALLED },
 				EMPTY_PATH,
 				thisParam,
 				SHARED_RECURSION_TRACKER

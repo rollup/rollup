@@ -157,7 +157,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (
 			this.hasLostTrack ||
 			// single paths that are deoptimized will not become getters or setters
-			((interaction === INTERACTION_CALLED || path.length > 1) &&
+			((interaction.type === INTERACTION_CALLED || path.length > 1) &&
 				(this.hasUnknownDeoptimizedProperty ||
 					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
@@ -166,13 +166,13 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 
 		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
-			interaction === INTERACTION_CALLED || path.length > 1
+			interaction.type === INTERACTION_CALLED || path.length > 1
 				? [
 						this.propertiesAndGettersByKey,
 						this.propertiesAndGettersByKey,
 						this.unmatchablePropertiesAndGetters
 				  ]
-				: interaction === INTERACTION_ACCESSED
+				: interaction.type === INTERACTION_ACCESSED
 				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
 				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 

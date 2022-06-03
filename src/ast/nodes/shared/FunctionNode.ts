@@ -32,7 +32,7 @@ export default class FunctionNode extends FunctionBase {
 		recursionTracker: PathTracker
 	): void {
 		super.deoptimizeThisOnInteractionAtPath(interaction, path, thisParameter, recursionTracker);
-		if (interaction === INTERACTION_CALLED && path.length === 0) {
+		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
 			this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
 		}
 	}

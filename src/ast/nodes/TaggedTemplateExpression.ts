@@ -88,8 +88,9 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		this.deoptimized = true;
 		const { thisParam } = this.callOptions;
 		if (thisParam) {
+			// TODO Lukas cache interaction
 			this.tag.deoptimizeThisOnInteractionAtPath(
-				INTERACTION_CALLED,
+				{ callOptions: this.callOptions, type: INTERACTION_CALLED },
 				EMPTY_PATH,
 				thisParam,
 				SHARED_RECURSION_TRACKER

@@ -49,17 +49,19 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (interaction === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
+		// TODO Lukas cache and share interaction with hasEffects
+		if (interaction.type === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
-				INTERACTION_CALLED,
+				{ callOptions: this.accessorCallOptions, type: INTERACTION_CALLED },
 				EMPTY_PATH,
 				thisParameter,
 				recursionTracker
 			);
 		}
-		if (interaction === INTERACTION_ASSIGNED && this.kind === 'set' && path.length === 0) {
+		// TODO Lukas cache and share interaction with hasEffects
+		if (interaction.type === INTERACTION_ASSIGNED && this.kind === 'set' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
-				INTERACTION_CALLED,
+				{ callOptions: this.accessorCallOptions, type: INTERACTION_CALLED },
 				EMPTY_PATH,
 				thisParameter,
 				recursionTracker

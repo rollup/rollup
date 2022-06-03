@@ -362,8 +362,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			!(this.variable || this.replacement)
 		) {
 			const propertyKey = this.getPropertyKey();
+			// TODO Lukas cache interaction
 			this.object.deoptimizeThisOnInteractionAtPath(
-				INTERACTION_ACCESSED,
+				{ type: INTERACTION_ACCESSED },
 				[propertyKey],
 				this.object,
 				SHARED_RECURSION_TRACKER
@@ -382,8 +383,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			propertyReadSideEffects &&
 			!(this.variable || this.replacement)
 		) {
+			// TODO Lukas cache interaction
 			this.object.deoptimizeThisOnInteractionAtPath(
-				INTERACTION_ASSIGNED,
+				{ type: INTERACTION_ASSIGNED },
 				[this.getPropertyKey()],
 				this.object,
 				SHARED_RECURSION_TRACKER
