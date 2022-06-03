@@ -1,7 +1,7 @@
 import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import type { NodeInteraction } from '../../NodeInteractions';
+import type { NodeInteractionWithThisArg } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
 import type Scope from '../../scopes/Scope';
 import {
@@ -42,17 +42,11 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
-		path: ObjectPath,
-		thisParameter: ExpressionEntity,
-		recursionTracker: PathTracker
+		interaction: NodeInteractionWithThisArg,
+		_path: ObjectPath,
+		_recursionTracker: PathTracker
 	): void {
-		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(
-			interaction,
-			path,
-			thisParameter,
-			recursionTracker
-		);
+		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(interaction, _path, _recursionTracker);
 	}
 
 	getLiteralValueAtPath(

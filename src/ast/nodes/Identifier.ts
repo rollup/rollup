@@ -6,7 +6,7 @@ import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
+import type { NodeInteractionWithThisArg } from '../NodeInteractions';
 import type FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import GlobalVariable from '../variables/GlobalVariable';
@@ -96,17 +96,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.variable!.deoptimizeThisOnInteractionAtPath(
-			interaction,
-			path,
-			thisParameter,
-			recursionTracker
-		);
+		this.variable!.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

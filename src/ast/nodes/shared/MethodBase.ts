@@ -6,7 +6,7 @@ import {
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
 	NO_ARGS,
-	type NodeInteraction
+	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
 import {
 	EMPTY_PATH,
@@ -45,9 +45,8 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		// TODO Lukas cache and share interaction with hasEffects
@@ -55,7 +54,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 			return this.value.deoptimizeThisOnInteractionAtPath(
 				{ args: NO_ARGS, thisArg: interaction.thisArg, type: INTERACTION_CALLED, withNew: false },
 				EMPTY_PATH,
-				thisParameter,
 				recursionTracker
 			);
 		}
@@ -69,16 +67,10 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 					withNew: false
 				},
 				EMPTY_PATH,
-				thisParameter,
 				recursionTracker
 			);
 		}
-		this.getAccessedValue().deoptimizeThisOnInteractionAtPath(
-			interaction,
-			path,
-			thisParameter,
-			recursionTracker
-		);
+		this.getAccessedValue().deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

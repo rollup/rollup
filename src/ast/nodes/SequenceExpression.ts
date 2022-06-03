@@ -10,11 +10,11 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
+import type { NodeInteractionWithThisArg } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
-import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import type { LiteralValueOrUnknown } from './shared/Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
@@ -26,15 +26,13 @@ export default class SequenceExpression extends NodeBase {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		this.expressions[this.expressions.length - 1].deoptimizeThisOnInteractionAtPath(
 			interaction,
 			path,
-			thisParameter,
 			recursionTracker
 		);
 	}

@@ -29,3 +29,5 @@ export type NodeInteraction =
 	| NodeInteractionAccessed
 	| NodeInteractionAssigned
 	| NodeInteractionCalled;
+
+export type NodeInteractionWithThisArg = NodeInteraction & { thisArg: ExpressionEntity };

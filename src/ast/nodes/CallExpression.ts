@@ -124,7 +124,6 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 			this.callee.deoptimizeThisOnInteractionAtPath(
 				{ args, thisArg, type: INTERACTION_CALLED, withNew },
 				EMPTY_PATH,
-				thisArg,
 				SHARED_RECURSION_TRACKER
 			);
 		}

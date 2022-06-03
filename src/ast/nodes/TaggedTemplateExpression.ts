@@ -91,7 +91,6 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			this.tag.deoptimizeThisOnInteractionAtPath(
 				{ args, thisArg, type: INTERACTION_CALLED, withNew },
 				EMPTY_PATH,
-				thisArg,
 				SHARED_RECURSION_TRACKER
 			);
 		}

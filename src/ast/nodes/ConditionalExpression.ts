@@ -11,7 +11,7 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeInteraction } from '../NodeInteractions';
+import { NodeInteractionWithThisArg } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -57,23 +57,12 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.consequent.deoptimizeThisOnInteractionAtPath(
-			interaction,
-			path,
-			thisParameter,
-			recursionTracker
-		);
-		this.alternate.deoptimizeThisOnInteractionAtPath(
-			interaction,
-			path,
-			thisParameter,
-			recursionTracker
-		);
+		this.consequent.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
+		this.alternate.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

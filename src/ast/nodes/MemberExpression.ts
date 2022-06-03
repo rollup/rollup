@@ -10,7 +10,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
-	type NodeInteraction
+	NodeInteractionWithThisArg
 } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
@@ -147,28 +147,21 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		if (this.variable) {
-			this.variable.deoptimizeThisOnInteractionAtPath(
-				interaction,
-				path,
-				thisParameter,
-				recursionTracker
-			);
+			this.variable.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 		} else if (!this.replacement) {
 			if (path.length < MAX_PATH_DEPTH) {
 				this.object.deoptimizeThisOnInteractionAtPath(
 					interaction,
 					[this.getPropertyKey(), ...path],
-					thisParameter,
 					recursionTracker
 				);
 			} else {
-				thisParameter.deoptimizePath(UNKNOWN_PATH);
+				interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 	}
@@ -371,7 +364,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.object.deoptimizeThisOnInteractionAtPath(
 				{ thisArg: this.object, type: INTERACTION_ACCESSED },
 				[propertyKey],
-				this.object,
 				SHARED_RECURSION_TRACKER
 			);
 			this.context.requestTreeshakingPass();
@@ -392,7 +384,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.object.deoptimizeThisOnInteractionAtPath(
 				{ thisArg: this.object, type: INTERACTION_ASSIGNED, value },
 				[this.getPropertyKey()],
-				this.object,
 				SHARED_RECURSION_TRACKER
 			);
 			this.context.requestTreeshakingPass();

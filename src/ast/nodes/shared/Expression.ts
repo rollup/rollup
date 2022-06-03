@@ -2,7 +2,7 @@ import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { NodeInteraction } from '../../NodeInteractions';
+import { NodeInteractionWithThisArg } from '../../NodeInteractions';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { LiteralValue } from '../Literal';
 import SpreadElement from '../SpreadElement';
@@ -26,13 +26,11 @@ export class ExpressionEntity implements WritableEntity {
 	deoptimizePath(_path: ObjectPath): void {}
 
 	deoptimizeThisOnInteractionAtPath(
-		_interaction: NodeInteraction,
+		{ thisArg }: NodeInteractionWithThisArg,
 		_path: ObjectPath,
-		// TODO Lukas remove
-		thisParameter: ExpressionEntity,
 		_recursionTracker: PathTracker
 	): void {
-		thisParameter.deoptimizePath(UNKNOWN_PATH);
+		thisArg!.deoptimizePath(UNKNOWN_PATH);
 	}
 
 	/**

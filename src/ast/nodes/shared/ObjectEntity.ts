@@ -1,7 +1,11 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
-import { INTERACTION_ACCESSED, INTERACTION_CALLED, NodeInteraction } from '../../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import {
 	ObjectPath,
 	ObjectPathKey,
@@ -147,9 +151,8 @@ export class ObjectEntity extends ExpressionEntity {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		const [key, ...subPath] = path;
@@ -161,7 +164,7 @@ export class ObjectEntity extends ExpressionEntity {
 				(this.hasUnknownDeoptimizedProperty ||
 					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
-			thisParameter.deoptimizePath(UNKNOWN_PATH);
+			interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
 			return;
 		}
 
@@ -181,35 +184,20 @@ export class ObjectEntity extends ExpressionEntity {
 				const properties = relevantPropertiesByKey[key];
 				if (properties) {
 					for (const property of properties) {
-						property.deoptimizeThisOnInteractionAtPath(
-							interaction,
-							subPath,
-							thisParameter,
-							recursionTracker
-						);
+						property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 					}
 				}
 				if (!this.immutable) {
-					this.thisParametersToBeDeoptimized.add(thisParameter);
+					this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 				}
 				return;
 			}
 			for (const property of relevantUnmatchableProperties) {
-				property.deoptimizeThisOnInteractionAtPath(
-					interaction,
-					subPath,
-					thisParameter,
-					recursionTracker
-				);
+				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
 			if (INTEGER_REG_EXP.test(key)) {
 				for (const property of this.unknownIntegerProps) {
-					property.deoptimizeThisOnInteractionAtPath(
-						interaction,
-						subPath,
-						thisParameter,
-						recursionTracker
-					);
+					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
 			}
 		} else {
@@ -217,30 +205,19 @@ export class ObjectEntity extends ExpressionEntity {
 				relevantUnmatchableProperties
 			])) {
 				for (const property of properties) {
-					property.deoptimizeThisOnInteractionAtPath(
-						interaction,
-						subPath,
-						thisParameter,
-						recursionTracker
-					);
+					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
 			}
 			for (const property of this.unknownIntegerProps) {
-				property.deoptimizeThisOnInteractionAtPath(
-					interaction,
-					subPath,
-					thisParameter,
-					recursionTracker
-				);
+				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
 		}
 		if (!this.immutable) {
-			this.thisParametersToBeDeoptimized.add(thisParameter);
+			this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 		}
 		this.prototypeExpression?.deoptimizeThisOnInteractionAtPath(
 			interaction,
 			path,
-			thisParameter,
 			recursionTracker
 		);
 	}

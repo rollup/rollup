@@ -1,11 +1,11 @@
 import { type CallOptions } from '../../CallOptions';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import { INTERACTION_CALLED, type NodeInteraction } from '../../NodeInteractions';
+import { INTERACTION_CALLED, NodeInteractionWithThisArg } from '../../NodeInteractions';
 import FunctionScope from '../../scopes/FunctionScope';
 import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
@@ -26,14 +26,13 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteraction,
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		super.deoptimizeThisOnInteractionAtPath(interaction, path, thisParameter, recursionTracker);
+		super.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
-			this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
+			this.scope.thisVariable.addEntityToBeDeoptimized(interaction.thisArg);
 		}
 	}
 
