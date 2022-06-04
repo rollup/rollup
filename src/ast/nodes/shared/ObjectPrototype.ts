@@ -1,4 +1,8 @@
-import { INTERACTION_CALLED, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import {
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import { ObjectPath, ObjectPathKey, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
 import {
@@ -32,12 +36,8 @@ const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 			return path.length === 1 && isInteger(path[0]) ? undefined : UnknownValue;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
+		hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
+			return path.length > 1 || interaction.type === INTERACTION_CALLED;
 		}
 	})();
 

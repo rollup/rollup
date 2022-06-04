@@ -47,7 +47,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			}
 			return (
 				this.tag.hasEffects(context) ||
-				this.tag.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.interaction, context)
+				this.tag.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
 			);
 		} finally {
 			if (!this.deoptimized) this.applyDeoptimizations();

@@ -49,7 +49,7 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(): boolean {
+	hasEffectsOnInteractionAtPath(): boolean {
 		return false;
 	}
 

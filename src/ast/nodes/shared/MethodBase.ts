@@ -1,4 +1,3 @@
-import { type CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import {
@@ -6,6 +5,7 @@ import {
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
 	NO_ARGS,
+	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
@@ -45,7 +45,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		// TODO Lukas cache and share interaction with hasEffects
 		if (interaction.type === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
 				{ args: NO_ARGS, thisArg: interaction.thisArg, type: INTERACTION_CALLED, withNew: false },
@@ -53,7 +52,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				recursionTracker
 			);
 		}
-		// TODO Lukas cache and share interaction with hasEffects
 		if (interaction.type === INTERACTION_ASSIGNED && this.kind === 'set' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
 				{
@@ -95,41 +93,38 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		return this.key.hasEffects(context);
 	}
 
-	// TODO Lukas this should use the assigned thisArg
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.kind === 'get' && path.length === 0) {
-			return this.value.hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				{ args: NO_ARGS, thisArg: null, withNew: false },
-				context
-			);
-		}
-		return this.getAccessedValue().hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	// TODO Lukas this should use the assigned value and thisArg
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.kind === 'set') {
-			return this.value.hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				{ args: NO_ARGS, thisArg: null, withNew: false },
-				context
-			);
-		}
-		return this.getAccessedValue().hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.getAccessedValue().hasEffectsWhenCalledAtPath(path, callOptions, context);
+		if (this.kind === 'get' && interaction.type === INTERACTION_ACCESSED && path.length === 0) {
+			// TODO Lukas thisArg should be determined by parent alone
+			return this.value.hasEffectsOnInteractionAtPath(
+				EMPTY_PATH,
+				{ args: NO_ARGS, thisArg: null, type: INTERACTION_CALLED, withNew: false },
+				context
+			);
+		}
+		// setters are only called for empty paths
+		if (this.kind === 'set' && interaction.type === INTERACTION_ASSIGNED) {
+			// TODO Lukas thisArg should be determined by parent alone
+			return this.value.hasEffectsOnInteractionAtPath(
+				EMPTY_PATH,
+				{
+					args: [interaction.value],
+					thisArg: null,
+					type: INTERACTION_CALLED,
+					withNew: false
+				},
+				context
+			);
+		}
+		return this.getAccessedValue().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	protected applyDeoptimizations() {}
 
-	// TODO Lukas this should get the thisArg as parameter from the interaction if accessed, null otherwise
 	protected getAccessedValue(): ExpressionEntity {
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {

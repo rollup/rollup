@@ -1,9 +1,10 @@
-import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
+	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
@@ -275,111 +276,130 @@ export class ObjectEntity extends ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		const [key, ...subPath] = path;
-		if (path.length > 1) {
-			if (typeof key !== 'string') {
-				return true;
-			}
-			const expressionAtPath = this.getMemberExpression(key);
-			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAccessedAtPath(subPath, context);
-			}
-			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
-			}
-			return true;
-		}
-
-		if (this.hasLostTrack) return true;
-		if (typeof key === 'string') {
-			if (this.propertiesAndGettersByKey[key]) {
-				const getters = this.gettersByKey[key];
-				if (getters) {
-					for (const getter of getters) {
-						if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
-					}
-				}
-				return false;
-			}
-			for (const getter of this.unmatchableGetters) {
-				if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) {
-					return true;
-				}
-			}
-		} else {
-			for (const getters of Object.values(this.gettersByKey).concat([this.unmatchableGetters])) {
-				for (const getter of getters) {
-					if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
-				}
-			}
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
-		}
-		return false;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		const [key, ...subPath] = path;
-		if (path.length > 1) {
-			if (typeof key !== 'string') {
-				return true;
-			}
-			const expressionAtPath = this.getMemberExpression(key);
-			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
-			}
-			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
-			}
-			return true;
-		}
-
-		if (key === UnknownNonAccessorKey) return false;
-		if (this.hasLostTrack) return true;
-		if (typeof key === 'string') {
-			if (this.propertiesAndSettersByKey[key]) {
-				const setters = this.settersByKey[key];
-				if (setters) {
-					for (const setter of setters) {
-						if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
-					}
-				}
-				return false;
-			}
-			for (const property of this.unmatchableSetters) {
-				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) {
-					return true;
-				}
-			}
-		} else {
-			for (const setters of Object.values(this.settersByKey).concat([this.unmatchableSetters])) {
-				for (const setter of setters) {
-					if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
-				}
-			}
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
-		}
-		return false;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	// TODO Lukas simplify
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		const key = path[0];
-		const expressionAtPath = this.getMemberExpression(key);
-		if (expressionAtPath) {
-			return expressionAtPath.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, context);
+		const [key, ...subPath] = path;
+		switch (interaction.type) {
+			case INTERACTION_CALLED: {
+				const expressionAtPath = this.getMemberExpression(key);
+				if (expressionAtPath) {
+					return expressionAtPath.hasEffectsOnInteractionAtPath(
+						path.slice(1),
+						interaction,
+						context
+					);
+				}
+				if (this.prototypeExpression) {
+					return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
+				}
+				return true;
+			}
+			case INTERACTION_ACCESSED: {
+				if (path.length > 1) {
+					if (typeof key !== 'string') {
+						return true;
+					}
+					const expressionAtPath = this.getMemberExpression(key);
+					if (expressionAtPath) {
+						return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
+					}
+					if (this.prototypeExpression) {
+						return this.prototypeExpression.hasEffectsOnInteractionAtPath(
+							path,
+							interaction,
+							context
+						);
+					}
+					return true;
+				}
+
+				if (this.hasLostTrack) return true;
+				if (typeof key === 'string') {
+					if (this.propertiesAndGettersByKey[key]) {
+						const getters = this.gettersByKey[key];
+						if (getters) {
+							for (const getter of getters) {
+								if (getter.hasEffectsOnInteractionAtPath(subPath, interaction, context))
+									return true;
+							}
+						}
+						return false;
+					}
+					for (const getter of this.unmatchableGetters) {
+						if (getter.hasEffectsOnInteractionAtPath(subPath, interaction, context)) {
+							return true;
+						}
+					}
+				} else {
+					for (const getters of Object.values(this.gettersByKey).concat([
+						this.unmatchableGetters
+					])) {
+						for (const getter of getters) {
+							if (getter.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
+						}
+					}
+				}
+				if (this.prototypeExpression) {
+					return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
+				}
+				return false;
+			}
+			case INTERACTION_ASSIGNED: {
+				if (path.length > 1) {
+					if (typeof key !== 'string') {
+						return true;
+					}
+					const expressionAtPath = this.getMemberExpression(key);
+					if (expressionAtPath) {
+						return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
+					}
+					if (this.prototypeExpression) {
+						return this.prototypeExpression.hasEffectsOnInteractionAtPath(
+							path,
+							interaction,
+							context
+						);
+					}
+					return true;
+				}
+
+				if (key === UnknownNonAccessorKey) return false;
+				if (this.hasLostTrack) return true;
+				if (typeof key === 'string') {
+					if (this.propertiesAndSettersByKey[key]) {
+						const setters = this.settersByKey[key];
+						if (setters) {
+							for (const setter of setters) {
+								if (setter.hasEffectsOnInteractionAtPath(subPath, interaction, context))
+									return true;
+							}
+						}
+						return false;
+					}
+					for (const property of this.unmatchableSetters) {
+						if (property.hasEffectsOnInteractionAtPath(subPath, interaction, context)) {
+							return true;
+						}
+					}
+				} else {
+					for (const setters of Object.values(this.settersByKey).concat([
+						this.unmatchableSetters
+					])) {
+						for (const setter of setters) {
+							if (setter.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
+						}
+					}
+				}
+				if (this.prototypeExpression) {
+					return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
+				}
+				return false;
+			}
 		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenCalledAtPath(path, callOptions, context);
-		}
-		return true;
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {

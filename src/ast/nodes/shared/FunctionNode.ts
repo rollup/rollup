@@ -1,6 +1,9 @@
-import { type CallOptions } from '../../CallOptions';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import { INTERACTION_CALLED, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import {
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import FunctionScope from '../../scopes/FunctionScope';
 import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
@@ -36,39 +39,41 @@ export default class FunctionNode extends FunctionBase {
 		}
 	}
 
-	hasEffects(): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		return !!this.id?.hasEffects();
+		return !!this.id?.hasEffects(context);
 	}
 
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (super.hasEffectsWhenCalledAtPath(path, callOptions, context)) return true;
-		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
-		context.replacedVariableInits.set(
-			this.scope.thisVariable,
-			callOptions.withNew
-				? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
-				: UNKNOWN_EXPRESSION
-		);
-		const { brokenFlow, ignore } = context;
-		context.ignore = {
-			breaks: false,
-			continues: false,
-			labels: new Set(),
-			returnYield: true
-		};
-		if (this.body.hasEffects(context)) return true;
-		context.brokenFlow = brokenFlow;
-		if (thisInit) {
-			context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
-		} else {
-			context.replacedVariableInits.delete(this.scope.thisVariable);
+		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+		if (interaction.type === INTERACTION_CALLED) {
+			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
+			context.replacedVariableInits.set(
+				this.scope.thisVariable,
+				interaction.withNew
+					? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
+					: UNKNOWN_EXPRESSION
+			);
+			const { brokenFlow, ignore } = context;
+			context.ignore = {
+				breaks: false,
+				continues: false,
+				labels: new Set(),
+				returnYield: true
+			};
+			if (this.body.hasEffects(context)) return true;
+			context.brokenFlow = brokenFlow;
+			if (thisInit) {
+				context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
+			} else {
+				context.replacedVariableInits.delete(this.scope.thisVariable);
+			}
+			context.ignore = ignore;
 		}
-		context.ignore = ignore;
 		return false;
 	}
 

@@ -1,14 +1,15 @@
 /* eslint sort-keys: "off" */
 
-import { CallOptions } from '../../CallOptions';
 import { HasEffectsContext } from '../../ExecutionContext';
-import { UNKNOWN_NON_ACCESSOR_PATH } from '../../utils/PathTracker';
+import { INTERACTION_ASSIGNED, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath } from '../../utils/PathTracker';
+import { UNKNOWN_NON_ACCESSOR_PATH } from '../../utils/PathTracker';
+import { UNKNOWN_EXPRESSION } from './Expression';
 
 const ValueProperties = Symbol('Value Properties');
 
 interface ValueDescription {
-	hasEffectsWhenCalled(callOptions: CallOptions, context: HasEffectsContext): boolean;
+	hasEffectsWhenCalled(interaction: NodeInteractionCalled, context: HasEffectsContext): boolean;
 }
 
 interface GlobalDescription {
@@ -46,10 +47,14 @@ const PF: GlobalDescription = {
 const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: {
-		hasEffectsWhenCalled(callOptions, context) {
+		hasEffectsWhenCalled({ args }, context) {
 			return (
-				!callOptions.args.length ||
-				callOptions.args[0].hasEffectsWhenAssignedAtPath(UNKNOWN_NON_ACCESSOR_PATH, context)
+				!args.length ||
+				args[0].hasEffectsOnInteractionAtPath(
+					UNKNOWN_NON_ACCESSOR_PATH,
+					{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
+					context
+				)
 			);
 		}
 	}

@@ -4,12 +4,12 @@ import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import relativeId from '../../utils/relativeId';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
+	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../NodeInteractions';
@@ -86,6 +86,7 @@ function getStringFromPath(path: PathWithPositions): string {
 	return pathString;
 }
 
+// TODO Lukas if we check each access separately, we do not need to check getters when accessing a nested property in MethodBase, verify
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
 	declare computed: boolean;
 	declare object: ExpressionNode | Super;
@@ -237,51 +238,25 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
 			(checkAccess && this.hasAccessEffect(context)) ||
-			this.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
+			this.hasEffectsOnInteractionAtPath(EMPTY_PATH, { type: INTERACTION_ASSIGNED, value }, context)
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.variable) {
-			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
-		}
-		if (this.replacement) {
-			return true;
-		}
-		if (path.length < MAX_PATH_DEPTH) {
-			return this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey(), ...path], context);
-		}
-		return true;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.variable) {
-			return this.variable.hasEffectsWhenAssignedAtPath(path, context);
-		}
-		if (this.replacement) {
-			return true;
-		}
-		if (path.length < MAX_PATH_DEPTH) {
-			return this.object.hasEffectsWhenAssignedAtPath([this.getPropertyKey(), ...path], context);
-		}
-		return true;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		if (this.variable) {
-			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
+			return this.variable.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		if (this.replacement) {
 			return true;
 		}
 		if (path.length < MAX_PATH_DEPTH) {
-			return this.object.hasEffectsWhenCalledAtPath(
+			return this.object.hasEffectsOnInteractionAtPath(
 				[this.getPropertyKey(), ...path],
-				callOptions,
+				interaction,
 				context
 			);
 		}
@@ -361,7 +336,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			!(this.variable || this.replacement)
 		) {
 			const propertyKey = this.getPropertyKey();
-			// TODO Lukas cache interaction
 			this.object.deoptimizeThisOnInteractionAtPath(
 				{ thisArg: this.object, type: INTERACTION_ACCESSED },
 				[propertyKey],
@@ -381,7 +355,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			propertyReadSideEffects &&
 			!(this.variable || this.replacement)
 		) {
-			// TODO Lukas cache interaction
 			this.object.deoptimizeThisOnInteractionAtPath(
 				{ thisArg: this.object, type: INTERACTION_ASSIGNED, value },
 				[this.getPropertyKey()],
@@ -425,7 +398,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			!(this.variable || this.replacement) &&
 			propertyReadSideEffects &&
 			(propertyReadSideEffects === 'always' ||
-				this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey()], context))
+				this.object.hasEffectsOnInteractionAtPath(
+					[this.getPropertyKey()],
+					{ type: INTERACTION_ACCESSED },
+					context
+				))
 		);
 	}
 

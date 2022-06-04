@@ -1,4 +1,5 @@
 import type { HasEffectsContext } from '../ExecutionContext';
+import { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
@@ -38,9 +39,13 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	}
 
 	// Patterns are only checked at the emtpy path at the moment
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsOnInteractionAtPath(
+		_path: ObjectPath,
+		interaction: NodeInteractionAssigned,
+		context: HasEffectsContext
+	): boolean {
 		for (const element of this.elements) {
-			if (element?.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;
+			if (element?.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)) return true;
 		}
 		return false;
 	}

@@ -1,11 +1,13 @@
 import type MagicString from 'magic-string';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { INTERACTION_ASSIGNED } from '../NodeInteractions';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
@@ -29,7 +31,11 @@ export default class ForInStatement extends StatementBase {
 		if (
 			(this.left &&
 				(this.left.hasEffects(context) ||
-					this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))) ||
+					this.left.hasEffectsOnInteractionAtPath(
+						EMPTY_PATH,
+						{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
+						context
+					))) ||
 			(this.right && this.right.hasEffects(context))
 		)
 			return true;

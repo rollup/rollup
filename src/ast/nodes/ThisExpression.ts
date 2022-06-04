@@ -1,6 +1,7 @@
 import type MagicString from 'magic-string';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArg } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import ModuleScope from '../scopes/ModuleScope';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
@@ -33,12 +34,15 @@ export default class ThisExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.variable.hasEffectsWhenAssignedAtPath(path, context);
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
+		if (path.length === 0) {
+			return interaction.type !== INTERACTION_ACCESSED;
+		}
+		return this.variable.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	include(): void {

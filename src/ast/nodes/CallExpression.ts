@@ -76,7 +76,7 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 				return false;
 			return (
 				this.callee.hasEffects(context) ||
-				this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.interaction, context)
+				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
 			);
 		} finally {
 			if (!this.deoptimized) this.applyDeoptimizations();

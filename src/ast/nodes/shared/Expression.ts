@@ -1,8 +1,11 @@
-import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { NodeInteractionCalled, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { LiteralValue } from '../Literal';
 import SpreadElement from '../SpreadElement';
@@ -55,17 +58,9 @@ export class ExpressionEntity implements WritableEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
-		return true;
-	}
-
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
-		return true;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		_path: ObjectPath,
-		_callOptions: CallOptions,
+		_interaction: NodeInteraction,
 		_context: HasEffectsContext
 	): boolean {
 		return true;

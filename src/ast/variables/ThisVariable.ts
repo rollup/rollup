@@ -1,6 +1,6 @@
 import type { AstContext } from '../../Module';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArg } from '../NodeInteractions';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import {
 	DiscriminatedPathTracker,
@@ -69,17 +69,14 @@ export default class ThisVariable extends LocalVariable {
 		}
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
 		return (
-			this.getInit(context).hasEffectsWhenAccessedAtPath(path, context) ||
-			super.hasEffectsWhenAccessedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			this.getInit(context).hasEffectsWhenAssignedAtPath(path, context) ||
-			super.hasEffectsWhenAssignedAtPath(path, context)
+			this.getInit(context).hasEffectsOnInteractionAtPath(path, interaction, context) ||
+			super.hasEffectsOnInteractionAtPath(path, interaction, context)
 		);
 	}
 

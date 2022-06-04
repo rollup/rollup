@@ -1,9 +1,11 @@
-import { type CallOptions } from '../../CallOptions';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
 	NO_ARGS,
 	NodeInteraction,
+	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
@@ -44,7 +46,7 @@ export class Method extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		interaction: NodeInteraction
+		interaction: NodeInteractionCalled
 	): ExpressionEntity {
 		if (path.length > 0) {
 			return UNKNOWN_EXPRESSION;
@@ -57,42 +59,43 @@ export class Method extends ExpressionEntity {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-		return path.length > 0;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (
-			path.length > 0 ||
-			(this.description.mutatesSelfAsArray === true &&
-				callOptions.thisArg?.hasEffectsWhenAssignedAtPath(UNKNOWN_INTEGER_PATH, context))
-		) {
+		const { type } = interaction;
+		if (path.length > (type === INTERACTION_ACCESSED ? 1 : 0)) {
 			return true;
 		}
-		if (!this.description.callsArgs) {
-			return false;
-		}
-		for (const argIndex of this.description.callsArgs) {
+		if (type === INTERACTION_CALLED) {
 			if (
-				callOptions.args[argIndex]?.hasEffectsWhenCalledAtPath(
-					EMPTY_PATH,
-					{
-						args: NO_ARGS,
-						thisArg: null,
-						withNew: false
-					},
+				this.description.mutatesSelfAsArray === true &&
+				interaction.thisArg?.hasEffectsOnInteractionAtPath(
+					UNKNOWN_INTEGER_PATH,
+					{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
 					context
 				)
 			) {
 				return true;
+			}
+			if (this.description.callsArgs) {
+				for (const argIndex of this.description.callsArgs) {
+					if (
+						interaction.args[argIndex]?.hasEffectsOnInteractionAtPath(
+							EMPTY_PATH,
+							{
+								args: NO_ARGS,
+								thisArg: null,
+								type: INTERACTION_CALLED,
+								withNew: false
+							},
+							context
+						)
+					) {
+						return true;
+					}
+				}
 			}
 		}
 		return false;

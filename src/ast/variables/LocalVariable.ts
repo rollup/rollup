@@ -1,8 +1,13 @@
 import Module, { AstContext } from '../../Module';
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionCalled, NodeInteractionWithThisArg } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	NodeInteraction
+} from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
@@ -141,33 +146,32 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.init.hasEffectsWhenAccessedAtPath(path, context))!;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.included) return true;
-		if (path.length === 0) return false;
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.init.hasEffectsWhenAssignedAtPath(path, context))!;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!(
-				callOptions.withNew ? context.instantiated : context.called
-			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
-			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
+		switch (interaction.type) {
+			case INTERACTION_ACCESSED:
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			case INTERACTION_ASSIGNED:
+				if (this.included) return true;
+				if (path.length === 0) return false;
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			case INTERACTION_CALLED:
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!(
+						interaction.withNew ? context.instantiated : context.called
+					).trackEntityAtPathAndGetIfTracked(path, interaction, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+		}
 	}
 
 	include(): void {

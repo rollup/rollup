@@ -17,6 +17,7 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../ExecutionContext';
+import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED, NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
@@ -54,12 +55,29 @@ export default class AssignmentExpression extends NodeBase {
 			right.hasEffects(context) ||
 			(left instanceof MemberExpression
 				? left.hasEffectsAsAssignmentTarget(context, this.operator !== '=', right)
-				: left.hasEffects(context) || left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
+				: left.hasEffects(context) ||
+				  left.hasEffectsOnInteractionAtPath(
+						EMPTY_PATH,
+						{ type: INTERACTION_ASSIGNED, value: right },
+						context
+				  ))
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
+		if (path.length === 0) {
+			if (interaction.type === INTERACTION_ACCESSED) {
+				return false;
+			}
+			if (interaction.type === INTERACTION_ASSIGNED) {
+				return true;
+			}
+		}
+		return this.right.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -76,7 +94,11 @@ export default class AssignmentExpression extends NodeBase {
 			isMemberExpression
 				? left.hasEffectsAsAssignmentTarget(hasEffectsContext, false, right)
 				: left.hasEffects(hasEffectsContext) ||
-				  left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, hasEffectsContext))
+				  left.hasEffectsOnInteractionAtPath(
+						EMPTY_PATH,
+						{ type: INTERACTION_ASSIGNED, value: right },
+						hasEffectsContext
+				  ))
 		) {
 			if (isMemberExpression) {
 				left.includeAsAssignmentTarget(

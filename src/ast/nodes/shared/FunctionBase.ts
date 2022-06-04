@@ -1,12 +1,18 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { type CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
 	BROKEN_FLOW_NONE,
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import { NO_ARGS, NodeInteractionCalled, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	NO_ARGS,
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
 import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
@@ -84,35 +90,31 @@ export default abstract class FunctionBase extends NodeBase {
 		return this.scope.getReturnExpression();
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length > 0) {
-			return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
+		if (path.length > 0 || interaction.type !== INTERACTION_CALLED) {
+			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		if (this.async) {
 			const { propertyReadSideEffects } = this.context.options
 				.treeshake as NormalizedTreeshakingOptions;
 			const returnExpression = this.scope.getReturnExpression();
 			if (
-				returnExpression.hasEffectsWhenCalledAtPath(
+				returnExpression.hasEffectsOnInteractionAtPath(
 					['then'],
-					{ args: NO_ARGS, thisArg: null, withNew: false },
+					{ args: NO_ARGS, thisArg: null, type: INTERACTION_CALLED, withNew: false },
 					context
 				) ||
 				(propertyReadSideEffects &&
 					(propertyReadSideEffects === 'always' ||
-						returnExpression.hasEffectsWhenAccessedAtPath(['then'], context)))
+						returnExpression.hasEffectsOnInteractionAtPath(
+							['then'],
+							{ type: INTERACTION_ACCESSED },
+							context
+						)))
 			) {
 				return true;
 			}

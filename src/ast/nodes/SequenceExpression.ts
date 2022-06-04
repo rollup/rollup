@@ -7,10 +7,10 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
@@ -56,28 +56,17 @@ export default class SequenceExpression extends NodeBase {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			path.length > 0 &&
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(
-			path,
-			context
-		);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.expressions[this.expressions.length - 1].hasEffectsWhenCalledAtPath(
+		if (path.length === 0 && interaction.type === INTERACTION_ACCESSED) {
+			return false;
+		}
+		return this.expressions[this.expressions.length - 1].hasEffectsOnInteractionAtPath(
 			path,
-			callOptions,
+			interaction,
 			context
 		);
 	}

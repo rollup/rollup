@@ -3,11 +3,16 @@ import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionWithThisArg } from '../NodeInteractions';
-import { NodeInteractionCalled } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionCalled
+} from '../NodeInteractions';
 import type FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import GlobalVariable from '../variables/GlobalVariable';
@@ -126,7 +131,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		);
 	}
 
-	hasEffects(): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (this.isPossibleTDZ() && this.variable!.kind !== 'var') {
 			return true;
@@ -134,29 +139,36 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
-			this.variable.hasEffectsWhenAccessedAtPath(EMPTY_PATH)
+			this.variable.hasEffectsOnInteractionAtPath(
+				EMPTY_PATH,
+				{ type: INTERACTION_ACCESSED },
+				context
+			)
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			this.variable !== null &&
-			this.getVariableRespectingTDZ()!.hasEffectsWhenAccessedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			path.length > 0 ? this.getVariableRespectingTDZ() : this.variable
-		)!.hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.getVariableRespectingTDZ()!.hasEffectsWhenCalledAtPath(path, callOptions, context);
+		switch (interaction.type) {
+			case INTERACTION_ACCESSED:
+				return (
+					this.variable !== null &&
+					this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(path, interaction, context)
+				);
+			case INTERACTION_ASSIGNED:
+				return (
+					path.length > 0 ? this.getVariableRespectingTDZ() : this.variable
+				)!.hasEffectsOnInteractionAtPath(path, interaction, context);
+			case INTERACTION_CALLED:
+				return this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(
+					path,
+					interaction,
+					context
+				);
+		}
 	}
 
 	include(): void {

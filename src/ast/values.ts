@@ -1,6 +1,11 @@
-import { type CallOptions } from './CallOptions';
 import type { HasEffectsContext } from './ExecutionContext';
-import { NO_ARGS } from './NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	NO_ARGS,
+	NodeInteraction,
+	NodeInteractionCalled
+} from './NodeInteractions';
 import type { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import {
@@ -11,7 +16,9 @@ import {
 } from './utils/PathTracker';
 
 export interface MemberDescription {
-	hasEffectsWhenCalled: ((callOptions: CallOptions, context: HasEffectsContext) => boolean) | null;
+	hasEffectsWhenCalled:
+		| ((interaction: NodeInteractionCalled, context: HasEffectsContext) => boolean)
+		| null;
 	returns: ExpressionEntity;
 }
 
@@ -53,17 +60,16 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 			return UNKNOWN_EXPRESSION;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenCalledAtPath(
+		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
-			callOptions: CallOptions,
+			interaction: NodeInteraction,
 			context: HasEffectsContext
 		): boolean {
-			if (path.length === 1) {
-				return hasMemberEffectWhenCalled(literalBooleanMembers, path[0], callOptions, context);
+			if (interaction.type === INTERACTION_ACCESSED) {
+				return path.length > 1;
+			}
+			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
+				return hasMemberEffectWhenCalled(literalBooleanMembers, path[0], interaction, context);
 			}
 			return true;
 		}
@@ -85,17 +91,16 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 			return UNKNOWN_EXPRESSION;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenCalledAtPath(
+		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
-			callOptions: CallOptions,
+			interaction: NodeInteraction,
 			context: HasEffectsContext
 		): boolean {
-			if (path.length === 1) {
-				return hasMemberEffectWhenCalled(literalNumberMembers, path[0], callOptions, context);
+			if (interaction.type === INTERACTION_ACCESSED) {
+				return path.length > 1;
+			}
+			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
+				return hasMemberEffectWhenCalled(literalNumberMembers, path[0], interaction, context);
 			}
 			return true;
 		}
@@ -117,17 +122,16 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 			return UNKNOWN_EXPRESSION;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenCalledAtPath(
+		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
-			callOptions: CallOptions,
+			interaction: NodeInteraction,
 			context: HasEffectsContext
 		): boolean {
-			if (path.length === 1) {
-				return hasMemberEffectWhenCalled(literalStringMembers, path[0], callOptions, context);
+			if (interaction.type === INTERACTION_ACCESSED) {
+				return path.length > 1;
+			}
+			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
+				return hasMemberEffectWhenCalled(literalStringMembers, path[0], interaction, context);
 			}
 			return true;
 		}
@@ -142,18 +146,19 @@ const returnsString: RawMemberDescription = {
 
 const stringReplace: RawMemberDescription = {
 	value: {
-		hasEffectsWhenCalled(callOptions, context) {
-			const arg1 = callOptions.args[1];
+		hasEffectsWhenCalled({ args }, context) {
+			const arg1 = args[1];
 			return (
-				callOptions.args.length < 2 ||
+				args.length < 2 ||
 				(typeof arg1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
 					deoptimizeCache() {}
 				}) === 'symbol' &&
-					arg1.hasEffectsWhenCalledAtPath(
+					arg1.hasEffectsOnInteractionAtPath(
 						EMPTY_PATH,
 						{
 							args: NO_ARGS,
 							thisArg: null,
+							type: INTERACTION_CALLED,
 							withNew: false
 						},
 						context
@@ -263,13 +268,13 @@ export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>
 export function hasMemberEffectWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey,
-	callOptions: CallOptions,
+	interaction: NodeInteractionCalled,
 	context: HasEffectsContext
 ): boolean {
 	if (typeof memberName !== 'string' || !members[memberName]) {
 		return true;
 	}
-	return members[memberName].hasEffectsWhenCalled?.(callOptions, context) || false;
+	return members[memberName].hasEffectsWhenCalled?.(interaction, context) || false;
 }
 
 export function getMemberReturnExpressionWhenCalled(

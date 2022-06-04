@@ -1,8 +1,7 @@
-import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteractionWithThisArg } from '../../NodeInteractions';
-import { NodeInteractionCalled } from '../../NodeInteractions';
+import { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 
@@ -49,19 +48,11 @@ export class ObjectMember extends ExpressionEntity {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.object.hasEffectsWhenAccessedAtPath([this.key, ...path], context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.object.hasEffectsWhenAssignedAtPath([this.key, ...path], context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.object.hasEffectsWhenCalledAtPath([this.key, ...path], callOptions, context);
+		return this.object.hasEffectsOnInteractionAtPath([this.key, ...path], interaction, context);
 	}
 }
