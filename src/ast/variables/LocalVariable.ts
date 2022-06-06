@@ -169,7 +169,7 @@ export default class LocalVariable extends Variable {
 				return (this.init &&
 					!(
 						interaction.withNew ? context.instantiated : context.called
-					).trackEntityAtPathAndGetIfTracked(path, interaction, this) &&
+					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
 					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
 		}
 	}

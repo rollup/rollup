@@ -327,7 +327,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	setAssignedValue(value: ExpressionEntity) {
-		this.assignmentInteraction = { thisArg: this.object, type: INTERACTION_ASSIGNED, value };
+		this.assignmentInteraction = {
+			args: [value],
+			thisArg: this.object,
+			type: INTERACTION_ASSIGNED
+		};
 	}
 
 	protected applyDeoptimizations(): void {

@@ -17,19 +17,21 @@ export const NODE_INTERACTION_ACCESS: NodeInteractionAccessed = {
 };
 
 export interface NodeInteractionAssigned {
+	args: readonly [ExpressionEntity];
 	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_ASSIGNED;
-	value: ExpressionEntity;
 }
 
+export const UNKNOWN_ARG = [UNKNOWN_EXPRESSION] as const;
+
 export const NODE_INTERACTION_UNKNOWN_ASSIGNMENT: NodeInteractionAssigned = {
+	args: UNKNOWN_ARG,
 	thisArg: null,
-	type: INTERACTION_ASSIGNED,
-	value: UNKNOWN_EXPRESSION
+	type: INTERACTION_ASSIGNED
 };
 
 export interface NodeInteractionCalled {
-	args: (ExpressionEntity | SpreadElement)[];
+	args: readonly (ExpressionEntity | SpreadElement)[];
 	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_CALLED;
 	withNew: boolean;

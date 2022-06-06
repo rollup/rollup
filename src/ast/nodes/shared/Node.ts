@@ -289,7 +289,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	setAssignedValue(value: ExpressionEntity): void {
-		this.assignmentInteraction = { thisArg: null, type: INTERACTION_ASSIGNED, value };
+		this.assignmentInteraction = { args: [value], thisArg: null, type: INTERACTION_ASSIGNED };
 	}
 
 	shouldBeIncluded(context: InclusionContext): boolean {

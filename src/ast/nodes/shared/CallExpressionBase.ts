@@ -125,7 +125,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 				(interaction.withNew
 					? context.instantiated
 					: context.called
-				).trackEntityAtPathAndGetIfTracked(path, interaction, this)
+				).trackEntityAtPathAndGetIfTracked(path, interaction.args, this)
 			) {
 				return false;
 			}

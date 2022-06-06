@@ -58,7 +58,7 @@ export default class ThisVariable extends LocalVariable {
 		if (
 			!this.thisDeoptimizations.trackEntityAtPathAndGetIfTracked(
 				path,
-				interaction,
+				interaction.type,
 				interaction.thisArg
 			)
 		) {

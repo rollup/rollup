@@ -47,7 +47,12 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	): void {
 		if (interaction.type === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
-				{ args: NO_ARGS, thisArg: interaction.thisArg, type: INTERACTION_CALLED, withNew: false },
+				{
+					args: NO_ARGS,
+					thisArg: interaction.thisArg,
+					type: INTERACTION_CALLED,
+					withNew: false
+				},
 				EMPTY_PATH,
 				recursionTracker
 			);
@@ -55,7 +60,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		if (interaction.type === INTERACTION_ASSIGNED && this.kind === 'set' && path.length === 0) {
 			return this.value.deoptimizeThisOnInteractionAtPath(
 				{
-					args: [interaction.value],
+					args: interaction.args,
 					thisArg: interaction.thisArg,
 					type: INTERACTION_CALLED,
 					withNew: false
@@ -99,21 +104,24 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		context: HasEffectsContext
 	): boolean {
 		if (this.kind === 'get' && interaction.type === INTERACTION_ACCESSED && path.length === 0) {
-			// TODO Lukas thisArg should be determined by parent alone
 			return this.value.hasEffectsOnInteractionAtPath(
 				EMPTY_PATH,
-				{ args: NO_ARGS, thisArg: null, type: INTERACTION_CALLED, withNew: false },
+				{
+					args: NO_ARGS,
+					thisArg: interaction.thisArg,
+					type: INTERACTION_CALLED,
+					withNew: false
+				},
 				context
 			);
 		}
 		// setters are only called for empty paths
 		if (this.kind === 'set' && interaction.type === INTERACTION_ASSIGNED) {
-			// TODO Lukas thisArg should be determined by parent alone
 			return this.value.hasEffectsOnInteractionAtPath(
 				EMPTY_PATH,
 				{
-					args: [interaction.value],
-					thisArg: null,
+					args: interaction.args,
+					thisArg: interaction.thisArg,
 					type: INTERACTION_CALLED,
 					withNew: false
 				},
