@@ -17,7 +17,12 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../ExecutionContext';
-import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED, NodeInteraction } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	NodeInteraction,
+	NodeInteractionAssigned
+} from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
@@ -27,6 +32,7 @@ import ObjectPattern from './ObjectPattern';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 
+// TODO during initialise, call a method on the ME target to set the assignment value
 export default class AssignmentExpression extends NodeBase {
 	declare left: ExpressionNode | PatternNode;
 	declare operator:
@@ -45,22 +51,19 @@ export default class AssignmentExpression extends NodeBase {
 		| '**=';
 	declare right: ExpressionNode;
 	declare type: NodeType.tAssignmentExpression;
+	private declare interaction: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		const { right, left } = this;
+		const { deoptimized, left, right } = this;
+		if (!deoptimized) this.applyDeoptimizations();
 		// MemberExpressions do not access the property before assignments if the
 		// operator is '='. Moreover, they imply a "this" value for setters.
 		return (
 			right.hasEffects(context) ||
 			(left instanceof MemberExpression
-				? left.hasEffectsAsAssignmentTarget(context, this.operator !== '=', right)
+				? left.hasEffectsAsAssignmentTarget(context, this.operator !== '=')
 				: left.hasEffects(context) ||
-				  left.hasEffectsOnInteractionAtPath(
-						EMPTY_PATH,
-						{ type: INTERACTION_ASSIGNED, value: right },
-						context
-				  ))
+				  left.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context))
 		);
 	}
 
@@ -81,10 +84,10 @@ export default class AssignmentExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+		const { deoptimized, left, right, operator } = this;
+		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		let hasEffectsContext;
-		const { left, right, operator } = this;
 		const isMemberExpression = left instanceof MemberExpression;
 		if (
 			includeChildrenRecursively ||
@@ -92,26 +95,25 @@ export default class AssignmentExpression extends NodeBase {
 			left.included ||
 			((hasEffectsContext = createHasEffectsContext()),
 			isMemberExpression
-				? left.hasEffectsAsAssignmentTarget(hasEffectsContext, false, right)
+				? left.hasEffectsAsAssignmentTarget(hasEffectsContext, false)
 				: left.hasEffects(hasEffectsContext) ||
-				  left.hasEffectsOnInteractionAtPath(
-						EMPTY_PATH,
-						{ type: INTERACTION_ASSIGNED, value: right },
-						hasEffectsContext
-				  ))
+				  left.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, hasEffectsContext))
 		) {
 			if (isMemberExpression) {
-				left.includeAsAssignmentTarget(
-					context,
-					includeChildrenRecursively,
-					operator !== '=',
-					right
-				);
+				left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
 			} else {
 				left.include(context, includeChildrenRecursively);
 			}
 		}
 		right.include(context, includeChildrenRecursively);
+	}
+
+	initialise(): void {
+		const { left, right } = this;
+		this.interaction = { thisArg: null, type: INTERACTION_ASSIGNED, value: right };
+		if (left instanceof MemberExpression) {
+			left.setAssignedValue(right);
+		}
 	}
 
 	render(

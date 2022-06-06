@@ -84,8 +84,8 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return super.hasEffects(context);
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
-		return interaction.type !== INTERACTION_ACCESSED || path.length > 1;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
 	render(

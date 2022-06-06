@@ -36,8 +36,8 @@ const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 			return path.length === 1 && isInteger(path[0]) ? undefined : UnknownValue;
 		}
 
-		hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
-			return path.length > 1 || interaction.type === INTERACTION_CALLED;
+		hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+			return path.length > 1 || type === INTERACTION_CALLED;
 		}
 	})();
 

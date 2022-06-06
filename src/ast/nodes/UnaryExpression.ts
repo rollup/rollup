@@ -1,11 +1,15 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED, NodeInteraction } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+	NodeInteraction
+} from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from './shared/Expression';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
 const unaryOperators: {
@@ -46,16 +50,14 @@ export default class UnaryExpression extends NodeBase {
 			(this.operator === 'delete' &&
 				this.argument.hasEffectsOnInteractionAtPath(
 					EMPTY_PATH,
-					{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
+					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					context
 				))
 		);
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
-		return (
-			interaction.type !== INTERACTION_ACCESSED || path.length > (this.operator === 'void' ? 0 : 1)
-		);
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > (this.operator === 'void' ? 0 : 1);
 	}
 
 	protected applyDeoptimizations(): void {

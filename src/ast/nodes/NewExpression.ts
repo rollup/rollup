@@ -39,8 +39,8 @@ export default class NewExpression extends NodeBase {
 		}
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
-		return path.length > 0 || interaction.type !== INTERACTION_ACCESSED;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return path.length > 0 || type !== INTERACTION_ACCESSED;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

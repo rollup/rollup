@@ -1,10 +1,9 @@
 /* eslint sort-keys: "off" */
 
 import { HasEffectsContext } from '../../ExecutionContext';
-import { INTERACTION_ASSIGNED, NodeInteractionCalled } from '../../NodeInteractions';
+import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath } from '../../utils/PathTracker';
 import { UNKNOWN_NON_ACCESSOR_PATH } from '../../utils/PathTracker';
-import { UNKNOWN_EXPRESSION } from './Expression';
 
 const ValueProperties = Symbol('Value Properties');
 
@@ -52,7 +51,7 @@ const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 				!args.length ||
 				args[0].hasEffectsOnInteractionAtPath(
 					UNKNOWN_NON_ACCESSOR_PATH,
-					{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
+					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					context
 				)
 			);

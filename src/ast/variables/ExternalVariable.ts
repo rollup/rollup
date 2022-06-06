@@ -22,8 +22,8 @@ export default class ExternalVariable extends Variable {
 		}
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
-		return interaction.type !== INTERACTION_ACCESSED || path.length > (this.isNamespace ? 1 : 0);
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > (this.isNamespace ? 1 : 0);
 	}
 
 	include(): void {

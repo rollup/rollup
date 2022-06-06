@@ -1,10 +1,11 @@
 import type MagicString from 'magic-string';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { INTERACTION_ASSIGNED } from '../NodeInteractions';
+import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../NodeInteractions';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
+import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -18,7 +19,7 @@ import type { PatternNode } from './shared/Pattern';
 
 export default class ForInStatement extends StatementBase {
 	declare body: StatementNode;
-	declare left: VariableDeclaration | PatternNode;
+	declare left: VariableDeclaration | PatternNode | MemberExpression;
 	declare right: ExpressionNode;
 	declare type: NodeType.tForInStatement;
 
@@ -27,16 +28,19 @@ export default class ForInStatement extends StatementBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
+		const { deoptimized, left, right } = this;
+		if (!deoptimized) this.applyDeoptimizations();
 		if (
-			(this.left &&
-				(this.left.hasEffects(context) ||
-					this.left.hasEffectsOnInteractionAtPath(
-						EMPTY_PATH,
-						{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
-						context
-					))) ||
-			(this.right && this.right.hasEffects(context))
+			(left &&
+				(left instanceof MemberExpression
+					? left.hasEffectsAsAssignmentTarget(context, false)
+					: left.hasEffects(context) ||
+					  left.hasEffectsOnInteractionAtPath(
+							EMPTY_PATH,
+							NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+							context
+					  ))) ||
+			(right && right.hasEffects(context))
 		)
 			return true;
 		const {
@@ -53,13 +57,26 @@ export default class ForInStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+		const { body, deoptimized, left, right } = this;
+		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		this.left.include(context, includeChildrenRecursively || true);
-		this.right.include(context, includeChildrenRecursively);
+		const includeLeftChildren = includeChildrenRecursively || true;
+		if (left instanceof MemberExpression) {
+			left.includeAsAssignmentTarget(context, includeLeftChildren, false);
+		} else {
+			left.include(context, includeLeftChildren);
+		}
+		right.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
+		body.include(context, includeChildrenRecursively, { asSingleStatement: true });
 		context.brokenFlow = brokenFlow;
+	}
+
+	initialise() {
+		const { left } = this;
+		if (left instanceof MemberExpression) {
+			left.setAssignedValue(UNKNOWN_EXPRESSION);
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

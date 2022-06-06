@@ -10,6 +10,8 @@ import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
 	NodeInteraction,
+	NodeInteractionAccessed,
+	NodeInteractionAssigned,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../NodeInteractions';
@@ -95,7 +97,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
+	private declare accessInteraction: NodeInteractionAccessed & { thisArg: ExpressionEntity };
 	private assignmentDeoptimized = false;
+	private declare assignmentInteraction: NodeInteractionAssigned & { thisArg: ExpressionEntity };
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
@@ -228,17 +232,13 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsAsAssignmentTarget(
-		context: HasEffectsContext,
-		checkAccess: boolean,
-		value: ExpressionEntity
-	): boolean {
-		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization(value);
+	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean {
+		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		return (
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
 			(checkAccess && this.hasAccessEffect(context)) ||
-			this.hasEffectsOnInteractionAtPath(EMPTY_PATH, { type: INTERACTION_ASSIGNED, value }, context)
+			this.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.assignmentInteraction, context)
 		);
 	}
 
@@ -271,10 +271,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	includeAsAssignmentTarget(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
-		deoptimizeAccess: boolean,
-		value: ExpressionEntity
+		deoptimizeAccess: boolean
 	): void {
-		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization(value);
+		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		if (deoptimizeAccess) {
 			this.include(context, includeChildrenRecursively);
 		} else {
@@ -295,6 +294,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	initialise(): void {
 		this.propertyKey = getResolvablePropertyKey(this);
+		this.accessInteraction = { thisArg: this.object, type: INTERACTION_ACCESSED };
 	}
 
 	render(
@@ -325,6 +325,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
+	setAssignedValue(value: ExpressionEntity) {
+		this.assignmentInteraction = { thisArg: this.object, type: INTERACTION_ASSIGNED, value };
+	}
+
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		const { propertyReadSideEffects } = this.context.options
@@ -337,7 +341,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		) {
 			const propertyKey = this.getPropertyKey();
 			this.object.deoptimizeThisOnInteractionAtPath(
-				{ thisArg: this.object, type: INTERACTION_ACCESSED },
+				this.accessInteraction,
 				[propertyKey],
 				SHARED_RECURSION_TRACKER
 			);
@@ -345,7 +349,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	private applyAssignmentDeoptimization(value: ExpressionEntity): void {
+	private applyAssignmentDeoptimization(): void {
 		this.assignmentDeoptimized = true;
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;
@@ -356,7 +360,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			!(this.variable || this.replacement)
 		) {
 			this.object.deoptimizeThisOnInteractionAtPath(
-				{ thisArg: this.object, type: INTERACTION_ASSIGNED, value },
+				this.assignmentInteraction,
 				[this.getPropertyKey()],
 				SHARED_RECURSION_TRACKER
 			);
@@ -400,7 +404,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			(propertyReadSideEffects === 'always' ||
 				this.object.hasEffectsOnInteractionAtPath(
 					[this.getPropertyKey()],
-					{ type: INTERACTION_ACCESSED },
+					this.accessInteraction,
 					context
 				))
 		);

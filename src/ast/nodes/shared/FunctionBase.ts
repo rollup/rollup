@@ -105,14 +105,14 @@ export default abstract class FunctionBase extends NodeBase {
 			if (
 				returnExpression.hasEffectsOnInteractionAtPath(
 					['then'],
-					{ args: NO_ARGS, thisArg: null, type: INTERACTION_CALLED, withNew: false },
+					{ args: NO_ARGS, thisArg: returnExpression, type: INTERACTION_CALLED, withNew: false },
 					context
 				) ||
 				(propertyReadSideEffects &&
 					(propertyReadSideEffects === 'always' ||
 						returnExpression.hasEffectsOnInteractionAtPath(
 							['then'],
-							{ type: INTERACTION_ACCESSED },
+							{ thisArg: returnExpression, type: INTERACTION_ACCESSED },
 							context
 						)))
 			) {

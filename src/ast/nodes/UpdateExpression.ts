@@ -5,34 +5,61 @@ import {
 	renderSystemExportSequenceAfterExpression,
 	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
-import type { HasEffectsContext } from '../ExecutionContext';
-import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED, NodeInteraction } from '../NodeInteractions';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	INTERACTION_ACCESSED,
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+	NodeInteraction,
+	NodeInteractionAssigned
+} from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
+import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare operator: '++' | '--';
 	declare prefix: boolean;
 	declare type: NodeType.tUpdateExpression;
+	private declare interaction: NodeInteractionAssigned;
 
+	// TODO Lukas make .hasEffectsAsAssignmentTarget a function on all nodes that defaults to hasEffects || ... ? What about includeAsAssignmentTarget?
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		return (
-			this.argument.hasEffects(context) ||
-			this.argument.hasEffectsOnInteractionAtPath(
-				EMPTY_PATH,
-				{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
-				context
-			)
-		);
+		const { deoptimized, argument } = this;
+		if (!deoptimized) this.applyDeoptimizations();
+		return argument instanceof MemberExpression
+			? argument.hasEffectsAsAssignmentTarget(context, true)
+			: argument.hasEffects(context) ||
+					argument.hasEffectsOnInteractionAtPath(
+						EMPTY_PATH,
+						NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+						context
+					);
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
-		return path.length > 1 || interaction.type !== INTERACTION_ACCESSED;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return path.length > 1 || type !== INTERACTION_ACCESSED;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		const { deoptimized, argument } = this;
+		if (!deoptimized) this.applyDeoptimizations();
+		this.included = true;
+		if (argument instanceof MemberExpression) {
+			argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
+		} else {
+			argument.include(context, includeChildrenRecursively);
+		}
+	}
+
+	initialise() {
+		const { argument } = this;
+		if (argument instanceof MemberExpression) {
+			argument.setAssignedValue(UNKNOWN_EXPRESSION);
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

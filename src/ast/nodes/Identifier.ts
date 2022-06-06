@@ -10,6 +10,7 @@ import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
+	NODE_INTERACTION_ACCESS,
 	NodeInteraction,
 	NodeInteractionCalled
 } from '../NodeInteractions';
@@ -139,11 +140,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
-			this.variable.hasEffectsOnInteractionAtPath(
-				EMPTY_PATH,
-				{ type: INTERACTION_ACCESSED },
-				context
-			)
+			this.variable.hasEffectsOnInteractionAtPath(EMPTY_PATH, NODE_INTERACTION_ACCESS, context)
 		);
 	}
 

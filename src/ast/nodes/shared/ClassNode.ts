@@ -47,10 +47,10 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	deoptimizeThisOnInteractionAtPath(
 		interaction: NodeInteractionWithThisArg,
-		_path: ObjectPath,
-		_recursionTracker: PathTracker
+		path: ObjectPath,
+		recursionTracker: PathTracker
 	): void {
-		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(interaction, _path, _recursionTracker);
+		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

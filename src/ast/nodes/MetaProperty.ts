@@ -53,8 +53,8 @@ export default class MetaProperty extends NodeBase {
 		return false;
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, interaction: NodeInteraction): boolean {
-		return path.length > 1 || interaction.type !== INTERACTION_ACCESSED;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return path.length > 1 || type !== INTERACTION_ACCESSED;
 	}
 
 	include(): void {

@@ -1,5 +1,5 @@
 import SpreadElement from './nodes/SpreadElement';
-import { ExpressionEntity } from './nodes/shared/Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 
 // TODO Lukas for usages and see if caching makes sense
 export const INTERACTION_ACCESSED = 0;
@@ -7,13 +7,26 @@ export const INTERACTION_ASSIGNED = 1;
 export const INTERACTION_CALLED = 2;
 
 export interface NodeInteractionAccessed {
+	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_ACCESSED;
 }
 
+export const NODE_INTERACTION_ACCESS: NodeInteractionAccessed = {
+	thisArg: null,
+	type: INTERACTION_ACCESSED
+};
+
 export interface NodeInteractionAssigned {
+	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_ASSIGNED;
 	value: ExpressionEntity;
 }
+
+export const NODE_INTERACTION_UNKNOWN_ASSIGNMENT: NodeInteractionAssigned = {
+	thisArg: null,
+	type: INTERACTION_ASSIGNED,
+	value: UNKNOWN_EXPRESSION
+};
 
 export interface NodeInteractionCalled {
 	args: (ExpressionEntity | SpreadElement)[];
@@ -24,11 +37,9 @@ export interface NodeInteractionCalled {
 
 export const NO_ARGS = [];
 
-// TODO Lukas destructure interactions where they are not forwarded
 export type NodeInteraction =
 	| NodeInteractionAccessed
 	| NodeInteractionAssigned
 	| NodeInteractionCalled;
 
-// TODO Lukas getters and setters can only every have their actual parent as thisArg -> do not add them to the interaction but get them statically
 export type NodeInteractionWithThisArg = NodeInteraction & { thisArg: ExpressionEntity };

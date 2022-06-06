@@ -1,9 +1,9 @@
 import type { HasEffectsContext } from '../../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
-	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
 	NO_ARGS,
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
@@ -46,7 +46,7 @@ export class Method extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		interaction: NodeInteractionCalled
+		{ thisArg }: NodeInteractionCalled
 	): ExpressionEntity {
 		if (path.length > 0) {
 			return UNKNOWN_EXPRESSION;
@@ -54,7 +54,7 @@ export class Method extends ExpressionEntity {
 		return (
 			this.description.returnsPrimitive ||
 			(this.description.returns === 'self'
-				? interaction.thisArg || UNKNOWN_EXPRESSION
+				? thisArg || UNKNOWN_EXPRESSION
 				: this.description.returns())
 		);
 	}
@@ -73,7 +73,7 @@ export class Method extends ExpressionEntity {
 				this.description.mutatesSelfAsArray === true &&
 				interaction.thisArg?.hasEffectsOnInteractionAtPath(
 					UNKNOWN_INTEGER_PATH,
-					{ type: INTERACTION_ASSIGNED, value: UNKNOWN_EXPRESSION },
+					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					context
 				)
 			) {

@@ -39,13 +39,10 @@ export default class Variable extends ExpressionEntity {
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		interaction: NodeInteraction,
+		{ type }: NodeInteraction,
 		_context: HasEffectsContext
 	): boolean {
-		if (interaction.type === INTERACTION_ACCESSED) {
-			return path.length > 0;
-		}
-		return true;
+		return type !== INTERACTION_ACCESSED || path.length > 0;
 	}
 
 	/**
