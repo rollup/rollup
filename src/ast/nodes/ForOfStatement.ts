@@ -37,12 +37,7 @@ export default class ForOfStatement extends StatementBase {
 		const { body, deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		const includeLeftChildren = includeChildrenRecursively || true;
-		if (left instanceof MemberExpression) {
-			left.includeAsAssignmentTarget(context, includeLeftChildren, false);
-		} else {
-			left.include(context, includeLeftChildren);
-		}
+		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
 		right.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
 		body.include(context, includeChildrenRecursively, { asSingleStatement: true });
@@ -50,10 +45,7 @@ export default class ForOfStatement extends StatementBase {
 	}
 
 	initialise() {
-		const { left } = this;
-		if (left instanceof MemberExpression) {
-			left.setAssignedValue(UNKNOWN_EXPRESSION);
-		}
+		this.left.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

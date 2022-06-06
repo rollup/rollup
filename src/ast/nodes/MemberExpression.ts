@@ -97,9 +97,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
+	protected declare assignmentInteraction: NodeInteractionAssigned & { thisArg: ExpressionEntity };
 	private declare accessInteraction: NodeInteractionAccessed & { thisArg: ExpressionEntity };
 	private assignmentDeoptimized = false;
-	private declare assignmentInteraction: NodeInteractionAssigned & { thisArg: ExpressionEntity };
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
@@ -233,6 +233,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean {
+		if (checkAccess && !this.deoptimized) this.applyDeoptimizations();
 		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		return (
 			this.property.hasEffects(context) ||

@@ -1,7 +1,6 @@
 import type MagicString from 'magic-string';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../NodeInteractions';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
@@ -30,18 +29,7 @@ export default class ForInStatement extends StatementBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		const { deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
-		if (
-			(left &&
-				(left instanceof MemberExpression
-					? left.hasEffectsAsAssignmentTarget(context, false)
-					: left.hasEffects(context) ||
-					  left.hasEffectsOnInteractionAtPath(
-							EMPTY_PATH,
-							NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
-							context
-					  ))) ||
-			(right && right.hasEffects(context))
-		)
+		if (left?.hasEffectsAsAssignmentTarget(context, false) || right?.hasEffects(context))
 			return true;
 		const {
 			brokenFlow,
@@ -60,12 +48,7 @@ export default class ForInStatement extends StatementBase {
 		const { body, deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		const includeLeftChildren = includeChildrenRecursively || true;
-		if (left instanceof MemberExpression) {
-			left.includeAsAssignmentTarget(context, includeLeftChildren, false);
-		} else {
-			left.include(context, includeLeftChildren);
-		}
+		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
 		right.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
 		body.include(context, includeChildrenRecursively, { asSingleStatement: true });
@@ -73,10 +56,7 @@ export default class ForInStatement extends StatementBase {
 	}
 
 	initialise() {
-		const { left } = this;
-		if (left instanceof MemberExpression) {
-			left.setAssignedValue(UNKNOWN_EXPRESSION);
-		}
+		this.left.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

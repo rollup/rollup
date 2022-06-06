@@ -8,13 +8,11 @@ import {
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
-	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 	NodeInteraction,
 	NodeInteractionAssigned
 } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
-import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
@@ -26,18 +24,9 @@ export default class UpdateExpression extends NodeBase {
 	declare type: NodeType.tUpdateExpression;
 	private declare interaction: NodeInteractionAssigned;
 
-	// TODO Lukas make .hasEffectsAsAssignmentTarget a function on all nodes that defaults to hasEffects || ... ? What about includeAsAssignmentTarget?
 	hasEffects(context: HasEffectsContext): boolean {
-		const { deoptimized, argument } = this;
-		if (!deoptimized) this.applyDeoptimizations();
-		return argument instanceof MemberExpression
-			? argument.hasEffectsAsAssignmentTarget(context, true)
-			: argument.hasEffects(context) ||
-					argument.hasEffectsOnInteractionAtPath(
-						EMPTY_PATH,
-						NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
-						context
-					);
+		if (!this.deoptimized) this.applyDeoptimizations();
+		return this.argument.hasEffectsAsAssignmentTarget(context, true);
 	}
 
 	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
@@ -45,21 +34,13 @@ export default class UpdateExpression extends NodeBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		const { deoptimized, argument } = this;
-		if (!deoptimized) this.applyDeoptimizations();
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		if (argument instanceof MemberExpression) {
-			argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
-		} else {
-			argument.include(context, includeChildrenRecursively);
-		}
+		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
 	}
 
 	initialise() {
-		const { argument } = this;
-		if (argument instanceof MemberExpression) {
-			argument.setAssignedValue(UNKNOWN_EXPRESSION);
-		}
+		this.argument.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
