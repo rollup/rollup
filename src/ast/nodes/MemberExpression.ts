@@ -88,7 +88,6 @@ function getStringFromPath(path: PathWithPositions): string {
 	return pathString;
 }
 
-// TODO Lukas if we check each access separately, we do not need to check getters when accessing a nested property in MethodBase, verify
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
 	declare computed: boolean;
 	declare object: ExpressionNode | Super;

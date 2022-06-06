@@ -2,7 +2,6 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
-	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
 	NodeInteraction,
 	NodeInteractionCalled,
@@ -255,11 +254,11 @@ export class ObjectEntity extends ExpressionEntity {
 		if (path.length === 0) {
 			return UNKNOWN_EXPRESSION;
 		}
-		const key = path[0];
+		const [key, ...subPath] = path;
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
 		if (expressionAtPath) {
 			return expressionAtPath.getReturnExpressionWhenCalledAtPath(
-				path.slice(1),
+				subPath,
 				interaction,
 				recursionTracker,
 				origin
@@ -276,130 +275,54 @@ export class ObjectEntity extends ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	// TODO Lukas simplify
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		const [key, ...subPath] = path;
-		switch (interaction.type) {
-			case INTERACTION_CALLED: {
-				const expressionAtPath = this.getMemberExpression(key);
-				if (expressionAtPath) {
-					return expressionAtPath.hasEffectsOnInteractionAtPath(
-						path.slice(1),
-						interaction,
-						context
-					);
-				}
-				if (this.prototypeExpression) {
-					return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
-				}
-				return true;
+		if (subPath.length || interaction.type === INTERACTION_CALLED) {
+			const expressionAtPath = this.getMemberExpression(key);
+			if (expressionAtPath) {
+				return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
 			}
-			case INTERACTION_ACCESSED: {
-				if (path.length > 1) {
-					if (typeof key !== 'string') {
-						return true;
+			if (this.prototypeExpression) {
+				return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
+			}
+			return true;
+		}
+		if (key === UnknownNonAccessorKey) return false;
+		if (this.hasLostTrack) return true;
+		const [propertiesAndAccessorsByKey, accessorsByKey, unmatchableAccessors] =
+			interaction.type === INTERACTION_ACCESSED
+				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
+				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
+		if (typeof key === 'string') {
+			if (propertiesAndAccessorsByKey[key]) {
+				const accessors = accessorsByKey[key];
+				if (accessors) {
+					for (const accessor of accessors) {
+						if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
 					}
-					const expressionAtPath = this.getMemberExpression(key);
-					if (expressionAtPath) {
-						return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
-					}
-					if (this.prototypeExpression) {
-						return this.prototypeExpression.hasEffectsOnInteractionAtPath(
-							path,
-							interaction,
-							context
-						);
-					}
-					return true;
-				}
-
-				if (this.hasLostTrack) return true;
-				if (typeof key === 'string') {
-					if (this.propertiesAndGettersByKey[key]) {
-						const getters = this.gettersByKey[key];
-						if (getters) {
-							for (const getter of getters) {
-								if (getter.hasEffectsOnInteractionAtPath(subPath, interaction, context))
-									return true;
-							}
-						}
-						return false;
-					}
-					for (const getter of this.unmatchableGetters) {
-						if (getter.hasEffectsOnInteractionAtPath(subPath, interaction, context)) {
-							return true;
-						}
-					}
-				} else {
-					for (const getters of Object.values(this.gettersByKey).concat([
-						this.unmatchableGetters
-					])) {
-						for (const getter of getters) {
-							if (getter.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
-						}
-					}
-				}
-				if (this.prototypeExpression) {
-					return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
 				}
 				return false;
 			}
-			case INTERACTION_ASSIGNED: {
-				if (path.length > 1) {
-					if (typeof key !== 'string') {
-						return true;
-					}
-					const expressionAtPath = this.getMemberExpression(key);
-					if (expressionAtPath) {
-						return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
-					}
-					if (this.prototypeExpression) {
-						return this.prototypeExpression.hasEffectsOnInteractionAtPath(
-							path,
-							interaction,
-							context
-						);
-					}
+			for (const accessor of unmatchableAccessors) {
+				if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) {
 					return true;
 				}
-
-				if (key === UnknownNonAccessorKey) return false;
-				if (this.hasLostTrack) return true;
-				if (typeof key === 'string') {
-					if (this.propertiesAndSettersByKey[key]) {
-						const setters = this.settersByKey[key];
-						if (setters) {
-							for (const setter of setters) {
-								if (setter.hasEffectsOnInteractionAtPath(subPath, interaction, context))
-									return true;
-							}
-						}
-						return false;
-					}
-					for (const property of this.unmatchableSetters) {
-						if (property.hasEffectsOnInteractionAtPath(subPath, interaction, context)) {
-							return true;
-						}
-					}
-				} else {
-					for (const setters of Object.values(this.settersByKey).concat([
-						this.unmatchableSetters
-					])) {
-						for (const setter of setters) {
-							if (setter.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
-						}
-					}
+			}
+		} else {
+			for (const accessors of Object.values(accessorsByKey).concat([unmatchableAccessors])) {
+				for (const accessor of accessors) {
+					if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
 				}
-				if (this.prototypeExpression) {
-					return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
-				}
-				return false;
 			}
 		}
+		if (this.prototypeExpression) {
+			return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
+		}
+		return false;
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {
