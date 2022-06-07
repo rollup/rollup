@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.75.6
+
+_2022-06-07_
+
+### Bug Fixes
+
+- Properly deoptimize "this" when using member expressions with getters/setters in for loops and update expressions (#4522)
+
+### Pull Requests
+
+- [#4522](https://github.com/rollup/rollup/pull/4522): Refactor side effect handling for property interactions (@lukastaegert)
+
 ## 2.75.5
 
 _2022-06-01_
