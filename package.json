@@ -113,7 +113,7 @@
     "systemjs": "^6.12.1",
     "terser": "^5.14.0",
     "tslib": "^2.4.0",
-    "typescript": "^4.6.4",
+    "typescript": "^4.7.3",
     "weak-napi": "^2.0.2",
     "yargs-parser": "^20.2.9"
   },
