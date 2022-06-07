@@ -5,6 +5,7 @@ import {
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
 	NO_ARGS,
+	NODE_INTERACTION_UNKNOWN_CALL,
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
@@ -139,7 +140,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				this.accessedValue = UNKNOWN_EXPRESSION;
 				return (this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(
 					EMPTY_PATH,
-					{ args: NO_ARGS, thisArg: null, type: INTERACTION_CALLED, withNew: false },
+					NODE_INTERACTION_UNKNOWN_CALL,
 					SHARED_RECURSION_TRACKER,
 					this
 				));

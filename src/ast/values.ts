@@ -2,7 +2,7 @@ import type { HasEffectsContext } from './ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,
-	NO_ARGS,
+	NODE_INTERACTION_UNKNOWN_CALL,
 	NodeInteraction,
 	NodeInteractionCalled
 } from './NodeInteractions';
@@ -153,16 +153,7 @@ const stringReplace: RawMemberDescription = {
 				(typeof arg1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
 					deoptimizeCache() {}
 				}) === 'symbol' &&
-					arg1.hasEffectsOnInteractionAtPath(
-						EMPTY_PATH,
-						{
-							args: NO_ARGS,
-							thisArg: null,
-							type: INTERACTION_CALLED,
-							withNew: false
-						},
-						context
-					))
+					arg1.hasEffectsOnInteractionAtPath(EMPTY_PATH, NODE_INTERACTION_UNKNOWN_CALL, context))
 			);
 		},
 		returns: UNKNOWN_LITERAL_STRING

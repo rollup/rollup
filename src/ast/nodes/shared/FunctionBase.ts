@@ -6,9 +6,9 @@ import {
 	type InclusionContext
 } from '../../ExecutionContext';
 import {
-	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,
-	NO_ARGS,
+	NODE_INTERACTION_UNKNOWN_ACCESS,
+	NODE_INTERACTION_UNKNOWN_CALL,
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
@@ -105,14 +105,14 @@ export default abstract class FunctionBase extends NodeBase {
 			if (
 				returnExpression.hasEffectsOnInteractionAtPath(
 					['then'],
-					{ args: NO_ARGS, thisArg: returnExpression, type: INTERACTION_CALLED, withNew: false },
+					NODE_INTERACTION_UNKNOWN_CALL,
 					context
 				) ||
 				(propertyReadSideEffects &&
 					(propertyReadSideEffects === 'always' ||
 						returnExpression.hasEffectsOnInteractionAtPath(
 							['then'],
-							{ thisArg: returnExpression, type: INTERACTION_ACCESSED },
+							NODE_INTERACTION_UNKNOWN_ACCESS,
 							context
 						)))
 			) {

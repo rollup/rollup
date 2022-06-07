@@ -1,7 +1,7 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteractionWithThisArg } from '../NodeInteractions';
-import { NODE_INTERACTION_ACCESS } from '../NodeInteractions';
+import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { type ExpressionNode, NodeBase } from './shared/Node';
@@ -34,7 +34,7 @@ export default class SpreadElement extends NodeBase {
 				(propertyReadSideEffects === 'always' ||
 					this.argument.hasEffectsOnInteractionAtPath(
 						UNKNOWN_PATH,
-						NODE_INTERACTION_ACCESS,
+						NODE_INTERACTION_UNKNOWN_ACCESS,
 						context
 					)))
 		);

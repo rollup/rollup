@@ -2,8 +2,8 @@ import type { HasEffectsContext } from '../../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,
-	NO_ARGS,
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+	NODE_INTERACTION_UNKNOWN_CALL,
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
@@ -84,12 +84,7 @@ export class Method extends ExpressionEntity {
 					if (
 						interaction.args[argIndex]?.hasEffectsOnInteractionAtPath(
 							EMPTY_PATH,
-							{
-								args: NO_ARGS,
-								thisArg: null,
-								type: INTERACTION_CALLED,
-								withNew: false
-							},
+							NODE_INTERACTION_UNKNOWN_CALL,
 							context
 						)
 					) {

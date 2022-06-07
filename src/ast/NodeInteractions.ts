@@ -1,7 +1,6 @@
 import SpreadElement from './nodes/SpreadElement';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 
-// TODO Lukas for usages and see if caching makes sense
 export const INTERACTION_ACCESSED = 0;
 export const INTERACTION_ASSIGNED = 1;
 export const INTERACTION_CALLED = 2;
@@ -11,7 +10,7 @@ export interface NodeInteractionAccessed {
 	type: typeof INTERACTION_ACCESSED;
 }
 
-export const NODE_INTERACTION_ACCESS: NodeInteractionAccessed = {
+export const NODE_INTERACTION_UNKNOWN_ACCESS: NodeInteractionAccessed = {
 	thisArg: null,
 	type: INTERACTION_ACCESSED
 };
@@ -38,6 +37,16 @@ export interface NodeInteractionCalled {
 }
 
 export const NO_ARGS = [];
+
+// While this is technically a call without arguments, we can compare against
+// this reference in places where precise values or thisArg would make a
+// difference
+export const NODE_INTERACTION_UNKNOWN_CALL: NodeInteractionCalled = {
+	args: NO_ARGS,
+	thisArg: null,
+	type: INTERACTION_CALLED,
+	withNew: false
+};
 
 export type NodeInteraction =
 	| NodeInteractionAccessed
