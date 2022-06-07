@@ -10,7 +10,7 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionWithThisArg } from '../NodeInteractions';
-import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
+import { NodeInteraction } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
@@ -61,9 +61,6 @@ export default class SequenceExpression extends NodeBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length === 0 && interaction.type === INTERACTION_ACCESSED) {
-			return false;
-		}
 		return this.expressions[this.expressions.length - 1].hasEffectsOnInteractionAtPath(
 			path,
 			interaction,

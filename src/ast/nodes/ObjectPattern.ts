@@ -47,11 +47,12 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsOnInteractionAtPath(
-		path: ObjectPath,
+		// At the moment, this is only triggered for assignment left-hand sides,
+		// where the path is empty
+		_path: ObjectPath,
 		interaction: NodeInteractionAssigned,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length > 0) return true;
 		for (const property of this.properties) {
 			if (property.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)) return true;
 		}

@@ -17,7 +17,7 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../ExecutionContext';
-import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED, NodeInteraction } from '../NodeInteractions';
+import { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
@@ -60,14 +60,6 @@ export default class AssignmentExpression extends NodeBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length === 0) {
-			if (interaction.type === INTERACTION_ACCESSED) {
-				return false;
-			}
-			if (interaction.type === INTERACTION_ASSIGNED) {
-				return true;
-			}
-		}
 		return this.right.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
