@@ -1,5 +1,5 @@
-import { type CallOptions } from '../CallOptions';
 import { type HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { INTERACTION_CALLED, NodeInteraction } from '../NodeInteractions';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import type Scope from '../scopes/Scope';
 import { type ObjectPath } from '../utils/PathTracker';
@@ -30,22 +30,24 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		return false;
 	}
 
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (super.hasEffectsWhenCalledAtPath(path, callOptions, context)) return true;
-		const { ignore, brokenFlow } = context;
-		context.ignore = {
-			breaks: false,
-			continues: false,
-			labels: new Set(),
-			returnYield: true
-		};
-		if (this.body.hasEffects(context)) return true;
-		context.ignore = ignore;
-		context.brokenFlow = brokenFlow;
+		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+		if (interaction.type === INTERACTION_CALLED) {
+			const { ignore, brokenFlow } = context;
+			context.ignore = {
+				breaks: false,
+				continues: false,
+				labels: new Set(),
+				returnYield: true
+			};
+			if (this.body.hasEffects(context)) return true;
+			context.ignore = ignore;
+			context.brokenFlow = brokenFlow;
+		}
 		return false;
 	}
 

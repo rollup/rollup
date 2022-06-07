@@ -1,8 +1,13 @@
 import Module, { AstContext } from '../../Module';
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteractionCalled, NodeInteractionWithThisArg } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	NodeInteraction
+} from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
@@ -81,19 +86,18 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		if (this.isReassigned || !this.init) {
-			return thisParameter.deoptimizePath(UNKNOWN_PATH);
+			return interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
 		}
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() => this.init!.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker),
+			() => this.init!.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker),
 			undefined
 		);
 	}
@@ -119,7 +123,7 @@ export default class LocalVariable extends Variable {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
@@ -133,7 +137,7 @@ export default class LocalVariable extends Variable {
 				this.expressionsToBeDeoptimized.push(origin);
 				return this.init!.getReturnExpressionWhenCalledAtPath(
 					path,
-					callOptions,
+					interaction,
 					recursionTracker,
 					origin
 				);
@@ -142,33 +146,32 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.init.hasEffectsWhenAccessedAtPath(path, context))!;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.included) return true;
-		if (path.length === 0) return false;
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.init.hasEffectsWhenAssignedAtPath(path, context))!;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!(
-				callOptions.withNew ? context.instantiated : context.called
-			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
-			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
+		switch (interaction.type) {
+			case INTERACTION_ACCESSED:
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			case INTERACTION_ASSIGNED:
+				if (this.included) return true;
+				if (path.length === 0) return false;
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			case INTERACTION_CALLED:
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!(
+						interaction.withNew ? context.instantiated : context.called
+					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+		}
 	}
 
 	include(): void {

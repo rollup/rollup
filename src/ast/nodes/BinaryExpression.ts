@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
+import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -83,8 +84,8 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
 	render(

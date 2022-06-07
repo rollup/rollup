@@ -1,6 +1,11 @@
 import type MagicString from 'magic-string';
-import type { CallOptions } from '../CallOptions';
 import type { HasEffectsContext } from '../ExecutionContext';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	NodeInteraction
+} from '../NodeInteractions';
 import type { ObjectPath } from '../utils/PathTracker';
 import {
 	getLiteralMembersForValue,
@@ -29,7 +34,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 
 	private declare members: { [key: string]: MemberDescription };
 
-	deoptimizeThisOnEventAtPath(): void {}
+	deoptimizeThisOnInteractionAtPath(): void {}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (
@@ -50,22 +55,22 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		return getMemberReturnExpressionWhenCalled(this.members, path[0]);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		if (this.value === null) {
-			return path.length > 0;
-		}
-		return path.length > 1;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, context);
+		switch (interaction.type) {
+			case INTERACTION_ACCESSED:
+				return path.length > (this.value === null ? 0 : 1);
+			case INTERACTION_ASSIGNED:
+				return true;
+			case INTERACTION_CALLED:
+				return (
+					path.length !== 1 ||
+					hasMemberEffectWhenCalled(this.members, path[0], interaction, context)
+				);
 		}
-		return true;
 	}
 
 	initialise(): void {

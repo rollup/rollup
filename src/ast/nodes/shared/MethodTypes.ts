@@ -1,6 +1,13 @@
-import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+	NODE_INTERACTION_UNKNOWN_CALL,
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
@@ -28,19 +35,18 @@ export class Method extends ExpressionEntity {
 		super();
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
-		path: ObjectPath,
-		thisParameter: ExpressionEntity
+	deoptimizeThisOnInteractionAtPath(
+		{ type, thisArg }: NodeInteractionWithThisArg,
+		path: ObjectPath
 	): void {
-		if (event === EVENT_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
-			thisParameter.deoptimizePath(UNKNOWN_INTEGER_PATH);
+		if (type === INTERACTION_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
+			thisArg.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions
+		{ thisArg }: NodeInteractionCalled
 	): ExpressionEntity {
 		if (path.length > 0) {
 			return UNKNOWN_EXPRESSION;
@@ -48,47 +54,43 @@ export class Method extends ExpressionEntity {
 		return (
 			this.description.returnsPrimitive ||
 			(this.description.returns === 'self'
-				? callOptions.thisParam || UNKNOWN_EXPRESSION
+				? thisArg || UNKNOWN_EXPRESSION
 				: this.description.returns())
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-		return path.length > 0;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (
-			path.length > 0 ||
-			(this.description.mutatesSelfAsArray === true &&
-				callOptions.thisParam?.hasEffectsWhenAssignedAtPath(UNKNOWN_INTEGER_PATH, context))
-		) {
+		const { type } = interaction;
+		if (path.length > (type === INTERACTION_ACCESSED ? 1 : 0)) {
 			return true;
 		}
-		if (!this.description.callsArgs) {
-			return false;
-		}
-		for (const argIndex of this.description.callsArgs) {
+		if (type === INTERACTION_CALLED) {
 			if (
-				callOptions.args[argIndex]?.hasEffectsWhenCalledAtPath(
-					EMPTY_PATH,
-					{
-						args: NO_ARGS,
-						thisParam: null,
-						withNew: false
-					},
+				this.description.mutatesSelfAsArray === true &&
+				interaction.thisArg?.hasEffectsOnInteractionAtPath(
+					UNKNOWN_INTEGER_PATH,
+					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					context
 				)
 			) {
 				return true;
+			}
+			if (this.description.callsArgs) {
+				for (const argIndex of this.description.callsArgs) {
+					if (
+						interaction.args[argIndex]?.hasEffectsOnInteractionAtPath(
+							EMPTY_PATH,
+							NODE_INTERACTION_UNKNOWN_CALL,
+							context
+						)
+					) {
+						return true;
+					}
+				}
 			}
 		}
 		return false;

@@ -1,6 +1,6 @@
-import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity } from './Expression';
 import type { IncludeChildren } from './Node';
@@ -20,38 +20,24 @@ export class MultiExpression extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return new MultiExpression(
 			this.expressions.map(expression =>
-				expression.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
+				expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
 			)
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		for (const expression of this.expressions) {
-			if (expression.hasEffectsWhenAccessedAtPath(path, context)) return true;
-		}
-		return false;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		for (const expression of this.expressions) {
-			if (expression.hasEffectsWhenAssignedAtPath(path, context)) return true;
-		}
-		return false;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffectsWhenCalledAtPath(path, callOptions, context)) return true;
+			if (expression.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
 		}
 		return false;
 	}

@@ -1,7 +1,12 @@
-import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { type NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
 	type ExpressionEntity,
@@ -12,7 +17,7 @@ import {
 import { NodeBase } from './Node';
 
 export default abstract class CallExpressionBase extends NodeBase implements DeoptimizableEntity {
-	protected declare callOptions: CallOptions;
+	protected declare interaction: NodeInteractionCalled;
 	protected returnExpression: ExpressionEntity | null = null;
 	private readonly deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
 	private readonly expressionsToBeDeoptimized = new Set<ExpressionEntity>();
@@ -42,27 +47,21 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		const returnExpression = this.getReturnExpression(recursionTracker);
 		if (returnExpression === UNKNOWN_EXPRESSION) {
-			thisParameter.deoptimizePath(UNKNOWN_PATH);
+			interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
 		} else {
 			recursionTracker.withTrackedEntityAtPath(
 				path,
 				returnExpression,
 				() => {
-					this.expressionsToBeDeoptimized.add(thisParameter);
-					returnExpression.deoptimizeThisOnEventAtPath(
-						event,
-						path,
-						thisParameter,
-						recursionTracker
-					);
+					this.expressionsToBeDeoptimized.add(interaction.thisArg);
+					returnExpression.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 				},
 				undefined
 			);
@@ -91,7 +90,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
@@ -106,7 +105,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 				this.deoptimizableDependentExpressions.push(origin);
 				return returnExpression.getReturnExpressionWhenCalledAtPath(
 					path,
-					callOptions,
+					interaction,
 					recursionTracker,
 					origin
 				);
@@ -115,31 +114,30 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return (
-			!(
-				callOptions.withNew ? context.instantiated : context.called
-			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
-			this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context)
-		);
+		const { type } = interaction;
+		if (type === INTERACTION_CALLED) {
+			if (
+				(interaction.withNew
+					? context.instantiated
+					: context.called
+				).trackEntityAtPathAndGetIfTracked(path, interaction.args, this)
+			) {
+				return false;
+			}
+		} else if (
+			(type === INTERACTION_ASSIGNED
+				? context.assigned
+				: context.accessed
+			).trackEntityAtPathAndGetIfTracked(path, this)
+		) {
+			return false;
+		}
+		return this.getReturnExpression().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	protected abstract getReturnExpression(recursionTracker?: PathTracker): ExpressionEntity;

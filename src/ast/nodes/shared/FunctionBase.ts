@@ -1,12 +1,18 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { type CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
 	BROKEN_FLOW_NONE,
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import { NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_CALLED,
+	NODE_INTERACTION_UNKNOWN_ACCESS,
+	NODE_INTERACTION_UNKNOWN_CALL,
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
 import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
@@ -41,19 +47,13 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		if (path.length > 0) {
-			this.getObjectEntity().deoptimizeThisOnEventAtPath(
-				event,
-				path,
-				thisParameter,
-				recursionTracker
-			);
+			this.getObjectEntity().deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 		}
 	}
 
@@ -67,14 +67,14 @@ export default abstract class FunctionBase extends NodeBase {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (path.length > 0) {
 			return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 				path,
-				callOptions,
+				interaction,
 				recursionTracker,
 				origin
 			);
@@ -90,35 +90,31 @@ export default abstract class FunctionBase extends NodeBase {
 		return this.scope.getReturnExpression();
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length > 0) {
-			return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
+		if (path.length > 0 || interaction.type !== INTERACTION_CALLED) {
+			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		if (this.async) {
 			const { propertyReadSideEffects } = this.context.options
 				.treeshake as NormalizedTreeshakingOptions;
 			const returnExpression = this.scope.getReturnExpression();
 			if (
-				returnExpression.hasEffectsWhenCalledAtPath(
+				returnExpression.hasEffectsOnInteractionAtPath(
 					['then'],
-					{ args: NO_ARGS, thisParam: null, withNew: false },
+					NODE_INTERACTION_UNKNOWN_CALL,
 					context
 				) ||
 				(propertyReadSideEffects &&
 					(propertyReadSideEffects === 'always' ||
-						returnExpression.hasEffectsWhenAccessedAtPath(['then'], context)))
+						returnExpression.hasEffectsOnInteractionAtPath(
+							['then'],
+							NODE_INTERACTION_UNKNOWN_ACCESS,
+							context
+						)))
 			) {
 				return true;
 			}

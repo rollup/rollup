@@ -7,14 +7,14 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { NodeInteraction } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
-import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import type { LiteralValueOrUnknown } from './shared/Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
@@ -25,16 +25,14 @@ export default class SequenceExpression extends NodeBase {
 		this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
-			event,
+		this.expressions[this.expressions.length - 1].deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
-			thisParameter,
 			recursionTracker
 		);
 	}
@@ -58,28 +56,14 @@ export default class SequenceExpression extends NodeBase {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			path.length > 0 &&
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(
-			path,
-			context
-		);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.expressions[this.expressions.length - 1].hasEffectsWhenCalledAtPath(
+		return this.expressions[this.expressions.length - 1].hasEffectsOnInteractionAtPath(
 			path,
-			callOptions,
+			interaction,
 			context
 		);
 	}

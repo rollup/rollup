@@ -10,9 +10,10 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
+import { INTERACTION_ASSIGNED, NodeInteractionAssigned } from '../../NodeInteractions';
 import { getAndCreateKeys, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
-import { UNKNOWN_PATH } from '../../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
 import { ExpressionEntity, InclusionOptions } from './Expression';
@@ -44,22 +45,32 @@ export interface Node extends Entity {
 	): void;
 
 	/**
-	 * Called once all nodes have been initialised and the scopes have been populated.
+	 * Called once all nodes have been initialised and the scopes have been
+	 * populated.
 	 */
 	bind(): void;
 
 	/**
-	 * Determine if this Node would have an effect on the bundle.
-	 * This is usually true for already included nodes. Exceptions are e.g. break statements
-	 * which only have an effect if their surrounding loop or switch statement is included.
+	 * Determine if this Node would have an effect on the bundle. This is usually
+	 * true for already included nodes. Exceptions are e.g. break statements which
+	 * only have an effect if their surrounding loop or switch statement is
+	 * included.
 	 * The options pass on information like this about the current execution path.
 	 */
 	hasEffects(context: HasEffectsContext): boolean;
 
 	/**
-	 * Includes the node in the bundle. If the flag is not set, children are usually included
-	 * if they are necessary for this node (e.g. a function body) or if they have effects.
-	 * Necessary variables need to be included as well.
+	 * Special version of hasEffects for assignment left-hand sides which ensures
+	 * that accessor effects are checked as well. This is necessary to do from the
+	 * child so that member expressions can use the correct thisArg value.
+	 * setAssignedValue needs to be called during initialise to use this.
+	 */
+	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean;
+
+	/**
+	 * Includes the node in the bundle. If the flag is not set, children are
+	 * usually included if they are necessary for this node (e.g. a function body)
+	 * or if they have effects. Necessary variables need to be included as well.
 	 */
 	include(
 		context: InclusionContext,
@@ -67,13 +78,33 @@ export interface Node extends Entity {
 		options?: InclusionOptions
 	): void;
 
+	/**
+	 * Special version of include for assignment left-hand sides which ensures
+	 * that accessors are handled correctly. This is necessary to do from the
+	 * child so that member expressions can use the correct thisArg value.
+	 * setAssignedValue needs to be called during initialise to use this.
+	 */
+	includeAsAssignmentTarget(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		deoptimizeAccess: boolean
+	): void;
+
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
-	 * Start a new execution path to determine if this node has an effect on the bundle and
-	 * should therefore be included. Included nodes should always be included again in subsequent
-	 * visits as the inclusion of additional variables may require the inclusion of more child
-	 * nodes in e.g. block statements.
+	 * Sets the assigned value e.g. for assignment expression left. This must be
+	 * called during initialise in case hasEffects/includeAsAssignmentTarget are
+	 * used.
+	 */
+	setAssignedValue(value: ExpressionEntity): void;
+
+	/**
+	 * Start a new execution path to determine if this node has an effect on the
+	 * bundle and should therefore be included. Included nodes should always be
+	 * included again in subsequent visits as the inclusion of additional
+	 * variables may require the inclusion of more child nodes in e.g. block
+	 * statements.
 	 */
 	shouldBeIncluded(context: InclusionContext): boolean;
 }
@@ -92,10 +123,16 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	declare scope: ChildScope;
 	declare start: number;
 	declare type: keyof typeof NodeType;
-	// Nodes can apply custom deoptimizations once they become part of the
-	// executed code. To do this, they must initialize this as false, implement
-	// applyDeoptimizations and call this from include and hasEffects if they
-	// have custom handlers
+	/**
+	 * This will be populated during initialise if setAssignedValue is called.
+	 */
+	protected declare assignmentInteraction: NodeInteractionAssigned;
+	/**
+	 * Nodes can apply custom deoptimizations once they become part of the
+	 * executed code. To do this, they must initialize this as false, implement
+	 * applyDeoptimizations and call this from include and hasEffects if they have
+	 * custom handlers
+	 */
 	protected deoptimized = false;
 
 	constructor(
@@ -159,6 +196,13 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		return false;
 	}
 
+	hasEffectsAsAssignmentTarget(context: HasEffectsContext, _checkAccess: boolean): boolean {
+		return (
+			this.hasEffects(context) ||
+			this.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.assignmentInteraction, context)
+		);
+	}
+
 	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
@@ -177,6 +221,14 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				value.include(context, includeChildrenRecursively);
 			}
 		}
+	}
+
+	includeAsAssignmentTarget(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		_deoptimizeAccess: boolean
+	) {
+		this.include(context, includeChildrenRecursively);
 	}
 
 	/**
@@ -234,6 +286,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				value.render(code, options);
 			}
 		}
+	}
+
+	setAssignedValue(value: ExpressionEntity): void {
+		this.assignmentInteraction = { args: [value], thisArg: null, type: INTERACTION_ASSIGNED };
 	}
 
 	shouldBeIncluded(context: InclusionContext): boolean {

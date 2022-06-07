@@ -5,7 +5,7 @@ import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED } from '../NodeEvents';
+import { INTERACTION_CALLED, NodeInteractionWithThisArg } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type PathTracker,
@@ -53,12 +53,13 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 				);
 			}
 		}
-		this.callOptions = {
+		this.interaction = {
 			args: this.arguments,
-			thisParam:
+			thisArg:
 				this.callee instanceof MemberExpression && !this.callee.variable
 					? this.callee.object
 					: null,
+			type: INTERACTION_CALLED,
 			withNew: false
 		};
 	}
@@ -75,7 +76,7 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 				return false;
 			return (
 				this.callee.hasEffects(context) ||
-				this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
 			);
 		} finally {
 			if (!this.deoptimized) this.applyDeoptimizations();
@@ -118,12 +119,10 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		const { thisParam } = this.callOptions;
-		if (thisParam) {
-			this.callee.deoptimizeThisOnEventAtPath(
-				EVENT_CALLED,
+		if (this.interaction.thisArg) {
+			this.callee.deoptimizeThisOnInteractionAtPath(
+				this.interaction as NodeInteractionWithThisArg,
 				EMPTY_PATH,
-				thisParam,
 				SHARED_RECURSION_TRACKER
 			);
 		}
@@ -141,7 +140,7 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
-				this.callOptions,
+				this.interaction,
 				recursionTracker,
 				this
 			));

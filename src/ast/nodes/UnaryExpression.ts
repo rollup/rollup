@@ -1,5 +1,10 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
+import {
+	INTERACTION_ACCESSED,
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+	NodeInteraction
+} from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
@@ -43,15 +48,16 @@ export default class UnaryExpression extends NodeBase {
 		return (
 			this.argument.hasEffects(context) ||
 			(this.operator === 'delete' &&
-				this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
+				this.argument.hasEffectsOnInteractionAtPath(
+					EMPTY_PATH,
+					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+					context
+				))
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		if (this.operator === 'void') {
-			return path.length > 0;
-		}
-		return path.length > 1;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > (this.operator === 'void' ? 0 : 1);
 	}
 
 	protected applyDeoptimizations(): void {

@@ -4,8 +4,9 @@ import type { PluginDriver } from '../../utils/PluginDriver';
 import { warnDeprecation } from '../../utils/error';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { dirname, normalize, relative } from '../../utils/path';
+import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
 import type ChildScope from '../scopes/ChildScope';
-import type { ObjectPathKey } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -52,8 +53,8 @@ export default class MetaProperty extends NodeBase {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: readonly ObjectPathKey[]): boolean {
-		return path.length > 1;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return path.length > 1 || type !== INTERACTION_ACCESSED;
 	}
 
 	include(): void {

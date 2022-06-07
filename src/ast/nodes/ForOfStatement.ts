@@ -4,8 +4,10 @@ import type { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
+import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
@@ -17,7 +19,7 @@ import type { PatternNode } from './shared/Pattern';
 export default class ForOfStatement extends StatementBase {
 	declare await: boolean;
 	declare body: StatementNode;
-	declare left: VariableDeclaration | PatternNode;
+	declare left: VariableDeclaration | PatternNode | MemberExpression;
 	declare right: ExpressionNode;
 	declare type: NodeType.tForOfStatement;
 
@@ -32,13 +34,18 @@ export default class ForOfStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+		const { body, deoptimized, left, right } = this;
+		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		this.left.include(context, includeChildrenRecursively || true);
-		this.right.include(context, includeChildrenRecursively);
+		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
+		right.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
+		body.include(context, includeChildrenRecursively, { asSingleStatement: true });
 		context.brokenFlow = brokenFlow;
+	}
+
+	initialise() {
+		this.left.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

@@ -1,4 +1,5 @@
 import type { HasEffectsContext } from './ExecutionContext';
+import { NodeInteractionAssigned } from './NodeInteractions';
 import type { ObjectPath } from './utils/PathTracker';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -13,5 +14,9 @@ export interface WritableEntity extends Entity {
 	 */
 	deoptimizePath(path: ObjectPath): void;
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean;
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionAssigned,
+		context: HasEffectsContext
+	): boolean;
 }

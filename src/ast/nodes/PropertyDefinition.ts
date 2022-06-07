@@ -1,7 +1,7 @@
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -24,13 +24,12 @@ export default class PropertyDefinition extends NodeBase {
 		this.value?.deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.value?.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		this.value?.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(
@@ -45,12 +44,12 @@ export default class PropertyDefinition extends NodeBase {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.value
-			? this.value.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
+			? this.value.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
 			: UNKNOWN_EXPRESSION;
 	}
 
@@ -58,20 +57,12 @@ export default class PropertyDefinition extends NodeBase {
 		return this.key.hasEffects(context) || (this.static && !!this.value?.hasEffects(context));
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return !this.value || this.value.hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return !this.value || this.value.hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return !this.value || this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
+		return !this.value || this.value.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	protected applyDeoptimizations() {}
