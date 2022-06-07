@@ -1,9 +1,8 @@
-import { NodeEvent } from '../NodeEvents';
+import { NodeInteractionWithThisArg } from '../NodeInteractions';
 import type { ObjectPath } from '../utils/PathTracker';
 import { PathTracker } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 
 export default class Super extends NodeBase {
@@ -18,13 +17,12 @@ export default class Super extends NodeBase {
 		this.variable.deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	) {
-		this.variable.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		this.variable.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	include(): void {

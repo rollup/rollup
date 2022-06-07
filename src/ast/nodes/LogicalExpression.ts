@@ -8,10 +8,10 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
-import type { CallOptions } from '../CallOptions';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeEvent } from '../NodeEvents';
+import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -65,14 +65,13 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.left.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-		this.right.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		this.left.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
+		this.right.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(
@@ -88,20 +87,20 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch)
 			return new MultiExpression([
-				this.left.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin),
-				this.right.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
+				this.left.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin),
+				this.right.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
 			]);
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getReturnExpressionWhenCalledAtPath(
 			path,
-			callOptions,
+			interaction,
 			recursionTracker,
 			origin
 		);
@@ -117,41 +116,19 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) {
-			return (
-				this.left.hasEffectsWhenAccessedAtPath(path, context) ||
-				this.right.hasEffectsWhenAccessedAtPath(path, context)
-			);
-		}
-		return usedBranch.hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) {
-			return (
-				this.left.hasEffectsWhenAssignedAtPath(path, context) ||
-				this.right.hasEffectsWhenAssignedAtPath(path, context)
-			);
-		}
-		return usedBranch.hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch) {
 			return (
-				this.left.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
-				this.right.hasEffectsWhenCalledAtPath(path, callOptions, context)
+				this.left.hasEffectsOnInteractionAtPath(path, interaction, context) ||
+				this.right.hasEffectsOnInteractionAtPath(path, interaction, context)
 			);
 		}
-		return usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
+		return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

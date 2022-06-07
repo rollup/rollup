@@ -1,6 +1,11 @@
-import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	NodeInteraction
+} from '../NodeInteractions';
 import {
 	LiteralValueOrUnknown,
 	UnknownTruthyValue,
@@ -24,20 +29,24 @@ export default class GlobalVariable extends Variable {
 		return getGlobalAtPath([this.name, ...path]) ? UnknownTruthyValue : UnknownValue;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		if (path.length === 0) {
-			// Technically, "undefined" is a global variable of sorts
-			return this.name !== 'undefined' && !getGlobalAtPath([this.name]);
-		}
-		return !getGlobalAtPath([this.name, ...path].slice(0, -1));
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		const globalAtPath = getGlobalAtPath([this.name, ...path]);
-		return !globalAtPath || globalAtPath.hasEffectsWhenCalled(callOptions, context);
+		switch (interaction.type) {
+			case INTERACTION_ACCESSED:
+				if (path.length === 0) {
+					// Technically, "undefined" is a global variable of sorts
+					return this.name !== 'undefined' && !getGlobalAtPath([this.name]);
+				}
+				return !getGlobalAtPath([this.name, ...path].slice(0, -1));
+			case INTERACTION_ASSIGNED:
+				return true;
+			case INTERACTION_CALLED: {
+				const globalAtPath = getGlobalAtPath([this.name, ...path]);
+				return !globalAtPath || globalAtPath.hasEffectsWhenCalled(interaction, context);
+			}
+		}
 	}
 }

@@ -1,4 +1,5 @@
 import type ExternalModule from '../../ExternalModule';
+import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import type { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
@@ -21,8 +22,8 @@ export default class ExternalVariable extends Variable {
 		}
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > (this.isNamespace ? 1 : 0);
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > (this.isNamespace ? 1 : 0);
 	}
 
 	include(): void {

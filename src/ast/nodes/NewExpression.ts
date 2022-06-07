@@ -2,9 +2,14 @@ import MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { renderCallArguments } from '../../utils/renderCallArguments';
 import { RenderOptions } from '../../utils/renderHelpers';
-import type { CallOptions } from '../CallOptions';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { InclusionContext } from '../ExecutionContext';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionCalled
+} from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
@@ -13,7 +18,7 @@ export default class NewExpression extends NodeBase {
 	declare arguments: ExpressionNode[];
 	declare callee: ExpressionNode;
 	declare type: NodeType.tNewExpression;
-	private declare callOptions: CallOptions;
+	private declare interaction: NodeInteractionCalled;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		try {
@@ -27,15 +32,15 @@ export default class NewExpression extends NodeBase {
 				return false;
 			return (
 				this.callee.hasEffects(context) ||
-				this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
 			);
 		} finally {
 			if (!this.deoptimized) this.applyDeoptimizations();
 		}
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 0;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return path.length > 0 || type !== INTERACTION_ACCESSED;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -50,9 +55,10 @@ export default class NewExpression extends NodeBase {
 	}
 
 	initialise(): void {
-		this.callOptions = {
+		this.interaction = {
 			args: this.arguments,
-			thisParam: null,
+			thisArg: null,
+			type: INTERACTION_CALLED,
 			withNew: true
 		};
 	}

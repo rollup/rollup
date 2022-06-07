@@ -1,11 +1,14 @@
-import { type CallOptions } from '../../CallOptions';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import FunctionScope from '../../scopes/FunctionScope';
 import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
@@ -25,51 +28,52 @@ export default class FunctionNode extends FunctionBase {
 		this.scope = new FunctionScope(parentScope, this.context);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		super.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-		if (event === EVENT_CALLED && path.length === 0) {
-			this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
+		super.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
+		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
+			this.scope.thisVariable.addEntityToBeDeoptimized(interaction.thisArg);
 		}
 	}
 
-	hasEffects(): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		return !!this.id?.hasEffects();
+		return !!this.id?.hasEffects(context);
 	}
 
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (super.hasEffectsWhenCalledAtPath(path, callOptions, context)) return true;
-		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
-		context.replacedVariableInits.set(
-			this.scope.thisVariable,
-			callOptions.withNew
-				? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
-				: UNKNOWN_EXPRESSION
-		);
-		const { brokenFlow, ignore } = context;
-		context.ignore = {
-			breaks: false,
-			continues: false,
-			labels: new Set(),
-			returnYield: true
-		};
-		if (this.body.hasEffects(context)) return true;
-		context.brokenFlow = brokenFlow;
-		if (thisInit) {
-			context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
-		} else {
-			context.replacedVariableInits.delete(this.scope.thisVariable);
+		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+		if (interaction.type === INTERACTION_CALLED) {
+			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
+			context.replacedVariableInits.set(
+				this.scope.thisVariable,
+				interaction.withNew
+					? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
+					: UNKNOWN_EXPRESSION
+			);
+			const { brokenFlow, ignore } = context;
+			context.ignore = {
+				breaks: false,
+				continues: false,
+				labels: new Set(),
+				returnYield: true
+			};
+			if (this.body.hasEffects(context)) return true;
+			context.brokenFlow = brokenFlow;
+			if (thisInit) {
+				context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
+			} else {
+				context.replacedVariableInits.delete(this.scope.thisVariable);
+			}
+			context.ignore = ignore;
 		}
-		context.ignore = ignore;
 		return false;
 	}
 

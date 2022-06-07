@@ -1,6 +1,7 @@
 import type ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type { HasEffectsContext } from '../ExecutionContext';
+import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import type { ObjectPath } from '../utils/PathTracker';
@@ -36,8 +37,12 @@ export default class Variable extends ExpressionEntity {
 		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext): boolean {
-		return path.length > 0;
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		{ type }: NodeInteraction,
+		_context: HasEffectsContext
+	): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > 0;
 	}
 
 	/**

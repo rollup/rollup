@@ -1,7 +1,11 @@
-import type { CallOptions } from '../../CallOptions';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import type { NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
 import type Scope from '../../scopes/Scope';
 import {
@@ -41,18 +45,12 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.getObjectEntity().deoptimizeThisOnEventAtPath(
-			event,
-			path,
-			thisParameter,
-			recursionTracker
-		);
+		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(
@@ -65,13 +63,13 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 			path,
-			callOptions,
+			interaction,
 			recursionTracker,
 			origin
 		);
@@ -84,29 +82,21 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		return initEffect || super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length === 0) {
+		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
 			return (
-				!callOptions.withNew ||
+				!interaction.withNew ||
 				(this.classConstructor !== null
-					? this.classConstructor.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, context)
-					: this.superClass?.hasEffectsWhenCalledAtPath(path, callOptions, context)) ||
+					? this.classConstructor.hasEffectsOnInteractionAtPath(path, interaction, context)
+					: this.superClass?.hasEffectsOnInteractionAtPath(path, interaction, context)) ||
 				false
 			);
 		} else {
-			return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
+			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 	}
 

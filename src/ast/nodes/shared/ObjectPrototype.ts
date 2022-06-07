@@ -1,4 +1,8 @@
-import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import { ObjectPath, ObjectPathKey, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
 import {
@@ -16,13 +20,12 @@ const isInteger = (prop: ObjectPathKey): boolean => typeof prop === 'string' && 
 // will improve tree-shaking for out-of-bounds array properties
 const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 	new (class ObjectPrototypeFallbackExpression extends ExpressionEntity {
-		deoptimizeThisOnEventAtPath(
-			event: NodeEvent,
-			path: ObjectPath,
-			thisParameter: ExpressionEntity
+		deoptimizeThisOnInteractionAtPath(
+			{ type, thisArg }: NodeInteractionWithThisArg,
+			path: ObjectPath
 		): void {
-			if (event === EVENT_CALLED && path.length === 1 && !isInteger(path[0])) {
-				thisParameter.deoptimizePath(UNKNOWN_PATH);
+			if (type === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {
+				thisArg.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 
@@ -33,12 +36,8 @@ const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 			return path.length === 1 && isInteger(path[0]) ? undefined : UnknownValue;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
+		hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+			return path.length > 1 || type === INTERACTION_CALLED;
 		}
 	})();
 

@@ -1,7 +1,12 @@
-import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
-import { EVENT_ACCESSED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../../NodeInteractions';
 import {
 	ObjectPath,
 	ObjectPathKey,
@@ -146,10 +151,9 @@ export class ObjectEntity extends ExpressionEntity {
 		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [...path, UnknownKey] : path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArg,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		const [key, ...subPath] = path;
@@ -157,22 +161,22 @@ export class ObjectEntity extends ExpressionEntity {
 		if (
 			this.hasLostTrack ||
 			// single paths that are deoptimized will not become getters or setters
-			((event === EVENT_CALLED || path.length > 1) &&
+			((interaction.type === INTERACTION_CALLED || path.length > 1) &&
 				(this.hasUnknownDeoptimizedProperty ||
 					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
-			thisParameter.deoptimizePath(UNKNOWN_PATH);
+			interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
 			return;
 		}
 
 		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
-			event === EVENT_CALLED || path.length > 1
+			interaction.type === INTERACTION_CALLED || path.length > 1
 				? [
 						this.propertiesAndGettersByKey,
 						this.propertiesAndGettersByKey,
 						this.unmatchablePropertiesAndGetters
 				  ]
-				: event === EVENT_ACCESSED
+				: interaction.type === INTERACTION_ACCESSED
 				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
 				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 
@@ -181,20 +185,20 @@ export class ObjectEntity extends ExpressionEntity {
 				const properties = relevantPropertiesByKey[key];
 				if (properties) {
 					for (const property of properties) {
-						property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+						property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 					}
 				}
 				if (!this.immutable) {
-					this.thisParametersToBeDeoptimized.add(thisParameter);
+					this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 				}
 				return;
 			}
 			for (const property of relevantUnmatchableProperties) {
-				property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
 			if (INTEGER_REG_EXP.test(key)) {
 				for (const property of this.unknownIntegerProps) {
-					property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
 			}
 		} else {
@@ -202,20 +206,19 @@ export class ObjectEntity extends ExpressionEntity {
 				relevantUnmatchableProperties
 			])) {
 				for (const property of properties) {
-					property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
 			}
 			for (const property of this.unknownIntegerProps) {
-				property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
 		}
 		if (!this.immutable) {
-			this.thisParametersToBeDeoptimized.add(thisParameter);
+			this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 		}
-		this.prototypeExpression?.deoptimizeThisOnEventAtPath(
-			event,
+		this.prototypeExpression?.deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
-			thisParameter,
 			recursionTracker
 		);
 	}
@@ -244,19 +247,19 @@ export class ObjectEntity extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (path.length === 0) {
 			return UNKNOWN_EXPRESSION;
 		}
-		const key = path[0];
+		const [key, ...subPath] = path;
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
 		if (expressionAtPath) {
 			return expressionAtPath.getReturnExpressionWhenCalledAtPath(
-				path.slice(1),
-				callOptions,
+				subPath,
+				interaction,
 				recursionTracker,
 				origin
 			);
@@ -264,7 +267,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (this.prototypeExpression) {
 			return this.prototypeExpression.getReturnExpressionWhenCalledAtPath(
 				path,
-				callOptions,
+				interaction,
 				recursionTracker,
 				origin
 			);
@@ -272,111 +275,54 @@ export class ObjectEntity extends ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		const [key, ...subPath] = path;
-		if (path.length > 1) {
-			if (typeof key !== 'string') {
-				return true;
-			}
-			const expressionAtPath = this.getMemberExpression(key);
-			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAccessedAtPath(subPath, context);
-			}
-			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
-			}
-			return true;
-		}
-
-		if (this.hasLostTrack) return true;
-		if (typeof key === 'string') {
-			if (this.propertiesAndGettersByKey[key]) {
-				const getters = this.gettersByKey[key];
-				if (getters) {
-					for (const getter of getters) {
-						if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
-					}
-				}
-				return false;
-			}
-			for (const getter of this.unmatchableGetters) {
-				if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) {
-					return true;
-				}
-			}
-		} else {
-			for (const getters of Object.values(this.gettersByKey).concat([this.unmatchableGetters])) {
-				for (const getter of getters) {
-					if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
-				}
-			}
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
-		}
-		return false;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		const [key, ...subPath] = path;
-		if (path.length > 1) {
-			if (typeof key !== 'string') {
-				return true;
-			}
-			const expressionAtPath = this.getMemberExpression(key);
-			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
-			}
-			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
-			}
-			return true;
-		}
-
-		if (key === UnknownNonAccessorKey) return false;
-		if (this.hasLostTrack) return true;
-		if (typeof key === 'string') {
-			if (this.propertiesAndSettersByKey[key]) {
-				const setters = this.settersByKey[key];
-				if (setters) {
-					for (const setter of setters) {
-						if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
-					}
-				}
-				return false;
-			}
-			for (const property of this.unmatchableSetters) {
-				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) {
-					return true;
-				}
-			}
-		} else {
-			for (const setters of Object.values(this.settersByKey).concat([this.unmatchableSetters])) {
-				for (const setter of setters) {
-					if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
-				}
-			}
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
-		}
-		return false;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		const key = path[0];
-		const expressionAtPath = this.getMemberExpression(key);
-		if (expressionAtPath) {
-			return expressionAtPath.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, context);
+		const [key, ...subPath] = path;
+		if (subPath.length || interaction.type === INTERACTION_CALLED) {
+			const expressionAtPath = this.getMemberExpression(key);
+			if (expressionAtPath) {
+				return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
+			}
+			if (this.prototypeExpression) {
+				return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
+			}
+			return true;
+		}
+		if (key === UnknownNonAccessorKey) return false;
+		if (this.hasLostTrack) return true;
+		const [propertiesAndAccessorsByKey, accessorsByKey, unmatchableAccessors] =
+			interaction.type === INTERACTION_ACCESSED
+				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
+				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
+		if (typeof key === 'string') {
+			if (propertiesAndAccessorsByKey[key]) {
+				const accessors = accessorsByKey[key];
+				if (accessors) {
+					for (const accessor of accessors) {
+						if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
+					}
+				}
+				return false;
+			}
+			for (const accessor of unmatchableAccessors) {
+				if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) {
+					return true;
+				}
+			}
+		} else {
+			for (const accessors of Object.values(accessorsByKey).concat([unmatchableAccessors])) {
+				for (const accessor of accessors) {
+					if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
+				}
+			}
 		}
 		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenCalledAtPath(path, callOptions, context);
+			return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
-		return true;
+		return false;
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {

@@ -2,13 +2,13 @@ import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { InclusionContext } from '../ExecutionContext';
+import { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
-import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
@@ -31,15 +31,14 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		path.length === 0 && this.left.deoptimizePath(path);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		this.left.include(context, includeChildrenRecursively);
-		this.right.include(context, includeChildrenRecursively);
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionAssigned,
+		context: HasEffectsContext
+	): boolean {
+		return (
+			path.length > 0 || this.left.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)
+		);
 	}
 
 	markDeclarationReached(): void {
@@ -52,11 +51,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		{ isShorthandProperty }: NodeRenderOptions = BLANK
 	): void {
 		this.left.render(code, options, { isShorthandProperty });
-		if (this.right.included) {
-			this.right.render(code, options);
-		} else {
-			code.remove(this.left.end, this.end);
-		}
+		this.right.render(code, options);
 	}
 
 	protected applyDeoptimizations(): void {

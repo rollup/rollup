@@ -1,4 +1,5 @@
 import type { HasEffectsContext } from '../ExecutionContext';
+import { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
@@ -45,10 +46,15 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length > 0) return true;
+	hasEffectsOnInteractionAtPath(
+		// At the moment, this is only triggered for assignment left-hand sides,
+		// where the path is empty
+		_path: ObjectPath,
+		interaction: NodeInteractionAssigned,
+		context: HasEffectsContext
+	): boolean {
 		for (const property of this.properties) {
-			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;
+			if (property.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)) return true;
 		}
 		return false;
 	}

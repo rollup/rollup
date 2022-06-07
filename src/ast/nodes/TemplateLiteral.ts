@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
+import { INTERACTION_ACCESSED, INTERACTION_CALLED, NodeInteraction } from '../NodeInteractions';
 import type { ObjectPath } from '../utils/PathTracker';
 import {
 	getMemberReturnExpressionWhenCalled,
@@ -23,7 +23,7 @@ export default class TemplateLiteral extends NodeBase {
 	declare quasis: TemplateElement[];
 	declare type: NodeType.tTemplateLiteral;
 
-	deoptimizeThisOnEventAtPath(): void {}
+	deoptimizeThisOnInteractionAtPath(): void {}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0 || this.quasis.length !== 1) {
@@ -39,17 +39,16 @@ export default class TemplateLiteral extends NodeBase {
 		return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(literalStringMembers, path[0], callOptions, context);
+		if (interaction.type === INTERACTION_ACCESSED) {
+			return path.length > 1;
+		}
+		if (interaction.type === INTERACTION_CALLED && path.length === 1) {
+			return hasMemberEffectWhenCalled(literalStringMembers, path[0], interaction, context);
 		}
 		return true;
 	}

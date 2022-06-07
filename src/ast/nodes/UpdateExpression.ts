@@ -5,28 +5,42 @@ import {
 	renderSystemExportSequenceAfterExpression,
 	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	INTERACTION_ACCESSED,
+	NodeInteraction,
+	NodeInteractionAssigned
+} from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
+import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare operator: '++' | '--';
 	declare prefix: boolean;
 	declare type: NodeType.tUpdateExpression;
+	private declare interaction: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		return (
-			this.argument.hasEffects(context) ||
-			this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
-		);
+		return this.argument.hasEffectsAsAssignmentTarget(context, true);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return path.length > 1 || type !== INTERACTION_ACCESSED;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		this.included = true;
+		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
+	}
+
+	initialise() {
+		this.argument.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
