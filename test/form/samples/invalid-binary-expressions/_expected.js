@@ -37,7 +37,3 @@ if (null instanceof true) {
 if (null instanceof 'y') {
 	console.log('retained');
 }
-
-if (null instanceof {}) {
-	console.log('retained');
-}
