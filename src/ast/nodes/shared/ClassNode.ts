@@ -13,6 +13,7 @@ import {
 	type ObjectPath,
 	type PathTracker,
 	SHARED_RECURSION_TRACKER,
+	TestInstanceof,
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
@@ -95,6 +96,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 					: this.superClass?.hasEffectsOnInteractionAtPath(path, interaction, context)) ||
 				false
 			);
+		} else if (path[0] === TestInstanceof) {
+			return false;
 		} else {
 			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}

@@ -11,7 +11,7 @@ import {
 	ObjectPath,
 	ObjectPathKey,
 	PathTracker,
-	TestInclusionKey,
+	TestInstanceof,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
@@ -282,7 +282,7 @@ export class ObjectEntity extends ExpressionEntity {
 		context: HasEffectsContext
 	): boolean {
 		const [key, ...subPath] = path;
-		if (key === TestInclusionKey) return false;
+		if (key === TestInstanceof) return true;
 		if (subPath.length || interaction.type === INTERACTION_CALLED) {
 			const expressionAtPath = this.getMemberExpression(key);
 			if (expressionAtPath) {

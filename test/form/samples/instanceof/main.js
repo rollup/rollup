@@ -1,17 +1,21 @@
 class Unused1 {}
+
+if ({} instanceof Unused1) console.log('removed');
+else console.log('retained');
+
+function Unused2() {}
+
+if ({} instanceof Unused2) console.log('removed');
+else console.log('retained');
+
 class Used1 {}
 const Intermediate = Used1;
+const used1 = new Used1();
 
-if (new Intermediate() instanceof Unused1) console.log('removed');
-else console.log('retained');
+if (used1 instanceof Intermediate) console.log('retained');
+else console.log('does not matter');
 
-class Unused2 {}
-class WithEffect {
-	constructor() {
-		console.log('effect');
-	}
-}
+class Used2 {}
 
-if (new WithEffect() instanceof Unused2)
-	console.log('does not matter, but effect should be retained');
-else console.log('retained');
+if (new Used2() instanceof Intermediate) console.log('retained');
+else console.log('does not matter');

@@ -3,7 +3,7 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createHasEffectsContext } from '../ExecutionContext';
+import { createHasEffectsContext, createInclusionContext } from '../ExecutionContext';
 import {
 	INTERACTION_ACCESSED,
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
@@ -14,7 +14,7 @@ import {
 	type ObjectPath,
 	type PathTracker,
 	SHARED_RECURSION_TRACKER,
-	TEST_INCLUSION_PATH
+	TEST_INSTANCEOF_PATH
 } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
@@ -59,15 +59,13 @@ const binaryOperators: {
 	'+': (left: any, right: any) => left + right,
 	'-': (left: any, right: any) => left - right,
 	'/': (left: any, right: any) => left / right,
-	'<': (left, right) => (left as NonNullable<LiteralValue>) < (right as NonNullable<LiteralValue>),
+	'<': (left, right) => left! < right!,
 	'<<': (left: any, right: any) => left << right,
-	'<=': (left, right) =>
-		(left as NonNullable<LiteralValue>) <= (right as NonNullable<LiteralValue>),
+	'<=': (left, right) => left! <= right!,
 	'==': (left, right) => left == right,
 	'===': (left, right) => left === right,
-	'>': (left, right) => (left as NonNullable<LiteralValue>) > (right as NonNullable<LiteralValue>),
-	'>=': (left, right) =>
-		(left as NonNullable<LiteralValue>) >= (right as NonNullable<LiteralValue>),
+	'>': (left, right) => left! > right!,
+	'>=': (left, right) => left! >= right!,
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
@@ -93,9 +91,12 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;
 		if (this.operator === 'instanceof') {
+			// We need to include out-of-order to handle situations where left is the
+			// only usage of right
+			this.left.include(createInclusionContext(), false);
 			if (
 				this.right.hasEffectsOnInteractionAtPath(
-					TEST_INCLUSION_PATH,
+					TEST_INSTANCEOF_PATH,
 					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					createHasEffectsContext()
 				)
@@ -134,12 +135,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
-	// TODO Lukas if the operator is instanceof, only include if necessary
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.deoptimizeInstanceof();
-		if (!this.expressionsDependingOnNegativeInstanceof.size) {
-			super.include(context, includeChildrenRecursively);
-		}
+		super.include(context, includeChildrenRecursively);
 	}
 
 	render(
@@ -154,15 +152,17 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	private deoptimizeInstanceof(context?: HasEffectsContext) {
 		if (
 			this.operator === 'instanceof' &&
-			this.expressionsDependingOnNegativeInstanceof.size &&
-			this.right.hasEffectsOnInteractionAtPath(
-				TEST_INCLUSION_PATH,
-				NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
-				context || createHasEffectsContext()
-			)
+			(this.included ||
+				(this.expressionsDependingOnNegativeInstanceof.size &&
+					this.right.hasEffectsOnInteractionAtPath(
+						TEST_INSTANCEOF_PATH,
+						NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+						context || createHasEffectsContext()
+					)))
 		) {
 			for (const expression of this.expressionsDependingOnNegativeInstanceof) {
 				expression.deoptimizeCache();
+				this.context.requestTreeshakingPass();
 			}
 			this.expressionsDependingOnNegativeInstanceof.clear();
 		}

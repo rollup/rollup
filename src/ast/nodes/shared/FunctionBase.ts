@@ -14,7 +14,13 @@ import {
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
 import ReturnValueScope from '../../scopes/ReturnValueScope';
-import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import {
+	type ObjectPath,
+	PathTracker,
+	TestInstanceof,
+	UNKNOWN_PATH,
+	UnknownKey
+} from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
@@ -95,6 +101,9 @@ export default abstract class FunctionBase extends NodeBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (path[0] === TestInstanceof) {
+			return false;
+		}
 		if (path.length > 0 || interaction.type !== INTERACTION_CALLED) {
 			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
