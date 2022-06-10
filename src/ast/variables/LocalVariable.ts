@@ -1,12 +1,8 @@
-import type { AstContext } from '../../Module';
-import type Module from '../../Module';
+import type { AstContext, default as Module } from '../../Module';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createInclusionContext } from '../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
@@ -33,10 +29,10 @@ export default class LocalVariable extends Variable {
 	init: ExpressionEntity | null;
 	readonly module: Module;
 
+	protected additionalInitializers: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
 	protected deoptimizationTracker: PathTracker;
-	private additionalInitializers: ExpressionEntity[] | null = null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -55,13 +51,13 @@ export default class LocalVariable extends Variable {
 	addDeclaration(identifier: Identifier, init: ExpressionEntity | null): void {
 		this.declarations.push(identifier);
 		const additionalInitializers = this.markInitializersForDeoptimization();
-		if (init !== null) {
+		if (init) {
 			additionalInitializers.push(init);
 		}
 	}
 
 	consolidateInitializers(): void {
-		if (this.additionalInitializers !== null) {
+		if (this.additionalInitializers) {
 			for (const initializer of this.additionalInitializers) {
 				initializer.deoptimizePath(UNKNOWN_PATH);
 			}
@@ -232,5 +228,21 @@ export default class LocalVariable extends Variable {
 			this.isReassigned = true;
 		}
 		return this.additionalInitializers;
+	}
+
+	mergeDeclarations(variable: LocalVariable): void {
+		const { declarations } = this;
+		for (const declaration of variable.declarations) {
+			declarations.push(declaration);
+		}
+		const additionalInitializers = this.markInitializersForDeoptimization();
+		if (variable.init) {
+			additionalInitializers.push(variable.init);
+		}
+		if (variable.additionalInitializers) {
+			for (const initializer of variable.additionalInitializers) {
+				additionalInitializers.push(initializer);
+			}
+		}
 	}
 }

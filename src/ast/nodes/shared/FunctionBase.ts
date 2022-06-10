@@ -5,10 +5,7 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS,
@@ -17,6 +14,7 @@ import {
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
@@ -150,7 +148,9 @@ export default abstract class FunctionBase extends NodeBase {
 
 	initialise(): void {
 		this.scope.addParameterVariables(
-			this.params.map(parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION)),
+			this.params.map(
+				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+			),
 			this.params[this.params.length - 1] instanceof RestElement
 		);
 		if (this.body instanceof BlockStatement) {
