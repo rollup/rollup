@@ -284,7 +284,11 @@ async function writeOutputFile(
 			if (outputOptions.sourcemap === 'inline') {
 				url = outputFile.map.toUrl();
 			} else {
-				url = `${basename(outputFile.fileName)}.map`;
+				const { sourcemapBaseUrl } = outputOptions;
+				const sourcemapFileName = `${basename(outputFile.fileName)}.map`;
+				url = sourcemapBaseUrl
+					? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
+					: sourcemapFileName;
 				writeSourceMapPromise = fs.writeFile(`${fileName}.map`, outputFile.map.toString());
 			}
 			if (outputOptions.sourcemap !== 'hidden') {
