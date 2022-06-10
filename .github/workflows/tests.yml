@@ -70,8 +70,6 @@ jobs:
         run: npm run ci:test:only
         env:
           CI: true
-          # temporary workaround for: https://github.com/nodejs/node/issues/42638
-          NODE_OPTIONS: ${{ matrix.node == '18' && '--no-experimental-fetch' }}
 
   macos:
     runs-on: macos-latest
