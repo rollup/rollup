@@ -4,24 +4,15 @@ import type { Entity } from '../Entity';
 export const UnknownKey = Symbol('Unknown Key');
 export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
-/**
- * A special key that does not actually reference a property but can be used to
- * test if the right hand side of "instanceof" is either included or not a class
- * or function via
- * .hasEffectsOnInteractionAtPath([TestInstanceof], {type: INTERACTION_ASSIGNED,...}, ...)
- */
-export const TestInstanceof = Symbol('Test instanceof');
 export type ObjectPathKey =
 	| string
 	| typeof UnknownKey
 	| typeof UnknownNonAccessorKey
-	| typeof UnknownInteger
-	| typeof TestInstanceof;
+	| typeof UnknownInteger;
 
 export type ObjectPath = ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
-export const TEST_INSTANCEOF_PATH: ObjectPath = [TestInstanceof];
 // For deoptimizations, this means we are modifying an unknown property but did
 // not lose track of the object or are creating a setter/getter;
 // For assignment effects it means we do not check for setter/getter effects
@@ -34,7 +25,6 @@ const EntitiesKey = Symbol('Entities');
 interface EntityPaths {
 	[pathSegment: string]: EntityPaths;
 	[EntitiesKey]: Set<Entity>;
-	[TestInstanceof]?: EntityPaths;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
 	[UnknownNonAccessorKey]?: EntityPaths;
@@ -82,7 +72,6 @@ export const SHARED_RECURSION_TRACKER = new PathTracker();
 interface DiscriminatedEntityPaths {
 	[pathSegment: string]: DiscriminatedEntityPaths;
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
-	[TestInstanceof]?: DiscriminatedEntityPaths;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
 	[UnknownNonAccessorKey]?: DiscriminatedEntityPaths;
