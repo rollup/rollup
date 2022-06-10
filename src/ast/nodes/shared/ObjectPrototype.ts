@@ -1,9 +1,6 @@
-import type { NodeInteraction, NodeInteractionWithThisArgument } from '../../NodeInteractions';
-import { INTERACTION_CALLED } from '../../NodeInteractions';
-import type { ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
-import { UNKNOWN_PATH } from '../../utils/PathTracker';
-import type { LiteralValueOrUnknown } from './Expression';
-import { ExpressionEntity, UnknownValue } from './Expression';
+import { INTERACTION_CALLED, NodeInteraction } from '../../NodeInteractions';
+import { ObjectPath, ObjectPathKey, UNKNOWN_PATH } from '../../utils/PathTracker';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
 import {
 	METHOD_RETURNS_BOOLEAN,
 	METHOD_RETURNS_STRING,
@@ -20,12 +17,12 @@ const isInteger = (property: ObjectPathKey): boolean =>
 // will improve tree-shaking for out-of-bounds array properties
 const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 	new (class ObjectPrototypeFallbackExpression extends ExpressionEntity {
-		deoptimizeThisOnInteractionAtPath(
-			{ type, thisArg }: NodeInteractionWithThisArgument,
+		deoptimizeArgumentsOnInteractionAtPath(
+			{ type, thisArg }: NodeInteraction,
 			path: ObjectPath
 		): void {
 			if (type === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {
-				thisArg.deoptimizePath(UNKNOWN_PATH);
+				thisArg?.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 

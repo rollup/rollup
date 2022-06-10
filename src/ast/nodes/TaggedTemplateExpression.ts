@@ -2,7 +2,7 @@ import type MagicString from 'magic-string';
 import { errorCannotCallNamespace } from '../../utils/error';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -79,8 +79,8 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.interaction.thisArg) {
-			this.tag.deoptimizeThisOnInteractionAtPath(
-				this.interaction as NodeInteractionWithThisArgument,
+			this.tag.deoptimizeArgumentsOnInteractionAtPath(
+				this.interaction as NodeInteraction,
 				EMPTY_PATH,
 				SHARED_RECURSION_TRACKER
 			);

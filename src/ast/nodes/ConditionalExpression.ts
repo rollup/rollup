@@ -11,8 +11,7 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
+	NodeInteractionCalled
 } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -34,6 +33,15 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	private isBranchResolutionAnalysed = false;
 	private usedBranch: ExpressionNode | null = null;
 
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	): void {
+		this.consequent.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+		this.alternate.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+	}
+
 	deoptimizeCache(): void {
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
@@ -53,15 +61,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			this.consequent.deoptimizePath(path);
 			this.alternate.deoptimizePath(path);
 		}
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
-		path: ObjectPath,
-		recursionTracker: PathTracker
-	): void {
-		this.consequent.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
-		this.alternate.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

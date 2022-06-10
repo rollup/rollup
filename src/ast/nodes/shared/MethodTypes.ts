@@ -1,8 +1,7 @@
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type {
 	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
+	NodeInteractionCalled
 } from '../../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -37,12 +36,12 @@ export class Method extends ExpressionEntity {
 		super();
 	}
 
-	deoptimizeThisOnInteractionAtPath(
-		{ type, thisArg }: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		{ type, thisArg }: NodeInteraction,
 		path: ObjectPath
 	): void {
 		if (type === INTERACTION_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
-			thisArg.deoptimizePath(UNKNOWN_INTEGER_PATH);
+			thisArg?.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}
 	}
 

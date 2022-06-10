@@ -1,6 +1,7 @@
-import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import type Variable from '../variables/Variable';
+import { NodeInteraction } from '../NodeInteractions';
+import type { ObjectPath } from '../utils/PathTracker';
+import { PathTracker } from '../utils/PathTracker';
+import Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
@@ -12,16 +13,16 @@ export default class Super extends NodeBase {
 		this.variable = this.scope.findVariable('this');
 	}
 
-	deoptimizePath(path: ObjectPath): void {
-		this.variable.deoptimizePath(path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	) {
-		this.variable.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
+		this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+	}
+
+	deoptimizePath(path: ObjectPath): void {
+		this.variable.deoptimizePath(path);
 	}
 
 	include(): void {

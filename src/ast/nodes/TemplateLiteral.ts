@@ -20,7 +20,7 @@ export default class TemplateLiteral extends NodeBase {
 	declare quasis: TemplateElement[];
 	declare type: NodeType.tTemplateLiteral;
 
-	deoptimizeThisOnInteractionAtPath(): void {}
+	deoptimizeArgumentsOnInteractionAtPath(): void {}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0 || this.quasis.length !== 1) {

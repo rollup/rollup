@@ -10,8 +10,7 @@ import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
 	NodeInteractionAssigned,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
+	NodeInteractionCalled
 } from '../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED } from '../NodeInteractions';
 import {
@@ -131,6 +130,26 @@ export default class MemberExpression
 		}
 	}
 
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	): void {
+		if (this.variable) {
+			this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+		} else if (!this.isUndefined) {
+			if (path.length < MAX_PATH_DEPTH) {
+				this.object.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					[this.getPropertyKey(), ...path],
+					recursionTracker
+				);
+			} else {
+				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
+	}
+
 	deoptimizeCache(): void {
 		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
 		this.expressionsToBeDeoptimized = [];
@@ -151,26 +170,6 @@ export default class MemberExpression
 				propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
 				...path
 			]);
-		}
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
-		path: ObjectPath,
-		recursionTracker: PathTracker
-	): void {
-		if (this.variable) {
-			this.variable.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
-		} else if (!this.isUndefined) {
-			if (path.length < MAX_PATH_DEPTH) {
-				this.object.deoptimizeThisOnInteractionAtPath(
-					interaction,
-					[this.getPropertyKey(), ...path],
-					recursionTracker
-				);
-			} else {
-				interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
-			}
 		}
 	}
 
@@ -357,7 +356,7 @@ export default class MemberExpression
 			!(this.variable || this.isUndefined)
 		) {
 			const propertyKey = this.getPropertyKey();
-			this.object.deoptimizeThisOnInteractionAtPath(
+			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.accessInteraction,
 				[propertyKey],
 				SHARED_RECURSION_TRACKER
@@ -376,7 +375,7 @@ export default class MemberExpression
 			propertyReadSideEffects &&
 			!(this.variable || this.isUndefined)
 		) {
-			this.object.deoptimizeThisOnInteractionAtPath(
+			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.assignmentInteraction,
 				[this.getPropertyKey()],
 				SHARED_RECURSION_TRACKER

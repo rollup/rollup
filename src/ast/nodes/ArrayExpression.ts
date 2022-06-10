@@ -1,10 +1,6 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	type ObjectPath,
 	type PathTracker,
@@ -24,16 +20,20 @@ export default class ArrayExpression extends NodeBase {
 	declare type: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;
 
-	deoptimizePath(path: ObjectPath): void {
-		this.getObjectEntity().deoptimizePath(path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		this.getObjectEntity().deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
+		this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
+			interaction,
+			path,
+			recursionTracker
+		);
+	}
+
+	deoptimizePath(path: ObjectPath): void {
+		this.getObjectEntity().deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(

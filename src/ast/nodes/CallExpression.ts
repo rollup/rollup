@@ -6,7 +6,7 @@ import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
@@ -21,8 +21,8 @@ import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import { INCLUDE_PARAMETERS } from './shared/Node';
 import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
+import { INCLUDE_PARAMETERS } from './shared/Node';
 
 export default class CallExpression
 	extends CallExpressionBase
@@ -117,8 +117,8 @@ export default class CallExpression
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.interaction.thisArg) {
-			this.callee.deoptimizeThisOnInteractionAtPath(
-				this.interaction as NodeInteractionWithThisArgument,
+			this.callee.deoptimizeArgumentsOnInteractionAtPath(
+				this.interaction as NodeInteraction,
 				EMPTY_PATH,
 				SHARED_RECURSION_TRACKER
 			);

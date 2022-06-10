@@ -3,8 +3,7 @@ import type { WritableEntity } from '../../Entity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type {
 	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
+	NodeInteractionCalled
 } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
@@ -31,15 +30,15 @@ export interface InclusionOptions {
 export class ExpressionEntity implements WritableEntity {
 	included = false;
 
-	deoptimizePath(_path: ObjectPath): void {}
-
-	deoptimizeThisOnInteractionAtPath(
-		{ thisArg }: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		{ thisArg }: NodeInteraction,
 		_path: ObjectPath,
 		_recursionTracker: PathTracker
 	): void {
 		thisArg!.deoptimizePath(UNKNOWN_PATH);
 	}
+
+	deoptimizePath(_path: ObjectPath): void {}
 
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used

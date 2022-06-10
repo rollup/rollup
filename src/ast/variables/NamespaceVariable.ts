@@ -1,11 +1,10 @@
-import type Module from '../../Module';
-import type { AstContext } from '../../Module';
+import type { AstContext, default as Module } from '../../Module';
 import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
-import type { NodeInteraction, NodeInteractionWithThisArgument } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import { UnknownValue } from '../nodes/shared/Expression';
@@ -35,30 +34,30 @@ export default class NamespaceVariable extends Variable {
 		this.name = identifier.name;
 	}
 
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 1) {
-			const key = path[0];
-			if (typeof key === 'string') {
-				this.getMemberVariables()[key]?.deoptimizePath(path.slice(1));
-			}
-		}
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	) {
 		if (path.length > 1 || (path.length === 1 && interaction.type === INTERACTION_CALLED)) {
 			const key = path[0];
 			if (typeof key === 'string') {
-				this.getMemberVariables()[key]?.deoptimizeThisOnInteractionAtPath(
+				this.getMemberVariables()[key]?.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
 					path.slice(1),
 					recursionTracker
 				);
 			} else {
-				interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
+				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 1) {
+			const key = path[0];
+			if (typeof key === 'string') {
+				this.getMemberVariables()[key]?.deoptimizePath(path.slice(1));
 			}
 		}
 	}

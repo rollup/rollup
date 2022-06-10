@@ -2,8 +2,7 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type {
 	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
+	NodeInteractionCalled
 } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
@@ -93,6 +92,79 @@ export class ObjectEntity extends ExpressionEntity {
 		this.deoptimizeCachedEntities();
 	}
 
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	): void {
+		const [key, ...subPath] = path;
+
+		if (
+			this.hasLostTrack ||
+			// single paths that are deoptimized will not become getters or setters
+			((interaction.type === INTERACTION_CALLED || path.length > 1) &&
+				(this.hasUnknownDeoptimizedProperty ||
+					(typeof key === 'string' && this.deoptimizedPaths[key])))
+		) {
+			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+			return;
+		}
+
+		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
+			interaction.type === INTERACTION_CALLED || path.length > 1
+				? [
+						this.propertiesAndGettersByKey,
+						this.propertiesAndGettersByKey,
+						this.unmatchablePropertiesAndGetters
+				  ]
+				: interaction.type === INTERACTION_ACCESSED
+				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
+				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
+
+		if (typeof key === 'string') {
+			if (propertiesForExactMatchByKey[key]) {
+				const properties = relevantPropertiesByKey[key];
+				if (properties) {
+					for (const property of properties) {
+						property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+					}
+				}
+				if (!this.immutable && interaction.thisArg) {
+					this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+				}
+				return;
+			}
+			for (const property of relevantUnmatchableProperties) {
+				property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+			}
+			if (INTEGER_REG_EXP.test(key)) {
+				for (const property of this.unknownIntegerProps) {
+					property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+				}
+			}
+		} else {
+			for (const properties of [
+				...Object.values(relevantPropertiesByKey),
+				relevantUnmatchableProperties
+			]) {
+				for (const property of properties) {
+					property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+				}
+			}
+			for (const property of this.unknownIntegerProps) {
+				property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+			}
+		}
+		if (!this.immutable && interaction.thisArg) {
+			this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+		}
+		this.prototypeExpression?.deoptimizeArgumentsOnInteractionAtPath(
+			interaction,
+			path,
+			recursionTracker
+		);
+	}
+
 	deoptimizeIntegerProperties(): void {
 		if (
 			this.hasLostTrack ||
@@ -142,86 +214,13 @@ export class ObjectEntity extends ExpressionEntity {
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of typeof key === 'string'
 			? [
-					...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
-					...(this.settersByKey[key] || this.unmatchableSetters)
-			  ]
+				...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+				...(this.settersByKey[key] || this.unmatchableSetters)
+			]
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
 		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [...path, UnknownKey] : path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
-		path: ObjectPath,
-		recursionTracker: PathTracker
-	): void {
-		const [key, ...subPath] = path;
-
-		if (
-			this.hasLostTrack ||
-			// single paths that are deoptimized will not become getters or setters
-			((interaction.type === INTERACTION_CALLED || path.length > 1) &&
-				(this.hasUnknownDeoptimizedProperty ||
-					(typeof key === 'string' && this.deoptimizedPaths[key])))
-		) {
-			interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
-			return;
-		}
-
-		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
-			interaction.type === INTERACTION_CALLED || path.length > 1
-				? [
-						this.propertiesAndGettersByKey,
-						this.propertiesAndGettersByKey,
-						this.unmatchablePropertiesAndGetters
-				  ]
-				: interaction.type === INTERACTION_ACCESSED
-				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
-				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
-
-		if (typeof key === 'string') {
-			if (propertiesForExactMatchByKey[key]) {
-				const properties = relevantPropertiesByKey[key];
-				if (properties) {
-					for (const property of properties) {
-						property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-					}
-				}
-				if (!this.immutable) {
-					this.thisParametersToBeDeoptimized.add(interaction.thisArg);
-				}
-				return;
-			}
-			for (const property of relevantUnmatchableProperties) {
-				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-			}
-			if (INTEGER_REG_EXP.test(key)) {
-				for (const property of this.unknownIntegerProps) {
-					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-				}
-			}
-		} else {
-			for (const properties of [
-				...Object.values(relevantPropertiesByKey),
-				relevantUnmatchableProperties
-			]) {
-				for (const property of properties) {
-					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-				}
-			}
-			for (const property of this.unknownIntegerProps) {
-				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-			}
-		}
-		if (!this.immutable) {
-			this.thisParametersToBeDeoptimized.add(interaction.thisArg);
-		}
-		this.prototypeExpression?.deoptimizeThisOnInteractionAtPath(
-			interaction,
-			path,
-			recursionTracker
-		);
 	}
 
 	getLiteralValueAtPath(
