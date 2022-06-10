@@ -1,70 +1,13 @@
 import type { AstContext } from '../../Module';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import {
-	DiscriminatedPathTracker,
-	type ObjectPath,
-	SHARED_RECURSION_TRACKER
-} from '../utils/PathTracker';
-import LocalVariable from './LocalVariable';
+import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import { type ObjectPath } from '../utils/PathTracker';
+import ParameterVariable from './ParameterVariable';
 
-interface ThisDeoptimizationInteraction {
-	interaction: NodeInteraction;
-	path: ObjectPath;
-}
-
-export default class ThisVariable extends LocalVariable {
-	private readonly deoptimizedPaths: ObjectPath[] = [];
-	private readonly entitiesToBeDeoptimized = new Set<ExpressionEntity>();
-	private readonly thisDeoptimizationList: ThisDeoptimizationInteraction[] = [];
-	private readonly thisDeoptimizations = new DiscriminatedPathTracker();
-
+export default class ThisVariable extends ParameterVariable {
 	constructor(context: AstContext) {
 		super('this', null, null, context);
-	}
-
-	addEntityToBeDeoptimized(entity: ExpressionEntity): void {
-		for (const path of this.deoptimizedPaths) {
-			entity.deoptimizePath(path);
-		}
-		for (const { interaction, path } of this.thisDeoptimizationList) {
-			entity.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
-		}
-		this.entitiesToBeDeoptimized.add(entity);
-	}
-
-	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
-		const thisDeoptimization: ThisDeoptimizationInteraction = {
-			interaction,
-			path
-		};
-		if (
-			interaction.thisArg &&
-			!this.thisDeoptimizations.trackEntityAtPathAndGetIfTracked(
-				path,
-				interaction.type,
-				interaction.thisArg
-			)
-		) {
-			for (const entity of this.entitiesToBeDeoptimized) {
-				entity.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
-			}
-			this.thisDeoptimizationList.push(thisDeoptimization);
-		}
-	}
-
-	deoptimizePath(path: ObjectPath): void {
-		if (
-			path.length === 0 ||
-			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
-		) {
-			return;
-		}
-		this.deoptimizedPaths.push(path);
-		for (const entity of this.entitiesToBeDeoptimized) {
-			entity.deoptimizePath(path);
-		}
 	}
 
 	hasEffectsOnInteractionAtPath(
@@ -72,6 +15,8 @@ export default class ThisVariable extends LocalVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		// TODO Lukas instead of ParameterVariable, this should either directly go
+		// to LocalVariable or reimplement its "included" logic
 		const replacedVariableInit = context.replacedVariableInits.get(this);
 		if (replacedVariableInit) {
 			return (
