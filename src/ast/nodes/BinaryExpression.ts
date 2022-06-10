@@ -16,8 +16,32 @@ import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
+type Operator =
+	| '!='
+	| '!=='
+	| '%'
+	| '&'
+	| '*'
+	| '**'
+	| '+'
+	| '-'
+	| '/'
+	| '<'
+	| '<<'
+	| '<='
+	| '=='
+	| '==='
+	| '>'
+	| '>='
+	| '>>'
+	| '>>>'
+	| '^'
+	| '|'
+	| 'in'
+	| 'instanceof';
+
 const binaryOperators: {
-	[operator: string]: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;
+	[operator in Operator]?: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;
 } = {
 	'!=': (left, right) => left != right,
 	'!==': (left, right) => left !== right,
@@ -29,15 +53,13 @@ const binaryOperators: {
 	'+': (left: any, right: any) => left + right,
 	'-': (left: any, right: any) => left - right,
 	'/': (left: any, right: any) => left / right,
-	'<': (left, right) => (left as NonNullable<LiteralValue>) < (right as NonNullable<LiteralValue>),
+	'<': (left, right) => left! < right!,
 	'<<': (left: any, right: any) => left << right,
-	'<=': (left, right) =>
-		(left as NonNullable<LiteralValue>) <= (right as NonNullable<LiteralValue>),
+	'<=': (left, right) => left! <= right!,
 	'==': (left, right) => left == right,
 	'===': (left, right) => left === right,
-	'>': (left, right) => (left as NonNullable<LiteralValue>) > (right as NonNullable<LiteralValue>),
-	'>=': (left, right) =>
-		(left as NonNullable<LiteralValue>) >= (right as NonNullable<LiteralValue>),
+	'>': (left, right) => left! > right!,
+	'>=': (left, right) => left! >= right!,
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
@@ -79,8 +101,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 			this.operator === '+' &&
 			this.parent instanceof ExpressionStatement &&
 			this.left.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this) === ''
-		)
+		) {
 			return true;
+		}
 		return super.hasEffects(context);
 	}
 
