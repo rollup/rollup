@@ -28,8 +28,9 @@ export default class NewExpression extends NodeBase {
 			if (
 				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
 				this.annotations
-			)
+			) {
 				return false;
+			}
 			return (
 				this.callee.hasEffects(context) ||
 				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
