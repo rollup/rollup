@@ -3,7 +3,8 @@ import { type ExpressionEntity } from '../nodes/shared/Expression';
 import {
 	DiscriminatedPathTracker,
 	type ObjectPath,
-	SHARED_RECURSION_TRACKER
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
@@ -29,6 +30,12 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
+		// TODO Lukas refine
+		if ('args' in interaction) {
+			for (const argument of interaction.args) {
+				argument.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
 		if (
 			interaction.thisArg &&
 			!this.deoptimizations.trackEntityAtPathAndGetIfTracked(

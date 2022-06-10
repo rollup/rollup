@@ -40,8 +40,8 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { NodeBase } from './shared/Node';
 import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -146,6 +146,11 @@ export default class MemberExpression
 				);
 			} else {
 				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+				if ('args' in interaction) {
+					for (const argument of interaction.args) {
+						argument.deoptimizePath(UNKNOWN_PATH);
+					}
+				}
 			}
 		}
 	}

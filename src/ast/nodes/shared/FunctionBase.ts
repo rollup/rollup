@@ -50,6 +50,13 @@ export default abstract class FunctionBase extends NodeBase {
 				path,
 				recursionTracker
 			);
+		} else if (interaction.type === INTERACTION_CALLED) {
+			// TODO Lukas refine
+			if ('args' in interaction) {
+				for (const arg of interaction.args) {
+					arg.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
 		}
 	}
 

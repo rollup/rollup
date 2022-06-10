@@ -1,9 +1,6 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
 import {
@@ -107,6 +104,11 @@ export class ObjectEntity extends ExpressionEntity {
 					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
 			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+			if ('args' in interaction) {
+				for (const argument of interaction.args) {
+					argument.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
 			return;
 		}
 
@@ -129,8 +131,16 @@ export class ObjectEntity extends ExpressionEntity {
 						property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
 					}
 				}
-				if (!this.immutable && interaction.thisArg) {
-					this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+				if (!this.immutable) {
+					if (interaction.thisArg) {
+						this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+					}
+					// TODO Lukas refine
+					if ('args' in interaction) {
+						for (const argument of interaction.args) {
+							argument.deoptimizePath(UNKNOWN_PATH);
+						}
+					}
 				}
 				return;
 			}
@@ -155,8 +165,16 @@ export class ObjectEntity extends ExpressionEntity {
 				property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
 		}
-		if (!this.immutable && interaction.thisArg) {
-			this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+		if (!this.immutable) {
+			if (interaction.thisArg) {
+				this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+			}
+			// TODO Lukas refine
+			if ('args' in interaction) {
+				for (const argument of interaction.args) {
+					argument.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
 		}
 		this.prototypeExpression?.deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -214,9 +232,9 @@ export class ObjectEntity extends ExpressionEntity {
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of typeof key === 'string'
 			? [
-				...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
-				...(this.settersByKey[key] || this.unmatchableSetters)
-			]
+					...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+					...(this.settersByKey[key] || this.unmatchableSetters)
+			  ]
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}

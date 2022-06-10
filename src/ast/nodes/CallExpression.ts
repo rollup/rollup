@@ -6,13 +6,11 @@ import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type PathTracker,
-	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH
+	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
@@ -116,17 +114,11 @@ export default class CallExpression
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		if (this.interaction.thisArg) {
-			this.callee.deoptimizeArgumentsOnInteractionAtPath(
-				this.interaction as NodeInteraction,
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER
-			);
-		}
-		for (const argument of this.arguments) {
-			// This will make sure all properties of parameters behave as "unknown"
-			argument.deoptimizePath(UNKNOWN_PATH);
-		}
+		this.callee.deoptimizeArgumentsOnInteractionAtPath(
+			this.interaction,
+			EMPTY_PATH,
+			SHARED_RECURSION_TRACKER
+		);
 		this.context.requestTreeshakingPass();
 	}
 
