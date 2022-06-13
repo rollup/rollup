@@ -14,13 +14,12 @@ import { NodeBase } from './shared/Node';
 
 const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 
-// TODO Lukas clean up this file if it makes sense
 export default class MetaProperty extends NodeBase {
 	declare meta: Identifier;
 	declare property: Identifier;
 	declare type: NodeType.tMetaProperty;
 
-	private declare metaProperty?: string | null;
+	private metaProperty: string | null = null;
 	private preliminaryChunkName: string | null = null;
 
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
@@ -54,13 +53,11 @@ export default class MetaProperty extends NodeBase {
 	}
 
 	render(code: MagicString, { format, outputPluginDriver, snippets }: RenderOptions): void {
-		const parent = this.parent;
-		const metaProperty = this.metaProperty as string | null;
+		const { metaProperty, parent } = this;
 		const chunkId = this.preliminaryChunkName!;
 
-		if (metaProperty && metaProperty.startsWith(FILE_PREFIX)) {
-			let referenceId: string | null = null;
-			referenceId = metaProperty.substring(FILE_PREFIX.length);
+		if (metaProperty?.startsWith(FILE_PREFIX)) {
+			const referenceId = metaProperty.substring(FILE_PREFIX.length);
 			const fileName = outputPluginDriver.getFileName(referenceId);
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			const replacement =
@@ -108,11 +105,8 @@ export default class MetaProperty extends NodeBase {
 		preliminaryChunkName: string
 	): void {
 		this.preliminaryChunkName = preliminaryChunkName;
-		const { metaProperty } = this;
 		const accessedGlobals = (
-			metaProperty && metaProperty.startsWith(FILE_PREFIX)
-				? accessedFileUrlGlobals
-				: accessedMetaUrlGlobals
+			this.metaProperty?.startsWith(FILE_PREFIX) ? accessedFileUrlGlobals : accessedMetaUrlGlobals
 		)[format];
 		if (accessedGlobals.length > 0) {
 			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
