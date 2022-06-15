@@ -57,7 +57,7 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			const chunks = await this.generateChunks();
+			const chunks = await this.generateChunks(outputBundle);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
@@ -73,13 +73,12 @@ export default class Bundle {
 			// TODO Lukas addons could now be created per chunk; check if chunks can be generated in parallel first (there used to be problems with internal state)
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
 			const snippets = getGenerateCodeSnippets(this.outputOptions);
-			const getHashPlaceholder = getHashPlaceholderGenerator();
 
 			// first we reserve room for entry chunks
 			for (const chunk of chunks) {
 				if (chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint) {
 					// reserves name in bundle as side effect
-					chunk.getPreliminaryFileName(inputBase, getHashPlaceholder, outputBundle);
+					chunk.getPreliminaryFileName(inputBase);
 				}
 			}
 
@@ -91,15 +90,7 @@ export default class Bundle {
 				RenderedChunkWithPlaceholders & { contentHash: string; positions: Map<number, string> }
 			>();
 			for (const chunk of chunks) {
-				const renderedChunk = await chunk.render(
-					this.outputOptions,
-					inputBase,
-					addons,
-					snippets,
-					getHashPlaceholder,
-					new Set(),
-					outputBundle
-				);
+				const renderedChunk = await chunk.render(inputBase, addons, snippets, new Set());
 				if ('fileName' in renderedChunk) {
 					outputBundle[renderedChunk.fileName] = renderedChunk;
 				} else {
@@ -140,6 +131,11 @@ export default class Bundle {
 				const hashDependenciesByPlaceholder = new Map<string, string>([[placeholder, contentHash]]);
 				for (const [dependencyPlaceholder, dependencyHash] of hashDependenciesByPlaceholder) {
 					hash.update(dependencyHash);
+					/* TODO Lukas !!do not use contained placeholders, get rid of it
+					 * Instead, we pass a growing list of mapping of hashes to chunks around
+					 * Also, do not try to render other chunks in render, just get their preliminary names and use those
+					 * getPreliminaryFileName does not need parameters if we inject those when creating the chunks
+					 * */
 					for (const containedPlaceholder of chunksByPlaceholder
 						.get(dependencyPlaceholder)!
 						.containedPlaceholders.keys()) {
@@ -263,7 +259,7 @@ export default class Bundle {
 		this.pluginDriver.finaliseAssets();
 	}
 
-	private async generateChunks(): Promise<Chunk[]> {
+	private async generateChunks(bundle: OutputBundleWithPlaceholders): Promise<Chunk[]> {
 		const { manualChunks } = this.outputOptions;
 		const manualChunkAliasByEntry =
 			typeof manualChunks === 'object'
@@ -271,6 +267,7 @@ export default class Bundle {
 				: this.assignManualChunks(manualChunks);
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
+		const getHashPlaceholder = getHashPlaceholderGenerator();
 		for (const { alias, modules } of this.outputOptions.inlineDynamicImports
 			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
 			: this.outputOptions.preserveModules
@@ -290,7 +287,9 @@ export default class Bundle {
 				chunkByModule,
 				this.facadeChunkByModule,
 				this.includedNamespaces,
-				alias
+				alias,
+				getHashPlaceholder,
+				bundle
 			);
 			chunks.push(chunk);
 			for (const module of modules) {
