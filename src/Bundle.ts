@@ -26,9 +26,9 @@ import { sortByExecutionOrder } from './utils/executionOrder';
 import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import {
 	getHashPlaceholderGenerator,
+	HashPlaceholderGenerator,
 	replacePlaceholders,
-	replacePlaceholdersByPosition,
-	replacePlaceholdersWithDefaultAndGetPositions,
+	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
 	replaceSinglePlaceholder
 } from './utils/hashPlaceholders';
 import { isAbsolute } from './utils/path';
@@ -57,7 +57,8 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			const chunks = await this.generateChunks(outputBundle);
+			const { chunksByPlaceholder, getHashPlaceholder } = getHashPlaceholderGenerator();
+			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
@@ -82,68 +83,51 @@ export default class Bundle {
 				}
 			}
 
-			// TODO Lukas maybe it is simpler if we start with a mapping preliminary Chunk <-> name
-			//  (and placeholder -> chunk) which we pass to each render and always search
+			// TODO Lukas in the end, we could speed up things if we check if no placeholders are used and in that case we skip the second replacement at the bottom
 			const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
-			const chunksByPlaceholder = new Map<
+			const renderedChunksByPlaceholder = new Map<
 				string,
-				RenderedChunkWithPlaceholders & { contentHash: string; positions: Map<number, string> }
+				RenderedChunkWithPlaceholders & { containedPlaceholders: Set<string>; contentHash: string }
 			>();
 			for (const chunk of chunks) {
-				const renderedChunk = await chunk.render(inputBase, addons, snippets, new Set());
-				if ('fileName' in renderedChunk) {
-					outputBundle[renderedChunk.fileName] = renderedChunk;
-				} else {
-					const {
-						code,
+				const renderedChunk = await chunk.render(inputBase, addons, snippets);
+				const {
+					code,
+					preliminaryFileName: { hashPlaceholder }
+				} = renderedChunk;
+				if (hashPlaceholder) {
+					const hash = createHash();
+					// To create a reproducible content-only hash, all placeholders are
+					// replaced with the same value before hashing
+					const { containedPlaceholders, transformedCode } =
+						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, chunksByPlaceholder);
+					hash.update(transformedCode);
+					renderedChunksByPlaceholder.set(hashPlaceholder, {
+						...renderedChunk,
 						containedPlaceholders,
-						preliminaryFileName: { hashPlaceholder }
-					} = renderedChunk;
-					if (hashPlaceholder) {
-						const hash = createHash();
-						const { positions, result } = replacePlaceholdersWithDefaultAndGetPositions(
-							code,
-							new Set(containedPlaceholders.keys())
-						);
-						hash.update(result);
-						chunksByPlaceholder.set(hashPlaceholder, {
-							...renderedChunk,
-							contentHash: hash.digest('hex'),
-							positions
-						});
-					} else {
-						// TODO Lukas no need to hash, but we still need to replace stuff. Test this!
-						nonHashedChunksWithPlaceholders.push(renderedChunk);
-					}
+						contentHash: hash.digest('hex')
+					});
+				} else {
+					nonHashedChunksWithPlaceholders.push(renderedChunk);
 				}
 			}
 			// generate final hashes by placeholder
 			const hashesByPlaceholder = new Map<string, string>();
-			// TODO Lukas deduplicate with logic in Chunk.render
 			for (const [
 				placeholder,
 				{
-					contentHash,
 					preliminaryFileName: { fileName }
 				}
-			] of chunksByPlaceholder) {
+			] of renderedChunksByPlaceholder) {
 				const hash = createHash();
-				const hashDependenciesByPlaceholder = new Map<string, string>([[placeholder, contentHash]]);
-				for (const [dependencyPlaceholder, dependencyHash] of hashDependenciesByPlaceholder) {
-					hash.update(dependencyHash);
-					/* TODO Lukas !!do not use contained placeholders, get rid of it
-					 * Instead, we pass a growing list of mapping of hashes to chunks around
-					 * Also, do not try to render other chunks in render, just get their preliminary names and use those
-					 * getPreliminaryFileName does not need parameters if we inject those when creating the chunks
-					 * */
-					for (const containedPlaceholder of chunksByPlaceholder
-						.get(dependencyPlaceholder)!
-						.containedPlaceholders.keys()) {
+				const hashDependencyPlaceholders = new Set<string>([placeholder]);
+				for (const dependencyPlaceholder of hashDependencyPlaceholders) {
+					const { containedPlaceholders, contentHash } =
+						renderedChunksByPlaceholder.get(dependencyPlaceholder)!;
+					hash.update(contentHash);
+					for (const containedPlaceholder of containedPlaceholders) {
 						// When looping over a map, setting an entry only causes a new iteration if the key is new
-						hashDependenciesByPlaceholder.set(
-							containedPlaceholder,
-							chunksByPlaceholder.get(containedPlaceholder)!.contentHash
-						);
+						hashDependencyPlaceholders.add(containedPlaceholder);
 					}
 				}
 				// TODO Lukas now determine the file name and update hash if necessary
@@ -161,13 +145,12 @@ export default class Bundle {
 				outputBundle[finalFileName] = FILE_PLACEHOLDER;
 				hashesByPlaceholder.set(placeholder, finalHash.slice(0, placeholder.length));
 			}
-			// TODO Lukas update content and file names
 			// TODO Lukas also replace in sourcemaps
 			for (const [
 				placeholder,
-				{ chunk, code, map, positions, preliminaryFileName }
-			] of chunksByPlaceholder) {
-				const updatedCode = replacePlaceholdersByPosition(code, positions, hashesByPlaceholder);
+				{ chunk, code, map, preliminaryFileName }
+			] of renderedChunksByPlaceholder) {
+				const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
 				const fileName = replaceSinglePlaceholder(
 					preliminaryFileName.fileName,
 					placeholder,
@@ -181,7 +164,9 @@ export default class Bundle {
 				map,
 				preliminaryFileName: { fileName }
 			} of nonHashedChunksWithPlaceholders) {
-				const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
+				const updatedCode = hashesByPlaceholder.size
+					? replacePlaceholders(code, hashesByPlaceholder)
+					: code;
 				outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 			}
 
@@ -259,7 +244,10 @@ export default class Bundle {
 		this.pluginDriver.finaliseAssets();
 	}
 
-	private async generateChunks(bundle: OutputBundleWithPlaceholders): Promise<Chunk[]> {
+	private async generateChunks(
+		bundle: OutputBundleWithPlaceholders,
+		getHashPlaceholder: HashPlaceholderGenerator
+	): Promise<Chunk[]> {
 		const { manualChunks } = this.outputOptions;
 		const manualChunkAliasByEntry =
 			typeof manualChunks === 'object'
@@ -267,7 +255,6 @@ export default class Bundle {
 				: this.assignManualChunks(manualChunks);
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
-		const getHashPlaceholder = getHashPlaceholderGenerator();
 		for (const { alias, modules } of this.outputOptions.inlineDynamicImports
 			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
 			: this.outputOptions.preserveModules

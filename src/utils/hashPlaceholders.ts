@@ -1,3 +1,5 @@
+import type Chunk from '../Chunk';
+
 // Four random characters from the private use area to minimize risk of conflicts
 const hashPlaceholderLeft = '\uf7f9\ue4d3';
 const hashPlaceholderRight = '\ue3cc\uf1fe';
@@ -7,27 +9,35 @@ const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRigh
 // depends on (...library)
 const maxHashSize = 64;
 
-export type HashPlaceholderGenerator = (hashSize: number) => string;
+export type HashPlaceholderGenerator = (chunk: Chunk, hashSize: number) => string;
 
 // TODO Lukas throw for maximum hash size exceeded
 // TODO Lukas make hash size configurable via [hash:hashLength] and configure it per hash
 // TODO Lukas reintroduce augmentChunkHash
-export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
+export const getHashPlaceholderGenerator = (): {
+	chunksByPlaceholder: Map<string, Chunk>;
+	getHashPlaceholder: HashPlaceholderGenerator;
+} => {
+	const chunksByPlaceholder = new Map<string, Chunk>();
 	let nextIndex = 0;
-	return (hashSize: number) => {
-		const placeholder = `${hashPlaceholderLeft}${String(++nextIndex).padStart(
-			hashSize - hashPlaceholderOverhead,
-			'0'
-		)}${hashPlaceholderRight}`;
-		if (placeholder.length > hashSize) {
-			// TODO Lukas add proper error code and props
-			// TODO Lukas test
-			throw new Error(
-				`To generate hashes for this number of chunks (currently ${nextIndex}), you need a minimum hash size of ${placeholder.length}.`
-			);
+	return {
+		chunksByPlaceholder,
+		getHashPlaceholder: (chunk: Chunk, hashSize: number) => {
+			const placeholder = `${hashPlaceholderLeft}${String(++nextIndex).padStart(
+				hashSize - hashPlaceholderOverhead,
+				'0'
+			)}${hashPlaceholderRight}`;
+			if (placeholder.length > hashSize) {
+				// TODO Lukas add proper error code and props
+				// TODO Lukas test
+				throw new Error(
+					`To generate hashes for this number of chunks (currently ${nextIndex}), you need a minimum hash size of ${placeholder.length}.`
+				);
+			}
+			chunksByPlaceholder.set(placeholder, chunk);
+			nextIndex++;
+			return placeholder;
 		}
-		nextIndex++;
-		return placeholder;
 	};
 };
 
@@ -39,7 +49,8 @@ const REPLACER_REGEX = new RegExp(
 export const replacePlaceholders = (
 	code: string,
 	hashesByPlaceholder: Map<string, string>
-): string => code.replace(REPLACER_REGEX, match => hashesByPlaceholder.get(match) || match);
+): string =>
+	code.replace(REPLACER_REGEX, placeholder => hashesByPlaceholder.get(placeholder) || placeholder);
 
 // TODO Lukas check if we could just use replaceAll in Node 14
 export const replaceSinglePlaceholder = (
@@ -49,34 +60,19 @@ export const replaceSinglePlaceholder = (
 ): string => code.replace(REPLACER_REGEX, match => (match === placeholder ? value : match));
 
 // TODO Lukas test random match
-// TODO Lukas "result" should rather be transformedCode or similar
-export const replacePlaceholdersWithDefaultAndGetPositions = (
+export const replacePlaceholdersWithDefaultAndGetContainedPlaceholders = (
 	code: string,
-	placeholders: Set<string>
-): { positions: Map<number, string>; result: string } => {
-	const positions = new Map<number, string>();
-	const result = code.replace(REPLACER_REGEX, (match, offset: number) => {
-		if (placeholders.has(match)) {
-			positions.set(offset, match);
+	placeholders: Map<string, Chunk>
+): { containedPlaceholders: Set<string>; transformedCode: string } => {
+	const containedPlaceholders = new Set<string>();
+	const transformedCode = code.replace(REPLACER_REGEX, placeholder => {
+		if (placeholders.has(placeholder)) {
+			containedPlaceholders.add(placeholder);
 			return `${hashPlaceholderLeft}${'0'.repeat(
-				match.length - hashPlaceholderOverhead
+				placeholder.length - hashPlaceholderOverhead
 			)}${hashPlaceholderRight}`;
 		}
-		return match;
+		return placeholder;
 	});
-	return { positions, result };
-};
-
-export const replacePlaceholdersByPosition = (
-	code: string,
-	positions: Map<number, string>,
-	placeholderValues: Map<string, string>
-): string => {
-	return code.replace(REPLACER_REGEX, (match, offset: number) => {
-		const placeholder = positions.get(offset);
-		if (placeholder) {
-			return placeholderValues.get(placeholder)!;
-		}
-		return match;
-	});
+	return { containedPlaceholders, transformedCode };
 };

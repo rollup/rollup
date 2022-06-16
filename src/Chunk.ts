@@ -29,7 +29,6 @@ import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
 import type { Addons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
-import { createHash } from './utils/crypto';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
 	errCyclicCrossChunkReexport,
@@ -46,13 +45,7 @@ import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { getOrCreate } from './utils/getOrCreate';
 import { getStaticDependencies } from './utils/getStaticDependencies';
-import {
-	HashPlaceholderGenerator,
-	replacePlaceholders,
-	replacePlaceholdersByPosition,
-	replacePlaceholdersWithDefaultAndGetPositions,
-	replaceSinglePlaceholder
-} from './utils/hashPlaceholders';
+import { HashPlaceholderGenerator, replacePlaceholders } from './utils/hashPlaceholders';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
@@ -90,7 +83,6 @@ interface FixedPreliminaryFileName {
 export interface RenderedChunkWithPlaceholders {
 	chunk: Chunk;
 	code: string;
-	containedPlaceholders: Map<string, Chunk>;
 	map: SourceMap | null;
 	preliminaryFileName: PreliminaryFileName;
 }
@@ -195,7 +187,6 @@ export default class Chunk {
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
 	private preliminaryFileName: PreliminaryFileName | null = null;
-	private renderedChunk: OutputChunk | RenderedChunkWithPlaceholders | null = null;
 	private renderedDependencies: Map<Chunk | ExternalModule, ModuleDeclarationDependency> | null =
 		null;
 	private readonly renderedModules: {
@@ -512,7 +503,7 @@ export default class Chunk {
 					patternName,
 					{
 						format: () => format,
-						hash: () => hashPlaceholder || (hashPlaceholder = this.getPlaceholder(8)),
+						hash: () => hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, 8)),
 						name: () => this.getChunkName()
 					}
 				),
@@ -544,18 +535,14 @@ export default class Chunk {
 
 	// TODO Lukas can we always return a preliminary result?
 	// TODO Lukas try easier solution?
-	//  * during render, always use preliminary file names
+	//  * during render, always use preliminary file names and do not render others
 	//  * pass along a shared, mutable fileNameResolutions map (Chunk|External) -> name and other mutable stuff
 	//  * We do not need positions
 	async render(
 		inputBase: string,
 		addons: Addons,
-		snippets: GenerateCodeSnippets,
-		dependentChunks: Set<Chunk>
-	): Promise<OutputChunk | RenderedChunkWithPlaceholders> {
-		if (this.renderedChunk) {
-			return this.renderedChunk;
-		}
+		snippets: GenerateCodeSnippets
+	): Promise<RenderedChunkWithPlaceholders> {
 		const {
 			compact,
 			dynamicImportFunction,
@@ -590,7 +577,6 @@ export default class Chunk {
 		const preliminaryFileName = this.getPreliminaryFileName(inputBase);
 
 		// TODO Lukas get dependency file names
-		const containedHashPlaceholders = new Map<string, Chunk>();
 		const includedDynamicImports = this.getIncludedDynamicImports();
 		const dynamicDependencies = includedDynamicImports
 			.map(
@@ -613,15 +599,7 @@ export default class Chunk {
 						dependency.getImportPath(preliminaryFileName.fileName, this.outputOptions, inputBase)
 					);
 				} else {
-					const { fileName, hashPlaceholder } = await dependency.getFileNameForRendering(
-						inputBase,
-						addons,
-						snippets,
-						new Set([...dependentChunks, this])
-					);
-					if (hashPlaceholder) {
-						containedHashPlaceholders.set(hashPlaceholder, dependency);
-					}
+					const { fileName } = await dependency.getPreliminaryFileName(inputBase);
 					dependencyResolutions.set(dependency, {
 						fileName,
 						import: escapeId(getImportPath(preliminaryFileName.fileName, fileName, false, true))
@@ -676,9 +654,6 @@ export default class Chunk {
 					accessedGlobalsByScope,
 					preliminaryFileName.fileName
 				);
-				if (preliminaryFileName.hashPlaceholder) {
-					containedHashPlaceholders.set(preliminaryFileName.hashPlaceholder, this);
-				}
 			}
 			if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
 				module.namespace.prepare(accessedGlobalsByScope);
@@ -793,10 +768,6 @@ export default class Chunk {
 			});
 		}
 
-		// TODO Lukas only do this on demand for usages below
-		if (preliminaryFileName.hashPlaceholder) {
-			containedHashPlaceholders.set(preliminaryFileName.hashPlaceholder, this);
-		}
 		// TODO Lukas we do not need to return magicString from finalisers
 		finalise(
 			renderedSource,
@@ -838,36 +809,6 @@ export default class Chunk {
 			renderChunk: this.getChunkInfo(),
 			sourcemapChain: chunkSourcemapChain
 		});
-
-		// TODO Lukas handle the case where we have dependencies
-		// TODO Lukas unify hashing logic
-		// TODO Lukas handle tha case where we have a name conflict on the bundle
-		if (
-			preliminaryFileName.hashPlaceholder &&
-			containedHashPlaceholders.size === 1 &&
-			containedHashPlaceholders.has(preliminaryFileName.hashPlaceholder)
-		) {
-			const hash = createHash();
-			const { positions, result } = replacePlaceholdersWithDefaultAndGetPositions(
-				code,
-				new Set([preliminaryFileName.hashPlaceholder])
-			);
-			hash.update(result);
-			const hashString = hash
-				.digest('hex')
-				.substring(0, preliminaryFileName.hashPlaceholder.length);
-			const placeholderValues = new Map([[preliminaryFileName.hashPlaceholder, hashString]]);
-			if (positions.size) {
-				code = replacePlaceholdersByPosition(result, positions, placeholderValues);
-			}
-			preliminaryFileName.fileName = replaceSinglePlaceholder(
-				preliminaryFileName.fileName,
-				preliminaryFileName.hashPlaceholder,
-				hashString
-			);
-			(preliminaryFileName as PreliminaryFileName).hashPlaceholder = null;
-			containedHashPlaceholders.clear();
-		}
 
 		// TODO Lukas we also need to replace hash placeholders in the source maps
 		if (this.outputOptions.sourcemap) {
@@ -915,15 +856,9 @@ export default class Chunk {
 		this.dynamicDependencies = dynamicDependencies;
 		this.renderedDependencies = renderedDependencies;
 		this.dependencyResolutions = dependencyResolutions;
-		if (containedHashPlaceholders.size === 0) {
-			this.id = preliminaryFileName.fileName;
-			return this.generateOutputChunk(code, map, new Map());
-		}
 		return {
 			chunk: this,
 			code,
-			// TODO Lukas unify naming
-			containedPlaceholders: containedHashPlaceholders,
 			map,
 			preliminaryFileName
 		};
@@ -1222,27 +1157,6 @@ export default class Chunk {
 			return getAliasName(this.fileName);
 		}
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
-	}
-
-	private async getFileNameForRendering(
-		inputBase: string,
-		addons: Addons,
-		snippets: GenerateCodeSnippets,
-		dependentChunks: Set<Chunk>
-	): Promise<PreliminaryFileName> {
-		const preliminaryFileName = this.getPreliminaryFileName(inputBase);
-		if (!preliminaryFileName.hashPlaceholder || dependentChunks.has(this)) {
-			return preliminaryFileName;
-		}
-		// rendering is cached
-		const renderedChunk = await this.render(inputBase, addons, snippets, dependentChunks);
-		if ('fileName' in renderedChunk) {
-			return (this.preliminaryFileName = {
-				fileName: renderedChunk.fileName,
-				hashPlaceholder: null
-			});
-		}
-		return preliminaryFileName;
 	}
 
 	private getImportSpecifiers(
