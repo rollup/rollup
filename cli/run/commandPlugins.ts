@@ -48,7 +48,7 @@ async function loadAndRegisterPlugin(
 		// -p "{transform(c,i){...}}"
 		plugin = new Function('return ' + pluginText);
 	} else {
-		const match = pluginText.match(/^([@./\\\w|^{}-]+)(=(.*))?$/);
+		const match = pluginText.match(/^([@.:/\\\w|^{}-]+)(=(.*))?$/);
 		if (match) {
 			// -p plugin
 			// -p plugin=arg
@@ -72,6 +72,8 @@ async function loadAndRegisterPlugin(
 		if (!plugin) {
 			try {
 				if (pluginText[0] == '.') pluginText = resolve(pluginText);
+				// Windows absolute paths must be specified as file:// protocol URL
+				else if (pluginText.match(/^[A-Za-z]:\\/)) pluginText = "file://" + require$$0.resolve(pluginText);
 				plugin = await requireOrImport(pluginText);
 			} catch (err: any) {
 				throw new Error(`Cannot load plugin "${pluginText}": ${err.message}.`);
