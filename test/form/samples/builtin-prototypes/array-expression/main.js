@@ -104,17 +104,17 @@ const _forEachArray = [{ effect() {} }];
 _forEachArray.forEach(element => (element.effect = () => console.log(1)));
 _forEachArray[0].effect();
 
-const _groupBy = [1].groupBy(() => true);
-const _groupByEffect = [1].groupBy(() => console.log(1) || true);
-const _groupByArray = [{ effect() {} }];
-_groupByArray.groupBy((_, element) => (element.effect = () => console.log(1)));
-_groupByArray[0].effect();
+const _group = [1].group(() => true);
+const _groupEffect = [1].group(() => console.log(1) || true);
+const _groupArray = [{ effect() {} }];
+_groupArray.group((_, element) => (element.effect = () => console.log(1)));
+_groupArray[0].effect();
 
-const _groupByToMap = [1].groupByToMap(() => true);
-const _groupByToMapEffect = [1].groupByToMap(() => console.log(1) || true);
-const _groupByToMapArray = [{ effect() {} }];
-_groupByToMapArray.groupBy((_, element) => (element.effect = () => console.log(1)));
-_groupByToMapArray[0].effect();
+const _groupToMap = [1].groupToMap(() => true);
+const _groupToMapEffect = [1].groupToMap(() => console.log(1) || true);
+const _groupToMapArray = [{ effect() {} }];
+_groupToMapArray.group((_, element) => (element.effect = () => console.log(1)));
+_groupToMapArray[0].effect();
 
 const _map = [1].map(() => 1).join(',');
 const _mapEffect = [1].map(() => console.log(1) || 1);
