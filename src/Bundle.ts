@@ -105,6 +105,20 @@ export default class Bundle {
 					const { containedPlaceholders, transformedCode } =
 						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, chunksByPlaceholder);
 					hash.update(transformedCode);
+					const hashAugmentation = this.pluginDriver.hookReduceValueSync(
+						'augmentChunkHash',
+						'',
+						[chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess)],
+						(augmentation, pluginHash) => {
+							if (pluginHash) {
+								augmentation += pluginHash;
+							}
+							return augmentation;
+						}
+					);
+					if (hashAugmentation) {
+						hash.update(hashAugmentation);
+					}
 					renderedChunksByPlaceholder.set(hashPlaceholder, {
 						...renderedChunk,
 						containedPlaceholders,
@@ -163,7 +177,8 @@ export default class Bundle {
 					updatedCode,
 					map,
 					hashesByPlaceholder,
-					inputBase
+					inputBase,
+					snippets.getPropertyAccess
 				);
 			}
 			for (const {
@@ -179,7 +194,8 @@ export default class Bundle {
 					updatedCode,
 					map,
 					hashesByPlaceholder,
-					inputBase
+					inputBase,
+					snippets.getPropertyAccess
 				);
 			}
 

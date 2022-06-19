@@ -13,7 +13,6 @@ export type HashPlaceholderGenerator = (chunk: Chunk, hashSize: number) => strin
 
 // TODO Lukas throw for maximum hash size exceeded
 // TODO Lukas make hash size configurable via [hash:hashLength] and configure it per hash
-// TODO Lukas reintroduce augmentChunkHash
 export const getHashPlaceholderGenerator = (): {
 	chunksByPlaceholder: Map<string, Chunk>;
 	getHashPlaceholder: HashPlaceholderGenerator;
