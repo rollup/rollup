@@ -184,7 +184,7 @@ export interface PluginContext extends MinimalPluginContext {
 	cache: PluginCache;
 	emitFile: EmitFile;
 	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
-	getFileName: (fileReferenceId: string) => string;
+	getFileName: (fileReferenceId: string, allowPlaceholder?: boolean) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	getWatchFiles: () => string[];
@@ -276,7 +276,7 @@ export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
 	// TODO Lukas rethink type here
-	chunk: PreRenderedChunk,
+	chunk: RenderedChunk,
 	options: NormalizedOutputOptions
 ) =>
 	| Promise<{ code: string; map?: SourceMapInput } | null>
@@ -363,7 +363,7 @@ export interface PluginHooks extends OutputPluginHooks {
 }
 
 interface OutputPluginHooks {
-	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
+	augmentChunkHash: (this: PluginContext, chunk: RenderedChunk) => string | void;
 	generateBundle: (
 		this: PluginContext,
 		options: NormalizedOutputOptions,
@@ -744,22 +744,22 @@ export interface RenderedModule {
 	renderedLength: number;
 }
 
-// TODO Lukas improve type names
 export interface PreRenderedChunk {
 	exports: string[];
 	facadeModuleId: string | null;
 	isDynamicEntry: boolean;
 	isEntry: boolean;
 	isImplicitEntry: boolean;
-	modules: {
-		[id: string]: RenderedModule;
-	};
+	moduleIds: string[];
 	name: string;
 	type: 'chunk';
 }
 
+// TODO Lukas Adjust docs, deprecation
+// TODO Lukas test (modules etc.)
+// TODO Lukas add comments which of these may contain placeholders
+// TODO Lukas transform them in the end
 export interface RenderedChunk extends PreRenderedChunk {
-	code?: string;
 	dynamicImports: string[];
 	fileName: string;
 	implicitlyLoadedBefore: string[];
@@ -767,7 +767,9 @@ export interface RenderedChunk extends PreRenderedChunk {
 		[imported: string]: string[];
 	};
 	imports: string[];
-	map?: SourceMap;
+	modules: {
+		[id: string]: RenderedModule;
+	};
 	referencedFiles: string[];
 }
 

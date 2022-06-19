@@ -4,7 +4,7 @@ System.register([], (function (exports, module) {
 		execute: (function () {
 
 			console.log('main');
-			module.import('./chunk-deb-3a28869f-system.js').then(console.log);
+			module.import('./chunk-deb-467d682b-system.js').then(console.log);
 
 		})
 	};

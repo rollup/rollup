@@ -2,7 +2,7 @@ import type {
 	DecodedSourceMapOrMissing,
 	NormalizedOutputOptions,
 	Plugin,
-	PreRenderedChunk,
+	RenderedChunk,
 	SourceMapInput
 } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
@@ -18,7 +18,7 @@ export default function renderChunk({
 	code: string;
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
-	renderChunk: PreRenderedChunk;
+	renderChunk: RenderedChunk;
 	sourcemapChain: DecodedSourceMapOrMissing[];
 }): Promise<string> {
 	const renderChunkReducer = (

@@ -130,7 +130,6 @@ interface FacadeName {
 	name?: string;
 }
 
-type DependencyResolutions = Map<Chunk | ExternalModule, { fileName: string; import: string }>;
 type RenderedDependencies = Map<Chunk | ExternalModule, ModuleDeclarationDependency>;
 
 const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
@@ -170,8 +169,6 @@ export default class Chunk {
 
 	private readonly accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
 	private dependencies = new Set<ExternalModule | Chunk>();
-	private dependencyResolutions: DependencyResolutions | null = null;
-	private dynamicDependencies: (Chunk | ExternalModule)[] | null = null;
 	private readonly dynamicEntryModules: Module[] = [];
 	private dynamicName: string | null = null;
 	private readonly exportNamesByVariable = new Map<Variable, string[]>();
@@ -187,6 +184,7 @@ export default class Chunk {
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
 	private preliminaryFileName: PreliminaryFileName | null = null;
+	// TODO Lukas if necessary, move caching into getter
 	private renderedDependencies: Map<Chunk | ExternalModule, ModuleDeclarationDependency> | null =
 		null;
 	private readonly renderedModules: {
@@ -448,17 +446,25 @@ export default class Chunk {
 	generateOutputChunk(
 		code: string,
 		map: SourceMap | null,
-		hashesByPlaceholder: Map<string, string>
+		hashesByPlaceholder: Map<string, string>,
+		inputBase: string
 	): OutputChunk {
-		const resolveFileName = (dependency: Chunk | ExternalModule) =>
-			replacePlaceholders(
-				this.dependencyResolutions!.get(dependency)!.fileName,
-				hashesByPlaceholder
-			);
+		const fileName = replacePlaceholders(
+			this.getPreliminaryFileName(inputBase).fileName,
+			hashesByPlaceholder
+		);
+		const resolveFileName = (dependency: Chunk | ExternalModule): string =>
+			dependency instanceof ExternalModule
+				? dependency.getImportPath(fileName, this.outputOptions, inputBase).fileName
+				: replacePlaceholders(
+						dependency.getPreliminaryFileName(inputBase).fileName,
+						hashesByPlaceholder
+				  );
 		return {
+			...this.getChunkInfo(),
 			code,
-			dynamicImports: this.dynamicDependencies!.map(resolveFileName),
-			fileName: resolveFileName(this),
+			dynamicImports: this.getDynamicDependencies().map(resolveFileName),
+			fileName,
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, resolveFileName),
 			importedBindings: getImportedBindingsPerDependency(
 				this.renderedDependencies!,
@@ -466,8 +472,11 @@ export default class Chunk {
 			),
 			imports: Array.from(this.dependencies, resolveFileName),
 			map,
-			referencedFiles: this.getReferencedFiles(),
-			...this.getChunkInfo()
+			// TODO Lukas test
+			modules: this.renderedModules,
+			referencedFiles: this.getReferencedFiles().map(fileName =>
+				replacePlaceholders(fileName, hashesByPlaceholder)
+			)
 		};
 	}
 
@@ -533,11 +542,7 @@ export default class Chunk {
 		}
 	}
 
-	// TODO Lukas can we always return a preliminary result?
-	// TODO Lukas try easier solution?
-	//  * during render, always use preliminary file names and do not render others
-	//  * pass along a shared, mutable fileNameResolutions map (Chunk|External) -> name and other mutable stuff
-	//  * We do not need positions
+	// TODO Lukas reduce "this" usage via destructuring
 	async render(
 		inputBase: string,
 		addons: Addons,
@@ -571,49 +576,13 @@ export default class Chunk {
 			}
 		}
 
-		// TODO Lukas now that we know all dependencies, we should first determine all file names but not yet change state
-		const dependencyResolutions: DependencyResolutions = new Map();
-
-		const preliminaryFileName = this.getPreliminaryFileName(inputBase);
-
-		// TODO Lukas get dependency file names
-		const includedDynamicImports = this.getIncludedDynamicImports();
-		const dynamicDependencies = includedDynamicImports
-			.map(
-				resolvedDynamicImport =>
-					resolvedDynamicImport.facadeChunk ||
-					resolvedDynamicImport.chunk ||
-					resolvedDynamicImport.resolution
-			)
-			.filter(
-				(resolution): resolution is Chunk | ExternalModule =>
-					(resolution instanceof Chunk || resolution instanceof ExternalModule) &&
-					resolution !== this
-			);
-		await Promise.all(
-			[...this.dependencies, ...dynamicDependencies].map(async dependency => {
-				if (dependency instanceof ExternalModule) {
-					// TODO Lukas we need to strip JS extensions for AMD
-					dependencyResolutions.set(
-						dependency,
-						dependency.getImportPath(preliminaryFileName.fileName, this.outputOptions, inputBase)
-					);
-				} else {
-					const { fileName } = await dependency.getPreliminaryFileName(inputBase);
-					dependencyResolutions.set(dependency, {
-						fileName,
-						import: escapeId(getImportPath(preliminaryFileName.fileName, fileName, false, true))
-					});
-				}
-			})
-		);
-
 		// The next two steps are stateful. No other render should happen between this and actual rendering
 		// TODO Lukas extract stateful sync part into separate sync function
-
-		// TODO Lukas This prepares dynamic imports before rendering
 		const accessedGlobalsByScope = this.accessedGlobalsByScope;
-		for (const resolvedDynamicImport of includedDynamicImports) {
+		const preliminaryFileName = this.getPreliminaryFileName(inputBase);
+
+		// Set dynamic import resolutions
+		for (const resolvedDynamicImport of this.getIncludedDynamicImports()) {
 			if (resolvedDynamicImport.chunk) {
 				const { chunk, facadeChunk, node, resolution } = resolvedDynamicImport;
 				if (chunk === this) {
@@ -626,7 +595,14 @@ export default class Chunk {
 						snippets,
 						this.pluginDriver,
 						accessedGlobalsByScope,
-						`'${dependencyResolutions.get(facadeChunk || chunk)!.import}'`,
+						`'${escapeId(
+							getImportPath(
+								preliminaryFileName.fileName,
+								(facadeChunk || chunk).getPreliminaryFileName(inputBase).fileName,
+								this.outputOptions.format === 'amd',
+								true
+							)
+						)}'`,
 						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0]
 					);
 				}
@@ -640,7 +616,13 @@ export default class Chunk {
 					this.pluginDriver,
 					accessedGlobalsByScope,
 					resolution instanceof ExternalModule
-						? `'${dependencyResolutions.get(resolution)!.import}'`
+						? `'${
+								resolution.getImportPath(
+									preliminaryFileName.fileName,
+									this.outputOptions,
+									inputBase
+								).import
+						  }'`
 						: resolution || '',
 					false
 				);
@@ -681,7 +663,6 @@ export default class Chunk {
 		};
 
 		const renderedModuleSources = new Map<Module, MagicString>();
-		// TODO Lukas actually render and generate renderedModules
 		for (const module of this.orderedModules) {
 			let renderedLength = 0;
 			if (module.isIncluded() || this.includedNamespaces.has(module)) {
@@ -701,6 +682,7 @@ export default class Chunk {
 				}
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
+			// TODO Lukas generate this in ChunkInfo where it is needed?
 			renderedModules[module.id] = {
 				get code() {
 					return renderedModuleSources.get(module)?.toString() ?? null;
@@ -730,10 +712,7 @@ export default class Chunk {
 			});
 		}
 
-		const renderedDependencies = this.getChunkDependencyDeclarations(
-			dependencyResolutions,
-			getPropertyAccess
-		);
+		const renderedDependencies = this.getChunkDependencyDeclarations(inputBase, getPropertyAccess);
 		const renderedExports =
 			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(format, getPropertyAccess);
 
@@ -802,11 +781,26 @@ export default class Chunk {
 		let map: SourceMap | null = null;
 		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 
+		const resolveFileName = (dependency: Chunk | ExternalModule): string =>
+			dependency instanceof ExternalModule
+				? dependency.getImportPath(preliminaryFileName.fileName, this.outputOptions, inputBase)
+						.fileName
+				: dependency.getPreliminaryFileName(inputBase).fileName;
+		// TODO Lukas extract this into a function, store the result on the class, calculate the output chunk from the preliminary to deduplicate logic
 		let code = await renderChunk({
 			code: prevCode,
 			options: this.outputOptions,
 			outputPluginDriver: this.pluginDriver,
-			renderChunk: this.getChunkInfo(),
+			renderChunk: {
+				...this.getChunkInfo(),
+				dynamicImports: this.getDynamicDependencies().map(resolveFileName),
+				fileName: preliminaryFileName.fileName,
+				implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, resolveFileName),
+				importedBindings: getImportedBindingsPerDependency(renderedDependencies, resolveFileName),
+				imports: Array.from(this.dependencies, resolveFileName),
+				modules: this.renderedModules,
+				referencedFiles: this.getReferencedFiles()
+			},
 			sourcemapChain: chunkSourcemapChain
 		});
 
@@ -851,11 +845,7 @@ export default class Chunk {
 			timeEnd('sourcemap', 2);
 		}
 		if (!compact && code[code.length - 1] !== '\n') code += '\n';
-		// TODO Lukas not very nice. Maybe keep ids separate from imports? Or determine imports when needed?
-		dependencyResolutions.set(this, { fileName: preliminaryFileName.fileName, import: '' });
-		this.dynamicDependencies = dynamicDependencies;
 		this.renderedDependencies = renderedDependencies;
-		this.dependencyResolutions = dependencyResolutions;
 		return {
 			chunk: this,
 			code,
@@ -947,7 +937,7 @@ export default class Chunk {
 		}
 	}
 
-	private generateIdPreserveModules(preserveModulesRelativeDir: string): string {
+	private generateIdPreserveModules(inputBase: string): string {
 		const [{ id }] = this.orderedModules;
 		const { entryFileNames, format, preserveModulesRoot, sanitizeFileName } = this.outputOptions;
 		const sanitizedId = sanitizeFileName(id.split(QUERY_HASH_REGEX, 1)[0]);
@@ -972,7 +962,7 @@ export default class Chunk {
 			if (preserveModulesRoot && currentPath.startsWith(preserveModulesRoot)) {
 				path = currentPath.slice(preserveModulesRoot.length).replace(/^[\\/]/, '');
 			} else {
-				path = relative(preserveModulesRelativeDir, currentPath);
+				path = relative(inputBase, currentPath);
 			}
 		} else {
 			const extension = extname(sanitizedId);
@@ -1004,16 +994,24 @@ export default class Chunk {
 	}
 
 	private getChunkDependencyDeclarations(
-		dependencyResolutions: DependencyResolutions,
+		inputBase: string,
 		getPropertyAccess: (name: string) => string
 	): RenderedDependencies {
 		const importSpecifiers = this.getImportSpecifiers(getPropertyAccess);
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const dependencyDeclaration = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
+		const { fileName } = this.getPreliminaryFileName(inputBase);
 		for (const dep of this.dependencies) {
 			const imports = importSpecifiers.get(dep) || null;
 			const reexports = reexportSpecifiers.get(dep) || null;
 			const namedExportsMode = dep instanceof ExternalModule || dep.exportMode !== 'default';
+			// TODO Lukas see how we can cache things?
+			const id =
+				dep instanceof ExternalModule
+					? dep.getImportPath(fileName, this.outputOptions, inputBase).import
+					: escapeId(
+							getImportPath(fileName, dep.getPreliminaryFileName(inputBase).fileName, false, true)
+					  );
 
 			dependencyDeclaration.set(dep, {
 				defaultVariableName: (dep as ExternalModule).defaultVariableName,
@@ -1026,7 +1024,7 @@ export default class Chunk {
 						(imports || reexports) !== null,
 						this.inputOptions.onwarn
 					)) as string,
-				id: dependencyResolutions.get(dep)!.import,
+				id,
 				imports,
 				isChunk: dep instanceof Chunk,
 				name: dep.variableName,
@@ -1093,7 +1091,7 @@ export default class Chunk {
 			isDynamicEntry: this.dynamicEntryModules.length > 0,
 			isEntry: facadeModule !== null && facadeModule.info.isEntry,
 			isImplicitEntry: this.implicitEntryModules.length > 0,
-			modules: this.renderedModules,
+			moduleIds: this.orderedModules.map(({ id }) => id),
 			name: this.getChunkName(),
 			type: 'chunk'
 		};
@@ -1146,6 +1144,22 @@ export default class Chunk {
 		return { deconflictedDefault, deconflictedNamespace, dependencies };
 	}
 
+	// TODO Lukas consider caching if relevant
+	private getDynamicDependencies(): (Chunk | ExternalModule)[] {
+		return this.getIncludedDynamicImports()
+			.map(
+				resolvedDynamicImport =>
+					resolvedDynamicImport.facadeChunk ||
+					resolvedDynamicImport.chunk ||
+					resolvedDynamicImport.resolution
+			)
+			.filter(
+				(resolution): resolution is Chunk | ExternalModule =>
+					(resolution instanceof Chunk || resolution instanceof ExternalModule) &&
+					resolution !== this
+			);
+	}
+
 	private getFallbackChunkName(): string {
 		if (this.manualChunkAlias) {
 			return this.manualChunkAlias;
@@ -1186,6 +1200,7 @@ export default class Chunk {
 		return importsByDependency;
 	}
 
+	// TODO Lukas possibly add caching
 	private getIncludedDynamicImports(): ResolvedDynamicImport[] {
 		const includedDynamicImports: ResolvedDynamicImport[] = [];
 		for (const module of this.orderedModules) {

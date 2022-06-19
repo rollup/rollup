@@ -78,6 +78,7 @@ export default class ExternalModule {
 		});
 	}
 
+	// TODO Lukas these should be cached by Chunk? Technically, we could cache the actual path by build and just the import by Chunk
 	getImportPath(
 		importer: string,
 		options: NormalizedOutputOptions,
@@ -89,7 +90,9 @@ export default class ExternalModule {
 		return {
 			fileName,
 			import: escapeId(
-				this.renormalizeRenderPath ? getImportPath(importer, fileName, false, false) : fileName
+				this.renormalizeRenderPath
+					? getImportPath(importer, fileName, options.format === 'amd', false)
+					: fileName
 			)
 		};
 	}

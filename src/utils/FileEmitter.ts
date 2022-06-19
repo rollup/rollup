@@ -141,17 +141,34 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 
 function getChunkFileName(
 	file: ConsumedChunk,
-	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null
+	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null,
+	inputBase: string | null,
+	allowPlaceholder: boolean | undefined
 ): string {
-	const fileName = file.fileName || (file.module && facadeChunkByModule?.get(file.module)?.id);
-	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
-	return fileName;
+	if (file.fileName) {
+		return file.fileName;
+	}
+	if (facadeChunkByModule) {
+		const chunk = file.module && facadeChunkByModule.get(file.module);
+		if (chunk) {
+			if (chunk.id) {
+				return chunk.id;
+			}
+			const preliminaryFileName = chunk.getPreliminaryFileName(inputBase!);
+			if (allowPlaceholder || !preliminaryFileName.hashPlaceholder) {
+				return preliminaryFileName.fileName;
+			}
+		}
+	}
+	// TODO Lukas show a better error in case we only get a hashed file name to instruct about the placeholder option
+	return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 }
 
 export class FileEmitter {
 	private bundle: OutputBundleWithPlaceholders | null = null;
 	private facadeChunkByModule: ReadonlyMap<Module, Chunk> | null = null;
 	private readonly filesByReferenceId: Map<string, ConsumedFile>;
+	private inputBase: string | null = null;
 	private outputOptions: NormalizedOutputOptions | null = null;
 
 	constructor(
@@ -196,11 +213,16 @@ export class FileEmitter {
 		return this.emitAsset(emittedFile);
 	};
 
-	public getFileName = (fileReferenceId: string): string => {
+	public getFileName = (fileReferenceId: string, allowPlaceholder?: boolean): string => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
-			return getChunkFileName(emittedFile, this.facadeChunkByModule);
+			return getChunkFileName(
+				emittedFile,
+				this.facadeChunkByModule,
+				this.inputBase,
+				allowPlaceholder
+			);
 		}
 		return getAssetFileName(emittedFile, fileReferenceId);
 	};
@@ -226,14 +248,20 @@ export class FileEmitter {
 		}
 	};
 
+	public setChunkInformation = (
+		facadeChunkByModule: ReadonlyMap<Module, Chunk>,
+		inputBase: string
+	): void => {
+		this.facadeChunkByModule = facadeChunkByModule;
+		this.inputBase = inputBase;
+	};
+
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
-		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: ReadonlyMap<Module, Chunk>
+		outputOptions: NormalizedOutputOptions
 	): void => {
 		this.outputOptions = outputOptions;
 		this.bundle = outputBundle;
-		this.facadeChunkByModule = facadeChunkByModule;
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
 				reserveFileNameInBundle(emittedFile.fileName, this.bundle, this.options.onwarn);

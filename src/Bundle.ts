@@ -50,7 +50,8 @@ export default class Bundle {
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
-		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions, this.facadeChunkByModule);
+		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions);
+
 		// TODO Lukas clean up by extracting functions in the end
 		// TODO Lukas rethink time measuring points
 		try {
@@ -63,6 +64,8 @@ export default class Bundle {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
 			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+			this.pluginDriver.setChunkInformation(this.facadeChunkByModule, inputBase);
+
 			timeEnd('generate chunks', 2);
 
 			timeStart('render chunks', 2);
@@ -156,7 +159,12 @@ export default class Bundle {
 					placeholder,
 					hashesByPlaceholder.get(placeholder)!
 				);
-				outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
+				outputBundle[fileName] = chunk.generateOutputChunk(
+					updatedCode,
+					map,
+					hashesByPlaceholder,
+					inputBase
+				);
 			}
 			for (const {
 				chunk,
@@ -167,7 +175,12 @@ export default class Bundle {
 				const updatedCode = hashesByPlaceholder.size
 					? replacePlaceholders(code, hashesByPlaceholder)
 					: code;
-				outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
+				outputBundle[fileName] = chunk.generateOutputChunk(
+					updatedCode,
+					map,
+					hashesByPlaceholder,
+					inputBase
+				);
 			}
 
 			timeEnd('render chunks', 2);

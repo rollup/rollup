@@ -74,11 +74,14 @@ export type HookAction = [plugin: string, hook: string, args: unknown[]];
 export class PluginDriver {
 	public readonly emitFile: EmitFile;
 	public finaliseAssets: () => void;
-	public getFileName: (fileReferenceId: string) => string;
+	public getFileName: (fileReferenceId: string, allowPlaceholder?: boolean) => string;
+	public readonly setChunkInformation: (
+		facadeChunkByModule: ReadonlyMap<Module, Chunk>,
+		inputBase: string
+	) => void;
 	public readonly setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
-		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: ReadonlyMap<Module, Chunk>
+		outputOptions: NormalizedOutputOptions
 	) => void;
 
 	private readonly fileEmitter: FileEmitter;
@@ -103,6 +106,7 @@ export class PluginDriver {
 		this.emitFile = this.fileEmitter.emitFile.bind(this.fileEmitter);
 		this.getFileName = this.fileEmitter.getFileName.bind(this.fileEmitter);
 		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized.bind(this.fileEmitter);
+		this.setChunkInformation = this.fileEmitter.setChunkInformation.bind(this.fileEmitter);
 		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
 		const existingPluginNames = new Set<string>();

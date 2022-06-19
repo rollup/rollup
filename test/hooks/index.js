@@ -173,9 +173,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('chunk-928cb70b.js', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('chunk-f0e7d366.js', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'chunk-928cb70b.js');
+				assert.strictEqual(output[1].fileName, 'chunk-f0e7d366.js');
 				assert.strictEqual(output[1].code, `console.log('chunk');\n`);
 
 				return rollup.rollup({
@@ -198,9 +198,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('chunk-928cb70b.js', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('chunk-f0e7d366.js', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'chunk-928cb70b.js');
+				assert.strictEqual(output[1].fileName, 'chunk-f0e7d366.js');
 				assert.strictEqual(output[1].code, `console.log('chunk');\n`);
 
 				return rollup.rollup({
@@ -220,9 +220,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('chunk-928cb70b.js', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('chunk-f0e7d366.js', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'chunk-928cb70b.js');
+				assert.strictEqual(output[1].fileName, 'chunk-f0e7d366.js');
 				assert.strictEqual(output[1].code, `console.log('chunk');\n`);
 			});
 	});

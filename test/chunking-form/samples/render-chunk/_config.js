@@ -1,5 +1,6 @@
 const assert = require('assert');
 
+// TODO Lukas use hashes to test implicit transformation?
 module.exports = {
 	description: 'transforms chunks in the renderChunk hook',
 	options: {

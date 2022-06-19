@@ -20,12 +20,14 @@ export default class MetaProperty extends NodeBase {
 	declare type: NodeType.tMetaProperty;
 
 	private metaProperty: string | null = null;
-	private preliminaryChunkName: string | null = null;
+	private preliminaryChunkId: string | null = null;
+	private referenceId: string | null = null;
 
+	// TODO Lukas This needs to be converted?
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
-		const metaProperty = this.metaProperty as string | null;
-		if (metaProperty && metaProperty.startsWith(FILE_PREFIX)) {
-			return outputPluginDriver.getFileName(metaProperty.substring(FILE_PREFIX.length));
+		const { metaProperty } = this;
+		if (metaProperty?.startsWith(FILE_PREFIX)) {
+			return outputPluginDriver.getFileName(metaProperty.substring(FILE_PREFIX.length), true);
 		}
 		return null;
 	}
@@ -44,21 +46,24 @@ export default class MetaProperty extends NodeBase {
 			if (this.meta.name === 'import') {
 				this.context.addImportMeta(this);
 				const parent = this.parent;
-				this.metaProperty =
+				const metaProperty = (this.metaProperty =
 					parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
 						? parent.propertyKey
-						: null;
+						: null);
+				if (metaProperty?.startsWith(FILE_PREFIX)) {
+					this.referenceId = metaProperty.substring(FILE_PREFIX.length);
+				}
 			}
 		}
 	}
 
+	// TODO Lukas note breaking change: resolveFileUrl only receives a preliminary chunkId
 	render(code: MagicString, { format, outputPluginDriver, snippets }: RenderOptions): void {
-		const { metaProperty, parent } = this;
-		const chunkId = this.preliminaryChunkName!;
+		const { metaProperty, parent, referenceId } = this;
+		const chunkId = this.preliminaryChunkId!;
 
-		if (metaProperty?.startsWith(FILE_PREFIX)) {
-			const referenceId = metaProperty.substring(FILE_PREFIX.length);
-			const fileName = outputPluginDriver.getFileName(referenceId);
+		if (referenceId) {
+			const fileName = outputPluginDriver.getFileName(referenceId, true);
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			const replacement =
 				outputPluginDriver.hookFirstSync('resolveFileUrl', [
@@ -99,12 +104,13 @@ export default class MetaProperty extends NodeBase {
 		}
 	}
 
+	// TODO Lukas reduce this to everything that definitely does need to happen before render, i.e. deconflicting for accessed globals, and get the rest from render context, possibly rename to updateAccessedGlobals
 	setResolution(
 		format: InternalModuleFormat,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
-		preliminaryChunkName: string
+		preliminaryChunkId: string
 	): void {
-		this.preliminaryChunkName = preliminaryChunkName;
+		this.preliminaryChunkId = preliminaryChunkId;
 		const accessedGlobals = (
 			this.metaProperty?.startsWith(FILE_PREFIX) ? accessedFileUrlGlobals : accessedMetaUrlGlobals
 		)[format];

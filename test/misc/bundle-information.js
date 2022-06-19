@@ -483,8 +483,8 @@ describe('The bundle object', () => {
 					[
 						'_virtual/input.js',
 						'_virtual/dynamic1.js',
-						'_virtual/other.js',
-						'_virtual/dynamic2.js'
+						'_virtual/dynamic2.js',
+						'_virtual/other.js'
 					],
 					'fileName'
 				);
@@ -500,14 +500,14 @@ describe('The bundle object', () => {
 
 console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
-						'const other = "other";\n\nexport { other };\n',
-						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
+						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n',
+						'const other = "other";\n\nexport { other };\n'
 					],
 					'code'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.name),
-					['input', 'dynamic1', 'other', 'dynamic2'],
+					['input', 'dynamic1', 'dynamic2', 'other'],
 					'name'
 				);
 				assert.deepEqual(
@@ -522,7 +522,7 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.exports),
-					[[], ['dynamic1'], ['other'], ['dynamic2']],
+					[[], ['dynamic1'], ['dynamic2'], ['other']],
 					'exports'
 				);
 				assert.deepEqual(
@@ -552,15 +552,6 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 							}
 						},
 						{
-							other: {
-								code: 'const other = "other";',
-								originalLength: 28,
-								removedExports: [],
-								renderedExports: ['other'],
-								renderedLength: 22
-							}
-						},
-						{
 							dynamic2: {
 								code: 'const dynamic2 = "dynamic2";',
 								originalLength: 34,
@@ -568,18 +559,27 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 								renderedExports: ['dynamic2'],
 								renderedLength: 28
 							}
+						},
+						{
+							other: {
+								code: 'const other = "other";',
+								originalLength: 28,
+								removedExports: [],
+								renderedExports: ['other'],
+								renderedLength: 22
+							}
 						}
 					],
 					'modules'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.isDynamicEntry),
-					[false, true, false, true],
+					[false, true, true, false],
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.facadeModuleId),
-					['input', 'dynamic1', 'other', 'dynamic2'],
+					['input', 'dynamic1', 'dynamic2', 'other'],
 					'facadeModuleId'
 				);
 			});
