@@ -275,9 +275,9 @@ export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => Promis
 export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
-	// TODO Lukas rethink type here
 	chunk: RenderedChunk,
-	options: NormalizedOutputOptions
+	options: NormalizedOutputOptions,
+	meta: { chunks: Record<string, RenderedChunk> }
 ) =>
 	| Promise<{ code: string; map?: SourceMapInput } | null>
 	| { code: string; map?: SourceMapInput }
@@ -744,6 +744,7 @@ export interface RenderedModule {
 	renderedLength: number;
 }
 
+// TODO Lukas we also need to replace hashes in assets in order to build a manifest in renderChunk
 export interface PreRenderedChunk {
 	exports: string[];
 	facadeModuleId: string | null;

@@ -56,7 +56,7 @@ import {
 } from './utils/interopHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
 import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
-import transformChunk from './utils/renderChunk';
+import { transformChunk } from './utils/renderChunk';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { timeEnd, timeStart } from './utils/timers';
@@ -564,11 +564,7 @@ export default class Chunk {
 	}
 
 	// TODO Lukas reduce "this" usage via destructuring
-	async render(
-		inputBase: string,
-		addons: Addons,
-		snippets: GenerateCodeSnippets
-	): Promise<RenderedChunkWithPlaceholders> {
+	render(inputBase: string, addons: Addons, snippets: GenerateCodeSnippets) {
 		const {
 			compact,
 			dynamicImportFunction,
@@ -793,20 +789,32 @@ export default class Chunk {
 		);
 		if (addons.banner) magicString.prepend(addons.banner);
 		if (addons.footer) magicString.append(addons.footer);
-		const prevCode = magicString.toString();
-
 		timeEnd('render format', 2);
 
+		return { chunk: this, magicString, usedModules };
+	}
+
+	public async transform(
+		magicString: MagicStringBundle,
+		usedModules: Module[],
+		chunks: Record<string, RenderedChunk>,
+		inputBase: string,
+		getPropertyAccess: (name: string) => string
+	) {
 		let map: SourceMap | null = null;
 		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 		// TODO Lukas test that in renderChunk, we can also mutate imports etc. as they are updated
 		let code = await transformChunk({
-			code: prevCode,
+			chunks,
+			code: magicString.toString(),
 			options: this.outputOptions,
 			outputPluginDriver: this.pluginDriver,
 			renderChunk: this.getRenderedChunkInfo(inputBase, getPropertyAccess),
 			sourcemapChain: chunkSourcemapChain
 		});
+		if (!this.outputOptions.compact && code[code.length - 1] !== '\n') code += '\n';
+		const preliminaryFileName = this.getPreliminaryFileName(inputBase);
+		const { fileName } = preliminaryFileName;
 
 		// TODO Lukas we also need to replace hash placeholders in the source maps
 		if (this.outputOptions.sourcemap) {
@@ -815,9 +823,8 @@ export default class Chunk {
 			let file: string;
 			if (this.outputOptions.file)
 				file = resolve(this.outputOptions.sourcemapFile || this.outputOptions.file);
-			else if (this.outputOptions.dir)
-				file = resolve(this.outputOptions.dir, preliminaryFileName.fileName);
-			else file = resolve(preliminaryFileName.fileName);
+			else if (this.outputOptions.dir) file = resolve(this.outputOptions.dir, fileName);
+			else file = resolve(fileName);
 
 			const decodedMap = magicString.generateDecodedMap({});
 			map = collapseSourcemaps(
@@ -848,7 +855,6 @@ export default class Chunk {
 
 			timeEnd('sourcemap', 2);
 		}
-		if (!compact && code[code.length - 1] !== '\n') code += '\n';
 		return {
 			chunk: this,
 			code,
@@ -1230,16 +1236,16 @@ export default class Chunk {
 	}
 
 	private getReferencedFiles(): string[] {
-		const referencedFiles: string[] = [];
+		const referencedFiles = new Set<string>();
 		for (const module of this.orderedModules) {
 			for (const meta of module.importMetas) {
 				const fileName = meta.getReferencedFileName(this.pluginDriver);
 				if (fileName) {
-					referencedFiles.push(fileName);
+					referencedFiles.add(fileName);
 				}
 			}
 		}
-		return referencedFiles;
+		return [...referencedFiles];
 	}
 
 	private getRenderedDependencies(

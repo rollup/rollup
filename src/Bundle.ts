@@ -10,6 +10,7 @@ import type {
 	OutputBundleWithPlaceholders,
 	WarningHandler
 } from './rollup/types';
+import { RenderedChunk } from './rollup/types';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
 import { createAddons } from './utils/addons';
@@ -92,42 +93,63 @@ export default class Bundle {
 				string,
 				RenderedChunkWithPlaceholders & { containedPlaceholders: Set<string>; contentHash: string }
 			>();
-			for (const chunk of chunks) {
-				const renderedChunk = await chunk.render(inputBase, addons, snippets);
-				const {
-					code,
-					preliminaryFileName: { hashPlaceholder }
-				} = renderedChunk;
-				if (hashPlaceholder) {
-					const hash = createHash();
-					// To create a reproducible content-only hash, all placeholders are
-					// replaced with the same value before hashing
-					const { containedPlaceholders, transformedCode } =
-						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, chunksByPlaceholder);
-					hash.update(transformedCode);
-					const hashAugmentation = this.pluginDriver.hookReduceValueSync(
-						'augmentChunkHash',
-						'',
-						[chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess)],
-						(augmentation, pluginHash) => {
-							if (pluginHash) {
-								augmentation += pluginHash;
-							}
-							return augmentation;
-						}
+
+			const renderedChunks = chunks.map(chunk => chunk.render(inputBase, addons, snippets));
+			const renderedChunkInfos: Record<string, RenderedChunk> = Object.fromEntries(
+				chunks.map(chunk => {
+					const renderedChunkInfo = chunk.getRenderedChunkInfo(
+						inputBase,
+						snippets.getPropertyAccess
 					);
-					if (hashAugmentation) {
-						hash.update(hashAugmentation);
+					return [renderedChunkInfo.fileName, renderedChunkInfo];
+				})
+			);
+
+			await Promise.all(
+				renderedChunks.map(async ({ chunk, magicString, usedModules }) => {
+					const transformedChunk = await chunk.transform(
+						magicString,
+						usedModules,
+						renderedChunkInfos,
+						inputBase,
+						snippets.getPropertyAccess
+					);
+					const {
+						code,
+						preliminaryFileName: { hashPlaceholder }
+					} = transformedChunk;
+					if (hashPlaceholder) {
+						const hash = createHash();
+						// To create a reproducible content-only hash, all placeholders are
+						// replaced with the same value before hashing
+						const { containedPlaceholders, transformedCode } =
+							replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, chunksByPlaceholder);
+						hash.update(transformedCode);
+						const hashAugmentation = this.pluginDriver.hookReduceValueSync(
+							'augmentChunkHash',
+							'',
+							[chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess)],
+							(augmentation, pluginHash) => {
+								if (pluginHash) {
+									augmentation += pluginHash;
+								}
+								return augmentation;
+							}
+						);
+						if (hashAugmentation) {
+							hash.update(hashAugmentation);
+						}
+						renderedChunksByPlaceholder.set(hashPlaceholder, {
+							...transformedChunk,
+							containedPlaceholders,
+							contentHash: hash.digest('hex')
+						});
+					} else {
+						nonHashedChunksWithPlaceholders.push(transformedChunk);
 					}
-					renderedChunksByPlaceholder.set(hashPlaceholder, {
-						...renderedChunk,
-						containedPlaceholders,
-						contentHash: hash.digest('hex')
-					});
-				} else {
-					nonHashedChunksWithPlaceholders.push(renderedChunk);
-				}
-			}
+				})
+			);
+
 			// generate final hashes by placeholder
 			const hashesByPlaceholder = new Map<string, string>();
 			for (const [

@@ -8,13 +8,15 @@ import type {
 import type { PluginDriver } from './PluginDriver';
 import { decodedSourcemap } from './decodedSourcemap';
 
-export default function renderChunk({
+export function transformChunk({
+	chunks,
 	code,
 	options,
 	outputPluginDriver,
 	renderChunk,
 	sourcemapChain
 }: {
+	chunks: Record<string, RenderedChunk>;
 	code: string;
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
@@ -45,7 +47,7 @@ export default function renderChunk({
 
 	return outputPluginDriver.hookReduceArg0(
 		'renderChunk',
-		[code, renderChunk, options],
+		[code, renderChunk, options, { chunks }],
 		renderChunkReducer
 	);
 }
