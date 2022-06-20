@@ -51,7 +51,6 @@ export const replacePlaceholders = (
 ): string =>
 	code.replace(REPLACER_REGEX, placeholder => hashesByPlaceholder.get(placeholder) || placeholder);
 
-// TODO Lukas check if we could just use replaceAll in Node 14
 export const replaceSinglePlaceholder = (
 	code: string,
 	placeholder: string,

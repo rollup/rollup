@@ -73,7 +73,6 @@ export default function umd(
 
 	warnOnBuiltins(warn, dependencies);
 
-	// TODO Lukas would it be ok to remove all extensions up front?
 	const amdDeps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 

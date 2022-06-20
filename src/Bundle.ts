@@ -75,7 +75,7 @@ export default class Bundle {
 				chunk.generateExports();
 			}
 
-			// TODO Lukas addons could now be created per chunk; check if chunks can be generated in parallel first (there used to be problems with internal state)
+			// TODO Lukas addons could now be created per chunk
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
 			const snippets = getGenerateCodeSnippets(this.outputOptions);
 
@@ -158,7 +158,7 @@ export default class Bundle {
 					preliminaryFileName: { fileName }
 				}
 			] of renderedChunksByPlaceholder) {
-				const hash = createHash();
+				let hash = createHash();
 				const hashDependencyPlaceholders = new Set<string>([placeholder]);
 				for (const dependencyPlaceholder of hashDependencyPlaceholders) {
 					const { containedPlaceholders, contentHash } =
@@ -169,14 +169,13 @@ export default class Bundle {
 						hashDependencyPlaceholders.add(containedPlaceholder);
 					}
 				}
-				// TODO Lukas now determine the file name and update hash if necessary
 				let finalFileName: string | undefined;
-				let finalHash: string;
+				let finalHash: string | undefined;
 				do {
-					if (finalFileName) {
-						// TODO Lukas test and instead do a hash.update()
-						// But as a matter of fact, we need to recreate the entire hash unless we can use copy in Node 14
-						throw new Error(`Need to deduplicate hash for ${finalFileName}`);
+					// In case of a hash collision, create a hash of the hash
+					if (finalHash) {
+						hash = createHash();
+						hash.update(finalHash);
 					}
 					finalHash = hash.digest('hex').slice(0, placeholder.length);
 					finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash);
