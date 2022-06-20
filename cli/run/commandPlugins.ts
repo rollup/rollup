@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import { pathToFileURL } from 'url';
 import type { InputOptions } from '../../src/rollup/types';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';
@@ -73,7 +74,10 @@ async function loadAndRegisterPlugin(
 			try {
 				if (pluginText[0] == '.') pluginText = resolve(pluginText);
 				// Windows absolute paths must be specified as file:// protocol URL
-				else if (pluginText.match(/^[A-Za-z]:\\/)) pluginText = "file://" + require$$0.resolve(pluginText);
+				// Note that we do not have coverage for Windows-only code paths
+				else if (pluginText.match(/^[A-Za-z]:\\/)) {
+					pluginText = pathToFileURL(resolve(pluginText)).href;
+				}
 				plugin = await requireOrImport(pluginText);
 			} catch (err: any) {
 				throw new Error(`Cannot load plugin "${pluginText}": ${err.message}.`);
