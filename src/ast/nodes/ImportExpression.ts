@@ -92,7 +92,6 @@ export default class ImportExpression extends NodeBase {
 		}
 	}
 
-	// TODO Lukas reduce this to everything that definitely does need to happen before render, i.e. deconflicting for accessed globals, and get the rest from render context
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		resolution: Module | ExternalModule | string | null,

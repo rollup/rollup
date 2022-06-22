@@ -23,7 +23,6 @@ export default class MetaProperty extends NodeBase {
 	private preliminaryChunkId: string | null = null;
 	private referenceId: string | null = null;
 
-	// TODO Lukas This needs to be converted?
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
 		const { metaProperty } = this;
 		if (metaProperty?.startsWith(FILE_PREFIX)) {

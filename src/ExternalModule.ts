@@ -78,7 +78,7 @@ export default class ExternalModule {
 		});
 	}
 
-	// TODO Lukas these should be cached by Chunk? Technically, we could cache the actual path by build and just the import by Chunk
+	// TODO Lukas these should be cached by Chunk? Technically, we could cache the actual path by build and just the import by Chunk. Introduce concept of an ExternalChunk
 	getImportPath(
 		importer: string,
 		options: NormalizedOutputOptions,

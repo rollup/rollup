@@ -187,7 +187,6 @@ export default class Chunk {
 	private preRenderedChunkInfo: PreRenderedChunk | null = null;
 	private preliminaryFileName: PreliminaryFileName | null = null;
 	private renderedChunkInfo: RenderedChunk | null = null;
-	// TODO Lukas if necessary, move caching into getter
 	private renderedDependencies: Map<Chunk | ExternalModule, ModuleDeclarationDependency> | null =
 		null;
 	private readonly renderedModules: {
@@ -499,18 +498,18 @@ export default class Chunk {
 				this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
 					? [entryFileNames, 'output.entryFileNames']
 					: [chunkFileNames, 'output.chunkFileNames'];
-			fileName = makeUnique(
-				renderNamePattern(
-					typeof pattern === 'function' ? pattern(this.getPreRenderedChunkInfo()) : pattern,
-					patternName,
-					{
-						format: () => format,
-						hash: () => hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, 8)),
-						name: () => this.getChunkName()
-					}
-				),
-				this.bundle
+			fileName = renderNamePattern(
+				typeof pattern === 'function' ? pattern(this.getPreRenderedChunkInfo()) : pattern,
+				patternName,
+				{
+					format: () => format,
+					hash: () => hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, 8)),
+					name: () => this.getChunkName()
+				}
 			);
+			if (!hashPlaceholder) {
+				fileName = makeUnique(fileName, this.bundle);
+			}
 		}
 		// TODO Lukas test double placeholder
 		if (!hashPlaceholder) {
@@ -1094,7 +1093,6 @@ export default class Chunk {
 		return { deconflictedDefault, deconflictedNamespace, dependencies };
 	}
 
-	// TODO Lukas consider caching if relevant
 	private getDynamicDependencies(): (Chunk | ExternalModule)[] {
 		return this.getIncludedDynamicImports()
 			.map(

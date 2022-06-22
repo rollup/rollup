@@ -105,7 +105,7 @@ export class PluginDriver {
 		);
 		this.emitFile = this.fileEmitter.emitFile.bind(this.fileEmitter);
 		this.getFileName = this.fileEmitter.getFileName.bind(this.fileEmitter);
-		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized.bind(this.fileEmitter);
+		this.finaliseAssets = this.fileEmitter.finaliseAssets.bind(this.fileEmitter);
 		this.setChunkInformation = this.fileEmitter.setChunkInformation.bind(this.fileEmitter);
 		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);

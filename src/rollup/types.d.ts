@@ -728,12 +728,13 @@ export interface SerializedTimings {
 
 export interface PreRenderedAsset {
 	name: string | undefined;
-	source: string | Uint8Array;
+	source: string | Uint8Array | null;
 	type: 'asset';
 }
 
 export interface OutputAsset extends PreRenderedAsset {
 	fileName: string;
+	source: string | Uint8Array;
 }
 
 export interface RenderedModule {

@@ -35,6 +35,11 @@ import {
 import { isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
+type HashDependenciesByPlaceholder = Map<
+	string,
+	{ containedPlaceholders: Set<string>; contentHash: string }
+>;
+
 export default class Bundle {
 	private readonly facadeChunkByModule = new Map<Module, Chunk>();
 	private readonly includedNamespaces = new Set<Module>();
@@ -89,12 +94,12 @@ export default class Bundle {
 
 			// TODO Lukas in the end, we could speed up things if we check if no placeholders are used and in that case we skip the second replacement at the bottom
 			const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
-			const renderedChunksByPlaceholder = new Map<
-				string,
-				RenderedChunkWithPlaceholders & { containedPlaceholders: Set<string>; contentHash: string }
-			>();
+			const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
 
+			// render the chunks
 			const renderedChunks = chunks.map(chunk => chunk.render(inputBase, addons, snippets));
+
+			// generate chunk graph info for renderChunk
 			const renderedChunkInfos: Record<string, RenderedChunk> = Object.fromEntries(
 				chunks.map(chunk => {
 					const renderedChunkInfo = chunk.getRenderedChunkInfo(
@@ -105,6 +110,7 @@ export default class Bundle {
 				})
 			);
 
+			const hashDependenciesByPlaceholder: HashDependenciesByPlaceholder = new Map();
 			await Promise.all(
 				renderedChunks.map(async ({ chunk, magicString, usedModules }) => {
 					const transformedChunk = await chunk.transform(
@@ -139,8 +145,8 @@ export default class Bundle {
 						if (hashAugmentation) {
 							hash.update(hashAugmentation);
 						}
-						renderedChunksByPlaceholder.set(hashPlaceholder, {
-							...transformedChunk,
+						renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
+						hashDependenciesByPlaceholder.set(hashPlaceholder, {
 							containedPlaceholders,
 							contentHash: hash.digest('hex')
 						});
@@ -162,7 +168,7 @@ export default class Bundle {
 				const hashDependencyPlaceholders = new Set<string>([placeholder]);
 				for (const dependencyPlaceholder of hashDependencyPlaceholders) {
 					const { containedPlaceholders, contentHash } =
-						renderedChunksByPlaceholder.get(dependencyPlaceholder)!;
+						hashDependenciesByPlaceholder.get(dependencyPlaceholder)!;
 					hash.update(contentHash);
 					for (const containedPlaceholder of containedPlaceholders) {
 						// When looping over a map, setting an entry only causes a new iteration if the key is new

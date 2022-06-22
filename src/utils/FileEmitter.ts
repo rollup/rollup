@@ -181,13 +181,6 @@ export class FileEmitter {
 			: new Map();
 	}
 
-	public assertAssetsFinalized = (): void => {
-		for (const [referenceId, emittedFile] of this.filesByReferenceId) {
-			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
-				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
-		}
-	};
-
 	public emitFile = (emittedFile: unknown): string => {
 		if (!hasValidType(emittedFile)) {
 			return error(
@@ -211,6 +204,13 @@ export class FileEmitter {
 			return this.emitChunk(emittedFile);
 		}
 		return this.emitAsset(emittedFile);
+	};
+
+	public finaliseAssets = (): void => {
+		for (const [referenceId, emittedFile] of this.filesByReferenceId) {
+			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
+				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
+		}
 	};
 
 	public getFileName = (fileReferenceId: string, allowPlaceholder?: boolean): string => {
