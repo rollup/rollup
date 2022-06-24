@@ -92,7 +92,7 @@ export function errCannotEmitFromOptionsHook(): RollupLogProps {
 export function errChunkNotGeneratedForFileName(name: string): RollupLogProps {
 	return {
 		code: Errors.CHUNK_NOT_GENERATED,
-		message: `Plugin error - Unable to get file name for chunk "${name}". Ensure that generate is called first.`
+		message: `Plugin error - Unable to get file name for emitted chunk "${name}". You can only get file names once chunks have been generated after the "renderStart" hook.`
 	};
 }
 

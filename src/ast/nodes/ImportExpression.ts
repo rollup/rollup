@@ -20,7 +20,6 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-// TODO Lukas clean up this file
 export default class ImportExpression extends NodeBase {
 	inlineNamespace: NamespaceVariable | null = null;
 	declare source: ExpressionNode;
@@ -76,7 +75,6 @@ export default class ImportExpression extends NodeBase {
 			);
 			code.overwrite(this.end - 1, this.end, this.mechanism.right, { contentOnly: true });
 		}
-		// TODO Lukas is this really mutually exclusive? Can we get rid of some of this? Should this be this.resolution?
 		if (this.resolutionString) {
 			code.overwrite(this.source.start, this.source.end, this.resolutionString);
 			if (this.namespaceExportName) {

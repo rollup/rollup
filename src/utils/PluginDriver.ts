@@ -74,7 +74,7 @@ export type HookAction = [plugin: string, hook: string, args: unknown[]];
 export class PluginDriver {
 	public readonly emitFile: EmitFile;
 	public finaliseAssets: () => void;
-	public getFileName: (fileReferenceId: string, allowPlaceholder?: boolean) => string;
+	public getFileName: (fileReferenceId: string) => string;
 	public readonly setChunkInformation: (
 		facadeChunkByModule: ReadonlyMap<Module, Chunk>,
 		inputBase: string

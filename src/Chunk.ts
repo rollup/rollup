@@ -63,7 +63,7 @@ import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 // TODO Lukas ideally, the finally generated bundle does not contain getters so that memory can be freed when bundles are retained
-// TODO Lukas in the end, make as much private as possible and thing about extracting the rendering logic
+// TODO Lukas in the end, think about extracting the rendering logic
 export interface ModuleDeclarations {
 	dependencies: ModuleDeclarationDependency[];
 	exports: ChunkExports;
@@ -96,8 +96,7 @@ type ResolvedDynamicImport = (
 export interface ModuleDeclarationDependency {
 	defaultVariableName: string | undefined;
 	globalName: string;
-	// TODO Lukas this is probably not an id but a relative import path, rename
-	id: string;
+	importPath: string;
 	imports: ImportSpecifier[] | null;
 	isChunk: boolean;
 	name: string;
@@ -164,7 +163,6 @@ export default class Chunk {
 	facadeModule: Module | null = null;
 	id: string | null = null;
 	namespaceVariableName = '';
-	needsExportsShim = false;
 	suggestedVariableName: string;
 	variableName = '';
 
@@ -184,6 +182,7 @@ export default class Chunk {
 	// This may only be updated in the constructor
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
+	private needsExportsShim = false;
 	private preRenderedChunkInfo: PreRenderedChunk | null = null;
 	private preliminaryFileName: PreliminaryFileName | null = null;
 	private renderedChunkInfo: RenderedChunk | null = null;
@@ -503,7 +502,7 @@ export default class Chunk {
 				patternName,
 				{
 					format: () => format,
-					hash: () => hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, 8)),
+					hash: size => hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, size)),
 					name: () => this.getChunkName()
 				}
 			);
@@ -1171,7 +1170,6 @@ export default class Chunk {
 		return includedDynamicImports;
 	}
 
-	// TODO Lukas only create once?
 	private getPreRenderedChunkInfo(): PreRenderedChunk {
 		if (this.preRenderedChunkInfo) {
 			return this.preRenderedChunkInfo;
@@ -1262,7 +1260,7 @@ export default class Chunk {
 			const reexports = reexportSpecifiers.get(dep) || null;
 			const namedExportsMode = dep instanceof ExternalModule || dep.exportMode !== 'default';
 			// TODO Lukas see how we can cache things?
-			const id =
+			const importPath =
 				dep instanceof ExternalModule
 					? dep.getImportPath(fileName, this.outputOptions, inputBase).import
 					: escapeId(
@@ -1280,7 +1278,7 @@ export default class Chunk {
 						(imports || reexports) !== null,
 						this.inputOptions.onwarn
 					)) as string,
-				id,
+				importPath,
 				imports,
 				isChunk: dep instanceof Chunk,
 				name: dep.variableName,

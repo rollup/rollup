@@ -1,4 +1,4 @@
-System.register(['./chunk-dep2-916aab7d.js'], (function (exports, module) {
+System.register(['./chunk-dep2-6579036d.js'], (function (exports, module) {
 	'use strict';
 	var num$1;
 	return {
@@ -8,10 +8,10 @@ System.register(['./chunk-dep2-916aab7d.js'], (function (exports, module) {
 		execute: (function () {
 
 			var num = 3;
-			console.log('referenced asset', new URL('asset-test-31f014b5', module.meta.url).href);
+			console.log('referenced asset', new URL('asset-test-9f86d081', module.meta.url).href);
 
 			console.log(num$1 + num);
-			console.log('referenced asset', new URL('asset-test-31f014b5', module.meta.url).href);
+			console.log('referenced asset', new URL('asset-test-9f86d081', module.meta.url).href);
 
 		})
 	};
@@ -29,19 +29,19 @@ console.log({
   "name": "main2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main2-5d67a108.js",
+  "fileName": "entry-main2-7bacea36.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-916aab7d.js": [
+    "chunk-dep2-6579036d.js": [
       "n"
     ]
   },
   "imports": [
-    "chunk-dep2-916aab7d.js"
+    "chunk-dep2-6579036d.js"
   ],
   "modules": {
     "**/dep3.js": {
-      "code": "\t\t\tvar num = 3;\n\t\t\tconsole.log('referenced asset', new URL('asset-test-31f014b5', module.meta.url).href);",
+      "code": "\t\t\tvar num = 3;\n\t\t\tconsole.log('referenced asset', new URL('asset-test-9f86d081', module.meta.url).href);",
       "originalLength": 19,
       "removedExports": [],
       "renderedExports": [
@@ -50,7 +50,7 @@ console.log({
       "renderedLength": 99
     },
     "**/main2.js": {
-      "code": "\t\t\tconsole.log(num$1 + num);\n\t\t\tconsole.log('referenced asset', new URL('asset-test-31f014b5', module.meta.url).href);",
+      "code": "\t\t\tconsole.log(num$1 + num);\n\t\t\tconsole.log('referenced asset', new URL('asset-test-9f86d081', module.meta.url).href);",
       "originalLength": 102,
       "removedExports": [],
       "renderedExports": [],
@@ -58,8 +58,8 @@ console.log({
     }
   },
   "referencedFiles": [
-    "asset-test-31f014b5"
+    "asset-test-9f86d081"
   ]
 });
-console.log('all chunks', ["entry-main1-d5a6a5a0.js","chunk-dep2-916aab7d.js","entry-main2-5d67a108.js"])
-console.log('referenced asset in renderChunk', 'asset-test-31f014b5');
+console.log('all chunks', ["entry-main1-331def45.js","chunk-dep2-6579036d.js","entry-main2-7bacea36.js"])
+console.log('referenced asset in renderChunk', 'asset-test-9f86d081');

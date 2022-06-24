@@ -73,8 +73,8 @@ export default function umd(
 
 	warnOnBuiltins(warn, dependencies);
 
-	const amdDeps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
-	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
+	const amdDeps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.importPath)}'`);
+	const cjsDeps = dependencies.map(m => `require('${m.importPath}')`);
 
 	const trimmedImports = trimEmptyImports(dependencies);
 	const globalDeps = trimmedImports.map(module =>

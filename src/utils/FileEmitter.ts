@@ -23,6 +23,7 @@ import {
 	errNoAssetSourceSet,
 	error
 } from './error';
+import { defaultHashSize } from './hashPlaceholders';
 import { extname } from './path';
 import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
@@ -43,14 +44,11 @@ function generateAssetFileName(
 			{
 				ext: () => extname(emittedName).substring(1),
 				extname: () => extname(emittedName),
-				hash() {
-					return createHash()
-						.update(emittedName)
-						.update(':')
+				hash: size =>
+					createHash()
 						.update(source)
 						.digest('hex')
-						.substring(0, 8);
-				},
+						.substring(0, size || defaultHashSize),
 				name: () => emittedName.substring(0, emittedName.length - extname(emittedName).length)
 			}
 		),
@@ -142,8 +140,7 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 function getChunkFileName(
 	file: ConsumedChunk,
 	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null,
-	inputBase: string | null,
-	allowPlaceholder: boolean | undefined
+	inputBase: string | null
 ): string {
 	if (file.fileName) {
 		return file.fileName;
@@ -151,16 +148,9 @@ function getChunkFileName(
 	if (facadeChunkByModule) {
 		const chunk = file.module && facadeChunkByModule.get(file.module);
 		if (chunk) {
-			if (chunk.id) {
-				return chunk.id;
-			}
-			const preliminaryFileName = chunk.getPreliminaryFileName(inputBase!);
-			if (allowPlaceholder || !preliminaryFileName.hashPlaceholder) {
-				return preliminaryFileName.fileName;
-			}
+			return chunk.id || chunk.getPreliminaryFileName(inputBase!).fileName;
 		}
 	}
-	// TODO Lukas show a better error in case we only get a hashed file name to instruct about the placeholder option
 	return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 }
 
@@ -213,16 +203,11 @@ export class FileEmitter {
 		}
 	};
 
-	public getFileName = (fileReferenceId: string, allowPlaceholder?: boolean): string => {
+	public getFileName = (fileReferenceId: string): string => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
-			return getChunkFileName(
-				emittedFile,
-				this.facadeChunkByModule,
-				this.inputBase,
-				allowPlaceholder
-			);
+			return getChunkFileName(emittedFile, this.facadeChunkByModule, this.inputBase);
 		}
 		return getAssetFileName(emittedFile, fileReferenceId);
 	};

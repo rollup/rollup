@@ -5,11 +5,12 @@ const hashPlaceholderLeft = '\uf7f9\ue4d3';
 const hashPlaceholderRight = '\ue3cc\uf1fe';
 const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRight.length;
 
-// TODO Lukas check on all systems
-// depends on (...library)
+// This is the size of a sha256
 const maxHashSize = 64;
+const minHashSize = hashPlaceholderOverhead + 1;
+export const defaultHashSize = 8;
 
-export type HashPlaceholderGenerator = (chunk: Chunk, hashSize: number) => string;
+export type HashPlaceholderGenerator = (chunk: Chunk, hashSize?: number) => string;
 
 // TODO Lukas throw for maximum hash size exceeded
 // TODO Lukas make hash size configurable via [hash:hashLength] and configure it per hash
@@ -21,7 +22,7 @@ export const getHashPlaceholderGenerator = (): {
 	let nextIndex = 0;
 	return {
 		chunksByPlaceholder,
-		getHashPlaceholder: (chunk: Chunk, hashSize: number) => {
+		getHashPlaceholder: (chunk: Chunk, hashSize: number = defaultHashSize) => {
 			const placeholder = `${hashPlaceholderLeft}${String(++nextIndex).padStart(
 				hashSize - hashPlaceholderOverhead,
 				'0'
@@ -41,7 +42,9 @@ export const getHashPlaceholderGenerator = (): {
 };
 
 const REPLACER_REGEX = new RegExp(
-	`${hashPlaceholderLeft}\\d{1,${maxHashSize}}${hashPlaceholderRight}`,
+	`${hashPlaceholderLeft}\\d{${minHashSize - hashPlaceholderOverhead},${
+		maxHashSize - hashPlaceholderOverhead
+	}}${hashPlaceholderRight}`,
 	'g'
 );
 

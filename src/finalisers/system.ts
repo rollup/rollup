@@ -46,7 +46,7 @@ export default function system(
 	// cf. https://v8.dev/blog/preparser#pife
 	let wrapperStart =
 		`System.register(${registeredName}[` +
-		dependencies.map(({ id }) => `'${id}'`).join(`,${_}`) +
+		dependencies.map(({ importPath }) => `'${importPath}'`).join(`,${_}`) +
 		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
 			strict ? "'use strict';" : ''
 		}` +

@@ -33,7 +33,7 @@ export function getExportBlock(
 
 	for (const {
 		defaultVariableName,
-		id,
+		importPath,
 		isChunk,
 		name,
 		namedExportsMode: depNamedExportsMode,
@@ -51,7 +51,7 @@ export function getExportBlock(
 						defaultVariableName!,
 						namespaceVariableName!,
 						interop,
-						id,
+						importPath,
 						externalLiveBindings,
 						getPropertyAccess
 					);
@@ -127,7 +127,7 @@ function getSingleDefaultExport(
 	} else {
 		for (const {
 			defaultVariableName,
-			id,
+			importPath,
 			isChunk,
 			name,
 			namedExportsMode: depNamedExportsMode,
@@ -143,7 +143,7 @@ function getSingleDefaultExport(
 					defaultVariableName!,
 					namespaceVariableName!,
 					interop,
-					id,
+					importPath,
 					externalLiveBindings,
 					getPropertyAccess
 				);

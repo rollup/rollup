@@ -78,17 +78,17 @@ function getImportBlock(
 ): string {
 	let importBlock = '';
 	let definingVariable = false;
-	for (const { id, name, reexports, imports } of dependencies) {
+	for (const { importPath, name, reexports, imports } of dependencies) {
 		if (!reexports && !imports) {
 			if (importBlock) {
 				importBlock += compact && !definingVariable ? ',' : `;${n}`;
 			}
 			definingVariable = false;
-			importBlock += `require('${id}')`;
+			importBlock += `require('${importPath}')`;
 		} else {
 			importBlock += compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${cnst} `;
 			definingVariable = true;
-			importBlock += `${name}${_}=${_}require('${id}')`;
+			importBlock += `${name}${_}=${_}require('${importPath}')`;
 		}
 	}
 	if (importBlock) {

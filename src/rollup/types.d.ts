@@ -184,7 +184,7 @@ export interface PluginContext extends MinimalPluginContext {
 	cache: PluginCache;
 	emitFile: EmitFile;
 	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
-	getFileName: (fileReferenceId: string, allowPlaceholder?: boolean) => string;
+	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	getWatchFiles: () => string[];
@@ -745,7 +745,6 @@ export interface RenderedModule {
 	renderedLength: number;
 }
 
-// TODO Lukas we also need to replace hashes in assets in order to build a manifest in renderChunk
 export interface PreRenderedChunk {
 	exports: string[];
 	facadeModuleId: string | null;
@@ -760,7 +759,6 @@ export interface PreRenderedChunk {
 // TODO Lukas Adjust docs, deprecation
 // TODO Lukas test (modules etc.)
 // TODO Lukas add comments which of these may contain placeholders
-// TODO Lukas transform them in the end
 export interface RenderedChunk extends PreRenderedChunk {
 	dynamicImports: string[];
 	fileName: string;

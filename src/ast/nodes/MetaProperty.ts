@@ -26,7 +26,7 @@ export default class MetaProperty extends NodeBase {
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
 		const { metaProperty } = this;
 		if (metaProperty?.startsWith(FILE_PREFIX)) {
-			return outputPluginDriver.getFileName(metaProperty.substring(FILE_PREFIX.length), true);
+			return outputPluginDriver.getFileName(metaProperty.substring(FILE_PREFIX.length));
 		}
 		return null;
 	}
@@ -62,7 +62,7 @@ export default class MetaProperty extends NodeBase {
 		const chunkId = this.preliminaryChunkId!;
 
 		if (referenceId) {
-			const fileName = outputPluginDriver.getFileName(referenceId, true);
+			const fileName = outputPluginDriver.getFileName(referenceId);
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			const replacement =
 				outputPluginDriver.hookFirstSync('resolveFileUrl', [
@@ -103,7 +103,6 @@ export default class MetaProperty extends NodeBase {
 		}
 	}
 
-	// TODO Lukas reduce this to everything that definitely does need to happen before render, i.e. deconflicting for accessed globals, and get the rest from render context, possibly rename to updateAccessedGlobals
 	setResolution(
 		format: InternalModuleFormat,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,

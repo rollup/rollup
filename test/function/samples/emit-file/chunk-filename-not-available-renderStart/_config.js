@@ -18,7 +18,7 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		hook: 'renderStart',
 		message:
-			'Plugin error - Unable to get file name for chunk "chunk.js". Ensure that generate is called first.',
+			'Plugin error - Unable to get file name for emitted chunk "chunk.js". You can only get file names once chunks have been generated after the "renderStart" hook.',
 		plugin: 'test-plugin',
 		pluginCode: 'CHUNK_NOT_GENERATED'
 	}

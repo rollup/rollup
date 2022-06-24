@@ -35,7 +35,7 @@ export default function amd(
 	}: NormalizedOutputOptions
 ): Bundle {
 	warnOnBuiltins(warn, dependencies);
-	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
+	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.importPath)}'`);
 	const args = dependencies.map(m => m.name);
 	const { n, getNonArrowFunctionIntro, _ } = snippets;
 
