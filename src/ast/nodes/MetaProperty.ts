@@ -56,7 +56,6 @@ export default class MetaProperty extends NodeBase {
 		}
 	}
 
-	// TODO Lukas note breaking change: resolveFileUrl only receives a preliminary chunkId
 	render(code: MagicString, { format, outputPluginDriver, snippets }: RenderOptions): void {
 		const { metaProperty, parent, referenceId } = this;
 		const chunkId = this.preliminaryChunkId!;

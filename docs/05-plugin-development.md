@@ -510,14 +510,12 @@ Allows to customize how Rollup resolves URLs of files that were emitted by plugi
 
 For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
-- `chunkId`: The id of the chunk this file is referenced from.
-- `fileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
+- `chunkId`: The id of the chunk this file is referenced from. If the chunk file name would contain a hash, this id will contain a placeholder instead. Rollup will replace this placeholder with the actual file name if it ends up in the generated code.
+- `fileName`: The path and file name of the emitted file, relative to `output.dir` without a leading `./`. Again if this is a chunk that would have a hash in its name, it will contain a placeholder instead.
 - `format`: The rendered output format.
 - `moduleId`: The id of the original module this file is referenced from. Useful for conditionally resolving certain assets differently.
 - `referenceId`: The reference id of the file.
 - `relativePath`: The path and file name of the emitted file, relative to the chunk the file is referenced from. This will path will contain no leading `./` but may contain a leading `../`.
-
-Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 The following plugin will always resolve all files relative to the current document:
 
@@ -556,7 +554,7 @@ function importMetaUrlCurrentModulePlugin() {
 }
 ```
 
-Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
+If the `chunkId` would contain a hash, it will contain a placeholder instead. If this placeholder ends up in the generated code, Rollup will replace it with the actual chunk hash.
 
 #### `writeBundle`
 
