@@ -1,4 +1,3 @@
-// TODO Lukas review which types are part of the external interface
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
@@ -486,11 +485,11 @@ export interface TreeshakingOptions
 	preset?: TreeshakingPreset;
 }
 
-interface GetManualChunkApi {
+interface ManualChunkMeta {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
-export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | void;
+export type GetManualChunk = (id: string, meta: ManualChunkMeta) => string | null | void;
 
 export type ExternalOption =
 	| (string | RegExp)[]
@@ -728,13 +727,12 @@ export interface SerializedTimings {
 
 export interface PreRenderedAsset {
 	name: string | undefined;
-	source: string | Uint8Array | null;
+	source: string | Uint8Array;
 	type: 'asset';
 }
 
 export interface OutputAsset extends PreRenderedAsset {
 	fileName: string;
-	source: string | Uint8Array;
 }
 
 export interface RenderedModule {
@@ -756,9 +754,7 @@ export interface PreRenderedChunk {
 	type: 'chunk';
 }
 
-// TODO Lukas Adjust docs, deprecation
 // TODO Lukas test (modules etc.)
-// TODO Lukas add comments which of these may contain placeholders
 export interface RenderedChunk extends PreRenderedChunk {
 	dynamicImports: string[];
 	fileName: string;
