@@ -1,4 +1,4 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
@@ -36,7 +36,7 @@ export default function iife(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, cnst, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
 	const isNamespaced = name && name.includes('.');
 	const useVariableAssignment = !extend && !isNamespaced;
@@ -127,6 +127,9 @@ export default function iife(
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;
 	}
-	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
-	return magicString.indent(t).prepend(wrapperIntro).append(wrapperOutro);
+	magicString
+		.append(`${exportBlock}${namespaceMarkers}${outro}`)
+		.indent(t)
+		.prepend(wrapperIntro)
+		.append(wrapperOutro);
 }

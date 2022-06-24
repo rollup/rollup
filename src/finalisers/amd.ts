@@ -1,4 +1,4 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
@@ -33,7 +33,7 @@ export default function amd(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.importPath)}'`);
 	const args = dependencies.map(m => m.name);
@@ -91,18 +91,16 @@ export default function amd(
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;
 	}
-	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
-	return (
-		magicString
-			.indent(t)
-			// factory function should be wrapped by parentheses to avoid lazy parsing,
-			// cf. https://v8.dev/blog/preparser#pife
-			.prepend(
-				`${amd.define}(${params}(${getNonArrowFunctionIntro(args, {
-					isAsync: false,
-					name: null
-				})}{${useStrict}${n}${n}`
-			)
-			.append(`${n}${n}}));`)
-	);
+	magicString
+		.append(`${exportBlock}${namespaceMarkers}${outro}`)
+		.indent(t)
+		// factory function should be wrapped by parentheses to avoid lazy parsing,
+		// cf. https://v8.dev/blog/preparser#pife
+		.prepend(
+			`${amd.define}(${params}(${getNonArrowFunctionIntro(args, {
+				isAsync: false,
+				name: null
+			})}{${useStrict}${n}${n}`
+		)
+		.append(`${n}${n}}));`);
 }

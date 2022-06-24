@@ -1,4 +1,4 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { ChunkDependencies } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
@@ -30,7 +30,7 @@ export default function cjs(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, n } = snippets;
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
@@ -68,7 +68,7 @@ export default function cjs(
 		`module.exports${_}=${_}`
 	);
 
-	return magicString.append(`${exportBlock}${outro}`);
+	magicString.append(`${exportBlock}${outro}`);
 }
 
 function getImportBlock(

@@ -30,7 +30,7 @@ export type Finaliser = (
 	magicString: MagicStringBundle,
 	finaliserOptions: FinaliserOptions,
 	options: NormalizedOutputOptions
-) => MagicStringBundle;
+) => void;
 
 export default { amd, cjs, es, iife, system, umd } as {
 	[format: string]: Finaliser;

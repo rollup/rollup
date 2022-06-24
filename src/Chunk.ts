@@ -95,7 +95,7 @@ type ResolvedDynamicImport = (
 
 export interface ModuleDeclarationDependency {
 	defaultVariableName: string | undefined;
-	globalName: string;
+	globalName: string | false | undefined;
 	importPath: string;
 	imports: ImportSpecifier[] | null;
 	isChunk: boolean;
@@ -769,7 +769,6 @@ export default class Chunk {
 				dependencies: [...renderedDependencies.values()],
 				exports: renderedExports,
 				hasExports,
-				// TODO Lukas this is only needed for AMD ids here. If we replace this with a getter, we can either use the actual id or an id with hash placeholder; in the latter case, this module becomes a module with placeholder dependency
 				id: preliminaryFileName.fileName,
 				indent: this.indentString,
 				intro: addons.intro,
@@ -1269,15 +1268,15 @@ export default class Chunk {
 
 			renderedDependencies.set(dep, {
 				defaultVariableName: (dep as ExternalModule).defaultVariableName,
-				// TODO Lukas globalName should probably not be typed as string?
-				globalName: (dep instanceof ExternalModule &&
+				globalName:
+					dep instanceof ExternalModule &&
 					(this.outputOptions.format === 'umd' || this.outputOptions.format === 'iife') &&
 					getGlobalName(
 						dep,
 						this.outputOptions.globals,
 						(imports || reexports) !== null,
 						this.inputOptions.onwarn
-					)) as string,
+					),
 				importPath,
 				imports,
 				isChunk: dep instanceof Chunk,
