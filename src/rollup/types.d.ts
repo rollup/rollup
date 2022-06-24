@@ -754,7 +754,6 @@ export interface PreRenderedChunk {
 	type: 'chunk';
 }
 
-// TODO Lukas test (modules etc.)
 export interface RenderedChunk extends PreRenderedChunk {
 	dynamicImports: string[];
 	fileName: string;

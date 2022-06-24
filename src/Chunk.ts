@@ -502,7 +502,8 @@ export default class Chunk {
 				patternName,
 				{
 					format: () => format,
-					hash: size => hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, size)),
+					hash: size =>
+						hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, patternName, size)),
 					name: () => this.getChunkName()
 				}
 			);
@@ -510,7 +511,6 @@ export default class Chunk {
 				fileName = makeUnique(fileName, this.bundle);
 			}
 		}
-		// TODO Lukas test double placeholder
 		if (!hashPlaceholder) {
 			this.bundle[fileName] = FILE_PLACEHOLDER;
 		}
@@ -583,8 +583,8 @@ export default class Chunk {
 			);
 		}
 
-		// for static and dynamic entry points, inline the execution list to avoid loading latency
-		// TODO Lukas this just extends the dependencies of the current chunk
+		// for static and dynamic entry points, add transitive dependencies to this
+		// chunk's dependencies to avoid loading latency
 		if (hoistTransitiveImports && !preserveModules && this.facadeModule !== null) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);

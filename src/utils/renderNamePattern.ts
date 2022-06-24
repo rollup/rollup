@@ -17,10 +17,9 @@ export function renderNamePattern(
 		/\[(\w+)(:\d+)?]/g,
 		(_match, type: string, size: `:${string}` | undefined) => {
 			if (!replacements.hasOwnProperty(type) || (size && type !== 'hash')) {
-				// TODO Lukas test size at wrong placeholder, wrong size
 				return error(
 					errFailedValidation(
-						`"[${type}${size || ''}]" is not a valid placeholder in "${patternName}" pattern.`
+						`"[${type}${size || ''}]" is not a valid placeholder in the "${patternName}" pattern.`
 					)
 				);
 			}

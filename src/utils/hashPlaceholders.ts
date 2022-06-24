@@ -1,4 +1,5 @@
 import type Chunk from '../Chunk';
+import { errFailedValidation, error } from './error';
 
 // Four random characters from the private use area to minimize risk of conflicts
 const hashPlaceholderLeft = '\uf7f9\ue4d3';
@@ -6,14 +7,15 @@ const hashPlaceholderRight = '\ue3cc\uf1fe';
 const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRight.length;
 
 // This is the size of a sha256
-const maxHashSize = 64;
-const minHashSize = hashPlaceholderOverhead + 1;
+export const maxHashSize = 64;
 export const defaultHashSize = 8;
 
-export type HashPlaceholderGenerator = (chunk: Chunk, hashSize?: number) => string;
+export type HashPlaceholderGenerator = (
+	chunk: Chunk,
+	optionName: string,
+	hashSize?: number
+) => string;
 
-// TODO Lukas throw for maximum hash size exceeded
-// TODO Lukas make hash size configurable via [hash:hashLength] and configure it per hash
 export const getHashPlaceholderGenerator = (): {
 	chunksByPlaceholder: Map<string, Chunk>;
 	getHashPlaceholder: HashPlaceholderGenerator;
@@ -22,16 +24,23 @@ export const getHashPlaceholderGenerator = (): {
 	let nextIndex = 0;
 	return {
 		chunksByPlaceholder,
-		getHashPlaceholder: (chunk: Chunk, hashSize: number = defaultHashSize) => {
+		getHashPlaceholder: (chunk: Chunk, optionName: string, hashSize: number = defaultHashSize) => {
+			if (hashSize > maxHashSize) {
+				return error(
+					errFailedValidation(
+						`Hashes cannot be longer than ${maxHashSize} characters, received ${hashSize}. Check the "${optionName}" option.`
+					)
+				);
+			}
 			const placeholder = `${hashPlaceholderLeft}${String(++nextIndex).padStart(
 				hashSize - hashPlaceholderOverhead,
 				'0'
 			)}${hashPlaceholderRight}`;
 			if (placeholder.length > hashSize) {
-				// TODO Lukas add proper error code and props
-				// TODO Lukas test
-				throw new Error(
-					`To generate hashes for this number of chunks (currently ${nextIndex}), you need a minimum hash size of ${placeholder.length}.`
+				return error(
+					errFailedValidation(
+						`To generate hashes for this number of chunks (currently ${nextIndex}), you need a minimum hash size of ${placeholder.length}, received ${hashSize}. Check the "${optionName}" option.`
+					)
 				);
 			}
 			chunksByPlaceholder.set(placeholder, chunk);
@@ -42,9 +51,7 @@ export const getHashPlaceholderGenerator = (): {
 };
 
 const REPLACER_REGEX = new RegExp(
-	`${hashPlaceholderLeft}\\d{${minHashSize - hashPlaceholderOverhead},${
-		maxHashSize - hashPlaceholderOverhead
-	}}${hashPlaceholderRight}`,
+	`${hashPlaceholderLeft}\\d{1,${maxHashSize - hashPlaceholderOverhead}}${hashPlaceholderRight}`,
 	'g'
 );
 
@@ -60,7 +67,6 @@ export const replaceSinglePlaceholder = (
 	value: string
 ): string => code.replace(REPLACER_REGEX, match => (match === placeholder ? value : match));
 
-// TODO Lukas test random match
 export const replacePlaceholdersWithDefaultAndGetContainedPlaceholders = (
 	code: string,
 	placeholders: Map<string, Chunk>

@@ -92,7 +92,7 @@ export default class Bundle {
 				}
 			}
 
-			// TODO Lukas in the end, we could speed up things if we check if no placeholders are used and in that case we skip the second replacement at the bottom
+			// TODO Lukas in the end, we could speed up things if we check if no placeholders were generated in that case we skip some stuff
 			const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
 			const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
 
