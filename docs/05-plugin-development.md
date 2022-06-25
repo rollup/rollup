@@ -340,7 +340,7 @@ function augmentWithDatePlugin() {
 
 #### `banner`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
@@ -354,7 +354,7 @@ If a plugin wants to retain resources across builds in watch mode, they can chec
 
 #### `footer`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
@@ -405,7 +405,7 @@ You can prevent files from being emitted by deleting them from the bundle object
 
 #### `intro`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
@@ -417,7 +417,7 @@ Replaces or manipulates the output options object passed to `bundle.generate()` 
 
 #### `outro`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 

@@ -266,14 +266,15 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 	return normalized;
 };
 
-const getAddon = (config: OutputOptions, name: string): (() => string | Promise<string>) => {
-	const configAddon = (config as GenericConfigObject)[name] as
-		| string
-		| (() => string | Promise<string>);
+const getAddon = <T extends 'banner' | 'footer' | 'intro' | 'outro'>(
+	config: OutputOptions,
+	name: T
+): NormalizedOutputOptions[T] => {
+	const configAddon = (config as GenericConfigObject)[name];
 	if (typeof configAddon === 'function') {
-		return configAddon;
+		return configAddon as NormalizedOutputOptions[T];
 	}
-	return () => configAddon || '';
+	return () => (configAddon as string) || '';
 };
 
 const getDir = (

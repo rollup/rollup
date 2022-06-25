@@ -1,6 +1,6 @@
-import type { NormalizedOutputOptions } from '../rollup/types';
+import type { NormalizedOutputOptions, RenderedChunk } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
-import { error } from './error';
+import { errAddonNotGenerated, error } from './error';
 
 export interface Addons {
 	banner: string;
@@ -14,26 +14,23 @@ const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` 
 
 export async function createAddons(
 	options: NormalizedOutputOptions,
-	outputPluginDriver: PluginDriver
+	outputPluginDriver: PluginDriver,
+	chunk: RenderedChunk
 ): Promise<Addons> {
 	try {
 		let [banner, footer, intro, outro] = await Promise.all([
-			outputPluginDriver.hookReduceValue('banner', options.banner(), [], concatSep),
-			outputPluginDriver.hookReduceValue('footer', options.footer(), [], concatSep),
-			outputPluginDriver.hookReduceValue('intro', options.intro(), [], concatDblSep),
-			outputPluginDriver.hookReduceValue('outro', options.outro(), [], concatDblSep)
+			outputPluginDriver.hookReduceValue('banner', options.banner(chunk), [chunk], concatSep),
+			outputPluginDriver.hookReduceValue('footer', options.footer(chunk), [chunk], concatSep),
+			outputPluginDriver.hookReduceValue('intro', options.intro(chunk), [chunk], concatDblSep),
+			outputPluginDriver.hookReduceValue('outro', options.outro(chunk), [chunk], concatDblSep)
 		]);
 		if (intro) intro += '\n\n';
 		if (outro) outro = `\n\n${outro}`;
-		if (banner.length) banner += '\n';
-		if (footer.length) footer = '\n' + footer;
+		if (banner) banner += '\n';
+		if (footer) footer = '\n' + footer;
 
 		return { banner, footer, intro, outro };
 	} catch (err: any) {
-		return error({
-			code: 'ADDON_ERROR',
-			message: `Could not retrieve ${err.hook}. Check configuration of plugin ${err.plugin}.
-\tError Message: ${err.message}`
-		});
+		return error(errAddonNotGenerated(err.message, err.hook, err.plugin));
 	}
 }

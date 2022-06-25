@@ -396,9 +396,16 @@ Forward slashes `/` can be used to place files in sub-directories. When using a 
 
 #### output.banner/output.footer
 
-Type: `string | (() => string | Promise<string>)`<br> CLI: `--banner`/`--footer <text>`
+Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--banner`/`--footer <text>`
 
 A string to prepend/append to the bundle. You can also supply a function that returns a `Promise` that resolves to a `string` to generate it asynchronously (Note: `banner` and `footer` options will not break sourcemaps).
+
+If you supply a function, `chunk` contains additional information about the chunk using the same `ChunkInfo` type as the [`generateBundle`](guide/en/#generatebundle) hook with the following differences:
+
+* `code` and `map` are not set as the chunk has not been rendered yet.
+* all referenced chunk file names that would contain hashes will contain hash placeholders instead. This includes `fileName`, `imports`, `importedBindings`, `dynamicImports` and `implicitlyLoadedBefore`. When you use such a placeholder file name or part of it in the code returned from this option, Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
+
+`chunk` is mutable and changes applied in this hook will propagate to other plugins and to the generated bundle. That means if you add or remove imports or exports in this hook, you should update `imports`, `importedBindings` and/or `exports`.
 
 ```js
 // rollup.config.js
@@ -809,7 +816,7 @@ There are some additional options that have an effect on the generated interop c
 
 #### output.intro/output.outro
 
-Type: `string | (() => string | Promise<string>)`<br> CLI: `--intro`/`--outro <text>`
+Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--intro`/`--outro <text>`
 
 Similar to [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter), except that the code goes _inside_ any format-specific wrapper.
 

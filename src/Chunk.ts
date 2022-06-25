@@ -28,7 +28,7 @@ import type {
 } from './rollup/types';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
-import type { Addons } from './utils/addons';
+import { createAddons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
@@ -562,7 +562,7 @@ export default class Chunk {
 	}
 
 	// TODO Lukas reduce "this" usage via destructuring
-	render(inputBase: string, addons: Addons, snippets: GenerateCodeSnippets) {
+	async render(inputBase: string, snippets: GenerateCodeSnippets) {
 		const {
 			compact,
 			dynamicImportFunction,
@@ -761,7 +761,12 @@ export default class Chunk {
 			});
 		}
 
-		// TODO Lukas we do not need to return magicString from finalisers
+		// TODO Lukas Note: Mention in docs, that users/plugins are responsible to do their own caching
+		const { intro, outro, banner, footer } = await createAddons(
+			this.outputOptions,
+			this.pluginDriver,
+			this.getRenderedChunkInfo(inputBase, getPropertyAccess)
+		);
 		finalise(
 			renderedSource,
 			{
@@ -771,21 +776,21 @@ export default class Chunk {
 				hasExports,
 				id: preliminaryFileName.fileName,
 				indent: this.indentString,
-				intro: addons.intro,
+				intro,
 				isEntryFacade:
 					this.outputOptions.preserveModules ||
 					(this.facadeModule !== null && this.facadeModule.info.isEntry),
 				isModuleFacade: this.facadeModule !== null,
 				namedExportsMode: this.exportMode !== 'default',
-				outro: addons.outro,
+				outro,
 				snippets,
 				usesTopLevelAwait: topLevelAwaitModule !== null,
 				warn: this.inputOptions.onwarn
 			},
 			this.outputOptions
 		);
-		if (addons.banner) magicString.prepend(addons.banner);
-		if (addons.footer) magicString.append(addons.footer);
+		if (banner) magicString.prepend(banner);
+		if (footer) magicString.append(footer);
 		timeEnd('render format', 2);
 
 		return { chunk: this, magicString, usedModules };
@@ -800,7 +805,6 @@ export default class Chunk {
 	) {
 		let map: SourceMap | null = null;
 		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
-		// TODO Lukas test that in renderChunk, we can also mutate imports etc. as they are updated
 		let code = await transformChunk({
 			chunks,
 			code: magicString.toString(),

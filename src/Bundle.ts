@@ -13,7 +13,6 @@ import type {
 import { RenderedChunk } from './rollup/types';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
-import { createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
 import { createHash } from './utils/crypto';
@@ -80,8 +79,6 @@ export default class Bundle {
 				chunk.generateExports();
 			}
 
-			// TODO Lukas addons could now be created per chunk
-			const addons = await createAddons(this.outputOptions, this.pluginDriver);
 			const snippets = getGenerateCodeSnippets(this.outputOptions);
 
 			// first we reserve room for entry chunks
@@ -97,7 +94,9 @@ export default class Bundle {
 			const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
 
 			// render the chunks
-			const renderedChunks = chunks.map(chunk => chunk.render(inputBase, addons, snippets));
+			const renderedChunks = await Promise.all(
+				chunks.map(chunk => chunk.render(inputBase, snippets))
+			);
 
 			// generate chunk graph info for renderChunk
 			const renderedChunkInfos: Record<string, RenderedChunk> = Object.fromEntries(

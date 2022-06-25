@@ -308,7 +308,10 @@ export type ResolveFileUrlHook = (
 	}
 ) => string | null | void;
 
-export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
+export type AddonHookFunction = (
+	this: PluginContext,
+	chunk: RenderedChunk
+) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
 
 export type ChangeEvent = 'create' | 'update' | 'delete';
@@ -617,10 +620,12 @@ export type NormalizedAmdOptions = (
 	define: string;
 };
 
+type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
+
 export interface OutputOptions {
 	amd?: AmdOptions;
 	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
-	banner?: string | (() => string | Promise<string>);
+	banner?: string | AddonFunction;
 	chunkFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact?: boolean;
 	// only required for bundle.write
@@ -634,7 +639,7 @@ export interface OutputOptions {
 	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
-	footer?: string | (() => string | Promise<string>);
+	footer?: string | AddonFunction;
 	format?: ModuleFormat;
 	freeze?: boolean;
 	generatedCode?: GeneratedCodePreset | GeneratedCodeOptions;
@@ -643,14 +648,14 @@ export interface OutputOptions {
 	indent?: string | boolean;
 	inlineDynamicImports?: boolean;
 	interop?: InteropType | GetInterop;
-	intro?: string | (() => string | Promise<string>);
+	intro?: string | AddonFunction;
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
 	name?: string;
 	/** @deprecated Use "generatedCode.symbols" instead. */
 	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
-	outro?: string | (() => string | Promise<string>);
+	outro?: string | AddonFunction;
 	paths?: OptionsPaths;
 	plugins?: (OutputPlugin | null | false | undefined)[];
 	/** @deprecated Use "generatedCode.constBindings" instead. */
@@ -670,7 +675,7 @@ export interface OutputOptions {
 export interface NormalizedOutputOptions {
 	amd: NormalizedAmdOptions;
 	assetFileNames: string | ((chunkInfo: PreRenderedAsset) => string);
-	banner: () => string | Promise<string>;
+	banner: AddonFunction;
 	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact: boolean;
 	dir: string | undefined;
@@ -682,7 +687,7 @@ export interface NormalizedOutputOptions {
 	extend: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
-	footer: () => string | Promise<string>;
+	footer: AddonFunction;
 	format: InternalModuleFormat;
 	freeze: boolean;
 	generatedCode: NormalizedGeneratedCodeOptions;
@@ -691,14 +696,14 @@ export interface NormalizedOutputOptions {
 	indent: true | string;
 	inlineDynamicImports: boolean;
 	interop: GetInterop;
-	intro: () => string | Promise<string>;
+	intro: AddonFunction;
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
 	/** @deprecated Use "generatedCode.symbols" instead. */
 	namespaceToStringTag: boolean;
 	noConflict: boolean;
-	outro: () => string | Promise<string>;
+	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
 	/** @deprecated Use "generatedCode.constBindings" instead. */
