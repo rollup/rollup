@@ -189,17 +189,17 @@ export default class Bundle {
 				outputBundle[finalFileName] = FILE_PLACEHOLDER;
 				hashesByPlaceholder.set(placeholder, finalHash.slice(0, placeholder.length));
 			}
-			// TODO Lukas also replace in sourcemaps
-			for (const [
-				placeholder,
-				{ chunk, code, map, preliminaryFileName }
-			] of renderedChunksByPlaceholder) {
+			for (const {
+				chunk,
+				code,
+				map,
+				preliminaryFileName
+			} of renderedChunksByPlaceholder.values()) {
 				const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
-				const fileName = replaceSinglePlaceholder(
-					preliminaryFileName.fileName,
-					placeholder,
-					hashesByPlaceholder.get(placeholder)!
-				);
+				const fileName = replacePlaceholders(preliminaryFileName.fileName, hashesByPlaceholder);
+				if (map) {
+					map.file = replacePlaceholders(map.file, hashesByPlaceholder);
+				}
 				outputBundle[fileName] = chunk.generateOutputChunk(
 					updatedCode,
 					map,

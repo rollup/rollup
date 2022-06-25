@@ -813,7 +813,6 @@ export default class Chunk {
 		const preliminaryFileName = this.getPreliminaryFileName(inputBase);
 		const { fileName } = preliminaryFileName;
 
-		// TODO Lukas we also need to replace hash placeholders in the source maps
 		if (this.outputOptions.sourcemap) {
 			timeStart('sourcemap', 2);
 
