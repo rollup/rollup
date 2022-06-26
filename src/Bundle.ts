@@ -48,7 +48,7 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			const { chunksByPlaceholder, getHashPlaceholder } = getHashPlaceholderGenerator();
+			const getHashPlaceholder = getHashPlaceholderGenerator();
 			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
@@ -65,7 +65,6 @@ export default class Bundle {
 			}
 			await renderChunks(
 				chunks,
-				chunksByPlaceholder,
 				outputBundle,
 				inputBase,
 				getGenerateCodeSnippets(this.outputOptions),

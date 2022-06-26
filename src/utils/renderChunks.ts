@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import Chunk, { ChunkRenderResult, RenderedChunkWithPlaceholders } from '../Chunk';
+import Chunk, { ChunkRenderResult } from '../Chunk';
 import Module from '../Module';
 import {
 	DecodedSourceMapOrMissing,
@@ -28,9 +28,15 @@ interface HashResult {
 	contentHash: string;
 }
 
+interface RenderedChunkWithPlaceholders {
+	chunk: Chunk;
+	code: string;
+	fileName: string;
+	map: SourceMap | null;
+}
+
 export async function renderChunks(
 	chunks: Chunk[],
-	chunksByPlaceholder: Map<string, Chunk>,
 	outputBundle: OutputBundleWithPlaceholders,
 	inputBase: string,
 	snippets: GenerateCodeSnippets,
@@ -39,9 +45,8 @@ export async function renderChunks(
 	onwarn: WarningHandler
 ) {
 	reserveEntryChunksInBundle(chunks, inputBase);
-	// populates chunksByPlaceholder as side effect
 	const renderedChunks = await Promise.all(chunks.map(chunk => chunk.render(inputBase, snippets)));
-	const chunkGraph: Record<string, RenderedChunk> = getChunkGraph(chunks, inputBase, snippets);
+	const chunkGraph = getChunkGraph(chunks, inputBase, snippets);
 	const {
 		nonHashedChunksWithPlaceholders,
 		renderedChunksByPlaceholder,
@@ -53,7 +58,6 @@ export async function renderChunks(
 		outputOptions,
 		pluginDriver,
 		onwarn,
-		chunksByPlaceholder,
 		snippets
 	);
 	const hashesByPlaceholder = generateFinalHashes(
@@ -172,62 +176,70 @@ async function transformChunksAndGenerateContentHashes(
 	outputOptions: NormalizedOutputOptions,
 	pluginDriver: PluginDriver,
 	onwarn: WarningHandler,
-	chunksByPlaceholder: Map<string, Chunk>,
 	snippets: GenerateCodeSnippets
 ) {
 	const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
 	const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
 	const hashDependenciesByPlaceholder = new Map<string, HashResult>();
+	const placeholders = new Set<string>();
+	for (const {
+		preliminaryFileName: { hashPlaceholder }
+	} of renderedChunks) {
+		if (hashPlaceholder) placeholders.add(hashPlaceholder);
+	}
 	await Promise.all(
-		renderedChunks.map(async ({ chunk, magicString, usedModules }) => {
-			const preliminaryFileName = chunk.getPreliminaryFileName(inputBase);
-			const transformedChunk = {
+		renderedChunks.map(
+			async ({
 				chunk,
-				preliminaryFileName,
-				...(await transformChunk(
-					magicString,
-					preliminaryFileName.fileName,
-					usedModules,
-					chunkGraph,
-					outputOptions,
-					pluginDriver,
-					onwarn
-				))
-			};
-			const {
-				code,
-				preliminaryFileName: { hashPlaceholder }
-			} = transformedChunk;
-			if (hashPlaceholder) {
-				const hash = createHash();
-				// To create a reproducible content-only hash, all placeholders are
-				// replaced with the same value before hashing
-				const { containedPlaceholders, transformedCode } =
-					replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, chunksByPlaceholder);
-				hash.update(transformedCode);
-				const hashAugmentation = pluginDriver.hookReduceValueSync(
-					'augmentChunkHash',
-					'',
-					[chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess)],
-					(augmentation, pluginHash) => {
-						if (pluginHash) {
-							augmentation += pluginHash;
+				preliminaryFileName: { fileName, hashPlaceholder },
+				magicString,
+				usedModules
+			}) => {
+				const transformedChunk = {
+					chunk,
+					fileName,
+					...(await transformChunk(
+						magicString,
+						fileName,
+						usedModules,
+						chunkGraph,
+						outputOptions,
+						pluginDriver,
+						onwarn
+					))
+				};
+				const { code } = transformedChunk;
+				if (hashPlaceholder) {
+					const hash = createHash();
+					// To create a reproducible content-only hash, all placeholders are
+					// replaced with the same value before hashing
+					const { containedPlaceholders, transformedCode } =
+						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
+					hash.update(transformedCode);
+					const hashAugmentation = pluginDriver.hookReduceValueSync(
+						'augmentChunkHash',
+						'',
+						[chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess)],
+						(augmentation, pluginHash) => {
+							if (pluginHash) {
+								augmentation += pluginHash;
+							}
+							return augmentation;
 						}
-						return augmentation;
+					);
+					if (hashAugmentation) {
+						hash.update(hashAugmentation);
 					}
-				);
-				if (hashAugmentation) {
-					hash.update(hashAugmentation);
+					renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
+					hashDependenciesByPlaceholder.set(hashPlaceholder, {
+						containedPlaceholders,
+						contentHash: hash.digest('hex')
+					});
+				} else {
+					nonHashedChunksWithPlaceholders.push(transformedChunk);
 				}
-				renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
-				hashDependenciesByPlaceholder.set(hashPlaceholder, {
-					containedPlaceholders,
-					contentHash: hash.digest('hex')
-				});
-			} else {
-				nonHashedChunksWithPlaceholders.push(transformedChunk);
 			}
-		})
+		)
 	);
 	return {
 		hashDependenciesByPlaceholder,
@@ -242,12 +254,7 @@ function generateFinalHashes(
 	outputBundle: OutputBundleWithPlaceholders
 ) {
 	const hashesByPlaceholder = new Map<string, string>();
-	for (const [
-		placeholder,
-		{
-			preliminaryFileName: { fileName }
-		}
-	] of renderedChunksByPlaceholder) {
+	for (const [placeholder, { fileName }] of renderedChunksByPlaceholder) {
 		let hash = createHash();
 		const hashDependencyPlaceholders = new Set<string>([placeholder]);
 		for (const dependencyPlaceholder of hashDependencyPlaceholders) {
@@ -284,13 +291,13 @@ function addChunksToBundle(
 	snippets: GenerateCodeSnippets,
 	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[]
 ) {
-	for (const { chunk, code, map, preliminaryFileName } of renderedChunksByPlaceholder.values()) {
+	for (const { chunk, code, fileName, map } of renderedChunksByPlaceholder.values()) {
 		const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
-		const fileName = replacePlaceholders(preliminaryFileName.fileName, hashesByPlaceholder);
+		const finalFileName = replacePlaceholders(fileName, hashesByPlaceholder);
 		if (map) {
 			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
 		}
-		outputBundle[fileName] = chunk.generateOutputChunk(
+		outputBundle[finalFileName] = chunk.generateOutputChunk(
 			updatedCode,
 			map,
 			hashesByPlaceholder,
@@ -298,12 +305,7 @@ function addChunksToBundle(
 			snippets.getPropertyAccess
 		);
 	}
-	for (const {
-		chunk,
-		code,
-		map,
-		preliminaryFileName: { fileName }
-	} of nonHashedChunksWithPlaceholders) {
+	for (const { chunk, code, fileName, map } of nonHashedChunksWithPlaceholders) {
 		const updatedCode = hashesByPlaceholder.size
 			? replacePlaceholders(code, hashesByPlaceholder)
 			: code;

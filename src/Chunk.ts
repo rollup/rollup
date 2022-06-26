@@ -70,6 +70,7 @@ type PreliminaryFileName = PreliminaryFileNameWithPlaceholder | FixedPreliminary
 export interface ChunkRenderResult {
 	chunk: Chunk;
 	magicString: MagicStringBundle;
+	preliminaryFileName: PreliminaryFileName;
 	usedModules: Module[];
 }
 
@@ -81,13 +82,6 @@ interface PreliminaryFileNameWithPlaceholder {
 interface FixedPreliminaryFileName {
 	fileName: string;
 	hashPlaceholder: null;
-}
-
-export interface RenderedChunkWithPlaceholders {
-	chunk: Chunk;
-	code: string;
-	map: SourceMap | null;
-	preliminaryFileName: PreliminaryFileName;
 }
 
 type ResolvedDynamicImport = (
@@ -505,7 +499,7 @@ export default class Chunk {
 				{
 					format: () => format,
 					hash: size =>
-						hashPlaceholder || (hashPlaceholder = this.getPlaceholder(this, patternName, size)),
+						hashPlaceholder || (hashPlaceholder = this.getPlaceholder(patternName, size)),
 					name: () => this.getChunkName()
 				}
 			);
@@ -795,7 +789,12 @@ export default class Chunk {
 		if (footer) magicString.append(footer);
 		timeEnd('render format', 2);
 
-		return { chunk: this, magicString, usedModules };
+		return {
+			chunk: this,
+			magicString,
+			preliminaryFileName,
+			usedModules
+		};
 	}
 
 	private addImplicitlyLoadedBeforeFromModule(baseModule: Module): void {

@@ -1,4 +1,3 @@
-import type Chunk from '../Chunk';
 import { errFailedValidation, error } from './error';
 
 // Four random characters from the private use area to minimize risk of conflicts
@@ -10,43 +9,31 @@ const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRigh
 export const maxHashSize = 64;
 export const defaultHashSize = 8;
 
-export type HashPlaceholderGenerator = (
-	chunk: Chunk,
-	optionName: string,
-	hashSize?: number
-) => string;
+export type HashPlaceholderGenerator = (optionName: string, hashSize?: number) => string;
 
-export const getHashPlaceholderGenerator = (): {
-	chunksByPlaceholder: Map<string, Chunk>;
-	getHashPlaceholder: HashPlaceholderGenerator;
-} => {
-	const chunksByPlaceholder = new Map<string, Chunk>();
+export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
 	let nextIndex = 0;
-	return {
-		chunksByPlaceholder,
-		getHashPlaceholder: (chunk: Chunk, optionName: string, hashSize: number = defaultHashSize) => {
-			if (hashSize > maxHashSize) {
-				return error(
-					errFailedValidation(
-						`Hashes cannot be longer than ${maxHashSize} characters, received ${hashSize}. Check the "${optionName}" option.`
-					)
-				);
-			}
-			const placeholder = `${hashPlaceholderLeft}${String(++nextIndex).padStart(
-				hashSize - hashPlaceholderOverhead,
-				'0'
-			)}${hashPlaceholderRight}`;
-			if (placeholder.length > hashSize) {
-				return error(
-					errFailedValidation(
-						`To generate hashes for this number of chunks (currently ${nextIndex}), you need a minimum hash size of ${placeholder.length}, received ${hashSize}. Check the "${optionName}" option.`
-					)
-				);
-			}
-			chunksByPlaceholder.set(placeholder, chunk);
-			nextIndex++;
-			return placeholder;
+	return (optionName: string, hashSize: number = defaultHashSize) => {
+		if (hashSize > maxHashSize) {
+			return error(
+				errFailedValidation(
+					`Hashes cannot be longer than ${maxHashSize} characters, received ${hashSize}. Check the "${optionName}" option.`
+				)
+			);
 		}
+		const placeholder = `${hashPlaceholderLeft}${String(++nextIndex).padStart(
+			hashSize - hashPlaceholderOverhead,
+			'0'
+		)}${hashPlaceholderRight}`;
+		if (placeholder.length > hashSize) {
+			return error(
+				errFailedValidation(
+					`To generate hashes for this number of chunks (currently ${nextIndex}), you need a minimum hash size of ${placeholder.length}, received ${hashSize}. Check the "${optionName}" option.`
+				)
+			);
+		}
+		nextIndex++;
+		return placeholder;
 	};
 };
 
@@ -69,7 +56,7 @@ export const replaceSinglePlaceholder = (
 
 export const replacePlaceholdersWithDefaultAndGetContainedPlaceholders = (
 	code: string,
-	placeholders: Map<string, Chunk>
+	placeholders: Set<string>
 ): { containedPlaceholders: Set<string>; transformedCode: string } => {
 	const containedPlaceholders = new Set<string>();
 	const transformedCode = code.replace(REPLACER_REGEX, placeholder => {
