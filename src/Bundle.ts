@@ -1,4 +1,4 @@
-import Chunk, { RenderedChunkWithPlaceholders } from './Chunk';
+import Chunk from './Chunk';
 import type ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module from './Module';
@@ -10,12 +10,9 @@ import type {
 	OutputBundleWithPlaceholders,
 	WarningHandler
 } from './rollup/types';
-import { RenderedChunk } from './rollup/types';
-import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
-import { createHash } from './utils/crypto';
 import {
 	errCannotAssignModuleToChunk,
 	errChunkInvalid,
@@ -24,20 +21,10 @@ import {
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
-import {
-	getHashPlaceholderGenerator,
-	HashPlaceholderGenerator,
-	replacePlaceholders,
-	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
-	replaceSinglePlaceholder
-} from './utils/hashPlaceholders';
+import { getHashPlaceholderGenerator, HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { isAbsolute } from './utils/path';
+import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';
-
-type HashDependenciesByPlaceholder = Map<
-	string,
-	{ containedPlaceholders: Set<string>; contentHash: string }
->;
 
 export default class Bundle {
 	private readonly facadeChunkByModule = new Map<Module, Chunk>();
@@ -51,13 +38,11 @@ export default class Bundle {
 		private readonly graph: Graph
 	) {}
 
-	// TODO Lukas extract and clean up
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions);
 
-		// TODO Lukas clean up by extracting functions in the end
 		// TODO Lukas rethink time measuring points
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
@@ -74,156 +59,20 @@ export default class Bundle {
 			timeEnd('generate chunks', 2);
 
 			timeStart('render chunks', 2);
-			// generate exports
+
 			for (const chunk of chunks) {
 				chunk.generateExports();
 			}
-
-			const snippets = getGenerateCodeSnippets(this.outputOptions);
-
-			// first we reserve room for entry chunks
-			for (const chunk of chunks) {
-				if (chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint) {
-					// reserves name in bundle as side effect
-					chunk.getPreliminaryFileName(inputBase);
-				}
-			}
-
-			// TODO Lukas in the end, we could speed up things if we check if no placeholders were generated in that case we skip some stuff
-			const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
-			const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
-
-			// render the chunks
-			const renderedChunks = await Promise.all(
-				chunks.map(chunk => chunk.render(inputBase, snippets))
+			await renderChunks(
+				chunks,
+				chunksByPlaceholder,
+				outputBundle,
+				inputBase,
+				getGenerateCodeSnippets(this.outputOptions),
+				this.pluginDriver,
+				this.outputOptions,
+				this.inputOptions.onwarn
 			);
-
-			// generate chunk graph info for renderChunk
-			const renderedChunkInfos: Record<string, RenderedChunk> = Object.fromEntries(
-				chunks.map(chunk => {
-					const renderedChunkInfo = chunk.getRenderedChunkInfo(
-						inputBase,
-						snippets.getPropertyAccess
-					);
-					return [renderedChunkInfo.fileName, renderedChunkInfo];
-				})
-			);
-
-			const hashDependenciesByPlaceholder: HashDependenciesByPlaceholder = new Map();
-			await Promise.all(
-				renderedChunks.map(async ({ chunk, magicString, usedModules }) => {
-					const transformedChunk = await chunk.transform(
-						magicString,
-						usedModules,
-						renderedChunkInfos,
-						inputBase,
-						snippets.getPropertyAccess
-					);
-					const {
-						code,
-						preliminaryFileName: { hashPlaceholder }
-					} = transformedChunk;
-					if (hashPlaceholder) {
-						const hash = createHash();
-						// To create a reproducible content-only hash, all placeholders are
-						// replaced with the same value before hashing
-						const { containedPlaceholders, transformedCode } =
-							replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, chunksByPlaceholder);
-						hash.update(transformedCode);
-						const hashAugmentation = this.pluginDriver.hookReduceValueSync(
-							'augmentChunkHash',
-							'',
-							[chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess)],
-							(augmentation, pluginHash) => {
-								if (pluginHash) {
-									augmentation += pluginHash;
-								}
-								return augmentation;
-							}
-						);
-						if (hashAugmentation) {
-							hash.update(hashAugmentation);
-						}
-						renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
-						hashDependenciesByPlaceholder.set(hashPlaceholder, {
-							containedPlaceholders,
-							contentHash: hash.digest('hex')
-						});
-					} else {
-						nonHashedChunksWithPlaceholders.push(transformedChunk);
-					}
-				})
-			);
-
-			// generate final hashes by placeholder
-			const hashesByPlaceholder = new Map<string, string>();
-			for (const [
-				placeholder,
-				{
-					preliminaryFileName: { fileName }
-				}
-			] of renderedChunksByPlaceholder) {
-				let hash = createHash();
-				const hashDependencyPlaceholders = new Set<string>([placeholder]);
-				for (const dependencyPlaceholder of hashDependencyPlaceholders) {
-					const { containedPlaceholders, contentHash } =
-						hashDependenciesByPlaceholder.get(dependencyPlaceholder)!;
-					hash.update(contentHash);
-					for (const containedPlaceholder of containedPlaceholders) {
-						// When looping over a map, setting an entry only causes a new iteration if the key is new
-						hashDependencyPlaceholders.add(containedPlaceholder);
-					}
-				}
-				let finalFileName: string | undefined;
-				let finalHash: string | undefined;
-				do {
-					// In case of a hash collision, create a hash of the hash
-					if (finalHash) {
-						hash = createHash();
-						hash.update(finalHash);
-					}
-					finalHash = hash.digest('hex').slice(0, placeholder.length);
-					finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash);
-				} while (outputBundle[finalFileName]);
-				outputBundle[finalFileName] = FILE_PLACEHOLDER;
-				hashesByPlaceholder.set(placeholder, finalHash.slice(0, placeholder.length));
-			}
-			for (const {
-				chunk,
-				code,
-				map,
-				preliminaryFileName
-			} of renderedChunksByPlaceholder.values()) {
-				const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
-				const fileName = replacePlaceholders(preliminaryFileName.fileName, hashesByPlaceholder);
-				if (map) {
-					map.file = replacePlaceholders(map.file, hashesByPlaceholder);
-				}
-				outputBundle[fileName] = chunk.generateOutputChunk(
-					updatedCode,
-					map,
-					hashesByPlaceholder,
-					inputBase,
-					snippets.getPropertyAccess
-				);
-			}
-			for (const {
-				chunk,
-				code,
-				map,
-				preliminaryFileName: { fileName }
-			} of nonHashedChunksWithPlaceholders) {
-				const updatedCode = hashesByPlaceholder.size
-					? replacePlaceholders(code, hashesByPlaceholder)
-					: code;
-				outputBundle[fileName] = chunk.generateOutputChunk(
-					updatedCode,
-					map,
-					hashesByPlaceholder,
-					inputBase,
-					snippets.getPropertyAccess
-				);
-			}
 
 			timeEnd('render chunks', 2);
 		} catch (err: any) {

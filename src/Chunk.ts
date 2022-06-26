@@ -13,7 +13,6 @@ import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVa
 import type Variable from './ast/variables/Variable';
 import finalisers from './finalisers/index';
 import type {
-	DecodedSourceMapOrMissing,
 	GetInterop,
 	GlobalsOption,
 	InternalModuleFormat,
@@ -29,11 +28,9 @@ import type {
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
 import { createAddons } from './utils/addons';
-import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
 	errCyclicCrossChunkReexport,
-	errFailedValidation,
 	errInvalidOption,
 	error,
 	errUnexpectedNamedImport,
@@ -54,9 +51,8 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
+import { basename, dirname, extname, isAbsolute, normalize } from './utils/path';
 import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
-import { transformChunk } from './utils/renderChunk';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { timeEnd, timeStart } from './utils/timers';
@@ -70,6 +66,12 @@ export interface ModuleDeclarations {
 }
 
 type PreliminaryFileName = PreliminaryFileNameWithPlaceholder | FixedPreliminaryFileName;
+
+export interface ChunkRenderResult {
+	chunk: Chunk;
+	magicString: MagicStringBundle;
+	usedModules: Module[];
+}
 
 interface PreliminaryFileNameWithPlaceholder {
 	fileName: string;
@@ -562,7 +564,7 @@ export default class Chunk {
 	}
 
 	// TODO Lukas reduce "this" usage via destructuring
-	async render(inputBase: string, snippets: GenerateCodeSnippets) {
+	async render(inputBase: string, snippets: GenerateCodeSnippets): Promise<ChunkRenderResult> {
 		const {
 			compact,
 			dynamicImportFunction,
@@ -794,73 +796,6 @@ export default class Chunk {
 		timeEnd('render format', 2);
 
 		return { chunk: this, magicString, usedModules };
-	}
-
-	public async transform(
-		magicString: MagicStringBundle,
-		usedModules: Module[],
-		chunks: Record<string, RenderedChunk>,
-		inputBase: string,
-		getPropertyAccess: (name: string) => string
-	) {
-		let map: SourceMap | null = null;
-		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
-		let code = await transformChunk({
-			chunks,
-			code: magicString.toString(),
-			options: this.outputOptions,
-			outputPluginDriver: this.pluginDriver,
-			renderChunk: this.getRenderedChunkInfo(inputBase, getPropertyAccess),
-			sourcemapChain: chunkSourcemapChain
-		});
-		if (!this.outputOptions.compact && code[code.length - 1] !== '\n') code += '\n';
-		const preliminaryFileName = this.getPreliminaryFileName(inputBase);
-		const { fileName } = preliminaryFileName;
-
-		if (this.outputOptions.sourcemap) {
-			timeStart('sourcemap', 2);
-
-			let file: string;
-			if (this.outputOptions.file)
-				file = resolve(this.outputOptions.sourcemapFile || this.outputOptions.file);
-			else if (this.outputOptions.dir) file = resolve(this.outputOptions.dir, fileName);
-			else file = resolve(fileName);
-
-			const decodedMap = magicString.generateDecodedMap({});
-			map = collapseSourcemaps(
-				file,
-				decodedMap,
-				usedModules,
-				chunkSourcemapChain,
-				this.outputOptions.sourcemapExcludeSources,
-				this.inputOptions.onwarn
-			);
-			map.sources = map.sources
-				.map(sourcePath => {
-					const { sourcemapPathTransform } = this.outputOptions;
-
-					if (sourcemapPathTransform) {
-						const newSourcePath = sourcemapPathTransform(sourcePath, `${file}.map`) as unknown;
-
-						if (typeof newSourcePath !== 'string') {
-							error(errFailedValidation(`sourcemapPathTransform function must return a string.`));
-						}
-
-						return newSourcePath;
-					}
-
-					return sourcePath;
-				})
-				.map(normalize);
-
-			timeEnd('sourcemap', 2);
-		}
-		return {
-			chunk: this,
-			code,
-			map,
-			preliminaryFileName
-		};
 	}
 
 	private addImplicitlyLoadedBeforeFromModule(baseModule: Module): void {
