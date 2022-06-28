@@ -2,13 +2,13 @@ import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
+import type { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import setupNamespace from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import type { FinaliserOptions } from './index';
 
 export default function iife(
 	magicString: MagicStringBundle,
@@ -22,7 +22,7 @@ export default function iife(
 		namedExportsMode,
 		outro,
 		snippets,
-		warn
+		onwarn
 	}: FinaliserOptions,
 	{
 		compact,
@@ -48,14 +48,14 @@ export default function iife(
 		});
 	}
 
-	warnOnBuiltins(warn, dependencies);
+	warnOnBuiltins(onwarn, dependencies);
 
 	const external = trimEmptyImports(dependencies);
 	const deps = external.map(dep => dep.globalName || 'null');
 	const args = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		warn({
+		onwarn({
 			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
 			message: `If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.`
 		});

@@ -1,11 +1,11 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
+import type { FinaliserOptions } from './index';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import type { FinaliserOptions } from './index';
 
 export default function amd(
 	magicString: MagicStringBundle,
@@ -22,7 +22,7 @@ export default function amd(
 		namedExportsMode,
 		outro,
 		snippets,
-		warn
+		onwarn
 	}: FinaliserOptions,
 	{
 		amd,
@@ -34,7 +34,7 @@ export default function amd(
 		strict
 	}: NormalizedOutputOptions
 ): void {
-	warnOnBuiltins(warn, dependencies);
+	warnOnBuiltins(onwarn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.importPath)}'`);
 	const args = dependencies.map(m => m.name);
 	const { n, getNonArrowFunctionIntro, _ } = snippets;

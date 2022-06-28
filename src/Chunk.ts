@@ -178,8 +178,7 @@ export default class Chunk {
 	private readonly implicitlyLoadedBefore = new Set<Chunk>();
 	private readonly imports = new Set<Variable>();
 	private readonly includedReexportsByModule = new Map<Module, Variable[]>();
-	private indentString: string = undefined as never;
-	// This may only be updated in the constructor
+	// This may be updated in the constructor
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
 	private needsExportsShim = false;
@@ -580,8 +579,22 @@ export default class Chunk {
 		}
 	}
 
-	// TODO Lukas reduce "this" usage via destructuring
 	async render(): Promise<ChunkRenderResult> {
+		const {
+			accessedGlobalsByScope,
+			dependencies,
+			exportMode,
+			exportNamesByVariable,
+			facadeModule,
+			includedNamespaces,
+			inputOptions: { onwarn },
+			isEmpty,
+			orderedModules,
+			outputOptions,
+			pluginDriver,
+			renderedModules,
+			snippets
+		} = this;
 		const {
 			compact,
 			dynamicImportFunction,
@@ -590,10 +603,10 @@ export default class Chunk {
 			hoistTransitiveImports,
 			namespaceToStringTag,
 			preserveModules
-		} = this.outputOptions;
+		} = outputOptions;
 		// TODO Lukas move to output option generation
 		if (dynamicImportFunction && format !== 'es') {
-			this.inputOptions.onwarn(
+			onwarn(
 				errInvalidOption(
 					'output.dynamicImportFunction',
 					'outputdynamicImportFunction',
@@ -604,15 +617,14 @@ export default class Chunk {
 
 		// for static and dynamic entry points, add transitive dependencies to this
 		// chunk's dependencies to avoid loading latency
-		if (hoistTransitiveImports && !preserveModules && this.facadeModule !== null) {
-			for (const dep of this.dependencies) {
+		if (hoistTransitiveImports && !preserveModules && facadeModule !== null) {
+			for (const dep of dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
 			}
 		}
 
 		// The next two steps are stateful. No other render should happen between this and actual rendering
 		// TODO Lukas extract stateful sync part into separate sync function
-		const accessedGlobalsByScope = this.accessedGlobalsByScope;
 		const preliminaryFileName = this.getPreliminaryFileName();
 
 		// Set dynamic import resolutions
@@ -625,9 +637,9 @@ export default class Chunk {
 					node.setExternalResolution(
 						(facadeChunk || chunk).exportMode,
 						resolution,
-						this.outputOptions,
-						this.snippets,
-						this.pluginDriver,
+						outputOptions,
+						snippets,
+						pluginDriver,
 						accessedGlobalsByScope,
 						`'${(facadeChunk || chunk).getImportPath(preliminaryFileName.fileName)}'`,
 						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0]
@@ -638,9 +650,9 @@ export default class Chunk {
 				resolvedDynamicImport.node.setExternalResolution(
 					'external',
 					resolution,
-					this.outputOptions,
-					this.snippets,
-					this.pluginDriver,
+					outputOptions,
+					snippets,
+					pluginDriver,
 					accessedGlobalsByScope,
 					resolution instanceof ExternalModule
 						? `'${this.externalChunkByModule
@@ -652,43 +664,38 @@ export default class Chunk {
 			}
 		}
 
-		for (const module of this.orderedModules) {
+		for (const module of orderedModules) {
 			for (const importMeta of module.importMetas) {
-				importMeta.setResolution(
-					this.outputOptions.format,
-					accessedGlobalsByScope,
-					preliminaryFileName.fileName
-				);
+				importMeta.setResolution(format, accessedGlobalsByScope, preliminaryFileName.fileName);
 			}
-			if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
+			if (includedNamespaces.has(module) && !preserveModules) {
 				module.namespace.prepare(accessedGlobalsByScope);
 			}
 		}
 
 		this.setIdentifierRenderResolutions();
 
-		const { _, n } = this.snippets;
+		const { _, n } = snippets;
 		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
-		this.indentString = getIndentString(this.orderedModules, this.outputOptions);
+		const indent = getIndentString(orderedModules, outputOptions);
 		const usedModules: Module[] = [];
 		let hoistedSource = '';
 
 		const renderOptions: RenderOptions = {
 			dynamicImportFunction,
-			exportNamesByVariable: this.exportNamesByVariable,
+			exportNamesByVariable,
 			format,
 			freeze,
-			indent: this.indentString,
+			indent,
 			namespaceToStringTag,
-			outputPluginDriver: this.pluginDriver,
-			snippets: this.snippets
+			outputPluginDriver: pluginDriver,
+			snippets
 		};
 
-		const renderedModules = this.renderedModules;
 		const renderedModuleSources = new Map<Module, MagicString>();
-		for (const module of this.orderedModules) {
+		for (const module of orderedModules) {
 			let renderedLength = 0;
-			if (module.isIncluded() || this.includedNamespaces.has(module)) {
+			if (module.isIncluded() || includedNamespaces.has(module)) {
 				const source = module.render(renderOptions).trim();
 				renderedLength = source.length();
 				if (renderedLength) {
@@ -698,7 +705,7 @@ export default class Chunk {
 					usedModules.push(module);
 				}
 				const namespace = module.namespace;
-				if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
+				if (includedNamespaces.has(module) && !preserveModules) {
 					const rendered = namespace.renderBlock(renderOptions);
 					if (namespace.renderFirst()) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));
@@ -720,14 +727,14 @@ export default class Chunk {
 
 		if (this.needsExportsShim) {
 			magicString.prepend(
-				`${n}${this.snippets.cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
+				`${n}${snippets.cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
 		const renderedSource = compact ? magicString : magicString.trim();
 
-		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.size === 0) {
+		if (isEmpty && this.getExportNames().length === 0 && dependencies.size === 0) {
 			const chunkName = this.getChunkName();
-			this.inputOptions.onwarn({
+			onwarn({
 				chunkName,
 				code: 'EMPTY_BUNDLE',
 				message: `Generated an empty chunk: "${chunkName}"`
@@ -735,8 +742,7 @@ export default class Chunk {
 		}
 
 		const renderedDependencies = this.getRenderedDependencies();
-		const renderedExports =
-			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
+		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
 
 		timeStart('render format', 2);
 		const finalise = finalisers[format];
@@ -749,7 +755,7 @@ export default class Chunk {
 
 		let topLevelAwaitModule: string | null = null;
 		const accessedGlobals = new Set<string>();
-		for (const module of this.orderedModules) {
+		for (const module of orderedModules) {
 			if (module.usesTopLevelAwait) {
 				topLevelAwaitModule = module.id;
 			}
@@ -772,8 +778,8 @@ export default class Chunk {
 		// TODO Lukas Note: Mention in docs, that users/plugins are responsible to do their own caching
 		// TODO Lukas adapt plugin hook graphs and order in docs
 		const { intro, outro, banner, footer } = await createAddons(
-			this.outputOptions,
-			this.pluginDriver,
+			outputOptions,
+			pluginDriver,
 			this.getRenderedChunkInfo()
 		);
 		finalise(
@@ -784,19 +790,17 @@ export default class Chunk {
 				exports: renderedExports,
 				hasExports,
 				id: preliminaryFileName.fileName,
-				indent: this.indentString,
+				indent,
 				intro,
-				isEntryFacade:
-					this.outputOptions.preserveModules ||
-					(this.facadeModule !== null && this.facadeModule.info.isEntry),
-				isModuleFacade: this.facadeModule !== null,
-				namedExportsMode: this.exportMode !== 'default',
+				isEntryFacade: preserveModules || (facadeModule !== null && facadeModule.info.isEntry),
+				isModuleFacade: facadeModule !== null,
+				namedExportsMode: exportMode !== 'default',
+				onwarn,
 				outro,
-				snippets: this.snippets,
-				usesTopLevelAwait: topLevelAwaitModule !== null,
-				warn: this.inputOptions.onwarn
+				snippets,
+				usesTopLevelAwait: topLevelAwaitModule !== null
 			},
-			this.outputOptions
+			outputOptions
 		);
 		if (banner) magicString.prepend(banner);
 		if (footer) magicString.append(footer);

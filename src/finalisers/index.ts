@@ -23,7 +23,7 @@ export interface FinaliserOptions {
 	outro: string;
 	snippets: GenerateCodeSnippets;
 	usesTopLevelAwait: boolean;
-	warn(warning: RollupWarning): void;
+	onwarn(warning: RollupWarning): void;
 }
 
 export type Finaliser = (
