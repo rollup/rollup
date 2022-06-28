@@ -32,7 +32,6 @@ import { createAddons } from './utils/addons';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
 	errCyclicCrossChunkReexport,
-	errInvalidOption,
 	error,
 	errUnexpectedNamedImport,
 	errUnexpectedNamespaceReexport
@@ -604,16 +603,6 @@ export default class Chunk {
 			namespaceToStringTag,
 			preserveModules
 		} = outputOptions;
-		// TODO Lukas move to output option generation
-		if (dynamicImportFunction && format !== 'es') {
-			onwarn(
-				errInvalidOption(
-					'output.dynamicImportFunction',
-					'outputdynamicImportFunction',
-					'this option is ignored for formats other than "es"'
-				)
-			);
-		}
 
 		// for static and dynamic entry points, add transitive dependencies to this
 		// chunk's dependencies to avoid loading latency
