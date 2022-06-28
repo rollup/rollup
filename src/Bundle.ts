@@ -66,7 +66,6 @@ export default class Bundle {
 			await renderChunks(
 				chunks,
 				outputBundle,
-				getGenerateCodeSnippets(this.outputOptions),
 				this.pluginDriver,
 				this.outputOptions,
 				this.inputOptions.onwarn
@@ -155,6 +154,7 @@ export default class Bundle {
 			typeof manualChunks === 'object'
 				? await this.addManualChunks(manualChunks)
 				: this.assignManualChunks(manualChunks);
+		const snippets = getGenerateCodeSnippets(this.outputOptions);
 		const includedModules = getIncludedModules(this.graph.modulesById);
 		const inputBase = commondir(getAbsoluteEntryModulePaths(includedModules, preserveModules));
 		const externalChunkByModule = getExternalChunkByModule(
@@ -184,7 +184,8 @@ export default class Bundle {
 				alias,
 				getHashPlaceholder,
 				bundle,
-				inputBase
+				inputBase,
+				snippets
 			);
 			chunks.push(chunk);
 		}

@@ -207,7 +207,8 @@ export default class Chunk {
 		private readonly manualChunkAlias: string | null,
 		private readonly getPlaceholder: HashPlaceholderGenerator,
 		private readonly bundle: OutputBundleWithPlaceholders,
-		private readonly inputBase: string
+		private readonly inputBase: string,
+		private readonly snippets: GenerateCodeSnippets
 	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 		const chunkModules = new Set(orderedModules);
@@ -253,7 +254,8 @@ export default class Chunk {
 		facadeName: FacadeName,
 		getPlaceholder: HashPlaceholderGenerator,
 		bundle: OutputBundleWithPlaceholders,
-		inputBase: string
+		inputBase: string,
+		snippets: GenerateCodeSnippets
 	): Chunk {
 		const chunk = new Chunk(
 			[],
@@ -269,7 +271,8 @@ export default class Chunk {
 			null,
 			getPlaceholder,
 			bundle,
-			inputBase
+			inputBase,
+			snippets
 		);
 		chunk.assignFacadeName(facadeName, facadedModule);
 		if (!facadeChunkByModule.has(facadedModule)) {
@@ -423,7 +426,8 @@ export default class Chunk {
 						facadeName,
 						this.getPlaceholder,
 						this.bundle,
-						this.inputBase
+						this.inputBase,
+						this.snippets
 					)
 				);
 			}
@@ -452,14 +456,12 @@ export default class Chunk {
 		return facades;
 	}
 
-	// TODO Lukas store snippets/property access on the chunk
 	generateOutputChunk(
 		code: string,
 		map: SourceMap | null,
-		hashesByPlaceholder: Map<string, string>,
-		getPropertyAccess: (name: string) => string
+		hashesByPlaceholder: Map<string, string>
 	): OutputChunk {
-		const renderedChunkInfo = this.getRenderedChunkInfo(getPropertyAccess);
+		const renderedChunkInfo = this.getRenderedChunkInfo();
 		const finalize = (code: string) => replacePlaceholders(code, hashesByPlaceholder);
 		return {
 			...renderedChunkInfo,
@@ -526,7 +528,7 @@ export default class Chunk {
 		return (this.preliminaryFileName = { fileName, hashPlaceholder });
 	}
 
-	public getRenderedChunkInfo(getPropertyAccess: (name: string) => string): RenderedChunk {
+	public getRenderedChunkInfo(): RenderedChunk {
 		if (this.renderedChunkInfo) {
 			return this.renderedChunkInfo;
 		}
@@ -541,7 +543,7 @@ export default class Chunk {
 			fileName,
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, resolveFileName),
 			importedBindings: getImportedBindingsPerDependency(
-				this.getRenderedDependencies(getPropertyAccess),
+				this.getRenderedDependencies(),
 				resolveFileName
 			),
 			imports: Array.from(this.dependencies, resolveFileName),
@@ -588,7 +590,7 @@ export default class Chunk {
 	}
 
 	// TODO Lukas reduce "this" usage via destructuring
-	async render(snippets: GenerateCodeSnippets): Promise<ChunkRenderResult> {
+	async render(): Promise<ChunkRenderResult> {
 		const {
 			compact,
 			dynamicImportFunction,
@@ -633,7 +635,7 @@ export default class Chunk {
 						(facadeChunk || chunk).exportMode,
 						resolution,
 						this.outputOptions,
-						snippets,
+						this.snippets,
 						this.pluginDriver,
 						accessedGlobalsByScope,
 						`'${escapeId(
@@ -653,7 +655,7 @@ export default class Chunk {
 					'external',
 					resolution,
 					this.outputOptions,
-					snippets,
+					this.snippets,
 					this.pluginDriver,
 					accessedGlobalsByScope,
 					resolution instanceof ExternalModule
@@ -683,7 +685,7 @@ export default class Chunk {
 
 		this.setIdentifierRenderResolutions();
 
-		const { _, getPropertyAccess, n } = snippets;
+		const { _, n } = this.snippets;
 		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		this.indentString = getIndentString(this.orderedModules, this.outputOptions);
 		const usedModules: Module[] = [];
@@ -697,7 +699,7 @@ export default class Chunk {
 			indent: this.indentString,
 			namespaceToStringTag,
 			outputPluginDriver: this.pluginDriver,
-			snippets
+			snippets: this.snippets
 		};
 
 		const renderedModules = this.renderedModules;
@@ -736,7 +738,7 @@ export default class Chunk {
 
 		if (this.needsExportsShim) {
 			magicString.prepend(
-				`${n}${snippets.cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
+				`${n}${this.snippets.cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
 		const renderedSource = compact ? magicString : magicString.trim();
@@ -750,9 +752,9 @@ export default class Chunk {
 			});
 		}
 
-		const renderedDependencies = this.getRenderedDependencies(getPropertyAccess);
+		const renderedDependencies = this.getRenderedDependencies();
 		const renderedExports =
-			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(format, getPropertyAccess);
+			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
 
 		timeStart('render format', 2);
 		const finalise = finalisers[format];
@@ -789,7 +791,7 @@ export default class Chunk {
 		const { intro, outro, banner, footer } = await createAddons(
 			this.outputOptions,
 			this.pluginDriver,
-			this.getRenderedChunkInfo(getPropertyAccess)
+			this.getRenderedChunkInfo()
 		);
 		finalise(
 			renderedSource,
@@ -807,7 +809,7 @@ export default class Chunk {
 				isModuleFacade: this.facadeModule !== null,
 				namedExportsMode: this.exportMode !== 'default',
 				outro,
-				snippets,
+				snippets: this.snippets,
 				usesTopLevelAwait: topLevelAwaitModule !== null,
 				warn: this.inputOptions.onwarn
 			},
@@ -950,10 +952,7 @@ export default class Chunk {
 		return makeUnique(normalize(path), this.bundle);
 	}
 
-	private getChunkExportDeclarations(
-		format: InternalModuleFormat,
-		getPropertyAccess: (name: string) => string
-	): ChunkExports {
+	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
 		const exports: ChunkExports = [];
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
@@ -965,7 +964,7 @@ export default class Chunk {
 			}
 			let expression = null;
 			let hoisted = false;
-			let local = variable.getName(getPropertyAccess);
+			let local = variable.getName(this.snippets.getPropertyAccess);
 			if (variable instanceof LocalVariable) {
 				for (const declaration of variable.declarations) {
 					if (
@@ -1071,9 +1070,7 @@ export default class Chunk {
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
-	private getImportSpecifiers(
-		getPropertyAccess: (name: string) => string
-	): Map<Chunk | ExternalChunk, ImportSpecifier[]> {
+	private getImportSpecifiers(): Map<Chunk | ExternalChunk, ImportSpecifier[]> {
 		const { interop } = this.outputOptions;
 		const importsByDependency = new Map<Chunk | ExternalChunk, ImportSpecifier[]>();
 		for (const variable of this.imports) {
@@ -1092,7 +1089,7 @@ export default class Chunk {
 			}
 			getOrCreate(importsByDependency, dependency, () => []).push({
 				imported,
-				local: variable.getName(getPropertyAccess)
+				local: variable.getName(this.snippets.getPropertyAccess)
 			});
 		}
 		return importsByDependency;
@@ -1204,13 +1201,11 @@ export default class Chunk {
 		return [...referencedFiles];
 	}
 
-	private getRenderedDependencies(
-		getPropertyAccess: (name: string) => string
-	): RenderedDependencies {
+	private getRenderedDependencies(): RenderedDependencies {
 		if (this.renderedDependencies) {
 			return this.renderedDependencies;
 		}
-		const importSpecifiers = this.getImportSpecifiers(getPropertyAccess);
+		const importSpecifiers = this.getImportSpecifiers();
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const renderedDependencies = new Map<Chunk | ExternalChunk, ModuleDeclarationDependency>();
 		const { fileName } = this.getPreliminaryFileName();

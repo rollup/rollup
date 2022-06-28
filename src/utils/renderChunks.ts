@@ -14,7 +14,6 @@ import { collapseSourcemaps } from './collapseSourcemaps';
 import { createHash } from './crypto';
 import { decodedSourcemap } from './decodedSourcemap';
 import { errFailedValidation, error } from './error';
-import { GenerateCodeSnippets } from './generateCodeSnippets';
 import {
 	replacePlaceholders,
 	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
@@ -38,14 +37,13 @@ interface RenderedChunkWithPlaceholders {
 export async function renderChunks(
 	chunks: Chunk[],
 	outputBundle: OutputBundleWithPlaceholders,
-	snippets: GenerateCodeSnippets,
 	pluginDriver: PluginDriver,
 	outputOptions: NormalizedOutputOptions,
 	onwarn: WarningHandler
 ) {
 	reserveEntryChunksInBundle(chunks);
-	const renderedChunks = await Promise.all(chunks.map(chunk => chunk.render(snippets)));
-	const chunkGraph = getChunkGraph(chunks, snippets);
+	const renderedChunks = await Promise.all(chunks.map(chunk => chunk.render()));
+	const chunkGraph = getChunkGraph(chunks);
 	const {
 		nonHashedChunksWithPlaceholders,
 		renderedChunksByPlaceholder,
@@ -55,8 +53,7 @@ export async function renderChunks(
 		chunkGraph,
 		outputOptions,
 		pluginDriver,
-		onwarn,
-		snippets
+		onwarn
 	);
 	const hashesByPlaceholder = generateFinalHashes(
 		renderedChunksByPlaceholder,
@@ -67,7 +64,6 @@ export async function renderChunks(
 		renderedChunksByPlaceholder,
 		hashesByPlaceholder,
 		outputBundle,
-		snippets,
 		nonHashedChunksWithPlaceholders
 	);
 }
@@ -81,10 +77,10 @@ function reserveEntryChunksInBundle(chunks: Chunk[]) {
 	}
 }
 
-function getChunkGraph(chunks: Chunk[], snippets: GenerateCodeSnippets) {
+function getChunkGraph(chunks: Chunk[]) {
 	return Object.fromEntries(
 		chunks.map(chunk => {
-			const renderedChunkInfo = chunk.getRenderedChunkInfo(snippets.getPropertyAccess);
+			const renderedChunkInfo = chunk.getRenderedChunkInfo();
 			return [renderedChunkInfo.fileName, renderedChunkInfo];
 		})
 	);
@@ -171,8 +167,7 @@ async function transformChunksAndGenerateContentHashes(
 	chunkGraph: Record<string, RenderedChunk>,
 	outputOptions: NormalizedOutputOptions,
 	pluginDriver: PluginDriver,
-	onwarn: WarningHandler,
-	snippets: GenerateCodeSnippets
+	onwarn: WarningHandler
 ) {
 	const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
 	const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
@@ -215,7 +210,7 @@ async function transformChunksAndGenerateContentHashes(
 					const hashAugmentation = pluginDriver.hookReduceValueSync(
 						'augmentChunkHash',
 						'',
-						[chunk.getRenderedChunkInfo(snippets.getPropertyAccess)],
+						[chunk.getRenderedChunkInfo()],
 						(augmentation, pluginHash) => {
 							if (pluginHash) {
 								augmentation += pluginHash;
@@ -283,7 +278,6 @@ function addChunksToBundle(
 	renderedChunksByPlaceholder: Map<string, RenderedChunkWithPlaceholders>,
 	hashesByPlaceholder: Map<string, string>,
 	outputBundle: OutputBundleWithPlaceholders,
-	snippets: GenerateCodeSnippets,
 	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[]
 ) {
 	for (const { chunk, code, fileName, map } of renderedChunksByPlaceholder.values()) {
@@ -292,22 +286,12 @@ function addChunksToBundle(
 		if (map) {
 			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
 		}
-		outputBundle[finalFileName] = chunk.generateOutputChunk(
-			updatedCode,
-			map,
-			hashesByPlaceholder,
-			snippets.getPropertyAccess
-		);
+		outputBundle[finalFileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
 	for (const { chunk, code, fileName, map } of nonHashedChunksWithPlaceholders) {
 		const updatedCode = hashesByPlaceholder.size
 			? replacePlaceholders(code, hashesByPlaceholder)
 			: code;
-		outputBundle[fileName] = chunk.generateOutputChunk(
-			updatedCode,
-			map,
-			hashesByPlaceholder,
-			snippets.getPropertyAccess
-		);
+		outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
 }
