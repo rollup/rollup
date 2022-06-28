@@ -54,8 +54,7 @@ export default class Bundle {
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
-			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
-			this.pluginDriver.setChunkInformation(this.facadeChunkByModule, inputBase);
+			this.pluginDriver.setChunkInformation(this.facadeChunkByModule);
 
 			timeEnd('generate chunks', 2);
 
@@ -67,7 +66,6 @@ export default class Bundle {
 			await renderChunks(
 				chunks,
 				outputBundle,
-				inputBase,
 				getGenerateCodeSnippets(this.outputOptions),
 				this.pluginDriver,
 				this.outputOptions,
@@ -152,26 +150,24 @@ export default class Bundle {
 		bundle: OutputBundleWithPlaceholders,
 		getHashPlaceholder: HashPlaceholderGenerator
 	): Promise<Chunk[]> {
-		const { manualChunks } = this.outputOptions;
+		const { inlineDynamicImports, manualChunks, preserveModules } = this.outputOptions;
 		const manualChunkAliasByEntry =
 			typeof manualChunks === 'object'
 				? await this.addManualChunks(manualChunks)
 				: this.assignManualChunks(manualChunks);
+		const includedModules = getIncludedModules(this.graph.modulesById);
+		const inputBase = commondir(getAbsoluteEntryModulePaths(includedModules, preserveModules));
+		const externalChunkByModule = getExternalChunkByModule(
+			this.graph.modulesById,
+			this.outputOptions,
+			inputBase
+		);
 		const chunks: Chunk[] = [];
-		const externalChunkByModule = new Map<ExternalModule, ExternalChunk>();
-		for (const module of this.graph.modulesById.values()) {
-			if (module instanceof ExternalModule) {
-				externalChunkByModule.set(module, new ExternalChunk(module, this.outputOptions));
-			}
-		}
 		const chunkByModule = new Map<Module, Chunk>();
-		for (const { alias, modules } of this.outputOptions.inlineDynamicImports
-			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
-			: this.outputOptions.preserveModules
-			? getIncludedModules(this.graph.modulesById).map(module => ({
-					alias: null,
-					modules: [module]
-			  }))
+		for (const { alias, modules } of inlineDynamicImports
+			? [{ alias: null, modules: includedModules }]
+			: preserveModules
+			? includedModules.map(module => ({ alias: null, modules: [module] }))
 			: getChunkAssignments(this.graph.entryModules, manualChunkAliasByEntry)) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
@@ -187,7 +183,8 @@ export default class Bundle {
 				this.includedNamespaces,
 				alias,
 				getHashPlaceholder,
-				bundle
+				bundle,
+				inputBase
 			);
 			chunks.push(chunk);
 		}
@@ -200,18 +197,6 @@ export default class Bundle {
 		}
 		return [...chunks, ...facades];
 	}
-}
-
-function getAbsoluteEntryModulePaths(chunks: readonly Chunk[]): string[] {
-	const absoluteEntryModulePaths: string[] = [];
-	for (const chunk of chunks) {
-		for (const entryModule of chunk.entryModules) {
-			if (isAbsolute(entryModule.id)) {
-				absoluteEntryModulePaths.push(entryModule.id);
-			}
-		}
-	}
-	return absoluteEntryModulePaths;
 }
 
 function validateOptionsForMultiChunkOutput(
@@ -254,11 +239,43 @@ function validateOptionsForMultiChunkOutput(
 }
 
 function getIncludedModules(modulesById: ReadonlyMap<string, Module | ExternalModule>): Module[] {
-	return [...modulesById.values()].filter(
-		(module): module is Module =>
+	const includedModules: Module[] = [];
+	for (const module of modulesById.values()) {
+		if (
 			module instanceof Module &&
 			(module.isIncluded() || module.info.isEntry || module.includedDynamicImporters.length > 0)
-	);
+		) {
+			includedModules.push(module);
+		}
+	}
+	return includedModules;
+}
+
+function getAbsoluteEntryModulePaths(
+	includedModules: Module[],
+	preserveModules: boolean
+): string[] {
+	const absoluteEntryModulePaths: string[] = [];
+	for (const module of includedModules) {
+		if ((module.info.isEntry || preserveModules) && isAbsolute(module.id)) {
+			absoluteEntryModulePaths.push(module.id);
+		}
+	}
+	return absoluteEntryModulePaths;
+}
+
+function getExternalChunkByModule(
+	modulesById: ReadonlyMap<string, Module | ExternalModule>,
+	outputOptions: NormalizedOutputOptions,
+	inputBase: string
+): Map<ExternalModule, ExternalChunk> {
+	const externalChunkByModule = new Map<ExternalModule, ExternalChunk>();
+	for (const module of modulesById.values()) {
+		if (module instanceof ExternalModule) {
+			externalChunkByModule.set(module, new ExternalChunk(module, outputOptions, inputBase));
+		}
+	}
+	return externalChunkByModule;
 }
 
 function addModuleToManualChunk(

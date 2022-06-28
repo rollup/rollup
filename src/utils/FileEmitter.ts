@@ -139,8 +139,7 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 
 function getChunkFileName(
 	file: ConsumedChunk,
-	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null,
-	inputBase: string | null
+	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null
 ): string {
 	if (file.fileName) {
 		return file.fileName;
@@ -148,7 +147,7 @@ function getChunkFileName(
 	if (facadeChunkByModule) {
 		const chunk = file.module && facadeChunkByModule.get(file.module);
 		if (chunk) {
-			return chunk.id || chunk.getPreliminaryFileName(inputBase!).fileName;
+			return chunk.id || chunk.getPreliminaryFileName().fileName;
 		}
 	}
 	return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
@@ -158,7 +157,6 @@ export class FileEmitter {
 	private bundle: OutputBundleWithPlaceholders | null = null;
 	private facadeChunkByModule: ReadonlyMap<Module, Chunk> | null = null;
 	private readonly filesByReferenceId: Map<string, ConsumedFile>;
-	private inputBase: string | null = null;
 	private outputOptions: NormalizedOutputOptions | null = null;
 
 	constructor(
@@ -207,7 +205,7 @@ export class FileEmitter {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
-			return getChunkFileName(emittedFile, this.facadeChunkByModule, this.inputBase);
+			return getChunkFileName(emittedFile, this.facadeChunkByModule);
 		}
 		return getAssetFileName(emittedFile, fileReferenceId);
 	};
@@ -233,12 +231,8 @@ export class FileEmitter {
 		}
 	};
 
-	public setChunkInformation = (
-		facadeChunkByModule: ReadonlyMap<Module, Chunk>,
-		inputBase: string
-	): void => {
+	public setChunkInformation = (facadeChunkByModule: ReadonlyMap<Module, Chunk>): void => {
 		this.facadeChunkByModule = facadeChunkByModule;
-		this.inputBase = inputBase;
 	};
 
 	public setOutputBundle = (

@@ -38,22 +38,20 @@ interface RenderedChunkWithPlaceholders {
 export async function renderChunks(
 	chunks: Chunk[],
 	outputBundle: OutputBundleWithPlaceholders,
-	inputBase: string,
 	snippets: GenerateCodeSnippets,
 	pluginDriver: PluginDriver,
 	outputOptions: NormalizedOutputOptions,
 	onwarn: WarningHandler
 ) {
-	reserveEntryChunksInBundle(chunks, inputBase);
-	const renderedChunks = await Promise.all(chunks.map(chunk => chunk.render(inputBase, snippets)));
-	const chunkGraph = getChunkGraph(chunks, inputBase, snippets);
+	reserveEntryChunksInBundle(chunks);
+	const renderedChunks = await Promise.all(chunks.map(chunk => chunk.render(snippets)));
+	const chunkGraph = getChunkGraph(chunks, snippets);
 	const {
 		nonHashedChunksWithPlaceholders,
 		renderedChunksByPlaceholder,
 		hashDependenciesByPlaceholder
 	} = await transformChunksAndGenerateContentHashes(
 		renderedChunks,
-		inputBase,
 		chunkGraph,
 		outputOptions,
 		pluginDriver,
@@ -69,25 +67,24 @@ export async function renderChunks(
 		renderedChunksByPlaceholder,
 		hashesByPlaceholder,
 		outputBundle,
-		inputBase,
 		snippets,
 		nonHashedChunksWithPlaceholders
 	);
 }
 
-function reserveEntryChunksInBundle(chunks: Chunk[], inputBase: string) {
+function reserveEntryChunksInBundle(chunks: Chunk[]) {
 	for (const chunk of chunks) {
 		if (chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint) {
 			// reserves name in bundle as side effect if it does not contain a hash
-			chunk.getPreliminaryFileName(inputBase);
+			chunk.getPreliminaryFileName();
 		}
 	}
 }
 
-function getChunkGraph(chunks: Chunk[], inputBase: string, snippets: GenerateCodeSnippets) {
+function getChunkGraph(chunks: Chunk[], snippets: GenerateCodeSnippets) {
 	return Object.fromEntries(
 		chunks.map(chunk => {
-			const renderedChunkInfo = chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess);
+			const renderedChunkInfo = chunk.getRenderedChunkInfo(snippets.getPropertyAccess);
 			return [renderedChunkInfo.fileName, renderedChunkInfo];
 		})
 	);
@@ -171,7 +168,6 @@ async function transformChunk(
 
 async function transformChunksAndGenerateContentHashes(
 	renderedChunks: ChunkRenderResult[],
-	inputBase: string,
 	chunkGraph: Record<string, RenderedChunk>,
 	outputOptions: NormalizedOutputOptions,
 	pluginDriver: PluginDriver,
@@ -219,7 +215,7 @@ async function transformChunksAndGenerateContentHashes(
 					const hashAugmentation = pluginDriver.hookReduceValueSync(
 						'augmentChunkHash',
 						'',
-						[chunk.getRenderedChunkInfo(inputBase, snippets.getPropertyAccess)],
+						[chunk.getRenderedChunkInfo(snippets.getPropertyAccess)],
 						(augmentation, pluginHash) => {
 							if (pluginHash) {
 								augmentation += pluginHash;
@@ -287,7 +283,6 @@ function addChunksToBundle(
 	renderedChunksByPlaceholder: Map<string, RenderedChunkWithPlaceholders>,
 	hashesByPlaceholder: Map<string, string>,
 	outputBundle: OutputBundleWithPlaceholders,
-	inputBase: string,
 	snippets: GenerateCodeSnippets,
 	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[]
 ) {
@@ -301,7 +296,6 @@ function addChunksToBundle(
 			updatedCode,
 			map,
 			hashesByPlaceholder,
-			inputBase,
 			snippets.getPropertyAccess
 		);
 	}
@@ -313,7 +307,6 @@ function addChunksToBundle(
 			updatedCode,
 			map,
 			hashesByPlaceholder,
-			inputBase,
 			snippets.getPropertyAccess
 		);
 	}
