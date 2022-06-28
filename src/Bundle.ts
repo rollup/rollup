@@ -1,5 +1,6 @@
 import Chunk from './Chunk';
-import type ExternalModule from './ExternalModule';
+import ExternalChunk from './ExternalChunk';
+import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module from './Module';
 import type {
@@ -157,6 +158,12 @@ export default class Bundle {
 				? await this.addManualChunks(manualChunks)
 				: this.assignManualChunks(manualChunks);
 		const chunks: Chunk[] = [];
+		const externalChunkByModule = new Map<ExternalModule, ExternalChunk>();
+		for (const module of this.graph.modulesById.values()) {
+			if (module instanceof ExternalModule) {
+				externalChunkByModule.set(module, new ExternalChunk(module, this.outputOptions));
+			}
+		}
 		const chunkByModule = new Map<Module, Chunk>();
 		for (const { alias, modules } of this.outputOptions.inlineDynamicImports
 			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
@@ -175,6 +182,7 @@ export default class Bundle {
 				this.pluginDriver,
 				this.graph.modulesById,
 				chunkByModule,
+				externalChunkByModule,
 				this.facadeChunkByModule,
 				this.includedNamespaces,
 				alias,
@@ -182,9 +190,6 @@ export default class Bundle {
 				bundle
 			);
 			chunks.push(chunk);
-			for (const module of modules) {
-				chunkByModule.set(module, chunk);
-			}
 		}
 		for (const chunk of chunks) {
 			chunk.link();

@@ -1,30 +1,20 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import type {
-	CustomPluginOptions,
-	ModuleInfo,
-	NormalizedInputOptions,
-	NormalizedOutputOptions
-} from './rollup/types';
+import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
 import { warnDeprecation } from './utils/error';
-import { escapeId } from './utils/escapeId';
 import { makeLegal } from './utils/identifierHelpers';
-import { normalize, relative } from './utils/path';
 import { printQuotedStringList } from './utils/printStringList';
-import relativeId, { getImportPath } from './utils/relativeId';
+import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
-	defaultVariableName = '';
 	readonly dynamicImporters: string[] = [];
 	execIndex = Infinity;
 	readonly exportedVariables = new Map<ExternalVariable, string>();
 	readonly importers: string[] = [];
 	readonly info: ModuleInfo;
-	namespaceVariableName = '';
 	reexported = false;
 	suggestedVariableName: string;
 	used = false;
-	variableName = '';
 
 	private readonly declarations = new Map<string, ExternalVariable>();
 	private mostCommonSuggestion = 0;
@@ -35,7 +25,7 @@ export default class ExternalModule {
 		public readonly id: string,
 		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
-		private readonly renormalizeRenderPath: boolean
+		public readonly renormalizeRenderPath: boolean
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
 
@@ -76,25 +66,6 @@ export default class ExternalModule {
 		Object.defineProperty(this.info, 'hasModuleSideEffects', {
 			enumerable: false
 		});
-	}
-
-	// TODO Lukas these should be cached by Chunk? Technically, we could cache the actual path by build and just the import by Chunk. Introduce concept of an ExternalChunk
-	getImportPath(
-		importer: string,
-		options: NormalizedOutputOptions,
-		inputBase: string
-	): { fileName: string; import: string } {
-		const fileName =
-			(typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id]) ||
-			(this.renormalizeRenderPath ? normalize(relative(inputBase, this.id)) : this.id);
-		return {
-			fileName,
-			import: escapeId(
-				this.renormalizeRenderPath
-					? getImportPath(importer, fileName, options.format === 'amd', false)
-					: fileName
-			)
-		};
 	}
 
 	getVariableForExportName(name: string): [variable: ExternalVariable] {
