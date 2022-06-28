@@ -8,42 +8,37 @@ export default class ExternalChunk {
 	defaultVariableName = '';
 	id: string;
 	namespaceVariableName = '';
+	suggestedVariableName: string;
 	variableName = '';
 
 	private fileName: string | null = null;
+	private renormalizeRenderPath: boolean;
 
 	constructor(
-		private module: ExternalModule,
+		module: ExternalModule,
 		private options: NormalizedOutputOptions,
 		private inputBase: string
 	) {
 		this.id = module.id;
+		this.renormalizeRenderPath = module.renormalizeRenderPath;
+		this.suggestedVariableName = module.suggestedVariableName;
 	}
 
-	getImportPath(importer: string): { fileName: string; import: string } {
-		const fileName = this.getFileName();
-		return {
-			fileName,
-			import: escapeId(
-				this.module.renormalizeRenderPath
-					? getImportPath(importer, fileName, this.options.format === 'amd', false)
-					: fileName
-			)
-		};
-	}
-
-	// TODO Lukas A fixed variable over a getter would also work as it is acalled often in deconflictChunk
-	getSuggestedVariableName(): string {
-		return this.module.suggestedVariableName;
-	}
-
-	private getFileName(): string {
+	getFileName(): string {
 		if (this.fileName) {
 			return this.fileName;
 		}
 		const { paths } = this.options;
 		return (this.fileName =
 			(typeof paths === 'function' ? paths(this.id) : paths[this.id]) ||
-			(this.module.renormalizeRenderPath ? normalize(relative(this.inputBase, this.id)) : this.id));
+			(this.renormalizeRenderPath ? normalize(relative(this.inputBase, this.id)) : this.id));
+	}
+
+	getImportPath(importer: string): string {
+		return escapeId(
+			this.renormalizeRenderPath
+				? getImportPath(importer, this.getFileName(), this.options.format === 'amd', false)
+				: this.getFileName()
+		);
 	}
 }

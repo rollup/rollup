@@ -147,7 +147,7 @@ function getChunkFileName(
 	if (facadeChunkByModule) {
 		const chunk = file.module && facadeChunkByModule.get(file.module);
 		if (chunk) {
-			return chunk.id || chunk.getPreliminaryFileName().fileName;
+			return chunk.id || chunk.getFileName();
 		}
 	}
 	return error(errChunkNotGeneratedForFileName(file.fileName || file.name));

@@ -163,6 +163,7 @@ export default class Chunk {
 	facadeModule: Module | null = null;
 	id: string | null = null;
 	namespaceVariableName = '';
+	suggestedVariableName: string;
 	variableName = '';
 
 	private readonly accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
@@ -238,6 +239,7 @@ export default class Chunk {
 				this.implicitEntryModules.push(module);
 			}
 		}
+		this.suggestedVariableName = makeLegal(this.generateVariableName());
 	}
 
 	private static generateFacade(
@@ -489,6 +491,16 @@ export default class Chunk {
 		return (this.sortedExportNames ??= Array.from(this.exportsByName.keys()).sort());
 	}
 
+	getFileName(): string {
+		return this.preliminaryFileName?.fileName || this.getPreliminaryFileName().fileName;
+	}
+
+	getImportPath(importer: string): string {
+		return escapeId(
+			getImportPath(importer, this.getFileName(), this.outputOptions.format === 'amd', true)
+		);
+	}
+
 	getPreliminaryFileName(): PreliminaryFileName {
 		if (this.preliminaryFileName) {
 			return this.preliminaryFileName;
@@ -532,15 +544,11 @@ export default class Chunk {
 		if (this.renderedChunkInfo) {
 			return this.renderedChunkInfo;
 		}
-		const { fileName } = this.getPreliminaryFileName();
-		const resolveFileName = (dependency: Chunk | ExternalChunk): string =>
-			dependency instanceof ExternalChunk
-				? dependency.getImportPath(fileName).fileName
-				: dependency.getPreliminaryFileName().fileName;
+		const resolveFileName = (dependency: Chunk | ExternalChunk): string => dependency.getFileName();
 		return (this.renderedChunkInfo = {
 			...this.getPreRenderedChunkInfo(),
 			dynamicImports: this.getDynamicDependencies().map(resolveFileName),
-			fileName,
+			fileName: this.getFileName(),
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, resolveFileName),
 			importedBindings: getImportedBindingsPerDependency(
 				this.getRenderedDependencies(),
@@ -550,23 +558,6 @@ export default class Chunk {
 			modules: this.renderedModules,
 			referencedFiles: this.getReferencedFiles()
 		});
-	}
-
-	getSuggestedVariableName(): string {
-		let name = 'chunk';
-		if (this.manualChunkAlias) {
-			name = this.manualChunkAlias;
-		} else {
-			const moduleForNaming =
-				this.entryModules[0] ||
-				this.implicitEntryModules[0] ||
-				this.dynamicEntryModules[0] ||
-				this.orderedModules[this.orderedModules.length - 1];
-			if (moduleForNaming) {
-				name = getChunkNameFromModule(moduleForNaming);
-			}
-		}
-		return makeLegal(name);
 	}
 
 	getVariableExportName(variable: Variable): string {
@@ -638,14 +629,7 @@ export default class Chunk {
 						this.snippets,
 						this.pluginDriver,
 						accessedGlobalsByScope,
-						`'${escapeId(
-							getImportPath(
-								preliminaryFileName.fileName,
-								(facadeChunk || chunk).getPreliminaryFileName().fileName,
-								this.outputOptions.format === 'amd',
-								true
-							)
-						)}'`,
+						`'${(facadeChunk || chunk).getImportPath(preliminaryFileName.fileName)}'`,
 						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0]
 					);
 				}
@@ -659,11 +643,9 @@ export default class Chunk {
 					this.pluginDriver,
 					accessedGlobalsByScope,
 					resolution instanceof ExternalModule
-						? `'${
-								this.externalChunkByModule
-									.get(resolution)!
-									.getImportPath(preliminaryFileName.fileName).import
-						  }'`
+						? `'${this.externalChunkByModule
+								.get(resolution)!
+								.getImportPath(preliminaryFileName.fileName)}'`
 						: resolution || '',
 					false
 				);
@@ -788,6 +770,7 @@ export default class Chunk {
 		}
 
 		// TODO Lukas Note: Mention in docs, that users/plugins are responsible to do their own caching
+		// TODO Lukas adapt plugin hook graphs and order in docs
 		const { intro, outro, banner, footer } = await createAddons(
 			this.outputOptions,
 			this.pluginDriver,
@@ -950,6 +933,21 @@ export default class Chunk {
 			path = `_virtual/${fileName}`;
 		}
 		return makeUnique(normalize(path), this.bundle);
+	}
+
+	private generateVariableName(): string {
+		if (this.manualChunkAlias) {
+			return this.manualChunkAlias;
+		}
+		const moduleForNaming =
+			this.entryModules[0] ||
+			this.implicitEntryModules[0] ||
+			this.dynamicEntryModules[0] ||
+			this.orderedModules[this.orderedModules.length - 1];
+		if (moduleForNaming) {
+			return getChunkNameFromModule(moduleForNaming);
+		}
+		return 'chunk';
 	}
 
 	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
@@ -1208,17 +1206,12 @@ export default class Chunk {
 		const importSpecifiers = this.getImportSpecifiers();
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const renderedDependencies = new Map<Chunk | ExternalChunk, ModuleDeclarationDependency>();
-		const { fileName } = this.getPreliminaryFileName();
+		const fileName = this.getFileName();
 		for (const dep of this.dependencies) {
 			const imports = importSpecifiers.get(dep) || null;
 			const reexports = reexportSpecifiers.get(dep) || null;
 			const namedExportsMode = dep instanceof ExternalChunk || dep.exportMode !== 'default';
-			// TODO Lukas see how we can cache things?
-			// TODO Lukas getImportPath on Chunk as well?
-			const importPath =
-				dep instanceof ExternalChunk
-					? dep.getImportPath(fileName).import
-					: escapeId(getImportPath(fileName, dep.getPreliminaryFileName().fileName, false, true));
+			const importPath = dep.getImportPath(fileName);
 
 			renderedDependencies.set(dep, {
 				defaultVariableName: dep.defaultVariableName,

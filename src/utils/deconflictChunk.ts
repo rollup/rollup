@@ -99,7 +99,7 @@ function deconflictImportsEsmOrSystem(
 	// This is needed for namespace reexports
 	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
 		if (preserveModules || dependency instanceof ExternalChunk) {
-			dependency.variableName = getSafeName(dependency.getSuggestedVariableName(), usedNames);
+			dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames);
 		}
 	}
 	for (const variable of imports) {
@@ -145,11 +145,11 @@ function deconflictImportsOther(
 	externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>
 ): void {
 	for (const chunk of dependencies) {
-		chunk.variableName = getSafeName(chunk.getSuggestedVariableName(), usedNames);
+		chunk.variableName = getSafeName(chunk.suggestedVariableName, usedNames);
 	}
 	for (const chunk of deconflictedNamespace) {
 		chunk.namespaceVariableName = getSafeName(
-			`${chunk.getSuggestedVariableName()}__namespace`,
+			`${chunk.suggestedVariableName}__namespace`,
 			usedNames
 		);
 	}
@@ -161,7 +161,7 @@ function deconflictImportsOther(
 			externalModule.defaultVariableName = externalModule.namespaceVariableName;
 		} else {
 			externalModule.defaultVariableName = getSafeName(
-				`${externalModule.getSuggestedVariableName()}__default`,
+				`${externalModule.suggestedVariableName}__default`,
 				usedNames
 			);
 		}
