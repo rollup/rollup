@@ -1,5 +1,5 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependencies, ChunkExports } from '../Chunk';
+import type { ChunkDependency, ChunkExports } from '../Chunk';
 import type { NormalizedOutputOptions, RollupWarning } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import amd from './amd';
@@ -11,7 +11,7 @@ import umd from './umd';
 
 export interface FinaliserOptions {
 	accessedGlobals: Set<string>;
-	dependencies: ChunkDependencies;
+	dependencies: ChunkDependency[];
 	exports: ChunkExports;
 	hasExports: boolean;
 	id: string;

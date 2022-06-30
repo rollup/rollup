@@ -1,6 +1,7 @@
 import { locate } from 'locate-character';
 import type Module from '../Module';
 import type {
+	InternalModuleFormat,
 	NormalizedInputOptions,
 	RollupError,
 	RollupLogProps,
@@ -61,6 +62,7 @@ export const enum Errors {
 	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
+	INVALID_TLA_FORMAT = 'INVALID_TLA_FORMAT',
 	MISSING_EXPORT = 'MISSING_EXPORT',
 	MISSING_IMPLICIT_DEPENDANT = 'MISSING_IMPLICIT_DEPENDANT',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
@@ -279,6 +281,17 @@ export function errInvalidRollupPhaseForChunkEmission(): RollupLogProps {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,
 		message: `Cannot emit chunks after module loading has finished.`
+	};
+}
+
+export function errInvalidFormatForTopLevelAwait(
+	id: string,
+	format: InternalModuleFormat
+): RollupLogProps {
+	return {
+		code: Errors.INVALID_TLA_FORMAT,
+		id,
+		message: `Module format ${format} does not support top-level await. Use the "es" or "system" output formats rather.`
 	};
 }
 

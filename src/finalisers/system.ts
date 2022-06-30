@@ -1,5 +1,5 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependencies, ChunkExports, ModuleDeclarations } from '../Chunk';
+import type { ChunkDependency, ChunkExports, ModuleDeclarations } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
@@ -100,7 +100,7 @@ export default function system(
 }
 
 function analyzeDependencies(
-	dependencies: ChunkDependencies,
+	dependencies: ChunkDependency[],
 	exports: ChunkExports,
 	t: string,
 	{ _, cnst, getObject, getPropertyAccess, n }: GenerateCodeSnippets

@@ -1,4 +1,4 @@
-import type { ChunkDependencies, ChunkExports } from '../../Chunk';
+import type { ChunkDependency, ChunkExports } from '../../Chunk';
 import type { GetInterop } from '../../rollup/types';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
@@ -10,7 +10,7 @@ import {
 
 export function getExportBlock(
 	exports: ChunkExports,
-	dependencies: ChunkDependencies,
+	dependencies: ChunkDependency[],
 	namedExportsMode: boolean,
 	interop: GetInterop,
 	snippets: GenerateCodeSnippets,
@@ -117,7 +117,7 @@ export function getExportBlock(
 
 function getSingleDefaultExport(
 	exports: ChunkExports,
-	dependencies: ChunkDependencies,
+	dependencies: ChunkDependency[],
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	getPropertyAccess: (name: string) => string

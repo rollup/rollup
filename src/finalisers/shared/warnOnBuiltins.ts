@@ -1,4 +1,4 @@
-import type { ChunkDependencies } from '../../Chunk';
+import { ChunkDependency } from '../../Chunk';
 import type { RollupWarning } from '../../rollup/types';
 import { printQuotedStringList } from '../../utils/printStringList';
 
@@ -28,7 +28,7 @@ const builtins = {
 
 export default function warnOnBuiltins(
 	warn: (warning: RollupWarning) => void,
-	dependencies: ChunkDependencies
+	dependencies: ChunkDependency[]
 ): void {
 	const externalBuiltins = dependencies
 		.map(({ importPath }) => importPath)

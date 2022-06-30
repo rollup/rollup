@@ -51,6 +51,7 @@ import {
 	augmentCodeLocation,
 	errAmbiguousExternalNamespaces,
 	errCircularReexport,
+	errInvalidFormatForTopLevelAwait,
 	errMissingExport,
 	errNamespaceConflict,
 	error,
@@ -222,7 +223,6 @@ export default class Module {
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
 	readonly sources = new Set<string>();
 	declare transformFiles?: EmittedFile[];
-	usesTopLevelAwait = false;
 
 	private allExportNames: Set<string> | null = null;
 	private ast: Program | null = null;
@@ -686,11 +686,15 @@ export default class Module {
 		this.exportAllModules.push(...externalExportAllModules);
 	}
 
-	render(options: RenderOptions): MagicString {
-		const magicString = this.magicString.clone();
-		this.ast!.render(magicString, options);
-		this.usesTopLevelAwait = this.astContext.usesTopLevelAwait;
-		return magicString;
+	render(options: RenderOptions): { source: MagicString; usesTopLevelAwait: boolean } {
+		const source = this.magicString.clone();
+		this.ast!.render(source, options);
+		source.trim();
+		const { usesTopLevelAwait } = this.astContext;
+		if (usesTopLevelAwait && options.format !== 'es' && options.format !== 'system') {
+			return error(errInvalidFormatForTopLevelAwait(this.id, options.format));
+		}
+		return { source, usesTopLevelAwait };
 	}
 
 	setSource({

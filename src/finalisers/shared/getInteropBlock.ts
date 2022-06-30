@@ -1,4 +1,4 @@
-import type { ModuleDeclarationDependency, ReexportSpecifier } from '../../Chunk';
+import type { ChunkDependency, ReexportSpecifier } from '../../Chunk';
 import type { GetInterop } from '../../rollup/types';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../utils/interopHelpers';
 
 export default function getInteropBlock(
-	dependencies: readonly ModuleDeclarationDependency[],
+	dependencies: readonly ChunkDependency[],
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	freeze: boolean,

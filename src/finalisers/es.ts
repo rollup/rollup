@@ -1,5 +1,5 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
+import type { ChunkDependency, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
@@ -32,7 +32,7 @@ export default function es(
 	magicString.trim();
 }
 
-function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
+function getImportBlock(dependencies: ChunkDependency[], _: string): string[] {
 	const importBlock: string[] = [];
 	for (const { importPath, reexports, imports, name } of dependencies) {
 		if (!reexports && !imports) {
