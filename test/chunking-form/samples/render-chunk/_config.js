@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { replaceDirInStringifiedObject } = require('../../../utils');
 
 module.exports = {
 	description:
@@ -15,10 +16,7 @@ module.exports = {
 				assert.strictEqual(chunks[chunk.fileName], chunk);
 				return (
 					code +
-					`\nconsole.log(${JSON.stringify(chunk, null, 2).replace(
-						new RegExp(__dirname, 'g'),
-						'**'
-					)});` +
+					`\nconsole.log(${replaceDirInStringifiedObject(chunk, __dirname)});` +
 					`\nconsole.log('all chunks', ${JSON.stringify(Object.keys(chunks))})` +
 					`\nconsole.log('referenced asset in renderChunk', '${this.getFileName(
 						this.emitFile({ type: 'asset', name: 'test', source: 'test' })

@@ -1,5 +1,6 @@
 const assert = require('assert');
 const path = require('path');
+const { replaceDirInStringifiedObject } = require('../../../utils');
 
 module.exports = {
 	description: 'replaces hashes when mutating chunk info in renderChunk',
@@ -20,9 +21,10 @@ module.exports = {
 			},
 			generateBundle(options, bundle) {
 				const sanitizedBundle = JSON.parse(
-					JSON.stringify(bundle)
-						.replace(/(entry-\w+)-\w+\.js/g, (match, name) => `${name}.js`)
-						.replace(new RegExp(__dirname, 'g'), '**')
+					replaceDirInStringifiedObject(bundle, __dirname).replace(
+						/(entry-\w+)-\w+\.js/g,
+						(match, name) => `${name}.js`
+					)
 				);
 				for (const fileName of Object.keys(sanitizedBundle)) {
 					delete sanitizedBundle[fileName].code;
