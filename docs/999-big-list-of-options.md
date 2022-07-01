@@ -402,8 +402,8 @@ A string to prepend/append to the bundle. You can also supply a function that re
 
 If you supply a function, `chunk` contains additional information about the chunk using the same `ChunkInfo` type as the [`generateBundle`](guide/en/#generatebundle) hook with the following differences:
 
-* `code` and `map` are not set as the chunk has not been rendered yet.
-* all referenced chunk file names that would contain hashes will contain hash placeholders instead. This includes `fileName`, `imports`, `importedBindings`, `dynamicImports` and `implicitlyLoadedBefore`. When you use such a placeholder file name or part of it in the code returned from this option, Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
+- `code` and `map` are not set as the chunk has not been rendered yet.
+- all referenced chunk file names that would contain hashes will contain hash placeholders instead. This includes `fileName`, `imports`, `importedBindings`, `dynamicImports` and `implicitlyLoadedBefore`. When you use such a placeholder file name or part of it in the code returned from this option, Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
 
 `chunk` is mutable and changes applied in this hook will propagate to other plugins and to the generated bundle. That means if you add or remove imports or exports in this hook, you should update `imports`, `importedBindings` and/or `exports`.
 
