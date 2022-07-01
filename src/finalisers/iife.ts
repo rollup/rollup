@@ -2,13 +2,13 @@ import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
-import type { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import setupNamespace from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
+import type { FinaliserOptions } from './index';
 
 export default function iife(
 	magicString: MagicStringBundle,

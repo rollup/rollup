@@ -2,7 +2,6 @@ import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
-import type { FinaliserOptions } from './index';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
@@ -11,6 +10,7 @@ import { keypath } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
+import type { FinaliserOptions } from './index';
 
 function globalProp(
 	name: string | false | undefined,

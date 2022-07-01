@@ -1,11 +1,11 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
-import type { FinaliserOptions } from './index';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
+import type { FinaliserOptions } from './index';
 
 export default function amd(
 	magicString: MagicStringBundle,
