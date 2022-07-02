@@ -11,9 +11,9 @@ permissions:
   contents: read
 
 jobs:
-  linux16:
+  linux18:
     runs-on: ubuntu-latest
-    name: Node 16 + Coverage (Linux)
+    name: Node 18 + Coverage (Linux)
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
       - name: Install dependencies
         run: npm ci --ignore-scripts
       - name: Run tests with coverage
@@ -33,16 +33,16 @@ jobs:
         with:
           commit_parent: ${{ github.event.pull_request.head.sha }}
 
-  linux14:
+  linux16:
     runs-on: ubuntu-latest
-    name: Node 14 + Extra Tests (Linux)
+    name: Node 16 + Extra Tests (Linux)
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '16'
       - name: Install dependencies
         run: npm ci --ignore-scripts
       - name: Lint
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['10', '12', '18']
+        node: ['10', '12', '14']
     name: Node ${{ matrix.node }} (Linux)
     steps:
       - name: Checkout Commit
@@ -78,7 +78,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        node: ['12', '16']
+        node: ['14', '18']
     name: Node ${{ matrix.node }} (macOS)
     steps:
       - name: Checkout Commit
@@ -98,7 +98,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        node: ['10', '16']
+        node: ['10', '14', '18']
     name: Node ${{ matrix.node }} (Windows)
     steps:
       - name: Checkout Commit
