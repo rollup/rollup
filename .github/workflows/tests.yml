@@ -78,7 +78,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        node: ['10', '14', '18']
+        node: ['14', '18']
     name: Node ${{ matrix.node }} (macOS)
     steps:
       - name: Checkout Commit
