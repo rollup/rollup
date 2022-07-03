@@ -13,6 +13,6 @@ var print = function(value) {
   }, Foo;
 }();
 
-console.log("esm-test: main.js"), new Foo(123).output(), console.log("esm-test: main.js?commonjs-entry");
+console.log("esm-test: main.js"), new Foo(123).output();
 
 export { Foo as Bar };
