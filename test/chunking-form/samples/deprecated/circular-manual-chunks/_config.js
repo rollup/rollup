@@ -1,6 +1,6 @@
 module.exports = {
 	description: 'handles manual chunks with circular dependencies',
-	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
+	expectedWarnings: ['CIRCULAR_DEPENDENCY', 'DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: 'main',

@@ -12,5 +12,6 @@ module.exports = {
 			},
 			name: 'bundle'
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

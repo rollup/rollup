@@ -16,5 +16,6 @@ module.exports = {
 			},
 			format: 'cjs'
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

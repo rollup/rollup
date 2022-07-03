@@ -82,7 +82,7 @@ export function getPluginContext(
 						message: `Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
 						plugin: plugin.name
 					},
-					false,
+					true,
 					options
 				);
 				yield* moduleIds;
