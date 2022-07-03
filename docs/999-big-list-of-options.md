@@ -1875,33 +1875,6 @@ _Use the [`output.generatedCode.constBindings`](guide/en/#outputgeneratedcode) o
 
 Generate `const` declarations for exports rather than `var` declarations.
 
-#### treeshake.pureExternalModules
-
-_Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br> Type: `boolean | string[] | (id: string) => boolean | null`<br> CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br> Default: `false`
-
-If `true`, assume external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging.
-
-```javascript
-// input file
-import { unused } from 'external-a';
-import 'external-b';
-console.log(42);
-```
-
-```javascript
-// output with treeshake.pureExternalModules === false
-import 'external-a';
-import 'external-b';
-console.log(42);
-```
-
-```javascript
-// output with treeshake.pureExternalModules === true
-console.log(42);
-```
-
-You can also supply a list of external ids to be considered pure or a function that is called whenever an external import could be removed.
-
 #### output.namespaceToStringTag
 
 _Use [`output.generatedCode.symbols`](guide/en/#outputgeneratedcode) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`

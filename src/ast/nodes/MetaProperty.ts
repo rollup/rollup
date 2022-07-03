@@ -1,7 +1,6 @@
 import type MagicString from 'magic-string';
 import type { InternalModuleFormat } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
-import { warnDeprecation } from '../../utils/error';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { dirname, normalize, relative } from '../../utils/path';
 import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
@@ -12,8 +11,6 @@ import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-const ASSET_PREFIX = 'ROLLUP_ASSET_URL_';
-const CHUNK_PREFIX = 'ROLLUP_CHUNK_URL_';
 const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 
 export default class MetaProperty extends NodeBase {
@@ -29,10 +26,7 @@ export default class MetaProperty extends NodeBase {
 	): void {
 		const metaProperty = this.metaProperty;
 		const accessedGlobals = (
-			metaProperty &&
-			(metaProperty.startsWith(FILE_PREFIX) ||
-				metaProperty.startsWith(ASSET_PREFIX) ||
-				metaProperty.startsWith(CHUNK_PREFIX))
+			metaProperty && metaProperty.startsWith(FILE_PREFIX)
 				? accessedFileUrlGlobals
 				: accessedMetaUrlGlobals
 		)[format];
@@ -81,64 +75,22 @@ export default class MetaProperty extends NodeBase {
 		const parent = this.parent;
 		const metaProperty = this.metaProperty as string | null;
 
-		if (
-			metaProperty &&
-			(metaProperty.startsWith(FILE_PREFIX) ||
-				metaProperty.startsWith(ASSET_PREFIX) ||
-				metaProperty.startsWith(CHUNK_PREFIX))
-		) {
+		if (metaProperty && metaProperty.startsWith(FILE_PREFIX)) {
 			let referenceId: string | null = null;
-			let assetReferenceId: string | null = null;
-			let chunkReferenceId: string | null = null;
-			let fileName: string;
-			if (metaProperty.startsWith(FILE_PREFIX)) {
-				referenceId = metaProperty.substring(FILE_PREFIX.length);
-				fileName = outputPluginDriver.getFileName(referenceId);
-			} else if (metaProperty.startsWith(ASSET_PREFIX)) {
-				warnDeprecation(
-					`Using the "${ASSET_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
-					true,
-					this.context.options
-				);
-				assetReferenceId = metaProperty.substring(ASSET_PREFIX.length);
-				fileName = outputPluginDriver.getFileName(assetReferenceId);
-			} else {
-				warnDeprecation(
-					`Using the "${CHUNK_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
-					true,
-					this.context.options
-				);
-				chunkReferenceId = metaProperty.substring(CHUNK_PREFIX.length);
-				fileName = outputPluginDriver.getFileName(chunkReferenceId);
-			}
+			referenceId = metaProperty.substring(FILE_PREFIX.length);
+			const fileName = outputPluginDriver.getFileName(referenceId);
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
-			let replacement;
-			if (assetReferenceId !== null) {
-				replacement = outputPluginDriver.hookFirstSync('resolveAssetUrl', [
+			const replacement =
+				outputPluginDriver.hookFirstSync('resolveFileUrl', [
 					{
-						assetFileName: fileName,
 						chunkId,
+						fileName,
 						format,
 						moduleId: this.context.module.id,
-						relativeAssetPath: relativePath
+						referenceId,
+						relativePath
 					}
-				]);
-			}
-			if (!replacement) {
-				replacement =
-					outputPluginDriver.hookFirstSync('resolveFileUrl', [
-						{
-							assetReferenceId,
-							chunkId,
-							chunkReferenceId,
-							fileName,
-							format,
-							moduleId: this.context.module.id,
-							referenceId: referenceId || assetReferenceId || chunkReferenceId!,
-							relativePath
-						}
-					]) || relativeUrlMechanisms[format](relativePath);
-			}
+				]) || relativeUrlMechanisms[format](relativePath);
 
 			code.overwrite(
 				(parent as MemberExpression).start,
