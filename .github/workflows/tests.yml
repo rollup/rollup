@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['10', '12', '14.18.0']
+        node: ['14.18.0']
     name: Node ${{ matrix.node }} (Linux)
     steps:
       - name: Checkout Commit
@@ -98,7 +98,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        node: ['10', '14.18.0', '18']
+        node: ['14.18.0', '18']
     name: Node ${{ matrix.node }} (Windows)
     steps:
       - name: Checkout Commit
