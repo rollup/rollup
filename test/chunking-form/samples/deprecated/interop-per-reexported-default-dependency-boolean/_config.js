@@ -10,5 +10,6 @@ module.exports = {
 				return JSON.parse(id.split('-')[1]);
 			}
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

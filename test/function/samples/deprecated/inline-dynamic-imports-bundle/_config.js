@@ -14,5 +14,12 @@ module.exports = {
 				]);
 			}
 		}
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.'
+		}
+	]
 };

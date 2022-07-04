@@ -28,6 +28,11 @@ module.exports = {
 	},
 	warnings: [
 		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.'
+		},
+		{
 			code: 'INVALID_OPTION',
 			message:
 				'Invalid value for option "output.dynamicImportFunction" - this option is ignored for formats other than "es".',

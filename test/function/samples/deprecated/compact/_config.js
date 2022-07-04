@@ -14,6 +14,11 @@ module.exports = {
 			cycle: ['main.js', 'main.js'],
 			importer: 'main.js',
 			message: 'Circular dependency: main.js -> main.js'
+		},
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.'
 		}
 	],
 	context: {
