@@ -17,5 +17,6 @@ module.exports = {
 				assert.strictEqual(this.getFileName(referenceId), 'generated-buildStart.js');
 			}
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

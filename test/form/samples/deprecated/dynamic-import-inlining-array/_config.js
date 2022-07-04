@@ -4,5 +4,6 @@ module.exports = {
 		strictDeprecations: false,
 		inlineDynamicImports: true,
 		input: ['main']
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

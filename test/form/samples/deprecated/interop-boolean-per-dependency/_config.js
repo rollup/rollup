@@ -11,5 +11,6 @@ module.exports = {
 				return id.replace('-', '');
 			}
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

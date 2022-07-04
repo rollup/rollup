@@ -4,5 +4,6 @@ module.exports = {
 		strictDeprecations: false,
 		input: 'src/lib/main.js',
 		preserveModules: true
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

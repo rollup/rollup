@@ -8,5 +8,6 @@ module.exports = {
 			name: 'foo',
 			interop: false
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

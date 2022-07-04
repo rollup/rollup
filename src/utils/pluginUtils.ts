@@ -1,5 +1,5 @@
-import type { NormalizedInputOptions, Plugin, RollupError } from '../rollup/types';
-import { error, Errors, warnDeprecation } from './error';
+import type { RollupError } from '../rollup/types';
+import { error, Errors } from './error';
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
 export const ANONYMOUS_OUTPUT_PLUGIN_PREFIX = 'at output position ';
@@ -22,28 +22,4 @@ export function throwPluginError(
 		err.id = id;
 	}
 	return error(err);
-}
-
-const deprecatedHooks = [
-	{ active: true, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
-] as const;
-
-export function warnDeprecatedHooks(
-	plugins: readonly Plugin[],
-	options: NormalizedInputOptions
-): void {
-	for (const { active, deprecated, replacement } of deprecatedHooks) {
-		for (const plugin of plugins) {
-			if (deprecated in plugin) {
-				warnDeprecation(
-					{
-						message: `The "${deprecated}" hook used by plugin ${plugin.name} is deprecated. The "${replacement}" hook should be used instead.`,
-						plugin: plugin.name
-					},
-					active,
-					options
-				);
-			}
-		}
-	}
 }

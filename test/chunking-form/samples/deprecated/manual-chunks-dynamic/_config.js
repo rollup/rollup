@@ -6,5 +6,6 @@ module.exports = {
 		manualChunks: {
 			dynamic: ['dynamic.js']
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

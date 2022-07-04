@@ -6,5 +6,6 @@ module.exports = {
 		manualChunks: {
 			manual: ['middle.js', 'inner.js', 'outer.js']
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };
