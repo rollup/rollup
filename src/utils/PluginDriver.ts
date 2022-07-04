@@ -22,7 +22,7 @@ import type {
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
 import { errInputHookInOutputPlugin, error } from './error';
-import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
+import { throwPluginError } from './pluginUtils';
 
 /**
  * Get the inner type from a promise
@@ -94,7 +94,6 @@ export class PluginDriver {
 		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		basePluginDriver?: PluginDriver
 	) {
-		warnDeprecatedHooks(userPlugins, options);
 		this.pluginCache = pluginCache;
 		this.fileEmitter = new FileEmitter(
 			graph,

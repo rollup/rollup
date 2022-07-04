@@ -288,5 +288,6 @@ module.exports = {
 				);
 			}
 		}
-	}
+	},
+	warnings: []
 };

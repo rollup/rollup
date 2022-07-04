@@ -64,5 +64,6 @@ module.exports = {
 				);
 			}
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

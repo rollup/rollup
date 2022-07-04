@@ -7,5 +7,6 @@ module.exports = {
 			entryFileNames: 'entry-[name]-[format]-[ext][extname].js'
 		},
 		preserveModules: true
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };
