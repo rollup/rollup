@@ -1,6 +1,6 @@
 module.exports = {
 	description: 'getInterop with interop: false',
-	expectedWarnings: ['UNUSED_EXTERNAL_IMPORT'],
+	expectedWarnings: ['UNUSED_EXTERNAL_IMPORT', 'DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		external: ['core/view'],

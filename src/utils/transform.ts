@@ -95,14 +95,6 @@ export default async function transform(
 					cache: customTransformCache
 						? pluginContext.cache
 						: getTrackedPluginCache(pluginContext.cache, useCustomTransformCache),
-					emitAsset(name: string, source?: string | Uint8Array) {
-						emittedFiles.push({ name, source, type: 'asset' as const });
-						return pluginContext.emitAsset(name, source);
-					},
-					emitChunk(id, options) {
-						emittedFiles.push({ id, name: options && options.name, type: 'chunk' as const });
-						return pluginContext.emitChunk(id, options);
-					},
 					emitFile(emittedFile: EmittedFile) {
 						emittedFiles.push(emittedFile);
 						return pluginDriver.emitFile(emittedFile);

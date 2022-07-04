@@ -9,5 +9,6 @@ module.exports = {
 		manualChunks: {
 			main: ['outer']
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

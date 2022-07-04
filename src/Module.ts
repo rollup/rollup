@@ -297,7 +297,7 @@ export default class Module {
 			get hasModuleSideEffects() {
 				warnDeprecation(
 					'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
-					false,
+					true,
 					options
 				);
 				return this.moduleSideEffects;

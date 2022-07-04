@@ -24,5 +24,12 @@ module.exports = {
 	},
 	exports() {
 		assert.ok(imported);
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.'
+		}
+	]
 };
