@@ -7,5 +7,6 @@ module.exports = {
 		output: {
 			exports: 'named'
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

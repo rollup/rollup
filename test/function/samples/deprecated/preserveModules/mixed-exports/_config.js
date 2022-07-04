@@ -9,6 +9,11 @@ module.exports = {
 	},
 	warnings: [
 		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.'
+		},
+		{
 			code: 'MIXED_EXPORTS',
 			id: path.join(__dirname, 'main.js'),
 			message:

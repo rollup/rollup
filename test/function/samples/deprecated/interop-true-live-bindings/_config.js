@@ -57,5 +57,13 @@ module.exports = {
 					throw new Error(`Unexpected import "${id}"`);
 			}
 		}
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The boolean value "true" for the "output.interop" option is deprecated. Use "auto" instead.',
+			url: 'https://rollupjs.org/guide/en/#outputinterop'
+		}
+	]
 };

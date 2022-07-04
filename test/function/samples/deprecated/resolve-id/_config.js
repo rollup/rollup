@@ -85,5 +85,10 @@ module.exports = {
 				);
 			}
 		}
+	},
+	warnings(warnings) {
+		for (const warning of warnings) {
+			assert.strictEqual(warning.code, 'DEPRECATED_FEATURE');
+		}
 	}
 };
