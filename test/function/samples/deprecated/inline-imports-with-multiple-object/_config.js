@@ -10,5 +10,12 @@ module.exports = {
 		message:
 			'Invalid value for option "output.inlineDynamicImports" - multiple inputs are not supported when "output.inlineDynamicImports" is true.',
 		url: 'https://rollupjs.org/guide/en/#outputinlinedynamicimports'
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.'
+		}
+	]
 };

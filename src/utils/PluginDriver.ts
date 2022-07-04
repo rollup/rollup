@@ -28,7 +28,7 @@ import {
 } from './error';
 import { getOrCreate } from './getOrCreate';
 import { OutputBundleWithPlaceholders } from './outputBundle';
-import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
+import { throwPluginError } from './pluginUtils';
 
 /**
  * Coerce a promise union to always be a promise.
@@ -87,7 +87,6 @@ export class PluginDriver {
 		private readonly pluginCache: Record<string, SerializablePluginCache> | undefined,
 		basePluginDriver?: PluginDriver
 	) {
-		warnDeprecatedHooks(userPlugins, options);
 		this.fileEmitter = new FileEmitter(
 			graph,
 			options,

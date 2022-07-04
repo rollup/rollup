@@ -29,5 +29,12 @@ module.exports = {
 				['main.js', '_virtual/_virtualModule.js', '_virtual/_virtualModule2.js']
 			)
 		);
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.'
+		}
+	]
 };

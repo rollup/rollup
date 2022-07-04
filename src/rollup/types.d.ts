@@ -150,10 +150,6 @@ export interface EmittedChunk {
 
 export type EmittedFile = EmittedAsset | EmittedChunk;
 
-export type EmitAsset = (name: string, source?: string | Uint8Array) => string;
-
-export type EmitChunk = (id: string, options?: { name?: string }) => string;
-
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 interface ModuleInfo extends ModuleOptions {
@@ -185,22 +181,12 @@ export interface CustomPluginOptions {
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
-	/** @deprecated Use `this.emitFile` instead */
-	emitAsset: EmitAsset;
-	/** @deprecated Use `this.emitFile` instead */
-	emitChunk: EmitChunk;
 	emitFile: EmitFile;
 	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
-	/** @deprecated Use `this.getFileName` instead */
-	getAssetFileName: (assetReferenceId: string) => string;
-	/** @deprecated Use `this.getFileName` instead */
-	getChunkFileName: (chunkReferenceId: string) => string;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	getWatchFiles: () => string[];
-	/** @deprecated Use `this.resolve` instead */
-	isExternal: IsExternal;
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
@@ -212,8 +198,6 @@ export interface PluginContext extends MinimalPluginContext {
 		importer?: string,
 		options?: { custom?: CustomPluginOptions; isEntry?: boolean; skipSelf?: boolean }
 	) => Promise<ResolvedId | null>;
-	/** @deprecated Use `this.resolve` instead */
-	resolveId: (source: string, importer?: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
 }
@@ -306,23 +290,10 @@ export type ResolveImportMetaHook = (
 	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
 ) => string | null | void;
 
-export type ResolveAssetUrlHook = (
-	this: PluginContext,
-	options: {
-		assetFileName: string;
-		chunkId: string;
-		format: InternalModuleFormat;
-		moduleId: string;
-		relativeAssetPath: string;
-	}
-) => string | null | void;
-
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
-		assetReferenceId: string | null;
 		chunkId: string;
-		chunkReferenceId: string | null;
 		fileName: string;
 		format: InternalModuleFormat;
 		moduleId: string;
@@ -390,8 +361,6 @@ export interface FunctionPluginHooks {
 		outputOptions: NormalizedOutputOptions,
 		inputOptions: NormalizedInputOptions
 	) => void;
-	/** @deprecated Use `resolveFileUrl` instead */
-	resolveAssetUrl: ResolveAssetUrlHook;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveFileUrl: ResolveFileUrlHook;
 	resolveId: ResolveIdHook;
@@ -414,7 +383,6 @@ export type OutputPluginHooks =
 	| 'renderDynamicImport'
 	| 'renderError'
 	| 'renderStart'
-	| 'resolveAssetUrl'
 	| 'resolveFileUrl'
 	| 'resolveImportMeta'
 	| 'writeBundle';
@@ -425,7 +393,6 @@ export type SyncPluginHooks =
 	| 'augmentChunkHash'
 	| 'outputOptions'
 	| 'renderDynamicImport'
-	| 'resolveAssetUrl'
 	| 'resolveFileUrl'
 	| 'resolveImportMeta';
 
@@ -434,7 +401,6 @@ export type AsyncPluginHooks = Exclude<keyof FunctionPluginHooks, SyncPluginHook
 export type FirstPluginHooks =
 	| 'load'
 	| 'renderDynamicImport'
-	| 'resolveAssetUrl'
 	| 'resolveDynamicImport'
 	| 'resolveFileUrl'
 	| 'resolveId'
@@ -498,8 +464,6 @@ export interface TreeshakingOptions
 	extends Partial<Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>> {
 	moduleSideEffects?: ModuleSideEffectsOption;
 	preset?: TreeshakingPreset;
-	/** @deprecated Use `moduleSideEffects` instead */
-	pureExternalModules?: PureModulesOption;
 }
 
 interface GetManualChunkApi {
@@ -719,12 +683,13 @@ export interface NormalizedOutputOptions {
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
+	/** @deprecated Use "generatedCode.symbols" instead. */
 	namespaceToStringTag: boolean;
 	noConflict: boolean;
 	outro: () => string | Promise<string>;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
-	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
+	/** @deprecated Use "generatedCode.constBindings" instead. */
 	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
@@ -757,8 +722,6 @@ export interface PreRenderedAsset {
 
 export interface OutputAsset extends PreRenderedAsset {
 	fileName: string;
-	/** @deprecated Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead */
-	isAsset: true;
 }
 
 export interface RenderedModule {

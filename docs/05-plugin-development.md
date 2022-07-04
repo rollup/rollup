@@ -600,14 +600,6 @@ Note that since this hook has access to the filename of the current chunk, its r
 
 Called only at the end of `bundle.write()` once all files have been written. Similar to the [`generateBundle`](guide/en/#generatebundle) hook, `bundle` provides the full list of files being written along with their details.
 
-### Deprecated Hooks
-
-☢️ These hooks have been deprecated and may be removed in a future Rollup version.
-
-- `resolveAssetUrl` - _**Use [`resolveFileUrl`](guide/en/#resolvefileurl)**_ - Function hook that allows to customize the generated code for asset URLs.
-
-More properties may be supported in the future, as and when they prove necessary.
-
 ### Plugin Context
 
 A number of utility functions and informational bits can be accessed from within most [hooks](guide/en/#build-hooks) via `this`:
@@ -991,24 +983,6 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.
 
-- `this.emitAsset(assetName: string, source: string) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfile)**_ - Emits a custom file that is included in the build output, returning a `referenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this.setAssetSource(referenceId, source)`](guide/en/#thissetassetsource). A string or `Uint8Array`/`Buffer` source must be set for each asset through either method or an error will be thrown on generate completion.
-
-  Emitted assets will follow the [`output.assetFileNames`](guide/en/#outputassetfilenames) naming scheme. You can reference the URL of the file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_ASSET_URL_referenceId`.
-
-  The generated code that replaces `import.meta.ROLLUP_ASSET_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. Once the asset has been finalized during `generate`, you can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilename) to determine the file name.
-
-- `this.emitChunk(moduleId: string, options?: {name?: string}) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfile)**_ - Emits a new chunk with the given module as entry point. This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split. It returns a `referenceId` that can be used to later access the generated file name of the chunk.
-
-  Emitted chunks will follow the [`output.chunkFileNames`](guide/en/#outputchunkfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames) naming scheme. If a `name` is provided, this will be used for the `[name]` file name placeholder, otherwise the name will be derived from the file name. If a `name` is provided, this name must not conflict with any other entry point names unless the entry points reference the same entry module. You can reference the URL of the emitted chunk in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_CHUNK_URL_referenceId`.
-
-  The generated code that replaces `import.meta.ROLLUP_CHUNK_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. Once the chunk has been rendered during `generate`, you can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilename) to determine the file name.
-
-- `this.getAssetFileName(referenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilename)**_ - Get the file name of an asset, according to the `assetFileNames` output option pattern. The file name will be relative to `outputOptions.dir`.
-
-- `this.getChunkFileName(referenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilename)**_ - Get the file name of an emitted chunk. The file name will be relative to `outputOptions.dir`.
-
-- `this.isExternal(id: string, importer: string | undefined, isResolved: boolean) => boolean` - _**Use [`this.resolve`](guide/en/#thisresolve)**_ - Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
-
 - `this.moduleIds: IterableIterator<string>` - _**Use [`this.getModuleIds`](guide/en/#thisgetmoduleids)**_ - An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
 
   ```js
@@ -1018,8 +992,6 @@ The `position` argument is a character index where the warning was raised. If pr
   ```
 
   or converted into an Array via `Array.from(this.moduleIds)`.
-
-- `this.resolveId(source: string, importer?: string) => Promise<string | null>` - _**Use [`this.resolve`](guide/en/#thisresolve)**_ - Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
 
 ### File URLs
 

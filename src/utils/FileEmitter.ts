@@ -19,8 +19,7 @@ import {
 	errFileReferenceIdNotFoundForFilename,
 	errInvalidRollupPhaseForChunkEmission,
 	errNoAssetSourceSet,
-	error,
-	warnDeprecation
+	error
 } from './error';
 import {
 	FILE_PLACEHOLDER,
@@ -330,18 +329,8 @@ export class FileEmitter {
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, fileName, source };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
-		const { options } = this;
 		bundle[fileName] = {
 			fileName,
-			get isAsset(): true {
-				warnDeprecation(
-					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
-					true,
-					options
-				);
-
-				return true;
-			},
 			name: consumedFile.name,
 			source,
 			type: 'asset'
