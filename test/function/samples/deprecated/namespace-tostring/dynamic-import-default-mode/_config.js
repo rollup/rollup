@@ -15,5 +15,12 @@ module.exports = {
 		assert.strictEqual(foo[Symbol.toStringTag], 'Module');
 		assert.strictEqual(Object.prototype.toString.call(foo), '[object Module]');
 		assert.strictEqual(foo.default, 42);
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.'
+		}
+	]
 };

@@ -207,7 +207,7 @@ const getPreferConst = (
 	if (configPreferConst != null) {
 		warnDeprecation(
 			`The "output.preferConst" option is deprecated. Use the "output.generatedCode.constBindings" option instead.`,
-			false,
+			true,
 			inputOptions
 		);
 	}
@@ -312,7 +312,7 @@ const getDynamicImportFunction = (
 	if (configDynamicImportFunction) {
 		warnDeprecation(
 			`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
-			false,
+			true,
 			inputOptions
 		);
 	}
@@ -408,7 +408,7 @@ const getInterop = (
 						} instead.`,
 						url: 'https://rollupjs.org/guide/en/#outputinterop'
 					},
-					false,
+					true,
 					inputOptions
 				);
 			}
@@ -475,7 +475,7 @@ const getNamespaceToStringTag = (
 	if (configNamespaceToStringTag != null) {
 		warnDeprecation(
 			`The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.`,
-			false,
+			true,
 			inputOptions
 		);
 		return configNamespaceToStringTag;

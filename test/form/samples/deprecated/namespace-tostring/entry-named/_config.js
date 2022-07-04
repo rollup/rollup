@@ -7,5 +7,6 @@ module.exports = {
 			exports: 'named',
 			name: 'bundle'
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

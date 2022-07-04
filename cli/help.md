@@ -38,16 +38,18 @@ Basic options:
 --failAfterWarnings         Exit with an error if the build produced warnings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
+--generatedCode <preset>    Which code features to use (es5/es2015)
 --no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
 --no-interop                Do not include interop block
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --intro <text>              Code to insert at top of bundle (inside wrapper)
+--no-makeAbsoluteExternalsRelative Prevent normalization of external imports
+--maxParallelFileReads <value> How many files to read in parallel
 --minifyInternalExports     Force or disable minification of internal exports
---namespaceToStringTag      Create proper `.toString` methods for namespaces
 --noConflict                Generate a noConflict method for UMD globals
 --outro <text>              Code to insert at end of bundle (inside wrapper)
---preferConst               Use `const` instead of `var` for exports
+--perf                      Display performance timings
 --no-preserveEntrySignatures Avoid facade chunks for entry points
 --preserveModules           Preserve module structure
 --preserveModulesRoot       Put preserved modules under this path at root level

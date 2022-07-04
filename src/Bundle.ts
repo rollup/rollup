@@ -6,7 +6,6 @@ import type {
 	GetManualChunk,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputAsset,
 	OutputBundle,
 	OutputChunk,
 	WarningHandler
@@ -19,8 +18,7 @@ import {
 	errCannotAssignModuleToChunk,
 	errChunkInvalid,
 	errInvalidOption,
-	error,
-	warnDeprecation
+	error
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { type GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
@@ -185,14 +183,6 @@ export default class Bundle {
 
 	private finaliseAssets(outputBundle: OutputBundleWithPlaceholders): void {
 		for (const file of Object.values(outputBundle)) {
-			if (!file.type) {
-				warnDeprecation(
-					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
-					true,
-					this.inputOptions
-				);
-				(file as OutputAsset).type = 'asset';
-			}
 			if (this.outputOptions.validate && 'code' in file) {
 				try {
 					this.graph.contextParse(file.code, {

@@ -8,5 +8,6 @@ module.exports = {
 				return `chunk-${id[id.length - 4]}`;
 			}
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

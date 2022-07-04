@@ -4,5 +4,6 @@ module.exports = {
 	options: {
 		strictDeprecations: false,
 		preserveModules: true
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

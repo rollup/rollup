@@ -12,5 +12,6 @@ module.exports = {
 		output: {
 			dynamicImportFunction: 'foobar'
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

@@ -26,5 +26,6 @@ module.exports = {
 			name: 'bundle',
 			noConflict: true
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };
