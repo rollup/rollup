@@ -8,5 +8,6 @@ module.exports = {
 			'manual-inner': ['inner.js'],
 			'manual-middle': ['middle.js']
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

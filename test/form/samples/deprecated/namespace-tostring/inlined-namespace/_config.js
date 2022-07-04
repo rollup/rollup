@@ -5,5 +5,6 @@ module.exports = {
 		output: {
 			namespaceToStringTag: true
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

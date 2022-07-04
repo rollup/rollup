@@ -5,7 +5,6 @@ import type {
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
 	PreserveEntrySignaturesOption,
-	PureModulesOption,
 	RollupBuild,
 	WarningHandler
 } from '../../rollup/types';
@@ -61,7 +60,7 @@ export function normalizeInputOptions(config: InputOptions): {
 		preserveSymlinks: config.preserveSymlinks || false,
 		shimMissingExports: config.shimMissingExports || false,
 		strictDeprecations,
-		treeshake: getTreeshake(config, onwarn, strictDeprecations)
+		treeshake: getTreeshake(config)
 	};
 
 	warnUnknownOptions(
@@ -147,7 +146,7 @@ const getInlineDynamicImports = (
 	if (configInlineDynamicImports) {
 		warnDeprecationWithOptions(
 			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
-			false,
+			true,
 			warn,
 			strictDeprecations
 		);
@@ -169,7 +168,7 @@ const getManualChunks = (
 	if (configManualChunks) {
 		warnDeprecationWithOptions(
 			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
-			false,
+			true,
 			warn,
 			strictDeprecations
 		);
@@ -242,7 +241,7 @@ const getPreserveModules = (
 	if (configPreserveModules) {
 		warnDeprecationWithOptions(
 			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
-			false,
+			true,
 			warn,
 			strictDeprecations
 		);
@@ -250,11 +249,7 @@ const getPreserveModules = (
 	return configPreserveModules;
 };
 
-const getTreeshake = (
-	config: InputOptions,
-	warn: WarningHandler,
-	strictDeprecations: boolean
-): NormalizedInputOptions['treeshake'] => {
+const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake'] => {
 	const configTreeshake = config.treeshake;
 	if (configTreeshake === false) {
 		return false;
@@ -265,27 +260,12 @@ const getTreeshake = (
 		'treeshake',
 		'false, true, '
 	);
-	if (typeof configWithPreset.pureExternalModules !== 'undefined') {
-		warnDeprecationWithOptions(
-			`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-			true,
-			warn,
-			strictDeprecations
-		);
-	}
 	return {
 		annotations: configWithPreset.annotations !== false,
 		correctVarValueBeforeDeclaration: configWithPreset.correctVarValueBeforeDeclaration === true,
-		moduleSideEffects:
-			typeof configTreeshake === 'object' && configTreeshake.pureExternalModules
-				? getHasModuleSideEffects(
-						configTreeshake.moduleSideEffects,
-						configTreeshake.pureExternalModules
-				  )
-				: getHasModuleSideEffects(
-						configWithPreset.moduleSideEffects as ModuleSideEffectsOption | undefined,
-						undefined
-				  ),
+		moduleSideEffects: getHasModuleSideEffects(
+			configWithPreset.moduleSideEffects as ModuleSideEffectsOption | undefined
+		),
 		propertyReadSideEffects:
 			configWithPreset.propertyReadSideEffects === 'always'
 				? 'always'
@@ -296,8 +276,7 @@ const getTreeshake = (
 };
 
 const getHasModuleSideEffects = (
-	moduleSideEffectsOption: ModuleSideEffectsOption | undefined,
-	pureExternalModules: PureModulesOption | undefined
+	moduleSideEffectsOption: ModuleSideEffectsOption | undefined
 ): HasModuleSideEffects => {
 	if (typeof moduleSideEffectsOption === 'boolean') {
 		return () => moduleSideEffectsOption;
@@ -322,6 +301,5 @@ const getHasModuleSideEffects = (
 			)
 		);
 	}
-	const isPureExternalModule = getIdMatcher(pureExternalModules);
-	return (id, external) => !(external && isPureExternalModule(id));
+	return () => true;
 };

@@ -1474,12 +1474,6 @@ Type: `boolean`<br> CLI: `--noConflict`/`--no-noConflict`<br> Default: `false`
 
 This will generate an additional `noConflict` export to UMD bundles. When called in an IIFE scenario, this method will return the bundle exports while restoring the corresponding global variable to its previous value.
 
-#### output.preferConst
-
-Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
-
-Generate `const` declarations for exports rather than `var` declarations.
-
 #### output.sanitizeFileName
 
 Type: `boolean | (string) => string`<br> CLI: `--sanitizeFileName`/`no-sanitizeFileName` Default: `true`
@@ -1903,33 +1897,6 @@ This will rename the dynamic import function to the chosen name when outputting 
 _Use the [`output.generatedCode.constBindings`](guide/en/#outputgeneratedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
 
 Generate `const` declarations for exports rather than `var` declarations.
-
-#### treeshake.pureExternalModules
-
-_Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br> Type: `boolean | string[] | (id: string) => boolean | null`<br> CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br> Default: `false`
-
-If `true`, assume external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging.
-
-```javascript
-// input file
-import { unused } from 'external-a';
-import 'external-b';
-console.log(42);
-```
-
-```javascript
-// output with treeshake.pureExternalModules === false
-import 'external-a';
-import 'external-b';
-console.log(42);
-```
-
-```javascript
-// output with treeshake.pureExternalModules === true
-console.log(42);
-```
-
-You can also supply a list of external ids to be considered pure or a function that is called whenever an external import could be removed.
 
 #### output.namespaceToStringTag
 

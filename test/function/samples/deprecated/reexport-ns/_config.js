@@ -13,5 +13,12 @@ module.exports = {
 		assert.strictEqual(typeof exports.maths, 'object');
 		assert.strictEqual(exports[Symbol.toStringTag], 'Module');
 		assert.strictEqual(exports.maths.external, true);
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.'
+		}
+	]
 };
