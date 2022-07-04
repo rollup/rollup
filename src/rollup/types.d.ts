@@ -694,11 +694,13 @@ export interface NormalizedOutputOptions {
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
+	/** @deprecated Use "generatedCode.symbols" instead. */
 	namespaceToStringTag: boolean;
 	noConflict: boolean;
 	outro: () => string | Promise<string>;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
+	/** @deprecated Use "generatedCode.constBindings" instead. */
 	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
