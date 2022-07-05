@@ -1,4 +1,4 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
@@ -12,7 +12,11 @@ import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelative
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import type { FinaliserOptions } from './index';
 
-function globalProp(name: string, globalVar: string, getPropertyAccess: (name: string) => string) {
+function globalProp(
+	name: string | false | undefined,
+	globalVar: string,
+	getPropertyAccess: (name: string) => string
+) {
 	if (!name) return 'null';
 	return `${globalVar}${keypath(name, getPropertyAccess)}`;
 }
@@ -42,7 +46,7 @@ export default function umd(
 		namedExportsMode,
 		outro,
 		snippets,
-		warn
+		onwarn
 	}: FinaliserOptions,
 	{
 		amd,
@@ -58,7 +62,7 @@ export default function umd(
 		noConflict,
 		strict
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, cnst, getFunctionIntro, getNonArrowFunctionIntro, getPropertyAccess, n, s } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
@@ -71,12 +75,12 @@ export default function umd(
 		});
 	}
 
-	warnOnBuiltins(warn, dependencies);
+	warnOnBuiltins(onwarn, dependencies);
 
 	const amdDeps = dependencies.map(
-		m => `'${updateExtensionForRelativeAmdId(m.id, amd.forceJsExtensionForImports)}'`
+		m => `'${updateExtensionForRelativeAmdId(m.importPath, amd.forceJsExtensionForImports)}'`
 	);
-	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
+	const cjsDeps = dependencies.map(m => `require('${m.importPath}')`);
 
 	const trimmedImports = trimEmptyImports(dependencies);
 	const globalDeps = trimmedImports.map(module =>
@@ -210,6 +214,10 @@ export default function umd(
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;
 	}
-	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
-	return magicString.trim().indent(t).append(wrapperOutro).prepend(wrapperIntro);
+	magicString
+		.append(`${exportBlock}${namespaceMarkers}${outro}`)
+		.trim()
+		.indent(t)
+		.append(wrapperOutro)
+		.prepend(wrapperIntro);
 }

@@ -1,6 +1,7 @@
 import { locate } from 'locate-character';
 import type Module from '../Module';
 import type {
+	InternalModuleFormat,
 	NormalizedInputOptions,
 	RollupError,
 	RollupLogProps,
@@ -38,6 +39,7 @@ export function augmentCodeLocation(
 }
 
 export const enum Errors {
+	ADDON_ERROR = 'ADDON_ERROR',
 	ALREADY_CLOSED = 'ALREADY_CLOSED',
 	ASSET_NOT_FINALISED = 'ASSET_NOT_FINALISED',
 	ASSET_NOT_FOUND = 'ASSET_NOT_FOUND',
@@ -60,6 +62,7 @@ export const enum Errors {
 	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
+	INVALID_TLA_FORMAT = 'INVALID_TLA_FORMAT',
 	MISSING_EXPORT = 'MISSING_EXPORT',
 	MISSING_IMPLICIT_DEPENDANT = 'MISSING_IMPLICIT_DEPENDANT',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
@@ -75,10 +78,22 @@ export const enum Errors {
 	VALIDATION_ERROR = 'VALIDATION_ERROR'
 }
 
+export function errAddonNotGenerated(
+	message: string,
+	hook: string,
+	plugin: string
+): RollupLogProps {
+	return {
+		code: Errors.ADDON_ERROR,
+		message: `Could not retrieve ${hook}. Check configuration of plugin ${plugin}.
+\tError Message: ${message}`
+	};
+}
+
 export function errAssetNotFinalisedForFileName(name: string): RollupLogProps {
 	return {
 		code: Errors.ASSET_NOT_FINALISED,
-		message: `Plugin error - Unable to get file name for asset "${name}". Ensure that the source is set and that generate is called first.`
+		message: `Plugin error - Unable to get file name for asset "${name}". Ensure that the source is set and that generate is called first. If you reference assets via import.meta.ROLLUP_FILE_URL_<referenceId>, you need to either have set their source after "renderStart" or need to provide an explicit "fileName" when emitting them.`
 	};
 }
 
@@ -92,7 +107,7 @@ export function errCannotEmitFromOptionsHook(): RollupLogProps {
 export function errChunkNotGeneratedForFileName(name: string): RollupLogProps {
 	return {
 		code: Errors.CHUNK_NOT_GENERATED,
-		message: `Plugin error - Unable to get file name for chunk "${name}". Ensure that generate is called first.`
+		message: `Plugin error - Unable to get file name for emitted chunk "${name}". You can only get file names once chunks have been generated after the "renderStart" hook.`
 	};
 }
 
@@ -284,6 +299,17 @@ export function errInvalidRollupPhaseForChunkEmission(): RollupLogProps {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,
 		message: `Cannot emit chunks after module loading has finished.`
+	};
+}
+
+export function errInvalidFormatForTopLevelAwait(
+	id: string,
+	format: InternalModuleFormat
+): RollupLogProps {
+	return {
+		code: Errors.INVALID_TLA_FORMAT,
+		id,
+		message: `Module format ${format} does not support top-level await. Use the "es" or "system" output formats rather.`
 	};
 }
 

@@ -1,4 +1,4 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
@@ -22,7 +22,7 @@ export default function iife(
 		namedExportsMode,
 		outro,
 		snippets,
-		warn
+		onwarn
 	}: FinaliserOptions,
 	{
 		compact,
@@ -36,7 +36,7 @@ export default function iife(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
 	const isNamespaced = name && name.includes('.');
 	const useVariableAssignment = !extend && !isNamespaced;
@@ -48,14 +48,14 @@ export default function iife(
 		});
 	}
 
-	warnOnBuiltins(warn, dependencies);
+	warnOnBuiltins(onwarn, dependencies);
 
 	const external = trimEmptyImports(dependencies);
 	const deps = external.map(dep => dep.globalName || 'null');
 	const args = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		warn({
+		onwarn({
 			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
 			message: `If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.`
 		});
@@ -127,6 +127,9 @@ export default function iife(
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;
 	}
-	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
-	return magicString.indent(t).prepend(wrapperIntro).append(wrapperOutro);
+	magicString
+		.append(`${exportBlock}${namespaceMarkers}${outro}`)
+		.indent(t)
+		.prepend(wrapperIntro)
+		.append(wrapperOutro);
 }

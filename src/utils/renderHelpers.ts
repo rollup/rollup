@@ -13,7 +13,7 @@ export interface RenderOptions {
 	freeze: boolean;
 	indent: string;
 	namespaceToStringTag: boolean;
-	outputPluginDriver: PluginDriver;
+	pluginDriver: PluginDriver;
 	snippets: GenerateCodeSnippets;
 }
 

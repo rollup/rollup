@@ -21,6 +21,7 @@ import {
 	errNoAssetSourceSet,
 	error
 } from './error';
+import { defaultHashSize } from './hashPlaceholders';
 import {
 	FILE_PLACEHOLDER,
 	lowercaseBundleKeys,
@@ -46,14 +47,11 @@ function generateAssetFileName(
 			{
 				ext: () => extname(emittedName).substring(1),
 				extname: () => extname(emittedName),
-				hash() {
-					return createHash()
-						.update(emittedName)
-						.update(':')
+				hash: size =>
+					createHash()
 						.update(source)
 						.digest('hex')
-						.substring(0, 8);
-				},
+						.substring(0, size || defaultHashSize),
 				name: () => emittedName.substring(0, emittedName.length - extname(emittedName).length)
 			}
 		),
@@ -66,8 +64,7 @@ function reserveFileNameInBundle(
 	bundle: OutputBundleWithPlaceholders,
 	warn: WarningHandler
 ) {
-	const lowercaseFileName = fileName.toLowerCase();
-	if (bundle[lowercaseBundleKeys].has(lowercaseFileName)) {
+	if (bundle[lowercaseBundleKeys].has(fileName.toLowerCase())) {
 		warn(errFileNameConflict(fileName));
 	} else {
 		bundle[fileName] = FILE_PLACEHOLDER;
@@ -144,9 +141,14 @@ function getChunkFileName(
 	file: ConsumedChunk,
 	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null
 ): string {
-	const fileName = file.fileName || (file.module && facadeChunkByModule?.get(file.module)?.id);
-	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
-	return fileName;
+	if (file.fileName) {
+		return file.fileName;
+	}
+	if (facadeChunkByModule) {
+		const chunk = facadeChunkByModule.get(file.module!)!;
+		return chunk.id || chunk.getFileName();
+	}
+	return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 }
 
 export class FileEmitter {
@@ -164,13 +166,6 @@ export class FileEmitter {
 			? new Map(baseFileEmitter.filesByReferenceId)
 			: new Map();
 	}
-
-	public assertAssetsFinalized = (): void => {
-		for (const [referenceId, emittedFile] of this.filesByReferenceId) {
-			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
-				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
-		}
-	};
 
 	public emitFile = (emittedFile: unknown): string => {
 		if (!hasValidType(emittedFile)) {
@@ -195,6 +190,13 @@ export class FileEmitter {
 			return this.emitChunk(emittedFile);
 		}
 		return this.emitAsset(emittedFile);
+	};
+
+	public finaliseAssets = (): void => {
+		for (const [referenceId, emittedFile] of this.filesByReferenceId) {
+			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
+				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
+		}
 	};
 
 	public getFileName = (fileReferenceId: string): string => {
@@ -227,17 +229,19 @@ export class FileEmitter {
 		}
 	};
 
+	public setChunkInformation = (facadeChunkByModule: ReadonlyMap<Module, Chunk>): void => {
+		this.facadeChunkByModule = facadeChunkByModule;
+	};
+
 	public setOutputBundle = (
 		bundle: OutputBundleWithPlaceholders,
-		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: ReadonlyMap<Module, Chunk>
+		outputOptions: NormalizedOutputOptions
 	): void => {
 		this.outputOptions = outputOptions;
 		this.bundle = bundle;
-		this.facadeChunkByModule = facadeChunkByModule;
-		for (const { fileName } of this.filesByReferenceId.values()) {
-			if (fileName) {
-				reserveFileNameInBundle(fileName, bundle, this.options.onwarn);
+		for (const emittedFile of this.filesByReferenceId.values()) {
+			if (emittedFile.fileName) {
+				reserveFileNameInBundle(emittedFile.fileName, bundle, this.options.onwarn);
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId) {

@@ -6,7 +6,7 @@ import { isPathFragment } from './relativeId';
 export function renderNamePattern(
 	pattern: string,
 	patternName: string,
-	replacements: { [name: string]: () => string }
+	replacements: { [name: string]: (size?: number) => string }
 ): string {
 	if (isPathFragment(pattern))
 		return error(
@@ -14,21 +14,26 @@ export function renderNamePattern(
 				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths. If you want your files to be stored in a subdirectory, write its name without a leading slash like this: subdirectory/pattern.`
 			)
 		);
-	return pattern.replace(/\[(\w+)\]/g, (_match, type) => {
-		if (!replacements.hasOwnProperty(type)) {
-			return error(
-				errFailedValidation(`"[${type}]" is not a valid placeholder in "${patternName}" pattern.`)
-			);
+	return pattern.replace(
+		/\[(\w+)(:\d+)?]/g,
+		(_match, type: string, size: `:${string}` | undefined) => {
+			if (!replacements.hasOwnProperty(type) || (size && type !== 'hash')) {
+				return error(
+					errFailedValidation(
+						`"[${type}${size || ''}]" is not a valid placeholder in the "${patternName}" pattern.`
+					)
+				);
+			}
+			const replacement = replacements[type](size && parseInt(size.slice(1)));
+			if (isPathFragment(replacement))
+				return error(
+					errFailedValidation(
+						`Invalid substitution "${replacement}" for placeholder "[${type}]" in "${patternName}" pattern, can be neither absolute nor relative path.`
+					)
+				);
+			return replacement;
 		}
-		const replacement = replacements[type]();
-		if (isPathFragment(replacement))
-			return error(
-				errFailedValidation(
-					`Invalid substitution "${replacement}" for placeholder "[${type}]" in "${patternName}" pattern, can be neither absolute nor relative path.`
-				)
-			);
-		return replacement;
-	});
+	);
 }
 
 export function makeUnique(
