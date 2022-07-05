@@ -1,5 +1,5 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
+import type { Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependency, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
@@ -9,7 +9,7 @@ export default function es(
 	magicString: MagicStringBundle,
 	{ accessedGlobals, indent: t, intro, outro, dependencies, exports, snippets }: FinaliserOptions,
 	{ externalLiveBindings, freeze, namespaceToStringTag }: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, n } = snippets;
 
 	const importBlock = getImportBlock(dependencies, _);
@@ -29,14 +29,14 @@ export default function es(
 	if (exportBlock.length) magicString.append(n + n + exportBlock.join(n).trim());
 	if (outro) magicString.append(outro);
 
-	return magicString.trim();
+	magicString.trim();
 }
 
-function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
+function getImportBlock(dependencies: ChunkDependency[], _: string): string[] {
 	const importBlock: string[] = [];
-	for (const { id, reexports, imports, name } of dependencies) {
+	for (const { importPath, reexports, imports, name } of dependencies) {
 		if (!reexports && !imports) {
-			importBlock.push(`import${_}'${id}';`);
+			importBlock.push(`import${_}'${importPath}';`);
 			continue;
 		}
 		if (imports) {
@@ -53,10 +53,10 @@ function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
 				}
 			}
 			if (starImport) {
-				importBlock.push(`import${_}*${_}as ${starImport.local} from${_}'${id}';`);
+				importBlock.push(`import${_}*${_}as ${starImport.local} from${_}'${importPath}';`);
 			}
 			if (defaultImport && importedNames.length === 0) {
-				importBlock.push(`import ${defaultImport.local} from${_}'${id}';`);
+				importBlock.push(`import ${defaultImport.local} from${_}'${importPath}';`);
 			} else if (importedNames.length > 0) {
 				importBlock.push(
 					`import ${defaultImport ? `${defaultImport.local},${_}` : ''}{${_}${importedNames
@@ -67,7 +67,7 @@ function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
 								return `${specifier.imported} as ${specifier.local}`;
 							}
 						})
-						.join(`,${_}`)}${_}}${_}from${_}'${id}';`
+						.join(`,${_}`)}${_}}${_}from${_}'${importPath}';`
 				);
 			}
 		}
@@ -85,14 +85,14 @@ function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
 				}
 			}
 			if (starExport) {
-				importBlock.push(`export${_}*${_}from${_}'${id}';`);
+				importBlock.push(`export${_}*${_}from${_}'${importPath}';`);
 			}
 			if (namespaceReexports.length > 0) {
 				if (
 					!imports ||
 					!imports.some(specifier => specifier.imported === '*' && specifier.local === name)
 				) {
-					importBlock.push(`import${_}*${_}as ${name} from${_}'${id}';`);
+					importBlock.push(`import${_}*${_}as ${name} from${_}'${importPath}';`);
 				}
 				for (const specifier of namespaceReexports) {
 					importBlock.push(
@@ -112,7 +112,7 @@ function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
 								return `${specifier.imported} as ${specifier.reexported}`;
 							}
 						})
-						.join(`,${_}`)}${_}}${_}from${_}'${id}';`
+						.join(`,${_}`)}${_}}${_}from${_}'${importPath}';`
 				);
 			}
 		}

@@ -1,5 +1,5 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependencies } from '../Chunk';
+import type { Bundle as MagicStringBundle } from 'magic-string';
+import { ChunkDependency } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
@@ -30,7 +30,7 @@ export default function cjs(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, n } = snippets;
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
@@ -68,27 +68,27 @@ export default function cjs(
 		`module.exports${_}=${_}`
 	);
 
-	return magicString.append(`${exportBlock}${outro}`);
+	magicString.append(`${exportBlock}${outro}`);
 }
 
 function getImportBlock(
-	dependencies: ChunkDependencies,
+	dependencies: ChunkDependency[],
 	{ _, cnst, n }: GenerateCodeSnippets,
 	compact: boolean
 ): string {
 	let importBlock = '';
 	let definingVariable = false;
-	for (const { id, name, reexports, imports } of dependencies) {
+	for (const { importPath, name, reexports, imports } of dependencies) {
 		if (!reexports && !imports) {
 			if (importBlock) {
 				importBlock += compact && !definingVariable ? ',' : `;${n}`;
 			}
 			definingVariable = false;
-			importBlock += `require('${id}')`;
+			importBlock += `require('${importPath}')`;
 		} else {
 			importBlock += compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${cnst} `;
 			definingVariable = true;
-			importBlock += `${name}${_}=${_}require('${id}')`;
+			importBlock += `${name}${_}=${_}require('${importPath}')`;
 		}
 	}
 	if (importBlock) {

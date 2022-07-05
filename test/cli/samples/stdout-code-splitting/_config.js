@@ -20,7 +20,7 @@ module.exports = {
 				`${COLOR}//→ main2.js:${STANDARD}\n` +
 				"console.log('main2');\n" +
 				'\n' +
-				`${COLOR}//→ assets/asset-74b448a5:${STANDARD}\n` +
+				`${COLOR}//→ assets/asset-185f8db3:${STANDARD}\n` +
 				'Hello'
 		);
 	}

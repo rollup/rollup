@@ -1,4 +1,4 @@
-import type { ModuleDeclarationDependency, ReexportSpecifier } from '../../Chunk';
+import type { ChunkDependency, ReexportSpecifier } from '../../Chunk';
 import type { GetInterop } from '../../rollup/types';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../utils/interopHelpers';
 
 export default function getInteropBlock(
-	dependencies: readonly ModuleDeclarationDependency[],
+	dependencies: readonly ChunkDependency[],
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	freeze: boolean,
@@ -34,7 +34,7 @@ export default function getInteropBlock(
 	for (const {
 		defaultVariableName,
 		imports,
-		id,
+		importPath,
 		isChunk,
 		name,
 		namedExportsMode,
@@ -58,7 +58,7 @@ export default function getInteropBlock(
 				}
 			}
 		} else {
-			const moduleInterop = String(interop(id));
+			const moduleInterop = String(interop(importPath));
 			let hasDefault = false;
 			let hasNamespace = false;
 			for (const { imported, reexported } of [
