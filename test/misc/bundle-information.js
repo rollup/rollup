@@ -28,14 +28,14 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1-ff0de9c1.js', 'input2-28dc81ee.js', 'generated-shared-c4fdd061.js'],
+					['input1-7af41723.js', 'input2-95f92690.js', 'generated-shared-4eca6591.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import { u as used, s as shared } from './generated-shared-c4fdd061.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
-						`import './generated-shared-c4fdd061.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport { input2 as default };\n`,
+						`import { u as used, s as shared } from './generated-shared-4eca6591.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
+						`import './generated-shared-4eca6591.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport { input2 as default };\n`,
 						`console.log("shared");const used = "used"; var shared = "stuff";\n\nexport { shared as s, used as u };\n`
 					],
 					'code'
@@ -62,14 +62,14 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.imports),
-					[['generated-shared-c4fdd061.js'], ['generated-shared-c4fdd061.js'], []],
+					[['generated-shared-4eca6591.js'], ['generated-shared-4eca6591.js'], []],
 					'imports'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.importedBindings),
 					[
-						{ 'generated-shared-c4fdd061.js': ['u', 's'] },
-						{ 'generated-shared-c4fdd061.js': [] },
+						{ 'generated-shared-4eca6591.js': ['u', 's'] },
+						{ 'generated-shared-4eca6591.js': [] },
 						{}
 					],
 					'importedBindings'
@@ -483,8 +483,8 @@ describe('The bundle object', () => {
 					[
 						'_virtual/input.js',
 						'_virtual/dynamic1.js',
-						'_virtual/other.js',
-						'_virtual/dynamic2.js'
+						'_virtual/dynamic2.js',
+						'_virtual/other.js'
 					],
 					'fileName'
 				);
@@ -500,14 +500,14 @@ describe('The bundle object', () => {
 
 console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
-						'const other = "other";\n\nexport { other };\n',
-						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
+						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n',
+						'const other = "other";\n\nexport { other };\n'
 					],
 					'code'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.name),
-					['input', 'dynamic1', 'other', 'dynamic2'],
+					['input', 'dynamic1', 'dynamic2', 'other'],
 					'name'
 				);
 				assert.deepEqual(
@@ -522,7 +522,7 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.exports),
-					[[], ['dynamic1'], ['other'], ['dynamic2']],
+					[[], ['dynamic1'], ['dynamic2'], ['other']],
 					'exports'
 				);
 				assert.deepEqual(
@@ -539,7 +539,7 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
-								renderedLength: 141
+								renderedLength: 151
 							}
 						},
 						{
@@ -552,15 +552,6 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 							}
 						},
 						{
-							other: {
-								code: 'const other = "other";',
-								originalLength: 28,
-								removedExports: [],
-								renderedExports: ['other'],
-								renderedLength: 22
-							}
-						},
-						{
 							dynamic2: {
 								code: 'const dynamic2 = "dynamic2";',
 								originalLength: 34,
@@ -568,18 +559,27 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 								renderedExports: ['dynamic2'],
 								renderedLength: 28
 							}
+						},
+						{
+							other: {
+								code: 'const other = "other";',
+								originalLength: 28,
+								removedExports: [],
+								renderedExports: ['other'],
+								renderedLength: 22
+							}
 						}
 					],
 					'modules'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.isDynamicEntry),
-					[false, true, false, true],
+					[false, true, true, false],
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.facadeModuleId),
-					['input', 'dynamic1', 'other', 'dynamic2'],
+					['input', 'dynamic1', 'dynamic2', 'other'],
 					'facadeModuleId'
 				);
 			});
