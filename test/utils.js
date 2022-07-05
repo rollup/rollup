@@ -272,7 +272,7 @@ exports.writeAndSync = function writeAndSync(filePath, contents) {
 // Sometimes, watchers on MacOS do not seem to fire. In those cases, it helps
 // to write the same content again. This function returns a callback to stop
 // further updates.
-function writeAndRetry(filePath, contents) {
+exports.writeAndRetry = function writeAndRetry(filePath, contents) {
 	let retries = 0;
 	let updateRetryTimeout;
 
@@ -287,6 +287,14 @@ function writeAndRetry(filePath, contents) {
 
 	writeFile();
 	return () => clearTimeout(updateRetryTimeout);
-}
+};
 
-exports.writeAndRetry = writeAndRetry;
+exports.replaceDirInStringifiedObject = function replaceDirInStringifiedObject(object, replaced) {
+	return JSON.stringify(object, null, 2).replace(
+		new RegExp(
+			JSON.stringify(JSON.stringify(replaced).slice(1, -1)).slice(1, -1) + '[/\\\\]*',
+			'g'
+		),
+		'**/'
+	);
+};

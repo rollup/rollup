@@ -1,5 +1,5 @@
 flowchart TB
-    classDef default fill:#fff;
+    classDef default fill:transparent, color:#000;
     classDef hook-parallel fill:#ffb3b3,stroke:#000;
     classDef hook-sequential fill:#ffd2b3,stroke:#000;
     classDef hook-first fill:#fff2b3,stroke:#000;
@@ -9,25 +9,25 @@ flowchart TB
     augmentchunkhash("augmentChunkHash"):::hook-sequential-sync
     click augmentchunkhash "/guide/en/#augmentchunkhash" _parent
 
-	banner("banner"):::hook-parallel
+	banner("banner"):::hook-sequential
 	click banner "/guide/en/#banner" _parent
 
 	closebundle("closeBundle"):::hook-parallel
 	click closebundle "/guide/en/#closebundle" _parent
 
-	footer("footer"):::hook-parallel
+	footer("footer"):::hook-sequential
 	click footer "/guide/en/#footer" _parent
 
 	generatebundle("generateBundle"):::hook-sequential
 	click generatebundle "/guide/en/#generatebundle" _parent
 
-	intro("intro"):::hook-parallel
+	intro("intro"):::hook-sequential
 	click intro "/guide/en/#intro" _parent
 
 	outputoptions("outputOptions"):::hook-sequential-sync
 	click outputoptions "/guide/en/#outputoptions" _parent
 
-	outro("outro"):::hook-parallel
+	outro("outro"):::hook-sequential
 	click outro "/guide/en/#outro" _parent
 
 	renderchunk("renderChunk"):::hook-sequential
@@ -54,27 +54,47 @@ flowchart TB
 
 	outputoptions
 	--> renderstart
-	--> banner & footer & intro & outro
-	--> beforerenderdynamicimport(( ))
-	--> beforeaugmentchunkhash(( ))
-	--> |each chunk|augmentchunkhash
-	--> renderchunk
-	.-> generatebundle
+	--> |each chunk|beforerenderdynamicimport
+
+	afteraddons
+	--> |each chunk|renderchunk
+
+	augmentchunkhash
+	--> generatebundle
 	--> writebundle
 	.-> closebundle
 
-    beforerenderdynamicimport
-    --> |"each import()"|renderdynamicimport
-    --> beforeaugmentchunkhash
+	subgraph generateChunks [" "]
+	    direction TB
+	    beforerenderdynamicimport(( ))
+        ---> beforeresolveimportmeta(( ))
+        ----> beforereaddons(( ))
+        --> banner & footer & intro & outro
+        --> afteraddons(( ))
+        .-> |next chunk|beforerenderdynamicimport
 
-	augmentchunkhash
-	--> |each import.meta.*|beforeimportmeta(( ))
-	--> |import.meta.url|resolvefileurl
-	.-> renderchunk
+	    beforerenderdynamicimport
+        --> |"each import()"|renderdynamicimport
+        --> beforerenderdynamicimport
 
-	beforeimportmeta
-	--> |other|resolveimportmeta
-	.-> renderchunk
+    	beforeresolveimportmeta
+    	--> |each import.meta.*|beforeimportmeta(( ))
+    	--> |import.meta.url|resolvefileurl
+    	--> afterresolveimportmeta(( ))
+
+	    beforeimportmeta
+	    --> |other|resolveimportmeta
+	    --> afterresolveimportmeta
+
+	    afterresolveimportmeta
+	    --> beforeresolveimportmeta
+	end
+
+	renderchunk
+    --> augmentchunkhash
+    .-> |next chunk|renderchunk
+
+	style generateChunks stroke-width:0px;
 
 	rendererror
 	.-> closebundle

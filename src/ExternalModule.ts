@@ -1,33 +1,24 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import type {
-	CustomPluginOptions,
-	ModuleInfo,
-	NormalizedInputOptions,
-	NormalizedOutputOptions
-} from './rollup/types';
+import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
 import { warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
-import { normalize, relative } from './utils/path';
 import { printQuotedStringList } from './utils/printStringList';
 import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
-	readonly declarations = new Map<string, ExternalVariable>();
-	defaultVariableName = '';
 	readonly dynamicImporters: string[] = [];
 	execIndex = Infinity;
 	readonly exportedVariables = new Map<ExternalVariable, string>();
 	readonly importers: string[] = [];
 	readonly info: ModuleInfo;
-	mostCommonSuggestion = 0;
-	readonly nameSuggestions = new Map<string, number>();
-	namespaceVariableName = '';
 	reexported = false;
-	renderPath: string = undefined as never;
 	suggestedVariableName: string;
 	used = false;
-	variableName = '';
+
+	private readonly declarations = new Map<string, ExternalVariable>();
+	private mostCommonSuggestion = 0;
+	private readonly nameSuggestions = new Map<string, number>();
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
@@ -85,16 +76,6 @@ export default class ExternalModule {
 		this.declarations.set(name, externalVariable);
 		this.exportedVariables.set(externalVariable, name);
 		return [externalVariable];
-	}
-
-	setRenderPath(options: NormalizedOutputOptions, inputBase: string): void {
-		this.renderPath =
-			typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
-		if (!this.renderPath) {
-			this.renderPath = this.renormalizeRenderPath
-				? normalize(relative(inputBase, this.id))
-				: this.id;
-		}
 	}
 
 	suggestName(name: string): void {
