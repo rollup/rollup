@@ -365,11 +365,11 @@ Additionally, [`closeBundle`](guide/en/#closebundle) can be called as the very l
 
 #### `augmentChunkHash`
 
-**Type:** `(chunkInfo: ChunkInfo) => string`<br> **Kind:** `sync, sequential`<br> **Previous Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.<br> **Next Hook:** [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.
+**Type:** `(chunkInfo: ChunkInfo) => string`<br> **Kind:** `sync, sequential`<br> **Previous Hook:** [`renderChunk`](guide/en/#renderchunk).<br> **Next Hook:** [`renderChunk`](guide/en/#renderchunk) if there are other chunks that still need to be processed, otherwise [`generateBundle`](guide/en/#generatebundle).
 
-Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding). The `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that rely on file names.
+Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding). The `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without `code` and `map` and using placeholders for hashes in file names.
 
-The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
+The following plugin will invalidate the hash of chunk `foo` with the current timestamp:
 
 ```js
 function augmentWithDatePlugin() {
@@ -386,7 +386,7 @@ function augmentWithDatePlugin() {
 
 #### `banner`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](guide/en/#renderchunk) for the first chunk.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
@@ -400,13 +400,13 @@ If a plugin wants to retain resources across builds in watch mode, they can chec
 
 #### `footer`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](guide/en/#renderchunk) for the first chunk.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
 #### `generateBundle`
 
-**Type:** `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`renderChunk`](guide/en/#renderchunk) for each chunk.<br> **Next Hook:** [`writeBundle`](guide/en/#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
+**Type:** `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`augmentChunkHash`](guide/en/#augmentchunkhash).<br> **Next Hook:** [`writeBundle`](guide/en/#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
 
 Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en/#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
 
@@ -440,6 +440,7 @@ type ChunkInfo = {
       code: string | null;
     };
   };
+  moduleIds: string[];
   name: string;
   referencedFiles: string[];
   type: 'chunk';
@@ -450,7 +451,7 @@ You can prevent files from being emitted by deleting them from the bundle object
 
 #### `intro`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](guide/en/#renderchunk) for the first chunk.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
@@ -462,19 +463,28 @@ Replaces or manipulates the output options object passed to `bundle.generate()` 
 
 #### `outro`
 
-**Type:** `string | (() => string)`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+**Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](guide/en/#renderchunk) for the first chunk.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `renderChunk`
 
-**Type:** `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.<br> **Next Hook:** [`generateBundle`](guide/en/#generatebundle).
+**Type:** `(code: string, chunk: ChunkInfo, options: OutputOptions, meta: { chunks: {[id: string]: ChunkInfo} }) => string | { code: string, map: SourceMap } | null`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro) of the last chunk.<br> **Next Hook:** [`augmentChunkHash`](guide/en/#augmentchunkhash).
 
-Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
+Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations. If you change code in this hook and want to support source maps, you need to return a `map` describing your changes, see [the section on source code transformations](#source-code-transformations).
+
+`chunk` contains additional information about the chunk using the same `ChunkInfo` type as the [`generateBundle`](guide/en/#generatebundle) hook with the following differences:
+
+- `code` and `map` are not set. Instead, use the `code` parameter of this hook.
+- all referenced chunk file names that would contain hashes will contain hash placeholders instead. This includes `fileName`, `imports`, `importedBindings`, `dynamicImports` and `implicitlyLoadedBefore`. When you use such a placeholder file name or part of it in the code returned from this hook, Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
+
+`chunk` is mutable and changes applied in this hook will propagate to other plugins and to the generated bundle. That means if you add or remove imports or exports in this hook, you should update `imports`, `importedBindings` and/or `exports`.
+
+`meta.chunks` contains information about all the chunks Rollup is generating and gives you access to their `ChunkInfo`, again using placeholders for hashes. That means you can explore the entire chunk graph in this hook.
 
 #### `renderDynamicImport`
 
-**Type:** `({format: string, moduleId: string, targetModuleId: string | null, customResolution: string | null}) => {left: string, right: string} | null`<br> **Kind:** `sync, first`<br> **Previous Hook:** [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br> **Next Hook:** [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.
+**Type:** `({format: string, moduleId: string, targetModuleId: string | null, customResolution: string | null}) => {left: string, right: string} | null`<br> **Kind:** `sync, first`<br> **Previous Hook:** [`renderStart`](guide/en/#renderstart) if this is the first chunk, otherwise [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro) of the previous chunk.<br> **Next Hook:** [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
 
@@ -534,26 +544,24 @@ Called when rollup encounters an error during `bundle.generate()` or `bundle.wri
 
 #### `renderStart`
 
-**Type:** `(outputOptions: OutputOptions, inputOptions: InputOptions) => void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`outputOptions`](guide/en/#outputoptions)<br> **Next Hook:** [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro) and [`outro`](guide/en/#outro) run in parallel.
+**Type:** `(outputOptions: OutputOptions, inputOptions: InputOptions) => void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`outputOptions`](guide/en/#outputoptions)<br> **Next Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression in the first chunk.
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks. This is the recommended hook to use when you need access to the output options passed to `bundle.generate()` or `bundle.write()` as it takes the transformations by all [`outputOptions`](guide/en/#outputoptions) hooks into account and also contains the right default values for unset options. It also receives the input options passed to `rollup.rollup()` so that plugins that can be used as output plugins, i.e. plugins that only use `generate` phase hooks, can get access to them.
 
 #### `resolveFileUrl`
 
-**Type:** `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br> **Kind:** `sync, first`<br> **Previous Hook:** [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br> **Next Hook:** [`renderChunk`](guide/en/#renderchunk) for each chunk.
+**Type:** `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br> **Kind:** `sync, first`<br> **Previous Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression in the current chunk<br> **Next Hook:** [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro) in parallel for the current chunk.
 
 Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import.meta.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
 
 For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
-- `chunkId`: The id of the chunk this file is referenced from.
-- `fileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
+- `chunkId`: The id of the chunk this file is referenced from. If the chunk file name would contain a hash, this id will contain a placeholder instead. Rollup will replace this placeholder with the actual file name if it ends up in the generated code.
+- `fileName`: The path and file name of the emitted file, relative to `output.dir` without a leading `./`. Again if this is a chunk that would have a hash in its name, it will contain a placeholder instead.
 - `format`: The rendered output format.
 - `moduleId`: The id of the original module this file is referenced from. Useful for conditionally resolving certain assets differently.
 - `referenceId`: The reference id of the file.
 - `relativePath`: The path and file name of the emitted file, relative to the chunk the file is referenced from. This will path will contain no leading `./` but may contain a leading `../`.
-
-Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 The following plugin will always resolve all files relative to the current document:
 
@@ -570,7 +578,7 @@ function resolveToDocumentPlugin() {
 
 #### `resolveImportMeta`
 
-**Type:** `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br> **Kind:** `sync, first`<br> **Previous Hook:** [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br> **Next Hook:** [`renderChunk`](guide/en/#renderchunk) for each chunk.
+**Type:** `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br> **Kind:** `sync, first`<br> **Previous Hook:** [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression in the current chunk<br> **Next Hook:** [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro) in parallel for the current chunk.
 
 Allows to customize how Rollup handles `import.meta` and `import.meta.someProperty`, in particular `import.meta.url`. In ES modules, `import.meta` is an object and `import.meta.url` contains the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
 
@@ -592,7 +600,7 @@ function importMetaUrlCurrentModulePlugin() {
 }
 ```
 
-Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
+If the `chunkId` would contain a hash, it will contain a placeholder instead. If this placeholder ends up in the generated code, Rollup will replace it with the actual chunk hash.
 
 #### `writeBundle`
 
@@ -643,7 +651,11 @@ In both cases, either a `name` or a `fileName` can be supplied. If a `fileName` 
 
 You can reference the URL of an emitted file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId`. See [File URLs](guide/en/#file-urls) for more details and an example.
 
-The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilename) to determine the file name as soon as it is available
+The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilename) to determine the file name as soon as it is available. If the file name is not set explicitly, then
+
+- asset file names are available starting with the [`renderStart`](guide/en/#renderstart) hook. For assets that are emitted later, the file name will be available immediately after emitting the asset.
+- chunk file names that do not contain a hash are available as soon as chunks are created after the `renderStart` hook.
+- if a chunk file name would contain a hash, using `getFileName` in any hook before [`generateBundle`](guide/en/#generatebundle) will return a name containing a placeholder instead of the actual name. If you use this file name or parts of it in a chunk you transform in [`renderChunk`](guide/en/#renderchunk), Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
 
 If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](guide/en/#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](guide/en/#preserveentrysignatures) for this particular chunk.
 
@@ -1127,7 +1139,9 @@ function transformCodePlugin(options = {}) {
 
 #### Source Code Transformations
 
-If a plugin transforms source code, it should generate a sourcemap automatically, unless there's a specific `sourceMap: false` option. Rollup only cares about the `mappings` property (everything else is handled automatically). If it doesn't make sense to generate a sourcemap, (e.g. [rollup-plugin-string](https://github.com/TrySound/rollup-plugin-string)), return an empty sourcemap:
+If a plugin transforms source code, it should generate a sourcemap automatically, unless there's a specific `sourceMap: false` option. Rollup only cares about the `mappings` property (everything else is handled automatically). [magic-string](https://github.com/Rich-Harris/magic-string) provides a simple way to generate such a map for elementary transformations like adding or removing code snippets.
+
+If it doesn't make sense to generate a sourcemap, (e.g. [rollup-plugin-string](https://github.com/TrySound/rollup-plugin-string)), return an empty sourcemap:
 
 ```js
 return {

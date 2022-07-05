@@ -42,7 +42,7 @@ export function normalizeOutputOptions(
 		chunkFileNames: config.chunkFileNames ?? '[name]-[hash].js',
 		compact,
 		dir: getDir(config, file),
-		dynamicImportFunction: getDynamicImportFunction(config, inputOptions),
+		dynamicImportFunction: getDynamicImportFunction(config, inputOptions, format),
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: config.esModule ?? true,
 		exports: getExports(config, unsetOptions),
@@ -277,14 +277,15 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 	return normalized;
 };
 
-const getAddon = (config: OutputOptions, name: string): (() => string | Promise<string>) => {
-	const configAddon = (config as GenericConfigObject)[name] as
-		| string
-		| (() => string | Promise<string>);
+const getAddon = <T extends 'banner' | 'footer' | 'intro' | 'outro'>(
+	config: OutputOptions,
+	name: T
+): NormalizedOutputOptions[T] => {
+	const configAddon = (config as GenericConfigObject)[name];
 	if (typeof configAddon === 'function') {
-		return configAddon;
+		return configAddon as NormalizedOutputOptions[T];
 	}
-	return () => configAddon || '';
+	return () => (configAddon as string) || '';
 };
 
 const getDir = (
@@ -306,7 +307,8 @@ const getDir = (
 
 const getDynamicImportFunction = (
 	config: OutputOptions,
-	inputOptions: NormalizedInputOptions
+	inputOptions: NormalizedInputOptions,
+	format: InternalModuleFormat
 ): NormalizedOutputOptions['dynamicImportFunction'] => {
 	const configDynamicImportFunction = config.dynamicImportFunction;
 	if (configDynamicImportFunction) {
@@ -315,6 +317,15 @@ const getDynamicImportFunction = (
 			true,
 			inputOptions
 		);
+		if (format !== 'es') {
+			inputOptions.onwarn(
+				errInvalidOption(
+					'output.dynamicImportFunction',
+					'outputdynamicImportFunction',
+					'this option is ignored for formats other than "es"'
+				)
+			);
+		}
 	}
 	return configDynamicImportFunction;
 };
