@@ -1361,4 +1361,28 @@ function getImportedBindingsPerDependency(
 	return importedBindingsPerDependency;
 }
 
+function getImportedBindingsPerDependency(
+	renderedDependencies: RenderedDependencies,
+	resolveFileName: (dependency: Chunk | ExternalChunk) => string
+): {
+	[imported: string]: string[];
+} {
+	const importedBindingsPerDependency: { [imported: string]: string[] } = {};
+	for (const [dependency, declaration] of renderedDependencies) {
+		const specifiers = new Set<string>();
+		if (declaration.imports) {
+			for (const { imported } of declaration.imports) {
+				specifiers.add(imported);
+			}
+		}
+		if (declaration.reexports) {
+			for (const { imported } of declaration.reexports) {
+				specifiers.add(imported);
+			}
+		}
+		importedBindingsPerDependency[resolveFileName(dependency)] = [...specifiers];
+	}
+	return importedBindingsPerDependency;
+}
+
 const QUERY_HASH_REGEX = /[?#]/;
