@@ -18,26 +18,37 @@ module.exports = {
 		output: {
 			preserveModules: true,
 			entryFileNames: fileInfo => {
-				const isMain = fileInfo.facadeModuleId === ID_MAIN;
-
-				// This is checked separately as deepStrictEqual is having some issues
-				assert.deepStrictEqual(Object.keys(fileInfo.modules), [isMain ? ID_MAIN : ID_DEB]);
-
-				delete fileInfo.modules;
-				assert.deepStrictEqual(
-					fileInfo,
-					{
-						exports: isMain ? [] : ['default'],
-						facadeModuleId: isMain ? ID_MAIN : ID_DEB,
-						isDynamicEntry: !isMain,
-						isEntry: isMain,
-						isImplicitEntry: false,
-						name: isMain ? 'main' : 'deb',
-						type: 'chunk'
-					},
-					'entry info'
-				);
-
+				if (fileInfo.facadeModuleId === ID_MAIN) {
+					assert.deepStrictEqual(
+						fileInfo,
+						{
+							exports: [],
+							facadeModuleId: ID_MAIN,
+							isDynamicEntry: false,
+							isEntry: true,
+							isImplicitEntry: false,
+							moduleIds: [ID_MAIN],
+							name: 'main',
+							type: 'chunk'
+						},
+						'entry info'
+					);
+				} else {
+					assert.deepStrictEqual(
+						fileInfo,
+						{
+							exports: ['default'],
+							facadeModuleId: ID_DEB,
+							isDynamicEntry: true,
+							isEntry: false,
+							isImplicitEntry: false,
+							moduleIds: [ID_DEB],
+							name: 'deb',
+							type: 'chunk'
+						},
+						'entry info'
+					);
+				}
 				return `entry-[name]-[format].js`;
 			}
 		}
