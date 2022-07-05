@@ -3,6 +3,7 @@ import type { InternalModuleFormat } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { dirname, normalize, relative } from '../../utils/path';
+import { RenderOptions } from '../../utils/renderHelpers';
 import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
 import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath } from '../utils/PathTracker';
@@ -18,26 +19,13 @@ export default class MetaProperty extends NodeBase {
 	declare property: Identifier;
 	declare type: NodeType.tMetaProperty;
 
-	private declare metaProperty?: string | null;
-
-	addAccessedGlobals(
-		format: InternalModuleFormat,
-		accessedGlobalsByScope: Map<ChildScope, Set<string>>
-	): void {
-		const metaProperty = this.metaProperty;
-		const accessedGlobals = (
-			metaProperty && metaProperty.startsWith(FILE_PREFIX)
-				? accessedFileUrlGlobals
-				: accessedMetaUrlGlobals
-		)[format];
-		if (accessedGlobals.length > 0) {
-			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
-		}
-	}
+	private metaProperty: string | null = null;
+	private preliminaryChunkId: string | null = null;
+	private referenceId: string | null = null;
 
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
-		const metaProperty = this.metaProperty as string | null;
-		if (metaProperty && metaProperty.startsWith(FILE_PREFIX)) {
+		const { metaProperty } = this;
+		if (metaProperty?.startsWith(FILE_PREFIX)) {
 			return outputPluginDriver.getFileName(metaProperty.substring(FILE_PREFIX.length));
 		}
 		return null;
@@ -57,31 +45,26 @@ export default class MetaProperty extends NodeBase {
 			if (this.meta.name === 'import') {
 				this.context.addImportMeta(this);
 				const parent = this.parent;
-				this.metaProperty =
+				const metaProperty = (this.metaProperty =
 					parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
 						? parent.propertyKey
-						: null;
+						: null);
+				if (metaProperty?.startsWith(FILE_PREFIX)) {
+					this.referenceId = metaProperty.substring(FILE_PREFIX.length);
+				}
 			}
 		}
 	}
 
-	renderFinalMechanism(
-		code: MagicString,
-		chunkId: string,
-		format: InternalModuleFormat,
-		snippets: GenerateCodeSnippets,
-		outputPluginDriver: PluginDriver
-	): void {
-		const parent = this.parent;
-		const metaProperty = this.metaProperty as string | null;
+	render(code: MagicString, { format, pluginDriver, snippets }: RenderOptions): void {
+		const { metaProperty, parent, referenceId } = this;
+		const chunkId = this.preliminaryChunkId!;
 
-		if (metaProperty && metaProperty.startsWith(FILE_PREFIX)) {
-			let referenceId: string | null = null;
-			referenceId = metaProperty.substring(FILE_PREFIX.length);
-			const fileName = outputPluginDriver.getFileName(referenceId);
+		if (referenceId) {
+			const fileName = pluginDriver.getFileName(referenceId);
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			const replacement =
-				outputPluginDriver.hookFirstSync('resolveFileUrl', [
+				pluginDriver.hookFirstSync('resolveFileUrl', [
 					{
 						chunkId,
 						fileName,
@@ -102,7 +85,7 @@ export default class MetaProperty extends NodeBase {
 		}
 
 		const replacement =
-			outputPluginDriver.hookFirstSync('resolveImportMeta', [
+			pluginDriver.hookFirstSync('resolveImportMeta', [
 				metaProperty,
 				{
 					chunkId,
@@ -116,6 +99,20 @@ export default class MetaProperty extends NodeBase {
 			} else {
 				code.overwrite(this.start, this.end, replacement, { contentOnly: true });
 			}
+		}
+	}
+
+	setResolution(
+		format: InternalModuleFormat,
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
+		preliminaryChunkId: string
+	): void {
+		this.preliminaryChunkId = preliminaryChunkId;
+		const accessedGlobals = (
+			this.metaProperty?.startsWith(FILE_PREFIX) ? accessedFileUrlGlobals : accessedMetaUrlGlobals
+		)[format];
+		if (accessedGlobals.length > 0) {
+			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
 		}
 	}
 }

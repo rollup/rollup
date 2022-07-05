@@ -50,8 +50,8 @@ async function generateAndTestBundle(bundle, outputOptions, config, format, warn
 	}
 	if (config.test) {
 		const {
-			output: [{ code, map }]
+			output: [{ code, map, fileName }]
 		} = await bundle.generate(outputOptions);
-		await config.test(code, map, { format });
+		await config.test(code, map, { fileName, format });
 	}
 }

@@ -389,16 +389,23 @@ The pattern to use for naming custom emitted assets to include in the build outp
 
 - `[extname]`: The file extension of the asset including a leading dot, e.g. `.css`.
 - `[ext]`: The file extension without a leading dot, e.g. `css`.
-- `[hash]`: A hash based on the name and content of the asset.
+- `[hash]`: A hash based on the content of the asset. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The file name of the asset excluding any extension.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](guide/en/#outputchunkfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
 #### output.banner/output.footer
 
-Type: `string | (() => string | Promise<string>)`<br> CLI: `--banner`/`--footer <text>`
+Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--banner`/`--footer <text>`
 
 A string to prepend/append to the bundle. You can also supply a function that returns a `Promise` that resolves to a `string` to generate it asynchronously (Note: `banner` and `footer` options will not break sourcemaps).
+
+If you supply a function, `chunk` contains additional information about the chunk using the same `ChunkInfo` type as the [`generateBundle`](guide/en/#generatebundle) hook with the following differences:
+
+- `code` and `map` are not set as the chunk has not been rendered yet.
+- all referenced chunk file names that would contain hashes will contain hash placeholders instead. This includes `fileName`, `imports`, `importedBindings`, `dynamicImports` and `implicitlyLoadedBefore`. When you use such a placeholder file name or part of it in the code returned from this option, Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
+
+`chunk` is mutable and changes applied in this hook will propagate to other plugins and to the generated bundle. That means if you add or remove imports or exports in this hook, you should update `imports`, `importedBindings` and/or `exports`.
 
 ```js
 // rollup.config.js
@@ -421,10 +428,10 @@ Type: `string | ((chunkInfo: ChunkInfo) => string)`<br> CLI: `--chunkFileNames <
 The pattern to use for naming shared chunks created when code-splitting, or a function that is called per chunk to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
-- `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
+- `[hash]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](guide/en/#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](guide/en/#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfile). Otherwise, it will be derived from the chunk contents.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
 #### output.compact
 
@@ -439,10 +446,10 @@ Type: `string | ((chunkInfo: ChunkInfo) => string)`<br> CLI: `--entryFileNames <
 The pattern to use for chunks created from entry points, or a function that is called per entry chunk to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
-- `[hash]`: A hash based on the content of the entry point and the content of all its dependencies.
+- `[hash]`: A hash based only on the content of the final generated entry chunk, including transformations in [`renderChunk`](guide/en/#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
 This pattern will also be used when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Here a different set of placeholders is available, though:
 
@@ -809,7 +816,7 @@ There are some additional options that have an effect on the generated interop c
 
 #### output.intro/output.outro
 
-Type: `string | (() => string | Promise<string>)`<br> CLI: `--intro`/`--outro <text>`
+Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--intro`/`--outro <text>`
 
 Similar to [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter), except that the code goes _inside_ any format-specific wrapper.
 

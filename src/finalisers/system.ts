@@ -1,5 +1,5 @@
-import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependencies, ChunkExports, ModuleDeclarations } from '../Chunk';
+import type { Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependency, ChunkExports, ModuleDeclarations } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
@@ -27,7 +27,7 @@ export default function system(
 		strict,
 		systemNullSetters
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, getFunctionIntro, getNonArrowFunctionIntro, n, s } = snippets;
 	const { importBindings, setters, starExcludes } = analyzeDependencies(
 		dependencies,
@@ -46,7 +46,7 @@ export default function system(
 	// cf. https://v8.dev/blog/preparser#pife
 	let wrapperStart =
 		`System.register(${registeredName}[` +
-		dependencies.map(({ id }) => `'${id}'`).join(`,${_}`) +
+		dependencies.map(({ importPath }) => `'${importPath}'`).join(`,${_}`) +
 		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
 			strict ? "'use strict';" : ''
 		}` +
@@ -75,29 +75,32 @@ export default function system(
 
 	const wrapperEnd = `${t}${t}})${n}${t}}${s}${n}}));`;
 
-	magicString.prepend(
-		intro +
-			getHelpersBlock(
-				null,
-				accessedGlobals,
-				t,
-				snippets,
-				externalLiveBindings,
-				freeze,
-				namespaceToStringTag
-			) +
-			getHoistedExportsBlock(exports, t, snippets)
-	);
-	magicString.append(
-		`${outro}${n}${n}` +
-			getSyntheticExportsBlock(exports, t, snippets) +
-			getMissingExportsBlock(exports, t, snippets)
-	);
-	return magicString.indent(`${t}${t}${t}`).append(wrapperEnd).prepend(wrapperStart);
+	magicString
+		.prepend(
+			intro +
+				getHelpersBlock(
+					null,
+					accessedGlobals,
+					t,
+					snippets,
+					externalLiveBindings,
+					freeze,
+					namespaceToStringTag
+				) +
+				getHoistedExportsBlock(exports, t, snippets)
+		)
+		.append(
+			`${outro}${n}${n}` +
+				getSyntheticExportsBlock(exports, t, snippets) +
+				getMissingExportsBlock(exports, t, snippets)
+		)
+		.indent(`${t}${t}${t}`)
+		.append(wrapperEnd)
+		.prepend(wrapperStart);
 }
 
 function analyzeDependencies(
-	dependencies: ChunkDependencies,
+	dependencies: ChunkDependency[],
 	exports: ChunkExports,
 	t: string,
 	{ _, cnst, getObject, getPropertyAccess, n }: GenerateCodeSnippets

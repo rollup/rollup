@@ -37,14 +37,12 @@ module.exports = {
 					`export const renderStart = import.meta.ROLLUP_FILE_URL_${renderStart};\n` +
 					`export const renderStartNamed = import.meta.ROLLUP_FILE_URL_${renderStartNamed};\n` +
 					`export const renderStartNamedImmediately = '${this.getFileName(renderStartNamed)}';\n` +
-					`export const banner = import.meta.ROLLUP_FILE_URL_${banner};\n` +
 					`export const bannerNamed = import.meta.ROLLUP_FILE_URL_${bannerNamed};\n` +
-					`export const footer = import.meta.ROLLUP_FILE_URL_${footer};\n` +
 					`export const footerNamed = import.meta.ROLLUP_FILE_URL_${footerNamed};\n` +
-					`export const intro = import.meta.ROLLUP_FILE_URL_${intro};\n` +
 					`export const introNamed = import.meta.ROLLUP_FILE_URL_${introNamed};\n` +
-					`export const outro = import.meta.ROLLUP_FILE_URL_${outro};\n` +
-					`export const outroNamed = import.meta.ROLLUP_FILE_URL_${outroNamed};\n`
+					`export const outroNamed = import.meta.ROLLUP_FILE_URL_${outroNamed};\n` +
+					`export const renderChunkNamed = import.meta.ROLLUP_FILE_URL_${renderChunkNamed};\n` +
+					`export const generateBundleNamed = import.meta.ROLLUP_FILE_URL_${generateBundleNamed};\n`
 				);
 			},
 			renderStart() {

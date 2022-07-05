@@ -1,8 +1,8 @@
-import type { ModuleDeclarationDependency } from '../../Chunk';
+import type { ChunkDependency } from '../../Chunk';
 
 export default function trimEmptyImports(
-	dependencies: readonly ModuleDeclarationDependency[]
-): ModuleDeclarationDependency[] {
+	dependencies: readonly ChunkDependency[]
+): ChunkDependency[] {
 	let i = dependencies.length;
 
 	while (i--) {
