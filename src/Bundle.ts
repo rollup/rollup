@@ -1,5 +1,6 @@
 import Chunk from './Chunk';
-import type ExternalModule from './ExternalModule';
+import ExternalChunk from './ExternalChunk';
+import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module from './Module';
 import type {
@@ -8,12 +9,9 @@ import type {
 	NormalizedOutputOptions,
 	OutputBundle,
 	OutputBundleWithPlaceholders,
-	OutputChunk,
 	WarningHandler
 } from './rollup/types';
-import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
-import { type Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
 import {
@@ -23,8 +21,10 @@ import {
 	error
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
-import { type GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
-import { basename, isAbsolute } from './utils/path';
+import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
+import { getHashPlaceholderGenerator, HashPlaceholderGenerator } from './utils/hashPlaceholders';
+import { isAbsolute } from './utils/path';
+import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {
@@ -42,28 +42,36 @@ export default class Bundle {
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
-		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions, this.facadeChunkByModule);
+		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions);
+
+		// TODO Lukas rethink time measuring points
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			const chunks = await this.generateChunks();
+			const getHashPlaceholder = getHashPlaceholderGenerator();
+			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
-			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+			this.pluginDriver.setChunkInformation(this.facadeChunkByModule);
+
 			timeEnd('generate chunks', 2);
 
-			timeStart('render modules', 2);
+			timeStart('render chunks', 2);
 
-			// We need to create addons before prerender because at the moment, there
-			// can be no async code between prerender and render due to internal state
-			const addons = await createAddons(this.outputOptions, this.pluginDriver);
-			const snippets = getGenerateCodeSnippets(this.outputOptions);
-			this.prerenderChunks(chunks, inputBase, snippets);
-			timeEnd('render modules', 2);
+			for (const chunk of chunks) {
+				chunk.generateExports();
+			}
+			await renderChunks(
+				chunks,
+				outputBundle,
+				this.pluginDriver,
+				this.outputOptions,
+				this.inputOptions.onwarn
+			);
 
-			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle, snippets);
+			timeEnd('render chunks', 2);
 		} catch (err: any) {
 			await this.pluginDriver.hookParallel('renderError', [err]);
 			throw err;
@@ -77,28 +85,6 @@ export default class Bundle {
 
 		timeEnd('GENERATE', 1);
 		return outputBundle as OutputBundle;
-	}
-
-	private async addFinalizedChunksToBundle(
-		chunks: readonly Chunk[],
-		inputBase: string,
-		addons: Addons,
-		outputBundle: OutputBundleWithPlaceholders,
-		snippets: GenerateCodeSnippets
-	): Promise<void> {
-		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
-		for (const chunk of chunks) {
-			outputBundle[chunk.id!] = chunk.getChunkInfoWithFileNames() as OutputChunk;
-		}
-		await Promise.all(
-			chunks.map(async chunk => {
-				const outputChunk = outputBundle[chunk.id!] as OutputChunk;
-				Object.assign(
-					outputChunk,
-					await chunk.render(this.outputOptions, addons, outputChunk, snippets)
-				);
-			})
-		);
 	}
 
 	private async addManualChunks(
@@ -117,40 +103,6 @@ export default class Bundle {
 			}
 		}
 		return manualChunkAliasByEntry;
-	}
-
-	private assignChunkIds(
-		chunks: readonly Chunk[],
-		inputBase: string,
-		addons: Addons,
-		bundle: OutputBundleWithPlaceholders
-	): void {
-		const entryChunks: Chunk[] = [];
-		const otherChunks: Chunk[] = [];
-		for (const chunk of chunks) {
-			(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
-				? entryChunks
-				: otherChunks
-			).push(chunk);
-		}
-
-		// make sure entry chunk names take precedence with regard to deconflicting
-		const chunksForNaming = entryChunks.concat(otherChunks);
-		for (const chunk of chunksForNaming) {
-			if (this.outputOptions.file) {
-				chunk.id = basename(this.outputOptions.file);
-			} else if (this.outputOptions.preserveModules) {
-				chunk.id = chunk.generateIdPreserveModules(
-					inputBase,
-					this.outputOptions,
-					bundle,
-					this.unsetOptions
-				);
-			} else {
-				chunk.id = chunk.generateId(addons, this.outputOptions, bundle, true);
-			}
-			bundle[chunk.id] = FILE_PLACEHOLDER;
-		}
 	}
 
 	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
@@ -193,21 +145,29 @@ export default class Bundle {
 		this.pluginDriver.finaliseAssets();
 	}
 
-	private async generateChunks(): Promise<Chunk[]> {
-		const { manualChunks } = this.outputOptions;
+	private async generateChunks(
+		bundle: OutputBundleWithPlaceholders,
+		getHashPlaceholder: HashPlaceholderGenerator
+	): Promise<Chunk[]> {
+		const { inlineDynamicImports, manualChunks, preserveModules } = this.outputOptions;
 		const manualChunkAliasByEntry =
 			typeof manualChunks === 'object'
 				? await this.addManualChunks(manualChunks)
 				: this.assignManualChunks(manualChunks);
+		const snippets = getGenerateCodeSnippets(this.outputOptions);
+		const includedModules = getIncludedModules(this.graph.modulesById);
+		const inputBase = commondir(getAbsoluteEntryModulePaths(includedModules, preserveModules));
+		const externalChunkByModule = getExternalChunkByModule(
+			this.graph.modulesById,
+			this.outputOptions,
+			inputBase
+		);
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
-		for (const { alias, modules } of this.outputOptions.inlineDynamicImports
-			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
-			: this.outputOptions.preserveModules
-			? getIncludedModules(this.graph.modulesById).map(module => ({
-					alias: null,
-					modules: [module]
-			  }))
+		for (const { alias, modules } of inlineDynamicImports
+			? [{ alias: null, modules: includedModules }]
+			: preserveModules
+			? includedModules.map(module => ({ alias: null, modules: [module] }))
 			: getChunkAssignments(this.graph.entryModules, manualChunkAliasByEntry)) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
@@ -218,14 +178,16 @@ export default class Bundle {
 				this.pluginDriver,
 				this.graph.modulesById,
 				chunkByModule,
+				externalChunkByModule,
 				this.facadeChunkByModule,
 				this.includedNamespaces,
-				alias
+				alias,
+				getHashPlaceholder,
+				bundle,
+				inputBase,
+				snippets
 			);
 			chunks.push(chunk);
-			for (const module of modules) {
-				chunkByModule.set(module, chunk);
-			}
 		}
 		for (const chunk of chunks) {
 			chunk.link();
@@ -236,31 +198,6 @@ export default class Bundle {
 		}
 		return [...chunks, ...facades];
 	}
-
-	private prerenderChunks(
-		chunks: readonly Chunk[],
-		inputBase: string,
-		snippets: GenerateCodeSnippets
-	): void {
-		for (const chunk of chunks) {
-			chunk.generateExports();
-		}
-		for (const chunk of chunks) {
-			chunk.preRender(this.outputOptions, inputBase, snippets);
-		}
-	}
-}
-
-function getAbsoluteEntryModulePaths(chunks: readonly Chunk[]): string[] {
-	const absoluteEntryModulePaths: string[] = [];
-	for (const chunk of chunks) {
-		for (const entryModule of chunk.entryModules) {
-			if (isAbsolute(entryModule.id)) {
-				absoluteEntryModulePaths.push(entryModule.id);
-			}
-		}
-	}
-	return absoluteEntryModulePaths;
 }
 
 function validateOptionsForMultiChunkOutput(
@@ -303,11 +240,43 @@ function validateOptionsForMultiChunkOutput(
 }
 
 function getIncludedModules(modulesById: ReadonlyMap<string, Module | ExternalModule>): Module[] {
-	return [...modulesById.values()].filter(
-		(module): module is Module =>
+	const includedModules: Module[] = [];
+	for (const module of modulesById.values()) {
+		if (
 			module instanceof Module &&
 			(module.isIncluded() || module.info.isEntry || module.includedDynamicImporters.length > 0)
-	);
+		) {
+			includedModules.push(module);
+		}
+	}
+	return includedModules;
+}
+
+function getAbsoluteEntryModulePaths(
+	includedModules: Module[],
+	preserveModules: boolean
+): string[] {
+	const absoluteEntryModulePaths: string[] = [];
+	for (const module of includedModules) {
+		if ((module.info.isEntry || preserveModules) && isAbsolute(module.id)) {
+			absoluteEntryModulePaths.push(module.id);
+		}
+	}
+	return absoluteEntryModulePaths;
+}
+
+function getExternalChunkByModule(
+	modulesById: ReadonlyMap<string, Module | ExternalModule>,
+	outputOptions: NormalizedOutputOptions,
+	inputBase: string
+): Map<ExternalModule, ExternalChunk> {
+	const externalChunkByModule = new Map<ExternalModule, ExternalChunk>();
+	for (const module of modulesById.values()) {
+		if (module instanceof ExternalModule) {
+			externalChunkByModule.set(module, new ExternalChunk(module, outputOptions, inputBase));
+		}
+	}
+	return externalChunkByModule;
 }
 
 function addModuleToManualChunk(

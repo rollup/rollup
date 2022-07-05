@@ -16,9 +16,6 @@ module.exports = {
 		},
 		output: {
 			entryFileNames: fileInfo => {
-				// This is checked separately as deepStrictEqual is having some issues
-				assert.deepStrictEqual(Object.keys(fileInfo.modules), [ID_MAIN]);
-				delete fileInfo.modules;
 				assert.deepStrictEqual(
 					fileInfo,
 					{
@@ -28,6 +25,7 @@ module.exports = {
 						isEntry: true,
 						isImplicitEntry: false,
 						name: 'main',
+						moduleIds: [ID_MAIN],
 						type: 'chunk'
 					},
 					'entry info'
@@ -47,9 +45,6 @@ module.exports = {
 				return '[ext]/[hash]-[name][extname]';
 			},
 			chunkFileNames: fileInfo => {
-				// This is checked separately as deepStrictEqual is having some issues
-				assert.deepStrictEqual(Object.keys(fileInfo.modules), [ID_DEB]);
-				delete fileInfo.modules;
 				assert.deepStrictEqual(
 					fileInfo,
 					{
@@ -58,6 +53,7 @@ module.exports = {
 						isDynamicEntry: true,
 						isEntry: false,
 						isImplicitEntry: false,
+						moduleIds: [ID_DEB],
 						name: 'deb',
 						type: 'chunk'
 					},
