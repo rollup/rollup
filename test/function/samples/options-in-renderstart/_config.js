@@ -22,10 +22,10 @@ module.exports = {
 	},
 	exports: () => {
 		assert.deepStrictEqual(checkedOptions, [
-			'output-plugin',
+			'input-plugin',
 			'cjs',
 			'global',
-			'input-plugin',
+			'output-plugin',
 			'cjs',
 			'global'
 		]);
