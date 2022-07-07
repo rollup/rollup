@@ -10,7 +10,7 @@ export function renderNamePattern(
 	if (isPathFragment(pattern))
 		return error(
 			errFailedValidation(
-				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths.`
+				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths. If you want your files to be stored in a subdirectory, write its name without a leading slash like this: subdirectory/pattern.`
 			)
 		);
 	return pattern.replace(/\[(\w+)\]/g, (_match, type) => {
