@@ -97,7 +97,7 @@ export class PluginDriver {
 		this.finaliseAssets = this.fileEmitter.finaliseAssets.bind(this.fileEmitter);
 		this.setChunkInformation = this.fileEmitter.setChunkInformation.bind(this.fileEmitter);
 		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
-		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
+		this.plugins = (basePluginDriver ? basePluginDriver.plugins : []).concat(userPlugins);
 		const existingPluginNames = new Set<string>();
 
 		this.pluginContexts = new Map(
