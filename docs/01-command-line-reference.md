@@ -90,6 +90,7 @@ export default {
     preserveModules,
     preserveModulesRoot,
     sourcemap,
+    sourcemapBaseUrl,
     sourcemapExcludeSources,
     sourcemapFile,
     sourcemapPathTransform,
@@ -360,6 +361,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-sanitizeFileName       Do not replace invalid characters in file names
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
+--sourcemapBaseUrl <url>    Emit absolute sourcemap URLs with given base
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --stdin=ext                 Specify file extension used for stdin input

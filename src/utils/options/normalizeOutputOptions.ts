@@ -10,6 +10,7 @@ import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
+import { isValidUrl } from '../url';
 import {
 	generatedCodePresets,
 	type GenericConfigObject,
@@ -76,6 +77,7 @@ export function normalizeOutputOptions(
 				? id => id
 				: defaultSanitizeFileName,
 		sourcemap: config.sourcemap || false,
+		sourcemapBaseUrl: getSourcemapBaseUrl(config),
 		sourcemapExcludeSources: config.sourcemapExcludeSources || false,
 		sourcemapFile: config.sourcemapFile,
 		sourcemapPathTransform: config.sourcemapPathTransform as
@@ -470,4 +472,22 @@ const getNamespaceToStringTag = (
 		return configNamespaceToStringTag;
 	}
 	return generatedCode.symbols || false;
+};
+
+const getSourcemapBaseUrl = (
+	config: OutputOptions
+): NormalizedOutputOptions['sourcemapBaseUrl'] => {
+	const { sourcemapBaseUrl } = config;
+	if (sourcemapBaseUrl) {
+		if (isValidUrl(sourcemapBaseUrl)) {
+			return sourcemapBaseUrl;
+		}
+		return error(
+			errInvalidOption(
+				'output.sourcemapBaseUrl',
+				'outputsourcemapbaseurl',
+				`must be a valid URL, received ${JSON.stringify(sourcemapBaseUrl)}`
+			)
+		);
+	}
 };

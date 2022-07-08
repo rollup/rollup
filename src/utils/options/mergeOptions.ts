@@ -263,6 +263,7 @@ function mergeOutputOptions(
 		preserveModulesRoot: getOption('preserveModulesRoot'),
 		sanitizeFileName: getOption('sanitizeFileName'),
 		sourcemap: getOption('sourcemap'),
+		sourcemapBaseUrl: getOption('sourcemapBaseUrl'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
