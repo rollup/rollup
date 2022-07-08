@@ -1,6 +1,7 @@
-const { execSync } = require('child_process');
-const { writeFileSync } = require('fs');
-const { join } = require('path');
+import { execSync } from 'child_process';
+import { writeFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 let revision;
 try {
@@ -9,4 +10,4 @@ try {
 	console.warn('Could not determine git commit when building Rollup.');
 	revision = '(could not be determined)';
 }
-writeFileSync(join(__dirname, '../.commithash'), revision);
+writeFileSync(join(dirname(fileURLToPath(import.meta.url)), '../.commithash'), revision);
