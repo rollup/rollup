@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 2.75.7
+
+_2022-06-20_
+
+### Bug Fixes
+
+- Mark Array.prototype.group/groupToMap as side effect free. (#4531)
+
+### Pull Requests
+
+- [#4523](https://github.com/rollup/rollup/pull/4523): chore: remove source map workaround, bump deps (@dnalborczyk)
+- [#4525](https://github.com/rollup/rollup/pull/4525): Add regression tests for instanceof (@lukastaegert)
+- [#4528](https://github.com/rollup/rollup/pull/4528): chore: Set permissions for GitHub actions (@naveensrinivasan)
+- [#4531](https://github.com/rollup/rollup/pull/4531): fix: rename Array.prototype.group/groupToMap (@dnalborczyk)
+- [#4535](https://github.com/rollup/rollup/pull/4535): chore: bump resolve from 1.22.0 to 1.22.1 (@pos777)
+
 ## 2.75.6
 
 _2022-06-07_
