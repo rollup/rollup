@@ -1,13 +1,14 @@
 /* eslint-disable no-console */
 
-const { accessSync, constants } = require('fs');
-const path = require('path');
-const execa = require('execa');
-const { removeSync } = require('fs-extra');
-const repoWithBranch = process.argv[2];
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { execa } from 'execa';
+import fs from 'fs-extra';
+import { findConfigFileName } from './find-config.js';
 
-const TARGET_DIR = path.resolve(__dirname, '..', 'perf');
+const TARGET_DIR = path.resolve(dirname(fileURLToPath(import.meta.url)), '..', 'perf');
 const VALID_REPO = /^([^/\s#]+\/[^/\s#]+)(#([^/\s#]+))?$/;
+const repoWithBranch = process.argv[2];
 
 if (process.argv.length !== 3 || !VALID_REPO.test(repoWithBranch)) {
 	console.error(
@@ -16,8 +17,9 @@ if (process.argv.length !== 3 || !VALID_REPO.test(repoWithBranch)) {
 	);
 	process.exit(1);
 }
+
 console.error(`Cleaning up '${TARGET_DIR}'...`);
-removeSync(TARGET_DIR);
+fs.removeSync(TARGET_DIR);
 
 const [, repo, , branch] = VALID_REPO.exec(repoWithBranch);
 
@@ -42,11 +44,7 @@ async function setupNewRepo(repo, branch) {
 	}
 	gitArgs.push(`https://github.com/${repo}.git`, TARGET_DIR);
 	await execWithOutput('git', gitArgs);
-	try {
-		accessSync(path.resolve(TARGET_DIR, 'rollup.config.js'), constants.R_OK);
-	} catch (e) {
-		throw new Error('The repository needs to have a file "rollup.config.js" at the top level.');
-	}
+	await findConfigFileName(TARGET_DIR);
 	process.chdir(TARGET_DIR);
 	await execWithOutput('npm', ['install']);
 }
