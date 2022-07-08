@@ -361,7 +361,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-sanitizeFileName       Do not replace invalid characters in file names
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
---sourcemapBaseUrl          Emit absolute sourcemap URLs with base URL prefix, e.g. https://example.com/
+--sourcemapBaseUrl          Emit absolute sourcemap URLs with base URL prefix
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --stdin=ext                 Specify file extension used for stdin input
