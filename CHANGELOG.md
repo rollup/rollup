@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 2.76.0
+
+_2022-07-08_
+
+### Features
+
+- Allow setting a `sourcmapBaseUrl` for absolute paths in sourcemaps (#4527)
+
+### Bug Fixes
+
+- Support absolute CLI plugin paths on Windows (#4533)
+
+### Pull Requests
+
+- [#4527](https://github.com/rollup/rollup/pull/4527): Add sourcemapBaseUrl option (@nickgarlis)
+- [#4533](https://github.com/rollup/rollup/pull/4533): Add support for absolute plugin paths (@ygoe)
+- [#4538](https://github.com/rollup/rollup/pull/4538): chore: Included githubactions in the dependabot config (@naveensrinivasan)
+- [#4546](https://github.com/rollup/rollup/pull/4546): Adapt Node versions on CI to prepare for v3 (@lukastaegert)
+- [#4556](https://github.com/rollup/rollup/pull/4556): Improve error message for invalid patterns (@DysphoricUnicorn)
+- [#4559](https://github.com/rollup/rollup/pull/4559): Update dependencies (@lukastaegert)
+- [#4560](https://github.com/rollup/rollup/pull/4560): Bump peter-evans/create-or-update-comment from 1 to 2 (@dependabot)
+- [#4561](https://github.com/rollup/rollup/pull/4561): Bump peter-evans/find-comment from 1 to 2 (@dependabot)
+- [#4562](https://github.com/rollup/rollup/pull/4562): Bump codecov/codecov-action from 1 to 3 (@dependabot)
+
 ## 2.75.7
 
 _2022-06-20_
