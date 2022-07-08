@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import { pathToFileURL } from 'url';
 import type { InputOptions } from '../../src/rollup/types';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';
@@ -48,7 +49,7 @@ async function loadAndRegisterPlugin(
 		// -p "{transform(c,i){...}}"
 		plugin = new Function('return ' + pluginText);
 	} else {
-		const match = pluginText.match(/^([@./\\\w|^{}-]+)(=(.*))?$/);
+		const match = pluginText.match(/^([@.:/\\\w|^{}-]+)(=(.*))?$/);
 		if (match) {
 			// -p plugin
 			// -p plugin=arg
@@ -72,6 +73,11 @@ async function loadAndRegisterPlugin(
 		if (!plugin) {
 			try {
 				if (pluginText[0] == '.') pluginText = resolve(pluginText);
+				// Windows absolute paths must be specified as file:// protocol URL
+				// Note that we do not have coverage for Windows-only code paths
+				else if (pluginText.match(/^[A-Za-z]:\\/)) {
+					pluginText = pathToFileURL(resolve(pluginText)).href;
+				}
 				plugin = await requireOrImport(pluginText);
 			} catch (err: any) {
 				throw new Error(`Cannot load plugin "${pluginText}": ${err.message}.`);

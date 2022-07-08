@@ -1,5 +1,7 @@
+const { sep } = require('path');
+
 module.exports = {
 	description: 'CLI --plugin /absolute/path',
-	skipIfWindows: true,
-	command: `echo 'console.log(VALUE);' | rollup -p "\`pwd\`/my-plugin={VALUE: 'absolute', ZZZ: 1}"`
+	minNodeVersion: 12,
+	command: `rollup main.js -p "${__dirname}${sep}my-plugin.js={VALUE: 'absolute', ZZZ: 1}"`
 };
