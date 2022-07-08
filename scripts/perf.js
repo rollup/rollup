@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* global gc */
 
 import { readFileSync, writeFileSync } from 'fs';
