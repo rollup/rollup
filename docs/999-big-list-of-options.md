@@ -451,13 +451,7 @@ The pattern to use for chunks created from entry points, or a function that is c
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
-This pattern will also be used when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Here a different set of placeholders is available, though:
-
-- `[format]`: The rendering format defined in the output options.
-- `[name]`: The file name (without extension) of the file.
-- `[ext]`: The extension of the file.
-- `[extname]`: The extension of the file, prefixed by `.` if it is not empty.
-- `[assetExtname]`: The extension of the file, prefixed by `.` if it is not empty and it is not one of `js`, `jsx`, `ts` or `tsx`.
+This pattern will also be used for every file when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Note that in this case, `[name]` will include the relative path to the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts`.
 
 #### output.extend
 
