@@ -18,9 +18,11 @@ export default {
 };
 ```
 
-Typically, it is called `rollup.config.js` and sits in the root directory of your project. Behind the scenes, Rollup will usually transpile and bundle this file and its relative dependencies to CommonJS before requiring it. This has the advantage that you can share code with an ES module code base while having full interoperability with the Node ecosystem.
+Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. If you use the `.mjs` extension or have `type: "module"` in your `package.json` file, Rollup will directly use Node to import it, which is now the recommended way to define Rollup configurations.
 
-If you want to write your config as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the file. Furthermore if you are on Node 13+, changing the file extension to `.mjs` will also prevent Rollup from transpiling it but import the file as an ES module instead. See [using untranspiled config files](guide/en/#using-untranspiled-config-files) for more details and why you might want to do this.
+Otherwise, Rollup will transpile and bundle this file and its relative dependencies to CommonJS before requiring it to ensure compatibility with legacy code bases that use ES module syntax without properly respecting [Node ESM semantics](https://nodejs.org/docs/latest-v14.x/api/packages.html#packages_determining_module_system).
+
+If you want to write your config as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the CommonJS file.
 
 You can also use other languages for your configuration files like TypeScript. To do that, install a corresponding Rollup plugin like `@rollup/plugin-typescript` and use the [`--configPlugin`](guide/en/#--configplugin-plugin) option:
 
@@ -28,7 +30,7 @@ You can also use other languages for your configuration files like TypeScript. T
 rollup --config rollup.config.ts --configPlugin typescript
 ```
 
-Also have a look at [Config Intellisense](guide/en/#config-intellisense) for more ways to use TypeScript typings in your config files.
+Using this option will always force your config file to be transpiled to CommonJS first. Also have a look at [Config Intellisense](guide/en/#config-intellisense) for more ways to use TypeScript typings in your config files.
 
 Config files support the options listed below. Consult the [big list of options](guide/en/#big-list-of-options) for details on each option:
 
@@ -266,67 +268,6 @@ For interoperability, Rollup also supports loading configuration files from pack
 rollup --config node:my-special-config
 ```
 
-### Using untranspiled config files
-
-By default, Rollup will expect config files to be ES modules and bundle and transpile them and their relative imports to CommonJS before requiring them. This is a fast process and has the advantage that it is easy to share code between your configuration and an ES module code base. If you want to write your configuration as CommonJS instead, you can skip this process by using the `.cjs` extension:
-
-```javascript
-// rollup.config.cjs
-module.exports = {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  }
-};
-```
-
-It may be pertinent if you want to use the config file not only from the command line, but also from your custom scripts programmatically.
-
-On the other hand if you are using at least Node 13 and have `"type": "module"` in your `package.json` file, Rollup's transpilation will prevent your configuration file from importing packages that are themselves ES modules. In that case, changing your file extension to `.mjs` will instruct Rollup to import your configuration directly as an ES module. However, note that this is specific to Node 13+; on older Node versions, `.mjs` is treated just like `.js`.
-
-There are some potential gotchas when using `.mjs` on Node 13+:
-
-- You will only get a default export from CommonJS plugins
-- You may not be able to import JSON files such as your `package.json file`. There are four ways to go around this:
-
-  - read and parse the JSON file yourself via
-
-    ```
-    // rollup.config.mjs
-    import { readFileSync } from 'fs';
-
-    const packageJson = JSON.parse(readFileSync('./package.json'));
-    ...
-    ```
-
-  - use `createRequire` via
-
-    ```
-    // rollup.config.mjs
-    import { createRequire } from 'module';
-    const require = createRequire(import.meta.url);
-    const packageJson = require('./package.json');
-    ...
-    ```
-
-  - run Rollup CLI via
-
-    ```
-    node --experimental-json-modules ./node_modules/.bin/rollup --config
-    ```
-
-  - create a CommonJS wrapper that requires the JSON file:
-
-    ```js
-    // load-package.cjs
-    module.exports = require('./package.json');
-
-    // rollup.config.mjs
-    import pkg from './load-package.cjs';
-    ...
-    ```
-
 ### Command line flags
 
 Many options have command line equivalents. In those cases, any arguments passed here will override the config file, if you're using one. This is a list of all supported options:
@@ -473,7 +414,7 @@ Note for Typescript: make sure you have the Rollup config file in your `tsconfig
 "include": ["src/**/*", "rollup.config.ts"],
 ```
 
-This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`. Using this option will make Rollup transpile your configuration file to CommonJS first before executing it.
 
 #### `-v`/`--version`
 
