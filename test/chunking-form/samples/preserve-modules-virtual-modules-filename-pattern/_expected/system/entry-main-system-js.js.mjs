@@ -1,4 +1,4 @@
-System.register(['./_virtual/entry-_virtualModule-system-.mjs', './_virtual/entry-_virtualWithExt-system-js.js.mjs', './_virtual/entry-_virtualWithAssetExt-system-str.str.str.mjs'], (function () {
+System.register(['./entry-_virtual/_virtualModule-system-.mjs', './entry-_virtual/_virtualWithExt-system-js.js.mjs', './entry-_virtual/_virtualWithAssetExt-system-str.str.str.mjs'], (function () {
 	'use strict';
 	var virtual, virtual2, virtual3;
 	return {

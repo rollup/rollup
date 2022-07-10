@@ -1,8 +1,5 @@
 import MagicString, { Bundle as MagicStringBundle, type SourceMap } from 'magic-string';
 import { relative } from '../browser/path';
-import ExternalChunk from './ExternalChunk';
-import ExternalModule from './ExternalModule';
-import Module from './Module';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ImportExpression from './ast/nodes/ImportExpression';
@@ -12,7 +9,10 @@ import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
+import ExternalChunk from './ExternalChunk';
+import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
+import Module from './Module';
 import type {
 	GetInterop,
 	GlobalsOption,
@@ -26,8 +26,6 @@ import type {
 	RenderedModule,
 	WarningHandler
 } from './rollup/types';
-import { FILE_PLACEHOLDER } from './utils/FileEmitter';
-import type { PluginDriver } from './utils/PluginDriver';
 import { createAddons } from './utils/addons';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
@@ -38,6 +36,7 @@ import {
 } from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
+import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
@@ -51,7 +50,8 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { basename, dirname, extname, isAbsolute, normalize } from './utils/path';
+import { basename, extname, isAbsolute, normalize } from './utils/path';
+import type { PluginDriver } from './utils/PluginDriver';
 import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -125,7 +125,8 @@ interface FacadeName {
 
 type RenderedDependencies = Map<Chunk | ExternalChunk, ChunkDependency>;
 
-const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
+// TODO Lukas test all
+const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.mts', '.cjs', '.cts'];
 
 function getGlobalName(
 	chunk: ExternalChunk,
@@ -402,7 +403,11 @@ export default class Chunk {
 					if (module.preserveSignature) {
 						this.strictFacade = needsStrictFacade;
 					}
-					this.assignFacadeName(requiredFacades.shift()!, module);
+					this.assignFacadeName(
+						requiredFacades.shift()!,
+						module,
+						this.outputOptions.preserveModules
+					);
 				}
 			}
 
@@ -605,8 +610,6 @@ export default class Chunk {
 			renderedExports.length !== 0 ||
 			renderedDependencies.some(dep => (dep.reexports && dep.reexports.length !== 0)!);
 
-		// TODO Lukas Note: Mention in docs, that users/plugins are responsible to do their own caching
-		// TODO Lukas adapt plugin hook graphs and order in docs
 		const { intro, outro, banner, footer } = await createAddons(
 			outputOptions,
 			pluginDriver,
@@ -664,12 +667,19 @@ export default class Chunk {
 		}
 	}
 
-	private assignFacadeName({ fileName, name }: FacadeName, facadedModule: Module): void {
+	private assignFacadeName(
+		{ fileName, name }: FacadeName,
+		facadedModule: Module,
+		preservePath?: boolean
+	): void {
 		if (fileName) {
 			this.fileName = fileName;
 		} else {
 			this.name = this.outputOptions.sanitizeFileName(
-				name || getChunkNameFromModule(facadedModule)
+				name ||
+					(preservePath
+						? this.getPreserveModulesChunkNameFromModule(facadedModule)
+						: getChunkNameFromModule(facadedModule))
 			);
 		}
 	}
@@ -727,46 +737,24 @@ export default class Chunk {
 		}
 	}
 
+	// TODO Lukas include in regular logic
 	private generateIdPreserveModules(): string {
 		const [{ id }] = this.orderedModules;
-		const { entryFileNames, format, preserveModulesRoot, sanitizeFileName } = this.outputOptions;
-		const sanitizedId = sanitizeFileName(id.split(QUERY_HASH_REGEX, 1)[0]);
-		let path: string;
-
+		const { entryFileNames, format, sanitizeFileName } = this.outputOptions;
 		const patternOpt = this.unsetOptions.has('entryFileNames')
 			? '[name][assetExtname].js'
 			: entryFileNames;
 		const pattern =
 			typeof patternOpt === 'function' ? patternOpt(this.getPreRenderedChunkInfo()) : patternOpt;
-
-		if (isAbsolute(sanitizedId)) {
-			const currentDir = dirname(sanitizedId);
-			const extension = extname(sanitizedId);
-			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
-				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substring(1),
-				extname: () => extension,
-				format: () => format as string,
-				name: () => this.getChunkName()
-			});
-			const currentPath = `${currentDir}/${fileName}`;
-			if (preserveModulesRoot && currentPath.startsWith(preserveModulesRoot)) {
-				path = currentPath.slice(preserveModulesRoot.length).replace(/^[\\/]/, '');
-			} else {
-				path = relative(this.inputBase, currentPath);
-			}
-		} else {
-			const extension = extname(sanitizedId);
-			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
-				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substring(1),
-				extname: () => extension,
-				format: () => format as string,
-				name: () => getAliasName(sanitizedId)
-			});
-			path = `_virtual/${fileName}`;
-		}
-		return makeUnique(normalize(path), this.bundle);
+		const extension = extname(sanitizeFileName(id.split(QUERY_HASH_REGEX, 1)[0]));
+		const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
+			assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
+			ext: () => extension.substring(1),
+			extname: () => extension,
+			format: () => format as string,
+			name: () => this.getChunkName()
+		});
+		return makeUnique(normalize(fileName), this.bundle);
 	}
 
 	private generateVariableName(): string {
@@ -976,6 +964,24 @@ export default class Chunk {
 			name: this.getChunkName(),
 			type: 'chunk'
 		});
+	}
+
+	private getPreserveModulesChunkNameFromModule(module: Module): string {
+		const predefinedChunkName = getPredefinedChunkNameFromModule(module);
+		if (predefinedChunkName) return predefinedChunkName;
+		const { preserveModulesRoot, sanitizeFileName } = this.outputOptions;
+		const sanitizedId = sanitizeFileName(module.id.split(QUERY_HASH_REGEX, 1)[0]);
+		const idWithoutExtension = sanitizedId.substring(
+			0,
+			sanitizedId.length - extname(sanitizedId).length
+		);
+		if (isAbsolute(idWithoutExtension)) {
+			return preserveModulesRoot && idWithoutExtension.startsWith(preserveModulesRoot)
+				? idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[\\/]/, '')
+				: relative(this.inputBase, idWithoutExtension);
+		} else {
+			return `_virtual/${basename(idWithoutExtension)}`;
+		}
 	}
 
 	private getReexportSpecifiers(): Map<Chunk | ExternalChunk, ReexportSpecifier[]> {
@@ -1363,10 +1369,12 @@ export default class Chunk {
 }
 
 function getChunkNameFromModule(module: Module): string {
+	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
+}
+
+function getPredefinedChunkNameFromModule(module: Module): string {
 	return (
-		module.chunkNames.find(({ isUserDefined }) => isUserDefined)?.name ??
-		module.chunkNames[0]?.name ??
-		getAliasName(module.id)
+		module.chunkNames.find(({ isUserDefined }) => isUserDefined)?.name ?? module.chunkNames[0]?.name
 	);
 }
 

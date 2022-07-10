@@ -1,4 +1,4 @@
-define(['exports', './entry-foo-amd-ts.ts', './nested/entry-bar-amd-ts.ts', './nested/entry-baz-amd-ts.ts', './entry-lorem-amd-str.str.str', './entry-no-ext-amd-'], (function (exports, foo, bar, baz, lorem, noExt) { 'use strict';
+define(['exports', './entry-foo-amd-ts.ts', './entry-nested/bar-amd-ts.ts', './entry-nested/baz-amd-ts.ts', './entry-lorem-amd-str.str.str', './entry-no-ext-amd-'], (function (exports, foo, bar, baz, lorem, noExt) { 'use strict';
 
 
 
