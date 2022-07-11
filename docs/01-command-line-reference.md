@@ -18,7 +18,7 @@ export default {
 };
 ```
 
-Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. If you use the `.mjs` extension or have `type: "module"` in your `package.json` file, Rollup will directly use Node to import it, which is now the recommended way to define Rollup configurations.
+Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. If you use the `.mjs` extension or have `type: "module"` in your `package.json` file, Rollup will directly use Node to import it, which is now the recommended way to define Rollup configurations. Note that there are some [caveats when using native Node ES modules](guide/en/#caveats-when-using-native-node-es-modules);
 
 Otherwise, Rollup will transpile and bundle this file and its relative dependencies to CommonJS before requiring it to ensure compatibility with legacy code bases that use ES module syntax without properly respecting [Node ESM semantics](https://nodejs.org/docs/latest-v14.x/api/packages.html#packages_determining_module_system).
 
@@ -267,6 +267,61 @@ For interoperability, Rollup also supports loading configuration files from pack
 # if that fails, it will then try to load "my-special-config"
 rollup --config node:my-special-config
 ```
+
+### Caveats when using native Node ES modules
+
+Especially when upgrading from an older Rollup version, there are some gotchas you need to be aware of when using native modules.
+
+#### Getting the current directory
+
+With CommonJS files, people often use `__dirname` to access the current directory and resolve relative paths to absolute paths. This is not supported for native ES modules. Instead, we recommend the following approach e.g. to generate an absolute id for an external module:
+
+```js
+// rollup.config.js
+import { fileURLToPath } from 'url'
+
+export default {
+  ...,
+  // generates an absolute path for <currentdir>/src/some-external-file.js
+  external: [fileURLToPath(new URL('src/some-external-file.js', import.meta.url))]
+};
+```
+
+#### Importing package.json
+
+It can be useful to import your package file to e.g. mark your dependencies as "external" automatically. Depending on your Node version, there are different ways of doing that:
+
+- For Node 17.5+, you can use an import assertion
+
+  ```js
+  import pkg from './package.json' assert { type: 'json' };
+
+  export default {
+    input: 'src/main.js',
+    external: Object.keys(pkg.dependencies),
+    output: {
+      format: 'es',
+      dir: 'dist'
+    }
+  };
+  ```
+
+- For older Node version, you can use "createRequire"
+
+  ```js
+  import { createRequire } from 'module';
+  const require = createRequire(import.meta.url);
+  const pkg = require('./package.json');
+
+  export default {
+    input: 'src/main.js',
+    external: Object.keys(pkg.dependencies),
+    output: {
+      format: 'es',
+      dir: 'dist'
+    }
+  };
+  ```
 
 ### Command line flags
 
