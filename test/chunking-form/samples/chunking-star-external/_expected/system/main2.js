@@ -2,7 +2,7 @@ System.register(['./generated-dep.js', 'external2', 'starexternal2'], (function 
 	'use strict';
 	var _starExcludes = {
 		main: 1,
-		'default': 1,
+		default: 1,
 		dep: 1,
 		e: 1
 	};

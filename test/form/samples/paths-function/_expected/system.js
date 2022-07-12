@@ -3,7 +3,7 @@ System.register(['https://unpkg.com/foo'], (function (exports, module) {
 	var foo;
 	return {
 		setters: [function (module) {
-			foo = module["default"];
+			foo = module.default;
 		}],
 		execute: (function () {
 

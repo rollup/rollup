@@ -3,7 +3,7 @@ System.register(['https://external.com/external.js'], (function () {
 	var external;
 	return {
 		setters: [function (module) {
-			external = module["default"];
+			external = module.default;
 		}],
 		execute: (function () {
 

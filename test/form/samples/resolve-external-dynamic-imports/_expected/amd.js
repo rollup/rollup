@@ -1,6 +1,6 @@
 define(['require', 'exports', 'external'], (function (require, exports, myExternal) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -16,13 +16,13 @@ define(['require', 'exports', 'external'], (function (require, exports, myExtern
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
 	var myExternal__default = /*#__PURE__*/_interopDefaultLegacy(myExternal);
 
-	const test = () => myExternal__default["default"];
+	const test = () => myExternal__default.default;
 
 	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 

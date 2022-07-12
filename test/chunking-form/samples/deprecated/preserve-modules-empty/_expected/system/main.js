@@ -3,7 +3,7 @@ System.register(['./two.js'], (function () {
 	var a;
 	return {
 		setters: [function (module) {
-			a = module["default"];
+			a = module.default;
 		}],
 		execute: (function () {
 

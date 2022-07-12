@@ -5,7 +5,7 @@ var baz = require('baz');
 var containers = require('shipping-port');
 var alphabet = require('alphabet');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
@@ -21,7 +21,7 @@ function _interopNamespace(e) {
 			}
 		});
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
@@ -29,8 +29,8 @@ var factory__default = /*#__PURE__*/_interopDefaultLegacy(factory);
 var containers__namespace = /*#__PURE__*/_interopNamespace(containers);
 var alphabet__default = /*#__PURE__*/_interopDefaultLegacy(alphabet);
 
-factory__default["default"]( null );
+factory__default.default( null );
 baz.foo( baz.bar, containers.port );
 containers__namespace.forEach( console.log, console );
 console.log( alphabet.a );
-console.log( alphabet__default["default"].length );
+console.log( alphabet__default.default.length );

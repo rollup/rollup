@@ -8,11 +8,11 @@ var externalAuto = require('externalAuto');
 var externalDefault = require('externalDefault');
 var externalDefaultOnly = require('externalDefaultOnly');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; }
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, 'default': e }); }
+function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, default: e }); }
 
 function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
@@ -27,7 +27,7 @@ function _interopNamespaceDefault(e) {
 			}
 		});
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
@@ -62,8 +62,8 @@ console.log({ a: exports.a } = defaultLegacy.b);
 Promise.resolve().then(function () { return main; }).then(console.log);
 
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('external')); }).then(console.log);
-console.log(defaultLegacy__default["default"]);
-console.log(externalAuto__default["default"]);
+console.log(defaultLegacy__default.default);
+console.log(externalAuto__default.default);
 console.log(externalDefault__namespace);
 console.log(externalDefaultOnly__namespace);
 

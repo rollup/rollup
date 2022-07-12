@@ -3,7 +3,7 @@ System.register(['factory', 'baz', 'shipping-port', 'alphabet'], (function () {
 	var factory, foo, bar, port, containers, a, alphabet;
 	return {
 		setters: [function (module) {
-			factory = module["default"];
+			factory = module.default;
 		}, function (module) {
 			foo = module.foo;
 			bar = module.bar;
@@ -12,7 +12,7 @@ System.register(['factory', 'baz', 'shipping-port', 'alphabet'], (function () {
 			containers = module;
 		}, function (module) {
 			a = module.a;
-			alphabet = module["default"];
+			alphabet = module.default;
 		}],
 		execute: (function () {
 

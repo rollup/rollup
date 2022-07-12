@@ -3,8 +3,8 @@ System.register(['external'], (function (exports) {
 	var path;
 	return {
 		setters: [function (module) {
-			path = module["default"];
-			exports('default', module["default"]);
+			path = module.default;
+			exports('default', module.default);
 		}],
 		execute: (function () {
 
