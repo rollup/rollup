@@ -11,6 +11,13 @@ runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (dir, co
 		() => {
 			let bundle;
 
+			if (config.before) {
+				before(config.before);
+			}
+			if (config.after) {
+				after(config.after);
+			}
+
 			for (const format of FORMATS) {
 				it('generates ' + format, async () => {
 					chdir(dir);

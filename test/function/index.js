@@ -171,12 +171,12 @@ runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, confi
 						});
 				})
 				.catch(err => {
-					if (config.after) config.after();
 					if (config.error) {
 						compareError(err, config.error);
 					} else {
 						throw err;
 					}
+					if (config.after) config.after();
 				});
 		}
 	);

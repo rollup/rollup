@@ -1,13 +1,24 @@
 const assert = require('assert');
 const { promises: fs } = require('fs');
-const { wait } = require('../../../utils');
+const { wait } = require('../../../../../utils');
 
 const fsReadFile = fs.readFile;
 let currentReads = 0;
 let maxReads = 0;
 
 module.exports = {
-	description: 'maxParallelFileReads not set',
+	description: 'maxParallelFileReads with plugin',
+	options: {
+		strictDeprecations: false,
+		maxParallelFileReads: 3,
+		plugins: [
+			{
+				load(id) {
+					return fs.readFile(id, 'utf-8');
+				}
+			}
+		]
+	},
 	before() {
 		fs.readFile = async (path, options) => {
 			currentReads++;
@@ -20,6 +31,6 @@ module.exports = {
 	},
 	after() {
 		fs.readFile = fsReadFile;
-		assert.strictEqual(maxReads, 5, 'Wrong number of parallel file reads: ' + maxReads);
+		assert.strictEqual(maxReads, 3, 'Wrong number of parallel file reads: ' + maxReads);
 	}
 };
