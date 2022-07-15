@@ -91,6 +91,31 @@ export default {
 };
 ```
 
+If you want to convert a set of file to another format while maintaining the file structure and export signatures, the recommended way—instead of using [`output.preserveModules`](guide/en/#outputpreservemodules) that may tree-shake exports as well as emit virtual files created by plugins—is to turn every file into an entry point. You can do so dynamically e.g. via the `glob` package:
+
+```js
+import glob from 'glob';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+export default {
+  input: Object.fromEntries(
+    glob.sync('src/**/*.js').map(file => [
+      // This remove `src/` as well as the file extension from each file, so e.g.
+      // src/nested/foo.js becomes nested/foo
+      path.relative('src', file.slice(0, file.length - path.extname(file).length)),
+      // This expands the relative paths to absolute paths, so e.g.
+      // src/nested/foo becomes /project/src/nested/foo.js
+      fileURLToPath(new URL(file, import.meta.url))
+    ])
+  ),
+  output: {
+    format: 'es',
+    dir: 'dist'
+  }
+};
+```
+
 The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](guide/en/#thisemitfile)) by the end of the [`buildStart`](guide/en/#buildstart) hook.
 
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
@@ -451,13 +476,7 @@ The pattern to use for chunks created from entry points, or a function that is c
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
-This pattern will also be used when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Here a different set of placeholders is available, though:
-
-- `[format]`: The rendering format defined in the output options.
-- `[name]`: The file name (without extension) of the file.
-- `[ext]`: The extension of the file.
-- `[extname]`: The extension of the file, prefixed by `.` if it is not empty.
-- `[assetExtname]`: The extension of the file, prefixed by `.` if it is not empty and it is not one of `js`, `jsx`, `ts` or `tsx`.
+This pattern will also be used for every file when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Note that in this case, `[name]` will include the relative path from the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts`.
 
 #### output.extend
 
@@ -1007,7 +1026,9 @@ define(['https://d3js.org/d3.v4.min'], function (d3) {
 
 Type: `boolean`<br> CLI: `--preserveModules`/`--no-preserveModules`<br> Default: `false`
 
-Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side effects when executed. This mode can be used to transform a file structure to a different module format.
+Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side effects when executed and removing unused exports of files that are not entry points. On the other hand, if plugins (like `@rollup/plugin-commonjs`) emit additional "virtual" files to achieve certain results, those files will be emitted as actual files using a pattern `_virtual/fileName.js`.
+
+It is therefore not recommended to blindly use this option to transform an entire file structure to another format if you directly want to import from those files as expected exports may be missing. In that case, you should rather designate all files explicitly as entry points by adding them to the [`input` option object](guide/en/#input), see the example there for how to do that.
 
 Note that when transforming to `cjs` or `amd` format, each file will by default be treated as an entry point with [`output.exports`](guide/en/#outputexports) set to `auto`. This means that e.g. for `cjs`, a file that only contains a default export will be rendered as
 

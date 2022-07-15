@@ -5,7 +5,7 @@ module.exports = {
 		input: 'main.js',
 		output: {
 			preserveModules: true,
-			entryFileNames: 'entry-[name]-[format]-[ext][extname][assetExtname].mjs'
+			entryFileNames: '[name]-[format]-[hash].mjs'
 		},
 		plugins: [
 			{

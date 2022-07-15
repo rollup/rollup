@@ -51,7 +51,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { basename, dirname, extname, isAbsolute, normalize } from './utils/path';
+import { basename, extname, isAbsolute, resolve } from './utils/path';
 import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -125,7 +125,7 @@ interface FacadeName {
 
 type RenderedDependencies = Map<Chunk | ExternalChunk, ChunkDependency>;
 
-const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
+const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.mts', '.cjs', '.cts'];
 
 function getGlobalName(
 	chunk: ExternalChunk,
@@ -402,7 +402,11 @@ export default class Chunk {
 					if (module.preserveSignature) {
 						this.strictFacade = needsStrictFacade;
 					}
-					this.assignFacadeName(requiredFacades.shift()!, module);
+					this.assignFacadeName(
+						requiredFacades.shift()!,
+						module,
+						this.outputOptions.preserveModules
+					);
 				}
 			}
 
@@ -504,13 +508,11 @@ export default class Chunk {
 		const { chunkFileNames, entryFileNames, file, format, preserveModules } = this.outputOptions;
 		if (file) {
 			fileName = basename(file);
-		} else if (preserveModules) {
-			fileName = this.generateIdPreserveModules();
 		} else if (this.fileName !== null) {
 			fileName = this.fileName;
 		} else {
 			const [pattern, patternName] =
-				this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
+				preserveModules || this.facadeModule?.isUserDefinedEntryPoint
 					? [entryFileNames, 'output.entryFileNames']
 					: [chunkFileNames, 'output.chunkFileNames'];
 			fileName = renderNamePattern(
@@ -605,8 +607,6 @@ export default class Chunk {
 			renderedExports.length !== 0 ||
 			renderedDependencies.some(dep => (dep.reexports && dep.reexports.length !== 0)!);
 
-		// TODO Lukas Note: Mention in docs, that users/plugins are responsible to do their own caching
-		// TODO Lukas adapt plugin hook graphs and order in docs
 		const { intro, outro, banner, footer } = await createAddons(
 			outputOptions,
 			pluginDriver,
@@ -664,12 +664,19 @@ export default class Chunk {
 		}
 	}
 
-	private assignFacadeName({ fileName, name }: FacadeName, facadedModule: Module): void {
+	private assignFacadeName(
+		{ fileName, name }: FacadeName,
+		facadedModule: Module,
+		preservePath?: boolean
+	): void {
 		if (fileName) {
 			this.fileName = fileName;
 		} else {
 			this.name = this.outputOptions.sanitizeFileName(
-				name || getChunkNameFromModule(facadedModule)
+				name ||
+					(preservePath
+						? this.getPreserveModulesChunkNameFromModule(facadedModule)
+						: getChunkNameFromModule(facadedModule))
 			);
 		}
 	}
@@ -725,48 +732,6 @@ export default class Chunk {
 		if (includedReexports.length) {
 			this.includedReexportsByModule.set(module, includedReexports);
 		}
-	}
-
-	private generateIdPreserveModules(): string {
-		const [{ id }] = this.orderedModules;
-		const { entryFileNames, format, preserveModulesRoot, sanitizeFileName } = this.outputOptions;
-		const sanitizedId = sanitizeFileName(id.split(QUERY_HASH_REGEX, 1)[0]);
-		let path: string;
-
-		const patternOpt = this.unsetOptions.has('entryFileNames')
-			? '[name][assetExtname].js'
-			: entryFileNames;
-		const pattern =
-			typeof patternOpt === 'function' ? patternOpt(this.getPreRenderedChunkInfo()) : patternOpt;
-
-		if (isAbsolute(sanitizedId)) {
-			const currentDir = dirname(sanitizedId);
-			const extension = extname(sanitizedId);
-			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
-				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substring(1),
-				extname: () => extension,
-				format: () => format as string,
-				name: () => this.getChunkName()
-			});
-			const currentPath = `${currentDir}/${fileName}`;
-			if (preserveModulesRoot && resolve(currentPath).startsWith(preserveModulesRoot)) {
-				path = currentPath.slice(preserveModulesRoot.length).replace(/^[\\/]/, '');
-			} else {
-				path = relative(this.inputBase, currentPath);
-			}
-		} else {
-			const extension = extname(sanitizedId);
-			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
-				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substring(1),
-				extname: () => extension,
-				format: () => format as string,
-				name: () => getAliasName(sanitizedId)
-			});
-			path = `_virtual/${fileName}`;
-		}
-		return makeUnique(normalize(path), this.bundle);
 	}
 
 	private generateVariableName(): string {
@@ -976,6 +941,24 @@ export default class Chunk {
 			name: this.getChunkName(),
 			type: 'chunk'
 		});
+	}
+
+	private getPreserveModulesChunkNameFromModule(module: Module): string {
+		const predefinedChunkName = getPredefinedChunkNameFromModule(module);
+		if (predefinedChunkName) return predefinedChunkName;
+		const { preserveModulesRoot, sanitizeFileName } = this.outputOptions;
+		const sanitizedId = sanitizeFileName(module.id.split(QUERY_HASH_REGEX, 1)[0]);
+		const extName = extname(sanitizedId);
+		const idWithoutExtension = NON_ASSET_EXTENSIONS.includes(extName)
+			? sanitizedId.slice(0, -extName.length)
+			: sanitizedId;
+		if (isAbsolute(idWithoutExtension)) {
+			return preserveModulesRoot && resolve(idWithoutExtension).startsWith(preserveModulesRoot)
+				? idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[\\/]/, '')
+				: relative(this.inputBase, idWithoutExtension);
+		} else {
+			return `_virtual/${basename(idWithoutExtension)}`;
+		}
 	}
 
 	private getReexportSpecifiers(): Map<Chunk | ExternalChunk, ReexportSpecifier[]> {
@@ -1363,10 +1346,12 @@ export default class Chunk {
 }
 
 function getChunkNameFromModule(module: Module): string {
+	return getPredefinedChunkNameFromModule(module) ?? getAliasName(module.id);
+}
+
+function getPredefinedChunkNameFromModule(module: Module): string {
 	return (
-		module.chunkNames.find(({ isUserDefined }) => isUserDefined)?.name ??
-		module.chunkNames[0]?.name ??
-		getAliasName(module.id)
+		module.chunkNames.find(({ isUserDefined }) => isUserDefined)?.name ?? module.chunkNames[0]?.name
 	);
 }
 
