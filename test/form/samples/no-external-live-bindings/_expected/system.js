@@ -2,7 +2,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports, module
 	'use strict';
 	var _starExcludes = {
 		dynamic: 1,
-		'default': 1,
+		default: 1,
 		external1: 1
 	};
 	return {

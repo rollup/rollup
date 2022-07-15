@@ -8,7 +8,7 @@ define(['require', 'exports', 'external1', 'external2'], (function (require, exp
 				n[k] = e[k];
 			}
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

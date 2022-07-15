@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var externalFalse = require('external-false');
 var externalTrue = require('external-true');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
@@ -21,7 +21,7 @@ function _interopNamespace(e) {
 			}
 		});
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
@@ -43,5 +43,5 @@ Object.defineProperty(exports, 'barTrue', {
 exports.externalTrue = externalTrue__namespace;
 Object.defineProperty(exports, 'fooTrue', {
 	enumerable: true,
-	get: function () { return externalTrue__default["default"]; }
+	get: function () { return externalTrue__default.default; }
 });

@@ -13,7 +13,7 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -31,7 +31,7 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 	exports.externalAuto = externalAuto__namespace;
 	Object.defineProperty(exports, 'fooAuto', {
 		enumerable: true,
-		get: function () { return externalAuto__namespace["default"]; }
+		get: function () { return externalAuto__namespace.default; }
 	});
 	Object.defineProperty(exports, 'barDefault', {
 		enumerable: true,
@@ -47,7 +47,7 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 	exports.externalEsModule = externalEsModule;
 	Object.defineProperty(exports, 'fooEsModule', {
 		enumerable: true,
-		get: function () { return externalEsModule["default"]; }
+		get: function () { return externalEsModule.default; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });

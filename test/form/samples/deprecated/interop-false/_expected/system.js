@@ -3,7 +3,7 @@ System.register('foo', ['core/view'], (function (exports) {
 	var View;
 	return {
 		setters: [function (module) {
-			View = module["default"];
+			View = module.default;
 		}],
 		execute: (function () {
 

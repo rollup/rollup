@@ -4,4 +4,4 @@ var externalEsModule = require('external-esModule');
 
 
 
-module.exports = externalEsModule["default"];
+module.exports = externalEsModule.default;

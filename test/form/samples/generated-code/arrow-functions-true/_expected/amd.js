@@ -1,10 +1,10 @@
 define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (require, exports, externalNoImport, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
-	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
+	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
 
-	var _interopDefault = e => e && e.__esModule ? e : { 'default': e };
+	var _interopDefault = e => e && e.__esModule ? e : { default: e };
 
-	var _interopNamespaceDefaultOnly = e => Object.freeze({ __proto__: null, 'default': e });
+	var _interopNamespaceDefaultOnly = e => Object.freeze({ __proto__: null, default: e });
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -19,7 +19,7 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -54,8 +54,8 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 	Promise.resolve().then(() => main).then(console.log);
 
 	new Promise((resolve, reject) => require(['external'], m => resolve(/*#__PURE__*/_interopNamespace(m)), reject)).then(console.log);
-	console.log(defaultLegacy__default["default"]);
-	console.log(externalAuto__default["default"]);
+	console.log(defaultLegacy__default.default);
+	console.log(externalAuto__default.default);
 	console.log(externalDefault__namespace);
 	console.log(externalDefaultOnly__namespace);
 

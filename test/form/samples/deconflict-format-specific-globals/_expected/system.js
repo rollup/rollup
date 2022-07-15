@@ -3,7 +3,7 @@ System.register('bundle', ['external'], (function (exports, module) {
 	var external;
 	return {
 		setters: [function (module) {
-			external = module["default"];
+			external = module.default;
 		}],
 		execute: (function () {
 

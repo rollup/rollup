@@ -15,7 +15,7 @@ var bundle = (function (exports, imported1, external2) {
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

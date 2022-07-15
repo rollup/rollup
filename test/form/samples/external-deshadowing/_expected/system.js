@@ -5,7 +5,7 @@ System.register('myBundle', ['a', 'b'], (function (exports) {
     setters: [function (module) {
       Test$1 = module.Test;
     }, function (module) {
-      Test$2 = module["default"];
+      Test$2 = module.default;
     }],
     execute: (function () {
 

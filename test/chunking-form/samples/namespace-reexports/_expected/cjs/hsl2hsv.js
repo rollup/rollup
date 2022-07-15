@@ -11,5 +11,5 @@ var hsl2hsv = (h, s, l) => {
 
 var p = 5;
 
-exports["default"] = hsl2hsv;
+exports.default = hsl2hsv;
 exports.p = p;

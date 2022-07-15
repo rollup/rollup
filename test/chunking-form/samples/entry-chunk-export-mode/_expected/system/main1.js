@@ -3,7 +3,7 @@ System.register(['./main2.js'], (function () {
 	var fn;
 	return {
 		setters: [function (module) {
-			fn = module["default"];
+			fn = module.default;
 		}],
 		execute: (function () {
 

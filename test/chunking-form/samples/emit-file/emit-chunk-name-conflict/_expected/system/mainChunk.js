@@ -3,11 +3,11 @@ System.register(['./generated-name.js', './generated-firstName.js', './generated
 	var value1, value2, value3;
 	return {
 		setters: [function (module) {
-			value1 = module["default"];
+			value1 = module.default;
 		}, function (module) {
-			value2 = module["default"];
+			value2 = module.default;
 		}, function (module) {
-			value3 = module["default"];
+			value3 = module.default;
 		}],
 		execute: (function () {
 
