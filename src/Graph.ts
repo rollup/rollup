@@ -14,6 +14,7 @@ import type {
 	WatchChangeHook
 } from './rollup/types';
 import { PluginDriver } from './utils/PluginDriver';
+import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
@@ -48,6 +49,7 @@ export default class Graph {
 	readonly cachedModules = new Map<string, ModuleJSON>();
 	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
+	readonly fileOperationQueue: Queue;
 	readonly moduleLoader: ModuleLoader;
 	readonly modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
@@ -87,6 +89,7 @@ export default class Graph {
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
+		this.fileOperationQueue = new Queue(options.maxParallelFileOps);
 	}
 
 	async build(): Promise<void> {

@@ -1,16 +1,13 @@
 const assert = require('assert');
 const { promises: fs } = require('fs');
-const { wait } = require('../../../utils');
+const { wait } = require('../../../../utils');
 
 const fsReadFile = fs.readFile;
 let currentReads = 0;
 let maxReads = 0;
 
 module.exports = {
-	description: 'maxParallelFileReads set to infinity',
-	options: {
-		maxParallelFileReads: 0
-	},
+	description: 'maxParallelFileOps not set',
 	before() {
 		fs.readFile = async (path, options) => {
 			currentReads++;

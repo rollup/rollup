@@ -16,7 +16,6 @@ import type {
 	ResolveIdResult
 } from './rollup/types';
 import type { PluginDriver } from './utils/PluginDriver';
-import Queue from './utils/Queue';
 import { EMPTY_OBJECT } from './utils/blank';
 import {
 	errBadLoader,
@@ -72,7 +71,6 @@ export class ModuleLoader {
 	private readonly modulesWithLoadedDependencies = new Set<Module>();
 	private nextChunkNamePriority = 0;
 	private nextEntryModuleIndex = 0;
-	private readonly readQueue: Queue<LoadResult>;
 
 	constructor(
 		private readonly graph: Graph,
@@ -83,8 +81,6 @@ export class ModuleLoader {
 		this.hasModuleSideEffects = options.treeshake
 			? options.treeshake.moduleSideEffects
 			: () => true;
-
-		this.readQueue = new Queue(options.maxParallelFileReads);
 	}
 
 	async addAdditionalModules(unresolvedModules: readonly string[]): Promise<Module[]> {
@@ -252,7 +248,7 @@ export class ModuleLoader {
 		timeStart('load modules', 3);
 		let source: LoadResult;
 		try {
-			source = await this.readQueue.run(
+			source = await this.graph.fileOperationQueue.run(
 				async () =>
 					(await this.pluginDriver.hookFirst('load', [id])) ?? (await fs.readFile(id, 'utf8'))
 			);
