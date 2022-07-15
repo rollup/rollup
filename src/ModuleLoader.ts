@@ -33,7 +33,6 @@ import { promises as fs } from './utils/fs';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
-import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
 export interface UnresolvedModule {
@@ -245,7 +244,6 @@ export class ModuleLoader {
 		importer: string | undefined,
 		module: Module
 	): Promise<void> {
-		timeStart('load modules', 3);
 		let source: LoadResult;
 		try {
 			source = await this.graph.fileOperationQueue.run(
@@ -253,14 +251,12 @@ export class ModuleLoader {
 					(await this.pluginDriver.hookFirst('load', [id])) ?? (await fs.readFile(id, 'utf8'))
 			);
 		} catch (err: any) {
-			timeEnd('load modules', 3);
 			let msg = `Could not load ${id}`;
 			if (importer) msg += ` (imported by ${relativeId(importer)})`;
 			msg += `: ${err.message}`;
 			err.message = msg;
 			throw err;
 		}
-		timeEnd('load modules', 3);
 		const sourceDescription =
 			typeof source === 'string'
 				? { code: source }
