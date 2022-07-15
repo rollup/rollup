@@ -459,7 +459,6 @@ describe('The bundle object', () => {
 		return rollup
 			.rollup({
 				input: ['input', 'dynamic1'],
-				preserveModules: true,
 				plugins: [
 					loader({
 						input: `import {other} from "other";console.log(other);Promise.all([import('dynamic1'), import('dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));`,
@@ -474,7 +473,8 @@ describe('The bundle object', () => {
 					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
-					chunkFileNames: 'generated-[name].js'
+					chunkFileNames: 'generated-[name].js',
+					preserveModules: true
 				})
 			)
 			.then(({ output }) => {
@@ -507,7 +507,7 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.name),
-					['input', 'dynamic1', 'dynamic2', 'other'],
+					['_virtual/input', '_virtual/dynamic1', '_virtual/dynamic2', '_virtual/other'],
 					'name'
 				);
 				assert.deepEqual(
