@@ -99,3 +99,11 @@ declare module 'is-reference' {
 				value: Node;
 		  };
 }
+
+declare module 'get-package-type' {
+	interface GetPackageType {
+		sync(fileName: string): 'module' | 'commonjs';
+	}
+	const getPackageType: GetPackageType;
+	export default getPackageType;
+}
