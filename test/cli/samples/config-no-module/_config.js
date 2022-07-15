@@ -3,7 +3,7 @@ const { assertIncludes } = require('../../../utils.js');
 module.exports = {
 	description: 'provides a helpful error message if a transpiled config is interpreted as "module"',
 	minNodeVersion: 13,
-	command: 'cd sub && rollup -c',
+	command: 'rollup -c',
 	error: () => true,
 	stderr: stderr =>
 		assertIncludes(
