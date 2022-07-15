@@ -45,7 +45,6 @@ export default class Bundle {
 		const outputBundle = getOutputBundle(outputBundleBase);
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions);
 
-		// TODO Lukas rethink time measuring points
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
