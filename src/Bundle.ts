@@ -46,23 +46,25 @@ export default class Bundle {
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions);
 
 		try {
+			timeStart('initialize render', 2);
+
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
+			timeEnd('initialize render', 2);
 			timeStart('generate chunks', 2);
+
 			const getHashPlaceholder = getHashPlaceholderGenerator();
 			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
 			this.pluginDriver.setChunkInformation(this.facadeChunkByModule);
-
-			timeEnd('generate chunks', 2);
-
-			timeStart('render chunks', 2);
-
 			for (const chunk of chunks) {
 				chunk.generateExports();
 			}
+
+			timeEnd('generate chunks', 2);
+
 			await renderChunks(
 				chunks,
 				outputBundle,
@@ -70,12 +72,13 @@ export default class Bundle {
 				this.outputOptions,
 				this.inputOptions.onwarn
 			);
-
-			timeEnd('render chunks', 2);
 		} catch (err: any) {
 			await this.pluginDriver.hookParallel('renderError', [err]);
 			throw err;
 		}
+
+		timeStart('generate bundle', 2);
+
 		await this.pluginDriver.hookSeq('generateBundle', [
 			this.outputOptions,
 			outputBundle as OutputBundle,
@@ -83,6 +86,7 @@ export default class Bundle {
 		]);
 		this.finaliseAssets(outputBundle);
 
+		timeEnd('generate bundle', 2);
 		timeEnd('GENERATE', 1);
 		return outputBundleBase;
 	}
