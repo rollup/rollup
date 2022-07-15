@@ -185,7 +185,7 @@ const getmaxParallelFileOps = (
 	if (typeof maxParallelFileReads === 'number') {
 		warnDeprecationWithOptions(
 			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
-			false,
+			true,
 			warn,
 			strictDeprecations
 		);
