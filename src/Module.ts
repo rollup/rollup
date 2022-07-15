@@ -712,6 +712,8 @@ export default class Module {
 		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): void {
+		timeStart('generate ast', 3);
+
 		this.info.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
@@ -723,13 +725,12 @@ export default class Module {
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
 
-		timeStart('generate ast', 3);
-
 		if (!ast) {
 			ast = this.tryParse();
 		}
 
 		timeEnd('generate ast', 3);
+		timeStart('analyze ast', 3);
 
 		this.resolvedIds = resolvedIds || Object.create(null);
 
@@ -741,8 +742,6 @@ export default class Module {
 			filename: (this.excludeFromSourcemap ? null : fileName)!, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
-
-		timeStart('analyse ast', 3);
 
 		this.astContext = {
 			addDynamicImport: this.addDynamicImport.bind(this),
@@ -778,7 +777,7 @@ export default class Module {
 		this.ast = new Program(ast, { context: this.astContext, type: 'Module' }, this.scope);
 		this.info.ast = ast;
 
-		timeEnd('analyse ast', 3);
+		timeEnd('analyze ast', 3);
 	}
 
 	toJSON(): ModuleJSON {
