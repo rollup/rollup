@@ -1,4 +1,4 @@
-import type { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
+import type { InputOptions, Plugin, PluginHooks, SerializedTimings } from '../rollup/types';
 import performance from './performance';
 import process from './process';
 
@@ -74,7 +74,26 @@ export function getTimings(): SerializedTimings {
 export let timeStart: (label: string, level?: number) => void = NOOP;
 export let timeEnd: (label: string, level?: number) => void = NOOP;
 
-const TIMED_PLUGIN_HOOKS = ['load', 'resolveDynamicImport', 'resolveId', 'transform'] as const;
+const TIMED_PLUGIN_HOOKS: readonly (keyof PluginHooks)[] = [
+	'augmentChunkHash',
+	'buildEnd',
+	'buildStart',
+	'generateBundle',
+	'load',
+	'moduleParsed',
+	'options',
+	'outputOptions',
+	'renderChunk',
+	'renderDynamicImport',
+	'renderStart',
+	'resolveDynamicImport',
+	'resolveFileUrl',
+	'resolveId',
+	'resolveImportMeta',
+	'shouldTransformCachedModule',
+	'transform',
+	'writeBundle'
+];
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
 	for (const hook of TIMED_PLUGIN_HOOKS) {
@@ -91,13 +110,6 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 				timeStart(timerLabel, 4);
 				const result = func.apply(this, args);
 				timeEnd(timerLabel, 4);
-				if (result && typeof result.then === 'function') {
-					timeStart(`${timerLabel} (async)`, 4);
-					return result.then((hookResult: unknown) => {
-						timeEnd(`${timerLabel} (async)`, 4);
-						return hookResult;
-					});
-				}
 				return result;
 			};
 		}

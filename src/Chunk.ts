@@ -54,7 +54,6 @@ import { basename, extname, isAbsolute, resolve } from './utils/path';
 import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
-import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface ModuleDeclarations {
@@ -604,7 +603,6 @@ export default class Chunk {
 		const { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait } =
 			this.renderModules(preliminaryFileName.fileName);
 
-		timeStart('render format', 2);
 		const renderedDependencies = [...this.getRenderedDependencies().values()];
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
 		const hasExports =
@@ -638,7 +636,6 @@ export default class Chunk {
 		);
 		if (banner) magicString.prepend(banner);
 		if (footer) magicString.append(footer);
-		timeEnd('render format', 2);
 
 		return {
 			chunk: this,

@@ -97,10 +97,10 @@ export default class Graph {
 		await this.generateModuleGraph();
 		timeEnd('generate module graph', 2);
 
-		timeStart('sort modules', 2);
+		timeStart('sort and bind modules', 2);
 		this.phase = BuildPhase.ANALYSE;
 		this.sortModules();
-		timeEnd('sort modules', 2);
+		timeEnd('sort and bind modules', 2);
 
 		timeStart('mark included statements', 2);
 		this.includeStatements();
