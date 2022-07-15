@@ -1,3 +1,8 @@
+// retained
+`ab`();
+`ab`.unknown.unknown();
+`ab`.unknown.unknown().unknown;
+
 // deep property access is forbidden
 `ab`.x.y;
 

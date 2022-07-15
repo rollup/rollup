@@ -1,67 +1,90 @@
-const boolean = true;
-const valueOf1 = boolean.valueOf();
-const valueOf2 = true.valueOf();
-const valueOf3 = true.valueOf().valueOf();
-const valueOf4 = true.valueOf().valueOf().valueOf();
-
 // retained
-true.valueOf().unknown.unknown();
 true.valueOf()();
-(1).valueOf().unknown.unknown();
-(1).valueOf().unknown();
-(1).valueOf()[globalThis.unknown]();
+true.valueOf()[globalThis.unknown]();
+true.valueOf().unknown();
+true.valueOf().unknown.unknown();
+true.valueOf().unknown.unknown().unknown;
+
 (1).valueOf()();
-'ab'.charAt(1).unknown.unknown();
+(1).valueOf()[globalThis.unknown]();
+(1).valueOf().unknown();
+(1).valueOf().unknown.unknown();
+(1).valueOf().unknown.unknown().unknown;
+
 'ab'.charAt(1)();
+'ab'.charAt(1)[globalThis.unknown]();
+'ab'.charAt(1).unknown();
+'ab'.charAt(1).unknown.unknown();
+'ab'.charAt(1).unknown.unknown().unknown;
+
 null.unknown;
 
-// number prototype
-const _toExponential = (1).toExponential( 2 ).trim();
-const _toFixed = (1).toFixed( 2 ).trim();
-const _toLocaleString = (1).toLocaleString().trim();
-const _toPrecision = (1).toPrecision( 2 ).trim();
-const _numberValueOf = (1).valueOf().toExponential( 2 );
+// boolean prototype
+true.valueOf();
+true.valueOf().valueOf();
+true.valueOf().valueOf().valueOf();
+const _booleanToString = true.toString().trim();
+const _booleanValueOf = true.valueOf().valueOf();
+
 // inherited
-const _numberHasOwnProperty = (1).hasOwnProperty( 'toString' ).valueOf();
-const _numberIsPrototypeOf = (1).isPrototypeOf( 1 ).valueOf();
-const _numberPropertyIsEnumerable = (1).propertyIsEnumerable( 'toString' ).valueOf();
+const _booleanHasOwnProperty = true.hasOwnProperty('toString').valueOf();
+const _booleanIsPrototypeOf = true.isPrototypeOf(true).valueOf();
+const _booleanPropertyIsEnumerable = true.propertyIsEnumerable('toString').valueOf();
+const _booleanToLocaleString = true.toLocaleString().trim();
+
+// number prototype
+(1).valueOf();
+(1).valueOf().valueOf();
+(1).valueOf().valueOf().valueOf();
+const _numberToExponential = (1).toExponential(2).trim();
+const _numberToFixed = (1).toFixed(2).trim();
 const _numberToLocaleString = (1).toLocaleString().trim();
+const _numberToPrecision = (1).toPrecision(2).trim();
 const _numberToString = (1).toString().trim();
+const _numberValueOf = (1).valueOf().toExponential(2);
+
+// inherited
+const _numberHasOwnProperty = (1).hasOwnProperty('toString').valueOf();
+const _numberIsPrototypeOf = (1).isPrototypeOf(1).valueOf();
+const _numberPropertyIsEnumerable = (1).propertyIsEnumerable('toString').valueOf();
 
 // string prototype
-const _at = 'ab'.at( 1 )
-const _charAt = 'ab'.charAt( 1 ).trim();
-const _charCodeAt = 'ab'.charCodeAt( 1 ).toExponential( 2 );
-const _codePointAt = 'ab'.codePointAt( 1 );
-const _concat = 'ab'.concat( 'c' ).trim();
-const _includes = 'ab'.includes( 'a' ).valueOf();
-const _endsWith = 'ab'.endsWith( 'a' ).valueOf();
-const _indexOf = 'ab'.indexOf( 'a' ).toExponential( 2 );
-const _lastIndexOf = 'ab'.lastIndexOf( 'a' ).toExponential( 2 );
-const _localeCompare = 'ab'.localeCompare( 'a' ).toExponential( 2 );
-const _match = 'ab'.match( /a/ )
-const _matchAll = 'ab'.matchAll( /a/ )
-const _normalize = 'ab'.normalize().trim();
-const _padEnd = 'ab'.padEnd( 4, 'a' ).trim();
-const _padStart = 'ab'.padStart( 4, 'a' ).trim();
-const _repeat = 'ab'.repeat( 2 ).trim();
-const _replace = 'ab'.replace( 'a', () => 'b' ).trim();
-const _replaceEffect = 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
-const _replaceAll = 'ab'.replaceAll( 'a', () => 'b' ).trim();
-const _replaceAllEffect = 'ab'.replaceAll( 'a', () => console.log( 1 ) || 'b' );
-const _search = 'ab'.search( /a/ ).toExponential( 2 );
-const _slice = 'ab'.slice( 0, 1 ).trim();
-const _split = 'ab'.split( 'a' );
-const _startsWith = 'ab'.startsWith( 'a' ).valueOf();
-const _substring = 'ab'.substring( 0, 1 ).trim();
-const _toLocaleLowerCase = 'ab'.toLocaleLowerCase().trim();
-const _toLocaleUpperCase = 'ab'.toLocaleUpperCase().trim();
-const _toLowerCase = 'ab'.toLowerCase().trim();
-const _toString = 'ab'.trim();
-const _toUpperCase = 'ab'.toUpperCase().trim();
-const _trim = 'ab'.trim().trim();
-const _trimEnd = 'ab'.trimEnd().trim();
-const _trimStart = 'ab'.trimStart().trim();
+'ab'.valueOf();
+'ab'.valueOf().valueOf();
+'ab'.valueOf().valueOf().valueOf();
+const _stringAt = 'ab'.at(1);
+const _stringCharAt = 'ab'.charAt(1).trim();
+const _stringCharCodeAt = 'ab'.charCodeAt(1).toExponential(2);
+const _stringCodePointAt = 'ab'.codePointAt(1);
+const _stringConcat = 'ab'.concat('c').trim();
+const _stringEndsWith = 'ab'.endsWith('a').valueOf();
+const _stringIncludes = 'ab'.includes('a').valueOf();
+const _stringIndexOf = 'ab'.indexOf('a').toExponential(2);
+const _stringLastIndexOf = 'ab'.lastIndexOf('a').toExponential(2);
+const _stringLocaleCompare = 'ab'.localeCompare('a').toExponential(2);
+const _stringMatch = 'ab'.match(/a/);
+const _stringMatchAll = 'ab'.matchAll(/a/);
+const _stringNormalize = 'ab'.normalize().trim();
+const _stringPadEnd = 'ab'.padEnd(4, 'a').trim();
+const _stringPadStart = 'ab'.padStart(4, 'a').trim();
+const _stringRepeat = 'ab'.repeat(2).trim();
+const _stringReplace = 'ab'.replace('a', () => 'b').trim();
+const _stringReplaceEffect = 'ab'.replace('a', () => console.log(1) || 'b');
+const _stringReplaceAll = 'ab'.replaceAll('a', () => 'b').trim();
+const _stringReplaceAllEffect = 'ab'.replaceAll('a', () => console.log(1) || 'b');
+const _stringSearch = 'ab'.search(/a/).toExponential(2);
+const _stringSlice = 'ab'.slice(0, 1).trim();
+const _stringSplit = 'ab'.split('a');
+const _stringStartsWith = 'ab'.startsWith('a').valueOf();
+const _stringSubstring = 'ab'.substring(0, 1).trim();
+const _stringToLocaleLowerCase = 'ab'.toLocaleLowerCase().trim();
+const _stringToLocaleUpperCase = 'ab'.toLocaleUpperCase().trim();
+const _stringToLowerCase = 'ab'.toLowerCase().trim();
+const _stringToString = 'ab'.trim();
+const _stringToUpperCase = 'ab'.toUpperCase().trim();
+const _stringTrim = 'ab'.trim().trim();
+const _stringTrimEnd = 'ab'.trimEnd().trim();
+const _stringTrimStart = 'ab'.trimStart().trim();
 const _stringValueOf = 'ab'.valueOf().trim();
 
 // DEPRECATED prototype methods
@@ -83,11 +106,10 @@ const _trimLeft = 'ab'.trimLeft().trim();
 const _trimRight = 'ab'.trimRight().trim();
 
 // inherited
-const _stringHasOwnProperty = 'ab'.hasOwnProperty( 'toString' ).valueOf();
-const _stringIsPrototypeOf = 'ab'.isPrototypeOf( '' ).valueOf();
-const _stringPropertyIsEnumerable = 'ab'.propertyIsEnumerable( 'toString' ).valueOf();
+const _stringHasOwnProperty = 'ab'.hasOwnProperty('toString').valueOf();
+const _stringIsPrototypeOf = 'ab'.isPrototypeOf('').valueOf();
+const _stringPropertyIsEnumerable = 'ab'.propertyIsEnumerable('toString').valueOf();
 const _stringToLocaleString = 'ab'.toLocaleString().trim();
-const _stringToString = 'ab'.toString().trim();
 
 // property access is allowed
 const accessBoolean = true.x;
