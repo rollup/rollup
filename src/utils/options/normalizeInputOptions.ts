@@ -4,7 +4,6 @@ import type {
 	InputOptions,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
-	PreserveEntrySignaturesOption,
 	RollupBuild,
 	WarningHandler
 } from '../../rollup/types';
@@ -55,7 +54,7 @@ export function normalizeInputOptions(config: InputOptions): {
 		onwarn,
 		perf: config.perf || false,
 		plugins: ensureArray(config.plugins),
-		preserveEntrySignatures: getPreserveEntrySignatures(config, unsetOptions),
+		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
 		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,
 		shimMissingExports: config.shimMissingExports || false,
@@ -217,19 +216,6 @@ const getModuleContext = (
 		return id => contextByModuleId[id] || context;
 	}
 	return () => context;
-};
-
-const getPreserveEntrySignatures = (
-	config: InputOptions,
-	unsetOptions: Set<string>
-): NormalizedInputOptions['preserveEntrySignatures'] => {
-	const configPreserveEntrySignatures = config.preserveEntrySignatures as
-		| PreserveEntrySignaturesOption
-		| undefined;
-	if (configPreserveEntrySignatures == null) {
-		unsetOptions.add('preserveEntrySignatures');
-	}
-	return configPreserveEntrySignatures ?? 'strict';
 };
 
 const getPreserveModules = (

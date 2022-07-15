@@ -52,7 +52,7 @@ import {
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
 import { basename, extname, isAbsolute } from './utils/path';
-import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
+import { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -297,21 +297,6 @@ export default class Chunk {
 		const moduleExportNamesByVariable = module.getExportNamesByVariable();
 		for (const exposedVariable of this.exports) {
 			if (!moduleExportNamesByVariable.has(exposedVariable)) {
-				if (
-					moduleExportNamesByVariable.size === 0 &&
-					module.isUserDefinedEntryPoint &&
-					module.preserveSignature === 'strict' &&
-					this.unsetOptions.has('preserveEntrySignatures')
-				) {
-					this.inputOptions.onwarn({
-						code: 'EMPTY_FACADE',
-						id: module.id,
-						message: `To preserve the export signature of the entry module "${relativeId(
-							module.id
-						)}", an empty facade chunk was created. This often happens when creating a bundle for a web app where chunks are placed in script tags and exports are ignored. In this case it is recommended to set "preserveEntrySignatures: false" to avoid this and reduce the number of chunks. Otherwise if this is intentional, set "preserveEntrySignatures: 'strict'" explicitly to silence this warning.`,
-						url: 'https://rollupjs.org/guide/en/#preserveentrysignatures'
-					});
-				}
 				return false;
 			}
 		}

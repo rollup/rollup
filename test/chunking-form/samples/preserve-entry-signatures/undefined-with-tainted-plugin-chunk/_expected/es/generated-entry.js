@@ -1,1 +1,0 @@
-import './generated-main.js';
