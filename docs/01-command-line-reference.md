@@ -288,7 +288,27 @@ On the other hand if you are using at least Node 13 and have `"type": "module"` 
 There are some potential gotchas when using `.mjs` on Node 13+:
 
 - You will only get a default export from CommonJS plugins
-- You may not be able to import JSON files such as your `package.json file`. There are two ways to go around this:
+- You may not be able to import JSON files such as your `package.json file`. There are four ways to go around this:
+
+  - read and parse the JSON file yourself via
+
+    ```
+    // rollup.config.mjs
+    import { readFileSync } from 'fs';
+
+    const packageJson = JSON.parse(readFileSync('./package.json'));
+    ...
+    ```
+
+  - use `createRequire` via
+
+    ```
+    // rollup.config.mjs
+    import { createRequire } from 'module';
+    const require = createRequire(import.meta.url);
+    const packageJson = require('./package.json');
+    ...
+    ```
 
   - run Rollup CLI via
 
