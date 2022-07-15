@@ -1,7 +1,7 @@
 var bundle = (function (exports, foo$1) {
 	'use strict';
 
-	const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
+	const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -17,7 +17,7 @@ var bundle = (function (exports, foo$1) {
 				}
 			}
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -36,10 +36,10 @@ var bundle = (function (exports, foo$1) {
 
 	const synthetic = { bar: 'baz' };
 
-	console.log(foo__default["default"], foo__namespace, other, bar, _missingExportShim);
+	console.log(foo__default.default, foo__namespace, other, bar, _missingExportShim);
 	const main = 42;
 
-	exports["default"] = main;
+	exports.default = main;
 	exports.syntheticMissing = synthetic.syntheticMissing;
 	for (const k in foo$1) {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {

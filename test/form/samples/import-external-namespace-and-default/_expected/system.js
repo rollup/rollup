@@ -4,7 +4,7 @@ System.register(['foo'], (function () {
 	return {
 		setters: [function (module) {
 			foo = module;
-			foo__default = module["default"];
+			foo__default = module.default;
 		}],
 		execute: (function () {
 

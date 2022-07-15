@@ -368,7 +368,7 @@ const getGeneratedCode = (
 		arrowFunctions: configWithPreset.arrowFunctions === true,
 		constBindings: configWithPreset.constBindings === true || preferConst,
 		objectShorthand: configWithPreset.objectShorthand === true,
-		reservedNamesAsProps: configWithPreset.reservedNamesAsProps === true,
+		reservedNamesAsProps: configWithPreset.reservedNamesAsProps !== false,
 		symbols: configWithPreset.symbols === true
 	};
 };

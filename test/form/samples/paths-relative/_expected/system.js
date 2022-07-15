@@ -3,7 +3,7 @@ System.register(['../foo'], (function () {
 	var foo;
 	return {
 		setters: [function (module) {
-			foo = module["default"];
+			foo = module.default;
 		}],
 		execute: (function () {
 

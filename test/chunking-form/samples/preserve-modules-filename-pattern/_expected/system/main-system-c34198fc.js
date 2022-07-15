@@ -2,23 +2,23 @@ System.register(['./nested/a-system-db94ffc0.js', './b.str-system-2fa3160e.js', 
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('a', module["default"]);
+			exports('a', module.default);
 		}, function (module) {
-			exports('b', module["default"]);
+			exports('b', module.default);
 		}, function (module) {
-			exports('c', module["default"]);
+			exports('c', module.default);
 		}, function (module) {
-			exports('d', module["default"]);
+			exports('d', module.default);
 		}, function (module) {
-			exports('e', module["default"]);
+			exports('e', module.default);
 		}, function (module) {
-			exports('f', module["default"]);
+			exports('f', module.default);
 		}, function (module) {
-			exports('g', module["default"]);
+			exports('g', module.default);
 		}, function (module) {
-			exports('h', module["default"]);
+			exports('h', module.default);
 		}, function (module) {
-			exports('x', module["default"]);
+			exports('x', module.default);
 		}],
 		execute: (function () {
 

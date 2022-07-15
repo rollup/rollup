@@ -6,7 +6,7 @@ define(['require', 'exports', './generated-separate'], (function (require, expor
 
 	var inlined$2 = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		'default': inlined$1,
+		default: inlined$1,
 		x: x
 	});
 

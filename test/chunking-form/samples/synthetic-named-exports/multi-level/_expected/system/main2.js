@@ -3,7 +3,7 @@ System.register(['./main.js'], (function (exports) {
 	var main;
 	return {
 		setters: [function (module) {
-			main = module["default"];
+			main = module.default;
 		}],
 		execute: (function () {
 

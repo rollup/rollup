@@ -19,7 +19,7 @@ define(['exports', './main'], (function (exports, main) { 'use strict';
 
 	var component$1 = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
-		'default': component
+		default: component
 	}, [component]);
 
 	exports.component = component$1;

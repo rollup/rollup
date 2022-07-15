@@ -4,7 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.externalauto, global.externaldefault, global.externaldefaultOnly, global.externalesModule));
 })(this, (function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
 
-	function _interopNamespaceDefaultOnly (e) { return { __proto__: null, 'default': e }; }
+	function _interopNamespaceDefaultOnly (e) { return { __proto__: null, default: e }; }
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -19,7 +19,7 @@
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return n;
 	}
 
@@ -29,10 +29,10 @@
 	var fooDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(fooDefault);
 	var fooDefaultOnly__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(fooDefaultOnly);
 
-	console.log(fooAuto__namespace["default"], fooAuto.barAuto, fooAuto__namespace);
+	console.log(fooAuto__namespace.default, fooAuto.barAuto, fooAuto__namespace);
 	console.log(fooDefault, fooDefault.barDefault, fooDefault__namespace);
 	console.log(fooDefaultOnly, fooDefaultOnly__namespace);
-	console.log(fooEsModule["default"], fooEsModule.barEsModule, fooEsModule);
+	console.log(fooEsModule.default, fooEsModule.barEsModule, fooEsModule);
 
 	import('external-auto').then(console.log);
 	import('external-default').then(console.log);

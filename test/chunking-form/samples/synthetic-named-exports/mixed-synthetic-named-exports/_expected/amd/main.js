@@ -24,7 +24,7 @@ define(['exports'], (function (exports) { 'use strict';
   var ns = /*#__PURE__*/_mergeNamespaces({
     __proto__: null,
     foo: foo,
-    'default': d
+    default: d
   }, [d]);
 
   const stuff = 12;

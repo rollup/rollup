@@ -14,7 +14,7 @@ define(['exports', 'external1', 'external2'], (function (exports, external1, ext
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

@@ -2,7 +2,7 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 	'use strict';
 	var _starExcludes = {
 		a: 1,
-		'default': 1,
+		default: 1,
 		foo: 1
 	};
 	var b, defaultLegacy, defaultLegacy__default, externalAuto, externalDefault, externalDefaultOnly;
@@ -10,14 +10,14 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 		setters: [() => {}, module => {
 			b = module.b;
 			defaultLegacy = module;
-			defaultLegacy__default = module["default"];
+			defaultLegacy__default = module.default;
 			var setter = { foo: module.foo };
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
 			exports(setter);
 		}, module => {
-			externalAuto = module["default"];
+			externalAuto = module.default;
 		}, module => {
 			externalDefault = module;
 		}, module => {

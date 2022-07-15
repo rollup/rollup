@@ -2,7 +2,7 @@ System.register('bundle', ['external'], (function (exports) {
 	'use strict';
 	var _starExcludes = {
 		renamedIndirectOverride: 1,
-		'default': 1,
+		default: 1,
 		renamedDirectOverride: 1
 	};
 	var indirectOverride;
