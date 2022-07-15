@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 2.77.0
+
+_2022-07-15_
+
+### Features
+
+- Introduce `maxParallelFileOps` to limit both read and write operations, default to 20 and replaces `maxParallelFileRead` (#4570)
+
+### Bug Fixes
+
+- Avoid including variables referenced from return statements that are never reached (#4573)
+
+### Pull Requests
+
+- [#4570](https://github.com/rollup/rollup/pull/4570): Introduce maxParallelFileOps to limit parallel writes (@lukastaegert)
+- [#4572](https://github.com/rollup/rollup/pull/4572): Document more ways to read package.json in ESM (@berniegp)
+- [#4573](https://github.com/rollup/rollup/pull/4573): Do not include unused return expressions (@lukastaegert)
+
 ## 2.76.0
 
 _2022-07-08_
