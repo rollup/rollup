@@ -1157,7 +1157,7 @@ If the code is invalid, a warning will be issued. Note that no error is thrown s
 
 #### preserveEntrySignatures
 
-Type: `"strict" | "allow-extension" | "exports-only" | false`<br> CLI: `--preserveEntrySignatures <strict|allow-extension>`/`--no-preserveEntrySignatures`<br> Default: `"strict"`
+Type: `"strict" | "allow-extension" | "exports-only" | false`<br> CLI: `--preserveEntrySignatures <strict|allow-extension>`/`--no-preserveEntrySignatures`<br> Default: `"exports-only"`
 
 Controls if Rollup tries to ensure that entry chunks have the same exports as the underlying entry module.
 
