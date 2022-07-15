@@ -197,10 +197,13 @@ describe('sanity checks', () => {
 	it('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', async () => {
 		const bundle = await rollup.rollup({
 			input: 'x',
-			inlineDynamicImports: true,
 			plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })]
 		});
-		await bundle.generate({ file: 'x', format: 'es' });
+		await bundle.generate({
+			file: 'x',
+			format: 'es',
+			inlineDynamicImports: true
+		});
 	});
 
 	it('throws when using the object form of "input" together with the "file" option', async () => {
