@@ -2,7 +2,6 @@
 /* global gc */
 
 import { readFileSync, writeFileSync } from 'fs';
-import path, { dirname } from 'path';
 import { cwd } from 'process';
 import { fileURLToPath } from 'url';
 import { createColors } from 'colorette';
@@ -12,8 +11,8 @@ import { rollup } from '../dist/rollup.js';
 import { findConfigFileName } from './find-config.js';
 
 const initialDir = cwd();
-const targetDir = path.resolve(dirname(fileURLToPath(import.meta.url)), '..', 'perf');
-const perfFile = path.resolve(targetDir, 'rollup.perf.json');
+const targetDir = fileURLToPath(new URL('../perf', import.meta.url).href);
+const perfFile = fileURLToPath(new URL('../perf/rollup.perf.json', import.meta.url).href);
 const { bold, underline, cyan, red, green } = createColors();
 const MIN_ABSOLUTE_TIME_DEVIATION = 10;
 const RELATIVE_DEVIATION_FOR_COLORING = 5;
