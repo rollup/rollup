@@ -295,7 +295,7 @@ There are some potential gotchas when using `.mjs` on Node 13+:
     ```
     // rollup.config.mjs
     import { readFileSync } from 'fs';
-    
+
     const packageJson = JSON.parse(readFileSync('./package.json'));
     ...
     ```
