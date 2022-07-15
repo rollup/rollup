@@ -1,3 +1,9 @@
+// retained
+`ab`();
+`ab`.unknown.unknown();
+`ab`.unknown.unknown().unknown;
+
+// removed
 `ab`.trim();
 `ab`.trim().trim();
 `ab`.toString().trim();

@@ -1,9 +1,8 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type { HasEffectsContext } from '../../ExecutionContext';
 import { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity } from './Expression';
-import type { IncludeChildren } from './Node';
 
 export class MultiExpression extends ExpressionEntity {
 	included = false;
@@ -40,15 +39,5 @@ export class MultiExpression extends ExpressionEntity {
 			if (expression.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
 		}
 		return false;
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		// This is only relevant to include values that do not have an AST representation,
-		// such as UnknownArrayExpression. Thus we only need to include them once.
-		for (const expression of this.expressions) {
-			if (!expression.included) {
-				expression.include(context, includeChildrenRecursively);
-			}
-		}
 	}
 }
