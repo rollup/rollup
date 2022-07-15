@@ -52,7 +52,9 @@ export async function rollupInternal(
 
 	await catchUnfinishedHookActions(graph.pluginDriver, async () => {
 		try {
+			timeStart('initialize', 2);
 			await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
+			timeEnd('initialize', 2);
 			await graph.build();
 		} catch (err: any) {
 			const watchFiles = Object.keys(graph.watchFiles);
@@ -168,6 +170,7 @@ function handleGenerateWrite(
 		const bundle = new Bundle(outputOptions, unsetOptions, inputOptions, outputPluginDriver, graph);
 		const generated = await bundle.generate(isWrite);
 		if (isWrite) {
+			timeStart('WRITE', 1);
 			if (!outputOptions.dir && !outputOptions.file) {
 				return error({
 					code: 'MISSING_OPTION',
@@ -180,6 +183,7 @@ function handleGenerateWrite(
 				)
 			);
 			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
+			timeEnd('WRITE', 1);
 		}
 		return createOutput(generated);
 	});
