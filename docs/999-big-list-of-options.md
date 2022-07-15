@@ -476,7 +476,7 @@ The pattern to use for chunks created from entry points, or a function that is c
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
-This pattern will also be used for every file when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Note that in this case, `[name]` will include the relative path to the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts`.
+This pattern will also be used for every file when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Note that in this case, `[name]` will include the relative path from the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts`.
 
 #### output.extend
 
@@ -1026,7 +1026,7 @@ define(['https://d3js.org/d3.v4.min'], function (d3) {
 
 Type: `boolean`<br> CLI: `--preserveModules`/`--no-preserveModules`<br> Default: `false`
 
-Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side effects when executed as well as unused exports of files. On the other hand, if plugins (like `@rollup/plugin-commonjs`) emit additional "virtual" files to do their work, those files will be emitted as actual files using a pattern `_virtual/fileName.js`.
+Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side effects when executed and removing unused exports of files that are not entry points. On the other hand, if plugins (like `@rollup/plugin-commonjs`) emit additional "virtual" files to achieve certain results, those files will be emitted as actual files using a pattern `_virtual/fileName.js`.
 
 It is therefore not recommended to blindly use this option to transform an entire file structure to another format if you directly want to import from those files as expected exports may be missing. In that case, you should rather designate all files explicitly as entry points by adding them to the [`input` option object](guide/en/#input), see the example there for how to do that.
 
