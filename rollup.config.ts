@@ -97,7 +97,6 @@ export default async function (
 			chunkFileNames: 'shared/[name].js',
 			dir: 'dist',
 			entryFileNames: '[name]',
-			// TODO Only loadConfigFile is using default exports mode; this should be changed in Rollup@3
 			exports: 'auto',
 			externalLiveBindings: false,
 			format: 'cjs',
