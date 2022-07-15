@@ -15,13 +15,13 @@ Either a function that takes an `id` and returns `true` (external) or `false` (n
 
 ```js
 // rollup.config.js
-import path from 'path';
+import { fileURLToPath } from 'url'
 
 export default {
   ...,
   external: [
     'some-externally-required-library',
-    path.resolve( __dirname, 'src/some-local-file-that-should-not-be-bundled.js' ),
+    fileURLToPath(new URL('src/some-local-file-that-should-not-be-bundled.js', import.meta.url)),
     /node_modules/
   ]
 };
@@ -183,8 +183,8 @@ To tell Rollup that a local file should be replaced by a global variable, use an
 
 ```js
 // rollup.config.js
-import path from 'path';
-const externalId = path.resolve( __dirname, 'src/some-local-file-that-should-not-be-bundled.js' );
+import { fileURLToPath } from 'url'
+const externalId = fileURLToPath(new URL('src/some-local-file-that-should-not-be-bundled.js', import.meta.url))
 
 export default {
   ...,
