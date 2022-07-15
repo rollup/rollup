@@ -1,6 +1,6 @@
 import { extname, isAbsolute } from 'path';
-import { version } from 'process';
 import { pathToFileURL } from 'url';
+import getPackageType from 'get-package-type';
 import * as rollup from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
@@ -11,10 +11,6 @@ import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { type BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
-
-function supportsNativeESM(): boolean {
-	return Number(/^v(\d+)/.exec(version)![1]) >= 13;
-}
 
 interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;
@@ -48,11 +44,10 @@ async function loadConfigFile(
 
 	const configFileExport =
 		commandOptions.configPlugin ||
-		!(extension === '.cjs' || (extension === '.mjs' && supportsNativeESM()))
+		// We always transpile the .js non-module case because many legacy code bases rely on this
+		(extension === '.js' && getPackageType.sync(fileName) !== 'module')
 			? await getDefaultFromTranspiledConfigFile(fileName, commandOptions)
-			: extension === '.cjs'
-			? getDefaultFromCjs(require(fileName))
-			: (await import(pathToFileURL(fileName).href)).default;
+			: getDefaultFromCjs((await import(pathToFileURL(fileName).href)).default);
 
 	return getConfigList(configFileExport, commandOptions);
 }

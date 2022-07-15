@@ -1,12 +1,11 @@
 /* eslint-disable no-console */
 
-import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execa } from 'execa';
 import fs from 'fs-extra';
 import { findConfigFileName } from './find-config.js';
 
-const TARGET_DIR = path.resolve(dirname(fileURLToPath(import.meta.url)), '..', 'perf');
+const TARGET_DIR = fileURLToPath(new URL('../perf', import.meta.url).href);
 const VALID_REPO = /^([^/\s#]+\/[^/\s#]+)(#([^/\s#]+))?$/;
 const repoWithBranch = process.argv[2];
 
