@@ -19,7 +19,7 @@ module.exports = {
 					context: 'undefined',
 					experimentalCacheExpiry: 10,
 					input: ['used'],
-					makeAbsoluteExternalsRelative: true,
+					makeAbsoluteExternalsRelative: 'ifRelativeSource',
 					maxParallelFileOps: 20,
 					maxParallelFileReads: 20,
 					perf: false,
