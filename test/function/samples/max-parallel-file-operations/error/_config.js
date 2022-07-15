@@ -1,11 +1,11 @@
 const { promises: fs } = require('fs');
 const { join } = require('path');
-const { loader } = require('../../../utils.js');
+const { loader } = require('../../../../utils.js');
 
 const fsReadFile = fs.readFile;
 
 module.exports = {
-	description: 'maxParallelFileReads: fileRead error is forwarded',
+	description: 'maxParallelFileOps: fileRead error is forwarded',
 	options: {
 		input: 'main',
 		plugins: loader({

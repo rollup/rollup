@@ -38,6 +38,7 @@ export function normalizeInputOptions(config: InputOptions): {
 	const context = config.context ?? 'undefined';
 	const onwarn = getOnwarn(config);
 	const strictDeprecations = config.strictDeprecations || false;
+	const maxParallelFileOps = getmaxParallelFileOps(config, onwarn, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
 		acorn: getAcorn(config) as unknown as NormalizedInputOptions['acorn'],
 		acornInjectPlugins: getAcornInjectPlugins(config),
@@ -49,7 +50,8 @@ export function normalizeInputOptions(config: InputOptions): {
 		input: getInput(config),
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? true,
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
-		maxParallelFileReads: getMaxParallelFileReads(config),
+		maxParallelFileOps,
+		maxParallelFileReads: maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: config.perf || false,
@@ -175,13 +177,24 @@ const getManualChunks = (
 	return configManualChunks;
 };
 
-const getMaxParallelFileReads = (
-	config: InputOptions
-): NormalizedInputOptions['maxParallelFileReads'] => {
+const getmaxParallelFileOps = (
+	config: InputOptions,
+	warn: WarningHandler,
+	strictDeprecations: boolean
+): NormalizedInputOptions['maxParallelFileOps'] => {
 	const maxParallelFileReads = config.maxParallelFileReads as unknown;
 	if (typeof maxParallelFileReads === 'number') {
-		if (maxParallelFileReads <= 0) return Infinity;
-		return maxParallelFileReads;
+		warnDeprecationWithOptions(
+			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
+			false,
+			warn,
+			strictDeprecations
+		);
+	}
+	const maxParallelFileOps = (config.maxParallelFileOps as unknown) ?? maxParallelFileReads;
+	if (typeof maxParallelFileOps === 'number') {
+		if (maxParallelFileOps <= 0) return Infinity;
+		return maxParallelFileOps;
 	}
 	return 20;
 };

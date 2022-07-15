@@ -20,6 +20,7 @@ module.exports = {
 					experimentalCacheExpiry: 10,
 					input: ['used'],
 					makeAbsoluteExternalsRelative: true,
+					maxParallelFileOps: 20,
 					maxParallelFileReads: 20,
 					perf: false,
 					plugins: [

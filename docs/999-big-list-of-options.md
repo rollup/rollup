@@ -333,11 +333,11 @@ For this case, choosing `"ifRelativeSource"` will check if the original import w
 
 Note that when a relative path is directly marked as "external" using the [`external`](guide/en/#external) option, then it will be the same relative path in the output. When it is resolved first via a plugin or Rollup core and then marked as external, the above logic will apply.
 
-#### maxParallelFileReads
+#### maxParallelFileOps
 
-Type: `number`<br> CLI: `--maxParallelFileReads <number>`<br> Default: 20
+Type: `number`<br> CLI: `--maxParallelFileOps <number>`<br> Default: 20
 
-Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This dependes on how many open file handles the os allows.
+Limits the number of files rollup will open in parallel when reading modules or writing chunks. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the operating system allows.
 
 #### onwarn
 
@@ -1868,6 +1868,12 @@ _Use the [`output.inlineDynamicImports`](guide/en/#outputinlinedynamicimports) o
 #### manualChunks
 
 _Use the [`output.manualChunks`](guide/en/#outputmanualchunks) output option instead, which has the same signature._
+
+#### maxParallelFileReads
+
+_Use the [`maxParallelFileOps`](guide/en/#maxParallelFileOps) option instead._<br> Type: `number`<br> CLI: `--maxParallelFileReads <number>`<br> Default: 20
+
+Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the os allows.
 
 #### output.dynamicImportFunction
 

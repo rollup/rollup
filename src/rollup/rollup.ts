@@ -174,7 +174,9 @@ function handleGenerateWrite(
 				});
 			}
 			await Promise.all(
-				Object.values(generated).map(chunk => writeOutputFile(chunk, outputOptions))
+				Object.values(generated).map(chunk =>
+					graph.fileOperationQueue.run(() => writeOutputFile(chunk, outputOptions))
+				)
 			);
 			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
 		}

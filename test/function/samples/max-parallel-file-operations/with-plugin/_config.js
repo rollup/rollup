@@ -1,15 +1,22 @@
 const assert = require('assert');
 const { promises: fs } = require('fs');
-const { wait } = require('../../../utils');
+const { wait } = require('../../../../utils');
 
 const fsReadFile = fs.readFile;
 let currentReads = 0;
 let maxReads = 0;
 
 module.exports = {
-	description: 'maxParallelFileReads set to 3',
+	description: 'maxParallelFileOps with plugin',
 	options: {
-		maxParallelFileReads: 3
+		maxParallelFileOps: 3,
+		plugins: [
+			{
+				load(id) {
+					return fs.readFile(id, 'utf-8');
+				}
+			}
+		]
 	},
 	before() {
 		fs.readFile = async (path, options) => {
