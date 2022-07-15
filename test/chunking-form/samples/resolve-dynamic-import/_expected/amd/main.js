@@ -14,7 +14,7 @@ define(['require', './direct-relative-external', 'to-indirect-relative-external'
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

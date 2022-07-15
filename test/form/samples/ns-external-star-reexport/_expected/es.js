@@ -28,7 +28,7 @@ var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	override: override,
-	'default': reexportExternalsWithOverride,
+	default: reexportExternalsWithOverride,
 	extra: extra
 }, [reexportExternalsWithOverride, external1, external2]);
 

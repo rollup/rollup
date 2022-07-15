@@ -26,7 +26,7 @@ System.register(['./main.js'], (function (exports) {
 
 			var component$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
-				'default': component
+				default: component
 			}, [component]);
 			exports('c', component$1);
 

@@ -13,7 +13,7 @@ function _interopNamespace(e) {
 			n[k] = e[k];
 		}
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 

@@ -2,12 +2,12 @@
 
 var throttle = require('./lib/throttle.js');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 var throttle__default = /*#__PURE__*/_interopDefaultLegacy(throttle);
 
-throttle__default["default"]( () => {
+throttle__default.default( () => {
 	console.log( '.' );
 }, 500 );
 
-window.addEventListener( 'mousemove', throttle__default["default"] );
+window.addEventListener( 'mousemove', throttle__default.default );

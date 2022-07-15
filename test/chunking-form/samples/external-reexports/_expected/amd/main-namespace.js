@@ -14,7 +14,7 @@ define(['exports', 'external-all', 'external-namespace', 'external-default-names
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

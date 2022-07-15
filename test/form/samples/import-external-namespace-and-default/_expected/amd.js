@@ -1,6 +1,6 @@
 define(['foo'], (function (foo) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -16,7 +16,7 @@ define(['foo'], (function (foo) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -25,6 +25,6 @@ define(['foo'], (function (foo) { 'use strict';
 
 	console.log( foo__namespace.bar );
 
-	console.log( foo__default["default"] );
+	console.log( foo__default.default );
 
 }));

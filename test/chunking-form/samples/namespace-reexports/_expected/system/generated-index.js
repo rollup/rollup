@@ -3,7 +3,7 @@ System.register(['./hsl2hsv.js'], (function (exports) {
 	var hsl2hsv$1;
 	return {
 		setters: [function (module) {
-			hsl2hsv$1 = module["default"];
+			hsl2hsv$1 = module.default;
 		}],
 		execute: (function () {
 

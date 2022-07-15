@@ -4,7 +4,7 @@ var externalAuto = require('external-auto');
 var externalDefault = require('external-default');
 var externalDefaultOnly = require('external-defaultOnly');
 
-function _interopNamespaceDefaultOnly (e) { return Object.freeze(Object.defineProperty({ __proto__: null, 'default': e }, Symbol.toStringTag, { value: 'Module' })); }
+function _interopNamespaceDefaultOnly (e) { return Object.freeze(Object.defineProperty({ __proto__: null, default: e }, Symbol.toStringTag, { value: 'Module' })); }
 
 function _interopNamespaceDefault(e) {
 	var n = Object.create(null, { [Symbol.toStringTag]: { value: 'Module' } });
@@ -19,7 +19,7 @@ function _interopNamespaceDefault(e) {
 			}
 		});
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 

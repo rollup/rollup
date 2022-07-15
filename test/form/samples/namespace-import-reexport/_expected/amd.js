@@ -14,7 +14,7 @@ define(['exports', 'external-package'], (function (exports, externalPackage) { '
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

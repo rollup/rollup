@@ -1,7 +1,7 @@
 System.register('bundle', ['external'], (function (exports) {
 	'use strict';
 	var _starExcludes = {
-		'default': 1
+		default: 1
 	};
 	return {
 		setters: [function (module) {

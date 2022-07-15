@@ -1,6 +1,6 @@
 define(['module', 'require', 'external'], (function (module, require, external) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -16,13 +16,13 @@ define(['module', 'require', 'external'], (function (module, require, external) 
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
 	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
 
-	console.log(external__default["default"]);
+	console.log(external__default.default);
 
 	const _interopDefault$1 = 1;
 	const _interopNamespace$1 = 1;
@@ -34,7 +34,7 @@ define(['module', 'require', 'external'], (function (module, require, external) 
 	console.log(_interopDefault$1, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
 
 	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
-	exports["default"] = 0;
+	exports.default = 0;
 	console.log(new URL(module.uri, document.baseURI).href);
 
 	function nested1() {
@@ -48,7 +48,7 @@ define(['module', 'require', 'external'], (function (module, require, external) 
 		console.log(_interopDefault, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
 
 		new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
-		exports["default"] = 1;
+		exports.default = 1;
 		console.log(new URL(module.uri, document.baseURI).href);
 	}
 
@@ -67,6 +67,6 @@ define(['module', 'require', 'external'], (function (module, require, external) 
 
 	nested2();
 
-	return exports["default"];
+	return exports.default;
 
 }));

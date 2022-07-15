@@ -14,7 +14,7 @@ define(['require', './generated-dep'], (function (require, dep) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

@@ -1,7 +1,7 @@
 (function (externalAuto, externalDefault, externalDefaultOnly) {
 	'use strict';
 
-	function _interopNamespaceDefaultOnly (e) { return Object.freeze(Object.defineProperty({ __proto__: null, 'default': e }, Symbol.toStringTag, { value: 'Module' })); }
+	function _interopNamespaceDefaultOnly (e) { return Object.freeze(Object.defineProperty({ __proto__: null, default: e }, Symbol.toStringTag, { value: 'Module' })); }
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null, { [Symbol.toStringTag]: { value: 'Module' } });
@@ -16,7 +16,7 @@
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
