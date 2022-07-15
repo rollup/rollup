@@ -14,7 +14,7 @@ define(['foo', 'bar'], (function (foo, bar) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

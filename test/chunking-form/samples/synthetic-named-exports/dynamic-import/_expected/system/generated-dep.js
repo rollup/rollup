@@ -23,7 +23,7 @@ System.register([], (function (exports) {
 
 			var dep$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
-				'default': dep,
+				default: dep,
 				bar: bar
 			}, [dep]);
 			exports('d', dep$1);

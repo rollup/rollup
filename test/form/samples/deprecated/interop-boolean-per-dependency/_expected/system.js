@@ -3,11 +3,11 @@ System.register(['external-false', 'external-true'], (function (exports, module)
 	var fooFalse__default, barFalse, fooFalse, fooTrue__default, barTrue, fooTrue;
 	return {
 		setters: [function (module) {
-			fooFalse__default = module["default"];
+			fooFalse__default = module.default;
 			barFalse = module.barFalse;
 			fooFalse = module;
 		}, function (module) {
-			fooTrue__default = module["default"];
+			fooTrue__default = module.default;
 			barTrue = module.barTrue;
 			fooTrue = module;
 		}],

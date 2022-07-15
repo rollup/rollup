@@ -15,7 +15,7 @@ var iife = (function (exports, external1, external2) {
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

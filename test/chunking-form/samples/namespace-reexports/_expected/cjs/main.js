@@ -8,4 +8,4 @@ var hsl2hsv = require('./hsl2hsv.js');
 console.log(hsl2hsv.p);
 var main = new Map(Object.entries(index.lib));
 
-exports["default"] = main;
+exports.default = main;

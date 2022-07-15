@@ -20,7 +20,7 @@ function _interopNamespaceDefault(e) {
 			}
 		});
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
@@ -38,7 +38,7 @@ Object.defineProperty(exports, 'barAuto', {
 exports.externalAuto = externalAuto__namespace;
 Object.defineProperty(exports, 'fooAuto', {
 	enumerable: true,
-	get: function () { return externalAuto__namespace["default"]; }
+	get: function () { return externalAuto__namespace.default; }
 });
 Object.defineProperty(exports, 'barDefault', {
 	enumerable: true,
@@ -54,5 +54,5 @@ Object.defineProperty(exports, 'barEsModule', {
 exports.externalEsModule = externalEsModule;
 Object.defineProperty(exports, 'fooEsModule', {
 	enumerable: true,
-	get: function () { return externalEsModule["default"]; }
+	get: function () { return externalEsModule.default; }
 });

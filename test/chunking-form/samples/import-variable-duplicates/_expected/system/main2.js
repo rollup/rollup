@@ -3,7 +3,7 @@ System.register(['./first.js'], (function () {
 	var head2;
 	return {
 		setters: [function (module) {
-			head2 = module["default"];
+			head2 = module.default;
 		}],
 		execute: (function () {
 

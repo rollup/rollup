@@ -3,7 +3,7 @@ System.register(['./lib/throttle.js'], (function () {
 	var throttle;
 	return {
 		setters: [function (module) {
-			throttle = module["default"];
+			throttle = module.default;
 		}],
 		execute: (function () {
 

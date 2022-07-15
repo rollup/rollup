@@ -3,7 +3,7 @@ System.register(['./generated-dep.js'], (function () {
 	var value;
 	return {
 		setters: [function (module) {
-			value = module["default"];
+			value = module.default;
 		}],
 		execute: (function () {
 

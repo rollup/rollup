@@ -1,13 +1,13 @@
 System.register('bundle', ['external'], (function (exports) {
 	'use strict';
 	var _starExcludes = {
-		'default': 1,
+		default: 1,
 		syntheticMissing: 1
 	};
 	var foo__default, foo$1;
 	return {
 		setters: [module => {
-			foo__default = module["default"];
+			foo__default = module.default;
 			foo$1 = module;
 			var setter = {};
 			for (var name in module) {
