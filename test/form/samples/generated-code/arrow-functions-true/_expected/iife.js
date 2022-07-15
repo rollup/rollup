@@ -1,11 +1,11 @@
 var bundle = (function (exports, externalNoImport, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) {
 	'use strict';
 
-	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
+	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
 
-	var _interopDefault = e => e && e.__esModule ? e : { 'default': e };
+	var _interopDefault = e => e && e.__esModule ? e : { default: e };
 
-	var _interopNamespaceDefaultOnly = e => Object.freeze({ __proto__: null, 'default': e });
+	var _interopNamespaceDefaultOnly = e => Object.freeze({ __proto__: null, default: e });
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -20,7 +20,7 @@ var bundle = (function (exports, externalNoImport, defaultLegacy, externalAuto, 
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -55,8 +55,8 @@ var bundle = (function (exports, externalNoImport, defaultLegacy, externalAuto, 
 	Promise.resolve().then(() => main).then(console.log);
 
 	import('external').then(console.log);
-	console.log(defaultLegacy__default["default"]);
-	console.log(externalAuto__default["default"]);
+	console.log(defaultLegacy__default.default);
+	console.log(externalAuto__default.default);
 	console.log(externalDefault__namespace);
 	console.log(externalDefaultOnly__namespace);
 

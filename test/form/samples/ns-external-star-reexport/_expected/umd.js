@@ -18,7 +18,7 @@
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -52,7 +52,7 @@
 	var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
 		override: override,
-		'default': reexportExternalsWithOverride,
+		default: reexportExternalsWithOverride,
 		extra: extra
 	}, [reexportExternalsWithOverride, external1__namespace, external2__namespace]);
 

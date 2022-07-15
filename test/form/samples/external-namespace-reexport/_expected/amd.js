@@ -14,7 +14,7 @@ define(['exports', 'highcharts'], (function (exports, highcharts) { 'use strict'
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

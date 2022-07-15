@@ -3,7 +3,7 @@ System.register('foo', ['external'], (function (exports) {
 	var a, b;
 	return {
 		setters: [function (module) {
-			a = module["default"];
+			a = module.default;
 			b = module.b;
 		}],
 		execute: (function () {

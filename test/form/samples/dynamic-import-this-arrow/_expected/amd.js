@@ -14,7 +14,7 @@ define(['require', 'exports', 'input'], (function (require, exports, input) { 'u
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 

@@ -3,7 +3,7 @@ System.register(['jquery'], (function () {
 	var $;
 	return {
 		setters: [function (module) {
-			$ = module["default"];
+			$ = module.default;
 		}],
 		execute: (function () {
 

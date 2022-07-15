@@ -4,7 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.factory, global.baz, global.containers, global.alphabet));
 })(this, (function (factory, baz, containers, alphabet) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -20,7 +20,7 @@
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -28,10 +28,10 @@
 	var containers__namespace = /*#__PURE__*/_interopNamespace(containers);
 	var alphabet__default = /*#__PURE__*/_interopDefaultLegacy(alphabet);
 
-	factory__default["default"]( null );
+	factory__default.default( null );
 	baz.foo( baz.bar, containers.port );
 	containers__namespace.forEach( console.log, console );
 	console.log( alphabet.a );
-	console.log( alphabet__default["default"].length );
+	console.log( alphabet__default.default.length );
 
 }));

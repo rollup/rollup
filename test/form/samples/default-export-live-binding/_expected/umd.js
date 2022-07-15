@@ -4,8 +4,8 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}));
 })(this, (function (exports) { 'use strict';
 
-	exports["default"] = null;
-	const setFoo = value => (exports["default"] = value);
+	exports.default = null;
+	const setFoo = value => (exports.default = value);
 
 	exports.setFoo = setFoo;
 

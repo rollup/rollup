@@ -14,7 +14,7 @@ define(['exports', 'external1', 'external2'], (function (exports, external1, ext
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -48,7 +48,7 @@ define(['exports', 'external1', 'external2'], (function (exports, external1, ext
 	var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
 		override: override,
-		'default': reexportExternalsWithOverride,
+		default: reexportExternalsWithOverride,
 		extra: extra
 	}, [reexportExternalsWithOverride, external1__namespace, external2__namespace]);
 

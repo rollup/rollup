@@ -3,7 +3,7 @@ System.register(['external'], (function () {
 	var path;
 	return {
 		setters: [function (module) {
-			path = module["default"];
+			path = module.default;
 		}],
 		execute: (function () {
 

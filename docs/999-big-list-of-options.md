@@ -579,7 +579,7 @@ export default {
 };
 ```
 
-**output.generatedCode.reservedNamesAsProps**<br> Type: `boolean`<br> CLI: `--generatedCode.reservedNamesAsProps`/`--no-generatedCode.reservedNamesAsProps`<br> Default: `false`
+**output.generatedCode.reservedNamesAsProps**<br> Type: `boolean`<br> CLI: `--generatedCode.reservedNamesAsProps`/`--no-generatedCode.reservedNamesAsProps`<br> Default: `true`
 
 Determine whether reserved words like "default" can be used as prop names without using quotes. This will make the syntax of the generated code ES3 compliant. Note however that for full ES3 compliance, you may also need to polyfill some builtin functions like `Object.keys` or `Array.prototype.forEach`.
 

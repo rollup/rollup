@@ -5,7 +5,7 @@ System.register('bundle', ['external'], (function (exports) {
 		b: 1,
 		c: 1,
 		reassign: 1,
-		'default': 1
+		default: 1
 	};
 	return {
 		setters: [function (module) {

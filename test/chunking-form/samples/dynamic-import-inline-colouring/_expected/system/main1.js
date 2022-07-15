@@ -10,7 +10,7 @@ System.register(['./generated-separate.js'], (function (exports, module) {
 
 			var inlined$2 = /*#__PURE__*/Object.freeze({
 				__proto__: null,
-				'default': inlined$1,
+				default: inlined$1,
 				x: x
 			});
 

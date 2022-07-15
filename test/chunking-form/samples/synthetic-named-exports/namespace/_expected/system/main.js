@@ -28,7 +28,7 @@ System.register([], (function (exports) {
 
 			var synthetic$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
-				'default': synthetic,
+				default: synthetic,
 				foo: foo
 			}, [synthetic]);
 
@@ -38,7 +38,7 @@ System.register([], (function (exports) {
 			var dep$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
 				bar: bar,
-				'default': dep,
+				default: dep,
 				synthetic: synthetic$1,
 				foo: foo
 			}, [synthetic]);
