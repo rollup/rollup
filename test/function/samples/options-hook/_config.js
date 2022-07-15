@@ -28,7 +28,7 @@ module.exports = {
 							name: 'test-plugin'
 						}
 					],
-					preserveEntrySignatures: 'strict',
+					preserveEntrySignatures: 'exports-only',
 					preserveSymlinks: false,
 					shimMissingExports: false,
 					strictDeprecations: true,
