@@ -18,9 +18,11 @@ export default {
 };
 ```
 
-Typically, it is called `rollup.config.js` and sits in the root directory of your project. Behind the scenes, Rollup will usually transpile and bundle this file and its relative dependencies to CommonJS before requiring it. This has the advantage that you can share code with an ES module code base while having full interoperability with the Node ecosystem.
+Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. If you use the `.mjs` extension or have `type: "module"` in your `package.json` file, Rollup will directly use Node to import it, which is now the recommended way to define Rollup configurations. Note that there are some [caveats when using native Node ES modules](guide/en/#caveats-when-using-native-node-es-modules);
 
-If you want to write your config as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the file. Furthermore if you are on Node 13+, changing the file extension to `.mjs` will also prevent Rollup from transpiling it but import the file as an ES module instead. See [using untranspiled config files](guide/en/#using-untranspiled-config-files) for more details and why you might want to do this.
+Otherwise, Rollup will transpile and bundle this file and its relative dependencies to CommonJS before requiring it to ensure compatibility with legacy code bases that use ES module syntax without properly respecting [Node ESM semantics](https://nodejs.org/docs/latest-v14.x/api/packages.html#packages_determining_module_system).
+
+If you want to write your configuration as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the CommonJS file.
 
 You can also use other languages for your configuration files like TypeScript. To do that, install a corresponding Rollup plugin like `@rollup/plugin-typescript` and use the [`--configPlugin`](guide/en/#--configplugin-plugin) option:
 
@@ -28,7 +30,7 @@ You can also use other languages for your configuration files like TypeScript. T
 rollup --config rollup.config.ts --configPlugin typescript
 ```
 
-Also have a look at [Config Intellisense](guide/en/#config-intellisense) for more ways to use TypeScript typings in your config files.
+Using the `--configPlugin` option will always force your config file to be transpiled to CommonJS first. Also have a look at [Config Intellisense](guide/en/#config-intellisense) for more ways to use TypeScript typings in your config files.
 
 Config files support the options listed below. Consult the [big list of options](guide/en/#big-list-of-options) for details on each option:
 
@@ -274,68 +276,72 @@ For interoperability, Rollup also supports loading configuration files from pack
 rollup --config node:my-special-config
 ```
 
-### Using untranspiled config files
+### Caveats when using native Node ES modules
 
-By default, Rollup will expect config files to be ES modules and bundle and transpile them and their relative imports to CommonJS before requiring them. This is a fast process and has the advantage that it is easy to share code between your configuration and an ES module code base. If you want to write your configuration as CommonJS instead, you can skip this process by using the `.cjs` extension:
+Especially when upgrading from an older Rollup version, there are some things you need to be aware of when using a native ES module for your configuration file.
 
-```javascript
-// rollup.config.cjs
-module.exports = {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  }
+#### Getting the current directory
+
+With CommonJS files, people often use `__dirname` to access the current directory and resolve relative paths to absolute paths. This is not supported for native ES modules. Instead, we recommend the following approach e.g. to generate an absolute id for an external module:
+
+```js
+// rollup.config.js
+import { fileURLToPath } from 'url'
+
+export default {
+  ...,
+  // generates an absolute path for <currentdir>/src/some-external-file.js
+  external: [fileURLToPath(new URL('src/some-external-file.js', import.meta.url))]
 };
 ```
 
-It may be pertinent if you want to use the config file not only from the command line, but also from your custom scripts programmatically.
+#### Importing package.json
 
-On the other hand if you are using at least Node 13 and have `"type": "module"` in your `package.json` file, Rollup's transpilation will prevent your configuration file from importing packages that are themselves ES modules. In that case, changing your file extension to `.mjs` will instruct Rollup to import your configuration directly as an ES module. However, note that this is specific to Node 13+; on older Node versions, `.mjs` is treated just like `.js`.
+It can be useful to import your package file to e.g. mark your dependencies as "external" automatically. Depending on your Node version, there are different ways of doing that:
 
-There are some potential gotchas when using `.mjs` on Node 13+:
+- For Node 17.5+, you can use an import assertion
 
-- You will only get a default export from CommonJS plugins
-- You may not be able to import JSON files such as your `package.json file`. There are four ways to go around this:
+  ```js
+  import pkg from './package.json' assert { type: 'json' };
 
-  - read and parse the JSON file yourself via
+  export default {
+    input: 'src/main.js',
+    external: Object.keys(pkg.dependencies),
+    output: {
+      format: 'es',
+      dir: 'dist'
+    }
+  };
+  ```
 
-    ```
-    // rollup.config.mjs
-    import { readFileSync } from 'fs';
+- For older Node versions, you can use "createRequire"
 
-    // Use import.meta.url to make the path relative to the current source file instead of process.cwd()
-    // For more info: https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
-    const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)));
-    ...
-    ```
+  ```js
+  import { createRequire } from 'module';
+  const require = createRequire(import.meta.url);
+  const pkg = require('./package.json');
 
-  - use `createRequire` via
+  export default {
+    input: 'src/main.js',
+    external: Object.keys(pkg.dependencies),
+    output: {
+      format: 'es',
+      dir: 'dist'
+    }
+  };
+  ```
 
-    ```
-    // rollup.config.mjs
-    import { createRequire } from 'module';
-    const require = createRequire(import.meta.url);
-    const packageJson = require('./package.json');
-    ...
-    ```
+- Or just directly read and parse the file from disk
 
-  - run Rollup CLI via
+  ```js
+  // rollup.config.mjs
+  import { readFileSync } from 'fs';
+  import { fileURLToPath } from 'url';
 
-    ```
-    node --experimental-json-modules ./node_modules/.bin/rollup --config
-    ```
-
-  - create a CommonJS wrapper that requires the JSON file:
-
-    ```js
-    // load-package.cjs
-    module.exports = require('./package.json');
-
-    // rollup.config.mjs
-    import pkg from './load-package.cjs';
-    ...
-    ```
+  const pkgFileName = fileURLToPath(new URL('./package.json', import.meta.url));
+  const pkg = JSON.parse(readFileSync(pkgFileName));
+  // ...
+  ```
 
 ### Command line flags
 
@@ -484,7 +490,7 @@ Note for Typescript: make sure you have the Rollup config file in your `tsconfig
 "include": ["src/**/*", "rollup.config.ts"],
 ```
 
-This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`. Using this option will make Rollup transpile your configuration file to CommonJS first before executing it.
 
 #### `-v`/`--version`
 
