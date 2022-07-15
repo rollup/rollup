@@ -41,8 +41,14 @@ export async function renderChunks(
 	outputOptions: NormalizedOutputOptions,
 	onwarn: WarningHandler
 ) {
+	timeStart('render chunks', 2);
+
 	reserveEntryChunksInBundle(chunks);
 	const renderedChunks = await Promise.all(chunks.map(chunk => chunk.render()));
+
+	timeEnd('render chunks', 2);
+	timeStart('transform chunks', 2);
+
 	const chunkGraph = getChunkGraph(chunks);
 	const {
 		nonHashedChunksWithPlaceholders,
@@ -66,6 +72,8 @@ export async function renderChunks(
 		outputBundle,
 		nonHashedChunksWithPlaceholders
 	);
+
+	timeEnd('transform chunks', 2);
 }
 
 function reserveEntryChunksInBundle(chunks: Chunk[]) {
@@ -122,7 +130,7 @@ async function transformChunk(
 	if (!compact && code[code.length - 1] !== '\n') code += '\n';
 
 	if (sourcemap) {
-		timeStart('sourcemap', 2);
+		timeStart('sourcemaps', 3);
 
 		let file: string;
 		if (options.file) file = resolve(options.sourcemapFile || options.file);
@@ -154,7 +162,7 @@ async function transformChunk(
 			})
 			.map(normalize);
 
-		timeEnd('sourcemap', 2);
+		timeEnd('sourcemaps', 3);
 	}
 	return {
 		code,
