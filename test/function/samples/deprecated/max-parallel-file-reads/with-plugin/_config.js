@@ -32,5 +32,12 @@ module.exports = {
 	after() {
 		fs.readFile = fsReadFile;
 		assert.strictEqual(maxReads, 3, 'Wrong number of parallel file reads: ' + maxReads);
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.'
+		}
+	]
 };
