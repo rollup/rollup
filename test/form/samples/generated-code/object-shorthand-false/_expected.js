@@ -9,12 +9,12 @@ System.register('bundle', [], (function (exports) {
 				__proto__: null,
 				a: a,
 				b: a,
-				'default': a
+				default: a
 			});
 
 			console.log(ns);
 
-			const foo = 1; exports({ foo: foo, bar: foo, 'default': foo });
+			const foo = 1; exports({ foo: foo, bar: foo, default: foo });
 
 		})
 	};

@@ -3,7 +3,7 @@ System.register('bundle', ['./sub/index.js'], (function (exports) {
 	var bar;
 	return {
 		setters: [function (module) {
-			bar = module["default"];
+			bar = module.default;
 			exports('foo', module.foo);
 		}],
 		execute: (function () {

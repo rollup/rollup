@@ -3,7 +3,7 @@
 var fooFalse = require('external-false');
 var fooTrue = require('external-true');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e["default"] : e; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e.default : e; }
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
@@ -13,7 +13,7 @@ function _interopNamespace(e) {
 			n[k] = e[k];
 		}
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 

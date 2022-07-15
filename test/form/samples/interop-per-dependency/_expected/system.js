@@ -3,18 +3,18 @@ System.register(['external-auto', 'external-default', 'external-defaultOnly', 'e
 	var fooAuto__default, barAuto, fooAuto, fooDefault__default, barDefault, fooDefault, fooDefaultOnly__default, fooDefaultOnly, fooEsModule__default, barEsModule, fooEsModule;
 	return {
 		setters: [function (module) {
-			fooAuto__default = module["default"];
+			fooAuto__default = module.default;
 			barAuto = module.barAuto;
 			fooAuto = module;
 		}, function (module) {
-			fooDefault__default = module["default"];
+			fooDefault__default = module.default;
 			barDefault = module.barDefault;
 			fooDefault = module;
 		}, function (module) {
-			fooDefaultOnly__default = module["default"];
+			fooDefaultOnly__default = module.default;
 			fooDefaultOnly = module;
 		}, function (module) {
-			fooEsModule__default = module["default"];
+			fooEsModule__default = module.default;
 			barEsModule = module.barEsModule;
 			fooEsModule = module;
 		}],

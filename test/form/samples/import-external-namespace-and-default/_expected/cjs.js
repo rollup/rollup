@@ -2,7 +2,7 @@
 
 var foo = require('foo');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
@@ -18,7 +18,7 @@ function _interopNamespace(e) {
 			}
 		});
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
@@ -27,4 +27,4 @@ var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
 
 console.log( foo__namespace.bar );
 
-console.log( foo__default["default"] );
+console.log( foo__default.default );

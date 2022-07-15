@@ -4,7 +4,7 @@ define((function () { 'use strict';
 
 	var dep$1 = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		'default': dep
+		default: dep
 	});
 
 	console.log(dep$1);

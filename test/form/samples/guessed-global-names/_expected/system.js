@@ -5,7 +5,7 @@ System.register(['unchanged', 'changed', 'special-character', 'with/slash', './r
 		setters: [function (module) {
 			foo = module.foo;
 		}, function (module) {
-			changedName = module["default"];
+			changedName = module.default;
 		}, function (module) {
 			bar = module.bar;
 		}, function (module) {

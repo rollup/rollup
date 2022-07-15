@@ -3,7 +3,7 @@ System.register(['lib'], (function (exports) {
 	var value;
 	return {
 		setters: [function (module) {
-			value = module["default"];
+			value = module.default;
 		}],
 		execute: (function () {
 

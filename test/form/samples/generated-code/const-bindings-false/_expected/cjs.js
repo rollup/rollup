@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var foo$1 = require('external');
 
-var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
+var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
@@ -20,7 +20,7 @@ function _interopNamespace(e) {
 			}
 		});
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
@@ -39,10 +39,10 @@ var other = /*#__PURE__*/Object.freeze({
 
 var synthetic = { bar: 'baz' };
 
-console.log(foo__default["default"], foo__namespace, other, bar, _missingExportShim);
+console.log(foo__default.default, foo__namespace, other, bar, _missingExportShim);
 var main = 42;
 
-exports["default"] = main;
+exports.default = main;
 exports.syntheticMissing = synthetic.syntheticMissing;
 Object.keys(foo$1).forEach(k => {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {

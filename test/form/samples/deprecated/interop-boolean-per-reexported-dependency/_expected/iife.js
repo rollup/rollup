@@ -1,7 +1,7 @@
 var bundle = (function (exports, externalFalse, externalTrue) {
 	'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -17,7 +17,7 @@ var bundle = (function (exports, externalFalse, externalTrue) {
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -39,7 +39,7 @@ var bundle = (function (exports, externalFalse, externalTrue) {
 	exports.externalTrue = externalTrue__namespace;
 	Object.defineProperty(exports, 'fooTrue', {
 		enumerable: true,
-		get: function () { return externalTrue__default["default"]; }
+		get: function () { return externalTrue__default.default; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
