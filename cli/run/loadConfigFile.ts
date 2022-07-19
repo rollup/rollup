@@ -4,7 +4,7 @@ import getPackageType from 'get-package-type';
 import * as rollup from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
-import { error } from '../../src/utils/error';
+import { errMissingConfig, error, errTranspiledEsmConfig } from '../../src/utils/error';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import type { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
@@ -117,13 +117,7 @@ function loadConfigFromBundledFile(fileName: string, bundledCode: string): unkno
 		return config;
 	} catch (err: any) {
 		if (err.code === 'ERR_REQUIRE_ESM') {
-			return error({
-				code: 'TRANSPILED_ESM_CONFIG',
-				message: `While loading the Rollup configuration from "${relativeId(
-					fileName
-				)}", Node tried to require an ES module from a CommonJS file, which is not supported. A common cause is if there is a package.json file with "type": "module" in the same folder. You can try to fix this by changing the extension of your configuration file to ".cjs" or ".mjs" depending on the content, which will prevent Rollup from trying to preprocess the file but rather hand it to Node directly.`,
-				url: 'https://rollupjs.org/guide/en/#using-untranspiled-config-files'
-			});
+			return error(errTranspiledEsmConfig(fileName));
 		}
 		throw err;
 	}
@@ -134,11 +128,7 @@ async function getConfigList(configFileExport: any, commandOptions: any): Promis
 		? configFileExport(commandOptions)
 		: configFileExport);
 	if (Object.keys(config).length === 0) {
-		return error({
-			code: 'MISSING_CONFIG',
-			message: 'Config file must export an options object, or an array of options objects',
-			url: 'https://rollupjs.org/guide/en/#configuration-files'
-		});
+		return error(errMissingConfig());
 	}
 	return Array.isArray(config) ? config : [config];
 }

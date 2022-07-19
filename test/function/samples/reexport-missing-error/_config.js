@@ -1,22 +1,25 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_EMPTY = path.join(__dirname, 'empty.js');
 
 module.exports = {
 	description: 'reexporting a missing identifier should print an error',
 	error: {
+		binding: 'foo',
 		code: 'MISSING_EXPORT',
-		message: `'foo' is not exported by empty.js, imported by main.js`,
-		id: path.join(__dirname, 'main.js'),
+		exporter: ID_EMPTY,
+		id: ID_MAIN,
+		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
 		pos: 9,
-		watchFiles: [path.join(__dirname, 'empty.js'), path.join(__dirname, 'main.js')],
 		loc: {
-			file: path.join(__dirname, 'main.js'),
-			line: 1,
-			column: 9
+			column: 9,
+			file: ID_MAIN,
+			line: 1
 		},
 		frame: `
 			1: export { foo as bar } from './empty.js';
-			            ^
-		`,
-		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module'
+			            ^`,
+		watchFiles: [ID_EMPTY, ID_MAIN],
+		message: '"foo" is not exported by "empty.js", imported by "main.js".'
 	}
 };

@@ -14,7 +14,7 @@ module.exports = {
 				'lib3.js\n' +
 				'...and 3 other entry modules\n' +
 				'\n' +
-				"Consumers of your bundle will have to use chunk['default'] to access their default export, which may not be what you want. Use `output.exports: 'named'` to disable this warning\n"
+				'Consumers of your bundle will have to use chunk.default to access their default export, which may not be what you want. Use `output.exports: "named"` to disable this warning.\n'
 		);
 	}
 };

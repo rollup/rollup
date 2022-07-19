@@ -1,12 +1,14 @@
 const assert = require('assert');
+const path = require('path');
+const ID_LIB1 = path.join(__dirname, 'lib1.js');
+const ID_LIB2 = path.join(__dirname, 'lib2.js');
 
 module.exports = {
 	description: 'deconflicts variables when nested dynamic imports are inlined',
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['lib1.js', 'lib2.js', 'lib1.js'],
-			importer: 'lib1.js',
+			ids: [ID_LIB1, ID_LIB2, ID_LIB1],
 			message: 'Circular dependency: lib1.js -> lib2.js -> lib1.js'
 		}
 	],

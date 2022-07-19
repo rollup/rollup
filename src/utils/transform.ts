@@ -18,8 +18,13 @@ import { getTrackedPluginCache } from './PluginCache';
 import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
-import { augmentCodeLocation, errNoTransformMapOrAstWithoutCode } from './error';
-import { throwPluginError } from './pluginUtils';
+import {
+	augmentCodeLocation,
+	errInvalidSetAssetSourceCall,
+	errNoTransformMapOrAstWithoutCode,
+	error,
+	errPluginError
+} from './error';
 
 export default async function transform(
 	source: SourceDescription,
@@ -129,10 +134,7 @@ export default async function transform(
 						});
 					},
 					setAssetSource() {
-						return this.error({
-							code: 'INVALID_SETASSETSOURCE',
-							message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
-						});
+						return this.error(errInvalidSetAssetSourceCall());
 					},
 					warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
 						if (typeof warning === 'string') warning = { message: warning };
@@ -145,7 +147,7 @@ export default async function transform(
 			}
 		);
 	} catch (err: any) {
-		throwPluginError(err, pluginName, { hook: 'transform', id });
+		return error(errPluginError(err, pluginName, { hook: 'transform', id }));
 	}
 
 	if (!customTransformCache) {

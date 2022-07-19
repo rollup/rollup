@@ -1,7 +1,6 @@
 const assert = require('assert');
 const path = require('path');
 const { assertIncludes } = require('../../../utils.js');
-
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
@@ -12,60 +11,57 @@ module.exports = {
 	},
 	warnings: [
 		{
+			binding: 'bar',
 			code: 'MISSING_EXPORT',
-			exporter: 'foo.js',
-			frame: `
-			2:
-			3: exp.foo = 2;
-			4: exp.bar = 3;
-			       ^
-		`,
+			exporter:
+				'/Users/lukastaegert/Github/rollup/test/function/samples/namespace-reassign-import-fails/foo.js',
 			id: ID_MAIN,
-			importer: 'main.js',
+			message: '"bar" is not exported by "foo.js", imported by "main.js".',
+			url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
+			pos: 48,
 			loc: {
 				column: 4,
 				file: ID_MAIN,
 				line: 4
 			},
-			message: "'bar' is not exported by 'foo.js'",
-			missing: 'bar',
-			pos: 48,
-			url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module'
+			frame: `
+				2:
+				3: exp.foo = 2;
+				4: exp.bar = 3;
+				       ^`
 		},
 		{
-			code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
-			message: `Illegal reassignment to import 'exp'`,
+			code: 'ILLEGAL_REASSIGNMENT',
+			message: 'Illegal reassignment of import "exp" in "main.js".',
 			id: ID_MAIN,
 			pos: 31,
 			loc: {
+				column: 0,
 				file: ID_MAIN,
-				line: 3,
-				column: 0
+				line: 3
 			},
 			frame: `
-			1: import * as exp from './foo';
-			2:
-			3: exp.foo = 2;
-			   ^
-			4: exp.bar = 3;
-		`
+				1: import * as exp from './foo';
+				2:
+				3: exp.foo = 2;
+				   ^
+				4: exp.bar = 3;`
 		},
 		{
-			code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
-			message: `Illegal reassignment to import 'exp'`,
+			code: 'ILLEGAL_REASSIGNMENT',
+			message: 'Illegal reassignment of import "exp" in "main.js".',
 			id: ID_MAIN,
 			pos: 44,
 			loc: {
+				column: 0,
 				file: ID_MAIN,
-				line: 4,
-				column: 0
+				line: 4
 			},
 			frame: `
-			2:
-			3: exp.foo = 2;
-			4: exp.bar = 3;
-			   ^
-		`
+				2:
+				3: exp.foo = 2;
+				4: exp.bar = 3;
+				   ^`
 		}
 	],
 	runtimeError(error) {

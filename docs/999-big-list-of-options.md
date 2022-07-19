@@ -381,7 +381,7 @@ export default {
     if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
 
     // throw on others
-    if (warning.code === 'NON_EXISTENT_EXPORT') throw new Error(warning.message);
+    if (warning.code === 'MISSING_EXPORT') throw new Error(warning.message);
 
     // Use default for everything else
     warn(warning);

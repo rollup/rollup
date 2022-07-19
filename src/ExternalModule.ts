@@ -1,10 +1,8 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
-import { warnDeprecation } from './utils/error';
+import { errUnusedExternalImports, warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
-import { printQuotedStringList } from './utils/printStringList';
-import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
 	readonly dynamicImporters: string[] = [];
@@ -105,16 +103,6 @@ export default class ExternalModule {
 			}
 		}
 		const importersArray = [...importersSet];
-		this.options.onwarn({
-			code: 'UNUSED_EXTERNAL_IMPORT',
-			message: `${printQuotedStringList(unused, ['is', 'are'])} imported from external module "${
-				this.id
-			}" but never used in ${printQuotedStringList(
-				importersArray.map(importer => relativeId(importer))
-			)}.`,
-			names: unused,
-			source: this.id,
-			sources: importersArray
-		});
+		this.options.onwarn(errUnusedExternalImports(this.id, unused, importersArray));
 	}
 }

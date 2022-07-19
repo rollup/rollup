@@ -8,8 +8,8 @@ module.exports = {
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'resolveId',
-		message: 'Error running plugin hook resolveId for at position 1, expected a function hook.',
 		plugin: 'at position 1',
-		pluginCode: 'INVALID_PLUGIN_HOOK'
+		pluginCode: 'INVALID_PLUGIN_HOOK',
+		message: 'Error running plugin hook "resolveId" for "at position 1", expected a function hook.'
 	}
 };

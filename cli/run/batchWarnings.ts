@@ -31,7 +31,7 @@ export default function batchWarnings(): BatchWarnings {
 
 				if (warning.url) info(warning.url);
 
-				const id = (warning.loc && warning.loc.file) || warning.id;
+				const id = warning.loc?.file || warning.id;
 				if (id) {
 					const loc = warning.loc
 						? `${relativeId(id)} (${warning.loc.line}:${warning.loc.column})`
@@ -77,7 +77,7 @@ const immediateHandlers: {
 
 		stderr(
 			`Creating a browser bundle that depends on ${printQuotedStringList(
-				warning.modules!
+				warning.ids!
 			)}. You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node`
 		);
 	},
@@ -95,7 +95,7 @@ const deferredHandlers: {
 		title(`Circular dependenc${warnings.length > 1 ? 'ies' : 'y'}`);
 		const displayed = warnings.length > 5 ? warnings.slice(0, 3) : warnings;
 		for (const warning of displayed) {
-			stderr(warning.cycle!.join(' -> '));
+			stderr(warning.ids!.map(relativeId).join(' -> '));
 		}
 		if (warnings.length > displayed.length) {
 			stderr(`...and ${warnings.length - displayed.length} more`);
@@ -108,7 +108,7 @@ const deferredHandlers: {
 				warnings.length > 1 ? 'chunks' : 'chunk'
 			}`
 		);
-		stderr(warnings.map(warning => warning.chunkName!).join(', '));
+		stderr(printQuotedStringList(warnings.map(warning => warning.names![0])));
 	},
 
 	EVAL(warnings) {
@@ -122,19 +122,20 @@ const deferredHandlers: {
 		info('https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module');
 
 		for (const warning of warnings) {
-			stderr(bold(warning.importer!));
-			stderr(`${warning.missing} is not exported by ${warning.exporter}`);
+			stderr(bold(relativeId(warning.id!)));
+			stderr(`${warning.binding} is not exported by ${relativeId(warning.exporter!)}`);
 			stderr(gray(warning.frame!));
 		}
 	},
 
 	MISSING_GLOBAL_NAME(warnings) {
 		title(`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`);
+		info('https://rollupjs.org/guide/en/#outputglobals');
 		stderr(
-			`Use output.globals to specify browser global variable names corresponding to external modules`
+			`Use "output.globals" to specify browser global variable names corresponding to external modules:`
 		);
 		for (const warning of warnings) {
-			stderr(`${bold(warning.source!)} (guessing '${warning.guess}')`);
+			stderr(`${bold(warning.id!)} (guessing "${warning.names![0]}")`);
 		}
 	},
 
@@ -151,7 +152,7 @@ const deferredHandlers: {
 			stderr(`...and ${warnings.length - displayedWarnings.length} other entry modules`);
 		}
 		stderr(
-			`\nConsumers of your bundle will have to use chunk['default'] to access their default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`
+			`\nConsumers of your bundle will have to use chunk.default to access their default export, which may not be what you want. Use \`output.exports: "named"\` to disable this warning.`
 		);
 	},
 
@@ -160,17 +161,12 @@ const deferredHandlers: {
 		for (const warning of warnings) {
 			stderr(
 				`"${bold(relativeId(warning.reexporter!))}" re-exports "${
-					warning.name
-				}" from both "${relativeId(warning.sources![0])}" and "${relativeId(
-					warning.sources![1]
-				)}" (will be ignored)`
+					warning.binding
+				}" from both "${relativeId(warning.ids![0])}" and "${relativeId(
+					warning.ids![1]
+				)}" (will be ignored).`
 			);
 		}
-	},
-
-	NON_EXISTENT_EXPORT(warnings) {
-		title(`Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}`);
-		showTruncatedWarnings(warnings);
 	},
 
 	PLUGIN_WARNING(warnings) {
@@ -208,12 +204,12 @@ const deferredHandlers: {
 		stderr(
 			`Plugins that transform code (such as ${printQuotedStringList(
 				plugins
-			)}) should generate accompanying sourcemaps`
+			)}) should generate accompanying sourcemaps.`
 		);
 	},
 
 	THIS_IS_UNDEFINED(warnings) {
-		title('`this` has been rewritten to `undefined`');
+		title('"this" has been rewritten to "undefined"');
 		info('https://rollupjs.org/guide/en/#error-this-is-undefined');
 		showTruncatedWarnings(warnings);
 	},
@@ -224,11 +220,13 @@ const deferredHandlers: {
 
 		const dependencies = new Map<string, string[]>();
 		for (const warning of warnings) {
-			getOrCreate(dependencies, warning.source, () => []).push(warning.importer!);
+			getOrCreate(dependencies, relativeId(warning.exporter!), () => []).push(
+				relativeId(warning.id!)
+			);
 		}
 
 		for (const [dependency, importers] of dependencies) {
-			stderr(`${bold(dependency)} (imported by ${importers.join(', ')})`);
+			stderr(`${bold(dependency)} (imported by ${printQuotedStringList(importers)})`);
 		}
 	},
 
@@ -238,9 +236,10 @@ const deferredHandlers: {
 			stderr(
 				warning.names +
 					' imported from external module "' +
-					warning.source +
+					warning.exporter +
 					'" but never used in ' +
-					printQuotedStringList(warning.sources!.map(id => relativeId(id)))
+					printQuotedStringList(warning.ids!.map(relativeId)) +
+					'.'
 			);
 		}
 	}

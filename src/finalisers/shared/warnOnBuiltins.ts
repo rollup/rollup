@@ -1,6 +1,6 @@
 import { ChunkDependency } from '../../Chunk';
 import type { RollupWarning } from '../../rollup/types';
-import { printQuotedStringList } from '../../utils/printStringList';
+import { errMissingNodeBuiltins } from '../../utils/error';
 
 const builtins = {
 	assert: true,
@@ -36,11 +36,5 @@ export default function warnOnBuiltins(
 
 	if (!externalBuiltins.length) return;
 
-	warn({
-		code: 'MISSING_NODE_BUILTINS',
-		message: `Creating a browser bundle that depends on Node.js built-in modules (${printQuotedStringList(
-			externalBuiltins
-		)}). You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node`,
-		modules: externalBuiltins
-	});
+	warn(errMissingNodeBuiltins(externalBuiltins));
 }

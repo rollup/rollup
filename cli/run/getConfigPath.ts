@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 import { cwd } from 'process';
+import { errMissingExternalConfig } from '../../src/utils/error';
 import { handleError } from '../logging';
 
 const DEFAULT_CONFIG_BASE = 'rollup.config';
@@ -18,10 +19,7 @@ export async function getConfigPath(commandConfig: string | true): Promise<strin
 				return require.resolve(pkgName, { paths: [cwd()] });
 			} catch (err: any) {
 				if (err.code === 'MODULE_NOT_FOUND') {
-					handleError({
-						code: 'MISSING_EXTERNAL_CONFIG',
-						message: `Could not resolve config file "${commandConfig}"`
-					});
+					handleError(errMissingExternalConfig(commandConfig));
 				}
 				throw err;
 			}

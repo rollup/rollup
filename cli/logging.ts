@@ -8,7 +8,7 @@ export const stderr = (...args: readonly unknown[]) => process.stderr.write(`${a
 
 export function handleError(err: RollupError, recover = false): void {
 	let description = err.message || err;
-	if (err.name) description = `${err.name}: ${description}`;
+	if (err.name || err.cause?.name) description = `${err.cause?.name || err.name}: ${description}`;
 	const message = (err.plugin ? `(plugin ${err.plugin}) ${description}` : description) || err;
 
 	stderr(bold(red(`[!] ${bold(message.toString())}`)));
