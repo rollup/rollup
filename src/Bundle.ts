@@ -51,6 +51,7 @@ export default class Bundle {
 
 			timeEnd('initialize render', 2);
 			timeStart('generate chunks', 2);
+
 			const getHashPlaceholder = getHashPlaceholderGenerator();
 			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {

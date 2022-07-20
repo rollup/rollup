@@ -2,6 +2,7 @@ const assert = require('assert');
 const path = require('path');
 const { assertIncludes } = require('../../../utils.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = {
 	description: 'warns for reassignments to namespace exports',
@@ -13,8 +14,7 @@ module.exports = {
 		{
 			binding: 'bar',
 			code: 'MISSING_EXPORT',
-			exporter:
-				'/Users/lukastaegert/Github/rollup/test/function/samples/namespace-reassign-import-fails/foo.js',
+			exporter: ID_FOO,
 			id: ID_MAIN,
 			message: '"bar" is not exported by "foo.js", imported by "main.js".',
 			url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
