@@ -21,9 +21,7 @@
   <a href="https://github.com/rollup/rollup/blob/master/LICENSE.md">
     <img src="https://img.shields.io/npm/l/rollup.svg" alt="license">
   </a>
-  <a href="https://david-dm.org/rollup/rollup">
-    <img src="https://david-dm.org/rollup/rollup/status.svg" alt="dependency status">
-  </a>
+ 
   <a href='https://is.gd/rollup_chat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge'>
     <img src='https://img.shields.io/discord/466787075518365708?color=778cd1&label=chat' alt='Join the chat at https://is.gd/rollup_chat'>
   </a>
