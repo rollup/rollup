@@ -9,7 +9,7 @@
     "rollup": "dist/bin/rollup"
   },
   "scripts": {
-    "build": "node scripts/update-git-commit.js && rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
+    "build": "rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
     "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
     "ci:lint": "npm run lint:nofix",

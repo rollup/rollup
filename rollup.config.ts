@@ -1,6 +1,4 @@
-import { promises as fs } from 'fs';
 import { resolve } from 'path';
-import { env } from 'process';
 import { fileURLToPath } from 'url';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
@@ -16,39 +14,15 @@ import conditionalFsEventsImport from './build-plugins/conditional-fsevents-impo
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
+import getBanner from './build-plugins/get-banner';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
-import { version } from './package.json';
 
-// TODO Lukas do not encode any enforced order between cjs and esm build, instead use a shared plugin and write the license on closeBundle
 // TODO Lukas inline script to update the commit
 // TODO Lukas inline chmod via fs.chmod
 // TODO Lukas copy types programmatically for both normal and browser build
 // TODO Lukas adapt "files" property
 // TODO Lukas script that cds into browser dir, updates version and runs publish with same flags as main publish
 // TODO Lukas adapt REPL artefact
-async function getBanner(): Promise<string> {
-	let commitHash: string;
-
-	try {
-		commitHash = await fs.readFile('.commithash', 'utf8');
-	} catch {
-		commitHash = 'unknown';
-	}
-
-	const date = new Date(
-		env.SOURCE_DATE_EPOCH ? 1000 * +env.SOURCE_DATE_EPOCH : Date.now()
-	).toUTCString();
-
-	return `/*
-  @license
-	Rollup.js v${version}
-	${date} - commit ${commitHash}
-
-	https://github.com/rollup/rollup
-
-	Released under the MIT License.
-*/`;
-}
 
 const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
@@ -91,7 +65,6 @@ const nodePlugins: Plugin[] = [
 export default async function (
 	command: Record<string, unknown>
 ): Promise<RollupOptions | RollupOptions[]> {
-	const banner = await getBanner();
 	const { collectLicenses, writeLicense } = getLicenseHandler(
 		fileURLToPath(new URL('.', import.meta.url))
 	);
@@ -105,7 +78,7 @@ export default async function (
 		},
 		onwarn,
 		output: {
-			banner,
+			banner: getBanner,
 			chunkFileNames: 'shared/[name].js',
 			dir: 'dist',
 			entryFileNames: '[name]',
@@ -153,14 +126,14 @@ export default async function (
 		onwarn,
 		output: [
 			{
-				banner,
+				banner: getBanner,
 				file: 'browser/dist/rollup.browser.js',
 				format: 'umd',
 				name: 'rollup',
 				sourcemap: true
 			},
 			{
-				banner,
+				banner: getBanner,
 				file: 'browser/dist/es/rollup.browser.js',
 				format: 'es',
 				plugins: [emitModulePackageFile()]

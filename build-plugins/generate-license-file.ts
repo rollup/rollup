@@ -72,14 +72,13 @@ interface LicenseHandler {
 
 export default function getLicenseHandler(dir: string): LicenseHandler {
 	const licenses = new Map<string, Dependency>();
+	function addLicenses(dependencies: readonly Dependency[]) {
+		for (const dependency of dependencies) {
+			licenses.set(dependency.name!, dependency);
+		}
+	}
 	return {
 		collectLicenses() {
-			function addLicenses(dependencies: readonly Dependency[]) {
-				for (const dependency of dependencies) {
-					licenses.set(dependency.name!, dependency);
-				}
-			}
-
 			return license({ thirdParty: addLicenses });
 		},
 		writeLicense() {
