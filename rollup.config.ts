@@ -11,17 +11,16 @@ import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
+import copyTypes from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 
-// TODO Lukas copy types programmatically for both normal and browser build by emitting them
 // TODO Lukas script that cds into browser dir, updates version and runs publish with same flags as main publish
 // TODO Lukas adapt "files" property
 // TODO Lukas adapt REPL artefact
-
 const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
 	console.error(
@@ -93,7 +92,8 @@ export default async function (
 			...nodePlugins,
 			addCliEntry(),
 			esmDynamicImport(),
-			!command.configTest && collectLicenses()
+			!command.configTest && collectLicenses(),
+			!command.configTest && copyTypes('rollup.d.ts')
 		],
 		strictDeprecations: true,
 		treeshake
@@ -128,6 +128,7 @@ export default async function (
 				file: 'browser/dist/rollup.browser.js',
 				format: 'umd',
 				name: 'rollup',
+				plugins: [copyTypes('rollup.browser.d.ts')],
 				sourcemap: true
 			},
 			{
