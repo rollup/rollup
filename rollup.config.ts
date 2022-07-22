@@ -17,8 +17,6 @@ import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 
-// TODO Lukas inline script to update the commit
-// TODO Lukas inline chmod via fs.chmod
 // TODO Lukas copy types programmatically for both normal and browser build
 // TODO Lukas adapt "files" property
 // TODO Lukas script that cds into browser dir, updates version and runs publish with same flags as main publish
