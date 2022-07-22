@@ -120,8 +120,7 @@
     "dist/**/*.js",
     "dist/*.d.ts",
     "dist/bin/rollup",
-    "dist/es/package.json",
-    "dist/rollup.browser.js.map"
+    "dist/es/package.json"
   ],
   "engines": {
     "node": ">=14.0.0",
