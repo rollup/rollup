@@ -1,9 +1,26 @@
 /* eslint-disable no-console */
 
+import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { execa } from 'execa';
 import fs from 'fs-extra';
 import { findConfigFileName } from './find-config.js';
+
+const spawnPromise = (command, args) => {
+	return new Promise((resolve, reject) => {
+		const childProcess = spawn(command, args);
+
+		childProcess.stdout.pipe(process.stdout);
+		childProcess.stderr.pipe(process.stderr);
+
+		childProcess.on('close', code => {
+			if (code) {
+				reject(new Error(`"${[command, ...args].join(' ')}" exited with code ${code}.`));
+			} else {
+				resolve();
+			}
+		});
+	});
+};
 
 const TARGET_DIR = fileURLToPath(new URL('../perf', import.meta.url).href);
 const VALID_REPO = /^([^/\s#]+\/[^/\s#]+)(#([^/\s#]+))?$/;
@@ -22,28 +39,15 @@ fs.removeSync(TARGET_DIR);
 
 const [, repo, , branch] = VALID_REPO.exec(repoWithBranch);
 
-setupNewRepo(repo, branch).catch(error => {
-	console.error(error.message);
-	process.exit(1);
-});
-
-function execWithOutput(command, args) {
-	const call = execa(command, args);
-	call.stderr.pipe(process.stderr);
-	return call;
+const gitArgs = ['clone', '--depth', 1, '--progress'];
+if (branch) {
+	console.error(`Cloning branch "${branch}" of "${repo}"...`);
+	gitArgs.push('--branch', branch);
+} else {
+	console.error(`Cloning "${repo}"...`);
 }
-
-async function setupNewRepo(repo, branch) {
-	const gitArgs = ['clone', '--depth', 1, '--progress'];
-	if (branch) {
-		console.error(`Cloning branch "${branch}" of "${repo}"...`);
-		gitArgs.push('--branch', branch);
-	} else {
-		console.error(`Cloning "${repo}"...`);
-	}
-	gitArgs.push(`https://github.com/${repo}.git`, TARGET_DIR);
-	await execWithOutput('git', gitArgs);
-	await findConfigFileName(TARGET_DIR);
-	process.chdir(TARGET_DIR);
-	await execWithOutput('npm', ['install']);
-}
+gitArgs.push(`https://github.com/${repo}.git`, TARGET_DIR);
+await spawnPromise('git', gitArgs);
+await findConfigFileName(TARGET_DIR);
+process.chdir(TARGET_DIR);
+await spawnPromise('npm', ['install']);
