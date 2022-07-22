@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 import { env } from 'process';
+import { fileURLToPath } from 'url';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
@@ -10,6 +11,7 @@ import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
+import cleanBeforeWrite from './build-plugins/clean-before-write';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
@@ -17,6 +19,13 @@ import getLicenseHandler from './build-plugins/generate-license-file';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import { version } from './package.json';
 
+// TODO Lukas do not encode any enforced order between cjs and esm build, instead use a shared plugin and write the license on closeBundle
+// TODO Lukas inline script to update the commit
+// TODO Lukas inline chmod via fs.chmod
+// TODO Lukas copy types programmatically for both normal and browser build
+// TODO Lukas adapt "files" property
+// TODO Lukas script that cds into browser dir, updates version and runs publish with same flags as main publish
+// TODO Lukas adapt REPL artefact
 async function getBanner(): Promise<string> {
 	let commitHash: string;
 
@@ -75,14 +84,17 @@ const nodePlugins: Plugin[] = [
 		ignoreTryCatch: false,
 		include: 'node_modules/**'
 	}),
-	typescript()
+	typescript(),
+	cleanBeforeWrite('dist')
 ];
 
 export default async function (
 	command: Record<string, unknown>
 ): Promise<RollupOptions | RollupOptions[]> {
 	const banner = await getBanner();
-	const { collectLicenses, writeLicense } = getLicenseHandler();
+	const { collectLicenses, writeLicense } = getLicenseHandler(
+		fileURLToPath(new URL('.', import.meta.url))
+	);
 
 	const commonJSBuild: RollupOptions = {
 		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
@@ -130,15 +142,29 @@ export default async function (
 			minifyInternalExports: false,
 			sourcemap: false
 		},
-		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses()]
+		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
 	};
+
+	const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
+		getLicenseHandler(fileURLToPath(new URL('browser', import.meta.url)));
 
 	const browserBuilds: RollupOptions = {
 		input: 'src/browser-entry.ts',
 		onwarn,
 		output: [
-			{ banner, file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true },
-			{ banner, file: 'dist/es/rollup.browser.js', format: 'es' }
+			{
+				banner,
+				file: 'browser/dist/rollup.browser.js',
+				format: 'umd',
+				name: 'rollup',
+				sourcemap: true
+			},
+			{
+				banner,
+				file: 'browser/dist/es/rollup.browser.js',
+				format: 'es',
+				plugins: [emitModulePackageFile()]
+			}
 		],
 		plugins: [
 			replaceBrowserModules(),
@@ -148,8 +174,9 @@ export default async function (
 			commonjs(),
 			typescript(),
 			terser({ module: true, output: { comments: 'some' } }),
-			collectLicenses(),
-			writeLicense()
+			collectLicensesBrowser(),
+			writeLicenseBrowser(),
+			cleanBeforeWrite('browser/dist')
 		],
 		strictDeprecations: true,
 		treeshake
