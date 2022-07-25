@@ -23,8 +23,7 @@
     "perf:init": "node scripts/perf-init.js",
     "postpublish": "git push && git push --tags",
     "prepare": "husky install && npm run build",
-    "prepublishOnly": "git pull --ff-only && npm ci && npm run lint:nofix && npm run security && npm run build:bootstrap && npm run test:all",
-    "security": "npm audit",
+    "prepublishOnly": "scripts/check-release.js",
     "test": "npm run build && npm run test:all",
     "test:cjs": "npm run build:cjs && npm run test:only",
     "test:quick": "mocha -b test/test.js",
@@ -135,5 +134,9 @@
     "./loadConfigFile": "./dist/loadConfigFile.js",
     "./dist/loadConfigFile": "./dist/loadConfigFile.js",
     "./dist/*": "./dist/*"
+  },
+  "dependencies": {
+    "inquirer": "^9.0.2",
+    "semver": "^7.3.7"
   }
 }
