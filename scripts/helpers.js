@@ -1,12 +1,12 @@
 import { spawn } from 'node:child_process';
 import { bold, cyan, green } from './colors.js';
 
-export function runWithEcho(command, args) {
+export function runWithEcho(command, args, options) {
 	return new Promise((resolve, reject) => {
 		const cmdString = formatCommand(command, args);
 		console.error(bold(`\n${cyan`Run>`} ${cmdString}`));
 
-		const childProcess = spawn(command, args);
+		const childProcess = spawn(command, args, options);
 
 		childProcess.stdout.pipe(process.stdout);
 		childProcess.stderr.pipe(process.stderr);
@@ -15,7 +15,7 @@ export function runWithEcho(command, args) {
 			if (code) {
 				reject(new Error(`"${cmdString}" exited with code ${code}.`));
 			} else {
-				console.error(bold(`\n${green`Finished>`} ${cmdString}\n`));
+				console.error(bold(`${green`Finished>`} ${cmdString}\n`));
 				resolve();
 			}
 		});
