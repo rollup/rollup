@@ -17,7 +17,7 @@
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",
     "ci:coverage": "npm run build:cjs && npm run build:bootstrap && nyc --reporter lcovonly mocha",
     "lint": "eslint . --fix --cache && prettier --write \"**/*.md\"",
-    "lint:nofix": "eslint . && prettier --check \"**/*.md\"",
+    "lint:nofix": "eslint . --cache && prettier --check \"**/*.md\"",
     "lint:markdown": "prettier --write \"**/*.md\"",
     "perf": "npm run build:cjs && node --expose-gc scripts/perf.js",
     "perf:debug": "node --inspect-brk scripts/perf-debug.js",

@@ -13,12 +13,13 @@ module.exports = {
 		'plugin:import/typescript'
 	],
 	ignorePatterns: [
-		'node_modules/**/*.*',
-		'dist/**/*.*',
-		'/test/**/*.*',
+		'node_modules',
+		'dist',
+		'/test',
+		'perf',
 		'!/test/*.js',
 		'!/test/*/*.js',
-		'/test/node_modules/*.*',
+		'/test/node_modules',
 		'!/test/*/samples/**/_config.js',
 		'!/test/*/samples/**/rollup.config.js'
 	],
