@@ -221,9 +221,8 @@ Since Rollup ships with TypeScript typings, you can leverage your IDE's Intellis
  * @type {import('rollup').RollupOptions}
  */
 const config = {
-  // ...
+  /* your config */
 };
-
 export default config;
 ```
 
@@ -233,9 +232,7 @@ Alternatively you can use the `defineConfig` helper, which should provide Intell
 // rollup.config.js
 import { defineConfig } from 'rollup';
 
-export default defineConfig({
-  // ...
-});
+export default defineConfig({ /* your config */ };
 ```
 
 Besides `RollupOptions` and the `defineConfig` helper that encapsulates this type, the following types can prove useful as well:
@@ -244,7 +241,16 @@ Besides `RollupOptions` and the `defineConfig` helper that encapsulates this typ
 - `Plugin`: A plugin object that provides a `name` and some hooks. All hooks are fully typed to aid in plugin development.
 - `PluginImpl`: A function that maps an options object to a plugin object. Most public Rollup plugins follow this pattern.
 
-You can also directly write your config in TypeScript via the [`--configPlugin`](guide/en/#--configplugin-plugin) option.
+You can also directly write your config in TypeScript via the [`--configPlugin`](guide/en/#--configplugin-plugin) option. With TypeScript you can import the `RollupOptions` type directly:
+
+```typescript
+import type { RollupOptions } from 'rollup';
+
+const config: RollupOptions = {
+  /* your config */
+};
+export default config;
+```
 
 ### Differences to the JavaScript API
 
