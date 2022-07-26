@@ -220,7 +220,9 @@ Since Rollup ships with TypeScript typings, you can leverage your IDE's Intellis
 /**
  * @type {import('rollup').RollupOptions}
  */
-const config = { /* your config */ };
+const config = {
+  /* your config */
+};
 export default config;
 ```
 
@@ -244,7 +246,9 @@ You can also directly write your config in TypeScript via the [`--configPlugin`]
 ```typescript
 import type { RollupOptions } from 'rollup';
 
-const config: RollupOptions = { /* your config */ };
+const config: RollupOptions = {
+  /* your config */
+};
 export default config;
 ```
 
