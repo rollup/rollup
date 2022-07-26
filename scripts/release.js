@@ -7,6 +7,7 @@ import { chdir, exit } from 'process';
 import fs from 'fs-extra';
 import inquirer from 'inquirer';
 import semverInc from 'semver/functions/inc.js';
+import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';
 import { runAndGetStdout, runWithEcho } from './helpers.js';
 
@@ -57,10 +58,61 @@ const { newVersion } = await inquirer.prompt([
 ]);
 
 // Find version in changelog
-const changelog = await fs.readFile(CHANGELOG, 'utf8');
-const x = getFirstChangelogEnry(changelog);
 
-console.log(x);
+// read log
+// (*) text missing ?
+// - create text
+// - Ask to edit file
+// - Confirm when done
+// - Read log again
+// print text
+// confirm?
+// read text again
+// did not change? break
+// Otherwise (*)
+const changelog = await fs.readFile(CHANGELOG, 'utf8');
+const { currentVersion, index, previousVersion, text } = getFirstChangelogEnry(changelog);
+do {
+	if (currentVersion !== newVersion) {
+		const updatedLog =
+			changelog.slice(0, index) +
+			`## ${newVersion}
+
+_${new Date().toISOString().slice(0, 10)}_
+
+### Features
+
+- Introduce \`maxParallelFileOps\` to limit both read and write operations, default to 20 and replaces \`maxParallelFileRead\` (#4570)
+
+### Bug Fixes
+
+- Avoid including variables referenced from return statements that are never reached (#4573)
+
+### Pull Requests
+
+- [#4570](https://github.com/rollup/rollup/pull/4570): Introduce maxParallelFileOps to limit parallel writes (@lukastaegert)
+- [#4572](https://github.com/rollup/rollup/pull/4572): Document more ways to read package.json in ESM (@berniegp)
+- [#4573](https://github.com/rollup/rollup/pull/4573): Do not include unused return expressions (@lukastaegert)
+`;
+	}
+	const changelog = await fs.readFile(CHANGELOG, 'utf8');
+	const { currentVersion, index, previousVersion, text } = getFirstChangelogEnry(changelog);
+
+	// console.log(bold(cyan`New changelog entry:`));
+	let entryText = '';
+	if (currentVersion === newVersion) {
+		entryText = text;
+		const result = await inquirer.prompt([
+			{
+				message: `Confirm changelog and release "${newVersion}"? (otherwise edit the changelog and select "n")`,
+				name: 'continue',
+				type: 'confirm'
+			}
+		]);
+		console.log(result);
+	}
+	break;
+} while (true);
 exit();
 
 // Install dependencies, build and run tests
@@ -116,11 +168,65 @@ function getPkgStringWithVersion(pkg, version) {
 }
 
 function getFirstChangelogEnry(changelog) {
-	const match = changelog.match(/## (\d+\.\d+\.\d+)[\s\S]*?(?=\s## )/);
+	const match = changelog.match(
+		/(?<text>## (?<currentVersion>\d+\.\d+\.\d+)[\s\S]*?)\n+## (?<previousVersion>\d+\.\d+\.\d+)/
+	);
 	if (!match) {
 		throw new Error('Could not detect any changelog entry.');
 	}
-	const [entry, version] = match;
-	const { index } = match;
-	return { entry, index, version };
+	const {
+		groups: { text, currentVersion, previousVersion },
+		index
+	} = match;
+	return { currentVersion, index, previousVersion, text };
+}
+
+function getNewLogEntry(version, prs) {
+	if (prs.length === 0) {
+		throw new Error(`Release does not contain any PRs`);
+	}
+	const firstPr = prs[0].pr;
+	const date = new Date().toISOString().slice(0, 10);
+	const { minor, patch } = semverParse(version);
+	let sections = getDummyLogSection('Bug Fixes', firstPr);
+	if (patch === 0) {
+		sections = getDummyLogSection('Features', firstPr) + sections;
+		if (minor === 0) {
+			sections = getDummyLogSection('Breaking Changes', firstPr) + sections;
+		}
+	}
+	return `## ${version}
+
+_${date}_
+
+${sections}### Pull Requests
+
+${prs.map(
+	({ text, pr }) =>
+		`- [#${pr}](https://github.com/rollup/rollup/pull/${pr}): ${text} (@lukastaegert)\n`
+)}`;
+}
+
+function getDummyLogSection(headline, pr) {
+	return `### ${headline}
+
+- <replace me> (#${pr})
+
+`;
+}
+
+async function getIncludedPRs(previousVersion) {
+	const commits = await runAndGetStdout('git', [
+		'--no-pager',
+		'log',
+		`v${previousVersion}..HEAD`,
+		'--pretty=tformat:%s'
+	]);
+	const getPrRegExp = /^([^(]+)\s\(#(\d+)\)$/gm;
+	const prs = [];
+	let match;
+	while ((match = getPrRegExp.exec(commits))) {
+		prs.push({ pr: match[2], text: match[1] });
+	}
+	return prs;
 }
