@@ -1,4 +1,4 @@
-const myBundle = (function (other) {
+var myBundle = (function (other) {
 	'use strict';
 
 	const a = 1;
