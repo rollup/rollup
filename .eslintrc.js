@@ -16,6 +16,7 @@ module.exports = {
 		'node_modules',
 		'dist',
 		'perf',
+		'_tmp',
 		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',
 		'!/test/*/samples/**/rollup.config.js'
