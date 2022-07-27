@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.77.2
+
+_2022-07-27_
+
+### Bug Fixes
+
+- Avoid a rendering failure when mixing outputs with inlined and non-inlined dynamic imports (#4589)
+
+### Pull Requests
+
+- [#4589](https://github.com/rollup/rollup/pull/4589): Handle generating non-inlined imports after inlined ones (@lukastaegert)
+
 ## 2.77.1
 
 _2022-07-26_
