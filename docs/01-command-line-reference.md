@@ -302,7 +302,9 @@ There are some potential gotchas when using `.mjs` on Node 13+:
     // rollup.config.mjs
     import { readFileSync } from 'fs';
 
-    const packageJson = JSON.parse(readFileSync('./package.json'));
+    // Use import.meta.url to make the path relative to the current source file instead of process.cwd()
+    // For more info: https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
+    const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)));
     ...
     ```
 
