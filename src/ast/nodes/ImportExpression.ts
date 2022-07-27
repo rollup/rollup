@@ -102,6 +102,7 @@ export default class ImportExpression extends NodeBase {
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
 		const { format } = options;
+		this.inlineNamespace = null;
 		this.resolution = resolution;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
