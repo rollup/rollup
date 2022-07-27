@@ -1,5 +1,32 @@
 # rollup changelog
 
+## 2.77.2
+
+_2022-07-27_
+
+### Bug Fixes
+
+- Avoid a rendering failure when mixing outputs with inlined and non-inlined dynamic imports (#4589)
+
+### Pull Requests
+
+- [#4589](https://github.com/rollup/rollup/pull/4589): Handle generating non-inlined imports after inlined ones (@lukastaegert)
+
+## 2.77.1
+
+_2022-07-26_
+
+### Bug Fixes
+
+- Ensure IIFE output generates a global variable when generating ES5 (#4588)
+
+### Pull Requests
+
+- [#4577](https://github.com/rollup/rollup/pull/4577): broken link removed (@Jawad-H)
+- [#4580](https://github.com/rollup/rollup/pull/4580): Update dependencies (@lukastaegert)
+- [#4584](https://github.com/rollup/rollup/pull/4584): Documentation clarity and syntax improvements (@berniegp)
+- [#4588](https://github.com/rollup/rollup/pull/4588): Use var for IIFE (@lukastaegert)
+
 ## 2.77.0
 
 _2022-07-15_

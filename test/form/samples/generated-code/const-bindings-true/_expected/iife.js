@@ -1,4 +1,4 @@
-const bundle = (function (exports, foo$1) {
+var bundle = (function (exports, foo$1) {
 	'use strict';
 
 	const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };

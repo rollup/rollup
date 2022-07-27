@@ -919,11 +919,11 @@ import './lib.js';
 
 // lib.js
 import('./dynamic.js');
-export const value = 42;
+export const importantValue = 42;
 
 // dynamic.js
-import { value } from './lib.js';
-console.log(value);
+import { importantValue } from './lib.js';
+console.log(importantValue);
 ```
 
 Output with `output.minifyInternalExports: true`:
@@ -1075,7 +1075,7 @@ Type: `boolean | 'inline' | 'hidden'`<br> CLI: `-m`/`--sourcemap`/`--no-sourcema
 
 If `true`, a separate sourcemap file will be created. If `"inline"`, the sourcemap will be appended to the resulting `output` file as a data URI. `"hidden"` works like `true` except that the corresponding sourcemap comments in the bundled files are suppressed.
 
-### output.sourcemapBaseUrl
+#### output.sourcemapBaseUrl
 
 Type: `string`<br> CLI: `--sourcemapBaseUrl <url>`
 

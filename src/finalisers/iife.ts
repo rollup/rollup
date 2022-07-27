@@ -37,7 +37,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, cnst, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
+	const { _, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
 	const isNamespaced = name && name.includes('.');
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -96,7 +96,7 @@ export default function iife(
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =
-				(useVariableAssignment ? `${cnst} ${name}` : `this${keypath(name, getPropertyAccess)}`) +
+				(useVariableAssignment ? `var ${name}` : `this${keypath(name, getPropertyAccess)}`) +
 				`${_}=${_}${wrapperIntro}`;
 		}
 		if (isNamespaced) {

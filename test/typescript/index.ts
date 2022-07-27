@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import * as rollup from './dist/rollup';
 
 // Plugin API
@@ -32,24 +33,24 @@ const amdOutputOptions: rollup.OutputOptions['amd'][] = [
 		autoId: false
 	},
 	{
-		// @ts-expect-error
+		// @ts-expect-error for "basePath", "autoId" needs to be true
 		autoId: false,
 		basePath: '',
-		// @ts-expect-error
+		// @ts-expect-error cannot combine "id" and "basePath"
 		id: 'a'
 	},
 	{
-		// @ts-expect-error
+		// @ts-expect-error cannot combine "id" and "autoId"
 		autoId: true,
-		// @ts-expect-error
+		// @ts-expect-error cannot combine "id" and "autoId"
 		id: 'a'
 	},
 	{
 		basePath: '',
-		// @ts-expect-error
+		// @ts-expect-error cannot combine "id" and "basePath"
 		id: 'a'
 	},
-	// @ts-expect-error
+	// @ts-expect-error needs "autoId" for "basePath"
 	{
 		basePath: ''
 	}
