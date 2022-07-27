@@ -274,4 +274,18 @@ console.log(x);
 			assert.strictEqual(err.name, 'Error');
 		}
 	});
+
+	it('supports rendering es after rendering iife with inlined dynamic imports', async () => {
+		const bundle = await rollup.rollup({
+			input: 'main.js',
+			plugins: [
+				loader({
+					'main.js': "import('other.js');",
+					'other.js': "export const foo = 'bar';"
+				})
+			]
+		});
+		const first = await bundle.generate({ format: 'iife', inlineDynamicImports: true });
+		const second = await bundle.generate({ format: 'es', exports: 'auto' });
+	});
 });

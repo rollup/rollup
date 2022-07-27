@@ -15,11 +15,8 @@ module.exports = {
 	ignorePatterns: [
 		'node_modules',
 		'dist',
-		'/test',
 		'perf',
-		'!/test/*.js',
-		'!/test/*/*.js',
-		'/test/node_modules',
+		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',
 		'!/test/*/samples/**/rollup.config.js'
 	],
