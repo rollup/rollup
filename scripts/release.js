@@ -1,173 +1,120 @@
 #!/usr/bin/env node
 
-// git pull --ff-only && npm ci && npm run lint:nofix && npm audit && npm run build:bootstrap && npm run test:all
-
+import { readFile, writeFile } from 'fs/promises';
 import { fileURLToPath } from 'node:url';
 import { chdir, exit } from 'process';
-import fs from 'fs-extra';
+import GitHub from 'github-api';
 import inquirer from 'inquirer';
 import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';
+import { cyan, red } from './colors.js';
 import { runAndGetStdout, runWithEcho } from './helpers.js';
-
-// TODO Lukas extract functions to structure
-const MAIN_BRANCH = 'master';
-const MAIN_INCREMENTS = ['patch', 'minor'];
-const BRANCH_INCREMENTS = ['premajor', 'preminor', 'prepatch'];
-const PRE_RELEASE_INCREMENTS = ['prerelease'];
 
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
 
+const MAIN_BRANCH = 'master';
 const MAIN_PKG = 'package.json';
 const BROWSER_PKG = 'browser/package.json';
 const CHANGELOG = 'CHANGELOG.md';
 
-// TODO Lukas enable
-// await runWithEcho('git', ['pull', '--ff-only']);
-
-const [pkg, currentBranch] = await Promise.all([
+const [gh] = await Promise.all([getGithubApi(), runWithEcho('git', ['pull', '--ff-only'])]);
+const [pkg, browserPkg, currentBranch, repo] = await Promise.all([
 	readJson(MAIN_PKG),
-	runAndGetStdout('git', ['branch', '--show-current'])
+	readJson(BROWSER_PKG),
+	runAndGetStdout('git', ['branch', '--show-current']),
+	gh.getRepo('rollup', 'rollup')
 ]);
-const { version } = pkg;
-const isPreRelease = !!semverPreRelease(version);
 const isMainBranch = currentBranch === MAIN_BRANCH;
-
-const availableIncrements = isMainBranch
-	? MAIN_INCREMENTS
-	: isPreRelease
-	? PRE_RELEASE_INCREMENTS
-	: BRANCH_INCREMENTS;
-
-const { newVersion } = await inquirer.prompt([
-	{
-		choices: availableIncrements.map(increment => {
-			const value = semverInc(version, increment);
-			return {
-				name: `${increment} (${value})`,
-				short: increment,
-				value
-			};
-		}),
-		message: `Select type of release (currently "${version}" on branch "${currentBranch}"):`,
-		name: 'newVersion',
-		type: 'list'
-	}
-]);
-
-// Find version in changelog
-
-// read log
-// (*) text missing ?
-// - create text
-// - Ask to edit file
-// - Confirm when done
-// - Read log again
-// print text
-// confirm?
-// read text again
-// did not change? break
-// Otherwise (*)
-const changelog = await fs.readFile(CHANGELOG, 'utf8');
-const { currentVersion, index, previousVersion, text } = getFirstChangelogEnry(changelog);
-do {
-	if (currentVersion !== newVersion) {
-		const updatedLog =
-			changelog.slice(0, index) +
-			`## ${newVersion}
-
-_${new Date().toISOString().slice(0, 10)}_
-
-### Features
-
-- Introduce \`maxParallelFileOps\` to limit both read and write operations, default to 20 and replaces \`maxParallelFileRead\` (#4570)
-
-### Bug Fixes
-
-- Avoid including variables referenced from return statements that are never reached (#4573)
-
-### Pull Requests
-
-- [#4570](https://github.com/rollup/rollup/pull/4570): Introduce maxParallelFileOps to limit parallel writes (@lukastaegert)
-- [#4572](https://github.com/rollup/rollup/pull/4572): Document more ways to read package.json in ESM (@berniegp)
-- [#4573](https://github.com/rollup/rollup/pull/4573): Do not include unused return expressions (@lukastaegert)
-`;
-	}
-	const changelog = await fs.readFile(CHANGELOG, 'utf8');
-	const { currentVersion, index, previousVersion, text } = getFirstChangelogEnry(changelog);
-
-	// console.log(bold(cyan`New changelog entry:`));
-	let entryText = '';
-	if (currentVersion === newVersion) {
-		entryText = text;
-		const result = await inquirer.prompt([
-			{
-				message: `Confirm changelog and release "${newVersion}"? (otherwise edit the changelog and select "n")`,
-				name: 'continue',
-				type: 'confirm'
-			}
-		]);
-		console.log(result);
-	}
-	break;
-} while (true);
-exit();
-
-// Install dependencies, build and run tests
-// TODO Lukas enable
-// await Promise.all([runWithEcho('npm', ['ci']), runWithEcho('npm', ['audit'])]);
-// await Promise.all([
-// 	runWithEcho('npm', ['run', 'lint:nofix']),
-// 	runWithEcho('npm', ['run', 'build:bootstrap'])
-// ]);
-// await runWithEcho('npm', ['run', 'test:all']);
-
-// TODO Lukas enable
-// const browserPkg = await readJson(BROWSER_PKG);
-// await Promise.all([
-// 	fs.writeFile(MAIN_PKG, getPkgStringWithVersion(pkg, newVersion)),
-// 	fs.writeFile(BROWSER_PKG, getPkgStringWithVersion(browserPkg, newVersion))
-// ]);
-
-// Commit changes
+const newVersion = await getNewVersion(pkg, isMainBranch);
+if (isMainBranch) {
+	await addStubChangelogEntry(newVersion);
+}
+await installDependenciesBuildAndTest();
+const changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
+await updatePackages(pkg, browserPkg);
 const gitTag = `v${newVersion}`;
-// TODO Lukas enable
-// await runWithEcho('git', ['add', MAIN_PKG, BROWSER_PKG]);
-// await runWithEcho('git', ['commit', '-m', newVersion]);
-// await runWithEcho('git', ['tag', gitTag]);
+await commitChanges(newVersion, gitTag);
+await releasePackages(newVersion);
+await pushChanges(gitTag);
+if (changelogEntry) {
+	await createReleaseNotes(changelogEntry, gitTag);
+}
 
-// Release
-const releaseEnv = { ...process.env, ROLLUP_RELEASE: 'releasing' };
-const releaseTag = isPreRelease ? ['--tag', 'beta'] : [];
-await Promise.all([
-	runWithEcho('npm', ['publish', '--dry-run', ...releaseTag], {
-		cwd: new URL('..', import.meta.url),
-		env: releaseEnv
-	}),
-	runWithEcho('npm', ['publish', '--dry-run', ...releaseTag], {
-		cwd: new URL('../browser', import.meta.url),
-		env: releaseEnv
-	})
-]);
-
-// Push changes
-await Promise.all([
-	runWithEcho('git', ['push', 'origin', 'HEAD']),
-	runWithEcho('git', ['push', 'origin', gitTag])
-]);
+async function getGithubApi() {
+	const GITHUB_TOKEN = '.github_token';
+	try {
+		const token = (await readFile(GITHUB_TOKEN, 'utf8')).trim();
+		return new GitHub({ token });
+	} catch (err) {
+		if (err.code === 'ENOENT') {
+			console.error(
+				`Could not find GitHub token file. Please create "${GITHUB_TOKEN}" containing a token with the following permissions:
+- public_repo`
+			);
+			exit(1);
+		} else {
+			throw err;
+		}
+	}
+}
 
 async function readJson(file) {
-	const content = await fs.readFile(file, 'utf8');
+	const content = await readFile(file, 'utf8');
 	return JSON.parse(content);
 }
 
-function getPkgStringWithVersion(pkg, version) {
-	return JSON.stringify({ ...pkg, version }, null, 2) + '\n';
+async function getNewVersion(pkg, isMainBranch) {
+	const { version } = pkg;
+	const availableIncrements = isMainBranch
+		? ['patch', 'minor']
+		: semverPreRelease(version)
+		? ['prerelease']
+		: ['premajor', 'preminor', 'prepatch'];
+
+	const { newVersion } = await inquirer.prompt([
+		{
+			choices: availableIncrements.map(increment => {
+				const value = semverInc(version, increment);
+				return {
+					name: `${increment} (${value})`,
+					short: increment,
+					value
+				};
+			}),
+			message: `Select type of release (currently "${version}" on branch "${currentBranch}"):`,
+			name: 'newVersion',
+			type: 'list'
+		}
+	]);
+	return newVersion;
 }
 
-function getFirstChangelogEnry(changelog) {
+async function addStubChangelogEntry(version) {
+	const changelog = await readFile(CHANGELOG, 'utf8');
+	const { currentVersion, index } = getFirstChangelogEntry(changelog);
+	if (currentVersion === version) {
+		console.error(
+			`Changelog entry for version "${version}" already exists. Please remove the entry and commit the change before trying again.`
+		);
+		exit(1);
+	}
+
+	const prs = await getIncludedPRs(currentVersion, gh);
+	await writeFile(
+		CHANGELOG,
+		changelog.slice(0, index) + getNewLogEntry(version, prs) + '\n\n' + changelog.slice(index)
+	);
+
+	console.log(
+		cyan(`A stub for the release notes was added to the beginning of "${CHANGELOG}".
+Please edit this file to add useful information about bug fixes, features and
+breaking changes in the release while the tests are running.`)
+	);
+}
+
+function getFirstChangelogEntry(changelog) {
 	const match = changelog.match(
 		/(?<text>## (?<currentVersion>\d+\.\d+\.\d+)[\s\S]*?)\n+## (?<previousVersion>\d+\.\d+\.\d+)/
 	);
@@ -179,6 +126,29 @@ function getFirstChangelogEnry(changelog) {
 		index
 	} = match;
 	return { currentVersion, index, previousVersion, text };
+}
+
+async function getIncludedPRs(previousVersion, repo) {
+	const commits = await runAndGetStdout('git', [
+		'--no-pager',
+		'log',
+		`v${previousVersion}..HEAD`,
+		'--pretty=tformat:%s'
+	]);
+	const getPrRegExp = /^([^(]+)\s\(#(\d+)\)$/gm;
+	const prs = [];
+	let match;
+	while ((match = getPrRegExp.exec(commits))) {
+		prs.push({ pr: match[2], text: match[1].split('\n')[0] });
+	}
+	prs.sort((a, b) => (a.pr > b.pr ? 1 : -1));
+	return Promise.all(
+		prs.map(async ({ pr, text }) => ({
+			author: (await repo.getPullRequest(pr)).data.user.login,
+			pr,
+			text
+		}))
+	);
 }
 
 function getNewLogEntry(version, prs) {
@@ -201,32 +171,116 @@ _${date}_
 
 ${sections}### Pull Requests
 
-${prs.map(
-	({ text, pr }) =>
-		`- [#${pr}](https://github.com/rollup/rollup/pull/${pr}): ${text} (@lukastaegert)\n`
-)}`;
+${prs
+	.map(
+		({ text, pr, author }) =>
+			`- [#${pr}](https://github.com/rollup/rollup/pull/${pr}): ${text} (@${author})`
+	)
+	.join('\n')}`;
 }
 
 function getDummyLogSection(headline, pr) {
 	return `### ${headline}
 
-- <replace me> (#${pr})
+- [replace me] (#${pr})
 
 `;
 }
 
-async function getIncludedPRs(previousVersion) {
-	const commits = await runAndGetStdout('git', [
-		'--no-pager',
-		'log',
-		`v${previousVersion}..HEAD`,
-		'--pretty=tformat:%s'
+async function installDependenciesBuildAndTest() {
+	await Promise.all([runWithEcho('npm', ['ci']), runWithEcho('npm', ['audit'])]);
+	await Promise.all([
+		runWithEcho('npm', ['run', 'lint:nofix']),
+		runWithEcho('npm', ['run', 'build:bootstrap'])
 	]);
-	const getPrRegExp = /^([^(]+)\s\(#(\d+)\)$/gm;
-	const prs = [];
-	let match;
-	while ((match = getPrRegExp.exec(commits))) {
-		prs.push({ pr: match[2], text: match[1] });
+	await runWithEcho('npm', ['run', 'test:all']);
+}
+
+async function waitForChangelogUpdate(version) {
+	const { changelogUpdated } = await inquirer.prompt([
+		{
+			message: `Please confirm that the changelog has been updated to continue`,
+			name: 'changelogUpdated',
+			type: 'confirm'
+		}
+	]);
+
+	if (!changelogUpdated) {
+		console.log(red`Aborting release.`);
+		exit();
 	}
-	return prs;
+
+	let changelogEntry = '';
+	while (true) {
+		await runWithEcho('npx', ['prettier', '--write', CHANGELOG]);
+		const changelog = await readFile(CHANGELOG, 'utf8');
+		const { text: newEntry } = getFirstChangelogEntry(changelog);
+		if (newEntry !== changelogEntry) {
+			changelogEntry = newEntry;
+			console.log(cyan('You generated the following changelog entry:\n') + changelogEntry);
+			const { changelogConfirmed } = await inquirer.prompt([
+				{
+					message: `Please edit the changelog again or confirm the changelog is acceptable to continue to release "${version}".`,
+					name: 'changelogConfirmed',
+					type: 'confirm'
+				}
+			]);
+			if (!changelogConfirmed) {
+				console.log(red`Aborting release.`);
+				exit();
+			}
+			continue;
+		}
+		break;
+	}
+
+	console.log(cyan('No further changes, continuing release.'));
+	return changelogEntry;
+}
+
+function updatePackages(pkg, browserPkg) {
+	return Promise.all([
+		writeFile(MAIN_PKG, getPkgStringWithVersion(pkg, newVersion)),
+		writeFile(BROWSER_PKG, getPkgStringWithVersion(browserPkg, newVersion))
+	]);
+}
+
+function getPkgStringWithVersion(pkg, version) {
+	return JSON.stringify({ ...pkg, version }, null, 2) + '\n';
+}
+
+async function commitChanges(newVersion, gitTag) {
+	await runWithEcho('git', ['add', MAIN_PKG, BROWSER_PKG]);
+	await runWithEcho('git', ['commit', '-m', newVersion]);
+	await runWithEcho('git', ['tag', gitTag]);
+}
+
+function releasePackages(newVersion) {
+	const releaseEnv = { ...process.env, ROLLUP_RELEASE: 'releasing' };
+	const releaseTag = semverPreRelease(newVersion) ? ['--tag', 'beta'] : [];
+	return Promise.all([
+		runWithEcho('npm', ['publish', '--dry-run', ...releaseTag], {
+			cwd: new URL('..', import.meta.url),
+			env: releaseEnv
+		}),
+		runWithEcho('npm', ['publish', '--dry-run', ...releaseTag], {
+			cwd: new URL('../browser', import.meta.url),
+			env: releaseEnv
+		})
+	]);
+}
+
+function pushChanges(gitTag) {
+	return Promise.all([
+		runWithEcho('git', ['push', 'origin', 'HEAD']),
+		runWithEcho('git', ['push', 'origin', gitTag])
+	]);
+}
+
+function createReleaseNotes(changelog, tag) {
+	return repo.createRelease({
+		body: changelog,
+		name: tag,
+		tag_name: tag
+	});
 }

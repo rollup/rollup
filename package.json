@@ -23,6 +23,7 @@
     "perf:init": "node scripts/perf-init.js",
     "prepare": "husky install && scripts/check-release.js || npm run build",
     "prepublishOnly": "scripts/check-release.js",
+    "release": "node scripts/release.js",
     "test": "npm run build && npm run test:all",
     "test:cjs": "npm run build:cjs && npm run test:only",
     "test:quick": "mocha -b test/test.js",
@@ -135,6 +136,7 @@
     "./dist/*": "./dist/*"
   },
   "dependencies": {
+    "github-api": "^3.4.0",
     "inquirer": "^9.0.2",
     "semver": "^7.3.7"
   }
