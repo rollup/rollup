@@ -19,18 +19,27 @@ const MAIN_PKG = 'package.json';
 const BROWSER_PKG = 'browser/package.json';
 const CHANGELOG = 'CHANGELOG.md';
 
-const [gh] = await Promise.all([getGithubApi(), runWithEcho('git', ['pull', '--ff-only'])]);
-const [pkg, browserPkg, currentBranch, repo] = await Promise.all([
+const [gh, currentBranch] = await Promise.all([
+	getGithubApi(),
+	runAndGetStdout('git', ['branch', '--show-current']),
+	runWithEcho('git', ['pull', '--ff-only'])
+]);
+const [pkg, browserPkg, repo, issues, changelog] = await Promise.all([
 	readJson(MAIN_PKG),
 	readJson(BROWSER_PKG),
-	runAndGetStdout('git', ['branch', '--show-current']),
-	gh.getRepo('rollup', 'rollup')
+	gh.getRepo('rollup', 'rollup'),
+	gh.getIssues('rollup', 'rollup'),
+	readFile(CHANGELOG, 'utf8')
 ]);
 const isMainBranch = currentBranch === MAIN_BRANCH;
-const newVersion = await getNewVersion(pkg, isMainBranch);
+const [newVersion, includedPRs] = await Promise.all([
+	getNewVersion(pkg, isMainBranch),
+	getIncludedPRs(changelog, repo)
+]);
 if (isMainBranch) {
-	await addStubChangelogEntry(newVersion);
+	await addStubChangelogEntry(newVersion, repo, includedPRs, changelog);
 }
+
 await installDependenciesBuildAndTest();
 const changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
 await updatePackages(pkg, browserPkg);
@@ -41,6 +50,7 @@ await pushChanges(gitTag);
 if (changelogEntry) {
 	await createReleaseNotes(changelogEntry, gitTag);
 }
+await postReleaseComments(includedPRs, issues, newVersion);
 
 async function getGithubApi() {
 	const GITHUB_TOKEN = '.github_token';
@@ -91,8 +101,7 @@ async function getNewVersion(pkg, isMainBranch) {
 	return newVersion;
 }
 
-async function addStubChangelogEntry(version) {
-	const changelog = await readFile(CHANGELOG, 'utf8');
+async function addStubChangelogEntry(version, repo, changelog, includedPRs) {
 	const { currentVersion, index } = getFirstChangelogEntry(changelog);
 	if (currentVersion === version) {
 		console.error(
@@ -101,10 +110,12 @@ async function addStubChangelogEntry(version) {
 		exit(1);
 	}
 
-	const prs = await getIncludedPRs(currentVersion, gh);
 	await writeFile(
 		CHANGELOG,
-		changelog.slice(0, index) + getNewLogEntry(version, prs) + '\n\n' + changelog.slice(index)
+		changelog.slice(0, index) +
+			getNewLogEntry(version, includedPRs) +
+			'\n\n' +
+			changelog.slice(index)
 	);
 
 	console.log(
@@ -128,11 +139,12 @@ function getFirstChangelogEntry(changelog) {
 	return { currentVersion, index, previousVersion, text };
 }
 
-async function getIncludedPRs(previousVersion, repo) {
+async function getIncludedPRs(changelog, repo) {
+	const { currentVersion } = getFirstChangelogEntry(changelog);
 	const commits = await runAndGetStdout('git', [
 		'--no-pager',
 		'log',
-		`v${previousVersion}..HEAD`,
+		`v${currentVersion}..HEAD`,
 		'--pretty=tformat:%s'
 	]);
 	const getPrRegExp = /^([^(]+)\s\(#(\d+)\)$/gm;
@@ -143,11 +155,21 @@ async function getIncludedPRs(previousVersion, repo) {
 	}
 	prs.sort((a, b) => (a.pr > b.pr ? 1 : -1));
 	return Promise.all(
-		prs.map(async ({ pr, text }) => ({
-			author: (await repo.getPullRequest(pr)).data.user.login,
-			pr,
-			text
-		}))
+		prs.map(async ({ pr, text }) => {
+			const { data } = await repo.getPullRequest(pr);
+			const bodyWithoutComments = data.body.replace(/<!--[\s\S]*?-->/g, '');
+			const closedIssuesRegexp = /(fix(es|ed)?|(close|resolve)[sd]?) #(\d+)/g;
+			const closed = [];
+			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
+				closed.push(match[4]);
+			}
+			return {
+				author: data.user.login,
+				closed,
+				pr,
+				text
+			};
+		})
 	);
 }
 
@@ -259,11 +281,11 @@ function releasePackages(newVersion) {
 	const releaseEnv = { ...process.env, ROLLUP_RELEASE: 'releasing' };
 	const releaseTag = semverPreRelease(newVersion) ? ['--tag', 'beta'] : [];
 	return Promise.all([
-		runWithEcho('npm', ['publish', '--dry-run', ...releaseTag], {
+		runWithEcho('npm', ['publish', ...releaseTag], {
 			cwd: new URL('..', import.meta.url),
 			env: releaseEnv
 		}),
-		runWithEcho('npm', ['publish', '--dry-run', ...releaseTag], {
+		runWithEcho('npm', ['publish', ...releaseTag], {
 			cwd: new URL('../browser', import.meta.url),
 			env: releaseEnv
 		})
@@ -283,4 +305,31 @@ function createReleaseNotes(changelog, tag) {
 		name: tag,
 		tag_name: tag
 	});
+}
+
+function postReleaseComments(includedPRs, issues, version) {
+	const isPreRelease = semverPreRelease(newVersion);
+	const installNote = isPreRelease
+		? `Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${newVersion}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
+		: 'You can test it via `npm install rollup`.';
+	return Promise.all(
+		includedPRs.map(({ pr, closed }) =>
+			Promise.all([
+				issues
+					.createIssueComment(
+						pr,
+						`This PR has been released as part of rollup@${version}. ${installNote}`,
+						...closed.map(closedPr =>
+							issues
+								.createIssueComment(
+									closedPr,
+									`This issue has been resolved via #${pr} as part of rollup@${version}. ${installNote}`
+								)
+								.then(() => console.log(cyan(`Added fix comment to #${closedPr} via #${pr}.`)))
+						)
+					)
+					.then(() => console.log(cyan(`Added release comment to #${pr}.`)))
+			])
+		)
+	);
 }
