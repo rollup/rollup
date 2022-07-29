@@ -18,9 +18,6 @@ import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 
-// TODO Lukas script that cds into browser dir, updates version and runs publish with same flags as main publish
-// TODO Lukas adapt "files" property
-// TODO Lukas adapt REPL artefact
 const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
 	console.error(
