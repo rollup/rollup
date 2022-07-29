@@ -27,7 +27,7 @@ jobs:
         with:
           args: --cache-control max-age=300,public
         env:
-          FILE: dist/rollup.browser.js
+          FILE: browser/dist/rollup.browser.js
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ github.event.number }}/rollup.browser.js
@@ -38,7 +38,7 @@ jobs:
         with:
           args: --cache-control max-age=300,public
         env:
-          FILE: dist/rollup.browser.js.map
+          FILE: browser/dist/rollup.browser.js.map
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ github.event.number }}/rollup.browser.js.map
