@@ -4,7 +4,12 @@ import Graph from '../Graph';
 import type { PluginDriver } from '../utils/PluginDriver';
 import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
-import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
+import {
+	errAlreadyClosed,
+	errCannotEmitFromOptionsHook,
+	errMissingFileOrDirOption,
+	error
+} from '../utils/error';
 import { promises as fs } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
@@ -173,10 +178,7 @@ function handleGenerateWrite(
 		if (isWrite) {
 			timeStart('WRITE', 1);
 			if (!outputOptions.dir && !outputOptions.file) {
-				return error({
-					code: 'MISSING_OPTION',
-					message: 'You must specify "output.file" or "output.dir" for the build.'
-				});
+				return error(errMissingFileOrDirOption());
 			}
 			await Promise.all(
 				Object.values(generated).map(chunk =>

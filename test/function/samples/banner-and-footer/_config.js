@@ -29,6 +29,7 @@ module.exports = {
 	generateError: {
 		code: 'ADDON_ERROR',
 		message:
-			'Could not retrieve banner. Check configuration of plugin at position 3.\n\tError Message: Could not generate banner.'
+			'Could not retrieve "banner". Check configuration of plugin "at position 3".\n' +
+			'\tError Message: Could not generate banner.'
 	}
 };

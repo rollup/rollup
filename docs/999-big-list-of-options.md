@@ -370,7 +370,7 @@ Type: `(warning: RollupWarning, defaultHandler: (warning: string | RollupWarning
 
 A function that will intercept warning messages. If not supplied, warnings will be deduplicated and printed to the console. When using the [`--silent`](guide/en/#--silent) CLI option, this handler is the only way to get notified about warnings.
 
-The function receives two arguments: the warning object and the default handler. Warnings objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of warnings are handled. Other properties are added depending on the type of warning.
+The function receives two arguments: the warning object and the default handler. Warnings objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of warnings are handled. Other properties are added depending on the type of warning. See [`utils/error.ts`](https://github.com/rollup/rollup/blob/master/src/utils/error.ts) for a complete list of errors and warnings together with their codes and properties.
 
 ```js
 // rollup.config.js
@@ -381,7 +381,9 @@ export default {
     if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
 
     // throw on others
-    if (warning.code === 'NON_EXISTENT_EXPORT') throw new Error(warning.message);
+    // Using Object.assign over new Error(warning.message) will make the CLI
+    // print additional information such as warning location and help url.
+    if (warning.code === 'MISSING_EXPORT') throw Object.assign(new Error(), warning);
 
     // Use default for everything else
     warn(warning);

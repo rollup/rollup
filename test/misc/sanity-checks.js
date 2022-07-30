@@ -33,7 +33,7 @@ describe('sanity checks', () => {
 		assert.equal(args[0].code, 'EVAL');
 		assert.equal(
 			args[0].message,
-			'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification'
+			'Use of eval in "x" is strongly discouraged as it poses security risks and may cause issues with minification.'
 		);
 		assert.equal(typeof args[1], 'function');
 	});

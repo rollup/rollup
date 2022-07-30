@@ -30,6 +30,8 @@ import { createAddons } from './utils/addons';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
 	errCyclicCrossChunkReexport,
+	errEmptyChunk,
+	errMissingGlobalName,
 	error,
 	errUnexpectedNamedImport,
 	errUnexpectedNamespaceReexport
@@ -137,12 +139,7 @@ function getGlobalName(
 	}
 
 	if (hasExports) {
-		warn({
-			code: 'MISSING_GLOBAL_NAME',
-			guess: chunk.variableName,
-			message: `No name was provided for external module '${chunk.id}' in output.globals – guessing '${chunk.variableName}'`,
-			source: chunk.id
-		});
+		warn(errMissingGlobalName(chunk.id, chunk.variableName));
 		return chunk.variableName;
 	}
 }
@@ -1147,12 +1144,7 @@ export default class Chunk {
 		const renderedSource = compact ? magicString : magicString.trim();
 
 		if (isEmpty && this.getExportNames().length === 0 && dependencies.size === 0) {
-			const chunkName = this.getChunkName();
-			onwarn({
-				chunkName,
-				code: 'EMPTY_BUNDLE',
-				message: `Generated an empty chunk: "${chunkName}"`
-			});
+			onwarn(errEmptyChunk(this.getChunkName()));
 		}
 		return { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait };
 	}

@@ -1,41 +1,33 @@
 export const VERSION: string;
 
-export interface RollupError extends RollupLogProps {
-	parserError?: Error;
+export interface RollupError extends RollupLog {
+	name?: string;
 	stack?: string;
 	watchFiles?: string[];
 }
 
-export interface RollupWarning extends RollupLogProps {
-	chunkName?: string;
-	cycle?: string[];
-	exportName?: string;
-	exporter?: string;
-	guess?: string;
-	importer?: string;
-	missing?: string;
-	modules?: string[];
-	names?: string[];
-	reexporter?: string;
-	source?: string;
-	sources?: string[];
-}
+export type RollupWarning = RollupLog;
 
-export interface RollupLogProps {
+export interface RollupLog {
+	binding?: string;
+	cause?: Error;
 	code?: string;
+	exporter?: string;
 	frame?: string;
 	hook?: string;
 	id?: string;
+	ids?: string[];
 	loc?: {
 		column: number;
 		file?: string;
 		line: number;
 	};
 	message: string;
-	name?: string;
+	names?: string[];
 	plugin?: string;
 	pluginCode?: string;
 	pos?: number;
+	reexporter?: string;
 	url?: string;
 }
 

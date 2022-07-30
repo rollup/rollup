@@ -10,7 +10,7 @@ console.log(foo);`
 	},
 	error: {
 		message:
-			"Unexpected warnings (UNRESOLVED_IMPORT): 'dep' is imported by main, but could not be resolved – treating it as an external dependency\nIf you expect warnings, list their codes in config.expectedWarnings",
+			'Unexpected warnings (UNRESOLVED_IMPORT): "dep" is imported by "main", but could not be resolved – treating it as an external dependency.\nIf you expect warnings, list their codes in config.expectedWarnings',
 		watchFiles: ['main']
 	}
 };

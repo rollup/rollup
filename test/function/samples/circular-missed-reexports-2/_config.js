@@ -1,5 +1,8 @@
 const assert = require('assert');
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_DEP1 = path.join(__dirname, 'dep1.js');
+const ID_DEP2 = path.join(__dirname, 'dep2.js');
 
 module.exports = {
 	description: 'handles circular reexports',
@@ -8,13 +11,9 @@ module.exports = {
 	},
 	error: {
 		code: 'CIRCULAR_REEXPORT',
-		id: path.join(__dirname, 'dep1.js'),
+		exporter: ID_DEP1,
 		message:
-			'"doesNotExist" cannot be exported from dep1.js as it is a reexport that references itself.',
-		watchFiles: [
-			path.join(__dirname, 'dep1.js'),
-			path.join(__dirname, 'dep2.js'),
-			path.join(__dirname, 'main.js')
-		]
+			'"doesNotExist" cannot be exported from "dep1.js" as it is a reexport that references itself.',
+		watchFiles: [ID_DEP1, ID_DEP2, ID_MAIN]
 	}
 };

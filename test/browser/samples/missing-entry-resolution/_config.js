@@ -2,6 +2,6 @@ module.exports = {
 	description: 'fails if an entry cannot be resolved',
 	error: {
 		code: 'UNRESOLVED_ENTRY',
-		message: 'Could not resolve entry module (main).'
+		message: 'Could not resolve entry module "main".'
 	}
 };

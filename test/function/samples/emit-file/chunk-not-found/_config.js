@@ -1,4 +1,5 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
 	description: 'Throws if an emitted entry chunk cannot be resolved',
@@ -12,7 +13,7 @@ module.exports = {
 	},
 	error: {
 		code: 'UNRESOLVED_ENTRY',
-		message: 'Could not resolve entry module (not-found.js).',
-		watchFiles: [path.join(__dirname, 'main.js')]
+		watchFiles: [ID_MAIN],
+		message: 'Could not resolve entry module "not-found.js".'
 	}
 };

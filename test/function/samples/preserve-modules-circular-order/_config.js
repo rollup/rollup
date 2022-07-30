@@ -1,4 +1,8 @@
 const assert = require('assert');
+const path = require('path');
+const ID_INDEX = path.join(__dirname, 'index.js');
+const ID_DATA = path.join(__dirname, 'data.js');
+const ID_TAG = path.join(__dirname, 'tag.js');
 const executionOrder = [];
 
 module.exports = {
@@ -20,20 +24,17 @@ module.exports = {
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['data.js', 'tag.js', 'data.js'],
-			importer: 'data.js',
+			ids: [ID_DATA, ID_TAG, ID_DATA],
 			message: 'Circular dependency: data.js -> tag.js -> data.js'
 		},
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['data.js', 'tag.js', 'index.js', 'data.js'],
-			importer: 'data.js',
+			ids: [ID_DATA, ID_TAG, ID_INDEX, ID_DATA],
 			message: 'Circular dependency: data.js -> tag.js -> index.js -> data.js'
 		},
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['tag.js', 'index.js', 'tag.js'],
-			importer: 'tag.js',
+			ids: [ID_TAG, ID_INDEX, ID_TAG],
 			message: 'Circular dependency: tag.js -> index.js -> tag.js'
 		}
 	]
