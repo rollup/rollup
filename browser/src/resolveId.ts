@@ -1,6 +1,11 @@
-import type { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../src/rollup/types';
-import type { PluginDriver } from '../src/utils/PluginDriver';
-import { resolveIdViaPlugins } from '../src/utils/resolveIdViaPlugins';
+import type {
+	CustomPluginOptions,
+	Plugin,
+	ResolvedId,
+	ResolveIdResult
+} from '../../src/rollup/types';
+import type { PluginDriver } from '../../src/utils/PluginDriver';
+import { resolveIdViaPlugins } from '../../src/utils/resolveIdViaPlugins';
 import { throwNoFileSystem } from './error';
 
 export async function resolveId(
