@@ -102,6 +102,96 @@ This is however a problem for polyfills, as those usually need to be executed fi
 
 Rollup is already used by many major JavaScript libraries, and can also be used to build the vast majority of applications. However if you want to use code-splitting or dynamic imports with older browsers, you will need an additional runtime to handle loading missing chunks. We recommend using the [SystemJS Production Build](https://github.com/systemjs/systemjs#browser-production) as it integrates nicely with Rollup's system format output and is capable of properly handling all the ES module live bindings and re-export edge cases. Alternatively, an AMD loader can be used as well.
 
+#### How do I run Rollup itself in a browser
+
+While the regular Rollup build relies on some NodeJS features, there is also a browser build available that only uses browser APIs. You can install it via
+
+```
+npm install @rollup/browser
+```
+
+and in your script, import it via
+
+```js
+import { rollup } from '@rollup/browser';
+```
+
+Alternatively, you can import from a CDN, e.g. for the ESM build
+
+```js
+import * as rollup from 'https://unpkg.com/@rollup/browser/dist/es/rollup.browser.js';
+```
+
+and for the UMD build
+
+```html
+<script src="https://unpkg.com/@rollup/browser/dist/rollup.browser.js"></script>
+```
+
+which will create a global variable `window.rollup`. As the browser build cannot access the file system, you need to provide plugins that resolve and load all modules you want to bundle. Here is a contrived example that does this:
+
+```js
+const modules = {
+  'main.js': "import foo from 'foo.js'; console.log(foo);",
+  'foo.js': 'export default 42;'
+};
+
+rollup
+  .rollup({
+    input: 'main.js',
+    plugins: [
+      {
+        name: 'loader',
+        resolveId(source) {
+          if (modules.hasOwnProperty(source)) {
+            return source;
+          }
+        },
+        load(id) {
+          if (modules.hasOwnProperty(id)) {
+            return modules[id];
+          }
+        }
+      }
+    ]
+  })
+  .then(bundle => bundle.generate({ format: 'es' }))
+  .then(({ output }) => console.log(output[0].code));
+```
+
+This example only supports two imports, `"main.js"` and `"foo.js"`, and no relative imports. Here is another example that uses absolute URLs as entry points and supports relative imports. In that case, we are just re-bundling Rollup itself, but it could be used on any other URL that exposes an ES module:
+
+```js
+rollup
+  .rollup({
+    input: 'https://unpkg.com/rollup/dist/es/rollup.js',
+    plugins: [
+      {
+        name: 'url-resolver',
+        resolveId(source, importer) {
+          if (source[0] !== '.') {
+            try {
+              new URL(source);
+              // If it is a valid URL, return it
+              return source;
+            } catch {
+              // Otherwise make it external
+              return { id: source, external: true };
+            }
+          }
+          return new URL(source, importer).href;
+        },
+        async load(id) {
+          const response = await fetch(id);
+          return response.text();
+        }
+      }
+    ]
+  })
+  .then(bundle => bundle.generate({ format: 'es' }))
+  .then(({ output }) => console.log(output));
+```
+
 #### Who made the Rollup logo? It's lovely.
 
 [Julian Lloyd](https://twitter.com/jlmakes)!

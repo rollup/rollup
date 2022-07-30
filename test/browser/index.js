@@ -5,7 +5,7 @@ global.performance = require('perf_hooks').performance;
 
 const { basename, resolve } = require('path');
 const fixturify = require('fixturify');
-const { rollup } = require('../../dist/rollup.browser.js');
+const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
 
 runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) => {
