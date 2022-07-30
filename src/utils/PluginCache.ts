@@ -1,5 +1,5 @@
 import type { PluginCache, SerializablePluginCache } from '../rollup/types';
-import { error } from './error';
+import { errAnonymousPluginCache, errDuplicatePluginName, error } from './error';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 
 export function createPluginCache(cache: SerializablePluginCache): PluginCache {
@@ -64,16 +64,9 @@ function uncacheablePluginError(pluginName: string): never {
 		pluginName.startsWith(ANONYMOUS_PLUGIN_PREFIX) ||
 		pluginName.startsWith(ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
 	) {
-		return error({
-			code: 'ANONYMOUS_PLUGIN_CACHE',
-			message:
-				'A plugin is trying to use the Rollup cache but is not declaring a plugin name or cacheKey.'
-		});
+		return error(errAnonymousPluginCache());
 	}
-	return error({
-		code: 'DUPLICATE_PLUGIN_NAME',
-		message: `The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
-	});
+	return error(errDuplicatePluginName(pluginName));
 }
 
 export function getCacheForUncacheablePlugin(pluginName: string): PluginCache {

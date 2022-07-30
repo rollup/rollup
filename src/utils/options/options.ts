@@ -6,7 +6,7 @@ import type {
 	OutputOptions,
 	WarningHandler
 } from '../../rollup/types';
-import { errInvalidOption, error } from '../error';
+import { errInvalidOption, error, errUnknownOption } from '../error';
 import { printQuotedStringList } from '../printStringList';
 
 export interface GenericConfigObject {
@@ -27,14 +27,7 @@ export function warnUnknownOptions(
 		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
 	);
 	if (unknownOptions.length > 0) {
-		warn({
-			code: 'UNKNOWN_OPTION',
-			message: `Unknown ${optionType}: ${unknownOptions.join(', ')}. Allowed options: ${[
-				...validOptionSet
-			]
-				.sort()
-				.join(', ')}`
-		});
+		warn(errUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
 	}
 }
 

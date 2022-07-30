@@ -7,9 +7,10 @@ import relativeId from '../src/utils/relativeId';
 export const stderr = (...args: readonly unknown[]) => process.stderr.write(`${args.join('')}\n`);
 
 export function handleError(err: RollupError, recover = false): void {
-	let description = err.message || err;
-	if (err.name) description = `${err.name}: ${description}`;
-	const message = (err.plugin ? `(plugin ${err.plugin}) ${description}` : description) || err;
+	const name = err.name || err.cause?.name;
+	const nameSection = name ? `${name}: ` : '';
+	const pluginSection = err.plugin ? `(plugin ${err.plugin}) ` : '';
+	const message = `${pluginSection}${nameSection}${err.message}`;
 
 	stderr(bold(red(`[!] ${bold(message.toString())}`)));
 

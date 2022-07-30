@@ -34,9 +34,9 @@ module.exports = {
 	},
 	warnings: [
 		{
-			chunkName: 'main',
 			code: 'EMPTY_BUNDLE',
-			message: 'Generated an empty chunk: "main"'
+			message: 'Generated an empty chunk: "main".',
+			names: ['main']
 		}
 	]
 };

@@ -1,12 +1,11 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = {
 	description: 'throws on duplicate named exports',
 	error: {
-		code: 'PARSE_ERROR',
-		message: `Duplicate export 'foo'`,
-		id: path.join(__dirname, 'foo.js'),
-		parserError: {
+		cause: {
 			loc: {
 				column: 9,
 				line: 3
@@ -15,10 +14,13 @@ module.exports = {
 			pos: 38,
 			raisedAt: 43
 		},
+		code: 'PARSE_ERROR',
+		message: `Duplicate export 'foo'`,
+		id: ID_FOO,
 		pos: 38,
-		watchFiles: [path.join(__dirname, 'foo.js'), path.join(__dirname, 'main.js')],
+		watchFiles: [ID_FOO, ID_MAIN],
 		loc: {
-			file: path.join(__dirname, 'foo.js'),
+			file: ID_FOO,
 			line: 3,
 			column: 9
 		},

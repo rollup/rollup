@@ -11,7 +11,7 @@ module.exports = {
 	stderr(stderr) {
 		assertIncludes(
 			stderr,
-			'[!] Error: You must specify "output.file" or "output.dir" for the build.'
+			'[!] RollupError: You must specify "output.file" or "output.dir" for the build.'
 		);
 		assertIncludes(stderr, 'Bundle closed');
 		return false;

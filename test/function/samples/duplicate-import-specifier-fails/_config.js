@@ -1,12 +1,10 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
 	description: 'disallows duplicate import specifiers',
 	error: {
-		code: 'PARSE_ERROR',
-		message: `Identifier 'a' has already been declared`,
-		id: path.join(__dirname, 'main.js'),
-		parserError: {
+		cause: {
 			loc: {
 				column: 12,
 				line: 1
@@ -15,10 +13,13 @@ module.exports = {
 			pos: 12,
 			raisedAt: 15
 		},
+		code: 'PARSE_ERROR',
+		message: `Identifier 'a' has already been declared`,
+		id: ID_MAIN,
 		pos: 12,
-		watchFiles: [path.join(__dirname, 'main.js')],
+		watchFiles: [ID_MAIN],
 		loc: {
-			file: path.join(__dirname, 'main.js'),
+			file: ID_MAIN,
 			line: 1,
 			column: 12
 		},

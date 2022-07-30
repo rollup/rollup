@@ -1,23 +1,24 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
 	description: 'warns about use of eval',
 	warnings: [
 		{
 			code: 'EVAL',
-			id: path.join(__dirname, 'main.js'),
-			message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
+			id: ID_MAIN,
+			message:
+				'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
+			url: 'https://rollupjs.org/guide/en/#avoiding-eval',
 			pos: 13,
 			loc: {
 				column: 13,
-				file: require('path').resolve(__dirname, 'main.js'),
+				file: ID_MAIN,
 				line: 1
 			},
 			frame: `
 				1: var result = eval( '1 + 1' );
-				                ^
-			`,
-			url: 'https://rollupjs.org/guide/en/#avoiding-eval'
+				                ^`
 		}
 	]
 };

@@ -1,12 +1,11 @@
 const path = require('path');
+const ID_FOO = path.join(__dirname, 'foo.js');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
 	description: 'throws on double default exports',
 	error: {
-		code: 'PARSE_ERROR',
-		message: `Duplicate export 'default'`,
-		id: path.join(__dirname, 'foo.js'),
-		parserError: {
+		cause: {
 			loc: {
 				column: 7,
 				line: 2
@@ -15,10 +14,13 @@ module.exports = {
 			pos: 25,
 			raisedAt: 34
 		},
+		code: 'PARSE_ERROR',
+		message: `Duplicate export 'default'`,
+		id: ID_FOO,
 		pos: 25,
-		watchFiles: [path.join(__dirname, 'foo.js'), path.join(__dirname, 'main.js')],
+		watchFiles: [ID_FOO, ID_MAIN],
 		loc: {
-			file: path.join(__dirname, 'foo.js'),
+			file: ID_FOO,
 			line: 2,
 			column: 7
 		},

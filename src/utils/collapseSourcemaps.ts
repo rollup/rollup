@@ -6,7 +6,7 @@ import type {
 	SourceMapSegment,
 	WarningHandler
 } from '../rollup/types';
-import { error } from './error';
+import { error, errSourcemapBroken } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
@@ -155,15 +155,7 @@ function getLinkMap(warn: WarningHandler) {
 			return new Link(map, [source]);
 		}
 
-		warn({
-			code: 'SOURCEMAP_BROKEN',
-			message:
-				`Sourcemap is likely to be incorrect: a plugin (${map.plugin}) was used to transform ` +
-				"files, but didn't generate a sourcemap for the transformation. Consult the plugin " +
-				'documentation for help',
-			plugin: map.plugin,
-			url: `https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect`
-		});
+		warn(errSourcemapBroken(map.plugin));
 
 		return new Link(
 			{
