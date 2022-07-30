@@ -4,14 +4,14 @@
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
-  "typings": "dist/rollup.d.ts",
+  "types": "dist/rollup.d.ts",
   "bin": {
     "rollup": "dist/bin/rollup"
   },
   "scripts": {
-    "build": "shx rm -rf dist && node scripts/update-git-commit.js && rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
-    "build:cjs": "shx rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript --configTest && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
-    "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup && cp -r dist browser/",
+    "build": "rollup --config rollup.config.ts --configPlugin typescript",
+    "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
+    "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript",
     "ci:lint": "npm run lint:nofix",
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",
@@ -21,10 +21,9 @@
     "lint:markdown": "prettier --write \"**/*.md\"",
     "perf": "npm run build:cjs && node --expose-gc scripts/perf.js",
     "perf:init": "node scripts/perf-init.js",
-    "postpublish": "git push && git push --tags",
-    "prepare": "husky install && npm run build",
-    "prepublishOnly": "git pull --ff-only && npm ci && npm run lint:nofix && npm run security && npm run build:bootstrap && npm run test:all",
-    "security": "npm audit",
+    "prepare": "husky install && scripts/check-release.js || npm run build",
+    "prepublishOnly": "scripts/check-release.js",
+    "release": "node scripts/release.js",
     "test": "npm run build && npm run test:all",
     "test:cjs": "npm run build:cjs && npm run test:only",
     "test:quick": "mocha -b test/test.js",
@@ -84,7 +83,6 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "execa": "^6.1.0",
     "fixturify": "^2.1.1",
     "fs-extra": "^10.1.0",
     "get-package-type": "^0.1.0",
@@ -121,8 +119,7 @@
     "dist/**/*.js",
     "dist/*.d.ts",
     "dist/bin/rollup",
-    "dist/es/package.json",
-    "dist/rollup.browser.js.map"
+    "dist/es/package.json"
   ],
   "engines": {
     "node": ">=14.0.0",
@@ -131,14 +128,16 @@
   "exports": {
     ".": {
       "types": "./dist/rollup.d.ts",
-      "node": {
-        "require": "./dist/rollup.js",
-        "import": "./dist/es/rollup.js"
-      },
-      "default": "./dist/es/rollup.browser.js"
+      "require": "./dist/rollup.js",
+      "import": "./dist/es/rollup.js"
     },
     "./loadConfigFile": "./dist/loadConfigFile.js",
     "./dist/loadConfigFile": "./dist/loadConfigFile.js",
     "./dist/*": "./dist/*"
+  },
+  "dependencies": {
+    "github-api": "^3.4.0",
+    "inquirer": "^9.0.2",
+    "semver": "^7.3.7"
   }
 }
