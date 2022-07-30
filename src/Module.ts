@@ -41,7 +41,7 @@ import type {
 	ResolvedId,
 	ResolvedIdMap,
 	RollupError,
-	RollupLogProps,
+	RollupLog,
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
@@ -52,9 +52,12 @@ import {
 	errAmbiguousExternalNamespaces,
 	errCircularReexport,
 	errInvalidFormatForTopLevelAwait,
+	errInvalidSourcemapForError,
 	errMissingExport,
 	errNamespaceConflict,
 	error,
+	errParseError,
+	errShimmedExport,
 	errSyntheticNamedExportsNeedNamespaceExport,
 	warnDeprecation
 } from './utils/error';
@@ -63,7 +66,6 @@ import { getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
-import relativeId from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
@@ -97,7 +99,7 @@ export interface AstContext {
 	addImportMeta: (node: MetaProperty) => void;
 	code: string;
 	deoptimizationTracker: PathTracker;
-	error: (props: RollupError, pos: number) => never;
+	error: (props: RollupLog, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
@@ -849,20 +851,7 @@ export default class Module {
 		try {
 			return this.graph.contextParse(this.info.code!);
 		} catch (err: any) {
-			let message = err.message.replace(/ \(\d+:\d+\)$/, '');
-			if (this.id.endsWith('.json')) {
-				message += ' (Note that you need @rollup/plugin-json to import JSON files)';
-			} else if (!this.id.endsWith('.js')) {
-				message += ' (Note that you need plugins to import files that are not JavaScript)';
-			}
-			return this.error(
-				{
-					code: 'PARSE_ERROR',
-					message,
-					parserError: err
-				},
-				err.pos
-			);
+			return this.error(errParseError(err, this.id), err.pos);
 		}
 	}
 
@@ -990,7 +979,7 @@ export default class Module {
 		this.importMetas.push(node);
 	}
 
-	private addLocationToLogProps(props: RollupLogProps, pos: number): void {
+	private addLocationToLogProps(props: RollupLog, pos: number): void {
 		props.id = this.id;
 		props.pos = pos;
 		let code = this.info.code;
@@ -1001,17 +990,7 @@ export default class Module {
 				({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
 				code = this.originalCode;
 			} catch (err: any) {
-				this.options.onwarn({
-					code: 'SOURCEMAP_ERROR',
-					id: this.id,
-					loc: {
-						column,
-						file: this.id,
-						line
-					},
-					message: `Error when using sourcemap for reporting an error: ${err.message}`,
-					pos
-				});
+				this.options.onwarn(errInvalidSourcemapForError(err, this.id, column, line, pos));
 			}
 			augmentCodeLocation(props, { column, line }, code!, this.id);
 		}
@@ -1191,12 +1170,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.options.onwarn({
-			code: 'SHIMMED_EXPORT',
-			exporter: relativeId(this.id),
-			exportName: name,
-			message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
-		});
+		this.options.onwarn(errShimmedExport(this.id, name));
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 }

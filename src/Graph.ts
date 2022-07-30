@@ -16,10 +16,14 @@ import type {
 import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
-import { errImplicitDependantIsNotIncluded, error } from './utils/error';
+import {
+	errCircularDependency,
+	errImplicitDependantIsNotIncluded,
+	errMissingExport,
+	error
+} from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { addAnnotations } from './utils/pureComments';
-import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
@@ -223,12 +227,7 @@ export default class Graph {
 	private sortModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
-			this.options.onwarn({
-				code: 'CIRCULAR_DEPENDENCY',
-				cycle: cyclePath,
-				importer: cyclePath[0],
-				message: `Circular dependency: ${cyclePath.join(' -> ')}`
-			});
+			this.options.onwarn(errCircularDependency(cyclePath));
 		}
 		this.modules = orderedModules;
 		for (const module of this.modules) {
@@ -245,14 +244,7 @@ export default class Graph {
 					!importDescription.module.getVariableForExportName(importDescription.name)[0]
 				) {
 					module.warn(
-						{
-							code: 'NON_EXISTENT_EXPORT',
-							message: `Non-existent export '${
-								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`,
-							name: importDescription.name,
-							source: importDescription.module.id
-						},
+						errMissingExport(importDescription.name, module.id, importDescription.module.id),
 						importDescription.start
 					);
 				}

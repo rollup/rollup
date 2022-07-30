@@ -1,6 +1,5 @@
 import type ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import relativeId from './relativeId';
 
 interface OrderedExecutionUnit {
 	execIndex: number;
@@ -74,12 +73,12 @@ function getCyclePath(
 	parents: ReadonlyMap<Module | ExternalModule, Module | null>
 ): string[] {
 	const cycleSymbol = Symbol(module.id);
-	const path = [relativeId(module.id)];
+	const path = [module.id];
 	let nextModule = parent;
 	module.cycles.add(cycleSymbol);
 	while (nextModule !== module) {
 		nextModule.cycles.add(cycleSymbol);
-		path.push(relativeId(nextModule.id));
+		path.push(nextModule.id);
 		nextModule = parents.get(nextModule)!;
 	}
 	path.push(path[0]);

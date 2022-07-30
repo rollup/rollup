@@ -6,7 +6,7 @@ module.exports = {
 	stderr: stderr =>
 		assertIncludes(
 			stderr,
-			'(!) `this` has been rewritten to `undefined`\n' +
+			'(!) "this" has been rewritten to "undefined"\n' +
 				'https://rollupjs.org/guide/en/#error-this-is-undefined\n' +
 				'main.js\n' +
 				'1: console.log(this);\n' +

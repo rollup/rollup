@@ -3,6 +3,7 @@ import ms from 'pretty-ms';
 import { rollup } from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold, cyan, green } from '../../src/utils/colors';
+import { errOnlyInlineSourcemapsForStdout } from '../../src/utils/error';
 import relativeId from '../../src/utils/relativeId';
 import { SOURCEMAPPING_URL } from '../../src/utils/sourceMappingURL';
 import { handleError, stderr } from '../logging';
@@ -34,10 +35,7 @@ export default async function build(
 	if (useStdout) {
 		const output = outputOptions[0];
 		if (output.sourcemap && output.sourcemap !== 'inline') {
-			handleError({
-				code: 'ONLY_INLINE_SOURCEMAPS',
-				message: 'Only inline sourcemaps are supported when bundling to stdout.'
-			});
+			handleError(errOnlyInlineSourcemapsForStdout());
 		}
 
 		const { output: outputs } = await bundle.generate(output);

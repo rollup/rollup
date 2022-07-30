@@ -21,44 +21,32 @@ exports.wait = function wait(ms) {
 };
 
 function normaliseError(error) {
-	delete error.stack;
-	delete error.toString;
-	if (error.watchFiles) {
-		error.watchFiles.sort();
+	const clone = { ...error, message: error.message };
+	delete clone.stack;
+	delete clone.toString;
+	if (clone.watchFiles) {
+		clone.watchFiles.sort();
 	}
-	return { ...error, message: error.message };
+	if (clone.frame) {
+		clone.frame = clone.frame.replace(/\s+$/gm, '');
+	}
+	if (clone.cause) {
+		clone.cause = normaliseError(clone.cause);
+	}
+	return clone;
 }
 
 exports.compareError = function compareError(actual, expected) {
 	actual = normaliseError(actual);
-
-	if (actual.parserError) {
-		actual.parserError = normaliseError(actual.parserError);
-	}
-
-	if (actual.frame) {
-		actual.frame = actual.frame.replace(/\s+$/gm, '');
-	}
-
 	if (expected.frame) {
 		expected.frame = deindent(expected.frame);
 	}
-
 	assert.deepEqual(actual, expected);
 };
 
 exports.compareWarnings = function compareWarnings(actual, expected) {
 	assert.deepEqual(
-		actual.map(warning => {
-			const clone = { ...warning };
-			delete clone.toString;
-
-			if (clone.frame) {
-				clone.frame = clone.frame.replace(/\s+$/gm, '');
-			}
-
-			return clone;
-		}),
+		actual.map(normaliseError),
 		expected.map(warning => {
 			if (warning.frame) {
 				warning.frame = deindent(warning.frame);

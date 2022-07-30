@@ -1,6 +1,6 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
-import { error } from '../utils/error';
+import { errMissingNameOptionForUmdExport, error } from '../utils/error';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
@@ -68,11 +68,7 @@ export default function umd(
 	const globalVar = compact ? 'g' : 'global';
 
 	if (hasExports && !name) {
-		return error({
-			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
-			message:
-				'You must supply "output.name" for UMD bundles that have exports so that the exports are accessible in environments without a module loader.'
-		});
+		return error(errMissingNameOptionForUmdExport());
 	}
 
 	warnOnBuiltins(onwarn, dependencies);

@@ -47,7 +47,7 @@ const onwarn: WarningHandlerWithDefault = warning => {
 		'Building Rollup produced warnings that need to be resolved. ' +
 			'Please keep in mind that the browser build may never have external dependencies!'
 	);
-	throw new Error(warning.message);
+	throw Object.assign(new Error(), warning);
 };
 
 const moduleAliases = {

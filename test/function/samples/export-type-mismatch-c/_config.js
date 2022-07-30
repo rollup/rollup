@@ -4,6 +4,7 @@ module.exports = {
 	generateError: {
 		code: 'INVALID_EXPORT_OPTION',
 		message:
-			'"none" was specified for "output.exports", but entry module "main.js" has the following exports: default'
+			'"none" was specified for "output.exports", but entry module "main.js" has the following exports: "default"',
+		url: 'https://rollupjs.org/guide/en/#outputexports'
 	}
 };
