@@ -5,7 +5,8 @@ module.exports = {
 		{
 			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
 			message:
-				'If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.'
+				'If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.',
+			url: 'https://rollupjs.org/guide/en/#outputname'
 		}
 	]
 };

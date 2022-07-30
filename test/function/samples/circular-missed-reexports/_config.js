@@ -3,6 +3,7 @@ const path = require('path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP1 = path.join(__dirname, 'dep1.js');
+const ID_DEP2 = path.join(__dirname, 'dep2.js');
 
 module.exports = {
 	description: 'handles circular reexports',
@@ -12,22 +13,20 @@ module.exports = {
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['dep1.js', 'dep2.js', 'dep1.js'],
-			importer: 'dep1.js',
+			ids: [ID_DEP1, ID_DEP2, ID_DEP1],
 			message: 'Circular dependency: dep1.js -> dep2.js -> dep1.js'
 		},
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['dep1.js', 'dep1.js'],
-			importer: 'dep1.js',
+			ids: [ID_DEP1, ID_DEP1],
 			message: 'Circular dependency: dep1.js -> dep1.js'
 		},
 		{
-			code: 'NON_EXISTENT_EXPORT',
-			message: "Non-existent export 'doesNotExist' is imported from dep1.js",
-			name: 'doesNotExist',
-			source: ID_DEP1,
+			binding: 'doesNotExist',
+			code: 'MISSING_EXPORT',
 			id: ID_MAIN,
+			message: '"doesNotExist" is not exported by "dep1.js", imported by "main.js".',
+			exporter: ID_DEP1,
 			pos: 17,
 			loc: {
 				file: ID_MAIN,
@@ -37,7 +36,8 @@ module.exports = {
 			frame: `
 1: import { exists, doesNotExist } from './dep1.js';
                     ^
-2: export { exists };`
+2: export { exists };`,
+			url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module'
 		}
 	]
 };

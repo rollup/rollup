@@ -3,8 +3,8 @@ module.exports = {
 	options: { output: { exports: 'blah' } },
 	generateError: {
 		code: 'INVALID_EXPORT_OPTION',
+		url: 'https://rollupjs.org/guide/en/#outputexports',
 		message:
-			'"output.exports" must be "default", "named", "none", "auto", or left unspecified (defaults to "auto"), received "blah"',
-		url: 'https://rollupjs.org/guide/en/#outputexports'
+			'"output.exports" must be "default", "named", "none", "auto", or left unspecified (defaults to "auto"), received "blah".'
 	}
 };

@@ -24,11 +24,11 @@ import {
 	errInputHookInOutputPlugin,
 	errInvalidAddonPluginHook,
 	errInvalidFunctionPluginHook,
-	error
+	error,
+	errPluginError
 } from './error';
 import { getOrCreate } from './getOrCreate';
 import { OutputBundleWithPlaceholders } from './outputBundle';
-import { throwPluginError } from './pluginUtils';
 
 /**
  * Coerce a promise union to always be a promise.
@@ -350,7 +350,7 @@ export class PluginDriver {
 					// action considered to be fulfilled since error being handled
 					this.unfulfilledActions.delete(action);
 				}
-				return throwPluginError(err, plugin.name, { hook: hookName });
+				return error(errPluginError(err, plugin.name, { hook: hookName }));
 			});
 	}
 
@@ -379,7 +379,7 @@ export class PluginDriver {
 			// eslint-disable-next-line @typescript-eslint/ban-types
 			return (handler as Function).apply(context, args);
 		} catch (err: any) {
-			return throwPluginError(err, plugin.name, { hook: hookName });
+			return error(errPluginError(err, plugin.name, { hook: hookName }));
 		}
 	}
 }

@@ -1,10 +1,13 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
 	description: 'missing relative imports are an error, not a warning',
 	error: {
 		code: 'UNRESOLVED_IMPORT',
-		message: `Could not resolve './missing.js' from main.js`,
-		watchFiles: [path.join(__dirname, 'main.js')]
+		exporter: './missing.js',
+		id: ID_MAIN,
+		watchFiles: [ID_MAIN],
+		message: 'Could not resolve "./missing.js" from "main.js"'
 	}
 };

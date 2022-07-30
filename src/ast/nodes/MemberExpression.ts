@@ -2,7 +2,7 @@ import type MagicString from 'magic-string';
 import { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import relativeId from '../../utils/relativeId';
+import { errIllegalImportReassignment, errMissingExport } from '../../utils/error';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -380,10 +380,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 					this.context.includeVariableInModule(this.variable);
 				}
 				this.context.warn(
-					{
-						code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
-						message: `Illegal reassignment to import '${this.object.name}'`
-					},
+					errIllegalImportReassignment(this.object.name, this.context.module.id),
 					this.start
 				);
 			}
@@ -440,17 +437,7 @@ function resolveNamespaceVariables(
 	const variable = (baseVariable as NamespaceVariable).context.traceExport(exportName);
 	if (!variable) {
 		const fileName = (baseVariable as NamespaceVariable).context.fileName;
-		astContext.warn(
-			{
-				code: 'MISSING_EXPORT',
-				exporter: relativeId(fileName),
-				importer: relativeId(astContext.fileName),
-				message: `'${exportName}' is not exported by '${relativeId(fileName)}'`,
-				missing: exportName,
-				url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
-			},
-			path[0].pos
-		);
+		astContext.warn(errMissingExport(exportName, astContext.module.id, fileName), path[0].pos);
 		return 'undefined';
 	}
 	return resolveNamespaceVariables(variable, path.slice(1), astContext);

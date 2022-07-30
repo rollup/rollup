@@ -11,30 +11,28 @@ module.exports = {
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['main.js', 'first.js', 'main.js'],
-			importer: 'main.js',
+			ids: [ID_MAIN, ID_FIRST, ID_MAIN],
 			message: 'Circular dependency: main.js -> first.js -> main.js'
 		},
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['main.js', 'second.js', 'main.js'],
-			importer: 'main.js',
+			ids: [ID_MAIN, ID_SECOND, ID_MAIN],
 			message: 'Circular dependency: main.js -> second.js -> main.js'
 		},
 		{
 			code: 'CYCLIC_CROSS_CHUNK_REEXPORT',
 			exporter: ID_SECOND,
-			importer: ID_FIRST,
+			id: ID_FIRST,
 			message:
-				'Export "second" of module second.js was reexported through module main.js while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in first.js to point directly to the exporting module or do not use "preserveModules" to ensure these modules end up in the same chunk.',
+				'Export "second" of module "second.js" was reexported through module "main.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in "first.js" to point directly to the exporting module or do not use "preserveModules" to ensure these modules end up in the same chunk.',
 			reexporter: ID_MAIN
 		},
 		{
 			code: 'CYCLIC_CROSS_CHUNK_REEXPORT',
 			exporter: ID_FIRST,
-			importer: ID_SECOND,
+			id: ID_SECOND,
 			message:
-				'Export "first" of module first.js was reexported through module main.js while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in second.js to point directly to the exporting module or do not use "preserveModules" to ensure these modules end up in the same chunk.',
+				'Export "first" of module "first.js" was reexported through module "main.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in "second.js" to point directly to the exporting module or do not use "preserveModules" to ensure these modules end up in the same chunk.',
 			reexporter: ID_MAIN
 		}
 	]

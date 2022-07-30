@@ -1,26 +1,28 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = {
 	description: 'warns on missing (but unused) imports',
 	warnings: [
 		{
-			code: 'NON_EXISTENT_EXPORT',
-			id: path.join(__dirname, 'main.js'),
-			source: path.join(__dirname, 'foo.js'),
-			name: 'b',
-			message: `Non-existent export 'b' is imported from foo.js`,
+			binding: 'b',
+			code: 'MISSING_EXPORT',
+			exporter: ID_FOO,
+			id: ID_MAIN,
+			message: '"b" is not exported by "foo.js", imported by "main.js".',
+			url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
 			pos: 12,
 			loc: {
-				file: path.join(__dirname, 'main.js'),
-				line: 1,
-				column: 12
+				column: 12,
+				file: ID_MAIN,
+				line: 1
 			},
 			frame: `
 				1: import { a, b } from './foo.js';
 				               ^
 				2:
-				3: assert.equal( a, 42 );
-			`
+				3: assert.equal( a, 42 );`
 		}
 	]
 };

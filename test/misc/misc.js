@@ -80,10 +80,11 @@ describe('misc', () => {
 				assert.deepEqual(warnings, [
 					{
 						code: 'MISSING_GLOBAL_NAME',
-						guess: '_',
+						id: 'lodash',
 						message:
-							"No name was provided for external module 'lodash' in output.globals – guessing '_'",
-						source: 'lodash'
+							'No name was provided for external module "lodash" in "output.globals" – guessing "_".',
+						names: ['_'],
+						url: 'https://rollupjs.org/guide/en/#outputglobals'
 					}
 				]);
 			});
@@ -271,7 +272,7 @@ console.log(x);
 			});
 		} catch (err) {
 			assert.notDeepStrictEqual(err.message, 'Maximum call stack size exceeded');
-			assert.strictEqual(err.name, 'Error');
+			assert.strictEqual(err.name, 'RollupError');
 		}
 	});
 

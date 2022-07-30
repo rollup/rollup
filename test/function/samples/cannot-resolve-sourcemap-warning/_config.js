@@ -13,6 +13,9 @@ module.exports = {
 	},
 	warnings: [
 		{
+			cause: {
+				message: "Can't resolve original location of error."
+			},
 			code: 'SOURCEMAP_ERROR',
 			id: ID_MAIN,
 			loc: {
