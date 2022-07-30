@@ -1,4 +1,4 @@
-import { relative } from '../../browser/path';
+import { relative } from '../../browser/src/path';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './path';
 
 export function getAliasName(id: string): string {
