@@ -1,5 +1,5 @@
 import MagicString, { Bundle as MagicStringBundle, type SourceMap } from 'magic-string';
-import { relative } from '../browser/path';
+import { relative } from '../browser/src/path';
 import ExternalChunk from './ExternalChunk';
 import ExternalModule from './ExternalModule';
 import Module from './Module';

@@ -11,7 +11,7 @@ import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import type { BatchWarnings } from './batchWarnings';
 import { getConfigPath } from './getConfigPath';
-import loadAndParseConfigFile from './loadConfigFile';
+import { loadConfigFile } from './loadConfigFile';
 import loadConfigFromCommand from './loadConfigFromCommand';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
@@ -53,7 +53,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					stderr(`\nReloading updated config...`);
 				}
 				configFileData = newConfigFileData;
-				const { options, warnings } = await loadAndParseConfigFile(configFile, command);
+				const { options, warnings } = await loadConfigFile(configFile, command);
 				if (currentConfigFileRevision !== configFileRevision) {
 					return;
 				}
