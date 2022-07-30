@@ -1,13 +1,15 @@
 import { dirname, join, resolve } from 'path';
 import type { Plugin } from 'rollup';
 
-const ID_CRYPTO = resolve('src/utils/crypto');
-const ID_FS = resolve('src/utils/fs');
-const ID_HOOKACTIONS = resolve('src/utils/hookActions');
-const ID_PATH = resolve('src/utils/path');
-const ID_PERFORMANCE = resolve('src/utils/performance');
-const ID_PROCESS = resolve('src/utils/process');
-const ID_RESOLVEID = resolve('src/utils/resolveId');
+const resolutions = {
+	[resolve('src/utils/crypto')]: resolve('browser/src/crypto.ts'),
+	[resolve('src/utils/fs')]: resolve('browser/src/fs.ts'),
+	[resolve('src/utils/hookActions')]: resolve('browser/src/hookActions.ts'),
+	[resolve('src/utils/path')]: resolve('browser/src/path.ts'),
+	[resolve('src/utils/performance')]: resolve('browser/src/performance.ts'),
+	[resolve('src/utils/process')]: resolve('browser/src/process.ts'),
+	[resolve('src/utils/resolveId')]: resolve('browser/src/resolveId.ts')
+};
 
 export default function replaceBrowserModules(): Plugin {
 	return {
@@ -15,21 +17,8 @@ export default function replaceBrowserModules(): Plugin {
 		resolveId(source, importee) {
 			if (importee && source[0] === '.') {
 				const resolved = join(dirname(importee), source);
-				switch (resolved) {
-					case ID_CRYPTO:
-						return resolve('browser/crypto.ts');
-					case ID_FS:
-						return resolve('browser/fs.ts');
-					case ID_HOOKACTIONS:
-						return resolve('browser/hookActions.ts');
-					case ID_PATH:
-						return resolve('browser/path.ts');
-					case ID_PERFORMANCE:
-						return resolve('browser/performance.ts');
-					case ID_PROCESS:
-						return resolve('browser/process.ts');
-					case ID_RESOLVEID:
-						return resolve('browser/resolveId.ts');
+				if (resolutions[resolved]) {
+					return resolutions[resolved];
 				}
 			}
 		}

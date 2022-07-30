@@ -76,7 +76,7 @@ export default async function (
 			chunkFileNames: 'shared/[name].js',
 			dir: 'dist',
 			entryFileNames: '[name]',
-			exports: 'auto',
+			exports: 'named',
 			externalLiveBindings: false,
 			format: 'cjs',
 			freeze: false,
