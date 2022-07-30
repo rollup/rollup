@@ -48,7 +48,7 @@ jobs:
       - name: Lint
         run: npm run ci:lint
       - name: Vulnerabilities
-        run: npm run security
+        run: npm audit
       - name: Run all tests
         run: npm run ci:test
         env:

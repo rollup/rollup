@@ -1,9 +1,9 @@
 /* eslint-disable import/no-unresolved */
 /* global gc */
 
-import { readFileSync, writeFileSync } from 'fs';
-import { cwd } from 'process';
-import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { argv, chdir, cwd, exit } from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { createColors } from 'colorette';
 import prettyBytes from 'pretty-bytes';
 import loadConfigFile from '../dist/loadConfigFile.js';
@@ -17,7 +17,7 @@ const { bold, underline, cyan, red, green } = createColors();
 const MIN_ABSOLUTE_TIME_DEVIATION = 10;
 const RELATIVE_DEVIATION_FOR_COLORING = 5;
 
-process.chdir(targetDir);
+chdir(targetDir);
 const configFile = await findConfigFileName(targetDir);
 const configs = await loadConfigFile(
 	configFile,
@@ -26,10 +26,10 @@ const configs = await loadConfigFile(
 
 let numberOfRunsToAverage = 6;
 let numberOfDiscardedResults = 3;
-if (process.argv.length >= 3) {
-	numberOfRunsToAverage = Number.parseInt(process.argv[2]);
-	if (process.argv.length >= 4) {
-		numberOfDiscardedResults = Number.parseInt(process.argv[3]);
+if (argv.length >= 3) {
+	numberOfRunsToAverage = Number.parseInt(argv[2]);
+	if (argv.length >= 4) {
+		numberOfDiscardedResults = Number.parseInt(argv[3]);
 	}
 }
 if (!(numberOfDiscardedResults >= 0) || !(numberOfDiscardedResults < numberOfRunsToAverage)) {
@@ -38,7 +38,7 @@ if (!(numberOfDiscardedResults >= 0) || !(numberOfDiscardedResults < numberOfRun
 			'Usage: "npm run perf [<number of runs> [<number of discarded results>]]"\n' +
 			'where 0 <= <number of discarded results> < <number of runs>'
 	);
-	process.exit(1);
+	exit(1);
 }
 console.info(
 	bold(
@@ -114,9 +114,9 @@ async function buildAndGetTimings(config) {
 		config.output = config.output[0];
 	}
 	gc();
-	process.chdir(targetDir);
+	chdir(targetDir);
 	const bundle = await rollup(config);
-	process.chdir(initialDir);
+	chdir(initialDir);
 	await bundle.generate(config.output);
 	return bundle.getTimings();
 }
@@ -169,7 +169,7 @@ function persistTimings(timings) {
 		console.info(bold(`Saving performance information to new reference file ${cyan(perfFile)}.`));
 	} catch (e) {
 		console.error(bold(`Could not persist performance information in ${cyan(perfFile)}.`));
-		process.exit(1);
+		exit(1);
 	}
 }
 

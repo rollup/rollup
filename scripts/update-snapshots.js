@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { readdirSync } from 'fs';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { readdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import fs from 'fs-extra';
 
 const basePath = resolve(dirname(fileURLToPath(import.meta.url)), '../test');
