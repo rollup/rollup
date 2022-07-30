@@ -305,30 +305,19 @@ It can be useful to import your package file to e.g. mark your dependencies as "
   import pkg from './package.json' assert { type: 'json' };
 
   export default {
-    input: 'src/main.js',
-    external: Object.keys(pkg.dependencies),
-    output: {
-      format: 'es',
-      dir: 'dist'
-    }
+    // Mark package dependencies as "external". Rest of configuration omitted.
+    external: Object.keys(pkg.dependencies)
   };
   ```
 
-- For older Node versions, you can use "createRequire"
+- For older Node versions, you can use `createRequire`
 
   ```js
   import { createRequire } from 'module';
   const require = createRequire(import.meta.url);
   const pkg = require('./package.json');
 
-  export default {
-    input: 'src/main.js',
-    external: Object.keys(pkg.dependencies),
-    output: {
-      format: 'es',
-      dir: 'dist'
-    }
-  };
+  // ...
   ```
 
 - Or just directly read and parse the file from disk
@@ -336,10 +325,11 @@ It can be useful to import your package file to e.g. mark your dependencies as "
   ```js
   // rollup.config.mjs
   import { readFileSync } from 'fs';
-  import { fileURLToPath } from 'url';
 
-  const pkgFileName = fileURLToPath(new URL('./package.json', import.meta.url));
-  const pkg = JSON.parse(readFileSync(pkgFileName));
+  // Use import.meta.url to make the path relative to the current source file instead of process.cwd()
+  // For more info: https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
+  const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)));
+
   // ...
   ```
 
