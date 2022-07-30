@@ -1,10 +1,13 @@
+const path = require('path');
+const ID_EVENS = path.join(__dirname, 'evens.js');
+const ID_ODDS = path.join(__dirname, 'odds.js');
+
 module.exports = {
 	description: 'handles cycles where imports are immediately used',
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['evens.js', 'odds.js', 'evens.js'],
-			importer: 'evens.js',
+			ids: [ID_EVENS, ID_ODDS, ID_EVENS],
 			message: 'Circular dependency: evens.js -> odds.js -> evens.js'
 		}
 	]

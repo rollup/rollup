@@ -1,24 +1,25 @@
 const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = {
 	description: 'disallows assignments to imported bindings',
 	error: {
 		code: 'ILLEGAL_REASSIGNMENT',
-		message: `Illegal reassignment to import 'x'`,
-		id: path.join(__dirname, 'main.js'),
+		id: ID_MAIN,
 		pos: 113,
-		watchFiles: [path.join(__dirname, 'foo.js'), path.join(__dirname, 'main.js')],
 		loc: {
-			file: path.join(__dirname, 'main.js'),
-			line: 8,
-			column: 0
+			column: 0,
+			file: ID_MAIN,
+			line: 8
 		},
 		frame: `
 			6: });
 			7:
 			8: x = 10;
-			   ^
-		`
+			   ^`,
+		watchFiles: [ID_FOO, ID_MAIN],
+		message: 'Illegal reassignment of import "x" in "main.js".'
 	}
 };
 

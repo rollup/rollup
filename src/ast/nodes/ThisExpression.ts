@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import { errThisIsUndefined } from '../../utils/error';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionWithThisArg } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
@@ -56,14 +57,7 @@ export default class ThisExpression extends NodeBase {
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {
-			this.context.warn(
-				{
-					code: 'THIS_IS_UNDEFINED',
-					message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
-					url: `https://rollupjs.org/guide/en/#error-this-is-undefined`
-				},
-				this.start
-			);
+			this.context.warn(errThisIsUndefined(), this.start);
 		}
 	}
 

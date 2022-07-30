@@ -1,16 +1,19 @@
+const path = require('path');
+const ID_B = path.join(__dirname, 'b.js');
+const ID_C = path.join(__dirname, 'c.js');
+const ID_D = path.join(__dirname, 'd.js');
+
 module.exports = {
 	description: 'does not stack overflow on crazy cyclical dependencies',
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['c.js', 'd.js', 'b.js', 'c.js'],
-			importer: 'c.js',
+			ids: [ID_C, ID_D, ID_B, ID_C],
 			message: 'Circular dependency: c.js -> d.js -> b.js -> c.js'
 		},
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['c.js', 'd.js', 'c.js'],
-			importer: 'c.js',
+			ids: [ID_C, ID_D, ID_C],
 			message: 'Circular dependency: c.js -> d.js -> c.js'
 		}
 	]

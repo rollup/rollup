@@ -8,9 +8,9 @@ module.exports = {
 	},
 	generateError: {
 		code: 'UNEXPECTED_NAMED_IMPORT',
-		id: 'external',
+		exporter: 'external',
+		url: 'https://rollupjs.org/guide/en/#outputinterop',
 		message:
-			'The named export "foo" was reexported from the external module external even though its interop type is "defaultOnly". Either remove or change this reexport or change the value of the "output.interop" option.',
-		url: 'https://rollupjs.org/guide/en/#outputinterop'
+			'The named export "foo" was reexported from the external module "external" even though its interop type is "defaultOnly". Either remove or change this reexport or change the value of the "output.interop" option.'
 	}
 };

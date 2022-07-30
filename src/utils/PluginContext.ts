@@ -11,12 +11,13 @@ import type { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { BLANK } from './blank';
 import { BuildPhase } from './buildPhase';
-import { errInvalidRollupPhaseForAddWatchFile, warnDeprecation } from './error';
 import {
-	ANONYMOUS_OUTPUT_PLUGIN_PREFIX,
-	ANONYMOUS_PLUGIN_PREFIX,
-	throwPluginError
-} from './pluginUtils';
+	errInvalidRollupPhaseForAddWatchFile,
+	error,
+	errPluginError,
+	warnDeprecation
+} from './error';
+import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 
 export function getPluginContext(
 	plugin: Plugin,
@@ -61,7 +62,7 @@ export function getPluginContext(
 		cache: cacheInstance,
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(err): never {
-			return throwPluginError(err, plugin.name);
+			return error(errPluginError(err, plugin.name));
 		},
 		getFileName: fileEmitter.getFileName,
 		getModuleIds: () => graph.modulesById.keys(),

@@ -1,4 +1,8 @@
 const assert = require('assert');
+const path = require('path');
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_OTHER = path.join(__dirname, 'other.js');
+
 module.exports = {
 	description: 'handles recursive namespace reexports',
 	exports(exports) {
@@ -7,8 +11,7 @@ module.exports = {
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['main.js', 'other.js', 'main.js'],
-			importer: 'main.js',
+			ids: [ID_MAIN, ID_OTHER, ID_MAIN],
 			message: 'Circular dependency: main.js -> other.js -> main.js'
 		}
 	]

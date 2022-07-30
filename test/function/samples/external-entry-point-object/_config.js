@@ -9,6 +9,6 @@ module.exports = {
 	},
 	error: {
 		code: 'UNRESOLVED_ENTRY',
-		message: `Entry module cannot be external (main.js).`
+		message: 'Entry module "main.js" cannot be external.'
 	}
 };

@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import { errCannotCallNamespace } from '../../utils/error';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { InclusionContext } from '../ExecutionContext';
@@ -29,13 +30,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			const variable = this.scope.findVariable(name);
 
 			if (variable.isNamespace) {
-				this.context.warn(
-					{
-						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${name}')`
-					},
-					this.start
-				);
+				this.context.warn(errCannotCallNamespace(name), this.start);
 			}
 		}
 	}

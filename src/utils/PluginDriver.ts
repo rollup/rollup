@@ -21,8 +21,7 @@ import type {
 } from '../rollup/types';
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
-import { errInputHookInOutputPlugin, error } from './error';
-import { throwPluginError } from './pluginUtils';
+import { errInputHookInOutputPlugin, errInvalidPluginHook, error, errPluginError } from './error';
 
 /**
  * Get the inner type from a promise
@@ -61,13 +60,6 @@ const inputHookNames: {
 const inputHooks = Object.keys(inputHookNames);
 
 export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
-
-function throwInvalidHookError(hookName: string, pluginName: string): never {
-	return error({
-		code: 'INVALID_PLUGIN_HOOK',
-		message: `Error running plugin hook ${hookName} for ${pluginName}, expected a function hook.`
-	});
-}
 
 export type HookAction = [plugin: string, hook: string, args: unknown[]];
 
@@ -319,7 +311,7 @@ export class PluginDriver {
 				// permit values allows values to be returned instead of a functional hook
 				if (typeof hook !== 'function') {
 					if (permitValues) return hook;
-					return throwInvalidHookError(hookName, plugin.name);
+					return error(errInvalidPluginHook(hookName, plugin.name));
 				}
 				// eslint-disable-next-line @typescript-eslint/ban-types
 				const hookResult = (hook as Function).apply(context, args);
@@ -351,7 +343,7 @@ export class PluginDriver {
 					// action considered to be fulfilled since error being handled
 					this.unfulfilledActions.delete(action);
 				}
-				return throwPluginError(err, plugin.name, { hook: hookName });
+				return error(errPluginError(err, plugin.name, { hook: hookName }));
 			});
 	}
 
@@ -379,12 +371,12 @@ export class PluginDriver {
 		try {
 			// permit values allows values to be returned instead of a functional hook
 			if (typeof hook !== 'function') {
-				return throwInvalidHookError(hookName, plugin.name);
+				return error(errInvalidPluginHook(hookName, plugin.name));
 			}
 			// eslint-disable-next-line @typescript-eslint/ban-types
 			return (hook as Function).apply(context, args);
 		} catch (err: any) {
-			return throwPluginError(err, plugin.name, { hook: hookName });
+			return error(errPluginError(err, plugin.name, { hook: hookName }));
 		}
 	}
 }

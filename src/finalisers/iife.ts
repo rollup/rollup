@@ -1,6 +1,10 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
-import { error } from '../utils/error';
+import {
+	errIllegalIdentifierAsName,
+	errMissingNameOptionForIifeExport,
+	error
+} from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
@@ -42,10 +46,7 @@ export default function iife(
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {
-		return error({
-			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
-			message: `Given name "${name}" is not a legal JS identifier. If you need this, you can try "output.extend: true".`
-		});
+		return error(errIllegalIdentifierAsName(name));
 	}
 
 	warnOnBuiltins(onwarn, dependencies);
@@ -55,10 +56,7 @@ export default function iife(
 	const args = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		onwarn({
-			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
-			message: `If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.`
-		});
+		onwarn(errMissingNameOptionForIifeExport());
 	}
 
 	if (namedExportsMode && hasExports) {

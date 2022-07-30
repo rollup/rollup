@@ -8,8 +8,9 @@ module.exports = {
 	generateError: {
 		code: 'PLUGIN_ERROR',
 		hook: 'outputOptions',
-		message: 'Error running plugin hook outputOptions for at position 1, expected a function hook.',
 		plugin: 'at position 1',
-		pluginCode: 'INVALID_PLUGIN_HOOK'
+		pluginCode: 'INVALID_PLUGIN_HOOK',
+		message:
+			'Error running plugin hook "outputOptions" for "at position 1", expected a function hook.'
 	}
 };

@@ -20,8 +20,8 @@ module.exports = {
 	after() {
 		console.warn = oldConsoleWarn;
 		assert.deepStrictEqual(warnings, [
-			'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification',
-			'Entry module "main.js" is using named and default exports together. Consumers of your bundle will have to use `chunk["default"]` to access the default export, which may not be what you want. Use `output.exports: "named"` to disable this warning'
+			'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
+			'Entry module "main.js" is using named and default exports together. Consumers of your bundle will have to use `chunk.default` to access the default export, which may not be what you want. Use `output.exports: "named"` to disable this warning.'
 		]);
 	}
 };
