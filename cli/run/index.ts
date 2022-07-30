@@ -8,7 +8,7 @@ import { handleError } from '../logging';
 import type { BatchWarnings } from './batchWarnings';
 import build from './build';
 import { getConfigPath } from './getConfigPath';
-import loadAndParseConfigFile from './loadConfigFile';
+import { loadConfigFile } from './loadConfigFile';
 import loadConfigFromCommand from './loadConfigFromCommand';
 
 export default async function runRollup(command: Record<string, any>): Promise<void> {
@@ -82,7 +82,7 @@ async function getConfigs(
 ): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
 	if (command.config) {
 		const configFile = await getConfigPath(command.config);
-		const { options, warnings } = await loadAndParseConfigFile(configFile, command);
+		const { options, warnings } = await loadConfigFile(configFile, command);
 		return { options, warnings };
 	}
 	return await loadConfigFromCommand(command);

@@ -262,7 +262,7 @@ See above for details on `inputOptions` and `outputOptions`, or consult the [big
 In order to aid in generating such a config, rollup exposes the helper it uses to load config files in its command line interface via a separate entry-point. This helper receives a resolved `fileName` and optionally an object containing command line parameters:
 
 ```js
-const loadConfigFile = require('rollup/loadConfigFile');
+const { loadConfigFile } = require('rollup/loadConfigFile');
 const path = require('path');
 const rollup = require('rollup');
 

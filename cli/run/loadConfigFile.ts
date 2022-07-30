@@ -16,11 +16,11 @@ interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;
 }
 
-export default async function loadAndParseConfigFile(
+export async function loadConfigFile(
 	fileName: string,
 	commandOptions: any = {}
 ): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
-	const configs = await loadConfigFile(fileName, commandOptions);
+	const configs = await loadConfigsFromFile(fileName, commandOptions);
 	const warnings = batchWarnings();
 	try {
 		const normalizedConfigs: MergedRollupOptions[] = [];
@@ -36,7 +36,7 @@ export default async function loadAndParseConfigFile(
 	}
 }
 
-async function loadConfigFile(
+async function loadConfigsFromFile(
 	fileName: string,
 	commandOptions: Record<string, unknown>
 ): Promise<GenericConfigObject[]> {

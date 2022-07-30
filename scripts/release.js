@@ -280,12 +280,13 @@ async function commitChanges(newVersion, gitTag) {
 function releasePackages(newVersion) {
 	const releaseEnv = { ...process.env, ROLLUP_RELEASE: 'releasing' };
 	const releaseTag = semverPreRelease(newVersion) ? ['--tag', 'beta'] : [];
+	const args = ['publish', '--access', 'public', ...releaseTag];
 	return Promise.all([
-		runWithEcho('npm', ['publish', ...releaseTag], {
+		runWithEcho('npm', args, {
 			cwd: new URL('..', import.meta.url),
 			env: releaseEnv
 		}),
-		runWithEcho('npm', ['publish', ...releaseTag], {
+		runWithEcho('npm', args, {
 			cwd: new URL('../browser', import.meta.url),
 			env: releaseEnv
 		})
@@ -318,17 +319,17 @@ function postReleaseComments(includedPRs, issues, version) {
 				issues
 					.createIssueComment(
 						pr,
-						`This PR has been released as part of rollup@${version}. ${installNote}`,
-						...closed.map(closedPr =>
-							issues
-								.createIssueComment(
-									closedPr,
-									`This issue has been resolved via #${pr} as part of rollup@${version}. ${installNote}`
-								)
-								.then(() => console.log(cyan(`Added fix comment to #${closedPr} via #${pr}.`)))
-						)
+						`This PR has been released as part of rollup@${version}. ${installNote}`
 					)
-					.then(() => console.log(cyan(`Added release comment to #${pr}.`)))
+					.then(() => console.log(cyan(`Added release comment to #${pr}.`))),
+				...closed.map(closedPr =>
+					issues
+						.createIssueComment(
+							closedPr,
+							`This issue has been resolved via #${pr} as part of rollup@${version}. ${installNote}`
+						)
+						.then(() => console.log(cyan(`Added fix comment to #${closedPr} via #${pr}.`)))
+				)
 			])
 		)
 	);

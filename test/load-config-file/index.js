@@ -1,6 +1,6 @@
 const assert = require('assert');
 const path = require('path');
-const loadConfigFile = require('../../dist/loadConfigFile.js');
+const { loadConfigFile } = require('../../dist/loadConfigFile.js');
 
 describe('loadConfigFile', () => {
 	it('loads a config file', async () => {
