@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs';
-import { resolve } from 'path';
+import { promises as fs } from 'node:fs';
+import { resolve } from 'node:path';
 
 export async function findConfigFileName(targetDir) {
 	const filesInWorkingDir = new Set(await fs.readdir(targetDir));

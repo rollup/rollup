@@ -1,11 +1,16 @@
 import { promises as fs } from 'fs';
+import { join } from 'path';
 import type { PluginImpl } from 'rollup';
 import license, { type Dependency, type Person } from 'rollup-plugin-license';
 
-async function generateLicenseFile(dependencies: readonly Dependency[]): Promise<void> {
+async function generateLicenseFile(
+	dir: string,
+	dependencies: readonly Dependency[]
+): Promise<void> {
 	const coreLicense = await fs.readFile('LICENSE-CORE.md', 'utf8');
 	const licenses = new Set<string>();
 	const dependencyLicenseTexts = Array.from(dependencies)
+		.filter(({ name }) => name !== '@rollup/browser')
 		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
 		.map(({ name, license, licenseText, author, maintainers, contributors, repository }) => {
 			let text = `## ${name}\n`;
@@ -52,9 +57,10 @@ async function generateLicenseFile(dependencies: readonly Dependency[]): Promise
 		`${Array.from(licenses).join(', ')}\n\n` +
 		`# Bundled dependencies:\n` +
 		dependencyLicenseTexts;
-	const existingLicenseText = await fs.readFile('LICENSE.md', 'utf8');
+	const licenseFile = join(dir, 'LICENSE.md');
+	const existingLicenseText = await fs.readFile(licenseFile, 'utf8');
 	if (existingLicenseText !== licenseText) {
-		await fs.writeFile('LICENSE.md', licenseText);
+		await fs.writeFile(licenseFile, licenseText);
 		console.warn('LICENSE.md updated. You should commit the updated file.');
 	}
 }
@@ -64,23 +70,22 @@ interface LicenseHandler {
 	writeLicense: PluginImpl;
 }
 
-export default function getLicenseHandler(): LicenseHandler {
+export default function getLicenseHandler(dir: string): LicenseHandler {
 	const licenses = new Map<string, Dependency>();
+	function addLicenses(dependencies: readonly Dependency[]) {
+		for (const dependency of dependencies) {
+			licenses.set(dependency.name!, dependency);
+		}
+	}
 	return {
 		collectLicenses() {
-			function addLicenses(dependencies: readonly Dependency[]) {
-				for (const dependency of dependencies) {
-					licenses.set(dependency.name!, dependency);
-				}
-			}
-
 			return license({ thirdParty: addLicenses });
 		},
 		writeLicense() {
 			return {
 				name: 'write-license',
 				writeBundle() {
-					return generateLicenseFile(Array.from(licenses.values()));
+					return generateLicenseFile(dir, Array.from(licenses.values()));
 				}
 			};
 		}
