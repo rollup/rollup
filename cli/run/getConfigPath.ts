@@ -1,6 +1,6 @@
-import { promises as fs } from 'fs';
-import { resolve } from 'path';
-import { cwd } from 'process';
+import { promises as fs } from 'node:fs';
+import { resolve } from 'node:path';
+import { cwd } from 'node:process';
 import { errMissingExternalConfig } from '../../src/utils/error';
 import { handleError } from '../logging';
 

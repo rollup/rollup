@@ -15,4 +15,4 @@ export function normalize(path: string): string {
 	return path.replace(BACKSLASH_REGEX, '/');
 }
 
-export { basename, dirname, extname, relative, resolve } from 'path';
+export { basename, dirname, extname, relative, resolve } from 'node:path';

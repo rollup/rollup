@@ -1,6 +1,6 @@
-const assert = require('assert');
-const { readdirSync } = require('fs');
-const path = require('path');
+const assert = require('node:assert');
+const { readdirSync } = require('node:fs');
+const path = require('node:path');
 const { removeSync } = require('fs-extra');
 const rollup = require('../../dist/rollup.js');
 const { loader } = require('../utils.js');

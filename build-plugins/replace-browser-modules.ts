@@ -1,4 +1,4 @@
-import { dirname, join, resolve } from 'path';
+import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'rollup';
 
 const resolutions = {

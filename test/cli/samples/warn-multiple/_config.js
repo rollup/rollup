@@ -7,7 +7,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Missing shims for Node.js built-ins\n' +
-				'Creating a browser bundle that depends on "url", "assert" and "path". You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node\n'
+				'Creating a browser bundle that depends on "url", "assert" and "node:path". You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node\n'
 		);
 		assertIncludes(
 			stderr,
@@ -16,7 +16,7 @@ module.exports = {
 				'main.js\n' +
 				'doesNotExist is not exported by dep.js\n' +
 				"4: import assert from 'assert';\n" +
-				"5: import path from 'path';\n" +
+				"5: import path from 'node:path';\n" +
 				"6: import {doesNotExist, alsoNotFound} from './dep.js';\n" +
 				'           ^\n' +
 				'7: \n' +
@@ -24,7 +24,7 @@ module.exports = {
 				'main.js\n' +
 				'alsoNotFound is not exported by dep.js\n' +
 				"4: import assert from 'assert';\n" +
-				"5: import path from 'path';\n" +
+				"5: import path from 'node:path';\n" +
 				"6: import {doesNotExist, alsoNotFound} from './dep.js';\n" +
 				'                         ^\n' +
 				'7: \n' +

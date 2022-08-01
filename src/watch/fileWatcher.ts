@@ -1,4 +1,4 @@
-import { platform } from 'os';
+import { platform } from 'node:os';
 import chokidar, { type FSWatcher } from 'chokidar';
 import type { ChangeEvent, ChokidarOptions } from '../rollup/types';
 import type { Task } from './watch';

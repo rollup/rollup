@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execSync } from 'node:child_process';
 import type { RollupWatchHooks } from '../../src/rollup/types';
 import { bold, cyan } from '../../src/utils/colors';
 import { stderr } from '../logging';
