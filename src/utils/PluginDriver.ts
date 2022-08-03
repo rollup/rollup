@@ -310,6 +310,7 @@ export class PluginDriver {
 	): Promise<ReturnType<BasicPluginHooks[H]>> {
 		const hook = plugin[hookName];
 		if (!hook) return undefined as any;
+		const handle = 'handle' in hook ? hook.handle : hook;
 
 		let context = this.pluginContexts.get(plugin)!;
 		if (hookContext) {
@@ -317,15 +318,16 @@ export class PluginDriver {
 		}
 
 		let action: [string, string, Parameters<any>] | null = null;
+		// TODO Lukas support ordering
 		return Promise.resolve()
 			.then(() => {
 				// permit values allows values to be returned instead of a functional hook
-				if (typeof hook !== 'function') {
-					if (permitValues) return hook;
+				if (typeof handle !== 'function') {
+					if (permitValues) return handle;
 					return throwInvalidHookError(hookName, plugin.name);
 				}
 				// eslint-disable-next-line @typescript-eslint/ban-types
-				const hookResult = (hook as Function).apply(context, args);
+				const hookResult = (handle as Function).apply(context, args);
 
 				if (!hookResult || !hookResult.then) {
 					// short circuit for non-thenables and non-Promises

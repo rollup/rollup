@@ -113,6 +113,7 @@ async function getInputOptions(
 		throw new Error('You must supply an options object to rollup');
 	}
 	const rawPlugins = ensureArray(rawInputOptions.plugins) as Plugin[];
+	// TODO Lukas support hook ordering
 	const { options, unsetOptions } = normalizeInputOptions(
 		await rawPlugins.reduce(applyOptionHook(watchMode), Promise.resolve(rawInputOptions))
 	);
@@ -126,8 +127,9 @@ function applyOptionHook(watchMode: boolean) {
 		plugin: Plugin
 	): Promise<GenericConfigObject> => {
 		if (plugin.options) {
+			const handle = 'handle' in plugin.options ? plugin.options.handle : plugin.options;
 			return (
-				((await plugin.options.call(
+				((await handle.call(
 					{ meta: { rollupVersion, watchMode } },
 					await inputOptions
 				)) as GenericConfigObject) || inputOptions
