@@ -141,7 +141,7 @@ export class PluginDriver {
 		skipped?: ReadonlySet<Plugin> | null
 	): Promise<ReturnType<BasicPluginHooks[H]>> {
 		let promise: Promise<ReturnType<BasicPluginHooks[H]>> = Promise.resolve(undefined as any);
-		for (const plugin of this.plugins) {
+		for (const plugin of getSortedPlugins(hookName, this.plugins)) {
 			if (skipped && skipped.has(plugin)) continue;
 			promise = promise.then(result => {
 				if (result != null) return result;
@@ -191,7 +191,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): Promise<Arg0<H>> {
 		let promise = Promise.resolve(arg0);
-		for (const plugin of this.plugins) {
+		for (const plugin of getSortedPlugins(hookName, this.plugins)) {
 			promise = promise.then(arg0 => {
 				const args = [arg0, ...rest] as Parameters<BasicPluginHooks[H]>;
 				const hookPromise = this.runHook(hookName, args, plugin, false, replaceContext);
@@ -271,7 +271,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): Promise<void> {
 		let promise = Promise.resolve();
-		for (const plugin of this.plugins) {
+		for (const plugin of getSortedPlugins(hookName, this.plugins)) {
 			promise = promise.then(
 				() => this.runHook(hookName, args, plugin, false, replaceContext) as Promise<void>
 			);
@@ -310,7 +310,8 @@ export class PluginDriver {
 	): Promise<ReturnType<BasicPluginHooks[H]>> {
 		const hook = plugin[hookName];
 		if (!hook) return undefined as any;
-		const handle = 'handle' in hook ? hook.handle : hook;
+		const handle =
+			typeof hook === 'object' && typeof hook.handle === 'function' ? hook.handle : hook;
 
 		let context = this.pluginContexts.get(plugin)!;
 		if (hookContext) {
@@ -318,7 +319,6 @@ export class PluginDriver {
 		}
 
 		let action: [string, string, Parameters<any>] | null = null;
-		// TODO Lukas support ordering
 		return Promise.resolve()
 			.then(() => {
 				// permit values allows values to be returned instead of a functional hook
@@ -392,4 +392,27 @@ export class PluginDriver {
 			return throwPluginError(err, plugin.name, { hook: hookName });
 		}
 	}
+}
+
+export function getSortedPlugins(hookName: AsyncPluginHooks, plugins: readonly Plugin[]): Plugin[] {
+	const pre: Plugin[] = [];
+	const normal: Plugin[] = [];
+	const post: Plugin[] = [];
+	for (const plugin of plugins) {
+		const hook = plugin[hookName];
+		if (hook) {
+			if (typeof hook === 'object' && 'enforceOrder' in hook) {
+				if (hook.enforceOrder === 'pre') {
+					pre.push(plugin);
+					continue;
+				}
+				if (hook.enforceOrder === 'post') {
+					post.push(plugin);
+					continue;
+				}
+			}
+			normal.push(plugin);
+		}
+	}
+	return [...pre, ...normal, ...post];
 }

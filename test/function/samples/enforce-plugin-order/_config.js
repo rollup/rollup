@@ -7,35 +7,51 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const code = fs.readFileSync(ID_MAIN, 'utf8');
 
 const hooks = [
-	'buildEnd',
-	'buildStart',
 	'generateBundle',
 	'load',
-	'moduleParsed',
 	'options',
 	'renderChunk',
-	'renderStart',
 	'resolveDynamicImport',
 	'resolveId',
 	'shouldTransformCachedModule',
 	'transform'
 ];
 
-const plugin = { name: 'test' };
-const calledHooks = new Set();
+const calledHooks = {};
 
 for (const hook of hooks) {
-	plugin[hook] = {
-		handle() {
-			calledHooks.add(hook);
-		}
-	};
+	calledHooks[hook] = [];
 }
 
+const plugins = [];
+
+function addPlugin(enforceOrder) {
+	const name = `${enforceOrder}-${plugins.length + 1}`;
+	const plugin = { name };
+	for (const hook of hooks) {
+		plugin[hook] = {
+			enforceOrder,
+			handle() {
+				if (!calledHooks[hook].includes(name)) {
+					calledHooks[hook].push(name);
+				}
+			}
+		};
+	}
+	plugins.push(plugin);
+}
+
+addPlugin(null);
+addPlugin('pre');
+addPlugin('post');
+addPlugin('post');
+addPlugin('pre');
+addPlugin(undefined);
+
 module.exports = {
-	description: 'supports using objects as hooks',
+	description: 'allows to enforce plugin order',
 	options: {
-		plugins: [plugin],
+		plugins,
 		cache: {
 			modules: [
 				{
@@ -56,22 +72,12 @@ module.exports = {
 		}
 	},
 	exports() {
-		assert.deepStrictEqual(
-			[...calledHooks],
-			[
-				'options',
-				'buildStart',
-				'resolveId',
-				'load',
-				'shouldTransformCachedModule',
-				'resolveDynamicImport',
-				'moduleParsed',
-				'transform',
-				'buildEnd',
-				'renderStart',
-				'renderChunk',
-				'generateBundle'
-			]
-		);
+		for (const hook of hooks) {
+			assert.deepStrictEqual(
+				calledHooks[hook],
+				['pre-2', 'pre-5', 'null-1', 'undefined-6', 'post-3', 'post-4'],
+				hook
+			);
+		}
 	}
 };

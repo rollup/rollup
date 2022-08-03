@@ -1,9 +1,9 @@
 const assert = require('assert');
 const { readdirSync } = require('fs');
 const path = require('path');
-const { removeSync } = require('fs-extra');
+const { removeSync, outputFileSync } = require('fs-extra');
 const rollup = require('../../dist/rollup.js');
-const { loader } = require('../utils.js');
+const { loader, wait } = require('../utils.js');
 
 const TEMP_DIR = path.join(__dirname, 'tmp');
 
@@ -1384,6 +1384,64 @@ describe('hooks', () => {
 					assert.strictEqual(output.fileName, 'assets/test-0a676135.ext');
 					assert.strictEqual(output.source, 'hello world');
 				});
+		});
+
+		it('supports object hooks in watch mode', () => {
+			const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
+			let first = true;
+			const plugin = {
+				name: 'test',
+				renderChunk() {
+					if (first) {
+						first = false;
+						throw new Error('Expected render error');
+					}
+				}
+			};
+			const calledHooks = [];
+			for (const hook of hooks) {
+				plugin[hook] = {
+					handle() {
+						calledHooks.push(hook);
+					}
+				};
+			}
+			const ID_MAIN = path.join(TEMP_DIR, 'main.js');
+			outputFileSync(ID_MAIN, 'console.log(42);');
+
+			const watcher = rollup.watch({
+				input: ID_MAIN,
+				output: {
+					format: 'es',
+					dir: path.join(TEMP_DIR, 'out')
+				},
+				plugins: [plugin]
+			});
+
+			return new Promise((resolve, reject) => {
+				watcher.on('event', async event => {
+					if (event.code === 'ERROR') {
+						if (event.error.message !== 'Expected render error') {
+							reject(event.error);
+						}
+						await wait(200);
+						outputFileSync(ID_MAIN, 'console.log(43);');
+					} else if (event.code === 'BUNDLE_END') {
+						await event.result.close();
+						resolve();
+					}
+				});
+			}).finally(async () => {
+				await watcher.close();
+				removeSync(TEMP_DIR);
+				assert.deepStrictEqual(calledHooks, [
+					'renderError',
+					'watchChange',
+					'writeBundle',
+					'closeBundle',
+					'closeWatcher'
+				]);
+			});
 		});
 	});
 });

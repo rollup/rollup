@@ -80,7 +80,7 @@ export function getPluginContext(
 		cacheInstance = getCacheForUncacheablePlugin(plugin.name);
 	}
 
-	const context: PluginContext = {
+	return {
 		addWatchFile(id) {
 			if (graph.phase >= BuildPhase.GENERATE) {
 				return this.error(errInvalidRollupPhaseForAddWatchFile());
@@ -193,5 +193,4 @@ export function getPluginContext(
 			options.onwarn(warning);
 		}
 	};
-	return context;
 }
