@@ -1,43 +1,38 @@
 const assert = require('assert');
-const { readdirSync } = require('fs');
 const path = require('path');
-const { removeSync, outputFileSync } = require('fs-extra');
+const { outputFile, readdir, remove } = require('fs-extra');
 const rollup = require('../../dist/rollup.js');
 const { loader, wait } = require('../utils.js');
 
 const TEMP_DIR = path.join(__dirname, 'tmp');
 
 describe('hooks', () => {
-	it('allows to replace file with dir in the outputOptions hook', () =>
-		rollup
-			.rollup({
-				input: 'input',
-				treeshake: false,
-				plugins: [
-					loader({
-						input: `console.log('input');import('other');`,
-						other: `console.log('other');`
-					}),
-					{
-						outputOptions(options) {
-							const newOptions = { ...options, dir: TEMP_DIR, chunkFileNames: 'chunk.js' };
-							delete newOptions.file;
-							return newOptions;
-						}
+	it('allows to replace file with dir in the outputOptions hook', async () => {
+		const bundle = await rollup.rollup({
+			input: 'input',
+			treeshake: false,
+			plugins: [
+				loader({
+					input: `console.log('input');import('other');`,
+					other: `console.log('other');`
+				}),
+				{
+					outputOptions(options) {
+						const newOptions = { ...options, dir: TEMP_DIR, chunkFileNames: 'chunk.js' };
+						delete newOptions.file;
+						return newOptions;
 					}
-				]
-			})
-			.then(bundle =>
-				bundle.write({
-					file: path.join(TEMP_DIR, 'bundle.js'),
-					format: 'es'
-				})
-			)
-			.then(() => {
-				const fileNames = readdirSync(TEMP_DIR).sort();
-				assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
-				return removeSync(TEMP_DIR);
-			}));
+				}
+			]
+		});
+		await bundle.write({
+			file: path.join(TEMP_DIR, 'bundle.js'),
+			format: 'es'
+		});
+		const fileNames = (await readdir(TEMP_DIR)).sort();
+		assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
+		await remove(TEMP_DIR);
+	});
 
 	it('supports buildStart and buildEnd hooks', () => {
 		let buildStartCnt = 0;
@@ -545,38 +540,35 @@ describe('hooks', () => {
 			})
 			.then(bundle => bundle.generate({ format: 'es' })));
 
-	it('supports writeBundle hook', () => {
+	it('supports writeBundle hook', async () => {
 		const file = path.join(TEMP_DIR, 'bundle.js');
-		let bundle;
+		let generatedBundle;
 		let callCount = 0;
-		return rollup
-			.rollup({
-				input: 'input',
-				plugins: [
-					loader({
-						input: `export { a as default } from 'dep';`,
-						dep: `export var a = 1; export var b = 2;`
-					}),
-					{
-						generateBundle(options, outputBundle, isWrite) {
-							bundle = outputBundle;
-							assert.strictEqual(isWrite, true);
-						}
-					},
-					{
-						writeBundle(options, outputBundle) {
-							assert.deepStrictEqual(options.file, file);
-							assert.deepStrictEqual(outputBundle, bundle);
-							callCount++;
-						}
+		const bundle = await rollup.rollup({
+			input: 'input',
+			plugins: [
+				loader({
+					input: `export { a as default } from 'dep';`,
+					dep: `export var a = 1; export var b = 2;`
+				}),
+				{
+					generateBundle(options, outputBundle, isWrite) {
+						generatedBundle = outputBundle;
+						assert.strictEqual(isWrite, true);
 					}
-				]
-			})
-			.then(bundle => bundle.write({ format: 'es', file }))
-			.then(() => {
-				assert.strictEqual(callCount, 1);
-				return removeSync(TEMP_DIR);
-			});
+				},
+				{
+					writeBundle(options, outputBundle) {
+						assert.deepStrictEqual(options.file, file);
+						assert.deepStrictEqual(outputBundle, generatedBundle);
+						callCount++;
+					}
+				}
+			]
+		});
+		await bundle.write({ format: 'es', file });
+		assert.strictEqual(callCount, 1);
+		await remove(TEMP_DIR);
 	});
 
 	it('supports this.cache for plugins', () =>
@@ -1386,7 +1378,7 @@ describe('hooks', () => {
 				});
 		});
 
-		it('supports object hooks in watch mode', () => {
+		it('supports object hooks in watch mode', async () => {
 			const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
 			let first = true;
 			const plugin = {
@@ -1407,7 +1399,7 @@ describe('hooks', () => {
 				};
 			}
 			const ID_MAIN = path.join(TEMP_DIR, 'main.js');
-			outputFileSync(ID_MAIN, 'console.log(42);');
+			await outputFile(ID_MAIN, 'console.log(42);');
 
 			const watcher = rollup.watch({
 				input: ID_MAIN,
@@ -1425,7 +1417,7 @@ describe('hooks', () => {
 							reject(event.error);
 						}
 						await wait(200);
-						outputFileSync(ID_MAIN, 'console.log(43);');
+						await outputFile(ID_MAIN, 'console.log(43);');
 					} else if (event.code === 'BUNDLE_END') {
 						await event.result.close();
 						resolve();
@@ -1433,7 +1425,7 @@ describe('hooks', () => {
 				});
 			}).finally(async () => {
 				await watcher.close();
-				removeSync(TEMP_DIR);
+				await remove(TEMP_DIR);
 				assert.deepStrictEqual(calledHooks, [
 					'renderError',
 					'watchChange',

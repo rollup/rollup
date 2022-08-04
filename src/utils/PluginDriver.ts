@@ -22,6 +22,7 @@ import type {
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
 import { errInputHookInOutputPlugin, error } from './error';
+import { getOrCreate } from './getOrCreate';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 /**
@@ -81,20 +82,19 @@ export class PluginDriver {
 	) => void;
 
 	private readonly fileEmitter: FileEmitter;
-	private readonly pluginCache: Record<string, SerializablePluginCache> | undefined;
 	private readonly pluginContexts: ReadonlyMap<Plugin, PluginContext>;
 	private readonly plugins: readonly Plugin[];
+	private readonly sortedPlugins = new Map<AsyncPluginHooks, Plugin[]>();
 	private readonly unfulfilledActions = new Set<HookAction>();
 
 	constructor(
 		private readonly graph: Graph,
 		private readonly options: NormalizedInputOptions,
 		userPlugins: readonly Plugin[],
-		pluginCache: Record<string, SerializablePluginCache> | undefined,
+		private readonly pluginCache: Record<string, SerializablePluginCache> | undefined,
 		basePluginDriver?: PluginDriver
 	) {
 		warnDeprecatedHooks(userPlugins, options);
-		this.pluginCache = pluginCache;
 		this.fileEmitter = new FileEmitter(
 			graph,
 			options,
@@ -141,7 +141,7 @@ export class PluginDriver {
 		skipped?: ReadonlySet<Plugin> | null
 	): Promise<ReturnType<BasicPluginHooks[H]>> {
 		let promise: Promise<ReturnType<BasicPluginHooks[H]>> = Promise.resolve(undefined as any);
-		for (const plugin of getSortedPlugins(hookName, this.plugins)) {
+		for (const plugin of this.getSortedPlugins(hookName)) {
 			if (skipped && skipped.has(plugin)) continue;
 			promise = promise.then(result => {
 				if (result != null) return result;
@@ -191,7 +191,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): Promise<Arg0<H>> {
 		let promise = Promise.resolve(arg0);
-		for (const plugin of getSortedPlugins(hookName, this.plugins)) {
+		for (const plugin of this.getSortedPlugins(hookName)) {
 			promise = promise.then(arg0 => {
 				const args = [arg0, ...rest] as Parameters<BasicPluginHooks[H]>;
 				const hookPromise = this.runHook(hookName, args, plugin, false, replaceContext);
@@ -271,12 +271,18 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): Promise<void> {
 		let promise = Promise.resolve();
-		for (const plugin of getSortedPlugins(hookName, this.plugins)) {
+		for (const plugin of this.getSortedPlugins(hookName)) {
 			promise = promise.then(
 				() => this.runHook(hookName, args, plugin, false, replaceContext) as Promise<void>
 			);
 		}
 		return promise;
+	}
+
+	private getSortedPlugins(hookName: AsyncPluginHooks): Plugin[] {
+		return getOrCreate(this.sortedPlugins, hookName, () =>
+			getSortedPlugins(hookName, this.plugins)
+		);
 	}
 
 	/**
