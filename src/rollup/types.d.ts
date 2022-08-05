@@ -366,7 +366,7 @@ export interface OutputBundleWithPlaceholders {
 	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
 }
 
-export interface BasicPluginHooks {
+export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
 	buildEnd: (this: PluginContext, err?: Error) => void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => void;
@@ -427,7 +427,7 @@ export type OutputPluginHooks =
 	| 'resolveImportMeta'
 	| 'writeBundle';
 
-export type InputPluginHooks = Exclude<keyof BasicPluginHooks, OutputPluginHooks>;
+export type InputPluginHooks = Exclude<keyof FunctionPluginHooks, OutputPluginHooks>;
 
 export type SyncPluginHooks =
 	| 'augmentChunkHash'
@@ -437,7 +437,7 @@ export type SyncPluginHooks =
 	| 'resolveFileUrl'
 	| 'resolveImportMeta';
 
-export type AsyncPluginHooks = Exclude<keyof BasicPluginHooks, SyncPluginHooks>;
+export type AsyncPluginHooks = Exclude<keyof FunctionPluginHooks, SyncPluginHooks>;
 
 export type FirstPluginHooks =
 	| 'load'
@@ -458,7 +458,7 @@ export type SequentialPluginHooks =
 	| 'transform';
 
 export type ParallelPluginHooks = Exclude<
-	keyof BasicPluginHooks | AddonHooks,
+	keyof FunctionPluginHooks | AddonHooks,
 	FirstPluginHooks | SequentialPluginHooks
 >;
 
@@ -473,23 +473,21 @@ type AllowEnforceOrderHook<T extends (...a: any) => any> =
 	| { handler: T; order?: 'pre' | 'post' | null };
 
 export type PluginHooks = {
-	[K in keyof BasicPluginHooks]: K extends AsyncPluginHooks
-		? AllowEnforceOrderHook<MakeAsync<BasicPluginHooks[K]>>
-		: BasicPluginHooks[K];
+	[K in keyof FunctionPluginHooks]: K extends AsyncPluginHooks
+		? AllowEnforceOrderHook<MakeAsync<FunctionPluginHooks[K]>>
+		: FunctionPluginHooks[K];
 };
 
-export interface Plugin extends Partial<PluginHooks>, Partial<{ [K in AddonHooks]: AddonHook }> {
-	// for inter-plugin communication
-	api?: any;
+export interface OutputPlugin
+	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
+		Partial<{ [K in AddonHooks]: AllowEnforceOrderHook<AddonHook> }> {
 	cacheKey?: string;
 	name: string;
 }
 
-export interface OutputPlugin
-	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
-		Partial<{ [K in AddonHooks]: AddonHook }> {
-	cacheKey?: string;
-	name: string;
+export interface Plugin extends OutputPlugin, Partial<PluginHooks> {
+	// for inter-plugin communication
+	api?: any;
 }
 
 type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
