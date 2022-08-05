@@ -1378,26 +1378,48 @@ describe('hooks', () => {
 				});
 		});
 
-		it('supports object hooks in watch mode', async () => {
+		it('allows to enforce plugin hook order in watch mode', async () => {
 			const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
+
+			const calledHooks = {};
+			for (const hook of hooks) {
+				calledHooks[hook] = [];
+			}
+
 			let first = true;
-			const plugin = {
-				name: 'test',
-				renderChunk() {
-					if (first) {
-						first = false;
-						throw new Error('Expected render error');
+			const plugins = [
+				{
+					name: 'render-error',
+					renderChunk() {
+						if (first) {
+							first = false;
+							throw new Error('Expected render error');
+						}
 					}
 				}
-			};
-			const calledHooks = [];
-			for (const hook of hooks) {
-				plugin[hook] = {
-					handle() {
-						calledHooks.push(hook);
-					}
-				};
+			];
+			addPlugin(null);
+			addPlugin('pre');
+			addPlugin('post');
+			addPlugin('post');
+			addPlugin('pre');
+			addPlugin(undefined);
+			function addPlugin(order) {
+				const name = `${order}-${plugins.length}`;
+				const plugin = { name };
+				for (const hook of hooks) {
+					plugin[hook] = {
+						order,
+						handler() {
+							if (!calledHooks[hook].includes(name)) {
+								calledHooks[hook].push(name);
+							}
+						}
+					};
+				}
+				plugins.push(plugin);
 			}
+
 			const ID_MAIN = path.join(TEMP_DIR, 'main.js');
 			await outputFile(ID_MAIN, 'console.log(42);');
 
@@ -1407,7 +1429,7 @@ describe('hooks', () => {
 					format: 'es',
 					dir: path.join(TEMP_DIR, 'out')
 				},
-				plugins: [plugin]
+				plugins
 			});
 
 			return new Promise((resolve, reject) => {
@@ -1426,13 +1448,13 @@ describe('hooks', () => {
 			}).finally(async () => {
 				await watcher.close();
 				await remove(TEMP_DIR);
-				assert.deepStrictEqual(calledHooks, [
-					'renderError',
-					'watchChange',
-					'writeBundle',
-					'closeBundle',
-					'closeWatcher'
-				]);
+				for (const hook of hooks) {
+					assert.deepStrictEqual(
+						calledHooks[hook],
+						['pre-2', 'pre-5', 'null-1', 'undefined-6', 'post-3', 'post-4'],
+						hook
+					);
+				}
 			});
 		});
 	});

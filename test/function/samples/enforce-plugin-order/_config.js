@@ -7,10 +7,14 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const code = fs.readFileSync(ID_MAIN, 'utf8');
 
 const hooks = [
+	'buildEnd',
+	'buildStart',
 	'generateBundle',
 	'load',
+	'moduleParsed',
 	'options',
 	'renderChunk',
+	'renderStart',
 	'resolveDynamicImport',
 	'resolveId',
 	'shouldTransformCachedModule',
@@ -18,20 +22,24 @@ const hooks = [
 ];
 
 const calledHooks = {};
-
 for (const hook of hooks) {
 	calledHooks[hook] = [];
 }
 
 const plugins = [];
-
-function addPlugin(enforceOrder) {
-	const name = `${enforceOrder}-${plugins.length + 1}`;
+addPlugin(null);
+addPlugin('pre');
+addPlugin('post');
+addPlugin('post');
+addPlugin('pre');
+addPlugin(undefined);
+function addPlugin(order) {
+	const name = `${order}-${plugins.length + 1}`;
 	const plugin = { name };
 	for (const hook of hooks) {
 		plugin[hook] = {
-			enforceOrder,
-			handle() {
+			order,
+			handler() {
 				if (!calledHooks[hook].includes(name)) {
 					calledHooks[hook].push(name);
 				}
@@ -41,15 +49,8 @@ function addPlugin(enforceOrder) {
 	plugins.push(plugin);
 }
 
-addPlugin(null);
-addPlugin('pre');
-addPlugin('post');
-addPlugin('post');
-addPlugin('pre');
-addPlugin(undefined);
-
 module.exports = {
-	description: 'allows to enforce plugin order',
+	description: 'allows to enforce plugin hook order',
 	options: {
 		plugins,
 		cache: {

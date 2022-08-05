@@ -468,16 +468,13 @@ type MakeAsync<T extends (...a: any) => any> = (
 	...a: Parameters<T>
 ) => ReturnType<T> | Promise<ReturnType<T>>;
 
-type AllowObjectHook<T extends (...a: any) => any> = T | { handle: T };
 type AllowEnforceOrderHook<T extends (...a: any) => any> =
 	| T
-	| { enforceOrder?: 'pre' | 'post' | null; handle: T };
+	| { handler: T; order?: 'pre' | 'post' | null };
 
 export type PluginHooks = {
 	[K in keyof BasicPluginHooks]: K extends AsyncPluginHooks
-		? K extends ParallelPluginHooks
-			? AllowObjectHook<MakeAsync<BasicPluginHooks[K]>>
-			: AllowEnforceOrderHook<MakeAsync<BasicPluginHooks[K]>>
+		? AllowEnforceOrderHook<MakeAsync<BasicPluginHooks[K]>>
 		: BasicPluginHooks[K];
 };
 

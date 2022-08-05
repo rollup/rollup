@@ -171,7 +171,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): Promise<void> {
 		const promises: Promise<void>[] = [];
-		for (const plugin of this.plugins) {
+		for (const plugin of this.getSortedPlugins(hookName)) {
 			const hookPromise = this.runHook(hookName, args, plugin, false, replaceContext);
 			if (!hookPromise) continue;
 			promises.push(hookPromise);
@@ -316,8 +316,8 @@ export class PluginDriver {
 	): Promise<ReturnType<BasicPluginHooks[H]>> {
 		const hook = plugin[hookName];
 		if (!hook) return undefined as any;
-		const handle =
-			typeof hook === 'object' && typeof hook.handle === 'function' ? hook.handle : hook;
+		const handler =
+			typeof hook === 'object' && typeof hook.handler === 'function' ? hook.handler : hook;
 
 		let context = this.pluginContexts.get(plugin)!;
 		if (hookContext) {
@@ -328,12 +328,12 @@ export class PluginDriver {
 		return Promise.resolve()
 			.then(() => {
 				// permit values allows values to be returned instead of a functional hook
-				if (typeof handle !== 'function') {
-					if (permitValues) return handle;
+				if (typeof handler !== 'function') {
+					if (permitValues) return handler;
 					return throwInvalidHookError(hookName, plugin.name);
 				}
 				// eslint-disable-next-line @typescript-eslint/ban-types
-				const hookResult = (handle as Function).apply(context, args);
+				const hookResult = (handler as Function).apply(context, args);
 
 				if (!hookResult || !hookResult.then) {
 					// short circuit for non-thenables and non-Promises
@@ -400,6 +400,7 @@ export class PluginDriver {
 	}
 }
 
+// TODO Lukas we can do plugin hook validation in this function
 export function getSortedPlugins(hookName: AsyncPluginHooks, plugins: readonly Plugin[]): Plugin[] {
 	const pre: Plugin[] = [];
 	const normal: Plugin[] = [];
@@ -407,12 +408,12 @@ export function getSortedPlugins(hookName: AsyncPluginHooks, plugins: readonly P
 	for (const plugin of plugins) {
 		const hook = plugin[hookName];
 		if (hook) {
-			if (typeof hook === 'object' && 'enforceOrder' in hook) {
-				if (hook.enforceOrder === 'pre') {
+			if (typeof hook === 'object' && 'order' in hook) {
+				if (hook.order === 'pre') {
 					pre.push(plugin);
 					continue;
 				}
-				if (hook.enforceOrder === 'post') {
+				if (hook.order === 'post') {
 					post.push(plugin);
 					continue;
 				}
