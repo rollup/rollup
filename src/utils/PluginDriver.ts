@@ -170,13 +170,11 @@ export class PluginDriver {
 		args: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
-		const promises: Promise<void>[] = [];
-		for (const plugin of this.getSortedPlugins(hookName)) {
-			const hookPromise = this.runHook(hookName, args, plugin, replaceContext);
-			if (!hookPromise) continue;
-			promises.push(hookPromise);
-		}
-		return Promise.all(promises).then(() => {});
+		return Promise.all(
+			this.getSortedPlugins(hookName).map(plugin =>
+				this.runHook(hookName, args, plugin, replaceContext)
+			)
+		).then(() => {});
 	}
 
 	// chains, reduces returned value, handling the reduced value as the first hook argument
@@ -192,14 +190,14 @@ export class PluginDriver {
 	): Promise<Arg0<H>> {
 		let promise = Promise.resolve(arg0);
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			promise = promise.then(arg0 => {
-				const args = [arg0, ...rest] as Parameters<FunctionPluginHooks[H]>;
-				const hookPromise = this.runHook(hookName, args, plugin, replaceContext);
-				if (!hookPromise) return arg0;
-				return hookPromise.then(result =>
-					reduce.call(this.pluginContexts.get(plugin), arg0, result, plugin)
-				);
-			});
+			promise = promise.then(arg0 =>
+				this.runHook(
+					hookName,
+					[arg0, ...rest] as Parameters<FunctionPluginHooks[H]>,
+					plugin,
+					replaceContext
+				).then(result => reduce.call(this.pluginContexts.get(plugin), arg0, result, plugin))
+			);
 		}
 		return promise;
 	}
@@ -239,13 +237,11 @@ export class PluginDriver {
 				}
 			}
 		)) {
-			promise = promise.then(value => {
-				const hookPromise = this.runHook(hookName, args, plugin);
-				if (!hookPromise) return value;
-				return hookPromise.then(result =>
+			promise = promise.then(value =>
+				this.runHook(hookName, args, plugin).then(result =>
 					reduce.call(this.pluginContexts.get(plugin), value, result, plugin)
-				);
-			});
+				)
+			);
 		}
 		return promise;
 	}
@@ -314,7 +310,7 @@ export class PluginDriver {
 		args: unknown[],
 		plugin: Plugin,
 		replaceContext?: ReplaceContext | null
-	): Promise<unknown> | undefined {
+	): Promise<unknown> {
 		// We always filter for plugins that support the hook before running it
 		const hook = plugin[hookName]!;
 		const handler = typeof hook === 'object' ? hook.handler : hook;
