@@ -30,8 +30,8 @@ describe('hooks', () => {
 			format: 'es'
 		});
 		const fileNames = (await readdir(TEMP_DIR)).sort();
-		assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
 		await remove(TEMP_DIR);
+		assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
 	});
 
 	it('supports buildStart and buildEnd hooks', () => {
@@ -567,8 +567,8 @@ describe('hooks', () => {
 			]
 		});
 		await bundle.write({ format: 'es', file });
-		assert.strictEqual(callCount, 1);
 		await remove(TEMP_DIR);
+		assert.strictEqual(callCount, 1);
 	});
 
 	it('supports this.cache for plugins', () =>

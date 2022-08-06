@@ -468,9 +468,7 @@ type MakeAsync<T extends (...a: any) => any> = (
 	...a: Parameters<T>
 ) => ReturnType<T> | Promise<ReturnType<T>>;
 
-type AllowEnforceOrderHook<T extends (...a: any) => any> =
-	| T
-	| { handler: T; order?: 'pre' | 'post' | null };
+type AllowEnforceOrderHook<T> = T | { handler: T; order?: 'pre' | 'post' | null };
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: K extends AsyncPluginHooks

@@ -1,7 +1,6 @@
 import type Chunk from '../Chunk';
 import type Graph from '../Graph';
 import type Module from '../Module';
-import { InputPluginHooks } from '../rollup/types';
 import type {
 	AddonHookFunction,
 	AddonHooks,
@@ -19,22 +18,23 @@ import type {
 	SerializablePluginCache,
 	SyncPluginHooks
 } from '../rollup/types';
+import { InputPluginHooks } from '../rollup/types';
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
-import { errInputHookInOutputPlugin, error } from './error';
+import {
+	errInputHookInOutputPlugin,
+	errInvalidAddonPluginHook,
+	errInvalidAsyncPluginHook,
+	error
+} from './error';
 import { getOrCreate } from './getOrCreate';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 /**
- * Get the inner type from a promise
- * @example ResolveValue<Promise<string>> -> string
- */
-type ResolveValue<T> = T extends Promise<infer K> ? K : T;
-/**
  * Coerce a promise union to always be a promise.
  * @example EnsurePromise<string | Promise<string>> -> Promise<string>
  */
-type EnsurePromise<T> = Promise<ResolveValue<T>>;
+type EnsurePromise<T> = Promise<Awaited<T>>;
 /**
  * Get the type of the first argument in a function.
  * @example Arg0<(a: string, b: number) => void> -> string
@@ -139,13 +139,13 @@ export class PluginDriver {
 		args: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext | null,
 		skipped?: ReadonlySet<Plugin> | null
-	): Promise<ReturnType<FunctionPluginHooks[H]>> {
-		let promise: Promise<ReturnType<FunctionPluginHooks[H]>> = Promise.resolve(undefined as any);
+	): Promise<ReturnType<FunctionPluginHooks[H]> | null> {
+		let promise: Promise<ReturnType<FunctionPluginHooks[H]> | null> = Promise.resolve(null);
 		for (const plugin of this.getSortedPlugins(hookName)) {
 			if (skipped && skipped.has(plugin)) continue;
 			promise = promise.then(result => {
 				if (result != null) return result;
-				return this.runHook(hookName, args, plugin, false, replaceContext);
+				return this.runHook(hookName, args, plugin, replaceContext);
 			});
 		}
 		return promise;
@@ -172,7 +172,7 @@ export class PluginDriver {
 	): Promise<void> {
 		const promises: Promise<void>[] = [];
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			const hookPromise = this.runHook(hookName, args, plugin, false, replaceContext);
+			const hookPromise = this.runHook(hookName, args, plugin, replaceContext);
 			if (!hookPromise) continue;
 			promises.push(hookPromise);
 		}
@@ -194,7 +194,7 @@ export class PluginDriver {
 		for (const plugin of this.getSortedPlugins(hookName)) {
 			promise = promise.then(arg0 => {
 				const args = [arg0, ...rest] as Parameters<FunctionPluginHooks[H]>;
-				const hookPromise = this.runHook(hookName, args, plugin, false, replaceContext);
+				const hookPromise = this.runHook(hookName, args, plugin, replaceContext);
 				if (!hookPromise) return arg0;
 				return hookPromise.then(result =>
 					reduce.call(this.pluginContexts.get(plugin), arg0, result, plugin)
@@ -228,17 +228,19 @@ export class PluginDriver {
 		hookName: H,
 		initialValue: T | Promise<T>,
 		args: Parameters<AddonHookFunction>,
-		reduce: (
-			reduction: T,
-			result: ResolveValue<ReturnType<AddonHookFunction>>,
-			plugin: Plugin
-		) => T,
-		replaceContext?: ReplaceContext
+		reduce: (reduction: T, result: Awaited<ReturnType<AddonHookFunction>>, plugin: Plugin) => T
 	): Promise<T> {
 		let promise = Promise.resolve(initialValue);
-		for (const plugin of this.getSortedPlugins(hookName)) {
+		for (const plugin of this.getSortedPlugins(
+			hookName,
+			(handler: unknown, hookName: string, plugin: Plugin) => {
+				if (typeof handler !== 'string' && typeof handler !== 'function') {
+					return error(errInvalidAddonPluginHook(hookName, plugin.name));
+				}
+			}
+		)) {
 			promise = promise.then(value => {
-				const hookPromise = this.runHook(hookName, args, plugin, true, replaceContext);
+				const hookPromise = this.runHook(hookName, args, plugin);
 				if (!hookPromise) return value;
 				return hookPromise.then(result =>
 					reduce.call(this.pluginContexts.get(plugin), value, result, plugin)
@@ -273,15 +275,18 @@ export class PluginDriver {
 		let promise = Promise.resolve();
 		for (const plugin of this.getSortedPlugins(hookName)) {
 			promise = promise.then(
-				() => this.runHook(hookName, args, plugin, false, replaceContext) as Promise<void>
+				() => this.runHook(hookName, args, plugin, replaceContext) as Promise<void>
 			);
 		}
 		return promise;
 	}
 
-	private getSortedPlugins(hookName: AsyncPluginHooks | AddonHooks): Plugin[] {
+	private getSortedPlugins(
+		hookName: AsyncPluginHooks | AddonHooks,
+		validateHandler?: (handler: unknown, hookName: string, plugin: Plugin) => void
+	): Plugin[] {
 		return getOrCreate(this.sortedPlugins, hookName, () =>
-			getSortedPlugins(hookName, this.plugins)
+			getSortedValidatedPlugins(hookName, this.plugins, validateHandler)
 		);
 	}
 
@@ -290,47 +295,40 @@ export class PluginDriver {
 	 * @param hookName Name of the plugin hook. Must be either in `PluginHooks` or `OutputPluginValueHooks`.
 	 * @param args Arguments passed to the plugin hook.
 	 * @param plugin The actual pluginObject to run.
-	 * @param permitValues If true, values can be passed instead of functions for the plugin hook.
-	 * @param hookContext When passed, the plugin context can be overridden.
+	 * @param replaceContext When passed, the plugin context can be overridden.
 	 */
 	private runHook<H extends AddonHooks>(
 		hookName: H,
 		args: Parameters<AddonHookFunction>,
-		plugin: Plugin,
-		permitValues: true,
-		hookContext?: ReplaceContext | null
+		plugin: Plugin
 	): EnsurePromise<ReturnType<AddonHookFunction>>;
 	private runHook<H extends AsyncPluginHooks>(
 		hookName: H,
 		args: Parameters<FunctionPluginHooks[H]>,
 		plugin: Plugin,
-		permitValues: false,
-		hookContext?: ReplaceContext | null
+		replaceContext?: ReplaceContext | null
 	): Promise<ReturnType<FunctionPluginHooks[H]>>;
-	private runHook<H extends AsyncPluginHooks>(
+	// Implementation signature
+	private runHook<H extends AsyncPluginHooks | AddonHooks>(
 		hookName: H,
-		args: Parameters<FunctionPluginHooks[H]>,
+		args: unknown[],
 		plugin: Plugin,
-		permitValues: boolean,
-		hookContext?: ReplaceContext | null
-	): Promise<ReturnType<FunctionPluginHooks[H]>> {
-		const hook = plugin[hookName];
-		if (!hook) return undefined as any;
+		replaceContext?: ReplaceContext | null
+	): Promise<unknown> | undefined {
+		// We always filter for plugins that support the hook before running it
+		const hook = plugin[hookName]!;
 		const handler = typeof hook === 'object' ? hook.handler : hook;
 
 		let context = this.pluginContexts.get(plugin)!;
-		if (hookContext) {
-			context = hookContext(context, plugin);
+		if (replaceContext) {
+			context = replaceContext(context, plugin);
 		}
 
 		let action: [string, string, Parameters<any>] | null = null;
 		return Promise.resolve()
 			.then(() => {
-				// TODO Lukas move validation to sort function
-				// permit values allows values to be returned instead of a functional hook
 				if (typeof handler !== 'function') {
-					if (permitValues) return handler;
-					return throwInvalidHookError(hookName, plugin.name);
+					return handler;
 				}
 				// eslint-disable-next-line @typescript-eslint/ban-types
 				const hookResult = (handler as Function).apply(context, args);
@@ -371,20 +369,20 @@ export class PluginDriver {
 	 * @param hookName Name of the plugin hook. Must be in `PluginHooks`.
 	 * @param args Arguments passed to the plugin hook.
 	 * @param plugin The acutal plugin
-	 * @param hookContext When passed, the plugin context can be overridden.
+	 * @param replaceContext When passed, the plugin context can be overridden.
 	 */
 	private runHookSync<H extends SyncPluginHooks>(
 		hookName: H,
 		args: Parameters<FunctionPluginHooks[H]>,
 		plugin: Plugin,
-		hookContext?: ReplaceContext
+		replaceContext?: ReplaceContext
 	): ReturnType<FunctionPluginHooks[H]> {
 		const hook = plugin[hookName];
 		if (!hook) return undefined as any;
 
 		let context = this.pluginContexts.get(plugin)!;
-		if (hookContext) {
-			context = hookContext(context, plugin);
+		if (replaceContext) {
+			context = replaceContext(context, plugin);
 		}
 
 		try {
@@ -400,10 +398,14 @@ export class PluginDriver {
 	}
 }
 
-// TODO Lukas we can do plugin hook validation in this function
-export function getSortedPlugins(
+export function getSortedValidatedPlugins(
 	hookName: AsyncPluginHooks | AddonHooks,
-	plugins: readonly Plugin[]
+	plugins: readonly Plugin[],
+	validateHandler = (handler: unknown, hookName: string, plugin: Plugin) => {
+		if (typeof handler !== 'function') {
+			error(errInvalidAsyncPluginHook(hookName, plugin.name));
+		}
+	}
 ): Plugin[] {
 	const pre: Plugin[] = [];
 	const normal: Plugin[] = [];
@@ -412,6 +414,7 @@ export function getSortedPlugins(
 		const hook = plugin[hookName];
 		if (hook) {
 			if (typeof hook === 'object') {
+				validateHandler(hook.handler, hookName, plugin);
 				if (hook.order === 'pre') {
 					pre.push(plugin);
 					continue;
@@ -420,6 +423,8 @@ export function getSortedPlugins(
 					post.push(plugin);
 					continue;
 				}
+			} else {
+				validateHandler(hook, hookName, plugin);
 			}
 			normal.push(plugin);
 		}

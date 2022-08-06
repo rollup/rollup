@@ -1,7 +1,7 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
-import { getSortedPlugins } from '../utils/PluginDriver';
+import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import type { PluginDriver } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
 import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
@@ -113,7 +113,10 @@ async function getInputOptions(
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	const rawPlugins = getSortedPlugins('options', ensureArray(rawInputOptions.plugins) as Plugin[]);
+	const rawPlugins = getSortedValidatedPlugins(
+		'options',
+		ensureArray(rawInputOptions.plugins) as Plugin[]
+	);
 	const { options, unsetOptions } = normalizeInputOptions(
 		await rawPlugins.reduce(applyOptionHook(watchMode), Promise.resolve(rawInputOptions))
 	);
