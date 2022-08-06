@@ -7,16 +7,21 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const code = fs.readFileSync(ID_MAIN, 'utf8');
 
 const hooks = [
+	'augmentChunkHash',
 	'buildEnd',
 	'buildStart',
 	'generateBundle',
 	'load',
 	'moduleParsed',
 	'options',
+	'outputOptions',
+	'renderDynamicImport',
 	'renderChunk',
 	'renderStart',
 	'resolveDynamicImport',
+	'resolveFileUrl',
 	'resolveId',
+	'resolveImportMeta',
 	'shouldTransformCachedModule',
 	'transform'
 ];
@@ -26,7 +31,26 @@ for (const hook of hooks) {
 	calledHooks[hook] = [];
 }
 
-const plugins = [];
+const plugins = [
+	{
+		name: 'emitter',
+		resolveId(source) {
+			if (source === 'dep') {
+				return source;
+			}
+		},
+		load(source) {
+			if (source === 'dep') {
+				return `assert.okt(import.meta.url);\nassert.ok(import.meta.ROLLUP_FILE_URL_${this.emitFile(
+					{
+						type: 'asset',
+						source: 'test'
+					}
+				)});`;
+			}
+		}
+	}
+];
 addPlugin(null);
 addPlugin('pre');
 addPlugin('post');
@@ -34,7 +58,7 @@ addPlugin('post');
 addPlugin('pre');
 addPlugin(undefined);
 function addPlugin(order) {
-	const name = `${order}-${plugins.length + 1}`;
+	const name = `${order}-${plugins.length}`;
 	const plugin = { name };
 	for (const hook of hooks) {
 		plugin[hook] = {

@@ -1,1 +1,1 @@
-import('./dep.js');
+import('dep');

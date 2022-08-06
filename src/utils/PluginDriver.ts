@@ -62,13 +62,6 @@ const inputHooks = Object.keys(inputHookNames);
 
 export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
-function throwInvalidHookError(hookName: string, pluginName: string): never {
-	return error({
-		code: 'INVALID_PLUGIN_HOOK',
-		message: `Error running plugin hook ${hookName} for ${pluginName}, expected a function hook.`
-	});
-}
-
 export type HookAction = [plugin: string, hook: string, args: unknown[]];
 
 export class PluginDriver {
@@ -157,7 +150,7 @@ export class PluginDriver {
 		args: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): ReturnType<FunctionPluginHooks[H]> {
-		for (const plugin of this.plugins) {
+		for (const plugin of this.getSortedPlugins(hookName)) {
 			const result = this.runHookSync(hookName, args, plugin, replaceContext);
 			if (result != null) return result;
 		}
@@ -213,7 +206,7 @@ export class PluginDriver {
 		) => Arg0<H>,
 		replaceContext?: ReplaceContext
 	): Arg0<H> {
-		for (const plugin of this.plugins) {
+		for (const plugin of this.getSortedPlugins(hookName)) {
 			const args = [arg0, ...rest] as Parameters<FunctionPluginHooks[H]>;
 			const result = this.runHookSync(hookName, args, plugin, replaceContext);
 			arg0 = reduce.call(this.pluginContexts.get(plugin), arg0, result, plugin);
@@ -255,7 +248,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): T {
 		let acc = initialValue;
-		for (const plugin of this.plugins) {
+		for (const plugin of this.getSortedPlugins(hookName)) {
 			const result = this.runHookSync(hookName, args, plugin, replaceContext);
 			acc = reduce.call(this.pluginContexts.get(plugin), acc, result, plugin);
 		}
@@ -278,7 +271,7 @@ export class PluginDriver {
 	}
 
 	private getSortedPlugins(
-		hookName: AsyncPluginHooks | AddonHooks,
+		hookName: keyof FunctionPluginHooks | AddonHooks,
 		validateHandler?: (handler: unknown, hookName: string, plugin: Plugin) => void
 	): Plugin[] {
 		return getOrCreate(this.sortedPlugins, hookName, () =>
@@ -373,8 +366,8 @@ export class PluginDriver {
 		plugin: Plugin,
 		replaceContext?: ReplaceContext
 	): ReturnType<FunctionPluginHooks[H]> {
-		const hook = plugin[hookName];
-		if (!hook) return undefined as any;
+		const hook = plugin[hookName]!;
+		const handler = typeof hook === 'object' ? hook.handler : hook;
 
 		let context = this.pluginContexts.get(plugin)!;
 		if (replaceContext) {
@@ -382,12 +375,8 @@ export class PluginDriver {
 		}
 
 		try {
-			// permit values allows values to be returned instead of a functional hook
-			if (typeof hook !== 'function') {
-				return throwInvalidHookError(hookName, plugin.name);
-			}
 			// eslint-disable-next-line @typescript-eslint/ban-types
-			return (hook as Function).apply(context, args);
+			return (handler as Function).apply(context, args);
 		} catch (err: any) {
 			return throwPluginError(err, plugin.name, { hook: hookName });
 		}
@@ -395,7 +384,7 @@ export class PluginDriver {
 }
 
 export function getSortedValidatedPlugins(
-	hookName: AsyncPluginHooks | AddonHooks,
+	hookName: keyof FunctionPluginHooks | AddonHooks,
 	plugins: readonly Plugin[],
 	validateHandler = (handler: unknown, hookName: string, plugin: Plugin) => {
 		if (typeof handler !== 'function') {

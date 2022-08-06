@@ -468,17 +468,17 @@ type MakeAsync<T extends (...a: any) => any> = (
 	...a: Parameters<T>
 ) => ReturnType<T> | Promise<ReturnType<T>>;
 
-type AllowEnforceOrderHook<T> = T | { handler: T; order?: 'pre' | 'post' | null };
+type ObjectHook<T> = T | { handler: T; order?: 'pre' | 'post' | null };
 
 export type PluginHooks = {
-	[K in keyof FunctionPluginHooks]: K extends AsyncPluginHooks
-		? AllowEnforceOrderHook<MakeAsync<FunctionPluginHooks[K]>>
-		: FunctionPluginHooks[K];
+	[K in keyof FunctionPluginHooks]: ObjectHook<
+		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K]
+	>;
 };
 
 export interface OutputPlugin
 	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
-		Partial<{ [K in AddonHooks]: AllowEnforceOrderHook<AddonHook> }> {
+		Partial<{ [K in AddonHooks]: ObjectHook<AddonHook> }> {
 	cacheKey?: string;
 	name: string;
 }
