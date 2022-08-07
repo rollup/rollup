@@ -264,7 +264,7 @@ export function errInvalidAddonPluginHook(hook: string, plugin: string): RollupL
 	};
 }
 
-export function errInvalidAsyncPluginHook(hook: string, plugin: string): RollupLogProps {
+export function errInvalidFunctionPluginHook(hook: string, plugin: string): RollupLogProps {
 	return {
 		code: Errors.INVALID_PLUGIN_HOOK,
 		hook,

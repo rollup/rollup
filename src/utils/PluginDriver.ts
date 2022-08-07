@@ -24,7 +24,7 @@ import { getPluginContext } from './PluginContext';
 import {
 	errInputHookInOutputPlugin,
 	errInvalidAddonPluginHook,
-	errInvalidAsyncPluginHook,
+	errInvalidFunctionPluginHook,
 	error
 } from './error';
 import { getOrCreate } from './getOrCreate';
@@ -77,6 +77,7 @@ export class PluginDriver {
 	private readonly fileEmitter: FileEmitter;
 	private readonly pluginContexts: ReadonlyMap<Plugin, PluginContext>;
 	private readonly plugins: readonly Plugin[];
+	private readonly sortedParallelPlugins = new Map<AsyncPluginHooks, [Plugin[], Plugin[]]>();
 	private readonly sortedPlugins = new Map<AsyncPluginHooks, Plugin[]>();
 	private readonly unfulfilledActions = new Set<HookAction>();
 
@@ -149,12 +150,12 @@ export class PluginDriver {
 		hookName: H,
 		args: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
-	): ReturnType<FunctionPluginHooks[H]> {
+	): ReturnType<FunctionPluginHooks[H]> | null {
 		for (const plugin of this.getSortedPlugins(hookName)) {
 			const result = this.runHookSync(hookName, args, plugin, replaceContext);
 			if (result != null) return result;
 		}
-		return null as any;
+		return null;
 	}
 
 	// parallel, ignores returns
@@ -163,11 +164,14 @@ export class PluginDriver {
 		args: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
-		return Promise.all(
-			this.getSortedPlugins(hookName).map(plugin =>
-				this.runHook(hookName, args, plugin, replaceContext)
-			)
-		).then(() => {});
+		const [parallel, sequential] = this.getSortedParallelAndSequentialPlugins(hookName);
+		let promise: Promise<unknown> = Promise.all(
+			parallel.map(plugin => this.runHook(hookName, args, plugin, replaceContext))
+		);
+		for (const plugin of sequential) {
+			promise = promise.then(() => this.runHook(hookName, args, plugin, replaceContext));
+		}
+		return promise.then(noReturn);
 	}
 
 	// chains, reduces returned value, handling the reduced value as the first hook argument
@@ -222,14 +226,7 @@ export class PluginDriver {
 		reduce: (reduction: T, result: Awaited<ReturnType<AddonHookFunction>>, plugin: Plugin) => T
 	): Promise<T> {
 		let promise = Promise.resolve(initialValue);
-		for (const plugin of this.getSortedPlugins(
-			hookName,
-			(handler: unknown, hookName: string, plugin: Plugin) => {
-				if (typeof handler !== 'string' && typeof handler !== 'function') {
-					return error(errInvalidAddonPluginHook(hookName, plugin.name));
-				}
-			}
-		)) {
+		for (const plugin of this.getSortedPlugins(hookName, validateAddonPluginHandler)) {
 			promise = promise.then(value =>
 				this.runHook(hookName, args, plugin).then(result =>
 					reduce.call(this.pluginContexts.get(plugin), value, result, plugin)
@@ -261,13 +258,32 @@ export class PluginDriver {
 		args: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
-		let promise = Promise.resolve();
+		let promise: Promise<unknown> = Promise.resolve();
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			promise = promise.then(
-				() => this.runHook(hookName, args, plugin, replaceContext) as Promise<void>
-			);
+			promise = promise.then(() => this.runHook(hookName, args, plugin, replaceContext));
 		}
-		return promise;
+		return promise.then(noReturn);
+	}
+
+	private getSortedParallelAndSequentialPlugins(hookName: AsyncPluginHooks): [Plugin[], Plugin[]] {
+		return getOrCreate(this.sortedParallelPlugins, hookName, () => {
+			const parallel: Plugin[] = [];
+			const sequential: Plugin[] = [];
+			for (const plugin of this.plugins) {
+				const hook = plugin[hookName];
+				if (hook) {
+					if (typeof hook === 'object' && hook.sequential) {
+						sequential.push(plugin);
+					} else {
+						parallel.push(plugin);
+					}
+				}
+			}
+			return [
+				getSortedValidatedPlugins(hookName, parallel),
+				getSortedValidatedPlugins(hookName, sequential)
+			];
+		});
 	}
 
 	private getSortedPlugins(
@@ -386,11 +402,7 @@ export class PluginDriver {
 export function getSortedValidatedPlugins(
 	hookName: keyof FunctionPluginHooks | AddonHooks,
 	plugins: readonly Plugin[],
-	validateHandler = (handler: unknown, hookName: string, plugin: Plugin) => {
-		if (typeof handler !== 'function') {
-			error(errInvalidAsyncPluginHook(hookName, plugin.name));
-		}
-	}
+	validateHandler = validateFunctionPluginHandler
 ): Plugin[] {
 	const pre: Plugin[] = [];
 	const normal: Plugin[] = [];
@@ -416,3 +428,17 @@ export function getSortedValidatedPlugins(
 	}
 	return [...pre, ...normal, ...post];
 }
+
+function validateFunctionPluginHandler(handler: unknown, hookName: string, plugin: Plugin) {
+	if (typeof handler !== 'function') {
+		error(errInvalidFunctionPluginHook(hookName, plugin.name));
+	}
+}
+
+function validateAddonPluginHandler(handler: unknown, hookName: string, plugin: Plugin) {
+	if (typeof handler !== 'string' && typeof handler !== 'function') {
+		return error(errInvalidAddonPluginHook(hookName, plugin.name));
+	}
+}
+
+function noReturn() {}

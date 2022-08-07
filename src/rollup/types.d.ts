@@ -468,11 +468,14 @@ type MakeAsync<T extends (...a: any) => any> = (
 	...a: Parameters<T>
 ) => ReturnType<T> | Promise<ReturnType<T>>;
 
-type ObjectHook<T> = T | { handler: T; order?: 'pre' | 'post' | null };
+type ObjectHook<T, O = Record<string, never>> =
+	| T
+	| ({ handler: T; order?: 'pre' | 'post' | null } & O);
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<
-		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K]
+		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K],
+		K extends ParallelPluginHooks ? { sequential?: boolean } : Record<string, never>
 	>;
 };
 
