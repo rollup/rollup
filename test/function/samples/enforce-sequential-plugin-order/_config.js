@@ -4,25 +4,26 @@ const { wait } = require('../../../utils');
 const hooks = ['buildEnd', 'buildStart', 'moduleParsed', 'renderStart'];
 
 const calledHooks = {};
+const activeHooks = {};
 for (const hook of hooks) {
 	calledHooks[hook] = [];
+	activeHooks[hook] = new Set();
 }
 
 const plugins = [];
-addPlugin(null, false);
+addPlugin(null, true);
 addPlugin('pre', false);
-addPlugin('post', true);
 addPlugin('post', false);
-addPlugin('pre', true);
-addPlugin(undefined, true);
-addPlugin(null, false);
-addPlugin('pre', true);
 addPlugin('post', false);
-addPlugin('post', true);
 addPlugin('pre', false);
 addPlugin(undefined, true);
+addPlugin(null, false);
+addPlugin('pre', true);
+addPlugin('post', true);
+addPlugin('post', true);
+addPlugin('pre', true);
+addPlugin(undefined, false);
 
-let hookActive = false;
 function addPlugin(order, sequential) {
 	const name = `${order}-${sequential ? 'seq-' : ''}${plugins.length + 1}`;
 	const plugin = { name };
@@ -30,17 +31,20 @@ function addPlugin(order, sequential) {
 		plugin[hook] = {
 			order,
 			async handler() {
+				const active = activeHooks[hook];
 				if (!calledHooks[hook].includes(name)) {
-					calledHooks[hook].push(name);
+					calledHooks[hook].push(sequential ? name : [name, [...active]]);
 				}
 				if (sequential) {
-					if (hookActive) {
+					if (active.size > 0) {
 						throw new Error(`Detected parallel hook runs in ${hook}.`);
 					}
-					hookActive = true;
-					await wait(0);
-					hookActive = false;
 				}
+				active.add(name);
+				// A setTimeout always takes longer than any chain of immediately
+				// resolved promises
+				await wait(0);
+				active.delete(name);
 			},
 			sequential
 		};
@@ -58,17 +62,17 @@ module.exports = {
 			assert.deepStrictEqual(
 				calledHooks[hook],
 				[
-					'pre-2',
-					'pre-11',
-					'null-1',
-					'null-7',
-					'post-4',
-					'post-9',
-					'pre-seq-5',
+					['pre-2', []],
+					['pre-5', ['pre-2']],
 					'pre-seq-8',
+					'pre-seq-11',
+					'null-seq-1',
 					'undefined-seq-6',
-					'undefined-seq-12',
-					'post-seq-3',
+					['null-7', []],
+					['undefined-12', ['null-7']],
+					['post-3', ['null-7', 'undefined-12']],
+					['post-4', ['null-7', 'undefined-12', 'post-3']],
+					'post-seq-9',
 					'post-seq-10'
 				],
 				hook

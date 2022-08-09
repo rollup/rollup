@@ -77,7 +77,6 @@ export class PluginDriver {
 	private readonly fileEmitter: FileEmitter;
 	private readonly pluginContexts: ReadonlyMap<Plugin, PluginContext>;
 	private readonly plugins: readonly Plugin[];
-	private readonly sortedParallelPlugins = new Map<AsyncPluginHooks, [Plugin[], Plugin[]]>();
 	private readonly sortedPlugins = new Map<AsyncPluginHooks, Plugin[]>();
 	private readonly unfulfilledActions = new Set<HookAction>();
 
@@ -159,19 +158,22 @@ export class PluginDriver {
 	}
 
 	// parallel, ignores returns
-	hookParallel<H extends AsyncPluginHooks & ParallelPluginHooks>(
+	async hookParallel<H extends AsyncPluginHooks & ParallelPluginHooks>(
 		hookName: H,
 		args: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
-		const [parallel, sequential] = this.getSortedParallelAndSequentialPlugins(hookName);
-		let promise: Promise<unknown> = Promise.all(
-			parallel.map(plugin => this.runHook(hookName, args, plugin, replaceContext))
-		);
-		for (const plugin of sequential) {
-			promise = promise.then(() => this.runHook(hookName, args, plugin, replaceContext));
+		const parallelPromises: Promise<unknown>[] = [];
+		for (const plugin of this.getSortedPlugins(hookName)) {
+			if ((plugin[hookName] as { sequential?: boolean }).sequential) {
+				await Promise.all(parallelPromises);
+				parallelPromises.length = 0;
+				await this.runHook(hookName, args, plugin, replaceContext);
+			} else {
+				parallelPromises.push(this.runHook(hookName, args, plugin, replaceContext));
+			}
 		}
-		return promise.then(noReturn);
+		await Promise.all(parallelPromises);
 	}
 
 	// chains, reduces returned value, handling the reduced value as the first hook argument
@@ -263,27 +265,6 @@ export class PluginDriver {
 			promise = promise.then(() => this.runHook(hookName, args, plugin, replaceContext));
 		}
 		return promise.then(noReturn);
-	}
-
-	private getSortedParallelAndSequentialPlugins(hookName: AsyncPluginHooks): [Plugin[], Plugin[]] {
-		return getOrCreate(this.sortedParallelPlugins, hookName, () => {
-			const parallel: Plugin[] = [];
-			const sequential: Plugin[] = [];
-			for (const plugin of this.plugins) {
-				const hook = plugin[hookName];
-				if (hook) {
-					if (typeof hook === 'object' && hook.sequential) {
-						sequential.push(plugin);
-					} else {
-						parallel.push(plugin);
-					}
-				}
-			}
-			return [
-				getSortedValidatedPlugins(hookName, parallel),
-				getSortedValidatedPlugins(hookName, sequential)
-			];
-		});
 	}
 
 	private getSortedPlugins(

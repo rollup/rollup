@@ -1113,6 +1113,200 @@ describe('hooks', () => {
 			});
 	});
 
+	it('allows to enforce plugin hook order in watch mode', async () => {
+		const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
+
+		const calledHooks = {};
+		for (const hook of hooks) {
+			calledHooks[hook] = [];
+		}
+
+		let first = true;
+		const plugins = [
+			{
+				name: 'render-error',
+				renderChunk() {
+					if (first) {
+						first = false;
+						throw new Error('Expected render error');
+					}
+				}
+			}
+		];
+		addPlugin(null);
+		addPlugin('pre');
+		addPlugin('post');
+		addPlugin('post');
+		addPlugin('pre');
+		addPlugin(undefined);
+		function addPlugin(order) {
+			const name = `${order}-${plugins.length}`;
+			const plugin = { name };
+			for (const hook of hooks) {
+				plugin[hook] = {
+					order,
+					handler() {
+						if (!calledHooks[hook].includes(name)) {
+							calledHooks[hook].push(name);
+						}
+					}
+				};
+			}
+			plugins.push(plugin);
+		}
+
+		const ID_MAIN = path.join(TEMP_DIR, 'main.js');
+		await outputFile(ID_MAIN, 'console.log(42);');
+
+		const watcher = rollup.watch({
+			input: ID_MAIN,
+			output: {
+				format: 'es',
+				dir: path.join(TEMP_DIR, 'out')
+			},
+			plugins
+		});
+
+		return new Promise((resolve, reject) => {
+			watcher.on('event', async event => {
+				if (event.code === 'ERROR') {
+					if (event.error.message !== 'Expected render error') {
+						reject(event.error);
+					}
+					await wait(200);
+					await outputFile(ID_MAIN, 'console.log(43);');
+				} else if (event.code === 'BUNDLE_END') {
+					await event.result.close();
+					resolve();
+				}
+			});
+		}).finally(async () => {
+			await watcher.close();
+			await remove(TEMP_DIR);
+			for (const hook of hooks) {
+				assert.deepStrictEqual(
+					calledHooks[hook],
+					['pre-2', 'pre-5', 'null-1', 'undefined-6', 'post-3', 'post-4'],
+					hook
+				);
+			}
+		});
+	});
+
+	it('allows to enforce sequential plugin hook order in watch mode', async () => {
+		const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
+
+		const calledHooks = {};
+		const activeHooks = {};
+		for (const hook of hooks) {
+			calledHooks[hook] = [];
+			activeHooks[hook] = new Set();
+		}
+
+		let first = true;
+		const plugins = [
+			{
+				name: 'render-error',
+				renderChunk() {
+					if (first) {
+						first = false;
+						throw new Error('Expected render error');
+					}
+				}
+			}
+		];
+		addPlugin(null, true);
+		addPlugin('pre', false);
+		addPlugin('post', false);
+		addPlugin('post', false);
+		addPlugin('pre', false);
+		addPlugin(undefined, true);
+		addPlugin(null, false);
+		addPlugin('pre', true);
+		addPlugin('post', true);
+		addPlugin('post', true);
+		addPlugin('pre', true);
+		addPlugin(undefined, false);
+
+		function addPlugin(order, sequential) {
+			const name = `${order}-${sequential ? 'seq-' : ''}${plugins.length}`;
+			const plugin = { name };
+			for (const hook of hooks) {
+				plugin[hook] = {
+					order,
+					async handler() {
+						const active = activeHooks[hook];
+						if (!calledHooks[hook].includes(name)) {
+							calledHooks[hook].push(sequential ? name : [name, [...active]]);
+						}
+						if (sequential) {
+							if (active.size > 0) {
+								throw new Error(`Detected parallel hook runs in ${hook}.`);
+							}
+						}
+						active.add(name);
+						// A setTimeout always takes longer than any chain of immediately
+						// resolved promises
+						await wait(0);
+						active.delete(name);
+					},
+					sequential
+				};
+			}
+			plugins.push(plugin);
+		}
+
+		const ID_MAIN = path.join(TEMP_DIR, 'main.js');
+		await outputFile(ID_MAIN, 'console.log(42);');
+
+		const watcher = rollup.watch({
+			input: ID_MAIN,
+			output: {
+				format: 'es',
+				dir: path.join(TEMP_DIR, 'out')
+			},
+			plugins
+		});
+
+		return new Promise((resolve, reject) => {
+			watcher.on('event', async event => {
+				if (event.code === 'ERROR') {
+					if (event.error.message !== 'Expected render error') {
+						reject(event.error);
+					}
+					await wait(200);
+					await outputFile(ID_MAIN, 'console.log(43);');
+				} else if (event.code === 'BUNDLE_END') {
+					await event.result.close();
+					resolve();
+				}
+			});
+		}).finally(async () => {
+			await watcher.close();
+			await remove(TEMP_DIR);
+			for (const hook of hooks) {
+				assert.deepStrictEqual(
+					calledHooks[hook],
+					[
+						['pre-2', []],
+						['pre-5', ['pre-2']],
+						'pre-seq-8',
+						'pre-seq-11',
+						'null-seq-1',
+						'undefined-seq-6',
+						['null-7', []],
+						['undefined-12', ['null-7']],
+						['post-3', ['null-7', 'undefined-12']],
+						['post-4', ['null-7', 'undefined-12', 'post-3']],
+						'post-seq-9',
+						'post-seq-10'
+					],
+					hook
+				);
+			}
+		});
+	});
+
 	describe('deprecated', () => {
 		it('caches chunk emission in transform hook', () => {
 			let cache;
@@ -1376,196 +1570,6 @@ describe('hooks', () => {
 					assert.strictEqual(output.fileName, 'assets/test-0a676135.ext');
 					assert.strictEqual(output.source, 'hello world');
 				});
-		});
-
-		it('allows to enforce plugin hook order in watch mode', async () => {
-			const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
-
-			const calledHooks = {};
-			for (const hook of hooks) {
-				calledHooks[hook] = [];
-			}
-
-			let first = true;
-			const plugins = [
-				{
-					name: 'render-error',
-					renderChunk() {
-						if (first) {
-							first = false;
-							throw new Error('Expected render error');
-						}
-					}
-				}
-			];
-			addPlugin(null);
-			addPlugin('pre');
-			addPlugin('post');
-			addPlugin('post');
-			addPlugin('pre');
-			addPlugin(undefined);
-			function addPlugin(order) {
-				const name = `${order}-${plugins.length}`;
-				const plugin = { name };
-				for (const hook of hooks) {
-					plugin[hook] = {
-						order,
-						handler() {
-							if (!calledHooks[hook].includes(name)) {
-								calledHooks[hook].push(name);
-							}
-						}
-					};
-				}
-				plugins.push(plugin);
-			}
-
-			const ID_MAIN = path.join(TEMP_DIR, 'main.js');
-			await outputFile(ID_MAIN, 'console.log(42);');
-
-			const watcher = rollup.watch({
-				input: ID_MAIN,
-				output: {
-					format: 'es',
-					dir: path.join(TEMP_DIR, 'out')
-				},
-				plugins
-			});
-
-			return new Promise((resolve, reject) => {
-				watcher.on('event', async event => {
-					if (event.code === 'ERROR') {
-						if (event.error.message !== 'Expected render error') {
-							reject(event.error);
-						}
-						await wait(200);
-						await outputFile(ID_MAIN, 'console.log(43);');
-					} else if (event.code === 'BUNDLE_END') {
-						await event.result.close();
-						resolve();
-					}
-				});
-			}).finally(async () => {
-				await watcher.close();
-				await remove(TEMP_DIR);
-				for (const hook of hooks) {
-					assert.deepStrictEqual(
-						calledHooks[hook],
-						['pre-2', 'pre-5', 'null-1', 'undefined-6', 'post-3', 'post-4'],
-						hook
-					);
-				}
-			});
-		});
-
-		it('allows to enforce sequential plugin hook order in watch mode', async () => {
-			const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
-
-			const calledHooks = {};
-			for (const hook of hooks) {
-				calledHooks[hook] = [];
-			}
-
-			let first = true;
-			const plugins = [
-				{
-					name: 'render-error',
-					renderChunk() {
-						if (first) {
-							first = false;
-							throw new Error('Expected render error');
-						}
-					}
-				}
-			];
-			addPlugin(null, false);
-			addPlugin('pre', false);
-			addPlugin('post', true);
-			addPlugin('post', false);
-			addPlugin('pre', true);
-			addPlugin(undefined, true);
-			addPlugin(null, false);
-			addPlugin('pre', true);
-			addPlugin('post', false);
-			addPlugin('post', true);
-			addPlugin('pre', false);
-			addPlugin(undefined, true);
-
-			let hookActive = false;
-			function addPlugin(order, sequential) {
-				const name = `${order}-${sequential ? 'seq-' : ''}${plugins.length}`;
-				const plugin = { name };
-				for (const hook of hooks) {
-					plugin[hook] = {
-						order,
-						async handler() {
-							if (!calledHooks[hook].includes(name)) {
-								calledHooks[hook].push(name);
-							}
-							if (sequential) {
-								if (hookActive) {
-									throw new Error(`Detected parallel hook runs in ${hook}.`);
-								}
-								hookActive = true;
-								await wait(0);
-								hookActive = false;
-							}
-						},
-						sequential
-					};
-				}
-				plugins.push(plugin);
-			}
-
-			const ID_MAIN = path.join(TEMP_DIR, 'main.js');
-			await outputFile(ID_MAIN, 'console.log(42);');
-
-			const watcher = rollup.watch({
-				input: ID_MAIN,
-				output: {
-					format: 'es',
-					dir: path.join(TEMP_DIR, 'out')
-				},
-				plugins
-			});
-
-			return new Promise((resolve, reject) => {
-				watcher.on('event', async event => {
-					if (event.code === 'ERROR') {
-						if (event.error.message !== 'Expected render error') {
-							reject(event.error);
-						}
-						await wait(200);
-						await outputFile(ID_MAIN, 'console.log(43);');
-					} else if (event.code === 'BUNDLE_END') {
-						await event.result.close();
-						resolve();
-					}
-				});
-			}).finally(async () => {
-				await watcher.close();
-				await remove(TEMP_DIR);
-				for (const hook of hooks) {
-					assert.deepStrictEqual(
-						calledHooks[hook],
-						[
-							'pre-2',
-							'pre-11',
-							'null-1',
-							'null-7',
-							'post-4',
-							'post-9',
-							'pre-seq-5',
-							'pre-seq-8',
-							'undefined-seq-6',
-							'undefined-seq-12',
-							'post-seq-3',
-							'post-seq-10'
-						],
-						hook
-					);
-				}
-			});
 		});
 	});
 });
