@@ -220,22 +220,26 @@ export class PluginDriver {
 		return arg0;
 	}
 
-	// chains, reduces returned value to type T, handling the reduced value separately. permits hooks as values.
-	hookReduceValue<H extends AddonHooks, T>(
+	// chains, reduces returned value to type string, handling the reduced value separately. permits hooks as values.
+	async hookReduceValue<H extends AddonHooks>(
 		hookName: H,
-		initialValue: T | Promise<T>,
+		initialValue: string | Promise<string>,
 		args: Parameters<AddonHookFunction>,
-		reduce: (reduction: T, result: Awaited<ReturnType<AddonHookFunction>>, plugin: Plugin) => T
-	): Promise<T> {
-		let promise = Promise.resolve(initialValue);
+		reducer: (result: string, next: string) => string
+	): Promise<string> {
+		const results: string[] = [];
+		const parallelResults: (string | Promise<string>)[] = [];
 		for (const plugin of this.getSortedPlugins(hookName, validateAddonPluginHandler)) {
-			promise = promise.then(value =>
-				this.runHook(hookName, args, plugin).then(result =>
-					reduce.call(this.pluginContexts.get(plugin), value, result, plugin)
-				)
-			);
+			if ((plugin[hookName] as { sequential?: boolean }).sequential) {
+				results.push(...(await Promise.all(parallelResults)));
+				parallelResults.length = 0;
+				results.push(await this.runHook(hookName, args, plugin));
+			} else {
+				parallelResults.push(this.runHook(hookName, args, plugin));
+			}
 		}
-		return promise;
+		results.push(...(await Promise.all(parallelResults)));
+		return results.reduce(reducer, await initialValue);
 	}
 
 	// chains synchronously, reduces returned value to type T, handling the reduced value separately. permits hooks as values.

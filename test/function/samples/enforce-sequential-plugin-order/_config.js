@@ -1,7 +1,16 @@
 const assert = require('assert');
 const { wait } = require('../../../utils');
 
-const hooks = ['buildEnd', 'buildStart', 'moduleParsed', 'renderStart'];
+const hooks = [
+	'banner',
+	'buildEnd',
+	'buildStart',
+	'footer',
+	'intro',
+	'moduleParsed',
+	'outro',
+	'renderStart'
+];
 
 const calledHooks = {};
 const activeHooks = {};
