@@ -51,7 +51,7 @@ export default ({
 - Plugins should have a clear name with `rollup-plugin-` prefix.
 - Include `rollup-plugin` keyword in `package.json`.
 - Plugins should be tested. We recommend [mocha](https://github.com/mochajs/mocha) or [ava](https://github.com/avajs/ava) which support Promises out of the box.
-- Use asynchronous methods when it is possible.
+- Use asynchronous methods when it is possible, e.g. `fs.readFile` instead of `fs.readFileSync`.
 - Document your plugin in English.
 - Make sure your plugin outputs correct source mappings if appropriate.
 - If your plugin uses 'virtual modules' (e.g. for helper functions), prefix the module ID with `\0`. This prevents other plugins from trying to process it.
@@ -66,12 +66,58 @@ The name of the plugin, for use in error messages and warnings.
 
 ### Build Hooks
 
-To interact with the build process, your plugin object includes 'hooks'. Hooks are functions which are called at various stages of the build. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
+To interact with the build process, your plugin object includes "hooks". Hooks are functions which are called at various stages of the build. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
 
 - `async`: The hook may also return a Promise resolving to the same type of value; otherwise, the hook is marked as `sync`.
 - `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`.
-- `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
-- `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
+- `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is `async`, subsequent hooks of this kind will wait until the current hook is resolved.
+- `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is `async`, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
+
+Instead of a function, hooks can also be objects. In that case, the actual hook function (or value for `banner/footer/intro/outro`) must be specified as `handler`. This allows you to provide additional optional properties that change hook execution:
+
+- `order: "pre" | "post" | null`<br> If there are several plugins implementing this hook, either run this plugin first (`"pre"`), last (`"post"`), or in the user-specified position (no value or `null`).
+
+  ```js
+  export default function resolveFirst() {
+    return {
+      name: 'resolve-first',
+      resolveId: {
+        order: 'pre',
+        handler(source) {
+          if (source === 'external') {
+            return { id: source, external: true };
+          }
+          return null;
+        }
+      }
+    };
+  }
+  ```
+
+  If several plugins use `"pre"` or `"post"`, Rollup runs them in the user-specified order. This option can be used for all plugin hooks. For parallel hooks, it changes the order in which the synchronous part of the hook is run.
+
+- `sequential: boolean`<br> Do not run this hook in parallel with the same hook of other plugins. Can only be used for `parallel` hooks. Using this option will make Rollup await the results of all previous plugins, then execute the plugin hook, and then run the remaining plugins in parallel again. E.g. when you have plugins `A`, `B`, `C`, `D`, `E` that all implement the same parallel hook and the middle plugin `C` has `sequential: true`, then Rollup will first run `A + B` in parallel, then `C` on its own, then `D + E` in parallel.
+
+  This can be useful when you need to run several command line tools in different [`writeBundle`](guide/en/#writebundle) hooks that depend on each other (note that if possible, it is recommended to add/remove files in the sequential [`generateBundle`](guide/en/#generatebundle) hook, though, which is faster, works with pure in-memory builds and permits other in-memory build plugins to see the files). You can combine this option with `order` for additional sorting.
+
+  ```js
+  import { resolve } from 'node:path';
+  import { readdir } from 'node:fs/promises';
+
+  export default function getFilesOnDisk() {
+    return {
+      name: 'getFilesOnDisk',
+      writeBundle: {
+        sequential: true,
+        order: 'post',
+        async handler({ dir }) {
+          const topLevelFiles = await readdir(resolve(dir));
+          console.log(topLevelFiles);
+        }
+      }
+    };
+  }
+  ```
 
 Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [`options`](guide/en/#options), the last one is always [`buildEnd`](guide/en/#buildend). If there is a build error, [`closeBundle`](guide/en/#closebundle) will be called after that.
 
