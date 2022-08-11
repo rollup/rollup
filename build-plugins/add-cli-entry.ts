@@ -1,5 +1,5 @@
-import { chmod } from 'fs/promises';
-import { resolve } from 'path';
+import { chmod } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import MagicString from 'magic-string';
 import type { Plugin } from 'rollup';
 

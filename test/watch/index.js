@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const {
 	existsSync,
 	promises: fs,
@@ -6,8 +6,8 @@ const {
 	readFileSync,
 	unlinkSync,
 	writeFileSync
-} = require('fs');
-const { resolve } = require('path');
+} = require('node:fs');
+const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('process');
 const { copy, removeSync } = require('fs-extra');
 const rollup = require('../../dist/rollup');

@@ -1,5 +1,5 @@
-import { resolve } from 'path';
-import { pathToFileURL } from 'url';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { InputOptions } from '../../src/rollup/types';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';

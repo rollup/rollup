@@ -263,7 +263,7 @@ In order to aid in generating such a config, rollup exposes the helper it uses t
 
 ```js
 const { loadConfigFile } = require('rollup/loadConfigFile');
-const path = require('path');
+const path = require('node:path');
 const rollup = require('rollup');
 
 // load the config file next to the current script;

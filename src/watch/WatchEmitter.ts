@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 
 type PromiseReturn<T extends (...args: any) => any> = (
 	...args: Parameters<T>
