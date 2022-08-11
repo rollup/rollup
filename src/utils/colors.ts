@@ -1,4 +1,4 @@
-import { env } from 'process';
+import { env } from 'node:process';
 import { createColors } from 'colorette';
 
 // @see https://no-color.org

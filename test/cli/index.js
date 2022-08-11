@@ -1,8 +1,8 @@
-const assert = require('assert');
-const { exec } = require('child_process');
-const { existsSync, readFileSync } = require('fs');
-const { basename, resolve, sep } = require('path');
-const process = require('process');
+const assert = require('node:assert');
+const { exec } = require('node:child_process');
+const { existsSync, readFileSync } = require('node:fs');
+const { basename, resolve, sep } = require('node:path');
+const process = require('node:process');
 const { copySync, removeSync, statSync } = require('fs-extra');
 const {
 	normaliseOutput,

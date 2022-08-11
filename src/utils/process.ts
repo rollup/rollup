@@ -1,1 +1,1 @@
-export { default } from 'process';
+export { default } from 'node:process';

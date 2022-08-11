@@ -1,6 +1,6 @@
-import { exec } from 'child_process';
-import { env } from 'process';
-import { promisify } from 'util';
+import { exec } from 'node:child_process';
+import { env } from 'node:process';
+import { promisify } from 'node:util';
 import { version } from '../package.json';
 
 const execPromise = promisify(exec);

@@ -125,7 +125,7 @@
     "dist/es/package.json"
   ],
   "engines": {
-    "node": ">=14.0.0",
+    "node": ">=14.13.1",
     "npm": ">=8.0.0"
   },
   "exports": {

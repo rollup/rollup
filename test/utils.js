@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const {
 	closeSync,
 	fsyncSync,
@@ -8,9 +8,9 @@ const {
 	unlinkSync,
 	writeFileSync,
 	writeSync
-} = require('fs');
-const { basename, join } = require('path');
-const { platform, version } = require('process');
+} = require('node:fs');
+const { basename, join } = require('node:path');
+const { platform, version } = require('node:process');
 const fixturify = require('fixturify');
 const { removeSync } = require('fs-extra');
 
