@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const weak = require('weak-napi');
 const rollup = require('../..');
 const { wait } = require('../utils');

@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const acorn = require('acorn');
 const rollup = require('../../dist/rollup');
 const { executeBundle, getObject } = require('../utils.js');

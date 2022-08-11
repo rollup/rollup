@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 import { readFile } from 'fs-extra';
 import type { Plugin } from 'rollup';
 

@@ -1,5 +1,5 @@
-import { EventEmitter } from 'events';
-import process from 'process';
+import { EventEmitter } from 'node:events';
+import process from 'node:process';
 import { HookAction, PluginDriver } from './PluginDriver';
 
 function formatAction([pluginName, hookName, args]: HookAction): string {

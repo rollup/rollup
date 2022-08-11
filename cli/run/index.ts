@@ -1,4 +1,4 @@
-import { env } from 'process';
+import { env } from 'node:process';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { errDuplicateImportOptions, errFailAfterWarnings } from '../../src/utils/error';
 import { isWatchEnabled } from '../../src/utils/options/mergeOptions';

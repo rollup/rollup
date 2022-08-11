@@ -1,1 +1,1 @@
-export * from 'fs';
+export * from 'node:fs';

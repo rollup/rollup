@@ -286,7 +286,7 @@ With CommonJS files, people often use `__dirname` to access the current director
 
 ```js
 // rollup.config.js
-import { fileURLToPath } from 'url'
+import { fileURLToPath } from 'node:url'
 
 export default {
   ...,
@@ -313,7 +313,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
 - For older Node versions, you can use `createRequire`
 
   ```js
-  import { createRequire } from 'module';
+  import { createRequire } from 'node:module';
   const require = createRequire(import.meta.url);
   const pkg = require('./package.json');
 
@@ -324,7 +324,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
 
   ```js
   // rollup.config.mjs
-  import { readFileSync } from 'fs';
+  import { readFileSync } from 'node:fs';
 
   // Use import.meta.url to make the path relative to the current source file instead of process.cwd()
   // For more info: https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
