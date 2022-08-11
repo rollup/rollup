@@ -2,7 +2,6 @@ const commonjs = require('@rollup/plugin-commonjs');
 const resolve = require('@rollup/plugin-node-resolve').default;
 
 module.exports = {
-	solo: true,
 	description: 'confirm preserveModulesRoot restructures src appropriately',
 	expectedWarnings: ['MIXED_EXPORTS'],
 	options: {
