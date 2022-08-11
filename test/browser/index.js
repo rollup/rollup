@@ -3,7 +3,7 @@
 // available globally in all supported platforms. [currently global for node.js v16+].
 global.performance = require('perf_hooks').performance;
 
-const { basename, resolve } = require('path');
+const { basename, resolve } = require('node:path');
 const fixturify = require('fixturify');
 const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');

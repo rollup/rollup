@@ -1,5 +1,5 @@
-const { basename, resolve } = require('path');
-const { chdir } = require('process');
+const { basename, resolve } = require('node:path');
+const { chdir } = require('node:process');
 const { rollup } = require('../../dist/rollup');
 const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
@@ -63,7 +63,7 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDir, config)
 	if (outputOptions.format === 'amd' && config.runAmd) {
 		try {
 			const exports = await new Promise((resolve, reject) => {
-				global.assert = require('assert');
+				global.assert = require('node:assert');
 				const requirejs = require('requirejs');
 				requirejs.config({ baseUrl: outputOptions.dir });
 				requirejs([config.nestedDir ? `${config.nestedDir}/main` : 'main'], resolve, reject);

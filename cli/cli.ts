@@ -1,4 +1,4 @@
-import process from 'process';
+import process from 'node:process';
 import help from 'help.md';
 import { version } from 'package.json';
 import argParser from 'yargs-parser';

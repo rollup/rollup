@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 const { outputFile, readdir, remove } = require('fs-extra');
 const rollup = require('../../dist/rollup.js');
 const { loader, wait } = require('../utils.js');
