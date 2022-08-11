@@ -281,6 +281,7 @@ async function writeOutputFile(
 	// 'recursive: true' does not throw if the folder structure, or parts of it, already exist
 	await fs.mkdir(dirname(fileName), { recursive: true });
 
+	// TODO Lukas move logic before generateBundle
 	let writeSourceMapPromise: Promise<void> | undefined;
 	let source: string | Uint8Array;
 	if (outputFile.type === 'asset') {

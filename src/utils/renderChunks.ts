@@ -20,6 +20,7 @@ import {
 	replaceSinglePlaceholder
 } from './hashPlaceholders';
 import { normalize, resolve } from './path';
+import { SOURCEMAPPING_URL } from './sourceMappingURL';
 import { timeEnd, timeStart } from './timers';
 
 interface HashResult {
@@ -70,7 +71,8 @@ export async function renderChunks(
 		renderedChunksByPlaceholder,
 		hashesByPlaceholder,
 		outputBundle,
-		nonHashedChunksWithPlaceholders
+		nonHashedChunksWithPlaceholders,
+		outputOptions
 	);
 
 	timeEnd('transform chunks', 2);
@@ -286,7 +288,8 @@ function addChunksToBundle(
 	renderedChunksByPlaceholder: Map<string, RenderedChunkWithPlaceholders>,
 	hashesByPlaceholder: Map<string, string>,
 	outputBundle: OutputBundleWithPlaceholders,
-	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[]
+	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[],
+	{ sourcemap }: NormalizedOutputOptions
 ) {
 	for (const { chunk, code, fileName, map } of renderedChunksByPlaceholder.values()) {
 		const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
@@ -297,9 +300,17 @@ function addChunksToBundle(
 		outputBundle[finalFileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
 	for (const { chunk, code, fileName, map } of nonHashedChunksWithPlaceholders) {
-		const updatedCode = hashesByPlaceholder.size
+		let updatedCode = hashesByPlaceholder.size
 			? replacePlaceholders(code, hashesByPlaceholder)
 			: code;
+		// TODO Lukas use shared code for placeholder files above
+		// TODO Lukas support other sourcemap options
+		if (map) {
+			if (sourcemap === 'inline') {
+				const url = map.toUrl();
+				updatedCode += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+			}
+		}
 		outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
 }
