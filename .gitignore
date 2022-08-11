@@ -14,3 +14,4 @@ test/tmp
 test/typescript/typings
 perf/
 .nyc_output/
+.github_token
