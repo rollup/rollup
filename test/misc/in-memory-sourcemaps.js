@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 const { getLocator } = require('locate-character');
 const { SourceMapConsumer } = require('source-map');
 const rollup = require('../../dist/rollup');

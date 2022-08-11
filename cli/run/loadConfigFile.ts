@@ -1,5 +1,5 @@
-import { extname, isAbsolute } from 'path';
-import { pathToFileURL } from 'url';
+import { extname, isAbsolute } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import getPackageType from 'get-package-type';
 import * as rollup from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';

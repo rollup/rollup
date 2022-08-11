@@ -1,4 +1,4 @@
-import process from 'process';
+import process from 'node:process';
 import type { RollupError } from '../src/rollup/types';
 import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';

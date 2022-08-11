@@ -15,7 +15,7 @@ Either a function that takes an `id` and returns `true` (external) or `false` (n
 
 ```js
 // rollup.config.js
-import { fileURLToPath } from 'url'
+import { fileURLToPath } from 'node:url'
 
 export default {
   ...,
@@ -95,8 +95,8 @@ If you want to convert a set of file to another format while maintaining the fil
 
 ```js
 import glob from 'glob';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export default {
   input: Object.fromEntries(
@@ -208,7 +208,7 @@ To tell Rollup that a local file should be replaced by a global variable, use an
 
 ```js
 // rollup.config.js
-import { fileURLToPath } from 'url'
+import { fileURLToPath } from 'node:url'
 const externalId = fileURLToPath(new URL('src/some-local-file-that-should-not-be-bundled.js', import.meta.url))
 
 export default {
@@ -1132,7 +1132,7 @@ Type: `(relativeSourcePath: string, sourcemapPath: string) => string`
 A transformation to apply to each path in a sourcemap. `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
 
 ```js
-import path from 'path';
+import path from 'node:path';
 export default {
   input: 'src/main',
   output: [

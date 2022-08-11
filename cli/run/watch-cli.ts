@@ -1,5 +1,5 @@
-import { promises as fs, type FSWatcher } from 'fs';
-import process from 'process';
+import { promises as fs, type FSWatcher } from 'node:fs';
+import process from 'node:process';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';

@@ -1,6 +1,6 @@
-const assert = require('assert');
-const { existsSync, readFileSync } = require('fs');
-const { basename, resolve } = require('path');
+const assert = require('node:assert');
+const { existsSync, readFileSync } = require('node:fs');
+const { basename, resolve } = require('node:path');
 const { rollup } = require('../../dist/rollup');
 const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 

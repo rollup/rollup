@@ -1,4 +1,4 @@
-import process from 'process';
+import process from 'node:process';
 import ms from 'pretty-ms';
 import { rollup } from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { readFile, writeFile } from 'fs/promises';
+import { chdir, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { chdir, exit } from 'process';
 import GitHub from 'github-api';
 import inquirer from 'inquirer';
 import semverInc from 'semver/functions/inc.js';
