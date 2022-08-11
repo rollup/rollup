@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.77.3
+
+_2022-08-11_
+
+### Bug Fixes
+
+- Correctly resolve preserveModulesRoot in Vite (#4591)
+
+### Pull Requests
+
+- [#4591](https://github.com/rollup/rollup/pull/4591): resolve currentPath (@cleverpp)
+
 ## 2.77.2
 
 _2022-07-27_
