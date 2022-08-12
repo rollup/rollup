@@ -16,6 +16,7 @@ module.exports = {
 		'node_modules',
 		'dist',
 		'perf',
+		'tmp',
 		'_tmp',
 		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',

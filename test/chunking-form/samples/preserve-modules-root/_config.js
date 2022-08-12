@@ -7,6 +7,14 @@ module.exports = {
 	options: {
 		input: ['src/under-build.js', 'src/below/module.js'],
 		plugins: [
+			{
+				name: 'convert-slashes',
+				// This simulates converted slashes as used by e.g. Vite
+				async resolveId(source, importer, options) {
+					const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+					return { ...resolved, id: resolved.id.replace(/\\/g, '/') };
+				}
+			},
 			resolve({
 				moduleDirectories: ['custom_modules']
 			}),
