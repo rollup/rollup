@@ -1157,6 +1157,7 @@ describe('hooks', () => {
 
 		const ID_MAIN = path.join(TEMP_DIR, 'main.js');
 		await outputFile(ID_MAIN, 'console.log(42);');
+		await wait(100);
 
 		const watcher = rollup.watch({
 			input: ID_MAIN,
@@ -1173,7 +1174,7 @@ describe('hooks', () => {
 					if (event.error.message !== 'Expected render error') {
 						reject(event.error);
 					}
-					await wait(200);
+					await wait(300);
 					await outputFile(ID_MAIN, 'console.log(43);');
 				} else if (event.code === 'BUNDLE_END') {
 					await event.result.close();
@@ -1258,6 +1259,7 @@ describe('hooks', () => {
 
 		const ID_MAIN = path.join(TEMP_DIR, 'main.js');
 		await outputFile(ID_MAIN, 'console.log(42);');
+		await wait(100);
 
 		const watcher = rollup.watch({
 			input: ID_MAIN,
@@ -1274,7 +1276,7 @@ describe('hooks', () => {
 					if (event.error.message !== 'Expected render error') {
 						reject(event.error);
 					}
-					await wait(200);
+					await wait(300);
 					await outputFile(ID_MAIN, 'console.log(43);');
 				} else if (event.code === 'BUNDLE_END') {
 					await event.result.close();
