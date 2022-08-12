@@ -464,18 +464,18 @@ export type ParallelPluginHooks = Exclude<
 
 export type AddonHooks = 'banner' | 'footer' | 'intro' | 'outro';
 
-type MakeAsync<T extends (...a: any) => any> = (
-	...a: Parameters<T>
-) => ReturnType<T> | Promise<ReturnType<T>>;
+type MakeAsync<Fn> = Fn extends (this: infer This, ...args: infer Args) => infer Return
+	? (this: This, ...args: Args) => Return | Promise<Return>
+	: never;
 
-type ObjectHook<T, O = Record<string, never>> =
-	| T
-	| ({ handler: T; order?: 'pre' | 'post' | null } & O);
+// eslint-disable-next-line @typescript-eslint/ban-types
+type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<
 		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K],
-		K extends ParallelPluginHooks ? { sequential?: boolean } : Record<string, never>
+		// eslint-disable-next-line @typescript-eslint/ban-types
+		K extends ParallelPluginHooks ? { sequential?: boolean } : {}
 	>;
 };
 
