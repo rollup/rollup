@@ -1,13 +1,13 @@
 const assert = require('assert');
 
 module.exports = {
-	solo: true,
 	description: 'includes inline sourcemap comments in generateBundle hook',
 	options: {
 		plugins: [
 			{
 				name: 'test',
 				generateBundle(options, bundle) {
+					assert.deepStrictEqual(Object.keys(bundle), ['main.js']);
 					assert.strictEqual(
 						bundle['main.js'].code,
 						`'use strict';

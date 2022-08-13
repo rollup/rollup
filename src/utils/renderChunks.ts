@@ -19,7 +19,7 @@ import {
 	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
 	replaceSinglePlaceholder
 } from './hashPlaceholders';
-import { normalize, resolve } from './path';
+import { basename, normalize, resolve } from './path';
 import { SOURCEMAPPING_URL } from './sourceMappingURL';
 import { timeEnd, timeStart } from './timers';
 
@@ -72,6 +72,7 @@ export async function renderChunks(
 		hashesByPlaceholder,
 		outputBundle,
 		nonHashedChunksWithPlaceholders,
+		pluginDriver,
 		outputOptions
 	);
 
@@ -289,13 +290,15 @@ function addChunksToBundle(
 	hashesByPlaceholder: Map<string, string>,
 	outputBundle: OutputBundleWithPlaceholders,
 	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[],
-	{ sourcemap }: NormalizedOutputOptions
+	pluginDriver: PluginDriver,
+	options: NormalizedOutputOptions
 ) {
 	for (const { chunk, code, fileName, map } of renderedChunksByPlaceholder.values()) {
-		const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
+		let updatedCode = replacePlaceholders(code, hashesByPlaceholder);
 		const finalFileName = replacePlaceholders(fileName, hashesByPlaceholder);
 		if (map) {
 			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
+			updatedCode += emitSourceMapAndGetComment(finalFileName, map, pluginDriver, options);
 		}
 		outputBundle[finalFileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
@@ -303,14 +306,28 @@ function addChunksToBundle(
 		let updatedCode = hashesByPlaceholder.size
 			? replacePlaceholders(code, hashesByPlaceholder)
 			: code;
-		// TODO Lukas use shared code for placeholder files above
-		// TODO Lukas support other sourcemap options
 		if (map) {
-			if (sourcemap === 'inline') {
-				const url = map.toUrl();
-				updatedCode += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-			}
+			updatedCode += emitSourceMapAndGetComment(fileName, map, pluginDriver, options);
 		}
 		outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
+}
+
+function emitSourceMapAndGetComment(
+	fileName: string,
+	map: SourceMap,
+	pluginDriver: PluginDriver,
+	{ sourcemap, sourcemapBaseUrl }: NormalizedOutputOptions
+) {
+	let url: string;
+	if (sourcemap === 'inline') {
+		url = map.toUrl();
+	} else {
+		const sourcemapFileName = `${basename(fileName)}.map`;
+		url = sourcemapBaseUrl
+			? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
+			: sourcemapFileName;
+		pluginDriver.emitFile({ fileName: `${fileName}.map`, source: map.toString(), type: 'asset' });
+	}
+	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
 }
