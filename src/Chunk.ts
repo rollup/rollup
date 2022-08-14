@@ -53,7 +53,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { basename, extname, isAbsolute } from './utils/path';
+import { basename, extname, isAbsolute, resolve } from './utils/path';
 import { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -932,7 +932,7 @@ export default class Chunk {
 			? sanitizedId.slice(0, -extName.length)
 			: sanitizedId;
 		if (isAbsolute(idWithoutExtension)) {
-			return preserveModulesRoot && idWithoutExtension.startsWith(preserveModulesRoot)
+			return preserveModulesRoot && resolve(idWithoutExtension).startsWith(preserveModulesRoot)
 				? idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[\\/]/, '')
 				: relative(this.inputBase, idWithoutExtension);
 		} else {

@@ -411,11 +411,20 @@ export function errInvalidOption(
 	};
 }
 
-export function errInvalidPluginHook(hook: string, plugin: string): RollupLog {
+export function errInvalidAddonPluginHook(hook: string, plugin: string): RollupLog {
 	return {
 		code: INVALID_PLUGIN_HOOK,
 		hook,
-		message: `Error running plugin hook "${hook}" for "${plugin}", expected a function hook.`,
+		message: `Error running plugin hook "${hook}" for plugin "${plugin}", expected a string, a function hook or an object with a "handler" string or function.`,
+		plugin
+	};
+}
+
+export function errInvalidFunctionPluginHook(hook: string, plugin: string): RollupLog {
+	return {
+		code: INVALID_PLUGIN_HOOK,
+		hook,
+		message: `Error running plugin hook "${hook}" for plugin "${plugin}", expected a function hook or an object with a "handler" function.`,
 		plugin
 	};
 }
