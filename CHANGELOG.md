@@ -13,7 +13,6 @@ _2022-08-14_
 ### Pull Requests
 
 - [#4600](https://github.com/rollup/rollup/pull/4591): Allow using objects as hooks to change execution order (@lukastaegert)
--
 
 ## 2.77.3
 
