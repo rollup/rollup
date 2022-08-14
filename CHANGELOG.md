@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 2.78.0
+
+_2022-08-14_
+
+### Features
+
+- Support writing plugin hooks as objects with a "handler" property (#4600)
+- Allow changing execution order per plugin hook (#4600)
+- Add flag to execute plugins in async parallel hooks sequentially (#4600)
+
+### Pull Requests
+
+- [#4600](https://github.com/rollup/rollup/pull/4591): Allow using objects as hooks to change execution order (@lukastaegert)
+-
+
 ## 2.77.3
 
 _2022-08-11_
