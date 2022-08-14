@@ -244,7 +244,7 @@ export type ResolveIdHook = (
 	source: string,
 	importer: string | undefined,
 	options: { custom?: CustomPluginOptions; isEntry: boolean }
-) => Promise<ResolveIdResult> | ResolveIdResult;
+) => ResolveIdResult;
 
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
@@ -257,7 +257,7 @@ export type ShouldTransformCachedModuleHook = (
 		resolvedSources: ResolvedIdMap;
 		syntheticNamedExports: boolean | string;
 	}
-) => Promise<boolean> | boolean;
+) => boolean;
 
 export type IsExternal = (
 	source: string,
@@ -269,9 +269,9 @@ export type IsPureModule = (id: string) => boolean | null | void;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
-type LoadResult = SourceDescription | string | null | void;
+export type LoadResult = SourceDescription | string | null | void;
 
-export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
+export type LoadHook = (this: PluginContext, id: string) => LoadResult;
 
 export interface TransformPluginContext extends PluginContext {
 	getCombinedSourcemap: () => SourceMap;
@@ -283,27 +283,22 @@ export type TransformHook = (
 	this: TransformPluginContext,
 	code: string,
 	id: string
-) => Promise<TransformResult> | TransformResult;
+) => TransformResult;
 
-export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => Promise<void> | void;
+export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => void;
 
 export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
 	chunk: RenderedChunk,
 	options: NormalizedOutputOptions
-) =>
-	| Promise<{ code: string; map?: SourceMapInput } | null>
-	| { code: string; map?: SourceMapInput }
-	| string
-	| null
-	| undefined;
+) => { code: string; map?: SourceMapInput } | string | null | undefined;
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | AcornNode,
 	importer: string
-) => Promise<ResolveIdResult> | ResolveIdResult;
+) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (
 	this: PluginContext,
@@ -344,7 +339,7 @@ export type WatchChangeHook = (
 	this: PluginContext,
 	id: string,
 	change: { event: ChangeEvent }
-) => Promise<void> | void;
+) => void;
 
 /**
  * use this type for plugin annotation
@@ -371,32 +366,21 @@ export interface OutputBundleWithPlaceholders {
 	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
 }
 
-export interface PluginHooks extends OutputPluginHooks {
-	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
-	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
-	closeBundle: (this: PluginContext) => Promise<void> | void;
-	closeWatcher: (this: PluginContext) => Promise<void> | void;
-	load: LoadHook;
-	moduleParsed: ModuleParsedHook;
-	options: (
-		this: MinimalPluginContext,
-		options: InputOptions
-	) => Promise<InputOptions | null | void> | InputOptions | null | void;
-	resolveDynamicImport: ResolveDynamicImportHook;
-	resolveId: ResolveIdHook;
-	shouldTransformCachedModule: ShouldTransformCachedModuleHook;
-	transform: TransformHook;
-	watchChange: WatchChangeHook;
-}
-
-interface OutputPluginHooks {
+export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
+	buildEnd: (this: PluginContext, err?: Error) => void;
+	buildStart: (this: PluginContext, options: NormalizedInputOptions) => void;
+	closeBundle: (this: PluginContext) => void;
+	closeWatcher: (this: PluginContext) => void;
 	generateBundle: (
 		this: PluginContext,
 		options: NormalizedOutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
-	) => void | Promise<void>;
+	) => void;
+	load: LoadHook;
+	moduleParsed: ModuleParsedHook;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | void;
 	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | void;
 	renderChunk: RenderChunkHook;
 	renderDynamicImport: (
@@ -408,45 +392,52 @@ interface OutputPluginHooks {
 			targetModuleId: string | null;
 		}
 	) => { left: string; right: string } | null | void;
-	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
+	renderError: (this: PluginContext, err?: Error) => void;
 	renderStart: (
 		this: PluginContext,
 		outputOptions: NormalizedOutputOptions,
 		inputOptions: NormalizedInputOptions
-	) => Promise<void> | void;
+	) => void;
 	/** @deprecated Use `resolveFileUrl` instead */
 	resolveAssetUrl: ResolveAssetUrlHook;
+	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveFileUrl: ResolveFileUrlHook;
+	resolveId: ResolveIdHook;
 	resolveImportMeta: ResolveImportMetaHook;
+	shouldTransformCachedModule: ShouldTransformCachedModuleHook;
+	transform: TransformHook;
+	watchChange: WatchChangeHook;
 	writeBundle: (
 		this: PluginContext,
 		options: NormalizedOutputOptions,
 		bundle: OutputBundle
-	) => void | Promise<void>;
+	) => void;
 }
 
-export type AsyncPluginHooks =
-	| 'options'
-	| 'buildEnd'
-	| 'buildStart'
+export type OutputPluginHooks =
+	| 'augmentChunkHash'
 	| 'generateBundle'
-	| 'load'
-	| 'moduleParsed'
+	| 'outputOptions'
 	| 'renderChunk'
+	| 'renderDynamicImport'
 	| 'renderError'
 	| 'renderStart'
-	| 'resolveDynamicImport'
-	| 'resolveId'
-	| 'shouldTransformCachedModule'
-	| 'transform'
-	| 'writeBundle'
-	| 'closeBundle'
-	| 'closeWatcher'
-	| 'watchChange';
+	| 'resolveAssetUrl'
+	| 'resolveFileUrl'
+	| 'resolveImportMeta'
+	| 'writeBundle';
 
-export type PluginValueHooks = 'banner' | 'footer' | 'intro' | 'outro';
+export type InputPluginHooks = Exclude<keyof FunctionPluginHooks, OutputPluginHooks>;
 
-export type SyncPluginHooks = Exclude<keyof PluginHooks, AsyncPluginHooks>;
+export type SyncPluginHooks =
+	| 'augmentChunkHash'
+	| 'outputOptions'
+	| 'renderDynamicImport'
+	| 'resolveAssetUrl'
+	| 'resolveFileUrl'
+	| 'resolveImportMeta';
+
+export type AsyncPluginHooks = Exclude<keyof FunctionPluginHooks, SyncPluginHooks>;
 
 export type FirstPluginHooks =
 	| 'load'
@@ -466,37 +457,38 @@ export type SequentialPluginHooks =
 	| 'renderChunk'
 	| 'transform';
 
-export type ParallelPluginHooks =
-	| 'banner'
-	| 'buildEnd'
-	| 'buildStart'
-	| 'footer'
-	| 'intro'
-	| 'moduleParsed'
-	| 'outro'
-	| 'renderError'
-	| 'renderStart'
-	| 'writeBundle'
-	| 'closeBundle'
-	| 'closeWatcher'
-	| 'watchChange';
+export type ParallelPluginHooks = Exclude<
+	keyof FunctionPluginHooks | AddonHooks,
+	FirstPluginHooks | SequentialPluginHooks
+>;
 
-interface OutputPluginValueHooks {
-	banner: AddonHook;
-	cacheKey: string;
-	footer: AddonHook;
-	intro: AddonHook;
-	outro: AddonHook;
+export type AddonHooks = 'banner' | 'footer' | 'intro' | 'outro';
+
+type MakeAsync<Fn> = Fn extends (this: infer This, ...args: infer Args) => infer Return
+	? (this: This, ...args: Args) => Return | Promise<Return>
+	: never;
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
+
+export type PluginHooks = {
+	[K in keyof FunctionPluginHooks]: ObjectHook<
+		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K],
+		// eslint-disable-next-line @typescript-eslint/ban-types
+		K extends ParallelPluginHooks ? { sequential?: boolean } : {}
+	>;
+};
+
+export interface OutputPlugin
+	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
+		Partial<{ [K in AddonHooks]: ObjectHook<AddonHook> }> {
+	cacheKey?: string;
+	name: string;
 }
 
-export interface Plugin extends Partial<PluginHooks>, Partial<OutputPluginValueHooks> {
+export interface Plugin extends OutputPlugin, Partial<PluginHooks> {
 	// for inter-plugin communication
 	api?: any;
-	name: string;
-}
-
-export interface OutputPlugin extends Partial<OutputPluginHooks>, Partial<OutputPluginValueHooks> {
-	name: string;
 }
 
 type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';

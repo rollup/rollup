@@ -1,6 +1,7 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
+import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import type { PluginDriver } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
 import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
@@ -112,7 +113,10 @@ async function getInputOptions(
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	const rawPlugins = ensureArray(rawInputOptions.plugins) as Plugin[];
+	const rawPlugins = getSortedValidatedPlugins(
+		'options',
+		ensureArray(rawInputOptions.plugins) as Plugin[]
+	);
 	const { options, unsetOptions } = normalizeInputOptions(
 		await rawPlugins.reduce(applyOptionHook(watchMode), Promise.resolve(rawInputOptions))
 	);
@@ -125,16 +129,13 @@ function applyOptionHook(watchMode: boolean) {
 		inputOptions: Promise<GenericConfigObject>,
 		plugin: Plugin
 	): Promise<GenericConfigObject> => {
-		if (plugin.options) {
-			return (
-				((await plugin.options.call(
-					{ meta: { rollupVersion, watchMode } },
-					await inputOptions
-				)) as GenericConfigObject) || inputOptions
-			);
-		}
-
-		return inputOptions;
+		const handler = 'handler' in plugin.options! ? plugin.options.handler : plugin.options!;
+		return (
+			((await handler.call(
+				{ meta: { rollupVersion, watchMode } },
+				await inputOptions
+			)) as GenericConfigObject) || inputOptions
+		);
 	};
 }
 

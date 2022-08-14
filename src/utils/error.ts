@@ -255,6 +255,24 @@ export function errInvalidOption(
 	};
 }
 
+export function errInvalidAddonPluginHook(hook: string, plugin: string): RollupLogProps {
+	return {
+		code: Errors.INVALID_PLUGIN_HOOK,
+		hook,
+		message: `Error running plugin hook ${hook} for plugin ${plugin}, expected a string, a function hook or an object with a "handler" string or function.`,
+		plugin
+	};
+}
+
+export function errInvalidFunctionPluginHook(hook: string, plugin: string): RollupLogProps {
+	return {
+		code: Errors.INVALID_PLUGIN_HOOK,
+		hook,
+		message: `Error running plugin hook ${hook} for plugin ${plugin}, expected a function hook or an object with a "handler" function.`,
+		plugin
+	};
+}
+
 export function errInvalidRollupPhaseForAddWatchFile(): RollupLogProps {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,

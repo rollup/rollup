@@ -1,43 +1,38 @@
 const assert = require('assert');
-const { readdirSync } = require('fs');
 const path = require('path');
-const { removeSync } = require('fs-extra');
+const { outputFile, readdir, remove } = require('fs-extra');
 const rollup = require('../../dist/rollup.js');
-const { loader } = require('../utils.js');
+const { loader, wait } = require('../utils.js');
 
 const TEMP_DIR = path.join(__dirname, 'tmp');
 
 describe('hooks', () => {
-	it('allows to replace file with dir in the outputOptions hook', () =>
-		rollup
-			.rollup({
-				input: 'input',
-				treeshake: false,
-				plugins: [
-					loader({
-						input: `console.log('input');import('other');`,
-						other: `console.log('other');`
-					}),
-					{
-						outputOptions(options) {
-							const newOptions = { ...options, dir: TEMP_DIR, chunkFileNames: 'chunk.js' };
-							delete newOptions.file;
-							return newOptions;
-						}
+	it('allows to replace file with dir in the outputOptions hook', async () => {
+		const bundle = await rollup.rollup({
+			input: 'input',
+			treeshake: false,
+			plugins: [
+				loader({
+					input: `console.log('input');import('other');`,
+					other: `console.log('other');`
+				}),
+				{
+					outputOptions(options) {
+						const newOptions = { ...options, dir: TEMP_DIR, chunkFileNames: 'chunk.js' };
+						delete newOptions.file;
+						return newOptions;
 					}
-				]
-			})
-			.then(bundle =>
-				bundle.write({
-					file: path.join(TEMP_DIR, 'bundle.js'),
-					format: 'es'
-				})
-			)
-			.then(() => {
-				const fileNames = readdirSync(TEMP_DIR).sort();
-				assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
-				return removeSync(TEMP_DIR);
-			}));
+				}
+			]
+		});
+		await bundle.write({
+			file: path.join(TEMP_DIR, 'bundle.js'),
+			format: 'es'
+		});
+		const fileNames = (await readdir(TEMP_DIR)).sort();
+		await remove(TEMP_DIR);
+		assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
+	});
 
 	it('supports buildStart and buildEnd hooks', () => {
 		let buildStartCnt = 0;
@@ -545,38 +540,35 @@ describe('hooks', () => {
 			})
 			.then(bundle => bundle.generate({ format: 'es' })));
 
-	it('supports writeBundle hook', () => {
+	it('supports writeBundle hook', async () => {
 		const file = path.join(TEMP_DIR, 'bundle.js');
-		let bundle;
+		let generatedBundle;
 		let callCount = 0;
-		return rollup
-			.rollup({
-				input: 'input',
-				plugins: [
-					loader({
-						input: `export { a as default } from 'dep';`,
-						dep: `export var a = 1; export var b = 2;`
-					}),
-					{
-						generateBundle(options, outputBundle, isWrite) {
-							bundle = outputBundle;
-							assert.strictEqual(isWrite, true);
-						}
-					},
-					{
-						writeBundle(options, outputBundle) {
-							assert.deepStrictEqual(options.file, file);
-							assert.deepStrictEqual(outputBundle, bundle);
-							callCount++;
-						}
+		const bundle = await rollup.rollup({
+			input: 'input',
+			plugins: [
+				loader({
+					input: `export { a as default } from 'dep';`,
+					dep: `export var a = 1; export var b = 2;`
+				}),
+				{
+					generateBundle(options, outputBundle, isWrite) {
+						generatedBundle = outputBundle;
+						assert.strictEqual(isWrite, true);
 					}
-				]
-			})
-			.then(bundle => bundle.write({ format: 'es', file }))
-			.then(() => {
-				assert.strictEqual(callCount, 1);
-				return removeSync(TEMP_DIR);
-			});
+				},
+				{
+					writeBundle(options, outputBundle) {
+						assert.deepStrictEqual(options.file, file);
+						assert.deepStrictEqual(outputBundle, generatedBundle);
+						callCount++;
+					}
+				}
+			]
+		});
+		await bundle.write({ format: 'es', file });
+		await remove(TEMP_DIR);
+		assert.strictEqual(callCount, 1);
 	});
 
 	it('supports this.cache for plugins', () =>
@@ -1119,6 +1111,202 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(output[0].fileName, 'test:input');
 			});
+	});
+
+	it('allows to enforce plugin hook order in watch mode', async () => {
+		const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
+
+		const calledHooks = {};
+		for (const hook of hooks) {
+			calledHooks[hook] = [];
+		}
+
+		let first = true;
+		const plugins = [
+			{
+				name: 'render-error',
+				renderChunk() {
+					if (first) {
+						first = false;
+						throw new Error('Expected render error');
+					}
+				}
+			}
+		];
+		addPlugin(null);
+		addPlugin('pre');
+		addPlugin('post');
+		addPlugin('post');
+		addPlugin('pre');
+		addPlugin(undefined);
+		function addPlugin(order) {
+			const name = `${order}-${plugins.length}`;
+			const plugin = { name };
+			for (const hook of hooks) {
+				plugin[hook] = {
+					order,
+					handler() {
+						if (!calledHooks[hook].includes(name)) {
+							calledHooks[hook].push(name);
+						}
+					}
+				};
+			}
+			plugins.push(plugin);
+		}
+
+		const ID_MAIN = path.join(TEMP_DIR, 'main.js');
+		await outputFile(ID_MAIN, 'console.log(42);');
+		await wait(100);
+
+		const watcher = rollup.watch({
+			input: ID_MAIN,
+			output: {
+				format: 'es',
+				dir: path.join(TEMP_DIR, 'out')
+			},
+			plugins
+		});
+
+		return new Promise((resolve, reject) => {
+			watcher.on('event', async event => {
+				if (event.code === 'ERROR') {
+					if (event.error.message !== 'Expected render error') {
+						reject(event.error);
+					}
+					await wait(300);
+					await outputFile(ID_MAIN, 'console.log(43);');
+				} else if (event.code === 'BUNDLE_END') {
+					await event.result.close();
+					resolve();
+				}
+			});
+		}).finally(async () => {
+			await watcher.close();
+			await remove(TEMP_DIR);
+			for (const hook of hooks) {
+				assert.deepStrictEqual(
+					calledHooks[hook],
+					['pre-2', 'pre-5', 'null-1', 'undefined-6', 'post-3', 'post-4'],
+					hook
+				);
+			}
+		});
+	});
+
+	it('allows to enforce sequential plugin hook order in watch mode', async () => {
+		const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];
+
+		const calledHooks = {};
+		const activeHooks = {};
+		for (const hook of hooks) {
+			calledHooks[hook] = [];
+			activeHooks[hook] = new Set();
+		}
+
+		let first = true;
+		const plugins = [
+			{
+				name: 'render-error',
+				renderChunk() {
+					if (first) {
+						first = false;
+						throw new Error('Expected render error');
+					}
+				}
+			}
+		];
+		addPlugin(null, true);
+		addPlugin('pre', false);
+		addPlugin('post', false);
+		addPlugin('post', false);
+		addPlugin('pre', false);
+		addPlugin(undefined, true);
+		addPlugin(null, false);
+		addPlugin('pre', true);
+		addPlugin('post', true);
+		addPlugin('post', true);
+		addPlugin('pre', true);
+		addPlugin(undefined, false);
+
+		function addPlugin(order, sequential) {
+			const name = `${order}-${sequential ? 'seq-' : ''}${plugins.length}`;
+			const plugin = { name };
+			for (const hook of hooks) {
+				plugin[hook] = {
+					order,
+					async handler() {
+						const active = activeHooks[hook];
+						if (!calledHooks[hook].includes(name)) {
+							calledHooks[hook].push(sequential ? name : [name, [...active]]);
+						}
+						if (sequential) {
+							if (active.size > 0) {
+								throw new Error(`Detected parallel hook runs in ${hook}.`);
+							}
+						}
+						active.add(name);
+						// A setTimeout always takes longer than any chain of immediately
+						// resolved promises
+						await wait(0);
+						active.delete(name);
+					},
+					sequential
+				};
+			}
+			plugins.push(plugin);
+		}
+
+		const ID_MAIN = path.join(TEMP_DIR, 'main.js');
+		await outputFile(ID_MAIN, 'console.log(42);');
+		await wait(100);
+
+		const watcher = rollup.watch({
+			input: ID_MAIN,
+			output: {
+				format: 'es',
+				dir: path.join(TEMP_DIR, 'out')
+			},
+			plugins
+		});
+
+		return new Promise((resolve, reject) => {
+			watcher.on('event', async event => {
+				if (event.code === 'ERROR') {
+					if (event.error.message !== 'Expected render error') {
+						reject(event.error);
+					}
+					await wait(300);
+					await outputFile(ID_MAIN, 'console.log(43);');
+				} else if (event.code === 'BUNDLE_END') {
+					await event.result.close();
+					resolve();
+				}
+			});
+		}).finally(async () => {
+			await watcher.close();
+			await remove(TEMP_DIR);
+			for (const hook of hooks) {
+				assert.deepStrictEqual(
+					calledHooks[hook],
+					[
+						['pre-2', []],
+						['pre-5', ['pre-2']],
+						'pre-seq-8',
+						'pre-seq-11',
+						'null-seq-1',
+						'undefined-seq-6',
+						['null-7', []],
+						['undefined-12', ['null-7']],
+						['post-3', ['null-7', 'undefined-12']],
+						['post-4', ['null-7', 'undefined-12', 'post-3']],
+						'post-seq-9',
+						'post-seq-10'
+					],
+					hook
+				);
+			}
+		});
 	});
 
 	describe('deprecated', () => {
