@@ -225,10 +225,17 @@ const getPreserveModulesRoot = (
 };
 
 const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
-	const mergedOption: { autoId: boolean; basePath: string; define: string; id?: string } = {
+	const mergedOption: {
+		autoId: boolean;
+		basePath: string;
+		define: string;
+		id?: string;
+		keepExtension: boolean;
+	} = {
 		autoId: false,
 		basePath: '',
 		define: 'define',
+		keepExtension: false,
 		...config.amd
 	};
 
@@ -256,13 +263,15 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 		normalized = {
 			autoId: true,
 			basePath: mergedOption.basePath,
-			define: mergedOption.define
+			define: mergedOption.define,
+			keepExtension: mergedOption.keepExtension
 		};
 	} else {
 		normalized = {
 			autoId: false,
 			define: mergedOption.define,
-			id: mergedOption.id
+			id: mergedOption.id,
+			keepExtension: mergedOption.keepExtension
 		};
 	}
 	return normalized;
