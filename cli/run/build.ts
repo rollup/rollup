@@ -5,7 +5,6 @@ import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold, cyan, green } from '../../src/utils/colors';
 import { errOnlyInlineSourcemapsForStdout } from '../../src/utils/error';
 import relativeId from '../../src/utils/relativeId';
-import { SOURCEMAPPING_URL } from '../../src/utils/sourceMappingURL';
 import { handleError, stderr } from '../logging';
 import type { BatchWarnings } from './batchWarnings';
 import { printTimings } from './timings';
@@ -37,20 +36,10 @@ export default async function build(
 		if (output.sourcemap && output.sourcemap !== 'inline') {
 			handleError(errOnlyInlineSourcemapsForStdout());
 		}
-
 		const { output: outputs } = await bundle.generate(output);
 		for (const file of outputs) {
-			let source: string | Uint8Array;
-			if (file.type === 'asset') {
-				source = file.source;
-			} else {
-				source = file.code;
-				if (output.sourcemap === 'inline') {
-					source += `\n//# ${SOURCEMAPPING_URL}=${file.map!.toUrl()}\n`;
-				}
-			}
 			if (outputs.length > 1) process.stdout.write(`\n${cyan(bold(`//→ ${file.fileName}:`))}\n`);
-			process.stdout.write(source as Buffer);
+			process.stdout.write(file.type === 'asset' ? file.source : file.code);
 		}
 		if (!silent) {
 			warnings.flush();
