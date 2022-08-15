@@ -19,7 +19,8 @@ import {
 	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
 	replaceSinglePlaceholder
 } from './hashPlaceholders';
-import { normalize, resolve } from './path';
+import { basename, normalize, resolve } from './path';
+import { SOURCEMAPPING_URL } from './sourceMappingURL';
 import { timeEnd, timeStart } from './timers';
 
 interface HashResult {
@@ -70,7 +71,9 @@ export async function renderChunks(
 		renderedChunksByPlaceholder,
 		hashesByPlaceholder,
 		outputBundle,
-		nonHashedChunksWithPlaceholders
+		nonHashedChunksWithPlaceholders,
+		pluginDriver,
+		outputOptions
 	);
 
 	timeEnd('transform chunks', 2);
@@ -286,20 +289,45 @@ function addChunksToBundle(
 	renderedChunksByPlaceholder: Map<string, RenderedChunkWithPlaceholders>,
 	hashesByPlaceholder: Map<string, string>,
 	outputBundle: OutputBundleWithPlaceholders,
-	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[]
+	nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[],
+	pluginDriver: PluginDriver,
+	options: NormalizedOutputOptions
 ) {
 	for (const { chunk, code, fileName, map } of renderedChunksByPlaceholder.values()) {
-		const updatedCode = replacePlaceholders(code, hashesByPlaceholder);
+		let updatedCode = replacePlaceholders(code, hashesByPlaceholder);
 		const finalFileName = replacePlaceholders(fileName, hashesByPlaceholder);
 		if (map) {
 			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
+			updatedCode += emitSourceMapAndGetComment(finalFileName, map, pluginDriver, options);
 		}
 		outputBundle[finalFileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
 	for (const { chunk, code, fileName, map } of nonHashedChunksWithPlaceholders) {
-		const updatedCode = hashesByPlaceholder.size
+		let updatedCode = hashesByPlaceholder.size
 			? replacePlaceholders(code, hashesByPlaceholder)
 			: code;
+		if (map) {
+			updatedCode += emitSourceMapAndGetComment(fileName, map, pluginDriver, options);
+		}
 		outputBundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
+}
+
+function emitSourceMapAndGetComment(
+	fileName: string,
+	map: SourceMap,
+	pluginDriver: PluginDriver,
+	{ sourcemap, sourcemapBaseUrl }: NormalizedOutputOptions
+) {
+	let url: string;
+	if (sourcemap === 'inline') {
+		url = map.toUrl();
+	} else {
+		const sourcemapFileName = `${basename(fileName)}.map`;
+		url = sourcemapBaseUrl
+			? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
+			: sourcemapFileName;
+		pluginDriver.emitFile({ fileName: `${fileName}.map`, source: map.toString(), type: 'asset' });
+	}
+	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
 }
