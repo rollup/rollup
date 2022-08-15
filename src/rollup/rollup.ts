@@ -15,9 +15,8 @@ import { catchUnfinishedHookActions } from '../utils/hookActions';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
 import type { GenericConfigObject } from '../utils/options/options';
-import { basename, dirname, resolve } from '../utils/path';
+import { dirname, resolve } from '../utils/path';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
-import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import type {
 	NormalizedInputOptions,
@@ -279,31 +278,7 @@ async function writeOutputFile(
 	// 'recursive: true' does not throw if the folder structure, or parts of it, already exist
 	await fs.mkdir(dirname(fileName), { recursive: true });
 
-	let writeSourceMapPromise: Promise<void> | undefined;
-	let source: string | Uint8Array;
-	if (outputFile.type === 'asset') {
-		source = outputFile.source;
-	} else {
-		source = outputFile.code;
-		if (outputOptions.sourcemap && outputFile.map) {
-			let url: string;
-			if (outputOptions.sourcemap === 'inline') {
-				url = outputFile.map.toUrl();
-			} else {
-				const { sourcemapBaseUrl } = outputOptions;
-				const sourcemapFileName = `${basename(outputFile.fileName)}.map`;
-				url = sourcemapBaseUrl
-					? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
-					: sourcemapFileName;
-				writeSourceMapPromise = fs.writeFile(`${fileName}.map`, outputFile.map.toString());
-			}
-			if (outputOptions.sourcemap !== 'hidden') {
-				source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-			}
-		}
-	}
-
-	return Promise.all([fs.writeFile(fileName, source), writeSourceMapPromise]);
+	return fs.writeFile(fileName, outputFile.type === 'asset' ? outputFile.source : outputFile.code);
 }
 
 /**
