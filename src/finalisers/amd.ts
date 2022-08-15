@@ -3,7 +3,7 @@ import type { NormalizedOutputOptions } from '../rollup/types';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
-import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
+import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import type { FinaliserOptions } from './index';
 
@@ -36,7 +36,7 @@ export default function amd(
 ): Bundle {
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(
-		m => `'${amd.keepExtension ? m.id : removeExtensionFromRelativeAmdId(m.id)}'`
+		m => `'${updateExtensionForRelativeAmdId(m.id, amd.keepExtension)}'`
 	);
 	const args = dependencies.map(m => m.name);
 	const { n, getNonArrowFunctionIntro, _ } = snippets;

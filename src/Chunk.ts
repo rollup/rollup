@@ -938,7 +938,7 @@ export default class Chunk {
 		options: NormalizedOutputOptions,
 		snippets: GenerateCodeSnippets
 	): void {
-		const stripKnownJsExtensions = options.format === 'amd';
+		const stripKnownJsExtensions = options.format === 'amd' && !options.amd.keepExtension;
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
 				const chunk = this.chunkByModule.get(resolution as Module);
