@@ -134,6 +134,55 @@ describe('rollup.watch', () => {
 		]);
 	});
 
+	it('waits for event listeners', async () => {
+		let run = 0;
+
+		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		watcher = rollup.watch({
+			input: 'test/_tmp/input/main.js',
+			plugins: {
+				async writeBundle() {
+					if (run++ === 0) {
+						await wait(100);
+						atomicWriteFileSync('test/_tmp/input/main.js', 'export default 48;');
+						await wait(100);
+					}
+					if (run === 2) {
+						watcher.close();
+					}
+				}
+			},
+			output: {
+				file: 'test/_tmp/output/bundle.js',
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		return new Promise((resolve, reject) => {
+			let currentEvent = null;
+			const handleEvent = async (...args) => {
+				if (currentEvent) {
+					watcher.close();
+					return reject(
+						new Error(
+							`Event ${JSON.stringify(args)} was emitted while handling ${JSON.stringify(
+								currentEvent
+							)}.`
+						)
+					);
+				}
+				currentEvent = args;
+				await wait(100);
+				currentEvent = null;
+			};
+			watcher.on('start', handleEvent);
+			watcher.on('event', handleEvent);
+			watcher.on('change', handleEvent);
+			watcher.on('restart', handleEvent);
+			watcher.on('close', resolve);
+		});
+	});
+
 	it('does not fail for virtual files', async () => {
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({
