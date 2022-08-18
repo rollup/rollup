@@ -38,7 +38,6 @@ describe('rollup.watch', () => {
 		await new Promise((fulfil, reject) => {
 			function go(event) {
 				const next = events.shift();
-
 				if (!next) {
 					watcher.close();
 					fulfil();
