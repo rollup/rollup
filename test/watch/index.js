@@ -136,6 +136,7 @@ describe('rollup.watch', () => {
 
 	it('waits for event listeners', async () => {
 		let run = 0;
+		const events = new Set();
 
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({
@@ -158,9 +159,10 @@ describe('rollup.watch', () => {
 				exports: 'auto'
 			}
 		});
-		return new Promise((resolve, reject) => {
+		await new Promise((resolve, reject) => {
 			let currentEvent = null;
 			const handleEvent = async (...args) => {
+				events.add(args[0]?.code);
 				if (currentEvent) {
 					watcher.close();
 					return reject(
@@ -175,12 +177,14 @@ describe('rollup.watch', () => {
 				await wait(100);
 				currentEvent = null;
 			};
-			watcher.on('start', handleEvent);
+			// This should work but should not have an effect
+			watcher.off('event', handleEvent);
 			watcher.on('event', handleEvent);
 			watcher.on('change', handleEvent);
 			watcher.on('restart', handleEvent);
 			watcher.on('close', resolve);
 		});
+		assert.deepStrictEqual([...events], ['START', 'BUNDLE_START', 'BUNDLE_END', 'END', undefined]);
 	});
 
 	it('does not fail for virtual files', async () => {
