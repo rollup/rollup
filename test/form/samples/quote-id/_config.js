@@ -9,7 +9,7 @@ module.exports = {
 	options: {
 		output: {
 			paths: id => {
-				if (id.startsWith('C:')) return id;
+				if (id === external3) return id;
 				return path.relative(__dirname, id);
 			},
 			name: 'Q',
