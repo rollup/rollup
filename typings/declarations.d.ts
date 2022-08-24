@@ -102,7 +102,8 @@ declare module 'is-reference' {
 
 declare module 'get-package-type' {
 	interface GetPackageType {
-		sync(fileName: string): 'module' | 'commonjs';
+		(fileName: string): Promise<string>;
+		sync(fileName: string): string;
 	}
 	const getPackageType: GetPackageType;
 	export default getPackageType;

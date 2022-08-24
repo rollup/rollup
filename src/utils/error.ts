@@ -100,7 +100,6 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	SOURCEMAP_ERROR = 'SOURCEMAP_ERROR',
 	SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT = 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
 	THIS_IS_UNDEFINED = 'THIS_IS_UNDEFINED',
-	TRANSPILED_ESM_CONFIG = 'TRANSPILED_ESM_CONFIG',
 	UNEXPECTED_NAMED_IMPORT = 'UNEXPECTED_NAMED_IMPORT',
 	UNKNOWN_OPTION = 'UNKNOWN_OPTION',
 	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
@@ -753,15 +752,6 @@ export function errThisIsUndefined(): RollupLog {
 		code: THIS_IS_UNDEFINED,
 		message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
 		url: `https://rollupjs.org/guide/en/#error-this-is-undefined`
-	};
-}
-
-export function errTranspiledEsmConfig(fileName: string): RollupLog {
-	return {
-		code: TRANSPILED_ESM_CONFIG,
-		message: `While loading the Rollup configuration from "${relativeId(
-			fileName
-		)}", Node tried to require an ES module from a CommonJS file, which is not supported. A common cause is if there is a package.json file with "type": "module" in the same folder. You can try to fix this by changing the extension of your configuration file to ".cjs" or ".mjs" depending on the content, which will prevent Rollup from trying to preprocess the file but rather hand it to Node directly.`
 	};
 }
 

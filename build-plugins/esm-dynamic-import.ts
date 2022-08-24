@@ -1,12 +1,14 @@
 import type { Plugin } from 'rollup';
 
+const expectedImports = 3;
+
 export default function esmDynamicImport(): Plugin {
 	let importsFound = 0;
 	return {
 		generateBundle() {
-			if (importsFound !== 2) {
+			if (importsFound !== expectedImports) {
 				throw new Error(
-					'Could not find 2 dynamic import in "loadConfigFile.ts" and "commandPlugin.ts", were the files renamed or modified?'
+					`Could not find ${expectedImports} dynamic imports in "loadConfigFile.ts" and "commandPlugin.ts", found ${importsFound}.`
 				);
 			}
 		},
