@@ -785,11 +785,11 @@ export default class Chunk {
 					dependencies.add(chunk);
 					if (addNonNamespacesAndInteropHelpers) {
 						if (variable.name === 'default') {
-							if (defaultInteropHelpersByInteropType[String(interop(module.id))]) {
+							if (defaultInteropHelpersByInteropType[interop(module.id)]) {
 								deconflictedDefault.add(chunk);
 							}
 						} else if (variable.name === '*') {
-							if (namespaceInteropHelpersByInteropType[String(interop(module.id))]) {
+							if (namespaceInteropHelpersByInteropType[interop(module.id)]) {
 								deconflictedNamespace.add(chunk);
 							}
 						}
@@ -972,7 +972,7 @@ export default class Chunk {
 					}
 					needsLiveBinding =
 						externalLiveBindings &&
-						(imported !== 'default' || isDefaultAProperty(String(interop(module.id)), true));
+						(imported !== 'default' || isDefaultAProperty(interop(module.id), true));
 				}
 			}
 			getOrCreate(reexportSpecifiers, dependency, () => []).push({

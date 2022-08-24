@@ -4,8 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var external = require('external');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
 		Object.keys(e).forEach(function (k) {
@@ -22,7 +21,7 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-var external__namespace = /*#__PURE__*/_interopNamespace(external);
+var external__namespace = /*#__PURE__*/_interopNamespaceDefault(external);
 
 
 

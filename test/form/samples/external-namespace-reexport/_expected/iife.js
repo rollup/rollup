@@ -1,8 +1,7 @@
 var myBundle = (function (exports, highcharts) {
 	'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -19,7 +18,7 @@ var myBundle = (function (exports, highcharts) {
 		return Object.freeze(n);
 	}
 
-	var highcharts__namespace = /*#__PURE__*/_interopNamespace(highcharts);
+	var highcharts__namespace = /*#__PURE__*/_interopNamespaceDefault(highcharts);
 
 
 

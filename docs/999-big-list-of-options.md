@@ -647,9 +647,9 @@ This will inline dynamic imports instead of creating new chunks to create a sing
 
 #### output.interop
 
-Type: `"auto" | "esModule" | "default" | "defaultOnly" | boolean | ((id: string) => "auto" | "esModule" | "default" | "defaultOnly" | boolean)`<br> CLI: `--interop <value>`<br> Default: `true`
+Type: `"compat" | "auto" | "esModule" | "default" | "defaultOnly" | ((id: string) => "compat" | "auto" | "esModule" | "default" | "defaultOnly")`<br> CLI: `--interop <value>`<br> Default: `"default"`
 
-Controls how Rollup handles default, namespace and dynamic imports from external dependencies in formats like CommonJS that do not natively support these concepts. Note that even though `true` is the current default value, this value is deprecated and will be replaced by `"auto"` in the next major version of Rollup. In the examples, we will be using the CommonJS format, but the interop similarly applies to AMD, IIFE and UMD targets as well.
+Controls how Rollup handles default, namespace and dynamic imports from external dependencies in formats like CommonJS that do not natively support these concepts. Note that the default mode of "default" mimics NodeJS behavior and is different from TypeScript `esModuleInterop`. To get TypeScript's behavior, explicitly set the value to `"auto"`. In the examples, we will be using the CommonJS format, but the choice of interop similarly applies to AMD, IIFE and UMD targets as well.
 
 To understand the different values, assume we are bundling the following code for a `cjs` target:
 
@@ -661,21 +661,7 @@ import('external2').then(console.log);
 
 Keep in mind that for Rollup, `import * as ext_namespace from 'external'; console.log(ext_namespace.bar);` is completely equivalent to `import {bar} from 'external'; console.log(bar);` and will produce the same code. In the example above however, the namespace object itself is passed to a global function as well, which means we need it as a properly formed object.
 
-- `"esModule"` assumes that required modules are transpiled ES modules where the required value corresponds to the module namespace, and the default export is the `.default` property of the exported object:
-
-  ```js
-  var external = require('external1');
-  console.log(external['default'], external.bar, external);
-  Promise.resolve()
-    .then(function () {
-      return require('external2');
-    })
-    .then(console.log);
-  ```
-
-  When `esModule` is used, Rollup adds no additional interop helpers and also supports live-bindings for default exports.
-
-- `"default"` assumes that the required value should be treated as the default export of the imported module, just like when importing CommonJS from an ES module context in Node. In contrast to Node, though, named imports are supported as well which are treated as properties of the default import. To create the namespace object, Rollup injects helpers:
+- `"default"` assumes that the required value should be treated as the default export of the imported module, just like when importing CommonJS from an ES module context in NodeJS. Named imports are supported as well, which are treated as properties of the default import. To create the namespace object, Rollup injects these helpers:
 
   ```js
   var external = require('external1');
@@ -701,12 +687,12 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
         }
       });
     }
-    n['default'] = e;
+    n.default = e;
     return Object.freeze(n);
   }
 
   var external__namespace = /*#__PURE__*/ _interopNamespaceDefault(external);
-  console.log(external, external.bar, external__namespace);
+  console.log(external, external__namespace.bar, external__namespace);
   Promise.resolve()
     .then(function () {
       return /*#__PURE__*/ _interopNamespaceDefault(require('external2'));
@@ -714,42 +700,53 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
     .then(console.log);
   ```
 
-- `"auto"` combines both `"esModule"` and `"default"` by injecting helpers that contain code that detects at runtime if the required value contains the [`__esModule` property](guide/en/#outputesmodule). Adding this property is a standard implemented by Rollup, Babel and many other tools to signify that the required value is the namespace of a transpiled ES module:
+- `"esModule"` assumes that required modules are transpiled ES modules where the required value corresponds to the module namespace, and the default export is the `.default` property of the exported object. This is the only interop type that will not inject any helper functions:
+
+  ```js
+  var external = require('external1');
+  console.log(external.default, external.bar, external);
+  Promise.resolve()
+    .then(function () {
+      return require('external2');
+    })
+    .then(console.log);
+  ```
+
+  When `esModule` is used, Rollup adds no additional interop helpers and also supports live-bindings for default exports.
+
+- `"auto"` combines both `"esModule"` and `"default"` by injecting helpers that contain code that detects at runtime if the required value contains the [`__esModule` property](guide/en/#outputesmodule). Adding this property is a hack implemented by TypeScript `esModuleInterop`, Babel and other tools to signify that the required value is the namespace of a transpiled ES module.:
 
   ```js
   var external = require('external1');
 
   function _interopNamespace(e) {
-    if (e && e.__esModule) {
-      return e;
-    } else {
-      var n = Object.create(null);
-      if (e) {
-        Object.keys(e).forEach(function (k) {
-          if (k !== 'default') {
-            var d = Object.getOwnPropertyDescriptor(e, k);
-            Object.defineProperty(
-              n,
-              k,
-              d.get
-                ? d
-                : {
-                    enumerable: true,
-                    get: function () {
-                      return e[k];
-                    }
+    if (e && e.__esModule) return e;
+    var n = Object.create(null);
+    if (e) {
+      Object.keys(e).forEach(function (k) {
+        if (k !== 'default') {
+          var d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(
+            n,
+            k,
+            d.get
+              ? d
+              : {
+                  enumerable: true,
+                  get: function () {
+                    return e[k];
                   }
-            );
-          }
-        });
-      }
-      n['default'] = e;
-      return Object.freeze(n);
+                }
+          );
+        }
+      });
     }
+    n.default = e;
+    return Object.freeze(n);
   }
 
   var external__namespace = /*#__PURE__*/ _interopNamespace(external);
-  console.log(external__namespace['default'], external.bar, external__namespace);
+  console.log(external__namespace.default, external__namespace.bar, external__namespace);
   Promise.resolve()
     .then(function () {
       return /*#__PURE__*/ _interopNamespace(require('external2'));
@@ -772,7 +769,67 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   }
 
   var ext_default__default = /*#__PURE__*/ _interopDefault(ext_default);
-  console.log(ext_default__default['default']);
+  console.log(ext_default__default.default);
+  ```
+
+- `compat` is equivalent to `"auto"` except that it uses a slightly different helper for the default export that checks for the presence of a `default` property instead of the `__esModule` property. Except for the rare situation where a CommonJS module exports a property `"default"` that should not be the default export, this often helps to make interop "just work" as it does not rely on idiosyncratic hacks but instead uses duck-typing:
+
+  ```js
+  var external = require('external1');
+
+  function _interopNamespaceCompat(e) {
+    if (e && typeof e === 'object' && 'default' in e) return e;
+    var n = Object.create(null);
+    if (e) {
+      Object.keys(e).forEach(function (k) {
+        if (k !== 'default') {
+          var d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(
+            n,
+            k,
+            d.get
+              ? d
+              : {
+                  enumerable: true,
+                  get: function () {
+                    return e[k];
+                  }
+                }
+          );
+        }
+      });
+    }
+    n.default = e;
+    return Object.freeze(n);
+  }
+
+  var external__namespace = /*#__PURE__*/ _interopNamespaceCompat(external);
+
+  console.log(external__namespace.default, external__namespace.bar, external__namespace);
+  Promise.resolve()
+    .then(function () {
+      return /*#__PURE__*/ _interopNamespaceCompat(require('external2'));
+    })
+    .then(console.log);
+  ```
+
+  Similar to `"auto"`, Rollup will use a simpler helper if the namespace is not needed:
+
+  ```js
+  // input
+  import ext_default from 'external';
+  console.log(ext_default);
+
+  // output
+  var ext_default = require('external');
+
+  function _interopDefaultCompat(e) {
+    return e && typeof e === 'object' && 'default' in e ? e : { default: e };
+  }
+
+  var ext_default__default = /*#__PURE__*/ _interopDefaultCompat(ext_default);
+
+  console.log(ext_default__default.default);
   ```
 
 - `"defaultOnly"` is similar to `"default"` except for the following:
@@ -821,14 +878,6 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
     }
   };
   ```
-
-- `true` is equivalent to `"auto"` except that it uses a slightly different helper for the default export that checks for the presence of a `default` property instead of the `__esModule` property.
-
-  ☢️ _This value is deprecated and will be removed in a future Rollup version._
-
-- `false` is equivalent to using `default` when importing a default export and `esModule` when importing a namespace.
-
-  ☢️ _This value is deprecated and will be removed in a future Rollup version._
 
 There are some additional options that have an effect on the generated interop code:
 

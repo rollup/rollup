@@ -1,7 +1,6 @@
 define(['exports', 'external1', 'external2'], (function (exports, imported1, external2) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,8 +17,8 @@ define(['exports', 'external1', 'external2'], (function (exports, imported1, ext
 		return Object.freeze(n);
 	}
 
-	var imported1__namespace = /*#__PURE__*/_interopNamespace(imported1);
-	var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
+	var imported1__namespace = /*#__PURE__*/_interopNamespaceDefault(imported1);
+	var external2__namespace = /*#__PURE__*/_interopNamespaceDefault(external2);
 
 	console.log(imported1__namespace, external2.imported2);
 

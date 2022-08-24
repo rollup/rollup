@@ -1,7 +1,6 @@
 'use strict';
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
 		Object.keys(e).forEach(function (k) {
@@ -18,4 +17,4 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./foo.js')); }).then(result => console.log(result));
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('./foo.js')); }).then(result => console.log(result));
