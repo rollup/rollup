@@ -55,7 +55,6 @@ async function getConfigFileExport(fileName: string, commandOptions: Record<stri
 	}
 	let cannotLoadEsm = false;
 	const handleWarning = (warning: Error): void => {
-		console.error(warning);
 		if (warning.message.includes('To load an ES module')) {
 			cannotLoadEsm = true;
 		}

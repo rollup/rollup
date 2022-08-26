@@ -70,10 +70,26 @@ describe('loadConfigFile', () => {
 			cause: {
 				message: "Unexpected token 'export'"
 			},
-			code: 'MISSING_CONFIGINVALID_CONFIG_MODULE_FORMAT',
+			code: 'INVALID_CONFIG_MODULE_FORMAT',
 			message:
 				'Node tried to load your configuration file as CommonJS even though it is likely an ES module. To resolve this, change the extension of your configuration to ".mjs", set "type": "module" in your package.json file or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: Unexpected token \'export\'',
 			url: 'https://rollupjs.org/guide/en/#--bundleconfigascjs'
+		});
+	});
+
+	it('just throws the error if it is not accompanied by the proper warning', async () => {
+		let caughtError;
+		try {
+			const promise = loadConfigFile(
+				path.resolve(__dirname, 'samples/esm-with-error/rollup.config.js')
+			);
+			process.emit('warning', { message: 'Another warning.' });
+			await promise;
+		} catch (err) {
+			caughtError = err;
+		}
+		compareError(caughtError, {
+			message: 'Config broken.'
 		});
 	});
 
@@ -103,10 +119,24 @@ describe('loadConfigFile', () => {
 			cause: {
 				message: 'module is not defined in ES module scope'
 			},
-			code: 'MISSING_CONFIGINVALID_CONFIG_MODULE_FORMAT',
+			code: 'INVALID_CONFIG_MODULE_FORMAT',
 			message:
 				'Rollup transpiled your configuration to an  ES module even though it appears to contain CommonJS elements. To resolve this, you can pass the "--bundleConfigAsCjs" flag to Rollup or change your configuration to only contain valid ESM code.\n\nOriginal error: module is not defined in ES module scope',
 			url: 'https://rollupjs.org/guide/en/#--bundleconfigascjs'
+		});
+	});
+
+	it('just throws other errors while bundling', async () => {
+		let caughtError;
+		try {
+			await loadConfigFile(path.resolve(__dirname, 'samples/esm-with-error/rollup.config.js'), {
+				configPlugin: '{transform: c => c}'
+			});
+		} catch (err) {
+			caughtError = err;
+		}
+		compareError(caughtError, {
+			message: 'Config broken.'
 		});
 	});
 });
