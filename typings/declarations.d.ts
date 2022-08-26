@@ -99,12 +99,3 @@ declare module 'is-reference' {
 				value: Node;
 		  };
 }
-
-declare module 'get-package-type' {
-	interface GetPackageType {
-		(fileName: string): Promise<string>;
-		sync(fileName: string): string;
-	}
-	const getPackageType: GetPackageType;
-	export default getPackageType;
-}

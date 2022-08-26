@@ -71,6 +71,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
+	INVALID_CONFIG_MODULE_FORMAT = 'MISSING_CONFIGINVALID_CONFIG_MODULE_FORMAT',
 	INVALID_EXPORT_OPTION = 'INVALID_EXPORT_OPTION',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
 	INVALID_OPTION = 'INVALID_OPTION',
@@ -361,6 +362,36 @@ export function errCannotAssignModuleToChunk(
 		message: `Cannot assign "${relativeId(
 			moduleId
 		)}" to the "${assignToAlias}" chunk as it is already in the "${currentAlias}" chunk.`
+	};
+}
+
+export function errCannotBundleConfigAsEsm(originalError: Error): RollupLog {
+	return {
+		cause: originalError,
+		code: INVALID_CONFIG_MODULE_FORMAT,
+		message: `Rollup transpiled your configuration to an  ES module even though it appears to contain CommonJS elements. To resolve this, you can pass the "--bundleConfigAsCjs" flag to Rollup or change your configuration to only contain valid ESM code.\n\nOriginal error: ${originalError.message}`,
+		stack: originalError.stack,
+		url: 'https://rollupjs.org/guide/en/#--bundleconfigascjs'
+	};
+}
+
+export function errCannotLoadConfigAsCjs(originalError: Error): RollupLog {
+	return {
+		cause: originalError,
+		code: INVALID_CONFIG_MODULE_FORMAT,
+		message: `Node tried to load your configuration file as CommonJS even though it is likely an ES module. To resolve this, change the extension of your configuration to ".mjs", set "type": "module" in your package.json file or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
+		stack: originalError.stack,
+		url: 'https://rollupjs.org/guide/en/#--bundleconfigascjs'
+	};
+}
+
+export function errCannotLoadConfigAsEsm(originalError: Error): RollupLog {
+	return {
+		cause: originalError,
+		code: INVALID_CONFIG_MODULE_FORMAT,
+		message: `Node tried to load your configuration as an ES module even though it is likely CommonJS. To resolve this, change the extension of your configuration to ".cjs" or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
+		stack: originalError.stack,
+		url: 'https://rollupjs.org/guide/en/#--bundleconfigascjs'
 	};
 }
 

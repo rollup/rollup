@@ -1,4 +1,4 @@
-const buble = require('@rollup/plugin-buble');
+import buble from "@rollup/plugin-buble";
 
 export default {
 	input: 'main.js',

@@ -2,7 +2,7 @@ const { mkdirSync, unlinkSync } = require('fs');
 const path = require('path');
 const { writeAndSync, writeAndRetry } = require('../../../../utils');
 
-const configFile = path.join(__dirname, 'rollup.config.js');
+const configFile = path.join(__dirname, 'rollup.config.mjs');
 let stopUpdate;
 
 module.exports = {
@@ -48,6 +48,7 @@ module.exports = {
 		stopUpdate();
 	},
 	abortOnStderr(data) {
+		console.log('data', data);
 		if (data === 'initial\n') {
 			stopUpdate = writeAndRetry(
 				configFile,
