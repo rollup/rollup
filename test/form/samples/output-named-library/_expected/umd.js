@@ -8,6 +8,4 @@
 
 	exports.valueOnLib = valueOnLib;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

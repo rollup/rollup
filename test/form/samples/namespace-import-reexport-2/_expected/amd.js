@@ -27,6 +27,4 @@ define(['exports', 'external1', 'external2'], (function (exports, external1, ext
 	});
 	exports.ext = external2__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

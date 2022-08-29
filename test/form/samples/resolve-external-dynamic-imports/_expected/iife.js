@@ -8,8 +8,6 @@ var bundle = (function (exports, myExternal) {
 	exports.someDynamicImport = someDynamicImport;
 	exports.test = test;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, myExternal);

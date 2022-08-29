@@ -11,6 +11,4 @@ define(['exports', 'a', 'b'], (function (exports, a, Test$1) { 'use strict';
   exports.Test = Test;
   exports.Test1 = Test1;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

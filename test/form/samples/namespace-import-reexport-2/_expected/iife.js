@@ -28,8 +28,6 @@ var iife = (function (exports, external1, external2) {
 	});
 	exports.ext = external2__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, external1, external2);

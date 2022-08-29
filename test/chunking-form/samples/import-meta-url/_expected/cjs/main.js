@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 function log(url) {
 	if (typeof document === 'undefined') {
 		console.log(url);

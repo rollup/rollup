@@ -31,6 +31,4 @@ define(['require', 'exports', 'input'], (function (require, exports, input) { 'u
 
 	exports.promise = promise;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

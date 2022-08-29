@@ -24,6 +24,4 @@ define(['require', 'exports', 'external'], (function (require, exports, myExtern
 	exports.someDynamicImport = someDynamicImport;
 	exports.test = test;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

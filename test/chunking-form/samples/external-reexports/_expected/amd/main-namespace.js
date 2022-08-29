@@ -32,6 +32,4 @@ define(['exports', 'external-all', 'external-namespace', 'external-default-names
 	exports.baz = externalDefaultNamespace__namespace;
 	exports.quux = externalNamedNamespace__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

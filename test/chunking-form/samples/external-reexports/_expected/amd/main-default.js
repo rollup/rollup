@@ -26,6 +26,4 @@ define(['exports', 'external-all', 'external-default', 'external-default-named',
 		get: function () { return externalDefaultNamespace__default.default; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

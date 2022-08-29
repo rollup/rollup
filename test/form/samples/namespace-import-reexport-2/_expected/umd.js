@@ -31,6 +31,4 @@
 	});
 	exports.ext = external2__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

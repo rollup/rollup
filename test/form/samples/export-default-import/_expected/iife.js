@@ -12,8 +12,6 @@ var myBundle = (function (exports, x) {
 		get: function () { return x__default.default; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, x);

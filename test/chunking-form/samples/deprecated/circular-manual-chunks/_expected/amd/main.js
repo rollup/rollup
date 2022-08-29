@@ -4,6 +4,4 @@ define(['exports', './generated-lib1', './generated-lib2'], (function (exports, 
 
 	exports.lib1 = lib1.lib1;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

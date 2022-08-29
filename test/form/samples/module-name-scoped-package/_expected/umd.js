@@ -8,6 +8,4 @@
 
 	exports.foo = foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

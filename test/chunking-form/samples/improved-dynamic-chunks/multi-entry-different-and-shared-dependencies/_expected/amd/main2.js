@@ -6,6 +6,4 @@ define(['require', 'exports', './generated-from-main-1-and-2'], (function (requi
 	exports.value2 = fromMain1And2.value2;
 	exports.value3 = fromMain1And2.value3;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

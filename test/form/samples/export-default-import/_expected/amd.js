@@ -11,6 +11,4 @@ define(['exports', 'x'], (function (exports, x) { 'use strict';
 		get: function () { return x__default.default; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

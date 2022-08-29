@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var externalAll = require('external-all');
 var externalNamespace$1 = require('external-namespace');
 var externalDefaultNamespace = require('external-default-namespace');

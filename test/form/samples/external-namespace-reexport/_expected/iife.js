@@ -24,8 +24,6 @@ var myBundle = (function (exports, highcharts) {
 
 	exports.Highcharts = highcharts__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, highcharts);

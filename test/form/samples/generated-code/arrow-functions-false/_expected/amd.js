@@ -73,6 +73,4 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 		});
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

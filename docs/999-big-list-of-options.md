@@ -591,15 +591,11 @@ const foo = null;
 export { foo as void };
 
 // cjs output with reservedNamesAsProps: false
-Object.defineProperty(exports, '__esModule', { value: true });
-
 const foo = null;
 
 exports['void'] = foo;
 
 // cjs output with reservedNamesAsProps: true
-Object.defineProperty(exports, '__esModule', { value: true });
-
 const foo = null;
 
 exports.void = foo;
@@ -614,24 +610,17 @@ Whether to allow the use of `Symbol` in auto-generated code snippets. Currently,
 export const foo = 42;
 
 // cjs output with symbols: false
-Object.defineProperty(exports, '__esModule', { value: true });
-
 const foo = 42;
 
 exports.foo = foo;
 
 // cjs output with symbols: true
-Object.defineProperties(exports, {
-  __esModule: { value: true },
-  [Symbol.toStringTag]: { value: 'Module' }
-});
+Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
 const foo = 42;
 
 exports.foo = foo;
 ```
-
-Note: The `__esModule` flag in the example can be prevented via the [`output.esModule`](https://rollupjs.org/guide/en/#outputesmodule) option.
 
 #### output.hoistTransitiveImports
 
@@ -1412,9 +1401,15 @@ export default {
 
 #### output.esModule
 
-Type: `boolean`<br> CLI: `--esModule`/`--no-esModule`<br> Default: `true`
+Type: `boolean | "if-default-prop"`<br> CLI: `--esModule`/`--no-esModule`<br> Default: `"if-default-prop"`
 
-Whether to add a `__esModule: true` property when generating exports for non-ES formats. This property signifies that the exported value is the namespace of an ES module and that the default export of this module corresponds to the `.default` property of the exported object. By default, Rollup adds this property when using [named exports mode](guide/en/#outputexports) for a chunk. See also [`output.interop`](https://rollupjs.org/guide/en/#outputinterop).
+Whether to add a `__esModule: true` property when generating exports for non-ES formats. This property signifies that the exported value is the namespace of an ES module and that the default export of this module corresponds to the `.default` property of the exported object.
+
+- `true` will always add the property when using [named exports mode](guide/en/#outputexports), which is similar to what other tools do.
+- `"if-default-prop"` will only add the property when using named exports mode and there also is a default export. The subtle difference is that if there is no default export, consumers of the CommonJS version of your library will get all named exports as default export instead of an error or `undefined`. We chose to make this the default value as the `__esModule` property is not a standard followed by any JavaScript runtime and leads to many interop issues, so we want to limit its use to the cases where it is really needed.
+- `false` on the other hand will never add the property even if the default export would become a property `.default`.
+
+See also [`output.interop`](https://rollupjs.org/guide/en/#outputinterop).
 
 #### output.exports
 
@@ -1488,8 +1483,6 @@ Example:
 export { x } from 'external';
 
 // CJS output with externalLiveBindings: true
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var external = require('external');
 
 Object.defineProperty(exports, 'x', {
@@ -1500,8 +1493,6 @@ Object.defineProperty(exports, 'x', {
 });
 
 // CJS output with externalLiveBindings: false
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var external = require('external');
 
 exports.x = external.x;

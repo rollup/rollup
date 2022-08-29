@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var myExternal = require('external');
 
 function _interopNamespaceDefault(e) {

@@ -6,6 +6,4 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	exports.shared = shared;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

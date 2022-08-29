@@ -19,6 +19,4 @@ define(['require', 'exports', 'external1', 'external2'], (function (require, exp
 		if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
 	}
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

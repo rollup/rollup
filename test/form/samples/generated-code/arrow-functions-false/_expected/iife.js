@@ -74,8 +74,6 @@ var bundle = (function (exports, externalNoImport, defaultCompat, externalAuto, 
 		});
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, null, defaultCompat, externalAuto, externalDefault, externalDefaultOnly);

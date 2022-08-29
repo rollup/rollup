@@ -12,6 +12,4 @@ define(['exports', './nested/a-amd-5dc7856c', './b.str-amd-f73e15b9', './c-amd-c
 	exports.h = h;
 	exports.x = noExt;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

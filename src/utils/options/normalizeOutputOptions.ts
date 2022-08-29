@@ -44,7 +44,7 @@ export function normalizeOutputOptions(
 		dir: getDir(config, file),
 		dynamicImportFunction: getDynamicImportFunction(config, inputOptions, format),
 		entryFileNames: getEntryFileNames(config, unsetOptions),
-		esModule: config.esModule ?? true,
+		esModule: config.esModule ?? 'if-default-prop',
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
 		externalLiveBindings: config.externalLiveBindings ?? true,

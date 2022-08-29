@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 function _mergeNamespaces(n, m) {
   m.forEach(function (e) {
     e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {

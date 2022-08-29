@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var imported1 = require('external1');
 var external2 = require('external2');
 

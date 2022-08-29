@@ -8,8 +8,6 @@ this.foo["@scoped/npm-package"].bar["why-would-you-do-this"] = (function (export
 
 	exports.foo = foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({});

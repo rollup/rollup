@@ -27,6 +27,4 @@
 
 	exports.ext = externalPackage__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

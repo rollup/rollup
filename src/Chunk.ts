@@ -583,9 +583,25 @@ export default class Chunk {
 
 		const renderedDependencies = [...this.getRenderedDependencies().values()];
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
-		const hasExports =
-			renderedExports.length !== 0 ||
-			renderedDependencies.some(dep => (dep.reexports && dep.reexports.length !== 0)!);
+		let hasExports = renderedExports.length !== 0;
+		let hasDefaultExport = false;
+		for (const { reexports } of renderedDependencies) {
+			if (reexports?.length) {
+				hasExports = true;
+				if (reexports.some(reexport => reexport.reexported === 'default')) {
+					hasDefaultExport = true;
+					break;
+				}
+			}
+		}
+		if (!hasDefaultExport) {
+			for (const { exported } of renderedExports) {
+				if (exported === 'default') {
+					hasDefaultExport = true;
+					break;
+				}
+			}
+		}
 
 		const { intro, outro, banner, footer } = await createAddons(
 			outputOptions,
@@ -598,6 +614,7 @@ export default class Chunk {
 				accessedGlobals,
 				dependencies: renderedDependencies,
 				exports: renderedExports,
+				hasDefaultExport,
 				hasExports,
 				id: preliminaryFileName.fileName,
 				indent,

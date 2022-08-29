@@ -16,6 +16,4 @@
 	exports.module = module;
 	exports.require = require;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

@@ -5,8 +5,6 @@ var bundle = (function (exports, external) {
 
 	exports.reexported = external;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, external);

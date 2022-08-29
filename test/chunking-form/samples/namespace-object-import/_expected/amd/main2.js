@@ -5,6 +5,4 @@ define(['exports', './generated-main2'], (function (exports, main2) { 'use stric
 	exports.a = main2.a;
 	exports.b = main2.b;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

@@ -28,6 +28,4 @@
 	exports.external = external__namespace;
 	exports.indirect = external__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

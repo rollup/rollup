@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 require('externalNoImport');
 var defaultCompat = require('external');
 var externalAuto = require('externalAuto');

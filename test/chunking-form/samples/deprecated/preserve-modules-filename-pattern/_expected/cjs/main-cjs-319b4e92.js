@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var foo = require('./foo-cjs-0d5774b5.js');
 var bar = require('./nested/bar-cjs-abedc91d.js');
 var baz = require('./nested/baz-cjs-4a9c02fc.js');

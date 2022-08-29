@@ -13,6 +13,4 @@
 		get: function () { return external2.foo; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

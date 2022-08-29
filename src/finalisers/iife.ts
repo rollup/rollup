@@ -20,6 +20,7 @@ export default function iife(
 		accessedGlobals,
 		dependencies,
 		exports,
+		hasDefaultExport,
 		hasExports,
 		indent: t,
 		intro,
@@ -118,7 +119,7 @@ export default function iife(
 	);
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
-		esModule,
+		esModule === true || (esModule === 'if-default-prop' && hasDefaultExport),
 		namespaceToStringTag,
 		snippets
 	);

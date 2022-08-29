@@ -7,6 +7,4 @@ define(['exports', './foo-amd-0f9dc16c', './nested/bar-amd-f038b10c', './nested/
 	exports.baz = baz;
 	exports.noExt = noExt;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

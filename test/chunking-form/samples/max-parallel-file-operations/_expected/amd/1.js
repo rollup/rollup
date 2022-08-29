@@ -4,6 +4,4 @@ define(['exports'], (function (exports) { 'use strict';
 
 	exports.x1 = x1;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var externalAll = require('external-all');
 var externalNamed = require('external-named');
 var externalDefaultNamed = require('external-default-named');

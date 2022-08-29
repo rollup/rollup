@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 Promise.resolve().then(function () { return main; }).then(console.log);
 console.log('dep1');
 const value1 = 'dep1';
