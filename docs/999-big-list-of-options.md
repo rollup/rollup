@@ -1333,7 +1333,7 @@ export default {
 
 **output.amd.keepExtension**<br> Type: `boolean`<br> CLI: `--amd.keepExtension`<br> Default: `false`
 
-Add `.js` extension for generated chunks and local AMD modules:
+Add `.js` extension for imports of generated chunks and local AMD modules:
 
 ```js
 // rollup.config.js
