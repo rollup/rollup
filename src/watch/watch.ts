@@ -38,6 +38,7 @@ export class Watcher {
 
 	private buildDelay = 0;
 	private buildTimeout: NodeJS.Timer | null = null;
+	private closed = false;
 	private readonly invalidatedIds = new Map<string, ChangeEvent>();
 	private rerun = false;
 	private running = true;
@@ -58,11 +59,13 @@ export class Watcher {
 	}
 
 	async close(): Promise<void> {
+		if (this.closed) return;
+		this.closed = true;
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 		for (const task of this.tasks) {
 			task.close();
 		}
-		await this.emitter.emitAndAwait('close');
+		await this.emitter.emit('close');
 		this.emitter.removeAllListeners();
 	}
 
@@ -91,22 +94,20 @@ export class Watcher {
 			this.buildTimeout = null;
 			try {
 				await Promise.all(
-					[...this.invalidatedIds].map(([id, event]) =>
-						this.emitter.emitAndAwait('change', id, { event })
-					)
+					[...this.invalidatedIds].map(([id, event]) => this.emitter.emit('change', id, { event }))
 				);
 				this.invalidatedIds.clear();
-				this.emitter.emit('restart');
-				this.emitter.removeAwaited();
+				await this.emitter.emit('restart');
+				this.emitter.removeListenersForCurrentRun();
 				this.run();
 			} catch (error: any) {
 				this.invalidatedIds.clear();
-				this.emitter.emit('event', {
+				await this.emitter.emit('event', {
 					code: 'ERROR',
 					error,
 					result: null
 				});
-				this.emitter.emit('event', {
+				await this.emitter.emit('event', {
 					code: 'END'
 				});
 			}
@@ -115,7 +116,7 @@ export class Watcher {
 
 	private async run(): Promise<void> {
 		this.running = true;
-		this.emitter.emit('event', {
+		await this.emitter.emit('event', {
 			code: 'START'
 		});
 
@@ -124,7 +125,7 @@ export class Watcher {
 		}
 
 		this.running = false;
-		this.emitter.emit('event', {
+		await this.emitter.emit('event', {
 			code: 'END'
 		});
 		if (this.rerun) {
@@ -197,7 +198,7 @@ export class Task {
 
 		const start = Date.now();
 
-		this.watcher.emitter.emit('event', {
+		await this.watcher.emitter.emit('event', {
 			code: 'BUNDLE_START',
 			input: this.options.input,
 			output: this.outputFiles
@@ -211,7 +212,7 @@ export class Task {
 			}
 			this.updateWatchedFiles(result);
 			this.skipWrite || (await Promise.all(this.outputs.map(output => result!.write(output))));
-			this.watcher.emitter.emit('event', {
+			await this.watcher.emitter.emit('event', {
 				code: 'BUNDLE_END',
 				duration: Date.now() - start,
 				input: this.options.input,
@@ -229,7 +230,7 @@ export class Task {
 					this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
 				}
 			}
-			this.watcher.emitter.emit('event', {
+			await this.watcher.emitter.emit('event', {
 				code: 'ERROR',
 				error,
 				result

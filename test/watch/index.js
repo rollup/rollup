@@ -134,6 +134,59 @@ describe('rollup.watch', () => {
 		]);
 	});
 
+	it('waits for event listeners', async () => {
+		let run = 0;
+		const events = new Set();
+
+		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		watcher = rollup.watch({
+			input: 'test/_tmp/input/main.js',
+			plugins: {
+				async writeBundle() {
+					if (run++ === 0) {
+						await wait(100);
+						atomicWriteFileSync('test/_tmp/input/main.js', 'export default 48;');
+						await wait(100);
+					}
+					if (run === 2) {
+						watcher.close();
+					}
+				}
+			},
+			output: {
+				file: 'test/_tmp/output/bundle.js',
+				format: 'cjs',
+				exports: 'auto'
+			}
+		});
+		await new Promise((resolve, reject) => {
+			let currentEvent = null;
+			const handleEvent = async (...args) => {
+				events.add(args[0]?.code);
+				if (currentEvent) {
+					watcher.close();
+					return reject(
+						new Error(
+							`Event ${JSON.stringify(args)} was emitted while handling ${JSON.stringify(
+								currentEvent
+							)}.`
+						)
+					);
+				}
+				currentEvent = args;
+				await wait(100);
+				currentEvent = null;
+			};
+			// This should work but should not have an effect
+			watcher.off('event', handleEvent);
+			watcher.on('event', handleEvent);
+			watcher.on('change', handleEvent);
+			watcher.on('restart', handleEvent);
+			watcher.on('close', resolve);
+		});
+		assert.deepStrictEqual([...events], ['START', 'BUNDLE_START', 'BUNDLE_END', 'END', undefined]);
+	});
+
 	it('does not fail for virtual files', async () => {
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({

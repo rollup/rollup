@@ -1,48 +1,72 @@
-import { EventEmitter } from 'node:events';
+import { AwaitedEventListener, AwaitingEventEmitter } from '../rollup/types';
 
-type PromiseReturn<T extends (...args: any) => any> = (
-	...args: Parameters<T>
-) => Promise<ReturnType<T>>;
-
-export class WatchEmitter<
-	T extends { [event: string]: (...args: any) => any }
-> extends EventEmitter {
-	private awaitedHandlers: {
-		[K in keyof T]?: PromiseReturn<T[K]>[];
+export class WatchEmitter<T extends { [event: string]: (...args: any) => any }>
+	implements AwaitingEventEmitter<T>
+{
+	private currentHandlers: {
+		[K in keyof T]?: AwaitedEventListener<T, K>[];
 	} = Object.create(null);
-
-	constructor() {
-		super();
-		// Allows more than 10 bundles to be watched without
-		// showing the `MaxListenersExceededWarning` to the user.
-		this.setMaxListeners(Infinity);
-	}
+	private persistentHandlers: {
+		[K in keyof T]?: AwaitedEventListener<T, K>[];
+	} = Object.create(null);
 
 	// Will be overwritten by Rollup
 	async close(): Promise<void> {}
 
-	emitAndAwait<K extends keyof T>(
-		event: K,
-		...args: Parameters<T[K]>
-	): Promise<ReturnType<T[K]>[]> {
-		this.emit(event as string, ...(args as any[]));
-		return Promise.all(this.getHandlers(event).map(handler => handler(...args)));
+	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): Promise<unknown> {
+		return Promise.all(
+			this.getCurrentHandlers(event)
+				.concat(this.getPersistentHandlers(event))
+				.map(handler => handler(...args))
+		);
 	}
 
-	onCurrentAwaited<K extends keyof T>(
-		event: K,
-		listener: (...args: Parameters<T[K]>) => Promise<ReturnType<T[K]>>
-	): this {
-		this.getHandlers(event).push(listener);
+	off<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
+		const listeners = this.persistentHandlers[event];
+		if (listeners) {
+			// A hack stolen from "mitt": ">>> 0" does not change numbers >= 0, but -1
+			// (which would remove the last array element if used unchanged) is turned
+			// into max_int, which is outside the array and does not change anything.
+			listeners.splice(listeners.indexOf(listener) >>> 0, 1);
+		}
 		return this;
 	}
 
-	removeAwaited(): this {
-		this.awaitedHandlers = {};
+	on<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
+		this.getPersistentHandlers(event).push(listener);
 		return this;
 	}
 
-	private getHandlers<K extends keyof T>(event: K): PromiseReturn<T[K]>[] {
-		return this.awaitedHandlers[event] || (this.awaitedHandlers[event] = []);
+	onCurrentRun<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
+		this.getCurrentHandlers(event).push(listener);
+		return this;
+	}
+
+	once<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
+		const selfRemovingListener: AwaitedEventListener<T, K> = (...args) => {
+			this.off(event, selfRemovingListener);
+			return listener(...args);
+		};
+		this.on(event, selfRemovingListener);
+		return this;
+	}
+
+	removeAllListeners(): this {
+		this.removeListenersForCurrentRun();
+		this.persistentHandlers = Object.create(null);
+		return this;
+	}
+
+	removeListenersForCurrentRun(): this {
+		this.currentHandlers = Object.create(null);
+		return this;
+	}
+
+	private getCurrentHandlers<K extends keyof T>(event: K): AwaitedEventListener<T, K>[] {
+		return this.currentHandlers[event] || (this.currentHandlers[event] = []);
+	}
+
+	private getPersistentHandlers<K extends keyof T>(event: K): AwaitedEventListener<T, K>[] {
+		return this.persistentHandlers[event] || (this.persistentHandlers[event] = []);
 	}
 }
