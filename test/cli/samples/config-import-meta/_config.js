@@ -1,4 +1,4 @@
 module.exports = {
 	description: 'uses correct import.meta.url in config files',
-	command: 'rollup -c'
+	command: 'rollup -c --bundleConfigAsCjs'
 };

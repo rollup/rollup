@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'deoptimizes return values of class methods',
-	minNodeVersion: 12
+	description: 'deoptimizes return values of class methods'
 };

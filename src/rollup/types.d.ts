@@ -28,6 +28,7 @@ export interface RollupLog {
 	pluginCode?: string;
 	pos?: number;
 	reexporter?: string;
+	stack?: string;
 	url?: string;
 }
 

@@ -1,5 +1,5 @@
 module.exports = {
 	description: 'loads a symlinked config file',
-	command: 'rollup -c',
+	command: 'rollup -c --bundleConfigAsCjs',
 	execute: true
 };
