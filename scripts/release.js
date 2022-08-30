@@ -158,7 +158,7 @@ async function getIncludedPRs(changelog, repo) {
 		prs.map(async ({ pr, text }) => {
 			const { data } = await repo.getPullRequest(pr);
 			const bodyWithoutComments = data.body.replace(/<!--[\s\S]*?-->/g, '');
-			const closedIssuesRegexp = /(fix(es|ed)?|(close|resolve)[sd]?) #(\d+)/g;
+			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[sd]?) #(\d+)/g;
 			const closed = [];
 			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
 				closed.push(match[4]);
