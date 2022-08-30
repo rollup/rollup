@@ -1,11 +1,8 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var input = require('input');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
 		Object.keys(e).forEach(k => {
@@ -28,7 +25,7 @@ class Importer {
 	}
 
 	getImport() {
-		return Promise.resolve().then(() => /*#__PURE__*/_interopNamespace(require(this.outputPath)));
+		return Promise.resolve().then(() => /*#__PURE__*/_interopNamespaceDefault(require(this.outputPath)));
 	}
 }
 

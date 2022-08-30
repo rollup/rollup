@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var foo = 'foo';
 var bar = 'bar';
 var baz = 'baz';

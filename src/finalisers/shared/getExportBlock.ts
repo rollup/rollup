@@ -166,7 +166,7 @@ function getReexportedImportName(
 ) {
 	if (imported === 'default') {
 		if (!isChunk) {
-			const moduleInterop = String(interop(moduleId));
+			const moduleInterop = interop(moduleId);
 			const variableName = defaultInteropHelpersByInteropType[moduleInterop]
 				? defaultVariableName
 				: moduleVariableName;
@@ -180,9 +180,7 @@ function getReexportedImportName(
 	}
 	if (imported === '*') {
 		return (
-			isChunk
-				? !depNamedExportsMode
-				: namespaceInteropHelpersByInteropType[String(interop(moduleId))]
+			isChunk ? !depNamedExportsMode : namespaceInteropHelpersByInteropType[interop(moduleId)]
 		)
 			? namespaceVariableName
 			: moduleVariableName;

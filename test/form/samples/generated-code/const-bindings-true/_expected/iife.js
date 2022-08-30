@@ -1,10 +1,8 @@
 var bundle = (function (exports, foo$1) {
 	'use strict';
 
-	const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
-
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceCompat(e) {
+		if (e && typeof e === 'object' && 'default' in e) return e;
 		const n = Object.create(null);
 		if (e) {
 			for (const k in e) {
@@ -21,8 +19,7 @@ var bundle = (function (exports, foo$1) {
 		return Object.freeze(n);
 	}
 
-	const foo__default = /*#__PURE__*/_interopDefaultLegacy(foo$1);
-	const foo__namespace = /*#__PURE__*/_interopNamespace(foo$1);
+	const foo__namespace = /*#__PURE__*/_interopNamespaceCompat(foo$1);
 
 	const _missingExportShim = void 0;
 
@@ -36,7 +33,7 @@ var bundle = (function (exports, foo$1) {
 
 	const synthetic = { bar: 'baz' };
 
-	console.log(foo__default.default, foo__namespace, other, bar, _missingExportShim);
+	console.log(foo__namespace.default, foo__namespace, other, bar, _missingExportShim);
 	const main = 42;
 
 	exports.default = main;

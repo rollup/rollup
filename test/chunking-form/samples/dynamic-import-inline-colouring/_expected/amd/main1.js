@@ -16,6 +16,4 @@ define(['require', 'exports', './generated-separate'], (function (require, expor
 	exports.inlined = inlined;
 	exports.separate = separate;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

@@ -6,7 +6,7 @@ import {
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
-import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
+import { ObjectPath, PathTracker, SymbolToStringTag, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { LiteralValue } from '../Literal';
 import SpreadElement from '../SpreadElement';
 import { IncludeChildren } from './Node';
@@ -14,7 +14,11 @@ import { IncludeChildren } from './Node';
 export const UnknownValue = Symbol('Unknown Value');
 export const UnknownTruthyValue = Symbol('Unknown Truthy Value');
 
-export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue | typeof UnknownTruthyValue;
+export type LiteralValueOrUnknown =
+	| LiteralValue
+	| typeof UnknownValue
+	| typeof UnknownTruthyValue
+	| typeof SymbolToStringTag;
 
 export interface InclusionOptions {
 	/**
@@ -39,7 +43,7 @@ export class ExpressionEntity implements WritableEntity {
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
 	 * for inlining or comparing values.
-	 * Otherwise it should return UnknownValue.
+	 * Otherwise, it should return UnknownValue.
 	 */
 	getLiteralValueAtPath(
 		_path: ObjectPath,

@@ -1,7 +1,6 @@
 define(['require'], (function (require) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -20,6 +19,6 @@ define(['require'], (function (require) { 'use strict';
 
 	new Promise(function (resolve, reject) { require([
 	/* webpackChunkName: "chunk-name" */
-	'./foo'/*suffix*/], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	'./foo'/*suffix*/], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); });
 
 }));

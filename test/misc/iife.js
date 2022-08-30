@@ -136,8 +136,6 @@ describe('The IIFE wrapper with an illegal name', () => {
 					'\n' +
 					'\texports.x = x;\n' +
 					'\n' +
-					"\tObject.defineProperty(exports, '__esModule', { value: true });\n" +
-					'\n' +
 					'})(this["my=name"] = this["my=name"] || {});\n'
 			)
 		));

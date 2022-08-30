@@ -1,18 +1,16 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var externalAll = require('external-all');
 var externalDefault = require('external-default');
 var externalDefaultNamed = require('external-default-named');
 var externalDefaultNamespace = require('external-default-namespace');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-var externalAll__default = /*#__PURE__*/_interopDefaultLegacy(externalAll);
-var externalDefault__default = /*#__PURE__*/_interopDefaultLegacy(externalDefault);
-var externalDefaultNamed__default = /*#__PURE__*/_interopDefaultLegacy(externalDefaultNamed);
-var externalDefaultNamespace__default = /*#__PURE__*/_interopDefaultLegacy(externalDefaultNamespace);
+var externalAll__default = /*#__PURE__*/_interopDefaultCompat(externalAll);
+var externalDefault__default = /*#__PURE__*/_interopDefaultCompat(externalDefault);
+var externalDefaultNamed__default = /*#__PURE__*/_interopDefaultCompat(externalDefaultNamed);
+var externalDefaultNamespace__default = /*#__PURE__*/_interopDefaultCompat(externalDefaultNamespace);
 
 
 

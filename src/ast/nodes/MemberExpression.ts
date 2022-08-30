@@ -21,10 +21,12 @@ import {
 	type ObjectPathKey,
 	type PathTracker,
 	SHARED_RECURSION_TRACKER,
+	SymbolToStringTag,
 	UNKNOWN_PATH,
 	UnknownKey,
 	UnknownNonAccessorKey
 } from '../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type Variable from '../variables/Variable';
@@ -101,7 +103,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private assignmentDeoptimized = false;
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private replacement: string | null = null;
+	private isUndefined = false;
 
 	bind(): void {
 		this.bound = true;
@@ -115,8 +117,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			);
 			if (!resolvedVariable) {
 				super.bind();
-			} else if (typeof resolvedVariable === 'string') {
-				this.replacement = resolvedVariable;
+			} else if (resolvedVariable === 'undefined') {
+				this.isUndefined = true;
 			} else {
 				this.variable = resolvedVariable;
 				this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
@@ -140,7 +142,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
-		} else if (!this.replacement) {
+		} else if (!this.isUndefined) {
 			if (path.length < MAX_PATH_DEPTH) {
 				const propertyKey = this.getPropertyKey();
 				this.object.deoptimizePath([
@@ -158,7 +160,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	): void {
 		if (this.variable) {
 			this.variable.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
-		} else if (!this.replacement) {
+		} else if (!this.isUndefined) {
 			if (path.length < MAX_PATH_DEPTH) {
 				this.object.deoptimizeThisOnInteractionAtPath(
 					interaction,
@@ -179,8 +181,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
-		if (this.replacement) {
-			return UnknownValue;
+		if (this.isUndefined) {
+			return undefined;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
 		if (path.length < MAX_PATH_DEPTH) {
@@ -207,8 +209,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 				origin
 			);
 		}
-		if (this.replacement) {
-			return UNKNOWN_EXPRESSION;
+		if (this.isUndefined) {
+			return UNDEFINED_EXPRESSION;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
 		if (path.length < MAX_PATH_DEPTH) {
@@ -250,7 +252,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			return this.variable.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
-		if (this.replacement) {
+		if (this.isUndefined) {
 			return true;
 		}
 		if (path.length < MAX_PATH_DEPTH) {
@@ -306,11 +308,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			renderedSurroundingElement
 		}: NodeRenderOptions = BLANK
 	): void {
-		if (this.variable || this.replacement) {
+		if (this.variable || this.isUndefined) {
 			const {
 				snippets: { getPropertyAccess }
 			} = options;
-			let replacement = this.variable ? this.variable.getName(getPropertyAccess) : this.replacement;
+			let replacement = this.variable ? this.variable.getName(getPropertyAccess) : 'undefined';
 			if (renderedParentType && isCalleeOfRenderedParent) replacement = '0, ' + replacement;
 			code.overwrite(this.start, this.end, replacement!, {
 				contentOnly: true,
@@ -341,7 +343,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			// Namespaces are not bound and should not be deoptimized
 			this.bound &&
 			propertyReadSideEffects &&
-			!(this.variable || this.replacement)
+			!(this.variable || this.isUndefined)
 		) {
 			const propertyKey = this.getPropertyKey();
 			this.object.deoptimizeThisOnInteractionAtPath(
@@ -361,7 +363,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			// Namespaces are not bound and should not be deoptimized
 			this.bound &&
 			propertyReadSideEffects &&
-			!(this.variable || this.replacement)
+			!(this.variable || this.isUndefined)
 		) {
 			this.object.deoptimizeThisOnInteractionAtPath(
 				this.assignmentInteraction,
@@ -391,7 +393,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.propertyKey === null) {
 			this.propertyKey = UnknownKey;
 			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-			return (this.propertyKey = typeof value === 'symbol' ? UnknownKey : String(value));
+			return (this.propertyKey =
+				value === SymbolToStringTag
+					? value
+					: typeof value === 'symbol'
+					? UnknownKey
+					: String(value));
 		}
 		return this.propertyKey;
 	}
@@ -400,7 +407,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		return (
-			!(this.variable || this.replacement) &&
+			!(this.variable || this.isUndefined) &&
 			propertyReadSideEffects &&
 			(propertyReadSideEffects === 'always' ||
 				this.object.hasEffectsOnInteractionAtPath(
@@ -430,7 +437,7 @@ function resolveNamespaceVariables(
 	baseVariable: Variable,
 	path: PathWithPositions,
 	astContext: AstContext
-): Variable | string | null {
+): Variable | 'undefined' | null {
 	if (path.length === 0) return baseVariable;
 	if (!baseVariable.isNamespace || baseVariable instanceof ExternalVariable) return null;
 	const exportName = path[0].key;

@@ -12,6 +12,7 @@ export default function cjs(
 		accessedGlobals,
 		dependencies,
 		exports,
+		hasDefaultExport,
 		hasExports,
 		indent: t,
 		intro,
@@ -36,7 +37,7 @@ export default function cjs(
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
-		isEntryFacade && esModule,
+		isEntryFacade && (esModule === true || (esModule === 'if-default-prop' && hasDefaultExport)),
 		isModuleFacade && namespaceToStringTag,
 		snippets
 	);

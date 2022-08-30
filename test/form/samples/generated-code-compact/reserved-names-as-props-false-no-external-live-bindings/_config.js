@@ -7,6 +7,7 @@ module.exports = {
 			exports: 'named',
 			externalLiveBindings: false,
 			generatedCode: { reservedNamesAsProps: false },
+			interop: 'compat',
 			name: 'bundle'
 		}
 	}

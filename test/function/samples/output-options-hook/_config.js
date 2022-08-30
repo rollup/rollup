@@ -24,7 +24,7 @@ module.exports = {
 					chunkFileNames: '[name]-[hash].js',
 					compact: false,
 					entryFileNames: '[name].js',
-					esModule: true,
+					esModule: 'if-default-prop',
 					exports: 'auto',
 					extend: false,
 					externalLiveBindings: true,

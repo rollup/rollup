@@ -12,6 +12,4 @@
 		if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
 	}
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

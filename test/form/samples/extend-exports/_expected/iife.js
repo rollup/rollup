@@ -5,6 +5,4 @@
 
 	exports.answer = answer;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 })(this.foo = this.foo || {});

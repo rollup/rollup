@@ -6,8 +6,6 @@ define('some/where/main', ['require', 'exports'], (function (require, exports) {
 
 	exports.getA = getA;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));
 
 define('some/where/generated-a', ['exports'], (function (exports) { 'use strict';

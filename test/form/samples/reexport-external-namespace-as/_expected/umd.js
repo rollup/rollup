@@ -4,8 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.external));
 })(this, (function (exports, external) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -22,13 +21,11 @@
 		return Object.freeze(n);
 	}
 
-	var external__namespace = /*#__PURE__*/_interopNamespace(external);
+	var external__namespace = /*#__PURE__*/_interopNamespaceDefault(external);
 
 
 
 	exports.external = external__namespace;
 	exports.indirect = external__namespace;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

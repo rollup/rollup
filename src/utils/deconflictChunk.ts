@@ -156,7 +156,7 @@ function deconflictImportsOther(
 	for (const externalModule of deconflictedDefault) {
 		if (
 			deconflictedNamespace.has(externalModule) &&
-			canDefaultBeTakenFromNamespace(String(interop(externalModule.id)), externalLiveBindings)
+			canDefaultBeTakenFromNamespace(interop(externalModule.id), externalLiveBindings)
 		) {
 			externalModule.defaultVariableName = externalModule.namespaceVariableName;
 		} else {
@@ -172,7 +172,7 @@ function deconflictImportsOther(
 			const chunk = externalChunkByModule.get(module)!;
 			const name = variable.name;
 			if (name === 'default') {
-				const moduleInterop = String(interop(module.id));
+				const moduleInterop = interop(module.id);
 				const variableName = defaultInteropHelpersByInteropType[moduleInterop]
 					? chunk.defaultVariableName
 					: chunk.variableName;
@@ -184,7 +184,7 @@ function deconflictImportsOther(
 			} else if (name === '*') {
 				variable.setRenderNames(
 					null,
-					namespaceInteropHelpersByInteropType[String(interop(module.id))]
+					namespaceInteropHelpersByInteropType[interop(module.id)]
 						? chunk.namespaceVariableName
 						: chunk.variableName
 				);

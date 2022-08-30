@@ -243,7 +243,7 @@ function getInteropHelper(
 ): string | null {
 	return exportMode === 'external'
 		? namespaceInteropHelpersByInteropType[
-				String(interop(resolution instanceof ExternalModule ? resolution.id : null))
+				interop(resolution instanceof ExternalModule ? resolution.id : null)
 		  ]
 		: exportMode === 'default'
 		? INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE

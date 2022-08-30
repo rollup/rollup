@@ -33,8 +33,6 @@ var iife = (function (exports) {
   exports.updateBaz = update;
   exports.updateFoo = update$2;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
-
   return exports;
 
 })({});

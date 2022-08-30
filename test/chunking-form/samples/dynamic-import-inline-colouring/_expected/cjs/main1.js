@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 require('./generated-separate.js');
 
 var inlined$1 = 'inlined';

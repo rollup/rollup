@@ -7,7 +7,8 @@ let defaulted;
 module.exports = {
 	description: 'handles external live-bindings',
 	options: {
-		external: ['named', 'star', 'defaulted']
+		external: ['named', 'star', 'defaulted'],
+		output: { interop: 'compat' }
 	},
 	context: {
 		require(id) {

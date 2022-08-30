@@ -9,8 +9,6 @@ var bundle = (function (exports) {
 	exports.b = b;
 	exports.c = c;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({});
