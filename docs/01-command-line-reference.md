@@ -18,11 +18,9 @@ export default {
 };
 ```
 
-Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. If you use the `.mjs` extension or have `type: "module"` in your `package.json` file, Rollup will directly use Node to import it, which is now the recommended way to define Rollup configurations. Note that there are some [caveats when using native Node ES modules](guide/en/#caveats-when-using-native-node-es-modules);
+Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. Unless the [`--configPlugin`](guide/en/#--configplugin-plugin) or [`--bundleConfigAsCjs`](guide/en/#--bundleconfigascjs) options are used, Rollup will directly use Node to import the file. Note that there are some [caveats when using native Node ES modules](guide/en/#caveats-when-using-native-node-es-modules) as Rollup will observe [Node ESM semantics](https://nodejs.org/docs/latest-v14.x/api/packages.html#packages_determining_module_system).
 
-Otherwise, Rollup will transpile and bundle this file and its relative dependencies to CommonJS before requiring it to ensure compatibility with legacy code bases that use ES module syntax without properly respecting [Node ESM semantics](https://nodejs.org/docs/latest-v14.x/api/packages.html#packages_determining_module_system).
-
-If you want to write your configuration as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the CommonJS file.
+If you want to write your configuration as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`.
 
 You can also use other languages for your configuration files like TypeScript. To do that, install a corresponding Rollup plugin like `@rollup/plugin-typescript` and use the [`--configPlugin`](guide/en/#--configplugin-plugin) option:
 
@@ -245,7 +243,7 @@ Besides `RollupOptions` and the `defineConfig` helper that encapsulates this typ
 - `Plugin`: A plugin object that provides a `name` and some hooks. All hooks are fully typed to aid in plugin development.
 - `PluginImpl`: A function that maps an options object to a plugin object. Most public Rollup plugins follow this pattern.
 
-You can also directly write your config in TypeScript via the [`--configPlugin`](guide/en/#--configplugin-plugin) option. With TypeScript you can import the `RollupOptions` type directly:
+You can also directly write your config in TypeScript via the [`--configPlugin`](guide/en/#--configplugin-plugin) option. With TypeScript, you can import the `RollupOptions` type directly:
 
 ```typescript
 import type { RollupOptions } from 'rollup';
@@ -480,7 +478,15 @@ Note for Typescript: make sure you have the Rollup config file in your `tsconfig
 "include": ["src/**/*", "rollup.config.ts"],
 ```
 
-This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`. Using this option will make Rollup transpile your configuration file to CommonJS first before executing it.
+This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+
+Using this option will make Rollup transpile your configuration file to an ES module first before executing it. To transpile to CommonJS instead, also pass the [`--bundleConfigAsCjs`](guide/en/#--bundleconfigascjs) option.
+
+#### `--bundleConfigAsCjs`
+
+This option will force your configuration to be transpiled to CommonJS.
+
+This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
 
 #### `-v`/`--version`
 

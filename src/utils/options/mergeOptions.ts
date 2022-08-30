@@ -57,6 +57,7 @@ export function mergeOptions(
 		Object.keys(inputOptions).concat(
 			Object.keys(outputOptions[0]).filter(option => option !== 'sourcemapPathTransform'),
 			Object.keys(commandAliases),
+			'bundleConfigAsCjs',
 			'config',
 			'environment',
 			'plugin',

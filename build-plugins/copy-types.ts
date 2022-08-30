@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { readFile } from 'fs-extra';
+import fs from 'fs-extra';
 import type { Plugin } from 'rollup';
 
 export default function copyTypes(fileName: string): Plugin {
@@ -8,7 +8,7 @@ export default function copyTypes(fileName: string): Plugin {
 			if (isWrite) {
 				this.emitFile({
 					fileName,
-					source: await readFile(resolve('src/rollup/types.d.ts'), 'utf8'),
+					source: await fs.readFile(resolve('src/rollup/types.d.ts'), 'utf8'),
 					type: 'asset'
 				});
 			}
