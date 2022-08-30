@@ -833,40 +833,37 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions | false;
 }
 
-interface TypedEventEmitter<T extends { [event: string]: (...args: any) => any }> {
-	addListener<K extends keyof T>(event: K, listener: T[K]): this;
-	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
-	eventNames(): Array<keyof T>;
-	getMaxListeners(): number;
-	listenerCount(type: keyof T): number;
-	listeners<K extends keyof T>(event: K): Array<T[K]>;
-	off<K extends keyof T>(event: K, listener: T[K]): this;
-	on<K extends keyof T>(event: K, listener: T[K]): this;
-	once<K extends keyof T>(event: K, listener: T[K]): this;
-	prependListener<K extends keyof T>(event: K, listener: T[K]): this;
-	prependOnceListener<K extends keyof T>(event: K, listener: T[K]): this;
-	rawListeners<K extends keyof T>(event: K): Array<T[K]>;
-	removeAllListeners<K extends keyof T>(event?: K): this;
-	removeListener<K extends keyof T>(event: K, listener: T[K]): this;
-	setMaxListeners(n: number): this;
-}
+export type AwaitedEventListener<
+	T extends { [event: string]: (...args: any) => any },
+	K extends keyof T
+> = (...args: Parameters<T[K]>) => void | Promise<void>;
 
-export interface RollupAwaitingEmitter<T extends { [event: string]: (...args: any) => any }>
-	extends TypedEventEmitter<T> {
+export interface AwaitingEventEmitter<T extends { [event: string]: (...args: any) => any }> {
 	close(): Promise<void>;
-	emitAndAwait<K extends keyof T>(event: K, ...args: Parameters<T[K]>): Promise<ReturnType<T[K]>[]>;
+	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): Promise<unknown>;
 	/**
-	 * Registers an event listener that will be awaited before Rollup continues
-	 * for events emitted via emitAndAwait. All listeners will be awaited in
-	 * parallel while rejections are tracked via Promise.all.
-	 * Listeners are removed automatically when removeAwaited is called, which
-	 * happens automatically after each run.
+	 * Removes an event listener.
 	 */
-	onCurrentAwaited<K extends keyof T>(
+	off<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this;
+	/**
+	 * Registers an event listener that will be awaited before Rollup continues.
+	 * All listeners will be awaited in parallel while rejections are tracked via
+	 * Promise.all.
+	 */
+	on<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this;
+	/**
+	 * Registers an event listener that will be awaited before Rollup continues.
+	 * All listeners will be awaited in parallel while rejections are tracked via
+	 * Promise.all.
+	 * Listeners are removed automatically when removeListenersForCurrentRun is
+	 * called, which happens automatically after each run.
+	 */
+	onCurrentRun<K extends keyof T>(
 		event: K,
 		listener: (...args: Parameters<T[K]>) => Promise<ReturnType<T[K]>>
 	): this;
-	removeAwaited(): this;
+	removeAllListeners(): this;
+	removeListenersForCurrentRun(): this;
 }
 
 export type RollupWatcherEvent =
@@ -882,7 +879,7 @@ export type RollupWatcherEvent =
 	| { code: 'END' }
 	| { code: 'ERROR'; error: RollupError; result: RollupBuild | null };
 
-export type RollupWatcher = RollupAwaitingEmitter<{
+export type RollupWatcher = AwaitingEventEmitter<{
 	change: (id: string, change: { event: ChangeEvent }) => void;
 	close: () => void;
 	event: (event: RollupWatcherEvent) => void;

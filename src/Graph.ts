@@ -87,8 +87,8 @@ export default class Graph {
 			const handleChange = (...args: Parameters<WatchChangeHook>) =>
 				this.pluginDriver.hookParallel('watchChange', args);
 			const handleClose = () => this.pluginDriver.hookParallel('closeWatcher', []);
-			watcher.onCurrentAwaited('change', handleChange);
-			watcher.onCurrentAwaited('close', handleClose);
+			watcher.onCurrentRun('change', handleChange);
+			watcher.onCurrentRun('close', handleClose);
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
