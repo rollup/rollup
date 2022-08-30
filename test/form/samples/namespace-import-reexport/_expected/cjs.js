@@ -1,11 +1,8 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var externalPackage = require('external-package');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
 		Object.keys(e).forEach(function (k) {
@@ -22,7 +19,7 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-var externalPackage__namespace = /*#__PURE__*/_interopNamespace(externalPackage);
+var externalPackage__namespace = /*#__PURE__*/_interopNamespaceDefault(externalPackage);
 
 
 

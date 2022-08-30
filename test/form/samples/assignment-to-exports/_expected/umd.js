@@ -31,6 +31,4 @@
 	exports.foo1 = foo1;
 	exports.foo2 = foo2;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

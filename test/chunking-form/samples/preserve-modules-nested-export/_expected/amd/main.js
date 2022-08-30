@@ -4,6 +4,4 @@ define(['exports', './inner/more_inner/something', './inner/some_effect'], (func
 
 	exports.Something = something.Something;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

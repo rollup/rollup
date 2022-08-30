@@ -15,6 +15,4 @@ define(['exports', './generated-dep', 'external2', 'starexternal2'], (function (
 		});
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

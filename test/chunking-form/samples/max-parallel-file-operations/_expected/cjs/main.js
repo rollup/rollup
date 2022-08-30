@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var _1 = require('./1.js');
 var _2 = require('./2.js');
 var _3 = require('./3.js');

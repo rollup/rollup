@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var externalAuto = require('external-auto');
 var externalDefault = require('external-default');
 var externalDefaultOnly = require('external-defaultOnly');

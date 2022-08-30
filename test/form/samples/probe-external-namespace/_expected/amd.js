@@ -1,7 +1,6 @@
 define(['external'], (function (external) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,7 +17,7 @@ define(['external'], (function (external) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	var external__namespace = /*#__PURE__*/_interopNamespace(external);
+	var external__namespace = /*#__PURE__*/_interopNamespaceDefault(external);
 
 	console.log(external__namespace.default, external__namespace.foo);
 

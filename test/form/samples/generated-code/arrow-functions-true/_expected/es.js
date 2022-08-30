@@ -1,6 +1,6 @@
 import 'externalNoImport';
-import * as defaultLegacy from 'external';
-import defaultLegacy__default, { b } from 'external';
+import * as defaultCompat from 'external';
+import defaultCompat__default, { b } from 'external';
 export * from 'external';
 export { foo } from 'external';
 import externalAuto from 'externalAuto';
@@ -30,7 +30,7 @@ console.log({ a } = b);
 Promise.resolve().then(() => main).then(console.log);
 
 import('external').then(console.log);
-console.log(defaultLegacy__default);
+console.log(defaultCompat__default);
 console.log(externalAuto);
 console.log(externalDefault);
 console.log(externalDefaultOnly);
@@ -39,6 +39,6 @@ var main = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	get a () { return a; },
 	foo: foo
-}, [defaultLegacy]);
+}, [defaultCompat]);
 
 export { a };

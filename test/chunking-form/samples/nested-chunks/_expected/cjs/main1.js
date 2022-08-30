@@ -2,8 +2,7 @@
 
 var dep = require('./generated-dep.js');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
 		Object.keys(e).forEach(function (k) {
@@ -23,4 +22,4 @@ function _interopNamespace(e) {
 console.log('main1', dep.value);
 
 Promise.resolve().then(function () { return require('./generated-dynamic.js'); }).then(result => console.log(result));
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./external.js')); }).then(result => console.log(result));
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('./external.js')); }).then(result => console.log(result));

@@ -13,6 +13,4 @@ define(['module', 'require', 'exports'], (function (module, require, exports) { 
 
 	exports.log = log;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

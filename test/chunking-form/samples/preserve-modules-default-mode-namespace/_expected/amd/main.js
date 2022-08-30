@@ -9,6 +9,4 @@ define(['require', 'exports', './lib'], (function (require, exports, lib) { 'use
 
 	exports.lib = lib__namespace;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

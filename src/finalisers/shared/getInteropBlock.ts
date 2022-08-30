@@ -58,7 +58,7 @@ export default function getInteropBlock(
 				}
 			}
 		} else {
-			const moduleInterop = String(interop(importPath));
+			const moduleInterop = interop(importPath);
 			let hasDefault = false;
 			let hasNamespace = false;
 			for (const { imported, reexported } of [

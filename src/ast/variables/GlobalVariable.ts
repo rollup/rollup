@@ -6,11 +6,7 @@ import {
 	INTERACTION_CALLED,
 	NodeInteraction
 } from '../NodeInteractions';
-import {
-	LiteralValueOrUnknown,
-	UnknownTruthyValue,
-	UnknownValue
-} from '../nodes/shared/Expression';
+import { LiteralValueOrUnknown, UnknownValue } from '../nodes/shared/Expression';
 import { getGlobalAtPath } from '../nodes/shared/knownGlobals';
 import type { ObjectPath } from '../utils/PathTracker';
 import { PathTracker } from '../utils/PathTracker';
@@ -26,7 +22,8 @@ export default class GlobalVariable extends Variable {
 		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return getGlobalAtPath([this.name, ...path]) ? UnknownTruthyValue : UnknownValue;
+		const globalAtPath = getGlobalAtPath([this.name, ...path]);
+		return globalAtPath ? globalAtPath.getLiteralValue() : UnknownValue;
 	}
 
 	hasEffectsOnInteractionAtPath(

@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var lib = require('./lib.js');
 
 function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, default: e }); }

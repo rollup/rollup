@@ -54,6 +54,4 @@
 		get: function () { return externalEsModule.default; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

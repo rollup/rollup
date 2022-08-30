@@ -10,11 +10,7 @@ define(['external'], (function (a) { 'use strict';
 
 	// intro 4
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
-
-	var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
-
-	console.log( a__default.default );
+	console.log( a );
 	console.log( a.b );
 
 	var main = 42;

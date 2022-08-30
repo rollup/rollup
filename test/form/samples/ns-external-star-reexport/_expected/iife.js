@@ -1,8 +1,7 @@
 var bundle = (function (exports, external1, external2) {
 	'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -34,8 +33,8 @@ var bundle = (function (exports, external1, external2) {
 		return Object.freeze(n);
 	}
 
-	var external1__namespace = /*#__PURE__*/_interopNamespace(external1);
-	var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
+	var external1__namespace = /*#__PURE__*/_interopNamespaceDefault(external1);
+	var external2__namespace = /*#__PURE__*/_interopNamespaceDefault(external2);
 
 	var reexportExternal = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null
@@ -55,8 +54,6 @@ var bundle = (function (exports, external1, external2) {
 
 	exports.external = reexportExternal;
 	exports.externalOverride = reexportExternalsWithOverride$1;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 	return exports;
 

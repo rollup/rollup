@@ -33,6 +33,4 @@
 	exports.o = o;
 	exports.p = p;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

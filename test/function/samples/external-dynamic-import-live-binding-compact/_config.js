@@ -7,7 +7,8 @@ module.exports = {
 			return true;
 		},
 		output: {
-			compact: true
+			compact: true,
+			interop: 'auto'
 		}
 	},
 	context: {

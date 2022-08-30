@@ -50,6 +50,4 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 		get: function () { return externalEsModule.default; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));
