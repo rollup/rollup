@@ -74,7 +74,7 @@ export default function umd(
 	warnOnBuiltins(warn, dependencies);
 
 	const amdDeps = dependencies.map(
-		m => `'${updateExtensionForRelativeAmdId(m.id, amd.keepExtension)}'`
+		m => `'${updateExtensionForRelativeAmdId(m.id, amd.forceJsExtensionForImports)}'`
 	);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 

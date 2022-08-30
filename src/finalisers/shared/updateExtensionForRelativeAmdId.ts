@@ -6,11 +6,11 @@ import removeJsExtension from './removeJsExtension';
 // https://requirejs.org/docs/api.html#jsfiles
 export default function updateExtensionForRelativeAmdId(
 	id: string,
-	keepExtension: boolean
+	forceJsExtensionForImports: boolean
 ): string {
 	if (id[0] !== '.') {
 		return id;
 	}
 
-	return keepExtension ? addJsExtension(id) : removeJsExtension(id);
+	return forceJsExtensionForImports ? addJsExtension(id) : removeJsExtension(id);
 }

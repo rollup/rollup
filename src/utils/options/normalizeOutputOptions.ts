@@ -229,13 +229,13 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 		autoId: boolean;
 		basePath: string;
 		define: string;
+		forceJsExtensionForImports: boolean;
 		id?: string;
-		keepExtension: boolean;
 	} = {
 		autoId: false,
 		basePath: '',
 		define: 'define',
-		keepExtension: false,
+		forceJsExtensionForImports: false,
 		...config.amd
 	};
 
@@ -264,14 +264,14 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 			autoId: true,
 			basePath: mergedOption.basePath,
 			define: mergedOption.define,
-			keepExtension: mergedOption.keepExtension
+			forceJsExtensionForImports: mergedOption.forceJsExtensionForImports
 		};
 	} else {
 		normalized = {
 			autoId: false,
 			define: mergedOption.define,
-			id: mergedOption.id,
-			keepExtension: mergedOption.keepExtension
+			forceJsExtensionForImports: mergedOption.forceJsExtensionForImports,
+			id: mergedOption.id
 		};
 	}
 	return normalized;

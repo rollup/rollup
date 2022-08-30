@@ -36,7 +36,7 @@ export default function amd(
 ): Bundle {
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(
-		m => `'${updateExtensionForRelativeAmdId(m.id, amd.keepExtension)}'`
+		m => `'${updateExtensionForRelativeAmdId(m.id, amd.forceJsExtensionForImports)}'`
 	);
 	const args = dependencies.map(m => m.name);
 	const { n, getNonArrowFunctionIntro, _ } = snippets;

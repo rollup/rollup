@@ -19,7 +19,7 @@ module.exports = {
 					amd: {
 						define: 'define',
 						autoId: false,
-						keepExtension: false
+						forceJsExtensionForImports: false
 					},
 					assetFileNames: 'assets/[name]-[hash][extname]',
 					chunkFileNames: '[name]-[hash].js',

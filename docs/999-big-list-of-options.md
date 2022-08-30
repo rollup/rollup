@@ -1331,7 +1331,7 @@ export default {
 // -> def(['dependency'],...
 ```
 
-**output.amd.keepExtension**<br> Type: `boolean`<br> CLI: `--amd.keepExtension`<br> Default: `false`
+**output.amd.forceJsExtensionForImports**<br> Type: `boolean`<br> CLI: `--amd.forceJsExtensionForImports`<br> Default: `false`
 
 Add `.js` extension for imports of generated chunks and local AMD modules:
 
@@ -1341,7 +1341,7 @@ export default {
   ...,
   format: 'amd',
   amd: {
-    keepExtension: true
+    forceJsExtensionForImports: true
   }
 };
 
