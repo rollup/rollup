@@ -223,6 +223,8 @@ watcher.on('event', event => {
   //                    bundle object for output generation errors. As with
   //                    "BUNDLE_END", you should call "event.result.close()" if
   //                    present once you are done.
+  // If you return a Promise from your event handler, Rollup will wait until the
+  // Promise is resolved before continuing.
 });
 
 // This will make sure that bundles are properly closed after each run
@@ -232,7 +234,13 @@ watcher.on('event', ({ result }) => {
   }
 });
 
-// stop watching
+// Additionally, you can hook into the following. Again, return a Promise to
+// make Rollup wait at that stage:
+watcher.on('change', (id, { event }) => { /* a file was modified */ })
+watcher.on('restart', () => { /* a new run was triggered */ })
+watcher.on('close', () => { /* the watcher was closed, see below */ })
+
+// to stop watching
 watcher.close();
 ```
 
