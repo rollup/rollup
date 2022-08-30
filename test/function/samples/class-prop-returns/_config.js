@@ -2,7 +2,6 @@ const assert = require('assert');
 
 module.exports = {
 	description: 'does not remove calls to props without value',
-	minNodeVersion: 12,
 	exports({ callProp, callStaticProp }) {
 		let hasError = false;
 		try {

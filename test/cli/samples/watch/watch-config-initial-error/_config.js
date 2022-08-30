@@ -8,7 +8,7 @@ module.exports = {
 	description: 'keeps watching the config file in case the initial file contains an error',
 	command: 'rollup -cw',
 	before() {
-		configFile = path.join(__dirname, 'rollup.config.js');
+		configFile = path.join(__dirname, 'rollup.config.mjs');
 		writeFileSync(configFile, 'throw new Error("Config contains initial errors");');
 	},
 	after() {

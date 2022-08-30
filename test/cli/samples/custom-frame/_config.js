@@ -11,6 +11,6 @@ module.exports = {
 				'main.js\ncustom code frame\nError: My error.\n' +
 				'    at Object.'
 		);
-		assertIncludes(stderr, 'rollup.config.js:11:17');
+		assertIncludes(stderr, 'rollup.config.js:9:17');
 	}
 };
