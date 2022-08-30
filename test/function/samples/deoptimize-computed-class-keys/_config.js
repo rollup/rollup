@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'deoptimizes computed class property keys',
-	minNodeVersion: 12
+	description: 'deoptimizes computed class property keys'
 };

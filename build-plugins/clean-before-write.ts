@@ -1,4 +1,4 @@
-import { remove } from 'fs-extra';
+import fs from 'fs-extra';
 import type { Plugin } from 'rollup';
 
 export default function cleanBeforeWrite(dir: string): Plugin {
@@ -7,7 +7,7 @@ export default function cleanBeforeWrite(dir: string): Plugin {
 		generateBundle(_options, _bundle, isWrite) {
 			if (isWrite) {
 				// Only remove before first write, but make all writes wait on the removal
-				removePromise ||= remove(dir);
+				removePromise ||= fs.remove(dir);
 				return removePromise;
 			}
 		},
