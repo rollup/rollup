@@ -22,8 +22,6 @@ var myBundle = (function (exports, foo, bar, baz) {
 		});
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, foo, bar, baz);

@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var buffer = new ArrayBuffer( 8 );
 
 var view8 = new Int8Array( buffer );

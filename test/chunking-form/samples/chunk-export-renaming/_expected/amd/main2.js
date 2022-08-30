@@ -8,6 +8,4 @@ define(['exports', './generated-one'], (function (exports, one) { 'use strict';
 
     exports.ItemTwo = Two;
 
-    Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

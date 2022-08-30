@@ -8,6 +8,4 @@ define(['require', 'exports', './generated-dep2'], (function (require, exports, 
 	exports.value2 = dep2.value2;
 	exports.value1 = value1;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

@@ -1,7 +1,6 @@
 define(['exports', 'highcharts'], (function (exports, highcharts) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,12 +17,10 @@ define(['exports', 'highcharts'], (function (exports, highcharts) { 'use strict'
 		return Object.freeze(n);
 	}
 
-	var highcharts__namespace = /*#__PURE__*/_interopNamespace(highcharts);
+	var highcharts__namespace = /*#__PURE__*/_interopNamespaceDefault(highcharts);
 
 
 
 	exports.Highcharts = highcharts__namespace;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

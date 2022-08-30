@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 class C$1 {
   fn (num) {
     console.log(num - p);

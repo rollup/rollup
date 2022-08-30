@@ -4,9 +4,9 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.bundle = factory(global.external));
 })(this, (function (external) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
+	var external__default = /*#__PURE__*/_interopDefault(external);
 
 	console.log(external__default.default);
 

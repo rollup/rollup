@@ -7,7 +7,8 @@ module.exports = {
 	description:
 		'handles conflicts with added interop default variables and supports default live bindings',
 	options: {
-		external: 'external'
+		external: 'external',
+		output: { interop: 'compat' }
 	},
 	context: {
 		require() {

@@ -563,7 +563,7 @@ interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
-export type InteropType = boolean | 'auto' | 'esModule' | 'default' | 'defaultOnly';
+export type InteropType = 'compat' | 'auto' | 'esModule' | 'default' | 'defaultOnly';
 
 export type GetInterop = (id: string | null) => InteropType;
 
@@ -613,7 +613,7 @@ export interface OutputOptions {
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
-	esModule?: boolean;
+	esModule?: boolean | 'if-default-prop';
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
 	externalLiveBindings?: boolean;
@@ -663,7 +663,7 @@ export interface NormalizedOutputOptions {
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction: string | undefined;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
-	esModule: boolean;
+	esModule: boolean | 'if-default-prop';
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
 	externalLiveBindings: boolean;

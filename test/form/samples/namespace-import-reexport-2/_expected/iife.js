@@ -1,8 +1,7 @@
 var iife = (function (exports, external1, external2) {
 	'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -19,7 +18,7 @@ var iife = (function (exports, external1, external2) {
 		return Object.freeze(n);
 	}
 
-	var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
+	var external2__namespace = /*#__PURE__*/_interopNamespaceDefault(external2);
 
 
 
@@ -28,8 +27,6 @@ var iife = (function (exports, external1, external2) {
 		get: function () { return external1.x; }
 	});
 	exports.ext = external2__namespace;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 	return exports;
 

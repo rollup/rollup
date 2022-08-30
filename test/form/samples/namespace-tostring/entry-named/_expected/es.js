@@ -1,3 +1,4 @@
 const foo = 42;
+var main = 43;
 
-export { foo };
+export { main as default, foo };

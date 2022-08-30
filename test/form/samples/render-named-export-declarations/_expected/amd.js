@@ -17,6 +17,4 @@ define(['exports'], (function (exports) { 'use strict';
 	exports.cFoo = cFoo;
 	exports.dBar = dBar;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

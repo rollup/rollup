@@ -7,6 +7,4 @@ define(['exports', '../lib/lib2'], (function (exports, lib2) { 'use strict';
 
   exports.fn = fn;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

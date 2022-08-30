@@ -9,6 +9,4 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.component = component;
 	exports.lib = lib;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

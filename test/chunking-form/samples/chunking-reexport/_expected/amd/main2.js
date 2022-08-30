@@ -7,6 +7,4 @@ define(['exports', './generated-dep', 'external'], (function (exports, dep, exte
 		get: function () { return external.asdf; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

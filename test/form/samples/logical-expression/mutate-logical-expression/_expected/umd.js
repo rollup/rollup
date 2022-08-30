@@ -20,6 +20,4 @@
 	exports.bExp = bExp;
 	exports.cExp = cExp;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

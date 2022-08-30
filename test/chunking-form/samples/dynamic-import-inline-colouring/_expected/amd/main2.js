@@ -4,6 +4,4 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	exports.separate = separate;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

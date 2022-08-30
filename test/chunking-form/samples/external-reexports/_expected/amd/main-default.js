@@ -1,11 +1,11 @@
 define(['exports', 'external-all', 'external-default', 'external-default-named', 'external-default-namespace'], (function (exports, externalAll, externalDefault, externalDefaultNamed, externalDefaultNamespace) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+	function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
 
-	var externalAll__default = /*#__PURE__*/_interopDefaultLegacy(externalAll);
-	var externalDefault__default = /*#__PURE__*/_interopDefaultLegacy(externalDefault);
-	var externalDefaultNamed__default = /*#__PURE__*/_interopDefaultLegacy(externalDefaultNamed);
-	var externalDefaultNamespace__default = /*#__PURE__*/_interopDefaultLegacy(externalDefaultNamespace);
+	var externalAll__default = /*#__PURE__*/_interopDefaultCompat(externalAll);
+	var externalDefault__default = /*#__PURE__*/_interopDefaultCompat(externalDefault);
+	var externalDefaultNamed__default = /*#__PURE__*/_interopDefaultCompat(externalDefaultNamed);
+	var externalDefaultNamespace__default = /*#__PURE__*/_interopDefaultCompat(externalDefaultNamespace);
 
 
 
@@ -25,7 +25,5 @@ define(['exports', 'external-all', 'external-default', 'external-default-named',
 		enumerable: true,
 		get: function () { return externalDefaultNamespace__default.default; }
 	});
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

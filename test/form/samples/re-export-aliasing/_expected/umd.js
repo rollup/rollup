@@ -9,6 +9,4 @@
 		get: function () { return d.d; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

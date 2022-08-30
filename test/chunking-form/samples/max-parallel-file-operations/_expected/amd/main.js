@@ -8,6 +8,4 @@ define(['exports', './1', './2', './3', './4', './5'], (function (exports, _1, _
 	exports.x4 = _4.x4;
 	exports.x5 = _5.x5;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

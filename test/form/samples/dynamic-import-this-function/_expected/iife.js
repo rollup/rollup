@@ -15,8 +15,6 @@ var bundle = (function (exports, input) {
 
 	exports.promise = promise;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({}, input);

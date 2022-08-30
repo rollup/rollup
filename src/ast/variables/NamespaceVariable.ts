@@ -1,9 +1,9 @@
-import type Module from '../../Module';
-import type { AstContext } from '../../Module';
+import Module, { AstContext } from '../../Module';
 import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import type Identifier from '../nodes/Identifier';
+import { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import type ChildScope from '../scopes/ChildScope';
 import Variable from './Variable';
 
@@ -28,6 +28,11 @@ export default class NamespaceVariable extends Variable {
 		this.name = identifier.name;
 	}
 
+	getLiteralValueAtPath(): LiteralValueOrUnknown {
+		// This can only happen for Symbol.toStringTag right now
+		return 'Module';
+	}
+
 	getMemberVariables(): { [name: string]: Variable } {
 		if (this.memberVariables) {
 			return this.memberVariables;
@@ -42,6 +47,10 @@ export default class NamespaceVariable extends Variable {
 			}
 		}
 		return (this.memberVariables = memberVariables);
+	}
+
+	hasEffectsOnInteractionAtPath(): boolean {
+		return false;
 	}
 
 	include(): void {

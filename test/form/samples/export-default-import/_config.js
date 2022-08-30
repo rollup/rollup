@@ -4,6 +4,7 @@ module.exports = {
 		external: ['x'],
 		output: {
 			globals: { x: 'x' },
+			interop: 'compat',
 			name: 'myBundle'
 		}
 	}

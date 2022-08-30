@@ -39,6 +39,7 @@ export default function umd(
 		accessedGlobals,
 		dependencies,
 		exports,
+		hasDefaultExport,
 		hasExports,
 		id,
 		indent: t,
@@ -203,7 +204,7 @@ export default function umd(
 	);
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
-		esModule,
+		esModule === true || (esModule === 'if-default-prop' && hasDefaultExport),
 		namespaceToStringTag,
 		snippets
 	);

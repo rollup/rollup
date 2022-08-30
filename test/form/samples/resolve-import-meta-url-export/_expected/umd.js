@@ -10,6 +10,4 @@
 	exports.meta = meta;
 	exports.url = url;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

@@ -1,6 +1,6 @@
 define(['module', 'require', 'external'], (function (module, require, external) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -20,7 +20,7 @@ define(['module', 'require', 'external'], (function (module, require, external) 
 		return Object.freeze(n);
 	}
 
-	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
+	var external__default = /*#__PURE__*/_interopDefault(external);
 
 	console.log(external__default.default);
 

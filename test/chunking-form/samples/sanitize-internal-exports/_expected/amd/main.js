@@ -549,6 +549,4 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.v98 = v98;
 	exports.v99 = v99;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

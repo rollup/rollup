@@ -44,7 +44,7 @@ export function normalizeOutputOptions(
 		dir: getDir(config, file),
 		dynamicImportFunction: getDynamicImportFunction(config, inputOptions, format),
 		entryFileNames: getEntryFileNames(config, unsetOptions),
-		esModule: config.esModule ?? true,
+		esModule: config.esModule ?? 'if-default-prop',
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
 		externalLiveBindings: config.externalLiveBindings ?? true,
@@ -57,7 +57,7 @@ export function normalizeOutputOptions(
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
-		interop: getInterop(config, inputOptions),
+		interop: getInterop(config),
 		intro: getAddon(config, 'intro'),
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
@@ -382,47 +382,27 @@ const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOpt
 };
 
 const ALLOWED_INTEROP_TYPES: ReadonlySet<string | boolean> = new Set([
+	'compat',
 	'auto',
 	'esModule',
 	'default',
-	'defaultOnly',
-	true,
-	false
+	'defaultOnly'
 ]);
 
-const getInterop = (
-	config: OutputOptions,
-	inputOptions: NormalizedInputOptions
-): NormalizedOutputOptions['interop'] => {
+const getInterop = (config: OutputOptions): NormalizedOutputOptions['interop'] => {
 	const configInterop = config.interop;
-	const validatedInteropTypes = new Set<InteropType>();
 	const validateInterop = (interop: InteropType): InteropType => {
-		if (!validatedInteropTypes.has(interop)) {
-			validatedInteropTypes.add(interop);
-			if (!ALLOWED_INTEROP_TYPES.has(interop)) {
-				return error(
-					errInvalidOption(
-						'output.interop',
-						'outputinterop',
-						`use one of ${Array.from(ALLOWED_INTEROP_TYPES, value => JSON.stringify(value)).join(
-							', '
-						)}`,
-						interop
-					)
-				);
-			}
-			if (typeof interop === 'boolean') {
-				warnDeprecation(
-					{
-						message: `The boolean value "${interop}" for the "output.interop" option is deprecated. Use ${
-							interop ? '"auto"' : '"esModule", "default" or "defaultOnly"'
-						} instead.`,
-						url: 'https://rollupjs.org/guide/en/#outputinterop'
-					},
-					true,
-					inputOptions
-				);
-			}
+		if (!ALLOWED_INTEROP_TYPES.has(interop)) {
+			return error(
+				errInvalidOption(
+					'output.interop',
+					'outputinterop',
+					`use one of ${Array.from(ALLOWED_INTEROP_TYPES, value => JSON.stringify(value)).join(
+						', '
+					)}`,
+					interop
+				)
+			);
 		}
 		return interop;
 	};
@@ -437,7 +417,7 @@ const getInterop = (
 				? interopPerId[id]
 				: validateInterop((interopPerId[id] = configInterop(id)));
 	}
-	return configInterop === undefined ? () => true : () => validateInterop(configInterop);
+	return configInterop === undefined ? () => 'default' : () => validateInterop(configInterop);
 };
 
 const getManualChunks = (
