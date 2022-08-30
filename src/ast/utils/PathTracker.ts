@@ -4,11 +4,14 @@ import type { Entity } from '../Entity';
 export const UnknownKey = Symbol('Unknown Key');
 export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
+export const SymbolToStringTag = Symbol('Symbol.toStringTag');
+
 export type ObjectPathKey =
 	| string
 	| typeof UnknownKey
 	| typeof UnknownNonAccessorKey
-	| typeof UnknownInteger;
+	| typeof UnknownInteger
+	| typeof SymbolToStringTag;
 
 export type ObjectPath = ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
@@ -25,6 +28,7 @@ const EntitiesKey = Symbol('Entities');
 interface EntityPaths {
 	[pathSegment: string]: EntityPaths;
 	[EntitiesKey]: Set<Entity>;
+	[SymbolToStringTag]?: EntityPaths;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
 	[UnknownNonAccessorKey]?: EntityPaths;
@@ -72,6 +76,7 @@ export const SHARED_RECURSION_TRACKER = new PathTracker();
 interface DiscriminatedEntityPaths {
 	[pathSegment: string]: DiscriminatedEntityPaths;
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
+	[SymbolToStringTag]?: DiscriminatedEntityPaths;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
 	[UnknownNonAccessorKey]?: DiscriminatedEntityPaths;

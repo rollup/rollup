@@ -28,6 +28,4 @@
 	nestedConflict();
 	nestedNoConflict();
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

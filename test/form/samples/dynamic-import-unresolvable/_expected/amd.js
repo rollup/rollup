@@ -1,7 +1,6 @@
 define(['require'], (function (require) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,9 +17,9 @@ define(['require'], (function (require) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(`${globalThis.unknown}`);
-	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(`My ${globalThis.unknown}`);
-	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })('./seven.js');
-	new Promise(function (resolve, reject) { require(['./seven'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(`${globalThis.unknown}`);
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })(`My ${globalThis.unknown}`);
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })('./seven.js');
+	new Promise(function (resolve, reject) { require(['./seven'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); });
 
 }));

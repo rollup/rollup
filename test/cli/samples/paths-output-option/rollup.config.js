@@ -5,7 +5,6 @@ module.exports = {
 		format: 'cjs',
 		paths: {
 			foo: 'bar'
-		},
-		interop: false
+		}
 	}
 };

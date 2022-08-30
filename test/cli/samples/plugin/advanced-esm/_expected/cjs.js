@@ -1,8 +1,6 @@
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-  value: !0
-}), console.log("esm-test: node_modules/print/index.js");
+console.log("esm-test: node_modules/print/index.js");
 
 console.log("esm-test: node_modules/foo/index.js");
 

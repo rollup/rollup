@@ -1,7 +1,6 @@
 define(['require'], (function (require) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,6 +17,6 @@ define(['require'], (function (require) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); });
 
 }));

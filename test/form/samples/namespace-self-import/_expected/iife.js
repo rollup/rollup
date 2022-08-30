@@ -12,8 +12,6 @@ var iife = (function (exports) {
 
 	exports.p = p;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({});

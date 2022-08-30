@@ -21,7 +21,7 @@ module.exports = {
 				if (id === 'externalAuto') {
 					return 'auto';
 				}
-				return true;
+				return 'compat';
 			},
 			name: 'bundle',
 			noConflict: true

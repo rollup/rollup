@@ -11,6 +11,4 @@ define(['exports', 'external1', 'external2'], (function (exports, external1, ext
 		get: function () { return external2.foo; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

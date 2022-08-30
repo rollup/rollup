@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 const exports$1 = 1;
 const require$1 = 2;
 const module$1 = 3;

@@ -1,12 +1,9 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var external1 = require('external1');
 var external2 = require('external2');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
 		Object.keys(e).forEach(function (k) {
@@ -38,8 +35,8 @@ function _mergeNamespaces(n, m) {
 	return Object.freeze(n);
 }
 
-var external1__namespace = /*#__PURE__*/_interopNamespace(external1);
-var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
+var external1__namespace = /*#__PURE__*/_interopNamespaceDefault(external1);
+var external2__namespace = /*#__PURE__*/_interopNamespaceDefault(external2);
 
 var reexportExternal = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null

@@ -20,6 +20,4 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.renderStartNamed = renderStartNamed;
 	exports.renderStartNamedImmediately = renderStartNamedImmediately;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

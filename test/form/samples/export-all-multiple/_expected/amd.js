@@ -21,6 +21,4 @@ define(['exports', 'foo', 'bar', 'baz'], (function (exports, foo, bar, baz) { 'u
 		});
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

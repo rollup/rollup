@@ -19,6 +19,4 @@ define(['exports', 'external-all', 'external-named', 'external-default-named', '
 		get: function () { return externalNamedNamespace.quux; }
 	});
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

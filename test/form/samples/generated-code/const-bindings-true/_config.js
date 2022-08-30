@@ -8,7 +8,8 @@ module.exports = {
 			generatedCode: { arrowFunctions: true, constBindings: true },
 			name: 'bundle',
 			noConflict: true,
-			exports: 'named'
+			exports: 'named',
+			interop: 'compat'
 		},
 		plugins: [
 			{

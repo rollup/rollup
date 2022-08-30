@@ -1,7 +1,6 @@
 define(['exports', 'external-package'], (function (exports, externalPackage) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,12 +17,10 @@ define(['exports', 'external-package'], (function (exports, externalPackage) { '
 		return Object.freeze(n);
 	}
 
-	var externalPackage__namespace = /*#__PURE__*/_interopNamespace(externalPackage);
+	var externalPackage__namespace = /*#__PURE__*/_interopNamespaceDefault(externalPackage);
 
 
 
 	exports.ext = externalPackage__namespace;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

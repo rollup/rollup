@@ -6,6 +6,4 @@ define(['exports', './answer.num', './lorem.str', './no-ext'], (function (export
 	exports.lorem = lorem;
 	exports.noExt = noExt;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

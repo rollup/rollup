@@ -1,8 +1,8 @@
-define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (require, exports, externalNoImport, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
-
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { default: e }; }
+define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (require, exports, externalNoImport, defaultCompat, externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
 	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+	function _interopNamespaceCompat (e) { return e && typeof e === 'object' && 'default' in e ? e : _interopNamespaceDefault(e); }
 
 	function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, default: e }); }
 
@@ -23,8 +23,6 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 		return Object.freeze(n);
 	}
 
-	function _interopNamespace (e) { return e && e.__esModule ? e : _interopNamespaceDefault(e); }
-
 	function _mergeNamespaces(n, m) {
 		m.forEach(function (e) {
 			e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
@@ -40,21 +38,20 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 		return Object.freeze(n);
 	}
 
-	var defaultLegacy__namespace = /*#__PURE__*/_interopNamespace(defaultLegacy);
-	var defaultLegacy__default = /*#__PURE__*/_interopDefaultLegacy(defaultLegacy);
+	var defaultCompat__namespace = /*#__PURE__*/_interopNamespaceCompat(defaultCompat);
 	var externalAuto__default = /*#__PURE__*/_interopDefault(externalAuto);
 	var externalDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(externalDefault);
 	var externalDefaultOnly__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(externalDefaultOnly);
 
 	exports.a = void 0;
 
-	({ a: exports.a } = defaultLegacy.b);
-	console.log({ a: exports.a } = defaultLegacy.b);
+	({ a: exports.a } = defaultCompat.b);
+	console.log({ a: exports.a } = defaultCompat.b);
 
 	Promise.resolve().then(function () { return main; }).then(console.log);
 
-	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
-	console.log(defaultLegacy__default.default);
+	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespaceCompat(m)); }, reject); }).then(console.log);
+	console.log(defaultCompat__namespace.default);
 	console.log(externalAuto__default.default);
 	console.log(externalDefault__namespace);
 	console.log(externalDefaultOnly__namespace);
@@ -63,19 +60,17 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 		__proto__: null,
 		get a () { return exports.a; },
 		foo: foo
-	}, [defaultLegacy__namespace]);
+	}, [defaultCompat__namespace]);
 
 	Object.defineProperty(exports, 'foo', {
 		enumerable: true,
-		get: function () { return defaultLegacy.foo; }
+		get: function () { return defaultCompat.foo; }
 	});
-	Object.keys(defaultLegacy).forEach(function (k) {
+	Object.keys(defaultCompat).forEach(function (k) {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
-			get: function () { return defaultLegacy[k]; }
+			get: function () { return defaultCompat[k]; }
 		});
 	});
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

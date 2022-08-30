@@ -5,6 +5,4 @@ define(['exports', './generated-otherEntry'], (function (exports, otherEntry) { 
 	exports.b = otherEntry.b;
 	exports.c = otherEntry.c;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

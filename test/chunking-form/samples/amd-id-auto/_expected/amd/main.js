@@ -6,6 +6,4 @@ define('main', ['require', 'exports'], (function (require, exports) { 'use stric
 
 	exports.getA = getA;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

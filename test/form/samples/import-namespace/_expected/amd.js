@@ -1,7 +1,6 @@
 define(['foo', 'bar'], (function (foo, bar) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,8 +17,8 @@ define(['foo', 'bar'], (function (foo, bar) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	var foo__namespace = /*#__PURE__*/_interopNamespace(foo);
-	var bar__namespace = /*#__PURE__*/_interopNamespace(bar);
+	var foo__namespace = /*#__PURE__*/_interopNamespaceDefault(foo);
+	var bar__namespace = /*#__PURE__*/_interopNamespaceDefault(bar);
 
 	foo__namespace.x();
 	console.log(bar__namespace);

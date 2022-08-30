@@ -5,6 +5,4 @@ define(['exports', './module-a/v1/index', './module-b/v1/index'], (function (exp
 	exports.ModuleA_V1 = index;
 	exports.ModuleB_V1 = index$1;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

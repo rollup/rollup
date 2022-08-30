@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var starexternal1 = require('starexternal1');
 var external1 = require('external1');
 var dep = require('./generated-dep.js');

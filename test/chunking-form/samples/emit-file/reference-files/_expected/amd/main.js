@@ -16,6 +16,4 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	exports.showImage = showImage;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

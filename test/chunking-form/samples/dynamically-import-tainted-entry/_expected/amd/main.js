@@ -13,6 +13,4 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	exports.promise = promise;
 	exports.value = value;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

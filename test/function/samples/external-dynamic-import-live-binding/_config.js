@@ -5,7 +5,8 @@ module.exports = {
 	options: {
 		external() {
 			return true;
-		}
+		},
+		output: { interop: 'auto' }
 	},
 	context: {
 		require(id) {

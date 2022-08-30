@@ -374,7 +374,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --generatedCode <preset>    Which code features to use (es5/es2015)
 --no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
---no-interop                Do not include interop block
+--interop <type>            Handle default/namespace imports from AMD/CommonJS
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --intro <text>              Code to insert at top of bundle (inside wrapper)
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports

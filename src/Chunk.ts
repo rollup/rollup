@@ -587,9 +587,25 @@ export default class Chunk {
 
 		const renderedDependencies = [...this.getRenderedDependencies().values()];
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
-		const hasExports =
-			renderedExports.length !== 0 ||
-			renderedDependencies.some(dep => (dep.reexports && dep.reexports.length !== 0)!);
+		let hasExports = renderedExports.length !== 0;
+		let hasDefaultExport = false;
+		for (const { reexports } of renderedDependencies) {
+			if (reexports?.length) {
+				hasExports = true;
+				if (reexports.some(reexport => reexport.reexported === 'default')) {
+					hasDefaultExport = true;
+					break;
+				}
+			}
+		}
+		if (!hasDefaultExport) {
+			for (const { exported } of renderedExports) {
+				if (exported === 'default') {
+					hasDefaultExport = true;
+					break;
+				}
+			}
+		}
 
 		const { intro, outro, banner, footer } = await createAddons(
 			outputOptions,
@@ -602,6 +618,7 @@ export default class Chunk {
 				accessedGlobals,
 				dependencies: renderedDependencies,
 				exports: renderedExports,
+				hasDefaultExport,
 				hasExports,
 				id: preliminaryFileName.fileName,
 				indent,
@@ -789,11 +806,11 @@ export default class Chunk {
 					dependencies.add(chunk);
 					if (addNonNamespacesAndInteropHelpers) {
 						if (variable.name === 'default') {
-							if (defaultInteropHelpersByInteropType[String(interop(module.id))]) {
+							if (defaultInteropHelpersByInteropType[interop(module.id)]) {
 								deconflictedDefault.add(chunk);
 							}
 						} else if (variable.name === '*') {
-							if (namespaceInteropHelpersByInteropType[String(interop(module.id))]) {
+							if (namespaceInteropHelpersByInteropType[interop(module.id)]) {
 								deconflictedNamespace.add(chunk);
 							}
 						}
@@ -976,7 +993,7 @@ export default class Chunk {
 					}
 					needsLiveBinding =
 						externalLiveBindings &&
-						(imported !== 'default' || isDefaultAProperty(String(interop(module.id)), true));
+						(imported !== 'default' || isDefaultAProperty(interop(module.id), true));
 				}
 			}
 			getOrCreate(reexportSpecifiers, dependency, () => []).push({

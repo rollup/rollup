@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 function doThings() {
 	console.log( 'doing things...' );
 }

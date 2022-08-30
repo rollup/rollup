@@ -2,4 +2,4 @@
 exports.x+=1;
 exports.x=exports.x+1;
 exports.x++;
-++exports.x;Object.defineProperty(exports,'__esModule',{value:true});}));
+++exports.x;}));

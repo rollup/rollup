@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var externalAll = require('external-all');
 var externalNamespace$1 = require('external-namespace');
 var externalDefaultNamespace = require('external-default-namespace');
 var externalNamedNamespace = require('external-named-namespace');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+	if (e && typeof e === 'object' && 'default' in e) return e;
 	var n = Object.create(null);
 	if (e) {
 		Object.keys(e).forEach(function (k) {
@@ -25,10 +23,10 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-var externalAll__namespace = /*#__PURE__*/_interopNamespace(externalAll);
-var externalNamespace__namespace = /*#__PURE__*/_interopNamespace(externalNamespace$1);
-var externalDefaultNamespace__namespace = /*#__PURE__*/_interopNamespace(externalDefaultNamespace);
-var externalNamedNamespace__namespace = /*#__PURE__*/_interopNamespace(externalNamedNamespace);
+var externalAll__namespace = /*#__PURE__*/_interopNamespaceCompat(externalAll);
+var externalNamespace__namespace = /*#__PURE__*/_interopNamespaceCompat(externalNamespace$1);
+var externalDefaultNamespace__namespace = /*#__PURE__*/_interopNamespaceCompat(externalDefaultNamespace);
+var externalNamedNamespace__namespace = /*#__PURE__*/_interopNamespaceCompat(externalNamedNamespace);
 
 const externalNamespace = 1;
 const externalNamespace__ns = 1;

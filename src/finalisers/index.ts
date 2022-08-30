@@ -13,6 +13,7 @@ export interface FinaliserOptions {
 	accessedGlobals: Set<string>;
 	dependencies: ChunkDependency[];
 	exports: ChunkExports;
+	hasDefaultExport: boolean;
 	hasExports: boolean;
 	id: string;
 	indent: string;
