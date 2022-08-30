@@ -332,7 +332,6 @@ export default class Chunk {
 			this.exportMode = getExportMode(
 				this,
 				this.outputOptions,
-				this.unsetOptions,
 				this.facadeModule!.id,
 				this.inputOptions.onwarn
 			);

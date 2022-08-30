@@ -95,7 +95,6 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	ONLY_INLINE_SOURCEMAPS = 'ONLY_INLINE_SOURCEMAPS',
 	PARSE_ERROR = 'PARSE_ERROR',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
-	PREFER_NAMED_EXPORTS = 'PREFER_NAMED_EXPORTS',
 	SHIMMED_EXPORT = 'SHIMMED_EXPORT',
 	SOURCEMAP_BROKEN = 'SOURCEMAP_BROKEN',
 	SOURCEMAP_ERROR = 'SOURCEMAP_ERROR',
@@ -708,16 +707,6 @@ export function errPluginError(
 		error.id = id;
 	}
 	return error;
-}
-
-export function errPreferNamedExports(facadeModuleId: string): RollupLog {
-	const file = relativeId(facadeModuleId);
-	return {
-		code: PREFER_NAMED_EXPORTS,
-		id: facadeModuleId,
-		message: `Entry module "${file}" is implicitly using "default" export mode, which means for CommonJS output that its default export is assigned to "module.exports". For many tools, such CommonJS output will not be interchangeable with the original ES module. If this is intended, explicitly set "output.exports" to either "auto" or "default", otherwise you might want to consider changing the signature of "${file}" to use named exports only.`,
-		url: `https://rollupjs.org/guide/en/#outputexports`
-	};
 }
 
 export function errShimmedExport(id: string, binding: string): RollupLog {

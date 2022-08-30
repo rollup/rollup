@@ -1466,8 +1466,6 @@ Note: There are some tools such as Babel, TypeScript, Webpack, and `@rollup/plug
 
 In other words for those tools, you cannot create a package interface where `const lib = require("your-lib")` yields the same as `import lib from "your-lib"`. With named export mode however, `const {lib} = require("your-lib")` will be equivalent to `import {lib} from "your-lib"`.
 
-To alert you to this, Rollup will generate a warning when you encounter such a situation and did not select an explicit value for `output.exports`.
-
 #### output.externalLiveBindings
 
 Type: `boolean`<br> CLI: `--externalLiveBindings`/`--no-externalLiveBindings`<br> Default: `true`
