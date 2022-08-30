@@ -3,13 +3,13 @@ System.register(['./relative', 'abso/lute', './relative.js', 'abso/lute.js'], (f
 	var relative, absolute, relativeExtension, absoluteExtension;
 	return {
 		setters: [function (module) {
-			relative = module["default"];
+			relative = module.default;
 		}, function (module) {
-			absolute = module["default"];
+			absolute = module.default;
 		}, function (module) {
-			relativeExtension = module["default"];
+			relativeExtension = module.default;
 		}, function (module) {
-			absoluteExtension = module["default"];
+			absoluteExtension = module.default;
 		}],
 		execute: (function () {
 
