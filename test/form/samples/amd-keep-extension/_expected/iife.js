@@ -1,8 +1,6 @@
-(function (foo, baz) {
+(function (relative, absolute, relativeExtension, absoluteExtension) {
 	'use strict';
 
-	const bar = 42;
+	console.log(relative, absolute, relativeExtension, absoluteExtension);
 
-	console.log(foo, bar, baz);
-
-})(foo, baz);
+})(relative, absolute, relativeExtension, absoluteExtension);

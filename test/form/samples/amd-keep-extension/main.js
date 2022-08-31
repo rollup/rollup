@@ -1,5 +1,6 @@
-import foo from './foo';
-import { bar } from './bar';
-import baz from 'baz/quux';
+import relative from './relative';
+import absolute from 'abso/lute';
+import relativeExtension from './relative.js';
+import absoluteExtension from 'abso/lute.js';
 
-console.log(foo, bar, baz);
+console.log(relative, absolute, relativeExtension, absoluteExtension);

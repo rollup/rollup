@@ -1,17 +1,19 @@
-System.register(['./foo', 'baz/quux'], (function () {
+System.register(['./relative', 'abso/lute', './relative.js', 'abso/lute.js'], (function () {
 	'use strict';
-	var foo, baz;
+	var relative, absolute, relativeExtension, absoluteExtension;
 	return {
 		setters: [function (module) {
-			foo = module["default"];
+			relative = module["default"];
 		}, function (module) {
-			baz = module["default"];
+			absolute = module["default"];
+		}, function (module) {
+			relativeExtension = module["default"];
+		}, function (module) {
+			absoluteExtension = module["default"];
 		}],
 		execute: (function () {
 
-			const bar = 42;
-
-			console.log(foo, bar, baz);
+			console.log(relative, absolute, relativeExtension, absoluteExtension);
 
 		})
 	};

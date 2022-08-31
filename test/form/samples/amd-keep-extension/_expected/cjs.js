@@ -1,8 +1,8 @@
 'use strict';
 
-var foo = require('./foo');
-var baz = require('baz/quux');
+var relative = require('./relative');
+var absolute = require('abso/lute');
+var relativeExtension = require('./relative.js');
+var absoluteExtension = require('abso/lute.js');
 
-const bar = 42;
-
-console.log(foo, bar, baz);
+console.log(relative, absolute, relativeExtension, absoluteExtension);

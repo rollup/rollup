@@ -1,7 +1,5 @@
-define(['./foo.js', 'baz/quux'], (function (foo, baz) { 'use strict';
+define(['./relative.js', 'abso/lute', './relative.js', 'abso/lute.js'], (function (relative, absolute, relativeExtension, absoluteExtension) { 'use strict';
 
-	const bar = 42;
-
-	console.log(foo, bar, baz);
+	console.log(relative, absolute, relativeExtension, absoluteExtension);
 
 }));

@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'keep extension for AMD modules',
 	options: {
-		external: ['./foo', 'baz/quux'],
-		output: { interop: 'default', amd: { forceJsExtensionForImports: true } }
+		external: ['./relative', 'abso/lute', './relative.js', 'abso/lute.js'],
+		output: { amd: { forceJsExtensionForImports: true }, interop: 'default' }
 	}
 };

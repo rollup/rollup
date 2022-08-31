@@ -1,6 +1,6 @@
-import foo from './foo';
-import baz from 'baz/quux';
+import relative from './relative';
+import absolute from 'abso/lute';
+import relativeExtension from './relative.js';
+import absoluteExtension from 'abso/lute.js';
 
-const bar = 42;
-
-console.log(foo, bar, baz);
+console.log(relative, absolute, relativeExtension, absoluteExtension);
