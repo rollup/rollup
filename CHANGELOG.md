@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.79.0
+
+_2022-08-31_
+
+### Features
+
+- Add `amd.forceJsExtensionForImports` to enforce using `.js` extensions for relative AMD imports (#4607)
+
+### Pull Requests
+
+- [#4607](https://github.com/rollup/rollup/pull/4607): add option to keep extensions for amd (@wh1tevs)
+
 ## 2.78.1
 
 _2022-08-19_
