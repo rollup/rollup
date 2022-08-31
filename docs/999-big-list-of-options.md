@@ -1331,6 +1331,23 @@ export default {
 // -> def(['dependency'],...
 ```
 
+**output.amd.forceJsExtensionForImports**<br> Type: `boolean`<br> CLI: `--amd.forceJsExtensionForImports`<br> Default: `false`
+
+Add `.js` extension for imports of generated chunks and local AMD modules:
+
+```js
+// rollup.config.js
+export default {
+  ...,
+  format: 'amd',
+  amd: {
+    forceJsExtensionForImports: true
+  }
+};
+
+// -> define(['./chunk-or-local-file.js', 'dependency', 'third/dependency'],...
+```
+
 #### output.esModule
 
 Type: `boolean`<br> CLI: `--esModule`/`--no-esModule`<br> Default: `true`

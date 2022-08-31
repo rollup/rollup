@@ -5,10 +5,10 @@ import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
-import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
 import { keypath } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
+import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import type { FinaliserOptions } from './index';
 
@@ -73,7 +73,9 @@ export default function umd(
 
 	warnOnBuiltins(warn, dependencies);
 
-	const amdDeps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
+	const amdDeps = dependencies.map(
+		m => `'${updateExtensionForRelativeAmdId(m.id, amd.forceJsExtensionForImports)}'`
+	);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 
 	const trimmedImports = trimEmptyImports(dependencies);

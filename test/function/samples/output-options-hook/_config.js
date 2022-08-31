@@ -18,7 +18,8 @@ module.exports = {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
 					amd: {
 						define: 'define',
-						autoId: false
+						autoId: false,
+						forceJsExtensionForImports: false
 					},
 					assetFileNames: 'assets/[name]-[hash][extname]',
 					chunkFileNames: '[name]-[hash].js',

@@ -631,6 +631,7 @@ export type AmdOptions = (
 	  }
 ) & {
 	define?: string;
+	forceJsExtensionForImports?: boolean;
 };
 
 export type NormalizedAmdOptions = (
@@ -644,6 +645,7 @@ export type NormalizedAmdOptions = (
 	  }
 ) & {
 	define: string;
+	forceJsExtensionForImports: boolean;
 };
 
 export interface OutputOptions {

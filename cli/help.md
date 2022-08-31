@@ -23,6 +23,7 @@ Basic options:
 --amd.autoId                Generate the AMD ID based off the chunk name
 --amd.basePath <prefix>     Path to prepend to auto generated AMD ID
 --amd.define <name>         Function to use in place of `define`
+--amd.forceJsExtensionForImports Use `.js` extension in AMD imports
 --assetFileNames <pattern>  Name pattern for emitted assets
 --banner <text>             Code to insert at top of bundle (outside wrapper)
 --chunkFileNames <pattern>  Name pattern for emitted secondary chunks
