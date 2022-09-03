@@ -1,13 +1,13 @@
 import { errFailedValidation, error } from './error';
 
 // Four random characters from the private use area to minimize risk of conflicts
-const hashPlaceholderLeft = '\uf7f9\ue4d3';
-const hashPlaceholderRight = '\ue3cc\uf1fe';
+const hashPlaceholderLeft = '_!~{';
+const hashPlaceholderRight = '}~';
 const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRight.length;
 
 // This is the size of a sha256
 export const maxHashSize = 64;
-export const defaultHashSize = 8;
+export const defaultHashSize = 9;
 
 export type HashPlaceholderGenerator = (optionName: string, hashSize?: number) => string;
 
