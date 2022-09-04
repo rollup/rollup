@@ -1,2 +1,2 @@
-console.log('replaced: _!~{0001}~');
-console.log('not replaced: _!~{1234}~');
+console.log('replaced: !~{001}~');
+console.log('not replaced: !~{123}~');

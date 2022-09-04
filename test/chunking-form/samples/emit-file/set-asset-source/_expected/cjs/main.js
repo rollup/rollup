@@ -1,6 +1,6 @@
 'use strict';
 
-const renderStart = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/renderStart-981aa2ea6.txt').href : new URL('assets/renderStart-981aa2ea6.txt', document.currentScript && document.currentScript.src || document.baseURI).href);
+const renderStart = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/renderStart-981aa2ea.txt').href : new URL('assets/renderStart-981aa2ea.txt', document.currentScript && document.currentScript.src || document.baseURI).href);
 const renderStartNamed = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/renderStart.txt').href : new URL('renderStart.txt', document.currentScript && document.currentScript.src || document.baseURI).href);
 const renderStartNamedImmediately = 'renderStart.txt';
 const bannerNamed = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/banner.txt').href : new URL('banner.txt', document.currentScript && document.currentScript.src || document.baseURI).href);

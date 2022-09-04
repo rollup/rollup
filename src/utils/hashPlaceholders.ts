@@ -1,13 +1,14 @@
+import { toBase64 } from './base64';
 import { errFailedValidation, error } from './error';
 
 // Four random characters from the private use area to minimize risk of conflicts
-const hashPlaceholderLeft = '_!~{';
+const hashPlaceholderLeft = '!~{';
 const hashPlaceholderRight = '}~';
 const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRight.length;
 
 // This is the size of a sha256
 export const maxHashSize = 64;
-export const defaultHashSize = 9;
+export const defaultHashSize = 8;
 
 export type HashPlaceholderGenerator = (optionName: string, hashSize?: number) => string;
 
@@ -21,7 +22,7 @@ export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
 				)
 			);
 		}
-		const placeholder = `${hashPlaceholderLeft}${String(++nextIndex).padStart(
+		const placeholder = `${hashPlaceholderLeft}${toBase64(++nextIndex).padStart(
 			hashSize - hashPlaceholderOverhead,
 			'0'
 		)}${hashPlaceholderRight}`;
@@ -32,13 +33,14 @@ export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
 				)
 			);
 		}
-		nextIndex++;
 		return placeholder;
 	};
 };
 
 const REPLACER_REGEX = new RegExp(
-	`${hashPlaceholderLeft}\\d{1,${maxHashSize - hashPlaceholderOverhead}}${hashPlaceholderRight}`,
+	`${hashPlaceholderLeft}[0-9a-zA-Z_$]{1,${
+		maxHashSize - hashPlaceholderOverhead
+	}}${hashPlaceholderRight}`,
 	'g'
 );
 

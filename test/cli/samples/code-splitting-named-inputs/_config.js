@@ -8,13 +8,13 @@ module.exports = {
 		assert.equal(
 			code,
 			'\n' +
-				`//→ entry1-108734151.js:\n` +
+				`//→ entry1-10873415.js:\n` +
 				"console.log('main1');\n" +
 				'\n' +
-				`//→ Entry 2-b2b9d0bf7.js:\n` +
+				`//→ Entry 2-b2b9d0bf.js:\n` +
 				"console.log('main2');\n" +
 				'\n' +
-				`//→ main3-064cd134a.js:\n` +
+				`//→ main3-064cd134.js:\n` +
 				"console.log('main3');\n"
 		);
 	}
