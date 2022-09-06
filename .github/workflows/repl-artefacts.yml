@@ -4,8 +4,13 @@ on:
   pull_request_target:
     types: [synchronize, opened, reopened, labeled]
 
+permissions:
+  contents: read
+
 jobs:
   upload:
+    permissions:
+      pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
     if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
     runs-on: ubuntu-latest
     name: Upload
