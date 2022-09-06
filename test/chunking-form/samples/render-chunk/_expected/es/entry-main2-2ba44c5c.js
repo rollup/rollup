@@ -1,4 +1,4 @@
-import { n as num$1 } from './chunk-dep2-124edba5.js';
+import { n as num$1 } from './chunk-dep2-f4e7f39c.js';
 
 var num = 3;
 console.log('referenced asset', new URL('asset-test-9f86d081', import.meta.url).href);
@@ -18,15 +18,15 @@ console.log({
   "name": "main2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main2-09746024.js",
+  "fileName": "entry-main2-2ba44c5c.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-124edba5.js": [
+    "chunk-dep2-f4e7f39c.js": [
       "n"
     ]
   },
   "imports": [
-    "chunk-dep2-124edba5.js"
+    "chunk-dep2-f4e7f39c.js"
   ],
   "modules": {
     "**/dep3.js": {
@@ -50,5 +50,5 @@ console.log({
     "asset-test-9f86d081"
   ]
 });
-console.log('all chunks', ["entry-main1-b12147aa.js","chunk-dep2-124edba5.js","entry-main2-09746024.js"])
+console.log('all chunks', ["entry-main1-bb9f9ac2.js","chunk-dep2-f4e7f39c.js","entry-main2-2ba44c5c.js"])
 console.log('referenced asset in renderChunk', 'asset-test-9f86d081');

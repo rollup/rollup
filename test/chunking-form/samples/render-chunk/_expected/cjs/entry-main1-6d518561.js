@@ -1,6 +1,6 @@
 'use strict';
 
-var dep2 = require('./chunk-dep2-b09f6eac.js');
+var dep2 = require('./chunk-dep2-970ee28f.js');
 
 var num = 1;
 console.log('referenced asset', (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/asset-test-9f86d081').href : new URL('asset-test-9f86d081', document.currentScript && document.currentScript.src || document.baseURI).href));
@@ -20,15 +20,15 @@ console.log({
   "name": "main1",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main1-465ee0c3.js",
+  "fileName": "entry-main1-6d518561.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-b09f6eac.js": [
+    "chunk-dep2-970ee28f.js": [
       "num"
     ]
   },
   "imports": [
-    "chunk-dep2-b09f6eac.js"
+    "chunk-dep2-970ee28f.js"
   ],
   "modules": {
     "**/dep1.js": {
@@ -52,5 +52,5 @@ console.log({
     "asset-test-9f86d081"
   ]
 });
-console.log('all chunks', ["entry-main1-465ee0c3.js","chunk-dep2-b09f6eac.js","entry-main2-333fdc53.js"])
+console.log('all chunks', ["entry-main1-6d518561.js","chunk-dep2-970ee28f.js","entry-main2-a4b8e424.js"])
 console.log('referenced asset in renderChunk', 'asset-test-9f86d081');

@@ -1,4 +1,4 @@
-define(['require', './chunk-dep2-5e5c0a2b'], (function (require, dep2) { 'use strict';
+define(['require', './chunk-dep2-88c5c49b'], (function (require, dep2) { 'use strict';
 
 	var num = 3;
 	console.log('referenced asset', new URL(require.toUrl('./asset-test-9f86d081'), document.baseURI).href);
@@ -20,15 +20,15 @@ console.log({
   "name": "main2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "entry-main2-8423cd41.js",
+  "fileName": "entry-main2-71e00327.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {
-    "chunk-dep2-5e5c0a2b.js": [
+    "chunk-dep2-88c5c49b.js": [
       "num"
     ]
   },
   "imports": [
-    "chunk-dep2-5e5c0a2b.js"
+    "chunk-dep2-88c5c49b.js"
   ],
   "modules": {
     "**/dep3.js": {
@@ -52,5 +52,5 @@ console.log({
     "asset-test-9f86d081"
   ]
 });
-console.log('all chunks', ["entry-main1-92387c07.js","chunk-dep2-5e5c0a2b.js","entry-main2-8423cd41.js"])
+console.log('all chunks', ["entry-main1-87907a68.js","chunk-dep2-88c5c49b.js","entry-main2-71e00327.js"])
 console.log('referenced asset in renderChunk', 'asset-test-9f86d081');

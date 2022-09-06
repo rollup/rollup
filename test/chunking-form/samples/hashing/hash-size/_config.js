@@ -12,7 +12,7 @@ module.exports = {
 		],
 		output: {
 			entryFileNames: ({ name }) =>
-				name === 'main1' ? '[name]-[hash:6].js' : '[name]-[hash:10].js',
+				name === 'main1' ? '[name]-[hash:8].js' : '[name]-[hash:10].js',
 			chunkFileNames: '[name]-[hash:14].js',
 			assetFileNames: '[name]-[hash:18][extname]'
 		}
