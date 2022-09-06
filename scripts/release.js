@@ -147,7 +147,7 @@ async function getIncludedPRs(changelog, repo) {
 		`v${currentVersion}..HEAD`,
 		'--pretty=tformat:%s'
 	]);
-	const getPrRegExp = /^([^(]+)\s\(#(\d+)\)$/gm;
+	const getPrRegExp = /^(.+)\s\(#(\d+)\)$/gm;
 	const prs = [];
 	let match;
 	while ((match = getPrRegExp.exec(commits))) {

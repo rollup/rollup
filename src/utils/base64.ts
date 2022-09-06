@@ -5,7 +5,7 @@ export function toBase64(num: number): string {
 	let outStr = '';
 	do {
 		const curDigit = num % base;
-		num = Math.floor(num / base);
+		num = (num / base) | 0;
 		outStr = chars[curDigit] + outStr;
 	} while (num !== 0);
 	return outStr;

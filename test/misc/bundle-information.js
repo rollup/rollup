@@ -28,7 +28,7 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1-7af41723.js', 'input2-95f92690.js', 'generated-shared-4eca6591.js'],
+					['input1-fffbf648.js', 'input2-ee435193.js', 'generated-shared-4eca6591.js'],
 					'fileName'
 				);
 				assert.deepEqual(

@@ -3,8 +3,8 @@ System.register([], (function () {
 	return {
 		execute: (function () {
 
-			console.log('replaced: 74248106');
-			console.log('not replaced: 1234');
+			console.log('replaced: 49c9800c');
+			console.log('not replaced: !~{123}~');
 
 		})
 	};
