@@ -3,10 +3,8 @@ import type Graph from '../Graph';
 import type Module from '../Module';
 import type {
 	EmittedChunk,
-	FilePlaceholder,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputBundleWithPlaceholders,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -24,6 +22,11 @@ import {
 	error,
 	warnDeprecation
 } from './error';
+import {
+	FILE_PLACEHOLDER,
+	lowercaseBundleKeys,
+	OutputBundleWithPlaceholders
+} from './outputBundle';
 import { extname } from './path';
 import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
@@ -64,10 +67,12 @@ function reserveFileNameInBundle(
 	bundle: OutputBundleWithPlaceholders,
 	warn: WarningHandler
 ) {
-	if (fileName in bundle) {
+	const lowercaseFileName = fileName.toLowerCase();
+	if (bundle[lowercaseBundleKeys].has(lowercaseFileName)) {
 		warn(errFileNameConflict(fileName));
+	} else {
+		bundle[fileName] = FILE_PLACEHOLDER;
 	}
-	bundle[fileName] = FILE_PLACEHOLDER;
 }
 
 interface ConsumedChunk {
@@ -92,10 +97,6 @@ interface EmittedFile {
 }
 
 type ConsumedFile = ConsumedChunk | ConsumedAsset;
-
-export const FILE_PLACEHOLDER: FilePlaceholder = {
-	type: 'placeholder'
-};
 
 function hasValidType(
 	emittedFile: unknown
@@ -228,21 +229,21 @@ export class FileEmitter {
 	};
 
 	public setOutputBundle = (
-		outputBundle: OutputBundleWithPlaceholders,
+		bundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions,
 		facadeChunkByModule: ReadonlyMap<Module, Chunk>
 	): void => {
 		this.outputOptions = outputOptions;
-		this.bundle = outputBundle;
+		this.bundle = bundle;
 		this.facadeChunkByModule = facadeChunkByModule;
-		for (const emittedFile of this.filesByReferenceId.values()) {
-			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, this.bundle, this.options.onwarn);
+		for (const { fileName } of this.filesByReferenceId.values()) {
+			if (fileName) {
+				reserveFileNameInBundle(fileName, bundle, this.options.onwarn);
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId) {
 			if (consumedFile.type === 'asset' && consumedFile.source !== undefined) {
-				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, this.bundle);
+				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, bundle);
 			}
 		}
 	};
@@ -348,6 +349,9 @@ export class FileEmitter {
 	}
 }
 
+// TODO This can lead to a performance problem when many assets are emitted.
+//  Instead, we should only deduplicate string assets and use their sources as
+//  object keys for better performance.
 function findExistingAssetFileNameWithSource(
 	bundle: OutputBundleWithPlaceholders,
 	source: string | Uint8Array

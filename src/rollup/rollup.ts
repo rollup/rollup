@@ -1,8 +1,8 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
-import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import type { PluginDriver } from '../utils/PluginDriver';
+import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
 import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { promises as fs } from '../utils/fs';
@@ -26,6 +26,7 @@ import type {
 	RollupOutput,
 	RollupWatcher
 } from './types';
+import { OutputBundle } from './types';
 
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	return rollupInternal(rawInputOptions, null);
@@ -233,21 +234,17 @@ function getOutputOptions(
 	);
 }
 
-function createOutput(
-	outputBundle: Record<string, OutputChunk | OutputAsset | Record<string, never>>
-): RollupOutput {
+function createOutput(outputBundle: OutputBundle): RollupOutput {
 	return {
 		output: (
 			Object.values(outputBundle).filter(outputFile => Object.keys(outputFile).length > 0) as (
 				| OutputChunk
 				| OutputAsset
 			)[]
-		).sort((outputFileA, outputFileB) => {
-			const fileTypeA = getSortingFileType(outputFileA);
-			const fileTypeB = getSortingFileType(outputFileB);
-			if (fileTypeA === fileTypeB) return 0;
-			return fileTypeA < fileTypeB ? -1 : 1;
-		}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
+		).sort(
+			(outputFileA, outputFileB) =>
+				getSortingFileType(outputFileA) - getSortingFileType(outputFileB)
+		) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
 	};
 }
 
