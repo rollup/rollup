@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.79.1
+
+_2022-09-22_
+
+### Bug Fixes
+
+- Avoid massive performance degradation when creating thousands of chunks (#4643)
+
+### Pull Requests
+
+- [#4639](https://github.com/rollup/rollup/pull/4639): fix: typo docs and contributors link in CONTRIBUTING.md (@takurinton)
+- [#4641](https://github.com/rollup/rollup/pull/4641): Update type definition of resolveId (@ivanjonas)
+- [#4643](https://github.com/rollup/rollup/pull/4643): Improve performance of chunk naming collision check (@lukastaegert)
+
 ## 2.79.0
 
 _2022-08-31_
