@@ -51,6 +51,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
+import { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
 import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
@@ -410,7 +411,7 @@ export default class Chunk {
 	generateId(
 		addons: Addons,
 		options: NormalizedOutputOptions,
-		existingNames: Record<string, unknown>,
+		bundle: OutputBundleWithPlaceholders,
 		includeHash: boolean
 	): string {
 		if (this.fileName !== null) {
@@ -428,19 +429,19 @@ export default class Chunk {
 					format: () => options.format,
 					hash: () =>
 						includeHash
-							? this.computeContentHashWithDependencies(addons, options, existingNames)
+							? this.computeContentHashWithDependencies(addons, options, bundle)
 							: '[hash]',
 					name: () => this.getChunkName()
 				}
 			),
-			existingNames
+			bundle
 		);
 	}
 
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
 		options: NormalizedOutputOptions,
-		existingNames: Record<string, unknown>,
+		bundle: OutputBundleWithPlaceholders,
 		unsetOptions: ReadonlySet<string>
 	): string {
 		const [{ id }] = this.orderedModules;
@@ -480,7 +481,7 @@ export default class Chunk {
 			});
 			path = `_virtual/${fileName}`;
 		}
-		return makeUnique(normalize(path), existingNames);
+		return makeUnique(normalize(path), bundle);
 	}
 
 	getChunkInfo(): PreRenderedChunk {
@@ -885,7 +886,7 @@ export default class Chunk {
 	private computeContentHashWithDependencies(
 		addons: Addons,
 		options: NormalizedOutputOptions,
-		existingNames: Record<string, unknown>
+		bundle: OutputBundleWithPlaceholders
 	): string {
 		const hash = createHash();
 		hash.update([addons.intro, addons.outro, addons.banner, addons.footer].join(':'));
@@ -896,7 +897,7 @@ export default class Chunk {
 				hash.update(`:${current.renderPath}`);
 			} else {
 				hash.update(current.getRenderedHash());
-				hash.update(current.generateId(addons, options, existingNames, false));
+				hash.update(current.generateId(addons, options, bundle, false));
 			}
 			if (current instanceof ExternalModule) continue;
 			for (const dependency of [...current.dependencies, ...current.dynamicDependencies]) {

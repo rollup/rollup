@@ -10,7 +10,6 @@ import type {
 	FunctionPluginHooks,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputBundleWithPlaceholders,
 	ParallelPluginHooks,
 	Plugin,
 	PluginContext,
@@ -28,6 +27,7 @@ import {
 	error
 } from './error';
 import { getOrCreate } from './getOrCreate';
+import { OutputBundleWithPlaceholders } from './outputBundle';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 /**
