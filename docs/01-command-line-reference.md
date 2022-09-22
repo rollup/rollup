@@ -232,7 +232,9 @@ Alternatively you can use the `defineConfig` helper, which should provide Intell
 // rollup.config.js
 import { defineConfig } from 'rollup';
 
-export default defineConfig({ /* your config */ };
+export default defineConfig({
+  /* your config */
+});
 ```
 
 Besides `RollupOptions` and the `defineConfig` helper that encapsulates this type, the following types can prove useful as well:

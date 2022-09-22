@@ -38,7 +38,7 @@ If you require technical assistance, [Stackoverflow](https://stackoverflow.com/q
 
 ### Contributors
 
-Thank you to all the people who have already contributed to rollup! <a href="graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
+Thank you to all the people who have already contributed to rollup! <a href="https://github.com/rollup/rollup/graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
 
 ### Backers
 
