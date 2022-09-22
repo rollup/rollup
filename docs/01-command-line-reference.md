@@ -234,7 +234,7 @@ import { defineConfig } from 'rollup';
 
 export default defineConfig({
   /* your config */
- });
+});
 ```
 
 Besides `RollupOptions` and the `defineConfig` helper that encapsulates this type, the following types can prove useful as well:
