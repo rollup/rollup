@@ -358,14 +358,6 @@ export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
 }
 
-export interface FilePlaceholder {
-	type: 'placeholder';
-}
-
-export interface OutputBundleWithPlaceholders {
-	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
-}
-
 export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
 	buildEnd: (this: PluginContext, err?: Error) => void;

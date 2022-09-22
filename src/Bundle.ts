@@ -8,11 +8,9 @@ import type {
 	NormalizedOutputOptions,
 	OutputAsset,
 	OutputBundle,
-	OutputBundleWithPlaceholders,
 	OutputChunk,
 	WarningHandler
 } from './rollup/types';
-import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import type { PluginDriver } from './utils/PluginDriver';
 import { type Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
@@ -26,6 +24,11 @@ import {
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { type GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
+import {
+	FILE_PLACEHOLDER,
+	getOutputBundle,
+	OutputBundleWithPlaceholders
+} from './utils/outputBundle';
 import { basename, isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -43,7 +46,8 @@ export default class Bundle {
 
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
-		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
+		const outputBundleBase: OutputBundle = Object.create(null);
+		const outputBundle = getOutputBundle(outputBundleBase);
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions, this.facadeChunkByModule);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
@@ -78,23 +82,23 @@ export default class Bundle {
 		this.finaliseAssets(outputBundle);
 
 		timeEnd('GENERATE', 1);
-		return outputBundle as OutputBundle;
+		return outputBundleBase;
 	}
 
 	private async addFinalizedChunksToBundle(
 		chunks: readonly Chunk[],
 		inputBase: string,
 		addons: Addons,
-		outputBundle: OutputBundleWithPlaceholders,
+		bundle: OutputBundleWithPlaceholders,
 		snippets: GenerateCodeSnippets
 	): Promise<void> {
-		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
+		this.assignChunkIds(chunks, inputBase, addons, bundle);
 		for (const chunk of chunks) {
-			outputBundle[chunk.id!] = chunk.getChunkInfoWithFileNames() as OutputChunk;
+			bundle[chunk.id!] = chunk.getChunkInfoWithFileNames() as OutputChunk;
 		}
 		await Promise.all(
 			chunks.map(async chunk => {
-				const outputChunk = outputBundle[chunk.id!] as OutputChunk;
+				const outputChunk = bundle[chunk.id!] as OutputChunk;
 				Object.assign(
 					outputChunk,
 					await chunk.render(this.outputOptions, addons, outputChunk, snippets)

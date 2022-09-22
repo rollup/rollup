@@ -1,4 +1,5 @@
 import { errFailedValidation, error } from './error';
+import { lowercaseBundleKeys, OutputBundleWithPlaceholders } from './outputBundle';
 import { extname } from './path';
 import { isPathFragment } from './relativeId';
 
@@ -30,14 +31,15 @@ export function renderNamePattern(
 	});
 }
 
-export function makeUnique(name: string, existingNames: Record<string, unknown>): string {
-	const existingNamesLowercase = new Set(Object.keys(existingNames).map(key => key.toLowerCase()));
-	if (!existingNamesLowercase.has(name.toLocaleLowerCase())) return name;
-
+export function makeUnique(
+	name: string,
+	{ [lowercaseBundleKeys]: reservedLowercaseBundleKeys }: OutputBundleWithPlaceholders
+): string {
+	if (!reservedLowercaseBundleKeys.has(name.toLowerCase())) return name;
 	const ext = extname(name);
 	name = name.substring(0, name.length - ext.length);
 	let uniqueName: string,
 		uniqueIndex = 1;
-	while (existingNamesLowercase.has((uniqueName = name + ++uniqueIndex + ext).toLowerCase()));
+	while (reservedLowercaseBundleKeys.has((uniqueName = name + ++uniqueIndex + ext).toLowerCase()));
 	return uniqueName;
 }
