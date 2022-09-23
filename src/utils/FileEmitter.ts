@@ -61,7 +61,7 @@ function generateAssetFileName(
 
 function reserveFileNameInBundle(
 	fileName: string,
-	bundle: OutputBundleWithPlaceholders,
+	{ bundle }: FileEmitterOutput,
 	warn: WarningHandler
 ) {
 	if (bundle[lowercaseBundleKeys].has(fileName.toLowerCase())) {
@@ -151,11 +151,17 @@ function getChunkFileName(
 	return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 }
 
+interface FileEmitterOutput {
+	bundle: OutputBundleWithPlaceholders;
+	fileNamesBySource: Map<string, string>;
+	outputOptions: NormalizedOutputOptions;
+}
+
 export class FileEmitter {
-	private bundle: OutputBundleWithPlaceholders | null = null;
 	private facadeChunkByModule: ReadonlyMap<Module, Chunk> | null = null;
 	private readonly filesByReferenceId: Map<string, ConsumedFile>;
-	private outputOptions: NormalizedOutputOptions | null = null;
+	private nextIdBase = 1;
+	private output: FileEmitterOutput | null = null;
 
 	constructor(
 		private readonly graph: Graph,
@@ -222,8 +228,8 @@ export class FileEmitter {
 			return error(errAssetSourceAlreadySet(consumedFile.name || referenceId));
 		}
 		const source = getValidSource(requestedSource, consumedFile, referenceId);
-		if (this.bundle) {
-			this.finalizeAsset(consumedFile, source, referenceId, this.bundle);
+		if (this.output) {
+			this.finalizeAsset(consumedFile, source, referenceId, this.output);
 		} else {
 			consumedFile.source = source;
 		}
@@ -237,16 +243,19 @@ export class FileEmitter {
 		bundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions
 	): void => {
-		this.outputOptions = outputOptions;
-		this.bundle = bundle;
+		const fileNamesBySource = new Map();
+		const output = (this.output = { bundle, fileNamesBySource, outputOptions });
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, bundle, this.options.onwarn);
+				reserveFileNameInBundle(emittedFile.fileName, output, this.options.onwarn);
+				if (emittedFile.type === 'asset' && typeof emittedFile.source === 'string') {
+					fileNamesBySource.set(emittedFile.source, emittedFile.fileName);
+				}
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId) {
 			if (consumedFile.type === 'asset' && consumedFile.source !== undefined) {
-				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, bundle);
+				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, output);
 			}
 		}
 	};
@@ -278,14 +287,14 @@ export class FileEmitter {
 		};
 		const referenceId = this.assignReferenceId(
 			consumedAsset,
-			emittedAsset.fileName || emittedAsset.name || emittedAsset.type
+			emittedAsset.fileName || emittedAsset.name || String(this.nextIdBase++)
 		);
-		if (this.bundle) {
+		if (this.output) {
 			if (emittedAsset.fileName) {
-				reserveFileNameInBundle(emittedAsset.fileName, this.bundle, this.options.onwarn);
+				reserveFileNameInBundle(emittedAsset.fileName, this.output, this.options.onwarn);
 			}
 			if (source !== undefined) {
-				this.finalizeAsset(consumedAsset, source, referenceId, this.bundle);
+				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
 			}
 		}
 		return referenceId;
@@ -323,16 +332,19 @@ export class FileEmitter {
 		consumedFile: ConsumedFile,
 		source: string | Uint8Array,
 		referenceId: string,
-		bundle: OutputBundleWithPlaceholders
+		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
 	): void {
 		const fileName =
 			consumedFile.fileName ||
-			findExistingAssetFileNameWithSource(bundle, source) ||
-			generateAssetFileName(consumedFile.name, source, this.outputOptions!, bundle);
+			(typeof source === 'string' && fileNamesBySource.get(source)) ||
+			generateAssetFileName(consumedFile.name, source, outputOptions, bundle);
 
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, fileName, source };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
+		if (typeof source === 'string') {
+			fileNamesBySource.set(source, fileName);
+		}
 		bundle[fileName] = {
 			fileName,
 			name: consumedFile.name,
@@ -340,41 +352,4 @@ export class FileEmitter {
 			type: 'asset'
 		};
 	}
-}
-
-// TODO This can lead to a performance problem when many assets are emitted.
-//  Instead, we should only deduplicate string assets and use their sources as
-//  object keys for better performance.
-function findExistingAssetFileNameWithSource(
-	bundle: OutputBundleWithPlaceholders,
-	source: string | Uint8Array
-): string | null {
-	for (const [fileName, outputFile] of Object.entries(bundle)) {
-		if (outputFile.type === 'asset' && areSourcesEqual(source, outputFile.source)) return fileName;
-	}
-	return null;
-}
-
-function areSourcesEqual(
-	sourceA: string | Uint8Array | Buffer,
-	sourceB: string | Uint8Array | Buffer
-): boolean {
-	if (typeof sourceA === 'string') {
-		return sourceA === sourceB;
-	}
-	if (typeof sourceB === 'string') {
-		return false;
-	}
-	if ('equals' in sourceA) {
-		return sourceA.equals(sourceB);
-	}
-	if (sourceA.length !== sourceB.length) {
-		return false;
-	}
-	for (let index = 0; index < sourceA.length; index++) {
-		if (sourceA[index] !== sourceB[index]) {
-			return false;
-		}
-	}
-	return true;
 }
