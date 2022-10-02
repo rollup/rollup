@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import ImportAttribute from './ImportAttribute';
 import type ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import type ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import type ImportSpecifier from './ImportSpecifier';
@@ -8,12 +9,13 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
+	declare assertions: ImportAttribute[];
 	declare needsBoundaries: true;
 	declare source: Literal<string>;
 	declare specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	declare type: NodeType.tImportDeclaration;
 
-	// Do not bind specifiers
+	// Do not bind specifiers or assertions
 	bind(): void {}
 
 	hasEffects(): boolean {

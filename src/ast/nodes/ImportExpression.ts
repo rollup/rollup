@@ -13,6 +13,7 @@ import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type * as NodeType from './NodeType';
+import ObjectExpression from './ObjectExpression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 interface DynamicImportMechanism {
@@ -20,7 +21,10 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
+// TODO once ImportExpression follows official ESTree specs with "null" as
+//  default, keys.ts should be updated
 export default class ImportExpression extends NodeBase {
+	declare arguments: ObjectExpression[] | undefined;
 	inlineNamespace: NamespaceVariable | null = null;
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
@@ -29,6 +33,11 @@ export default class ImportExpression extends NodeBase {
 	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
+
+	// Do not bind assertions
+	bind(): void {
+		this.source.bind();
+	}
 
 	hasEffects(): boolean {
 		return true;

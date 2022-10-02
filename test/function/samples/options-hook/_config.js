@@ -15,7 +15,7 @@ module.exports = {
 						preserveParens: false,
 						sourceType: 'module'
 					},
-					acornInjectPlugins: [],
+					acornInjectPlugins: [null],
 					context: 'undefined',
 					experimentalCacheExpiry: 10,
 					input: ['used'],
