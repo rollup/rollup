@@ -75,6 +75,9 @@ export default class ImportExpression extends NodeBase {
 			return;
 		}
 
+		if (this.arguments) {
+			code.remove(this.source.end, this.end - 1);
+		}
 		if (this.mechanism) {
 			code.overwrite(
 				this.start,
