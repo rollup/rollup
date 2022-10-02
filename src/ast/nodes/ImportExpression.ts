@@ -58,7 +58,7 @@ export default class ImportExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		const {
-			snippets: { getDirectReturnFunction, getPropertyAccess }
+			snippets: { _, getDirectReturnFunction, getObject, getPropertyAccess }
 		} = options;
 		if (this.inlineNamespace) {
 			const [left, right] = getDirectReturnFunction([], {
@@ -89,6 +89,15 @@ export default class ImportExpression extends NodeBase {
 		}
 		if (this.resolutionString) {
 			code.overwrite(this.source.start, this.source.end, this.resolutionString);
+			if (this.resolutionString.endsWith(".json'")) {
+				code.appendLeft(
+					this.end - 1,
+					`,${_}${getObject(
+						[['assert', getObject([['type', "'json'"]], { lineBreakIndent: null })]],
+						{ lineBreakIndent: null }
+					)}`
+				);
+			}
 			if (this.namespaceExportName) {
 				const [left, right] = getDirectReturnFunction(['n'], {
 					functionReturn: true,
