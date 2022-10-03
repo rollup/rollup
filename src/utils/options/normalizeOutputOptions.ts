@@ -6,6 +6,7 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
+import { EMPTY_OBJECT } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
 import { resolve } from '../path';
@@ -48,6 +49,7 @@ export function normalizeOutputOptions(
 		esModule: config.esModule ?? 'if-default-prop',
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
+		externalImportAssertions: getExternalImportAssertions(config),
 		externalLiveBindings: config.externalLiveBindings ?? true,
 		file,
 		footer: getAddon(config, 'footer'),
@@ -353,6 +355,16 @@ function getExports(
 		return error(errInvalidExportOptionValue(configExports));
 	}
 	return configExports || 'auto';
+}
+
+function getExternalImportAssertions(
+	config: OutputOptions
+): NormalizedOutputOptions['externalImportAssertions'] {
+	const configExternalImportAssertions = config.externalImportAssertions;
+	if (typeof configExternalImportAssertions === 'function') {
+		return configExternalImportAssertions;
+	}
+	return ({ id }) => (id.endsWith('.json') ? { type: 'json' } : EMPTY_OBJECT);
 }
 
 const getGeneratedCode = (

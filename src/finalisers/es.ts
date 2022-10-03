@@ -32,15 +32,10 @@ export default function es(
 	magicString.trim();
 }
 
-function getImportBlock(
-	dependencies: ChunkDependency[],
-	{ _, getObject }: GenerateCodeSnippets
-): string[] {
+function getImportBlock(dependencies: ChunkDependency[], { _ }: GenerateCodeSnippets): string[] {
 	const importBlock: string[] = [];
-	for (const { importPath, reexports, imports, name } of dependencies) {
-		const assertion = importPath.endsWith('.json')
-			? `${_}assert${_}${getObject([['type', "'json'"]], { lineBreakIndent: null })}`
-			: '';
+	for (const { importPath, reexports, imports, name, assertions } of dependencies) {
+		const assertion = assertions ? `${_}assert${_}${assertions}` : '';
 		const pathWithAssertion = `'${importPath}'${assertion};`;
 		if (!reexports && !imports) {
 			importBlock.push(`import${_}${pathWithAssertion}`);

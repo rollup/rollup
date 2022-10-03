@@ -21,6 +21,6 @@ function _interopNamespaceDefault(e) {
 
 console.log(json);
 
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('./foo.json', { assert: { type: 'json' } })); }).then(console.log);
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('./foo.json')); }).then(console.log);
 
 exports.json = json;

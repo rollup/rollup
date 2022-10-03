@@ -19,7 +19,7 @@ define(['require', 'exports', './foo.json'], (function (require, exports, json) 
 
 	console.log(json);
 
-	new Promise(function (resolve, reject) { require(['./foo.json', { assert: { type: 'json' } }], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }).then(console.log);
+	new Promise(function (resolve, reject) { require(['./foo.json'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }).then(console.log);
 
 	exports.json = json;
 

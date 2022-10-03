@@ -29,6 +29,7 @@ export default class ImportExpression extends NodeBase {
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 
+	private assertions: string | null = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
@@ -89,13 +90,12 @@ export default class ImportExpression extends NodeBase {
 		}
 		if (this.resolutionString) {
 			code.overwrite(this.source.start, this.source.end, this.resolutionString);
-			if (this.resolutionString.endsWith(".json'")) {
+			if (this.assertions) {
 				code.appendLeft(
 					this.end - 1,
-					`,${_}${getObject(
-						[['assert', getObject([['type', "'json'"]], { lineBreakIndent: null })]],
-						{ lineBreakIndent: null }
-					)}`
+					`,${_}${getObject([['assert', this.assertions]], {
+						lineBreakIndent: null
+					})}`
 				);
 			}
 			if (this.namespaceExportName) {
@@ -119,13 +119,15 @@ export default class ImportExpression extends NodeBase {
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 		resolutionString: string,
-		namespaceExportName: string | false | undefined
+		namespaceExportName: string | false | undefined,
+		assertions: string | null
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;
 		this.resolution = resolution;
 		this.resolutionString = resolutionString;
 		this.namespaceExportName = namespaceExportName;
+		this.assertions = assertions;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
 		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(

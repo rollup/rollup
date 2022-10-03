@@ -6,7 +6,7 @@
 
 	console.log(json);
 
-	import('./foo.json', { assert: { type: 'json' } }).then(console.log);
+	import('./foo.json').then(console.log);
 
 	exports.json = json;
 

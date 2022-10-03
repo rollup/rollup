@@ -10,7 +10,7 @@ System.register('bundle', ['./foo.json'], (function (exports, module) {
 
 			console.log(json);
 
-			module.import('./foo.json', { assert: { type: 'json' } }).then(console.log);
+			module.import('./foo.json').then(console.log);
 
 		})
 	};
