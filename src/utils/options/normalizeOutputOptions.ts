@@ -6,7 +6,6 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import { EMPTY_OBJECT } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
 import { resolve } from '../path';
@@ -364,7 +363,10 @@ function getExternalImportAssertions(
 	if (typeof configExternalImportAssertions === 'function') {
 		return configExternalImportAssertions;
 	}
-	return ({ id }) => (id.endsWith('.json') ? { type: 'json' } : EMPTY_OBJECT);
+	if (configExternalImportAssertions === false) {
+		return () => null;
+	}
+	return ({ id }) => (id.endsWith('.json') ? { type: 'json' } : null);
 }
 
 const getGeneratedCode = (
