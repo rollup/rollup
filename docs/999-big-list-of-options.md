@@ -532,6 +532,65 @@ Type: `boolean`<br> CLI: `--extend`/`--no-extend`<br> Default: `false`
 
 Whether to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
+#### output.externalImportAssertions
+
+Type: `{[extName: string]: string | null} | false | (moduleInfo: ModulInfo) => ({[key: string]: string} | null)`<br> Default: `{".json": "json"}`
+
+Which import assertions to add to external imports in the output if the output format is `es`. By default, only external `.json` files will receive a `type: 'json'` assertion.
+
+- If an object is provided, then the keys are considered to be file extensions while the values add a corresponding `type` assertion to files of that type.
+
+  ```js
+  // config
+  export default {
+    external: ['./foo.css', './bar.json'],
+    // ...
+    output: {
+      externalImportAssertions: {
+        '.css': 'css'
+      }
+      // ...
+    }
+  };
+
+  // input
+  import './foo.css';
+  import './bar.json';
+
+  // output
+  import './foo.css' assert { type: 'css' };
+  import './bar.json';
+  ```
+
+- If a function is provided, it will be called once for each external dependency with information about the external module. If it returns an object, its key-value pairs will be added as arbitrary assertions to all imports of that dependency.
+
+  ```js
+  // config
+  export default {
+    external: ['./foo.css', './bar.json'],
+    // ...
+    output: {
+      externalImportAssertions({ id }) {
+        if (id.endsWith('.css')) {
+          return { type: 'css', special: 'attribute' };
+        }
+        return null;
+      }
+      // ...
+    }
+  };
+
+  // input
+  import './foo.css';
+  import './bar.json';
+
+  // output
+  import './foo.css' assert { type: 'css', special: 'attribute' };
+  import './bar.json';
+  ```
+
+- `false` will disable all assertions.
+
 #### output.generatedCode
 
 Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean, symbols?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
