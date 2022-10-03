@@ -29,7 +29,7 @@ export default class ImportExpression extends NodeBase {
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 
-	private assertions: string | null = null;
+	private assertions: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
@@ -70,34 +70,20 @@ export default class ImportExpression extends NodeBase {
 			code.overwrite(
 				this.start,
 				this.end,
-				`Promise.resolve().then(${left}${this.inlineNamespace.getName(getPropertyAccess)}${right})`,
-				{ contentOnly: true }
+				`Promise.resolve().then(${left}${this.inlineNamespace.getName(getPropertyAccess)}${right})`
 			);
 			return;
-		}
-
-		if (this.arguments) {
-			code.remove(this.source.end, this.end - 1);
 		}
 		if (this.mechanism) {
 			code.overwrite(
 				this.start,
 				findFirstOccurrenceOutsideComment(code.original, '(', this.start + 6) + 1,
-				this.mechanism.left,
-				{ contentOnly: true }
+				this.mechanism.left
 			);
-			code.overwrite(this.end - 1, this.end, this.mechanism.right, { contentOnly: true });
+			code.overwrite(this.end - 1, this.end, this.mechanism.right);
 		}
 		if (this.resolutionString) {
 			code.overwrite(this.source.start, this.source.end, this.resolutionString);
-			if (this.assertions) {
-				code.appendLeft(
-					this.end - 1,
-					`,${_}${getObject([['assert', this.assertions]], {
-						lineBreakIndent: null
-					})}`
-				);
-			}
 			if (this.namespaceExportName) {
 				const [left, right] = getDirectReturnFunction(['n'], {
 					functionReturn: true,
@@ -108,6 +94,19 @@ export default class ImportExpression extends NodeBase {
 			}
 		} else {
 			this.source.render(code, options);
+		}
+		if (this.assertions !== true) {
+			if (this.arguments) {
+				code.overwrite(this.source.end, this.end - 1, '', { contentOnly: true });
+			}
+			if (this.assertions) {
+				code.appendLeft(
+					this.end - 1,
+					`,${_}${getObject([['assert', this.assertions]], {
+						lineBreakIndent: null
+					})}`
+				);
+			}
 		}
 	}
 
@@ -120,7 +119,7 @@ export default class ImportExpression extends NodeBase {
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 		resolutionString: string,
 		namespaceExportName: string | false | undefined,
-		assertions: string | null
+		assertions: string | null | true
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;

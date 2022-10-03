@@ -857,12 +857,12 @@ export default class Chunk {
 	private getDynamicImportStringAndAssertions(
 		resolution: ExternalModule | string | null,
 		fileName: string
-	): [importPath: string, assertions: string | null] {
+	): [importPath: string, assertions: string | null | true] {
 		if (resolution instanceof ExternalModule) {
 			const chunk = this.externalChunkByModule.get(resolution)!;
 			return [`'${chunk.getImportPath(fileName)}'`, chunk.getImportAssertions(this.snippets)];
 		}
-		return [resolution || '', null];
+		return [resolution || '', this.outputOptions.format === 'es' || null];
 	}
 
 	private getFallbackChunkName(): string {
