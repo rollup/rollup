@@ -566,7 +566,10 @@ export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
 type GetExternalImportAssertions = (moduleInfo: ModuleInfo) => Record<string, string> | null | void;
 
-type ExternalImportAssertionsOption = GetExternalImportAssertions | false;
+type ExternalImportAssertionsOption =
+	| GetExternalImportAssertions
+	| false
+	| Record<string, string | null>;
 
 export type InteropType = 'compat' | 'auto' | 'esModule' | 'default' | 'defaultOnly';
 

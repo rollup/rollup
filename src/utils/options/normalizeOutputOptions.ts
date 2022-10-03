@@ -8,7 +8,7 @@ import type {
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
-import { resolve } from '../path';
+import { extname, resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { isValidUrl } from '../url';
 import {
@@ -356,6 +356,8 @@ function getExports(
 	return configExports || 'auto';
 }
 
+const defaultAssertions = { '.json': 'json' };
+
 function getExternalImportAssertions(
 	config: OutputOptions
 ): NormalizedOutputOptions['externalImportAssertions'] {
@@ -366,7 +368,11 @@ function getExternalImportAssertions(
 	if (configExternalImportAssertions === false) {
 		return () => null;
 	}
-	return ({ id }) => (id.endsWith('.json') ? { type: 'json' } : null);
+	const typeAssertions = configExternalImportAssertions || defaultAssertions;
+	return ({ id }) => {
+		const type = typeAssertions[extname(id)];
+		return type ? { type } : null;
+	};
 }
 
 const getGeneratedCode = (
