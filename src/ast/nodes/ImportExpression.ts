@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
-import type Module from '../../Module';
+import Module from '../../Module';
 import type { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
@@ -157,7 +157,10 @@ export default class ImportExpression extends NodeBase {
 		const hasDynamicTarget = !this.resolution || typeof this.resolution === 'string';
 		switch (format) {
 			case 'cjs': {
-				if (resolution instanceof ExternalModule && dynamicImportInCjs) {
+				if (
+					dynamicImportInCjs &&
+					(!resolution || typeof resolution === 'string' || resolution instanceof ExternalModule)
+				) {
 					return { helper: null, mechanism: null };
 				}
 				const helper = getInteropHelper(resolution, exportMode, interop);

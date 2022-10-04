@@ -6,7 +6,8 @@ module.exports = {
 		external: ['input', 'output'],
 		output: {
 			generatedCode: { arrowFunctions: true },
-			name: 'bundle'
+			name: 'bundle',
+			dynamicImportInCjs: false
 		}
 	}
 };
