@@ -20,4 +20,4 @@ function _interopNamespaceDefault(e) {
 (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require(t)); }); })(`${globalThis.unknown}`);
 (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require(t)); }); })(`My ${globalThis.unknown}`);
 (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require(t)); }); })('./seven.js');
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('./seven.js')); });
+import('./seven.js');

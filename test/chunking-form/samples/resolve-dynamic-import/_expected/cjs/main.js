@@ -24,10 +24,10 @@ function _interopNamespaceDefault(e) {
 
 // nested
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('./direct-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('to-indirect-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('direct-absolute-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('to-indirect-absolute-external')); });
+import('./direct-relative-external');
+import('to-indirect-relative-external');
+import('direct-absolute-external');
+import('to-indirect-absolute-external');
 
 const value = 'existing';
 console.log('existing');
@@ -39,12 +39,12 @@ var existing = /*#__PURE__*/Object.freeze({
 
 //main
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('./direct-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('to-indirect-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('direct-absolute-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('to-indirect-absolute-external')); });
+import('./direct-relative-external');
+import('to-indirect-relative-external');
+import('direct-absolute-external');
+import('to-indirect-absolute-external');
 
 (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require(t)); }); })('dynamic-direct-external' + unknown);
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('to-dynamic-indirect-external')); });
+import('to-dynamic-indirect-external');
 Promise.resolve().then(function () { return existing; });
 (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require(t)); }); })('my' + 'replacement');

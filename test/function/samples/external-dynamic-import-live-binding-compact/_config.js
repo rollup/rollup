@@ -8,7 +8,8 @@ module.exports = {
 		},
 		output: {
 			compact: true,
-			interop: 'auto'
+			interop: 'auto',
+			dynamicImportInCjs: false
 		}
 	},
 	context: {

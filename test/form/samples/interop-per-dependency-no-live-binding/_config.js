@@ -13,7 +13,8 @@ module.exports = {
 				checkedIds.add(id);
 				return id.split('-')[1];
 			},
-			format: 'cjs'
+			format: 'cjs',
+			dynamicImportInCjs: false
 		}
 	}
 };

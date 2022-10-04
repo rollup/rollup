@@ -134,6 +134,7 @@ export default class ImportExpression extends NodeBase {
 		{
 			compact,
 			dynamicImportFunction,
+			dynamicImportInCjs,
 			format,
 			generatedCode: { arrowFunctions },
 			interop
@@ -156,6 +157,9 @@ export default class ImportExpression extends NodeBase {
 		const hasDynamicTarget = !this.resolution || typeof this.resolution === 'string';
 		switch (format) {
 			case 'cjs': {
+				if (resolution instanceof ExternalModule && dynamicImportInCjs) {
+					return { helper: null, mechanism: null };
+				}
 				const helper = getInteropHelper(resolution, exportMode, interop);
 				let left = `require(`;
 				let right = `)`;

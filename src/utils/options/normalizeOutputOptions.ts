@@ -43,6 +43,7 @@ export function normalizeOutputOptions(
 		compact,
 		dir: getDir(config, file),
 		dynamicImportFunction: getDynamicImportFunction(config, inputOptions, format),
+		dynamicImportInCjs: config.dynamicImportInCjs ?? true,
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: config.esModule ?? 'if-default-prop',
 		exports: getExports(config, unsetOptions),
