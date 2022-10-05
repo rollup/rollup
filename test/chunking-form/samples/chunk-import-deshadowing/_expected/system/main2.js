@@ -1,7 +1,7 @@
 System.register(['./generated-lib.js'], (function () {
 	'use strict';
 	return {
-		setters: [function () {}],
+		setters: [null],
 		execute: (function () {
 
 			console.log('dep2');

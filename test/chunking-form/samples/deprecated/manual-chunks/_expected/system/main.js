@@ -5,7 +5,7 @@ System.register(['./generated-deps2and3.js', './generated-lib1.js'], (function (
     setters: [function (module) {
       fn$1 = module.f;
       fn$2 = module.a;
-    }, function () {}],
+    }, null],
     execute: (function () {
 
       function fn () {

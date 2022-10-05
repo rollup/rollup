@@ -395,7 +395,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-stdin                  Do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
---systemNullSetters         Replace empty SystemJS setters with `null`
+--no-systemNullSetters      Do not replace empty SystemJS setters with `null`
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.moduleSideEffects Assume modules have no side-effects

@@ -1558,9 +1558,9 @@ Whether to include the 'use strict' pragma at the top of generated non-ES bundle
 
 #### output.systemNullSetters
 
-Type: `boolean`<br> CLI: `--systemNullSetters`/`--no-systemNullSetters`<br> Default: `false`
+Type: `boolean`<br> CLI: `--systemNullSetters`/`--no-systemNullSetters`<br> Default: `true`
 
-When outputting the `system` module format, this will replace empty setter functions with `null` as an output simplification. This is _only supported in SystemJS 6.3.3 and above_.
+When outputting the `system` module format, by default, empty setter functions are replaced with `null` as an output simplification. This is incompatible with SystemJS before v6.3.3. Deactivate this option to output empty functions instead that older SystemJS versions support.
 
 #### preserveSymlinks
 
