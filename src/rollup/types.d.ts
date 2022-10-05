@@ -83,6 +83,7 @@ type PartialNull<T> = {
 };
 
 interface ModuleOptions {
+	assertions: Record<string, string>;
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;

@@ -546,6 +546,8 @@ export class ModuleLoader {
 		}
 		const external = resolvedId.external || false;
 		return {
+			// TODO Lukas use correct assertions from import
+			assertions: EMPTY_OBJECT,
 			external,
 			id: resolvedId.id,
 			meta: resolvedId.meta || {},
@@ -584,6 +586,8 @@ export class ModuleLoader {
 			}
 			this.options.onwarn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return {
+				// TODO Lukas use correct assertions from import
+				assertions: EMPTY_OBJECT,
 				external: true,
 				id: source,
 				meta: {},

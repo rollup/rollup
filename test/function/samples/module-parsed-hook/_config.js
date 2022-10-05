@@ -17,6 +17,8 @@ module.exports = {
 			buildEnd() {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(parsedModules)), [
 					{
+						id: ID_MAIN,
+						assertions: {},
 						ast: {
 							type: 'Program',
 							start: 0,
@@ -53,11 +55,11 @@ module.exports = {
 						dynamicImporters: [],
 						hasDefaultExport: false,
 						moduleSideEffects: true,
-						id: ID_MAIN,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
 						importedIdResolutions: [
 							{
+								assertions: {},
 								external: false,
 								id: ID_DEP,
 								meta: {},
@@ -74,6 +76,8 @@ module.exports = {
 						syntheticNamedExports: false
 					},
 					{
+						id: ID_DEP,
+						assertions: {},
 						ast: {
 							type: 'Program',
 							start: 0,
@@ -110,7 +114,6 @@ module.exports = {
 						dynamicImporters: [],
 						hasDefaultExport: false,
 						moduleSideEffects: true,
-						id: ID_DEP,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
 						importedIdResolutions: [],

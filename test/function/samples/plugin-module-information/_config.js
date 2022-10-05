@@ -16,6 +16,7 @@ module.exports = {
 		plugins: {
 			load(id) {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(id))), {
+					assertions: {},
 					ast: null,
 					code: null,
 					dynamicImporters: [],
@@ -47,6 +48,8 @@ module.exports = {
 					),
 					{
 						[ID_FOO]: {
+							id: ID_FOO,
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -114,11 +117,11 @@ module.exports = {
 							dynamicImporters: [],
 							hasDefaultExport: false,
 							moduleSideEffects: true,
-							id: ID_FOO,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [
 								{
+									assertions: {},
 									external: true,
 									id: ID_PATH,
 									meta: {},
@@ -135,6 +138,8 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						[ID_MAIN]: {
+							id: ID_MAIN,
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -261,6 +266,7 @@ module.exports = {
 							code: "export { foo } from './foo.js';\nexport const nested = import('./nested/nested');\nexport const path = import('path');\nexport const pathAgain = import(thePath);\n",
 							dynamicallyImportedIdResolutions: [
 								{
+									assertions: {},
 									external: false,
 									id: ID_NESTED,
 									meta: {},
@@ -268,6 +274,7 @@ module.exports = {
 									syntheticNamedExports: false
 								},
 								{
+									assertions: {},
 									external: true,
 									id: ID_PATH,
 									meta: {},
@@ -279,11 +286,11 @@ module.exports = {
 							dynamicImporters: [],
 							hasDefaultExport: false,
 							moduleSideEffects: true,
-							id: ID_MAIN,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [
 								{
+									assertions: {},
 									external: false,
 									id: ID_FOO,
 									meta: {},
@@ -300,6 +307,8 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						[ID_NESTED]: {
+							id: ID_NESTED,
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -370,11 +379,11 @@ module.exports = {
 							dynamicImporters: [ID_MAIN],
 							hasDefaultExport: false,
 							moduleSideEffects: true,
-							id: ID_NESTED,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [
 								{
+									assertions: {},
 									external: false,
 									id: ID_FOO,
 									meta: {},
@@ -391,6 +400,8 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						[ID_PATH]: {
+							id: ID_PATH,
+							assertions: {},
 							ast: null,
 							code: null,
 							dynamicallyImportedIdResolutions: [],
@@ -398,7 +409,6 @@ module.exports = {
 							dynamicImporters: [ID_MAIN],
 							hasDefaultExport: null,
 							moduleSideEffects: true,
-							id: ID_PATH,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [],

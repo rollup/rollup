@@ -274,6 +274,8 @@ export default class Module {
 		} = this;
 
 		this.info = {
+			// TODO Lukas use correct assertions
+			assertions: EMPTY_OBJECT,
 			ast: null,
 			code: null,
 			get dynamicallyImportedIdResolutions() {
@@ -784,6 +786,7 @@ export default class Module {
 
 	toJSON(): ModuleJSON {
 		return {
+			assertions: this.info.assertions,
 			ast: this.ast!.esTreeNode,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,

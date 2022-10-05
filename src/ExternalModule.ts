@@ -1,6 +1,6 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
-import { EMPTY_ARRAY } from './utils/blank';
+import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils/blank';
 import { errUnusedExternalImports, warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
 
@@ -29,6 +29,8 @@ export default class ExternalModule {
 
 		const { importers, dynamicImporters } = this;
 		const info: ModuleInfo = (this.info = {
+			// TODO Lukas use correct assertions
+			assertions: EMPTY_OBJECT,
 			ast: null,
 			code: null,
 			dynamicallyImportedIdResolutions: EMPTY_ARRAY,

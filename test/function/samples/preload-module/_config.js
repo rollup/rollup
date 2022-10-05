@@ -31,13 +31,14 @@ module.exports = {
 							meta: { testPlugin: 'first' }
 						});
 						assert.deepStrictEqual(moduleInfo, {
+							id: ID_MAIN,
+							assertions: {},
 							code: "import './dep';\nassert.ok(true);\n",
 							dynamicImporters: [],
 							hasDefaultExport: false,
 							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							moduleSideEffects: true,
-							id: ID_MAIN,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [],
@@ -72,13 +73,14 @@ module.exports = {
 						meta: { testPlugin: 'second' }
 					});
 					assert.deepStrictEqual(moduleInfo, {
+						id: ID_DEP,
+						assertions: {},
 						code: 'assert.ok(true);\n',
 						dynamicImporters: [],
 						hasDefaultExport: false,
 						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],
 						moduleSideEffects: true,
-						id: ID_DEP,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
 						importedIdResolutions: [],
