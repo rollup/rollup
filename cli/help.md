@@ -29,6 +29,7 @@ Basic options:
 --chunkFileNames <pattern>  Name pattern for emitted secondary chunks
 --compact                   Minify wrapper code
 --context <variable>        Specify top-level `this` value
+--no-dynamicImportInCjs     Write external dynamic CommonJS imports as require
 --entryFileNames <pattern>  Name pattern for emitted entry chunks
 --environment <values>      Settings passed to config file (see example)
 --no-esModule               Do not add __esModule property
