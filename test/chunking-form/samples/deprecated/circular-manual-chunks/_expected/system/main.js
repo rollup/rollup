@@ -3,7 +3,7 @@ System.register(['./generated-lib1.js', './generated-lib2.js'], (function (expor
 	return {
 		setters: [function (module) {
 			exports('lib1', module.l);
-		}, function () {}],
+		}, null],
 		execute: (function () {
 
 

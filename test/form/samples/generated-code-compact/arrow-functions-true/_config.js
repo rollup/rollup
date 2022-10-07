@@ -25,7 +25,8 @@ module.exports = {
 				return 'compat';
 			},
 			name: 'bundle',
-			noConflict: true
+			noConflict: true,
+			systemNullSetters: false
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']

@@ -1,7 +1,7 @@
 System.register(['./generated-shared.js'], (function () {
 	'use strict';
 	return {
-		setters: [function () {}],
+		setters: [null],
 		execute: (function () {
 
 			console.log('main2');

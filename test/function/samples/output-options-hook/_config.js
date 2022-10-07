@@ -53,7 +53,7 @@ module.exports = {
 					sourcemap: false,
 					sourcemapExcludeSources: false,
 					strict: true,
-					systemNullSetters: false,
+					systemNullSetters: true,
 					validate: false
 				});
 				assert.strictEqual(options.banner(), 'exports.bar = 43;');

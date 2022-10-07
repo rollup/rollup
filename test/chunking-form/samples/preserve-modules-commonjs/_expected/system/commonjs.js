@@ -4,7 +4,7 @@ System.register(['external', './other.js', './_virtual/other.js'], (function (ex
 	return {
 		setters: [function (module) {
 			require$$0 = module.default;
-		}, function () {}, function (module) {
+		}, null, function (module) {
 			other = module.__exports;
 		}],
 		execute: (function () {
