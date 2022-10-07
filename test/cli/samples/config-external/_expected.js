@@ -1,6 +1,6 @@
 'use strict';
 
 var _config_js = require('./_config.js');
-var assert = require('node:assert');
+var node_assert = require('node:assert');
 
-assert.ok(_config_js.execute);
+node_assert.ok( _config_js.execute );
