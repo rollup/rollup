@@ -8,7 +8,7 @@ const {
 	writeFileSync
 } = require('node:fs');
 const { resolve } = require('node:path');
-const { chdir, cwd, hrtime } = require('process');
+const { chdir, cwd, hrtime } = require('node:process');
 const { copy, removeSync } = require('fs-extra');
 const rollup = require('../../dist/rollup');
 const { atomicWriteFileSync, wait } = require('../utils');
