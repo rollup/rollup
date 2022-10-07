@@ -1,4 +1,4 @@
-import { a } from 'a' assert { type: 'foo' };
+import { a } from 'a' assert { type: 'a' };
 import { b } from 'b' assert { foo: 'bar', baz: 'quuz' };
 console.log(a, b);
 

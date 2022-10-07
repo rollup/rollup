@@ -1,6 +1,6 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
-import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils/blank';
+import { EMPTY_ARRAY } from './utils/blank';
 import { errUnusedExternalImports, warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
 
@@ -23,14 +23,14 @@ export default class ExternalModule {
 		public readonly id: string,
 		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
-		public readonly renormalizeRenderPath: boolean
+		public readonly renormalizeRenderPath: boolean,
+		assertions: Record<string, string>
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
 
 		const { importers, dynamicImporters } = this;
 		const info: ModuleInfo = (this.info = {
-			// TODO Lukas use correct assertions
-			assertions: EMPTY_OBJECT,
+			assertions,
 			ast: null,
 			code: null,
 			dynamicallyImportedIdResolutions: EMPTY_ARRAY,

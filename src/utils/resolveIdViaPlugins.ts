@@ -6,17 +6,19 @@ import type {
 	ResolveIdResult
 } from '../rollup/types';
 import type { PluginDriver, ReplaceContext } from './PluginDriver';
-import { BLANK } from './blank';
+import { BLANK, EMPTY_OBJECT } from './blank';
 
 export function resolveIdViaPlugins(
 	source: string,
 	importer: string | undefined,
 	pluginDriver: PluginDriver,
+	// TODO Lukas extract/reuse type
 	moduleLoaderResolveId: (
 		source: string,
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
+		assertions: Record<string, string>,
 		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 	) => Promise<ResolvedId | null>,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
@@ -40,6 +42,8 @@ export function resolveIdViaPlugins(
 					importer,
 					custom,
 					isEntry,
+					// TODO Lukas use assertions provided via this.resolve
+					EMPTY_OBJECT,
 					skipSelf ? [...skip, { importer, plugin, source }] : skip
 				);
 			}

@@ -17,4 +17,8 @@ function _interopNamespaceDefault(e) {
 	return Object.freeze(n);
 }
 
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('external')); });
 (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require(t)); }); })(globalThis.unknown);
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require(t)); }); })('resolvedString');
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('resolved-id')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('resolved-different')); });

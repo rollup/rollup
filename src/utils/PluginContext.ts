@@ -9,7 +9,7 @@ import type {
 } from '../rollup/types';
 import type { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
-import { BLANK } from './blank';
+import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
 import {
 	errInvalidRollupPhaseForAddWatchFile,
@@ -99,6 +99,8 @@ export function getPluginContext(
 				importer,
 				custom,
 				isEntry,
+				// TODO Lukas use correct assertions
+				EMPTY_OBJECT,
 				skipSelf ? [{ importer, plugin, source }] : null
 			);
 		},

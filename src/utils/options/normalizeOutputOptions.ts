@@ -356,8 +356,9 @@ function getExports(
 	return configExports || 'auto';
 }
 
-const defaultAssertions = { '.json': 'json' };
-
+// TODO Lukas for truly dynamic imports, setting `false` should still prevent assertions
+// How about a special format, e.g. id: null, specifier: AcornNode, importer: string
+// TODO Lukas the default is now `true`
 function getExternalImportAssertions(
 	config: OutputOptions
 ): NormalizedOutputOptions['externalImportAssertions'] {
@@ -368,11 +369,13 @@ function getExternalImportAssertions(
 	if (configExternalImportAssertions === false) {
 		return () => null;
 	}
-	const typeAssertions = configExternalImportAssertions || defaultAssertions;
-	return ({ id }) => {
-		const type = typeAssertions[extname(id)];
-		return type ? { type } : null;
-	};
+	if (configExternalImportAssertions) {
+		return ({ id }) => {
+			const type = configExternalImportAssertions[extname(id)];
+			return type ? { type } : null;
+		};
+	}
+	return ({ assertions }) => assertions;
 }
 
 const getGeneratedCode = (

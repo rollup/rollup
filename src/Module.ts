@@ -10,6 +10,7 @@ import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import type ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import type Identifier from './ast/nodes/Identifier';
+import ImportAttribute from './ast/nodes/ImportAttribute';
 import type ImportDeclaration from './ast/nodes/ImportDeclaration';
 import type ImportExpression from './ast/nodes/ImportExpression';
 import Literal from './ast/nodes/Literal';
@@ -65,6 +66,7 @@ import { getId } from './utils/getId';
 import { getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
+import { getAssertionsFromImportExportDeclaration } from './utils/parseAssertions';
 import { basename, extname } from './utils/path';
 import type { RenderOptions } from './utils/renderHelpers';
 import { timeEnd, timeStart } from './utils/timers';
@@ -223,7 +225,7 @@ export default class Module {
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
-	readonly sources = new Set<string>();
+	readonly sourcesWithAssertions = new Map<string, Record<string, string>>();
 	declare transformFiles?: EmittedFile[];
 
 	private allExportNames: Set<string> | null = null;
@@ -270,7 +272,7 @@ export default class Module {
 			implicitlyLoadedBefore,
 			importers,
 			reexportDescriptions,
-			sources
+			sourcesWithAssertions
 		} = this;
 
 		this.info = {
@@ -314,12 +316,18 @@ export default class Module {
 				return Array.from(implicitlyLoadedBefore, getId).sort();
 			},
 			get importedIdResolutions() {
-				return Array.from(sources, source => module.resolvedIds[source]).filter(Boolean);
+				return Array.from(
+					sourcesWithAssertions.keys(),
+					source => module.resolvedIds[source]
+				).filter(Boolean);
 			},
 			get importedIds() {
 				// We cannot use this.dependencies because this is needed before
 				// dependencies are populated
-				return Array.from(sources, source => module.resolvedIds[source]?.id).filter(Boolean);
+				return Array.from(
+					sourcesWithAssertions.keys(),
+					source => module.resolvedIds[source]?.id
+				).filter(Boolean);
 			},
 			get importers() {
 				return importers.sort();
@@ -903,7 +911,7 @@ export default class Module {
 			});
 		} else if (node instanceof ExportAllDeclaration) {
 			const source = node.source.value;
-			this.sources.add(source);
+			this.addSource(source, node.assertions);
 			if (node.exported) {
 				// export * as name from './other'
 
@@ -923,7 +931,7 @@ export default class Module {
 			// export { name } from './other'
 
 			const source = node.source.value;
-			this.sources.add(source);
+			this.addSource(source, node.assertions);
 			for (const specifier of node.specifiers) {
 				const name = specifier.exported.name;
 				this.reexportDescriptions.set(name, {
@@ -963,7 +971,7 @@ export default class Module {
 
 	private addImport(node: ImportDeclaration): void {
 		const source = node.source.value;
-		this.sources.add(source);
+		this.addSource(source, node.assertions);
 		for (const specifier of node.specifiers) {
 			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
@@ -1040,6 +1048,11 @@ export default class Module {
 
 		addSideEffectDependencies(this.dependencies);
 		addSideEffectDependencies(alwaysCheckedDependencies);
+	}
+
+	private addSource(source: string, assertions: ImportAttribute[] | undefined) {
+		// TODO Lukas handle existing and conflicting sources
+		this.sourcesWithAssertions.set(source, getAssertionsFromImportExportDeclaration(assertions));
 	}
 
 	private getVariableFromNamespaceReexports(

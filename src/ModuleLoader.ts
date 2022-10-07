@@ -30,6 +30,7 @@ import {
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { promises as fs } from './utils/fs';
+import { getAssertionsFromImportExpression } from './utils/parseAssertions';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
@@ -174,7 +175,8 @@ export class ModuleLoader {
 		resolvedId: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	): Promise<ModuleInfo> {
 		const module = await this.fetchModule(
-			this.getResolvedIdWithDefaults(resolvedId)!,
+			// TODO Lukas use correct assertions from resolvedId
+			this.getResolvedIdWithDefaults(resolvedId, EMPTY_OBJECT)!,
 			undefined,
 			false,
 			resolvedId.resolveDependencies ? RESOLVE_DEPENDENCIES : true
@@ -187,9 +189,10 @@ export class ModuleLoader {
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
+		assertions: Record<string, string>,
 		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
-	): Promise<ResolvedId | null> => {
-		return this.getResolvedIdWithDefaults(
+	): Promise<ResolvedId | null> =>
+		this.getResolvedIdWithDefaults(
 			this.getNormalizedResolvedIdWithoutDefaults(
 				this.options.external(source, importer, false)
 					? false
@@ -203,12 +206,11 @@ export class ModuleLoader {
 							customOptions,
 							typeof isEntry === 'boolean' ? isEntry : !importer
 					  ),
-
 				importer,
 				source
-			)
+			),
+			assertions
 		);
-	};
 
 	private addEntryWithImplicitDependants(
 		unresolvedModule: UnresolvedModule,
@@ -411,8 +413,10 @@ export class ModuleLoader {
 		importer: string,
 		resolvedId: ResolvedId
 	): Promise<Module | ExternalModule> {
+		// TODO Lukas handle internal
 		if (resolvedId.external) {
-			const { external, id, moduleSideEffects, meta } = resolvedId;
+			const { assertions, external, id, moduleSideEffects, meta } = resolvedId;
+			// TODO Lukas check assert for existing module
 			if (!this.modulesById.has(id)) {
 				this.modulesById.set(
 					id,
@@ -421,7 +425,8 @@ export class ModuleLoader {
 						id,
 						moduleSideEffects,
 						meta,
-						external !== 'absolute' && isAbsolute(id)
+						external !== 'absolute' && isAbsolute(id),
+						assertions
 					)
 				);
 			}
@@ -512,7 +517,8 @@ export class ModuleLoader {
 				typeof dynamicImport.argument === 'string'
 					? dynamicImport.argument
 					: dynamicImport.argument.esTreeNode,
-				module.id
+				module.id,
+				getAssertionsFromImportExpression(dynamicImport.node)
 			);
 			if (resolvedId && typeof resolvedId === 'object') {
 				dynamicImport.id = resolvedId.id;
@@ -523,14 +529,14 @@ export class ModuleLoader {
 
 	private getResolveStaticDependencyPromises(module: Module): ResolveStaticDependencyPromise[] {
 		return Array.from(
-			module.sources,
-			async source =>
+			module.sourcesWithAssertions,
+			async ([source, assertions]) =>
 				[
 					source,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
 						this.handleResolveId(
-							await this.resolveId(source, module.id, EMPTY_OBJECT, false),
+							await this.resolveId(source, module.id, EMPTY_OBJECT, false, assertions),
 							source,
 							module.id
 						))
@@ -539,15 +545,16 @@ export class ModuleLoader {
 	}
 
 	private getResolvedIdWithDefaults(
-		resolvedId: NormalizedResolveIdWithoutDefaults | null
+		resolvedId: NormalizedResolveIdWithoutDefaults | null,
+		assertions: Record<string, string>
 	): ResolvedId | null {
 		if (!resolvedId) {
 			return null;
 		}
 		const external = resolvedId.external || false;
+		// TODO Lukas also consider assertions from resolvedId
 		return {
-			// TODO Lukas use correct assertions from import
-			assertions: EMPTY_OBJECT,
+			assertions,
 			external,
 			id: resolvedId.id,
 			meta: resolvedId.meta || {},
@@ -634,10 +641,12 @@ export class ModuleLoader {
 			);
 		}
 		return this.fetchModule(
+			// TODO Lukas use correct assertions from input
 			this.getResolvedIdWithDefaults(
 				typeof resolveIdResult === 'object'
 					? (resolveIdResult as NormalizedResolveIdWithoutDefaults)
-					: { id: resolveIdResult }
+					: { id: resolveIdResult },
+				EMPTY_OBJECT
 			)!,
 			undefined,
 			isEntry,
@@ -648,7 +657,8 @@ export class ModuleLoader {
 	private async resolveDynamicImport(
 		module: Module,
 		specifier: string | acorn.Node,
-		importer: string
+		importer: string,
+		assertions: Record<string, string>
 	): Promise<ResolvedId | string | null> {
 		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
 			specifier,
@@ -661,22 +671,26 @@ export class ModuleLoader {
 			if (!resolution) {
 				return null;
 			}
+			// TODO Lukas use withDefaults logic instead? Merge with other resolution case?
 			return {
+				assertions,
 				external: false,
 				moduleSideEffects: true,
 				...resolution
 			} as ResolvedId;
 		}
 		if (resolution == null) {
+			// TODO Lukas handle existing resolved id conflicts
 			return (module.resolvedIds[specifier] ??= this.handleResolveId(
-				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false),
+				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false, assertions),
 				specifier,
 				module.id
 			));
 		}
 		return this.handleResolveId(
 			this.getResolvedIdWithDefaults(
-				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier)
+				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier),
+				assertions
 			),
 			specifier,
 			importer

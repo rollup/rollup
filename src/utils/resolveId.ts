@@ -9,11 +9,13 @@ export async function resolveId(
 	importer: string | undefined,
 	preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
+	// TODO Lukas extract/reuse type
 	moduleLoaderResolveId: (
 		source: string,
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
+		assertions: Record<string, string>,
 		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 	) => Promise<ResolvedId | null>,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
