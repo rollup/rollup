@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 const COLOR = '\u001b[36m\u001b[1m';
 const STANDARD = '\u001b[22m\u001b[39m';

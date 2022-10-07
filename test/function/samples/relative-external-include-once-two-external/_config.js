@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { join } = require('path');
 
 module.exports = {

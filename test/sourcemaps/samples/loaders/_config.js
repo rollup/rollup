@@ -1,5 +1,5 @@
-const assert = require('assert');
 const { readFileSync } = require('fs');
+const assert = require('node:assert');
 const buble = require('buble');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');

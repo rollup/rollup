@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { assertDoesNotInclude } = require('../../../utils');
 const { assertIncludes } = require('../../../utils.js');
 

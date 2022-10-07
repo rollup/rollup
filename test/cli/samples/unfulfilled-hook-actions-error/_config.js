@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { assertIncludes, assertDoesNotInclude } = require('../../../utils.js');
 
 module.exports = {

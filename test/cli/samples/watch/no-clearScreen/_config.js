@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 const UNDERLINE = '\u001b[4m';
 

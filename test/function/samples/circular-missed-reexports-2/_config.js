@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const path = require('path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP1 = path.join(__dirname, 'dep1.js');

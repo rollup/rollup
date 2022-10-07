@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const MagicString = require('magic-string');
 
 module.exports = {

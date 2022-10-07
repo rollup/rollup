@@ -1,5 +1,5 @@
-const assert = require('assert');
 const fs = require('fs');
+const assert = require('node:assert');
 const path = require('path');
 const acorn = require('acorn');
 

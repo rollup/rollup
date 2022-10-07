@@ -1,5 +1,5 @@
-const assert = require('assert');
 const { readFileSync } = require('fs');
+const assert = require('node:assert');
 const path = require('path');
 
 const cachedModules = {

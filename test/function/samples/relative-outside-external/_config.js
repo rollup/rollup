@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const cwd = process.cwd;
 
 module.exports = {

@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 // This used to be "any global variables in scope can be re-exported"
 // This, however, is actually not allowed by the spec and acorn,

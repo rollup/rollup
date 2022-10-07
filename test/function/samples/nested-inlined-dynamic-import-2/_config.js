@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const path = require('path');
 const ID_LIB1 = path.join(__dirname, 'lib1.js');
 const ID_LIB2 = path.join(__dirname, 'lib2.js');

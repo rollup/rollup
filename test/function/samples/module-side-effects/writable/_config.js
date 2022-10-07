@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('assert');
+const assert = require('node:assert');
+const path = require('node:assert');
 
 // We prefix the polyfill with \0 to tell other plugins not to try to load or
 // transform it

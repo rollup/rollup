@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const path = require('path');
 const ID_INDEX = path.join(__dirname, 'index.js');
 const ID_DATA = path.join(__dirname, 'data.js');

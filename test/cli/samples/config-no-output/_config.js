@@ -1,5 +1,5 @@
-const assert = require('assert');
 const { readFileSync, unlinkSync } = require('fs');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'uses -o from CLI',
