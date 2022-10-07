@@ -613,6 +613,7 @@ export interface OutputOptions {
 	dir?: string;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
+	dynamicImportInCjs?: boolean;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule?: boolean | 'if-default-prop';
 	exports?: 'default' | 'named' | 'none' | 'auto';
@@ -663,6 +664,7 @@ export interface NormalizedOutputOptions {
 	dir: string | undefined;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction: string | undefined;
+	dynamicImportInCjs: boolean;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule: boolean | 'if-default-prop';
 	exports: 'default' | 'named' | 'none' | 'auto';

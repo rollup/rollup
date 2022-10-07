@@ -11,7 +11,8 @@ module.exports = {
 			},
 			globals(id) {
 				return id.replace('-', '');
-			}
+			},
+			dynamicImportInCjs: false
 		}
 	}
 };
