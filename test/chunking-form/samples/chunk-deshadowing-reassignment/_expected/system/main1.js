@@ -5,7 +5,7 @@ System.register(['./generated-shared2.js', './generated-dep1.js', './generated-d
 		setters: [function (module) {
 			x = module.x;
 			y = module.y;
-		}, function () {}, function () {}],
+		}, null, null],
 		execute: (function () {
 
 			console.log(x + y);

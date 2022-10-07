@@ -4,7 +4,7 @@ System.register(['./generated-m1.js', './m2.js'], (function () {
 	return {
 		setters: [function (module) {
 			ms = module.m;
-		}, function () {}],
+		}, null],
 		execute: (function () {
 
 			console.log(ms);

@@ -3,8 +3,7 @@ module.exports = {
 	options: {
 		external: ['external'],
 		output: {
-			globals: { external: 'external' },
-			systemNullSetters: true
+			globals: { external: 'external' }
 		}
 	}
 };
