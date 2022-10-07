@@ -8,7 +8,8 @@ module.exports = {
 				external2: 'external2'
 			},
 			externalLiveBindings: false,
-			name: 'bundle'
+			name: 'bundle',
+			dynamicImportInCjs: false
 		}
 	}
 };

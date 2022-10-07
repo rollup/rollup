@@ -231,6 +231,7 @@ function mergeOutputOptions(
 		compact: getOption('compact'),
 		dir: getOption('dir'),
 		dynamicImportFunction: getOption('dynamicImportFunction'),
+		dynamicImportInCjs: getOption('dynamicImportInCjs'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule'),
 		exports: getOption('exports'),

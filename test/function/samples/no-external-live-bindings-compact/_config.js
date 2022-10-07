@@ -7,7 +7,8 @@ module.exports = {
 		output: {
 			compact: true,
 			externalLiveBindings: false,
-			name: 'bundle'
+			name: 'bundle',
+			dynamicImportInCjs: false
 		}
 	},
 	context: {

@@ -6,7 +6,7 @@ module.exports = {
 		external() {
 			return true;
 		},
-		output: { interop: 'auto' }
+		output: { interop: 'auto', dynamicImportInCjs: false }
 	},
 	context: {
 		require(id) {
