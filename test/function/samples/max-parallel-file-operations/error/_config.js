@@ -1,5 +1,5 @@
 const { promises: fs } = require('fs');
-const { join } = require('path');
+const { join } = require('node:path');
 const { loader } = require('../../../../utils.js');
 
 const fsReadFile = fs.readFile;

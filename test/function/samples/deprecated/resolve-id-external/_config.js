@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const path = require('path');
+const path = require('node:path');
 const sideEffects = [];
 const { getObject } = require('../../../../utils');
 

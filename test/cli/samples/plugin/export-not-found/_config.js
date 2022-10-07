@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const { assertIncludes } = require('../../../../utils.js');
 
 module.exports = {

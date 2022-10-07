@@ -1,6 +1,6 @@
 const fs = require('fs');
 const assert = require('node:assert');
-const path = require('path');
+const path = require('node:path');
 const acorn = require('acorn');
 
 const ID_MAIN = path.join(__dirname, 'main.js');

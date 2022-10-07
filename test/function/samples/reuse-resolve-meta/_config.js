@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const path = require('path');
+const path = require('node:path');
 const meta = { plugin: { initial: true } };
 
 const ID_MAIN = path.join(__dirname, 'main.js');

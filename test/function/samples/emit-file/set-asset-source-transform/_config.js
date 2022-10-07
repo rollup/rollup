@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
 	description: 'throws when setting the asset source in the transform hook',

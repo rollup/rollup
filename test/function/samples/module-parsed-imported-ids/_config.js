@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
 	description: 'provides full importedIds and dynamicallyImportedIds in the moduleParsed hook',

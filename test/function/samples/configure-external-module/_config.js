@@ -6,6 +6,6 @@ module.exports = {
 		external: ['path']
 	},
 	exports() {
-		assert.equal(require('path').resolve.configured, 'yes');
+		assert.equal(require('node:path').resolve.configured, 'yes');
 	}
 };

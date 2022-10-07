@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_JSON = path.join(__dirname, 'file.json');
 

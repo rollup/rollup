@@ -3,7 +3,7 @@
 const stream = require('stream');
 const { mkdirSync, readFileSync, writeFileSync } = require('fs');
 const chokidar = require('chokidar');
-const path = require('path');
+const path = require('node:path');
 
 delete process.stdin;
 process.stdin = new stream.Readable({

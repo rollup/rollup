@@ -1,6 +1,6 @@
 const { readFileSync } = require('fs');
 const assert = require('node:assert');
-const path = require('path');
+const path = require('node:path');
 
 const cachedModules = {
 	'@main.js': 'import foo from "./foo"; export default foo();'

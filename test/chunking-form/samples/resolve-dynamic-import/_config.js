@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const EXISTING = path.resolve(__dirname, 'existing.js');
 
 module.exports = {

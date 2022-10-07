@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
 	description: 'plugin transform hooks can use `this.warn({...}, char)` (#1140)',

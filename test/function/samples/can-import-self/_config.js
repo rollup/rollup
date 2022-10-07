@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const path = require('path');
+const path = require('node:path');
 const ID_LIB = path.join(__dirname, 'lib.js');
 
 module.exports = {

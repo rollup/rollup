@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 const external1 = "quoted'\r\n\u2028\u2029external1";
 const external2 = path.join(__dirname, "quoted'\r\n\u2028\u2029external2");

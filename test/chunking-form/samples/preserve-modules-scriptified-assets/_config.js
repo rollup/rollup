@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
 	description: 'scriptified assets have extension in preserveModules output filename',

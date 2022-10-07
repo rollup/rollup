@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { join } = require('path');
+const { join } = require('node:path');
 
 module.exports = {
 	description: 'includes a relative external module only once (two external deps)',

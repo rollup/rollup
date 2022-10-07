@@ -1,4 +1,4 @@
-const { join, dirname } = require('path').posix;
+const { join, dirname } = require('node:path').posix;
 
 module.exports = {
 	description: 'renormalizes external paths if possible',
