@@ -18,7 +18,8 @@ module.exports = {
 		},
 		output: {
 			dynamicImportFunction: 'myImporter',
-			format: 'cjs'
+			format: 'cjs',
+			dynamicImportInCjs: false
 		}
 	},
 	exports(exports) {

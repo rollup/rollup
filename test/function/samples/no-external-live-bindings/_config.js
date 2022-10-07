@@ -6,7 +6,8 @@ module.exports = {
 		external: () => true,
 		output: {
 			externalLiveBindings: false,
-			name: 'bundle'
+			name: 'bundle',
+			dynamicImportInCjs: false
 		}
 	},
 	context: {

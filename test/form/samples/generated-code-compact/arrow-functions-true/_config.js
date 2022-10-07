@@ -26,6 +26,7 @@ module.exports = {
 			},
 			name: 'bundle',
 			noConflict: true,
+			dynamicImportInCjs: false,
 			systemNullSetters: false
 		}
 	},

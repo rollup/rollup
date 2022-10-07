@@ -24,6 +24,7 @@ module.exports = {
 					assetFileNames: 'assets/[name]-[hash][extname]',
 					chunkFileNames: '[name]-[hash].js',
 					compact: false,
+					dynamicImportInCjs: true,
 					entryFileNames: '[name].js',
 					esModule: 'if-default-prop',
 					exports: 'auto',

@@ -20,7 +20,8 @@ module.exports = {
 	options: {
 		external: ['input', 'output'],
 		output: {
-			generatedCode: { arrowFunctions: true }
+			generatedCode: { arrowFunctions: true },
+			dynamicImportInCjs: false
 		}
 	}
 };

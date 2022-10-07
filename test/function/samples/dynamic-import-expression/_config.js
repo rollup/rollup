@@ -21,7 +21,8 @@ module.exports = {
 					}
 				}
 			}
-		]
+		],
+		output: { dynamicImportInCjs: false }
 	},
 	exports(exports) {
 		const expectedError = "Cannot find module 'x/y'";
