@@ -1,4 +1,4 @@
-import { unused } from 'external';
+import 'external';
 
 function alsoUnused () {
 	unused();

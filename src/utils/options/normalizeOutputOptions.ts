@@ -84,7 +84,7 @@ export function normalizeOutputOptions(
 			| SourcemapPathTransformOption
 			| undefined,
 		strict: config.strict ?? true,
-		systemNullSetters: config.systemNullSetters || false,
+		systemNullSetters: config.systemNullSetters ?? true,
 		validate: config.validate || false
 	};
 

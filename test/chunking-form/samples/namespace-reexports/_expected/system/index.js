@@ -3,7 +3,7 @@ System.register(['./hsl2hsv.js', './generated-index.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			exports('hsl2hsv', module.default);
-		}, function () {}],
+		}, null],
 		execute: (function () {
 
 

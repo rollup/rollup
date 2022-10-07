@@ -1,10 +1,10 @@
-System.register(['./dep-626bb5df3105f7.js'], (function () {
+System.register(['external'], (function () {
 	'use strict';
 	return {
 		setters: [function () {}],
 		execute: (function () {
 
-			console.log('main2');
+
 
 		})
 	};

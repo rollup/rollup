@@ -3,7 +3,7 @@ System.register(['./inner/more_inner/something.js', './inner/some_effect.js'], (
 	return {
 		setters: [function (module) {
 			exports('Something', module.Something);
-		}, function () {}],
+		}, null],
 		execute: (function () {
 
 

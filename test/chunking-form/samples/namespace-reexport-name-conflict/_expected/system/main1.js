@@ -4,7 +4,7 @@ System.register(['./generated-index.js', './generated-dep.js', 'external'], (fun
 	return {
 		setters: [function (module) {
 			lib = module.l;
-		}, function () {}, function () {}],
+		}, null, null],
 		execute: (function () {
 
 			console.log(lib);

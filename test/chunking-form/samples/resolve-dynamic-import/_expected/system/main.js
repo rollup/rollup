@@ -1,7 +1,7 @@
 System.register(['./direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], (function (exports, module) {
 	'use strict';
 	return {
-		setters: [function () {}, function () {}, function () {}, function () {}],
+		setters: [null, null, null, null],
 		execute: (function () {
 
 			// nested

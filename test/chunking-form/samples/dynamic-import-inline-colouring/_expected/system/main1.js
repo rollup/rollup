@@ -1,7 +1,7 @@
 System.register(['./generated-separate.js'], (function (exports, module) {
 	'use strict';
 	return {
-		setters: [function () {}],
+		setters: [null],
 		execute: (function () {
 
 			var inlined$1 = 'inlined';

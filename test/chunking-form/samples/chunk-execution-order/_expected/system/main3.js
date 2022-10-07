@@ -1,7 +1,7 @@
 System.register(['./generated-dep111.js'], (function () {
 	'use strict';
 	return {
-		setters: [function () {}],
+		setters: [null],
 		execute: (function () {
 
 
