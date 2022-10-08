@@ -565,13 +565,6 @@ interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
-type GetExternalImportAssertions = (moduleInfo: ModuleInfo) => Record<string, string> | null | void;
-
-type ExternalImportAssertionsOption =
-	| GetExternalImportAssertions
-	| false
-	| Record<string, string | null>;
-
 export type InteropType = 'compat' | 'auto' | 'esModule' | 'default' | 'defaultOnly';
 
 export type GetInterop = (id: string | null) => InteropType;
@@ -626,7 +619,7 @@ export interface OutputOptions {
 	esModule?: boolean | 'if-default-prop';
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
-	externalImportAssertions?: ExternalImportAssertionsOption;
+	externalImportAssertions?: boolean;
 	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
@@ -678,7 +671,7 @@ export interface NormalizedOutputOptions {
 	esModule: boolean | 'if-default-prop';
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
-	externalImportAssertions: GetExternalImportAssertions;
+	externalImportAssertions: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
 	footer: AddonFunction;

@@ -1,4 +1,4 @@
-define(['require', 'exports', 'a', 'b', 'c'], (function (require, exports, a, b, c) { 'use strict';
+define(['exports', 'a', 'b', 'c', 'd', 'unresolved'], (function (exports, a, b, c, d$1, unresolved) { 'use strict';
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -17,13 +17,19 @@ define(['require', 'exports', 'a', 'b', 'c'], (function (require, exports, a, b,
 		return Object.freeze(n);
 	}
 
-	console.log(a.a, b.b);
+	var b__namespace = /*#__PURE__*/_interopNamespaceDefault(b);
 
-	new Promise(function (resolve, reject) { require(['d'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }).then(console.log);
+	console.log(a.a, b__namespace, d);
 
 	Object.defineProperty(exports, 'c', {
 		enumerable: true,
 		get: function () { return c.c; }
+	});
+	Object.keys(d$1).forEach(function (k) {
+		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+			enumerable: true,
+			get: function () { return d$1[k]; }
+		});
 	});
 
 }));

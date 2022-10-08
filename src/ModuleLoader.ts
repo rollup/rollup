@@ -535,10 +535,11 @@ export class ModuleLoader {
 					source,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
-						this.handleResolveId(
+						this.handleInvalidResolvedId(
 							await this.resolveId(source, module.id, EMPTY_OBJECT, false, assertions),
 							source,
-							module.id
+							module.id,
+							assertions
 						))
 				] as [string, ResolvedId]
 		);
@@ -582,10 +583,11 @@ export class ModuleLoader {
 		return this.fetchModuleDependencies(module, ...(await loadPromise));
 	}
 
-	private handleResolveId(
+	private handleInvalidResolvedId(
 		resolvedId: ResolvedId | null,
 		source: string,
-		importer: string
+		importer: string,
+		assertions: Record<string, string>
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
@@ -593,8 +595,7 @@ export class ModuleLoader {
 			}
 			this.options.onwarn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return {
-				// TODO Lukas use correct assertions from import
-				assertions: EMPTY_OBJECT,
+				assertions,
 				external: true,
 				id: source,
 				meta: {},
@@ -681,19 +682,21 @@ export class ModuleLoader {
 		}
 		if (resolution == null) {
 			// TODO Lukas handle existing resolved id conflicts
-			return (module.resolvedIds[specifier] ??= this.handleResolveId(
+			return (module.resolvedIds[specifier] ??= this.handleInvalidResolvedId(
 				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false, assertions),
 				specifier,
-				module.id
+				module.id,
+				assertions
 			));
 		}
-		return this.handleResolveId(
+		return this.handleInvalidResolvedId(
 			this.getResolvedIdWithDefaults(
 				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier),
 				assertions
 			),
 			specifier,
-			importer
+			importer,
+			assertions
 		);
 	}
 }

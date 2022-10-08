@@ -8,7 +8,7 @@ import type {
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
-import { extname, resolve } from '../path';
+import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { isValidUrl } from '../url';
 import {
@@ -48,7 +48,8 @@ export function normalizeOutputOptions(
 		esModule: config.esModule ?? 'if-default-prop',
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
-		externalImportAssertions: getExternalImportAssertions(config),
+		// TODO Lukas for truly dynamic imports, setting `false` should still prevent assertions
+		externalImportAssertions: config.externalImportAssertions ?? true,
 		externalLiveBindings: config.externalLiveBindings ?? true,
 		file,
 		footer: getAddon(config, 'footer'),
@@ -354,28 +355,6 @@ function getExports(
 		return error(errInvalidExportOptionValue(configExports));
 	}
 	return configExports || 'auto';
-}
-
-// TODO Lukas for truly dynamic imports, setting `false` should still prevent assertions
-// How about a special format, e.g. id: null, specifier: AcornNode, importer: string
-// TODO Lukas the default is now `true`
-function getExternalImportAssertions(
-	config: OutputOptions
-): NormalizedOutputOptions['externalImportAssertions'] {
-	const configExternalImportAssertions = config.externalImportAssertions;
-	if (typeof configExternalImportAssertions === 'function') {
-		return configExternalImportAssertions;
-	}
-	if (configExternalImportAssertions === false) {
-		return () => null;
-	}
-	if (configExternalImportAssertions) {
-		return ({ id }) => {
-			const type = configExternalImportAssertions[extname(id)];
-			return type ? { type } : null;
-		};
-	}
-	return ({ assertions }) => assertions;
 }
 
 const getGeneratedCode = (

@@ -23,6 +23,7 @@ module.exports = {
 					return null;
 				}
 			}
-		]
+		],
+		output: { externalImportAssertions: false }
 	}
 };

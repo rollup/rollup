@@ -1,5 +1,3 @@
-'use strict';
-
 import('external');
 import(globalThis.unknown);
 import('resolvedString');

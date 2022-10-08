@@ -22,5 +22,6 @@ define(['require'], (function (require) { 'use strict';
 	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }); })('resolvedString');
 	new Promise(function (resolve, reject) { require(['resolved-id'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); });
 	new Promise(function (resolve, reject) { require(['resolved-different'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['unresolved'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); });
 
 }));

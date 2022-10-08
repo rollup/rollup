@@ -40,7 +40,9 @@ export default class ExternalChunk {
 
 	getImportAssertions(snippets: GenerateCodeSnippets): string | null {
 		return (this.importAssertions ||= formatAssertions(
-			this.options.format === 'es' && this.options.externalImportAssertions(this.moduleInfo),
+			this.options.format === 'es' &&
+				this.options.externalImportAssertions &&
+				this.moduleInfo.assertions,
 			snippets
 		));
 	}

@@ -8,6 +8,7 @@ System.register([], (function (exports, module) {
 			module.import('resolvedString');
 			module.import('resolved-id');
 			module.import('resolved-different');
+			module.import('unresolved');
 
 		})
 	};

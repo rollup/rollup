@@ -862,7 +862,10 @@ export default class Chunk {
 			const chunk = this.externalChunkByModule.get(resolution)!;
 			return [`'${chunk.getImportPath(fileName)}'`, chunk.getImportAssertions(this.snippets)];
 		}
-		return [resolution || '', this.outputOptions.format === 'es' || null];
+		return [
+			resolution || '',
+			(this.outputOptions.format === 'es' && this.outputOptions.externalImportAssertions) || null
+		];
 	}
 
 	private getFallbackChunkName(): string {
