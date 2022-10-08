@@ -99,7 +99,7 @@ export function getPluginContext(
 				importer,
 				custom,
 				isEntry,
-				// TODO Lukas use correct assertions
+				// TODO Lukas allow to provide assertions
 				EMPTY_OBJECT,
 				skipSelf ? [{ importer, plugin, source }] : null
 			);

@@ -48,7 +48,6 @@ export function normalizeOutputOptions(
 		esModule: config.esModule ?? 'if-default-prop',
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
-		// TODO Lukas for truly dynamic imports, setting `false` should still prevent assertions
 		externalImportAssertions: config.externalImportAssertions ?? true,
 		externalLiveBindings: config.externalLiveBindings ?? true,
 		file,

@@ -1,10 +1,5 @@
-import type {
-	CustomPluginOptions,
-	Plugin,
-	PluginContext,
-	ResolvedId,
-	ResolveIdResult
-} from '../rollup/types';
+import { ModuleLoaderResolveId } from '../ModuleLoader';
+import type { CustomPluginOptions, Plugin, PluginContext, ResolveIdResult } from '../rollup/types';
 import type { PluginDriver, ReplaceContext } from './PluginDriver';
 import { BLANK, EMPTY_OBJECT } from './blank';
 
@@ -12,15 +7,7 @@ export function resolveIdViaPlugins(
 	source: string,
 	importer: string | undefined,
 	pluginDriver: PluginDriver,
-	// TODO Lukas extract/reuse type
-	moduleLoaderResolveId: (
-		source: string,
-		importer: string | undefined,
-		customOptions: CustomPluginOptions | undefined,
-		isEntry: boolean | undefined,
-		assertions: Record<string, string>,
-		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
-	) => Promise<ResolvedId | null>,
+	moduleLoaderResolveId: ModuleLoaderResolveId,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean

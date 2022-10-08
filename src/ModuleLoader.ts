@@ -43,6 +43,15 @@ export interface UnresolvedModule {
 	name: string | null;
 }
 
+export type ModuleLoaderResolveId = (
+	source: string,
+	importer: string | undefined,
+	customOptions: CustomPluginOptions | undefined,
+	isEntry: boolean | undefined,
+	assertions: Record<string, string>,
+	skip?: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
+) => Promise<ResolvedId | null>;
+
 type NormalizedResolveIdWithoutDefaults = Partial<PartialNull<ModuleOptions>> & {
 	external?: boolean | 'absolute';
 	id: string;
@@ -184,14 +193,14 @@ export class ModuleLoader {
 		return module.info;
 	}
 
-	resolveId = async (
-		source: string,
-		importer: string | undefined,
-		customOptions: CustomPluginOptions | undefined,
-		isEntry: boolean | undefined,
-		assertions: Record<string, string>,
-		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
-	): Promise<ResolvedId | null> =>
+	resolveId: ModuleLoaderResolveId = async (
+		source,
+		importer,
+		customOptions,
+		isEntry,
+		assertions,
+		skip = null
+	) =>
 		this.getResolvedIdWithDefaults(
 			this.getNormalizedResolvedIdWithoutDefaults(
 				this.options.external(source, importer, false)
@@ -672,13 +681,10 @@ export class ModuleLoader {
 			if (!resolution) {
 				return null;
 			}
-			// TODO Lukas use withDefaults logic instead? Merge with other resolution case?
-			return {
-				assertions,
-				external: false,
-				moduleSideEffects: true,
-				...resolution
-			} as ResolvedId;
+			return this.getResolvedIdWithDefaults(
+				resolution as NormalizedResolveIdWithoutDefaults,
+				assertions
+			);
 		}
 		if (resolution == null) {
 			// TODO Lukas handle existing resolved id conflicts

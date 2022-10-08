@@ -1,4 +1,5 @@
-import type { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../rollup/types';
+import { ModuleLoaderResolveId } from '../ModuleLoader';
+import type { CustomPluginOptions, Plugin, ResolveIdResult } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
 import { promises as fs } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
@@ -9,15 +10,7 @@ export async function resolveId(
 	importer: string | undefined,
 	preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
-	// TODO Lukas extract/reuse type
-	moduleLoaderResolveId: (
-		source: string,
-		importer: string | undefined,
-		customOptions: CustomPluginOptions | undefined,
-		isEntry: boolean | undefined,
-		assertions: Record<string, string>,
-		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
-	) => Promise<ResolvedId | null>,
+	moduleLoaderResolveId: ModuleLoaderResolveId,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean
