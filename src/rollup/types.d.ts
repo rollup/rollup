@@ -221,7 +221,7 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
 	importer: string | undefined,
-	options: { custom?: CustomPluginOptions; isEntry: boolean }
+	options: { assertions: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
 ) => ResolveIdResult;
 
 export type ShouldTransformCachedModuleHook = (
@@ -276,7 +276,8 @@ export type RenderChunkHook = (
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | AcornNode,
-	importer: string
+	importer: string,
+	options: { assertions: Record<string, string> }
 ) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (

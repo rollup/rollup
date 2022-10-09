@@ -213,7 +213,8 @@ export class ModuleLoader {
 							this.resolveId,
 							skip,
 							customOptions,
-							typeof isEntry === 'boolean' ? isEntry : !importer
+							typeof isEntry === 'boolean' ? isEntry : !importer,
+							assertions
 					  ),
 				importer,
 				source
@@ -562,9 +563,8 @@ export class ModuleLoader {
 			return null;
 		}
 		const external = resolvedId.external || false;
-		// TODO Lukas also consider assertions from resolvedId
 		return {
-			assertions,
+			assertions: resolvedId.assertions || assertions,
 			external,
 			id: resolvedId.id,
 			meta: resolvedId.meta || {},
@@ -631,7 +631,8 @@ export class ModuleLoader {
 			this.resolveId,
 			null,
 			EMPTY_OBJECT,
-			true
+			true,
+			EMPTY_OBJECT
 		);
 		if (resolveIdResult == null) {
 			return error(
@@ -651,7 +652,6 @@ export class ModuleLoader {
 			);
 		}
 		return this.fetchModule(
-			// TODO Lukas use correct assertions from input
 			this.getResolvedIdWithDefaults(
 				typeof resolveIdResult === 'object'
 					? (resolveIdResult as NormalizedResolveIdWithoutDefaults)
@@ -672,7 +672,8 @@ export class ModuleLoader {
 	): Promise<ResolvedId | string | null> {
 		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
 			specifier,
-			importer
+			importer,
+			{ assertions }
 		]);
 		if (typeof specifier !== 'string') {
 			if (typeof resolution === 'string') {

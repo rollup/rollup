@@ -13,7 +13,8 @@ export async function resolveId(
 	moduleLoaderResolveId: ModuleLoaderResolveId,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
-	isEntry: boolean
+	isEntry: boolean,
+	assertions: Record<string, string>
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -22,7 +23,8 @@ export async function resolveId(
 		moduleLoaderResolveId,
 		skip,
 		customOptions,
-		isEntry
+		isEntry,
+		assertions
 	);
 	if (pluginResult != null) return pluginResult;
 

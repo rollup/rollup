@@ -1,5 +1,4 @@
 module.exports = {
-	// solo: true,
 	description: 'keeps any import assertions on input',
 	expectedWarnings: 'UNRESOLVED_IMPORT',
 	options: {

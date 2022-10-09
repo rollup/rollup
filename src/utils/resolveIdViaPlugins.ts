@@ -10,7 +10,8 @@ export function resolveIdViaPlugins(
 	moduleLoaderResolveId: ModuleLoaderResolveId,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
-	isEntry: boolean
+	isEntry: boolean,
+	assertions: Record<string, string>
 ): Promise<ResolveIdResult> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
@@ -38,7 +39,7 @@ export function resolveIdViaPlugins(
 	}
 	return pluginDriver.hookFirst(
 		'resolveId',
-		[source, importer, { custom: customOptions, isEntry }],
+		[source, importer, { assertions, custom: customOptions, isEntry }],
 		replaceContext,
 		skipped
 	);
