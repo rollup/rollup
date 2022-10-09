@@ -69,6 +69,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
+	INCONSISTENT_IMPORT_ASSERTIONS = 'INCONSISTENT_IMPORT_ASSERTIONS',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_CONFIG_MODULE_FORMAT = 'INVALID_CONFIG_MODULE_FORMAT',
@@ -343,6 +344,30 @@ export function errIllegalImportReassignment(name: string, importingId: string):
 		message: `Illegal reassignment of import "${name}" in "${relativeId(importingId)}".`
 	};
 }
+
+export function errInconsistentImportAssertions(
+	existingAssertions: Record<string, string>,
+	newAssertions: Record<string, string>,
+	source: string,
+	importer: string
+): RollupLog {
+	return {
+		code: INCONSISTENT_IMPORT_ASSERTIONS,
+		message: `Module "${relativeId(importer)}" tried to import "${relativeId(
+			source
+		)}" with ${formatAssertions(
+			newAssertions
+		)} assertions, but it was already imported elsewhere with ${formatAssertions(
+			existingAssertions
+		)} assertions. Please ensure that import assertions for the same module are always consistent.`
+	};
+}
+
+const formatAssertions = (assertions: Record<string, string>): string => {
+	const entries = Object.entries(assertions);
+	if (entries.length === 0) return 'no';
+	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
+};
 
 export function errInputHookInOutputPlugin(pluginName: string, hookName: string): RollupLog {
 	return {

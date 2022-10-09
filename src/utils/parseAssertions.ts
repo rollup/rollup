@@ -47,3 +47,14 @@ export function getAssertionsFromImportExportDeclaration(
 		  )
 		: EMPTY_OBJECT;
 }
+
+export function doAssertionsDiffer(
+	assertionA: Record<string, string>,
+	assertionB: Record<string, string>
+): boolean {
+	const keysA = Object.keys(assertionA);
+	return (
+		keysA.length !== Object.keys(assertionB).length ||
+		keysA.some(key => assertionA[key] !== assertionB[key])
+	);
+}

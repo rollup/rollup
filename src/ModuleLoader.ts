@@ -22,6 +22,7 @@ import {
 	errEntryCannotBeExternal,
 	errExternalSyntheticExports,
 	errImplicitDependantCannotBeExternal,
+	errInconsistentImportAssertions,
 	errInternalIdCannotBeExternal,
 	error,
 	errUnresolvedEntry,
@@ -30,7 +31,7 @@ import {
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { promises as fs } from './utils/fs';
-import { getAssertionsFromImportExpression } from './utils/parseAssertions';
+import { doAssertionsDiffer, getAssertionsFromImportExpression } from './utils/parseAssertions';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
@@ -184,7 +185,6 @@ export class ModuleLoader {
 		resolvedId: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	): Promise<ModuleInfo> {
 		const module = await this.fetchModule(
-			// TODO Lukas use correct assertions from resolvedId
 			this.getResolvedIdWithDefaults(resolvedId, EMPTY_OBJECT)!,
 			undefined,
 			false,
@@ -352,17 +352,24 @@ export class ModuleLoader {
 		}
 	}
 
-	// If this is a preload, then this method always waits for the dependencies of the module to be resolved.
-	// Otherwise if the module does not exist, it waits for the module and all its dependencies to be loaded.
-	// Otherwise it returns immediately.
+	// If this is a preload, then this method always waits for the dependencies of
+	// the module to be resolved.
+	// Otherwise, if the module does not exist, it waits for the module and all
+	// its dependencies to be loaded.
+	// Otherwise, it returns immediately.
 	private async fetchModule(
-		{ id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
+		{ assertions, id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
 		importer: string | undefined,
 		isEntry: boolean,
 		isPreload: PreloadType
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
+			if (importer && doAssertionsDiffer(assertions, existingModule.info.assertions)) {
+				this.options.onwarn(
+					errInconsistentImportAssertions(existingModule.info.assertions, assertions, id, importer)
+				);
+			}
 			await this.handleExistingModule(existingModule, isEntry, isPreload);
 			return existingModule;
 		}
@@ -374,7 +381,8 @@ export class ModuleLoader {
 			isEntry,
 			moduleSideEffects,
 			syntheticNamedExports,
-			meta
+			meta,
+			assertions
 		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
@@ -423,27 +431,30 @@ export class ModuleLoader {
 		importer: string,
 		resolvedId: ResolvedId
 	): Promise<Module | ExternalModule> {
-		// TODO Lukas handle internal
 		if (resolvedId.external) {
 			const { assertions, external, id, moduleSideEffects, meta } = resolvedId;
-			// TODO Lukas check assert for existing module
-			if (!this.modulesById.has(id)) {
-				this.modulesById.set(
+			let externalModule = this.modulesById.get(id);
+			if (!externalModule) {
+				externalModule = new ExternalModule(
+					this.options,
 					id,
-					new ExternalModule(
-						this.options,
-						id,
-						moduleSideEffects,
-						meta,
-						external !== 'absolute' && isAbsolute(id),
-						assertions
+					moduleSideEffects,
+					meta,
+					external !== 'absolute' && isAbsolute(id),
+					assertions
+				);
+				this.modulesById.set(id, externalModule);
+			} else if (!(externalModule instanceof ExternalModule)) {
+				return error(errInternalIdCannotBeExternal(source, importer));
+			} else if (doAssertionsDiffer(externalModule.info.assertions, assertions)) {
+				this.options.onwarn(
+					errInconsistentImportAssertions(
+						externalModule.info.assertions,
+						assertions,
+						source,
+						importer
 					)
 				);
-			}
-
-			const externalModule = this.modulesById.get(id);
-			if (!(externalModule instanceof ExternalModule)) {
-				return error(errInternalIdCannotBeExternal(source, importer));
 			}
 			return Promise.resolve(externalModule);
 		}
@@ -688,8 +699,21 @@ export class ModuleLoader {
 			);
 		}
 		if (resolution == null) {
-			// TODO Lukas handle existing resolved id conflicts
-			return (module.resolvedIds[specifier] ??= this.handleInvalidResolvedId(
+			const existingResolution = module.resolvedIds[specifier];
+			if (existingResolution) {
+				if (doAssertionsDiffer(existingResolution.assertions, assertions)) {
+					this.options.onwarn(
+						errInconsistentImportAssertions(
+							existingResolution.assertions,
+							assertions,
+							specifier,
+							importer
+						)
+					);
+				}
+				return existingResolution;
+			}
+			return (module.resolvedIds[specifier] = this.handleInvalidResolvedId(
 				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false, assertions),
 				specifier,
 				module.id,
