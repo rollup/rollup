@@ -190,7 +190,12 @@ export interface PluginContext extends MinimalPluginContext {
 	resolve: (
 		source: string,
 		importer?: string,
-		options?: { custom?: CustomPluginOptions; isEntry?: boolean; skipSelf?: boolean }
+		options?: {
+			assertions?: Record<string, string>;
+			custom?: CustomPluginOptions;
+			isEntry?: boolean;
+			skipSelf?: boolean;
+		}
 	) => Promise<ResolvedId | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;

@@ -24,14 +24,13 @@ export function resolveIdViaPlugins(
 		}
 		replaceContext = (pluginContext, plugin): PluginContext => ({
 			...pluginContext,
-			resolve: (source, importer, { custom, isEntry, skipSelf } = BLANK) => {
+			resolve: (source, importer, { assertions, custom, isEntry, skipSelf } = BLANK) => {
 				return moduleLoaderResolveId(
 					source,
 					importer,
 					custom,
 					isEntry,
-					// TODO Lukas use assertions provided via this.resolve
-					EMPTY_OBJECT,
+					assertions || EMPTY_OBJECT,
 					skipSelf ? [...skip, { importer, plugin, source }] : skip
 				);
 			}
