@@ -11,6 +11,10 @@ declare module 'rollup-plugin-string' {
 	export const string: PluginImpl;
 }
 
+declare module 'acorn-import-assertions' {
+	export const importAssertions: () => unknown;
+}
+
 declare module 'is-reference' {
 	import type * as estree from 'estree';
 

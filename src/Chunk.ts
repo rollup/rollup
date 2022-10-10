@@ -89,6 +89,7 @@ export type ResolvedDynamicImport = (
 ) & { node: ImportExpression };
 
 export interface ChunkDependency {
+	assertions: string | null;
 	defaultVariableName: string | undefined;
 	globalName: string | false | undefined;
 	importPath: string;
@@ -853,6 +854,20 @@ export default class Chunk {
 			);
 	}
 
+	private getDynamicImportStringAndAssertions(
+		resolution: ExternalModule | string | null,
+		fileName: string
+	): [importPath: string, assertions: string | null | true] {
+		if (resolution instanceof ExternalModule) {
+			const chunk = this.externalChunkByModule.get(resolution)!;
+			return [`'${chunk.getImportPath(fileName)}'`, chunk.getImportAssertions(this.snippets)];
+		}
+		return [
+			resolution || '',
+			(this.outputOptions.format === 'es' && this.outputOptions.externalImportAssertions) || null
+		];
+	}
+
 	private getFallbackChunkName(): string {
 		if (this.manualChunkAlias) {
 			return this.manualChunkAlias;
@@ -1032,6 +1047,7 @@ export default class Chunk {
 			const importPath = dep.getImportPath(fileName);
 
 			renderedDependencies.set(dep, {
+				assertions: dep instanceof ExternalChunk ? dep.getImportAssertions(this.snippets) : null,
 				defaultVariableName: dep.defaultVariableName,
 				globalName:
 					dep instanceof ExternalChunk &&
@@ -1181,11 +1197,16 @@ export default class Chunk {
 						pluginDriver,
 						accessedGlobalsByScope,
 						`'${(facadeChunk || chunk).getImportPath(fileName)}'`,
-						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0]
+						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0],
+						null
 					);
 				}
 			} else {
 				const { resolution } = resolvedDynamicImport;
+				const [resolutionString, assertions] = this.getDynamicImportStringAndAssertions(
+					resolution,
+					fileName
+				);
 				resolvedDynamicImport.node.setExternalResolution(
 					'external',
 					resolution,
@@ -1193,10 +1214,9 @@ export default class Chunk {
 					snippets,
 					pluginDriver,
 					accessedGlobalsByScope,
-					resolution instanceof ExternalModule
-						? `'${this.externalChunkByModule.get(resolution)!.getImportPath(fileName)}'`
-						: resolution || '',
-					false
+					resolutionString,
+					false,
+					assertions
 				);
 			}
 		}

@@ -4,12 +4,14 @@ import type { HasEffectsContext } from '../ExecutionContext';
 import type ClassDeclaration from './ClassDeclaration';
 import type ExportSpecifier from './ExportSpecifier';
 import type FunctionDeclaration from './FunctionDeclaration';
+import ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
 import { type Node, NodeBase } from './shared/Node';
 
 export default class ExportNamedDeclaration extends NodeBase {
+	declare assertions: ImportAttribute[];
 	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	declare needsBoundaries: true;
 	declare source: Literal<string> | null;

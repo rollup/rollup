@@ -532,6 +532,12 @@ Type: `boolean`<br> CLI: `--extend`/`--no-extend`<br> Default: `false`
 
 Whether to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
+#### output.externalImportAssertions
+
+Type: `boolean`<br> CLI: `--externalImportAssertions`/`--no-externalImportAssertions`<br> Default: `true`
+
+Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
+
 #### output.generatedCode
 
 Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean, symbols?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
@@ -1800,7 +1806,7 @@ export default {
 
 **treeshake.propertyReadSideEffects**<br> Type: `boolean | 'always'`<br> CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br> Default: `true`
 
-If `true`, retain unused property reads that Rollup can determine to have side-effects. This includes accessing properties of `null` or `undefined` or triggering explicit getters via property access. Note that this does not cover destructuring assignment or getters on objects passed as function parameters.
+If `true`, retain unused property reads that Rollup can determine to have side effects. This includes accessing properties of `null` or `undefined` or triggering explicit getters via property access. Note that this does not cover destructuring assignment or getters on objects passed as function parameters.
 
 If `false`, assume reading a property of an object never has side effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
 

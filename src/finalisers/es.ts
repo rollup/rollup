@@ -10,9 +10,9 @@ export default function es(
 	{ accessedGlobals, indent: t, intro, outro, dependencies, exports, snippets }: FinaliserOptions,
 	{ externalLiveBindings, freeze, namespaceToStringTag }: NormalizedOutputOptions
 ): void {
-	const { _, n } = snippets;
+	const { n } = snippets;
 
-	const importBlock = getImportBlock(dependencies, _);
+	const importBlock = getImportBlock(dependencies, snippets);
 	if (importBlock.length > 0) intro += importBlock.join(n) + n + n;
 	intro += getHelpersBlock(
 		null,
@@ -32,11 +32,13 @@ export default function es(
 	magicString.trim();
 }
 
-function getImportBlock(dependencies: ChunkDependency[], _: string): string[] {
+function getImportBlock(dependencies: ChunkDependency[], { _ }: GenerateCodeSnippets): string[] {
 	const importBlock: string[] = [];
-	for (const { importPath, reexports, imports, name } of dependencies) {
+	for (const { importPath, reexports, imports, name, assertions } of dependencies) {
+		const assertion = assertions ? `${_}assert${_}${assertions}` : '';
+		const pathWithAssertion = `'${importPath}'${assertion};`;
 		if (!reexports && !imports) {
-			importBlock.push(`import${_}'${importPath}';`);
+			importBlock.push(`import${_}${pathWithAssertion}`);
 			continue;
 		}
 		if (imports) {
@@ -53,10 +55,10 @@ function getImportBlock(dependencies: ChunkDependency[], _: string): string[] {
 				}
 			}
 			if (starImport) {
-				importBlock.push(`import${_}*${_}as ${starImport.local} from${_}'${importPath}';`);
+				importBlock.push(`import${_}*${_}as ${starImport.local} from${_}${pathWithAssertion}`);
 			}
 			if (defaultImport && importedNames.length === 0) {
-				importBlock.push(`import ${defaultImport.local} from${_}'${importPath}';`);
+				importBlock.push(`import ${defaultImport.local} from${_}${pathWithAssertion}`);
 			} else if (importedNames.length > 0) {
 				importBlock.push(
 					`import ${defaultImport ? `${defaultImport.local},${_}` : ''}{${_}${importedNames
@@ -67,7 +69,7 @@ function getImportBlock(dependencies: ChunkDependency[], _: string): string[] {
 								return `${specifier.imported} as ${specifier.local}`;
 							}
 						})
-						.join(`,${_}`)}${_}}${_}from${_}'${importPath}';`
+						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
 			}
 		}
@@ -85,14 +87,14 @@ function getImportBlock(dependencies: ChunkDependency[], _: string): string[] {
 				}
 			}
 			if (starExport) {
-				importBlock.push(`export${_}*${_}from${_}'${importPath}';`);
+				importBlock.push(`export${_}*${_}from${_}${pathWithAssertion}`);
 			}
 			if (namespaceReexports.length > 0) {
 				if (
 					!imports ||
 					!imports.some(specifier => specifier.imported === '*' && specifier.local === name)
 				) {
-					importBlock.push(`import${_}*${_}as ${name} from${_}'${importPath}';`);
+					importBlock.push(`import${_}*${_}as ${name} from${_}${pathWithAssertion}`);
 				}
 				for (const specifier of namespaceReexports) {
 					importBlock.push(
@@ -112,7 +114,7 @@ function getImportBlock(dependencies: ChunkDependency[], _: string): string[] {
 								return `${specifier.imported} as ${specifier.reexported}`;
 							}
 						})
-						.join(`,${_}`)}${_}}${_}from${_}'${importPath}';`
+						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
 			}
 		}

@@ -83,6 +83,7 @@ type PartialNull<T> = {
 };
 
 interface ModuleOptions {
+	assertions: Record<string, string>;
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;
@@ -189,7 +190,12 @@ export interface PluginContext extends MinimalPluginContext {
 	resolve: (
 		source: string,
 		importer?: string,
-		options?: { custom?: CustomPluginOptions; isEntry?: boolean; skipSelf?: boolean }
+		options?: {
+			assertions?: Record<string, string>;
+			custom?: CustomPluginOptions;
+			isEntry?: boolean;
+			skipSelf?: boolean;
+		}
 	) => Promise<ResolvedId | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
@@ -220,7 +226,7 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
 	importer: string | undefined,
-	options: { custom?: CustomPluginOptions; isEntry: boolean }
+	options: { assertions: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
 ) => ResolveIdResult;
 
 export type ShouldTransformCachedModuleHook = (
@@ -275,7 +281,8 @@ export type RenderChunkHook = (
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | AcornNode,
-	importer: string
+	importer: string,
+	options: { assertions: Record<string, string> }
 ) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (
@@ -618,6 +625,7 @@ export interface OutputOptions {
 	esModule?: boolean | 'if-default-prop';
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
+	externalImportAssertions?: boolean;
 	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
@@ -669,6 +677,7 @@ export interface NormalizedOutputOptions {
 	esModule: boolean | 'if-default-prop';
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
+	externalImportAssertions: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
 	footer: AddonFunction;

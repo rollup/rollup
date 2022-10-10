@@ -70,6 +70,7 @@
     "@typescript-eslint/eslint-plugin": "^5.36.1",
     "@typescript-eslint/parser": "^5.36.1",
     "acorn": "^8.8.0",
+    "acorn-import-assertions": "^1.8.0",
     "acorn-jsx": "^5.3.2",
     "acorn-walk": "^8.2.0",
     "buble": "^0.20.0",

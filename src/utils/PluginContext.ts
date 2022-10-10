@@ -9,7 +9,7 @@ import type {
 } from '../rollup/types';
 import type { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
-import { BLANK } from './blank';
+import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
 import {
 	errInvalidRollupPhaseForAddWatchFile,
@@ -93,12 +93,13 @@ export function getPluginContext(
 			return wrappedModuleIds();
 		},
 		parse: graph.contextParse.bind(graph),
-		resolve(source, importer, { custom, isEntry, skipSelf } = BLANK) {
+		resolve(source, importer, { assertions, custom, isEntry, skipSelf } = BLANK) {
 			return graph.moduleLoader.resolveId(
 				source,
 				importer,
 				custom,
 				isEntry,
+				assertions || EMPTY_OBJECT,
 				skipSelf ? [{ importer, plugin, source }] : null
 			);
 		},

@@ -29,6 +29,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import FunctionExpression from './FunctionExpression';
 import Identifier from './Identifier';
 import IfStatement from './IfStatement';
+import ImportAttribute from './ImportAttribute';
 import ImportDeclaration from './ImportDeclaration';
 import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportExpression from './ImportExpression';
@@ -104,6 +105,7 @@ export const nodeConstructors: {
 	FunctionExpression,
 	Identifier,
 	IfStatement,
+	ImportAttribute,
 	ImportDeclaration,
 	ImportDefaultSpecifier,
 	ImportExpression,

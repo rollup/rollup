@@ -51,6 +51,7 @@ import {
 	augmentCodeLocation,
 	errAmbiguousExternalNamespaces,
 	errCircularReexport,
+	errInconsistentImportAssertions,
 	errInvalidFormatForTopLevelAwait,
 	errInvalidSourcemapForError,
 	errMissingExport,
@@ -65,6 +66,10 @@ import { getId } from './utils/getId';
 import { getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
+import {
+	doAssertionsDiffer,
+	getAssertionsFromImportExportDeclaration
+} from './utils/parseAssertions';
 import { basename, extname } from './utils/path';
 import type { RenderOptions } from './utils/renderHelpers';
 import { timeEnd, timeStart } from './utils/timers';
@@ -223,7 +228,7 @@ export default class Module {
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
-	readonly sources = new Set<string>();
+	readonly sourcesWithAssertions = new Map<string, Record<string, string>>();
 	declare transformFiles?: EmittedFile[];
 
 	private allExportNames: Set<string> | null = null;
@@ -255,7 +260,8 @@ export default class Module {
 		isEntry: boolean,
 		moduleSideEffects: boolean | 'no-treeshake',
 		syntheticNamedExports: boolean | string,
-		meta: CustomPluginOptions
+		meta: CustomPluginOptions,
+		assertions: Record<string, string>
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
@@ -270,10 +276,11 @@ export default class Module {
 			implicitlyLoadedBefore,
 			importers,
 			reexportDescriptions,
-			sources
+			sourcesWithAssertions
 		} = this;
 
 		this.info = {
+			assertions,
 			ast: null,
 			code: null,
 			get dynamicallyImportedIdResolutions() {
@@ -312,12 +319,18 @@ export default class Module {
 				return Array.from(implicitlyLoadedBefore, getId).sort();
 			},
 			get importedIdResolutions() {
-				return Array.from(sources, source => module.resolvedIds[source]).filter(Boolean);
+				return Array.from(
+					sourcesWithAssertions.keys(),
+					source => module.resolvedIds[source]
+				).filter(Boolean);
 			},
 			get importedIds() {
 				// We cannot use this.dependencies because this is needed before
 				// dependencies are populated
-				return Array.from(sources, source => module.resolvedIds[source]?.id).filter(Boolean);
+				return Array.from(
+					sourcesWithAssertions.keys(),
+					source => module.resolvedIds[source]?.id
+				).filter(Boolean);
 			},
 			get importers() {
 				return importers.sort();
@@ -784,6 +797,7 @@ export default class Module {
 
 	toJSON(): ModuleJSON {
 		return {
+			assertions: this.info.assertions,
 			ast: this.ast!.esTreeNode,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
@@ -900,7 +914,7 @@ export default class Module {
 			});
 		} else if (node instanceof ExportAllDeclaration) {
 			const source = node.source.value;
-			this.sources.add(source);
+			this.addSource(source, node);
 			if (node.exported) {
 				// export * as name from './other'
 
@@ -920,7 +934,7 @@ export default class Module {
 			// export { name } from './other'
 
 			const source = node.source.value;
-			this.sources.add(source);
+			this.addSource(source, node);
 			for (const specifier of node.specifiers) {
 				const name = specifier.exported.name;
 				this.reexportDescriptions.set(name, {
@@ -960,7 +974,7 @@ export default class Module {
 
 	private addImport(node: ImportDeclaration): void {
 		const source = node.source.value;
-		this.sources.add(source);
+		this.addSource(source, node);
 		for (const specifier of node.specifiers) {
 			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
@@ -1037,6 +1051,24 @@ export default class Module {
 
 		addSideEffectDependencies(this.dependencies);
 		addSideEffectDependencies(alwaysCheckedDependencies);
+	}
+
+	private addSource(
+		source: string,
+		declaration: ImportDeclaration | ExportNamedDeclaration | ExportAllDeclaration
+	) {
+		const parsedAssertions = getAssertionsFromImportExportDeclaration(declaration.assertions);
+		const existingAssertions = this.sourcesWithAssertions.get(source);
+		if (existingAssertions) {
+			if (doAssertionsDiffer(existingAssertions, parsedAssertions)) {
+				this.warn(
+					errInconsistentImportAssertions(existingAssertions, parsedAssertions, source, this.id),
+					declaration.start
+				);
+			}
+		} else {
+			this.sourcesWithAssertions.set(source, parsedAssertions);
+		}
 	}
 
 	private getVariableFromNamespaceReexports(

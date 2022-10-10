@@ -106,7 +106,7 @@ function mergeInputOptions(
 	overrides: CommandConfigObject,
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
-	const getOption = (name: string): any => overrides[name] ?? config[name];
+	const getOption = (name: keyof InputOptions): any => overrides[name] ?? config[name];
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
 		acornInjectPlugins: config.acornInjectPlugins as
@@ -222,7 +222,7 @@ function mergeOutputOptions(
 	overrides: GenericConfigObject,
 	warn: WarningHandler
 ): OutputOptions {
-	const getOption = (name: string): any => overrides[name] ?? config[name];
+	const getOption = (name: keyof OutputOptions): any => overrides[name] ?? config[name];
 	const outputOptions: CompleteOutputOptions<keyof OutputOptions> = {
 		amd: getObjectOption(config, overrides, 'amd'),
 		assetFileNames: getOption('assetFileNames'),
@@ -236,6 +236,7 @@ function mergeOutputOptions(
 		esModule: getOption('esModule'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
+		externalImportAssertions: getOption('externalImportAssertions'),
 		externalLiveBindings: getOption('externalLiveBindings'),
 		file: getOption('file'),
 		footer: getOption('footer'),

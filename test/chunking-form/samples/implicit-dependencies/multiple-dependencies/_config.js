@@ -34,6 +34,8 @@ module.exports = {
 			},
 			buildEnd() {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN1))), {
+					id: ID_MAIN1,
+					assertions: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -119,11 +121,11 @@ module.exports = {
 					dynamicImporters: [],
 					hasDefaultExport: false,
 					moduleSideEffects: true,
-					id: ID_MAIN1,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [ID_DEP],
 					importedIdResolutions: [
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -131,6 +133,7 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB1B,
 							meta: {},
@@ -138,6 +141,7 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB2,
 							meta: {},
@@ -154,6 +158,8 @@ module.exports = {
 					syntheticNamedExports: false
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN2))), {
+					id: ID_MAIN2,
+					assertions: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -239,11 +245,11 @@ module.exports = {
 					dynamicImporters: [],
 					hasDefaultExport: false,
 					moduleSideEffects: true,
-					id: ID_MAIN2,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [ID_DEP],
 					importedIdResolutions: [
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -251,6 +257,7 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB1B,
 							meta: {},
@@ -258,6 +265,7 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB3,
 							meta: {},
@@ -274,6 +282,8 @@ module.exports = {
 					syntheticNamedExports: false
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
+					id: ID_DEP,
+					assertions: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -358,11 +368,11 @@ module.exports = {
 					dynamicImporters: [],
 					hasDefaultExport: false,
 					moduleSideEffects: true,
-					id: ID_DEP,
 					implicitlyLoadedAfterOneOf: [ID_MAIN1, ID_MAIN2],
 					implicitlyLoadedBefore: [],
 					importedIdResolutions: [
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -370,6 +380,7 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB2,
 							meta: {},
@@ -377,6 +388,7 @@ module.exports = {
 							syntheticNamedExports: false
 						},
 						{
+							assertions: {},
 							external: false,
 							id: ID_LIB3,
 							meta: {},

@@ -29,6 +29,7 @@ module.exports = {
 					esModule: 'if-default-prop',
 					exports: 'auto',
 					extend: false,
+					externalImportAssertions: true,
 					externalLiveBindings: true,
 					format: 'cjs',
 					freeze: true,

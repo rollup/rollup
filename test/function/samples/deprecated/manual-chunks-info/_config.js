@@ -20,6 +20,7 @@ module.exports = {
 					{
 						[getId('dynamic')]: {
 							id: getId('dynamic'),
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -80,6 +81,7 @@ module.exports = {
 							code: "export const promise = import('external');\nexport { default as internal } from './lib';\n",
 							dynamicallyImportedIdResolutions: [
 								{
+									assertions: {},
 									external: true,
 									id: 'external',
 									meta: {},
@@ -95,6 +97,7 @@ module.exports = {
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [
 								{
+									assertions: {},
 									external: false,
 									id: getId('lib'),
 									meta: {},
@@ -112,6 +115,7 @@ module.exports = {
 						},
 						[getId('lib')]: {
 							id: getId('lib'),
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -145,6 +149,7 @@ module.exports = {
 						},
 						[getId('main')]: {
 							id: getId('main'),
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -227,6 +232,7 @@ module.exports = {
 							code: "export const promise = import('./dynamic');\nexport { default as value } from './lib';\nexport { external } from 'external';\n",
 							dynamicallyImportedIdResolutions: [
 								{
+									assertions: {},
 									external: false,
 									id: getId('dynamic'),
 									meta: {},
@@ -242,6 +248,7 @@ module.exports = {
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [
 								{
+									assertions: {},
 									external: false,
 									id: getId('lib'),
 									meta: {},
@@ -249,6 +256,7 @@ module.exports = {
 									syntheticNamedExports: false
 								},
 								{
+									assertions: {},
 									external: true,
 									id: 'external',
 									meta: {},
@@ -266,6 +274,7 @@ module.exports = {
 						},
 						external: {
 							id: 'external',
+							assertions: {},
 							ast: null,
 							code: null,
 							dynamicallyImportedIdResolutions: [],
