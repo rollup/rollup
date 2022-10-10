@@ -534,62 +534,9 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 
 #### output.externalImportAssertions
 
-Type: `{[extName: string]: string | null} | false | (moduleInfo: ModulInfo) => ({[key: string]: string} | null)`<br> Default: `{".json": "json"}`
+Type: `boolean`<br> CLI: `--externalImportAssertions`/`--no-externalImportAssertions`<br> Default: `true`
 
-Which import assertions to add to external imports in the output if the output format is `es`. By default, only external `.json` files will receive a `type: 'json'` assertion.
-
-- If an object is provided, then the keys are considered to be file extensions while the values add a corresponding `type` assertion to files of that type.
-
-  ```js
-  // config
-  export default {
-    external: ['./foo.css', './bar.json'],
-    // ...
-    output: {
-      externalImportAssertions: {
-        '.css': 'css'
-      }
-      // ...
-    }
-  };
-
-  // input
-  import './foo.css';
-  import './bar.json';
-
-  // output
-  import './foo.css' assert { type: 'css' };
-  import './bar.json';
-  ```
-
-- If a function is provided, it will be called once for each external dependency with information about the external module. If it returns an object, its key-value pairs will be added as arbitrary assertions to all imports of that dependency.
-
-  ```js
-  // config
-  export default {
-    external: ['./foo.css', './bar.json'],
-    // ...
-    output: {
-      externalImportAssertions({ id }) {
-        if (id.endsWith('.css')) {
-          return { type: 'css', special: 'attribute' };
-        }
-        return null;
-      }
-      // ...
-    }
-  };
-
-  // input
-  import './foo.css';
-  import './bar.json';
-
-  // output
-  import './foo.css' assert { type: 'css', special: 'attribute' };
-  import './bar.json';
-  ```
-
-- `false` will disable all assertions.
+Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
 
 #### output.generatedCode
 
@@ -1859,7 +1806,7 @@ export default {
 
 **treeshake.propertyReadSideEffects**<br> Type: `boolean | 'always'`<br> CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br> Default: `true`
 
-If `true`, retain unused property reads that Rollup can determine to have side-effects. This includes accessing properties of `null` or `undefined` or triggering explicit getters via property access. Note that this does not cover destructuring assignment or getters on objects passed as function parameters.
+If `true`, retain unused property reads that Rollup can determine to have side effects. This includes accessing properties of `null` or `undefined` or triggering explicit getters via property access. Note that this does not cover destructuring assignment or getters on objects passed as function parameters.
 
 If `false`, assume reading a property of an object never has side effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
 

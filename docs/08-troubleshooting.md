@@ -36,9 +36,9 @@ Using the [Function constructor](https://developer.mozilla.org/en-US/docs/Web/Ja
 
 Sometimes, you'll end up with code in your bundle that doesn't seem like it should be there. For example, if you import a utility from `lodash-es`, you might expect that you'll get the bare minimum of code necessary for that utility to work.
 
-But Rollup has to be conservative about what code it removes in order to guarantee that the end result will run correctly. If an imported module appears to have _side-effects_, either on bits of the module that you're using or on the global environment, Rollup plays it safe and includes those side-effects.
+But Rollup has to be conservative about what code it removes in order to guarantee that the end result will run correctly. If an imported module appears to have _side effects_, either on bits of the module that you're using or on the global environment, Rollup plays it safe and includes those side effects.
 
-Because static analysis in a dynamic language like JavaScript is hard, there will occasionally be false positives. Lodash is a good example of a module that _looks_ like it has lots of side-effects, even in places that it doesn't. You can often mitigate those false positives by importing submodules (e.g. `import map from 'lodash-es/map'` rather than `import { map } from 'lodash-es'`).
+Because static analysis in a dynamic language like JavaScript is hard, there will occasionally be false positives. Lodash is a good example of a module that _looks_ like it has lots of side effects, even in places that it doesn't. You can often mitigate those false positives by importing submodules (e.g. `import map from 'lodash-es/map'` rather than `import { map } from 'lodash-es'`).
 
 Rollup's static analysis will improve over time, but it will never be perfect in all cases – that's just JavaScript.
 
