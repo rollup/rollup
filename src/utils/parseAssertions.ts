@@ -19,7 +19,7 @@ export function getAssertionsFromImportExpression(node: ImportExpression): Recor
 			const key = getPropertyKey(property);
 			if (
 				typeof key === 'string' &&
-				typeof ((property as Property).value as Literal)?.value === 'string'
+				typeof ((property as Property).value as Literal).value === 'string'
 			) {
 				return [key, ((property as Property).value as Literal).value] as [string, string];
 			}
@@ -34,9 +34,10 @@ export function getAssertionsFromImportExpression(node: ImportExpression): Recor
 
 const getPropertyKey = (
 	property: Property | SpreadElement | ImportAttribute
-): LiteralValue | undefined =>
-	((property as Property | ImportAttribute).key as Identifier).name ||
-	((property as Property | ImportAttribute).key as Literal).value;
+): LiteralValue | undefined => {
+	const key = (property as Property | ImportAttribute).key;
+	return key && ((key as Identifier).name || (key as Literal).value);
+};
 
 export function getAssertionsFromImportExportDeclaration(
 	assertions: ImportAttribute[] | undefined
