@@ -290,7 +290,6 @@ export class ModuleLoader {
 			}
 			module.setSource(cachedModule);
 		} else {
-			module.updateOptions(sourceDescription);
 			module.setSource(
 				await transform(sourceDescription, module, this.pluginDriver, this.options.onwarn)
 			);
