@@ -36,6 +36,7 @@ Basic options:
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
 --no-externalLiveBindings   Do not generate code to support live bindings
+--no-externalImportAssertions Omit import assertions in "es" output
 --failAfterWarnings         Exit with an error if the build produced warnings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
@@ -68,8 +69,8 @@ Basic options:
 --no-systemNullSetters      Do not replace empty SystemJS setters with `null`
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
---no-treeshake.moduleSideEffects Assume modules have no side-effects
---no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--no-treeshake.moduleSideEffects Assume modules have no side effects
+--no-treeshake.propertyReadSideEffects Ignore property access side effects
 --no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
 --no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
 --waitForBundleInput        Wait for bundle input files

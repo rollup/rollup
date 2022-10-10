@@ -23,12 +23,14 @@ export default class ExternalModule {
 		public readonly id: string,
 		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
-		public readonly renormalizeRenderPath: boolean
+		public readonly renormalizeRenderPath: boolean,
+		assertions: Record<string, string>
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
 
 		const { importers, dynamicImporters } = this;
 		const info: ModuleInfo = (this.info = {
+			assertions,
 			ast: null,
 			code: null,
 			dynamicallyImportedIdResolutions: EMPTY_ARRAY,

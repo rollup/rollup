@@ -48,6 +48,7 @@ export function normalizeOutputOptions(
 		esModule: config.esModule ?? 'if-default-prop',
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
+		externalImportAssertions: config.externalImportAssertions ?? true,
 		externalLiveBindings: config.externalLiveBindings ?? true,
 		file,
 		footer: getAddon(config, 'footer'),

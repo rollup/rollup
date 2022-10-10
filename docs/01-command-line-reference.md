@@ -366,6 +366,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-esModule               Do not add __esModule property
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
+--no-externalImportAssertions Omit import assertions in "es" output
 --no-externalLiveBindings   Do not generate code to support live bindings
 --failAfterWarnings         Exit with an error if the build produced warnings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
@@ -399,8 +400,8 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-systemNullSetters      Do not replace empty SystemJS setters with `null`
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
---no-treeshake.moduleSideEffects Assume modules have no side-effects
---no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--no-treeshake.moduleSideEffects Assume modules have no side effects
+--no-treeshake.propertyReadSideEffects Ignore property access side effects
 --no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
 --no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
 --waitForBundleInput        Wait for bundle input files

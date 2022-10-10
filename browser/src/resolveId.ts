@@ -1,9 +1,5 @@
-import type {
-	CustomPluginOptions,
-	Plugin,
-	ResolvedId,
-	ResolveIdResult
-} from '../../src/rollup/types';
+import { ModuleLoaderResolveId } from '../../src/ModuleLoader';
+import type { CustomPluginOptions, Plugin, ResolveIdResult } from '../../src/rollup/types';
 import type { PluginDriver } from '../../src/utils/PluginDriver';
 import { resolveIdViaPlugins } from '../../src/utils/resolveIdViaPlugins';
 import { throwNoFileSystem } from './error';
@@ -13,16 +9,11 @@ export async function resolveId(
 	importer: string | undefined,
 	_preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
-	moduleLoaderResolveId: (
-		source: string,
-		importer: string | undefined,
-		customOptions: CustomPluginOptions | undefined,
-		isEntry: boolean | undefined,
-		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
-	) => Promise<ResolvedId | null>,
+	moduleLoaderResolveId: ModuleLoaderResolveId,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
-	isEntry: boolean
+	isEntry: boolean,
+	assertions: Record<string, string>
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -31,7 +22,8 @@ export async function resolveId(
 		moduleLoaderResolveId,
 		skip,
 		customOptions,
-		isEntry
+		isEntry,
+		assertions
 	);
 	if (pluginResult == null) {
 		throwNoFileSystem('path.resolve');

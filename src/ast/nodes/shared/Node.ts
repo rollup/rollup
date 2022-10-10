@@ -164,12 +164,11 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	bind(): void {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
-			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					child?.bind();
 				}
-			} else {
+			} else if (value) {
 				value.bind();
 			}
 		}

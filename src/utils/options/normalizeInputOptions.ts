@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import { importAssertions } from 'acorn-import-assertions';
 import type {
 	HasModuleSideEffects,
 	InputOptions,
@@ -101,7 +102,10 @@ const getAcorn = (config: InputOptions): acorn.Options => ({
 
 const getAcornInjectPlugins = (
 	config: InputOptions
-): NormalizedInputOptions['acornInjectPlugins'] => ensureArray(config.acornInjectPlugins);
+): NormalizedInputOptions['acornInjectPlugins'] => [
+	importAssertions,
+	...ensureArray(config.acornInjectPlugins)
+];
 
 const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
 	(config.cache as unknown as RollupBuild)?.cache || config.cache;
