@@ -492,6 +492,8 @@ export type SourcemapPathTransformOption = (
 	sourcemapPath: string
 ) => string;
 
+export type InputPlugin = Plugin | null | false | undefined | InputPlugin[];
+
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
 	acornInjectPlugins?: (() => unknown)[] | (() => unknown);
@@ -511,7 +513,7 @@ export interface InputOptions {
 	moduleContext?: ((id: string) => string | null | void) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
-	plugins?: (Plugin | null | false | undefined)[];
+	plugins?: InputPlugin[];
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	/** @deprecated Use the "preserveModules" output option instead. */
 	preserveModules?: boolean;
