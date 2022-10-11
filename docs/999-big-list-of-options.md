@@ -2002,7 +2002,7 @@ _Use the [`output.manualChunks`](guide/en/#outputmanualchunks) output option ins
 
 #### maxParallelFileReads
 
-_Use the [`maxParallelFileOps`](guide/en/#maxParallelFileOps) option instead._<br> Type: `number`<br> CLI: `--maxParallelFileReads <number>`<br> Default: 20
+_Use the [`maxParallelFileOps`](guide/en/#maxparallelfileops) option instead._<br> Type: `number`<br> CLI: `--maxParallelFileReads <number>`<br> Default: 20
 
 Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the os allows.
 
