@@ -22,11 +22,8 @@ import {
 	error
 } from './error';
 import { defaultHashSize } from './hashPlaceholders';
-import {
-	FILE_PLACEHOLDER,
-	lowercaseBundleKeys,
-	OutputBundleWithPlaceholders
-} from './outputBundle';
+import type { OutputBundleWithPlaceholders } from './outputBundle';
+import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { extname } from './path';
 import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';

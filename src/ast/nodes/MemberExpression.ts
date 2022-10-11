@@ -1,20 +1,19 @@
 import type MagicString from 'magic-string';
-import { AstContext } from '../../Module';
+import type { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { errIllegalImportReassignment, errMissingExport } from '../../utils/error';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import {
-	INTERACTION_ACCESSED,
-	INTERACTION_ASSIGNED,
+import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
 	NodeInteractionAssigned,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../NodeInteractions';
+import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,

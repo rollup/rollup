@@ -69,7 +69,7 @@ import VariableDeclaration from './VariableDeclaration';
 import VariableDeclarator from './VariableDeclarator';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
-import { NodeBase } from './shared/Node';
+import type { NodeBase } from './shared/Node';
 
 export const nodeConstructors: {
 	[name: string]: typeof NodeBase;

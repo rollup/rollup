@@ -1,15 +1,15 @@
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
-	INTERACTION_CALLED,
-	NodeInteraction
+	INTERACTION_CALLED
 } from '../NodeInteractions';
-import { LiteralValueOrUnknown, UnknownValue } from '../nodes/shared/Expression';
+import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
+import { UnknownValue } from '../nodes/shared/Expression';
 import { getGlobalAtPath } from '../nodes/shared/knownGlobals';
-import type { ObjectPath } from '../utils/PathTracker';
-import { PathTracker } from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {

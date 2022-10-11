@@ -148,7 +148,7 @@ function printMeasurements(average, existingAverage, filter = /.*/) {
 }
 
 function clearLines(numberOfLines) {
-	// console.info('\33[A' + '\33[2K\33[A'.repeat(numberOfLines));
+	console.info('\33[A' + '\33[2K\33[A'.repeat(numberOfLines));
 }
 
 function getExistingTimings() {

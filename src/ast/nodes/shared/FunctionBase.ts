@@ -1,32 +1,36 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import {
 	BROKEN_FLOW_NONE,
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import {
-	INTERACTION_CALLED,
-	NODE_INTERACTION_UNKNOWN_ACCESS,
-	NODE_INTERACTION_UNKNOWN_CALL,
+import type {
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
-import ReturnValueScope from '../../scopes/ReturnValueScope';
-import { type ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import {
+	INTERACTION_CALLED,
+	NODE_INTERACTION_UNKNOWN_ACCESS,
+	NODE_INTERACTION_UNKNOWN_CALL
+} from '../../NodeInteractions';
+import type ReturnValueScope from '../../scopes/ReturnValueScope';
+import type { PathTracker } from '../../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
-import { type ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
+import type { LiteralValueOrUnknown } from './Expression';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
 	NodeBase
 } from './Node';
-import { ObjectEntity } from './ObjectEntity';
+import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
 
 export default abstract class FunctionBase extends NodeBase {

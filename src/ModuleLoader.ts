@@ -1,4 +1,4 @@
-import * as acorn from 'acorn';
+import type * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module, { type DynamicImport } from './Module';

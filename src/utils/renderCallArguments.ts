@@ -1,7 +1,8 @@
-import MagicString from 'magic-string';
-import CallExpression from '../ast/nodes/CallExpression';
-import NewExpression from '../ast/nodes/NewExpression';
-import { findFirstOccurrenceOutsideComment, RenderOptions } from './renderHelpers';
+import type MagicString from 'magic-string';
+import type CallExpression from '../ast/nodes/CallExpression';
+import type NewExpression from '../ast/nodes/NewExpression';
+import type { RenderOptions } from './renderHelpers';
+import { findFirstOccurrenceOutsideComment } from './renderHelpers';
 
 export function renderCallArguments(
 	code: MagicString,

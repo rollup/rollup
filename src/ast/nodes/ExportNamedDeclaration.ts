@@ -4,7 +4,7 @@ import type { HasEffectsContext } from '../ExecutionContext';
 import type ClassDeclaration from './ClassDeclaration';
 import type ExportSpecifier from './ExportSpecifier';
 import type FunctionDeclaration from './FunctionDeclaration';
-import ImportAttribute from './ImportAttribute';
+import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';

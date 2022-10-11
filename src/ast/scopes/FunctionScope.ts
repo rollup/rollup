@@ -1,7 +1,7 @@
 import type { AstContext } from '../../Module';
 import type { InclusionContext } from '../ExecutionContext';
 import type SpreadElement from '../nodes/SpreadElement';
-import { ExpressionEntity } from '../nodes/shared/Expression';
+import type { ExpressionEntity } from '../nodes/shared/Expression';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
 import type ChildScope from './ChildScope';

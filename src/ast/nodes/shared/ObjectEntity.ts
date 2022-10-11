@@ -1,25 +1,22 @@
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext } from '../../ExecutionContext';
-import {
-	INTERACTION_ACCESSED,
-	INTERACTION_CALLED,
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { HasEffectsContext } from '../../ExecutionContext';
+import type {
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
+import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
+import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
 import {
-	ObjectPath,
-	ObjectPathKey,
-	PathTracker,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
 	UnknownKey,
 	UnknownNonAccessorKey
 } from '../../utils/PathTracker';
+import type { LiteralValueOrUnknown } from './Expression';
 import {
 	ExpressionEntity,
-	LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownTruthyValue,
 	UnknownValue

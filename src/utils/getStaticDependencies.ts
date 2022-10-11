@@ -1,5 +1,5 @@
 import type Chunk from '../Chunk';
-import ExternalChunk from '../ExternalChunk';
+import type ExternalChunk from '../ExternalChunk';
 import ExternalModule from '../ExternalModule';
 import type Module from '../Module';
 

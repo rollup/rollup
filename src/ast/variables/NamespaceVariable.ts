@@ -1,9 +1,10 @@
-import Module, { AstContext } from '../../Module';
+import type { AstContext } from '../../Module';
+import type Module from '../../Module';
 import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import type Identifier from '../nodes/Identifier';
-import { LiteralValueOrUnknown } from '../nodes/shared/Expression';
+import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import type ChildScope from '../scopes/ChildScope';
 import Variable from './Variable';
 

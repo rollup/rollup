@@ -1,4 +1,4 @@
-import { ModuleLoaderResolveId } from '../ModuleLoader';
+import type { ModuleLoaderResolveId } from '../ModuleLoader';
 import type { CustomPluginOptions, Plugin, PluginContext, ResolveIdResult } from '../rollup/types';
 import type { PluginDriver, ReplaceContext } from './PluginDriver';
 import { BLANK, EMPTY_OBJECT } from './blank';

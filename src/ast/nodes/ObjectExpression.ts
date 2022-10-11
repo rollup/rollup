@@ -3,8 +3,11 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArg } from '../NodeInteractions';
-import { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -15,7 +18,7 @@ import {
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import Property from './Property';
+import type Property from './Property';
 import SpreadElement from './SpreadElement';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './shared/Expression';
 import { NodeBase } from './shared/Node';

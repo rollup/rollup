@@ -1,4 +1,4 @@
-import * as acorn from 'acorn';
+import type * as acorn from 'acorn';
 import { base as basicWalker } from 'acorn-walk';
 import {
 	BinaryExpression,

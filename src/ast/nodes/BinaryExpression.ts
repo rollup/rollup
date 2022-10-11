@@ -3,7 +3,8 @@ import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,

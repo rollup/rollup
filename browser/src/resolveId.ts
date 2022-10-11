@@ -1,4 +1,4 @@
-import { ModuleLoaderResolveId } from '../../src/ModuleLoader';
+import type { ModuleLoaderResolveId } from '../../src/ModuleLoader';
 import type { CustomPluginOptions, Plugin, ResolveIdResult } from '../../src/rollup/types';
 import type { PluginDriver } from '../../src/utils/PluginDriver';
 import { resolveIdViaPlugins } from '../../src/utils/resolveIdViaPlugins';

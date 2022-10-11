@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import ImportAttribute from './ImportAttribute';
+import type ImportAttribute from './ImportAttribute';
 import type ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import type ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import type ImportSpecifier from './ImportSpecifier';

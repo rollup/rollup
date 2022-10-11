@@ -8,6 +8,7 @@ import type {
 	EmitFile,
 	FirstPluginHooks,
 	FunctionPluginHooks,
+	InputPluginHooks,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	ParallelPluginHooks,
@@ -17,7 +18,6 @@ import type {
 	SerializablePluginCache,
 	SyncPluginHooks
 } from '../rollup/types';
-import { InputPluginHooks } from '../rollup/types';
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
 import {
@@ -28,7 +28,7 @@ import {
 	errPluginError
 } from './error';
 import { getOrCreate } from './getOrCreate';
-import { OutputBundleWithPlaceholders } from './outputBundle';
+import type { OutputBundleWithPlaceholders } from './outputBundle';
 
 /**
  * Coerce a promise union to always be a promise.

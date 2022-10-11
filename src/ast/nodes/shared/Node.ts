@@ -1,4 +1,4 @@
-import * as acorn from 'acorn';
+import type * as acorn from 'acorn';
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
@@ -10,13 +10,15 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import { INTERACTION_ASSIGNED, NodeInteractionAssigned } from '../../NodeInteractions';
+import type { NodeInteractionAssigned } from '../../NodeInteractions';
+import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
 import { getAndCreateKeys, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
-import * as NodeType from '../NodeType';
-import { ExpressionEntity, InclusionOptions } from './Expression';
+import type * as NodeType from '../NodeType';
+import type { InclusionOptions } from './Expression';
+import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode extends acorn.Node {
 	[key: string]: any;

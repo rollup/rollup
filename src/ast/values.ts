@@ -1,10 +1,9 @@
 import type { HasEffectsContext } from './ExecutionContext';
+import type { NodeInteraction, NodeInteractionCalled } from './NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,
-	NODE_INTERACTION_UNKNOWN_CALL,
-	NodeInteraction,
-	NodeInteractionCalled
+	NODE_INTERACTION_UNKNOWN_CALL
 } from './NodeInteractions';
 import type { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';

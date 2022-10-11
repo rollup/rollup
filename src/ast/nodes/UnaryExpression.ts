@@ -1,10 +1,7 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import {
-	INTERACTION_ACCESSED,
-	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
-	NodeInteraction
-} from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED, NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';

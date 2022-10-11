@@ -1,4 +1,4 @@
-import { ModuleLoaderResolveId } from '../ModuleLoader';
+import type { ModuleLoaderResolveId } from '../ModuleLoader';
 import type { CustomPluginOptions, Plugin, ResolveIdResult } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
 import { promises as fs } from './fs';

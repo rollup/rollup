@@ -1,15 +1,16 @@
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { WritableEntity } from '../../Entity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import {
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { WritableEntity } from '../../Entity';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type {
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
-import { ObjectPath, PathTracker, SymbolToStringTag, UNKNOWN_PATH } from '../../utils/PathTracker';
-import { LiteralValue } from '../Literal';
-import SpreadElement from '../SpreadElement';
-import { IncludeChildren } from './Node';
+import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
+import { UNKNOWN_PATH } from '../../utils/PathTracker';
+import type { LiteralValue } from '../Literal';
+import type SpreadElement from '../SpreadElement';
+import type { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
 export const UnknownTruthyValue = Symbol('Unknown Truthy Value');

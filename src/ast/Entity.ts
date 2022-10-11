@@ -1,5 +1,5 @@
 import type { HasEffectsContext } from './ExecutionContext';
-import { NodeInteractionAssigned } from './NodeInteractions';
+import type { NodeInteractionAssigned } from './NodeInteractions';
 import type { ObjectPath } from './utils/PathTracker';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

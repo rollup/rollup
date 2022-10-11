@@ -1,5 +1,6 @@
 import type ExternalModule from '../../ExternalModule';
-import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import type { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';

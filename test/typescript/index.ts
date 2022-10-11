@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import * as rollup from './dist/rollup';
+import type * as rollup from './dist/rollup';
 
 // Plugin API
 interface Options {

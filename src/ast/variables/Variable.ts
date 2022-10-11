@@ -1,7 +1,8 @@
 import type ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type { HasEffectsContext } from '../ExecutionContext';
-import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import type { ObjectPath } from '../utils/PathTracker';
