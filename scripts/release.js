@@ -220,7 +220,7 @@ function getDummyLogSection(headline, pr) {
 async function installDependenciesBuildAndTest() {
 	await Promise.all([runWithEcho('npm', ['ci']), runWithEcho('npm', ['audit'])]);
 	await Promise.all([
-		runWithEcho('npm', ['run', 'lint:nofix']),
+		runWithEcho('npm', ['run', 'ci:lint']),
 		runWithEcho('npm', ['run', 'build:bootstrap'])
 	]);
 	await runWithEcho('npm', ['run', 'test:all']);
