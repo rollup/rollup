@@ -46,7 +46,7 @@ try {
 	await installDependenciesBuildAndTest();
 	changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
 	gitTag = `v${newVersion}`;
-	await commitChanges(newVersion, gitTag);
+	await commitChanges(newVersion, gitTag, isMainBranch);
 } catch (err) {
 	console.error(`Error during release, rolling back changes: ${err.message}`);
 	await runWithEcho('git', ['reset', '--hard']);
@@ -279,8 +279,8 @@ function getPkgStringWithVersion(pkg, version) {
 	return JSON.stringify({ ...pkg, version }, null, 2) + '\n';
 }
 
-async function commitChanges(newVersion, gitTag) {
-	await runWithEcho('git', ['add', MAIN_PKG, BROWSER_PKG]);
+async function commitChanges(newVersion, gitTag, isMainBranch) {
+	await runWithEcho('git', ['add', MAIN_PKG, BROWSER_PKG, ...(isMainBranch ? [CHANGELOG] : [])]);
 	await runWithEcho('git', ['commit', '-m', newVersion]);
 	await runWithEcho('git', ['tag', gitTag]);
 }
