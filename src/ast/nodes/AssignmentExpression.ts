@@ -17,7 +17,7 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../ExecutionContext';
-import { NodeInteraction } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';

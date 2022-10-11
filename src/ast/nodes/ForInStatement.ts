@@ -4,7 +4,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
-import MemberExpression from './MemberExpression';
+import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';

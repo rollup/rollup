@@ -6,7 +6,8 @@ import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { INTERACTION_CALLED, NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { INTERACTION_CALLED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type PathTracker,

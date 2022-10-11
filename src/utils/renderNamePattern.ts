@@ -1,5 +1,6 @@
 import { errFailedValidation, error } from './error';
-import { lowercaseBundleKeys, OutputBundleWithPlaceholders } from './outputBundle';
+import type { OutputBundleWithPlaceholders } from './outputBundle';
+import { lowercaseBundleKeys } from './outputBundle';
 import { extname } from './path';
 import { isPathFragment } from './relativeId';
 

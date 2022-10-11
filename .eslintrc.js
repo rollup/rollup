@@ -57,6 +57,7 @@ module.exports = {
 			{ assertionStyle: 'as', objectLiteralTypeAssertions: 'allow' }
 		],
 		'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+		'@typescript-eslint/consistent-type-imports': 'error',
 		'@typescript-eslint/member-ordering': [
 			'error',
 			{

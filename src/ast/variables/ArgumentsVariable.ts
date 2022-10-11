@@ -1,7 +1,8 @@
 import type { AstContext } from '../../Module';
-import { INTERACTION_ACCESSED, NodeInteraction } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import { ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
 export default class ArgumentsVariable extends LocalVariable {

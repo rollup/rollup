@@ -5,7 +5,7 @@ import ExternalModule from './ExternalModule';
 import Module from './Module';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
-import ImportExpression from './ast/nodes/ImportExpression';
+import type ImportExpression from './ast/nodes/ImportExpression';
 import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import LocalVariable from './ast/variables/LocalVariable';
@@ -43,7 +43,8 @@ import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { getOrCreate } from './utils/getOrCreate';
 import { getStaticDependencies } from './utils/getStaticDependencies';
-import { HashPlaceholderGenerator, replacePlaceholders } from './utils/hashPlaceholders';
+import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
+import { replacePlaceholders } from './utils/hashPlaceholders';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
@@ -51,7 +52,8 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { FILE_PLACEHOLDER, OutputBundleWithPlaceholders } from './utils/outputBundle';
+import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
+import { FILE_PLACEHOLDER } from './utils/outputBundle';
 import { basename, extname, isAbsolute, resolve } from './utils/path';
 import { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';

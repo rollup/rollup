@@ -1,4 +1,4 @@
-import * as acorn from 'acorn';
+import type * as acorn from 'acorn';
 import { importAssertions } from 'acorn-import-assertions';
 import type {
 	HasModuleSideEffects,

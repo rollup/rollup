@@ -21,8 +21,10 @@ import {
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
-import { getHashPlaceholderGenerator, HashPlaceholderGenerator } from './utils/hashPlaceholders';
-import { getOutputBundle, OutputBundleWithPlaceholders } from './utils/outputBundle';
+import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
+import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
+import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
+import { getOutputBundle } from './utils/outputBundle';
 import { isAbsolute } from './utils/path';
 import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';

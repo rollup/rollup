@@ -1,7 +1,8 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import { HasEffectsContext } from '../ExecutionContext';
-import { INTERACTION_ACCESSED, INTERACTION_CALLED, NodeInteraction } from '../NodeInteractions';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../NodeInteractions';
 import type { ObjectPath } from '../utils/PathTracker';
 import {
 	getMemberReturnExpressionWhenCalled,
@@ -10,12 +11,8 @@ import {
 } from '../values';
 import type * as NodeType from './NodeType';
 import type TemplateElement from './TemplateElement';
-import {
-	ExpressionEntity,
-	type LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
-} from './shared/Expression';
+import type { ExpressionEntity } from './shared/Expression';
+import { type LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TemplateLiteral extends NodeBase {

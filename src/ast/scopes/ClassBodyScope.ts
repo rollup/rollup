@@ -1,5 +1,5 @@
 import type { AstContext } from '../../Module';
-import ClassNode from '../nodes/shared/ClassNode';
+import type ClassNode from '../nodes/shared/ClassNode';
 import LocalVariable from '../variables/LocalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ChildScope from './ChildScope';

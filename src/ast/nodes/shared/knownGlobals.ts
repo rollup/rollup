@@ -1,10 +1,12 @@
 /* eslint sort-keys: "off" */
 
-import { HasEffectsContext } from '../../ExecutionContext';
-import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT, NodeInteractionCalled } from '../../NodeInteractions';
+import type { HasEffectsContext } from '../../ExecutionContext';
+import type { NodeInteractionCalled } from '../../NodeInteractions';
+import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../../NodeInteractions';
 import type { ObjectPath } from '../../utils/PathTracker';
 import { SymbolToStringTag, UNKNOWN_NON_ACCESSOR_PATH } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownTruthyValue } from './Expression';
+import type { LiteralValueOrUnknown } from './Expression';
+import { UnknownTruthyValue } from './Expression';
 
 const ValueProperties = Symbol('Value Properties');
 

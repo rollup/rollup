@@ -1,12 +1,17 @@
-import Module, { AstContext } from '../../Module';
+import type { AstContext } from '../../Module';
+import type Module from '../../Module';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionCalled, NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
-	INTERACTION_CALLED,
-	NodeInteraction
+	INTERACTION_CALLED
 } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';

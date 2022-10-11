@@ -9,8 +9,7 @@ import {
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArg } from '../NodeInteractions';
-import { NodeInteraction } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArg } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';

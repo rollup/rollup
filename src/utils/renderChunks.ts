@@ -1,13 +1,14 @@
-import { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import Chunk, { ChunkRenderResult } from '../Chunk';
-import Module from '../Module';
-import {
+import type { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
+import type { ChunkRenderResult } from '../Chunk';
+import type Chunk from '../Chunk';
+import type Module from '../Module';
+import type {
 	DecodedSourceMapOrMissing,
 	NormalizedOutputOptions,
 	RenderedChunk,
 	WarningHandler
 } from '../rollup/types';
-import { PluginDriver } from './PluginDriver';
+import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
 import { createHash } from './crypto';
 import { decodedSourcemap } from './decodedSourcemap';
@@ -17,11 +18,8 @@ import {
 	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
 	replaceSinglePlaceholder
 } from './hashPlaceholders';
-import {
-	FILE_PLACEHOLDER,
-	lowercaseBundleKeys,
-	OutputBundleWithPlaceholders
-} from './outputBundle';
+import type { OutputBundleWithPlaceholders } from './outputBundle';
+import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { basename, normalize, resolve } from './path';
 import { SOURCEMAPPING_URL } from './sourceMappingURL';
 import { timeEnd, timeStart } from './timers';

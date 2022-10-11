@@ -1,12 +1,10 @@
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import {
-	INTERACTION_CALLED,
-	NodeInteraction,
-	NodeInteractionWithThisArg
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import { INTERACTION_CALLED } from '../../NodeInteractions';
 import FunctionScope from '../../scopes/FunctionScope';
-import { type ObjectPath, PathTracker } from '../../utils/PathTracker';
-import BlockStatement from '../BlockStatement';
+import type { PathTracker } from '../../utils/PathTracker';
+import { type ObjectPath } from '../../utils/PathTracker';
+import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';

@@ -1,5 +1,6 @@
-import SpreadElement from './nodes/SpreadElement';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
+import type SpreadElement from './nodes/SpreadElement';
+import type { ExpressionEntity } from './nodes/shared/Expression';
+import { UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 
 export const INTERACTION_ACCESSED = 0;
 export const INTERACTION_ASSIGNED = 1;

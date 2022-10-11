@@ -18,7 +18,7 @@ import type Variable from '../variables/Variable';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import type VariableDeclarator from './VariableDeclarator';
-import { InclusionOptions } from './shared/Expression';
+import type { InclusionOptions } from './shared/Expression';
 import { type IncludeChildren, NodeBase } from './shared/Node';
 
 function areAllDeclarationsIncludedAndNotExported(

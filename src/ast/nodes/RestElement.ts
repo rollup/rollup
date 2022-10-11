@@ -1,5 +1,5 @@
 import type { HasEffectsContext } from '../ExecutionContext';
-import { NodeInteractionAssigned } from '../NodeInteractions';
+import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';

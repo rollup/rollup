@@ -6,16 +6,14 @@ import {
 	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import {
-	INTERACTION_ACCESSED,
-	NodeInteraction,
-	NodeInteractionAssigned
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionAssigned } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;

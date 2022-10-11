@@ -1,10 +1,10 @@
 import type MagicString from 'magic-string';
 import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
-	INTERACTION_CALLED,
-	NodeInteraction
+	INTERACTION_CALLED
 } from '../NodeInteractions';
 import type { ObjectPath } from '../utils/PathTracker';
 import {

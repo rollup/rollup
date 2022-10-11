@@ -1,4 +1,4 @@
-import { PluginDriver } from '../../src/utils/PluginDriver';
+import type { PluginDriver } from '../../src/utils/PluginDriver';
 
 export function catchUnfinishedHookActions<T>(
 	_pluginDriver: PluginDriver,

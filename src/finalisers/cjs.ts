@@ -1,5 +1,5 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkDependency } from '../Chunk';
+import type { ChunkDependency } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';

@@ -6,14 +6,16 @@ import { errIllegalImportReassignment } from '../../utils/error';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
-	NODE_INTERACTION_UNKNOWN_ACCESS,
-	NodeInteraction,
-	NodeInteractionCalled
+	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../NodeInteractions';
 import type FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';

@@ -1,11 +1,11 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import {
-	INTERACTION_CALLED,
+import type {
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../../NodeInteractions';
+import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
 import type Scope from '../../scopes/Scope';
 import {

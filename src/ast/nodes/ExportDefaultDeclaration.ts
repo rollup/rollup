@@ -7,7 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
-import { InclusionContext } from '../ExecutionContext';
+import type { InclusionContext } from '../ExecutionContext';
 import type ModuleScope from '../scopes/ModuleScope';
 import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';

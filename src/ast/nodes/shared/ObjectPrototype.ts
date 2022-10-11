@@ -1,10 +1,9 @@
-import {
-	INTERACTION_CALLED,
-	NodeInteraction,
-	NodeInteractionWithThisArg
-} from '../../NodeInteractions';
-import { ObjectPath, ObjectPathKey, UNKNOWN_PATH } from '../../utils/PathTracker';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
+import type { NodeInteraction, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import { INTERACTION_CALLED } from '../../NodeInteractions';
+import type { ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
+import { UNKNOWN_PATH } from '../../utils/PathTracker';
+import type { LiteralValueOrUnknown } from './Expression';
+import { ExpressionEntity, UnknownValue } from './Expression';
 import {
 	METHOD_RETURNS_BOOLEAN,
 	METHOD_RETURNS_STRING,

@@ -1,7 +1,10 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionCalled, NodeInteractionWithThisArg } from '../NodeInteractions';
-import { NodeInteraction } from '../NodeInteractions';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArg
+} from '../NodeInteractions';
 import {
 	type ObjectPath,
 	type PathTracker,

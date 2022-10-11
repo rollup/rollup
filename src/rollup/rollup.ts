@@ -22,6 +22,7 @@ import type {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputAsset,
+	OutputBundle,
 	OutputChunk,
 	OutputOptions,
 	Plugin,
@@ -30,7 +31,6 @@ import type {
 	RollupOutput,
 	RollupWatcher
 } from './types';
-import { OutputBundle } from './types';
 
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	return rollupInternal(rawInputOptions, null);

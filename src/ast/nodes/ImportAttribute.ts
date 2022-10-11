@@ -1,4 +1,4 @@
-import Identifier from './Identifier';
+import type Identifier from './Identifier';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';

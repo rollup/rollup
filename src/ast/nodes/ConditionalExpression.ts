@@ -1,32 +1,28 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
-	NodeRenderOptions,
-	removeLineBreaks,
-	RenderOptions
+	removeLineBreaks
 } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import {
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type {
 	NodeInteraction,
 	NodeInteractionCalled,
 	NodeInteractionWithThisArg
 } from '../NodeInteractions';
-import {
-	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
-	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH
-} from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import type SpreadElement from './SpreadElement';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	declare alternate: ExpressionNode;

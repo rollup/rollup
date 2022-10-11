@@ -1,22 +1,20 @@
 import type MagicString from 'magic-string';
 import { errCannotCallNamespace } from '../../utils/error';
 import { type RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
-import { InclusionContext } from '../ExecutionContext';
-import { INTERACTION_CALLED, NodeInteractionWithThisArg } from '../NodeInteractions';
-import {
-	EMPTY_PATH,
-	PathTracker,
-	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH
-} from '../utils/PathTracker';
-import Identifier from './Identifier';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import { INTERACTION_CALLED } from '../NodeInteractions';
+import type { PathTracker } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import type TemplateLiteral from './TemplateLiteral';
 import CallExpressionBase from './shared/CallExpressionBase';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type ExpressionNode, IncludeChildren } from './shared/Node';
+import type { ExpressionEntity } from './shared/Expression';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
+import type { IncludeChildren } from './shared/Node';
+import { type ExpressionNode } from './shared/Node';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;

@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
-import Module from '../../Module';
+import type Module from '../../Module';
 import type { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
@@ -13,7 +13,7 @@ import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type * as NodeType from './NodeType';
-import ObjectExpression from './ObjectExpression';
+import type ObjectExpression from './ObjectExpression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 interface DynamicImportMechanism {

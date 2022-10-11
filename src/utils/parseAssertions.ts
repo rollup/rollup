@@ -1,10 +1,11 @@
-import Identifier from '../ast/nodes/Identifier';
-import ImportAttribute from '../ast/nodes/ImportAttribute';
-import ImportExpression from '../ast/nodes/ImportExpression';
-import Literal, { LiteralValue } from '../ast/nodes/Literal';
-import ObjectExpression from '../ast/nodes/ObjectExpression';
-import Property from '../ast/nodes/Property';
-import SpreadElement from '../ast/nodes/SpreadElement';
+import type Identifier from '../ast/nodes/Identifier';
+import type ImportAttribute from '../ast/nodes/ImportAttribute';
+import type ImportExpression from '../ast/nodes/ImportExpression';
+import type { LiteralValue } from '../ast/nodes/Literal';
+import type Literal from '../ast/nodes/Literal';
+import type ObjectExpression from '../ast/nodes/ObjectExpression';
+import type Property from '../ast/nodes/Property';
+import type SpreadElement from '../ast/nodes/SpreadElement';
 import { EMPTY_OBJECT } from './blank';
 
 export function getAssertionsFromImportExpression(node: ImportExpression): Record<string, string> {

@@ -1,4 +1,4 @@
-import { ChunkDependency } from '../../Chunk';
+import type { ChunkDependency } from '../../Chunk';
 import type { RollupWarning } from '../../rollup/types';
 import { errMissingNodeBuiltins } from '../../utils/error';
 
