@@ -1,5 +1,135 @@
 # rollup changelog
 
+## 3.0.0
+
+_2022-10-11_
+
+### Breaking Changes
+
+#### General Changes
+
+- Rollup now requires at least Node 14.18.0 to run (#4548 and #4596)
+- The browser build has been split into a separate package `@rollup/browser` (#4593)
+- The node build uses the `node:` prefix for imports of builtin modules (#4596)
+- Some previously deprecated features have been removed (#4552):
+  - Some plugin context functions have been removed:
+    - `this.emitAsset()`: use `this.emitFile()`
+    - `this.emitChunk()`: use `this.emitFile()`
+    - `this.getAssetFileName()`: use `this.getFileName()`
+    - `this.getChunkFileName()`: use `this.getFileName()`
+    - `this.isExternal()`: use `this.resolve()`
+    - `this.resolveId()`: use `this.resolve()`
+  - The `resolveAssetUrl` plugin hook has been removed: use `resolveFileUrl`
+  - Rollup no longer passes `assetReferenceId` or `chunkReferenceId` parameters to `resolveFileUrl`
+  - The `treeshake.pureExternalModules` option has been removed: use `treeshake.moduleSideEffects: 'no-external'`
+  - You may no longer use `true` or `false` for `output.interop`. As a replacement for `true`, you can use "compat"
+  - Emitted assets no longer have an `isAsset` flag in the bundle
+  - Rollup will no longer fix assets added directly to the bundle by adding the `type: "asset"` field
+- Some features that were previously marked for deprecation now show warnings when used (#4552):
+  - Some options have been deprecated:
+    - `inlineDynamicImports` as part of the input options: use `output. inlineDynamicImports`
+    - `manualChunks` as part of the input options: use `output. manualChunks `
+    - `maxParallelFileReads`: use `maxParallelFileOps
+    - `output.preferConst`: use `output.generatedCode.constBindings`
+    - `output.dynamicImportFunction`: use the `renderDynamicImport` plugin hook
+    - `output.namespaceToStringTag`: use `output.generatedCode.symbols`
+    - `preserveModules` as part of the input options: use `output. preserveModules `
+  - You should no longer access `this.moduleIds` in plugins: use `this.getModuleIds()`
+  - You should no longer access `this.getModuleInfo(...).hasModuleSideEffects` in plugins: use `this.getModuleInfo(...).moduleSideEffects`
+- Configuration files are only bundled if either the `--configPlugin` or the `--bundleConfigAsCjs` options are used. The configuration is bundled to an ES module unless the `--bundleConfigAsCjs` option is used. In all other cases, configuration is now loaded using Node's native mechanisms (#4574 and #4621)
+- The properties attached to some errors have been changed so that there are fewer different possible properties with consistent types (#4579)
+- Some errors have been replaced by others (ILLEGAL_NAMESPACE_REASSIGNMENT -> ILLEGAL_REASSIGNMENT, NON_EXISTENT_EXPORT -> MISSING_EXPORT) (#4579)
+- Files in `rollup/dist/*` can only be required using their file extension (#4581)
+- The `loadConfigFile` helper now has a named export of the same name instead of a default export (#4581)
+- When using the API and sourcemaps, sourcemap comments are contained in the emitted files and sourcemaps are emitted as regular assets (#4605)
+- Watch mode no longer uses Node's EventEmitter but a custom implementation that awaits Promises returned from event handlers (#4609)
+- Assets may only be deduplicated with previously emitted assets if their source is a `string` (#4644)
+- By default, Rollup will keep external dynamic imports as `import(…)` in commonjs output unless `output.dynamicImportInCjs` is set to false (#4647)
+
+#### Changes to Rollup Options
+
+- As functions passed to `output.banner/footer/intro/outro` are now called per-chunk, they should be careful to avoid performance-heavy operations (#4543)
+- `entryFileNames/chunkFileNames` functions now longer have access to the rendered module information via `modules`, only to a list of included `moduleIds` (#4543)
+- The path of a module is no longer prepended to the corresponding chunk when preserving modules (#4565)
+- When preserving modules, the `[name]` placeholder (as well as the `chunkInfo.name` property when using a function) now includes the relative path of the chunk as well as optionally the file extension if the extension is not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts` (#4565)
+- The `[ext]`, `[extName]` and `[assetExtName]` placeholders are no longer supported when preserving modules (#4565)
+- The `perf` option no longer collects timings for the asynchronous part of plugin hooks as the readings were wildly inaccurate and very misleading, and timings are adapted to the new hashing algorithm (#4566)
+- Change the default value of `makeAbsoluteExternalsRelative` to "ifRelativeSource" so that absolute external imports will no longer become relative imports in the output, while relative external imports will still be renormalized (#4567)
+- Change the default for `output.generatedCode.reservedNamesAsProps` to no longer quote properties like `default` by default (#4568)
+- Change the default for `preserveEntrySignatures` to "exports-only" so that by default, empty facades for entry chunks are no longer created (#4576)
+- Change the default for `output.interop` to "default" to better align with NodeJS interop (#4611)
+- Change the default for `output.esModule` to "if-default-prop", which only adds \_\_esModule when the default export would be a property (#4611)
+- Change the default for `output.systemNullSetters` to `true`, which requires at least SystemJS 6.3.3 (#4649)
+
+#### Plugin API Changes
+
+- Plugins that add/change/remove imports or exports in `renderChunk` should make sure to update `ChunkInfo.imports/importedBindings/exports` accordingly (#4543)
+- The order of plugin hooks when generating output has changed (#4543)
+- Chunk information passed to `renderChunk` now contains names with hash placeholders instead of final names, which will be replaced when used in the returned code or `ChunkInfo.imports/importedBindings/exports` (#4543 and #4631)
+- Hooks defined in output plugins will now run after hooks defined in input plugins (used to be the other way around) (#3846)
+
+### Features
+
+- Functions passed to `output.banner/footer/intro/outro` are now called per-chunk with some chunk information (#4543)
+- Plugins can access the entire chunk graph via an additional parameter in `renderChunk` (#4543)
+- Chunk hashes only depend on the actual content of the chunk and are otherwise stable against things like renamed/moved source files or changed module resolution order (#4543)
+- The length of generated file hashes can be customized both globally and per-chunk (#4543)
+- When preserving modules, the regular `entryFileNames` logic is used and the path is included in the `[name]` property. This finally gives full control over file names when preserving modules (#4565)
+- `output.entryFileNames` now also supports the `[hash]` placeholder when preserving modules (#4565)
+- The `perf` option will now collect (synchronous) timings for all plugin hooks, not just a small selection (#4566)
+- All errors thrown by Rollup have `name: RollupError` now to make clearer that those are custom error types (#4579)
+- Error properties that reference modules (such as id and ids) will now always contain the full ids. Only the error message will use shortened ids (#4579)
+- Errors that are thrown in response to other errors (e.g. parse errors thrown by acorn) will now use the standardized cause property to reference the original error (#4579)
+- If sourcemaps are enabled, files will contain the appropriate sourcemap comment in `generateBundle` and sourcemap files are available as regular assets (#4605)
+- Returning a Promise from an event handler attached to a RollupWatcher instance will make Rollup wait for the Promise to resolve (#4609)
+- There is a new value "compat" for output.interop that is similar to "auto" but uses duck-typing to determine if there is a default export (#4611)
+- There is a new value "if-default-prop" for esModule that only adds an `__esModule` marker to the bundle if there is a default export that is rendered as a property (#4611)
+- Rollup can statically resolve checks for `foo[Symbol.toStringTag]` to "Module" if foo is a namespace (#4611)
+- There is a new CLI option `--bundleConfigAsCjs` which will force the configuration to be bundled to CommonJS (#4621)
+- Import assertions for external imports that are present in the input files will be retained in ESM output (#4646)
+- Rollup will warn when a module is imported with conflicting import assertions (#4646)
+- Plugins can add, remove or change import assertions when resolving ids (#4646)
+- The `output.externalImportAssertions` option allows to turn off emission of import assertions (#4646)
+- Use `output.dynamicImportInCjs` to control if dynamic imports are emitted as `import(…)` or wrapped `require(…)` when generating commonjs output (#4647)
+
+### Bug Fixes
+
+- Chunk hashes take changes in `renderChunk`, e.g. minification, into account (#4543)
+- Hashes of referenced assets are properly reflected in the chunk hash (#4543)
+- No longer warn about implicitly using default export mode to not tempt users to switch to named export mode and break Node compatibility (#4624)
+- Avoid performance issues when emitting thousands of assets (#4644)
+
+### Pull Requests
+
+- [#3846](https://github.com/rollup/rollup/pull/3846): [v3.0] Run output plugins last (@aleclarson)
+- [#4543](https://github.com/rollup/rollup/pull/4543): [v3.0] New hashing algorithm that "fixes (nearly) everything" (@lukastaegert)
+- [#4548](https://github.com/rollup/rollup/pull/4548): [v3.0] Deprecate Node 12 (@lukastaegert)
+- [#4552](https://github.com/rollup/rollup/pull/4552): [v3.0] Remove actively deprecated features, show warnings for other deprecated features (@lukastaegert)
+- [#4558](https://github.com/rollup/rollup/pull/4558): [v3.0] Convert build scripts to ESM, update dependencies (@lukastaegert)
+- [#4565](https://github.com/rollup/rollup/pull/4565): [v3.0] Rework file name patterns when preserving modules (@lukastaegert)
+- [#4566](https://github.com/rollup/rollup/pull/4566): [v3.0] Restructure timings (@lukastaegert)
+- [#4567](https://github.com/rollup/rollup/pull/4567): [v3.0] Change default for makeAbsoluteExternalsRelative (@lukastaegert)
+- [#4568](https://github.com/rollup/rollup/pull/4568): [v3.0] Change default for output.generatedCode.reservedNamesAsProps (@lukastaegert)
+- [#4574](https://github.com/rollup/rollup/pull/4574): [v3.0] Better esm config file support (@lukastaegert)
+- [#4575](https://github.com/rollup/rollup/pull/4575): [v3.0] Show deprecation warning for maxParallelFileReads (@lukastaegert)
+- [#4576](https://github.com/rollup/rollup/pull/4576): [v3.0] Change default for preserveEntrySignatures to exports-only (@lukastaegert)
+- [#4579](https://github.com/rollup/rollup/pull/4579): [v3.0] Refine errors and warnings (@lukastaegert)
+- [#4581](https://github.com/rollup/rollup/pull/4581): [v3.0] Use named export for loadConfigFile (@lukastaegert)
+- [#4592](https://github.com/rollup/rollup/pull/4592): [v3.0] Port doc changes from #4572 and #4583 to 3.0 (@berniegp)
+- [#4593](https://github.com/rollup/rollup/pull/4593): [v3.0] Browser build (@lukastaegert)
+- [#4596](https://github.com/rollup/rollup/pull/4596): [v3.0] Use "node:" prefix for imports of node builtins (@lukastaegert)
+- [#4605](https://github.com/rollup/rollup/pull/4605): [v3.0] Better sourcemap emission (@lukastaegert)
+- [#4609](https://github.com/rollup/rollup/pull/4609): [v3.0] Custom awaiting watch emitter (@lukastaegert)
+- [#4611](https://github.com/rollup/rollup/pull/4611): [v3.0] Improve interop defaults (@lukastaegert)
+- [#4621](https://github.com/rollup/rollup/pull/4621): [v3.0] Always try to load config files via Node if possible (@lukastaegert)
+- [#4624](https://github.com/rollup/rollup/pull/4624): [v3.0] Remove warning when using implicit default export mode (@lukastaegert)
+- [#4631](https://github.com/rollup/rollup/pull/4631): [v3.0] Use ASCII characters for hash placeholders (@lukastaegert)
+- [#4644](https://github.com/rollup/rollup/pull/4644): [v3.0] Improve performance of asset emissions (@lukastaegert)
+- [#4646](https://github.com/rollup/rollup/pull/4646): [v3.0] Basic support for import assertions (@lukastaegert)
+- [#4647](https://github.com/rollup/rollup/pull/4647): [v3.0] Keep dynamic imports in CommonJS output (@lukastaegert)
+- [#4649](https://github.com/rollup/rollup/pull/4649): [v3.0] Change default for systemNullSetters (@lukastaegert)
+- [#4651](https://github.com/rollup/rollup/pull/4651): [v3.0] use compiler target ES2020 (@dnalborczyk)
+
 ## 2.79.1
 
 _2022-09-22_
