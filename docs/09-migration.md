@@ -36,7 +36,7 @@ If you use the [`--configPlugin`](guide/en/#--configplugin-plugin) option, Rollu
 
 ### Changed Defaults
 
-Some options no have different default values. If you think you experience any issues, try adding the following to your configuration:
+Some options now have different default values. If you think you experience any issues, try adding the following to your configuration:
 
 ```
 {
