@@ -40,9 +40,9 @@ if (isMainBranch) {
 	await addStubChangelogEntry(newVersion, repo, includedPRs, changelog);
 }
 
+await updatePackages(pkg, browserPkg);
 await installDependenciesBuildAndTest();
 const changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
-await updatePackages(pkg, browserPkg);
 const gitTag = `v${newVersion}`;
 await commitChanges(newVersion, gitTag);
 await releasePackages(newVersion);
