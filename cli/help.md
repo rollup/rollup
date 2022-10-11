@@ -47,7 +47,7 @@ Basic options:
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --intro <text>              Code to insert at top of bundle (inside wrapper)
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports
---maxParallelFileReads <value> How many files to read in parallel
+--maxParallelFileOps <value> How many files to read in parallel
 --minifyInternalExports     Force or disable minification of internal exports
 --noConflict                Generate a noConflict method for UMD globals
 --outro <text>              Code to insert at end of bundle (inside wrapper)
