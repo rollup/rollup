@@ -36,15 +36,23 @@ const [newVersion, includedPRs] = await Promise.all([
 	getNewVersion(pkg, isMainBranch),
 	getIncludedPRs(changelog, repo)
 ]);
-if (isMainBranch) {
-	await addStubChangelogEntry(newVersion, repo, includedPRs, changelog);
+
+let changelogEntry, gitTag;
+try {
+	if (isMainBranch) {
+		await addStubChangelogEntry(newVersion, repo, changelog, includedPRs);
+	}
+	await updatePackages(pkg, browserPkg, newVersion);
+	await installDependenciesBuildAndTest();
+	changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
+	gitTag = `v${newVersion}`;
+	await commitChanges(newVersion, gitTag);
+} catch (err) {
+	console.error(`Error during release, rolling back changes: ${err.message}`);
+	await runWithEcho('git', ['reset', '--hard']);
+	throw err;
 }
 
-await updatePackages(pkg, browserPkg);
-await installDependenciesBuildAndTest();
-const changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
-const gitTag = `v${newVersion}`;
-await commitChanges(newVersion, gitTag);
 await releasePackages(newVersion);
 await pushChanges(gitTag);
 if (changelogEntry) {
@@ -260,7 +268,7 @@ async function waitForChangelogUpdate(version) {
 	return changelogEntry;
 }
 
-function updatePackages(pkg, browserPkg) {
+function updatePackages(pkg, browserPkg, newVersion) {
 	return Promise.all([
 		writeFile(MAIN_PKG, getPkgStringWithVersion(pkg, newVersion)),
 		writeFile(BROWSER_PKG, getPkgStringWithVersion(browserPkg, newVersion))
