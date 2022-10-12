@@ -15,8 +15,10 @@ import {
 import type { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
+import ArrayPattern from './ArrayPattern';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
+import ObjectPattern from './ObjectPattern';
 import type VariableDeclarator from './VariableDeclarator';
 import type { InclusionOptions } from './shared/Expression';
 import { type IncludeChildren, NodeBase } from './shared/Node';
@@ -62,8 +64,17 @@ export default class VariableDeclaration extends NodeBase {
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
 				declarator.include(context, includeChildrenRecursively);
+			const { id, init } = declarator;
 			if (asSingleStatement) {
-				declarator.id.include(context, includeChildrenRecursively);
+				id.include(context, includeChildrenRecursively);
+			}
+			if (
+				init &&
+				id.included &&
+				!init.included &&
+				(id instanceof ObjectPattern || id instanceof ArrayPattern)
+			) {
+				init.include(context, includeChildrenRecursively);
 			}
 		}
 	}

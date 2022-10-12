@@ -61,10 +61,11 @@ describe('rollup.watch', () => {
 						}
 					});
 				} else {
-					Promise.resolve()
-						.then(() => wait(timeout)) // gah, this appears to be necessary to fix random errors
-						.then(() => next(event))
-						.then(go)
+					wait(timeout) // gah, this appears to be necessary to fix random errors
+						.then(() => {
+							next(event);
+							go();
+						})
 						.catch(error => {
 							watcher.close();
 							reject(error);
