@@ -8,11 +8,14 @@ export async function addCommandPluginsToInputOptions(
 	inputOptions: InputOptions,
 	command: Record<string, unknown>
 ): Promise<void> {
+	if (!Array.isArray(inputOptions.plugins)) {
+		inputOptions.plugins = [inputOptions.plugins];
+	}
 	if (command.stdin !== false) {
-		inputOptions.plugins!.push(stdinPlugin(command.stdin));
+		inputOptions.plugins.push(stdinPlugin(command.stdin));
 	}
 	if (command.waitForBundleInput === true) {
-		inputOptions.plugins!.push(waitForInputPlugin());
+		inputOptions.plugins.push(waitForInputPlugin());
 	}
 	await addPluginsFromCommandOption(command.plugin, inputOptions);
 }
@@ -96,9 +99,10 @@ async function loadAndRegisterPlugin(
 			)}" for Rollup to recognize it.`
 		);
 	}
-	inputOptions.plugins!.push(
-		typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin
-	);
+	if (!Array.isArray(inputOptions.plugins)) {
+		inputOptions.plugins = [inputOptions.plugins];
+	}
+	inputOptions.plugins.push(typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin);
 }
 
 function getCamelizedPluginBaseName(pluginText: string): string {

@@ -1,4 +1,9 @@
-import type { InputOptions, Plugin, PluginHooks, SerializedTimings } from '../rollup/types';
+import type {
+	NormalizedInputOptions,
+	Plugin,
+	PluginHooks,
+	SerializedTimings
+} from '../rollup/types';
 import performance from './performance';
 import process from './process';
 
@@ -117,7 +122,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 	return plugin;
 }
 
-export function initialiseTimers(inputOptions: InputOptions): void {
+export function initialiseTimers(inputOptions: NormalizedInputOptions): void {
 	if (inputOptions.perf) {
 		timers = new Map();
 		timeStart = timeStartImpl;
