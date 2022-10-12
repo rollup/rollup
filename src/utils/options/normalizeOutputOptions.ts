@@ -4,9 +4,9 @@ import type {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputOptions,
+	OutputPlugin,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
@@ -68,7 +68,7 @@ export function normalizeOutputOptions(
 		noConflict: config.noConflict || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
-		plugins: ensureArray(config.plugins),
+		plugins: ([config.plugins] as OutputPlugin[]).flat(Infinity).filter(Boolean),
 		preferConst,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),

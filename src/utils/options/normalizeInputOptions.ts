@@ -5,12 +5,12 @@ import type {
 	InputOptions,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
+	Plugin,
 	RollupBuild,
 	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
-import { flatten } from '../flatten';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
 import {
@@ -55,7 +55,7 @@ export function normalizeInputOptions(config: InputOptions): {
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: config.perf || false,
-		plugins: flatten(ensureArray(config.plugins)),
+		plugins: ([config.plugins] as Plugin[]).flat(Infinity).filter(Boolean),
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
 		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,

@@ -16,6 +16,7 @@ const plugin = [
 module.exports = {
 	description: 'works when nested plugin',
 	options: {
-		plugins: [plugin]
+		// eslint-disable-next-line no-sparse-arrays
+		plugins: [plugin, [undefined, [null]], ,]
 	}
 };

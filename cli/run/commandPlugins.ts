@@ -22,7 +22,7 @@ export async function addPluginsFromCommandOption(
 	inputOptions: InputOptions
 ): Promise<void> {
 	if (commandPlugin) {
-		const plugins = Array.isArray(commandPlugin) ? commandPlugin : [commandPlugin];
+		const plugins: any[] = [commandPlugin].flat(Infinity).filter(Boolean);
 		for (const plugin of plugins) {
 			if (/[={}]/.test(plugin)) {
 				// -p plugin=value

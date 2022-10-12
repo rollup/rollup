@@ -492,7 +492,7 @@ export type SourcemapPathTransformOption = (
 	sourcemapPath: string
 ) => string;
 
-export type InputPlugin = Plugin | null | false | undefined | InputPlugin[];
+export type InputPluginOption = Plugin | null | false | undefined | InputPluginOption[];
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
@@ -513,7 +513,7 @@ export interface InputOptions {
 	moduleContext?: ((id: string) => string | null | void) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
-	plugins?: InputPlugin[];
+	plugins?: InputPluginOption;
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	/** @deprecated Use the "preserveModules" output option instead. */
 	preserveModules?: boolean;
@@ -612,6 +612,8 @@ export type NormalizedAmdOptions = (
 
 type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
 
+type OutputPluginOption = OutputPlugin | null | false | undefined | OutputPluginOption[];
+
 export interface OutputOptions {
 	amd?: AmdOptions;
 	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
@@ -649,7 +651,7 @@ export interface OutputOptions {
 	noConflict?: boolean;
 	outro?: string | AddonFunction;
 	paths?: OptionsPaths;
-	plugins?: (OutputPlugin | null | false | undefined)[];
+	plugins?: OutputPluginOption;
 	/** @deprecated Use "generatedCode.constBindings" instead. */
 	preferConst?: boolean;
 	preserveModules?: boolean;
