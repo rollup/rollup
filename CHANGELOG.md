@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.1.0
+
+_2022-10-12_
+
+### Features
+
+- Support using arrays of plugins as plugins like Vite (#4657)
+
+### Pull Requests
+
+- [#4657](https://github.com/rollup/rollup/pull/4657): feat: support nested plugin (@sxzz)
+
 ## 3.0.1
 
 _2022-10-12_
