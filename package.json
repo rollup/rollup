@@ -18,7 +18,7 @@
     "ci:coverage": "npm run build:cjs && npm run build:bootstrap && nyc --reporter lcovonly mocha",
     "lint": "concurrently -c red,green 'npm:lint:js' 'npm:lint:markdown'",
     "lint:js": "eslint . --fix --cache",
-    "lint:js:nofix": "eslint . --fix --cache",
+    "lint:js:nofix": "eslint . --cache",
     "lint:markdown": "prettier --write \"**/*.md\"",
     "lint:markdown:nofix": "prettier --check \"**/*.md\"",
     "perf": "npm run build:cjs && node --expose-gc scripts/perf.js",
