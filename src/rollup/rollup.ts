@@ -15,11 +15,11 @@ import { promises as fs } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
-import type { GenericConfigObject } from '../utils/options/options';
 import { dirname, resolve } from '../utils/path';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import type {
+	InputOptions,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputAsset,
@@ -33,12 +33,12 @@ import type {
 	RollupWatcher
 } from './types';
 
-export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
+export default function rollup(rawInputOptions: RollupOptions): Promise<RollupBuild> {
 	return rollupInternal(rawInputOptions, null);
 }
 
 export async function rollupInternal(
-	rawInputOptions: GenericConfigObject,
+	rawInputOptions: RollupOptions,
 	watcher: RollupWatcher | null
 ): Promise<RollupBuild> {
 	const { options: inputOptions, unsetOptions: unsetInputOptions } = await getInputOptions(
@@ -89,25 +89,13 @@ export async function rollupInternal(
 		async generate(rawOutputOptions: OutputOptions) {
 			if (result.closed) return error(errorAlreadyClosed());
 
-			return handleGenerateWrite(
-				false,
-				inputOptions,
-				unsetInputOptions,
-				rawOutputOptions as GenericConfigObject,
-				graph
-			);
+			return handleGenerateWrite(false, inputOptions, unsetInputOptions, rawOutputOptions, graph);
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
 			if (result.closed) return error(errorAlreadyClosed());
 
-			return handleGenerateWrite(
-				true,
-				inputOptions,
-				unsetInputOptions,
-				rawOutputOptions as GenericConfigObject,
-				graph
-			);
+			return handleGenerateWrite(true, inputOptions, unsetInputOptions, rawOutputOptions, graph);
 		}
 	};
 	if (inputOptions.perf) result.getTimings = getTimings;
@@ -115,7 +103,7 @@ export async function rollupInternal(
 }
 
 async function getInputOptions(
-	rawInputOptions: GenericConfigObject,
+	rawInputOptions: InputOptions,
 	watchMode: boolean
 ): Promise<{ options: NormalizedInputOptions; unsetOptions: Set<string> }> {
 	if (!rawInputOptions) {
@@ -133,16 +121,11 @@ async function getInputOptions(
 }
 
 function applyOptionHook(watchMode: boolean) {
-	return async (
-		inputOptions: Promise<GenericConfigObject>,
-		plugin: Plugin
-	): Promise<GenericConfigObject> => {
+	return async (inputOptions: Promise<RollupOptions>, plugin: Plugin): Promise<InputOptions> => {
 		const handler = 'handler' in plugin.options! ? plugin.options.handler : plugin.options!;
 		return (
-			((await handler.call(
-				{ meta: { rollupVersion, watchMode } },
-				await inputOptions
-			)) as GenericConfigObject) || inputOptions
+			(await handler.call({ meta: { rollupVersion, watchMode } }, await inputOptions)) ||
+			inputOptions
 		);
 	};
 }
@@ -159,7 +142,7 @@ function handleGenerateWrite(
 	isWrite: boolean,
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>,
-	rawOutputOptions: GenericConfigObject,
+	rawOutputOptions: OutputOptions,
 	graph: Graph
 ): Promise<RollupOutput> {
 	const {
@@ -193,7 +176,7 @@ function handleGenerateWrite(
 }
 
 function getOutputOptionsAndPluginDriver(
-	rawOutputOptions: GenericConfigObject,
+	rawOutputOptions: OutputOptions,
 	inputPluginDriver: PluginDriver,
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>
@@ -218,13 +201,13 @@ function getOutputOptionsAndPluginDriver(
 function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>,
-	rawOutputOptions: GenericConfigObject,
+	rawOutputOptions: OutputOptions,
 	outputPluginDriver: PluginDriver
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
 	return normalizeOutputOptions(
 		outputPluginDriver.hookReduceArg0Sync(
 			'outputOptions',
-			[rawOutputOptions.output || rawOutputOptions] as [OutputOptions],
+			[rawOutputOptions],
 			(outputOptions, result) => result || outputOptions,
 			pluginContext => {
 				const emitError = () => pluginContext.error(errorCannotEmitFromOptionsHook());

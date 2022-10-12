@@ -14,7 +14,6 @@ import { resolve } from '../path';
 import relativeId from '../relativeId';
 import {
 	defaultOnWarn,
-	type GenericConfigObject,
 	getOptionWithPreset,
 	normalizePluginOption,
 	treeshakePresets,
@@ -65,7 +64,7 @@ export function normalizeInputOptions(config: InputOptions): {
 	};
 
 	warnUnknownOptions(
-		config as GenericConfigObject,
+		config,
 		[...Object.keys(options), 'watch'],
 		'input options',
 		options.onwarn,
