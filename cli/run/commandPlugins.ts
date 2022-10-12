@@ -1,28 +1,29 @@
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { InputOptions } from '../../src/rollup/types';
+import type { InputOptionsWithPlugins } from '../../src/rollup/types';
+import { normalizePluginOption } from '../../src/utils/options/options';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';
 
 export async function addCommandPluginsToInputOptions(
-	inputOptions: InputOptions,
+	inputOptions: InputOptionsWithPlugins,
 	command: Record<string, unknown>
 ): Promise<void> {
 	if (command.stdin !== false) {
-		inputOptions.plugins!.push(stdinPlugin(command.stdin));
+		inputOptions.plugins.push(stdinPlugin(command.stdin));
 	}
 	if (command.waitForBundleInput === true) {
-		inputOptions.plugins!.push(waitForInputPlugin());
+		inputOptions.plugins.push(waitForInputPlugin());
 	}
 	await addPluginsFromCommandOption(command.plugin, inputOptions);
 }
 
 export async function addPluginsFromCommandOption(
 	commandPlugin: unknown,
-	inputOptions: InputOptions
+	inputOptions: InputOptionsWithPlugins
 ): Promise<void> {
 	if (commandPlugin) {
-		const plugins = Array.isArray(commandPlugin) ? commandPlugin : [commandPlugin];
+		const plugins: any[] = normalizePluginOption(commandPlugin as any);
 		for (const plugin of plugins) {
 			if (/[={}]/.test(plugin)) {
 				// -p plugin=value
@@ -40,7 +41,7 @@ export async function addPluginsFromCommandOption(
 }
 
 async function loadAndRegisterPlugin(
-	inputOptions: InputOptions,
+	inputOptions: InputOptionsWithPlugins,
 	pluginText: string
 ): Promise<void> {
 	let plugin: any = null;
@@ -96,9 +97,7 @@ async function loadAndRegisterPlugin(
 			)}" for Rollup to recognize it.`
 		);
 	}
-	inputOptions.plugins!.push(
-		typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin
-	);
+	inputOptions.plugins.push(typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin);
 }
 
 function getCamelizedPluginBaseName(pluginText: string): string {

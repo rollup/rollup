@@ -1,9 +1,13 @@
 import type {
 	InputOptions,
+	InputPluginOption,
 	NormalizedGeneratedCodeOptions,
 	NormalizedOutputOptions,
 	NormalizedTreeshakingOptions,
 	OutputOptions,
+	OutputPlugin,
+	OutputPluginOption,
+	Plugin,
 	WarningHandler
 } from '../../rollup/types';
 import { errInvalidOption, error, errUnknownOption } from '../error';
@@ -145,3 +149,8 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 
 const getHashFromObjectOption = (optionName: string): string =>
 	optionName.split('.').join('').toLowerCase();
+
+export const normalizePluginOption: {
+	(plugins: InputPluginOption): Plugin[];
+	(plugins: OutputPluginOption): OutputPlugin[];
+} = (plugins: any) => [plugins].flat(Infinity).filter(Boolean);

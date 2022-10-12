@@ -6,7 +6,6 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
@@ -15,6 +14,7 @@ import {
 	generatedCodePresets,
 	type GenericConfigObject,
 	getOptionWithPreset,
+	normalizePluginOption,
 	warnUnknownOptions
 } from './options';
 
@@ -68,7 +68,7 @@ export function normalizeOutputOptions(
 		noConflict: config.noConflict || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
-		plugins: ensureArray(config.plugins),
+		plugins: normalizePluginOption(config.plugins),
 		preferConst,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),

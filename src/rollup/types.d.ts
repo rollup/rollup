@@ -492,6 +492,8 @@ export type SourcemapPathTransformOption = (
 	sourcemapPath: string
 ) => string;
 
+export type InputPluginOption = Plugin | null | false | undefined | InputPluginOption[];
+
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
 	acornInjectPlugins?: (() => unknown)[] | (() => unknown);
@@ -511,7 +513,7 @@ export interface InputOptions {
 	moduleContext?: ((id: string) => string | null | void) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
-	plugins?: (Plugin | null | false | undefined)[];
+	plugins?: InputPluginOption;
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	/** @deprecated Use the "preserveModules" output option instead. */
 	preserveModules?: boolean;
@@ -520,6 +522,10 @@ export interface InputOptions {
 	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingPreset | TreeshakingOptions;
 	watch?: WatcherOptions | false;
+}
+
+export interface InputOptionsWithPlugins extends InputOptions {
+	plugins: Plugin[];
 }
 
 export interface NormalizedInputOptions {
@@ -610,6 +616,8 @@ export type NormalizedAmdOptions = (
 
 type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
 
+type OutputPluginOption = OutputPlugin | null | false | undefined | OutputPluginOption[];
+
 export interface OutputOptions {
 	amd?: AmdOptions;
 	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
@@ -647,7 +655,7 @@ export interface OutputOptions {
 	noConflict?: boolean;
 	outro?: string | AddonFunction;
 	paths?: OptionsPaths;
-	plugins?: (OutputPlugin | null | false | undefined)[];
+	plugins?: OutputPluginOption;
 	/** @deprecated Use "generatedCode.constBindings" instead. */
 	preferConst?: boolean;
 	preserveModules?: boolean;
@@ -800,7 +808,7 @@ export interface RollupOptions extends InputOptions {
 	output?: OutputOptions | OutputOptions[];
 }
 
-export interface MergedRollupOptions extends InputOptions {
+export interface MergedRollupOptions extends InputOptionsWithPlugins {
 	output: OutputOptions[];
 }
 
