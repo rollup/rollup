@@ -39,7 +39,7 @@ export default class NamespaceVariable extends Variable {
 			return this.memberVariables;
 		}
 		const memberVariables: { [name: string]: Variable } = Object.create(null);
-		for (const name of this.context.getExports().concat(this.context.getReexports())) {
+		for (const name of [...this.context.getExports(), ...this.context.getReexports()]) {
 			if (name[0] !== '*' && name !== this.module.info.syntheticNamedExports) {
 				const exportedVariable = this.context.traceExport(name);
 				if (exportedVariable) {
@@ -91,10 +91,10 @@ export default class NamespaceVariable extends Variable {
 
 		let output = getObject(members, { lineBreakIndent: { base: '', t } });
 		if (this.mergedNamespaces.length > 0) {
-			const assignmentArgs = this.mergedNamespaces.map(variable =>
+			const assignmentArguments = this.mergedNamespaces.map(variable =>
 				variable.getName(getPropertyAccess)
 			);
-			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output},${_}[${assignmentArgs.join(
+			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output},${_}[${assignmentArguments.join(
 				`,${_}`
 			)}])`;
 		} else {

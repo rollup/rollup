@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 const babiliResults = require('./babili-results');

@@ -55,7 +55,7 @@ const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 		getLiteralValue: getTruthyLiteralValue,
 		hasEffectsWhenCalled({ args }, context) {
 			return (
-				!args.length ||
+				args.length === 0 ||
 				args[0].hasEffectsOnInteractionAtPath(
 					UNKNOWN_NON_ACCESSOR_PATH,
 					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,

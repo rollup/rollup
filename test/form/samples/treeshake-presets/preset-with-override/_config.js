@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 module.exports = {
 	description: 'allows using the "preset" option with overrides',

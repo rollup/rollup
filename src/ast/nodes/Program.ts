@@ -32,7 +32,7 @@ export default class Program extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		if (this.body.length) {
+		if (this.body.length > 0) {
 			renderStatementList(this.body, code, this.start, this.end, options);
 		} else {
 			super.render(code, options);

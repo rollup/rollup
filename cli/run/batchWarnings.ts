@@ -51,7 +51,7 @@ export default function batchWarnings(): BatchWarnings {
 		flush() {
 			if (count === 0) return;
 
-			const codes = Array.from(deferredWarnings.keys()).sort(
+			const codes = [...deferredWarnings.keys()].sort(
 				(a, b) => deferredWarnings.get(b)!.length - deferredWarnings.get(a)!.length
 			);
 
@@ -245,8 +245,8 @@ const deferredHandlers: {
 	}
 };
 
-function title(str: string): void {
-	stderr(bold(yellow(`(!) ${str}`)));
+function title(string_: string): void {
+	stderr(bold(yellow(`(!) ${string_}`)));
 }
 
 function info(url: string): void {
@@ -258,12 +258,12 @@ interface Nested<T> {
 	key: string;
 }
 
-function nest<T extends Record<string, any>>(array: readonly T[], prop: string): Nested<T>[] {
+function nest<T extends Record<string, any>>(array: readonly T[], property: string): Nested<T>[] {
 	const nested: Nested<T>[] = [];
 	const lookup = new Map<string, Nested<T>>();
 
 	for (const item of array) {
-		const key = item[prop];
+		const key = item[property];
 		getOrCreate(lookup, key, () => {
 			const items = {
 				items: [],

@@ -6,11 +6,11 @@ import * as rollup from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import {
-	errCannotBundleConfigAsEsm,
-	errCannotLoadConfigAsCjs,
-	errCannotLoadConfigAsEsm,
-	errMissingConfig,
-	error
+	error,
+	errorCannotBundleConfigAsEsm,
+	errorCannotLoadConfigAsCjs,
+	errorCannotLoadConfigAsEsm,
+	errorMissingConfig
 } from '../../src/utils/error';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import type { GenericConfigObject } from '../../src/utils/options/options';
@@ -36,9 +36,9 @@ export async function loadConfigFile(
 			normalizedConfigs.push(options);
 		}
 		return { options: normalizedConfigs, warnings };
-	} catch (err) {
+	} catch (error_) {
 		warnings.flush();
-		throw err;
+		throw error_;
 	}
 }
 
@@ -46,11 +46,11 @@ async function getConfigFileExport(fileName: string, commandOptions: Record<stri
 	if (commandOptions.configPlugin || commandOptions.bundleConfigAsCjs) {
 		try {
 			return await loadTranspiledConfigFile(fileName, commandOptions);
-		} catch (err: any) {
-			if (err.message.includes('not defined in ES module scope')) {
-				return error(errCannotBundleConfigAsEsm(err));
+		} catch (error_: any) {
+			if (error_.message.includes('not defined in ES module scope')) {
+				return error(errorCannotBundleConfigAsEsm(error_));
 			}
-			throw err;
+			throw error_;
 		}
 	}
 	let cannotLoadEsm = false;
@@ -67,14 +67,14 @@ async function getConfigFileExport(fileName: string, commandOptions: Record<stri
 			fileUrl.search = `?${Date.now()}`;
 		}
 		return (await import(fileUrl.href)).default;
-	} catch (err: any) {
+	} catch (error_: any) {
 		if (cannotLoadEsm) {
-			return error(errCannotLoadConfigAsCjs(err));
+			return error(errorCannotLoadConfigAsCjs(error_));
 		}
-		if (err.message.includes('not defined in ES module scope')) {
-			return error(errCannotLoadConfigAsEsm(err));
+		if (error_.message.includes('not defined in ES module scope')) {
+			return error(errorCannotLoadConfigAsEsm(error_));
 		}
-		throw err;
+		throw error_;
 	} finally {
 		process.off('warning', handleWarning);
 	}
@@ -146,7 +146,7 @@ async function getConfigList(configFileExport: any, commandOptions: any): Promis
 		? configFileExport(commandOptions)
 		: configFileExport);
 	if (Object.keys(config).length === 0) {
-		return error(errMissingConfig());
+		return error(errorMissingConfig());
 	}
 	return Array.isArray(config) ? config : [config];
 }

@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_OVERRIDE = path.join(__dirname, 'override.js');
 const ID_NOOVERRIDE = path.join(__dirname, 'noOverride.js');
@@ -12,14 +12,18 @@ module.exports = {
 			{
 				transform(code, id) {
 					switch (id) {
-						case ID_MAIN:
+						case ID_MAIN: {
 							return { syntheticNamedExports: 'synthMain' };
-						case ID_OVERRIDE:
+						}
+						case ID_OVERRIDE: {
 							return { syntheticNamedExports: 'synthOverride' };
-						case ID_NOOVERRIDE:
+						}
+						case ID_NOOVERRIDE: {
 							return { syntheticNamedExports: 'synthNoOverride' };
-						case ID_HIDDENNAMESPACE:
+						}
+						case ID_HIDDENNAMESPACE: {
 							return { syntheticNamedExports: 'synthHiddenNamespace' };
+						}
 					}
 				}
 			}

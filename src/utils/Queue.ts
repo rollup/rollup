@@ -32,8 +32,8 @@ export default class Queue {
 			try {
 				const result = await task();
 				resolve(result);
-			} catch (err) {
-				reject(err);
+			} catch (error) {
+				reject(error);
 			}
 		}
 

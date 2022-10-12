@@ -3,7 +3,7 @@ import type { HasEffectsContext } from '../../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -44,7 +44,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {

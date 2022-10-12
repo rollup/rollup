@@ -12,9 +12,9 @@ import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './Plu
 import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
 import {
-	errInvalidRollupPhaseForAddWatchFile,
 	error,
-	errPluginError,
+	errorInvalidRollupPhaseForAddWatchFile,
+	errorPluginError,
 	warnDeprecation
 } from './error';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
@@ -55,14 +55,14 @@ export function getPluginContext(
 	return {
 		addWatchFile(id) {
 			if (graph.phase >= BuildPhase.GENERATE) {
-				return this.error(errInvalidRollupPhaseForAddWatchFile());
+				return this.error(errorInvalidRollupPhaseForAddWatchFile());
 			}
 			graph.watchFiles[id] = true;
 		},
 		cache: cacheInstance,
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
-		error(err): never {
-			return error(errPluginError(err, plugin.name));
+		error(error_): never {
+			return error(errorPluginError(error_, plugin.name));
 		},
 		getFileName: fileEmitter.getFileName,
 		getModuleIds: () => graph.modulesById.keys(),

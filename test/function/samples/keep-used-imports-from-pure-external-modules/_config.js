@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'imports from pure external modules that are used should not be omitted',
@@ -10,7 +10,7 @@ module.exports = {
 	},
 	context: {
 		require: id => {
-			if (id === 'warning') return arg => assert.equal(arg, 'hi');
+			if (id === 'warning') return argument => assert.equal(argument, 'hi');
 			throw new Error('Unexpected import', id);
 		}
 	}

@@ -2,7 +2,7 @@ import type MagicString from 'magic-string';
 import type { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { errIllegalImportReassignment, errMissingExport } from '../../utils/error';
+import { errorIllegalImportReassignment, errorMissingExport } from '../../utils/error';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -11,7 +11,7 @@ import type {
 	NodeInteractionAccessed,
 	NodeInteractionAssigned,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED } from '../NodeInteractions';
 import {
@@ -141,19 +141,17 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
-		} else if (!this.isUndefined) {
-			if (path.length < MAX_PATH_DEPTH) {
-				const propertyKey = this.getPropertyKey();
-				this.object.deoptimizePath([
-					propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
-					...path
-				]);
-			}
+		} else if (!this.isUndefined && path.length < MAX_PATH_DEPTH) {
+			const propertyKey = this.getPropertyKey();
+			this.object.deoptimizePath([
+				propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
+				...path
+			]);
 		}
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -284,12 +282,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, args);
+			this.variable.includeCallArguments(context, parameters);
 		} else {
-			super.includeCallArguments(context, args);
+			super.includeCallArguments(context, parameters);
 		}
 	}
 
@@ -381,7 +379,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 					this.context.includeVariableInModule(this.variable);
 				}
 				this.context.warn(
-					errIllegalImportReassignment(this.object.name, this.context.module.id),
+					errorIllegalImportReassignment(this.object.name, this.context.module.id),
 					this.start
 				);
 			}
@@ -443,7 +441,7 @@ function resolveNamespaceVariables(
 	const variable = (baseVariable as NamespaceVariable).context.traceExport(exportName);
 	if (!variable) {
 		const fileName = (baseVariable as NamespaceVariable).context.fileName;
-		astContext.warn(errMissingExport(exportName, astContext.module.id, fileName), path[0].pos);
+		astContext.warn(errorMissingExport(exportName, astContext.module.id, fileName), path[0].pos);
 		return 'undefined';
 	}
 	return resolveNamespaceVariables(variable, path.slice(1), astContext);

@@ -17,10 +17,10 @@ import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
 import {
-	errCircularDependency,
-	errImplicitDependantIsNotIncluded,
-	errMissingExport,
-	error
+	error,
+	errorCircularDependency,
+	errorImplicitDependantIsNotIncluded,
+	errorMissingExport
 } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { addAnnotations } from './utils/pureComments';
@@ -84,8 +84,8 @@ export default class Graph {
 
 		if (watcher) {
 			this.watchMode = true;
-			const handleChange = (...args: Parameters<WatchChangeHook>) =>
-				this.pluginDriver.hookParallel('watchChange', args);
+			const handleChange = (...parameters: Parameters<WatchChangeHook>) =>
+				this.pluginDriver.hookParallel('watchChange', parameters);
 			const handleClose = () => this.pluginDriver.hookParallel('closeWatcher', []);
 			watcher.onCurrentRun('change', handleChange);
 			watcher.onCurrentRun('close', handleClose);
@@ -117,14 +117,13 @@ export default class Graph {
 		const onCommentOrig = options.onComment;
 		const comments: acorn.Comment[] = [];
 
-		if (onCommentOrig && typeof onCommentOrig == 'function') {
-			options.onComment = (block, text, start, end, ...args) => {
-				comments.push({ end, start, type: block ? 'Block' : 'Line', value: text });
-				return onCommentOrig.call(options, block, text, start, end, ...args);
-			};
-		} else {
-			options.onComment = comments;
-		}
+		options.onComment =
+			onCommentOrig && typeof onCommentOrig == 'function'
+				? (block, text, start, end, ...parameters) => {
+						comments.push({ end, start, type: block ? 'Block' : 'Line', value: text });
+						return onCommentOrig.call(options, block, text, start, end, ...parameters);
+				  }
+				: comments;
 
 		const ast = this.acornParser.parse(code, {
 			...(this.options.acorn as unknown as acorn.Options),
@@ -218,7 +217,7 @@ export default class Graph {
 		for (const module of this.implicitEntryModules) {
 			for (const dependant of module.implicitlyLoadedAfter) {
 				if (!(dependant.info.isEntry || dependant.isIncluded())) {
-					error(errImplicitDependantIsNotIncluded(dependant));
+					error(errorImplicitDependantIsNotIncluded(dependant));
 				}
 			}
 		}
@@ -227,7 +226,7 @@ export default class Graph {
 	private sortModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
-			this.options.onwarn(errCircularDependency(cyclePath));
+			this.options.onwarn(errorCircularDependency(cyclePath));
 		}
 		this.modules = orderedModules;
 		for (const module of this.modules) {
@@ -244,7 +243,7 @@ export default class Graph {
 					!importDescription.module.getVariableForExportName(importDescription.name)[0]
 				) {
 					module.warn(
-						errMissingExport(importDescription.name, module.id, importDescription.module.id),
+						errorMissingExport(importDescription.name, module.id, importDescription.module.id),
 						importDescription.start
 					);
 				}

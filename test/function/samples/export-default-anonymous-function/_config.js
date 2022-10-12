@@ -1,5 +1,5 @@
-const { readFileSync } = require('fs');
-const path = require('path');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 
 module.exports = {
 	description: 'exports an anonymous function with custom ID resolver', // yeah, this is a real edge case
@@ -10,7 +10,7 @@ module.exports = {
 					return path.basename(importee).replace(/\..+/, '');
 				},
 				load(id) {
-					return readFileSync(path.join(__dirname, id + '.js'), 'utf-8');
+					return readFileSync(path.join(__dirname, id + '.js'), 'utf8');
 				}
 			}
 		]

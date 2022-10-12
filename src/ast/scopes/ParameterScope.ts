@@ -49,31 +49,31 @@ export default class ParameterScope extends ChildScope {
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		let calledFromTryStatement = false;
-		let argIncluded = false;
-		const restParam = this.hasRest && this.parameters[this.parameters.length - 1];
-		for (const checkedArg of args) {
-			if (checkedArg instanceof SpreadElement) {
-				for (const arg of args) {
-					arg.include(context, false);
+		let argumentIncluded = false;
+		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
+		for (const checkedArgument of parameters) {
+			if (checkedArgument instanceof SpreadElement) {
+				for (const argument of parameters) {
+					argument.include(context, false);
 				}
 				break;
 			}
 		}
-		for (let index = args.length - 1; index >= 0; index--) {
-			const paramVars = this.parameters[index] || restParam;
-			const arg = args[index];
-			if (paramVars) {
+		for (let index = parameters.length - 1; index >= 0; index--) {
+			const parameterVariables = this.parameters[index] || restParameter;
+			const argument = parameters[index];
+			if (parameterVariables) {
 				calledFromTryStatement = false;
-				if (paramVars.length === 0) {
+				if (parameterVariables.length === 0) {
 					// handle empty destructuring
-					argIncluded = true;
+					argumentIncluded = true;
 				} else {
-					for (const variable of paramVars) {
+					for (const variable of parameterVariables) {
 						if (variable.included) {
-							argIncluded = true;
+							argumentIncluded = true;
 						}
 						if (variable.calledFromTryStatement) {
 							calledFromTryStatement = true;
@@ -81,11 +81,11 @@ export default class ParameterScope extends ChildScope {
 					}
 				}
 			}
-			if (!argIncluded && arg.shouldBeIncluded(context)) {
-				argIncluded = true;
+			if (!argumentIncluded && argument.shouldBeIncluded(context)) {
+				argumentIncluded = true;
 			}
-			if (argIncluded) {
-				arg.include(context, calledFromTryStatement);
+			if (argumentIncluded) {
+				argument.include(context, calledFromTryStatement);
 			}
 		}
 	}

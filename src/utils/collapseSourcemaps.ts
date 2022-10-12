@@ -6,7 +6,7 @@ import type {
 	SourceMapSegment,
 	WarningHandler
 } from '../rollup/types';
-import { error, errSourcemapBroken } from './error';
+import { error, errorSourcemapBroken } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
@@ -155,7 +155,7 @@ function getLinkMap(warn: WarningHandler) {
 			return new Link(map, [source]);
 		}
 
-		warn(errSourcemapBroken(map.plugin));
+		warn(errorSourcemapBroken(map.plugin));
 
 		return new Link(
 			{
@@ -185,7 +185,7 @@ function getCollapsedSourcemap(
 		const sourceRoot = originalSourcemap.sourceRoot || '.';
 
 		const baseSources = sources.map(
-			(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
+			(source, index) => new Source(resolve(directory, sourceRoot, source), sourcesContent[index])
 		);
 		source = new Link(originalSourcemap, baseSources);
 	}
@@ -235,7 +235,7 @@ export function collapseSourcemap(
 	sourcemapChain: readonly DecodedSourceMapOrMissing[],
 	warn: WarningHandler
 ): ExistingDecodedSourceMap | null {
-	if (!sourcemapChain.length) {
+	if (sourcemapChain.length === 0) {
 		return originalSourcemap;
 	}
 

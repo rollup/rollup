@@ -1,9 +1,9 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import {
-	errIllegalIdentifierAsName,
-	errMissingNameOptionForIifeExport,
-	error
+	error,
+	errorIllegalIdentifierAsName,
+	errorMissingNameOptionForIifeExport
 } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
@@ -47,17 +47,17 @@ export default function iife(
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {
-		return error(errIllegalIdentifierAsName(name));
+		return error(errorIllegalIdentifierAsName(name));
 	}
 
 	warnOnBuiltins(onwarn, dependencies);
 
 	const external = trimEmptyImports(dependencies);
 	const deps = external.map(dep => dep.globalName || 'null');
-	const args = external.map(m => m.name);
+	const parameters = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		onwarn(errMissingNameOptionForIifeExport());
+		onwarn(errorMissingNameOptionForIifeExport());
 	}
 
 	if (namedExportsMode && hasExports) {
@@ -68,10 +68,10 @@ export default function iife(
 					getPropertyAccess
 				)}${_}||${_}{}`
 			);
-			args.unshift('exports');
+			parameters.unshift('exports');
 		} else {
 			deps.unshift('{}');
-			args.unshift('exports');
+			parameters.unshift('exports');
 		}
 	}
 
@@ -88,7 +88,7 @@ export default function iife(
 	);
 	magicString.prepend(`${intro}${interopBlock}`);
 
-	let wrapperIntro = `(${getNonArrowFunctionIntro(args, {
+	let wrapperIntro = `(${getNonArrowFunctionIntro(parameters, {
 		isAsync: false,
 		name: null
 	})}{${n}${useStrict}${n}`;

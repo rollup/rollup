@@ -29,7 +29,7 @@ const pluginHooks: rollup.Plugin = {
 	},
 	async load(id) {
 		// @ts-expect-error id is typed as string
-		const i: number = id;
+		const index: number = id;
 		await this.resolve('rollup');
 	},
 	name: 'test',

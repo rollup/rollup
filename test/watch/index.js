@@ -8,7 +8,7 @@ const {
 	writeFileSync
 } = require('node:fs');
 const { resolve } = require('node:path');
-const { chdir, cwd, hrtime } = require('process');
+const { chdir, cwd, hrtime } = require('node:process');
 const { copy, removeSync } = require('fs-extra');
 const rollup = require('../../dist/rollup');
 const { atomicWriteFileSync, wait } = require('../utils');
@@ -27,61 +27,6 @@ describe('rollup.watch', () => {
 			watcher = null;
 		}
 	});
-
-	function run(file) {
-		const resolved = require.resolve(file);
-		delete require.cache[resolved];
-		return require(resolved);
-	}
-
-	async function sequence(watcher, events, timeout = 300) {
-		await new Promise((fulfil, reject) => {
-			function go(event) {
-				const next = events.shift();
-				if (!next) {
-					watcher.close();
-					fulfil();
-				} else if (typeof next === 'string') {
-					const [eventCode, eventMessage] = next.split(':');
-					watcher.once('event', event => {
-						if (event.code !== eventCode) {
-							watcher.close();
-							if (event.code === 'ERROR') console.log(event.error);
-							reject(new Error(`Expected ${eventCode} event, got ${event.code}`));
-						} else if (
-							eventCode === 'ERROR' &&
-							eventMessage &&
-							event.error.message !== eventMessage
-						) {
-							reject(
-								new Error(`Expected to throw "${eventMessage}" but got "${event.error.message}".`)
-							);
-						} else {
-							go(event);
-						}
-					});
-				} else {
-					wait(timeout) // gah, this appears to be necessary to fix random errors
-						.then(() => {
-							next(event);
-							go();
-						})
-						.catch(error => {
-							watcher.close();
-							reject(error);
-						});
-				}
-			}
-
-			go();
-		});
-		return wait(100);
-	}
-
-	function getTimeDiffInMs(previous) {
-		const [seconds, nanoseconds] = hrtime(previous);
-		return seconds * 1e3 + nanoseconds / 1e6;
-	}
 
 	it('watches a file and triggers reruns if necessary', async () => {
 		let triggerRestart = false;
@@ -161,19 +106,19 @@ describe('rollup.watch', () => {
 		});
 		await new Promise((resolve, reject) => {
 			let currentEvent = null;
-			const handleEvent = async (...args) => {
-				events.add(args[0]?.code);
+			const handleEvent = async (...parameters) => {
+				events.add(parameters[0]?.code);
 				if (currentEvent) {
 					watcher.close();
 					return reject(
 						new Error(
-							`Event ${JSON.stringify(args)} was emitted while handling ${JSON.stringify(
+							`Event ${JSON.stringify(parameters)} was emitted while handling ${JSON.stringify(
 								currentEvent
 							)}.`
 						)
 					);
 				}
-				currentEvent = args;
+				currentEvent = parameters;
 				await wait(100);
 				currentEvent = null;
 			};
@@ -438,12 +383,12 @@ describe('rollup.watch', () => {
 				assert.strictEqual(lastEvent, 'create');
 			}
 		]);
-	}).timeout(20000);
+	}).timeout(20_000);
 
 	it('calls closeWatcher plugin hook', async () => {
 		let calls = 0;
-		let ctx1;
-		let ctx2;
+		let context1;
+		let context2;
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -456,20 +401,20 @@ describe('rollup.watch', () => {
 				{
 					buildStart() {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
-						ctx1 = this;
+						context1 = this;
 					},
 					closeWatcher() {
-						assert.strictEqual(ctx1, this);
+						assert.strictEqual(context1, this);
 						calls++;
 					}
 				},
 				{
 					buildStart() {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
-						ctx2 = this;
+						context2 = this;
 					},
 					closeWatcher() {
-						assert.strictEqual(ctx2, this);
+						assert.strictEqual(context2, this);
 						calls++;
 					}
 				}
@@ -482,8 +427,8 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				assert.ok(ctx1);
-				assert.ok(ctx2);
+				assert.ok(context1);
+				assert.ok(context2);
 				watcher.once('close', () => {
 					assert.strictEqual(calls, 2);
 				});
@@ -1104,7 +1049,7 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				const generated = readFileSync('test/_tmp/output/bundle.js', {
-					encoding: 'utf-8'
+					encoding: 'utf8'
 				});
 				assert.ok(/jQuery/.test(generated));
 			}
@@ -1304,11 +1249,11 @@ describe('rollup.watch', () => {
 			'BUNDLE_START',
 			'BUNDLE_END',
 			// 'END',
-			evt => {
+			event => {
 				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 				assert.strictEqual(watchChangeCnt, 3);
 				// still aware of its output destination
-				assert.strictEqual(evt.output[0], resolve('test/_tmp/output/bundle.js'));
+				assert.strictEqual(event.output[0], resolve('test/_tmp/output/bundle.js'));
 			}
 		]);
 	});
@@ -1786,4 +1731,59 @@ describe('rollup.watch', () => {
 			]);
 		});
 	});
-}).timeout(20000);
+}).timeout(20_000);
+
+function run(file) {
+	const resolved = require.resolve(file);
+	delete require.cache[resolved];
+	return require(resolved);
+}
+
+async function sequence(watcher, events, timeout = 300) {
+	await new Promise((fulfil, reject) => {
+		function go(event) {
+			const next = events.shift();
+			if (!next) {
+				watcher.close();
+				fulfil();
+			} else if (typeof next === 'string') {
+				const [eventCode, eventMessage] = next.split(':');
+				watcher.once('event', event => {
+					if (event.code !== eventCode) {
+						watcher.close();
+						if (event.code === 'ERROR') console.log(event.error);
+						reject(new Error(`Expected ${eventCode} event, got ${event.code}`));
+					} else if (
+						eventCode === 'ERROR' &&
+						eventMessage &&
+						event.error.message !== eventMessage
+					) {
+						reject(
+							new Error(`Expected to throw "${eventMessage}" but got "${event.error.message}".`)
+						);
+					} else {
+						go(event);
+					}
+				});
+			} else {
+				wait(timeout) // gah, this appears to be necessary to fix random errors
+					.then(() => {
+						next(event);
+						go();
+					})
+					.catch(error => {
+						watcher.close();
+						reject(error);
+					});
+			}
+		}
+
+		go();
+	});
+	return wait(100);
+}
+
+function getTimeDiffInMs(previous) {
+	const [seconds, nanoseconds] = hrtime(previous);
+	return seconds * 1e3 + nanoseconds / 1e6;
+}

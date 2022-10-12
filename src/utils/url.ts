@@ -1,7 +1,7 @@
 export function isValidUrl(url: string): boolean {
 	try {
 		new URL(url);
-	} catch (_) {
+	} catch {
 		return false;
 	}
 	return true;

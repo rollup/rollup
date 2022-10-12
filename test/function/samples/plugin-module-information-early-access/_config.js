@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 
@@ -10,7 +10,7 @@ module.exports = {
 		plugins: [
 			{
 				buildStart() {
-					assert.deepStrictEqual(Array.from(this.getModuleIds()), []);
+					assert.deepStrictEqual([...this.getModuleIds()], []);
 					assert.strictEqual(this.getModuleInfo(ID_MAIN), null);
 				}
 			}

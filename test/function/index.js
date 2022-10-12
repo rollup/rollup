@@ -9,8 +9,8 @@ function requireWithContext(code, context, exports) {
 	const contextKeys = Object.keys(contextWithExports);
 	const contextValues = contextKeys.map(key => contextWithExports[key]);
 	try {
-		const fn = new Function(contextKeys, code);
-		fn.apply({}, contextValues);
+		const function_ = new Function(contextKeys, code);
+		function_.apply({}, contextValues);
 	} catch (error) {
 		error.exports = module.exports;
 		throw error;
@@ -27,15 +27,13 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 			return exportsMap[outputId];
 		}
 		const code = codeMap[outputId];
-		if (typeof code !== 'undefined') {
-			return (exportsMap[outputId] = requireWithContext(
-				code,
-				{ require: requireFromOutputVia(outputId), ...context },
-				(exportsMap[outputId] = {})
-			));
-		} else {
-			return require(importee);
-		}
+		return typeof code !== 'undefined'
+			? (exportsMap[outputId] = requireWithContext(
+					code,
+					{ require: requireFromOutputVia(outputId), ...context },
+					(exportsMap[outputId] = {})
+			  ))
+			: require(importee);
 	};
 
 	const context = { assert, ...configContext };
@@ -48,21 +46,21 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 	return { exports };
 }
 
-runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (directory, config) => {
 	(config.skip ? it.skip : config.solo ? it.only : it)(
-		path.basename(dir) + ': ' + config.description,
+		path.basename(directory) + ': ' + config.description,
 		() => {
-			if (config.show) console.group(path.basename(dir));
+			if (config.show) console.group(path.basename(directory));
 			if (config.before) config.before();
-			process.chdir(dir);
+			process.chdir(directory);
 			const warnings = [];
 
 			return rollup
 				.rollup({
-					input: path.join(dir, 'main.js'),
+					input: path.join(directory, 'main.js'),
 					onwarn: warning => warnings.push(warning),
 					strictDeprecations: true,
-					...(config.options || {})
+					...config.options
 				})
 				.then(bundle => {
 					let unintendedError;
@@ -77,7 +75,7 @@ runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, confi
 						.generate({
 							exports: 'auto',
 							format: 'cjs',
-							...((config.options || {}).output || {})
+							...(config.options || {}).output
 						})
 						.then(({ output }) => {
 							if (config.generateError) {
@@ -86,11 +84,11 @@ runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, confi
 
 							result = output;
 						})
-						.catch(err => {
+						.catch(error => {
 							if (config.generateError) {
-								compareError(err, config.generateError);
+								compareError(error, config.generateError);
 							} else {
-								throw err;
+								throw error;
 							}
 						})
 						.then(() => {
@@ -134,11 +132,11 @@ runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, confi
 										return config.bundle(bundle);
 									}
 								})
-								.catch(err => {
+								.catch(error_ => {
 									if (config.runtimeError) {
-										config.runtimeError(err);
+										config.runtimeError(error_);
 									} else {
-										unintendedError = err;
+										unintendedError = error_;
 									}
 								})
 								.then(() => {
@@ -157,7 +155,7 @@ runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, confi
 										} else {
 											config.warnings(warnings);
 										}
-									} else if (warnings.length) {
+									} else if (warnings.length > 0) {
 										throw new Error(
 											`Got unexpected warnings:\n${warnings
 												.map(warning => warning.message)
@@ -170,11 +168,11 @@ runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, confi
 								});
 						});
 				})
-				.catch(err => {
+				.catch(error => {
 					if (config.error) {
-						compareError(err, config.error);
+						compareError(error, config.error);
 					} else {
-						throw err;
+						throw error;
 					}
 					if (config.after) config.after();
 				});

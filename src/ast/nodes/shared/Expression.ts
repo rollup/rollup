@@ -4,7 +4,7 @@ import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
@@ -34,7 +34,7 @@ export class ExpressionEntity implements WritableEntity {
 	deoptimizePath(_path: ObjectPath): void {}
 
 	deoptimizeThisOnInteractionAtPath(
-		{ thisArg }: NodeInteractionWithThisArg,
+		{ thisArg }: NodeInteractionWithThisArgument,
 		_path: ObjectPath,
 		_recursionTracker: PathTracker
 	): void {
@@ -81,10 +81,10 @@ export class ExpressionEntity implements WritableEntity {
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		for (const arg of args) {
-			arg.include(context, false);
+		for (const argument of parameters) {
+			argument.include(context, false);
 		}
 	}
 

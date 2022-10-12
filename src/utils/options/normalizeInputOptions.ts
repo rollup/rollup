@@ -9,7 +9,7 @@ import type {
 	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
+import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
 import {
@@ -79,14 +79,16 @@ const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
 	return onwarn
 		? warning => {
 				warning.toString = () => {
-					let str = '';
+					let warningString = '';
 
-					if (warning.plugin) str += `(${warning.plugin} plugin) `;
+					if (warning.plugin) warningString += `(${warning.plugin} plugin) `;
 					if (warning.loc)
-						str += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${warning.loc.column}) `;
-					str += warning.message;
+						warningString += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${
+							warning.loc.column
+						}) `;
+					warningString += warning.message;
 
-					return str;
+					return warningString;
 				};
 				onwarn(warning, defaultOnWarn);
 		  }
@@ -118,13 +120,13 @@ const getIdMatcher = <T extends Array<any>>(
 		| string
 		| RegExp
 		| (string | RegExp)[]
-		| ((id: string, ...args: T) => boolean | null | void)
-): ((id: string, ...args: T) => boolean) => {
+		| ((id: string, ...parameters: T) => boolean | null | void)
+): ((id: string, ...parameters: T) => boolean) => {
 	if (option === true) {
 		return () => true;
 	}
 	if (typeof option === 'function') {
-		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
+		return (id, ...parameters) => (!id.startsWith('\0') && option(id, ...parameters)) || false;
 	}
 	if (option) {
 		const ids = new Set<string>();
@@ -136,7 +138,7 @@ const getIdMatcher = <T extends Array<any>>(
 				ids.add(value);
 			}
 		}
-		return (id: string, ..._args) => ids.has(id) || matchers.some(matcher => matcher.test(id));
+		return (id: string, ..._arguments) => ids.has(id) || matchers.some(matcher => matcher.test(id));
 	}
 	return () => false;
 };
@@ -285,7 +287,7 @@ const getHasModuleSideEffects = (
 	}
 	if (moduleSideEffectsOption) {
 		error(
-			errInvalidOption(
+			errorInvalidOption(
 				'treeshake.moduleSideEffects',
 				'treeshake',
 				'please use one of false, "no-external", a function or an array'

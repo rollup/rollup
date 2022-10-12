@@ -19,11 +19,11 @@ function guessIndentString(code: string): string | null {
 
 	// Otherwise, we need to guess the multiple
 	const min = spaced.reduce((previous, current) => {
-		const numSpaces = /^ +/.exec(current)![0].length;
-		return Math.min(numSpaces, previous);
+		const numberSpaces = /^ +/.exec(current)![0].length;
+		return Math.min(numberSpaces, previous);
 	}, Infinity);
 
-	return new Array(min + 1).join(' ');
+	return ' '.repeat(min);
 }
 
 export default function getIndentString(

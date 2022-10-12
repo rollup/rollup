@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
 	description: '`this.warn(...)` accepts { line, column } object as second parameter (#1265)',

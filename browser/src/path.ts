@@ -1,4 +1,4 @@
-const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
+const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[/\\|])/;
 const RELATIVE_PATH_REGEX = /^\.?\.\//;
 const ALL_BACKSLASHES_REGEX = /\\/g;
 const ANY_SLASH_REGEX = /[/\\]/;
@@ -24,10 +24,10 @@ export function dirname(path: string): string {
 	const match = /[/\\][^/\\]*$/.exec(path);
 	if (!match) return '.';
 
-	const dir = path.slice(0, -match[0].length);
+	const directory = path.slice(0, -match[0].length);
 
-	// If `dir` is the empty string, we're at root.
-	return dir ? dir : '/';
+	// If `directory` is the empty string, we're at root.
+	return directory || '/';
 }
 
 export function extname(path: string): string {

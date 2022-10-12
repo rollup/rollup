@@ -11,8 +11,8 @@ export function renderCallArguments(
 ): void {
 	if (node.arguments.length > 0) {
 		if (node.arguments[node.arguments.length - 1].included) {
-			for (const arg of node.arguments) {
-				arg.render(code, options);
+			for (const argument of node.arguments) {
+				argument.render(code, options);
 			}
 		} else {
 			let lastIncludedIndex = node.arguments.length - 2;

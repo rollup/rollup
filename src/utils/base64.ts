@@ -1,12 +1,12 @@
 const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$';
 const base = 64;
 
-export function toBase64(num: number): string {
-	let outStr = '';
+export function toBase64(value: number): string {
+	let outString = '';
 	do {
-		const curDigit = num % base;
-		num = (num / base) | 0;
-		outStr = chars[curDigit] + outStr;
-	} while (num !== 0);
-	return outStr;
+		const currentDigit = value % base;
+		value = (value / base) | 0;
+		outString = chars[currentDigit] + outString;
+	} while (value !== 0);
+	return outString;
 }

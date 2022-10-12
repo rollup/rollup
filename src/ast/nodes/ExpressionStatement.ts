@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import { errModuleLevelDirective } from '../../utils/error';
+import { errorModuleLevelDirective } from '../../utils/error';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
@@ -17,7 +17,7 @@ export default class ExpressionStatement extends StatementBase {
 		) {
 			this.context.warn(
 				// This is necessary, because either way (deleting or not) can lead to errors.
-				errModuleLevelDirective(this.directive, this.context.module.id),
+				errorModuleLevelDirective(this.directive, this.context.module.id),
 				this.start
 			);
 		}

@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 const expectedNames = new Set([
 	'nested/a',
@@ -30,10 +30,12 @@ module.exports = {
 				name: 'str-plugin',
 				transform(code, id) {
 					switch (path.extname(id)) {
-						case '.str':
+						case '.str': {
 							return { code: `export default "${code.trim()}"` };
-						default:
+						}
+						default: {
 							return null;
+						}
 					}
 				}
 			}

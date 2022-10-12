@@ -24,6 +24,7 @@ const onwarn: WarningHandlerWithDefault = warning => {
 		'Building Rollup produced warnings that need to be resolved. ' +
 			'Please keep in mind that the browser build may never have external dependencies!'
 	);
+	// eslint-disable-next-line unicorn/error-message
 	throw Object.assign(new Error(), warning);
 };
 

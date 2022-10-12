@@ -18,17 +18,17 @@ import type {
 import type { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
 import {
-	errBadLoader,
-	errEntryCannotBeExternal,
-	errExternalSyntheticExports,
-	errImplicitDependantCannotBeExternal,
-	errInconsistentImportAssertions,
-	errInternalIdCannotBeExternal,
 	error,
-	errUnresolvedEntry,
-	errUnresolvedImplicitDependant,
-	errUnresolvedImport,
-	errUnresolvedImportTreatedAsExternal
+	errorBadLoader,
+	errorEntryCannotBeExternal,
+	errorExternalSyntheticExports,
+	errorImplicitDependantCannotBeExternal,
+	errorInconsistentImportAssertions,
+	errorInternalIdCannotBeExternal,
+	errorUnresolvedEntry,
+	errorUnresolvedImplicitDependant,
+	errorUnresolvedImport,
+	errorUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { promises as fs } from './utils/fs';
 import { doAssertionsDiffer, getAssertionsFromImportExpression } from './utils/parseAssertions';
@@ -119,8 +119,7 @@ export class ModuleLoader {
 					this.loadEntryModule(id, true, importer, null)
 				)
 			).then(entryModules => {
-				for (let index = 0; index < entryModules.length; index++) {
-					const entryModule = entryModules[index];
+				for (const [index, entryModule] of entryModules.entries()) {
 					entryModule.isUserDefinedEntryPoint =
 						entryModule.isUserDefinedEntryPoint || isUserDefined;
 					addChunkNamesToModule(
@@ -262,19 +261,19 @@ export class ModuleLoader {
 				async () =>
 					(await this.pluginDriver.hookFirst('load', [id])) ?? (await fs.readFile(id, 'utf8'))
 			);
-		} catch (err: any) {
-			let msg = `Could not load ${id}`;
-			if (importer) msg += ` (imported by ${relativeId(importer)})`;
-			msg += `: ${err.message}`;
-			err.message = msg;
-			throw err;
+		} catch (error_: any) {
+			let message = `Could not load ${id}`;
+			if (importer) message += ` (imported by ${relativeId(importer)})`;
+			message += `: ${error_.message}`;
+			error_.message = message;
+			throw error_;
 		}
 		const sourceDescription =
 			typeof source === 'string'
 				? { code: source }
 				: source != null && typeof source === 'object' && typeof source.code === 'string'
 				? source
-				: error(errBadLoader(id));
+				: error(errorBadLoader(id));
 		const cachedModule = this.graph.cachedModules.get(id);
 		if (
 			cachedModule &&
@@ -367,7 +366,12 @@ export class ModuleLoader {
 		if (existingModule instanceof Module) {
 			if (importer && doAssertionsDiffer(assertions, existingModule.info.assertions)) {
 				this.options.onwarn(
-					errInconsistentImportAssertions(existingModule.info.assertions, assertions, id, importer)
+					errorInconsistentImportAssertions(
+						existingModule.info.assertions,
+						assertions,
+						id,
+						importer
+					)
 				);
 			}
 			await this.handleExistingModule(existingModule, isEntry, isPreload);
@@ -445,10 +449,10 @@ export class ModuleLoader {
 				);
 				this.modulesById.set(id, externalModule);
 			} else if (!(externalModule instanceof ExternalModule)) {
-				return error(errInternalIdCannotBeExternal(source, importer));
+				return error(errorInternalIdCannotBeExternal(source, importer));
 			} else if (doAssertionsDiffer(externalModule.info.assertions, assertions)) {
 				this.options.onwarn(
-					errInconsistentImportAssertions(
+					errorInconsistentImportAssertions(
 						externalModule.info.assertions,
 						assertions,
 						source,
@@ -549,6 +553,7 @@ export class ModuleLoader {
 	}
 
 	private getResolveStaticDependencyPromises(module: Module): ResolveStaticDependencyPromise[] {
+		// eslint-disable-next-line unicorn/prefer-spread
 		return Array.from(
 			module.sourcesWithAssertions,
 			async ([source, assertions]) =>
@@ -611,9 +616,9 @@ export class ModuleLoader {
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
-				return error(errUnresolvedImport(source, importer));
+				return error(errorUnresolvedImport(source, importer));
 			}
-			this.options.onwarn(errUnresolvedImportTreatedAsExternal(source, importer));
+			this.options.onwarn(errorUnresolvedImportTreatedAsExternal(source, importer));
 			return {
 				assertions,
 				external: true,
@@ -623,7 +628,7 @@ export class ModuleLoader {
 				syntheticNamedExports: false
 			};
 		} else if (resolvedId.external && resolvedId.syntheticNamedExports) {
-			this.options.onwarn(errExternalSyntheticExports(source, importer));
+			this.options.onwarn(errorExternalSyntheticExports(source, importer));
 		}
 		return resolvedId;
 	}
@@ -648,8 +653,8 @@ export class ModuleLoader {
 		if (resolveIdResult == null) {
 			return error(
 				implicitlyLoadedBefore === null
-					? errUnresolvedEntry(unresolvedId)
-					: errUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
+					? errorUnresolvedEntry(unresolvedId)
+					: errorUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
 		if (
@@ -658,8 +663,8 @@ export class ModuleLoader {
 		) {
 			return error(
 				implicitlyLoadedBefore === null
-					? errEntryCannotBeExternal(unresolvedId)
-					: errImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
+					? errorEntryCannotBeExternal(unresolvedId)
+					: errorImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
 		return this.fetchModule(
@@ -703,7 +708,7 @@ export class ModuleLoader {
 			if (existingResolution) {
 				if (doAssertionsDiffer(existingResolution.assertions, assertions)) {
 					this.options.onwarn(
-						errInconsistentImportAssertions(
+						errorInconsistentImportAssertions(
 							existingResolution.assertions,
 							assertions,
 							specifier,

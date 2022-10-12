@@ -1,7 +1,7 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
-import { errUnusedExternalImports, warnDeprecation } from './utils/error';
+import { errorUnusedExternalImports, warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
 
 export default class ExternalModule {
@@ -26,7 +26,7 @@ export default class ExternalModule {
 		public readonly renormalizeRenderPath: boolean,
 		assertions: Record<string, string>
 	) {
-		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
+		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
 
 		const { importers, dynamicImporters } = this;
 		const info: ModuleInfo = (this.info = {
@@ -89,7 +89,7 @@ export default class ExternalModule {
 	}
 
 	warnUnusedImports(): void {
-		const unused = Array.from(this.declarations)
+		const unused = [...this.declarations]
 			.filter(
 				([name, declaration]) =>
 					name !== '*' && !declaration.included && !this.reexported && !declaration.referenced
@@ -105,6 +105,6 @@ export default class ExternalModule {
 			}
 		}
 		const importersArray = [...importersSet];
-		this.options.onwarn(errUnusedExternalImports(this.id, unused, importersArray));
+		this.options.onwarn(errorUnusedExternalImports(this.id, unused, importersArray));
 	}
 }

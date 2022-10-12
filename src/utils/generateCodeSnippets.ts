@@ -7,7 +7,7 @@ export interface GenerateCodeSnippets {
 	n: string;
 	s: string;
 	getDirectReturnFunction(
-		params: string[],
+		parameters: string[],
 		options: {
 			functionReturn: boolean;
 			lineBreakIndent: { base: string; t: string } | null;
@@ -15,16 +15,19 @@ export interface GenerateCodeSnippets {
 		}
 	): [left: string, right: string];
 	getDirectReturnIifeLeft(
-		params: string[],
+		parameters: string[],
 		returned: string,
 		options: {
 			needsArrowReturnParens: boolean | undefined;
 			needsWrappedFunction: boolean | undefined;
 		}
 	): string;
-	getFunctionIntro(params: string[], options: { isAsync: boolean; name: string | null }): string;
+	getFunctionIntro(
+		parameters: string[],
+		options: { isAsync: boolean; name: string | null }
+	): string;
 	getNonArrowFunctionIntro(
-		params: string[],
+		parameters: string[],
 		options: { isAsync: boolean; name: string | null }
 	): string;
 	getObject(
@@ -41,26 +44,28 @@ export function getGenerateCodeSnippets({
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
 	const cnst = constBindings ? 'const' : 'var';
 	const getNonArrowFunctionIntro: GenerateCodeSnippets['getNonArrowFunctionIntro'] = (
-		params,
+		parameters,
 		{ isAsync, name }
 	) =>
-		`${isAsync ? `async ` : ''}function${name ? ` ${name}` : ''}${_}(${params.join(`,${_}`)})${_}`;
+		`${isAsync ? `async ` : ''}function${name ? ` ${name}` : ''}${_}(${parameters.join(
+			`,${_}`
+		)})${_}`;
 
 	const getFunctionIntro: GenerateCodeSnippets['getFunctionIntro'] = arrowFunctions
-		? (params, { isAsync, name }) => {
-				const singleParam = params.length === 1;
-				const asyncString = isAsync ? `async${singleParam ? ' ' : _}` : '';
+		? (parameters, { isAsync, name }) => {
+				const singleParameter = parameters.length === 1;
+				const asyncString = isAsync ? `async${singleParameter ? ' ' : _}` : '';
 				return `${name ? `${cnst} ${name}${_}=${_}` : ''}${asyncString}${
-					singleParam ? params[0] : `(${params.join(`,${_}`)})`
+					singleParameter ? parameters[0] : `(${parameters.join(`,${_}`)})`
 				}${_}=>${_}`;
 		  }
 		: getNonArrowFunctionIntro;
 
 	const getDirectReturnFunction: GenerateCodeSnippets['getDirectReturnFunction'] = (
-		params,
+		parameters,
 		{ functionReturn, lineBreakIndent, name }
 	) => [
-		`${getFunctionIntro(params, {
+		`${getFunctionIntro(parameters, {
 			isAsync: false,
 			name
 		})}${
@@ -77,20 +82,20 @@ export function getGenerateCodeSnippets({
 			: `${s}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : _}}`
 	];
 
-	const isValidPropName = reservedNamesAsProps
-		? (name: string): boolean => validPropName.test(name)
-		: (name: string): boolean => !RESERVED_NAMES.has(name) && validPropName.test(name);
+	const isValidPropertyName = reservedNamesAsProps
+		? (name: string): boolean => validPropertyName.test(name)
+		: (name: string): boolean => !RESERVED_NAMES.has(name) && validPropertyName.test(name);
 
 	return {
 		_,
 		cnst,
 		getDirectReturnFunction,
 		getDirectReturnIifeLeft: (
-			params,
+			parameters,
 			returned,
 			{ needsArrowReturnParens, needsWrappedFunction }
 		) => {
-			const [left, right] = getDirectReturnFunction(params, {
+			const [left, right] = getDirectReturnFunction(parameters, {
 				functionReturn: true,
 				lineBreakIndent: null,
 				name: null
@@ -107,7 +112,7 @@ export function getGenerateCodeSnippets({
 			return `{${fields
 				.map(([key, value]) => {
 					if (key === null) return `${prefix}${value}`;
-					const needsQuotes = !isValidPropName(key);
+					const needsQuotes = !isValidPropertyName(key);
 					return key === value && objectShorthand && !needsQuotes
 						? prefix + key
 						: `${prefix}${needsQuotes ? `'${key}'` : key}:${_}${value}`;
@@ -117,7 +122,7 @@ export function getGenerateCodeSnippets({
 			}}`;
 		},
 		getPropertyAccess: (name: string): string =>
-			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
+			isValidPropertyName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
 		n,
 		s
 	};
@@ -126,4 +131,4 @@ export function getGenerateCodeSnippets({
 const wrapIfNeeded = (code: string, needsParens: boolean | undefined): string =>
 	needsParens ? `(${code})` : code;
 
-const validPropName = /^(?!\d)[\w$]+$/;
+const validPropertyName = /^(?!\d)[\w$]+$/;

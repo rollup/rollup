@@ -5,10 +5,11 @@ import type { PluginDriver } from '../utils/PluginDriver';
 import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
 import {
-	errAlreadyClosed,
-	errCannotEmitFromOptionsHook,
-	errMissingFileOrDirOption,
-	error
+	error,
+	errorAlreadyClosed,
+	errorCannotEmitFromOptionsHook,
+	// eslint-disable-next-line unicorn/prevent-abbreviations
+	errorMissingFileOrDirOption
 } from '../utils/error';
 import { promises as fs } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
@@ -61,14 +62,14 @@ export async function rollupInternal(
 			await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
 			timeEnd('initialize', 2);
 			await graph.build();
-		} catch (err: any) {
+		} catch (error_: any) {
 			const watchFiles = Object.keys(graph.watchFiles);
 			if (watchFiles.length > 0) {
-				err.watchFiles = watchFiles;
+				error_.watchFiles = watchFiles;
 			}
-			await graph.pluginDriver.hookParallel('buildEnd', [err]);
+			await graph.pluginDriver.hookParallel('buildEnd', [error_]);
 			await graph.pluginDriver.hookParallel('closeBundle', []);
-			throw err;
+			throw error_;
 		}
 		await graph.pluginDriver.hookParallel('buildEnd', []);
 	});
@@ -86,7 +87,7 @@ export async function rollupInternal(
 		},
 		closed: false,
 		async generate(rawOutputOptions: OutputOptions) {
-			if (result.closed) return error(errAlreadyClosed());
+			if (result.closed) return error(errorAlreadyClosed());
 
 			return handleGenerateWrite(
 				false,
@@ -98,7 +99,7 @@ export async function rollupInternal(
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
-			if (result.closed) return error(errAlreadyClosed());
+			if (result.closed) return error(errorAlreadyClosed());
 
 			return handleGenerateWrite(
 				true,
@@ -147,11 +148,11 @@ function applyOptionHook(watchMode: boolean) {
 }
 
 function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): void {
-	plugins.forEach((plugin, index) => {
+	for (const [index, plugin] of plugins.entries()) {
 		if (!plugin.name) {
 			plugin.name = `${anonymousPrefix}${index + 1}`;
 		}
-	});
+	}
 }
 
 function handleGenerateWrite(
@@ -177,7 +178,7 @@ function handleGenerateWrite(
 		if (isWrite) {
 			timeStart('WRITE', 1);
 			if (!outputOptions.dir && !outputOptions.file) {
-				return error(errMissingFileOrDirOption());
+				return error(errorMissingFileOrDirOption());
 			}
 			await Promise.all(
 				Object.values(generated).map(chunk =>
@@ -226,7 +227,7 @@ function getOutputOptions(
 			[rawOutputOptions.output || rawOutputOptions] as [OutputOptions],
 			(outputOptions, result) => result || outputOptions,
 			pluginContext => {
-				const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
+				const emitError = () => pluginContext.error(errorCannotEmitFromOptionsHook());
 				return {
 					...pluginContext,
 					emitFile: emitError,

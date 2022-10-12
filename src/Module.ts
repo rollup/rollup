@@ -49,17 +49,17 @@ import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
 import {
 	augmentCodeLocation,
-	errAmbiguousExternalNamespaces,
-	errCircularReexport,
-	errInconsistentImportAssertions,
-	errInvalidFormatForTopLevelAwait,
-	errInvalidSourcemapForError,
-	errMissingExport,
-	errNamespaceConflict,
 	error,
-	errParseError,
-	errShimmedExport,
-	errSyntheticNamedExportsNeedNamespaceExport,
+	errorAmbiguousExternalNamespaces,
+	errorCircularReexport,
+	errorInconsistentImportAssertions,
+	errorInvalidFormatForTopLevelAwait,
+	errorInvalidSourcemapForError,
+	errorMissingExport,
+	errorNamespaceConflict,
+	errorParseError,
+	errorShimmedExport,
+	errorSyntheticNamedExportsNeedNamespaceExport,
 	warnDeprecation
 } from './utils/error';
 import { getId } from './utils/getId';
@@ -104,7 +104,7 @@ export interface AstContext {
 	addImportMeta: (node: MetaProperty) => void;
 	code: string;
 	deoptimizationTracker: PathTracker;
-	error: (props: RollupLog, pos: number) => never;
+	error: (properties: RollupLog, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
@@ -148,7 +148,7 @@ function getVariableForExportNameRecursive(
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
 		if (searchedModules.has(target)) {
-			return isExportAllSearch ? [null] : error(errCircularReexport(name, target.id));
+			return isExportAllSearch ? [null] : error(errorCircularReexport(name, target.id));
 		}
 		searchedModules.add(target);
 	} else {
@@ -313,12 +313,15 @@ export default class Module {
 			},
 			id,
 			get implicitlyLoadedAfterOneOf() {
+				// eslint-disable-next-line unicorn/prefer-spread
 				return Array.from(implicitlyLoadedAfter, getId).sort();
 			},
 			get implicitlyLoadedBefore() {
+				// eslint-disable-next-line unicorn/prefer-spread
 				return Array.from(implicitlyLoadedBefore, getId).sort();
 			},
 			get importedIdResolutions() {
+				// eslint-disable-next-line unicorn/prefer-spread
 				return Array.from(
 					sourcesWithAssertions.keys(),
 					source => module.resolvedIds[source]
@@ -327,6 +330,7 @@ export default class Module {
 			get importedIds() {
 				// We cannot use this.dependencies because this is needed before
 				// dependencies are populated
+				// eslint-disable-next-line unicorn/prefer-spread
 				return Array.from(
 					sourcesWithAssertions.keys(),
 					source => module.resolvedIds[source]?.id
@@ -348,6 +352,7 @@ export default class Module {
 			syntheticNamedExports
 		};
 		// Hide the deprecated key so that it only warns when accessed explicitly
+		// eslint-disable-next-line unicorn/consistent-destructuring
 		Object.defineProperty(this.info, 'hasModuleSideEffects', {
 			enumerable: false
 		});
@@ -355,18 +360,18 @@ export default class Module {
 
 	basename(): string {
 		const base = basename(this.id);
-		const ext = extname(this.id);
+		const extension = extname(this.id);
 
-		return makeLegal(ext ? base.slice(0, -ext.length) : base);
+		return makeLegal(extension ? base.slice(0, -extension.length) : base);
 	}
 
 	bindReferences(): void {
 		this.ast!.bind();
 	}
 
-	error(props: RollupError, pos: number): never {
-		this.addLocationToLogProps(props, pos);
-		return error(props);
+	error(properties: RollupError, pos: number): never {
+		this.addLocationToLogProps(properties, pos);
+		return error(properties);
 	}
 
 	getAllExportNames(): Set<string> {
@@ -471,7 +476,7 @@ export default class Module {
 	}
 
 	getExports(): string[] {
-		return Array.from(this.exports.keys());
+		return [...this.exports.keys()];
 	}
 
 	getReexports(): string[] {
@@ -518,7 +523,7 @@ export default class Module {
 		}
 		if (!this.syntheticNamespace) {
 			return error(
-				errSyntheticNamedExportsNeedNamespaceExport(this.id, this.info.syntheticNamedExports)
+				errorSyntheticNamedExportsNeedNamespaceExport(this.id, this.info.syntheticNamedExports)
 			);
 		}
 		return this.syntheticNamespace;
@@ -560,7 +565,7 @@ export default class Module {
 			);
 			if (!variable) {
 				return this.error(
-					errMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
+					errorMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
 					reexportDeclaration.start
 				);
 			}
@@ -622,11 +627,9 @@ export default class Module {
 
 		// we don't want to create shims when we are just
 		// probing export * modules for exports
-		if (!isExportAllSearch) {
-			if (this.options.shimMissingExports) {
-				this.shimMissingExport(name);
-				return [this.exportShimVariable];
-			}
+		if (!isExportAllSearch && this.options.shimMissingExports) {
+			this.shimMissingExport(name);
+			return [this.exportShimVariable];
 		}
 		return [null];
 	}
@@ -707,7 +710,7 @@ export default class Module {
 		source.trim();
 		const { usesTopLevelAwait } = this.astContext;
 		if (usesTopLevelAwait && options.format !== 'es' && options.format !== 'system') {
-			return error(errInvalidFormatForTopLevelAwait(this.id, options.format));
+			return error(errorInvalidFormatForTopLevelAwait(this.id, options.format));
 		}
 		return { source, usesTopLevelAwait };
 	}
@@ -801,6 +804,7 @@ export default class Module {
 			ast: this.ast!.esTreeNode,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
+			// eslint-disable-next-line unicorn/prefer-spread
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
 			meta: this.info.meta,
@@ -850,7 +854,7 @@ export default class Module {
 
 			if (!declaration) {
 				return this.error(
-					errMissingExport(importDeclaration.name, this.id, otherModule.id),
+					errorMissingExport(importDeclaration.name, this.id, otherModule.id),
 					importDeclaration.start
 				);
 			}
@@ -864,8 +868,8 @@ export default class Module {
 	tryParse(): acorn.Node {
 		try {
 			return this.graph.contextParse(this.info.code!);
-		} catch (err: any) {
-			return this.error(errParseError(err, this.id), err.pos);
+		} catch (error_: any) {
+			return this.error(errorParseError(error_, this.id), error_.pos);
 		}
 	}
 
@@ -885,9 +889,9 @@ export default class Module {
 		}
 	}
 
-	warn(props: RollupWarning, pos: number): void {
-		this.addLocationToLogProps(props, pos);
-		this.options.onwarn(props);
+	warn(properties: RollupWarning, pos: number): void {
+		this.addLocationToLogProps(properties, pos);
+		this.options.onwarn(properties);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -993,9 +997,9 @@ export default class Module {
 		this.importMetas.push(node);
 	}
 
-	private addLocationToLogProps(props: RollupLog, pos: number): void {
-		props.id = this.id;
-		props.pos = pos;
+	private addLocationToLogProps(properties: RollupLog, pos: number): void {
+		properties.id = this.id;
+		properties.pos = pos;
 		let code = this.info.code;
 		const location = locate(code!, pos, { offsetLine: 1 });
 		if (location) {
@@ -1003,10 +1007,10 @@ export default class Module {
 			try {
 				({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
 				code = this.originalCode;
-			} catch (err: any) {
-				this.options.onwarn(errInvalidSourcemapForError(err, this.id, column, line, pos));
+			} catch (error_: any) {
+				this.options.onwarn(errorInvalidSourcemapForError(error_, this.id, column, line, pos));
 			}
-			augmentCodeLocation(props, { column, line }, code!, this.id);
+			augmentCodeLocation(properties, { column, line }, code!, this.id);
 		}
 	}
 
@@ -1062,7 +1066,7 @@ export default class Module {
 		if (existingAssertions) {
 			if (doAssertionsDiffer(existingAssertions, parsedAssertions)) {
 				this.warn(
-					errInconsistentImportAssertions(existingAssertions, parsedAssertions, source, this.id),
+					errorInconsistentImportAssertions(existingAssertions, parsedAssertions, source, this.id),
 					declaration.start
 				);
 			}
@@ -1111,7 +1115,7 @@ export default class Module {
 				return [usedDeclaration];
 			}
 			this.options.onwarn(
-				errNamespaceConflict(
+				errorNamespaceConflict(
 					name,
 					this.id,
 					foundDeclarationList.map(([, module]) => module.id)
@@ -1125,7 +1129,7 @@ export default class Module {
 			const usedDeclaration = foundDeclarationList[0];
 			if (foundDeclarationList.length > 1) {
 				this.options.onwarn(
-					errAmbiguousExternalNamespaces(
+					errorAmbiguousExternalNamespaces(
 						name,
 						this.id,
 						usedDeclaration.module.id,
@@ -1202,7 +1206,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.options.onwarn(errShimmedExport(this.id, name));
+		this.options.onwarn(errorShimmedExport(this.id, name));
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 }
@@ -1233,4 +1237,5 @@ const copyNameToModulesMap = (
 	searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
 ): Map<string, Set<Module | ExternalModule>> | undefined =>
 	searchedNamesAndModules &&
+	// eslint-disable-next-line unicorn/prefer-spread
 	new Map(Array.from(searchedNamesAndModules, ([name, modules]) => [name, new Set(modules)]));

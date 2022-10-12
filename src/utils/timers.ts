@@ -21,14 +21,18 @@ let timers = new Map<string, Timer>();
 
 function getPersistedLabel(label: string, level: number): string {
 	switch (level) {
-		case 1:
+		case 1: {
 			return `# ${label}`;
-		case 2:
+		}
+		case 2: {
 			return `## ${label}`;
-		case 3:
+		}
+		case 3: {
 			return label;
-		default:
+		}
+		default: {
 			return `${'  '.repeat(level - 4)}- ${label}`;
+		}
 	}
 }
 
@@ -109,11 +113,11 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			}
 			timerLabel += ` - ${hook}`;
 
-			const func = plugin[hook];
+			const hookFunction = plugin[hook];
 
-			plugin[hook] = function (...args: readonly unknown[]) {
+			plugin[hook] = function (...parameters: readonly unknown[]) {
 				timeStart(timerLabel, 4);
-				const result = func.apply(this, args);
+				const result = hookFunction.apply(this, parameters);
 				timeEnd(timerLabel, 4);
 				return result;
 			};

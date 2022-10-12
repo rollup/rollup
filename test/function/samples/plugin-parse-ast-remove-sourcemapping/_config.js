@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'remove source mapping comment even if code is parsed by PluginContext.parse method',

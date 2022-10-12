@@ -229,7 +229,7 @@ const getIsCompatNamespace = ({ _ }: GenerateCodeSnippets) =>
 
 const createNamespaceObject = (
 	t: string,
-	i: string,
+	index: string,
 	snippets: GenerateCodeSnippets,
 	liveBindings: boolean,
 	freeze: boolean,
@@ -240,30 +240,30 @@ const createNamespaceObject = (
 		`{${n}` +
 		(liveBindings ? copyNonDefaultOwnPropertyLiveBinding : copyPropertyStatic)(
 			t,
-			i + t + t,
+			index + t + t,
 			snippets
 		) +
-		`${i}${t}}`;
+		`${index}${t}}`;
 	return (
-		`${i}${cnst} n${_}=${_}Object.create(null${
+		`${index}${cnst} n${_}=${_}Object.create(null${
 			namespaceToStringTag
 				? `,${_}{${_}[Symbol.toStringTag]:${_}${getToStringTagValue(getObject)}${_}}`
 				: ''
 		});${n}` +
-		`${i}if${_}(e)${_}{${n}` +
-		`${i}${t}${loopOverKeys(copyProperty, !liveBindings, snippets)}${n}` +
-		`${i}}${n}` +
-		`${i}n${getPropertyAccess('default')}${_}=${_}e;${n}` +
-		`${i}return ${getFrozen(freeze, 'n')}${s}${n}`
+		`${index}if${_}(e)${_}{${n}` +
+		`${index}${t}${loopOverKeys(copyProperty, !liveBindings, snippets)}${n}` +
+		`${index}}${n}` +
+		`${index}n${getPropertyAccess('default')}${_}=${_}e;${n}` +
+		`${index}return ${getFrozen(freeze, 'n')}${s}${n}`
 	);
 };
 
 const loopOverKeys = (
 	body: string,
-	allowVarLoopVariable: boolean,
+	allowVariableLoopVariable: boolean,
 	{ _, cnst, getFunctionIntro, s }: GenerateCodeSnippets
 ) =>
-	cnst !== 'var' || allowVarLoopVariable
+	cnst !== 'var' || allowVariableLoopVariable
 		? `for${_}(${cnst} k in e)${_}${body}`
 		: `Object.keys(e).forEach(${getFunctionIntro(['k'], {
 				isAsync: false,
@@ -302,20 +302,20 @@ const loopOverNamespaces = (
 
 const copyNonDefaultOwnPropertyLiveBinding = (
 	t: string,
-	i: string,
+	index: string,
 	snippets: GenerateCodeSnippets
 ) => {
 	const { _, n } = snippets;
 	return (
-		`${i}if${_}(k${_}!==${_}'default')${_}{${n}` +
-		copyOwnPropertyLiveBinding(t, i + t, snippets) +
-		`${i}}${n}`
+		`${index}if${_}(k${_}!==${_}'default')${_}{${n}` +
+		copyOwnPropertyLiveBinding(t, index + t, snippets) +
+		`${index}}${n}`
 	);
 };
 
 const copyOwnPropertyLiveBinding = (
 	t: string,
-	i: string,
+	index: string,
 	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
 ) => {
 	const [left, right] = getDirectReturnFunction([], {
@@ -324,17 +324,17 @@ const copyOwnPropertyLiveBinding = (
 		name: null
 	});
 	return (
-		`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
-		`${i}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
-		`${i}${t}enumerable:${_}true,${n}` +
-		`${i}${t}get:${_}${left}e[k]${right}${n}` +
-		`${i}});${n}`
+		`${index}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+		`${index}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+		`${index}${t}enumerable:${_}true,${n}` +
+		`${index}${t}get:${_}${left}e[k]${right}${n}` +
+		`${index}});${n}`
 	);
 };
 
 const copyPropertyLiveBinding = (
 	t: string,
-	i: string,
+	index: string,
 	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
 ) => {
 	const [left, right] = getDirectReturnFunction([], {
@@ -343,18 +343,18 @@ const copyPropertyLiveBinding = (
 		name: null
 	});
 	return (
-		`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
-		`${i}if${_}(d)${_}{${n}` +
-		`${i}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
-		`${i}${t}${t}enumerable:${_}true,${n}` +
-		`${i}${t}${t}get:${_}${left}e[k]${right}${n}` +
-		`${i}${t}});${n}` +
-		`${i}}${n}`
+		`${index}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+		`${index}if${_}(d)${_}{${n}` +
+		`${index}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+		`${index}${t}${t}enumerable:${_}true,${n}` +
+		`${index}${t}${t}get:${_}${left}e[k]${right}${n}` +
+		`${index}${t}});${n}` +
+		`${index}}${n}`
 	);
 };
 
-const copyPropertyStatic = (_t: string, i: string, { _, n }: GenerateCodeSnippets) =>
-	`${i}n[k]${_}=${_}e[k];${n}`;
+const copyPropertyStatic = (_t: string, index: string, { _, n }: GenerateCodeSnippets) =>
+	`${index}n[k]${_}=${_}e[k];${n}`;
 
 const getFrozen = (freeze: boolean, fragment: string) =>
 	freeze ? `Object.freeze(${fragment})` : fragment;

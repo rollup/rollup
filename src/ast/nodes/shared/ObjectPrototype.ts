@@ -1,4 +1,4 @@
-import type { NodeInteraction, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArgument } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
@@ -11,7 +11,8 @@ import {
 } from './MethodTypes';
 import { ObjectEntity, type PropertyMap } from './ObjectEntity';
 
-const isInteger = (prop: ObjectPathKey): boolean => typeof prop === 'string' && /^\d+$/.test(prop);
+const isInteger = (property: ObjectPathKey): boolean =>
+	typeof property === 'string' && /^\d+$/.test(property);
 
 // This makes sure unknown properties are not handled as "undefined" but as
 // "unknown" but without access side effects. An exception is done for numeric
@@ -20,7 +21,7 @@ const isInteger = (prop: ObjectPathKey): boolean => typeof prop === 'string' && 
 const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 	new (class ObjectPrototypeFallbackExpression extends ExpressionEntity {
 		deoptimizeThisOnInteractionAtPath(
-			{ type, thisArg }: NodeInteractionWithThisArg,
+			{ type, thisArg }: NodeInteractionWithThisArgument,
 			path: ObjectPath
 		): void {
 			if (type === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {

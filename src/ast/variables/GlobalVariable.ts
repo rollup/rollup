@@ -32,14 +32,16 @@ export default class GlobalVariable extends Variable {
 		context: HasEffectsContext
 	): boolean {
 		switch (interaction.type) {
-			case INTERACTION_ACCESSED:
+			case INTERACTION_ACCESSED: {
 				if (path.length === 0) {
 					// Technically, "undefined" is a global variable of sorts
 					return this.name !== 'undefined' && !getGlobalAtPath([this.name]);
 				}
 				return !getGlobalAtPath([this.name, ...path].slice(0, -1));
-			case INTERACTION_ASSIGNED:
+			}
+			case INTERACTION_ASSIGNED: {
 				return true;
+			}
 			case INTERACTION_CALLED: {
 				const globalAtPath = getGlobalAtPath([this.name, ...path]);
 				return !globalAtPath || globalAtPath.hasEffectsWhenCalled(interaction, context);

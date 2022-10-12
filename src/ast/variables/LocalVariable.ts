@@ -6,7 +6,7 @@ import { createInclusionContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -92,7 +92,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -157,25 +157,28 @@ export default class LocalVariable extends Variable {
 		context: HasEffectsContext
 	): boolean {
 		switch (interaction.type) {
-			case INTERACTION_ACCESSED:
+			case INTERACTION_ACCESSED: {
 				if (this.isReassigned) return true;
 				return (this.init &&
 					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
 					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
-			case INTERACTION_ASSIGNED:
+			}
+			case INTERACTION_ASSIGNED: {
 				if (this.included) return true;
 				if (path.length === 0) return false;
 				if (this.isReassigned) return true;
 				return (this.init &&
 					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
 					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
-			case INTERACTION_CALLED:
+			}
+			case INTERACTION_CALLED: {
 				if (this.isReassigned) return true;
 				return (this.init &&
 					!(
 						interaction.withNew ? context.instantiated : context.called
 					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
 					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			}
 		}
 	}
 
@@ -199,15 +202,15 @@ export default class LocalVariable extends Variable {
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.isReassigned || (this.init && context.includedCallArguments.has(this.init))) {
-			for (const arg of args) {
-				arg.include(context, false);
+			for (const argument of parameters) {
+				argument.include(context, false);
 			}
 		} else if (this.init) {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, args);
+			this.init.includeCallArguments(context, parameters);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

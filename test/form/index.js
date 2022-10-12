@@ -6,29 +6,29 @@ const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
-runTestSuiteWithSamples('form', resolve(__dirname, 'samples'), (dir, config) => {
-	const isSingleFormatTest = existsSync(dir + '/_expected.js');
+runTestSuiteWithSamples('form', resolve(__dirname, 'samples'), (directory, config) => {
+	const isSingleFormatTest = existsSync(directory + '/_expected.js');
 	const itOrDescribe = isSingleFormatTest ? it : describe;
 	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
-		basename(dir) + ': ' + config.description,
+		basename(directory) + ': ' + config.description,
 		() => {
 			let bundle;
 			const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
 				const warnings = [];
 				if (config.before) config.before();
 				try {
-					process.chdir(dir);
+					process.chdir(directory);
 					bundle =
 						bundle ||
 						(await rollup({
-							input: dir + '/main.js',
+							input: directory + '/main.js',
 							onwarn: warning => {
 								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 									warnings.push(warning);
 								}
 							},
 							strictDeprecations: true,
-							...(config.options || {})
+							...config.options
 						}));
 					await generateAndTestBundle(
 						bundle,
@@ -37,7 +37,7 @@ runTestSuiteWithSamples('form', resolve(__dirname, 'samples'), (dir, config) => 
 							file: inputFile,
 							format: defaultFormat,
 							validate: true,
-							...((config.options || {}).output || {})
+							...(config.options || {}).output
 						},
 						bundleFile,
 						config
@@ -59,18 +59,17 @@ runTestSuiteWithSamples('form', resolve(__dirname, 'samples'), (dir, config) => 
 			};
 
 			if (isSingleFormatTest) {
-				return runRollupTest(dir + '/_actual.js', dir + '/_expected.js', 'es');
+				return runRollupTest(directory + '/_actual.js', directory + '/_expected.js', 'es');
 			}
 
-			(config.formats || FORMATS).forEach(format =>
+			for (const format of config.formats || FORMATS)
 				it('generates ' + format, () =>
 					runRollupTest(
-						dir + '/_actual/' + format + '.js',
-						dir + '/_expected/' + format + '.js',
+						directory + '/_actual/' + format + '.js',
+						directory + '/_expected/' + format + '.js',
 						format
 					)
-				)
-			);
+				);
 		}
 	);
 });
@@ -84,7 +83,7 @@ async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show
 
 	try {
 		expectedCode = normaliseOutput(readFileSync(expectedFile, 'utf8'));
-	} catch (err) {
+	} catch {
 		expectedCode = 'missing file';
 	}
 
@@ -93,8 +92,8 @@ async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show
 		actualMap.sourcesContent = actualMap.sourcesContent
 			? actualMap.sourcesContent.map(normaliseOutput)
 			: null;
-	} catch (err) {
-		assert.strictEqual(err.code, 'ENOENT');
+	} catch (error) {
+		assert.strictEqual(error.code, 'ENOENT');
 	}
 
 	try {
@@ -102,8 +101,8 @@ async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show
 		expectedMap.sourcesContent = actualMap.sourcesContent
 			? expectedMap.sourcesContent.map(normaliseOutput)
 			: null;
-	} catch (err) {
-		assert.equal(err.code, 'ENOENT');
+	} catch (error) {
+		assert.equal(error.code, 'ENOENT');
 	}
 
 	if (show) {

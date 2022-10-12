@@ -66,7 +66,7 @@ function formatAssertions(
 	const assertionEntries: [key: string, value: string][] = Object.entries(assertions).map(
 		([key, value]) => [key, `'${value}'`]
 	);
-	if (assertionEntries.length) {
+	if (assertionEntries.length > 0) {
 		return getObject(assertionEntries, { lineBreakIndent: null });
 	}
 	return null;

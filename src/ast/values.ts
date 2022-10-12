@@ -146,13 +146,17 @@ const returnsString: RawMemberDescription = {
 const stringReplace: RawMemberDescription = {
 	value: {
 		hasEffectsWhenCalled({ args }, context) {
-			const arg1 = args[1];
+			const argument1 = args[1];
 			return (
 				args.length < 2 ||
-				(typeof arg1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+				(typeof argument1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
 					deoptimizeCache() {}
 				}) === 'symbol' &&
-					arg1.hasEffectsOnInteractionAtPath(EMPTY_PATH, NODE_INTERACTION_UNKNOWN_CALL, context))
+					argument1.hasEffectsOnInteractionAtPath(
+						EMPTY_PATH,
+						NODE_INTERACTION_UNKNOWN_CALL,
+						context
+					))
 			);
 		},
 		returns: UNKNOWN_LITERAL_STRING
@@ -245,12 +249,15 @@ export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>
 	value: T
 ): MemberDescriptions {
 	switch (typeof value) {
-		case 'boolean':
+		case 'boolean': {
 			return literalBooleanMembers;
-		case 'number':
+		}
+		case 'number': {
 			return literalNumberMembers;
-		case 'string':
+		}
+		case 'string': {
 			return literalStringMembers;
+		}
 	}
 	return Object.create(null);
 }

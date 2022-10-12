@@ -19,7 +19,7 @@ module.exports = {
 				if (id.startsWith('asset')) {
 					return `export default import.meta.ROLLUP_FILE_URL_${this.emitFile({
 						type: 'asset',
-						source: Uint8Array.from(Array.from(id, char => char.charCodeAt(0)))
+						source: Uint8Array.from([...id].map(char => char.charCodeAt(0)))
 					})};`;
 				}
 			}

@@ -51,16 +51,16 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 		analysedModules.add(module);
 	};
 
-	for (const curEntry of entryModules) {
-		if (!parents.has(curEntry)) {
-			parents.set(curEntry, null);
-			analyseModule(curEntry);
+	for (const currentEntry of entryModules) {
+		if (!parents.has(currentEntry)) {
+			parents.set(currentEntry, null);
+			analyseModule(currentEntry);
 		}
 	}
-	for (const curEntry of dynamicImports) {
-		if (!parents.has(curEntry)) {
-			parents.set(curEntry, null);
-			analyseModule(curEntry);
+	for (const currentEntry of dynamicImports) {
+		if (!parents.has(currentEntry)) {
+			parents.set(currentEntry, null);
+			analyseModule(currentEntry);
 		}
 	}
 

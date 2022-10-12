@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { chdir, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import GitHub from 'github-api';
@@ -24,7 +24,7 @@ const [gh, currentBranch] = await Promise.all([
 	runAndGetStdout('git', ['branch', '--show-current']),
 	runWithEcho('git', ['pull', '--ff-only'])
 ]);
-const [pkg, browserPkg, repo, issues, changelog] = await Promise.all([
+const [package_, browserPackage, repo, issues, changelog] = await Promise.all([
 	readJson(MAIN_PKG),
 	readJson(BROWSER_PKG),
 	gh.getRepo('rollup', 'rollup'),
@@ -33,7 +33,7 @@ const [pkg, browserPkg, repo, issues, changelog] = await Promise.all([
 ]);
 const isMainBranch = currentBranch === MAIN_BRANCH;
 const [newVersion, includedPRs] = await Promise.all([
-	getNewVersion(pkg, isMainBranch),
+	getNewVersion(package_, isMainBranch),
 	getIncludedPRs(changelog, repo)
 ]);
 
@@ -42,15 +42,15 @@ try {
 	if (isMainBranch) {
 		await addStubChangelogEntry(newVersion, repo, changelog, includedPRs);
 	}
-	await updatePackages(pkg, browserPkg, newVersion);
+	await updatePackages(package_, browserPackage, newVersion);
 	await installDependenciesBuildAndTest();
 	changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
 	gitTag = `v${newVersion}`;
 	await commitChanges(newVersion, gitTag, isMainBranch);
-} catch (err) {
-	console.error(`Error during release, rolling back changes: ${err.message}`);
+} catch (error) {
+	console.error(`Error during release, rolling back changes: ${error.message}`);
 	await runWithEcho('git', ['reset', '--hard']);
-	throw err;
+	throw error;
 }
 
 await releasePackages(newVersion);
@@ -65,15 +65,15 @@ async function getGithubApi() {
 	try {
 		const token = (await readFile(GITHUB_TOKEN, 'utf8')).trim();
 		return new GitHub({ token });
-	} catch (err) {
-		if (err.code === 'ENOENT') {
+	} catch (error) {
+		if (error.code === 'ENOENT') {
 			console.error(
 				`Could not find GitHub token file. Please create "${GITHUB_TOKEN}" containing a token with the following permissions:
 - public_repo`
 			);
 			exit(1);
 		} else {
-			throw err;
+			throw error;
 		}
 	}
 }
@@ -83,8 +83,8 @@ async function readJson(file) {
 	return JSON.parse(content);
 }
 
-async function getNewVersion(pkg, isMainBranch) {
-	const { version } = pkg;
+async function getNewVersion(package_, isMainBranch) {
+	const { version } = package_;
 	const availableIncrements = isMainBranch
 		? ['patch', 'minor']
 		: semverPreRelease(version)
@@ -135,7 +135,7 @@ breaking changes in the release while the tests are running.`)
 
 function getFirstChangelogEntry(changelog) {
 	const match = changelog.match(
-		/(?<text>## (?<currentVersion>\d+\.\d+\.\d+)[\s\S]*?)\n+## (?<previousVersion>\d+\.\d+\.\d+)/
+		/(?<text>## (?<currentVersion>\d+\.\d+\.\d+)[\S\s]*?)\n+## (?<previousVersion>\d+\.\d+\.\d+)/
 	);
 	if (!match) {
 		throw new Error('Could not detect any changelog entry.');
@@ -165,8 +165,8 @@ async function getIncludedPRs(changelog, repo) {
 	return Promise.all(
 		prs.map(async ({ pr, text }) => {
 			const { data } = await repo.getPullRequest(pr);
-			const bodyWithoutComments = data.body.replace(/<!--[\s\S]*?-->/g, '');
-			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[sd]?) #(\d+)/g;
+			const bodyWithoutComments = data.body.replace(/<!--[\S\s]*?-->/g, '');
+			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[ds]?) #(\d+)/g;
 			const closed = [];
 			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
 				closed.push(match[4]);
@@ -268,15 +268,15 @@ async function waitForChangelogUpdate(version) {
 	return changelogEntry;
 }
 
-function updatePackages(pkg, browserPkg, newVersion) {
+function updatePackages(package_, browserPackage, newVersion) {
 	return Promise.all([
-		writeFile(MAIN_PKG, getPkgStringWithVersion(pkg, newVersion)),
-		writeFile(BROWSER_PKG, getPkgStringWithVersion(browserPkg, newVersion))
+		writeFile(MAIN_PKG, getPackageStringWithVersion(package_, newVersion)),
+		writeFile(BROWSER_PKG, getPackageStringWithVersion(browserPackage, newVersion))
 	]);
 }
 
-function getPkgStringWithVersion(pkg, version) {
-	return JSON.stringify({ ...pkg, version }, null, 2) + '\n';
+function getPackageStringWithVersion(package_, version) {
+	return JSON.stringify({ ...package_, version }, null, 2) + '\n';
 }
 
 async function commitChanges(newVersion, gitTag, isMainBranch) {
@@ -286,17 +286,17 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 }
 
 function releasePackages(newVersion) {
-	const releaseEnv = { ...process.env, ROLLUP_RELEASE: 'releasing' };
+	const releaseEnvironment = { ...process.env, ROLLUP_RELEASE: 'releasing' };
 	const releaseTag = semverPreRelease(newVersion) ? ['--tag', 'beta'] : [];
-	const args = ['publish', '--access', 'public', ...releaseTag];
+	const parameters = ['publish', '--access', 'public', ...releaseTag];
 	return Promise.all([
-		runWithEcho('npm', args, {
+		runWithEcho('npm', parameters, {
 			cwd: new URL('..', import.meta.url),
-			env: releaseEnv
+			env: releaseEnvironment
 		}),
-		runWithEcho('npm', args, {
+		runWithEcho('npm', parameters, {
 			cwd: new URL('../browser', import.meta.url),
-			env: releaseEnv
+			env: releaseEnvironment
 		})
 	]);
 }

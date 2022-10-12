@@ -30,7 +30,7 @@ export default class StaticBlock extends StatementBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		if (this.body.length) {
+		if (this.body.length > 0) {
 			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {
 			super.render(code, options);

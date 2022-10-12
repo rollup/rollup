@@ -1,5 +1,5 @@
-const { readFileSync } = require('fs');
-const path = require('path');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 
 module.exports = {
 	description: 'does not include format globals when tree-shaking an asset access',

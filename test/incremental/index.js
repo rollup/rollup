@@ -154,6 +154,7 @@ describe('incremental', () => {
 		let cache;
 		modules.foo = `import p from 'external'; export default p;`;
 
+		// eslint-disable-next-line unicorn/consistent-function-scoping
 		const require = id => id === 'external' && 43;
 
 		return rollup
@@ -194,9 +195,9 @@ describe('incremental', () => {
 			})
 			.then(bundle => {
 				const asts = {};
-				bundle.cache.modules.forEach(module => {
+				for (const module of bundle.cache.modules) {
 					asts[module.id] = module.ast;
-				});
+				}
 
 				assert.deepEqual(
 					asts.entry,
@@ -226,7 +227,7 @@ describe('incremental', () => {
 						plugins: [plugin],
 						cache
 					})
-					.catch(err => {
+					.catch(error => {
 						return cache;
 					});
 			})
@@ -357,7 +358,7 @@ describe('incremental', () => {
 					syntheticNamedExports: false
 				});
 				switch (id) {
-					case 'foo':
+					case 'foo': {
 						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
 						assert.deepStrictEqual(resolvedSources, {
 							__proto__: null,
@@ -371,12 +372,14 @@ describe('incremental', () => {
 							}
 						});
 						// we return promises to ensure they are awaited
-						return Promise.resolve(false);
-					case 'bar':
+						return false;
+					}
+					case 'bar': {
 						assert.deepStrictEqual(meta, { transform: { calls: 2, id } });
 						assert.deepStrictEqual(resolvedSources, { __proto__: null });
-						return Promise.resolve(false);
-					case 'entry':
+						return false;
+					}
+					case 'entry': {
 						assert.deepStrictEqual(meta, { transform: { calls: 0, id } });
 						assert.deepStrictEqual(resolvedSources, {
 							__proto__: null,
@@ -389,9 +392,11 @@ describe('incremental', () => {
 								syntheticNamedExports: false
 							}
 						});
-						return Promise.resolve(true);
-					default:
+						return true;
+					}
+					default: {
 						throw new Error(`Unexpected id ${id}.`);
+					}
 				}
 			},
 			transform: (code, id) => {

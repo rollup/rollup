@@ -1,23 +1,25 @@
 import RESERVED_NAMES from './RESERVED_NAMES';
 
-const illegalCharacters = /[^$_a-zA-Z0-9]/g;
+const illegalCharacters = /[^\w$]/g;
 
-const startsWithDigit = (str: string): boolean => /\d/.test(str[0]);
+const startsWithDigit = (value: string): boolean => /\d/.test(value[0]);
 
-const needsEscape = (str: string) =>
-	startsWithDigit(str) || RESERVED_NAMES.has(str) || str === 'arguments';
+const needsEscape = (value: string) =>
+	startsWithDigit(value) || RESERVED_NAMES.has(value) || value === 'arguments';
 
-export function isLegal(str: string): boolean {
-	if (needsEscape(str)) {
+export function isLegal(value: string): boolean {
+	if (needsEscape(value)) {
 		return false;
 	}
-	return !illegalCharacters.test(str);
+	return !illegalCharacters.test(value);
 }
 
-export function makeLegal(str: string): string {
-	str = str.replace(/-(\w)/g, (_, letter) => letter.toUpperCase()).replace(illegalCharacters, '_');
+export function makeLegal(value: string): string {
+	value = value
+		.replace(/-(\w)/g, (_, letter) => letter.toUpperCase())
+		.replace(illegalCharacters, '_');
 
-	if (needsEscape(str)) str = `_${str}`;
+	if (needsEscape(value)) value = `_${value}`;
 
-	return str || '_';
+	return value || '_';
 }

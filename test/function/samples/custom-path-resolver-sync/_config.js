@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 module.exports = {
 	description: 'uses a custom path resolver (synchronous)',
@@ -16,6 +16,6 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		assert.strictEqual(exports.path, require('path'));
+		assert.strictEqual(exports.path, require('node:path'));
 	}
 };

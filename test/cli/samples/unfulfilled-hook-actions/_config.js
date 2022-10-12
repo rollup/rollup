@@ -1,12 +1,12 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'show errors with non-zero exit code for unfulfilled async plugin actions on exit',
 	command: 'rollup -c --silent',
-	after(err) {
+	after(error) {
 		// exit code check has to be here as error(err) is only called upon failure
-		assert.strictEqual(err && err.code, 1);
+		assert.strictEqual(error && error.code, 1);
 	},
 	error() {
 		// do not abort test upon error

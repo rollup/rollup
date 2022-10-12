@@ -27,7 +27,7 @@ export default class MetaProperty extends NodeBase {
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
 		const { metaProperty } = this;
 		if (metaProperty?.startsWith(FILE_PREFIX)) {
-			return outputPluginDriver.getFileName(metaProperty.substring(FILE_PREFIX.length));
+			return outputPluginDriver.getFileName(metaProperty.slice(FILE_PREFIX.length));
 		}
 		return null;
 	}
@@ -51,29 +51,32 @@ export default class MetaProperty extends NodeBase {
 						? parent.propertyKey
 						: null);
 				if (metaProperty?.startsWith(FILE_PREFIX)) {
-					this.referenceId = metaProperty.substring(FILE_PREFIX.length);
+					this.referenceId = metaProperty.slice(FILE_PREFIX.length);
 				}
 			}
 		}
 	}
 
 	render(code: MagicString, { format, pluginDriver, snippets }: RenderOptions): void {
-		const { metaProperty, parent, referenceId } = this;
-		const chunkId = this.preliminaryChunkId!;
+		const {
+			context: {
+				module: { id: moduleId }
+			},
+			metaProperty,
+			parent,
+			preliminaryChunkId,
+			referenceId,
+			start,
+			end
+		} = this;
+		const chunkId = preliminaryChunkId!;
 
 		if (referenceId) {
 			const fileName = pluginDriver.getFileName(referenceId);
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			const replacement =
 				pluginDriver.hookFirstSync('resolveFileUrl', [
-					{
-						chunkId,
-						fileName,
-						format,
-						moduleId: this.context.module.id,
-						referenceId,
-						relativePath
-					}
+					{ chunkId, fileName, format, moduleId, referenceId, relativePath }
 				]) || relativeUrlMechanisms[format](relativePath);
 
 			code.overwrite(
@@ -88,17 +91,13 @@ export default class MetaProperty extends NodeBase {
 		const replacement =
 			pluginDriver.hookFirstSync('resolveImportMeta', [
 				metaProperty,
-				{
-					chunkId,
-					format,
-					moduleId: this.context.module.id
-				}
+				{ chunkId, format, moduleId }
 			]) || importMetaMechanisms[format]?.(metaProperty, { chunkId, snippets });
 		if (typeof replacement === 'string') {
 			if (parent instanceof MemberExpression) {
 				code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
 			} else {
-				code.overwrite(this.start, this.end, replacement, { contentOnly: true });
+				code.overwrite(start, end, replacement, { contentOnly: true });
 			}
 		}
 	}
@@ -147,11 +146,11 @@ const getRelativeUrlFromDocument = (relativePath: string, umd = false) =>
 
 const getGenericImportMetaMechanism =
 	(getUrl: (chunkId: string) => string) =>
-	(prop: string | null, { chunkId }: { chunkId: string }) => {
+	(property: string | null, { chunkId }: { chunkId: string }) => {
 		const urlMechanism = getUrl(chunkId);
-		return prop === null
+		return property === null
 			? `({ url: ${urlMechanism} })`
-			: prop === 'url'
+			: property === 'url'
 			? urlMechanism
 			: 'undefined';
 	};
@@ -183,7 +182,7 @@ const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string)
 
 const importMetaMechanisms: Record<
 	string,
-	(prop: string | null, options: { chunkId: string; snippets: GenerateCodeSnippets }) => string
+	(property: string | null, options: { chunkId: string; snippets: GenerateCodeSnippets }) => string
 > = {
 	amd: getGenericImportMetaMechanism(() => getResolveUrl(`module.uri, document.baseURI`)),
 	cjs: getGenericImportMetaMechanism(
@@ -194,8 +193,8 @@ const importMetaMechanisms: Record<
 			)} : ${getUrlFromDocument(chunkId)})`
 	),
 	iife: getGenericImportMetaMechanism(chunkId => getUrlFromDocument(chunkId)),
-	system: (prop, { snippets: { getPropertyAccess } }) =>
-		prop === null ? `module.meta` : `module.meta${getPropertyAccess(prop)}`,
+	system: (property, { snippets: { getPropertyAccess } }) =>
+		property === null ? `module.meta` : `module.meta${getPropertyAccess(property)}`,
 	umd: getGenericImportMetaMechanism(
 		chunkId =>
 			`(typeof document === 'undefined' && typeof location === 'undefined' ? ${getResolveUrl(

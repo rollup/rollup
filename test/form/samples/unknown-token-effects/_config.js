@@ -3,14 +3,14 @@ module.exports = {
 	options: {
 		acornInjectPlugins: Parser =>
 			class extends Parser {
-				parseExprAtom(refDestructuringErrors) {
+				parseExprAtom(referenceDestructuringErrors) {
 					if (this.type.keyword === 'do') {
 						this.eat(this.type);
 						const node = this.startNode();
 						node.body = this.parseBlock();
 						return this.finishNode(node, 'DoExpression');
 					}
-					return super.parseExprAtom(refDestructuringErrors);
+					return super.parseExprAtom(referenceDestructuringErrors);
 				}
 			}
 	}

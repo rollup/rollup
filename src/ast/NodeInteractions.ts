@@ -54,4 +54,4 @@ export type NodeInteraction =
 	| NodeInteractionAssigned
 	| NodeInteractionCalled;
 
-export type NodeInteractionWithThisArg = NodeInteraction & { thisArg: ExpressionEntity };
+export type NodeInteractionWithThisArgument = NodeInteraction & { thisArg: ExpressionEntity };

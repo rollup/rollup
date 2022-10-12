@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'supports external dynamic imports with live bindings',
@@ -11,10 +11,12 @@ module.exports = {
 	context: {
 		require(id) {
 			switch (id) {
-				case 'dep-0':
-					return undefined;
-				case 'dep-1':
+				case 'dep-0': {
+					return;
+				}
+				case 'dep-1': {
 					return () => 42;
+				}
 				case 'dep-2': {
 					const exp = {
 						value: 1,
@@ -41,8 +43,9 @@ module.exports = {
 					};
 					return exp;
 				}
-				default:
+				default: {
 					throw new Error(`Unexpected id ${id}.`);
+				}
 			}
 		}
 	},

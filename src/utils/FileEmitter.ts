@@ -10,16 +10,16 @@ import type {
 import { BuildPhase } from './buildPhase';
 import { createHash } from './crypto';
 import {
-	errAssetNotFinalisedForFileName,
-	errAssetReferenceIdNotFoundForSetSource,
-	errAssetSourceAlreadySet,
-	errChunkNotGeneratedForFileName,
-	errFailedValidation,
-	errFileNameConflict,
-	errFileReferenceIdNotFoundForFilename,
-	errInvalidRollupPhaseForChunkEmission,
-	errNoAssetSourceSet,
-	error
+	error,
+	errorAssetNotFinalisedForFileName,
+	errorAssetReferenceIdNotFoundForSetSource,
+	errorAssetSourceAlreadySet,
+	errorChunkNotGeneratedForFileName,
+	errorFailedValidation,
+	errorFileNameConflict,
+	errorFileReferenceIdNotFoundForFilename,
+	errorInvalidRollupPhaseForChunkEmission,
+	errorNoAssetSourceSet
 } from './error';
 import { defaultHashSize } from './hashPlaceholders';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
@@ -42,14 +42,15 @@ function generateAssetFileName(
 				: outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
-				ext: () => extname(emittedName).substring(1),
+				ext: () => extname(emittedName).slice(1),
 				extname: () => extname(emittedName),
 				hash: size =>
 					createHash()
 						.update(source)
 						.digest('hex')
-						.substring(0, size || defaultHashSize),
-				name: () => emittedName.substring(0, emittedName.length - extname(emittedName).length)
+						.slice(0, Math.max(0, size || defaultHashSize)),
+				name: () =>
+					emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
 			}
 		),
 		bundle
@@ -62,7 +63,7 @@ function reserveFileNameInBundle(
 	warn: WarningHandler
 ) {
 	if (bundle[lowercaseBundleKeys].has(fileName.toLowerCase())) {
-		warn(errFileNameConflict(fileName));
+		warn(errorFileNameConflict(fileName));
 	} else {
 		bundle[fileName] = FILE_PLACEHOLDER;
 	}
@@ -117,7 +118,7 @@ function getValidSource(
 	if (!(typeof source === 'string' || source instanceof Uint8Array)) {
 		const assetName = emittedFile.fileName || emittedFile.name || fileReferenceId;
 		return error(
-			errFailedValidation(
+			errorFailedValidation(
 				`Could not set source for ${
 					typeof assetName === 'string' ? `asset "${assetName}"` : 'unnamed asset'
 				}, asset source needs to be a string, Uint8Array or Buffer.`
@@ -129,7 +130,7 @@ function getValidSource(
 
 function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 	if (typeof file.fileName !== 'string') {
-		return error(errAssetNotFinalisedForFileName(file.name || referenceId));
+		return error(errorAssetNotFinalisedForFileName(file.name || referenceId));
 	}
 	return file.fileName;
 }
@@ -145,7 +146,7 @@ function getChunkFileName(
 		const chunk = facadeChunkByModule.get(file.module!)!;
 		return chunk.id || chunk.getFileName();
 	}
-	return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
+	return error(errorChunkNotGeneratedForFileName(file.fileName || file.name));
 }
 
 interface FileEmitterOutput {
@@ -173,7 +174,7 @@ export class FileEmitter {
 	public emitFile = (emittedFile: unknown): string => {
 		if (!hasValidType(emittedFile)) {
 			return error(
-				errFailedValidation(
+				errorFailedValidation(
 					`Emitted files must be of type "asset" or "chunk", received "${
 						emittedFile && (emittedFile as any).type
 					}".`
@@ -182,7 +183,7 @@ export class FileEmitter {
 		}
 		if (!hasValidName(emittedFile)) {
 			return error(
-				errFailedValidation(
+				errorFailedValidation(
 					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${
 						emittedFile.fileName || emittedFile.name
 					}".`
@@ -198,13 +199,13 @@ export class FileEmitter {
 	public finaliseAssets = (): void => {
 		for (const [referenceId, emittedFile] of this.filesByReferenceId) {
 			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
-				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
+				return error(errorNoAssetSourceSet(emittedFile.name || referenceId));
 		}
 	};
 
 	public getFileName = (fileReferenceId: string): string => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
-		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
+		if (!emittedFile) return error(errorFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
 			return getChunkFileName(emittedFile, this.facadeChunkByModule);
 		}
@@ -213,16 +214,16 @@ export class FileEmitter {
 
 	public setAssetSource = (referenceId: string, requestedSource: unknown): void => {
 		const consumedFile = this.filesByReferenceId.get(referenceId);
-		if (!consumedFile) return error(errAssetReferenceIdNotFoundForSetSource(referenceId));
+		if (!consumedFile) return error(errorAssetReferenceIdNotFoundForSetSource(referenceId));
 		if (consumedFile.type !== 'asset') {
 			return error(
-				errFailedValidation(
+				errorFailedValidation(
 					`Asset sources can only be set for emitted assets but "${referenceId}" is an emitted chunk.`
 				)
 			);
 		}
 		if (consumedFile.source !== undefined) {
-			return error(errAssetSourceAlreadySet(consumedFile.name || referenceId));
+			return error(errorAssetSourceAlreadySet(consumedFile.name || referenceId));
 		}
 		const source = getValidSource(requestedSource, consumedFile, referenceId);
 		if (this.output) {
@@ -264,7 +265,7 @@ export class FileEmitter {
 			referenceId = createHash()
 				.update(referenceId || idBase)
 				.digest('hex')
-				.substring(0, 8);
+				.slice(0, 8);
 		} while (this.filesByReferenceId.has(referenceId));
 
 		this.filesByReferenceId.set(referenceId, file);
@@ -299,11 +300,11 @@ export class FileEmitter {
 
 	private emitChunk(emittedChunk: EmittedFile): string {
 		if (this.graph.phase > BuildPhase.LOAD_AND_PARSE) {
-			return error(errInvalidRollupPhaseForChunkEmission());
+			return error(errorInvalidRollupPhaseForChunkEmission());
 		}
 		if (typeof emittedChunk.id !== 'string') {
 			return error(
-				errFailedValidation(
+				errorFailedValidation(
 					`Emitted chunks need to have a valid string id, received "${emittedChunk.id}"`
 				)
 			);

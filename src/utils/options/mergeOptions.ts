@@ -38,9 +38,11 @@ export const commandAliases: { [key: string]: string } = {
 	w: 'watch'
 };
 
+const EMPTY_COMMAND_OPTIONS = { external: [], globals: undefined };
+
 export function mergeOptions(
 	config: GenericConfigObject,
-	rawCommandOptions: GenericConfigObject = { external: [], globals: undefined },
+	rawCommandOptions: GenericConfigObject = EMPTY_COMMAND_OPTIONS,
 	defaultOnWarnHandler: WarningHandler = defaultOnWarn
 ): MergedRollupOptions {
 	const command = getCommandOptions(rawCommandOptions);
@@ -57,9 +59,10 @@ export function mergeOptions(
 
 	warnUnknownOptions(
 		command,
-		Object.keys(inputOptions).concat(
-			Object.keys(outputOptions[0]).filter(option => option !== 'sourcemapPathTransform'),
-			Object.keys(commandAliases),
+		[
+			...Object.keys(inputOptions),
+			...Object.keys(outputOptions[0]).filter(option => option !== 'sourcemapPathTransform'),
+			...Object.keys(commandAliases),
 			'bundleConfigAsCjs',
 			'config',
 			'environment',
@@ -69,7 +72,7 @@ export function mergeOptions(
 			'stdin',
 			'waitForBundleInput',
 			'configPlugin'
-		),
+		],
 		'CLI flags',
 		warn,
 		/^_$|output$|config/
@@ -162,7 +165,7 @@ const getExternal = (
 	return typeof configExternal === 'function'
 		? (source: string, importer: string | undefined, isResolved: boolean) =>
 				configExternal(source, importer, isResolved) || overrides.external.includes(source)
-		: ensureArray(configExternal).concat(overrides.external);
+		: [...ensureArray(configExternal), ...overrides.external];
 };
 
 const getOnWarn = (

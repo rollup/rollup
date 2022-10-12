@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const ID_EVENS = path.join(__dirname, 'evens.js');
 const ID_ODDS = path.join(__dirname, 'odds.js');
 

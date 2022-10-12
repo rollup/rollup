@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 let oldConsoleWarn;
 const warnings = [];
 
@@ -15,7 +15,7 @@ module.exports = {
 	},
 	before() {
 		oldConsoleWarn = console.warn;
-		console.warn = msg => warnings.push(msg);
+		console.warn = message => warnings.push(message);
 	},
 	after() {
 		console.warn = oldConsoleWarn;
