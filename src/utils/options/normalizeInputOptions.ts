@@ -5,7 +5,6 @@ import type {
 	InputOptions,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
-	Plugin,
 	RollupBuild,
 	WarningHandler
 } from '../../rollup/types';
@@ -17,6 +16,7 @@ import {
 	defaultOnWarn,
 	type GenericConfigObject,
 	getOptionWithPreset,
+	normalizePluginOption,
 	treeshakePresets,
 	warnUnknownOptions
 } from './options';
@@ -55,7 +55,7 @@ export function normalizeInputOptions(config: InputOptions): {
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: config.perf || false,
-		plugins: ([config.plugins] as Plugin[]).flat(Infinity).filter(Boolean),
+		plugins: normalizePluginOption(config.plugins),
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
 		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,

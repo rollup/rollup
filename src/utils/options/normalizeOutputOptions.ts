@@ -4,7 +4,6 @@ import type {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputOptions,
-	OutputPlugin,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
 import { errInvalidExportOptionValue, errInvalidOption, error, warnDeprecation } from '../error';
@@ -15,6 +14,7 @@ import {
 	generatedCodePresets,
 	type GenericConfigObject,
 	getOptionWithPreset,
+	normalizePluginOption,
 	warnUnknownOptions
 } from './options';
 
@@ -68,7 +68,7 @@ export function normalizeOutputOptions(
 		noConflict: config.noConflict || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
-		plugins: ([config.plugins] as OutputPlugin[]).flat(Infinity).filter(Boolean),
+		plugins: normalizePluginOption(config.plugins),
 		preferConst,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),

@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { InputOptionsWithPlugins } from '../../src/rollup/types';
+import { normalizePluginOption } from '../../src/utils/options/options';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';
 
@@ -22,7 +23,7 @@ export async function addPluginsFromCommandOption(
 	inputOptions: InputOptionsWithPlugins
 ): Promise<void> {
 	if (commandPlugin) {
-		const plugins: any[] = [commandPlugin].flat(Infinity).filter(Boolean);
+		const plugins: any[] = normalizePluginOption(commandPlugin as any);
 		for (const plugin of plugins) {
 			if (/[={}]/.test(plugin)) {
 				// -p plugin=value
