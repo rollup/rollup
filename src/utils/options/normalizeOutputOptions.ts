@@ -17,7 +17,6 @@ import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName
 import { isValidUrl } from '../url';
 import {
 	generatedCodePresets,
-	type GenericConfigObject,
 	getOptionWithPreset,
 	normalizePluginOption,
 	warnUnknownOptions
@@ -95,12 +94,7 @@ export function normalizeOutputOptions(
 		validate: config.validate || false
 	};
 
-	warnUnknownOptions(
-		config as GenericConfigObject,
-		Object.keys(outputOptions),
-		'output options',
-		inputOptions.onwarn
-	);
+	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onwarn);
 	return { options: outputOptions, unsetOptions };
 }
 
@@ -289,7 +283,7 @@ const getAddon = <T extends 'banner' | 'footer' | 'intro' | 'outro'>(
 	config: OutputOptions,
 	name: T
 ): NormalizedOutputOptions[T] => {
-	const configAddon = (config as GenericConfigObject)[name];
+	const configAddon = config[name];
 	if (typeof configAddon === 'function') {
 		return configAddon as NormalizedOutputOptions[T];
 	}

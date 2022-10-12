@@ -20,7 +20,7 @@ export interface GenericConfigObject {
 export const defaultOnWarn: WarningHandler = warning => console.warn(warning.message || warning);
 
 export function warnUnknownOptions(
-	passedOptions: GenericConfigObject,
+	passedOptions: object,
 	validOptions: readonly string[],
 	optionType: string,
 	warn: WarningHandler,

@@ -6,6 +6,7 @@ import type {
 	OutputOptions,
 	OutputPluginOption,
 	RollupCache,
+	RollupOptions,
 	WarningHandler,
 	WarningHandlerWithDefault
 } from '../../rollup/types';
@@ -41,7 +42,7 @@ export const commandAliases: { [key: string]: string } = {
 const EMPTY_COMMAND_OPTIONS = { external: [], globals: undefined };
 
 export function mergeOptions(
-	config: GenericConfigObject,
+	config: RollupOptions,
 	rawCommandOptions: GenericConfigObject = EMPTY_COMMAND_OPTIONS,
 	defaultOnWarnHandler: WarningHandler = defaultOnWarn
 ): MergedRollupOptions {
@@ -51,7 +52,7 @@ export function mergeOptions(
 	if (command.output) {
 		Object.assign(command, command.output);
 	}
-	const outputOptionsArray = ensureArray(config.output) as GenericConfigObject[];
+	const outputOptionsArray = ensureArray(config.output);
 	if (outputOptionsArray.length === 0) outputOptionsArray.push({});
 	const outputOptions = outputOptionsArray.map(singleOutputOptions =>
 		mergeOutputOptions(singleOutputOptions, command, warn)
@@ -108,7 +109,7 @@ type CompleteInputOptions<U extends keyof InputOptions> = {
 };
 
 function mergeInputOptions(
-	config: GenericConfigObject,
+	config: InputOptions,
 	overrides: CommandConfigObject,
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
@@ -157,10 +158,7 @@ function mergeInputOptions(
 	return inputOptions;
 }
 
-const getExternal = (
-	config: GenericConfigObject,
-	overrides: CommandConfigObject
-): ExternalOption => {
+const getExternal = (config: InputOptions, overrides: CommandConfigObject): ExternalOption => {
 	const configExternal = config.external as ExternalOption | undefined;
 	return typeof configExternal === 'function'
 		? (source: string, importer: string | undefined, isResolved: boolean) =>
@@ -168,18 +166,15 @@ const getExternal = (
 		: [...ensureArray(configExternal), ...overrides.external];
 };
 
-const getOnWarn = (
-	config: GenericConfigObject,
-	defaultOnWarnHandler: WarningHandler
-): WarningHandler =>
+const getOnWarn = (config: InputOptions, defaultOnWarnHandler: WarningHandler): WarningHandler =>
 	config.onwarn
 		? warning => (config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarnHandler)
 		: defaultOnWarnHandler;
 
-const getObjectOption = (
-	config: GenericConfigObject,
-	overrides: GenericConfigObject,
-	name: string,
+const getObjectOption = <T extends object>(
+	config: T,
+	overrides: T,
+	name: keyof T,
 	objectifyValue = objectifyOption
 ) => {
 	const commandOption = normalizeObjectOptionValue(overrides[name], objectifyValue);
@@ -190,7 +185,7 @@ const getObjectOption = (
 	return configOption;
 };
 
-export const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject) =>
+export const getWatch = (config: InputOptions, overrides: InputOptions) =>
 	config.watch !== false && getObjectOption(config, overrides, 'watch');
 
 export const isWatchEnabled = (optionValue: unknown): boolean => {
@@ -224,8 +219,8 @@ type CompleteOutputOptions<U extends keyof OutputOptions> = {
 };
 
 function mergeOutputOptions(
-	config: GenericConfigObject,
-	overrides: GenericConfigObject,
+	config: OutputOptions,
+	overrides: OutputOptions,
 	warn: WarningHandler
 ): OutputOptions {
 	const getOption = (name: keyof OutputOptions): any => overrides[name] ?? config[name];
