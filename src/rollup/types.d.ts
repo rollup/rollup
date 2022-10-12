@@ -524,6 +524,10 @@ export interface InputOptions {
 	watch?: WatcherOptions | false;
 }
 
+export interface InputOptionsWithPlugins extends InputOptions {
+	plugins: Plugin[];
+}
+
 export interface NormalizedInputOptions {
 	acorn: Record<string, unknown>;
 	acornInjectPlugins: (() => unknown)[];
@@ -804,7 +808,7 @@ export interface RollupOptions extends InputOptions {
 	output?: OutputOptions | OutputOptions[];
 }
 
-export interface MergedRollupOptions extends InputOptions {
+export interface MergedRollupOptions extends InputOptionsWithPlugins {
 	output: OutputOptions[];
 }
 

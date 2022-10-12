@@ -1,16 +1,13 @@
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { InputOptions } from '../../src/rollup/types';
+import type { InputOptionsWithPlugins } from '../../src/rollup/types';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';
 
 export async function addCommandPluginsToInputOptions(
-	inputOptions: InputOptions,
+	inputOptions: InputOptionsWithPlugins,
 	command: Record<string, unknown>
 ): Promise<void> {
-	if (!Array.isArray(inputOptions.plugins)) {
-		inputOptions.plugins = [inputOptions.plugins];
-	}
 	if (command.stdin !== false) {
 		inputOptions.plugins.push(stdinPlugin(command.stdin));
 	}
@@ -22,7 +19,7 @@ export async function addCommandPluginsToInputOptions(
 
 export async function addPluginsFromCommandOption(
 	commandPlugin: unknown,
-	inputOptions: InputOptions
+	inputOptions: InputOptionsWithPlugins
 ): Promise<void> {
 	if (commandPlugin) {
 		const plugins: any[] = [commandPlugin].flat(Infinity).filter(Boolean);
@@ -43,7 +40,7 @@ export async function addPluginsFromCommandOption(
 }
 
 async function loadAndRegisterPlugin(
-	inputOptions: InputOptions,
+	inputOptions: InputOptionsWithPlugins,
 	pluginText: string
 ): Promise<void> {
 	let plugin: any = null;
@@ -98,9 +95,6 @@ async function loadAndRegisterPlugin(
 				pluginText
 			)}" for Rollup to recognize it.`
 		);
-	}
-	if (!Array.isArray(inputOptions.plugins)) {
-		inputOptions.plugins = [inputOptions.plugins];
 	}
 	inputOptions.plugins.push(typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin);
 }
