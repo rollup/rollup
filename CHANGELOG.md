@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 3.0.1
+
+_2022-10-12_
+
+### Bug Fixes
+
+- Fix installation on Windows (#4662)
+- Avoid missing parameters that are only used in a destructuring initializer (#4663)
+
+### Pull Requests
+
+- [#4661](https://github.com/rollup/rollup/pull/4661): Enforce type imports (@lukastaegert)
+- [#4662](https://github.com/rollup/rollup/pull/4662): fix: missing "node" causes run script error (@c0dedance)
+- [#4663](https://github.com/rollup/rollup/pull/4663): Ensure the initializer of a destructuring declaration is always included if the id is included (@lukastaegert)
+- [#4664](https://github.com/rollup/rollup/pull/4664): fix: remove lint:js:nofix script redundancy options (@c0dedance)
+
 ## 3.0.0
 
 _2022-10-11_
