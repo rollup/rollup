@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
 	description: 'allows a plugin to skip its own resolveId hook when using this.resolve',

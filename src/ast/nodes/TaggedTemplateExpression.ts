@@ -1,8 +1,8 @@
 import type MagicString from 'magic-string';
-import { errCannotCallNamespace } from '../../utils/error';
+import { errorCannotCallNamespace } from '../../utils/error';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -28,7 +28,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			const variable = this.scope.findVariable(name);
 
 			if (variable.isNamespace) {
-				this.context.warn(errCannotCallNamespace(name), this.start);
+				this.context.warn(errorCannotCallNamespace(name), this.start);
 			}
 		}
 	}
@@ -81,7 +81,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		this.deoptimized = true;
 		if (this.interaction.thisArg) {
 			this.tag.deoptimizeThisOnInteractionAtPath(
-				this.interaction as NodeInteractionWithThisArg,
+				this.interaction as NodeInteractionWithThisArgument,
 				EMPTY_PATH,
 				SHARED_RECURSION_TRACKER
 			);

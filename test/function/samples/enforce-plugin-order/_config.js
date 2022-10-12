@@ -1,6 +1,6 @@
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+const assert = require('node:assert');
+const fs = require('node:fs');
+const path = require('node:path');
 const acorn = require('acorn');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
@@ -56,7 +56,7 @@ addPlugin('pre');
 addPlugin('post');
 addPlugin('post');
 addPlugin('pre');
-addPlugin(undefined);
+addPlugin();
 function addPlugin(order) {
 	const name = `${order}-${plugins.length}`;
 	const plugin = { name };

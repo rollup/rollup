@@ -12,7 +12,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -56,7 +56,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -144,14 +144,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch) {
-			this.consequent.includeCallArguments(context, args);
-			this.alternate.includeCallArguments(context, args);
+			this.consequent.includeCallArguments(context, parameters);
+			this.alternate.includeCallArguments(context, parameters);
 		} else {
-			usedBranch.includeCallArguments(context, args);
+			usedBranch.includeCallArguments(context, parameters);
 		}
 	}
 

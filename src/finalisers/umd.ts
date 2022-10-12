@@ -1,6 +1,6 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
-import { errMissingNameOptionForUmdExport, error } from '../utils/error';
+import { error, errorMissingNameOptionForUmdExport } from '../utils/error';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
@@ -12,21 +12,21 @@ import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelative
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import type { FinaliserOptions } from './index';
 
-function globalProp(
+function globalProperty(
 	name: string | false | undefined,
-	globalVar: string,
+	globalVariable: string,
 	getPropertyAccess: (name: string) => string
 ) {
 	if (!name) return 'null';
-	return `${globalVar}${keypath(name, getPropertyAccess)}`;
+	return `${globalVariable}${keypath(name, getPropertyAccess)}`;
 }
 
 function safeAccess(
 	name: string,
-	globalVar: string,
+	globalVariable: string,
 	{ _, getPropertyAccess }: GenerateCodeSnippets
 ) {
-	let propertyPath = globalVar;
+	let propertyPath = globalVariable;
 	return name
 		.split('.')
 		.map(part => (propertyPath += getPropertyAccess(part)))
@@ -65,11 +65,11 @@ export default function umd(
 	}: NormalizedOutputOptions
 ): void {
 	const { _, cnst, getFunctionIntro, getNonArrowFunctionIntro, getPropertyAccess, n, s } = snippets;
-	const factoryVar = compact ? 'f' : 'factory';
-	const globalVar = compact ? 'g' : 'global';
+	const factoryVariable = compact ? 'f' : 'factory';
+	const globalVariable = compact ? 'g' : 'global';
 
 	if (hasExports && !name) {
-		return error(errMissingNameOptionForUmdExport());
+		return error(errorMissingNameOptionForUmdExport());
 	}
 
 	warnOnBuiltins(onwarn, dependencies);
@@ -81,9 +81,9 @@ export default function umd(
 
 	const trimmedImports = trimEmptyImports(dependencies);
 	const globalDeps = trimmedImports.map(module =>
-		globalProp(module.globalName, globalVar, getPropertyAccess)
+		globalProperty(module.globalName, globalVariable, getPropertyAccess)
 	);
-	const factoryParams = trimmedImports.map(m => m.name);
+	const factoryParameters = trimmedImports.map(m => m.name);
 
 	if (namedExportsMode && (hasExports || noConflict)) {
 		amdDeps.unshift(`'exports'`);
@@ -91,20 +91,22 @@ export default function umd(
 		globalDeps.unshift(
 			assignToDeepVariable(
 				name!,
-				globalVar,
+				globalVariable,
 				globals,
-				`${extend ? `${globalProp(name!, globalVar, getPropertyAccess)}${_}||${_}` : ''}{}`,
+				`${
+					extend ? `${globalProperty(name!, globalVariable, getPropertyAccess)}${_}||${_}` : ''
+				}{}`,
 				snippets
 			)
 		);
 
-		factoryParams.unshift('exports');
+		factoryParameters.unshift('exports');
 	}
 
 	const completeAmdId = getCompleteAmdId(amd, id);
-	const amdParams =
+	const amdParameters =
 		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
-		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
+		(amdDeps.length > 0 ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
 	const define = amd.define;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
@@ -113,67 +115,67 @@ export default function umd(
 	let iifeExport;
 
 	if (noConflict) {
-		const noConflictExportsVar = compact ? 'e' : 'exports';
+		const noConflictExportsVariable = compact ? 'e' : 'exports';
 		let factory;
 
 		if (!namedExportsMode && hasExports) {
-			factory = `${cnst} ${noConflictExportsVar}${_}=${_}${assignToDeepVariable(
+			factory = `${cnst} ${noConflictExportsVariable}${_}=${_}${assignToDeepVariable(
 				name!,
-				globalVar,
+				globalVariable,
 				globals,
-				`${factoryVar}(${globalDeps.join(`,${_}`)})`,
+				`${factoryVariable}(${globalDeps.join(`,${_}`)})`,
 				snippets
 			)};`;
 		} else {
 			const module = globalDeps.shift();
 			factory =
-				`${cnst} ${noConflictExportsVar}${_}=${_}${module};${n}` +
-				`${t}${t}${factoryVar}(${[noConflictExportsVar].concat(globalDeps).join(`,${_}`)});`;
+				`${cnst} ${noConflictExportsVariable}${_}=${_}${module};${n}` +
+				`${t}${t}${factoryVariable}(${[noConflictExportsVariable, ...globalDeps].join(`,${_}`)});`;
 		}
 		iifeExport =
 			`(${getFunctionIntro([], { isAsync: false, name: null })}{${n}` +
-			`${t}${t}${cnst} current${_}=${_}${safeAccess(name!, globalVar, snippets)};${n}` +
+			`${t}${t}${cnst} current${_}=${_}${safeAccess(name!, globalVariable, snippets)};${n}` +
 			`${t}${t}${factory}${n}` +
-			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}${getFunctionIntro([], {
+			`${t}${t}${noConflictExportsVariable}.noConflict${_}=${_}${getFunctionIntro([], {
 				isAsync: false,
 				name: null
 			})}{${_}` +
-			`${globalProp(
+			`${globalProperty(
 				name!,
-				globalVar,
+				globalVariable,
 				getPropertyAccess
-			)}${_}=${_}current;${_}return ${noConflictExportsVar}${s}${_}};${n}` +
+			)}${_}=${_}current;${_}return ${noConflictExportsVariable}${s}${_}};${n}` +
 			`${t}})()`;
 	} else {
-		iifeExport = `${factoryVar}(${globalDeps.join(`,${_}`)})`;
+		iifeExport = `${factoryVariable}(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
-			iifeExport = assignToDeepVariable(name!, globalVar, globals, iifeExport, snippets);
+			iifeExport = assignToDeepVariable(name!, globalVariable, globals, iifeExport, snippets);
 		}
 	}
 
 	const iifeNeedsGlobal = hasExports || (noConflict && namedExportsMode) || globalDeps.length > 0;
-	const wrapperParams: string[] = [factoryVar];
+	const wrapperParameters: string[] = [factoryVariable];
 	if (iifeNeedsGlobal) {
-		wrapperParams.unshift(globalVar);
+		wrapperParameters.unshift(globalVariable);
 	}
-	const globalArg = iifeNeedsGlobal ? `this,${_}` : '';
+	const globalArgument = iifeNeedsGlobal ? `this,${_}` : '';
 	const iifeStart = iifeNeedsGlobal
-		? `(${globalVar}${_}=${_}typeof globalThis${_}!==${_}'undefined'${_}?${_}globalThis${_}:${_}${globalVar}${_}||${_}self,${_}`
+		? `(${globalVariable}${_}=${_}typeof globalThis${_}!==${_}'undefined'${_}?${_}globalThis${_}:${_}${globalVariable}${_}||${_}self,${_}`
 		: '';
 	const iifeEnd = iifeNeedsGlobal ? ')' : '';
 	const cjsIntro = iifeNeedsGlobal
 		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
-		  `${_}${cjsExport}${factoryVar}(${cjsDeps.join(`,${_}`)})${_}:${n}`
+		  `${_}${cjsExport}${factoryVariable}(${cjsDeps.join(`,${_}`)})${_}:${n}`
 		: '';
 
 	const wrapperIntro =
-		`(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}` +
+		`(${getNonArrowFunctionIntro(wrapperParameters, { isAsync: false, name: null })}{${n}` +
 		cjsIntro +
-		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}${factoryVar})${_}:${n}` +
+		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParameters}${factoryVariable})${_}:${n}` +
 		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
 		// factory function should be wrapped by parentheses to avoid lazy parsing,
 		// cf. https://v8.dev/blog/preparser#pife
-		`})(${globalArg}(${getNonArrowFunctionIntro(factoryParams, {
+		`})(${globalArgument}(${getNonArrowFunctionIntro(factoryParameters, {
 			isAsync: false,
 			name: null
 		})}{${useStrict}${n}`;

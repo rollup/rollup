@@ -13,7 +13,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
@@ -69,7 +69,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {

@@ -31,14 +31,16 @@ function handlePureAnnotationsOfNode(
 	state: CommentState,
 	type = node.type
 ): void {
-	const { annotations } = state;
+	const { annotations, code } = state;
+	// eslint-disable-next-line unicorn/consistent-destructuring
 	let comment = annotations[state.annotationIndex];
 	while (comment && node.start >= comment.end) {
-		markPureNode(node, comment, state.code);
+		markPureNode(node, comment, code);
 		comment = annotations[++state.annotationIndex];
 	}
 	if (comment && comment.end <= node.end) {
 		basicWalker[type](node, state, handlePureAnnotationsOfNode);
+		// eslint-disable-next-line unicorn/consistent-destructuring
 		while ((comment = annotations[state.annotationIndex]) && comment.end <= node.end) {
 			++state.annotationIndex;
 			annotateNode(node, comment, false);
@@ -59,10 +61,11 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 			annotatedNodes.push(node);
 			switch (node.type) {
 				case ExpressionStatement:
-				case ChainExpression:
+				case ChainExpression: {
 					node = (node as any).expression;
 					continue;
-				case SequenceExpression:
+				}
+				case SequenceExpression: {
 					// if there are parentheses, the annotation would apply to the entire expression
 					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
 						node = (node as any).expressions[0];
@@ -70,7 +73,8 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					}
 					invalidAnnotation = true;
 					break;
-				case ConditionalExpression:
+				}
+				case ConditionalExpression: {
 					// if there are parentheses, the annotation would apply to the entire expression
 					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
 						node = (node as any).test;
@@ -78,8 +82,9 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					}
 					invalidAnnotation = true;
 					break;
+				}
 				case LogicalExpression:
-				case BinaryExpression:
+				case BinaryExpression: {
 					// if there are parentheses, the annotation would apply to the entire expression
 					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
 						node = (node as any).left;
@@ -87,11 +92,14 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					}
 					invalidAnnotation = true;
 					break;
+				}
 				case CallExpression:
-				case NewExpression:
+				case NewExpression: {
 					break;
-				default:
+				}
+				default: {
 					invalidAnnotation = true;
+				}
 			}
 			break;
 		}
@@ -126,7 +134,7 @@ function doesNotMatchOutsideComment(code: string, forbiddenChars: RegExp): boole
 	return true;
 }
 
-const pureCommentRegex = /[@#]__PURE__/;
+const pureCommentRegex = /[#@]__PURE__/;
 
 export function addAnnotations(
 	comments: readonly acorn.Comment[],

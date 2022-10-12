@@ -1,4 +1,4 @@
-const { sep } = require('path');
+const { sep } = require('node:path');
 
 module.exports = {
 	description: 'CLI --plugin /absolute/path',

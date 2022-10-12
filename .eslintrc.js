@@ -10,7 +10,8 @@ module.exports = {
 		'prettier',
 		'plugin:prettier/recommended',
 		'plugin:import/recommended',
-		'plugin:import/typescript'
+		'plugin:import/typescript',
+		'plugin:unicorn/recommended'
 	],
 	ignorePatterns: [
 		'node_modules',
@@ -26,7 +27,9 @@ module.exports = {
 		{
 			files: ['*.js'],
 			rules: {
-				'@typescript-eslint/explicit-module-boundary-types': 'off'
+				'@typescript-eslint/explicit-module-boundary-types': 'off',
+				'unicorn/no-process-exit': 'off',
+				'unicorn/prefer-module': 'off'
 			}
 		},
 		{
@@ -94,6 +97,18 @@ module.exports = {
 				ignoreMemberSort: false
 			}
 		],
-		'sort-keys': ['error', 'asc', { caseSensitive: false }]
+		'sort-keys': ['error', 'asc', { caseSensitive: false }],
+		'unicorn/filename-case': 'off',
+		'unicorn/no-array-callback-reference': 'off',
+		'unicorn/no-array-reduce': 'off',
+		'unicorn/no-await-expression-member': 'off',
+		'unicorn/no-nested-ternary': 'off',
+		'unicorn/no-null': 'off',
+		'unicorn/no-this-assignment': 'off',
+		'unicorn/no-useless-undefined': 'off',
+		'unicorn/prefer-code-point': 'off',
+		'unicorn/prefer-math-trunc': 'off',
+		'unicorn/prefer-number-properties': 'off',
+		'unicorn/prefer-top-level-await': 'off'
 	}
 };

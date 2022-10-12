@@ -1,4 +1,4 @@
-const { resolve } = require('path');
+const { resolve } = require('node:path');
 
 const resolved = resolve(__dirname, 'foo.js');
 

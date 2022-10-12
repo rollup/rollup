@@ -26,7 +26,7 @@ export default function es(
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(exports, snippets);
-	if (exportBlock.length) magicString.append(n + n + exportBlock.join(n).trim());
+	if (exportBlock.length > 0) magicString.append(n + n + exportBlock.join(n).trim());
 	if (outro) magicString.append(outro);
 
 	magicString.trim();
@@ -63,11 +63,9 @@ function getImportBlock(dependencies: ChunkDependency[], { _ }: GenerateCodeSnip
 				importBlock.push(
 					`import ${defaultImport ? `${defaultImport.local},${_}` : ''}{${_}${importedNames
 						.map(specifier => {
-							if (specifier.imported === specifier.local) {
-								return specifier.imported;
-							} else {
-								return `${specifier.imported} as ${specifier.local}`;
-							}
+							return specifier.imported === specifier.local
+								? specifier.imported
+								: `${specifier.imported} as ${specifier.local}`;
 						})
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
@@ -108,11 +106,9 @@ function getImportBlock(dependencies: ChunkDependency[], { _ }: GenerateCodeSnip
 				importBlock.push(
 					`export${_}{${_}${namedReexports
 						.map(specifier => {
-							if (specifier.imported === specifier.reexported) {
-								return specifier.imported;
-							} else {
-								return `${specifier.imported} as ${specifier.reexported}`;
-							}
+							return specifier.imported === specifier.reexported
+								? specifier.imported
+								: `${specifier.imported} as ${specifier.reexported}`;
 						})
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
@@ -135,7 +131,7 @@ function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets
 				: `${specifier.local} as ${specifier.exported}`
 		);
 	}
-	if (exportDeclaration.length) {
+	if (exportDeclaration.length > 0) {
 		exportBlock.push(`export${_}{${_}${exportDeclaration.join(`,${_}`)}${_}};`);
 	}
 	return exportBlock;

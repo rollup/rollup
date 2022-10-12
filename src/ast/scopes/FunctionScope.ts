@@ -23,13 +23,13 @@ export default class FunctionScope extends ReturnValueScope {
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		super.includeCallArguments(context, args);
+		super.includeCallArguments(context, parameters);
 		if (this.argumentsVariable.included) {
-			for (const arg of args) {
-				if (!arg.included) {
-					arg.include(context, false);
+			for (const argument of parameters) {
+				if (!argument.included) {
+					argument.include(context, false);
 				}
 			}
 		}

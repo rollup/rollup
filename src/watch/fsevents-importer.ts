@@ -6,8 +6,8 @@ let fsEventsImportError: Error | undefined;
 export async function loadFsEvents(): Promise<void> {
 	try {
 		({ default: fsEvents } = await import('fsevents'));
-	} catch (err: any) {
-		fsEventsImportError = err;
+	} catch (error: any) {
+		fsEventsImportError = error;
 	}
 }
 

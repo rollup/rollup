@@ -1,5 +1,5 @@
-const assert = require('assert');
-const { promises: fs } = require('fs');
+const assert = require('node:assert');
+const { promises: fs } = require('node:fs');
 
 module.exports = {
 	description: 'resolves promises between sequential options hooks',

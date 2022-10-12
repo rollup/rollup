@@ -1,8 +1,8 @@
-const assert = require('assert');
-const { replaceDirInStringifiedObject } = require('../../../utils');
+const assert = require('node:assert');
+const { replaceDirectoryInStringifiedObject } = require('../../../utils');
 const assertChunkData = chunk =>
 	assert.strictEqual(
-		replaceDirInStringifiedObject({ ...chunk, fileName: undefined }, __dirname),
+		replaceDirectoryInStringifiedObject({ ...chunk, fileName: undefined }, __dirname),
 		'{\n' +
 			'  "exports": [],\n' +
 			'  "facadeModuleId": "**/main.js",\n' +

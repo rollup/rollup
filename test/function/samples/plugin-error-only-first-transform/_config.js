@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
 	description: 'throws error only with first plugin transform',
@@ -7,13 +7,13 @@ module.exports = {
 			{
 				name: 'plugin1',
 				transform() {
-					throw Error('Something happened 1');
+					throw new Error('Something happened 1');
 				}
 			},
 			{
 				name: 'plugin2',
 				transform() {
-					throw Error('Something happened 2');
+					throw new Error('Something happened 2');
 				}
 			}
 		]

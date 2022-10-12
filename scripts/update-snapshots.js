@@ -8,12 +8,12 @@ import fs from 'fs-extra';
 const basePath = resolve(dirname(fileURLToPath(import.meta.url)), '../test');
 
 const formPath = join(basePath, 'form/samples');
-const formDirsToHandle = readdirSync(formPath);
-for (const dir of formDirsToHandle) {
-	const testPath = join(formPath, dir);
+const formDirectoriesToHandle = readdirSync(formPath);
+for (const directory of formDirectoriesToHandle) {
+	const testPath = join(formPath, directory);
 	const testFiles = readdirSync(testPath);
 	if (!testFiles.includes('_config.js')) {
-		formDirsToHandle.push(...testFiles.map(filename => join(dir, filename)));
+		formDirectoriesToHandle.push(...testFiles.map(filename => join(directory, filename)));
 	} else if (testFiles.includes('_actual')) {
 		const expectedPath = join(testPath, '_expected');
 		fs.removeSync(expectedPath);
@@ -26,12 +26,12 @@ for (const dir of formDirsToHandle) {
 }
 
 const chunkingPath = join(basePath, 'chunking-form/samples');
-const chunkingDirsToHandle = readdirSync(chunkingPath);
-for (const dir of chunkingDirsToHandle) {
-	const testPath = join(chunkingPath, dir);
+const chunkingDirectoriesToHandle = readdirSync(chunkingPath);
+for (const directory of chunkingDirectoriesToHandle) {
+	const testPath = join(chunkingPath, directory);
 	const testFiles = readdirSync(testPath);
 	if (!testFiles.includes('_config.js')) {
-		chunkingDirsToHandle.push(...testFiles.map(filename => join(dir, filename)));
+		chunkingDirectoriesToHandle.push(...testFiles.map(filename => join(directory, filename)));
 	} else if (testFiles.includes('_actual')) {
 		const expectedPath = join(testPath, '_expected');
 		fs.removeSync(expectedPath);

@@ -3,7 +3,7 @@ module.exports = {
 	options: {
 		external(id) {
 			if (id.startsWith('\0')) {
-				throw Error('\\0 started ids should not be tested as external');
+				throw new Error('\\0 started ids should not be tested as external');
 			}
 			return true;
 		},

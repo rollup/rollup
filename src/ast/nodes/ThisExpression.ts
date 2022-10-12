@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
-import { errThisIsUndefined } from '../../utils/error';
+import { errorThisIsUndefined } from '../../utils/error';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction, NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArgument } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import ModuleScope from '../scopes/ModuleScope';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
@@ -23,7 +23,7 @@ export default class ThisExpression extends NodeBase {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -57,7 +57,7 @@ export default class ThisExpression extends NodeBase {
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {
-			this.context.warn(errThisIsUndefined(), this.start);
+			this.context.warn(errorThisIsUndefined(), this.start);
 		}
 	}
 

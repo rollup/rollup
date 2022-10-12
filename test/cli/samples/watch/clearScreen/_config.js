@@ -1,7 +1,7 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
-const CLEAR_SCREEN = '\u001bc';
-const UNDERLINE = '\u001b[4m';
+const CLEAR_SCREEN = '\u001Bc';
+const UNDERLINE = '\u001B[4m';
 
 module.exports = {
 	description: 'clears the screen before bundling',

@@ -22,20 +22,20 @@ describe('sanity checks', () => {
 	});
 
 	it('node API passes warning and default handler to custom onwarn function', async () => {
-		let args;
+		let parameters;
 		await rollup.rollup({
 			input: 'x',
 			plugins: [loader({ x: `eval(42);` })],
 			onwarn(warning, onwarn) {
-				args = [warning, onwarn];
+				parameters = [warning, onwarn];
 			}
 		});
-		assert.equal(args[0].code, 'EVAL');
+		assert.equal(parameters[0].code, 'EVAL');
 		assert.equal(
-			args[0].message,
+			parameters[0].message,
 			'Use of eval in "x" is strongly discouraged as it poses security risks and may cause issues with minification.'
 		);
-		assert.equal(typeof args[1], 'function');
+		assert.equal(typeof parameters[1], 'function');
 	});
 
 	it('fails without options.input', async () => {

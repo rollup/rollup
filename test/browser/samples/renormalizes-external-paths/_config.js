@@ -1,4 +1,4 @@
-const { join, dirname } = require('path').posix;
+const { join, dirname } = require('node:path').posix;
 
 module.exports = {
 	description: 'renormalizes external paths if possible',
@@ -19,22 +19,27 @@ module.exports = {
 			},
 			load(id) {
 				switch (id) {
-					case '/main.js':
+					case '/main.js': {
 						return `import './nested/dep.js';
 import './ext.js';
 import './nested/nested-ext.js';`;
-					case '/dep.js':
+					}
+					case '/dep.js': {
 						return `import './ext.js';
 import './nested/nested-ext.js';`;
-					case '/nested/dep.js':
+					}
+					case '/nested/dep.js': {
 						return `import '../ext.js';
 import './nested-ext.js';`;
-					case '/nested/entry.js':
+					}
+					case '/nested/entry.js': {
 						return `import '../dep.js';
 import '../ext.js';
 import './nested-ext.js';`;
-					default:
+					}
+					default: {
 						throw new Error(`Unexpected id ${id}`);
+					}
 				}
 			}
 		}

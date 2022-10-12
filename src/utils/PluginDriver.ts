@@ -21,11 +21,11 @@ import type {
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
 import {
-	errInputHookInOutputPlugin,
-	errInvalidAddonPluginHook,
-	errInvalidFunctionPluginHook,
 	error,
-	errPluginError
+	errorInputHookInOutputPlugin,
+	errorInvalidAddonPluginHook,
+	errorInvalidFunctionPluginHook,
+	errorPluginError
 } from './error';
 import { getOrCreate } from './getOrCreate';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
@@ -39,7 +39,7 @@ type EnsurePromise<T> = Promise<Awaited<T>>;
  * Get the type of the first argument in a function.
  * @example Arg0<(a: string, b: number) => void> -> string
  */
-type Arg0<H extends keyof FunctionPluginHooks> = Parameters<FunctionPluginHooks[H]>[0];
+type Argument0<H extends keyof FunctionPluginHooks> = Parameters<FunctionPluginHooks[H]>[0];
 
 // This will make sure no input hook is omitted
 const inputHookNames: {
@@ -97,7 +97,7 @@ export class PluginDriver {
 		this.finaliseAssets = this.fileEmitter.finaliseAssets.bind(this.fileEmitter);
 		this.setChunkInformation = this.fileEmitter.setChunkInformation.bind(this.fileEmitter);
 		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
-		this.plugins = (basePluginDriver ? basePluginDriver.plugins : []).concat(userPlugins);
+		this.plugins = [...(basePluginDriver ? basePluginDriver.plugins : []), ...userPlugins];
 		const existingPluginNames = new Set<string>();
 
 		this.pluginContexts = new Map(
@@ -111,7 +111,7 @@ export class PluginDriver {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {
 					if (hook in plugin) {
-						options.onwarn(errInputHookInOutputPlugin(plugin.name, hook));
+						options.onwarn(errorInputHookInOutputPlugin(plugin.name, hook));
 					}
 				}
 			}
@@ -129,7 +129,7 @@ export class PluginDriver {
 	// chains, first non-null result stops and returns
 	hookFirst<H extends AsyncPluginHooks & FirstPluginHooks>(
 		hookName: H,
-		args: Parameters<FunctionPluginHooks[H]>,
+		parameters: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext | null,
 		skipped?: ReadonlySet<Plugin> | null
 	): Promise<ReturnType<FunctionPluginHooks[H]> | null> {
@@ -138,7 +138,7 @@ export class PluginDriver {
 			if (skipped && skipped.has(plugin)) continue;
 			promise = promise.then(result => {
 				if (result != null) return result;
-				return this.runHook(hookName, args, plugin, replaceContext);
+				return this.runHook(hookName, parameters, plugin, replaceContext);
 			});
 		}
 		return promise;
@@ -147,11 +147,11 @@ export class PluginDriver {
 	// chains synchronously, first non-null result stops and returns
 	hookFirstSync<H extends SyncPluginHooks & FirstPluginHooks>(
 		hookName: H,
-		args: Parameters<FunctionPluginHooks[H]>,
+		parameters: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): ReturnType<FunctionPluginHooks[H]> | null {
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			const result = this.runHookSync(hookName, args, plugin, replaceContext);
+			const result = this.runHookSync(hookName, parameters, plugin, replaceContext);
 			if (result != null) return result;
 		}
 		return null;
@@ -160,7 +160,7 @@ export class PluginDriver {
 	// parallel, ignores returns
 	async hookParallel<H extends AsyncPluginHooks & ParallelPluginHooks>(
 		hookName: H,
-		args: Parameters<FunctionPluginHooks[H]>,
+		parameters: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
 		const parallelPromises: Promise<unknown>[] = [];
@@ -168,9 +168,9 @@ export class PluginDriver {
 			if ((plugin[hookName] as { sequential?: boolean }).sequential) {
 				await Promise.all(parallelPromises);
 				parallelPromises.length = 0;
-				await this.runHook(hookName, args, plugin, replaceContext);
+				await this.runHook(hookName, parameters, plugin, replaceContext);
 			} else {
-				parallelPromises.push(this.runHook(hookName, args, plugin, replaceContext));
+				parallelPromises.push(this.runHook(hookName, parameters, plugin, replaceContext));
 			}
 		}
 		await Promise.all(parallelPromises);
@@ -179,23 +179,23 @@ export class PluginDriver {
 	// chains, reduces returned value, handling the reduced value as the first hook argument
 	hookReduceArg0<H extends AsyncPluginHooks & SequentialPluginHooks>(
 		hookName: H,
-		[arg0, ...rest]: Parameters<FunctionPluginHooks[H]>,
+		[argument0, ...rest]: Parameters<FunctionPluginHooks[H]>,
 		reduce: (
-			reduction: Arg0<H>,
+			reduction: Argument0<H>,
 			result: ReturnType<FunctionPluginHooks[H]>,
 			plugin: Plugin
-		) => Arg0<H>,
+		) => Argument0<H>,
 		replaceContext?: ReplaceContext
-	): Promise<Arg0<H>> {
-		let promise = Promise.resolve(arg0);
+	): Promise<Argument0<H>> {
+		let promise = Promise.resolve(argument0);
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			promise = promise.then(arg0 =>
+			promise = promise.then(argument0 =>
 				this.runHook(
 					hookName,
-					[arg0, ...rest] as Parameters<FunctionPluginHooks[H]>,
+					[argument0, ...rest] as Parameters<FunctionPluginHooks[H]>,
 					plugin,
 					replaceContext
-				).then(result => reduce.call(this.pluginContexts.get(plugin), arg0, result, plugin))
+				).then(result => reduce.call(this.pluginContexts.get(plugin), argument0, result, plugin))
 			);
 		}
 		return promise;
@@ -204,27 +204,27 @@ export class PluginDriver {
 	// chains synchronously, reduces returned value, handling the reduced value as the first hook argument
 	hookReduceArg0Sync<H extends SyncPluginHooks & SequentialPluginHooks>(
 		hookName: H,
-		[arg0, ...rest]: Parameters<FunctionPluginHooks[H]>,
+		[argument0, ...rest]: Parameters<FunctionPluginHooks[H]>,
 		reduce: (
-			reduction: Arg0<H>,
+			reduction: Argument0<H>,
 			result: ReturnType<FunctionPluginHooks[H]>,
 			plugin: Plugin
-		) => Arg0<H>,
+		) => Argument0<H>,
 		replaceContext?: ReplaceContext
-	): Arg0<H> {
+	): Argument0<H> {
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			const args = [arg0, ...rest] as Parameters<FunctionPluginHooks[H]>;
-			const result = this.runHookSync(hookName, args, plugin, replaceContext);
-			arg0 = reduce.call(this.pluginContexts.get(plugin), arg0, result, plugin);
+			const parameters = [argument0, ...rest] as Parameters<FunctionPluginHooks[H]>;
+			const result = this.runHookSync(hookName, parameters, plugin, replaceContext);
+			argument0 = reduce.call(this.pluginContexts.get(plugin), argument0, result, plugin);
 		}
-		return arg0;
+		return argument0;
 	}
 
 	// chains, reduces returned value to type string, handling the reduced value separately. permits hooks as values.
 	async hookReduceValue<H extends AddonHooks>(
 		hookName: H,
 		initialValue: string | Promise<string>,
-		args: Parameters<AddonHookFunction>,
+		parameters: Parameters<AddonHookFunction>,
 		reducer: (result: string, next: string) => string
 	): Promise<string> {
 		const results: string[] = [];
@@ -233,9 +233,9 @@ export class PluginDriver {
 			if ((plugin[hookName] as { sequential?: boolean }).sequential) {
 				results.push(...(await Promise.all(parallelResults)));
 				parallelResults.length = 0;
-				results.push(await this.runHook(hookName, args, plugin));
+				results.push(await this.runHook(hookName, parameters, plugin));
 			} else {
-				parallelResults.push(this.runHook(hookName, args, plugin));
+				parallelResults.push(this.runHook(hookName, parameters, plugin));
 			}
 		}
 		results.push(...(await Promise.all(parallelResults)));
@@ -246,27 +246,27 @@ export class PluginDriver {
 	hookReduceValueSync<H extends SyncPluginHooks & SequentialPluginHooks, T>(
 		hookName: H,
 		initialValue: T,
-		args: Parameters<FunctionPluginHooks[H]>,
+		parameters: Parameters<FunctionPluginHooks[H]>,
 		reduce: (reduction: T, result: ReturnType<FunctionPluginHooks[H]>, plugin: Plugin) => T,
 		replaceContext?: ReplaceContext
 	): T {
-		let acc = initialValue;
+		let accumulator = initialValue;
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			const result = this.runHookSync(hookName, args, plugin, replaceContext);
-			acc = reduce.call(this.pluginContexts.get(plugin), acc, result, plugin);
+			const result = this.runHookSync(hookName, parameters, plugin, replaceContext);
+			accumulator = reduce.call(this.pluginContexts.get(plugin), accumulator, result, plugin);
 		}
-		return acc;
+		return accumulator;
 	}
 
 	// chains, ignores returns
 	hookSeq<H extends AsyncPluginHooks & SequentialPluginHooks>(
 		hookName: H,
-		args: Parameters<FunctionPluginHooks[H]>,
+		parameters: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
 		let promise: Promise<unknown> = Promise.resolve();
 		for (const plugin of this.getSortedPlugins(hookName)) {
-			promise = promise.then(() => this.runHook(hookName, args, plugin, replaceContext));
+			promise = promise.then(() => this.runHook(hookName, parameters, plugin, replaceContext));
 		}
 		return promise.then(noReturn);
 	}
@@ -289,19 +289,19 @@ export class PluginDriver {
 	 */
 	private runHook<H extends AddonHooks>(
 		hookName: H,
-		args: Parameters<AddonHookFunction>,
+		parameters: Parameters<AddonHookFunction>,
 		plugin: Plugin
 	): EnsurePromise<ReturnType<AddonHookFunction>>;
 	private runHook<H extends AsyncPluginHooks>(
 		hookName: H,
-		args: Parameters<FunctionPluginHooks[H]>,
+		parameters: Parameters<FunctionPluginHooks[H]>,
 		plugin: Plugin,
 		replaceContext?: ReplaceContext | null
 	): Promise<ReturnType<FunctionPluginHooks[H]>>;
 	// Implementation signature
 	private runHook<H extends AsyncPluginHooks | AddonHooks>(
 		hookName: H,
-		args: unknown[],
+		parameters: unknown[],
 		plugin: Plugin,
 		replaceContext?: ReplaceContext | null
 	): Promise<unknown> {
@@ -321,7 +321,7 @@ export class PluginDriver {
 					return handler;
 				}
 				// eslint-disable-next-line @typescript-eslint/ban-types
-				const hookResult = (handler as Function).apply(context, args);
+				const hookResult = (handler as Function).apply(context, parameters);
 
 				if (!hookResult?.then) {
 					// short circuit for non-thenables and non-Promises
@@ -332,7 +332,7 @@ export class PluginDriver {
 				// unfulfilled promises cause rollup to abruptly and confusingly
 				// exit with a successful 0 return code but without producing any
 				// output, errors or warnings.
-				action = [plugin.name, hookName, args];
+				action = [plugin.name, hookName, parameters];
 				this.unfulfilledActions.add(action);
 
 				// Although it would be more elegant to just return hookResult here
@@ -345,12 +345,12 @@ export class PluginDriver {
 					return result;
 				});
 			})
-			.catch(err => {
+			.catch(error_ => {
 				if (action !== null) {
 					// action considered to be fulfilled since error being handled
 					this.unfulfilledActions.delete(action);
 				}
-				return error(errPluginError(err, plugin.name, { hook: hookName }));
+				return error(errorPluginError(error_, plugin.name, { hook: hookName }));
 			});
 	}
 
@@ -363,7 +363,7 @@ export class PluginDriver {
 	 */
 	private runHookSync<H extends SyncPluginHooks>(
 		hookName: H,
-		args: Parameters<FunctionPluginHooks[H]>,
+		parameters: Parameters<FunctionPluginHooks[H]>,
 		plugin: Plugin,
 		replaceContext?: ReplaceContext
 	): ReturnType<FunctionPluginHooks[H]> {
@@ -377,9 +377,9 @@ export class PluginDriver {
 
 		try {
 			// eslint-disable-next-line @typescript-eslint/ban-types
-			return (handler as Function).apply(context, args);
-		} catch (err: any) {
-			return error(errPluginError(err, plugin.name, { hook: hookName }));
+			return (handler as Function).apply(context, parameters);
+		} catch (error_: any) {
+			return error(errorPluginError(error_, plugin.name, { hook: hookName }));
 		}
 	}
 }
@@ -416,13 +416,13 @@ export function getSortedValidatedPlugins(
 
 function validateFunctionPluginHandler(handler: unknown, hookName: string, plugin: Plugin) {
 	if (typeof handler !== 'function') {
-		error(errInvalidFunctionPluginHook(hookName, plugin.name));
+		error(errorInvalidFunctionPluginHook(hookName, plugin.name));
 	}
 }
 
 function validateAddonPluginHandler(handler: unknown, hookName: string, plugin: Plugin) {
 	if (typeof handler !== 'string' && typeof handler !== 'function') {
-		return error(errInvalidAddonPluginHook(hookName, plugin.name));
+		return error(errorInvalidAddonPluginHook(hookName, plugin.name));
 	}
 }
 

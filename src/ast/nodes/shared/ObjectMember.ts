@@ -3,7 +3,7 @@ import type { HasEffectsContext } from '../../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
@@ -18,7 +18,7 @@ export class ObjectMember extends ExpressionEntity {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {

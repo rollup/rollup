@@ -13,14 +13,18 @@ module.exports = {
 			},
 			interop(id) {
 				switch (id) {
-					case 'external-auto':
+					case 'external-auto': {
 						return 'auto';
-					case 'external-default':
+					}
+					case 'external-default': {
 						return 'default';
-					case 'external-defaultOnly':
+					}
+					case 'external-defaultOnly': {
 						return 'defaultOnly';
-					default:
+					}
+					default: {
 						throw new Error(`Unexpected require "${id}"`);
+					}
 				}
 			}
 		}

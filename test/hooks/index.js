@@ -75,8 +75,8 @@ describe('hooks', () => {
 					]
 				});
 			})
-			.catch(err => {
-				assert.ok(err);
+			.catch(error => {
+				assert.ok(error);
 			})
 			.then(() => {
 				assert.strictEqual(buildStartCnt, 2);
@@ -612,7 +612,7 @@ describe('hooks', () => {
 			})
 			.then(bundle => {
 				let promise = Promise.resolve();
-				for (let i = 0; i < 5; i++)
+				for (let index = 0; index < 5; index++)
 					promise = promise.then(() =>
 						rollup.rollup({
 							cache: bundle.cache,
@@ -623,7 +623,7 @@ describe('hooks', () => {
 								{
 									name: 'x',
 									buildStart() {
-										if (i === 4) assert.strictEqual(this.cache.has('second'), true);
+										if (index === 4) assert.strictEqual(this.cache.has('second'), true);
 									}
 								}
 							]
@@ -775,7 +775,7 @@ describe('hooks', () => {
 							renderStartCount++;
 						},
 						renderChunk() {
-							throw Error('renderChunk error');
+							throw new Error('renderChunk error');
 						},
 						generateBundle() {
 							generateBundleCount++;
@@ -790,8 +790,8 @@ describe('hooks', () => {
 				]
 			})
 			.then(bundle => bundle.generate({ format: 'es' }))
-			.catch(err => {
-				assert.ok(err);
+			.catch(error => {
+				assert.ok(error);
 			})
 			.then(() => {
 				assert.strictEqual(renderStartCount, 1, 'renderStart count');
@@ -814,10 +814,10 @@ describe('hooks', () => {
 				else if (event.code === 'ERROR') reject(event.error);
 			});
 		})
-			.catch(err => {
+			.catch(error => {
 				watcher.close();
 				assert.strictEqual(
-					err.message,
+					error.message,
 					'You must specify "output.file" or "output.dir" for the build.'
 				);
 			})
@@ -839,10 +839,10 @@ describe('hooks', () => {
 				else if (event.code === 'ERROR') reject(event.error);
 			});
 		})
-			.catch(err => {
+			.catch(error => {
 				watcher.close();
 				assert.strictEqual(
-					err.message,
+					error.message,
 					'Invalid value for option "output.file" - when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
 				);
 			})
@@ -865,10 +865,10 @@ describe('hooks', () => {
 				else if (event.code === 'ERROR') reject(event.error);
 			});
 		})
-			.catch(err => {
+			.catch(error => {
 				watcher.close();
 				assert.strictEqual(
-					err.message,
+					error.message,
 					'Invalid value for option "output.sourcemapFile" - "output.sourcemapFile" is only supported for single-file builds.'
 				);
 			})
@@ -1076,7 +1076,7 @@ describe('hooks', () => {
 		addPlugin('post');
 		addPlugin('post');
 		addPlugin('pre');
-		addPlugin(undefined);
+		addPlugin();
 		function addPlugin(order) {
 			const name = `${order}-${plugins.length}`;
 			const plugin = { name };
@@ -1178,10 +1178,8 @@ describe('hooks', () => {
 						if (!calledHooks[hook].includes(name)) {
 							calledHooks[hook].push(sequential ? name : [name, [...active]]);
 						}
-						if (sequential) {
-							if (active.size > 0) {
-								throw new Error(`Detected parallel hook runs in ${hook}.`);
-							}
+						if (sequential && active.size > 0) {
+							throw new Error(`Detected parallel hook runs in ${hook}.`);
 						}
 						active.add(name);
 						// A setTimeout always takes longer than any chain of immediately

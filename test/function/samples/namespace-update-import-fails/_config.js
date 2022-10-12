@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 

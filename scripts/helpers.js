@@ -1,12 +1,12 @@
 import { spawn } from 'node:child_process';
 import { bold, cyan, green } from './colors.js';
 
-export function runWithEcho(command, args, options) {
+export function runWithEcho(command, parameters, options) {
 	return new Promise((resolve, reject) => {
-		const cmdString = formatCommand(command, args);
+		const cmdString = formatCommand(command, parameters);
 		console.error(bold(`\n${cyan`Run>`} ${cmdString}`));
 
-		const childProcess = spawn(command, args, options);
+		const childProcess = spawn(command, parameters, options);
 
 		childProcess.stdout.pipe(process.stdout);
 		childProcess.stderr.pipe(process.stderr);
@@ -22,9 +22,9 @@ export function runWithEcho(command, args, options) {
 	});
 }
 
-export function runAndGetStdout(command, args) {
+export function runAndGetStdout(command, parameters) {
 	return new Promise((resolve, reject) => {
-		const childProcess = spawn(command, args);
+		const childProcess = spawn(command, parameters);
 		let stdout = '';
 
 		childProcess.stderr.pipe(process.stderr);
@@ -32,7 +32,7 @@ export function runAndGetStdout(command, args) {
 
 		childProcess.on('close', code => {
 			if (code) {
-				reject(new Error(`"${formatCommand(command, args)}" exited with code ${code}.`));
+				reject(new Error(`"${formatCommand(command, parameters)}" exited with code ${code}.`));
 			} else {
 				resolve(stdout.trim());
 			}
@@ -40,6 +40,6 @@ export function runAndGetStdout(command, args) {
 	});
 }
 
-function formatCommand(command, args) {
-	return [command, ...args].join(' ');
+function formatCommand(command, parameters) {
+	return [command, ...parameters].join(' ');
 }

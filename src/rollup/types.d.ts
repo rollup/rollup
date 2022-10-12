@@ -176,7 +176,7 @@ export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
 	emitFile: EmitFile;
-	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
+	error: (error: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
@@ -287,7 +287,7 @@ export type ResolveDynamicImportHook = (
 
 export type ResolveImportMetaHook = (
 	this: PluginContext,
-	prop: string | null,
+	property: string | null,
 	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
 ) => string | null | void;
 
@@ -335,7 +335,7 @@ export interface OutputBundle {
 
 export interface FunctionPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: RenderedChunk) => string | void;
-	buildEnd: (this: PluginContext, err?: Error) => void;
+	buildEnd: (this: PluginContext, error?: Error) => void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => void;
 	closeBundle: (this: PluginContext) => void;
 	closeWatcher: (this: PluginContext) => void;
@@ -359,7 +359,7 @@ export interface FunctionPluginHooks {
 			targetModuleId: string | null;
 		}
 	) => { left: string; right: string } | null | void;
-	renderError: (this: PluginContext, err?: Error) => void;
+	renderError: (this: PluginContext, error?: Error) => void;
 	renderStart: (
 		this: PluginContext,
 		outputOptions: NormalizedOutputOptions,
@@ -426,8 +426,11 @@ export type ParallelPluginHooks = Exclude<
 
 export type AddonHooks = 'banner' | 'footer' | 'intro' | 'outro';
 
-type MakeAsync<Fn> = Fn extends (this: infer This, ...args: infer Args) => infer Return
-	? (this: This, ...args: Args) => Return | Promise<Return>
+type MakeAsync<Function_> = Function_ extends (
+	this: infer This,
+	...parameters: infer Arguments
+) => infer Return
+	? (this: This, ...parameters: Arguments) => Return | Promise<Return>
 	: never;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -854,13 +857,13 @@ export interface RollupWatchOptions extends InputOptions {
 }
 
 export type AwaitedEventListener<
-	T extends { [event: string]: (...args: any) => any },
+	T extends { [event: string]: (...parameters: any) => any },
 	K extends keyof T
-> = (...args: Parameters<T[K]>) => void | Promise<void>;
+> = (...parameters: Parameters<T[K]>) => void | Promise<void>;
 
-export interface AwaitingEventEmitter<T extends { [event: string]: (...args: any) => any }> {
+export interface AwaitingEventEmitter<T extends { [event: string]: (...parameters: any) => any }> {
 	close(): Promise<void>;
-	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): Promise<unknown>;
+	emit<K extends keyof T>(event: K, ...parameters: Parameters<T[K]>): Promise<unknown>;
 	/**
 	 * Removes an event listener.
 	 */
@@ -880,7 +883,7 @@ export interface AwaitingEventEmitter<T extends { [event: string]: (...args: any
 	 */
 	onCurrentRun<K extends keyof T>(
 		event: K,
-		listener: (...args: Parameters<T[K]>) => Promise<ReturnType<T[K]>>
+		listener: (...parameters: Parameters<T[K]>) => Promise<ReturnType<T[K]>>
 	): this;
 	removeAllListeners(): this;
 	removeListenersForCurrentRun(): this;

@@ -5,13 +5,13 @@ module.exports = {
 			{
 				name: 'plugin1',
 				renderChunk() {
-					throw Error('Something happened 1');
+					throw new Error('Something happened 1');
 				}
 			},
 			{
 				name: 'plugin2',
 				renderChunk() {
-					throw Error('Something happened 2');
+					throw new Error('Something happened 2');
 				}
 			}
 		]

@@ -6,8 +6,8 @@ const { compareError } = require('../utils.js');
 function runTestCode(code, globals) {
 	const globalsWithAssert = { ...globals, assert };
 	const globalKeys = Object.keys(globalsWithAssert);
-	const fn = new Function(globalKeys, code);
-	fn.apply(
+	const function_ = new Function(globalKeys, code);
+	function_.apply(
 		globals,
 		globalKeys.map(key => globalsWithAssert[key])
 	);
@@ -29,7 +29,7 @@ function getIifeExports(global, outputOptions) {
 	if (outputOptions.name) {
 		return outputOptions.name
 			.split('.')
-			.reduce((currentVar, nextKey) => currentVar[nextKey] || {}, global);
+			.reduce((currentVariable, nextKey) => currentVariable[nextKey] || {}, global);
 	}
 	return {};
 }
@@ -62,8 +62,8 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 	});
 }
 
-['bundle', '@my.@nested/value.bundle'].forEach(name =>
-	[false, true].forEach(compact =>
+for (const name of ['bundle', '@my.@nested/value.bundle'])
+	for (const compact of [false, true])
 		describe(`The IIFE wrapper with name="${name}", compact=${compact}`, () => {
 			const outputOptions = { compact, name };
 
@@ -92,9 +92,7 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 				runTestsWithCode('import value from "external"; export default {value};', outputOptions, {
 					value: 'external'
 				}));
-		})
-	)
-);
+		});
 
 describe('The IIFE wrapper with an illegal name', () => {
 	it('fails if the name starts with a digit', () =>

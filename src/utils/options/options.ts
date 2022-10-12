@@ -10,7 +10,7 @@ import type {
 	Plugin,
 	WarningHandler
 } from '../../rollup/types';
-import { errInvalidOption, error, errUnknownOption } from '../error';
+import { error, errorInvalidOption, errorUnknownOption } from '../error';
 import { printQuotedStringList } from '../printStringList';
 
 export interface GenericConfigObject {
@@ -31,7 +31,7 @@ export function warnUnknownOptions(
 		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
 	);
 	if (unknownOptions.length > 0) {
-		warn(errUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
+		warn(errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
 	}
 }
 
@@ -109,7 +109,7 @@ export const objectifyOptionWithPresets =
 				return preset;
 			}
 			error(
-				errInvalidOption(
+				errorInvalidOption(
 					optionName,
 					getHashFromObjectOption(optionName),
 					`valid values are ${additionalValues}${printQuotedStringList(
@@ -135,7 +135,7 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 			return { ...preset, ...(value as Record<string, unknown>) };
 		} else {
 			error(
-				errInvalidOption(
+				errorInvalidOption(
 					`${optionName}.preset`,
 					getHashFromObjectOption(optionName),
 					`valid values are ${printQuotedStringList(Object.keys(presets))}`,

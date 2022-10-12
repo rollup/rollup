@@ -61,8 +61,8 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					await watcher.close();
 				}
 				start(options, warnings);
-			} catch (err: any) {
-				handleError(err, true);
+			} catch (error: any) {
+				handleError(error, true);
 			}
 		}
 	}
@@ -77,19 +77,20 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	function start(configs: MergedRollupOptions[], warnings: BatchWarnings): void {
 		try {
 			watcher = rollup.watch(configs as any);
-		} catch (err: any) {
-			return handleError(err);
+		} catch (error: any) {
+			return handleError(error);
 		}
 
 		watcher.on('event', event => {
 			switch (event.code) {
-				case 'ERROR':
+				case 'ERROR': {
 					warnings.flush();
 					handleError(event.error, true);
 					runWatchHook('onError');
 					break;
+				}
 
-				case 'START':
+				case 'START': {
 					if (!silent) {
 						if (!resetScreen) {
 							resetScreen = getResetScreen(configs, isTTY);
@@ -99,8 +100,9 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					runWatchHook('onStart');
 
 					break;
+				}
 
-				case 'BUNDLE_START':
+				case 'BUNDLE_START': {
 					if (!silent) {
 						let input = event.input;
 						if (typeof input !== 'string') {
@@ -114,8 +116,9 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					}
 					runWatchHook('onBundleStart');
 					break;
+				}
 
-				case 'BUNDLE_END':
+				case 'BUNDLE_END': {
 					warnings.flush();
 					if (!silent)
 						stderr(
@@ -130,12 +133,14 @@ export async function watch(command: Record<string, any>): Promise<void> {
 						printTimings(event.result.getTimings());
 					}
 					break;
+				}
 
-				case 'END':
+				case 'END': {
 					runWatchHook('onEnd');
 					if (!silent && isTTY) {
 						stderr(`\n[${dateTime()}] waiting for changes...`);
 					}
+				}
 			}
 
 			if ('result' in event && event.result) {
@@ -153,6 +158,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		if (configWatcher) configWatcher.close();
 
 		if (code) {
+			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(code);
 		}
 	}

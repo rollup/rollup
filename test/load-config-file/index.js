@@ -63,8 +63,8 @@ describe('loadConfigFile', () => {
 		let caughtError;
 		try {
 			await loadConfigFile(path.resolve(__dirname, 'samples/cjs-as-esm/rollup.config.js'));
-		} catch (err) {
-			caughtError = err;
+		} catch (error) {
+			caughtError = error;
 		}
 		compareError(caughtError, {
 			cause: {
@@ -85,8 +85,8 @@ describe('loadConfigFile', () => {
 			);
 			process.emit('warning', { message: 'Another warning.' });
 			await promise;
-		} catch (err) {
-			caughtError = err;
+		} catch (error) {
+			caughtError = error;
 		}
 		compareError(caughtError, {
 			message: 'Config broken.'
@@ -97,8 +97,8 @@ describe('loadConfigFile', () => {
 		let caughtError;
 		try {
 			await loadConfigFile(path.resolve(__dirname, 'samples/esm-as-cjs/rollup.config.js'));
-		} catch (err) {
-			caughtError = err;
+		} catch (error) {
+			caughtError = error;
 		}
 		assert.strictEqual(
 			caughtError.message.slice(0, 256),
@@ -112,8 +112,8 @@ describe('loadConfigFile', () => {
 			await loadConfigFile(path.resolve(__dirname, 'samples/esm-as-cjs/rollup.config.js'), {
 				configPlugin: '{transform: c => c}'
 			});
-		} catch (err) {
-			caughtError = err;
+		} catch (error) {
+			caughtError = error;
 		}
 		compareError(caughtError, {
 			cause: {
@@ -132,8 +132,8 @@ describe('loadConfigFile', () => {
 			await loadConfigFile(path.resolve(__dirname, 'samples/esm-with-error/rollup.config.js'), {
 				configPlugin: '{transform: c => c}'
 			});
-		} catch (err) {
-			caughtError = err;
+		} catch (error) {
+			caughtError = error;
 		}
 		compareError(caughtError, {
 			message: 'Config broken.'

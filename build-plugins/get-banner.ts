@@ -27,5 +27,5 @@ export default async function getBanner(): Promise<string> {
 	return (getBannerPromise ||= Promise.all([
 		execPromise('git rev-parse HEAD'),
 		fs.readFile(new URL('../package.json', import.meta.url), 'utf8')
-	]).then(([{ stdout }, pkg]) => generateBanner(stdout.trim(), JSON.parse(pkg).version)));
+	]).then(([{ stdout }, package_]) => generateBanner(stdout.trim(), JSON.parse(package_).version)));
 }

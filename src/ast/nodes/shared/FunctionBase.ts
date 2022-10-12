@@ -8,7 +8,7 @@ import {
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../../NodeInteractions';
 import {
 	INTERACTION_CALLED,
@@ -52,7 +52,7 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -123,8 +123,8 @@ export default abstract class FunctionBase extends NodeBase {
 				return true;
 			}
 		}
-		for (const param of this.params) {
-			if (param.hasEffects(context)) return true;
+		for (const parameter of this.params) {
+			if (parameter.hasEffects(context)) return true;
 		}
 		return false;
 	}
@@ -140,14 +140,14 @@ export default abstract class FunctionBase extends NodeBase {
 
 	includeCallArguments(
 		context: InclusionContext,
-		args: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.scope.includeCallArguments(context, args);
+		this.scope.includeCallArguments(context, parameters);
 	}
 
 	initialise(): void {
 		this.scope.addParameterVariables(
-			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
+			this.params.map(parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION)),
 			this.params[this.params.length - 1] instanceof RestElement
 		);
 		if (this.body instanceof BlockStatement) {

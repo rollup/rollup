@@ -1,4 +1,4 @@
-const { resolve } = require('path');
+const { resolve } = require('node:path');
 
 module.exports = {
 	description: 'guesses global names if necessary',

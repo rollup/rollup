@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 const ID_OTHER = path.join(__dirname, 'other.js');
@@ -50,12 +50,9 @@ module.exports = {
 							meta: { testPlugin: 'first' },
 							syntheticNamedExports: false
 						});
-						assert.strictEqual(loadedModules.filter(id => id === ID_MAIN, 'loaded').length, 1);
-						assert.strictEqual(
-							transformedModules.filter(id => id === ID_MAIN, 'transformed').length,
-							1
-						);
-						assert.strictEqual(parsedModules.filter(id => id === ID_MAIN, 'parsed').length, 0);
+						assert.strictEqual(loadedModules.filter(id => id === ID_MAIN).length, 1);
+						assert.strictEqual(transformedModules.filter(id => id === ID_MAIN).length, 1);
+						assert.strictEqual(parsedModules.filter(id => id === ID_MAIN).length, 0);
 						// No dependencies have been loaded yet
 						assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN]);
 						await this.load({ id: ID_OTHER });
@@ -63,8 +60,8 @@ module.exports = {
 						return resolvedId;
 					}
 				},
-				async buildEnd(err) {
-					if (err) {
+				async buildEnd(error) {
+					if (error) {
 						return;
 					}
 					const { ast, ...moduleInfo } = await this.load({
@@ -92,12 +89,9 @@ module.exports = {
 						meta: {},
 						syntheticNamedExports: false
 					});
-					assert.strictEqual(loadedModules.filter(id => id === ID_DEP, 'loaded').length, 1);
-					assert.strictEqual(
-						transformedModules.filter(id => id === ID_DEP, 'transformed').length,
-						1
-					);
-					assert.strictEqual(parsedModules.filter(id => id === ID_DEP, 'parsed').length, 1);
+					assert.strictEqual(loadedModules.filter(id => id === ID_DEP).length, 1);
+					assert.strictEqual(transformedModules.filter(id => id === ID_DEP).length, 1);
+					assert.strictEqual(parsedModules.filter(id => id === ID_DEP).length, 1);
 					assert.deepStrictEqual([...this.getModuleIds()].sort(), [ID_DEP, ID_MAIN, ID_OTHER]);
 				}
 			}

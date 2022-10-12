@@ -5,9 +5,9 @@ const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
-runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (directory, config) => {
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
-		basename(dir) + ': ' + config.description,
+		basename(directory) + ': ' + config.description,
 		() => {
 			let bundle;
 
@@ -20,11 +20,11 @@ runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (dir, co
 
 			for (const format of FORMATS) {
 				it('generates ' + format, async () => {
-					chdir(dir);
+					chdir(directory);
 					bundle =
 						bundle ||
 						(await rollup({
-							input: [dir + '/main.js'],
+							input: [directory + '/main.js'],
 							onwarn: warning => {
 								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 									throw new Error(
@@ -34,19 +34,19 @@ runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (dir, co
 								}
 							},
 							strictDeprecations: true,
-							...(config.options || {})
+							...config.options
 						}));
 					await generateAndTestBundle(
 						bundle,
 						{
-							dir: `${dir}/_actual/${format}`,
+							dir: `${directory}/_actual/${format}`,
 							exports: 'auto',
 							format,
 							chunkFileNames: 'generated-[name].js',
 							validate: true,
-							...((config.options || {}).output || {})
+							...(config.options || {}).output
 						},
-						`${dir}/_expected/${format}`,
+						`${directory}/_expected/${format}`,
 						config
 					);
 				});
@@ -55,7 +55,7 @@ runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (dir, co
 	);
 });
 
-async function generateAndTestBundle(bundle, outputOptions, expectedDir, config) {
+async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, config) {
 	await bundle.write({
 		...outputOptions,
 		dir: `${outputOptions.dir}${config.nestedDir ? '/' + config.nestedDir : ''}`
@@ -77,5 +77,5 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDir, config)
 			delete global.assert;
 		}
 	}
-	assertDirectoriesAreEqual(outputOptions.dir, expectedDir);
+	assertDirectoriesAreEqual(outputOptions.dir, expectedDirectory);
 }

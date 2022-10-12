@@ -1,6 +1,6 @@
 import type { ChunkDependency } from '../../Chunk';
 import type { RollupWarning } from '../../rollup/types';
-import { errMissingNodeBuiltins } from '../../utils/error';
+import { errorMissingNodeBuiltins } from '../../utils/error';
 
 const builtins = {
 	assert: 1,
@@ -34,7 +34,7 @@ export default function warnOnBuiltins(
 		.map(({ importPath }) => importPath)
 		.filter(importPath => importPath in builtins || importPath.startsWith('node:'));
 
-	if (!externalBuiltins.length) return;
+	if (externalBuiltins.length === 0) return;
 
-	warn(errMissingNodeBuiltins(externalBuiltins));
+	warn(errorMissingNodeBuiltins(externalBuiltins));
 }

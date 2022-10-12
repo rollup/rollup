@@ -242,7 +242,7 @@ export default class ImportExpression extends NodeBase {
 					mechanism: { left, right }
 				};
 			}
-			case 'system':
+			case 'system': {
 				return {
 					helper: null,
 					mechanism: {
@@ -250,7 +250,8 @@ export default class ImportExpression extends NodeBase {
 						right: ')'
 					}
 				};
-			case 'es':
+			}
+			case 'es': {
 				if (dynamicImportFunction) {
 					return {
 						helper: null,
@@ -260,6 +261,7 @@ export default class ImportExpression extends NodeBase {
 						}
 					};
 				}
+			}
 		}
 		return { helper: null, mechanism: null };
 	}

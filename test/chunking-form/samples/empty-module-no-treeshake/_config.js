@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 const { getObject } = require('../../../utils');
 
 module.exports = {
@@ -34,7 +34,7 @@ module.exports = {
 			generateBundle(options, bundle) {
 				assert.deepStrictEqual(
 					getObject(
-						Array.from(this.getModuleIds(), id => [
+						[...this.getModuleIds()].map(id => [
 							id.startsWith('empty') ? id : path.relative(__dirname, id),
 							this.getModuleInfo(id).moduleSideEffects
 						])

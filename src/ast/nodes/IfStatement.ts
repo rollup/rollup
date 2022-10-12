@@ -44,11 +44,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		if (typeof testValue === 'symbol') {
 			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
+			// eslint-disable-next-line unicorn/consistent-destructuring
 			const consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 			if (this.alternate === null) return false;
 			if (this.alternate.hasEffects(context)) return true;
 			context.brokenFlow =
+				// eslint-disable-next-line unicorn/consistent-destructuring
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 			return false;
 		}
@@ -169,12 +171,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		let consequentBrokenFlow = BROKEN_FLOW_NONE;
 		if (this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false, { asSingleStatement: true });
+			// eslint-disable-next-line unicorn/consistent-destructuring
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate?.shouldBeIncluded(context)) {
 			this.alternate.include(context, false, { asSingleStatement: true });
 			context.brokenFlow =
+				// eslint-disable-next-line unicorn/consistent-destructuring
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 		}
 	}
@@ -184,7 +188,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		code: MagicString,
 		getPropertyAccess: (name: string) => string
 	) {
-		const hoistedVars = [
+		const hoistedVariables = [
 			...new Set(
 				hoistedDeclarations.map(identifier => {
 					const variable = identifier.variable!;
@@ -194,10 +198,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		]
 			.filter(Boolean)
 			.join(', ');
-		if (hoistedVars) {
+		if (hoistedVariables) {
 			const parentType = this.parent.type;
 			const needsBraces = parentType !== NodeType.Program && parentType !== NodeType.BlockStatement;
-			code.prependRight(this.start, `${needsBraces ? '{ ' : ''}var ${hoistedVars}; `);
+			code.prependRight(this.start, `${needsBraces ? '{ ' : ''}var ${hoistedVariables}; `);
 			if (needsBraces) {
 				code.appendLeft(this.end, ` }`);
 			}

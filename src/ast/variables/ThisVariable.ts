@@ -1,6 +1,6 @@
 import type { AstContext } from '../../Module';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction, NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArgument } from '../NodeInteractions';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import {
 	DiscriminatedPathTracker,
@@ -10,7 +10,7 @@ import {
 import LocalVariable from './LocalVariable';
 
 interface ThisDeoptimizationInteraction {
-	interaction: NodeInteractionWithThisArg;
+	interaction: NodeInteractionWithThisArgument;
 	path: ObjectPath;
 }
 
@@ -48,7 +48,7 @@ export default class ThisVariable extends LocalVariable {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath
 	): void {
 		const thisDeoptimization: ThisDeoptimizationInteraction = {

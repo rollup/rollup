@@ -2,20 +2,25 @@ import { EventEmitter } from 'node:events';
 import process from 'node:process';
 import type { HookAction, PluginDriver } from './PluginDriver';
 
-function formatAction([pluginName, hookName, args]: HookAction): string {
+function formatAction([pluginName, hookName, parameters]: HookAction): string {
 	const action = `(${pluginName}) ${hookName}`;
 	const s = JSON.stringify;
 	switch (hookName) {
-		case 'resolveId':
-			return `${action} ${s(args[0])} ${s(args[1])}`;
-		case 'load':
-			return `${action} ${s(args[0])}`;
-		case 'transform':
-			return `${action} ${s(args[1])}`;
-		case 'shouldTransformCachedModule':
-			return `${action} ${s((args[0] as { id: string }).id)}`;
-		case 'moduleParsed':
-			return `${action} ${s((args[0] as { id: string }).id)}`;
+		case 'resolveId': {
+			return `${action} ${s(parameters[0])} ${s(parameters[1])}`;
+		}
+		case 'load': {
+			return `${action} ${s(parameters[0])}`;
+		}
+		case 'transform': {
+			return `${action} ${s(parameters[1])}`;
+		}
+		case 'shouldTransformCachedModule': {
+			return `${action} ${s((parameters[0] as { id: string }).id)}`;
+		}
+		case 'moduleParsed': {
+			return `${action} ${s((parameters[0] as { id: string }).id)}`;
+		}
 	}
 	return action;
 }

@@ -1,5 +1,5 @@
-const assert = require('assert');
-const { readFileSync } = require('fs');
+const assert = require('node:assert');
+const { readFileSync } = require('node:fs');
 const buble = require('buble');
 const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
@@ -11,7 +11,7 @@ module.exports = {
 		plugins: [
 			{
 				load(id) {
-					const code = readFileSync(id, 'utf-8');
+					const code = readFileSync(id, 'utf8');
 					const out = buble.transform(code, {
 						transforms: { modules: false },
 						sourceMap: true,

@@ -58,7 +58,7 @@ export function deconflictChunk(
 	accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>,
 	includedNamespaces: ReadonlySet<Module>
 ): void {
-	const reversedModules = modules.slice().reverse();
+	const reversedModules = [...modules].reverse();
 	for (const module of reversedModules) {
 		module.scope.addUsedOutsideNames(
 			usedNames,
@@ -154,17 +154,11 @@ function deconflictImportsOther(
 		);
 	}
 	for (const externalModule of deconflictedDefault) {
-		if (
+		externalModule.defaultVariableName =
 			deconflictedNamespace.has(externalModule) &&
 			canDefaultBeTakenFromNamespace(interop(externalModule.id), externalLiveBindings)
-		) {
-			externalModule.defaultVariableName = externalModule.namespaceVariableName;
-		} else {
-			externalModule.defaultVariableName = getSafeName(
-				`${externalModule.suggestedVariableName}__default`,
-				usedNames
-			);
-		}
+				? externalModule.namespaceVariableName
+				: getSafeName(`${externalModule.suggestedVariableName}__default`, usedNames);
 	}
 	for (const variable of imports) {
 		const module = variable.module;

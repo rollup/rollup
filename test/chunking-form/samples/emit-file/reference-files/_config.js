@@ -1,5 +1,5 @@
-const { readFileSync } = require('fs');
-const path = require('path');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 
 module.exports = {
 	description: 'allows referencing emitted files',

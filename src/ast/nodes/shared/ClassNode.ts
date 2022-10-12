@@ -3,7 +3,7 @@ import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
@@ -46,7 +46,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -87,17 +87,13 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
-			return (
-				!interaction.withNew ||
-				(this.classConstructor !== null
-					? this.classConstructor.hasEffectsOnInteractionAtPath(path, interaction, context)
-					: this.superClass?.hasEffectsOnInteractionAtPath(path, interaction, context)) ||
-				false
-			);
-		} else {
-			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
-		}
+		return interaction.type === INTERACTION_CALLED && path.length === 0
+			? !interaction.withNew ||
+					(this.classConstructor !== null
+						? this.classConstructor.hasEffectsOnInteractionAtPath(path, interaction, context)
+						: this.superClass?.hasEffectsOnInteractionAtPath(path, interaction, context)) ||
+					false
+			: this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

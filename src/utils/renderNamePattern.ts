@@ -1,4 +1,4 @@
-import { errFailedValidation, error } from './error';
+import { error, errorFailedValidation } from './error';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { lowercaseBundleKeys } from './outputBundle';
 import { extname } from './path';
@@ -11,7 +11,7 @@ export function renderNamePattern(
 ): string {
 	if (isPathFragment(pattern))
 		return error(
-			errFailedValidation(
+			errorFailedValidation(
 				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths. If you want your files to be stored in a subdirectory, write its name without a leading slash like this: subdirectory/pattern.`
 			)
 		);
@@ -20,15 +20,15 @@ export function renderNamePattern(
 		(_match, type: string, size: `:${string}` | undefined) => {
 			if (!replacements.hasOwnProperty(type) || (size && type !== 'hash')) {
 				return error(
-					errFailedValidation(
+					errorFailedValidation(
 						`"[${type}${size || ''}]" is not a valid placeholder in the "${patternName}" pattern.`
 					)
 				);
 			}
-			const replacement = replacements[type](size && parseInt(size.slice(1)));
+			const replacement = replacements[type](size && Number.parseInt(size.slice(1)));
 			if (isPathFragment(replacement))
 				return error(
-					errFailedValidation(
+					errorFailedValidation(
 						`Invalid substitution "${replacement}" for placeholder "[${type}]" in "${patternName}" pattern, can be neither absolute nor relative path.`
 					)
 				);
@@ -42,10 +42,12 @@ export function makeUnique(
 	{ [lowercaseBundleKeys]: reservedLowercaseBundleKeys }: OutputBundleWithPlaceholders
 ): string {
 	if (!reservedLowercaseBundleKeys.has(name.toLowerCase())) return name;
-	const ext = extname(name);
-	name = name.substring(0, name.length - ext.length);
+	const extension = extname(name);
+	name = name.slice(0, Math.max(0, name.length - extension.length));
 	let uniqueName: string,
 		uniqueIndex = 1;
-	while (reservedLowercaseBundleKeys.has((uniqueName = name + ++uniqueIndex + ext).toLowerCase()));
+	while (
+		reservedLowercaseBundleKeys.has((uniqueName = name + ++uniqueIndex + extension).toLowerCase())
+	);
 	return uniqueName;
 }

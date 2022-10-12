@@ -2,7 +2,7 @@ import type { HasEffectsContext } from '../../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -38,7 +38,7 @@ export class Method extends ExpressionEntity {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		{ type, thisArg }: NodeInteractionWithThisArg,
+		{ type, thisArg }: NodeInteractionWithThisArgument,
 		path: ObjectPath
 	): void {
 		if (type === INTERACTION_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
@@ -71,9 +71,10 @@ export class Method extends ExpressionEntity {
 			return true;
 		}
 		if (type === INTERACTION_CALLED) {
+			const { args, thisArg } = interaction;
 			if (
 				this.description.mutatesSelfAsArray === true &&
-				interaction.thisArg?.hasEffectsOnInteractionAtPath(
+				thisArg?.hasEffectsOnInteractionAtPath(
 					UNKNOWN_INTEGER_PATH,
 					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					context
@@ -82,9 +83,9 @@ export class Method extends ExpressionEntity {
 				return true;
 			}
 			if (this.description.callsArgs) {
-				for (const argIndex of this.description.callsArgs) {
+				for (const argumentIndex of this.description.callsArgs) {
 					if (
-						interaction.args[argIndex]?.hasEffectsOnInteractionAtPath(
+						args[argumentIndex]?.hasEffectsOnInteractionAtPath(
 							EMPTY_PATH,
 							NODE_INTERACTION_UNKNOWN_CALL,
 							context

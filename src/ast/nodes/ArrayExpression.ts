@@ -3,7 +3,7 @@ import type { HasEffectsContext } from '../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../NodeInteractions';
 import {
 	type ObjectPath,
@@ -29,7 +29,7 @@ export default class ArrayExpression extends NodeBase {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -71,11 +71,9 @@ export default class ArrayExpression extends NodeBase {
 		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {
 			const element = this.elements[index];
-			if (element) {
-				if (hasSpread || element instanceof SpreadElement) {
-					hasSpread = true;
-					element.deoptimizePath(UNKNOWN_PATH);
-				}
+			if (element && (hasSpread || element instanceof SpreadElement)) {
+				hasSpread = true;
+				element.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 		this.context.requestTreeshakingPass();

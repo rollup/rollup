@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'Dynamic import string specifier resolving',
@@ -14,8 +14,8 @@ module.exports = {
 	},
 	exports(exports) {
 		const expectedError = "Cannot find package 'asdf'";
-		return exports.promise.catch(err =>
-			assert.strictEqual(err.message.slice(0, expectedError.length), expectedError)
+		return exports.promise.catch(error =>
+			assert.strictEqual(error.message.slice(0, expectedError.length), expectedError)
 		);
 	}
 };

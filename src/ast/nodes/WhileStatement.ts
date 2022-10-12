@@ -14,15 +14,13 @@ export default class WhileStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
-		const {
-			brokenFlow,
-			ignore: { breaks, continues }
-		} = context;
-		context.ignore.breaks = true;
-		context.ignore.continues = true;
+		const { brokenFlow, ignore } = context;
+		const { breaks, continues } = ignore;
+		ignore.breaks = true;
+		ignore.continues = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breaks = breaks;
-		context.ignore.continues = continues;
+		ignore.breaks = breaks;
+		ignore.continues = continues;
 		context.brokenFlow = brokenFlow;
 		return false;
 	}

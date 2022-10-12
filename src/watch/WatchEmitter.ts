@@ -1,6 +1,6 @@
 import type { AwaitedEventListener, AwaitingEventEmitter } from '../rollup/types';
 
-export class WatchEmitter<T extends { [event: string]: (...args: any) => any }>
+export class WatchEmitter<T extends { [event: string]: (...parameters: any) => any }>
 	implements AwaitingEventEmitter<T>
 {
 	private currentHandlers: {
@@ -13,11 +13,11 @@ export class WatchEmitter<T extends { [event: string]: (...args: any) => any }>
 	// Will be overwritten by Rollup
 	async close(): Promise<void> {}
 
-	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): Promise<unknown> {
+	emit<K extends keyof T>(event: K, ...parameters: Parameters<T[K]>): Promise<unknown> {
 		return Promise.all(
-			this.getCurrentHandlers(event)
-				.concat(this.getPersistentHandlers(event))
-				.map(handler => handler(...args))
+			[...this.getCurrentHandlers(event), ...this.getPersistentHandlers(event)].map(handler =>
+				handler(...parameters)
+			)
 		);
 	}
 
@@ -43,9 +43,9 @@ export class WatchEmitter<T extends { [event: string]: (...args: any) => any }>
 	}
 
 	once<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
-		const selfRemovingListener: AwaitedEventListener<T, K> = (...args) => {
+		const selfRemovingListener: AwaitedEventListener<T, K> = (...parameters) => {
 			this.off(event, selfRemovingListener);
-			return listener(...args);
+			return listener(...parameters);
 		};
 		this.on(event, selfRemovingListener);
 		return this;

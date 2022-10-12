@@ -3,8 +3,8 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveImportMeta(prop) {
-					return prop ? "'url'" : "'meta'";
+				resolveImportMeta(property) {
+					return property ? "'url'" : "'meta'";
 				}
 			}
 		],

@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 const comments = [];
 
@@ -9,8 +9,8 @@ module.exports = {
 			{
 				transform(code) {
 					const ast = this.parse(code, {
-						onComment(...args) {
-							comments.push(args);
+						onComment(...parameters) {
+							comments.push(parameters);
 						}
 					});
 					return { ast, code, map: null };

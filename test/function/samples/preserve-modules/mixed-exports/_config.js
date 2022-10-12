@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_LIB1 = path.join(__dirname, 'lib1.js');
 

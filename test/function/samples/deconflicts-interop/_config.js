@@ -8,14 +8,18 @@ module.exports = {
 			interop(id) {
 				switch (id) {
 					case 'external1':
-					case 'external2':
+					case 'external2': {
 						return 'auto';
-					case 'external3':
+					}
+					case 'external3': {
 						return 'default';
-					case 'external4':
+					}
+					case 'external4': {
 						return 'defaultOnly';
-					default:
+					}
+					default: {
 						throw new Error(`Unexpected require "${id}"`);
+					}
 				}
 			}
 		}

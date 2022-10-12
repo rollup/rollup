@@ -251,12 +251,12 @@ console.log(x);
 	});
 
 	it('throws the proper error on max call stack exception', async () => {
-		const count = 10000;
+		const count = 10_000;
 		let source = '';
-		for (let i = 0; i < count; i++) {
+		for (let index = 0; index < count; index++) {
 			source += `if (foo) {`;
 		}
-		for (let i = 0; i < count; i++) {
+		for (let index = 0; index < count; index++) {
 			source += '}';
 		}
 		try {
@@ -270,9 +270,9 @@ console.log(x);
 					})
 				]
 			});
-		} catch (err) {
-			assert.notDeepStrictEqual(err.message, 'Maximum call stack size exceeded');
-			assert.strictEqual(err.name, 'RollupError');
+		} catch (error) {
+			assert.notDeepStrictEqual(error.message, 'Maximum call stack size exceeded');
+			assert.strictEqual(error.name, 'RollupError');
 		}
 	});
 

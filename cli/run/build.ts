@@ -3,7 +3,7 @@ import ms from 'pretty-ms';
 import { rollup } from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold, cyan, green } from '../../src/utils/colors';
-import { errOnlyInlineSourcemapsForStdout } from '../../src/utils/error';
+import { errorOnlyInlineSourcemapsForStdout } from '../../src/utils/error';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import type { BatchWarnings } from './batchWarnings';
@@ -22,7 +22,7 @@ export default async function build(
 		let inputFiles: string | undefined;
 		if (typeof inputOptions.input === 'string') {
 			inputFiles = inputOptions.input;
-		} else if (inputOptions.input instanceof Array) {
+		} else if (Array.isArray(inputOptions.input)) {
 			inputFiles = inputOptions.input.join(', ');
 		} else if (typeof inputOptions.input === 'object' && inputOptions.input !== null) {
 			inputFiles = Object.values(inputOptions.input).join(', ');
@@ -34,7 +34,7 @@ export default async function build(
 	if (useStdout) {
 		const output = outputOptions[0];
 		if (output.sourcemap && output.sourcemap !== 'inline') {
-			handleError(errOnlyInlineSourcemapsForStdout());
+			handleError(errorOnlyInlineSourcemapsForStdout());
 		}
 		const { output: outputs } = await bundle.generate(output);
 		for (const file of outputs) {

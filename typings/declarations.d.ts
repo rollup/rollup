@@ -1,7 +1,7 @@
 // internal
 declare module 'help.md' {
-	const str: string;
-	export default str;
+	const value: string;
+	export default value;
 }
 
 // external libs

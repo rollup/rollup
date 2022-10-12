@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 let bar = 'initial bar';
 let defaultValue = 'initial foo';

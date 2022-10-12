@@ -48,13 +48,11 @@ export class Watcher {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
 		this.tasks = configs.map(config => new Task(this, config));
-		this.buildDelay = configs.reduce(
-			(buildDelay, { watch }) =>
-				watch && typeof (watch as WatcherOptions).buildDelay === 'number'
-					? Math.max(buildDelay, (watch as WatcherOptions).buildDelay!)
-					: buildDelay,
-			this.buildDelay
-		);
+		for (const { watch } of configs) {
+			if (watch && typeof (watch as WatcherOptions).buildDelay === 'number') {
+				this.buildDelay = Math.max(this.buildDelay, (watch as WatcherOptions).buildDelay!);
+			}
+		}
 		process.nextTick(() => this.run());
 	}
 
@@ -71,8 +69,8 @@ export class Watcher {
 
 	invalidate(file?: { event: ChangeEvent; id: string }): void {
 		if (file) {
-			const prevEvent = this.invalidatedIds.get(file.id);
-			const event = prevEvent ? eventsRewrites[prevEvent][file.event] : file.event;
+			const previousEvent = this.invalidatedIds.get(file.id);
+			const event = previousEvent ? eventsRewrites[previousEvent][file.event] : file.event;
 
 			if (event === 'buggy') {
 				//TODO: throws or warn? Currently just ignore, uses new event
@@ -262,7 +260,7 @@ export class Task {
 		if (!this.filter(id)) return;
 		this.watched.add(id);
 
-		if (this.outputFiles.some(file => file === id)) {
+		if (this.outputFiles.includes(id)) {
 			throw new Error('Cannot import the generated bundle');
 		}
 

@@ -1,6 +1,6 @@
-const assert = require('assert');
-const { readFileSync } = require('fs');
-const path = require('path');
+const assert = require('node:assert');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 
 module.exports = {
 	description: 'supports emitting assets from plugin hooks',

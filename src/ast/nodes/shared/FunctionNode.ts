@@ -1,5 +1,5 @@
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import type { NodeInteraction, NodeInteractionWithThisArg } from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArgument } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import FunctionScope from '../../scopes/FunctionScope';
 import type { PathTracker } from '../../utils/PathTracker';
@@ -27,7 +27,7 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -56,7 +56,7 @@ export default class FunctionNode extends FunctionBase {
 					? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
 					: UNKNOWN_EXPRESSION
 			);
-			const { brokenFlow, ignore } = context;
+			const { brokenFlow, ignore, replacedVariableInits } = context;
 			context.ignore = {
 				breaks: false,
 				continues: false,
@@ -66,9 +66,9 @@ export default class FunctionNode extends FunctionBase {
 			if (this.body.hasEffects(context)) return true;
 			context.brokenFlow = brokenFlow;
 			if (thisInit) {
-				context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
+				replacedVariableInits.set(this.scope.thisVariable, thisInit);
 			} else {
-				context.replacedVariableInits.delete(this.scope.thisVariable);
+				replacedVariableInits.delete(this.scope.thisVariable);
 			}
 			context.ignore = ignore;
 		}
@@ -79,9 +79,9 @@ export default class FunctionNode extends FunctionBase {
 		super.include(context, includeChildrenRecursively);
 		this.id?.include();
 		const hasArguments = this.scope.argumentsVariable.included;
-		for (const param of this.params) {
-			if (!(param instanceof Identifier) || hasArguments) {
-				param.include(context, includeChildrenRecursively);
+		for (const parameter of this.params) {
+			if (!(parameter instanceof Identifier) || hasArguments) {
+				parameter.include(context, includeChildrenRecursively);
 			}
 		}
 	}

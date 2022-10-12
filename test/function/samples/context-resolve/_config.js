@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 const tests = [
 	{
@@ -141,16 +141,21 @@ module.exports = {
 			{
 				resolveId(id) {
 					switch (id) {
-						case 'resolved-name':
+						case 'resolved-name': {
 							return 'resolved:resolved-name';
-						case 'resolved-false':
+						}
+						case 'resolved-false': {
 							return false;
-						case 'resolved-object':
+						}
+						case 'resolved-object': {
 							return { id: 'resolved:resolved-object' };
-						case 'resolved-object-non-external':
+						}
+						case 'resolved-object-non-external': {
 							return { id: 'resolved:resolved-object-non-external', external: false };
-						case 'resolved-object-external':
+						}
+						case 'resolved-object-external': {
 							return { id: 'resolved:resolved-object-external', external: true };
+						}
 					}
 				}
 			}

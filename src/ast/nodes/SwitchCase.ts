@@ -39,7 +39,7 @@ export default class SwitchCase extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
-		if (this.consequent.length) {
+		if (this.consequent.length > 0) {
 			this.test && this.test.render(code, options);
 			const testEnd = this.test
 				? this.test.end

@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { wait } = require('../../../utils');
 
 const hooks = [
@@ -44,10 +44,8 @@ function addPlugin(order, sequential) {
 				if (!calledHooks[hook].includes(name)) {
 					calledHooks[hook].push(sequential ? name : [name, [...active]]);
 				}
-				if (sequential) {
-					if (active.size > 0) {
-						throw new Error(`Detected parallel hook runs in ${hook}.`);
-					}
+				if (sequential && active.size > 0) {
+					throw new Error(`Detected parallel hook runs in ${hook}.`);
 				}
 				active.add(name);
 				// A setTimeout always takes longer than any chain of immediately

@@ -27,18 +27,16 @@ export default class ForInStatement extends StatementBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		const { deoptimized, left, right } = this;
+		const { body, deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		if (left.hasEffectsAsAssignmentTarget(context, false) || right.hasEffects(context)) return true;
-		const {
-			brokenFlow,
-			ignore: { breaks, continues }
-		} = context;
-		context.ignore.breaks = true;
-		context.ignore.continues = true;
-		if (this.body.hasEffects(context)) return true;
-		context.ignore.breaks = breaks;
-		context.ignore.continues = continues;
+		const { brokenFlow, ignore } = context;
+		const { breaks, continues } = ignore;
+		ignore.breaks = true;
+		ignore.continues = true;
+		if (body.hasEffects(context)) return true;
+		ignore.breaks = breaks;
+		ignore.continues = continues;
 		context.brokenFlow = brokenFlow;
 		return false;
 	}

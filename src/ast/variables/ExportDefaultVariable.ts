@@ -43,11 +43,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getBaseVariableName(): string {
 		const original = this.getOriginalVariable();
-		if (original === this) {
-			return super.getBaseVariableName();
-		} else {
-			return original.getBaseVariableName();
-		}
+		return original === this ? super.getBaseVariableName() : original.getBaseVariableName();
 	}
 
 	getDirectOriginalVariable(): Variable | null {
@@ -66,11 +62,9 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getName(getPropertyAccess: (name: string) => string): string {
 		const original = this.getOriginalVariable();
-		if (original === this) {
-			return super.getName(getPropertyAccess);
-		} else {
-			return original.getName(getPropertyAccess);
-		}
+		return original === this
+			? super.getName(getPropertyAccess)
+			: original.getName(getPropertyAccess);
 	}
 
 	getOriginalVariable(): Variable {

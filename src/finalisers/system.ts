@@ -36,7 +36,7 @@ export default function system(
 		snippets
 	);
 	const registeredName = name ? `'${name}',${_}` : '';
-	const wrapperParams = accessedGlobals.has('module')
+	const wrapperParameters = accessedGlobals.has('module')
 		? ['exports', 'module']
 		: hasExports
 		? ['exports']
@@ -47,13 +47,14 @@ export default function system(
 	let wrapperStart =
 		`System.register(${registeredName}[` +
 		dependencies.map(({ importPath }) => `'${importPath}'`).join(`,${_}`) +
-		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
-			strict ? "'use strict';" : ''
-		}` +
+		`],${_}(${getNonArrowFunctionIntro(wrapperParameters, {
+			isAsync: false,
+			name: null
+		})}{${n}${t}${strict ? "'use strict';" : ''}` +
 		getStarExcludesBlock(starExcludes, t, snippets) +
 		getImportBindingsBlock(importBindings, t, snippets) +
 		`${n}${t}return${_}{${
-			setters.length
+			setters.length > 0
 				? `${n}${t}${t}setters:${_}[${setters
 						.map(setter =>
 							setter
@@ -180,7 +181,7 @@ const getStarExcludesBlock = (
 ): string =>
 	starExcludes
 		? `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(
-				[...starExcludes].map(prop => [prop, '1']),
+				[...starExcludes].map(property => [property, '1']),
 				{ lineBreakIndent: { base: t, t } }
 		  )};`
 		: '';
@@ -189,7 +190,7 @@ const getImportBindingsBlock = (
 	importBindings: readonly string[],
 	t: string,
 	{ _, n }: GenerateCodeSnippets
-): string => (importBindings.length ? `${n}${t}var ${importBindings.join(`,${_}`)};` : '');
+): string => (importBindings.length > 0 ? `${n}${t}var ${importBindings.join(`,${_}`)};` : '');
 
 const getHoistedExportsBlock = (
 	exports: ChunkExports,

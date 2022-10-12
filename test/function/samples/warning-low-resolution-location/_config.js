@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const { encode } = require('sourcemap-codec');
 const ID_MAIN = path.join(__dirname, 'main.js');
 

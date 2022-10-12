@@ -1,4 +1,4 @@
-import type { NodeInteractionWithThisArg } from '../NodeInteractions';
+import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
@@ -17,7 +17,7 @@ export default class Super extends NodeBase {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	) {

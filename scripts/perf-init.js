@@ -7,7 +7,7 @@ import { findConfigFileName } from './find-config.js';
 import { runWithEcho } from './helpers.js';
 
 const TARGET_DIR = fileURLToPath(new URL('../perf', import.meta.url).href);
-const VALID_REPO = /^([^/\s#]+\/[^/\s#]+)(#([^/\s#]+))?$/;
+const VALID_REPO = /^([^\s#/]+\/[^\s#/]+)(#([^\s#/]+))?$/;
 const repoWithBranch = argv[2];
 
 if (argv.length !== 3 || !VALID_REPO.test(repoWithBranch)) {
@@ -23,15 +23,15 @@ fs.removeSync(TARGET_DIR);
 
 const [, repo, , branch] = VALID_REPO.exec(repoWithBranch);
 
-const gitArgs = ['clone', '--depth', 1, '--progress'];
+const gitArguments = ['clone', '--depth', 1, '--progress'];
 if (branch) {
 	console.error(`Cloning branch "${branch}" of "${repo}"...`);
-	gitArgs.push('--branch', branch);
+	gitArguments.push('--branch', branch);
 } else {
 	console.error(`Cloning "${repo}"...`);
 }
-gitArgs.push(`https://github.com/${repo}.git`, TARGET_DIR);
-await runWithEcho('git', gitArgs);
+gitArguments.push(`https://github.com/${repo}.git`, TARGET_DIR);
+await runWithEcho('git', gitArguments);
 await findConfigFileName(TARGET_DIR);
 chdir(TARGET_DIR);
 await runWithEcho('npm', ['install']);

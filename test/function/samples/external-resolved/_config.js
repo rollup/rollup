@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 const testedIds = [];
 
@@ -34,16 +34,21 @@ module.exports = {
 			name: 'test-plugin',
 			resolveId(source) {
 				switch (source) {
-					case 'resolve-string':
+					case 'resolve-string': {
 						return 'resolved-string';
-					case 'resolve-external':
+					}
+					case 'resolve-external': {
 						return false;
-					case 'resolve-object':
+					}
+					case 'resolve-object': {
 						return { id: 'resolved-object', external: false };
-					case 'resolve-object-external':
+					}
+					case 'resolve-object-external': {
 						return { id: 'resolved-object-external', external: true };
-					default:
+					}
+					default: {
 						return null;
+					}
 				}
 			}
 		}

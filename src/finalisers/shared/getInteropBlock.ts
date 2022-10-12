@@ -75,12 +75,10 @@ export default function getInteropBlock(
 							helper = defaultInteropHelpersByInteropType[moduleInterop];
 						}
 					}
-				} else if (imported === '*' && reexported !== '*') {
-					if (!hasNamespace) {
-						hasNamespace = true;
-						helper = namespaceInteropHelpersByInteropType[moduleInterop];
-						variableName = namespaceVariableName!;
-					}
+				} else if (imported === '*' && reexported !== '*' && !hasNamespace) {
+					hasNamespace = true;
+					helper = namespaceInteropHelpersByInteropType[moduleInterop];
+					variableName = namespaceVariableName!;
 				}
 				if (helper) {
 					addInteropStatement(variableName!, helper, name);

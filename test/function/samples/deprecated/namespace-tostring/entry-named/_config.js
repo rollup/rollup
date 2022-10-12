@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'adds Symbol.toStringTag property to entry chunks with named exports',

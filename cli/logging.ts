@@ -4,35 +4,37 @@ import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
-export const stderr = (...args: readonly unknown[]) => process.stderr.write(`${args.join('')}\n`);
+export const stderr = (...parameters: readonly unknown[]) =>
+	process.stderr.write(`${parameters.join('')}\n`);
 
-export function handleError(err: RollupError, recover = false): void {
-	const name = err.name || err.cause?.name;
+export function handleError(error: RollupError, recover = false): void {
+	const name = error.name || error.cause?.name;
 	const nameSection = name ? `${name}: ` : '';
-	const pluginSection = err.plugin ? `(plugin ${err.plugin}) ` : '';
-	const message = `${pluginSection}${nameSection}${err.message}`;
+	const pluginSection = error.plugin ? `(plugin ${error.plugin}) ` : '';
+	const message = `${pluginSection}${nameSection}${error.message}`;
 
 	stderr(bold(red(`[!] ${bold(message.toString())}`)));
 
-	if (err.url) {
-		stderr(cyan(err.url));
+	if (error.url) {
+		stderr(cyan(error.url));
 	}
 
-	if (err.loc) {
-		stderr(`${relativeId((err.loc.file || err.id)!)} (${err.loc.line}:${err.loc.column})`);
-	} else if (err.id) {
-		stderr(relativeId(err.id));
+	if (error.loc) {
+		stderr(`${relativeId((error.loc.file || error.id)!)} (${error.loc.line}:${error.loc.column})`);
+	} else if (error.id) {
+		stderr(relativeId(error.id));
 	}
 
-	if (err.frame) {
-		stderr(dim(err.frame));
+	if (error.frame) {
+		stderr(dim(error.frame));
 	}
 
-	if (err.stack) {
-		stderr(dim(err.stack));
+	if (error.stack) {
+		stderr(dim(error.stack));
 	}
 
 	stderr('');
 
+	// eslint-disable-next-line unicorn/no-process-exit
 	if (!recover) process.exit(1);
 }

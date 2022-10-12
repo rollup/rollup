@@ -10,7 +10,7 @@ function extractWatchHooks(
 
 	return command.watch
 		.filter(value => typeof value === 'object')
-		.reduce((acc, keyValueOption) => ({ ...acc, ...keyValueOption }), {});
+		.reduce((accumulator, keyValueOption) => ({ ...accumulator, ...keyValueOption }), {});
 }
 
 export function createWatchHooks(command: Record<string, any>): (hook: RollupWatchHooks) => void {
@@ -28,8 +28,8 @@ export function createWatchHooks(command: Record<string, any>): (hook: RollupWat
 				// !! important - use stderr for all writes from execSync
 				const stdio = [process.stdin, process.stderr, process.stderr];
 				execSync(cmd, { stdio: command.silent ? 'ignore' : stdio });
-			} catch (e) {
-				stderr((e as Error).message);
+			} catch (error) {
+				stderr((error as Error).message);
 			}
 		}
 	};

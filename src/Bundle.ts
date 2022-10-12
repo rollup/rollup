@@ -14,10 +14,10 @@ import type { PluginDriver } from './utils/PluginDriver';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
 import {
-	errCannotAssignModuleToChunk,
-	errChunkInvalid,
-	errInvalidOption,
-	error
+	error,
+	errorCannotAssignModuleToChunk,
+	errorChunkInvalid,
+	errorInvalidOption
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
@@ -74,9 +74,9 @@ export default class Bundle {
 				this.outputOptions,
 				this.inputOptions.onwarn
 			);
-		} catch (err: any) {
-			await this.pluginDriver.hookParallel('renderError', [err]);
-			throw err;
+		} catch (error_: any) {
+			await this.pluginDriver.hookParallel('renderError', [error_]);
+			throw error_;
 		}
 
 		timeStart('generate bundle', 2);
@@ -112,6 +112,7 @@ export default class Bundle {
 	}
 
 	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
+		// eslint-disable-next-line unicorn/prefer-module
 		const manualChunkAliasesWithEntry: [alias: string, module: Module][] = [];
 		const manualChunksApi = {
 			getModuleIds: () => this.graph.modulesById.keys(),
@@ -144,8 +145,8 @@ export default class Bundle {
 							allowHashBang: true,
 							ecmaVersion: 'latest'
 						});
-					} catch (err: any) {
-						this.inputOptions.onwarn(errChunkInvalid(file, err));
+					} catch (error_: any) {
+						this.inputOptions.onwarn(errorChunkInvalid(file, error_));
 					}
 				}
 			}
@@ -214,7 +215,7 @@ function validateOptionsForMultiChunkOutput(
 ) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
 		return error(
-			errInvalidOption(
+			errorInvalidOption(
 				'output.format',
 				'outputformat',
 				'UMD and IIFE output formats are not supported for code-splitting builds',
@@ -223,7 +224,7 @@ function validateOptionsForMultiChunkOutput(
 		);
 	if (typeof outputOptions.file === 'string')
 		return error(
-			errInvalidOption(
+			errorInvalidOption(
 				'output.file',
 				'outputdir',
 				'when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option'
@@ -231,7 +232,7 @@ function validateOptionsForMultiChunkOutput(
 		);
 	if (outputOptions.sourcemapFile)
 		return error(
-			errInvalidOption(
+			errorInvalidOption(
 				'output.sourcemapFile',
 				'outputsourcemapfile',
 				'"output.sourcemapFile" is only supported for single-file builds'
@@ -239,7 +240,7 @@ function validateOptionsForMultiChunkOutput(
 		);
 	if (!outputOptions.amd.autoId && outputOptions.amd.id)
 		onWarn(
-			errInvalidOption(
+			errorInvalidOption(
 				'output.amd.id',
 				'outputamd',
 				'this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead'
@@ -294,7 +295,7 @@ function addModuleToManualChunk(
 ): void {
 	const existingAlias = manualChunkAliasByEntry.get(module);
 	if (typeof existingAlias === 'string' && existingAlias !== alias) {
-		return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));
+		return error(errorCannotAssignModuleToChunk(module.id, alias, existingAlias));
 	}
 	manualChunkAliasByEntry.set(module, alias);
 }

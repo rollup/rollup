@@ -12,7 +12,7 @@ import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
 import { createHash } from './crypto';
 import { decodedSourcemap } from './decodedSourcemap';
-import { errFailedValidation, error } from './error';
+import { error, errorFailedValidation } from './error';
 import {
 	replacePlaceholders,
 	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
@@ -130,33 +130,44 @@ async function transformChunk(
 			return result.code;
 		}
 	);
-	const { compact, sourcemap, sourcemapPathTransform } = options;
+	const {
+		compact,
+		dir,
+		file,
+		sourcemap,
+		sourcemapExcludeSources,
+		sourcemapFile,
+		sourcemapPathTransform
+	} = options;
 	if (!compact && code[code.length - 1] !== '\n') code += '\n';
 
 	if (sourcemap) {
 		timeStart('sourcemaps', 3);
 
-		let file: string;
-		if (options.file) file = resolve(options.sourcemapFile || options.file);
-		else if (options.dir) file = resolve(options.dir, fileName);
-		else file = resolve(fileName);
+		let resultingFile: string;
+		if (file) resultingFile = resolve(sourcemapFile || file);
+		else if (dir) resultingFile = resolve(dir, fileName);
+		else resultingFile = resolve(fileName);
 
 		const decodedMap = magicString.generateDecodedMap({});
 		map = collapseSourcemaps(
-			file,
+			resultingFile,
 			decodedMap,
 			usedModules,
 			sourcemapChain,
-			options.sourcemapExcludeSources,
+			sourcemapExcludeSources,
 			onwarn
 		);
 		map.sources = map.sources
 			.map(sourcePath => {
 				if (sourcemapPathTransform) {
-					const newSourcePath = sourcemapPathTransform(sourcePath, `${file}.map`) as unknown;
+					const newSourcePath = sourcemapPathTransform(
+						sourcePath,
+						`${resultingFile}.map`
+					) as unknown;
 
 					if (typeof newSourcePath !== 'string') {
-						error(errFailedValidation(`sourcemapPathTransform function must return a string.`));
+						error(errorFailedValidation(`sourcemapPathTransform function must return a string.`));
 					}
 
 					return newSourcePath;
@@ -304,9 +315,8 @@ function addChunksToBundle(
 		bundle[finalFileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
 	}
 	for (const { chunk, code, fileName, map } of nonHashedChunksWithPlaceholders) {
-		let updatedCode = hashesByPlaceholder.size
-			? replacePlaceholders(code, hashesByPlaceholder)
-			: code;
+		let updatedCode =
+			hashesByPlaceholder.size > 0 ? replacePlaceholders(code, hashesByPlaceholder) : code;
 		if (map) {
 			updatedCode += emitSourceMapAndGetComment(fileName, map, pluginDriver, options);
 		}

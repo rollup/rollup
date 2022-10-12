@@ -1,6 +1,6 @@
 import type { NormalizedOutputOptions, RenderedChunk } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
-import { errAddonNotGenerated, error } from './error';
+import { error, errorAddonNotGenerated } from './error';
 
 export interface Addons {
 	banner: string;
@@ -9,8 +9,8 @@ export interface Addons {
 	outro: string;
 }
 
-const concatSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);
-const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
+const concatSeparator = (out: string, next: string) => (next ? `${out}\n${next}` : out);
+const concatDblSeparator = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
 
 export async function createAddons(
 	options: NormalizedOutputOptions,
@@ -19,10 +19,15 @@ export async function createAddons(
 ): Promise<Addons> {
 	try {
 		let [banner, footer, intro, outro] = await Promise.all([
-			outputPluginDriver.hookReduceValue('banner', options.banner(chunk), [chunk], concatSep),
-			outputPluginDriver.hookReduceValue('footer', options.footer(chunk), [chunk], concatSep),
-			outputPluginDriver.hookReduceValue('intro', options.intro(chunk), [chunk], concatDblSep),
-			outputPluginDriver.hookReduceValue('outro', options.outro(chunk), [chunk], concatDblSep)
+			outputPluginDriver.hookReduceValue('banner', options.banner(chunk), [chunk], concatSeparator),
+			outputPluginDriver.hookReduceValue('footer', options.footer(chunk), [chunk], concatSeparator),
+			outputPluginDriver.hookReduceValue(
+				'intro',
+				options.intro(chunk),
+				[chunk],
+				concatDblSeparator
+			),
+			outputPluginDriver.hookReduceValue('outro', options.outro(chunk), [chunk], concatDblSeparator)
 		]);
 		if (intro) intro += '\n\n';
 		if (outro) outro = `\n\n${outro}`;
@@ -30,7 +35,7 @@ export async function createAddons(
 		if (footer) footer = '\n' + footer;
 
 		return { banner, footer, intro, outro };
-	} catch (err: any) {
-		return error(errAddonNotGenerated(err.message, err.hook, err.plugin));
+	} catch (error_: any) {
+		return error(errorAddonNotGenerated(error_.message, error_.hook, error_.plugin));
 	}
 }

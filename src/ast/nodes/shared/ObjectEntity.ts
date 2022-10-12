@@ -3,7 +3,7 @@ import type { HasEffectsContext } from '../../ExecutionContext';
 import type {
 	NodeInteraction,
 	NodeInteractionCalled,
-	NodeInteractionWithThisArg
+	NodeInteractionWithThisArgument
 } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
@@ -79,9 +79,10 @@ export class ObjectEntity extends ExpressionEntity {
 		if (isDeoptimized) {
 			return;
 		}
-		for (const properties of Object.values(this.propertiesAndGettersByKey).concat(
-			Object.values(this.settersByKey)
-		)) {
+		for (const properties of [
+			...Object.values(this.propertiesAndGettersByKey),
+			...Object.values(this.settersByKey)
+		]) {
 			for (const property of properties) {
 				property.deoptimizePath(UNKNOWN_PATH);
 			}
@@ -139,9 +140,10 @@ export class ObjectEntity extends ExpressionEntity {
 
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of typeof key === 'string'
-			? (this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters).concat(
-					this.settersByKey[key] || this.unmatchableSetters
-			  )
+			? [
+					...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+					...(this.settersByKey[key] || this.unmatchableSetters)
+			  ]
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
@@ -149,7 +151,7 @@ export class ObjectEntity extends ExpressionEntity {
 	}
 
 	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArg,
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
@@ -199,9 +201,10 @@ export class ObjectEntity extends ExpressionEntity {
 				}
 			}
 		} else {
-			for (const properties of Object.values(relevantPropertiesByKey).concat([
+			for (const properties of [
+				...Object.values(relevantPropertiesByKey),
 				relevantUnmatchableProperties
-			])) {
+			]) {
 				for (const property of properties) {
 					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
@@ -278,7 +281,7 @@ export class ObjectEntity extends ExpressionEntity {
 		context: HasEffectsContext
 	): boolean {
 		const [key, ...subPath] = path;
-		if (subPath.length || interaction.type === INTERACTION_CALLED) {
+		if (subPath.length > 0 || interaction.type === INTERACTION_CALLED) {
 			const expressionAtPath = this.getMemberExpression(key);
 			if (expressionAtPath) {
 				return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
@@ -310,7 +313,7 @@ export class ObjectEntity extends ExpressionEntity {
 				}
 			}
 		} else {
-			for (const accessors of Object.values(accessorsByKey).concat([unmatchableAccessors])) {
+			for (const accessors of [...Object.values(accessorsByKey), unmatchableAccessors]) {
 				for (const accessor of accessors) {
 					if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
 				}
@@ -413,7 +416,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (
 			properties ||
 			this.unmatchablePropertiesAndGetters.length > 0 ||
-			(this.unknownIntegerProps.length && INTEGER_REG_EXP.test(key))
+			(this.unknownIntegerProps.length > 0 && INTEGER_REG_EXP.test(key))
 		) {
 			return UNKNOWN_EXPRESSION;
 		}

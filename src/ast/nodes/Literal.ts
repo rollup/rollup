@@ -61,15 +61,18 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		context: HasEffectsContext
 	): boolean {
 		switch (interaction.type) {
-			case INTERACTION_ACCESSED:
+			case INTERACTION_ACCESSED: {
 				return path.length > (this.value === null ? 0 : 1);
-			case INTERACTION_ASSIGNED:
+			}
+			case INTERACTION_ASSIGNED: {
 				return true;
-			case INTERACTION_CALLED:
+			}
+			case INTERACTION_CALLED: {
 				return (
 					path.length !== 1 ||
 					hasMemberEffectWhenCalled(this.members, path[0], interaction, context)
 				);
+			}
 		}
 	}
 
