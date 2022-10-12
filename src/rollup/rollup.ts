@@ -3,7 +3,6 @@ import Bundle from '../Bundle';
 import Graph from '../Graph';
 import type { PluginDriver } from '../utils/PluginDriver';
 import { getSortedValidatedPlugins } from '../utils/PluginDriver';
-import { ensureArray } from '../utils/ensureArray';
 import {
 	error,
 	errorAlreadyClosed,
@@ -15,17 +14,20 @@ import { promises as fs } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
+import { normalizePluginOption } from '../utils/options/options';
 import { dirname, resolve } from '../utils/path';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import type {
 	InputOptions,
+	InputPluginOption,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputAsset,
 	OutputBundle,
 	OutputChunk,
 	OutputOptions,
+	OutputPluginOption,
 	Plugin,
 	RollupBuild,
 	RollupOptions,
@@ -111,7 +113,7 @@ async function getInputOptions(
 	}
 	const rawPlugins = getSortedValidatedPlugins(
 		'options',
-		ensureArray(rawInputOptions.plugins) as Plugin[]
+		normalizePluginOption(rawInputOptions.plugins)
 	);
 	const { options, unsetOptions } = normalizeInputOptions(
 		await rawPlugins.reduce(applyOptionHook(watchMode), Promise.resolve(rawInputOptions))
@@ -188,7 +190,7 @@ function getOutputOptionsAndPluginDriver(
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
-	const rawPlugins = ensureArray(rawOutputOptions.plugins) as Plugin[];
+	const rawPlugins = normalizePluginOption(rawOutputOptions.plugins);
 	normalizePlugins(rawPlugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX);
 	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
