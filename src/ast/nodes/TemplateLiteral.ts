@@ -11,8 +11,8 @@ import {
 } from '../values';
 import type * as NodeType from './NodeType';
 import type TemplateElement from './TemplateElement';
-import type { ExpressionEntity } from './shared/Expression';
-import { type LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from './shared/Expression';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { UNKNOWN_EXPRESSION, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TemplateLiteral extends NodeBase {

@@ -2,8 +2,7 @@ import { type HasEffectsContext, type InclusionContext } from '../../ExecutionCo
 import type { NodeInteraction, NodeInteractionWithThisArgument } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import FunctionScope from '../../scopes/FunctionScope';
-import type { PathTracker } from '../../utils/PathTracker';
-import { type ObjectPath } from '../../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import { UNKNOWN_EXPRESSION } from './Expression';

@@ -16,14 +16,14 @@ import {
 	NODE_INTERACTION_UNKNOWN_CALL
 } from '../../NodeInteractions';
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
-import type { PathTracker } from '../../utils/PathTracker';
-import { type ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
-import type { LiteralValueOrUnknown } from './Expression';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
+import { UNKNOWN_EXPRESSION } from './Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,

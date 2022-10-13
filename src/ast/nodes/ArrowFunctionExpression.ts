@@ -1,5 +1,4 @@
-import type { InclusionContext } from '../ExecutionContext';
-import { type HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import ReturnValueScope from '../scopes/ReturnValueScope';
@@ -9,8 +8,7 @@ import type BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import type * as NodeType from './NodeType';
 import FunctionBase from './shared/FunctionBase';
-import type { IncludeChildren } from './shared/Node';
-import { type ExpressionNode } from './shared/Node';
+import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { ObjectEntity } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import type { PatternNode } from './shared/Pattern';
