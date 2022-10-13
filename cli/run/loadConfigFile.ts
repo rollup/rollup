@@ -31,7 +31,7 @@ export async function loadConfigFile(
 	try {
 		const normalizedConfigs: MergedRollupOptions[] = [];
 		for (const config of configs) {
-			const options = mergeOptions(config, commandOptions, warnings.add);
+			const options = await mergeOptions(config, commandOptions, warnings.add);
 			await addCommandPluginsToInputOptions(options, commandOptions);
 			normalizedConfigs.push(options);
 		}

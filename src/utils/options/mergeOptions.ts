@@ -1,7 +1,6 @@
 import type {
 	ExternalOption,
 	InputOptions,
-	InputPluginOption,
 	MergedRollupOptions,
 	OutputOptions,
 	OutputPluginOption,
@@ -41,13 +40,13 @@ export const commandAliases: { [key: string]: string } = {
 
 const EMPTY_COMMAND_OPTIONS = { external: [], globals: undefined };
 
-export function mergeOptions(
+export async function mergeOptions(
 	config: RollupOptions,
 	rawCommandOptions: GenericConfigObject = EMPTY_COMMAND_OPTIONS,
 	defaultOnWarnHandler: WarningHandler = defaultOnWarn
-): MergedRollupOptions {
+): Promise<MergedRollupOptions> {
 	const command = getCommandOptions(rawCommandOptions);
-	const inputOptions = mergeInputOptions(config, command, defaultOnWarnHandler);
+	const inputOptions = await mergeInputOptions(config, command, defaultOnWarnHandler);
 	const warn = inputOptions.onwarn as WarningHandler;
 	if (command.output) {
 		Object.assign(command, command.output);
@@ -108,11 +107,11 @@ type CompleteInputOptions<U extends keyof InputOptions> = {
 	[K in U]: InputOptions[K];
 };
 
-function mergeInputOptions(
+async function mergeInputOptions(
 	config: InputOptions,
 	overrides: CommandConfigObject,
 	defaultOnWarnHandler: WarningHandler
-): InputOptions {
+): Promise<InputOptions> {
 	const getOption = (name: keyof InputOptions): any => overrides[name] ?? config[name];
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
@@ -133,7 +132,7 @@ function mergeInputOptions(
 		moduleContext: getOption('moduleContext'),
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf'),
-		plugins: normalizePluginOption(config.plugins as InputPluginOption),
+		plugins: await normalizePluginOption(config.plugins),
 		preserveEntrySignatures: getOption('preserveEntrySignatures'),
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),

@@ -1,15 +1,17 @@
-import type { RollupWatcher } from '../rollup/types';
+import type { RollupOptions, RollupWatcher } from '../rollup/types';
 import { ensureArray } from '../utils/ensureArray';
 import { error, errorInvalidOption } from '../utils/error';
-import type { GenericConfigObject } from '../utils/options/options';
+import { mergeOptions } from '../utils/options/mergeOptions';
 import { WatchEmitter } from './WatchEmitter';
 import { loadFsEvents } from './fsevents-importer';
 
-export default function watch(configs: GenericConfigObject[] | GenericConfigObject): RollupWatcher {
+export default async function watch(
+	configs: RollupOptions[] | RollupOptions
+): Promise<RollupWatcher> {
 	const emitter = new WatchEmitter() as RollupWatcher;
-	const configArray = ensureArray(configs);
-	const watchConfigs = configArray.filter(config => config.watch !== false);
-	if (watchConfigs.length === 0) {
+	const optionsList = await Promise.all(ensureArray(configs).map(config => mergeOptions(config)));
+	const watchOptionsList = optionsList.filter(config => config.watch !== false);
+	if (watchOptionsList.length === 0) {
 		return error(
 			errorInvalidOption(
 				'watch',
@@ -20,6 +22,6 @@ export default function watch(configs: GenericConfigObject[] | GenericConfigObje
 	}
 	loadFsEvents()
 		.then(() => import('./watch'))
-		.then(({ Watcher }) => new Watcher(watchConfigs, emitter));
+		.then(({ Watcher }) => new Watcher(watchOptionsList, emitter));
 	return emitter;
 }
