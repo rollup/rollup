@@ -5,23 +5,25 @@ import { mergeOptions } from '../utils/options/mergeOptions';
 import { WatchEmitter } from './WatchEmitter';
 import { loadFsEvents } from './fsevents-importer';
 
-export default async function watch(
-	configs: RollupOptions[] | RollupOptions
-): Promise<RollupWatcher> {
+export default function watch(configs: RollupOptions[] | RollupOptions): RollupWatcher {
 	const emitter = new WatchEmitter() as RollupWatcher;
-	const optionsList = await Promise.all(ensureArray(configs).map(config => mergeOptions(config)));
-	const watchOptionsList = optionsList.filter(config => config.watch !== false);
-	if (watchOptionsList.length === 0) {
-		return error(
-			errorInvalidOption(
-				'watch',
-				'watch',
-				'there must be at least one config where "watch" is not set to "false"'
-			)
-		);
-	}
-	loadFsEvents()
-		.then(() => import('./watch'))
-		.then(({ Watcher }) => new Watcher(watchOptionsList, emitter));
+
+	(async () => {
+		const optionsList = await Promise.all(ensureArray(configs).map(config => mergeOptions(config)));
+		const watchOptionsList = optionsList.filter(config => config.watch !== false);
+		if (watchOptionsList.length === 0) {
+			return error(
+				errorInvalidOption(
+					'watch',
+					'watch',
+					'there must be at least one config where "watch" is not set to "false"'
+				)
+			);
+		}
+		loadFsEvents()
+			.then(() => import('./watch'))
+			.then(({ Watcher }) => new Watcher(watchOptionsList, emitter));
+	})();
+
 	return emitter;
 }
