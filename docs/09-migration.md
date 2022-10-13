@@ -58,7 +58,7 @@ In general, though, the new default values are our recommended settings. Refer t
 ### More Changed Options
 
 - [`output.banner/footer`](guide/en/#outputbanneroutputfooter)[`/intro/outro`](guide/en/#outputintrooutputoutro) are now called per chunk and thus should not do any performance-heavy operations.
-- [`entryFileNames`](guide/en/#outputentryfilenames) and [`chunkFileNames`](guide/en/#outputchunkfilenames) functions now longer have access to the rendered module information via `modules`, but only to a list of included `moduleIds`.
+- [`entryFileNames`](guide/en/#outputentryfilenames) and [`chunkFileNames`](guide/en/#outputchunkfilenames) functions no longer have access to the rendered module information via `modules`, but only to a list of included `moduleIds`.
 - When using [`output.preserveModules`](guide/en/#outputpreservemodules) and `entryFileNames`, you can no longer use the `[ext]`, `[extName]` and `[assetExtName]` file name placeholders. Also, the path of a module is no longer prepended to the file name automatically but is included in the `[name]` placeholder.
 
 ### Dynamic Import in CommonJS Output
