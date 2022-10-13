@@ -111,9 +111,9 @@ async function getInputOptions(
 	}
 	const rawPlugins = getSortedValidatedPlugins(
 		'options',
-		normalizePluginOption(rawInputOptions.plugins)
+		await normalizePluginOption(rawInputOptions.plugins)
 	);
-	const { options, unsetOptions } = normalizeInputOptions(
+	const { options, unsetOptions } = await normalizeInputOptions(
 		await rawPlugins.reduce(applyOptionHook(watchMode), Promise.resolve(rawInputOptions))
 	);
 	normalizePlugins(options.plugins, ANONYMOUS_PLUGIN_PREFIX);
@@ -138,7 +138,7 @@ function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): 
 	}
 }
 
-function handleGenerateWrite(
+async function handleGenerateWrite(
 	isWrite: boolean,
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>,
@@ -149,7 +149,7 @@ function handleGenerateWrite(
 		options: outputOptions,
 		outputPluginDriver,
 		unsetOptions
-	} = getOutputOptionsAndPluginDriver(
+	} = await getOutputOptionsAndPluginDriver(
 		rawOutputOptions,
 		graph.pluginDriver,
 		inputOptions,
@@ -175,35 +175,40 @@ function handleGenerateWrite(
 	});
 }
 
-function getOutputOptionsAndPluginDriver(
+async function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: OutputOptions,
 	inputPluginDriver: PluginDriver,
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>
-): {
+): Promise<{
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
 	unsetOptions: Set<string>;
-} {
+}> {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
-	const rawPlugins = normalizePluginOption(rawOutputOptions.plugins);
+	const rawPlugins = await normalizePluginOption(rawOutputOptions.plugins);
 	normalizePlugins(rawPlugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX);
 	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
 	return {
-		...getOutputOptions(inputOptions, unsetInputOptions, rawOutputOptions, outputPluginDriver),
+		...(await getOutputOptions(
+			inputOptions,
+			unsetInputOptions,
+			rawOutputOptions,
+			outputPluginDriver
+		)),
 		outputPluginDriver
 	};
 }
 
-function getOutputOptions(
+async function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>,
 	rawOutputOptions: OutputOptions,
 	outputPluginDriver: PluginDriver
-): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
+): Promise<{ options: NormalizedOutputOptions; unsetOptions: Set<string> }> {
 	return normalizeOutputOptions(
 		outputPluginDriver.hookReduceArg0Sync(
 			'outputOptions',

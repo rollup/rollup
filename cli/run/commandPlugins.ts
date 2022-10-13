@@ -23,7 +23,7 @@ export async function addPluginsFromCommandOption(
 	inputOptions: InputOptionsWithPlugins
 ): Promise<void> {
 	if (commandPlugin) {
-		const plugins: any[] = normalizePluginOption(commandPlugin as any);
+		const plugins = await normalizePluginOption(commandPlugin);
 		for (const plugin of plugins) {
 			if (/[={}]/.test(plugin)) {
 				// -p plugin=value

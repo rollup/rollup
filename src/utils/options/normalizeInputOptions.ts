@@ -26,10 +26,10 @@ export interface CommandConfigObject {
 	globals: { [id: string]: string } | undefined;
 }
 
-export function normalizeInputOptions(config: InputOptions): {
+export async function normalizeInputOptions(config: InputOptions): Promise<{
 	options: NormalizedInputOptions;
 	unsetOptions: Set<string>;
-} {
+}> {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();
@@ -54,7 +54,7 @@ export function normalizeInputOptions(config: InputOptions): {
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: config.perf || false,
-		plugins: normalizePluginOption(config.plugins),
+		plugins: await normalizePluginOption(config.plugins),
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
 		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,

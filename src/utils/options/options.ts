@@ -10,6 +10,7 @@ import type {
 	Plugin,
 	WarningHandler
 } from '../../rollup/types';
+import { asyncFlatten } from '../asyncFlatten';
 import { error, errorInvalidOption, errorUnknownOption } from '../error';
 import { printQuotedStringList } from '../printStringList';
 
@@ -151,6 +152,7 @@ const getHashFromObjectOption = (optionName: string): string =>
 	optionName.split('.').join('').toLowerCase();
 
 export const normalizePluginOption: {
-	(plugins: InputPluginOption): Plugin[];
-	(plugins: OutputPluginOption): OutputPlugin[];
-} = (plugins: any) => [plugins].flat(Infinity).filter(Boolean);
+	(plugins: InputPluginOption): Promise<Plugin[]>;
+	(plugins: OutputPluginOption): Promise<OutputPlugin[]>;
+	(plugins: unknown): Promise<any[]>;
+} = async (plugins: any) => (await asyncFlatten([plugins])).filter(Boolean);

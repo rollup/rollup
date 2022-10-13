@@ -495,7 +495,13 @@ export type SourcemapPathTransformOption = (
 	sourcemapPath: string
 ) => string;
 
-export type InputPluginOption = Plugin | null | false | undefined | InputPluginOption[];
+export type InputPluginOption =
+	| Plugin
+	| null
+	| false
+	| undefined
+	| InputPluginOption[]
+	| Promise<Plugin | false | null | undefined | PluginOption[]>;
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
@@ -619,7 +625,13 @@ export type NormalizedAmdOptions = (
 
 type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
 
-type OutputPluginOption = OutputPlugin | null | false | undefined | OutputPluginOption[];
+type OutputPluginOption =
+	| OutputPlugin
+	| null
+	| false
+	| undefined
+	| OutputPluginOption[]
+	| Promise<OutputPlugin | false | null | undefined | OutputPluginOption[]>;
 
 export interface OutputOptions {
 	amd?: AmdOptions;
