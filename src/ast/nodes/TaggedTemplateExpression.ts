@@ -13,8 +13,7 @@ import type TemplateLiteral from './TemplateLiteral';
 import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import type { IncludeChildren } from './shared/Node';
-import { type ExpressionNode } from './shared/Node';
+import type { ExpressionNode, IncludeChildren } from './shared/Node';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;

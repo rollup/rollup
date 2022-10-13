@@ -7,8 +7,8 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import type { IncludeChildren } from './shared/Node';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
 	declare arguments: ExpressionNode[];
