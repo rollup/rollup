@@ -11,7 +11,6 @@ import type {
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
-import type { GenericConfigObject } from '../utils/options/options';
 import { FileWatcher } from './fileWatcher';
 
 const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'buggy' | null>> = {
@@ -48,8 +47,8 @@ export class Watcher {
 		emitter.close = this.close.bind(this);
 		this.tasks = optionsList.map(options => new Task(this, options));
 		for (const { watch } of optionsList) {
-			if (watch && typeof (watch as WatcherOptions).buildDelay === 'number') {
-				this.buildDelay = Math.max(this.buildDelay, (watch as WatcherOptions).buildDelay!);
+			if (watch && typeof watch.buildDelay === 'number') {
+				this.buildDelay = Math.max(this.buildDelay, watch.buildDelay!);
 			}
 		}
 		process.nextTick(() => this.run());
@@ -151,7 +150,7 @@ export class Task {
 		this.watcher = watcher;
 		this.options = options;
 
-		this.skipWrite = Boolean(options.watch && (options.watch as GenericConfigObject).skipWrite);
+		this.skipWrite = Boolean(options.watch && options.watch.skipWrite);
 		this.outputs = this.options.output;
 		this.outputFiles = this.outputs.map(output => {
 			if (output.file || output.dir) return resolve(output.file || output.dir!);

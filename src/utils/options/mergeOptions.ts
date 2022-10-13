@@ -3,7 +3,6 @@ import type {
 	InputOptions,
 	MergedRollupOptions,
 	OutputOptions,
-	OutputPluginOption,
 	RollupCache,
 	RollupOptions,
 	WarningHandler,
@@ -53,8 +52,10 @@ export async function mergeOptions(
 	}
 	const outputOptionsArray = ensureArray(config.output);
 	if (outputOptionsArray.length === 0) outputOptionsArray.push({});
-	const outputOptions = outputOptionsArray.map(singleOutputOptions =>
-		mergeOutputOptions(singleOutputOptions, command, warn)
+	const outputOptions = await Promise.all(
+		outputOptionsArray.map(singleOutputOptions =>
+			mergeOutputOptions(singleOutputOptions, command, warn)
+		)
 	);
 
 	warnUnknownOptions(
@@ -217,11 +218,11 @@ type CompleteOutputOptions<U extends keyof OutputOptions> = {
 	[K in U]: OutputOptions[K];
 };
 
-function mergeOutputOptions(
+async function mergeOutputOptions(
 	config: OutputOptions,
 	overrides: OutputOptions,
 	warn: WarningHandler
-): OutputOptions {
+): Promise<OutputOptions> {
 	const getOption = (name: keyof OutputOptions): any => overrides[name] ?? config[name];
 	const outputOptions: CompleteOutputOptions<keyof OutputOptions> = {
 		amd: getObjectOption(config, overrides, 'amd'),
@@ -261,7 +262,7 @@ function mergeOutputOptions(
 		noConflict: getOption('noConflict'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),
-		plugins: normalizePluginOption(config.plugins as OutputPluginOption),
+		plugins: await normalizePluginOption(config.plugins),
 		preferConst: getOption('preferConst'),
 		preserveModules: getOption('preserveModules'),
 		preserveModulesRoot: getOption('preserveModulesRoot'),
