@@ -1,3 +1,4 @@
+import { handleError } from '../../cli/logging';
 import type { RollupOptions, RollupWatcher } from '../rollup/types';
 import { ensureArray } from '../utils/ensureArray';
 import { error, errorInvalidOption } from '../utils/error';
@@ -20,10 +21,12 @@ export default function watch(configs: RollupOptions[] | RollupOptions): RollupW
 				)
 			);
 		}
-		loadFsEvents()
-			.then(() => import('./watch'))
-			.then(({ Watcher }) => new Watcher(watchOptionsList, emitter));
-	})();
+		await loadFsEvents();
+		const { Watcher } = await import('./watch');
+		new Watcher(watchOptionsList, emitter);
+	})().catch(error => {
+		handleError(error);
+	});
 
 	return emitter;
 }

@@ -75,11 +75,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	}
 
 	async function start(configs: MergedRollupOptions[], warnings: BatchWarnings): Promise<void> {
-		try {
-			watcher = await rollup.watch(configs as any);
-		} catch (error: any) {
-			return handleError(error);
-		}
+		watcher = rollup.watch(configs as any);
 
 		watcher.on('event', event => {
 			switch (event.code) {
