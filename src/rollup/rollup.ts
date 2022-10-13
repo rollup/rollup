@@ -20,14 +20,12 @@ import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../util
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import type {
 	InputOptions,
-	InputPluginOption,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputAsset,
 	OutputBundle,
 	OutputChunk,
 	OutputOptions,
-	OutputPluginOption,
 	Plugin,
 	RollupBuild,
 	RollupOptions,
