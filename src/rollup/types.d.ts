@@ -501,7 +501,7 @@ export type InputPluginOption =
 	| false
 	| undefined
 	| InputPluginOption[]
-	| Promise<Plugin | false | null | undefined | PluginOption[]>;
+	| Promise<Plugin | false | null | undefined | InputPluginOption[]>;
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
