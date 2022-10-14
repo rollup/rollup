@@ -9,6 +9,7 @@ import {
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
+import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
@@ -45,26 +46,33 @@ export default class VariableDeclarator extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		const {
 			exportNamesByVariable,
-			snippets: { _ }
+			snippets: { _, getPropertyAccess }
 		} = options;
-		const renderId = this.id.included;
+		const { end, id, init, start } = this;
+		const renderId = id.included;
 		if (renderId) {
-			this.id.render(code, options);
+			id.render(code, options);
 		} else {
-			const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', this.id.end);
-			code.remove(this.start, findNonWhiteSpace(code.original, operatorPos + 1));
+			const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', id.end);
+			code.remove(start, findNonWhiteSpace(code.original, operatorPos + 1));
 		}
-		if (this.init) {
-			this.init.render(
+		if (init) {
+			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
+				const renderedVariable = id.variable!.getName(getPropertyAccess);
+				if (renderedVariable !== id.name) {
+					code.appendLeft(init.start + 5, ` ${id.name}`);
+				}
+			}
+			init.render(
 				code,
 				options,
 				renderId ? BLANK : { renderedSurroundingElement: NodeType.ExpressionStatement }
 			);
 		} else if (
-			this.id instanceof Identifier &&
-			isReassignedExportsMember(this.id.variable!, exportNamesByVariable)
+			id instanceof Identifier &&
+			isReassignedExportsMember(id.variable!, exportNamesByVariable)
 		) {
-			code.appendLeft(this.end, `${_}=${_}void 0`);
+			code.appendLeft(end, `${_}=${_}void 0`);
 		}
 	}
 
