@@ -8,6 +8,21 @@ The following is intended as a lightweight reference for the module behaviors de
 
 Imported values cannot be reassigned, though imported objects and arrays _can_ be mutated (and the exporting module, and any other importers, will be affected by the mutation). In that way, they behave similarly to `const` declarations.
 
+#### import.meta usage
+
+import.meta.url holds a reference to the currentl imported script and is often used to get the current url.
+
+```js
+// Assign importMetaUrl as it is only accessable on first instantiation cycle of the module
+const currentUrl = import.meta.url;
+
+const willFailCanNotAccessImportMetaUrl = async () => console.log(import.meta.url);
+const getUrl = async () => console.log(currentUrl);
+
+willFailCanNotAccessImportMetaUrl() // => Promise.rejected
+getUrl() // => Promise.resolve() will log the currentUrl
+```
+
 #### Named Imports
 
 Import a specific item from a source module, with its original name.
