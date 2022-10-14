@@ -203,7 +203,7 @@ async function getOutputOptionsAndPluginDriver(
 	};
 }
 
-async function getOutputOptions(
+function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>,
 	rawOutputOptions: OutputOptions,
