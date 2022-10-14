@@ -33,11 +33,24 @@ export default class ClassDeclaration extends ClassNode {
 		const {
 			exportNamesByVariable,
 			format,
-			snippets: { _ }
+			snippets: { _, getPropertyAccess }
 		} = options;
+		if (this.id) {
+			const { variable, name } = this.id;
+			const renderedVariable = variable.getName(getPropertyAccess);
+			if (renderedVariable !== name) {
+				this.superClass?.render(code, options);
+				this.body.render(code, options);
+				code.prependRight(this.start, `let ${renderedVariable}${_}=${_}`);
+				code.appendLeft(this.end, ';');
+			} else {
+				super.render(code, options);
+			}
+		} else {
+			super.render(code, options);
+		}
 		if (format === 'system' && this.id && exportNamesByVariable.has(this.id.variable)) {
 			code.appendLeft(this.end, `${_}${getSystemExportStatement([this.id.variable], options)};`);
 		}
-		super.render(code, options);
 	}
 }
