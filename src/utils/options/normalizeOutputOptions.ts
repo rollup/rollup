@@ -22,11 +22,11 @@ import {
 	warnUnknownOptions
 } from './options';
 
-export function normalizeOutputOptions(
+export async function normalizeOutputOptions(
 	config: OutputOptions,
 	inputOptions: NormalizedInputOptions,
 	unsetInputOptions: ReadonlySet<string>
-): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
+): Promise<{ options: NormalizedOutputOptions; unsetOptions: Set<string> }> {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
 	const unsetOptions = new Set(unsetInputOptions);
@@ -72,7 +72,7 @@ export function normalizeOutputOptions(
 		noConflict: config.noConflict || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
-		plugins: normalizePluginOption(config.plugins),
+		plugins: await normalizePluginOption(config.plugins),
 		preferConst,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),

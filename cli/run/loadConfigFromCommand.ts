@@ -13,7 +13,7 @@ export default async function loadConfigFromCommand(command: Record<string, unkn
 	if (!command.input && (command.stdin || !process.stdin.isTTY)) {
 		command.input = stdinName;
 	}
-	const options = mergeOptions({ input: [] }, command, warnings.add);
+	const options = await mergeOptions({ input: [] }, command, warnings.add);
 	await addCommandPluginsToInputOptions(options, command);
 	return { options: [options], warnings };
 }

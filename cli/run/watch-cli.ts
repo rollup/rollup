@@ -71,15 +71,11 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		await loadConfigFromFileAndTrack(configFile);
 	} else {
 		const { options, warnings } = await loadConfigFromCommand(command);
-		start(options, warnings);
+		await start(options, warnings);
 	}
 
-	function start(configs: MergedRollupOptions[], warnings: BatchWarnings): void {
-		try {
-			watcher = rollup.watch(configs as any);
-		} catch (error: any) {
-			return handleError(error);
-		}
+	async function start(configs: MergedRollupOptions[], warnings: BatchWarnings): Promise<void> {
+		watcher = rollup.watch(configs as any);
 
 		watcher.on('event', event => {
 			switch (event.code) {

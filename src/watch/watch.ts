@@ -11,8 +11,6 @@ import type {
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
-import { mergeOptions } from '../utils/options/mergeOptions';
-import type { GenericConfigObject } from '../utils/options/options';
 import { FileWatcher } from './fileWatcher';
 
 const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'buggy' | null>> = {
@@ -44,13 +42,13 @@ export class Watcher {
 	private running = true;
 	private readonly tasks: Task[];
 
-	constructor(configs: readonly GenericConfigObject[], emitter: RollupWatcher) {
+	constructor(optionsList: readonly MergedRollupOptions[], emitter: RollupWatcher) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
-		this.tasks = configs.map(config => new Task(this, config));
-		for (const { watch } of configs) {
-			if (watch && typeof (watch as WatcherOptions).buildDelay === 'number') {
-				this.buildDelay = Math.max(this.buildDelay, (watch as WatcherOptions).buildDelay!);
+		this.tasks = optionsList.map(options => new Task(this, options));
+		for (const { watch } of optionsList) {
+			if (watch && typeof watch.buildDelay === 'number') {
+				this.buildDelay = Math.max(this.buildDelay, watch.buildDelay!);
 			}
 		}
 		process.nextTick(() => this.run());
@@ -148,11 +146,11 @@ export class Task {
 	private watched = new Set<string>();
 	private readonly watcher: Watcher;
 
-	constructor(watcher: Watcher, config: GenericConfigObject) {
+	constructor(watcher: Watcher, options: MergedRollupOptions) {
 		this.watcher = watcher;
+		this.options = options;
 
-		this.skipWrite = Boolean(config.watch && (config.watch as GenericConfigObject).skipWrite);
-		this.options = mergeOptions(config);
+		this.skipWrite = Boolean(options.watch && options.watch.skipWrite);
 		this.outputs = this.options.output;
 		this.outputFiles = this.outputs.map(output => {
 			if (output.file || output.dir) return resolve(output.file || output.dir!);

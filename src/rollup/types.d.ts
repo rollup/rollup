@@ -1,5 +1,9 @@
 export const VERSION: string;
 
+type FalsyValue = false | null | undefined;
+type MaybeArray<T> = T | T[];
+type MaybePromise<T> = T | Promise<T>;
+
 export interface RollupError extends RollupLog {
 	name?: string;
 	stack?: string;
@@ -495,7 +499,7 @@ export type SourcemapPathTransformOption = (
 	sourcemapPath: string
 ) => string;
 
-export type InputPluginOption = Plugin | null | false | undefined | InputPluginOption[];
+export type InputPluginOption = MaybePromise<Plugin | FalsyValue | InputPluginOption[]>;
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
@@ -619,7 +623,7 @@ export type NormalizedAmdOptions = (
 
 type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
 
-type OutputPluginOption = OutputPlugin | null | false | undefined | OutputPluginOption[];
+type OutputPluginOption = MaybePromise<OutputPlugin | FalsyValue | OutputPluginOption[]>;
 
 export interface OutputOptions {
 	amd?: AmdOptions;
