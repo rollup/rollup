@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 3.2.0
+
+_2022-10-15_
+
+### Features
+
+- Support providing Promises as plugins like Vite (#4671)
+
+### Pull Requests
+
+- [#4666](https://github.com/rollup/rollup/pull/4666): Add unicorn plugin (@lukastaegert)
+- [#4667](https://github.com/rollup/rollup/pull/4667): refactor: improve types (@sxzz)
+- [#4668](https://github.com/rollup/rollup/pull/4668): fix: nested plugin in options stage (@sxzz)
+- [#4669](https://github.com/rollup/rollup/pull/4669): refactor: merge duplicate imports (@c0dedance)
+- [#4670](https://github.com/rollup/rollup/pull/4670): docs: fix minor typo in migration documentation (@ThisIsMissEm)
+- [#4671](https://github.com/rollup/rollup/pull/4671): feat: support async plugins (@sxzz)
+
 ## 3.1.0
 
 _2022-10-12_
