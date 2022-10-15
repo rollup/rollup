@@ -287,7 +287,7 @@ const getAddon = <T extends 'banner' | 'footer' | 'intro' | 'outro'>(
 	if (typeof configAddon === 'function') {
 		return configAddon as NormalizedOutputOptions[T];
 	}
-	return () => (configAddon as string) || '';
+	return () => configAddon || '';
 };
 
 // eslint-disable-next-line unicorn/prevent-abbreviations

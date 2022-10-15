@@ -91,7 +91,7 @@ export default class Graph {
 			watcher.onCurrentRun('close', handleClose);
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
-		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
+		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any[]));
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 		this.fileOperationQueue = new Queue(options.maxParallelFileOps);
 	}

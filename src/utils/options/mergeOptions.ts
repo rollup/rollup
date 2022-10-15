@@ -5,8 +5,7 @@ import type {
 	OutputOptions,
 	RollupCache,
 	RollupOptions,
-	WarningHandler,
-	WarningHandlerWithDefault
+	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import type { CommandConfigObject } from './normalizeInputOptions';
@@ -159,7 +158,7 @@ async function mergeInputOptions(
 }
 
 const getExternal = (config: InputOptions, overrides: CommandConfigObject): ExternalOption => {
-	const configExternal = config.external as ExternalOption | undefined;
+	const configExternal = config.external;
 	return typeof configExternal === 'function'
 		? (source: string, importer: string | undefined, isResolved: boolean) =>
 				configExternal(source, importer, isResolved) || overrides.external.includes(source)
@@ -167,9 +166,7 @@ const getExternal = (config: InputOptions, overrides: CommandConfigObject): Exte
 };
 
 const getOnWarn = (config: InputOptions, defaultOnWarnHandler: WarningHandler): WarningHandler =>
-	config.onwarn
-		? warning => (config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarnHandler)
-		: defaultOnWarnHandler;
+	config.onwarn ? warning => config.onwarn!(warning, defaultOnWarnHandler) : defaultOnWarnHandler;
 
 const getObjectOption = <T extends object>(
 	config: T,
