@@ -1,8 +1,14 @@
 export const VERSION: string;
 
-type FalsyValue = false | null | undefined;
+// utils
+type NullValue = null | undefined | void;
+type FalsyValue = false | NullValue;
 type MaybeArray<T> = T | T[];
 type MaybePromise<T> = T | Promise<T>;
+
+type PartialNull<T> = {
+	[P in keyof T]: T[P] | null;
+};
 
 export interface RollupError extends RollupLog {
 	name?: string;
@@ -81,10 +87,6 @@ export interface SourceMap {
 }
 
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
-
-type PartialNull<T> = {
-	[P in keyof T]: T[P] | null;
-};
 
 interface ModuleOptions {
 	assertions: Record<string, string>;
@@ -224,7 +226,7 @@ interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	id: string;
 }
 
-export type ResolveIdResult = string | false | null | void | PartialResolvedId;
+export type ResolveIdResult = string | FalsyValue | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
@@ -252,11 +254,11 @@ export type IsExternal = (
 	isResolved: boolean
 ) => boolean;
 
-export type IsPureModule = (id: string) => boolean | null | void;
+export type IsPureModule = (id: string) => boolean | NullValue;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
-export type LoadResult = SourceDescription | string | null | void;
+export type LoadResult = SourceDescription | string | NullValue;
 
 export type LoadHook = (this: PluginContext, id: string) => LoadResult;
 
@@ -264,7 +266,7 @@ export interface TransformPluginContext extends PluginContext {
 	getCombinedSourcemap: () => SourceMap;
 }
 
-export type TransformResult = string | null | void | Partial<SourceDescription>;
+export type TransformResult = string | NullValue | Partial<SourceDescription>;
 
 export type TransformHook = (
 	this: TransformPluginContext,
@@ -280,7 +282,7 @@ export type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: NormalizedOutputOptions,
 	meta: { chunks: Record<string, RenderedChunk> }
-) => { code: string; map?: SourceMapInput } | string | null | undefined;
+) => { code: string; map?: SourceMapInput } | string | NullValue;
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
@@ -293,7 +295,7 @@ export type ResolveImportMetaHook = (
 	this: PluginContext,
 	property: string | null,
 	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
-) => string | null | void;
+) => string | NullValue;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
@@ -305,7 +307,7 @@ export type ResolveFileUrlHook = (
 		referenceId: string;
 		relativePath: string;
 	}
-) => string | null | void;
+) => string | NullValue;
 
 export type AddonHookFunction = (
 	this: PluginContext,
@@ -351,8 +353,8 @@ export interface FunctionPluginHooks {
 	) => void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
-	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | void;
-	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | void;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | NullValue;
+	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | NullValue;
 	renderChunk: RenderChunkHook;
 	renderDynamicImport: (
 		this: PluginContext,
@@ -362,7 +364,7 @@ export interface FunctionPluginHooks {
 			moduleId: string;
 			targetModuleId: string | null;
 		}
-	) => { left: string; right: string } | null | void;
+	) => { left: string; right: string } | NullValue;
 	renderError: (this: PluginContext, error?: Error) => void;
 	renderStart: (
 		this: PluginContext,
@@ -481,13 +483,13 @@ interface ManualChunkMeta {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
-export type GetManualChunk = (id: string, meta: ManualChunkMeta) => string | null | void;
+export type GetManualChunk = (id: string, meta: ManualChunkMeta) => string | NullValue;
 
 export type ExternalOption =
 	| (string | RegExp)[]
 	| string
 	| RegExp
-	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | null | void);
+	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | NullValue);
 export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
@@ -517,7 +519,7 @@ export interface InputOptions {
 	maxParallelFileOps?: number;
 	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads?: number;
-	moduleContext?: ((id: string) => string | null | void) | { [id: string]: string };
+	moduleContext?: ((id: string) => string | NullValue) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: InputPluginOption;
