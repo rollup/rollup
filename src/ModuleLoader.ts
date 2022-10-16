@@ -58,9 +58,9 @@ type NormalizedResolveIdWithoutDefaults = Partial<PartialNull<ModuleOptions>> & 
 	id: string;
 };
 
-type ResolveStaticDependencyPromise = Promise<[source: string, resolvedId: ResolvedId]>;
+type ResolveStaticDependencyPromise = Promise<readonly [source: string, resolvedId: ResolvedId]>;
 type ResolveDynamicDependencyPromise = Promise<
-	[dynamicImport: DynamicImport, resolvedId: ResolvedId | string | null]
+	readonly [dynamicImport: DynamicImport, resolvedId: ResolvedId | string | null]
 >;
 type LoadModulePromise = Promise<
 	[
@@ -548,7 +548,7 @@ export class ModuleLoader {
 			if (resolvedId && typeof resolvedId === 'object') {
 				dynamicImport.id = resolvedId.id;
 			}
-			return [dynamicImport, resolvedId] as [DynamicImport, ResolvedId | string | null];
+			return [dynamicImport, resolvedId] as const;
 		});
 	}
 
@@ -567,7 +567,7 @@ export class ModuleLoader {
 							module.id,
 							assertions
 						))
-				] as [string, ResolvedId]
+				] as const
 		);
 	}
 

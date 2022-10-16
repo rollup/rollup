@@ -186,7 +186,7 @@ const getmaxParallelFileOps = (
 	warn: WarningHandler,
 	strictDeprecations: boolean
 ): NormalizedInputOptions['maxParallelFileOps'] => {
-	const maxParallelFileReads = config.maxParallelFileReads as unknown;
+	const maxParallelFileReads = config.maxParallelFileReads;
 	if (typeof maxParallelFileReads === 'number') {
 		warnDeprecationWithOptions(
 			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
@@ -195,7 +195,7 @@ const getmaxParallelFileOps = (
 			strictDeprecations
 		);
 	}
-	const maxParallelFileOps = (config.maxParallelFileOps as unknown) ?? maxParallelFileReads;
+	const maxParallelFileOps = config.maxParallelFileOps ?? maxParallelFileReads;
 	if (typeof maxParallelFileOps === 'number') {
 		if (maxParallelFileOps <= 0) return Infinity;
 		return maxParallelFileOps;
