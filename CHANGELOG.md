@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.2.1
+
+_2022-10-16_
+
+### Bug Fixes
+
+- Rewrite class declarations to preserve their .name property if necessary (#4674)
+
+### Pull Requests
+
+- [#4674](https://github.com/rollup/rollup/pull/4674): Preserve rendered class names (@lukastaegert)
+
 ## 3.2.0
 
 _2022-10-15_
