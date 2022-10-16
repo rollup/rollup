@@ -2,7 +2,6 @@ export const VERSION: string;
 
 // utils
 type NullValue = null | undefined | void;
-type FalsyValue = false | NullValue;
 type MaybeArray<T> = T | T[];
 type MaybePromise<T> = T | Promise<T>;
 
@@ -226,7 +225,7 @@ interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	id: string;
 }
 
-export type ResolveIdResult = string | FalsyValue | PartialResolvedId;
+export type ResolveIdResult = string | NullValue | false | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
@@ -501,7 +500,7 @@ export type SourcemapPathTransformOption = (
 	sourcemapPath: string
 ) => string;
 
-export type InputPluginOption = MaybePromise<Plugin | FalsyValue | InputPluginOption[]>;
+export type InputPluginOption = MaybePromise<Plugin | NullValue | false | InputPluginOption[]>;
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
@@ -625,7 +624,7 @@ export type NormalizedAmdOptions = (
 
 type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
 
-type OutputPluginOption = MaybePromise<OutputPlugin | FalsyValue | OutputPluginOption[]>;
+type OutputPluginOption = MaybePromise<OutputPlugin | NullValue | false | OutputPluginOption[]>;
 
 export interface OutputOptions {
 	amd?: AmdOptions;
