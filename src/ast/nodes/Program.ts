@@ -32,8 +32,13 @@ export default class Program extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
+		let start = this.start;
+		if (code.original.startsWith('#!')) {
+			start = Math.min(code.original.indexOf('\n') + 1, this.end);
+			code.remove(0, start);
+		}
 		if (this.body.length > 0) {
-			renderStatementList(this.body, code, this.start, this.end, options);
+			renderStatementList(this.body, code, start, this.end, options);
 		} else {
 			super.render(code, options);
 		}
