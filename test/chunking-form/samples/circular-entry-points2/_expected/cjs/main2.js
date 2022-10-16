@@ -1,10 +1,10 @@
 'use strict';
 
-class C$1 {
+let C$1 = class C {
   fn (num) {
     console.log(num - p);
   }
-}
+};
 
 var p$1 = 43;
 
