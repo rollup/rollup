@@ -161,10 +161,7 @@ async function transformChunk(
 		map.sources = map.sources
 			.map(sourcePath => {
 				if (sourcemapPathTransform) {
-					const newSourcePath = sourcemapPathTransform(
-						sourcePath,
-						`${resultingFile}.map`
-					) as unknown;
+					const newSourcePath = sourcemapPathTransform(sourcePath, `${resultingFile}.map`);
 
 					if (typeof newSourcePath !== 'string') {
 						error(errorFailedValidation(`sourcemapPathTransform function must return a string.`));

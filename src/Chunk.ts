@@ -725,9 +725,7 @@ export default class Chunk {
 		const map = module.getExportNamesByVariable();
 		for (const exportedVariable of map.keys()) {
 			const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
-			const importedVariable = isSynthetic
-				? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
-				: exportedVariable;
+			const importedVariable = isSynthetic ? exportedVariable.getBaseVariable() : exportedVariable;
 			if (!(importedVariable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
 				this.checkCircularDependencyImport(importedVariable, module);
 				const exportingModule = importedVariable.module;
