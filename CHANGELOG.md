@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.2.2
+
+_2022-10-16_
+
+### Bug Fixes
+
+- Do not hang/crash on hashbang comments in input modules (#4676)
+
+### Pull Requests
+
+- [#4675](https://github.com/rollup/rollup/pull/4675): refactor: improve & simplify types (@sxzz)
+- [#4676](https://github.com/rollup/rollup/pull/4676): Ignore hashhbang comments (@lukastaegert)
+
 ## 3.2.1
 
 _2022-10-16_
