@@ -14,6 +14,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 const FILE_PREFIX = 'ROLLUP_FILE_URL_';
+const IMPORT = 'import';
 
 export default class MetaProperty extends NodeBase {
 	declare meta: Identifier;
@@ -25,8 +26,11 @@ export default class MetaProperty extends NodeBase {
 	private referenceId: string | null = null;
 
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
-		const { metaProperty } = this;
-		if (metaProperty?.startsWith(FILE_PREFIX)) {
+		const {
+			meta: { name },
+			metaProperty
+		} = this;
+		if (name === IMPORT && metaProperty?.startsWith(FILE_PREFIX)) {
 			return outputPluginDriver.getFileName(metaProperty.slice(FILE_PREFIX.length));
 		}
 		return null;
@@ -43,7 +47,7 @@ export default class MetaProperty extends NodeBase {
 	include(): void {
 		if (!this.included) {
 			this.included = true;
-			if (this.meta.name === 'import') {
+			if (this.meta.name === IMPORT) {
 				this.context.addImportMeta(this);
 				const parent = this.parent;
 				const metaProperty = (this.metaProperty =
@@ -62,6 +66,7 @@ export default class MetaProperty extends NodeBase {
 			context: {
 				module: { id: moduleId }
 			},
+			meta: { name },
 			metaProperty,
 			parent,
 			preliminaryChunkId,
@@ -69,6 +74,7 @@ export default class MetaProperty extends NodeBase {
 			start,
 			end
 		} = this;
+		if (name !== IMPORT) return;
 		const chunkId = preliminaryChunkId!;
 
 		if (referenceId) {
