@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 3.2.3
+
+_2022-10-18_
+
+### Bug Fixes
+
+- Fix an issue whre Rollup confused `new.target` with `import.meta` (#4679)
+- Ensure that Rollup does not make assumptions about the value of unknown namespace import members (#4684)
+
+### Pull Requests
+
+- [#4679](https://github.com/rollup/rollup/pull/4679): Do not rewrite new.target (@lukastaegert)
+- [#4683](https://github.com/rollup/rollup/pull/4683): Remove typo in resolveId documentation (@ChrispyChris)
+- [#4684](https://github.com/rollup/rollup/pull/4684): Return correct values for unknown namespace members (@lukastaegert)
+
 ## 3.2.2
 
 _2022-10-16_
