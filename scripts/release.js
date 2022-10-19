@@ -15,8 +15,9 @@ import { runAndGetStdout, runWithEcho } from './helpers.js';
 chdir(fileURLToPath(new URL('..', import.meta.url)));
 
 const MAIN_BRANCH = 'master';
-const MAIN_PKG = 'package.json';
-const BROWSER_PKG = 'browser/package.json';
+const MAIN_PACKAGE = 'package.json';
+const MAIN_LOCKFILE = 'package-lock.json';
+const BROWSER_PACKAGE = 'browser/package.json';
 const CHANGELOG = 'CHANGELOG.md';
 
 const [gh, currentBranch] = await Promise.all([
@@ -24,16 +25,17 @@ const [gh, currentBranch] = await Promise.all([
 	runAndGetStdout('git', ['branch', '--show-current']),
 	runWithEcho('git', ['pull', '--ff-only'])
 ]);
-const [package_, browserPackage, repo, issues, changelog] = await Promise.all([
-	readJson(MAIN_PKG),
-	readJson(BROWSER_PKG),
+const [mainPackage, mainLockFile, browserPackage, repo, issues, changelog] = await Promise.all([
+	readJson(MAIN_PACKAGE),
+	readJson(MAIN_LOCKFILE),
+	readJson(BROWSER_PACKAGE),
 	gh.getRepo('rollup', 'rollup'),
 	gh.getIssues('rollup', 'rollup'),
 	readFile(CHANGELOG, 'utf8')
 ]);
 const isMainBranch = currentBranch === MAIN_BRANCH;
 const [newVersion, includedPRs] = await Promise.all([
-	getNewVersion(package_, isMainBranch),
+	getNewVersion(mainPackage, isMainBranch),
 	getIncludedPRs(changelog, repo)
 ]);
 
@@ -42,7 +44,7 @@ try {
 	if (isMainBranch) {
 		await addStubChangelogEntry(newVersion, repo, changelog, includedPRs);
 	}
-	await updatePackages(package_, browserPackage, newVersion);
+	await updatePackages(mainPackage, mainLockFile, browserPackage, newVersion);
 	await installDependenciesBuildAndTest();
 	changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
 	gitTag = `v${newVersion}`;
@@ -83,8 +85,8 @@ async function readJson(file) {
 	return JSON.parse(content);
 }
 
-async function getNewVersion(package_, isMainBranch) {
-	const { version } = package_;
+async function getNewVersion(mainPackage, isMainBranch) {
+	const { version } = mainPackage;
 	const availableIncrements = isMainBranch
 		? ['patch', 'minor']
 		: semverPreRelease(version)
@@ -268,19 +270,33 @@ async function waitForChangelogUpdate(version) {
 	return changelogEntry;
 }
 
-function updatePackages(package_, browserPackage, newVersion) {
+function updatePackages(mainPackage, mainLockFile, browserPackage, newVersion) {
 	return Promise.all([
-		writeFile(MAIN_PKG, getPackageStringWithVersion(package_, newVersion)),
-		writeFile(BROWSER_PKG, getPackageStringWithVersion(browserPackage, newVersion))
+		writeFile(MAIN_PACKAGE, updatePackageVersionAndGetString(mainPackage, newVersion)),
+		writeFile(MAIN_LOCKFILE, updateLockFileVersionAndGetString(mainLockFile, newVersion)),
+		writeFile(BROWSER_PACKAGE, updatePackageVersionAndGetString(browserPackage, newVersion))
 	]);
 }
 
-function getPackageStringWithVersion(package_, version) {
-	return JSON.stringify({ ...package_, version }, null, 2) + '\n';
+function updatePackageVersionAndGetString(packageContent, version) {
+	packageContent.version = version;
+	return JSON.stringify(packageContent, null, 2) + '\n';
+}
+
+function updateLockFileVersionAndGetString(lockfileContent, version) {
+	lockfileContent.version = version;
+	lockfileContent.packages[''].version = version;
+	return JSON.stringify(lockfileContent, null, 2) + '\n';
 }
 
 async function commitChanges(newVersion, gitTag, isMainBranch) {
-	await runWithEcho('git', ['add', MAIN_PKG, BROWSER_PKG, ...(isMainBranch ? [CHANGELOG] : [])]);
+	await runWithEcho('git', [
+		'add',
+		MAIN_PACKAGE,
+		MAIN_LOCKFILE,
+		BROWSER_PACKAGE,
+		...(isMainBranch ? [CHANGELOG] : [])
+	]);
 	await runWithEcho('git', ['commit', '-m', newVersion]);
 	await runWithEcho('git', ['tag', gitTag]);
 }
