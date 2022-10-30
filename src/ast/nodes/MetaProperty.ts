@@ -1,6 +1,7 @@
 import type MagicString from 'magic-string';
 import type { InternalModuleFormat } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
+import { escapeId } from '../../utils/escapeId';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { dirname, normalize, relative } from '../../utils/path';
 import type { RenderOptions } from '../../utils/renderHelpers';
@@ -145,7 +146,7 @@ const getResolveUrl = (path: string, URL = 'URL') => `new ${URL}(${path}).href`;
 
 const getRelativeUrlFromDocument = (relativePath: string, umd = false) =>
 	getResolveUrl(
-		`'${relativePath}', ${
+		`'${escapeId(relativePath)}', ${
 			umd ? `typeof document === 'undefined' ? location.href : ` : ''
 		}document.currentScript && document.currentScript.src || document.baseURI`
 	);
@@ -164,7 +165,9 @@ const getGenericImportMetaMechanism =
 const getUrlFromDocument = (chunkId: string, umd = false) =>
 	`${
 		umd ? `typeof document === 'undefined' ? location.href : ` : ''
-	}(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
+	}(document.currentScript && document.currentScript.src || new URL('${escapeId(
+		chunkId
+	)}', document.baseURI).href)`;
 
 const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string) => string> = {
 	amd: relativePath => {
