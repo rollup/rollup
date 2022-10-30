@@ -54,7 +54,7 @@ import {
 } from './utils/interopHelpers';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { FILE_PLACEHOLDER } from './utils/outputBundle';
-import { basename, extname, isAbsolute, resolve } from './utils/path';
+import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
 import { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -974,7 +974,7 @@ export default class Chunk {
 		const predefinedChunkName = getPredefinedChunkNameFromModule(module);
 		if (predefinedChunkName) return predefinedChunkName;
 		const { preserveModulesRoot, sanitizeFileName } = this.outputOptions;
-		const sanitizedId = sanitizeFileName(module.id.split(QUERY_HASH_REGEX, 1)[0]);
+		const sanitizedId = sanitizeFileName(normalize(module.id.split(QUERY_HASH_REGEX, 1)[0]));
 		const extensionName = extname(sanitizedId);
 		const idWithoutExtension = NON_ASSET_EXTENSIONS.has(extensionName)
 			? sanitizedId.slice(0, -extensionName.length)
