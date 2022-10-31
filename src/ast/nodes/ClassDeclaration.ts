@@ -51,4 +51,17 @@ export default class ClassDeclaration extends ClassNode {
 		}
 		super.render(code, options);
 	}
+
+	protected applyDeoptimizations(): void {
+		super.applyDeoptimizations();
+		const { id, scope } = this;
+		if (id) {
+			const { name, variable } = id;
+			for (const accessedVariable of scope.accessedOutsideVariables.values()) {
+				if (accessedVariable !== variable) {
+					accessedVariable.forbidName(name);
+				}
+			}
+		}
+	}
 }

@@ -99,7 +99,7 @@ function deconflictImportsEsmOrSystem(
 	// This is needed for namespace reexports
 	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
 		if (preserveModules || dependency instanceof ExternalChunk) {
-			dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames);
+			dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames, null);
 		}
 	}
 	for (const variable of imports) {
@@ -122,15 +122,16 @@ function deconflictImportsEsmOrSystem(
 					)
 						? module.suggestedVariableName + '__default'
 						: module.suggestedVariableName,
-					usedNames
+					usedNames,
+					variable.forbiddenNames
 				)
 			);
 		} else {
-			variable.setRenderNames(null, getSafeName(name, usedNames));
+			variable.setRenderNames(null, getSafeName(name, usedNames, variable.forbiddenNames));
 		}
 	}
 	for (const variable of syntheticExports) {
-		variable.setRenderNames(null, getSafeName(variable.name, usedNames));
+		variable.setRenderNames(null, getSafeName(variable.name, usedNames, variable.forbiddenNames));
 	}
 }
 
@@ -145,12 +146,13 @@ function deconflictImportsOther(
 	externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>
 ): void {
 	for (const chunk of dependencies) {
-		chunk.variableName = getSafeName(chunk.suggestedVariableName, usedNames);
+		chunk.variableName = getSafeName(chunk.suggestedVariableName, usedNames, null);
 	}
 	for (const chunk of deconflictedNamespace) {
 		chunk.namespaceVariableName = getSafeName(
 			`${chunk.suggestedVariableName}__namespace`,
-			usedNames
+			usedNames,
+			null
 		);
 	}
 	for (const externalModule of deconflictedDefault) {
@@ -158,7 +160,7 @@ function deconflictImportsOther(
 			deconflictedNamespace.has(externalModule) &&
 			canDefaultBeTakenFromNamespace(interop(externalModule.id), externalLiveBindings)
 				? externalModule.namespaceVariableName
-				: getSafeName(`${externalModule.suggestedVariableName}__default`, usedNames);
+				: getSafeName(`${externalModule.suggestedVariableName}__default`, usedNames, null);
 	}
 	for (const variable of imports) {
 		const module = variable.module;
@@ -220,12 +222,18 @@ function deconflictTopLevelVariables(
 					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
 				)
 			) {
-				variable.setRenderNames(null, getSafeName(variable.name, usedNames));
+				variable.setRenderNames(
+					null,
+					getSafeName(variable.name, usedNames, variable.forbiddenNames)
+				);
 			}
 		}
 		if (includedNamespaces.has(module)) {
 			const namespace = module.namespace;
-			namespace.setRenderNames(null, getSafeName(namespace.name, usedNames));
+			namespace.setRenderNames(
+				null,
+				getSafeName(namespace.name, usedNames, namespace.forbiddenNames)
+			);
 		}
 	}
 }
