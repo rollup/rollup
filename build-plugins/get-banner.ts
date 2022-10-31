@@ -23,9 +23,14 @@ function generateBanner(commitHash: string, version: string): string {
 
 let getBannerPromise: Promise<string> | null = null;
 
-export default async function getBanner(): Promise<string> {
+export default function getBanner(): Promise<string> {
 	return (getBannerPromise ||= Promise.all([
-		execPromise('git rev-parse HEAD'),
+		execPromise('git rev-parse HEAD')
+			.then(({ stdout }) => stdout.trim())
+			.catch(error => {
+				console.error('Could not determine commit hash:', error);
+				return 'unknown';
+			}),
 		fs.readFile(new URL('../package.json', import.meta.url), 'utf8')
-	]).then(([{ stdout }, package_]) => generateBanner(stdout.trim(), JSON.parse(package_).version)));
+	]).then(([commit, package_]) => generateBanner(commit, JSON.parse(package_).version)));
 }
