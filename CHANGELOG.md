@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.2.5
+
+_2022-11-01_
+
+### Bug Fixes
+
+- We deconflicting classes, ensure the original class name still does not shadow variables (#4697)
+
+### Pull Requests
+
+- [#4697](https://github.com/rollup/rollup/pull/4697): Prevent class ids from shadowing other variables (@lukastaegert)
+
 ## 3.2.4
 
 _2022-10-31_
