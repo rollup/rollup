@@ -29,17 +29,20 @@ export default class VariableDeclarator extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		const initEffect = this.init?.hasEffects(context);
 		this.id.markDeclarationReached();
 		return initEffect || this.id.hasEffects(context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		const { deoptimized, id, init } = this;
+		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		this.init?.include(context, includeChildrenRecursively);
-		this.id.markDeclarationReached();
-		if (includeChildrenRecursively || this.id.shouldBeIncluded(context)) {
-			this.id.include(context, includeChildrenRecursively);
+		init?.include(context, includeChildrenRecursively);
+		id.markDeclarationReached();
+		if (includeChildrenRecursively || id.shouldBeIncluded(context)) {
+			id.include(context, includeChildrenRecursively);
 		}
 	}
 
@@ -76,5 +79,16 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations() {}
+	protected applyDeoptimizations() {
+		this.deoptimized = true;
+		const { id, init } = this;
+		if (init && id instanceof Identifier && init instanceof ClassExpression && !init.id) {
+			const { name, variable } = id;
+			for (const accessedVariable of init.scope.accessedOutsideVariables.values()) {
+				if (accessedVariable !== variable) {
+					accessedVariable.forbidName(name);
+				}
+			}
+		}
+	}
 }

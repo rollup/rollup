@@ -90,7 +90,7 @@ export default class ChildScope extends Scope {
 		}
 		for (const [name, variable] of this.variables) {
 			if (variable.included || variable.alwaysRendered) {
-				variable.setRenderNames(null, getSafeName(name, usedNames));
+				variable.setRenderNames(null, getSafeName(name, usedNames, variable.forbiddenNames));
 			}
 		}
 		for (const scope of this.children) {

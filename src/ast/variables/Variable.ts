@@ -9,6 +9,7 @@ import type { ObjectPath } from '../utils/PathTracker';
 
 export default class Variable extends ExpressionEntity {
 	alwaysRendered = false;
+	forbiddenNames: Set<string> | null = null;
 	initReached = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
@@ -28,6 +29,14 @@ export default class Variable extends ExpressionEntity {
 	 * Necessary to be able to change variable names.
 	 */
 	addReference(_identifier: Identifier): void {}
+
+	/**
+	 * Prevent this variable from being renamed to this name to avoid name
+	 * collisions
+	 */
+	forbidName(name: string) {
+		(this.forbiddenNames ||= new Set()).add(name);
+	}
 
 	getBaseVariableName(): string {
 		return this.renderBaseName || this.renderName || this.name;
