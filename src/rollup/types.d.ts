@@ -639,6 +639,7 @@ export interface OutputOptions {
 	dynamicImportInCjs?: boolean;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule?: boolean | 'if-default-prop';
+	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
 	externalImportAssertions?: boolean;
@@ -691,6 +692,7 @@ export interface NormalizedOutputOptions {
 	dynamicImportInCjs: boolean;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule: boolean | 'if-default-prop';
+	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
 	externalImportAssertions: boolean;
