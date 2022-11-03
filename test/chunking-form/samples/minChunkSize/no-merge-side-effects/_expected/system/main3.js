@@ -1,13 +1,13 @@
-System.register(['./generated-small.js'], (function () {
+System.register(['./generated-big.js'], (function () {
 	'use strict';
-	var small;
+	var big;
 	return {
 		setters: [function (module) {
-			small = module.s;
+			big = module.b;
 		}],
 		execute: (function () {
 
-			console.log(small);
+			console.log(big);
 
 		})
 	};

@@ -1,3 +1,3 @@
-import { small } from './small';
+import { big } from './big';
 
-console.log(small);
+console.log(big);

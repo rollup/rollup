@@ -12,9 +12,7 @@ module.exports = {
 
 			{
 				transform(code) {
-					return code.replace(/\d+/g, match => {
-						return 2 * +match;
-					});
+					return code.replace(/\d+/g, match => 2 * +match);
 				}
 			}
 		]

@@ -1,5 +1,3 @@
-const path = require('node:path');
-
 module.exports = {
 	description: 'watches without a config file',
 	command: 'rollup main.js --watch --format es --file _actual/main.js',

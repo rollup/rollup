@@ -6,7 +6,7 @@ module.exports = {
 		plugins: [
 			{
 				name: 'first',
-				async resolveId(source, importer, { assertions }) {
+				async resolveId() {
 					assert.deepStrictEqual(
 						await this.resolve('external', undefined, {
 							skipSelf: true,

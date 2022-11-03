@@ -14,9 +14,7 @@ describe('incremental', () => {
 			return id === 'external' ? false : id;
 		},
 
-		load: id => {
-			return modules[id];
-		},
+		load: id => modules[id],
 
 		transform: code => {
 			transformCalls++;
@@ -74,7 +72,7 @@ describe('incremental', () => {
 					cache: bundle
 				});
 			})
-			.then(bundle => {
+			.then(() => {
 				assert.strictEqual(resolveIdCalls, 3); // +1 for entry point which is resolved every time
 				assert.strictEqual(transformCalls, 2);
 			});
@@ -98,13 +96,13 @@ describe('incremental', () => {
 					cache = bundle.cache;
 				});
 			})
-			.then(() => {
-				return rollup.rollup({
+			.then(() =>
+				rollup.rollup({
 					input: 'entry',
 					plugins: [plugin],
 					cache
-				});
-			})
+				})
+			)
 			.then(bundle => {
 				assert.strictEqual(transformCalls, 3);
 
@@ -133,13 +131,13 @@ describe('incremental', () => {
 					cache = bundle.cache;
 				});
 			})
-			.then(() => {
-				return rollup.rollup({
+			.then(() =>
+				rollup.rollup({
 					input: 'entry',
 					plugins: [plugin],
 					cache
-				});
-			})
+				})
+			)
 			.then(bundle => {
 				assert.strictEqual(resolveIdCalls, 4);
 
@@ -170,13 +168,13 @@ describe('incremental', () => {
 					cache = bundle.cache;
 				});
 			})
-			.then(() => {
-				return rollup.rollup({
+			.then(() =>
+				rollup.rollup({
 					input: 'entry',
 					plugins: [plugin],
 					cache
-				});
-			})
+				})
+			)
 			.then(bundle => {
 				assert.strictEqual(resolveIdCalls, 4);
 
@@ -187,8 +185,8 @@ describe('incremental', () => {
 			});
 	});
 
-	it('keeps ASTs between runs', () => {
-		return rollup
+	it('keeps ASTs between runs', () =>
+		rollup
 			.rollup({
 				input: 'entry',
 				plugins: [plugin]
@@ -207,8 +205,7 @@ describe('incremental', () => {
 					asts.foo,
 					acorn.parse(modules.foo, { sourceType: 'module', ecmaVersion: 2020 })
 				);
-			});
-	});
+			}));
 
 	it('recovers from errors', () => {
 		modules.entry = `import foo from 'foo'; import bar from 'bar'; export default foo + bar;`;
@@ -227,9 +224,7 @@ describe('incremental', () => {
 						plugins: [plugin],
 						cache
 					})
-					.catch(error => {
-						return cache;
-					});
+					.catch(() => cache);
 			})
 			.then(cache => {
 				modules.foo = `export default 42;`;
@@ -240,9 +235,7 @@ describe('incremental', () => {
 						plugins: [plugin],
 						cache
 					})
-					.then(bundle => {
-						return executeBundle(bundle);
-					})
+					.then(bundle => executeBundle(bundle))
 					.then(result => {
 						assert.strictEqual(result, 63);
 					});
@@ -399,9 +392,7 @@ describe('incremental', () => {
 					}
 				}
 			},
-			transform: (code, id) => {
-				return { meta: { transform: { calls: transformCalls, id } } };
-			}
+			transform: (code, id) => ({ meta: { transform: { calls: transformCalls, id } } })
 		};
 		const cache = await rollup.rollup({
 			input: 'entry',

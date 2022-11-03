@@ -1,5 +1,3 @@
-const path = require('node:path');
-
 module.exports = {
 	description: 'watches using a node_modules config files',
 	command: 'rollup --watch --config node:custom',

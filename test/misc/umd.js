@@ -33,7 +33,7 @@ function runNodeTest(code) {
 	return module.exports;
 }
 
-function runAmdTest(code, outputOptions) {
+function runAmdTest(code) {
 	let defineArguments;
 	function define(...parameters) {
 		defineArguments = parameters;

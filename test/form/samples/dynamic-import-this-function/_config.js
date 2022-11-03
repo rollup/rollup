@@ -1,5 +1,3 @@
-const assert = require('node:assert');
-
 module.exports = {
 	description: 'uses correct "this" in dynamic imports when not using arrow functions',
 	options: {

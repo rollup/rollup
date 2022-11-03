@@ -62,11 +62,11 @@ function getImportBlock(dependencies: ChunkDependency[], { _ }: GenerateCodeSnip
 			} else if (importedNames.length > 0) {
 				importBlock.push(
 					`import ${defaultImport ? `${defaultImport.local},${_}` : ''}{${_}${importedNames
-						.map(specifier => {
-							return specifier.imported === specifier.local
+						.map(specifier =>
+							specifier.imported === specifier.local
 								? specifier.imported
-								: `${specifier.imported} as ${specifier.local}`;
-						})
+								: `${specifier.imported} as ${specifier.local}`
+						)
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
 			}
@@ -105,11 +105,11 @@ function getImportBlock(dependencies: ChunkDependency[], { _ }: GenerateCodeSnip
 			if (namedReexports.length > 0) {
 				importBlock.push(
 					`export${_}{${_}${namedReexports
-						.map(specifier => {
-							return specifier.imported === specifier.reexported
+						.map(specifier =>
+							specifier.imported === specifier.reexported
 								? specifier.imported
-								: `${specifier.imported} as ${specifier.reexported}`;
-						})
+								: `${specifier.imported} as ${specifier.reexported}`
+						)
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
 			}

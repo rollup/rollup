@@ -1,3 +1,3 @@
-import { s as small } from './generated-small.js';
+import { b as big } from './generated-small.js';
 
-console.log(small);
+console.log(big);

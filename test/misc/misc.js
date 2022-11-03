@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const rollup = require('../../dist/rollup');
-const { assertIncludes, loader } = require('../utils.js');
+const { loader } = require('../utils.js');
 
 describe('misc', () => {
 	it('avoids modification of options or their properties', () => {
@@ -122,8 +122,8 @@ describe('misc', () => {
 			plugins: [loader({ x: `console.log( 42 );` }), null, false, undefined]
 		}));
 
-	it('handles different import paths for different outputs', () => {
-		return rollup
+	it('handles different import paths for different outputs', () =>
+		rollup
 			.rollup({
 				input: 'x',
 				external: ['the-answer'],
@@ -151,8 +151,7 @@ describe('misc', () => {
 							assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 2')
 						)
 				])
-			);
-	});
+			));
 
 	it('allows passing the same object to `rollup` and `generate`', () => {
 		const options = {
@@ -286,7 +285,7 @@ console.log(x);
 				})
 			]
 		});
-		const first = await bundle.generate({ format: 'iife', inlineDynamicImports: true });
-		const second = await bundle.generate({ format: 'es', exports: 'auto' });
+		await bundle.generate({ format: 'iife', inlineDynamicImports: true });
+		await bundle.generate({ format: 'es', exports: 'auto' });
 	});
 });

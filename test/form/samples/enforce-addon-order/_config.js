@@ -1,11 +1,3 @@
-const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const acorn = require('acorn');
-
-const ID_MAIN = path.join(__dirname, 'main.js');
-const code = fs.readFileSync(ID_MAIN, 'utf8');
-
 const hooks = ['banner', 'footer', 'intro', 'outro'];
 
 const plugins = [];

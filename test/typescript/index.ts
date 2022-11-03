@@ -7,13 +7,13 @@ interface Options {
 }
 
 const plugin: rollup.PluginImpl<Options> = (options = {}) => {
-	const extensions = options.extensions || ['.js'];
+	const _extensions = options.extensions || ['.js'];
 	return {
 		name: 'my-plugin',
 		resolveId: {
-			handler(source, importer, options) {
+			handler(source, _importer, _options) {
 				// @ts-expect-error source is typed as string
-				const s: number = source;
+				const _s: number = source;
 			}
 		}
 	};
@@ -22,29 +22,29 @@ const plugin: rollup.PluginImpl<Options> = (options = {}) => {
 plugin();
 plugin({ extensions: ['.js', 'json'] });
 
-const pluginHooks: rollup.Plugin = {
+const _pluginHooks: rollup.Plugin = {
 	buildStart: {
 		handler() {},
 		sequential: true
 	},
 	async load(id) {
 		// @ts-expect-error id is typed as string
-		const index: number = id;
+		const _index: number = id;
 		await this.resolve('rollup');
 	},
 	name: 'test',
 	resolveId: {
-		async handler(source, importer, options) {
+		async handler(source, _importer, _options) {
 			await this.resolve('rollup');
 			// @ts-expect-error source is typed as string
-			const s: number = source;
+			const _s: number = source;
 		},
 		// @ts-expect-error sequential is only supported for parallel hooks
 		sequential: true
 	}
 };
 
-const amdOutputOptions: rollup.OutputOptions['amd'][] = [
+const _amdOutputOptions: rollup.OutputOptions['amd'][] = [
 	{},
 	{
 		id: 'a'

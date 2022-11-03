@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'handles fully deoptimized objects',
 	context: {
-		require(id) {
+		require() {
 			return { unknown: 'prop' };
 		}
 	},

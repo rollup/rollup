@@ -8,7 +8,7 @@ module.exports = {
 		},
 		plugins: [
 			{
-				resolveDynamicImport(specifier, importer) {
+				resolveDynamicImport(specifier) {
 					if (typeof specifier === 'object') {
 						if (specifier.type === 'TemplateLiteral') {
 							return "'resolvedString'";

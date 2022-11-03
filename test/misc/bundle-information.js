@@ -3,8 +3,8 @@ const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 describe('The bundle object', () => {
-	it('contains information about the generated chunks', () => {
-		return rollup
+	it('contains information about the generated chunks', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -117,11 +117,10 @@ describe('The bundle object', () => {
 					],
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('contains information about external imports and reexports', () => {
-		return rollup
+	it('contains information about external imports and reexports', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				external: ['external1', 'external2', 'external3'],
@@ -207,11 +206,10 @@ describe('The bundle object', () => {
 					],
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('handles entry facades as entry points but not the facaded chunk', () => {
-		return rollup
+	it('handles entry facades as entry points but not the facaded chunk', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -251,11 +249,10 @@ describe('The bundle object', () => {
 					['input1', 'input2', null],
 					'facadeModuleId'
 				);
-			});
-	});
+			}));
 
-	it('prioritizes the proper facade name over the proper facaded chunk name', () => {
-		return rollup
+	it('prioritizes the proper facade name over the proper facaded chunk name', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -286,11 +283,10 @@ describe('The bundle object', () => {
 					['input1', 'input2', null],
 					'facadeModuleId'
 				);
-			});
-	});
+			}));
 
-	it('marks dynamic entry points but only marks them as normal entry points if they actually are', () => {
-		return rollup
+	it('marks dynamic entry points but only marks them as normal entry points if they actually are', () =>
+		rollup
 			.rollup({
 				input: ['input', 'dynamic1'],
 				plugins: [
@@ -344,11 +340,10 @@ describe('The bundle object', () => {
 					[['dynamic1.js', 'generated-dynamic2.js'], [], []],
 					'dynamicImports'
 				);
-			});
-	});
+			}));
 
-	it('handles tainted dynamic entries', () => {
-		return rollup
+	it('handles tainted dynamic entries', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -394,11 +389,10 @@ describe('The bundle object', () => {
 					[['generated-dynamic.js'], [], []],
 					'dynamicImports'
 				);
-			});
-	});
+			}));
 
-	it('removes tree-shaken dynamic imports', () => {
-		return rollup
+	it('removes tree-shaken dynamic imports', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				plugins: [
@@ -452,11 +446,10 @@ describe('The bundle object', () => {
 					],
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('adds correct flags to files when preserving modules', () => {
-		return rollup
+	it('adds correct flags to files when preserving modules', () =>
+		rollup
 			.rollup({
 				input: ['input', 'dynamic1'],
 				plugins: [
@@ -582,11 +575,10 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					['input', 'dynamic1', 'dynamic2', 'other'],
 					'facadeModuleId'
 				);
-			});
-	});
+			}));
 
-	it('contains correct information about rendered/removedExports when directly exporting items', () => {
-		return rollup
+	it('contains correct information about rendered/removedExports when directly exporting items', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				plugins: [
@@ -636,11 +628,10 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					},
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('contains correct information about rendered/removedExports when using export declaration', () => {
-		return rollup
+	it('contains correct information about rendered/removedExports when using export declaration', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				plugins: [
@@ -690,6 +681,5 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					},
 					'modules'
 				);
-			});
-	});
+			}));
 });
