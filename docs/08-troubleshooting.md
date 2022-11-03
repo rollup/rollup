@@ -114,6 +114,8 @@ node --max-old-space-size=8192 node_modules/rollup/bin/rollup -c
 
 increasing `--max-old-space-size` as needed. Note that this number can safely surpass your available physical memory. In that case, Node will start paging memory to disk as needed.
 
+You may reduce memory pressure by introducing code splitting by using dynamic imports, importing just specific modules rather than whole dependencies, disabling sourcemaps, or increasing the size of your swap space.
+
 ### Error: Node tried to load your configuration file as CommonJS even though it is likely an ES module
 
 By default, Rollup will use Node's native module mechanism to load your Rollup configuration. That means if you use ES imports and exports in your configuration, you either need to define `"type": "module"` in your `package.json` file or use the `.mjs` extension for your configuration. See also [Configuration Files](guide/en/#configuration-files) and [Caveats when using native Node ES modules](guide/en/#caveats-when-using-native-node-es-modules) for more information.
