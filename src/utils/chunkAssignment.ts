@@ -13,9 +13,11 @@ export function getChunkAssignments(
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
-		const chunkModules = (manualChunkModulesByAlias[alias] =
-			manualChunkModulesByAlias[alias] || []);
-		addStaticDependenciesToManualChunk(entry, chunkModules, modulesInManualChunks);
+		addStaticDependenciesToManualChunk(
+			entry,
+			(manualChunkModulesByAlias[alias] ||= []),
+			modulesInManualChunks
+		);
 	}
 	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
 		chunkDefinitions.push({ alias, modules });
