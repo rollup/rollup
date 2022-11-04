@@ -202,17 +202,40 @@ function createChunks(
 		chunkModulesBySignature,
 		minChunkSize
 	);
+	// TODO Lukas merge unrelated chunks?
+	console.log(
+		'toBeMerged',
+		[...chunksToBeMerged].map(({ modules, signature }) => ({
+			modules: modules.map(relativeModuleId),
+			signature
+		}))
+	);
 	nextChunkToBeMerged: for (const sourceChunk of chunksToBeMerged) {
+		console.log('check chunk', sourceChunk.signature, sourceChunk.modules.map(relativeModuleId));
 		let closestChunk: ChunkDescription | null = null;
 		let closestChunkDistance = Infinity;
+		let reverseClosestChunkMerge = false;
 		const { signature, size, modules } = sourceChunk;
 		for (const targetChunk of chunksToBeMerged) {
 			if (targetChunk !== sourceChunk) {
-				const distance = getSignatureDistance(signature, targetChunk.signature);
+				let needsReversedMerge = false;
+				let distance = getSignatureDistance(signature, targetChunk.signature);
+				if (distance === Infinity) {
+					needsReversedMerge = true;
+					distance = getSignatureDistance(targetChunk.signature, signature);
+				}
 				if (distance === 1) {
-					// console.log('merge1', signature, 'into', targetChunk.signature);
+					console.log(
+						'merge into',
+						targetChunk.signature,
+						targetChunk.modules.map(relativeModuleId),
+						targetChunk.size
+					);
 					targetChunk.size += size;
 					targetChunk.modules.push(...modules);
+					if (needsReversedMerge) {
+						targetChunk.signature = signature;
+					}
 					chunksToBeMerged.delete(sourceChunk);
 					if (targetChunk.size > minChunkSize) {
 						chunksToBeMerged.delete(targetChunk);
@@ -222,25 +245,34 @@ function createChunks(
 				} else if (distance < closestChunkDistance) {
 					closestChunk = targetChunk;
 					closestChunkDistance = distance;
+					reverseClosestChunkMerge = needsReversedMerge;
+					throw new Error('10');
+				} else {
+					// throw new Error('11');
 				}
 			}
 		}
 		for (const targetChunk of unmergeableChunks) {
 			const distance = getSignatureDistance(signature, targetChunk.signature);
 			if (distance === 1) {
-				// console.log('merge2', signature, 'into', targetChunk.signature);
 				targetChunk.modules.push(...modules);
 				chunksToBeMerged.delete(sourceChunk);
 				continue nextChunkToBeMerged;
 			} else if (distance < closestChunkDistance) {
 				closestChunk = targetChunk;
 				closestChunkDistance = distance;
+				reverseClosestChunkMerge = false;
 			}
 		}
 		if (closestChunk) {
-			// console.log('merge3', signature, 'into', closestChunk.signature);
 			closestChunk.modules.push(...modules);
+			if (reverseClosestChunkMerge) {
+				closestChunk.signature = signature;
+				throw new Error('17');
+			}
 			chunksToBeMerged.delete(sourceChunk);
+		} else {
+			// throw new Error('19');
 		}
 	}
 	return [...chunksToBeMerged, ...unmergeableChunks].map(({ modules }) => ({
