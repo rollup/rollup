@@ -158,7 +158,8 @@ export default class Bundle {
 		bundle: OutputBundleWithPlaceholders,
 		getHashPlaceholder: HashPlaceholderGenerator
 	): Promise<Chunk[]> {
-		const { inlineDynamicImports, manualChunks, preserveModules } = this.outputOptions;
+		const { experimentalMinChunkSize, inlineDynamicImports, manualChunks, preserveModules } =
+			this.outputOptions;
 		const manualChunkAliasByEntry =
 			typeof manualChunks === 'object'
 				? await this.addManualChunks(manualChunks)
@@ -177,7 +178,11 @@ export default class Bundle {
 			? [{ alias: null, modules: includedModules }]
 			: preserveModules
 			? includedModules.map(module => ({ alias: null, modules: [module] }))
-			: getChunkAssignments(this.graph.entryModules, manualChunkAliasByEntry)) {
+			: getChunkAssignments(
+					this.graph.entryModules,
+					manualChunkAliasByEntry,
+					experimentalMinChunkSize
+			  )) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
 				modules,

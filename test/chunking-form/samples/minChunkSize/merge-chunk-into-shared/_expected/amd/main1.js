@@ -1,5 +1,5 @@
-define(['./generated-big', './generated-small'], (function (big, small) { 'use strict';
+define(['./generated-small'], (function (small) { 'use strict';
 
-	console.log(big.big, small.small);
+	console.log(small.big, small.small);
 
 }));

@@ -1,13 +1,15 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getOrCreate } from './getOrCreate';
+import relativeId from './relativeId';
 
 type DependentModuleMap = Map<Module, Set<Module>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 export function getChunkAssignments(
 	entryModules: readonly Module[],
-	manualChunkAliasByEntry: ReadonlyMap<Module, string>
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
+	minChunkSize: number
 ): ChunkDefinitions {
 	const chunkDefinitions: ChunkDefinitions = [];
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
@@ -89,7 +91,11 @@ export function getChunkAssignments(
 	}
 
 	chunkDefinitions.push(
-		...createChunks([...entryModules, ...dynamicEntryModules], assignedEntryPointsByModule)
+		...createChunks(
+			[...entryModules, ...dynamicEntryModules],
+			assignedEntryPointsByModule,
+			minChunkSize
+		)
 	);
 	return chunkDefinitions;
 }
@@ -165,15 +171,97 @@ function getDynamicDependentEntryPoints(
 	return dynamicallyDependentEntryPointsByDynamicEntry;
 }
 
+interface ChunkDescription {
+	modules: Module[];
+	signature: string;
+	size: number | null;
+}
+
+interface MergeableChunkDescription extends ChunkDescription {
+	size: number;
+}
+
 function createChunks(
 	allEntryPoints: readonly Module[],
-	assignedEntryPointsByModule: DependentModuleMap
+	assignedEntryPointsByModule: DependentModuleMap,
+	minChunkSize: number
 ): ChunkDefinitions {
+	const chunkModulesBySignature = getChunkModulesBySignature(
+		assignedEntryPointsByModule,
+		allEntryPoints
+	);
+	printChunkModules('chunkModules', chunkModulesBySignature);
+	if (minChunkSize === 0) {
+		return Object.values(chunkModulesBySignature).map(modules => ({
+			alias: null,
+			modules
+		}));
+	}
+
+	const { chunksToBeMerged, unmergeableChunks } = getMergeableChunks(
+		chunkModulesBySignature,
+		minChunkSize
+	);
+	nextChunkToBeMerged: for (const sourceChunk of chunksToBeMerged) {
+		let closestChunk: ChunkDescription | null = null;
+		let closestChunkDistance = Infinity;
+		const { signature, size, modules } = sourceChunk;
+		for (const targetChunk of chunksToBeMerged) {
+			if (targetChunk !== sourceChunk) {
+				const distance = getSignatureDistance(signature, targetChunk.signature);
+				if (distance === 1) {
+					// console.log('merge1', signature, 'into', targetChunk.signature);
+					targetChunk.size += size;
+					targetChunk.modules.push(...modules);
+					chunksToBeMerged.delete(sourceChunk);
+					if (targetChunk.size > minChunkSize) {
+						chunksToBeMerged.delete(targetChunk);
+						unmergeableChunks.push(targetChunk);
+					}
+					continue nextChunkToBeMerged;
+				} else if (distance < closestChunkDistance) {
+					closestChunk = targetChunk;
+					closestChunkDistance = distance;
+				}
+			}
+		}
+		for (const targetChunk of unmergeableChunks) {
+			const distance = getSignatureDistance(signature, targetChunk.signature);
+			if (distance === 1) {
+				// console.log('merge2', signature, 'into', targetChunk.signature);
+				targetChunk.modules.push(...modules);
+				chunksToBeMerged.delete(sourceChunk);
+				continue nextChunkToBeMerged;
+			} else if (distance < closestChunkDistance) {
+				closestChunk = targetChunk;
+				closestChunkDistance = distance;
+			}
+		}
+		if (closestChunk) {
+			// console.log('merge3', signature, 'into', closestChunk.signature);
+			closestChunk.modules.push(...modules);
+			chunksToBeMerged.delete(sourceChunk);
+		}
+	}
+	return [...chunksToBeMerged, ...unmergeableChunks].map(({ modules }) => ({
+		alias: null,
+		modules
+	}));
+}
+
+const CHAR_DEPENDENT = 'X';
+const CHAR_INDEPENDENT = '_';
+const CHAR_CODE_DEPENDENT = CHAR_DEPENDENT.charCodeAt(0);
+
+function getChunkModulesBySignature(
+	assignedEntryPointsByModule: Map<Module, Set<Module>>,
+	allEntryPoints: readonly Module[]
+) {
 	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
 	for (const [module, assignedEntryPoints] of assignedEntryPointsByModule) {
 		let chunkSignature = '';
 		for (const entry of allEntryPoints) {
-			chunkSignature += assignedEntryPoints.has(entry) ? 'X' : '_';
+			chunkSignature += assignedEntryPoints.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
 		}
 		const chunk = chunkModules[chunkSignature];
 		if (chunk) {
@@ -182,8 +270,81 @@ function createChunks(
 			chunkModules[chunkSignature] = [module];
 		}
 	}
-	return Object.values(chunkModules).map(modules => ({
-		alias: null,
-		modules
-	}));
+	return chunkModules;
 }
+
+function getMergeableChunks(
+	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	minChunkSize: number
+) {
+	const chunksToBeMerged = new Set<MergeableChunkDescription>();
+	const unmergeableChunks: ChunkDescription[] = [];
+	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
+		let size = 0;
+		checkModules: {
+			for (const module of modules) {
+				if (module.hasEffects()) {
+					break checkModules;
+				}
+				size += module.magicString.toString().length;
+				if (size > minChunkSize) {
+					break checkModules;
+				}
+			}
+			chunksToBeMerged.add({ modules, signature, size });
+			continue;
+		}
+		unmergeableChunks.push({ modules, signature, size: null });
+	}
+	return { chunksToBeMerged, unmergeableChunks };
+}
+
+function getSignatureDistance(sourceSignature: string, targetSignature: string): number {
+	let distance = 0;
+	const { length } = sourceSignature;
+	for (let index = 0; index < length; index++) {
+		const sourceValue = sourceSignature.charCodeAt(index);
+		if (sourceValue !== targetSignature.charCodeAt(index)) {
+			if (sourceValue === CHAR_CODE_DEPENDENT) {
+				return Infinity;
+			}
+			distance++;
+		}
+	}
+	return distance;
+}
+
+// DEBUGGING HELPERS, REMOVED BY TREE-SHAKING
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+const relativeModuleId = (module: Module) => relativeId(module.id);
+
+const printModuleMap = (label: string, map: DependentModuleMap) =>
+	console.log(
+		label,
+		Object.fromEntries(
+			[...map].map(([module, dependentModules]) => [
+				relativeModuleId(module),
+				[...dependentModules].map(relativeModuleId)
+			])
+		)
+	);
+
+const printChunkModules = (label: string, modules: { [chunkSignature: string]: Module[] }) => {
+	console.log(
+		label,
+		Object.fromEntries(
+			Object.entries(modules).map(([signature, chunkModules]) => [
+				signature,
+				{
+					hasEffects: chunkModules.some(module => module.hasEffects()),
+					modules: chunkModules.map(relativeModuleId),
+					size: chunkModules.reduce(
+						(size, module) => size + module.magicString.toString().length,
+						0
+					)
+				}
+			])
+		)
+	);
+};

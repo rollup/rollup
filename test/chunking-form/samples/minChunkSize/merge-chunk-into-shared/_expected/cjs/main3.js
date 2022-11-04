@@ -2,4 +2,4 @@
 
 var small = require('./generated-small.js');
 
-console.log(small.small);
+console.log(small.big);
