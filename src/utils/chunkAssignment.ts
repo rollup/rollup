@@ -190,7 +190,6 @@ function createChunks(
 		assignedEntryPointsByModule,
 		allEntryPoints
 	);
-	printChunkModules('chunkModules', chunkModulesBySignature);
 	if (minChunkSize === 0) {
 		return Object.values(chunkModulesBySignature).map(modules => ({
 			alias: null,
@@ -202,80 +201,41 @@ function createChunks(
 		chunkModulesBySignature,
 		minChunkSize
 	);
-	// TODO Lukas merge unrelated chunks?
-	console.log(
-		'toBeMerged',
-		[...chunksToBeMerged].map(({ modules, signature }) => ({
-			modules: modules.map(relativeModuleId),
-			signature
-		}))
-	);
-	nextChunkToBeMerged: for (const sourceChunk of chunksToBeMerged) {
-		console.log('check chunk', sourceChunk.signature, sourceChunk.modules.map(relativeModuleId));
+	for (const sourceChunk of chunksToBeMerged) {
+		chunksToBeMerged.delete(sourceChunk);
 		let closestChunk: ChunkDescription | null = null;
 		let closestChunkDistance = Infinity;
-		let reverseClosestChunkMerge = false;
 		const { signature, size, modules } = sourceChunk;
-		for (const targetChunk of chunksToBeMerged) {
-			if (targetChunk !== sourceChunk) {
-				let needsReversedMerge = false;
-				let distance = getSignatureDistance(signature, targetChunk.signature);
-				if (distance === Infinity) {
-					needsReversedMerge = true;
-					distance = getSignatureDistance(targetChunk.signature, signature);
-				}
-				if (distance === 1) {
-					console.log(
-						'merge into',
-						targetChunk.signature,
-						targetChunk.modules.map(relativeModuleId),
-						targetChunk.size
-					);
-					targetChunk.size += size;
-					targetChunk.modules.push(...modules);
-					if (needsReversedMerge) {
-						targetChunk.signature = signature;
-					}
-					chunksToBeMerged.delete(sourceChunk);
-					if (targetChunk.size > minChunkSize) {
-						chunksToBeMerged.delete(targetChunk);
-						unmergeableChunks.push(targetChunk);
-					}
-					continue nextChunkToBeMerged;
-				} else if (distance < closestChunkDistance) {
-					closestChunk = targetChunk;
-					closestChunkDistance = distance;
-					reverseClosestChunkMerge = needsReversedMerge;
-					throw new Error('10');
-				} else {
-					// throw new Error('11');
-				}
-			}
-		}
-		for (const targetChunk of unmergeableChunks) {
-			const distance = getSignatureDistance(signature, targetChunk.signature);
+
+		for (const targetChunk of concatLazy(chunksToBeMerged, unmergeableChunks)) {
+			const distance = getSignatureDistance(
+				signature,
+				targetChunk.signature,
+				!chunksToBeMerged.has(targetChunk)
+			);
 			if (distance === 1) {
-				targetChunk.modules.push(...modules);
-				chunksToBeMerged.delete(sourceChunk);
-				continue nextChunkToBeMerged;
+				closestChunk = targetChunk;
+				break;
 			} else if (distance < closestChunkDistance) {
 				closestChunk = targetChunk;
 				closestChunkDistance = distance;
-				reverseClosestChunkMerge = false;
 			}
 		}
 		if (closestChunk) {
 			closestChunk.modules.push(...modules);
-			if (reverseClosestChunkMerge) {
-				closestChunk.signature = signature;
-				throw new Error('17');
+			if (chunksToBeMerged.has(closestChunk)) {
+				closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
+				closestChunk.size += size;
+				if (closestChunk.size > minChunkSize) {
+					chunksToBeMerged.delete(closestChunk);
+					unmergeableChunks.push(closestChunk);
+				}
 			}
-			chunksToBeMerged.delete(sourceChunk);
 		} else {
-			// throw new Error('19');
+			unmergeableChunks.push(sourceChunk);
 		}
 	}
-	return [...chunksToBeMerged, ...unmergeableChunks].map(({ modules }) => ({
+	return unmergeableChunks.map(({ modules }) => ({
 		alias: null,
 		modules
 	}));
@@ -309,7 +269,9 @@ function getMergeableChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
 	minChunkSize: number
 ) {
-	const chunksToBeMerged = new Set<MergeableChunkDescription>();
+	const chunksToBeMerged = new Set() as Set<MergeableChunkDescription> & {
+		has(chunk: unknown): chunk is MergeableChunkDescription;
+	};
 	const unmergeableChunks: ChunkDescription[] = [];
 	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
 		let size = 0;
@@ -331,19 +293,42 @@ function getMergeableChunks(
 	return { chunksToBeMerged, unmergeableChunks };
 }
 
-function getSignatureDistance(sourceSignature: string, targetSignature: string): number {
+function getSignatureDistance(
+	sourceSignature: string,
+	targetSignature: string,
+	enforceSubset: boolean
+): number {
 	let distance = 0;
 	const { length } = sourceSignature;
 	for (let index = 0; index < length; index++) {
 		const sourceValue = sourceSignature.charCodeAt(index);
 		if (sourceValue !== targetSignature.charCodeAt(index)) {
-			if (sourceValue === CHAR_CODE_DEPENDENT) {
+			if (enforceSubset && sourceValue === CHAR_CODE_DEPENDENT) {
 				return Infinity;
 			}
 			distance++;
 		}
 	}
 	return distance;
+}
+
+function mergeSignatures(sourceSignature: string, targetSignature: string): string {
+	let signature = '';
+	const { length } = sourceSignature;
+	for (let index = 0; index < length; index++) {
+		signature +=
+			sourceSignature.charCodeAt(index) === CHAR_CODE_DEPENDENT ||
+			targetSignature.charCodeAt(index) === CHAR_CODE_DEPENDENT
+				? CHAR_DEPENDENT
+				: CHAR_INDEPENDENT;
+	}
+	return signature;
+}
+
+function* concatLazy<T>(...iterators: Iterable<T>[]) {
+	for (const iterator of iterators) {
+		yield* iterator;
+	}
 }
 
 // DEBUGGING HELPERS, REMOVED BY TREE-SHAKING
