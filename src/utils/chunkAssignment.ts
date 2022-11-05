@@ -2,6 +2,7 @@ import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getOrCreate } from './getOrCreate';
 import relativeId from './relativeId';
+import { timeEnd, timeStart } from './timers';
 
 type DependentModuleMap = Map<Module, Set<Module>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
@@ -203,6 +204,7 @@ function getOptimizedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
 	minChunkSize: number
 ) {
+	timeStart('optimize chunks', 3);
 	const { chunksToBeMerged, unmergeableChunks } = getMergeableChunks(
 		chunkModulesBySignature,
 		minChunkSize
@@ -240,6 +242,7 @@ function getOptimizedChunks(
 			unmergeableChunks.push(sourceChunk);
 		}
 	}
+	timeEnd('optimize chunks', 3);
 	return unmergeableChunks;
 }
 

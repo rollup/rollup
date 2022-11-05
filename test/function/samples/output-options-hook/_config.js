@@ -27,6 +27,7 @@ module.exports = {
 					dynamicImportInCjs: true,
 					entryFileNames: '[name].js',
 					esModule: 'if-default-prop',
+					experimentalMinChunkSize: 0,
 					exports: 'auto',
 					extend: false,
 					externalImportAssertions: true,
