@@ -1894,9 +1894,9 @@ Determines after how many runs cached assets that are no longer used by plugins 
 
 Type: `number`<br> CLI: `--experimentalMinChunkSize <size>`<br> Default: `0`
 
-Set a minimal chunk size target when code-splitting. When this value is greater than `0`, Rollup will try to merge any chunk that does not have side effects when executed, i.e. it only contains function definitions etc., and is below this size limit into another chunk that is likely to be loaded under similar conditions.
+Set a minimal chunk size target in Byte for code-splitting setups. When this value is greater than `0`, Rollup will try to merge any chunk that does not have side effects when executed, i.e. any chunk that only contains function definitions etc., and is below this size limit into another chunk that is likely to be loaded under similar conditions.
 
-This will mean that the generated bundle will possibly load code that is not needed yet in order to need fewer chunks. The condition for the merged chunks to be side effect free ensures that this does not change behaviour.
+This will mean that the generated bundle will possibly load code that is not required yet in order to reduce the number of chunks. The condition for the merged chunks to be side effect free ensures that this does not change behaviour.
 
 Unfortunately, due to the way chunking works, chunk size is measured before any plugins like minifiers ran, which means this number is slightly inaccurate.
 
