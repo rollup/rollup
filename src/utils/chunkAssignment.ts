@@ -172,6 +172,7 @@ function getDynamicDependentEntryPoints(
 }
 
 interface ChunkDescription {
+	alias: null;
 	modules: Module[];
 	signature: string;
 	size: number | null;
@@ -190,13 +191,18 @@ function createChunks(
 		assignedEntryPointsByModule,
 		allEntryPoints
 	);
-	if (minChunkSize === 0) {
-		return Object.values(chunkModulesBySignature).map(modules => ({
-			alias: null,
-			modules
-		}));
-	}
+	return minChunkSize === 0
+		? Object.values(chunkModulesBySignature).map(modules => ({
+				alias: null,
+				modules
+		  }))
+		: getOptimizedChunks(chunkModulesBySignature, minChunkSize);
+}
 
+function getOptimizedChunks(
+	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	minChunkSize: number
+) {
 	const { chunksToBeMerged, unmergeableChunks } = getMergeableChunks(
 		chunkModulesBySignature,
 		minChunkSize
@@ -225,8 +231,7 @@ function createChunks(
 			closestChunk.modules.push(...modules);
 			if (chunksToBeMerged.has(closestChunk)) {
 				closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
-				closestChunk.size += size;
-				if (closestChunk.size > minChunkSize) {
+				if ((closestChunk.size += size) > minChunkSize) {
 					chunksToBeMerged.delete(closestChunk);
 					unmergeableChunks.push(closestChunk);
 				}
@@ -235,10 +240,7 @@ function createChunks(
 			unmergeableChunks.push(sourceChunk);
 		}
 	}
-	return unmergeableChunks.map(({ modules }) => ({
-		alias: null,
-		modules
-	}));
+	return unmergeableChunks;
 }
 
 const CHAR_DEPENDENT = 'X';
@@ -273,6 +275,7 @@ function getMergeableChunks(
 		has(chunk: unknown): chunk is MergeableChunkDescription;
 	};
 	const unmergeableChunks: ChunkDescription[] = [];
+	const alias = null;
 	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
 		let size = 0;
 		checkModules: {
@@ -285,10 +288,10 @@ function getMergeableChunks(
 					break checkModules;
 				}
 			}
-			chunksToBeMerged.add({ modules, signature, size });
+			chunksToBeMerged.add({ alias, modules, signature, size });
 			continue;
 		}
-		unmergeableChunks.push({ modules, signature, size: null });
+		unmergeableChunks.push({ alias, modules, signature, size: null });
 	}
 	return { chunksToBeMerged, unmergeableChunks };
 }
