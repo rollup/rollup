@@ -1,6 +1,7 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getOrCreate } from './getOrCreate';
+import { concatLazy } from './iterators';
 import relativeId from './relativeId';
 import { timeEnd, timeStart } from './timers';
 
@@ -331,15 +332,8 @@ function mergeSignatures(sourceSignature: string, targetSignature: string): stri
 	return signature;
 }
 
-function* concatLazy<T>(...iterators: Iterable<T>[]) {
-	for (const iterator of iterators) {
-		yield* iterator;
-	}
-}
-
 // DEBUGGING HELPERS, REMOVED BY TREE-SHAKING
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 const relativeModuleId = (module: Module) => relativeId(module.id);
 
 const printModuleMap = (label: string, map: DependentModuleMap) =>
