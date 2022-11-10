@@ -28,33 +28,45 @@ import { extname } from './path';
 import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
+function getSourceHash(source: string | Uint8Array, size?: number): string {
+	return createHash()
+		.update(source)
+		.digest('hex')
+		.slice(0, Math.max(0, size || defaultHashSize));
+}
+
+function prepareAssetFileName(
+	name: string | undefined,
+	source: string | Uint8Array,
+	outputOptions: NormalizedOutputOptions
+): { fileName: string; sourceHash: string | undefined } {
+	let sourceHash: string | undefined;
+	const emittedName = outputOptions.sanitizeFileName(name || 'asset');
+	const fileName = renderNamePattern(
+		typeof outputOptions.assetFileNames === 'function'
+			? outputOptions.assetFileNames({ name, source, type: 'asset' })
+			: outputOptions.assetFileNames,
+		'output.assetFileNames',
+		{
+			ext: () => extname(emittedName).slice(1),
+			extname: () => extname(emittedName),
+			hash: size => (sourceHash = getSourceHash(source, size)),
+			name: () =>
+				emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
+		}
+	);
+	return { fileName, sourceHash };
+}
+
 function generateAssetFileName(
 	name: string | undefined,
 	source: string | Uint8Array,
 	outputOptions: NormalizedOutputOptions,
-	bundle: OutputBundleWithPlaceholders
+	bundle: OutputBundleWithPlaceholders,
+	preparedFileName?: string
 ): string {
-	const emittedName = outputOptions.sanitizeFileName(name || 'asset');
-	return makeUnique(
-		renderNamePattern(
-			typeof outputOptions.assetFileNames === 'function'
-				? outputOptions.assetFileNames({ name, source, type: 'asset' })
-				: outputOptions.assetFileNames,
-			'output.assetFileNames',
-			{
-				ext: () => extname(emittedName).slice(1),
-				extname: () => extname(emittedName),
-				hash: size =>
-					createHash()
-						.update(source)
-						.digest('hex')
-						.slice(0, Math.max(0, size || defaultHashSize)),
-				name: () =>
-					emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
-			}
-		),
-		bundle
-	);
+	const fileName = preparedFileName || prepareAssetFileName(name, source, outputOptions).fileName;
+	return makeUnique(fileName, bundle);
 }
 
 function reserveFileNameInBundle(
@@ -246,9 +258,6 @@ export class FileEmitter {
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
 				reserveFileNameInBundle(emittedFile.fileName, output, this.options.onwarn);
-				if (emittedFile.type === 'asset' && typeof emittedFile.source === 'string') {
-					fileNamesBySource.set(emittedFile.source, emittedFile.fileName);
-				}
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId) {
@@ -332,17 +341,41 @@ export class FileEmitter {
 		referenceId: string,
 		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
 	): void {
-		const fileName =
-			consumedFile.fileName ||
-			(typeof source === 'string' && fileNamesBySource.get(source)) ||
-			generateAssetFileName(consumedFile.name, source, outputOptions, bundle);
+		let preparedFileName: string | undefined;
+		let sourceHash: string | undefined;
+
+		let fileName = consumedFile.fileName;
+
+		if (!fileName) {
+			if (outputOptions.deduplicateBinaryAssets) {
+				// Reuse source hash if it is going to be needed in the asset file name
+				const prepared = prepareAssetFileName(consumedFile.name, source, outputOptions);
+				preparedFileName = prepared.fileName;
+				sourceHash = prepared.sourceHash || getSourceHash(source);
+				fileName = fileNamesBySource.get(sourceHash);
+			} else if (typeof source === 'string') {
+				fileName = fileNamesBySource.get(source);
+			}
+		}
+
+		fileName ||= generateAssetFileName(
+			consumedFile.name,
+			source,
+			outputOptions,
+			bundle,
+			preparedFileName
+		);
 
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, fileName, source };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
-		if (typeof source === 'string') {
+
+		if (sourceHash) {
+			fileNamesBySource.set(sourceHash, fileName);
+		} else if (typeof source === 'string') {
 			fileNamesBySource.set(source, fileName);
 		}
+
 		bundle[fileName] = {
 			fileName,
 			name: consumedFile.name,

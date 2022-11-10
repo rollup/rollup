@@ -45,6 +45,7 @@ export async function normalizeOutputOptions(
 		banner: getAddon(config, 'banner'),
 		chunkFileNames: config.chunkFileNames ?? '[name]-[hash].js',
 		compact,
+		deduplicateBinaryAssets: config.deduplicateBinaryAssets ?? false,
 		dir: getDir(config, file),
 		dynamicImportFunction: getDynamicImportFunction(config, inputOptions, format),
 		dynamicImportInCjs: config.dynamicImportInCjs ?? true,
