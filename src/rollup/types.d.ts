@@ -632,7 +632,6 @@ export interface OutputOptions {
 	banner?: string | AddonFunction;
 	chunkFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact?: boolean;
-	deduplicateBinaryAssets?: boolean;
 	// only required for bundle.write
 	dir?: string;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
@@ -686,7 +685,6 @@ export interface NormalizedOutputOptions {
 	banner: AddonFunction;
 	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact: boolean;
-	deduplicateBinaryAssets: boolean;
 	dir: string | undefined;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction: string | undefined;

@@ -1468,12 +1468,6 @@ export default {
 // -> define(['./chunk-or-local-file.js', 'dependency', 'third/dependency'],...
 ```
 
-#### output.deduplicateBinaryAssets
-
-Type: `boolean` <br> Default: `false`
-
-Set to `true` to also deduplicate assets when calling `emitFile` with a `Buffer` as source. By default only string sources are deduplicated.
-
 #### output.esModule
 
 Type: `boolean | "if-default-prop"`<br> CLI: `--esModule`/`--no-esModule`<br> Default: `"if-default-prop"`

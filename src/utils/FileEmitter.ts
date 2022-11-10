@@ -35,7 +35,7 @@ function getSourceHash(source: string | Uint8Array, size?: number): string {
 		.slice(0, Math.max(0, size || defaultHashSize));
 }
 
-function prepareAssetFileName(
+function pregenerateAssetFileName(
 	name: string | undefined,
 	source: string | Uint8Array,
 	outputOptions: NormalizedOutputOptions
@@ -56,17 +56,6 @@ function prepareAssetFileName(
 		}
 	);
 	return { fileName, sourceHash };
-}
-
-function generateAssetFileName(
-	name: string | undefined,
-	source: string | Uint8Array,
-	outputOptions: NormalizedOutputOptions,
-	bundle: OutputBundleWithPlaceholders,
-	preparedFileName?: string
-): string {
-	const fileName = preparedFileName || prepareAssetFileName(name, source, outputOptions).fileName;
-	return makeUnique(fileName, bundle);
 }
 
 function reserveFileNameInBundle(
@@ -341,40 +330,23 @@ export class FileEmitter {
 		referenceId: string,
 		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
 	): void {
-		let preparedFileName: string | undefined;
-		let sourceHash: string | undefined;
-
 		let fileName = consumedFile.fileName;
 
+		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
-			if (outputOptions.deduplicateBinaryAssets) {
-				// Reuse source hash if it is going to be needed in the asset file name
-				const prepared = prepareAssetFileName(consumedFile.name, source, outputOptions);
-				preparedFileName = prepared.fileName;
-				sourceHash = prepared.sourceHash || getSourceHash(source);
-				fileName = fileNamesBySource.get(sourceHash);
-			} else if (typeof source === 'string') {
-				fileName = fileNamesBySource.get(source);
+			const pregenerated = pregenerateAssetFileName(consumedFile.name, source, outputOptions);
+			// Reuse source hash if it was computed as part of the asset file name
+			const sourceHash = pregenerated.sourceHash ?? getSourceHash(source);
+			fileName = fileNamesBySource.get(sourceHash);
+			if (!fileName) {
+				fileName = makeUnique(pregenerated.fileName, bundle);
+				fileNamesBySource.set(sourceHash, fileName);
 			}
 		}
-
-		fileName ||= generateAssetFileName(
-			consumedFile.name,
-			source,
-			outputOptions,
-			bundle,
-			preparedFileName
-		);
 
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, fileName, source };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
-
-		if (sourceHash) {
-			fileNamesBySource.set(sourceHash, fileName);
-		} else if (typeof source === 'string') {
-			fileNamesBySource.set(source, fileName);
-		}
 
 		bundle[fileName] = {
 			fileName,

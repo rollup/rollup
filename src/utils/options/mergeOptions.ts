@@ -227,7 +227,6 @@ async function mergeOutputOptions(
 		banner: getOption('banner'),
 		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact'),
-		deduplicateBinaryAssets: getOption('deduplicateBinaryAssets'),
 		dir: getOption('dir'),
 		dynamicImportFunction: getOption('dynamicImportFunction'),
 		dynamicImportInCjs: getOption('dynamicImportInCjs'),
