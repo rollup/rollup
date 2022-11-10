@@ -181,6 +181,7 @@ const outputOptions = {
   noConflict,
   preferConst,
   sanitizeFileName,
+  deduplicateBinaryAssets,
   strict,
   systemNullSetters
 };
