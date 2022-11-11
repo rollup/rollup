@@ -39,7 +39,7 @@ function pregenerateAssetFileName(
 	name: string | undefined,
 	source: string | Uint8Array,
 	outputOptions: NormalizedOutputOptions
-): { fileName: string; sourceHash: string | undefined } {
+): { fileName: string; sourceHash: string } {
 	let sourceHash: string | undefined;
 	const emittedName = outputOptions.sanitizeFileName(name || 'asset');
 	const fileName = renderNamePattern(
@@ -55,6 +55,7 @@ function pregenerateAssetFileName(
 				emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
 		}
 	);
+	sourceHash ??= getSourceHash(source);
 	return { fileName, sourceHash };
 }
 
@@ -335,12 +336,10 @@ export class FileEmitter {
 		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
 			const pregenerated = pregenerateAssetFileName(consumedFile.name, source, outputOptions);
-			// Reuse source hash if it was computed as part of the asset file name
-			const sourceHash = pregenerated.sourceHash ?? getSourceHash(source);
-			fileName = fileNamesBySource.get(sourceHash);
+			fileName = fileNamesBySource.get(pregenerated.sourceHash);
 			if (!fileName) {
 				fileName = makeUnique(pregenerated.fileName, bundle);
-				fileNamesBySource.set(sourceHash, fileName);
+				fileNamesBySource.set(pregenerated.sourceHash, fileName);
 			}
 		}
 
