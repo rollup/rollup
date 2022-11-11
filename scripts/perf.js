@@ -148,7 +148,7 @@ function printMeasurements(average, existingAverage, filter = /.*/) {
 }
 
 function clearLines(numberOfLines) {
-	console.info('\33[A' + '\33[2K\33[A'.repeat(numberOfLines));
+	console.info('\u001B[A' + '\u001B[2K\u001B[A'.repeat(numberOfLines));
 }
 
 function getExistingTimings() {
@@ -203,4 +203,6 @@ function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
 	return color(formattedMemory);
 }
 
-const identity = x => x;
+function identity(x) {
+	return x;
+}
