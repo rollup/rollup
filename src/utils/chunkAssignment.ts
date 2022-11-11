@@ -2,7 +2,6 @@ import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
-import relativeId from './relativeId';
 import { timeEnd, timeStart } from './timers';
 
 type DependentModuleMap = Map<Module, Set<Module>>;
@@ -331,37 +330,3 @@ function mergeSignatures(sourceSignature: string, targetSignature: string): stri
 	}
 	return signature;
 }
-
-// DEBUGGING HELPERS, REMOVED BY TREE-SHAKING
-/* eslint-disable @typescript-eslint/no-unused-vars */
-const relativeModuleId = (module: Module) => relativeId(module.id);
-
-const printModuleMap = (label: string, map: DependentModuleMap) =>
-	console.log(
-		label,
-		Object.fromEntries(
-			[...map].map(([module, dependentModules]) => [
-				relativeModuleId(module),
-				[...dependentModules].map(relativeModuleId)
-			])
-		)
-	);
-
-const printChunkModules = (label: string, modules: { [chunkSignature: string]: Module[] }) => {
-	console.log(
-		label,
-		Object.fromEntries(
-			Object.entries(modules).map(([signature, chunkModules]) => [
-				signature,
-				{
-					hasEffects: chunkModules.some(module => module.hasEffects()),
-					modules: chunkModules.map(relativeModuleId),
-					size: chunkModules.reduce(
-						(size, module) => size + module.magicString.toString().length,
-						0
-					)
-				}
-			])
-		)
-	);
-};
