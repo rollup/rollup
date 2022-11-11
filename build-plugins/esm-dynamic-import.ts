@@ -18,6 +18,9 @@ export default function esmDynamicImport(): Plugin {
 				importsFound++;
 				return { left: 'import(', right: ')' };
 			}
+		},
+		renderStart() {
+			importsFound = 0;
 		}
 	};
 }
