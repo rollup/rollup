@@ -1898,7 +1898,7 @@ Set a minimal chunk size target in Byte for code-splitting setups. When this val
 
 This will mean that the generated bundle will possibly load code that is not required yet in order to reduce the number of chunks. The condition for the merged chunks to be side effect free ensures that this does not change behaviour.
 
-Unfortunately, due to the way chunking works, chunk size is measured before any plugins like minifiers ran, which means this number is slightly inaccurate.
+Unfortunately, due to the way chunking works, chunk size is measured before any chunk rendering plugins like minifiers ran, which means you should use a high enough limit to take this into account.
 
 #### perf
 
