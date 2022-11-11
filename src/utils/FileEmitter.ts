@@ -28,35 +28,34 @@ import { extname } from './path';
 import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
-function getSourceHash(source: string | Uint8Array, size?: number): string {
-	return createHash()
-		.update(source)
-		.digest('hex')
-		.slice(0, Math.max(0, size || defaultHashSize));
+function getSourceHash(source: string | Uint8Array): string {
+	return createHash().update(source).digest('hex');
 }
 
-function pregenerateAssetFileName(
+function generateAssetFileName(
 	name: string | undefined,
 	source: string | Uint8Array,
-	outputOptions: NormalizedOutputOptions
-): { fileName: string; sourceHash: string } {
-	let sourceHash: string | undefined;
+	sourceHash: string,
+	outputOptions: NormalizedOutputOptions,
+	bundle: OutputBundleWithPlaceholders
+): string {
 	const emittedName = outputOptions.sanitizeFileName(name || 'asset');
-	const fileName = renderNamePattern(
-		typeof outputOptions.assetFileNames === 'function'
-			? outputOptions.assetFileNames({ name, source, type: 'asset' })
-			: outputOptions.assetFileNames,
-		'output.assetFileNames',
-		{
-			ext: () => extname(emittedName).slice(1),
-			extname: () => extname(emittedName),
-			hash: size => (sourceHash = getSourceHash(source, size)),
-			name: () =>
-				emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
-		}
+	return makeUnique(
+		renderNamePattern(
+			typeof outputOptions.assetFileNames === 'function'
+				? outputOptions.assetFileNames({ name, source, type: 'asset' })
+				: outputOptions.assetFileNames,
+			'output.assetFileNames',
+			{
+				ext: () => extname(emittedName).slice(1),
+				extname: () => extname(emittedName),
+				hash: size => sourceHash.slice(0, Math.max(0, size || defaultHashSize)),
+				name: () =>
+					emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
+			}
+		),
+		bundle
 	);
-	sourceHash ??= getSourceHash(source);
-	return { fileName, sourceHash };
 }
 
 function reserveFileNameInBundle(
@@ -335,11 +334,17 @@ export class FileEmitter {
 
 		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
-			const pregenerated = pregenerateAssetFileName(consumedFile.name, source, outputOptions);
-			fileName = fileNamesBySource.get(pregenerated.sourceHash);
+			const sourceHash = getSourceHash(source);
+			fileName = fileNamesBySource.get(sourceHash);
 			if (!fileName) {
-				fileName = makeUnique(pregenerated.fileName, bundle);
-				fileNamesBySource.set(pregenerated.sourceHash, fileName);
+				fileName = generateAssetFileName(
+					consumedFile.name,
+					source,
+					sourceHash,
+					outputOptions,
+					bundle
+				);
+				fileNamesBySource.set(sourceHash, fileName);
 			}
 		}
 
