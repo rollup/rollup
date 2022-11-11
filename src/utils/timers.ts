@@ -113,14 +113,21 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			}
 			timerLabel += ` - ${hook}`;
 
-			const hookFunction = plugin[hook];
-
-			plugin[hook] = function (...parameters: readonly unknown[]) {
+			const handler = function (this: any, ...parameters: readonly unknown[]) {
 				timeStart(timerLabel, 4);
 				const result = hookFunction.apply(this, parameters);
 				timeEnd(timerLabel, 4);
 				return result;
 			};
+
+			let hookFunction: any;
+			if (typeof plugin[hook].handler === 'function') {
+				hookFunction = plugin[hook].handler;
+				plugin[hook].handler = handler;
+			} else {
+				hookFunction = plugin[hook];
+				plugin[hook] = handler;
+			}
 		}
 	}
 	return plugin;
