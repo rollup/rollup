@@ -1,5 +1,3 @@
-const path = require('node:path');
-
 let resolveA;
 const waitForA = new Promise(resolve => (resolveA = resolve));
 

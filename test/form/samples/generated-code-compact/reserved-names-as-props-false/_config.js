@@ -14,7 +14,7 @@ module.exports = {
 		},
 		plugins: [
 			{
-				transform(code, id) {
+				transform() {
 					return { syntheticNamedExports: true };
 				}
 			}

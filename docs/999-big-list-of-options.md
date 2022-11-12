@@ -1890,6 +1890,16 @@ Type: `number`<br> CLI: `--experimentalCacheExpiry <numberOfRuns>`<br> Default: 
 
 Determines after how many runs cached assets that are no longer used by plugins should be removed.
 
+#### experimentalMinChunkSize
+
+Type: `number`<br> CLI: `--experimentalMinChunkSize <size>`<br> Default: `0`
+
+Set a minimal chunk size target in Byte for code-splitting setups. When this value is greater than `0`, Rollup will try to merge any chunk that does not have side effects when executed, i.e. any chunk that only contains function definitions etc., and is below this size limit into another chunk that is likely to be loaded under similar conditions.
+
+This will mean that the generated bundle will possibly load code that is not required yet in order to reduce the number of chunks. The condition for the merged chunks to be side effect free ensures that this does not change behaviour.
+
+Unfortunately, due to the way chunking works, chunk size is measured before any chunk rendering plugins like minifiers ran, which means you should use a high enough limit to take this into account.
+
 #### perf
 
 Type: `boolean`<br> CLI: `--perf`/`--no-perf`<br> Default: `false`

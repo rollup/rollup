@@ -1,9 +1,7 @@
 module.exports = {
 	description: 'allows external option to be a function (#522)',
 	options: {
-		external: id => {
-			return id === 'external';
-		}
+		external: id => id === 'external'
 	},
 	context: {
 		require: id => {

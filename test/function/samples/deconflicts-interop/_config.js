@@ -25,8 +25,7 @@ module.exports = {
 		}
 	},
 	context: {
-		require: () => {
-			return Object.defineProperty({ foo: 'foo', default: 'bar' }, '__esModule', { value: true });
-		}
+		require: () =>
+			Object.defineProperty({ foo: 'foo', default: 'bar' }, '__esModule', { value: true })
 	}
 };

@@ -11,7 +11,7 @@ module.exports = {
 				load(id) {
 					this.load({ id }).then(({ code }) => (preloadedCode = code));
 				},
-				buildEnd(error) {
+				buildEnd() {
 					assert.strictEqual(preloadedCode, 'assert.ok(true);\n');
 				}
 			}

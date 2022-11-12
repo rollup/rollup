@@ -1,21 +1,26 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getOrCreate } from './getOrCreate';
+import { concatLazy } from './iterators';
+import { timeEnd, timeStart } from './timers';
 
 type DependentModuleMap = Map<Module, Set<Module>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 export function getChunkAssignments(
 	entryModules: readonly Module[],
-	manualChunkAliasByEntry: ReadonlyMap<Module, string>
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
+	minChunkSize: number
 ): ChunkDefinitions {
 	const chunkDefinitions: ChunkDefinitions = [];
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
-		const chunkModules = (manualChunkModulesByAlias[alias] =
-			manualChunkModulesByAlias[alias] || []);
-		addStaticDependenciesToManualChunk(entry, chunkModules, modulesInManualChunks);
+		addStaticDependenciesToManualChunk(
+			entry,
+			(manualChunkModulesByAlias[alias] ||= []),
+			modulesInManualChunks
+		);
 	}
 	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
 		chunkDefinitions.push({ alias, modules });
@@ -87,7 +92,11 @@ export function getChunkAssignments(
 	}
 
 	chunkDefinitions.push(
-		...createChunks([...entryModules, ...dynamicEntryModules], assignedEntryPointsByModule)
+		...createChunks(
+			[...entryModules, ...dynamicEntryModules],
+			assignedEntryPointsByModule,
+			minChunkSize
+		)
 	);
 	return chunkDefinitions;
 }
@@ -163,15 +172,93 @@ function getDynamicDependentEntryPoints(
 	return dynamicallyDependentEntryPointsByDynamicEntry;
 }
 
+interface ChunkDescription {
+	alias: null;
+	modules: Module[];
+	signature: string;
+	size: number | null;
+}
+
+interface MergeableChunkDescription extends ChunkDescription {
+	size: number;
+}
+
 function createChunks(
 	allEntryPoints: readonly Module[],
-	assignedEntryPointsByModule: DependentModuleMap
+	assignedEntryPointsByModule: DependentModuleMap,
+	minChunkSize: number
 ): ChunkDefinitions {
+	const chunkModulesBySignature = getChunkModulesBySignature(
+		assignedEntryPointsByModule,
+		allEntryPoints
+	);
+	return minChunkSize === 0
+		? Object.values(chunkModulesBySignature).map(modules => ({
+				alias: null,
+				modules
+		  }))
+		: getOptimizedChunks(chunkModulesBySignature, minChunkSize);
+}
+
+function getOptimizedChunks(
+	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	minChunkSize: number
+) {
+	timeStart('optimize chunks', 3);
+	const { chunksToBeMerged, unmergeableChunks } = getMergeableChunks(
+		chunkModulesBySignature,
+		minChunkSize
+	);
+	for (const sourceChunk of chunksToBeMerged) {
+		chunksToBeMerged.delete(sourceChunk);
+		let closestChunk: ChunkDescription | null = null;
+		let closestChunkDistance = Infinity;
+		const { signature, size, modules } = sourceChunk;
+
+		for (const targetChunk of concatLazy(chunksToBeMerged, unmergeableChunks)) {
+			const distance = getSignatureDistance(
+				signature,
+				targetChunk.signature,
+				!chunksToBeMerged.has(targetChunk)
+			);
+			if (distance === 1) {
+				closestChunk = targetChunk;
+				break;
+			} else if (distance < closestChunkDistance) {
+				closestChunk = targetChunk;
+				closestChunkDistance = distance;
+			}
+		}
+		if (closestChunk) {
+			closestChunk.modules.push(...modules);
+			if (chunksToBeMerged.has(closestChunk)) {
+				closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
+				if ((closestChunk.size += size) > minChunkSize) {
+					chunksToBeMerged.delete(closestChunk);
+					unmergeableChunks.push(closestChunk);
+				}
+			}
+		} else {
+			unmergeableChunks.push(sourceChunk);
+		}
+	}
+	timeEnd('optimize chunks', 3);
+	return unmergeableChunks;
+}
+
+const CHAR_DEPENDENT = 'X';
+const CHAR_INDEPENDENT = '_';
+const CHAR_CODE_DEPENDENT = CHAR_DEPENDENT.charCodeAt(0);
+
+function getChunkModulesBySignature(
+	assignedEntryPointsByModule: Map<Module, Set<Module>>,
+	allEntryPoints: readonly Module[]
+) {
 	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
 	for (const [module, assignedEntryPoints] of assignedEntryPointsByModule) {
 		let chunkSignature = '';
 		for (const entry of allEntryPoints) {
-			chunkSignature += assignedEntryPoints.has(entry) ? 'X' : '_';
+			chunkSignature += assignedEntryPoints.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
 		}
 		const chunk = chunkModules[chunkSignature];
 		if (chunk) {
@@ -180,8 +267,66 @@ function createChunks(
 			chunkModules[chunkSignature] = [module];
 		}
 	}
-	return Object.values(chunkModules).map(modules => ({
-		alias: null,
-		modules
-	}));
+	return chunkModules;
+}
+
+function getMergeableChunks(
+	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	minChunkSize: number
+) {
+	const chunksToBeMerged = new Set() as Set<MergeableChunkDescription> & {
+		has(chunk: unknown): chunk is MergeableChunkDescription;
+	};
+	const unmergeableChunks: ChunkDescription[] = [];
+	const alias = null;
+	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
+		let size = 0;
+		checkModules: {
+			for (const module of modules) {
+				if (module.hasEffects()) {
+					break checkModules;
+				}
+				size += module.magicString.toString().length;
+				if (size > minChunkSize) {
+					break checkModules;
+				}
+			}
+			chunksToBeMerged.add({ alias, modules, signature, size });
+			continue;
+		}
+		unmergeableChunks.push({ alias, modules, signature, size: null });
+	}
+	return { chunksToBeMerged, unmergeableChunks };
+}
+
+function getSignatureDistance(
+	sourceSignature: string,
+	targetSignature: string,
+	enforceSubset: boolean
+): number {
+	let distance = 0;
+	const { length } = sourceSignature;
+	for (let index = 0; index < length; index++) {
+		const sourceValue = sourceSignature.charCodeAt(index);
+		if (sourceValue !== targetSignature.charCodeAt(index)) {
+			if (enforceSubset && sourceValue === CHAR_CODE_DEPENDENT) {
+				return Infinity;
+			}
+			distance++;
+		}
+	}
+	return distance;
+}
+
+function mergeSignatures(sourceSignature: string, targetSignature: string): string {
+	let signature = '';
+	const { length } = sourceSignature;
+	for (let index = 0; index < length; index++) {
+		signature +=
+			sourceSignature.charCodeAt(index) === CHAR_CODE_DEPENDENT ||
+			targetSignature.charCodeAt(index) === CHAR_CODE_DEPENDENT
+				? CHAR_DEPENDENT
+				: CHAR_INDEPENDENT;
+	}
+	return signature;
 }

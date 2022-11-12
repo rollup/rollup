@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'handles getters that modify "this" on prototypes for unknown properties',
 	context: {
-		require(id) {
+		require() {
 			return { unknown: 'prop' };
 		}
 	},

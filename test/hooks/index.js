@@ -56,7 +56,7 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
+			.then(() => {
 				assert.strictEqual(buildStartCnt, 1);
 				assert.strictEqual(buildEndCnt, 1);
 
@@ -222,8 +222,8 @@ describe('hooks', () => {
 			});
 	});
 
-	it('does not overwrite files in other outputs when emitting assets during generate', () => {
-		return rollup
+	it('does not overwrite files in other outputs when emitting assets during generate', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -248,8 +248,7 @@ describe('hooks', () => {
 				assert.strictEqual(output2.length, 2, 'output2');
 				assert.strictEqual(output2[1].fileName, 'asset');
 				assert.strictEqual(output2[1].source, 'cjs');
-			});
-	});
+			}));
 
 	it('caches asset emission in transform hook', () => {
 		let cache;
@@ -889,7 +888,7 @@ describe('hooks', () => {
 						d: `export default {};`
 					}),
 					{
-						renderChunk(code, chunk, options) {
+						renderChunk(code, chunk) {
 							chunks.push({
 								fileName: chunk.fileName,
 								imports: chunk.imports,
@@ -957,7 +956,7 @@ describe('hooks', () => {
 					entryFileNames: '[name]-[hash].js'
 				})
 			)
-			.then(output => {
+			.then(() => {
 				assert.strictEqual(augmentChunkHashCalls, 1);
 			});
 	});
@@ -1028,8 +1027,8 @@ describe('hooks', () => {
 			});
 	});
 
-	it('supports disabling sanitization for in-memory / in-browser / non-fs builds', () => {
-		return rollup
+	it('supports disabling sanitization for in-memory / in-browser / non-fs builds', () =>
+		rollup
 			.rollup({
 				input: 'input.js',
 				plugins: [
@@ -1039,17 +1038,16 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({
+			.then(bundle =>
+				bundle.generate({
 					format: 'es',
 					sanitizeFileName: false,
 					entryFileNames: 'test:[name]'
-				});
-			})
+				})
+			)
 			.then(({ output }) => {
 				assert.strictEqual(output[0].fileName, 'test:input');
-			});
-	});
+			}));
 
 	it('allows to enforce plugin hook order in watch mode', async () => {
 		const hooks = ['closeBundle', 'closeWatcher', 'renderError', 'watchChange', 'writeBundle'];

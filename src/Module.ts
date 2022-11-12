@@ -219,6 +219,7 @@ export default class Module {
 	readonly info: ModuleInfo;
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
+	declare magicString: MagicString;
 	declare namespace: NamespaceVariable;
 	needsExportShim = false;
 	declare originalCode: string;
@@ -241,7 +242,6 @@ export default class Module {
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private readonly exportShimVariable = new ExportShimVariable(this);
 	private readonly exports = new Map<string, ExportDescription>();
-	private declare magicString: MagicString;
 	private readonly namespaceReexportsByName = new Map<
 		string,
 		[variable: Variable | null, indirectExternal?: boolean]

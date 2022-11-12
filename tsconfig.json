@@ -6,7 +6,6 @@
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"noEmitOnError": true,
-		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"pretty": true,
 		"resolveJsonModule": true,
