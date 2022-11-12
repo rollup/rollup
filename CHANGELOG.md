@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 3.3.0
+
+_2022-11-12_
+
+### Features
+
+- Add "experimentalMinChunkSize" option to merge smaller chunks into larger ones (#4705)
+- Automatically deduplicate assets again when the source is a `Buffer` (#4712)
+- Deduplicate `Buffer` with `string` assets (#4712)
+
+### Bug Fixes
+
+- Support plugins with object hooks when using `perf: true` (#4707)
+
+### Pull Requests
+
+- [#4702](https://github.com/rollup/rollup/pull/4702): docs: add additional tips for heap out of memory (@benmccann)
+- [#4705](https://github.com/rollup/rollup/pull/4705): Allow to define minimum chunk size limit (@lukastaegert)
+- [#4707](https://github.com/rollup/rollup/pull/4707): Fix perf timers for object hooks (@lukastaegert)
+- [#4710](https://github.com/rollup/rollup/pull/4710): Update terser docs (@nikolas)
+- [#4712](https://github.com/rollup/rollup/pull/4712): feat: deduplicate assets with buffer source (@patak-dev)
+
 ## 3.2.5
 
 _2022-11-01_
