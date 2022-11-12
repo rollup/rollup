@@ -1,0 +1,1 @@
+assert.strictEqual('FOO', 'BAR');
