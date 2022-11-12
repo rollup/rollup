@@ -28,9 +28,14 @@ import { extname } from './path';
 import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
+function getSourceHash(source: string | Uint8Array): string {
+	return createHash().update(source).digest('hex');
+}
+
 function generateAssetFileName(
 	name: string | undefined,
 	source: string | Uint8Array,
+	sourceHash: string,
 	outputOptions: NormalizedOutputOptions,
 	bundle: OutputBundleWithPlaceholders
 ): string {
@@ -44,11 +49,7 @@ function generateAssetFileName(
 			{
 				ext: () => extname(emittedName).slice(1),
 				extname: () => extname(emittedName),
-				hash: size =>
-					createHash()
-						.update(source)
-						.digest('hex')
-						.slice(0, Math.max(0, size || defaultHashSize)),
+				hash: size => sourceHash.slice(0, Math.max(0, size || defaultHashSize)),
 				name: () =>
 					emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
 			}
@@ -246,9 +247,6 @@ export class FileEmitter {
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
 				reserveFileNameInBundle(emittedFile.fileName, output, this.options.onwarn);
-				if (emittedFile.type === 'asset' && typeof emittedFile.source === 'string') {
-					fileNamesBySource.set(emittedFile.source, emittedFile.fileName);
-				}
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId) {
@@ -332,17 +330,28 @@ export class FileEmitter {
 		referenceId: string,
 		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
 	): void {
-		const fileName =
-			consumedFile.fileName ||
-			(typeof source === 'string' && fileNamesBySource.get(source)) ||
-			generateAssetFileName(consumedFile.name, source, outputOptions, bundle);
+		let fileName = consumedFile.fileName;
+
+		// Deduplicate assets if an explicit fileName is not provided
+		if (!fileName) {
+			const sourceHash = getSourceHash(source);
+			fileName = fileNamesBySource.get(sourceHash);
+			if (!fileName) {
+				fileName = generateAssetFileName(
+					consumedFile.name,
+					source,
+					sourceHash,
+					outputOptions,
+					bundle
+				);
+				fileNamesBySource.set(sourceHash, fileName);
+			}
+		}
 
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, fileName, source };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
-		if (typeof source === 'string') {
-			fileNamesBySource.set(source, fileName);
-		}
+
 		bundle[fileName] = {
 			fileName,
 			name: consumedFile.name,
