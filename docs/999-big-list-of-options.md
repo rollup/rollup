@@ -1706,6 +1706,33 @@ logBeforeDeclaration = true;
 logIfEnabled(); // needs to be retained as it displays a log
 ```
 
+**treeshake.experimentalManualPureFunctions**<br> Type: `string[]`<br> CLI: `--treeshake.experimentalManualPureFunctions <names>`
+
+Allows to manually define a list of function names that should always be considered "pure", i.e. they have no side effects like changing global state etc. when called. The check is performed solely by name.
+
+This can not only help with dead code removal, but can also improve JavaScript chunk generation especially when using [`experimentalMinChunkSize`](guide/en/#experimentalminchunksize).
+
+```js
+// rollup.config.js
+export default {
+  treeshake: {
+    preset: 'smallest',
+    experimentalManualPureFunctions: ['foo', 'bar.baz']
+  }
+  // ...
+};
+
+// code
+import { fn as bar } from 'external';
+const foo = console.log;
+
+foo(); // removed
+bar.baz(); // removed
+bar(); // not removed
+bar.quuz(); // not removed
+bar?.baz(); // not removed
+```
+
 **treeshake.moduleSideEffects**<br> Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br> CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external`<br> Default: `true`
 
 If `false`, assume modules and external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
