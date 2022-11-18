@@ -164,20 +164,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 	): boolean {
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
-				// TODO Lukas extract and cache lazily?
-				let currentPureFunction = this.context.manualPureFunctions[this.name];
-				for (const segment of path) {
-					if (currentPureFunction) {
-						currentPureFunction = currentPureFunction[segment as string];
-					} else {
-						break;
-					}
-				}
-				if (currentPureFunction?.[PureFunctionKey]) {
-					return false;
-				}
 				return (
 					this.variable !== null &&
+					!this.isPureFunction(path) &&
 					this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(path, interaction, context)
 				);
 			}
@@ -187,21 +176,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 				)!.hasEffectsOnInteractionAtPath(path, interaction, context);
 			}
 			case INTERACTION_CALLED: {
-				let currentPureFunction = this.context.manualPureFunctions[this.name];
-				for (const segment of path) {
-					if (currentPureFunction) {
-						currentPureFunction = currentPureFunction[segment as string];
-					} else {
-						break;
-					}
-				}
-				if (currentPureFunction?.[PureFunctionKey]) {
-					return false;
-				}
-				return this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(
-					path,
-					interaction,
-					context
+				return (
+					!this.isPureFunction(path) &&
+					this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(path, interaction, context)
 				);
 			}
 		}
@@ -310,6 +287,18 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return UNKNOWN_EXPRESSION;
 		}
 		return this.variable;
+	}
+
+	private isPureFunction(path: ObjectPath) {
+		let currentPureFunction = this.context.manualPureFunctions[this.name];
+		for (const segment of path) {
+			if (currentPureFunction) {
+				currentPureFunction = currentPureFunction[segment as string];
+			} else {
+				return false;
+			}
+		}
+		return currentPureFunction?.[PureFunctionKey];
 	}
 }
 

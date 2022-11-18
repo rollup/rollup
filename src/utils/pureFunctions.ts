@@ -7,7 +7,6 @@ export interface PureFunctions {
 	[PureFunctionKey]?: boolean;
 }
 
-// TODO Lukas put on Graph
 export const getPureFunctions = ({ treeshake }: NormalizedInputOptions): PureFunctions => {
 	const pureFunctions: PureFunctions = Object.create(null);
 	for (const functionName of treeshake ? treeshake.manualPureFunctions : []) {

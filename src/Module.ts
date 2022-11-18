@@ -72,7 +72,6 @@ import {
 } from './utils/parseAssertions';
 import { basename, extname } from './utils/path';
 import type { PureFunctions } from './utils/pureFunctions';
-import { getPureFunctions } from './utils/pureFunctions';
 import type { RenderOptions } from './utils/renderHelpers';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
@@ -783,7 +782,7 @@ export default class Module {
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariableInModule: this.includeVariableInModule.bind(this),
 			magicString: this.magicString,
-			manualPureFunctions: getPureFunctions(this.options),
+			manualPureFunctions: this.graph.pureFunctions,
 			module: this,
 			moduleContext: this.context,
 			options: this.options,
