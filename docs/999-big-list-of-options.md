@@ -1717,20 +1717,22 @@ This can not only help with dead code removal, but can also improve JavaScript c
 export default {
   treeshake: {
     preset: 'smallest',
-    manualPureFunctions: ['foo', 'bar.baz']
+    manualPureFunctions: ['styled.div', 'local']
   }
   // ...
 };
 
 // code
-import { lib as bar } from 'external';
-const foo = console.log;
+import styled from 'styled-components';
+const local = console.log;
 
-foo(); // removed
-bar.baz(); // removed
-bar(); // not removed
-bar.quuz(); // not removed
-bar?.baz(); // not removed
+local(); // removed
+styled.div`
+  color: blue;
+`; // removed
+styled?.div(); // removed
+styled(); // not removed
+styled.h1(); // not removed
 ```
 
 **treeshake.moduleSideEffects**<br> Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br> CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external`<br> Default: `true`
