@@ -36,7 +36,7 @@ const [mainPackage, mainLockFile, browserPackage, repo, issues, changelog] = awa
 const isMainBranch = currentBranch === MAIN_BRANCH;
 const [newVersion, includedPRs] = await Promise.all([
 	getNewVersion(mainPackage, isMainBranch),
-	getIncludedPRs(changelog, repo)
+	getIncludedPRs(changelog, repo, currentBranch, isMainBranch)
 ]);
 
 let changelogEntry, gitTag;
@@ -149,7 +149,7 @@ function getFirstChangelogEntry(changelog) {
 	return { currentVersion, index, previousVersion, text };
 }
 
-async function getIncludedPRs(changelog, repo) {
+async function getIncludedPRs(changelog, repo, currentBranch, isMainBranch) {
 	const { currentVersion } = getFirstChangelogEntry(changelog);
 	const commits = await runAndGetStdout('git', [
 		'--no-pager',
@@ -162,6 +162,16 @@ async function getIncludedPRs(changelog, repo) {
 	let match;
 	while ((match = getPrRegExp.exec(commits))) {
 		prs.push({ pr: match[2], text: match[1].split('\n')[0] });
+	}
+
+	if (!isMainBranch) {
+		const { data: basePrs } = await repo.listPullRequests({
+			head: `rollup:${currentBranch}`,
+			state: 'open'
+		});
+		for (const { number, title } of basePrs) {
+			prs.push({ pr: number, text: title });
+		}
 	}
 	prs.sort((a, b) => (a.pr > b.pr ? 1 : -1));
 	return Promise.all(
