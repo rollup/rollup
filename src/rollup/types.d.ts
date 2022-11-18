@@ -466,7 +466,7 @@ type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 export interface NormalizedTreeshakingOptions {
 	annotations: boolean;
 	correctVarValueBeforeDeclaration: boolean;
-	experimentalManualPureFunctions: readonly string[];
+	manualPureFunctions: readonly string[];
 	moduleSideEffects: HasModuleSideEffects;
 	propertyReadSideEffects: boolean | 'always';
 	tryCatchDeoptimization: boolean;

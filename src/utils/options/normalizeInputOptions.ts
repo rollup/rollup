@@ -8,6 +8,7 @@ import type {
 	RollupBuild,
 	WarningHandler
 } from '../../rollup/types';
+import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
@@ -255,7 +256,8 @@ const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake']
 	return {
 		annotations: configWithPreset.annotations !== false,
 		correctVarValueBeforeDeclaration: configWithPreset.correctVarValueBeforeDeclaration === true,
-		experimentalManualPureFunctions: configWithPreset.experimentalManualPureFunctions as string[],
+		manualPureFunctions:
+			(configWithPreset.manualPureFunctions as readonly string[] | undefined) ?? EMPTY_ARRAY,
 		moduleSideEffects: getHasModuleSideEffects(
 			configWithPreset.moduleSideEffects as ModuleSideEffectsOption | undefined
 		),

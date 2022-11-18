@@ -47,7 +47,7 @@ export const treeshakePresets: {
 	recommended: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: false,
-		experimentalManualPureFunctions: EMPTY_ARRAY,
+		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
@@ -56,7 +56,7 @@ export const treeshakePresets: {
 	safest: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: true,
-		experimentalManualPureFunctions: EMPTY_ARRAY,
+		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
@@ -65,7 +65,7 @@ export const treeshakePresets: {
 	smallest: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: false,
-		experimentalManualPureFunctions: EMPTY_ARRAY,
+		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => false,
 		propertyReadSideEffects: false,
 		tryCatchDeoptimization: false,

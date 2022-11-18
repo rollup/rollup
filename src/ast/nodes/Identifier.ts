@@ -3,6 +3,7 @@ import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { errorIllegalImportReassignment } from '../../utils/error';
+import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -163,6 +164,18 @@ export default class Identifier extends NodeBase implements PatternNode {
 	): boolean {
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
+				// TODO Lukas extract and cache lazily?
+				let currentPureFunction = this.context.manualPureFunctions[this.name];
+				for (const segment of path) {
+					if (currentPureFunction) {
+						currentPureFunction = currentPureFunction[segment as string];
+					} else {
+						break;
+					}
+				}
+				if (currentPureFunction?.[PureFunctionKey]) {
+					return false;
+				}
 				return (
 					this.variable !== null &&
 					this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(path, interaction, context)
@@ -174,6 +187,17 @@ export default class Identifier extends NodeBase implements PatternNode {
 				)!.hasEffectsOnInteractionAtPath(path, interaction, context);
 			}
 			case INTERACTION_CALLED: {
+				let currentPureFunction = this.context.manualPureFunctions[this.name];
+				for (const segment of path) {
+					if (currentPureFunction) {
+						currentPureFunction = currentPureFunction[segment as string];
+					} else {
+						break;
+					}
+				}
+				if (currentPureFunction?.[PureFunctionKey]) {
+					return false;
+				}
 				return this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(
 					path,
 					interaction,

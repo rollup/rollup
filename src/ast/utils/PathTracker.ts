@@ -13,7 +13,7 @@ export type ObjectPathKey =
 	| typeof UnknownInteger
 	| typeof SymbolToStringTag;
 
-export type ObjectPath = ObjectPathKey[];
+export type ObjectPath = readonly ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
 // For deoptimizations, this means we are modifying an unknown property but did
