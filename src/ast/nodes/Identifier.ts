@@ -293,6 +293,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 		let currentPureFunction = this.context.manualPureFunctions[this.name];
 		for (const segment of path) {
 			if (currentPureFunction) {
+				if (currentPureFunction[PureFunctionKey]) {
+					return true;
+				}
 				currentPureFunction = currentPureFunction[segment as string];
 			} else {
 				return false;
