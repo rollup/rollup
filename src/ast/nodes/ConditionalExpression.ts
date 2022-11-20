@@ -80,23 +80,26 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch)
-			return new MultiExpression([
-				this.consequent.getReturnExpressionWhenCalledAtPath(
-					path,
-					interaction,
-					recursionTracker,
-					origin
-				),
-				this.alternate.getReturnExpressionWhenCalledAtPath(
-					path,
-					interaction,
-					recursionTracker,
-					origin
-				)
-			]);
+			return [
+				new MultiExpression([
+					this.consequent.getReturnExpressionWhenCalledAtPath(
+						path,
+						interaction,
+						recursionTracker,
+						origin
+					)[0],
+					this.alternate.getReturnExpressionWhenCalledAtPath(
+						path,
+						interaction,
+						recursionTracker,
+						origin
+					)[0]
+				]),
+				false
+			];
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getReturnExpressionWhenCalledAtPath(
 			path,

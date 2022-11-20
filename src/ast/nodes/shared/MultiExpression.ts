@@ -22,12 +22,21 @@ export class MultiExpression extends ExpressionEntity {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
-		return new MultiExpression(
-			this.expressions.map(expression =>
-				expression.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
-			)
-		);
+	): [expression: ExpressionEntity, isPure: boolean] {
+		return [
+			new MultiExpression(
+				this.expressions.map(
+					expression =>
+						expression.getReturnExpressionWhenCalledAtPath(
+							path,
+							interaction,
+							recursionTracker,
+							origin
+						)[0]
+				)
+			),
+			false
+		];
 	}
 
 	hasEffectsOnInteractionAtPath(

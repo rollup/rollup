@@ -132,7 +132,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getVariableRespectingTDZ()!.getReturnExpressionWhenCalledAtPath(
 			path,
 			interaction,

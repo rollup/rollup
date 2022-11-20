@@ -20,7 +20,7 @@ import type * as NodeType from './NodeType';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import CallExpressionBase from './shared/CallExpressionBase';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
+import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import { type ExpressionNode, INCLUDE_PARAMETERS, type IncludeChildren } from './shared/Node';
 
 export default class CallExpression extends CallExpressionBase implements DeoptimizableEntity {
@@ -120,9 +120,9 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 
 	protected getReturnExpression(
 		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
-			this.returnExpression = UNKNOWN_EXPRESSION;
+			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
 			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
 				this.interaction,

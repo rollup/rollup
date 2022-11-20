@@ -38,7 +38,7 @@ import type Super from './Super';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
@@ -197,7 +197,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.variable) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(
 				path,
@@ -207,7 +207,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			);
 		}
 		if (this.isUndefined) {
-			return UNDEFINED_EXPRESSION;
+			return [UNDEFINED_EXPRESSION, false];
 		}
 		this.expressionsToBeDeoptimized.push(origin);
 		if (path.length < MAX_PATH_DEPTH) {
@@ -218,7 +218,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 				origin
 			);
 		}
-		return UNKNOWN_EXPRESSION;
+		return UNKNOWN_RETURN_EXPRESSION;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

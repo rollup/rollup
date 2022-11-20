@@ -22,7 +22,7 @@ import type PrivateIdentifier from '../PrivateIdentifier';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_RETURN_EXPRESSION
 } from './Expression';
 import { type ExpressionNode, NodeBase } from './Node';
 import type { PatternNode } from './Pattern';
@@ -33,14 +33,14 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	declare kind: 'constructor' | 'method' | 'init' | 'get' | 'set';
 	declare value: ExpressionNode | (ExpressionNode & PatternNode);
 
-	private accessedValue: ExpressionEntity | null = null;
+	private accessedValue: [expression: ExpressionEntity, isPure: boolean] | null = null;
 
 	// As getter properties directly receive their values from fixed function
 	// expressions, there is no known situation where a getter is deoptimized.
 	deoptimizeCache(): void {}
 
 	deoptimizePath(path: ObjectPath): void {
-		this.getAccessedValue().deoptimizePath(path);
+		this.getAccessedValue()[0].deoptimizePath(path);
 	}
 
 	deoptimizeThisOnInteractionAtPath(
@@ -72,7 +72,11 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				recursionTracker
 			);
 		}
-		this.getAccessedValue().deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
+		this.getAccessedValue()[0].deoptimizeThisOnInteractionAtPath(
+			interaction,
+			path,
+			recursionTracker
+		);
 	}
 
 	getLiteralValueAtPath(
@@ -80,7 +84,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return this.getAccessedValue().getLiteralValueAtPath(path, recursionTracker, origin);
+		return this.getAccessedValue()[0].getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -88,8 +92,8 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
-		return this.getAccessedValue().getReturnExpressionWhenCalledAtPath(
+	): [expression: ExpressionEntity, isPure: boolean] {
+		return this.getAccessedValue()[0].getReturnExpressionWhenCalledAtPath(
 			path,
 			interaction,
 			recursionTracker,
@@ -131,15 +135,15 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				context
 			);
 		}
-		return this.getAccessedValue().hasEffectsOnInteractionAtPath(path, interaction, context);
+		return this.getAccessedValue()[0].hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	protected applyDeoptimizations() {}
 
-	protected getAccessedValue(): ExpressionEntity {
+	protected getAccessedValue(): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {
-				this.accessedValue = UNKNOWN_EXPRESSION;
+				this.accessedValue = UNKNOWN_RETURN_EXPRESSION;
 				return (this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(
 					EMPTY_PATH,
 					NODE_INTERACTION_UNKNOWN_CALL,
@@ -147,7 +151,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 					this
 				));
 			} else {
-				return (this.accessedValue = this.value);
+				return (this.accessedValue = [this.value, false]);
 			}
 		}
 		return this.accessedValue;

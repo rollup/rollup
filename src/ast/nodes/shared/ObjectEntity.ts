@@ -18,6 +18,7 @@ import type { LiteralValueOrUnknown } from './Expression';
 import {
 	ExpressionEntity,
 	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
@@ -250,9 +251,9 @@ export class ObjectEntity extends ExpressionEntity {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length === 0) {
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		const [key, ...subPath] = path;
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
@@ -272,7 +273,7 @@ export class ObjectEntity extends ExpressionEntity {
 				origin
 			);
 		}
-		return UNKNOWN_EXPRESSION;
+		return UNKNOWN_RETURN_EXPRESSION;
 	}
 
 	hasEffectsOnInteractionAtPath(

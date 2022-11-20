@@ -17,7 +17,7 @@ import type * as NodeType from './NodeType';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
 import { type GenericEsTreeNode, NodeBase } from './shared/Node';
@@ -50,8 +50,10 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		return this.value;
 	}
 
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		if (path.length !== 1) return UNKNOWN_EXPRESSION;
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath
+	): [expression: ExpressionEntity, isPure: boolean] {
+		if (path.length !== 1) return UNKNOWN_RETURN_EXPRESSION;
 		return getMemberReturnExpressionWhenCalled(this.members, path[0]);
 	}
 
