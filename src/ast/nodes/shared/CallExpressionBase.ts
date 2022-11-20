@@ -53,7 +53,6 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		recursionTracker: PathTracker
 	): void {
 		const [returnExpression, isPure] = this.getReturnExpression(recursionTracker);
-		// TODO Lukas test
 		if (isPure) return;
 		if (returnExpression === UNKNOWN_EXPRESSION) {
 			interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
@@ -96,21 +95,22 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		const [returnExpression] = this.getReturnExpression(recursionTracker);
-		if (returnExpression === UNKNOWN_EXPRESSION) {
-			return UNKNOWN_RETURN_EXPRESSION;
+		const returnExpression = this.getReturnExpression(recursionTracker);
+		if (returnExpression[0] === UNKNOWN_EXPRESSION) {
+			return returnExpression;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
 			path,
 			returnExpression,
 			() => {
 				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getReturnExpressionWhenCalledAtPath(
+				const [expression, isPure] = returnExpression[0].getReturnExpressionWhenCalledAtPath(
 					path,
 					interaction,
 					recursionTracker,
 					origin
 				);
+				return [expression, isPure || returnExpression[1]];
 			},
 			UNKNOWN_RETURN_EXPRESSION
 		);
@@ -141,7 +141,11 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		) {
 			return false;
 		}
-		return this.getReturnExpression()[0].hasEffectsOnInteractionAtPath(path, interaction, context);
+		const [returnExpression, isPure] = this.getReturnExpression();
+		return (
+			(type === INTERACTION_ASSIGNED || !isPure) &&
+			returnExpression.hasEffectsOnInteractionAtPath(path, interaction, context)
+		);
 	}
 
 	protected abstract getReturnExpression(

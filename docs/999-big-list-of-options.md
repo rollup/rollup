@@ -1712,12 +1712,14 @@ Allows to manually define a list of function names that should always be conside
 
 This can not only help with dead code removal, but can also improve JavaScript chunk generation especially when using [`experimentalMinChunkSize`](guide/en/#experimentalminchunksize).
 
+Besides any functions matching that name, any properties on a pure function and any functions returned from a pure functions will also be considered pure.
+
 ```js
 // rollup.config.js
 export default {
   treeshake: {
     preset: 'smallest',
-    manualPureFunctions: ['styled.div', 'local']
+    manualPureFunctions: ['styled', 'local']
   }
   // ...
 };
@@ -1731,8 +1733,8 @@ styled.div`
   color: blue;
 `; // removed
 styled?.div(); // removed
-styled(); // not removed
-styled.h1(); // not removed
+styled()(); // removed
+styled().div(); // removed
 ```
 
 **treeshake.moduleSideEffects**<br> Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br> CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external`<br> Default: `true`

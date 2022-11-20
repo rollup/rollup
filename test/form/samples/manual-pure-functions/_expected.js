@@ -1,11 +1,15 @@
-const lib = () => console.log();
-lib.a = () => {
-	console.log();
-	const result = () => console.log();
-	result.c = console.log;
-	return result;
+const lib = {
+	a: () => {
+		console.log();
+		return () => {
+			console.log();
+			return () => {
+				console.log();
+				return console.log;
+			}
+		}
+	}
 };
-lib.a.b = () => console.log();
 
 lib(); // not removed
 lib.b(); // not removed

@@ -133,12 +133,14 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
-		return this.getVariableRespectingTDZ()!.getReturnExpressionWhenCalledAtPath(
-			path,
-			interaction,
-			recursionTracker,
-			origin
-		);
+		const [expression, isPure] =
+			this.getVariableRespectingTDZ()!.getReturnExpressionWhenCalledAtPath(
+				path,
+				interaction,
+				recursionTracker,
+				origin
+			);
+		return [expression, isPure || this.isPureFunction(path)];
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -149,6 +151,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
+			!this.isPureFunction(EMPTY_PATH) &&
 			this.variable.hasEffectsOnInteractionAtPath(
 				EMPTY_PATH,
 				NODE_INTERACTION_UNKNOWN_ACCESS,
@@ -301,7 +304,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 				return false;
 			}
 		}
-		return currentPureFunction?.[PureFunctionKey];
+		return currentPureFunction?.[PureFunctionKey] as boolean;
 	}
 }
 
