@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'supports bigint via acorn plugin',
-	options: {}
+	description: 'supports bigint via acorn plugin'
 };
