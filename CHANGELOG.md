@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.4.0
+
+_2022-11-22_
+
+### Features
+
+- Do not keep unused `Object.freeze` calls on object literals (#4720)
+
+### Pull Requests
+
+- [#4720](https://github.com/rollup/rollup/pull/4720): Only consider Object.freeze a side effect if the argument is used (@lukastaegert)
+
 ## 3.3.0
 
 _2022-11-12_
