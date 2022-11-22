@@ -214,6 +214,7 @@ const knownGlobals: GlobalDescription = {
 		// deoptimizes everything anyway
 		defineProperty: MUTATES_ARG_WITHOUT_ACCESSOR,
 		defineProperties: MUTATES_ARG_WITHOUT_ACCESSOR,
+		freeze: MUTATES_ARG_WITHOUT_ACCESSOR,
 		getOwnPropertyDescriptor: PF,
 		getOwnPropertyNames: PF,
 		getOwnPropertySymbols: PF,
