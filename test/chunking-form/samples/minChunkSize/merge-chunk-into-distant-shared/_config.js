@@ -1,4 +1,5 @@
 module.exports = {
+	solo: true,
 	description:
 		'merges small chunks into shared chunks that are loaded by a non-close super-set of entry points',
 	options: {

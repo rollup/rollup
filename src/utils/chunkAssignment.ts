@@ -1,3 +1,4 @@
+import prettyBytes from 'pretty-bytes';
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getNewSet, getOrCreate } from './getOrCreate';
@@ -202,15 +203,17 @@ function isModuleAlreadyLoaded(
 }
 
 interface ChunkDescription {
-	alias: null;
 	modules: Module[];
+	pure: boolean;
 	signature: string;
-	size: number | null;
-}
-
-interface MergeableChunkDescription extends ChunkDescription {
 	size: number;
 }
+
+type ChunkPartition = {
+	[key in 'small' | 'big']: {
+		[subKey in 'pure' | 'sideEffect']: Set<ChunkDescription>;
+	};
+};
 
 function createChunks(
 	allEntries: Iterable<Module>,
@@ -223,7 +226,10 @@ function createChunks(
 				alias: null,
 				modules
 		  }))
-		: getOptimizedChunks(chunkModulesBySignature, minChunkSize);
+		: getOptimizedChunks(chunkModulesBySignature, minChunkSize).map(({ modules }) => ({
+				alias: null,
+				modules
+		  }));
 }
 
 function getOptimizedChunks(
@@ -231,45 +237,61 @@ function getOptimizedChunks(
 	minChunkSize: number
 ) {
 	timeStart('optimize chunks', 3);
-	const { chunksToBeMerged, unmergeableChunks } = getMergeableChunks(
-		chunkModulesBySignature,
-		minChunkSize
-	);
-	for (const sourceChunk of chunksToBeMerged) {
-		chunksToBeMerged.delete(sourceChunk);
-		let closestChunk: ChunkDescription | null = null;
-		let closestChunkDistance = Infinity;
-		const { signature, size, modules } = sourceChunk;
+	const chunkPartition = getPartitionedChunks(chunkModulesBySignature, minChunkSize);
+	console.log(`Created ${
+		chunkPartition.big.pure.size +
+		chunkPartition.big.sideEffect.size +
+		chunkPartition.small.pure.size +
+		chunkPartition.small.sideEffect.size
+	} chunks
+----- pure  side effects
+small ${`${chunkPartition.small.pure.size}`.padEnd(5, ' ')} ${chunkPartition.small.sideEffect.size}
+  big ${`${chunkPartition.big.pure.size}`.padEnd(5, ' ')} ${chunkPartition.big.sideEffect.size}
+`);
 
-		for (const targetChunk of concatLazy(chunksToBeMerged, unmergeableChunks)) {
-			const distance = getSignatureDistance(
-				signature,
-				targetChunk.signature,
-				!chunksToBeMerged.has(targetChunk)
-			);
-			if (distance === 1) {
-				closestChunk = targetChunk;
-				break;
-			} else if (distance < closestChunkDistance) {
-				closestChunk = targetChunk;
-				closestChunkDistance = distance;
-			}
-		}
-		if (closestChunk) {
-			closestChunk.modules.push(...modules);
-			if (chunksToBeMerged.has(closestChunk)) {
-				closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
-				if ((closestChunk.size += size) > minChunkSize) {
-					chunksToBeMerged.delete(closestChunk);
-					unmergeableChunks.push(closestChunk);
-				}
-			}
-		} else {
-			unmergeableChunks.push(sourceChunk);
-		}
-	}
+	console.log(
+		`Trying to find merge targets for ${
+			chunkPartition.small.sideEffect.size
+		} chunks smaller than ${prettyBytes(minChunkSize)} with side effects...`
+	);
+	mergeChunks(
+		chunkPartition.small.sideEffect,
+		[chunkPartition.small.pure, chunkPartition.big.pure],
+		minChunkSize,
+		chunkPartition
+	);
+	console.log(
+		`${chunkPartition.small.sideEffect.size} chunks smaller than ${prettyBytes(
+			minChunkSize
+		)} with side effects remaining.\n`
+	);
+
+	console.log(
+		`Trying to find merge targets for ${
+			chunkPartition.small.pure.size
+		} pure chunks smaller than ${prettyBytes(minChunkSize)}...`
+	);
+	mergeChunks(
+		chunkPartition.small.pure,
+		[chunkPartition.small.pure, chunkPartition.big.sideEffect, chunkPartition.big.pure],
+		minChunkSize,
+		chunkPartition
+	);
+
+	console.log(
+		`${chunkPartition.small.pure.size} pure chunks smaller than ${prettyBytes(
+			minChunkSize
+		)} remaining.\n`
+	);
 	timeEnd('optimize chunks', 3);
-	return unmergeableChunks;
+	const result = [
+		...chunkPartition.small.sideEffect,
+		...chunkPartition.small.pure,
+		...chunkPartition.big.sideEffect,
+		...chunkPartition.big.pure
+	];
+	console.log(`${result.length} chunks remaining.`);
+	return result;
 }
 
 const CHAR_DEPENDENT = 'X';
@@ -296,33 +318,94 @@ function getChunkModulesBySignature(
 	return chunkModules;
 }
 
-function getMergeableChunks(
+function getPartitionedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
 	minChunkSize: number
-) {
-	const chunksToBeMerged = new Set() as Set<MergeableChunkDescription> & {
-		has(chunk: unknown): chunk is MergeableChunkDescription;
-	};
-	const unmergeableChunks: ChunkDescription[] = [];
-	const alias = null;
+): ChunkPartition {
+	const smallPureChunks: ChunkDescription[] = [];
+	const bigPureChunks: ChunkDescription[] = [];
+	const smallSideEffectChunks: ChunkDescription[] = [];
+	const bigSideEffectChunks: ChunkDescription[] = [];
 	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
 		let size = 0;
-		checkModules: {
-			for (const module of modules) {
-				if (module.hasEffects()) {
-					break checkModules;
-				}
-				size += module.magicString.toString().length;
-				if (size > minChunkSize) {
-					break checkModules;
-				}
-			}
-			chunksToBeMerged.add({ alias, modules, signature, size });
-			continue;
+		let pure = true;
+		for (const module of modules) {
+			pure &&= !module.hasEffects();
+			size += module.magicString.toString().length;
 		}
-		unmergeableChunks.push({ alias, modules, signature, size: null });
+		(size < minChunkSize
+			? pure
+				? smallPureChunks
+				: smallSideEffectChunks
+			: pure
+			? bigPureChunks
+			: bigSideEffectChunks
+		).push({ modules, pure, signature, size });
 	}
-	return { chunksToBeMerged, unmergeableChunks };
+	for (const chunks of [
+		bigPureChunks,
+		bigSideEffectChunks,
+		smallPureChunks,
+		smallSideEffectChunks
+	]) {
+		chunks.sort(compareChunks);
+	}
+	return {
+		big: { pure: new Set(bigPureChunks), sideEffect: new Set(bigSideEffectChunks) },
+		small: { pure: new Set(smallPureChunks), sideEffect: new Set(smallSideEffectChunks) }
+	};
+}
+
+function compareChunks(
+	{ size: sizeA }: ChunkDescription,
+	{ size: sizeB }: ChunkDescription
+): number {
+	return sizeA - sizeB;
+}
+
+function mergeChunks(
+	chunksToBeMerged: Set<ChunkDescription>,
+	targetChunks: Set<ChunkDescription>[],
+	minChunkSize: number,
+	chunkPartition: ChunkPartition
+) {
+	for (const mergedChunk of chunksToBeMerged) {
+		let closestChunk: ChunkDescription | null = null;
+		let closestChunkDistance = Infinity;
+		const { signature, modules, pure, size } = mergedChunk;
+
+		for (const targetChunk of concatLazy(targetChunks)) {
+			if (mergedChunk === targetChunk) continue;
+			const distance = pure
+				? getSignatureDistance(signature, targetChunk.signature, !targetChunk.pure)
+				: getSignatureDistance(targetChunk.signature, signature, true);
+			if (distance === 1) {
+				closestChunk = targetChunk;
+				break;
+			} else if (distance < closestChunkDistance) {
+				closestChunk = targetChunk;
+				closestChunkDistance = distance;
+			}
+		}
+		if (closestChunk) {
+			chunksToBeMerged.delete(mergedChunk);
+			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
+			closestChunk.modules.push(...modules);
+			closestChunk.size += size;
+			closestChunk.pure &&= pure;
+			closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
+			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
+		}
+	}
+}
+
+function getChunksInPartition(
+	chunk: ChunkDescription,
+	minChunkSize: number,
+	chunkPartition: ChunkPartition
+): Set<ChunkDescription> {
+	const subPartition = chunk.size < minChunkSize ? chunkPartition.small : chunkPartition.big;
+	return chunk.pure ? subPartition.pure : subPartition.sideEffect;
 }
 
 function getSignatureDistance(
