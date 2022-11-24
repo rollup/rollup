@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import { createHasEffectsContext } from '../ExecutionContext';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
 import { type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
@@ -9,7 +10,13 @@ export default class Program extends NodeBase {
 	declare sourceType: 'module';
 	declare type: NodeType.tProgram;
 
-	private hasCachedEffect = false;
+	private hasCachedEffect: boolean | null = null;
+
+	hasCachedEffects(): boolean {
+		return this.hasCachedEffect === null
+			? (this.hasCachedEffect = this.hasEffects(createHasEffectsContext()))
+			: this.hasCachedEffect;
+	}
 
 	hasEffects(context: HasEffectsContext): boolean {
 		// We are caching here to later more efficiently identify side-effect-free modules
