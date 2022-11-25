@@ -232,6 +232,18 @@ function createChunks(
 		  }));
 }
 
+/**
+ * This function tries to get rid of small chunks by merging them with other
+ * chunks. In order to merge chunks, one must obey the following rule:
+ * - When merging several chunks, at most one of the chunks can have side
+ *   effects
+ * - When one of the chunks has side effects, the entry points depending on that
+ *   chunk need to be a super set of the entry points depending on the other
+ *   chunks
+ * - Pure chunks can always be merged
+ * - We use the entry point dependence signature to calculate "chunk distance",
+ *   i.e. how likely it is that two chunks are loaded together
+ */
 function getOptimizedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
 	minChunkSize: number
