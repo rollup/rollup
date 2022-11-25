@@ -1,0 +1,18 @@
+const path = require('node:path');
+
+module.exports = {
+	description: 'supports this.load() in buildEnd and renderStart',
+	options: {
+		plugins: [
+			{
+				name: 'test',
+				buildEnd() {
+					this.load({ id: path.join(__dirname, 'other1.js') });
+				},
+				renderStart() {
+					this.load({ id: path.join(__dirname, 'other2.js') });
+				}
+			}
+		]
+	}
+};

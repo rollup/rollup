@@ -685,8 +685,10 @@ export default class Module {
 		this.includeAllExports(false);
 	}
 
-	isIncluded(): boolean {
-		return this.ast!.included || this.namespace.included || this.importedFromNotTreeshaken;
+	isIncluded(): boolean | null {
+		return (
+			this.ast && (this.ast.included || this.namespace.included || this.importedFromNotTreeshaken)
+		);
 	}
 
 	linkImports(): void {
