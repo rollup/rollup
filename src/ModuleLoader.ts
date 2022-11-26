@@ -183,13 +183,11 @@ export class ModuleLoader {
 	public async preloadModule(
 		resolvedId: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	): Promise<ModuleInfo> {
-		const module = await this.extendLoadModulesPromise(
-			this.fetchModule(
-				this.getResolvedIdWithDefaults(resolvedId, EMPTY_OBJECT)!,
-				undefined,
-				false,
-				resolvedId.resolveDependencies ? RESOLVE_DEPENDENCIES : true
-			)
+		const module = await this.fetchModule(
+			this.getResolvedIdWithDefaults(resolvedId, EMPTY_OBJECT)!,
+			undefined,
+			false,
+			resolvedId.resolveDependencies ? RESOLVE_DEPENDENCIES : true
 		);
 		return module.info;
 	}

@@ -7,10 +7,15 @@ module.exports = {
 			{
 				name: 'test',
 				buildEnd() {
-					this.load({ id: path.join(__dirname, 'other1.js') });
+					this.load({ id: path.join(__dirname, 'other2.js') });
+				},
+				moduleParsed({ id }) {
+					if (id.endsWith('main.js')) {
+						this.load({ id: path.join(__dirname, 'other1.js') });
+					}
 				},
 				renderStart() {
-					this.load({ id: path.join(__dirname, 'other2.js') });
+					this.load({ id: path.join(__dirname, 'other3.js') });
 				}
 			}
 		]
