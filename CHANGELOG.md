@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 3.5.0
+
+_2022-11-27_
+
+### Features
+
+- Add `treeshake.manualPureFunctions` to override static analysis for explicit function names (#4718)
+
+### Bug Fixes
+
+- Do not throw when a plugin uses `this.load` without awaiting its result (#4725)
+
+### Pull Requests
+
+- [#4718](https://github.com/rollup/rollup/pull/4718): Add simple way to manually declare pure functions (@lukastaegert)
+- [#4725](https://github.com/rollup/rollup/pull/4725): Fix isIncluded error when using rollup-plugin-typescript2 (@lukastaegert)
+
 ## 3.4.0
 
 _2022-11-22_
