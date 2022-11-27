@@ -6,7 +6,11 @@ import {
 	NODE_INTERACTION_UNKNOWN_CALL
 } from './NodeInteractions';
 import type { LiteralValue } from './nodes/Literal';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
+import {
+	ExpressionEntity,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION
+} from './nodes/shared/Expression';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -52,11 +56,13 @@ const returnsUnknown: RawMemberDescription = {
 
 export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 	new (class UnknownBoolean extends ExpressionEntity {
-		getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
+		getReturnExpressionWhenCalledAtPath(
+			path: ObjectPath
+		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
 				return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
 			}
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 
 		hasEffectsOnInteractionAtPath(
@@ -83,11 +89,13 @@ const returnsBoolean: RawMemberDescription = {
 
 export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 	new (class UnknownNumber extends ExpressionEntity {
-		getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
+		getReturnExpressionWhenCalledAtPath(
+			path: ObjectPath
+		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
 				return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
 			}
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 
 		hasEffectsOnInteractionAtPath(
@@ -114,11 +122,13 @@ const returnsNumber: RawMemberDescription = {
 
 export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 	new (class UnknownString extends ExpressionEntity {
-		getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
+		getReturnExpressionWhenCalledAtPath(
+			path: ObjectPath
+		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
 				return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
 			}
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 
 		hasEffectsOnInteractionAtPath(
@@ -277,7 +287,7 @@ export function hasMemberEffectWhenCalled(
 export function getMemberReturnExpressionWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey
-): ExpressionEntity {
-	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_EXPRESSION;
-	return members[memberName].returns;
+): [expression: ExpressionEntity, isPure: boolean] {
+	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_RETURN_EXPRESSION;
+	return [members[memberName].returns, false];
 }

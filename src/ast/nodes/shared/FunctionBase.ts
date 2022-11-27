@@ -23,7 +23,7 @@ import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
-import { UNKNOWN_EXPRESSION } from './Expression';
+import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -74,7 +74,7 @@ export default abstract class FunctionBase extends NodeBase {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
 			return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 				path,
@@ -89,9 +89,9 @@ export default abstract class FunctionBase extends NodeBase {
 				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 				this.context.requestTreeshakingPass();
 			}
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
-		return this.scope.getReturnExpression();
+		return [this.scope.getReturnExpression(), false];
 	}
 
 	hasEffectsOnInteractionAtPath(

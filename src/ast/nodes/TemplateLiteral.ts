@@ -12,7 +12,7 @@ import {
 import type * as NodeType from './NodeType';
 import type TemplateElement from './TemplateElement';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { UNKNOWN_EXPRESSION, UnknownValue } from './shared/Expression';
+import { UNKNOWN_RETURN_EXPRESSION, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TemplateLiteral extends NodeBase {
@@ -29,9 +29,11 @@ export default class TemplateLiteral extends NodeBase {
 		return this.quasis[0].value.cooked;
 	}
 
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length !== 1) {
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
 	}

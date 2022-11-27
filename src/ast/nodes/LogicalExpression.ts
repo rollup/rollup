@@ -93,13 +93,26 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch)
-			return new MultiExpression([
-				this.left.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin),
-				this.right.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
-			]);
+			return [
+				new MultiExpression([
+					this.left.getReturnExpressionWhenCalledAtPath(
+						path,
+						interaction,
+						recursionTracker,
+						origin
+					)[0],
+					this.right.getReturnExpressionWhenCalledAtPath(
+						path,
+						interaction,
+						recursionTracker,
+						origin
+					)[0]
+				]),
+				false
+			];
 		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getReturnExpressionWhenCalledAtPath(
 			path,

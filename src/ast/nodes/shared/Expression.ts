@@ -59,8 +59,8 @@ export class ExpressionEntity implements WritableEntity {
 		_interaction: NodeInteractionCalled,
 		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
-	): ExpressionEntity {
-		return UNKNOWN_EXPRESSION;
+	): [expression: ExpressionEntity, isPure: boolean] {
+		return UNKNOWN_RETURN_EXPRESSION;
 	}
 
 	hasEffectsOnInteractionAtPath(
@@ -95,3 +95,8 @@ export class ExpressionEntity implements WritableEntity {
 
 export const UNKNOWN_EXPRESSION: ExpressionEntity =
 	new (class UnknownExpression extends ExpressionEntity {})();
+
+export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: boolean] = [
+	UNKNOWN_EXPRESSION,
+	false
+];

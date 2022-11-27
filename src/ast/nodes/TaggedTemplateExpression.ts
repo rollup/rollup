@@ -12,7 +12,7 @@ import * as NodeType from './NodeType';
 import type TemplateLiteral from './TemplateLiteral';
 import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
+import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
@@ -56,7 +56,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			this.quasi.include(context, includeChildrenRecursively);
 		}
 		this.tag.includeCallArguments(context, this.interaction.args);
-		const returnExpression = this.getReturnExpression();
+		const [returnExpression] = this.getReturnExpression();
 		if (!returnExpression.included) {
 			returnExpression.include(context, false);
 		}
@@ -94,9 +94,9 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 
 	protected getReturnExpression(
 		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
-			this.returnExpression = UNKNOWN_EXPRESSION;
+			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
 			return (this.returnExpression = this.tag.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
 				this.interaction,

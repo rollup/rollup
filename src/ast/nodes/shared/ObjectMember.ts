@@ -42,7 +42,7 @@ export class ObjectMember extends ExpressionEntity {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.key, ...path],
 			interaction,

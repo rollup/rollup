@@ -16,7 +16,7 @@ import {
 	UNKNOWN_LITERAL_NUMBER,
 	UNKNOWN_LITERAL_STRING
 } from '../../values';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
 
 type MethodDescription = {
 	callsArgs: number[] | null;
@@ -49,16 +49,17 @@ export class Method extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		{ thisArg }: NodeInteractionCalled
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
-		return (
+		return [
 			this.description.returnsPrimitive ||
-			(this.description.returns === 'self'
-				? thisArg || UNKNOWN_EXPRESSION
-				: this.description.returns())
-		);
+				(this.description.returns === 'self'
+					? thisArg || UNKNOWN_EXPRESSION
+					: this.description.returns()),
+			false
+		];
 	}
 
 	hasEffectsOnInteractionAtPath(

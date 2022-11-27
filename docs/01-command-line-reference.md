@@ -350,11 +350,11 @@ Many options have command line equivalents. In those cases, any arguments passed
 -p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
---amd.id <id>               ID for AMD module (default is anonymous)
 --amd.autoId                Generate the AMD ID based off the chunk name
 --amd.basePath <prefix>     Path to prepend to auto generated AMD ID
 --amd.define <name>         Function to use in place of `define`
 --amd.forceJsExtensionForImports Use `.js` extension in AMD imports
+--amd.id <id>               ID for AMD module (default is anonymous)
 --assetFileNames <pattern>  Name pattern for emitted assets
 --banner <text>             Code to insert at top of bundle (outside wrapper)
 --chunkFileNames <pattern>  Name pattern for emitted secondary chunks
@@ -372,10 +372,15 @@ Many options have command line equivalents. In those cases, any arguments passed
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
 --generatedCode <preset>    Which code features to use (es5/es2015)
+--generatedCode.arrowFunctions Use arrow functions in generated code
+--generatedCode.constBindings Use "const" in generated code
+--generatedCode.objectShorthand Use shorthand properties in generated code
+--no-generatedCode.reservedNamesAsProps Always quote reserved names as props
+--generatedCode.symbols     Use symbols in generated code
 --no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
---interop <type>            Handle default/namespace imports from AMD/CommonJS
 --inlineDynamicImports      Create single bundle when using dynamic imports
+--no-interop                Do not include interop block
 --intro <text>              Code to insert at top of bundle (inside wrapper)
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports
 --maxParallelFileOps <value> How many files to read in parallel
@@ -400,22 +405,24 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-systemNullSetters      Do not replace empty SystemJS setters with `null`
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
+--treeshake.correctVarValueBeforeDeclaration Deoptimize variables until declared
+--treeshake.manualPureFunctions <names> Manually declare functions as pure
 --no-treeshake.moduleSideEffects Assume modules have no side effects
 --no-treeshake.propertyReadSideEffects Ignore property access side effects
 --no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
 --no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
+--validate                  Validate output
 --waitForBundleInput        Wait for bundle input files
 --watch.buildDelay <number> Throttle watch rebuilds
 --no-watch.clearScreen      Do not clear the screen when rebuilding
---watch.skipWrite           Do not write files to disk when watching
 --watch.exclude <files>     Exclude files from being watched
 --watch.include <files>     Limit watching to specified files
---watch.onStart <cmd>       Shell command to run on `"START"` event
---watch.onBundleStart <cmd> Shell command to run on `"BUNDLE_START"` event
 --watch.onBundleEnd <cmd>   Shell command to run on `"BUNDLE_END"` event
+--watch.onBundleStart <cmd> Shell command to run on `"BUNDLE_START"` event
 --watch.onEnd <cmd>         Shell command to run on `"END"` event
 --watch.onError <cmd>       Shell command to run on `"ERROR"` event
---validate                  Validate output
+--watch.onStart <cmd>       Shell command to run on `"START"` event
+--watch.skipWrite           Do not write files to disk when watching
 ```
 
 The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en/#big-list-of-options) for details.

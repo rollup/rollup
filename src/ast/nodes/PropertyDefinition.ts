@@ -11,7 +11,7 @@ import type PrivateIdentifier from './PrivateIdentifier';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
@@ -50,10 +50,10 @@ export default class PropertyDefinition extends NodeBase {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.value
 			? this.value.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
-			: UNKNOWN_EXPRESSION;
+			: UNKNOWN_RETURN_EXPRESSION;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

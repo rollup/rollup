@@ -21,6 +21,7 @@ import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
@@ -131,9 +132,9 @@ export default class LocalVariable extends Variable {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.isReassigned || !this.init) {
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
 			path,
@@ -147,7 +148,7 @@ export default class LocalVariable extends Variable {
 					origin
 				);
 			},
-			UNKNOWN_EXPRESSION
+			UNKNOWN_RETURN_EXPRESSION
 		);
 	}
 

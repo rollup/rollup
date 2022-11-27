@@ -3,6 +3,7 @@ import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { errorIllegalImportReassignment } from '../../utils/error';
+import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -131,13 +132,15 @@ export default class Identifier extends NodeBase implements PatternNode {
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
-		return this.getVariableRespectingTDZ()!.getReturnExpressionWhenCalledAtPath(
-			path,
-			interaction,
-			recursionTracker,
-			origin
-		);
+	): [expression: ExpressionEntity, isPure: boolean] {
+		const [expression, isPure] =
+			this.getVariableRespectingTDZ()!.getReturnExpressionWhenCalledAtPath(
+				path,
+				interaction,
+				recursionTracker,
+				origin
+			);
+		return [expression, isPure || this.isPureFunction(path)];
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -148,6 +151,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
+			!this.isPureFunction(EMPTY_PATH) &&
 			this.variable.hasEffectsOnInteractionAtPath(
 				EMPTY_PATH,
 				NODE_INTERACTION_UNKNOWN_ACCESS,
@@ -165,6 +169,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 			case INTERACTION_ACCESSED: {
 				return (
 					this.variable !== null &&
+					!this.isPureFunction(path) &&
 					this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(path, interaction, context)
 				);
 			}
@@ -174,10 +179,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 				)!.hasEffectsOnInteractionAtPath(path, interaction, context);
 			}
 			case INTERACTION_CALLED: {
-				return this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(
-					path,
-					interaction,
-					context
+				return (
+					!this.isPureFunction(path) &&
+					this.getVariableRespectingTDZ()!.hasEffectsOnInteractionAtPath(path, interaction, context)
 				);
 			}
 		}
@@ -286,6 +290,21 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return UNKNOWN_EXPRESSION;
 		}
 		return this.variable;
+	}
+
+	private isPureFunction(path: ObjectPath) {
+		let currentPureFunction = this.context.manualPureFunctions[this.name];
+		for (const segment of path) {
+			if (currentPureFunction) {
+				if (currentPureFunction[PureFunctionKey]) {
+					return true;
+				}
+				currentPureFunction = currentPureFunction[segment as string];
+			} else {
+				return false;
+			}
+		}
+		return currentPureFunction?.[PureFunctionKey] as boolean;
 	}
 }
 

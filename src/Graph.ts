@@ -24,6 +24,8 @@ import {
 } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { addAnnotations } from './utils/pureComments';
+import { getPureFunctions } from './utils/pureFunctions';
+import type { PureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
@@ -59,6 +61,7 @@ export default class Graph {
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	readonly pluginDriver: PluginDriver;
+	readonly pureFunctions: PureFunctions;
 	readonly scope = new GlobalScope();
 	readonly watchFiles: Record<string, true> = Object.create(null);
 	watchMode = false;
@@ -94,6 +97,7 @@ export default class Graph {
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any[]));
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 		this.fileOperationQueue = new Queue(options.maxParallelFileOps);
+		this.pureFunctions = getPureFunctions(options);
 	}
 
 	async build(): Promise<void> {
