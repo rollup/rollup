@@ -28,6 +28,7 @@ import type {
 	OutputOptions,
 	Plugin,
 	RollupBuild,
+	RollupConfigFunction,
 	RollupOptions,
 	RollupOutput,
 	RollupWatcher
@@ -277,4 +278,12 @@ async function writeOutputFile(
  */
 export function defineConfig<T extends RollupOptions | RollupOptions[]>(options: T): T {
 	return options;
+}
+
+/**
+ * Auxiliary function for defining a function that returns a rollup configuration
+ * Mainly to facilitate IDE code prompts, after all, export default does not prompt, even if you add @type annotations, it is not accurate
+ */
+export function defineConfigFunction(configFunction: RollupConfigFunction) {
+	return configFunction;
 }
