@@ -927,8 +927,8 @@ interface AcornNode {
 
 export function defineConfig(options: RollupOptions): RollupOptions;
 export function defineConfig(options: RollupOptions[]): RollupOptions[];
+export function defineConfig(optionsFunction: RollupOptionsFunction): RollupOptionsFunction;
 
-export type RollupConfigFunction = (
+export type RollupOptionsFunction = (
 	commandLineArguments: Record<string, any>
 ) => MaybePromise<RollupOptions | RollupOptions[]>;
-export function defineConfigFunction(configFunction: RollupConfigFunction): RollupConfigFunction;

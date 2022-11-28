@@ -1,7 +1,7 @@
 // @ts-check
-const { defineConfigFunction } = require('../../../../dist/shared/rollup')
+const { defineConfig } = require('../../../../dist/shared/rollup')
 
-module.exports = defineConfigFunction(args => ({
+module.exports = defineConfig(args => ({
 	input: 'my-input',
 	output: {
 		file: 'my-file',

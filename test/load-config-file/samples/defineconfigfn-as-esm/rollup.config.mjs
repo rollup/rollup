@@ -1,7 +1,7 @@
 // @ts-check
-import { defineConfigFunction } from '../../../../dist/es/rollup.js'
+import { defineConfig } from '../../../../dist/es/rollup.js'
 
-export default defineConfigFunction(args => ({
+export default defineConfig(args => ({
 	input: 'my-input',
 	output: {
 		file: 'my-file',
