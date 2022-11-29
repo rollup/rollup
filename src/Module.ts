@@ -298,6 +298,8 @@ export default class Module {
 			get dynamicImporters() {
 				return dynamicImporters.sort();
 			},
+			exportedBindings: {},
+			exports: [],
 			get hasDefaultExport() {
 				// This information is only valid after parsing
 				if (!module.ast) {
@@ -923,6 +925,7 @@ export default class Module {
 				identifier: node.variable.getAssignedVariableName(),
 				localName: 'default'
 			});
+			this.addExportsInfoToModuleInfo('default');
 		} else if (node instanceof ExportAllDeclaration) {
 			const source = node.source.value;
 			this.addSource(source, node);
@@ -936,10 +939,12 @@ export default class Module {
 					source,
 					start: node.start
 				});
+				this.addExportsInfoToModuleInfo(name, source);
 			} else {
 				// export * from './other'
 
 				this.exportAllSources.add(source);
+				this.addExportsInfoToModuleInfo('*', source);
 			}
 		} else if (node.source instanceof Literal) {
 			// export { name } from './other'
@@ -954,6 +959,7 @@ export default class Module {
 					source,
 					start: specifier.start
 				});
+				this.addExportsInfoToModuleInfo(name, source);
 			}
 		} else if (node.declaration) {
 			const declaration = node.declaration;
@@ -964,6 +970,7 @@ export default class Module {
 				for (const declarator of declaration.declarations) {
 					for (const localName of extractAssignedNames(declarator.id)) {
 						this.exports.set(localName, { identifier: null, localName });
+						this.addExportsInfoToModuleInfo(localName);
 					}
 				}
 			} else {
@@ -971,6 +978,7 @@ export default class Module {
 
 				const localName = (declaration.id as Identifier).name;
 				this.exports.set(localName, { identifier: null, localName });
+				this.addExportsInfoToModuleInfo(localName);
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -979,8 +987,16 @@ export default class Module {
 				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
 				this.exports.set(exportedName, { identifier: null, localName });
+				this.addExportsInfoToModuleInfo(exportedName);
 			}
 		}
+	}
+
+	private addExportsInfoToModuleInfo(id: string, path = '.') {
+		const { exports, exportedBindings } = this.info;
+		exports.push(id);
+		exportedBindings[path] = exportedBindings[path] || [];
+		exportedBindings[path].push(id);
 	}
 
 	private addImport(node: ImportDeclaration): void {
