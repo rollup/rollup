@@ -41,9 +41,9 @@ describe('loadConfigFile', () => {
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), defaultConfigs);
 	});
 
-	it('loads an ESM config file exporting a config with defineConfigFn()', async () => {
+	it('loads an ESM config file exporting a config as a function with defineConfig()', async () => {
 		const { options, warnings } = await loadConfigFile(
-			path.resolve(__dirname, 'samples/defineconfigfn-as-esm/rollup.config.mjs')
+			path.resolve(__dirname, 'samples/esm-defineconfig-as-fn/rollup.config.mjs')
 		);
 		assert.strictEqual(warnings.count, 0);
 		// Remove undefined values and functions before checking
@@ -68,9 +68,9 @@ describe('loadConfigFile', () => {
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), defaultConfigs);
 	});
 
-	it('loads a CommonJS config file exporting a config with defineConfigFn()', async () => {
+	it('loads a CommonJS config file exporting a config as a function with defineConfig()', async () => {
 		const { options, warnings } = await loadConfigFile(
-			path.resolve(__dirname, 'samples/defineconfigfn-as-cjs/rollup.config.cjs')
+			path.resolve(__dirname, 'samples/cjs-defineconfig-as-fn/rollup.config.cjs')
 		);
 		assert.strictEqual(warnings.count, 0);
 		// Remove undefined values and functions before checking
