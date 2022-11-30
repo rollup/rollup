@@ -292,7 +292,7 @@ module.exports = {
 								'.': ['nested', 'path', 'pathAgain'],
 								'./foo.js': ['foo']
 							},
-							exports: ['foo', 'nested', 'path', 'pathAgain'],
+							exports: ['nested', 'path', 'pathAgain', 'foo'],
 							hasDefaultExport: false,
 							moduleSideEffects: true,
 							implicitlyLoadedAfterOneOf: [],
