@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.5.1
+
+_2022-12-01_
+
+### Bug Fixes
+
+- Accept functions returning a config in defineConfig (#4728)
+
+### Pull Requests
+
+- [#4728](https://github.com/rollup/rollup/pull/4728): Overload defineConfig to accept a RollupOptionsFunction parameter (@Septh)
+
 ## 3.5.0
 
 _2022-11-27_
