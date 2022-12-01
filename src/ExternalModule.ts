@@ -38,8 +38,8 @@ export default class ExternalModule {
 			get dynamicImporters() {
 				return dynamicImporters.sort();
 			},
-			exportedBindings: {},
-			exports: [],
+			exportedBindings: null,
+			exports: null,
 			hasDefaultExport: null,
 			get hasModuleSideEffects() {
 				warnDeprecation(

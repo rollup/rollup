@@ -157,8 +157,8 @@ interface ModuleInfo extends ModuleOptions {
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
 	dynamicallyImportedIds: readonly string[];
-	exportedBindings: Record<string, string[]>;
-	exports: string[];
+	exportedBindings: Record<string, string[]> | null;
+	exports: string[] | null;
 	hasDefaultExport: boolean | null;
 	/** @deprecated Use `moduleSideEffects` instead */
 	hasModuleSideEffects: boolean | 'no-treeshake';
