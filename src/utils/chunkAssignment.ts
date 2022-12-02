@@ -391,10 +391,11 @@ function mergeChunks(
 			const distance = pure
 				? getSignatureDistance(signature, targetChunk.signature, !targetChunk.pure)
 				: getSignatureDistance(targetChunk.signature, signature, true);
-			if (distance === 1) {
-				closestChunk = targetChunk;
-				break;
-			} else if (distance < closestChunkDistance) {
+			if (distance < closestChunkDistance && isValidMerge(mergedChunk, targetChunk)) {
+				if (distance === 1) {
+					closestChunk = targetChunk;
+					break;
+				}
 				closestChunk = targetChunk;
 				closestChunkDistance = distance;
 			}
@@ -410,6 +411,10 @@ function mergeChunks(
 		}
 	}
 }
+
+// function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
+// 	return false;
+// }
 
 function getChunksInPartition(
 	chunk: ChunkDescription,
