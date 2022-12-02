@@ -6,12 +6,12 @@ const ID_MODULE = path.join(__dirname, 'module.js');
 
 const expectedResult = {
 	[ID_MAIN]: {
-		exports: ['*'],
-		exportedBindings: { './module.js': ['*'] }
+		exports: ['moduleAlias', '*'],
+		exportedBindings: { '.': [], './module.js': ['moduleAlias', '*'] }
 	},
 	[ID_MODULE]: {
-		exports: ['default'],
-		exportedBindings: { '.': ['default'] }
+		exports: ['default', 'module'],
+		exportedBindings: { '.': ['default', 'module'] }
 	}
 };
 

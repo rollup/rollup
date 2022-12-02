@@ -53,7 +53,7 @@ module.exports = {
 						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],
 						dynamicImporters: [],
-						exportedBindings: { './dep.js': ['value'] },
+						exportedBindings: { '.': [], './dep.js': ['value'] },
 						exports: ['value'],
 						hasDefaultExport: false,
 						moduleSideEffects: true,

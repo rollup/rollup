@@ -20,7 +20,9 @@ module.exports = {
 					ast: null,
 					code: null,
 					dynamicImporters: [],
-					exportedBindings: {},
+					exportedBindings: {
+						'.': []
+					},
 					exports: [],
 					hasDefaultExport: null,
 					dynamicallyImportedIdResolutions: [],

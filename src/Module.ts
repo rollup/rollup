@@ -302,20 +302,18 @@ export default class Module {
 			},
 			get exportedBindings() {
 				const reexportBindings: Record<string, string[]> = {};
+
 				for (const [name, { source }] of reexportDescriptions) {
-					reexportBindings[source] ??= [];
-					reexportBindings[source].push(name);
+					(reexportBindings[source] ??= []).push(name);
 				}
 
-				const exportAllSourceBindings: Record<string, ['*']> = {};
 				for (const source of exportAllSources) {
-					exportAllSourceBindings[source] = ['*'];
+					(reexportBindings[source] ??= []).push('*');
 				}
 
-				const exportBindings: Record<string, string[]> =
-					exports.size > 0 ? { '.': [...exports.keys()] } : {};
+				const exportBindings = { '.': [...exports.keys()] };
 
-				return { ...exportBindings, ...reexportBindings, ...exportAllSourceBindings };
+				return { ...exportBindings, ...reexportBindings };
 			},
 			get exports() {
 				return [
