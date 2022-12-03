@@ -11,8 +11,8 @@ const expectedResult = {
 		exportedBindings: { '.': [], './module.js': ['moduleAlias', '*'] }
 	},
 	[ID_MODULE]: {
-		exports: ['default', 'module', 'module2'],
-		exportedBindings: { '.': ['default', 'module'], './module2.js': ['module2'] }
+		exports: ['default', 'module', '*'],
+		exportedBindings: { '.': ['default', 'module'], './module2.js': ['*'] }
 	},
 	[ID_MODULE_2]: {
 		exports: ['module2'],
@@ -21,7 +21,7 @@ const expectedResult = {
 };
 
 module.exports = {
-	description: 'check exports and exportedBindings in moduleParsed as supplementary test',
+	description: 'check exports and exportedBindings in moduleParsed as a supplementary test',
 	options: {
 		plugins: {
 			moduleParsed(moduleInfo) {

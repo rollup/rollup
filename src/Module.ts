@@ -301,19 +301,17 @@ export default class Module {
 				return dynamicImporters.sort();
 			},
 			get exportedBindings() {
-				const reexportBindings: Record<string, string[]> = {};
+				const exportBindings: Record<string, string[]> = { '.': [...exports.keys()] };
 
 				for (const [name, { source }] of reexportDescriptions) {
-					(reexportBindings[source] ??= []).push(name);
+					(exportBindings[source] ??= []).push(name);
 				}
 
 				for (const source of exportAllSources) {
-					(reexportBindings[source] ??= []).push('*');
+					(exportBindings[source] ??= []).push('*');
 				}
 
-				const exportBindings = { '.': [...exports.keys()] };
-
-				return { ...exportBindings, ...reexportBindings };
+				return exportBindings;
 			},
 			get exports() {
 				return [
