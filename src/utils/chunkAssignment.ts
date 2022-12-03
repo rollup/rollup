@@ -1,6 +1,5 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { EMPTY_ARRAY } from './blank';
 import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { timeEnd, timeStart } from './timers';
@@ -201,8 +200,6 @@ function isModuleAlreadyLoaded(
 	}
 	return true;
 }
-
-EMPTY_ARRAY;
 
 interface ChunkDescription {
 	alias: null;
