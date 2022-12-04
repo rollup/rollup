@@ -27,24 +27,29 @@ export function getChunkAssignments(
 	}
 
 	const assignedEntryPointsByModule: DependentModuleMap = new Map();
-	const { dependentEntryPointsByModule, dynamicallyDependentEntryPointsByDynamicEntry } =
-		analyzeModuleGraph(entryModules);
-	const staticEntries = new Set(entryModules);
+	const {
+		allModules,
+		dependentEntryPointsByModule,
+		dynamicallyDependentEntryPointsByDynamicEntry,
+		dynamicImportsByEntry
+	} = analyzeModuleGraph(entryModules);
+	const alreadyLoadedModulesByDynamicEntry = getAlreadyLoadedModulesByDynamicEntry(
+		allModules,
+		dependentEntryPointsByModule,
+		dynamicImportsByEntry,
+		dynamicallyDependentEntryPointsByDynamicEntry
+	);
 
 	function assignEntryToStaticDependencies(
 		entry: Module,
-		dynamicDependentEntryPoints: ReadonlySet<Module> | null
+		alreadyLoadedModules: ReadonlySet<Module> | null
 	) {
 		const modulesToHandle = new Set([entry]);
 		for (const module of modulesToHandle) {
 			const assignedEntryPoints = getOrCreate(assignedEntryPointsByModule, module, () => new Set());
-			if (
-				dynamicDependentEntryPoints &&
-				areEntryPointsContainedOrDynamicallyDependent(
-					dynamicDependentEntryPoints,
-					dependentEntryPointsByModule.get(module)!
-				)
-			) {
+			// If the module is "already loaded" for this dynamic entry, we do not need
+			// to mark it for this dynamic entry
+			if (alreadyLoadedModules?.has(module)) {
 				continue;
 			} else {
 				assignedEntryPoints.add(entry);
@@ -57,25 +62,6 @@ export function getChunkAssignments(
 		}
 	}
 
-	// TODO Lukas this is slow
-	function areEntryPointsContainedOrDynamicallyDependent(
-		entryPoints: ReadonlySet<Module>,
-		containedIn: ReadonlySet<Module>
-	): boolean {
-		const entriesToCheck = new Set(entryPoints);
-		for (const entry of entriesToCheck) {
-			if (!containedIn.has(entry)) {
-				if (staticEntries.has(entry)) return false;
-				const dynamicallyDependentEntryPoints =
-					dynamicallyDependentEntryPointsByDynamicEntry.get(entry)!;
-				for (const dependentEntry of dynamicallyDependentEntryPoints) {
-					entriesToCheck.add(dependentEntry);
-				}
-			}
-		}
-		return true;
-	}
-
 	for (const entry of entryModules) {
 		if (!modulesInManualChunks.has(entry)) {
 			assignEntryToStaticDependencies(entry, null);
@@ -84,10 +70,7 @@ export function getChunkAssignments(
 
 	for (const entry of dynamicallyDependentEntryPointsByDynamicEntry.keys()) {
 		if (!modulesInManualChunks.has(entry)) {
-			assignEntryToStaticDependencies(
-				entry,
-				dynamicallyDependentEntryPointsByDynamicEntry.get(entry)!
-			);
+			assignEntryToStaticDependencies(entry, alreadyLoadedModulesByDynamicEntry.get(entry) || null);
 		}
 	}
 
@@ -119,48 +102,91 @@ function addStaticDependenciesToManualChunk(
 }
 
 function analyzeModuleGraph(entryModules: readonly Module[]): {
+	allModules: Set<Module>;
 	dependentEntryPointsByModule: DependentModuleMap;
 	dynamicImportsByEntry: DependentModuleMap;
 	dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap;
 } {
+	const allModules = new Set(entryModules);
 	const dependentEntryPointsByModule: DependentModuleMap = new Map();
 	const dynamicImportsByEntry: DependentModuleMap = new Map();
 	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = new Map();
 	const entriesToHandle = new Set(entryModules);
 	for (const currentEntry of entriesToHandle) {
 		const modulesToHandle = new Set([currentEntry]);
+		const dynamicImports = new Set<Module>();
+		dynamicImportsByEntry.set(currentEntry, dynamicImports);
 		for (const module of modulesToHandle) {
 			getOrCreate(dependentEntryPointsByModule, module, () => new Set()).add(currentEntry);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					modulesToHandle.add(dependency);
+					allModules.add(dependency);
 				}
 			}
 			for (const { resolution } of module.dynamicImports) {
 				if (resolution instanceof Module && resolution.includedDynamicImporters.length > 0) {
-					getOrCreate(dynamicImportsByEntry, currentEntry, () => new Set()).add(resolution);
+					dynamicImports.add(resolution);
 					getOrCreate(
 						dynamicallyDependentEntryPointsByDynamicEntry,
 						resolution,
 						() => new Set()
 					).add(currentEntry);
 					entriesToHandle.add(resolution);
+					allModules.add(resolution);
 				}
 			}
 			for (const dependency of module.implicitlyLoadedBefore) {
-				getOrCreate(dynamicImportsByEntry, currentEntry, () => new Set()).add(dependency);
+				dynamicImports.add(dependency);
 				getOrCreate(dynamicallyDependentEntryPointsByDynamicEntry, dependency, () => new Set()).add(
 					currentEntry
 				);
 				entriesToHandle.add(dependency);
+				allModules.add(dependency);
 			}
 		}
 	}
 	return {
+		allModules,
 		dependentEntryPointsByModule,
 		dynamicallyDependentEntryPointsByDynamicEntry,
 		dynamicImportsByEntry
 	};
+}
+
+function getAlreadyLoadedModulesByDynamicEntry(
+	allModules: Set<Module>,
+	dependentEntryPointsByModule: DependentModuleMap,
+	dynamicImportsByEntry: DependentModuleMap,
+	dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap
+): DependentModuleMap {
+	const alreadyLoadedModulesByEntry: DependentModuleMap = new Map();
+	for (const module of allModules) {
+		const dependentEntryPoints = dependentEntryPointsByModule.get(module)!;
+		for (const entry of dependentEntryPoints) {
+			const dynamicEntriesToHandle = [...dynamicImportsByEntry.get(entry)!];
+			nextDynamicEntry: for (const dynamicEntry of dynamicEntriesToHandle) {
+				if (alreadyLoadedModulesByEntry.get(dynamicEntry)?.has(module)) {
+					continue;
+				}
+				for (const siblingDependentEntry of dynamicallyDependentEntryPointsByDynamicEntry.get(
+					dynamicEntry
+				)!) {
+					if (
+						!(
+							dependentEntryPoints.has(siblingDependentEntry) ||
+							alreadyLoadedModulesByEntry.get(siblingDependentEntry)?.has(module)
+						)
+					) {
+						continue nextDynamicEntry;
+					}
+				}
+				getOrCreate(alreadyLoadedModulesByEntry, dynamicEntry, () => new Set()).add(module);
+				dynamicEntriesToHandle.push(...dynamicImportsByEntry.get(dynamicEntry)!);
+			}
+		}
+	}
+	return alreadyLoadedModulesByEntry;
 }
 
 interface ChunkDescription {
