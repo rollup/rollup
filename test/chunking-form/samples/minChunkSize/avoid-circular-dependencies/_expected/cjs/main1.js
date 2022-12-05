@@ -1,5 +1,8 @@
 'use strict';
 
-var small2 = require('./generated-small2.js');
+var main1 = require('./generated-main1.js');
+require('./generated-small.js');
 
-console.log(small2.small1, small2.small2);
+
+
+exports.generated = main1.generated;

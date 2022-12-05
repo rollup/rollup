@@ -1,3 +1,3 @@
-import { a as small2 } from './generated-small2.js';
+import { s as small } from './generated-small.js';
 
-console.log(small2);
+console.log(small);

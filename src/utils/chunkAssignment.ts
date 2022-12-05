@@ -203,10 +203,12 @@ function isModuleAlreadyLoaded(
 }
 
 interface ChunkDescription {
+	dependencies: Set<Module>;
 	modules: Module[];
 	pure: boolean;
 	signature: string;
 	size: number;
+	transitiveDependencies: Set<Module>;
 }
 
 type ChunkPartition = {
@@ -341,9 +343,24 @@ function getPartitionedChunks(
 	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
 		let size = 0;
 		let pure = true;
+		const dependencies = new Set<Module>();
+		const transitiveDependencies = new Set<Module>();
 		for (const module of modules) {
 			pure &&= !module.hasEffects();
 			size += module.magicString.toString().length;
+			for (const dependency of module.getDependenciesToBeIncluded()) {
+				if (!(dependency instanceof ExternalModule)) {
+					dependencies.add(dependency);
+					transitiveDependencies.add(dependency);
+				}
+			}
+		}
+		for (const module of transitiveDependencies) {
+			for (const dependency of module.getDependenciesToBeIncluded()) {
+				if (!(dependency instanceof ExternalModule)) {
+					transitiveDependencies.add(dependency);
+				}
+			}
 		}
 		(size < minChunkSize
 			? pure
@@ -352,7 +369,7 @@ function getPartitionedChunks(
 			: pure
 			? bigPureChunks
 			: bigSideEffectChunks
-		).push({ modules, pure, signature, size });
+		).push({ dependencies, modules, pure, signature, size, transitiveDependencies });
 	}
 	for (const chunks of [
 		bigPureChunks,
@@ -407,14 +424,31 @@ function mergeChunks(
 			closestChunk.size += size;
 			closestChunk.pure &&= pure;
 			closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
+			const { dependencies, transitiveDependencies } = closestChunk;
+			for (const dependency of mergedChunk.dependencies) {
+				dependencies.add(dependency);
+			}
+			for (const dependency of mergedChunk.transitiveDependencies) {
+				transitiveDependencies.add(dependency);
+			}
 			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
 		}
 	}
 }
 
-// function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
-// 	return false;
-// }
+// If a module is a transitive but not a direct dependency of the other chunk,
+// merging is prohibited as that would create a new cyclic dependency.
+function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
+	for (const module of mergedChunk.modules) {
+		if (targetChunk.transitiveDependencies.has(module) && !targetChunk.dependencies.has(module))
+			return false;
+	}
+	for (const module of targetChunk.modules) {
+		if (mergedChunk.transitiveDependencies.has(module) && !mergedChunk.dependencies.has(module))
+			return false;
+	}
+	return true;
+}
 
 function getChunksInPartition(
 	chunk: ChunkDescription,

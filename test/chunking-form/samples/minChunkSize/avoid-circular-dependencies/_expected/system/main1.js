@@ -1,14 +1,12 @@
-System.register(['./generated-small2.js'], (function () {
+System.register(['./generated-main1.js', './generated-small.js'], (function (exports) {
 	'use strict';
-	var small1, small2;
 	return {
 		setters: [function (module) {
-			small1 = module.s;
-			small2 = module.a;
-		}],
+			exports('generated', module.g);
+		}, null],
 		execute: (function () {
 
-			console.log(small1, small2);
+
 
 		})
 	};

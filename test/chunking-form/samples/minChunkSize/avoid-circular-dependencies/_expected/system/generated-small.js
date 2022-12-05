@@ -3,9 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const small1 = exports('s', '1');
-
-			const small2 = exports('a', '1');
+			const small = exports('s', '1');
 
 		})
 	};

@@ -1,3 +1,2 @@
-import { s as small1, a as small2 } from './generated-small2.js';
-
-console.log(small1, small2);
+export { g as generated } from './generated-main1.js';
+import './generated-small.js';
