@@ -784,6 +784,8 @@ type ModuleInfo = {
   importedIds: string[]; // the module ids statically imported by this module
   importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
   importers: string[]; // the ids of all modules that statically import this module
+  exportedBindings: Record<string, string[]> | null; // contains all exported variables associated with the path of `from`, `null` if external
+  exports: string[] | null; // all exported variables, `null` if external
   dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
   dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
   dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
@@ -808,7 +810,7 @@ type ResolvedId = {
 During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](guide/en/#buildend) hook:
 
 - `id` and `isExternal` will never change.
-- `code`, `ast` and `hasDefaultExport` are only available after parsing, i.e. in the [`moduleParsed`](guide/en/#moduleparsed) hook or after awaiting [`this.load`](guide/en/#thisload). At that point, they will no longer change.
+- `code`, `ast`, `hasDefaultExport`, `exports` and `exportedBindings` are only available after parsing, i.e. in the [`moduleParsed`](guide/en/#moduleparsed) hook or after awaiting [`this.load`](guide/en/#thisload). At that point, they will no longer change.
 - if `isEntry` is `true`, it will no longer change. It is however possible for modules to become entry points after they are parsed, either via [`this.emitFile`](guide/en/#thisemitfile) or because a plugin inspects a potential entry point via [`this.load`](guide/en/#thisload) in the [`resolveId`](guide/en/#resolveid) hook when resolving an entry point. Therefore, it is not recommended relying on this flag in the [`transform`](guide/en/#transform) hook. It will no longer change after `buildEnd`.
 - Similarly, `implicitlyLoadedAfterOneOf` can receive additional entries at any time before `buildEnd` via [`this.emitFile`](guide/en/#thisemitfile).
 - `importers`, `dynamicImporters` and `implicitlyLoadedBefore` will start as empty arrays, which receive additional entries as new importers and implicit dependents are discovered. They will no longer change after `buildEnd`.
