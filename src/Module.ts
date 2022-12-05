@@ -274,6 +274,8 @@ export default class Module {
 		const {
 			dynamicImports,
 			dynamicImporters,
+			exportAllSources,
+			exports,
 			implicitlyLoadedAfter,
 			implicitlyLoadedBefore,
 			importers,
@@ -297,6 +299,26 @@ export default class Module {
 			},
 			get dynamicImporters() {
 				return dynamicImporters.sort();
+			},
+			get exportedBindings() {
+				const exportBindings: Record<string, string[]> = { '.': [...exports.keys()] };
+
+				for (const [name, { source }] of reexportDescriptions) {
+					(exportBindings[source] ??= []).push(name);
+				}
+
+				for (const source of exportAllSources) {
+					(exportBindings[source] ??= []).push('*');
+				}
+
+				return exportBindings;
+			},
+			get exports() {
+				return [
+					...exports.keys(),
+					...reexportDescriptions.keys(),
+					...[...exportAllSources].map(() => '*')
+				];
 			},
 			get hasDefaultExport() {
 				// This information is only valid after parsing

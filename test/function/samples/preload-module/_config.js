@@ -35,6 +35,10 @@ module.exports = {
 							assertions: {},
 							code: "import './dep';\nassert.ok(true);\n",
 							dynamicImporters: [],
+							exportedBindings: {
+								'.': []
+							},
+							exports: [],
 							hasDefaultExport: false,
 							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
@@ -74,6 +78,10 @@ module.exports = {
 						assertions: {},
 						code: 'assert.ok(true);\n',
 						dynamicImporters: [],
+						exportedBindings: {
+							'.': []
+						},
+						exports: [],
 						hasDefaultExport: false,
 						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],

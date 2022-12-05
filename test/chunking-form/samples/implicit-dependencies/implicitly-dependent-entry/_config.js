@@ -71,6 +71,10 @@ module.exports = {
 					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
+					exportedBindings: {
+						'.': []
+					},
+					exports: [],
 					hasDefaultExport: false,
 					moduleSideEffects: true,
 					implicitlyLoadedAfterOneOf: [],
@@ -144,6 +148,10 @@ module.exports = {
 					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
+					exports: [],
+					exportedBindings: {
+						'.': []
+					},
 					hasDefaultExport: false,
 					moduleSideEffects: true,
 					implicitlyLoadedAfterOneOf: [],
