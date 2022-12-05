@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.6.0
+
+_2022-12-05_
+
+### Features
+
+- extend `this.getModuleInfo` with information about exports (#4731)
+
+### Pull Requests
+
+- [#4731](https://github.com/rollup/rollup/pull/4731): feat: add `exports` and `exportedBindings` to `Module` class (@TrickyPi)
+
 ## 3.5.1
 
 _2022-12-01_
