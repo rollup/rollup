@@ -203,12 +203,13 @@ function isModuleAlreadyLoaded(
 }
 
 interface ChunkDescription {
-	dependencies: Set<Module>;
+	dependencies: Set<ChunkDescription>;
 	modules: Module[];
 	pure: boolean;
 	signature: string;
 	size: number;
-	transitiveDependencies: Set<Module>;
+	transitiveDependencies: Set<ChunkDescription>;
+	transitiveDependentChunks: Set<ChunkDescription>;
 }
 
 type ChunkPartition = {
@@ -340,28 +341,26 @@ function getPartitionedChunks(
 	const bigPureChunks: ChunkDescription[] = [];
 	const smallSideEffectChunks: ChunkDescription[] = [];
 	const bigSideEffectChunks: ChunkDescription[] = [];
+	const chunkByModule = new Map<Module, ChunkDescription>();
 	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
+		const chunkDescription = {
+			dependencies: new Set<ChunkDescription>(),
+			modules,
+			pure: true,
+			signature,
+			size: 0,
+			transitiveDependencies: new Set<ChunkDescription>(),
+			transitiveDependentChunks: new Set<ChunkDescription>()
+		};
 		let size = 0;
 		let pure = true;
-		const dependencies = new Set<Module>();
-		const transitiveDependencies = new Set<Module>();
 		for (const module of modules) {
+			chunkByModule.set(module, chunkDescription);
 			pure &&= !module.hasEffects();
 			size += module.magicString.toString().length;
-			for (const dependency of module.getDependenciesToBeIncluded()) {
-				if (!(dependency instanceof ExternalModule)) {
-					dependencies.add(dependency);
-					transitiveDependencies.add(dependency);
-				}
-			}
 		}
-		for (const module of transitiveDependencies) {
-			for (const dependency of module.getDependenciesToBeIncluded()) {
-				if (!(dependency instanceof ExternalModule)) {
-					transitiveDependencies.add(dependency);
-				}
-			}
-		}
+		chunkDescription.pure = pure;
+		chunkDescription.size = size;
 		(size < minChunkSize
 			? pure
 				? smallPureChunks
@@ -369,20 +368,50 @@ function getPartitionedChunks(
 			: pure
 			? bigPureChunks
 			: bigSideEffectChunks
-		).push({ dependencies, modules, pure, signature, size, transitiveDependencies });
+		).push(chunkDescription);
 	}
-	for (const chunks of [
-		bigPureChunks,
-		bigSideEffectChunks,
-		smallPureChunks,
-		smallSideEffectChunks
-	]) {
-		chunks.sort(compareChunks);
-	}
+	sortChunksAndAddDependencies(
+		[bigPureChunks, bigSideEffectChunks, smallPureChunks, smallSideEffectChunks],
+		chunkByModule
+	);
 	return {
 		big: { pure: new Set(bigPureChunks), sideEffect: new Set(bigSideEffectChunks) },
 		small: { pure: new Set(smallPureChunks), sideEffect: new Set(smallSideEffectChunks) }
 	};
+}
+
+function sortChunksAndAddDependencies(
+	chunkLists: ChunkDescription[][],
+	chunkByModule: Map<Module, ChunkDescription>
+) {
+	for (const chunks of chunkLists) {
+		chunks.sort(compareChunks);
+		for (const chunk of chunks) {
+			const { dependencies, modules, transitiveDependencies } = chunk;
+			const transitiveDependencyModules = new Set<Module>();
+			for (const module of modules) {
+				for (const dependency of module.getDependenciesToBeIncluded()) {
+					const dependencyChunk = chunkByModule.get(dependency as Module);
+					if (dependencyChunk && dependencyChunk !== chunk) {
+						dependencies.add(dependencyChunk);
+						transitiveDependencyModules.add(dependency as Module);
+					}
+				}
+			}
+			for (const module of transitiveDependencyModules) {
+				const transitiveDependency = chunkByModule.get(module)!;
+				if (transitiveDependency !== chunk) {
+					transitiveDependencies.add(transitiveDependency);
+					transitiveDependency.transitiveDependentChunks.add(chunk);
+					for (const dependency of module.getDependenciesToBeIncluded()) {
+						if (!(dependency instanceof ExternalModule)) {
+							transitiveDependencyModules.add(dependency);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 function compareChunks(
@@ -424,13 +453,27 @@ function mergeChunks(
 			closestChunk.size += size;
 			closestChunk.pure &&= pure;
 			closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
-			const { dependencies, transitiveDependencies } = closestChunk;
+			const { dependencies, transitiveDependencies, transitiveDependentChunks } = closestChunk;
 			for (const dependency of mergedChunk.dependencies) {
 				dependencies.add(dependency);
 			}
 			for (const dependency of mergedChunk.transitiveDependencies) {
 				transitiveDependencies.add(dependency);
+				dependency.transitiveDependentChunks.delete(mergedChunk);
+				dependency.transitiveDependentChunks.add(closestChunk);
 			}
+			for (const dependentChunk of mergedChunk.transitiveDependentChunks) {
+				transitiveDependentChunks.add(dependentChunk);
+				if (dependentChunk.dependencies.has(mergedChunk)) {
+					dependentChunk.dependencies.delete(mergedChunk);
+					dependentChunk.dependencies.add(closestChunk);
+				}
+				dependentChunk.transitiveDependencies.delete(mergedChunk);
+				dependentChunk.transitiveDependencies.add(closestChunk);
+			}
+			dependencies.delete(closestChunk);
+			transitiveDependencies.delete(closestChunk);
+			transitiveDependentChunks.delete(closestChunk);
 			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
 		}
 	}
@@ -439,15 +482,12 @@ function mergeChunks(
 // If a module is a transitive but not a direct dependency of the other chunk,
 // merging is prohibited as that would create a new cyclic dependency.
 function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
-	for (const module of mergedChunk.modules) {
-		if (targetChunk.transitiveDependencies.has(module) && !targetChunk.dependencies.has(module))
-			return false;
-	}
-	for (const module of targetChunk.modules) {
-		if (mergedChunk.transitiveDependencies.has(module) && !mergedChunk.dependencies.has(module))
-			return false;
-	}
-	return true;
+	return (
+		(!targetChunk.transitiveDependencies.has(mergedChunk) ||
+			targetChunk.dependencies.has(mergedChunk)) &&
+		(!mergedChunk.transitiveDependencies.has(targetChunk) ||
+			mergedChunk.dependencies.has(targetChunk))
+	);
 }
 
 function getChunksInPartition(
