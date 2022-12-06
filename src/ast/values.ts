@@ -200,6 +200,14 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
+const literalRegExpMembers: MemberDescriptions = assembleMemberDescriptions(
+	{
+		exec: returnsUnknown,
+		test: returnsBoolean
+	},
+	objectMembers
+);
+
 export const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		anchor: returnsString,
@@ -258,6 +266,9 @@ export const literalStringMembers: MemberDescriptions = assembleMemberDescriptio
 export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(
 	value: T
 ): MemberDescriptions {
+	if (value instanceof RegExp) {
+		return literalRegExpMembers;
+	}
 	switch (typeof value) {
 		case 'boolean': {
 			return literalBooleanMembers;
