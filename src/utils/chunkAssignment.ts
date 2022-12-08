@@ -262,6 +262,7 @@ function getOptimizedChunks(
 ----- pure  side effects
 small ${`${chunkPartition.small.pure.size}`.padEnd(5, ' ')} ${chunkPartition.small.sideEffect.size}
   big ${`${chunkPartition.big.pure.size}`.padEnd(5, ' ')} ${chunkPartition.big.sideEffect.size}
+Unoptimized chunks contain ${getNumberOfCycles(chunkPartition)} cycles.
 `);
 
 	console.log(
@@ -278,7 +279,9 @@ small ${`${chunkPartition.small.pure.size}`.padEnd(5, ' ')} ${chunkPartition.sma
 	console.log(
 		`${chunkPartition.small.sideEffect.size} chunks smaller than ${prettyBytes(
 			minChunkSize
-		)} with side effects remaining.\n`
+		)} with side effects remaining.\nGenerated chunks contain ${getNumberOfCycles(
+			chunkPartition
+		)} cycles.\n`
 	);
 
 	console.log(
@@ -296,7 +299,7 @@ small ${`${chunkPartition.small.pure.size}`.padEnd(5, ' ')} ${chunkPartition.sma
 	console.log(
 		`${chunkPartition.small.pure.size} pure chunks smaller than ${prettyBytes(
 			minChunkSize
-		)} remaining.\n`
+		)} remaining.\nGenerated chunks contain ${getNumberOfCycles(chunkPartition)} cycles.\n`
 	);
 	timeEnd('optimize chunks', 3);
 	const result = [
@@ -378,6 +381,39 @@ function getPartitionedChunks(
 		big: { pure: new Set(bigPureChunks), sideEffect: new Set(bigSideEffectChunks) },
 		small: { pure: new Set(smallPureChunks), sideEffect: new Set(smallSideEffectChunks) }
 	};
+}
+
+function getNumberOfCycles(partition: ChunkPartition) {
+	const parents = new Set<ChunkDescription>();
+	const analysedChunks = new Set<ChunkDescription>();
+	let cycles = 0;
+
+	const analyseChunk = (chunk: ChunkDescription) => {
+		for (const dependency of chunk.dependencies) {
+			if (parents.has(dependency)) {
+				if (!analysedChunks.has(dependency)) {
+					cycles++;
+				}
+				continue;
+			}
+			parents.add(dependency);
+			analyseChunk(dependency);
+		}
+		analysedChunks.add(chunk);
+	};
+
+	for (const chunk of [
+		...partition.big.pure,
+		...partition.big.sideEffect,
+		...partition.small.pure,
+		...partition.small.sideEffect
+	]) {
+		if (!parents.has(chunk)) {
+			parents.add(chunk);
+			analyseChunk(chunk);
+		}
+	}
+	return cycles;
 }
 
 function sortChunksAndAddDependencies(
@@ -529,4 +565,8 @@ function mergeSignatures(sourceSignature: string, targetSignature: string): stri
 				: CHAR_INDEPENDENT;
 	}
 	return signature;
+}
+
+function getNewSet<T>() {
+	return new Set<T>();
 }
