@@ -17,6 +17,9 @@ true.valueOf().unknown.unknown().unknown;
 'ab'.charAt(1).unknown.unknown();
 'ab'.charAt(1).unknown.unknown().unknown;
 
+/1/g.exec(1);
+/1/y.exec(1);
+
 null.unknown;
 
 // boolean prototype

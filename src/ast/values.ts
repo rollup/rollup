@@ -200,7 +200,8 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
-const literalRegExpMembers: MemberDescriptions = assembleMemberDescriptions(
+// RegExp are stateful when they have the global or sticky flags set.
+const literalParticularRegExpMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		exec: returnsUnknown,
 		test: returnsBoolean
@@ -266,8 +267,8 @@ export const literalStringMembers: MemberDescriptions = assembleMemberDescriptio
 export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(
 	value: T
 ): MemberDescriptions {
-	if (value instanceof RegExp) {
-		return literalRegExpMembers;
+	if (value instanceof RegExp && !value.global && !value.sticky) {
+		return literalParticularRegExpMembers;
 	}
 	switch (typeof value) {
 		case 'boolean': {
