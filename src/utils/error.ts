@@ -7,6 +7,7 @@ import type {
 	RollupWarning,
 	WarningHandler
 } from '../rollup/types';
+import { extname } from '../utils/path';
 import getCodeFrame from './getCodeFrame';
 import { printQuotedStringList } from './printStringList';
 import relativeId from './relativeId';
@@ -528,6 +529,7 @@ export function errorMissingExport(
 	importingModule: string,
 	exporter: string
 ): RollupLog {
+	const isJson = extname(importingModule);
 	return {
 		binding,
 		code: MISSING_EXPORT,
@@ -535,7 +537,7 @@ export function errorMissingExport(
 		id: importingModule,
 		message: `"${binding}" is not exported by "${relativeId(exporter)}", imported by "${relativeId(
 			importingModule
-		)}".`,
+		)}".${isJson ? ' (Note that you need @rollup/plugin-json to import JSON files)' : ''}`,
 		url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
 	};
 }
