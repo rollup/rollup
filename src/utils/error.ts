@@ -529,7 +529,7 @@ export function errorMissingExport(
 	importingModule: string,
 	exporter: string
 ): RollupLog {
-	const isJson = extname(importingModule);
+	const isJson = extname(exporter) === '.json';
 	return {
 		binding,
 		code: MISSING_EXPORT,
