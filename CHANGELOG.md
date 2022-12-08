@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.7.0
+
+_2022-12-08_
+
+### Features
+
+- Do not treat `.test` and `.exec` on regular expressions as side effects (#4737)
+
+### Pull Requests
+
+- [#4737](https://github.com/rollup/rollup/pull/4737): feat: add sutiable RegExp prototype methods (@TrickyPi)
+
 ## 3.6.0
 
 _2022-12-05_
