@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.7.1
+
+_2022-12-09_
+
+### Bug Fixes
+
+- Ad a hint to use @rollup/plugin-json when imports from a JSON file are not found (#4741)
+
+### Pull Requests
+
+- [#4741](https://github.com/rollup/rollup/pull/4741): fix: provide json hint when importing a no export json file (@TrickyPi)
+
 ## 3.7.0
 
 _2022-12-08_
