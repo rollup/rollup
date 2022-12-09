@@ -235,6 +235,26 @@ function createChunks(
 		  }));
 }
 
+function getChunkModulesBySignature(
+	assignedEntriesByModule: ReadonlyDependentModuleMap,
+	allEntries: Iterable<Module>
+) {
+	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
+	for (const [module, assignedEntries] of assignedEntriesByModule) {
+		let chunkSignature = '';
+		for (const entry of allEntries) {
+			chunkSignature += assignedEntries.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
+		}
+		const chunk = chunkModules[chunkSignature];
+		if (chunk) {
+			chunk.push(module);
+		} else {
+			chunkModules[chunkSignature] = [module];
+		}
+	}
+	return chunkModules;
+}
+
 /**
  * This function tries to get rid of small chunks by merging them with other
  * chunks. In order to merge chunks, one must obey the following rule:
@@ -315,26 +335,6 @@ Unoptimized chunks contain ${getNumberOfCycles(chunkPartition)} cycles.
 const CHAR_DEPENDENT = 'X';
 const CHAR_INDEPENDENT = '_';
 const CHAR_CODE_DEPENDENT = CHAR_DEPENDENT.charCodeAt(0);
-
-function getChunkModulesBySignature(
-	assignedEntriesByModule: ReadonlyDependentModuleMap,
-	allEntries: Iterable<Module>
-) {
-	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
-	for (const [module, assignedEntries] of assignedEntriesByModule) {
-		let chunkSignature = '';
-		for (const entry of allEntries) {
-			chunkSignature += assignedEntries.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
-		}
-		const chunk = chunkModules[chunkSignature];
-		if (chunk) {
-			chunk.push(module);
-		} else {
-			chunkModules[chunkSignature] = [module];
-		}
-	}
-	return chunkModules;
-}
 
 function getPartitionedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
@@ -515,15 +515,30 @@ function mergeChunks(
 	}
 }
 
-// If a module is a transitive but not a direct dependency of the other chunk,
-// merging is prohibited as that would create a new cyclic dependency.
+// Merging will not produce cycles if
+// - no chunk is a transitive dependency of the other, or
+// - none of the direct non-merged dependencies of a chunk have the  other
+//   chunk as a transitive dependency
 function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
-	return (
-		(!targetChunk.transitiveDependencies.has(mergedChunk) ||
-			targetChunk.dependencies.has(mergedChunk)) &&
-		(!mergedChunk.transitiveDependencies.has(targetChunk) ||
-			mergedChunk.dependencies.has(targetChunk))
+	return !(
+		hasTransitiveDependency(mergedChunk, targetChunk) ||
+		hasTransitiveDependency(targetChunk, mergedChunk)
 	);
+}
+
+function hasTransitiveDependency(
+	dependentChunk: ChunkDescription,
+	dependencyChunk: ChunkDescription
+) {
+	if (!dependentChunk.transitiveDependencies.has(dependencyChunk)) {
+		return false;
+	}
+	for (const dependency of dependentChunk.dependencies) {
+		if (dependency.transitiveDependencies.has(dependencyChunk)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function getChunksInPartition(
@@ -565,8 +580,4 @@ function mergeSignatures(sourceSignature: string, targetSignature: string): stri
 				: CHAR_INDEPENDENT;
 	}
 	return signature;
-}
-
-function getNewSet<T>() {
-	return new Set<T>();
 }
