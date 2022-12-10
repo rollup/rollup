@@ -1,6 +1,6 @@
 import type { RollupWarning } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
-import { getOrCreate } from '../../src/utils/getOrCreate';
+import { getNewArray, getOrCreate } from '../../src/utils/getOrCreate';
 import { printQuotedStringList } from '../../src/utils/printStringList';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
@@ -23,7 +23,7 @@ export default function batchWarnings(): BatchWarnings {
 			warningOccurred = true;
 
 			if (warning.code! in deferredHandlers) {
-				getOrCreate(deferredWarnings, warning.code!, () => []).push(warning);
+				getOrCreate(deferredWarnings, warning.code!, getNewArray).push(warning);
 			} else if (warning.code! in immediateHandlers) {
 				immediateHandlers[warning.code!](warning);
 			} else {
@@ -220,7 +220,7 @@ const deferredHandlers: {
 
 		const dependencies = new Map<string, string[]>();
 		for (const warning of warnings) {
-			getOrCreate(dependencies, relativeId(warning.exporter!), () => []).push(
+			getOrCreate(dependencies, relativeId(warning.exporter!), getNewArray).push(
 				relativeId(warning.id!)
 			);
 		}

@@ -1,4 +1,4 @@
-import { getOrCreate } from '../../utils/getOrCreate';
+import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { Entity } from '../Entity';
 
 export const UnknownKey = Symbol('Unknown Key');
@@ -98,7 +98,7 @@ export class DiscriminatedPathTracker {
 				currentPaths[pathSegment] ||
 				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<Entity>>() } });
 		}
-		const trackedEntities = getOrCreate(currentPaths[EntitiesKey], discriminator, () => new Set());
+		const trackedEntities = getOrCreate(currentPaths[EntitiesKey], discriminator, getNewSet);
 		if (trackedEntities.has(entity)) return true;
 		trackedEntities.add(entity);
 		return false;

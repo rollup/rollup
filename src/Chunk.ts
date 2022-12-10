@@ -41,7 +41,7 @@ import { assignExportsToMangledNames, assignExportsToNames } from './utils/expor
 import type { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
-import { getOrCreate } from './utils/getOrCreate';
+import { getNewArray, getOrCreate } from './utils/getOrCreate';
 import { getStaticDependencies } from './utils/getStaticDependencies';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { replacePlaceholders } from './utils/hashPlaceholders';
@@ -911,7 +911,7 @@ export default class Chunk {
 				dependency = this.chunkByModule.get(module)!;
 				imported = dependency.getVariableExportName(variable);
 			}
-			getOrCreate(importsByDependency, dependency, () => []).push({
+			getOrCreate(importsByDependency, dependency, getNewArray).push({
 				imported,
 				local: variable.getName(this.snippets.getPropertyAccess)
 			});
@@ -1023,7 +1023,7 @@ export default class Chunk {
 						(imported !== 'default' || isDefaultAProperty(interop(module.id), true));
 				}
 			}
-			getOrCreate(reexportSpecifiers, dependency, () => []).push({
+			getOrCreate(reexportSpecifiers, dependency, getNewArray).push({
 				imported,
 				needsLiveBinding,
 				reexported: exportName

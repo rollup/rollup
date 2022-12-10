@@ -7,6 +7,8 @@ const { loader, wait } = require('../utils.js');
 const TEMP_DIR = path.join(__dirname, 'tmp');
 
 describe('hooks', () => {
+	before(() => remove(TEMP_DIR));
+
 	it('allows to replace file with dir in the outputOptions hook', async () => {
 		const bundle = await rollup.rollup({
 			input: 'input',
