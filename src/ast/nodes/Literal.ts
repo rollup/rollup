@@ -70,6 +70,13 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 				return true;
 			}
 			case INTERACTION_CALLED: {
+				if (
+					this.included &&
+					this.value instanceof RegExp &&
+					(this.value.global || this.value.sticky)
+				) {
+					return true;
+				}
 				return (
 					path.length !== 1 ||
 					hasMemberEffectWhenCalled(this.members, path[0], interaction, context)
