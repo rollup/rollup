@@ -163,7 +163,6 @@ export default class Chunk {
 	execIndex: number;
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
-	id: string | null = null;
 	namespaceVariableName = '';
 	suggestedVariableName: string;
 	variableName = '';
@@ -318,6 +317,32 @@ export default class Chunk {
 		return true;
 	}
 
+	finalizeChunk(
+		code: string,
+		map: SourceMap | null,
+		hashesByPlaceholder: Map<string, string>
+	): OutputChunk {
+		const renderedChunkInfo = this.getRenderedChunkInfo();
+		const finalize = (code: string) => replacePlaceholders(code, hashesByPlaceholder);
+		const fileName = (this.fileName = finalize(renderedChunkInfo.fileName));
+		return {
+			...renderedChunkInfo,
+			code,
+			dynamicImports: renderedChunkInfo.dynamicImports.map(finalize),
+			fileName,
+			implicitlyLoadedBefore: renderedChunkInfo.implicitlyLoadedBefore.map(finalize),
+			importedBindings: Object.fromEntries(
+				Object.entries(renderedChunkInfo.importedBindings).map(([fileName, bindings]) => [
+					finalize(fileName),
+					bindings
+				])
+			),
+			imports: renderedChunkInfo.imports.map(finalize),
+			map,
+			referencedFiles: renderedChunkInfo.referencedFiles.map(finalize)
+		};
+	}
+
 	generateExports(): void {
 		this.sortedExportNames = null;
 		const remainingExports = new Set(this.exports);
@@ -449,31 +474,6 @@ export default class Chunk {
 		return facades;
 	}
 
-	generateOutputChunk(
-		code: string,
-		map: SourceMap | null,
-		hashesByPlaceholder: Map<string, string>
-	): OutputChunk {
-		const renderedChunkInfo = this.getRenderedChunkInfo();
-		const finalize = (code: string) => replacePlaceholders(code, hashesByPlaceholder);
-		return {
-			...renderedChunkInfo,
-			code,
-			dynamicImports: renderedChunkInfo.dynamicImports.map(finalize),
-			fileName: finalize(renderedChunkInfo.fileName),
-			implicitlyLoadedBefore: renderedChunkInfo.implicitlyLoadedBefore.map(finalize),
-			importedBindings: Object.fromEntries(
-				Object.entries(renderedChunkInfo.importedBindings).map(([fileName, bindings]) => [
-					finalize(fileName),
-					bindings
-				])
-			),
-			imports: renderedChunkInfo.imports.map(finalize),
-			map,
-			referencedFiles: renderedChunkInfo.referencedFiles.map(finalize)
-		};
-	}
-
 	getChunkName(): string {
 		return (this.name ??= this.outputOptions.sanitizeFileName(this.getFallbackChunkName()));
 	}
@@ -483,7 +483,7 @@ export default class Chunk {
 	}
 
 	getFileName(): string {
-		return this.preliminaryFileName?.fileName || this.getPreliminaryFileName().fileName;
+		return this.fileName || this.getPreliminaryFileName().fileName;
 	}
 
 	getImportPath(importer: string): string {

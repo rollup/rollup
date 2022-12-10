@@ -144,8 +144,7 @@ function getChunkFileName(
 		return file.fileName;
 	}
 	if (facadeChunkByModule) {
-		const chunk = facadeChunkByModule.get(file.module!)!;
-		return chunk.id || chunk.getFileName();
+		return facadeChunkByModule.get(file.module!)!.getFileName();
 	}
 	return error(errorChunkNotGeneratedForFileName(file.fileName || file.name));
 }
