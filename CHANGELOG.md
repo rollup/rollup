@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.7.2
+
+_2022-12-10_
+
+### Bug Fixes
+
+- Improve chunk generation performance when one module is dynamically imported by many other modules (#4736)
+
+### Pull Requests
+
+- [#4736](https://github.com/rollup/rollup/pull/4736): Improve chunk assignment performance (@lukastaegert)
+
 ## 3.7.1
 
 _2022-12-09_
