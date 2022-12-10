@@ -1,6 +1,7 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { getOrCreate } from './getOrCreate';
+import { EMPTY_ARRAY } from './blank';
+import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { timeEnd, timeStart } from './timers';
 
@@ -78,7 +79,7 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 	for (const currentEntry of allEntries) {
 		const modulesToHandle = new Set([currentEntry]);
 		for (const module of modulesToHandle) {
-			getOrCreate(dependentEntriesByModule, module, () => new Set()).add(currentEntry);
+			getOrCreate(dependentEntriesByModule, module, getNewSet).add(currentEntry);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					modulesToHandle.add(dependency);
@@ -121,7 +122,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 		const dynamicallyDependentEntries = getOrCreate(
 			dynamicallyDependentEntriesByDynamicEntry,
 			dynamicEntry,
-			() => new Set()
+			getNewSet
 		);
 		for (const importer of [
 			...dynamicEntry.includedDynamicImporters,
@@ -146,7 +147,7 @@ function assignEntryToStaticDependencies(
 	const dynamicallyDependentEntries = dynamicallyDependentEntriesByDynamicEntry.get(entry);
 	const modulesToHandle = new Set([entry]);
 	for (const module of modulesToHandle) {
-		const assignedEntries = getOrCreate(assignedEntriesByModule, module, () => new Set());
+		const assignedEntries = getOrCreate(assignedEntriesByModule, module, getNewSet);
 		if (
 			dynamicallyDependentEntries &&
 			isModuleAlreadyLoaded(
@@ -200,6 +201,8 @@ function isModuleAlreadyLoaded(
 	}
 	return true;
 }
+
+EMPTY_ARRAY;
 
 interface ChunkDescription {
 	alias: null;

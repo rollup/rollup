@@ -7,3 +7,11 @@ export function getOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
 	map.set(key, value);
 	return value;
 }
+
+export function getNewSet<T>() {
+	return new Set<T>();
+}
+
+export function getNewArray<T>(): T[] {
+	return [];
+}
