@@ -1,8 +1,8 @@
-const normalRegexp_1 = /1/;
-const normalRegexp_2 = /1/;
+const commonRegexp_1 = /1/;
+const commonRegexp_2 = /1/;
 
-assert.strictEqual(normalRegexp_1.test('1'), true);
-assert.ok(normalRegexp_2.exec('1'));
+assert.strictEqual(commonRegexp_1.test('1'), true);
+assert.ok(commonRegexp_2.exec('1'));
 
 const globalRegexp_1 = /1/g;
 const globalRegexp_2 = /1/g;
