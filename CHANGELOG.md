@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.7.3
+
+_2022-12-11_
+
+### Bug Fixes
+
+- Ensure `this.getFileName` no longer returns a placeholder as soon as hash placeholders have been resolved (#4747)
+
+### Pull Requests
+
+- [#4747](https://github.com/rollup/rollup/pull/4747): provide hashed file name when using this.getFileName in generateBundle (@lukastaegert)
+
 ## 3.7.2
 
 _2022-12-10_

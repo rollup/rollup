@@ -309,7 +309,7 @@ function addChunksToBundle(
 			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
 			updatedCode += emitSourceMapAndGetComment(finalFileName, map, pluginDriver, options);
 		}
-		bundle[finalFileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
+		bundle[finalFileName] = chunk.finalizeChunk(updatedCode, map, hashesByPlaceholder);
 	}
 	for (const { chunk, code, fileName, map } of nonHashedChunksWithPlaceholders) {
 		let updatedCode =
@@ -317,7 +317,7 @@ function addChunksToBundle(
 		if (map) {
 			updatedCode += emitSourceMapAndGetComment(fileName, map, pluginDriver, options);
 		}
-		bundle[fileName] = chunk.generateOutputChunk(updatedCode, map, hashesByPlaceholder);
+		bundle[fileName] = chunk.finalizeChunk(updatedCode, map, hashesByPlaceholder);
 	}
 }
 
