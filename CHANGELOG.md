@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.7.4
+
+_2022-12-13_
+
+### Bug Fixes
+
+- Do not remove calls to `.exec` and `.test` for included stateful regular expressions (#4742)
+
+### Pull Requests
+
+- [#4742](https://github.com/rollup/rollup/pull/4742): fix: check whether RegExp have the global or sticky flags set (@TrickyPi)
+
 ## 3.7.3
 
 _2022-12-11_
