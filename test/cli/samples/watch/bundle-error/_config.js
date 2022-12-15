@@ -16,12 +16,19 @@ module.exports = {
 		setTimeout(() => unlinkSync(mainFile), 300);
 	},
 	abortOnStderr(data) {
-		if (data.includes('[!] RollupError: Unexpected token')) {
-			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 500);
+		// trigger this when the stack trace is written
+		if (data.includes('at error')) {
+			console.log('TRIGGER WRITE FILE');
+			setTimeout(() => {
+				console.log('ACTUAL WRITE');
+				atomicWriteFileSync(mainFile, 'export default 42;');
+			}, 500);
 			return false;
-		}
-		if (data.includes('created _actual')) {
+		} else if (data.includes('created _actual')) {
+			console.log('DONE');
 			return true;
+		} else {
+			console.log('NO TRIGGER:', data);
 		}
 	}
 };
