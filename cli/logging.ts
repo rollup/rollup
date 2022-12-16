@@ -13,27 +13,30 @@ export function handleError(error: RollupError, recover = false): void {
 	const pluginSection = error.plugin ? `(plugin ${error.plugin}) ` : '';
 	const message = `${pluginSection}${nameSection}${error.message}`;
 
-	stderr(bold(red(`[!] ${bold(message.toString())}`)));
+	const outputLines = [bold(red(`[!] ${bold(message.toString())}`))];
 
 	if (error.url) {
-		stderr(cyan(error.url));
+		outputLines.push(cyan(error.url));
 	}
 
 	if (error.loc) {
-		stderr(`${relativeId((error.loc.file || error.id)!)} (${error.loc.line}:${error.loc.column})`);
+		outputLines.push(
+			`${relativeId((error.loc.file || error.id)!)} (${error.loc.line}:${error.loc.column})`
+		);
 	} else if (error.id) {
-		stderr(relativeId(error.id));
+		outputLines.push(relativeId(error.id));
 	}
 
 	if (error.frame) {
-		stderr(dim(error.frame));
+		outputLines.push(dim(error.frame));
 	}
 
 	if (error.stack) {
-		stderr(dim(error.stack?.replace(`${nameSection}${error.message}\n`, '')));
+		outputLines.push(dim(error.stack?.replace(`${nameSection}${error.message}\n`, '')));
 	}
 
-	stderr('');
+	outputLines.push('', '');
+	stderr(outputLines.join('\n'));
 
 	// eslint-disable-next-line unicorn/no-process-exit
 	if (!recover) process.exit(1);
