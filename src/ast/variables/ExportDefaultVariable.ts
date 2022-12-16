@@ -38,9 +38,10 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	forbidName(name: string) {
-		super.forbidName(name);
 		const original = this.getOriginalVariable();
-		if (original !== this) {
+		if (original === this) {
+			super.forbidName(name);
+		} else {
 			original.forbidName(name);
 		}
 	}
