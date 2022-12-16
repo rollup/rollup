@@ -209,7 +209,6 @@ interface ChunkDescription {
 	signature: string;
 	size: number;
 	transitiveDependencies: Set<ChunkDescription>;
-	transitiveDependentChunks: Set<ChunkDescription>;
 }
 
 type ChunkPartition = {
@@ -285,42 +284,49 @@ small ${`${chunkPartition.small.pure.size}`.padEnd(5, ' ')} ${chunkPartition.sma
 Unoptimized chunks contain ${getNumberOfCycles(chunkPartition)} cycles.
 `);
 
-	console.log(
-		`Trying to find merge targets for ${
-			chunkPartition.small.sideEffect.size
-		} chunks smaller than ${prettyBytes(minChunkSize)} with side effects...`
-	);
-	mergeChunks(
-		chunkPartition.small.sideEffect,
-		[chunkPartition.small.pure, chunkPartition.big.pure],
-		minChunkSize,
-		chunkPartition
-	);
-	console.log(
-		`${chunkPartition.small.sideEffect.size} chunks smaller than ${prettyBytes(
-			minChunkSize
-		)} with side effects remaining.\nGenerated chunks contain ${getNumberOfCycles(
-			chunkPartition
-		)} cycles.\n`
-	);
+	const chunkAliases = new Map<ChunkDescription, ChunkDescription>();
+	if (chunkPartition.small.sideEffect.size > 0) {
+		console.log(
+			`Trying to find merge targets for ${
+				chunkPartition.small.sideEffect.size
+			} chunks smaller than ${prettyBytes(minChunkSize)} with side effects...`
+		);
+		mergeChunks(
+			chunkPartition.small.sideEffect,
+			[chunkPartition.small.pure, chunkPartition.big.pure],
+			minChunkSize,
+			chunkPartition,
+			chunkAliases
+		);
+		console.log(
+			`${chunkPartition.small.sideEffect.size} chunks smaller than ${prettyBytes(
+				minChunkSize
+			)} with side effects remaining.\nGenerated chunks contain ${getNumberOfCycles(
+				chunkPartition
+			)} cycles.\n`
+		);
+	}
 
-	console.log(
-		`Trying to find merge targets for ${
-			chunkPartition.small.pure.size
-		} pure chunks smaller than ${prettyBytes(minChunkSize)}...`
-	);
-	mergeChunks(
-		chunkPartition.small.pure,
-		[chunkPartition.small.pure, chunkPartition.big.sideEffect, chunkPartition.big.pure],
-		minChunkSize,
-		chunkPartition
-	);
+	if (chunkPartition.small.pure.size > 0) {
+		console.log(
+			`Trying to find merge targets for ${
+				chunkPartition.small.pure.size
+			} pure chunks smaller than ${prettyBytes(minChunkSize)}...`
+		);
+		mergeChunks(
+			chunkPartition.small.pure,
+			[chunkPartition.small.pure, chunkPartition.big.sideEffect, chunkPartition.big.pure],
+			minChunkSize,
+			chunkPartition,
+			chunkAliases
+		);
 
-	console.log(
-		`${chunkPartition.small.pure.size} pure chunks smaller than ${prettyBytes(
-			minChunkSize
-		)} remaining.\nGenerated chunks contain ${getNumberOfCycles(chunkPartition)} cycles.\n`
-	);
+		console.log(
+			`${chunkPartition.small.pure.size} pure chunks smaller than ${prettyBytes(
+				minChunkSize
+			)} remaining.\nGenerated chunks contain ${getNumberOfCycles(chunkPartition)} cycles.\n`
+		);
+	}
 	timeEnd('optimize chunks', 3);
 	const result = [
 		...chunkPartition.small.sideEffect,
@@ -438,7 +444,6 @@ function sortChunksAndAddDependencies(
 				const transitiveDependency = chunkByModule.get(module)!;
 				if (transitiveDependency !== chunk) {
 					transitiveDependencies.add(transitiveDependency);
-					transitiveDependency.transitiveDependentChunks.add(chunk);
 					for (const dependency of module.getDependenciesToBeIncluded()) {
 						if (!(dependency instanceof ExternalModule)) {
 							transitiveDependencyModules.add(dependency);
@@ -461,9 +466,11 @@ function mergeChunks(
 	chunksToBeMerged: Set<ChunkDescription>,
 	targetChunks: Set<ChunkDescription>[],
 	minChunkSize: number,
-	chunkPartition: ChunkPartition
+	chunkPartition: ChunkPartition,
+	chunkAliases: Map<ChunkDescription, ChunkDescription>
 ) {
 	for (const mergedChunk of chunksToBeMerged) {
+		replaceAliasedDependencies(mergedChunk, chunkAliases);
 		let closestChunk: ChunkDescription | null = null;
 		let closestChunkDistance = Infinity;
 		const { signature, modules, pure, size } = mergedChunk;
@@ -473,7 +480,7 @@ function mergeChunks(
 			const distance = pure
 				? getSignatureDistance(signature, targetChunk.signature, !targetChunk.pure)
 				: getSignatureDistance(targetChunk.signature, signature, true);
-			if (distance < closestChunkDistance && isValidMerge(mergedChunk, targetChunk)) {
+			if (distance < closestChunkDistance && isValidMerge(mergedChunk, targetChunk, chunkAliases)) {
 				if (distance === 1) {
 					closestChunk = targetChunk;
 					break;
@@ -483,47 +490,59 @@ function mergeChunks(
 			}
 		}
 		if (closestChunk) {
+			chunkAliases.set(mergedChunk, closestChunk);
 			chunksToBeMerged.delete(mergedChunk);
 			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
 			closestChunk.modules.push(...modules);
 			closestChunk.size += size;
 			closestChunk.pure &&= pure;
 			closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
-			const { dependencies, transitiveDependencies, transitiveDependentChunks } = closestChunk;
+			const { dependencies, transitiveDependencies } = closestChunk;
 			for (const dependency of mergedChunk.dependencies) {
 				dependencies.add(dependency);
 			}
 			for (const dependency of mergedChunk.transitiveDependencies) {
 				transitiveDependencies.add(dependency);
-				dependency.transitiveDependentChunks.delete(mergedChunk);
-				dependency.transitiveDependentChunks.add(closestChunk);
-			}
-			for (const dependentChunk of mergedChunk.transitiveDependentChunks) {
-				transitiveDependentChunks.add(dependentChunk);
-				if (dependentChunk.dependencies.has(mergedChunk)) {
-					dependentChunk.dependencies.delete(mergedChunk);
-					dependentChunk.dependencies.add(closestChunk);
-				}
-				dependentChunk.transitiveDependencies.delete(mergedChunk);
-				dependentChunk.transitiveDependencies.add(closestChunk);
 			}
 			dependencies.delete(closestChunk);
+			dependencies.delete(mergedChunk);
 			transitiveDependencies.delete(closestChunk);
-			transitiveDependentChunks.delete(closestChunk);
+			transitiveDependencies.delete(mergedChunk);
 			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
+		}
+	}
+}
+
+function replaceAliasedDependencies(
+	chunk: ChunkDescription,
+	chunkAliases: Map<ChunkDescription, ChunkDescription>
+) {
+	for (const [alias, aliased] of chunkAliases) {
+		if (chunk.dependencies.has(alias)) {
+			chunk.dependencies.delete(alias);
+			chunk.dependencies.add(aliased);
+		}
+		if (chunk.transitiveDependencies.has(alias)) {
+			chunk.transitiveDependencies.delete(alias);
+			chunk.transitiveDependencies.add(aliased);
 		}
 	}
 }
 
 // Merging will not produce cycles if
 // - no chunk is a transitive dependency of the other, or
-// - none of the direct non-merged dependencies of a chunk have the  other
+// - none of the direct non-merged dependencies of a chunk have the other
 //   chunk as a transitive dependency
-function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
-	return !(
-		hasTransitiveDependency(mergedChunk, targetChunk) ||
-		hasTransitiveDependency(targetChunk, mergedChunk)
-	);
+function isValidMerge(
+	mergedChunk: ChunkDescription,
+	targetChunk: ChunkDescription,
+	chunkAliases: Map<ChunkDescription, ChunkDescription>
+) {
+	if (hasTransitiveDependency(mergedChunk, targetChunk)) {
+		return false;
+	}
+	replaceAliasedDependencies(targetChunk, chunkAliases);
+	return !hasTransitiveDependency(targetChunk, mergedChunk);
 }
 
 function hasTransitiveDependency(
