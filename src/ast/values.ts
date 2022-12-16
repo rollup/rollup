@@ -200,6 +200,11 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
+/**
+ * RegExp are stateful when they have the global or sticky flags set.
+ * But if we actually don't use them, the side effect does not matter.
+ * the check logic in `hasEffectsOnInteractionAtPath`.
+ */
 const literalRegExpMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		exec: returnsUnknown,
