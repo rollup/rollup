@@ -3,12 +3,15 @@ import type { AstContext } from '../../Module';
 import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionWithThisArgument } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import { UnknownValue } from '../nodes/shared/Expression';
 import type ChildScope from '../scopes/ChildScope';
-import type { ObjectPath } from '../utils/PathTracker';
-import { SymbolToStringTag } from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { SymbolToStringTag, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -30,6 +33,34 @@ export default class NamespaceVariable extends Variable {
 	addReference(identifier: Identifier): void {
 		this.references.push(identifier);
 		this.name = identifier.name;
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 1) {
+			const key = path[0];
+			if (typeof key === 'string') {
+				this.getMemberVariables()[key]?.deoptimizePath(path.slice(1));
+			}
+		}
+	}
+
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArgument,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	) {
+		if (path.length > 1 || (path.length === 1 && interaction.type === INTERACTION_CALLED)) {
+			const key = path[0];
+			if (typeof key === 'string') {
+				this.getMemberVariables()[key]?.deoptimizeThisOnInteractionAtPath(
+					interaction,
+					path.slice(1),
+					recursionTracker
+				);
+			} else {
+				interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
 	}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
@@ -55,8 +86,28 @@ export default class NamespaceVariable extends Variable {
 		return (this.memberVariables = memberVariables);
 	}
 
-	hasEffectsOnInteractionAtPath(): boolean {
-		return false;
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
+		const { type } = interaction;
+		if (path.length === 0) {
+			// This can only be a call anyway
+			return true;
+		}
+		if (path.length === 1 && type !== INTERACTION_CALLED) {
+			return type === INTERACTION_ASSIGNED;
+		}
+		const key = path[0];
+		if (typeof key !== 'string') {
+			return true;
+		}
+		const memberVariable = this.getMemberVariables()[key];
+		return (
+			!memberVariable ||
+			memberVariable.hasEffectsOnInteractionAtPath(path.slice(1), interaction, context)
+		);
 	}
 
 	include(): void {
