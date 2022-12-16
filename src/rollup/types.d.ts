@@ -19,7 +19,7 @@ export type RollupWarning = RollupLog;
 
 export interface RollupLog {
 	binding?: string;
-	cause?: Error | unknown;
+	cause?: unknown;
 	code?: string;
 	exporter?: string;
 	frame?: string;
