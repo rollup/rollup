@@ -16,7 +16,7 @@ module.exports = {
 		setTimeout(() => unlinkSync(mainFile), 300);
 	},
 	abortOnStderr(data) {
-		if (data.includes('Error: Unexpected token')) {
+		if (data.includes('[!] RollupError: Unexpected token')) {
 			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 500);
 			return false;
 		}

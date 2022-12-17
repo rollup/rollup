@@ -37,6 +37,15 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
+	forbidName(name: string) {
+		const original = this.getOriginalVariable();
+		if (original === this) {
+			super.forbidName(name);
+		} else {
+			original.forbidName(name);
+		}
+	}
+
 	getAssignedVariableName(): string | null {
 		return (this.originalId && this.originalId.name) || null;
 	}
