@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 3.7.5
+
+_2022-12-17_
+
+### Bug Fixes
+
+- Avoid name shadowing when default exporting a class that matches the name of another class (#4756)
+- Do not display the error message both in a separate line and in the stack trace in rollup CLI (#4749)
+- Make type of `RollupWarning.cause` compatible with `Error.cause` (#4757)
+- Do not swallow side effects when interacting with modules namespaces nested in another object (#4758)
+
+### Pull Requests
+
+- [#4749](https://github.com/rollup/rollup/pull/4749): feat: simplify `stack` info in cli error (@TrickyPi)
+- [#4756](https://github.com/rollup/rollup/pull/4756): Avoid name conflicts for default exported classes (@lukastaegert)
+- [#4757](https://github.com/rollup/rollup/pull/4757): fix: RollupLog cause allow unknown (@Shinigami92)
+- [#4758](https://github.com/rollup/rollup/pull/4758): Correctly handle side effects when a namespace is nested in an object (@lukastaegert)
+
 ## 3.7.4
 
 _2022-12-13_
