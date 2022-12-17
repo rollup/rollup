@@ -281,7 +281,7 @@ function getOptimizedChunks(
 ----- pure  side effects
 small ${`${chunkPartition.small.pure.size}`.padEnd(5, ' ')} ${chunkPartition.small.sideEffect.size}
   big ${`${chunkPartition.big.pure.size}`.padEnd(5, ' ')} ${chunkPartition.big.sideEffect.size}
-Unoptimized chunks contain ${getNumberOfCycles(chunkPartition)} cycles.
+Unoptimized chunks contain ${getCycles(chunkPartition).length} cycles.
 `);
 
 	const chunkAliases = new Map<ChunkDescription, ChunkDescription>();
@@ -301,9 +301,9 @@ Unoptimized chunks contain ${getNumberOfCycles(chunkPartition)} cycles.
 		console.log(
 			`${chunkPartition.small.sideEffect.size} chunks smaller than ${prettyBytes(
 				minChunkSize
-			)} with side effects remaining.\nGenerated chunks contain ${getNumberOfCycles(
-				chunkPartition
-			)} cycles.\n`
+			)} with side effects remaining.\nGenerated chunks contain ${
+				getCycles(chunkPartition).length
+			} cycles.\n`
 		);
 	}
 
@@ -324,7 +324,7 @@ Unoptimized chunks contain ${getNumberOfCycles(chunkPartition)} cycles.
 		console.log(
 			`${chunkPartition.small.pure.size} pure chunks smaller than ${prettyBytes(
 				minChunkSize
-			)} remaining.\nGenerated chunks contain ${getNumberOfCycles(chunkPartition)} cycles.\n`
+			)} remaining.\nGenerated chunks contain ${getCycles(chunkPartition).length} cycles.\n`
 		);
 	}
 	timeEnd('optimize chunks', 3);
@@ -389,20 +389,28 @@ function getPartitionedChunks(
 	};
 }
 
-function getNumberOfCycles(partition: ChunkPartition) {
-	const parents = new Set<ChunkDescription>();
+function getCycles(partition: ChunkPartition): number[][] {
+	const parents = new Map<ChunkDescription, ChunkDescription | null>();
 	const analysedChunks = new Set<ChunkDescription>();
-	let cycles = 0;
+	const cycles: number[][] = [];
 
 	const analyseChunk = (chunk: ChunkDescription) => {
 		for (const dependency of chunk.dependencies) {
 			if (parents.has(dependency)) {
 				if (!analysedChunks.has(dependency)) {
-					cycles++;
+					const cyclePath = [getSignature(dependency)];
+					let nextChunk = chunk;
+					while (nextChunk !== dependency) {
+						cyclePath.push(getSignature(nextChunk));
+						nextChunk = parents.get(nextChunk)!;
+					}
+					cyclePath.push(getSignature(dependency));
+					cyclePath.reverse();
+					cycles.push(cyclePath);
 				}
 				continue;
 			}
-			parents.add(dependency);
+			parents.set(dependency, chunk);
 			analyseChunk(dependency);
 		}
 		analysedChunks.add(chunk);
@@ -415,7 +423,7 @@ function getNumberOfCycles(partition: ChunkPartition) {
 		...partition.small.sideEffect
 	]) {
 		if (!parents.has(chunk)) {
-			parents.add(chunk);
+			parents.set(chunk, null);
 			analyseChunk(chunk);
 		}
 	}
@@ -491,6 +499,10 @@ function mergeChunks(
 		}
 		if (closestChunk) {
 			chunkAliases.set(mergedChunk, closestChunk);
+			const beforeA = normalizeChunk(closestChunk);
+			const beforeASignature = getSignature(closestChunk);
+			const beforeB = normalizeChunk(mergedChunk);
+			const beforeBSignature = getSignature(mergedChunk);
 			chunksToBeMerged.delete(mergedChunk);
 			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
 			closestChunk.modules.push(...modules);
@@ -509,6 +521,25 @@ function mergeChunks(
 			transitiveDependencies.delete(closestChunk);
 			transitiveDependencies.delete(mergedChunk);
 			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
+			const cycles = getCycles(chunkPartition);
+			if (cycles.length > 0) {
+				console.log('invalid merge');
+				console.log('A', beforeASignature, beforeA);
+				console.log('B', beforeBSignature, beforeB);
+				console.log('MERGED', getSignature(closestChunk), normalizeChunk(closestChunk));
+				console.log('CYCLE', cycles[0]);
+				// eslint-disable-next-line unicorn/no-process-exit
+				process.exit(1);
+			} else {
+				console.log(
+					'merged:',
+					beforeASignature,
+					'+',
+					beforeBSignature,
+					'->',
+					getSignature(closestChunk)
+				);
+			}
 		}
 	}
 }
@@ -599,4 +630,24 @@ function mergeSignatures(sourceSignature: string, targetSignature: string): stri
 				: CHAR_INDEPENDENT;
 	}
 	return signature;
+}
+
+function normalizeChunk({ dependencies, transitiveDependencies }: ChunkDescription) {
+	return {
+		dependencies: [...dependencies].map(getSignature),
+		transitiveDependencies: [...transitiveDependencies].map(getSignature)
+	};
+}
+
+function getSignature({ signature }: ChunkDescription) {
+	let output = 0;
+	const elements = [...signature].reverse();
+	let cardinality = 1;
+	for (const element of elements) {
+		if (element === CHAR_DEPENDENT) {
+			output += cardinality;
+		}
+		cardinality <<= 1;
+	}
+	return output;
 }
