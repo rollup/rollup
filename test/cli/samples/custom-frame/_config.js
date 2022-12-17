@@ -8,7 +8,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'[!] (plugin at position 1) Error: My error.\n' +
-				'main.js\ncustom code frame\nError: My error.\n' +
+				'main.js\ncustom code frame\n' +
 				'    at Object.'
 		);
 		assertIncludes(stderr, 'rollup.config.js:9:19');
