@@ -4,11 +4,9 @@ System.register(['./generated-from-main-1-and-dynamic.js', './generated-from-mai
 	return {
 		setters: [function (module) {
 			value1 = module.v;
-			exports('value1', module.v);
 		}, function (module) {
 			value2 = module.v;
 			value3 = module.a;
-			exports({ value2: module.v, value3: module.a });
 		}],
 		execute: (function () {
 

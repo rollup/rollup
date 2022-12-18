@@ -4,7 +4,6 @@ System.register(['./generated-dynamic1.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			value = module.value;
-			exports('value', module.value);
 		}],
 		execute: (function () {
 

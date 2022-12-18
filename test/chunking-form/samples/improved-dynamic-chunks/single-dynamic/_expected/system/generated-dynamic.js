@@ -4,7 +4,6 @@ System.register(['./main.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			value = module.value;
-			exports('value', module.value);
 		}],
 		execute: (function () {
 
