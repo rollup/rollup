@@ -5,7 +5,7 @@ define(['require', 'exports', './generated-dep2'], (function (require, exports, 
 	console.log('main1', value1, dep2.value2);
 	new Promise(function (resolve, reject) { require(['./generated-dynamic1'], resolve, reject); });
 
-	exports.value1 = value1;
 	exports.value2 = dep2.value2;
+	exports.value1 = value1;
 
 }));

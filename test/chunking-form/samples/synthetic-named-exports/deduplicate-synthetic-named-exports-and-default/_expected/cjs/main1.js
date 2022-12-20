@@ -4,5 +4,5 @@ var lib = require('./generated-lib.js');
 
 
 
-exports.foo = lib.lib.foo;
 exports.lib = lib.lib;
+exports.foo = lib.lib.foo;
