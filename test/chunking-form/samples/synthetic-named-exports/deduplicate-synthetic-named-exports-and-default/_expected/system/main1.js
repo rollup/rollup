@@ -4,6 +4,7 @@ System.register(['./generated-lib.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			lib = module.l;
+			exports('lib', module.l);
 		}],
 		execute: (function () {
 

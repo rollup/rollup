@@ -4,10 +4,9 @@ System.register(['./generated-dep2.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			foo = module.f;
+			exports('default', module.f);
 		}],
 		execute: (function () {
-
-			exports('default', foo);
 
 
 
