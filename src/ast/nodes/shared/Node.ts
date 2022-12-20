@@ -31,7 +31,7 @@ export interface Node extends Entity {
 	annotations?: acorn.Comment[];
 	context: AstContext;
 	end: number;
-	esTreeNode: GenericEsTreeNode;
+	esTreeNode: GenericEsTreeNode | null;
 	included: boolean;
 	keys: string[];
 	needsBoundaries?: boolean;
@@ -119,7 +119,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	declare annotations?: acorn.Comment[];
 	context: AstContext;
 	declare end: number;
-	esTreeNode: acorn.Node;
+	esTreeNode: acorn.Node | null;
 	keys: string[];
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
@@ -143,7 +143,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		parentScope: ChildScope
 	) {
 		super();
-		this.esTreeNode = esTreeNode;
+		this.esTreeNode = this.keepEsTreeNode() ? esTreeNode : null;
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
 		this.context = parent.context;
@@ -316,6 +316,15 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			}
 		}
 		this.context.requestTreeshakingPass();
+	}
+
+	/**
+	 * Nodes can opt-in to keep the AST if needed during the build pipeline.
+	 * Avoid true when possible as large AST takes up memory.
+	 * @protected
+	 */
+	protected keepEsTreeNode(): boolean {
+		return false;
 	}
 }
 

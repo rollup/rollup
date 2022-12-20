@@ -150,6 +150,10 @@ export default class ImportExpression extends NodeBase {
 
 	protected applyDeoptimizations() {}
 
+	protected keepEsTreeNode() {
+		return true;
+	}
+
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',

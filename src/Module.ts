@@ -135,6 +135,8 @@ export interface DynamicImport {
 	resolution: Module | ExternalModule | string | null;
 }
 
+let moduleId = 0;
+
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
@@ -771,10 +773,15 @@ export default class Module {
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
 
-		if (!ast) {
-			ast = this.tryParse();
-		}
-
+		const uniqueId = (moduleId++).toString();
+		const getAst = (): acorn.Node => {
+			if (ast) return ast;
+			if (this.graph.astLru.has(uniqueId)) return this.graph.astLru.get(uniqueId)!;
+			const parsedAst = this.tryParse();
+			this.graph.astLru.set(uniqueId, parsedAst);
+			return parsedAst;
+		};
+		const programAst = getAst();
 		timeEnd('generate ast', 3);
 		timeStart('analyze ast', 3);
 
@@ -821,8 +828,8 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.ast = new Program(ast, { context: this.astContext, type: 'Module' }, this.scope);
-		this.info.ast = ast;
+		this.ast = new Program(programAst, { context: this.astContext, type: 'Module' }, this.scope);
+		Object.defineProperty(this.info, 'ast', { get: () => getAst() });
 
 		timeEnd('analyze ast', 3);
 	}
@@ -830,7 +837,7 @@ export default class Module {
 	toJSON(): ModuleJSON {
 		return {
 			assertions: this.info.assertions,
-			ast: this.ast!.esTreeNode,
+			ast: this.info.ast!,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
 			// eslint-disable-next-line unicorn/prefer-spread

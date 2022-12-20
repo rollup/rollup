@@ -50,6 +50,7 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 		input: getInput(config),
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
+		maxAstLruSize: Math.max(1, Math.floor((config.maxAstLruSize ?? 10) / 2)),
 		maxParallelFileOps,
 		maxParallelFileReads: maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),

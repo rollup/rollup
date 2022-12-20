@@ -541,7 +541,7 @@ export class ModuleLoader {
 				module,
 				typeof dynamicImport.argument === 'string'
 					? dynamicImport.argument
-					: dynamicImport.argument.esTreeNode,
+					: dynamicImport.argument.esTreeNode!,
 				module.id,
 				getAssertionsFromImportExpression(dynamicImport.node)
 			);
