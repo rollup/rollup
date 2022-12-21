@@ -14,7 +14,12 @@ import type ChildScope from '../scopes/ChildScope';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type * as NodeType from './NodeType';
 import type ObjectExpression from './ObjectExpression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import {
+	type ExpressionNode,
+	type GenericEsTreeNode,
+	type IncludeChildren,
+	NodeBase
+} from './shared/Node';
 
 interface DynamicImportMechanism {
 	left: string;
@@ -55,6 +60,11 @@ export default class ImportExpression extends NodeBase {
 
 	initialise(): void {
 		this.context.addDynamicImport(this);
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode): void {
+		// Keep the source AST to be used by renderDynamicImport
+		super.parseNode(esTreeNode, ['source']);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
@@ -149,10 +159,6 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	protected applyDeoptimizations() {}
-
-	protected keepEsTreeNode() {
-		return true;
-	}
 
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,

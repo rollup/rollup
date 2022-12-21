@@ -140,10 +140,13 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	constructor(
 		esTreeNode: GenericEsTreeNode,
 		parent: Node | { context: AstContext; type: string },
-		parentScope: ChildScope
+		parentScope: ChildScope,
+		keepEsTreeNode = false
 	) {
 		super();
-		this.esTreeNode = this.keepEsTreeNode() ? esTreeNode : null;
+		// Nodes can opt-in to keep the AST if needed during the build pipeline.
+		// Avoid true when possible as large AST takes up memory.
+		this.esTreeNode = keepEsTreeNode ? esTreeNode : null;
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
 		this.context = parent.context;
@@ -243,7 +246,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode, keepEsTreeNodeKeys?: string[]): void {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
@@ -262,14 +265,20 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
-							: new (this.context.getNodeConstructor(child.type))(child, this, this.scope)
+							: new (this.context.getNodeConstructor(child.type))(
+									child,
+									this,
+									this.scope,
+									keepEsTreeNodeKeys?.includes(key)
+							  )
 					);
 				}
 			} else {
 				(this as GenericEsTreeNode)[key] = new (this.context.getNodeConstructor(value.type))(
 					value,
 					this,
-					this.scope
+					this.scope,
+					keepEsTreeNodeKeys?.includes(key)
 				);
 			}
 		}
@@ -316,15 +325,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			}
 		}
 		this.context.requestTreeshakingPass();
-	}
-
-	/**
-	 * Nodes can opt-in to keep the AST if needed during the build pipeline.
-	 * Avoid true when possible as large AST takes up memory.
-	 * @protected
-	 */
-	protected keepEsTreeNode(): boolean {
-		return false;
 	}
 }
 
