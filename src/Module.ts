@@ -772,16 +772,8 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
+		const moduleAst = ast || this.tryParse();
 
-		const uniqueId = (moduleId++).toString();
-		const getAst = (): acorn.Node => {
-			if (ast) return ast;
-			if (this.graph.astLru.has(uniqueId)) return this.graph.astLru.get(uniqueId)!;
-			const parsedAst = this.tryParse();
-			this.graph.astLru.set(uniqueId, parsedAst);
-			return parsedAst;
-		};
-		const programAst = getAst();
 		timeEnd('generate ast', 3);
 		timeStart('analyze ast', 3);
 
@@ -828,8 +820,27 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.ast = new Program(programAst, { context: this.astContext, type: 'Module' }, this.scope);
-		Object.defineProperty(this.info, 'ast', { get: () => getAst() });
+		this.ast = new Program(moduleAst, { context: this.astContext, type: 'Module' }, this.scope);
+
+		// Assign AST directly if has existing one as there's no way to drop it from memory.
+		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.
+		if (ast || this.options.cache !== false) {
+			this.info.ast = moduleAst;
+		} else {
+			// Make lazy and apply LRU cache to not hog the memory
+			const uniqueId = (moduleId++).toString();
+			Object.defineProperty(this.info, 'ast', {
+				get() {
+					if (this.graph.astLru.has(uniqueId)) {
+						return this.graph.astLru.get(uniqueId)!;
+					} else {
+						const parsedAst = this.tryParse();
+						this.graph.astLru.set(uniqueId, parsedAst);
+						return parsedAst;
+					}
+				}
+			});
+		}
 
 		timeEnd('analyze ast', 3);
 	}
