@@ -603,12 +603,18 @@ export default class Chunk {
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
 		let hasExports = renderedExports.length > 0;
 		let hasDefaultExport = false;
-		for (const { reexports } of renderedDependencies) {
+		for (const renderedDependence of renderedDependencies) {
+			const { reexports } = renderedDependence;
 			if (reexports?.length) {
 				hasExports = true;
-				if (reexports.some(reexport => reexport.reexported === 'default')) {
+				if (!hasDefaultExport && reexports.some(reexport => reexport.reexported === 'default')) {
 					hasDefaultExport = true;
-					break;
+				}
+				if (format === 'es') {
+					renderedDependence.reexports = reexports.filter(
+						// eslint-disable-next-line unicorn/prefer-array-some
+						({ reexported }) => !renderedExports.find(({ exported }) => exported === reexported)
+					);
 				}
 			}
 		}
@@ -769,7 +775,25 @@ export default class Chunk {
 			const variable = this.exportsByName.get(exportName)!;
 			if (!(variable instanceof SyntheticNamedExportVariable)) {
 				const module = variable.module;
-				if (module && this.chunkByModule.get(module as Module) !== this) continue;
+				if (module) {
+					const chunk = this.chunkByModule.get(module as Module);
+					if (chunk !== this) {
+						if (!chunk || format !== 'es') {
+							continue;
+						}
+						const chunkDep = this.renderedDependencies!.get(chunk)!;
+						const { imports, reexports } = chunkDep;
+						const importedByReexported = reexports?.find(
+							({ reexported }) => reexported === exportName
+						);
+						const isImported = imports?.find(
+							({ imported }) => imported === importedByReexported?.imported
+						);
+						if (!isImported) {
+							continue;
+						}
+					}
+				}
 			}
 			let expression = null;
 			let hoisted = false;
