@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import flru, { type flruCache } from 'flru';
+import flru from 'flru';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
@@ -53,7 +53,7 @@ function normalizeEntryModules(
 
 export default class Graph {
 	readonly acornParser: typeof acorn.Parser;
-	astLru: flruCache<acorn.Node>;
+	readonly astLru = flru<acorn.Node>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
 	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
@@ -100,7 +100,6 @@ export default class Graph {
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 		this.fileOperationQueue = new Queue(options.maxParallelFileOps);
 		this.pureFunctions = getPureFunctions(options);
-		this.astLru = flru<acorn.Node>(options.maxAstLruSize);
 	}
 
 	async build(): Promise<void> {

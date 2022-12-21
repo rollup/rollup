@@ -135,8 +135,6 @@ export interface DynamicImport {
 	resolution: Module | ExternalModule | string | null;
 }
 
-let moduleId = 0;
-
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
@@ -828,14 +826,13 @@ export default class Module {
 			this.info.ast = moduleAst;
 		} else {
 			// Make lazy and apply LRU cache to not hog the memory
-			const uniqueId = (moduleId++).toString();
 			Object.defineProperty(this.info, 'ast', {
 				get() {
-					if (this.graph.astLru.has(uniqueId)) {
-						return this.graph.astLru.get(uniqueId)!;
+					if (this.graph.astLru.has(fileName)) {
+						return this.graph.astLru.get(fileName)!;
 					} else {
 						const parsedAst = this.tryParse();
-						this.graph.astLru.set(uniqueId, parsedAst);
+						this.graph.astLru.set(fileName, parsedAst);
 						return parsedAst;
 					}
 				}

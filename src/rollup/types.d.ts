@@ -518,7 +518,6 @@ export interface InputOptions {
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
-	maxAstLruSize?: number;
 	maxParallelFileOps?: number;
 	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads?: number;
@@ -553,7 +552,6 @@ export interface NormalizedInputOptions {
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks: ManualChunksOption | undefined;
-	maxAstLruSize: number;
 	maxParallelFileOps: number;
 	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads: number;
