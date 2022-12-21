@@ -822,7 +822,7 @@ export default class Module {
 
 		// Assign AST directly if has existing one as there's no way to drop it from memory.
 		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.
-		if (ast || this.options.cache !== false) {
+		if (ast || this.graph.useCache) {
 			this.info.ast = moduleAst;
 		} else {
 			// Make lazy and apply LRU cache to not hog the memory

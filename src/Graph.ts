@@ -65,6 +65,7 @@ export default class Graph {
 	readonly pluginDriver: PluginDriver;
 	readonly pureFunctions: PureFunctions;
 	readonly scope = new GlobalScope();
+	useCache = false;
 	readonly watchFiles: Record<string, true> = Object.create(null);
 	watchMode = false;
 
@@ -75,6 +76,7 @@ export default class Graph {
 
 	constructor(private readonly options: NormalizedInputOptions, watcher: RollupWatcher | null) {
 		if (options.cache !== false) {
+			this.useCache = true;
 			if (options.cache?.modules) {
 				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
 			}
