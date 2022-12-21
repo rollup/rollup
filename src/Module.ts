@@ -827,7 +827,7 @@ export default class Module {
 		} else {
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
-				get() {
+				get: () => {
 					if (this.graph.astLru.has(fileName)) {
 						return this.graph.astLru.get(fileName)!;
 					} else {
