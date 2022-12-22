@@ -50,7 +50,7 @@ Occasionally you will see an error message like this:
 
 Import declarations must have corresponding export declarations in the imported module. For example, if you have `import a from './a.js'` in a module, and a.js doesn't have an `export default` declaration, or `import {foo} from './b.js'`, and b.js doesn't export `foo`, Rollup cannot bundle the code.
 
-This error frequently occurs with CommonJS modules converted by [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs), which makes a reasonable attempt to generate named exports from the CommonJS code but won't always succeed, because the freewheeling nature of CommonJS is at odds with the rigorous approach we benefit from in JavaScript modules. It can be solved by using the [namedExports](https://github.com/rollup/plugins/tree/master/packages/commonjs#custom-named-exports) option, which allows you to manually fill in the information gaps.
+This error frequently occurs with CommonJS modules converted by [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), this package has been deprecated and is no longer maintained. Please use [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs#custom-named-exports).
 
 ### Error: "this is undefined"
 

@@ -160,6 +160,7 @@ export class FileEmitter {
 	private readonly filesByReferenceId: Map<string, ConsumedFile>;
 	private nextIdBase = 1;
 	private output: FileEmitterOutput | null = null;
+	private outputFileEmitters: FileEmitter[] = [];
 
 	constructor(
 		private readonly graph: Graph,
@@ -169,6 +170,7 @@ export class FileEmitter {
 		this.filesByReferenceId = baseFileEmitter
 			? new Map(baseFileEmitter.filesByReferenceId)
 			: new Map();
+		baseFileEmitter?.addOutputFileEmitter(this);
 	}
 
 	public emitFile = (emittedFile: unknown): string => {
@@ -230,6 +232,9 @@ export class FileEmitter {
 			this.finalizeAsset(consumedFile, source, referenceId, this.output);
 		} else {
 			consumedFile.source = source;
+			for (const emitter of this.outputFileEmitters) {
+				emitter.finalizeAsset(consumedFile, source, referenceId, emitter.output!);
+			}
 		}
 	};
 
@@ -255,6 +260,10 @@ export class FileEmitter {
 		}
 	};
 
+	private addOutputFileEmitter(outputFileEmitter: FileEmitter) {
+		this.outputFileEmitters.push(outputFileEmitter);
+	}
+
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
 		let referenceId: string | undefined;
 
@@ -263,9 +272,14 @@ export class FileEmitter {
 				.update(referenceId || idBase)
 				.digest('hex')
 				.slice(0, 8);
-		} while (this.filesByReferenceId.has(referenceId));
-
+		} while (
+			this.filesByReferenceId.has(referenceId) ||
+			this.outputFileEmitters.some(({ filesByReferenceId }) => filesByReferenceId.has(referenceId!))
+		);
 		this.filesByReferenceId.set(referenceId, file);
+		for (const { filesByReferenceId } of this.outputFileEmitters) {
+			filesByReferenceId.set(referenceId, file);
+		}
 		return referenceId;
 	}
 
@@ -285,14 +299,27 @@ export class FileEmitter {
 			emittedAsset.fileName || emittedAsset.name || String(this.nextIdBase++)
 		);
 		if (this.output) {
-			if (emittedAsset.fileName) {
-				reserveFileNameInBundle(emittedAsset.fileName, this.output, this.options.onwarn);
-			}
-			if (source !== undefined) {
-				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
+			this.emitAssetWithReferenceId(consumedAsset, referenceId, this.output);
+		} else {
+			for (const fileEmitter of this.outputFileEmitters) {
+				fileEmitter.emitAssetWithReferenceId(consumedAsset, referenceId, fileEmitter.output!);
 			}
 		}
 		return referenceId;
+	}
+
+	private emitAssetWithReferenceId(
+		consumedAsset: Readonly<ConsumedAsset>,
+		referenceId: string,
+		output: FileEmitterOutput
+	) {
+		const { fileName, source } = consumedAsset;
+		if (fileName) {
+			reserveFileNameInBundle(fileName, output, this.options.onwarn);
+		}
+		if (source !== undefined) {
+			this.finalizeAsset(consumedAsset, source, referenceId, output);
+		}
 	}
 
 	private emitChunk(emittedChunk: EmittedFile): string {
@@ -324,7 +351,7 @@ export class FileEmitter {
 	}
 
 	private finalizeAsset(
-		consumedFile: ConsumedFile,
+		consumedFile: Readonly<ConsumedFile>,
 		source: string | Uint8Array,
 		referenceId: string,
 		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput

@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 3.8.0
+
+_2022-12-22_
+
+### Features
+
+- Deduplicate ESM exports and reexports when preserving modules (#4759)
+
+### Bug Fixes
+
+- Handle files that are emitted as a side effect of the manualChunks option (#4759)
+
+### Pull Requests
+
+- [#4759](https://github.com/rollup/rollup/pull/4759): feat: deduplicate reexports and renderedExports to simplify output (@TrickyPi)
+- [#4761](https://github.com/rollup/rollup/pull/4761): Support emitting files via manualChunks in output (@lukastaegert)
+- [#4763](https://github.com/rollup/rollup/pull/4763): docs: update outdated info (@TrickyPi)
+
 ## 3.7.5
 
 _2022-12-17_
