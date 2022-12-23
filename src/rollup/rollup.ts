@@ -50,10 +50,12 @@ export async function rollupInternal(
 
 	const graph = new Graph(inputOptions, watcher);
 
-	// remove the cache option from the memory after graph creation (cache is not used anymore)
+	// remove the cache object from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;
-	delete inputOptions.cache;
-	delete rawInputOptions.cache;
+	if (rawInputOptions.cache) {
+		inputOptions.cache = undefined;
+		rawInputOptions.cache = undefined;
+	}
 
 	timeStart('BUILD', 1);
 
