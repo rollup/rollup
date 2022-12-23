@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import flru from 'flru';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
@@ -52,6 +53,7 @@ function normalizeEntryModules(
 
 export default class Graph {
 	readonly acornParser: typeof acorn.Parser;
+	readonly astLru = flru<acorn.Node>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
 	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];

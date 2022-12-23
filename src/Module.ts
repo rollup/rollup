@@ -770,10 +770,7 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
-
-		if (!ast) {
-			ast = this.tryParse();
-		}
+		const moduleAst = ast || this.tryParse();
 
 		timeEnd('generate ast', 3);
 		timeStart('analyze ast', 3);
@@ -821,8 +818,26 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.ast = new Program(ast, { context: this.astContext, type: 'Module' }, this.scope);
-		this.info.ast = ast;
+		this.ast = new Program(moduleAst, { context: this.astContext, type: 'Module' }, this.scope);
+
+		// Assign AST directly if has existing one as there's no way to drop it from memory.
+		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.
+		if (ast || this.options.cache !== false) {
+			this.info.ast = moduleAst;
+		} else {
+			// Make lazy and apply LRU cache to not hog the memory
+			Object.defineProperty(this.info, 'ast', {
+				get: () => {
+					if (this.graph.astLru.has(fileName)) {
+						return this.graph.astLru.get(fileName)!;
+					} else {
+						const parsedAst = this.tryParse();
+						this.graph.astLru.set(fileName, parsedAst);
+						return parsedAst;
+					}
+				}
+			});
+		}
 
 		timeEnd('analyze ast', 3);
 	}
@@ -830,7 +845,7 @@ export default class Module {
 	toJSON(): ModuleJSON {
 		return {
 			assertions: this.info.assertions,
-			ast: this.ast!.esTreeNode,
+			ast: this.info.ast!,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
 			// eslint-disable-next-line unicorn/prefer-spread
