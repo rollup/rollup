@@ -782,6 +782,9 @@ export default class Chunk {
 							continue;
 						}
 						const chunkDep = this.renderedDependencies!.get(chunk)!;
+						if (!chunkDep) {
+							continue;
+						}
 						const { imports, reexports } = chunkDep;
 						const importedByReexported = reexports?.find(
 							({ reexported }) => reexported === exportName
