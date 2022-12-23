@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.8.1
+
+_2022-12-23_
+
+### Bug Fixes
+
+- Reduce memory footprint when explicitly passing `cache: false` (#4762)
+- Fix a crash when preserving modules and reexporting namespaces (#4766)
+
+### Pull Requests
+
+- [#4762](https://github.com/rollup/rollup/pull/4762): Improve AST garbage collection (@bluwy)
+- [#4766](https://github.com/rollup/rollup/pull/4766): Fix handling of namespace reexports when preserving modules (@lukastaegert)
+
 ## 3.8.0
 
 _2022-12-22_
