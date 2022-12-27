@@ -64,6 +64,12 @@ export default ({
 
 The name of the plugin, for use in error messages and warnings.
 
+#### `version?`
+
+**Type:** `string | undefined`
+
+The version of the plugin, for use in inter-plugin communication scenarios.
+
 ### Build Hooks
 
 To interact with the build process, your plugin object includes "hooks". Hooks are functions which are called at various stages of the build. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
