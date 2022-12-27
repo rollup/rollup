@@ -16,6 +16,10 @@ We welcome any type of contribution, not only code. You can help with
 
 Working on your first Pull Request? You can learn how from this _free_ course, [How to Contribute to an Open Source Project on GitHub](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github).
 
+### How to run one test on your local machine
+
+you can set up `solo:true` in `_config.js` in one test and run `npm run test`.
+
 ## Submitting code
 
 Any code change should be submitted as a pull request. The description should explain what the code does and give steps to execute it. The pull request should also contain tests.
