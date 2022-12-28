@@ -456,6 +456,7 @@ export interface OutputPlugin
 		Partial<{ [K in AddonHooks]: ObjectHook<AddonHook> }> {
 	cacheKey?: string;
 	name: string;
+	version?: string;
 }
 
 export interface Plugin extends OutputPlugin, Partial<PluginHooks> {
