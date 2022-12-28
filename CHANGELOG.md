@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 3.9.0
+
+_2022-12-28_
+
+### Features
+
+- Support ES2022 arbitrary module namespace identifiers (#4770)
+- Add optional `version` property to plugin type (#4771)
+
+### Pull Requests
+
+- [#4768](https://github.com/rollup/rollup/pull/4768): Fix small typo in 999-big-list-of-options.md (@ericmutta)
+- [#4769](https://github.com/rollup/rollup/pull/4769): docs: add a instruction about how to run one test on your local computer (@TrickyPi)
+- [#4770](https://github.com/rollup/rollup/pull/4770): Add support for arbitrary module namespace identifiers (@lukastaegert)
+- [#4771](https://github.com/rollup/rollup/pull/4771): Add `version` property to Plugin type (@Septh)
+
 ## 3.8.1
 
 _2022-12-23_
