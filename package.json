@@ -88,7 +88,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-unicorn": "^44.0.2",
+    "eslint-plugin-unicorn": "^45.0.2",
     "fixturify": "^3.0.0",
     "flru": "^1.0.2",
     "fs-extra": "^11.1.0",
