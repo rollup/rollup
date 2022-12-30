@@ -9,8 +9,8 @@
 
 	var dep = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		foo: foo,
-		bar: bar
+		bar: bar,
+		foo: foo
 	});
 
 	exports.dep = dep;

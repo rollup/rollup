@@ -5,8 +5,8 @@ const bar = 'bar2';
 
 var dep2 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	foo: foo,
-	bar: bar
+	bar: bar,
+	foo: foo
 });
 
 console.log(foo$1);
