@@ -1,4 +1,5 @@
-import { promises as fs, type FSWatcher } from 'node:fs';
+import type { FSWatcher } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import process from 'node:process';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
@@ -43,7 +44,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 		async function reloadConfigFile() {
 			try {
-				const newConfigFileData = await fs.readFile(configFile, 'utf8');
+				const newConfigFileData = await readFile(configFile, 'utf8');
 				if (newConfigFileData === configFileData) {
 					return;
 				}

@@ -1,4 +1,4 @@
-import { promises as fs } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { PluginImpl } from 'rollup';
 import license, { type Dependency, type Person } from 'rollup-plugin-license';
@@ -7,7 +7,7 @@ async function generateLicenseFile(
 	directory: string,
 	dependencies: readonly Dependency[]
 ): Promise<void> {
-	const coreLicense = await fs.readFile('LICENSE-CORE.md', 'utf8');
+	const coreLicense = await readFile('LICENSE-CORE.md', 'utf8');
 	const licenses = new Set<string>();
 	const dependencyLicenseTexts = [...dependencies]
 		.filter(({ name }) => name !== '@rollup/browser')
@@ -58,9 +58,9 @@ async function generateLicenseFile(
 		`# Bundled dependencies:\n` +
 		dependencyLicenseTexts;
 	const licenseFile = join(directory, 'LICENSE.md');
-	const existingLicenseText = await fs.readFile(licenseFile, 'utf8');
+	const existingLicenseText = await readFile(licenseFile, 'utf8');
 	if (existingLicenseText !== licenseText) {
-		await fs.writeFile(licenseFile, licenseText);
+		await writeFile(licenseFile, licenseText);
 		console.warn('LICENSE.md updated. You should commit the updated file.');
 	}
 }
