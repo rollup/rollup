@@ -22,7 +22,7 @@ const nodeBuiltins: ReadonlySet<string> = new Set([
 
 export default function warnOnBuiltins(
 	warn: (warning: RollupWarning) => void,
-	dependencies: ChunkDependency[]
+	dependencies: readonly ChunkDependency[]
 ): void {
 	const externalBuiltins = dependencies
 		.map(({ importPath }) => importPath)
