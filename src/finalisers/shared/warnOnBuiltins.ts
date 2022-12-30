@@ -5,6 +5,8 @@ import { errorMissingNodeBuiltins } from '../../utils/error';
 
 const nodeBuiltins: ReadonlySet<string> = new Set([
 	...builtinModules,
+	// TODO
+	// remove once builtin-modules includes PR: https://github.com/sindresorhus/builtin-modules/pull/17
 	'assert/strict',
 	'dns/promises',
 	'fs/promises',
