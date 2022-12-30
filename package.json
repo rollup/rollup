@@ -89,7 +89,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-unicorn": "^44.0.2",
-    "fixturify": "^2.1.1",
+    "fixturify": "^3.0.0",
     "flru": "^1.0.2",
     "fs-extra": "^11.1.0",
     "github-api": "^3.4.0",
