@@ -15,9 +15,9 @@ import { SymbolToStringTag, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
-	context: AstContext;
+	readonly context: AstContext;
 	declare isNamespace: true;
-	module: Module;
+	readonly module: Module;
 
 	private memberVariables: { [name: string]: Variable } | null = null;
 	private mergedNamespaces: readonly Variable[] = [];

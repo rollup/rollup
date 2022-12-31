@@ -32,7 +32,10 @@ export default function es(
 	magicString.trim();
 }
 
-function getImportBlock(dependencies: ChunkDependency[], { _ }: GenerateCodeSnippets): string[] {
+function getImportBlock(
+	dependencies: readonly ChunkDependency[],
+	{ _ }: GenerateCodeSnippets
+): string[] {
 	const importBlock: string[] = [];
 	for (const { importPath, reexports, imports, name, assertions } of dependencies) {
 		const assertion = assertions ? `${_}assert${_}${assertions}` : '';

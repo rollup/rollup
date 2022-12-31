@@ -10,7 +10,7 @@ import ChildScope from './ChildScope';
 import type GlobalScope from './GlobalScope';
 
 export default class ModuleScope extends ChildScope {
-	context: AstContext;
+	readonly context: AstContext;
 	declare parent: GlobalScope;
 
 	constructor(parent: GlobalScope, context: AstContext) {

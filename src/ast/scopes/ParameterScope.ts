@@ -10,9 +10,8 @@ import type Scope from './Scope';
 
 export default class ParameterScope extends ChildScope {
 	readonly hoistedBodyVarScope: ChildScope;
-
 	protected parameters: readonly LocalVariable[][] = [];
-	private context: AstContext;
+	private readonly context: AstContext;
 	private hasRest = false;
 
 	constructor(parent: Scope, context: AstContext) {
