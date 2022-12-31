@@ -9,5 +9,5 @@ export default function getCompleteAmdId(
 		return `${options.basePath ? options.basePath + '/' : ''}${removeJsExtension(chunkId)}`;
 	}
 
-	return options.id || '';
+	return options.id ?? '';
 }
