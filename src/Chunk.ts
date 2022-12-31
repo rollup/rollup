@@ -506,9 +506,7 @@ export default class Chunk {
 		const { chunkFileNames, entryFileNames, file, format, preserveModules } = this.outputOptions;
 		if (file) {
 			fileName = basename(file);
-		} else if (this.fileName !== null) {
-			fileName = this.fileName;
-		} else {
+		} else if (this.fileName === null) {
 			const [pattern, patternName] =
 				preserveModules || this.facadeModule?.isUserDefinedEntryPoint
 					? [entryFileNames, 'output.entryFileNames']
@@ -526,6 +524,8 @@ export default class Chunk {
 			if (!hashPlaceholder) {
 				fileName = makeUnique(fileName, this.bundle);
 			}
+		} else {
+			fileName = this.fileName;
 		}
 		if (!hashPlaceholder) {
 			this.bundle[fileName] = FILE_PLACEHOLDER;

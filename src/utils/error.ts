@@ -460,7 +460,7 @@ export function errorInvalidOption(
 	return {
 		code: INVALID_OPTION,
 		message: `Invalid value ${
-			value !== undefined ? `${JSON.stringify(value)} ` : ''
+			value === undefined ? '' : `${JSON.stringify(value)} `
 		}for option "${option}" - ${explanation}.`,
 		url: `https://rollupjs.org/guide/en/#${urlHash}`
 	};

@@ -47,11 +47,11 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	deoptimizePath(path: ObjectPath): void {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) {
+		if (usedBranch) {
+			usedBranch.deoptimizePath(path);
+		} else {
 			this.consequent.deoptimizePath(path);
 			this.alternate.deoptimizePath(path);
-		} else {
-			usedBranch.deoptimizePath(path);
 		}
 	}
 
@@ -150,11 +150,11 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		const usedBranch = this.getUsedBranch();
-		if (!usedBranch) {
+		if (usedBranch) {
+			usedBranch.includeCallArguments(context, parameters);
+		} else {
 			this.consequent.includeCallArguments(context, parameters);
 			this.alternate.includeCallArguments(context, parameters);
-		} else {
-			usedBranch.includeCallArguments(context, parameters);
 		}
 	}
 
@@ -169,7 +169,11 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}: NodeRenderOptions = BLANK
 	): void {
 		const usedBranch = this.getUsedBranch();
-		if (!this.test.included) {
+		if (this.test.included) {
+			this.test.render(code, options, { renderedSurroundingElement });
+			this.consequent.render(code, options);
+			this.alternate.render(code, options);
+		} else {
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
 			const inclusionStart = findNonWhiteSpace(
 				code.original,
@@ -191,10 +195,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 				renderedParentType: renderedParentType || this.parent.type,
 				renderedSurroundingElement: renderedSurroundingElement || this.parent.type
 			});
-		} else {
-			this.test.render(code, options, { renderedSurroundingElement });
-			this.consequent.render(code, options);
-			this.alternate.render(code, options);
 		}
 	}
 
