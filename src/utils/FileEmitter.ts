@@ -246,8 +246,11 @@ export class FileEmitter {
 		bundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions
 	): void => {
-		const fileNamesBySource = new Map();
-		const output = (this.output = { bundle, fileNamesBySource, outputOptions });
+		const output = (this.output = {
+			bundle,
+			fileNamesBySource: new Map<string, string>(),
+			outputOptions
+		});
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
 				reserveFileNameInBundle(emittedFile.fileName, output, this.options.onwarn);
