@@ -84,7 +84,7 @@
     "date-time": "^4.0.0",
     "es5-shim": "^4.6.7",
     "es6-shim": "^0.35.7",
-    "eslint": "^8.30.0",
+    "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
