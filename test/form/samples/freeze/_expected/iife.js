@@ -6,8 +6,8 @@ var myBundle = (function (exports) {
 
 	var namespace = {
 		__proto__: null,
-		foo: foo,
-		bar: bar
+		bar: bar,
+		foo: foo
 	};
 
 	console.log( Object.keys( namespace ) );

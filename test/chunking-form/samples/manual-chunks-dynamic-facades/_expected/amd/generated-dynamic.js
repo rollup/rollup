@@ -20,8 +20,8 @@ define(['exports'], (function (exports) { 'use strict';
 
 	var dynamic1 = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		DYNAMIC_1: DYNAMIC_1,
 		DEP: DEP,
+		DYNAMIC_1: DYNAMIC_1,
 		DYNAMIC_2: DYNAMIC_2,
 		DYNAMIC_3: DYNAMIC_3
 	});

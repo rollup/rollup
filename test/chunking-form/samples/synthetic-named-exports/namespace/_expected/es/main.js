@@ -34,8 +34,8 @@ var dep$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	bar: bar,
 	default: dep,
-	synthetic: synthetic$1,
-	foo: foo
+	foo: foo,
+	synthetic: synthetic$1
 }, [synthetic]);
 
 export { dep$1 as dep };

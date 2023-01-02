@@ -18,8 +18,8 @@ const bar = 2;
 
 var dep$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
-	default: dep,
-	bar: bar
+	bar: bar,
+	default: dep
 }, [dep]);
 
 export { dep$1 as d };
