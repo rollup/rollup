@@ -1,6 +1,10 @@
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-var es5Shim = {exports: {}};
+var es5ShimExports = {};
+var es5Shim = {
+  get exports(){ return es5ShimExports; },
+  set exports(v){ es5ShimExports = v; },
+};
 
 /*!
  * https://github.com/es-shims/es5-shim

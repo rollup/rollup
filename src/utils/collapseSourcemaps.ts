@@ -176,9 +176,7 @@ function getCollapsedSourcemap(
 ): Source | Link {
 	let source: Source | Link;
 
-	if (!originalSourcemap) {
-		source = new Source(id, originalCode);
-	} else {
+	if (originalSourcemap) {
 		const sources = originalSourcemap.sources;
 		const sourcesContent = originalSourcemap.sourcesContent || [];
 		const directory = dirname(id) || '.';
@@ -188,6 +186,8 @@ function getCollapsedSourcemap(
 			(source, index) => new Source(resolve(directory, sourceRoot, source), sourcesContent[index])
 		);
 		source = new Link(originalSourcemap, baseSources);
+	} else {
+		source = new Source(id, originalCode);
 	}
 	return sourcemapChain.reduce(linkMap, source);
 }

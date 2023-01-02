@@ -104,18 +104,6 @@ const _forEachArray = [{ effect() {} }];
 _forEachArray.forEach(element => (element.effect = () => console.log(1)));
 _forEachArray[0].effect();
 
-const _group = [1].group(() => true);
-const _groupEffect = [1].group(() => console.log(1) || true);
-const _groupArray = [{ effect() {} }];
-_groupArray.group((_, element) => (element.effect = () => console.log(1)));
-_groupArray[0].effect();
-
-const _groupToMap = [1].groupToMap(() => true);
-const _groupToMapEffect = [1].groupToMap(() => console.log(1) || true);
-const _groupToMapArray = [{ effect() {} }];
-_groupToMapArray.group((_, element) => (element.effect = () => console.log(1)));
-_groupToMapArray[0].effect();
-
 const _map = [1].map(() => 1).join(',');
 const _mapEffect = [1].map(() => console.log(1) || 1);
 const _mapArray = [{ effect() {} }];

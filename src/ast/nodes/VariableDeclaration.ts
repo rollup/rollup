@@ -122,7 +122,9 @@ export default class VariableDeclaration extends NodeBase {
 			code.remove(this.end - 1, this.end);
 		}
 		separatorString += ';';
-		if (lastSeparatorPos !== null) {
+		if (lastSeparatorPos === null) {
+			code.appendLeft(renderedContentEnd, separatorString);
+		} else {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
 				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ ||
@@ -139,8 +141,6 @@ export default class VariableDeclaration extends NodeBase {
 				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
 				code.remove(actualContentEnd, renderedContentEnd);
 			}
-		} else {
-			code.appendLeft(renderedContentEnd, separatorString);
 		}
 		if (systemPatternExports.length > 0) {
 			code.appendLeft(

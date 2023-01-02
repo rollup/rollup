@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 
-const stream = require('stream');
-const { mkdirSync, readFileSync, writeFileSync } = require('fs');
+const { mkdirSync, readFileSync, writeFileSync } = require('node:fs');
+const { resolve } = require('node:path');
+const { Readable } = require('node:stream');
 const chokidar = require('chokidar');
-const path = require('path');
 
 delete process.stdin;
-process.stdin = new stream.Readable({
+process.stdin = new Readable({
 	encoding: 'utf8',
 	read() {
 		return null;
 	}
 });
 
-const outputDir = path.resolve(__dirname, '_actual');
+const outputDir = resolve(__dirname, '_actual');
 mkdirSync(outputDir);
-const outputFile = path.resolve(outputDir, 'out.js');
+const outputFile = resolve(outputDir, 'out.js');
 const INITIAL_OUTPUT = 'NOT WRITTEN';
 writeFileSync(outputFile, INITIAL_OUTPUT);
 

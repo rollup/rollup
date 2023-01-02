@@ -15,8 +15,8 @@ console.log('dynamic1');
 
 var dynamic1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	DYNAMIC_B: DYNAMIC_A,
-	DYNAMIC_A: DYNAMIC_B
+	DYNAMIC_A: DYNAMIC_B,
+	DYNAMIC_B: DYNAMIC_A
 });
 
 exports.dynamic1 = dynamic1;

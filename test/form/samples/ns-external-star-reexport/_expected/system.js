@@ -36,9 +36,9 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 
 			var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
-				override: override,
 				default: reexportExternalsWithOverride,
-				extra: extra
+				extra: extra,
+				override: override
 			}, [reexportExternalsWithOverride, external1, external2]);
 			exports('externalOverride', reexportExternalsWithOverride$1);
 

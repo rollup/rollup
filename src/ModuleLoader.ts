@@ -30,7 +30,7 @@ import {
 	errorUnresolvedImport,
 	errorUnresolvedImportTreatedAsExternal
 } from './utils/error';
-import { promises as fs } from './utils/fs';
+import { readFile } from './utils/fs';
 import { doAssertionsDiffer, getAssertionsFromImportExpression } from './utils/parseAssertions';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
@@ -131,16 +131,16 @@ export class ModuleLoader {
 					const existingIndexedModule = this.indexedEntryModules.find(
 						indexedModule => indexedModule.module === entryModule
 					);
-					if (!existingIndexedModule) {
-						this.indexedEntryModules.push({
-							index: firstEntryModuleIndex + index,
-							module: entryModule
-						});
-					} else {
+					if (existingIndexedModule) {
 						existingIndexedModule.index = Math.min(
 							existingIndexedModule.index,
 							firstEntryModuleIndex + index
 						);
+					} else {
+						this.indexedEntryModules.push({
+							index: firstEntryModuleIndex + index,
+							module: entryModule
+						});
 					}
 				}
 				this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
@@ -259,7 +259,7 @@ export class ModuleLoader {
 		try {
 			source = await this.graph.fileOperationQueue.run(
 				async () =>
-					(await this.pluginDriver.hookFirst('load', [id])) ?? (await fs.readFile(id, 'utf8'))
+					(await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id, 'utf8'))
 			);
 		} catch (error_: any) {
 			let message = `Could not load ${id}`;

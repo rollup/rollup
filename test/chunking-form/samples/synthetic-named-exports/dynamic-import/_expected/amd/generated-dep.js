@@ -20,8 +20,8 @@ define(['exports'], (function (exports) { 'use strict';
 
 	var dep$1 = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
-		default: dep,
-		bar: bar
+		bar: bar,
+		default: dep
 	}, [dep]);
 
 	exports.dep = dep$1;

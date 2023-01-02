@@ -26,8 +26,8 @@ System.register([], (function (exports) {
 
       var ns = /*#__PURE__*/_mergeNamespaces({
         __proto__: null,
-        foo: foo,
-        default: d
+        default: d,
+        foo: foo
       }, [d]);
 
       const stuff = 12;

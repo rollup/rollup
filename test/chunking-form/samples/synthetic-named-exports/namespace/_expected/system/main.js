@@ -39,8 +39,8 @@ System.register([], (function (exports) {
 				__proto__: null,
 				bar: bar,
 				default: dep,
-				synthetic: synthetic$1,
-				foo: foo
+				foo: foo,
+				synthetic: synthetic$1
 			}, [synthetic]);
 			exports('dep', dep$1);
 
