@@ -281,7 +281,7 @@ const getHasModuleSideEffects = (
 	}
 	if (typeof moduleSideEffectsOption === 'function') {
 		return (id, external) =>
-			!id.startsWith('\0') ? moduleSideEffectsOption(id, external) !== false : true;
+			id.startsWith('\0') ? true : moduleSideEffectsOption(id, external) !== false;
 	}
 	if (Array.isArray(moduleSideEffectsOption)) {
 		const ids = new Set(moduleSideEffectsOption);
