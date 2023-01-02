@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 3.9.1
+
+_2023-01-02_
+
+### Bug Fixes
+
+- Sort keys in generated dynamic namespace objects (#4780)
+- Do not consider Array.group to be side effect free as the specs have changed (#4779)
+
+### Pull Requests
+
+- [#4777](https://github.com/rollup/rollup/pull/4777): Import from node:fs/promises (@dnalborczyk)
+- [#4778](https://github.com/rollup/rollup/pull/4778): Bump deps (@dnalborczyk)
+- [#4779](https://github.com/rollup/rollup/pull/4779): Remove array grouping (web compat issue) (@dnalborczyk)
+- [#4780](https://github.com/rollup/rollup/pull/4780): Sort namespace object keys (@dnalborczyk)
+- [#4781](https://github.com/rollup/rollup/pull/4781): Use Set and builtin-modules package (@dnalborczyk)
+- [#4782](https://github.com/rollup/rollup/pull/4782): Use more restrictive types (@dnalborczyk)
+
 ## 3.9.0
 
 _2022-12-28_
