@@ -36,5 +36,5 @@ export function getImportPath(
 			return [...relativePath.split('/'), '..', basename(targetPath)].join('/');
 		}
 	}
-	return !relativePath ? '.' : relativePath.startsWith('..') ? relativePath : './' + relativePath;
+	return relativePath ? (relativePath.startsWith('..') ? relativePath : './' + relativePath) : '.';
 }

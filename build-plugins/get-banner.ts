@@ -1,5 +1,5 @@
 import { exec } from 'node:child_process';
-import { promises as fs } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { env } from 'node:process';
 import { promisify } from 'node:util';
 
@@ -31,6 +31,6 @@ export default function getBanner(): Promise<string> {
 				console.error('Could not determine commit hash:', error);
 				return 'unknown';
 			}),
-		fs.readFile(new URL('../package.json', import.meta.url), 'utf8')
+		readFile(new URL('../package.json', import.meta.url), 'utf8')
 	]).then(([commit, package_]) => generateBanner(commit, JSON.parse(package_).version)));
 }

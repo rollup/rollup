@@ -342,16 +342,7 @@ export class ObjectEntity extends ExpressionEntity {
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);
-			if (typeof key !== 'string') {
-				if (key === UnknownInteger) {
-					unknownIntegerProps.push(property);
-					continue;
-				}
-				if (kind === 'set') unmatchableSetters.push(property);
-				if (kind === 'get') unmatchableGetters.push(property);
-				if (kind !== 'get') unmatchablePropertiesAndSetters.push(property);
-				if (kind !== 'set') unmatchablePropertiesAndGetters.push(property);
-			} else {
+			if (typeof key === 'string') {
 				if (kind === 'set') {
 					if (!propertiesAndSettersByKey[key]) {
 						propertiesAndSettersByKey[key] = [property, ...unmatchablePropertiesAndSetters];
@@ -370,6 +361,15 @@ export class ObjectEntity extends ExpressionEntity {
 						propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters];
 					}
 				}
+			} else {
+				if (key === UnknownInteger) {
+					unknownIntegerProps.push(property);
+					continue;
+				}
+				if (kind === 'set') unmatchableSetters.push(property);
+				if (kind === 'get') unmatchableGetters.push(property);
+				if (kind !== 'get') unmatchablePropertiesAndSetters.push(property);
+				if (kind !== 'set') unmatchablePropertiesAndGetters.push(property);
 			}
 		}
 	}

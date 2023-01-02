@@ -1,8 +1,8 @@
-import { promises as fs } from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 export async function findConfigFileName(targetDirectory) {
-	const filesInWorkingDirectory = new Set(await fs.readdir(targetDirectory));
+	const filesInWorkingDirectory = new Set(await readdir(targetDirectory));
 	for (const extension of ['mjs', 'cjs', 'ts', 'js']) {
 		const fileName = `rollup.config.${extension}`;
 		if (filesInWorkingDirectory.has(fileName)) return resolve(targetDirectory, fileName);
