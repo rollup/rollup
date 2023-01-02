@@ -30,7 +30,7 @@ import {
 	errorUnresolvedImport,
 	errorUnresolvedImportTreatedAsExternal
 } from './utils/error';
-import { promises as fs } from './utils/fs';
+import { readFile } from './utils/fs';
 import { doAssertionsDiffer, getAssertionsFromImportExpression } from './utils/parseAssertions';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
@@ -259,7 +259,7 @@ export class ModuleLoader {
 		try {
 			source = await this.graph.fileOperationQueue.run(
 				async () =>
-					(await this.pluginDriver.hookFirst('load', [id])) ?? (await fs.readFile(id, 'utf8'))
+					(await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id, 'utf8'))
 			);
 		} catch (error_: any) {
 			let message = `Could not load ${id}`;
