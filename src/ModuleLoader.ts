@@ -131,16 +131,16 @@ export class ModuleLoader {
 					const existingIndexedModule = this.indexedEntryModules.find(
 						indexedModule => indexedModule.module === entryModule
 					);
-					if (!existingIndexedModule) {
-						this.indexedEntryModules.push({
-							index: firstEntryModuleIndex + index,
-							module: entryModule
-						});
-					} else {
+					if (existingIndexedModule) {
 						existingIndexedModule.index = Math.min(
 							existingIndexedModule.index,
 							firstEntryModuleIndex + index
 						);
+					} else {
+						this.indexedEntryModules.push({
+							index: firstEntryModuleIndex + index,
+							module: entryModule
+						});
 					}
 				}
 				this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>

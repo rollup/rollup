@@ -94,10 +94,10 @@ export default class ArrayExpression extends NodeBase {
 					hasSpread = true;
 					properties.unshift({ key: UnknownInteger, kind: 'init', property: element });
 				}
-			} else if (!element) {
-				properties.push({ key: String(index), kind: 'init', property: UNDEFINED_EXPRESSION });
-			} else {
+			} else if (element) {
 				properties.push({ key: String(index), kind: 'init', property: element });
+			} else {
+				properties.push({ key: String(index), kind: 'init', property: UNDEFINED_EXPRESSION });
 			}
 		}
 		return (this.objectEntity = new ObjectEntity(properties, ARRAY_PROTOTYPE));

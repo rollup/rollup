@@ -268,7 +268,7 @@ The following will add minification to one of the outputs:
 
 ```js
 // rollup.config.js
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 
 export default {
   input: 'main.js',
@@ -301,7 +301,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export default (async () => ({
   input: 'main.js',
-  plugins: [resolve(), commonjs(), isProduction && (await import('rollup-plugin-terser')).terser()],
+  plugins: [
+    resolve(),
+    commonjs(),
+    isProduction && (await import('@rollup/plugin-terser')).default()
+  ],
   output: {
     file: 'bundle.js',
     format: 'cjs'
