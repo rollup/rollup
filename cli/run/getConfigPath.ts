@@ -1,4 +1,4 @@
-import { promises as fs } from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
 import { errorMissingExternalConfig } from '../../src/utils/error';
@@ -31,7 +31,7 @@ export async function getConfigPath(commandConfig: string | true): Promise<strin
 }
 
 async function findConfigFileNameInCwd(): Promise<string> {
-	const filesInWorkingDirectory = new Set(await fs.readdir(cwd()));
+	const filesInWorkingDirectory = new Set(await readdir(cwd()));
 	for (const extension of ['mjs', 'cjs', 'ts']) {
 		const fileName = `${DEFAULT_CONFIG_BASE}.${extension}`;
 		if (filesInWorkingDirectory.has(fileName)) return fileName;

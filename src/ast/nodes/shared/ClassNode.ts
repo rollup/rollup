@@ -89,9 +89,9 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	): boolean {
 		return interaction.type === INTERACTION_CALLED && path.length === 0
 			? !interaction.withNew ||
-					(this.classConstructor !== null
-						? this.classConstructor.hasEffectsOnInteractionAtPath(path, interaction, context)
-						: this.superClass?.hasEffectsOnInteractionAtPath(path, interaction, context)) ||
+					(this.classConstructor === null
+						? this.superClass?.hasEffectsOnInteractionAtPath(path, interaction, context)
+						: this.classConstructor.hasEffectsOnInteractionAtPath(path, interaction, context)) ||
 					false
 			: this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 	}

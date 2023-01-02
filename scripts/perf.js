@@ -1,4 +1,4 @@
-/* eslint-disable import/no-unresolved */
+/* TODO add cmment again eslint-disable import/no-unresolved */
 /* global gc */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -96,10 +96,10 @@ async function calculatePrintAndPersistTimings(config, existingTimings) {
 		const currentTimings = await buildAndGetTimings(config);
 		clearLines(numberOfLinesToClear);
 		for (const label of Object.keys(timings)) {
-			if (!currentTimings.hasOwnProperty(label)) {
-				delete timings[label];
-			} else {
+			if (currentTimings.hasOwnProperty(label)) {
 				timings[label].push(currentTimings[label]);
+			} else {
+				delete timings[label];
 			}
 		}
 	}

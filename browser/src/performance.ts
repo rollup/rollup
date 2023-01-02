@@ -1,5 +1,5 @@
 const global =
-	typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : {};
+	typeof globalThis === 'undefined' ? (typeof window === 'undefined' ? {} : window) : globalThis;
 
 export default 'performance' in global
 	? performance
