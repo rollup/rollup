@@ -21,8 +21,8 @@ const foo = 100;
 
 var ns = /*#__PURE__*/_mergeNamespaces({
   __proto__: null,
-  foo: foo,
-  default: d
+  default: d,
+  foo: foo
 }, [d]);
 
 const stuff = 12;

@@ -9,8 +9,9 @@ module.exports = {
 		'plugin:@typescript-eslint/recommended',
 		'prettier',
 		'plugin:prettier/recommended',
-		'plugin:import/recommended',
-		'plugin:import/typescript',
+		// Disabled until security issues of eslint-plugin-import have been resolved
+		// 'plugin:import/recommended',
+		// 'plugin:import/typescript',
 		'plugin:unicorn/recommended'
 	],
 	ignorePatterns: [
@@ -80,14 +81,15 @@ module.exports = {
 		],
 		'arrow-body-style': ['error', 'as-needed'],
 		'dot-notation': 'error',
-		'import/no-unresolved': [
-			'error',
-			{
-				// 'fsevents' is ony available on macOS, and not installed on linux/windows
-				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types']
-			}
-		],
-		'import/order': ['error', { alphabetize: { order: 'asc' } }],
+		// Disabled until security issues of eslint-plugin-import have been resolved
+		// 'import/no-unresolved': [
+		// 	'error',
+		// 	{
+		// 		// 'fsevents' is ony available on macOS, and not installed on linux/windows
+		// 		ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types']
+		// 	}
+		// ],
+		// 'import/order': ['error', { alphabetize: { order: 'asc' } }],
 		'no-constant-condition': ['error', { checkLoops: false }],
 		'no-prototype-builtins': 'off',
 		'object-shorthand': 'error',

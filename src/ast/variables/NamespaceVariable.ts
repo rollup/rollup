@@ -74,8 +74,11 @@ export default class NamespaceVariable extends Variable {
 		if (this.memberVariables) {
 			return this.memberVariables;
 		}
+
 		const memberVariables: { [name: string]: Variable } = Object.create(null);
-		for (const name of [...this.context.getExports(), ...this.context.getReexports()]) {
+		const sortedExports = [...this.context.getExports(), ...this.context.getReexports()].sort();
+
+		for (const name of sortedExports) {
 			if (name[0] !== '*' && name !== this.module.info.syntheticNamedExports) {
 				const exportedVariable = this.context.traceExport(name);
 				if (exportedVariable) {

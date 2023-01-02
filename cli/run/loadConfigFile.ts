@@ -1,4 +1,4 @@
-import { promises as fs } from 'node:fs';
+import { unlink, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join } from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
@@ -132,12 +132,12 @@ async function loadConfigFromWrittenFile(
 	bundledFileName: string,
 	bundledCode: string
 ): Promise<unknown> {
-	await fs.writeFile(bundledFileName, bundledCode);
+	await writeFile(bundledFileName, bundledCode);
 	try {
 		return (await import(pathToFileURL(bundledFileName).href)).default;
 	} finally {
 		// Not awaiting here saves some ms while potentially hiding a non-critical error
-		fs.unlink(bundledFileName);
+		unlink(bundledFileName);
 	}
 }
 

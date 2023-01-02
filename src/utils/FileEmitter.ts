@@ -285,9 +285,9 @@ export class FileEmitter {
 
 	private emitAsset(emittedAsset: EmittedFile): string {
 		const source =
-			typeof emittedAsset.source !== 'undefined'
-				? getValidSource(emittedAsset.source, emittedAsset, null)
-				: undefined;
+			emittedAsset.source === undefined
+				? undefined
+				: getValidSource(emittedAsset.source, emittedAsset, null);
 		const consumedAsset: ConsumedAsset = {
 			fileName: emittedAsset.fileName,
 			name: emittedAsset.name,

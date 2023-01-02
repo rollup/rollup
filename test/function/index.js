@@ -27,13 +27,13 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 			return exportsMap[outputId];
 		}
 		const code = codeMap[outputId];
-		return typeof code !== 'undefined'
-			? (exportsMap[outputId] = requireWithContext(
+		return code === undefined
+			? require(importee)
+			: (exportsMap[outputId] = requireWithContext(
 					code,
 					{ require: requireFromOutputVia(outputId), ...context },
 					(exportsMap[outputId] = {})
-			  ))
-			: require(importee);
+			  ));
 	};
 
 	const context = { assert, ...configContext };
