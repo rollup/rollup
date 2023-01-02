@@ -10,7 +10,7 @@ import {
 
 export function getExportBlock(
 	exports: ChunkExports,
-	dependencies: ChunkDependency[],
+	dependencies: readonly ChunkDependency[],
 	namedExportsMode: boolean,
 	interop: GetInterop,
 	snippets: GenerateCodeSnippets,
@@ -117,7 +117,7 @@ export function getExportBlock(
 
 function getSingleDefaultExport(
 	exports: ChunkExports,
-	dependencies: ChunkDependency[],
+	dependencies: readonly ChunkDependency[],
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	getPropertyAccess: (name: string) => string

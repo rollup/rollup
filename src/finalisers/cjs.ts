@@ -73,7 +73,7 @@ export default function cjs(
 }
 
 function getImportBlock(
-	dependencies: ChunkDependency[],
+	dependencies: readonly ChunkDependency[],
 	{ _, cnst, n }: GenerateCodeSnippets,
 	compact: boolean
 ): string {

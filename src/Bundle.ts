@@ -267,7 +267,7 @@ function getIncludedModules(modulesById: ReadonlyMap<string, Module | ExternalMo
 }
 
 function getAbsoluteEntryModulePaths(
-	includedModules: Module[],
+	includedModules: readonly Module[],
 	preserveModules: boolean
 ): string[] {
 	const absoluteEntryModulePaths: string[] = [];

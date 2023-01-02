@@ -6,8 +6,8 @@ import ChildScope from './ChildScope';
 import type Scope from './Scope';
 
 export default class ClassBodyScope extends ChildScope {
-	instanceScope: ChildScope;
-	thisVariable: LocalVariable;
+	readonly instanceScope: ChildScope;
+	readonly thisVariable: LocalVariable;
 
 	constructor(parent: Scope, classNode: ClassNode, context: AstContext) {
 		super(parent);

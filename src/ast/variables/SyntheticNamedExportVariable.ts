@@ -4,9 +4,9 @@ import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
 export default class SyntheticNamedExportVariable extends Variable {
-	context: AstContext;
-	module: Module;
-	syntheticNamespace: Variable;
+	readonly context: AstContext;
+	readonly module: Module;
+	readonly syntheticNamespace: Variable;
 
 	private baseVariable: Variable | null = null;
 

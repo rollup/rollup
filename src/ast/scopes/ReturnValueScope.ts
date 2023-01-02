@@ -4,7 +4,7 @@ import ParameterScope from './ParameterScope';
 
 export default class ReturnValueScope extends ParameterScope {
 	private returnExpression: ExpressionEntity | null = null;
-	private returnExpressions: ExpressionEntity[] = [];
+	private readonly returnExpressions: ExpressionEntity[] = [];
 
 	addReturnExpression(expression: ExpressionEntity): void {
 		this.returnExpressions.push(expression);

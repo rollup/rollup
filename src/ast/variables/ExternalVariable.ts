@@ -6,8 +6,8 @@ import type { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {
-	isNamespace: boolean;
-	module: ExternalModule;
+	readonly isNamespace: boolean;
+	readonly module: ExternalModule;
 	referenced = false;
 
 	constructor(module: ExternalModule, name: string) {
