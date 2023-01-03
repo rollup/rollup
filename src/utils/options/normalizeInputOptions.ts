@@ -217,7 +217,7 @@ const getModuleContext = (
 		for (const [key, moduleContext] of Object.entries(configModuleContext)) {
 			contextByModuleId[resolve(key)] = moduleContext;
 		}
-		return id => contextByModuleId[id] || context;
+		return id => contextByModuleId[id] ?? context;
 	}
 	return () => context;
 };

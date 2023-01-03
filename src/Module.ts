@@ -771,12 +771,12 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
-		const moduleAst = ast || this.tryParse();
+		const moduleAst = ast ?? this.tryParse();
 
 		timeEnd('generate ast', 3);
 		timeStart('analyze ast', 3);
 
-		this.resolvedIds = resolvedIds || Object.create(null);
+		this.resolvedIds = resolvedIds ?? Object.create(null);
 
 		// By default, `id` is the file name. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source file name
