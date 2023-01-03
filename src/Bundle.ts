@@ -142,7 +142,6 @@ export default class Bundle {
 				if ('code' in file) {
 					try {
 						this.graph.contextParse(file.code, {
-							allowHashBang: true,
 							ecmaVersion: 'latest'
 						});
 					} catch (error_: any) {

@@ -96,9 +96,7 @@ const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
 };
 
 const getAcorn = (config: InputOptions): acorn.Options => ({
-	allowAwaitOutsideFunction: true,
 	ecmaVersion: 'latest',
-	preserveParens: false,
 	sourceType: 'module',
 	...config.acorn
 });

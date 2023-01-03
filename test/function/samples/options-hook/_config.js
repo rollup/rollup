@@ -10,9 +10,7 @@ module.exports = {
 			buildStart(options) {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
 					acorn: {
-						allowAwaitOutsideFunction: true,
 						ecmaVersion: 'latest',
-						preserveParens: false,
 						sourceType: 'module'
 					},
 					acornInjectPlugins: [null],
