@@ -910,14 +910,6 @@ export default class Module {
 		return null;
 	}
 
-	tryParse(): acorn.Node {
-		try {
-			return this.graph.contextParse(this.info.code!);
-		} catch (error_: any) {
-			return this.error(errorParseError(error_, this.id), error_.pos);
-		}
-	}
-
 	updateOptions({
 		meta,
 		moduleSideEffects,
@@ -1258,6 +1250,14 @@ export default class Module {
 	private shimMissingExport(name: string): void {
 		this.options.onwarn(errorShimmedExport(this.id, name));
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
+	}
+
+	private tryParse(): acorn.Node {
+		try {
+			return this.graph.contextParse(this.info.code!);
+		} catch (error_: any) {
+			return this.error(errorParseError(error_, this.id), error_.pos);
+		}
 	}
 }
 
