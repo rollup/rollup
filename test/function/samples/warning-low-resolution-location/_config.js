@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { encode } = require('sourcemap-codec');
+const { encode } = require('@jridgewell/sourcemap-codec');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
