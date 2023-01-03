@@ -206,10 +206,7 @@ const getModuleContext = (
 	config: InputOptions,
 	context: string
 ): NormalizedInputOptions['moduleContext'] => {
-	const configModuleContext = config.moduleContext as
-		| ((id: string) => string | null | undefined)
-		| { [id: string]: string }
-		| undefined;
+	const configModuleContext = config.moduleContext;
 	if (typeof configModuleContext === 'function') {
 		return id => configModuleContext(id) ?? context;
 	}
