@@ -32,16 +32,18 @@ module.exports = {
 			{
 				name: 'plugin3',
 				async buildEnd() {
-					const [resolvedFooId, resolvedBarId, resolvedOtherId, resolveMainId] = await Promise.all([
-						this.resolve(FOO_IMPORTED_PATH),
-						this.resolve(BAR_IMPORTED_PATH),
-						this.resolve(OTHER_IMPORTED_PATH),
-						this.resolve(MAIN_PATH)
-					]);
+					const [resolvedFooId, resolvedBarId, resolvedOtherId, resolvedMainId] = await Promise.all(
+						[
+							this.resolve(FOO_IMPORTED_PATH),
+							this.resolve(BAR_IMPORTED_PATH),
+							this.resolve(OTHER_IMPORTED_PATH),
+							this.resolve(MAIN_PATH)
+						]
+					);
 					assert.equal(resolvedFooId.resolveBy, 'plugin1');
 					assert.equal(resolvedBarId.resolveBy, 'barByPlugin2');
 					assert.equal(resolvedOtherId.resolveBy, 'rollup');
-					assert.equal(resolveMainId.resolveBy, 'rollup');
+					assert.equal(resolvedMainId.resolveBy, 'rollup');
 				}
 			}
 		]
