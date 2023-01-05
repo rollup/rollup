@@ -216,6 +216,7 @@ export interface PluginContextMeta {
 export interface ResolvedId extends ModuleOptions {
 	external: boolean | 'absolute';
 	id: string;
+	resolveBy: string;
 }
 
 export interface ResolvedIdMap {
@@ -225,6 +226,7 @@ export interface ResolvedIdMap {
 interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean | 'absolute' | 'relative';
 	id: string;
+	resolveBy?: string;
 }
 
 export type ResolveIdResult = string | NullValue | false | PartialResolvedId;
@@ -935,3 +937,5 @@ export function defineConfig(optionsFunction: RollupOptionsFunction): RollupOpti
 export type RollupOptionsFunction = (
 	commandLineArguments: Record<string, any>
 ) => MaybePromise<RollupOptions | RollupOptions[]>;
+
+export type CallBeforeRunHook = (plugin: Plugin) => void;

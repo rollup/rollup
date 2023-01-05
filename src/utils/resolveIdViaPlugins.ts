@@ -1,5 +1,11 @@
 import type { ModuleLoaderResolveId } from '../ModuleLoader';
-import type { CustomPluginOptions, Plugin, PluginContext, ResolveIdResult } from '../rollup/types';
+import type {
+	CallBeforeRunHook,
+	CustomPluginOptions,
+	Plugin,
+	PluginContext,
+	ResolveIdResult
+} from '../rollup/types';
 import type { PluginDriver, ReplaceContext } from './PluginDriver';
 import { BLANK, EMPTY_OBJECT } from './blank';
 
@@ -11,7 +17,8 @@ export function resolveIdViaPlugins(
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
-	assertions: Record<string, string>
+	assertions: Record<string, string>,
+	callBeforeRunHook?: CallBeforeRunHook
 ): Promise<ResolveIdResult> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
@@ -39,6 +46,7 @@ export function resolveIdViaPlugins(
 		'resolveId',
 		[source, importer, { assertions, custom: customOptions, isEntry }],
 		replaceContext,
-		skipped
+		skipped,
+		callBeforeRunHook
 	);
 }
