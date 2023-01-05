@@ -11,10 +11,13 @@ export default function relativeId(id: string): string {
 	return relative(resolve(), id);
 }
 
-export function isPathFragment(name: string): boolean {
+export function isPathFragment(name: string, loose?: boolean): boolean {
 	// starting with "/", "./", "../", "C:/"
 	return (
-		name[0] === '/' || (name[0] === '.' && (name[1] === '/' || name[1] === '.')) || isAbsolute(name)
+		name[0] === '/' ||
+		// support relative paths in a loose mode
+		(!loose && name[0] === '.' && (name[1] === '/' || name[1] === '.')) ||
+		isAbsolute(name)
 	);
 }
 

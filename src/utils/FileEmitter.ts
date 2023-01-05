@@ -108,7 +108,9 @@ function hasValidName(emittedFile: {
 	type: 'asset' | 'chunk';
 }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
-	return !validatedName || (typeof validatedName === 'string' && !isPathFragment(validatedName));
+	return (
+		!validatedName || (typeof validatedName === 'string' && !isPathFragment(validatedName, true))
+	);
 }
 
 function getValidSource(
@@ -186,7 +188,7 @@ export class FileEmitter {
 		if (!hasValidName(emittedFile)) {
 			return error(
 				errorFailedValidation(
-					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${
+					`The "fileName" or "name" properties of emitted files must be strings that are not absolute paths, received "${
 						emittedFile.fileName || emittedFile.name
 					}".`
 				)
