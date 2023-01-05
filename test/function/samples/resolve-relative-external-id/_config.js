@@ -13,6 +13,7 @@ module.exports = {
 					id: path.join(__dirname, 'external.js'),
 					meta: {},
 					moduleSideEffects: true,
+					resolveBy: 'rollup',
 					syntheticNamedExports: false
 				});
 				assert.deepStrictEqual(
@@ -23,6 +24,7 @@ module.exports = {
 						id: path.join(__dirname, 'nested', 'external.js'),
 						meta: {},
 						moduleSideEffects: true,
+						resolveBy: 'rollup',
 						syntheticNamedExports: false
 					}
 				);

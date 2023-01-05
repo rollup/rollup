@@ -132,6 +132,7 @@ module.exports = {
 									id: ID_PATH,
 									meta: {},
 									moduleSideEffects: true,
+									resolveBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],
@@ -277,6 +278,7 @@ module.exports = {
 									id: ID_NESTED,
 									meta: {},
 									moduleSideEffects: true,
+									resolveBy: 'rollup',
 									syntheticNamedExports: false
 								},
 								{
@@ -285,6 +287,7 @@ module.exports = {
 									id: ID_PATH,
 									meta: {},
 									moduleSideEffects: true,
+									resolveBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],
@@ -306,6 +309,7 @@ module.exports = {
 									id: ID_FOO,
 									meta: {},
 									moduleSideEffects: true,
+									resolveBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],
@@ -401,6 +405,7 @@ module.exports = {
 									id: ID_FOO,
 									meta: {},
 									moduleSideEffects: true,
+									resolveBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],

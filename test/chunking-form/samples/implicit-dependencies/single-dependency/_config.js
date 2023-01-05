@@ -85,6 +85,7 @@ module.exports = {
 							id: ID_LIB,
 							meta: {},
 							moduleSideEffects: true,
+							resolveBy: 'rollup',
 							syntheticNamedExports: false
 						}
 					],
@@ -162,6 +163,7 @@ module.exports = {
 							id: ID_LIB,
 							meta: {},
 							moduleSideEffects: true,
+							resolveBy: 'rollup',
 							syntheticNamedExports: false
 						}
 					],
