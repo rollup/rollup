@@ -1,6 +1,7 @@
 .DS_Store
 /node_modules
 .gobble*
+cache
 dist
 _actual
 _actual.js

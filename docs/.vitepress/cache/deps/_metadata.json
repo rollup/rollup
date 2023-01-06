@@ -1,0 +1,71 @@
+{
+  "hash": "a657da56",
+  "browserHash": "ec55d038",
+  "optimized": {
+    "vue": {
+      "src": "../../../../node_modules/vue/dist/vue.runtime.esm-bundler.js",
+      "file": "vue.js",
+      "fileHash": "16c4b2fc",
+      "needsInterop": false
+    },
+    "pinia": {
+      "src": "../../../../node_modules/pinia/dist/pinia.mjs",
+      "file": "pinia.js",
+      "fileHash": "543ed0ca",
+      "needsInterop": false
+    },
+    "@codemirror/view": {
+      "src": "../../../../node_modules/@codemirror/view/dist/index.js",
+      "file": "@codemirror_view.js",
+      "fileHash": "d25fd317",
+      "needsInterop": false
+    },
+    "@codemirror/state": {
+      "src": "../../../../node_modules/@codemirror/state/dist/index.js",
+      "file": "@codemirror_state.js",
+      "fileHash": "4d06d5fe",
+      "needsInterop": false
+    },
+    "@codemirror/language": {
+      "src": "../../../../node_modules/@codemirror/language/dist/index.js",
+      "file": "@codemirror_language.js",
+      "fileHash": "15fd15da",
+      "needsInterop": false
+    },
+    "@codemirror/commands": {
+      "src": "../../../../node_modules/@codemirror/commands/dist/index.js",
+      "file": "@codemirror_commands.js",
+      "fileHash": "b67eaa98",
+      "needsInterop": false
+    },
+    "@codemirror/autocomplete": {
+      "src": "../../../../node_modules/@codemirror/autocomplete/dist/index.js",
+      "file": "@codemirror_autocomplete.js",
+      "fileHash": "2bf81ffe",
+      "needsInterop": false
+    },
+    "@codemirror/lang-javascript": {
+      "src": "../../../../node_modules/@codemirror/lang-javascript/dist/index.js",
+      "file": "@codemirror_lang-javascript.js",
+      "fileHash": "4f360a03",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-6VIQZVAJ": {
+      "file": "chunk-6VIQZVAJ.js"
+    },
+    "chunk-4RB5SIJ6": {
+      "file": "chunk-4RB5SIJ6.js"
+    },
+    "chunk-2MYQJOSS": {
+      "file": "chunk-2MYQJOSS.js"
+    },
+    "chunk-Q36JF3OM": {
+      "file": "chunk-Q36JF3OM.js"
+    },
+    "chunk-UGM4PYQV": {
+      "file": "chunk-UGM4PYQV.js"
+    }
+  }
+}

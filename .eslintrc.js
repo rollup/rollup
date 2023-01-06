@@ -19,9 +19,11 @@ module.exports = {
 		'perf',
 		'tmp',
 		'_tmp',
+		'cache',
 		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',
-		'!/test/*/samples/**/rollup.config.js'
+		'!/test/*/samples/**/rollup.config.js',
+		'!.vitepress'
 	],
 	overrides: [
 		{
@@ -46,6 +48,14 @@ module.exports = {
 			rules: {
 				'sort-keys': 'off'
 			}
+		},
+		{
+			extends: [
+				'plugin:vue/vue3-essential',
+				'@vue/eslint-config-typescript/recommended',
+				'@vue/eslint-config-prettier'
+			],
+			files: ['*.vue']
 		}
 	],
 	parser: '@typescript-eslint/parser',

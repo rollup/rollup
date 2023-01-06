@@ -1,5 +1,5 @@
 ---
-title: Big list of options
+title: Configuration Options
 ---
 
 ### Core functionality
