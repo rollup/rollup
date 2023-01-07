@@ -1,14 +1,14 @@
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
+import { fileURLToPath } from 'node:url';
 import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import addCliEntry from './build-plugins/add-cli-entry';
+import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import copyTypes from './build-plugins/copy-types';
@@ -26,15 +26,6 @@ const onwarn: WarningHandlerWithDefault = warning => {
 	);
 	// eslint-disable-next-line unicorn/error-message
 	throw Object.assign(new Error(), warning);
-};
-
-const moduleAliases = {
-	entries: {
-		acorn: resolve('node_modules/acorn/dist/acorn.mjs'),
-		'help.md': resolve('cli/help.md'),
-		'package.json': resolve('package.json')
-	},
-	resolve: ['.js', '.json', '.md']
 };
 
 const treeshake = {

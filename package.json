@@ -13,6 +13,7 @@
     "dev": "vitepress dev docs",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
     "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript",
+    "build:docs": "vitepress build docs",
     "ci:lint": "concurrently 'npm:lint:js:nofix' 'npm:lint:markdown:nofix'",
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",

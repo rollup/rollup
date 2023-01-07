@@ -103,7 +103,7 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 		output: [],
 		warnings: []
 	});
-	let bundleDebounceTimeout: number | undefined;
+	let bundleDebounceTimeout: ReturnType<typeof setTimeout> | undefined;
 	let nextBundleRequest: BundleRequest | null = null;
 	let completedRequestHash = '';
 

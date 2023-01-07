@@ -22,6 +22,12 @@ function getRollupUrl({ type, version }: RollupRequest) {
 }
 
 function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
+	if (import.meta.env.DEV && (!rollupRequest.version || rollupRequest.version === 'local')) {
+		return import('../../../src/browser-entry').then(result => ({
+			...result,
+			VERSION: 'local'
+		})) as any;
+	}
 	const url = getRollupUrl(rollupRequest);
 	return new Promise((fulfil, reject) => {
 		const script = document.createElement('script');
