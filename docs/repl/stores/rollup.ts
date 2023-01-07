@@ -1,10 +1,8 @@
-import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
-import type { RollupRequest } from './rollupRequest';
-import { useRollupRequest } from './rollupRequest';
-import { ref, watch } from 'vue';
-import type { RollupBuild, RollupOptions } from 'rollup';
-import type * as Rollup from 'rollup';
 import { defineStore } from 'pinia';
+import type * as Rollup from 'rollup';
+import type { RollupBuild, RollupOptions } from 'rollup';
+import { ref } from 'vue';
+import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
 
 function getRollupUrl({ type, version }: RollupRequest) {
 	if (type === 'pr') {
@@ -60,49 +58,45 @@ export type RequestedRollupInstance =
 			[key in keyof RollupInstance]: key extends 'error' ? false | Error : null;
 	  };
 
+interface RollupRequest {
+	type: 'version' | 'pr';
+	version: string;
+}
+
 export const useRollup = defineStore('rollup', () => {
-	const requestStore = useRollupRequest();
 	const rollup = ref<RequestedRollupInstance>({
 		error: false,
 		rollup: null,
 		version: null
 	});
+	const request = ref<RollupRequest | null>(null);
 
-	let currentRollupRequest: RollupRequest = { type: null, version: null };
-
-	function isRollupRequestCurrent(rollupRequest: RollupRequest) {
-		return (
-			rollupRequest.type === currentRollupRequest.type &&
-			rollupRequest.version === currentRollupRequest.version
-		);
+	async function requestRollup(rollupRequest: RollupRequest) {
+		try {
+			request.value = rollupRequest;
+			const loadedRollup = await loadRollup(rollupRequest);
+			rollup.value = {
+				error: false,
+				rollup: loadedRollup.rollup,
+				version: loadedRollup.VERSION
+			};
+		} catch (error) {
+			rollup.value = {
+				error: error as Error,
+				rollup: null,
+				version: null
+			};
+		}
 	}
 
-	watch(
-		() => requestStore.request,
-		async request => {
-			if (request.type && !isRollupRequestCurrent(request)) {
-				currentRollupRequest = request;
-				try {
-					const loadedRollup = await loadRollup(request);
-					if (isRollupRequestCurrent(request)) {
-						rollup.value = {
-							error: false,
-							rollup: loadedRollup.rollup,
-							version: loadedRollup.VERSION
-						};
-					}
-				} catch (error) {
-					if (isRollupRequestCurrent(request)) {
-						rollup.value = {
-							error: error as Error,
-							rollup: null,
-							version: null
-						};
-					}
-				}
-			}
-		}
-	);
-
-	return { rollup };
+	return {
+		request,
+		requestPr(version: string) {
+			return requestRollup({ type: 'pr', version });
+		},
+		requestVersion(version: string) {
+			return requestRollup({ type: 'version', version });
+		},
+		rollup
+	};
 });

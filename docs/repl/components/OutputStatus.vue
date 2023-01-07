@@ -34,7 +34,6 @@ const rollupStore = useRollup();
 const rollupOutputStore = useRollupOutput();
 
 const waiting = computed(() => !(rollupStore.rollup.rollup || rollupStore.rollup.error));
-// TODO Lukas also show load errors here
 const error = computed(() => rollupOutputStore.output.error);
 const warnings = computed(() => rollupOutputStore.output.warnings);
 </script>

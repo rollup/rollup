@@ -1,15 +1,14 @@
+import type { OutputOptions } from 'rollup';
+import { watch } from 'vue';
 import type { Module } from '../stores/modules';
 import { useModules } from '../stores/modules';
 import { useOptions } from '../stores/options';
-import { useRollupRequest } from '../stores/rollupRequest';
-import type { OutputOptions } from 'rollup';
-import { watch } from 'vue';
 import { useRollup } from '../stores/rollup';
 
 export async function useUpdateStoresFromQuery() {
 	const modulesStore = useModules();
 	const optionsStore = useOptions();
-	const rollupRequestStore = useRollupRequest();
+	const rollupStore = useRollup();
 	const urlParameters = new URLSearchParams(location.search);
 	const query = Object.fromEntries(urlParameters as unknown as Iterable<[string, string]>);
 	try {
@@ -56,31 +55,30 @@ export async function useUpdateStoresFromQuery() {
 	}
 
 	if (query.pr) {
-		rollupRequestStore.requestPr(query.pr);
+		rollupStore.requestPr(query.pr);
 	} else {
-		rollupRequestStore.requestVersion(query.version);
+		rollupStore.requestVersion(query.version);
 	}
 }
 
 export function useSyncQueryWithStores() {
 	const modulesStore = useModules();
 	const optionsStore = useOptions();
-	const rollupRequestStore = useRollupRequest();
 	const rollupStore = useRollup();
 	watch(
 		[
 			() => modulesStore.modules,
 			() => optionsStore.options,
 			() => modulesStore.selectedExample,
-			() => rollupRequestStore.request,
+			() => rollupStore.request,
 			() => rollupStore.rollup.version
 		],
 		([modules, options, selectedExample, rollupRequest, rollupVersion]) => {
 			const parameters: Record<string, string> = {};
-			if (rollupRequest.type === 'pr') {
+			if (rollupRequest?.type === 'pr') {
 				parameters.pr = rollupRequest.version;
 			} else {
-				const version = rollupRequest.version || rollupVersion;
+				const version = rollupVersion || rollupRequest?.version;
 				if (version) {
 					parameters.version = version;
 				}
