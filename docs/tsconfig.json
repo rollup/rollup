@@ -10,7 +10,8 @@
     "resolveJsonModule": true,
     "jsx": "preserve",
     "lib": ["ESNext", "DOM"],
-    "types": []
+    "types": ["vite/client"],
+    "isolatedModules": true
   },
   "exclude": ["**/node_modules/**", "**/dist/**"]
 }

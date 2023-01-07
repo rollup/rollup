@@ -1,3 +1,4 @@
+import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
 import type { RollupRequest } from './rollupRequest';
 import { useRollupRequest } from './rollupRequest';
 import { ref, watch } from 'vue';
@@ -5,20 +6,23 @@ import type { RollupBuild, RollupOptions } from 'rollup';
 import type * as Rollup from 'rollup';
 import { defineStore } from 'pinia';
 
-async function getRollupUrl({ type, version }: RollupRequest) {
+function getRollupUrl({ type, version }: RollupRequest) {
 	if (type === 'pr') {
 		return `https://rollup-ci-artefacts.s3.amazonaws.com/${version}/rollup.browser.js`;
 	} else if (version) {
-		const majorVersion = parseInt(version.split('.')[0]);
-		return majorVersion < 3
-			? `https://unpkg.com/rollup@${version}/dist/rollup.browser.js`
-			: `https://unpkg.com/@rollup/browser@${version}`;
+		if (isRollupVersionAtLeast(version, 3, 0)) {
+			return `https://unpkg.com/@rollup/browser@${version}`;
+		}
+		if (isRollupVersionAtLeast(version, 1, 0)) {
+			return `https://unpkg.com/rollup@${version}/dist/rollup.browser.js`;
+		}
+		throw new Error('The REPL only supports Rollup versions >= 1.0.0.');
 	}
 	return 'https://unpkg.com/@rollup/browser';
 }
 
-async function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
-	const url = await getRollupUrl(rollupRequest);
+function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
+	const url = getRollupUrl(rollupRequest);
 	return new Promise((fulfil, reject) => {
 		const script = document.createElement('script');
 		script.src = url;
