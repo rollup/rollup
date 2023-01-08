@@ -1,4 +1,4 @@
-import type { OutputOptions } from 'rollup';
+import type { OutputOptions } from '../../../src/rollup/types';
 import { watch } from 'vue';
 import type { Module } from '../stores/modules';
 import { useModules } from '../stores/modules';
@@ -55,9 +55,11 @@ export async function useUpdateStoresFromQuery() {
 	}
 
 	if (query.pr) {
-		rollupStore.requestPr(query.pr);
+		rollupStore.requestRollup({ type: 'pr', version: query.pr });
+	} else if (import.meta.env.DEV && (query.local || !query.version)) {
+		rollupStore.requestRollup({ type: 'local', version: undefined });
 	} else {
-		rollupStore.requestVersion(query.version);
+		rollupStore.requestRollup({ type: 'version', version: query.version });
 	}
 }
 
@@ -77,6 +79,8 @@ export function useSyncQueryWithStores() {
 			const parameters: Record<string, string> = {};
 			if (rollupRequest?.type === 'pr') {
 				parameters.pr = rollupRequest.version;
+			} else if (import.meta.env.DEV && rollupRequest?.type === 'local') {
+				parameters.local = 'true';
 			} else {
 				const version = rollupVersion || rollupRequest?.version;
 				if (version) {

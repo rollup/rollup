@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import type { RollupError } from 'rollup';
+import type { RollupError } from '../../../src/rollup/types';
 import { computed } from 'vue';
 import { getFileNameFromMessage } from '../helpers/messages';
 
@@ -35,7 +35,6 @@ const frame = computed(() => {
 	return '';
 });
 
-// TODO Lukas adjust to updated guide links?
 const isGuideUrl = (url: string) => url && url.startsWith(websitePrefix);
 </script>
 

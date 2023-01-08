@@ -23,7 +23,6 @@ import InputModule from './InputModule.vue';
 import InputHeader from './InputHeader.vue';
 import { ref } from 'vue';
 
-// TODO Lukas fix dark mode
 const modulesStore = useModules();
 let uid = 1;
 const modulesReference = ref<HTMLElement | null>(null);

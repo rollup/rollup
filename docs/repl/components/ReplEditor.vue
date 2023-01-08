@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import type { RollupWarning } from 'rollup';
+import type { RollupWarning } from '../../../src/rollup/types';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import type { EditorView } from '@codemirror/view';
 import type { AddWarnings } from '../helpers/editor';

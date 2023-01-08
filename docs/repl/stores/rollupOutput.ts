@@ -12,7 +12,7 @@ import type {
 	RollupOptions,
 	RollupOutput,
 	RollupWarning
-} from 'rollup';
+} from '../../../src/rollup/types';
 import { ref, watch } from 'vue';
 
 interface GeneratedRollupOutput {

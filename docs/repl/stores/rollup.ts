@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import type * as Rollup from 'rollup';
-import type { RollupBuild, RollupOptions } from 'rollup';
+import type * as Rollup from '../../../src/browser-entry';
+import type { RollupBuild, RollupOptions } from '../../../src/rollup/types';
 import { ref } from 'vue';
 import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
 
@@ -20,11 +20,8 @@ function getRollupUrl({ type, version }: RollupRequest) {
 }
 
 function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
-	if (import.meta.env.DEV && (!rollupRequest.version || rollupRequest.version === 'local')) {
-		return import('../../../src/browser-entry').then(result => ({
-			...result,
-			VERSION: 'local'
-		})) as any;
+	if (import.meta.env.DEV && rollupRequest.type === 'local') {
+		return import('../../../src/browser-entry');
 	}
 	const url = getRollupUrl(rollupRequest);
 	return new Promise((fulfil, reject) => {
@@ -58,10 +55,12 @@ export type RequestedRollupInstance =
 			[key in keyof RollupInstance]: key extends 'error' ? false | Error : null;
 	  };
 
-interface RollupRequest {
-	type: 'version' | 'pr';
-	version: string;
-}
+type RollupRequest =
+	| {
+			type: 'version' | 'local';
+			version: string | undefined;
+	  }
+	| { type: 'pr'; version: string };
 
 export const useRollup = defineStore('rollup', () => {
 	const rollup = ref<RequestedRollupInstance>({
@@ -91,12 +90,7 @@ export const useRollup = defineStore('rollup', () => {
 
 	return {
 		request,
-		requestPr(version: string) {
-			return requestRollup({ type: 'pr', version });
-		},
-		requestVersion(version: string) {
-			return requestRollup({ type: 'version', version });
-		},
+		requestRollup,
 		rollup
 	};
 });
