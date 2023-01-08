@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /guide/introduction
+      link: /00-introduction
     - theme: alt
       text: View on GitHub
       link: https://github.com/rollup/rollup
