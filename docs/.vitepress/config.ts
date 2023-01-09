@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress';
-import '../types/declarations';
+import '../types/declarations.d';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
 export default withMermaid(
