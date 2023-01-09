@@ -1,4 +1,4 @@
-/* TODO add cmment again eslint-disable import/no-unresolved */
+/* eslint-disable import/no-unresolved */
 /* global gc */
 
 import { readFileSync, writeFileSync } from 'node:fs';
