@@ -19,7 +19,7 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	private objectValue: LiteralValueOrUnknown | typeof unset = unset;
 
 	deoptimizeCache(): void {
-		this.objectValue = null;
+		this.objectValue = unset;
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
