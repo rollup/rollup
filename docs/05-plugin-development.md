@@ -127,8 +127,119 @@ Instead of a function, hooks can also be objects. In that case, the actual hook 
 
 Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [`options`](#options), the last one is always [`buildEnd`](#buildend). If there is a build error, [`closeBundle`](#closebundle) will be called after that.
 
-<!-- html:hooks-legend.html -->
-<!-- mermaid:build-hooks.mmd -->
+<style>
+.legend-grid {
+	display: grid;
+	grid-template-columns: max-content max-content;
+	grid-column-gap: 16px;
+}
+
+.legend-rect {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	border-radius: 5px;
+	border: 1px solid #000;
+	vertical-align: middle;
+	margin-right: 5px;
+	background: #fff;
+}
+</style>
+
+<div class="legend-grid">
+	<div style="grid-column: 1; grid-row: 1">
+		<span class="legend-rect" style="background: #ffb3b3"></span>parallel
+	</div>
+	<div style="grid-column: 1; grid-row: 2">
+		<span class="legend-rect" style="background: #ffd2b3"></span>sequential
+	</div>
+	<div style="grid-column: 1; grid-row: 3">
+		<span class="legend-rect" style="background: #fff2b3"></span>first
+	</div>
+	<div style="grid-column: 2; grid-row: 1">
+		<span class="legend-rect" style="border-color: #000"></span>async
+	</div>
+	<div style="grid-column: 2; grid-row: 2">
+		<span class="legend-rect" style="border-color: #f00"></span>sync
+	</div>
+</div>
+
+```mermaid
+flowchart TB
+    classDef default fill:transparent, color:#000;
+    classDef hook-parallel fill:#ffb3b3,stroke:#000;
+    classDef hook-sequential fill:#ffd2b3,stroke:#000;
+    classDef hook-first fill:#fff2b3,stroke:#000;
+    classDef hook-sequential-sync fill:#ffd2b3,stroke:#f00;
+    classDef hook-first-sync fill:#fff2b3,stroke:#f00;
+
+	watchchange("watchChange"):::hook-parallel
+	click watchchange "#watchchange" _parent
+
+    closewatcher("closeWatcher"):::hook-parallel
+	click closewatcher "#closewatcher" _parent
+
+	buildend("buildEnd"):::hook-parallel
+	click buildend "#buildend" _parent
+
+    buildstart("buildStart"):::hook-parallel
+	click buildstart "#buildstart" _parent
+
+	load("load"):::hook-first
+	click load "#load" _parent
+
+	moduleparsed("moduleParsed"):::hook-parallel
+	click moduleparsed "#moduleparsed" _parent
+
+	options("options"):::hook-sequential
+	click options "#options" _parent
+
+	resolvedynamicimport("resolveDynamicImport"):::hook-first
+	click resolvedynamicimport "#resolvedynamicimport" _parent
+
+	resolveid("resolveId"):::hook-first
+	click resolveid "#resolveid" _parent
+
+	shouldtransformcachedmodule("shouldTransformCachedModule"):::hook-first
+	click shouldtransformcachedmodule "#shouldtransformcachedmodule" _parent
+
+	transform("transform"):::hook-sequential
+	click transform "#transform" _parent
+
+    options
+    --> buildstart
+    --> |each entry|resolveid
+    .-> |external|buildend
+
+    resolveid
+    --> |non-external|load
+    --> |not cached|transform
+    --> moduleparsed
+    .-> |no imports|buildend
+
+    load
+    --> |cached|shouldtransformcachedmodule
+    --> |false|moduleparsed
+
+    shouldtransformcachedmodule
+    --> |true|transform
+
+    moduleparsed
+    --> |"each import()"|resolvedynamicimport
+    --> |non-external|load
+
+    moduleparsed
+    --> |"each import\n(cached)"|load
+
+    moduleparsed
+    --> |"each import\n(not cached)"|resolveid
+
+    resolvedynamicimport
+    .-> |external|buildend
+
+    resolvedynamicimport
+    --> |unresolved|resolveid
+```
 
 Additionally, in watch mode the [`watchChange`](#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs. Also, when watcher closes, the [`closeWatcher`](#closewatcher) hook will be triggered.
 
@@ -376,8 +487,126 @@ Output generation hooks can provide information about a generated bundle and mod
 
 The first hook of the output generation phase is [`outputOptions`](#outputoptions), the last one is either [`generateBundle`](#generatebundle) if the output was successfully generated via `bundle.generate(...)`, [`writeBundle`](#writebundle) if the output was successfully generated via `bundle.write(...)`, or [`renderError`](#rendererror) if an error occurred at any time during the output generation.
 
-<!-- html:hooks-legend.html -->
-<!-- mermaid:output-generation-hooks.mmd -->
+<div class="legend-grid">
+	<div style="grid-column: 1; grid-row: 1">
+		<span class="legend-rect" style="background: #ffb3b3"></span>parallel
+	</div>
+	<div style="grid-column: 1; grid-row: 2">
+		<span class="legend-rect" style="background: #ffd2b3"></span>sequential
+	</div>
+	<div style="grid-column: 1; grid-row: 3">
+		<span class="legend-rect" style="background: #fff2b3"></span>first
+	</div>
+	<div style="grid-column: 2; grid-row: 1">
+		<span class="legend-rect" style="border-color: #000"></span>async
+	</div>
+	<div style="grid-column: 2; grid-row: 2">
+		<span class="legend-rect" style="border-color: #f00"></span>sync
+	</div>
+</div>
+
+```mermaid
+flowchart TB
+    classDef default fill:transparent, color:#000;
+    classDef hook-parallel fill:#ffb3b3,stroke:#000;
+    classDef hook-sequential fill:#ffd2b3,stroke:#000;
+    classDef hook-first fill:#fff2b3,stroke:#000;
+    classDef hook-sequential-sync fill:#ffd2b3,stroke:#f00;
+    classDef hook-first-sync fill:#fff2b3,stroke:#f00;
+
+    augmentchunkhash("augmentChunkHash"):::hook-sequential-sync
+    click augmentchunkhash "#augmentchunkhash" _parent
+
+	banner("banner"):::hook-sequential
+	click banner "#banner" _parent
+
+	closebundle("closeBundle"):::hook-parallel
+	click closebundle "#closebundle" _parent
+
+	footer("footer"):::hook-sequential
+	click footer "#footer" _parent
+
+	generatebundle("generateBundle"):::hook-sequential
+	click generatebundle "#generatebundle" _parent
+
+	intro("intro"):::hook-sequential
+	click intro "#intro" _parent
+
+	outputoptions("outputOptions"):::hook-sequential-sync
+	click outputoptions "#outputoptions" _parent
+
+	outro("outro"):::hook-sequential
+	click outro "#outro" _parent
+
+	renderchunk("renderChunk"):::hook-sequential
+	click renderchunk "#renderchunk" _parent
+
+	renderdynamicimport("renderDynamicImport"):::hook-first-sync
+	click renderdynamicimport "#renderdynamicimport" _parent
+
+	rendererror("renderError"):::hook-parallel
+	click rendererror "#rendererror" _parent
+
+	renderstart("renderStart"):::hook-parallel
+	click renderstart "#renderstart" _parent
+
+	resolvefileurl("resolveFileUrl"):::hook-first-sync
+	click resolvefileurl "#resolvefileurl" _parent
+
+	resolveimportmeta("resolveImportMeta"):::hook-first-sync
+	click resolveimportmeta "#resolveimportmeta" _parent
+
+	writebundle("writeBundle"):::hook-parallel
+	click writebundle "#writebundle" _parent
+
+
+	outputoptions
+	--> renderstart
+	--> |each chunk|beforerenderdynamicimport
+
+	afteraddons
+	--> |each chunk|renderchunk
+
+	augmentchunkhash
+	--> generatebundle
+	--> writebundle
+	.-> closebundle
+
+	subgraph generateChunks [" "]
+	    direction TB
+	    beforerenderdynamicimport(( ))
+        ---> beforeresolveimportmeta(( ))
+        ----> beforereaddons(( ))
+        --> banner & footer & intro & outro
+        --> afteraddons(( ))
+        .-> |next chunk|beforerenderdynamicimport
+
+	    beforerenderdynamicimport
+        --> |"each import()"|renderdynamicimport
+        --> beforerenderdynamicimport
+
+    	beforeresolveimportmeta
+    	--> |each import.meta.*|beforeimportmeta(( ))
+    	--> |import.meta.url|resolvefileurl
+    	--> afterresolveimportmeta(( ))
+
+	    beforeimportmeta
+	    --> |other|resolveimportmeta
+	    --> afterresolveimportmeta
+
+	    afterresolveimportmeta
+	    --> beforeresolveimportmeta
+	end
+
+	renderchunk
+    --> augmentchunkhash
+    .-> |next chunk|renderchunk
+
+	style generateChunks stroke-width:0px;
+
+	rendererror
+	.-> closebundle
+```
 
 Additionally, [`closeBundle`](#closebundle) can be called as the very last hook, but it is the responsibility of the User to manually call [`bundle.close()`](#rolluprollup) to trigger this. The CLI will always make sure this is the case.
 
