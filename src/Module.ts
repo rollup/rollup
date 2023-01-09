@@ -771,12 +771,12 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
-		const moduleAst = ast || this.tryParse();
+		const moduleAst = ast ?? this.tryParse();
 
 		timeEnd('generate ast', 3);
 		timeStart('analyze ast', 3);
 
-		this.resolvedIds = resolvedIds || Object.create(null);
+		this.resolvedIds = resolvedIds ?? Object.create(null);
 
 		// By default, `id` is the file name. Custom resolvers and loaders
 		// can change that, but it makes sense to use it for the source file name
@@ -908,14 +908,6 @@ export default class Module {
 		}
 
 		return null;
-	}
-
-	tryParse(): acorn.Node {
-		try {
-			return this.graph.contextParse(this.info.code!);
-		} catch (error_: any) {
-			return this.error(errorParseError(error_, this.id), error_.pos);
-		}
 	}
 
 	updateOptions({
@@ -1258,6 +1250,14 @@ export default class Module {
 	private shimMissingExport(name: string): void {
 		this.options.onwarn(errorShimmedExport(this.id, name));
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
+	}
+
+	private tryParse(): acorn.Node {
+		try {
+			return this.graph.contextParse(this.info.code!);
+		} catch (error_: any) {
+			return this.error(errorParseError(error_, this.id), error_.pos);
+		}
 	}
 }
 

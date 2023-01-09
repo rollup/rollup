@@ -321,7 +321,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext | null
 	): Promise<unknown> {
 		// We always filter for plugins that support the hook before running it
-		const hook = plugin[hookName]!;
+		const hook = plugin[hookName];
 		const handler = typeof hook === 'object' ? hook.handler : hook;
 
 		let context = this.pluginContexts.get(plugin)!;
