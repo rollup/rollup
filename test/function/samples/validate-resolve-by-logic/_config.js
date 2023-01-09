@@ -7,7 +7,7 @@ const OTHER_IMPORTED_PATH = './other.js';
 const MAIN_PATH = resolve(__dirname, 'main.js');
 
 module.exports = {
-	description: 'validate resolveBy logic',
+	description: 'validate resolvedBy logic',
 	options: {
 		plugins: [
 			{
@@ -24,7 +24,7 @@ module.exports = {
 					if (id === BAR_IMPORTED_PATH) {
 						return {
 							id,
-							resolveBy: 'barByPlugin2'
+							resolvedBy: 'barByPlugin2'
 						};
 					}
 				}
@@ -40,10 +40,10 @@ module.exports = {
 							this.resolve(MAIN_PATH)
 						]
 					);
-					assert.equal(resolvedFooId.resolveBy, 'plugin1');
-					assert.equal(resolvedBarId.resolveBy, 'barByPlugin2');
-					assert.equal(resolvedOtherId.resolveBy, 'rollup');
-					assert.equal(resolvedMainId.resolveBy, 'rollup');
+					assert.equal(resolvedFooId.resolvedBy, 'plugin1');
+					assert.equal(resolvedBarId.resolvedBy, 'barByPlugin2');
+					assert.equal(resolvedOtherId.resolvedBy, 'rollup');
+					assert.equal(resolvedMainId.resolvedBy, 'rollup');
 				}
 			}
 		]

@@ -66,7 +66,7 @@ module.exports = {
 								id: ID_DEP,
 								meta: {},
 								moduleSideEffects: true,
-								resolveBy: 'rollup',
+								resolvedBy: 'rollup',
 								syntheticNamedExports: false
 							}
 						],

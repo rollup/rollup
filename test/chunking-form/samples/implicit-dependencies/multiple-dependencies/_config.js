@@ -134,7 +134,7 @@ module.exports = {
 							id: ID_LIB1,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
 						{
@@ -143,7 +143,7 @@ module.exports = {
 							id: ID_LIB1B,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
 						{
@@ -152,7 +152,7 @@ module.exports = {
 							id: ID_LIB2,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						}
 					],
@@ -265,7 +265,7 @@ module.exports = {
 							id: ID_LIB1,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
 						{
@@ -274,7 +274,7 @@ module.exports = {
 							id: ID_LIB1B,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
 						{
@@ -283,7 +283,7 @@ module.exports = {
 							id: ID_LIB3,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						}
 					],
@@ -395,7 +395,7 @@ module.exports = {
 							id: ID_LIB1,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
 						{
@@ -404,7 +404,7 @@ module.exports = {
 							id: ID_LIB2,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						},
 						{
@@ -413,7 +413,7 @@ module.exports = {
 							id: ID_LIB3,
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'rollup',
+							resolvedBy: 'rollup',
 							syntheticNamedExports: false
 						}
 					],

@@ -18,7 +18,7 @@ module.exports = {
 							id: 'external',
 							meta: {},
 							moduleSideEffects: true,
-							resolveBy: 'third',
+							resolvedBy: 'third',
 							syntheticNamedExports: false
 						}
 					);

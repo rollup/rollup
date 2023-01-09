@@ -33,16 +33,16 @@ export async function resolveId(
 	);
 
 	if (pluginResult != null) {
-		if (typeof pluginResult === 'object' && !pluginResult.resolveBy) {
+		if (typeof pluginResult === 'object' && !pluginResult.resolvedBy) {
 			return {
 				...pluginResult,
-				resolveBy: lastRanPlugin!.name
+				resolvedBy: lastRanPlugin!.name
 			};
 		}
 		if (typeof pluginResult === 'string') {
 			return {
 				id: pluginResult,
-				resolveBy: lastRanPlugin!.name
+				resolvedBy: lastRanPlugin!.name
 			};
 		}
 		return pluginResult;

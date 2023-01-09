@@ -56,7 +56,7 @@ export type ModuleLoaderResolveId = (
 type NormalizedResolveIdWithoutDefaults = Partial<PartialNull<ModuleOptions>> & {
 	external?: boolean | 'absolute';
 	id: string;
-	resolveBy?: string;
+	resolvedBy?: string;
 };
 
 type ResolveStaticDependencyPromise = Promise<readonly [source: string, resolvedId: ResolvedId]>;
@@ -587,7 +587,7 @@ export class ModuleLoader {
 			meta: resolvedId.meta || {},
 			moduleSideEffects:
 				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, !!external),
-			resolveBy: resolvedId.resolveBy ?? 'rollup',
+			resolvedBy: resolvedId.resolvedBy ?? 'rollup',
 			syntheticNamedExports: resolvedId.syntheticNamedExports ?? false
 		};
 	}
@@ -627,7 +627,7 @@ export class ModuleLoader {
 				id: source,
 				meta: {},
 				moduleSideEffects: this.hasModuleSideEffects(source, true),
-				resolveBy: 'rollup',
+				resolvedBy: 'rollup',
 				syntheticNamedExports: false
 			};
 		} else if (resolvedId.external && resolvedId.syntheticNamedExports) {

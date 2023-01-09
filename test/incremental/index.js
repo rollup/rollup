@@ -265,7 +265,7 @@ describe('incremental', () => {
 						external: false,
 						meta: {},
 						moduleSideEffects: true,
-						resolveBy: 'at position 1',
+						resolvedBy: 'at position 1',
 						syntheticNamedExports: false
 					},
 					external: {
@@ -274,7 +274,7 @@ describe('incremental', () => {
 						external: true,
 						meta: {},
 						moduleSideEffects: true,
-						resolveBy: 'rollup',
+						resolvedBy: 'rollup',
 						syntheticNamedExports: false
 					}
 				});
@@ -363,7 +363,7 @@ describe('incremental', () => {
 								id: 'bar',
 								meta: {},
 								moduleSideEffects: true,
-								resolveBy: 'at position 1',
+								resolvedBy: 'at position 1',
 								syntheticNamedExports: false
 							}
 						});
@@ -385,7 +385,7 @@ describe('incremental', () => {
 								id: 'foo',
 								meta: {},
 								moduleSideEffects: true,
-								resolveBy: 'at position 1',
+								resolvedBy: 'at position 1',
 								syntheticNamedExports: false
 							}
 						});
