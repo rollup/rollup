@@ -18,19 +18,19 @@ export default {
 };
 ```
 
-Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. Unless the [`--configPlugin`](guide/en/#--configplugin-plugin) or [`--bundleConfigAsCjs`](guide/en/#--bundleconfigascjs) options are used, Rollup will directly use Node to import the file. Note that there are some [caveats when using native Node ES modules](guide/en/#caveats-when-using-native-node-es-modules) as Rollup will observe [Node ESM semantics](https://nodejs.org/docs/latest-v14.x/api/packages.html#packages_determining_module_system).
+Typically, it is called `rollup.config.js` or `rollup.config.mjs` and sits in the root directory of your project. Unless the [`--configPlugin`](#configplugin-plugin) or [`--bundleConfigAsCjs`](#bundleconfigascjs) options are used, Rollup will directly use Node to import the file. Note that there are some [caveats when using native Node ES modules](#caveats-when-using-native-node-es-modules) as Rollup will observe [Node ESM semantics](https://nodejs.org/docs/latest-v14.x/api/packages.html#packages_determining_module_system).
 
 If you want to write your configuration as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`.
 
-You can also use other languages for your configuration files like TypeScript. To do that, install a corresponding Rollup plugin like `@rollup/plugin-typescript` and use the [`--configPlugin`](guide/en/#--configplugin-plugin) option:
+You can also use other languages for your configuration files like TypeScript. To do that, install a corresponding Rollup plugin like `@rollup/plugin-typescript` and use the [`--configPlugin`](#configplugin-plugin) option:
 
 ```
 rollup --config rollup.config.ts --configPlugin typescript
 ```
 
-Using the `--configPlugin` option will always force your config file to be transpiled to CommonJS first. Also have a look at [Config Intellisense](guide/en/#config-intellisense) for more ways to use TypeScript typings in your config files.
+Using the `--configPlugin` option will always force your config file to be transpiled to CommonJS first. Also have a look at [Config Intellisense](#config-intellisense) for more ways to use TypeScript typings in your config files.
 
-Config files support the options listed below. Consult the [big list of options](guide/en/#big-list-of-options) for details on each option:
+Config files support the options listed below. Consult the [big list of options](999-big-list-of-options.html) for details on each option:
 
 ```javascript
 // rollup.config.js
@@ -178,7 +178,7 @@ rollup --config my.config.js
 rollup --config
 ```
 
-You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](guide/en/#--silent). You can even define your own command line options if you prefix them with `config`:
+You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](#--silent). You can even define your own command line options if you prefix them with `config`:
 
 ```javascript
 // rollup.config.js
@@ -243,7 +243,7 @@ Besides `RollupOptions` and the `defineConfig` helper that encapsulates this typ
 - `Plugin`: A plugin object that provides a `name` and some hooks. All hooks are fully typed to aid in plugin development.
 - `PluginImpl`: A function that maps an options object to a plugin object. Most public Rollup plugins follow this pattern.
 
-You can also directly write your config in TypeScript via the [`--configPlugin`](guide/en/#--configplugin-plugin) option. With TypeScript, you can import the `RollupOptions` type directly:
+You can also directly write your config in TypeScript via the [`--configPlugin`](#configplugin-plugin) option. With TypeScript, you can import the `RollupOptions` type directly:
 
 ```typescript
 import type { RollupOptions } from 'rollup';
@@ -258,7 +258,7 @@ export default config;
 
 While config files provide an easy way to configure Rollup, they also limit how Rollup can be invoked and configured. Especially if you are bundling Rollup into another build tool or want to integrate it into an advanced build process, it may be better to directly invoke Rollup programmatically from your scripts.
 
-If you want to switch from config files to using the [JavaScript API](guide/en/#javascript-api) at some point, there are some important differences to be aware of:
+If you want to switch from config files to using the [JavaScript API](#javascript-api) at some point, there are some important differences to be aware of:
 
 - When using the JavaScript API, the configuration passed to `rollup.rollup` must be an object and cannot be wrapped in a Promise or a function.
 - You can no longer use an array of configurations. Instead, you should run `rollup.rollup` once for each set of `inputOptions`.
@@ -425,7 +425,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --watch.skipWrite           Do not write files to disk when watching
 ```
 
-The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en/#big-list-of-options) for details.
+The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](999-big-list-of-options.html) for details.
 
 #### `-h`/`--help`
 
@@ -487,9 +487,9 @@ Note for Typescript: make sure you have the Rollup config file in your `tsconfig
 "include": ["src/**/*", "rollup.config.ts"],
 ```
 
-This option supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+This option supports the same syntax as the [`--plugin`](#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
 
-Using this option will make Rollup transpile your configuration file to an ES module first before executing it. To transpile to CommonJS instead, also pass the [`--bundleConfigAsCjs`](guide/en/#--bundleconfigascjs) option.
+Using this option will make Rollup transpile your configuration file to an ES module first before executing it. To transpile to CommonJS instead, also pass the [`--bundleConfigAsCjs`](#bundleconfigascjs) option.
 
 #### `--bundleConfigAsCjs`
 
@@ -505,11 +505,11 @@ Print the installed version number.
 
 Rebuild the bundle when its source files change on disk.
 
-_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](guide/en/#thismeta), which is independent of the command line interface._
+_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](#thismeta), which is independent of the command line interface._
 
 #### `--silent`
 
-Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](guide/en/#configuration-files).
+Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](#configuration-files).
 
 #### `--failAfterWarnings`
 
@@ -547,15 +547,15 @@ This will not throw an error if one of the entry point files is not available. I
 
 #### `--stdin=ext`
 
-Specify a virtual file extension when reading content from stdin. By default, Rollup will use the virtual file name `-` without an extension for content read from stdin. Some plugins, however, rely on file extensions to determine if they should process a file. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
+Specify a virtual file extension when reading content from stdin. By default, Rollup will use the virtual file name `-` without an extension for content read from stdin. Some plugins, however, rely on file extensions to determine if they should process a file. See also [Reading a file from stdin](#reading-a-file-from-stdin).
 
 #### `--no-stdin`
 
-Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` and `-.[ext]` as a regular file names instead of interpreting these as the name of `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
+Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` and `-.[ext]` as a regular file names instead of interpreting these as the name of `stdin`. See also [Reading a file from stdin](#reading-a-file-from-stdin).
 
 #### `--watch.onStart <cmd>`, `--watch.onBundleStart <cmd>`, `--watch.onBundleEnd <cmd>`, `--watch.onEnd <cmd>`, `--watch.onError <cmd>`
 
-When in watch mode, run a shell command `<cmd>` for a watch event code. See also [rollup.watch](guide/en/#rollupwatch).
+When in watch mode, run a shell command `<cmd>` for a watch event code. See also [rollup.watch](#rollupwatch).
 
 ```sh
 rollup -c --watch --watch.onEnd="node ./afterBuildScript.js"
@@ -575,7 +575,7 @@ When this file contains imports, Rollup will try to resolve them relative to the
 import foo from '-';
 ```
 
-in any file will prompt Rollup to try to read the imported file from `stdin` and assign the default export to `foo`. You can pass the [`--no-stdin`](guide/en/#--no-stdin) CLI flag to Rollup to treat `-` as a regular file name instead.
+in any file will prompt Rollup to try to read the imported file from `stdin` and assign the default export to `foo`. You can pass the [`--no-stdin`](#--no-stdin) CLI flag to Rollup to treat `-` as a regular file name instead.
 
 As some plugins rely on file extensions to process files, you can specify a file extension for stdin via `--stdin=ext` where `ext` is the desired extension. In that case, the virtual file name will be `-.ext`:
 

@@ -12,11 +12,11 @@ Rollup is a module bundler for JavaScript which compiles small pieces of code in
 npm install --global rollup
 ```
 
-This will make Rollup available as a global command line tool. You can also install it locally, see [Installing Rollup locally](guide/en/#installing-rollup-locally).
+This will make Rollup available as a global command line tool. You can also install it locally, see [Installing Rollup locally](04-tutorial.md#installing-rollup-locally).
 
 ### Quick Start
 
-Rollup can be used either through a [command line interface](guide/en/#command-line-reference) with an optional configuration file, or else through its [JavaScript API](guide/en/#javascript-api). Run `rollup --help` to see the available options and parameters.
+Rollup can be used either through a [command line interface](01-command-line-reference.md) with an optional configuration file, or else through its [JavaScript API](02-javascript-api.md). Run `rollup --help` to see the available options and parameters.
 
 > See [rollup-starter-lib](https://github.com/rollup/rollup-starter-lib) and [rollup-starter-app](https://github.com/rollup/rollup-starter-app) to see example library and application projects using Rollup
 

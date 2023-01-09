@@ -7,37 +7,37 @@ flowchart TB
     classDef hook-first-sync fill:#fff2b3,stroke:#f00;
 
 	watchchange("watchChange"):::hook-parallel
-	click watchchange "/guide/en/#watchchange" _parent
+	click watchchange "#watchchange" _parent
 
     closewatcher("closeWatcher"):::hook-parallel
-	click closewatcher "/guide/en/#closewatcher" _parent
+	click closewatcher "#closewatcher" _parent
 
 	buildend("buildEnd"):::hook-parallel
-	click buildend "/guide/en/#buildend" _parent
+	click buildend "#buildend" _parent
 
     buildstart("buildStart"):::hook-parallel
-	click buildstart "/guide/en/#buildstart" _parent
+	click buildstart "#buildstart" _parent
 
 	load("load"):::hook-first
-	click load "/guide/en/#load" _parent
+	click load "#load" _parent
 
 	moduleparsed("moduleParsed"):::hook-parallel
-	click moduleparsed "/guide/en/#moduleparsed" _parent
+	click moduleparsed "#moduleparsed" _parent
 
 	options("options"):::hook-sequential
-	click options "/guide/en/#options" _parent
+	click options "#options" _parent
 
 	resolvedynamicimport("resolveDynamicImport"):::hook-first
-	click resolvedynamicimport "/guide/en/#resolvedynamicimport" _parent
+	click resolvedynamicimport "#resolvedynamicimport" _parent
 
 	resolveid("resolveId"):::hook-first
-	click resolveid "/guide/en/#resolveid" _parent
+	click resolveid "#resolveid" _parent
 
 	shouldtransformcachedmodule("shouldTransformCachedModule"):::hook-first
-	click shouldtransformcachedmodule "/guide/en/#shouldtransformcachedmodule" _parent
+	click shouldtransformcachedmodule "#shouldtransformcachedmodule" _parent
 
 	transform("transform"):::hook-sequential
-	click transform "/guide/en/#transform" _parent
+	click transform "#transform" _parent
 
     options
     --> buildstart

@@ -6,6 +6,8 @@ import { useOptions } from '../stores/options';
 import { useRollup } from '../stores/rollup';
 
 export async function useUpdateStoresFromQuery() {
+	// Necessary for SSR
+	if (typeof window === 'undefined') return;
 	const modulesStore = useModules();
 	const optionsStore = useOptions();
 	const rollupStore = useRollup();

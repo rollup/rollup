@@ -7,6 +7,6 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value for option "output.amd.basePath" - this option only works with "output.amd.autoId".',
-		url: 'https://rollupjs.org/guide/en/#outputamd'
+		url: 'https://rollupjs.org/fixme#outputamd'
 	}
 };

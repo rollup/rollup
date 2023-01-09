@@ -9,7 +9,7 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value for option "output.inlineDynamicImports" - multiple inputs are not supported when "output.inlineDynamicImports" is true.',
-		url: 'https://rollupjs.org/guide/en/#outputinlinedynamicimports'
+		url: 'https://rollupjs.org/fixme#outputinlinedynamicimports'
 	},
 	warnings: []
 };

@@ -9,6 +9,6 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value for option "output.sourcemapBaseUrl" - must be a valid URL, received "example.com".',
-		url: 'https://rollupjs.org/guide/en/#outputsourcemapbaseurl'
+		url: 'https://rollupjs.org/fixme#outputsourcemapbaseurl'
 	}
 };

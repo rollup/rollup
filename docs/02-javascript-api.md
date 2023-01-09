@@ -10,7 +10,7 @@ The `rollup.rollup` function receives an input options object as parameter and r
 
 On a `bundle` object, you can call `bundle.generate` multiple times with different output options objects to generate different bundles in-memory. If you directly want to write them to disk, use `bundle.write` instead.
 
-Once you're finished with the `bundle` object, you should call `bundle.close()`, which will let plugins clean up their external processes or services via the [`closeBundle`](guide/en/#closebundle) hook.
+Once you're finished with the `bundle` object, you should call `bundle.close()`, which will let plugins clean up their external processes or services via the [`closeBundle`](05-plugin-development.html#closebundle) hook.
 
 If an error occurs at either stage, it will return a Promise rejected with an Error, which you can identify via their `code` property. Besides `code` and `message`, many errors have additional properties you can use for custom reporting, see [`utils/error.ts`](https://github.com/rollup/rollup/blob/master/src/utils/error.ts) for a complete list of errors and warnings together with their codes and properties.
 
@@ -102,7 +102,7 @@ async function generateOutputs(bundle) {
 
 #### inputOptions object
 
-The `inputOptions` object can contain the following properties (see the [big list of options](guide/en/#big-list-of-options) for full details on these):
+The `inputOptions` object can contain the following properties (see the [big list of options](999-big-list-of-options.html) for full details on these):
 
 ```js
 const inputOptions = {
@@ -134,7 +134,7 @@ const inputOptions = {
 
 #### outputOptions object
 
-The `outputOptions` object can contain the following properties (see the [big list of options](guide/en/#big-list-of-options) for full details on these):
+The `outputOptions` object can contain the following properties (see the [big list of options](999-big-list-of-options.html) for full details on these):
 
 ```js
 const outputOptions = {
@@ -188,7 +188,7 @@ const outputOptions = {
 
 ### rollup.watch
 
-Rollup also provides a `rollup.watch` function that rebuilds your bundle when it detects that the individual modules have changed on disk. It is used internally when you run Rollup from the command line with the `--watch` flag. Note that when using watch mode via the JavaScript API, it is your responsibility to call `event.result.close()` in response to the `BUNDLE_END` event to allow plugins to clean up resources in the [`closeBundle`](guide/en/#closebundle) hook, see below.
+Rollup also provides a `rollup.watch` function that rebuilds your bundle when it detects that the individual modules have changed on disk. It is used internally when you run Rollup from the command line with the `--watch` flag. Note that when using watch mode via the JavaScript API, it is your responsibility to call `event.result.close()` in response to the `BUNDLE_END` event to allow plugins to clean up resources in the [`closeBundle`](05-plugin-development.html#closebundle) hook, see below.
 
 ```js
 const rollup = require('rollup');
@@ -263,7 +263,7 @@ const watchOptions = {
 };
 ```
 
-See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](guide/en/#big-list-of-options) for info on `chokidar`, `include` and `exclude`.
+See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](999-big-list-of-options.html) for info on `chokidar`, `include` and `exclude`.
 
 #### Programmatically loading a config file
 

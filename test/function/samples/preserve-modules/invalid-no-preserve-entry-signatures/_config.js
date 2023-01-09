@@ -9,6 +9,6 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value for option "preserveEntrySignatures" - setting this option to false is not supported for "output.preserveModules".',
-		url: 'https://rollupjs.org/guide/en/#preserveentrysignatures'
+		url: 'https://rollupjs.org/fixme#preserveentrysignatures'
 	}
 };

@@ -153,7 +153,7 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 };
 
 const getHashFromObjectOption = (optionName: string): string =>
-	optionName.split('.').join('').toLowerCase();
+	optionName.split('.').join('-').toLowerCase();
 
 export const normalizePluginOption: {
 	(plugins: InputPluginOption): Promise<Plugin[]>;

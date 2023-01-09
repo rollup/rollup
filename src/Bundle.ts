@@ -221,7 +221,7 @@ function validateOptionsForMultiChunkOutput(
 		return error(
 			errorInvalidOption(
 				'output.format',
-				'outputformat',
+				'output-format',
 				'UMD and IIFE output formats are not supported for code-splitting builds',
 				outputOptions.format
 			)
@@ -230,7 +230,7 @@ function validateOptionsForMultiChunkOutput(
 		return error(
 			errorInvalidOption(
 				'output.file',
-				'outputdir',
+				'output-dir',
 				'when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option'
 			)
 		);
@@ -238,7 +238,7 @@ function validateOptionsForMultiChunkOutput(
 		return error(
 			errorInvalidOption(
 				'output.sourcemapFile',
-				'outputsourcemapfile',
+				'output-sourcemapfile',
 				'"output.sourcemapFile" is only supported for single-file builds'
 			)
 		);
@@ -246,7 +246,7 @@ function validateOptionsForMultiChunkOutput(
 		onWarn(
 			errorInvalidOption(
 				'output.amd.id',
-				'outputamd',
+				'output-amd',
 				'this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead'
 			)
 		);

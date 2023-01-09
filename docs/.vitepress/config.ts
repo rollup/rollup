@@ -24,7 +24,7 @@ export default defineConfig({
 						text: 'Introduction'
 					},
 					{
-						link: '/01-command-line-interface',
+						link: '/01-command-line-reference',
 						text: 'Command Line Interface'
 					},
 					{

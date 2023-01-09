@@ -10,6 +10,6 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value for option "output.inlineDynamicImports" - this option is not supported for "output.preserveModules".',
-		url: 'https://rollupjs.org/guide/en/#outputinlinedynamicimports'
+		url: 'https://rollupjs.org/fixme#outputinlinedynamicimports'
 	}
 };

@@ -240,7 +240,7 @@ _Note: Only the data we actually need gets imported – `name` and `devDependenc
 
 ### Using output plugins
 
-Some plugins can also be applied specifically to some outputs. See [plugin hooks](guide/en/#build-hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
+Some plugins can also be applied specifically to some outputs. See [plugin hooks](#build-hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
 
 Let us extend the previous example to provide a minified build together with the non-minified one. To that end, we install `@rollup/plugin-terser`:
 
@@ -287,7 +287,7 @@ var version = (function () {
 
 ### Code Splitting
 
-For code splitting, there are cases where Rollup splits code into chunks automatically, like dynamic loading or multiple entry points, and there is a way to explicitly tell Rollup which modules to split into separate chunks via the [`output.manualChunks`](guide/en/#outputmanualchunks) option.
+For code splitting, there are cases where Rollup splits code into chunks automatically, like dynamic loading or multiple entry points, and there is a way to explicitly tell Rollup which modules to split into separate chunks via the [`output.manualChunks`](#outputmanualchunks) option.
 
 To use the code splitting feature to achieve the lazy dynamic loading (where some imported module(s) is only loaded after executing a function), we go back to the original example and modify `src/main.js` to load `src/foo.js` dynamically instead of statically:
 
@@ -304,7 +304,7 @@ Rollup will use the dynamic import to create a separate chunk that is only loade
 rollup src/main.js -f cjs -d dist
 ```
 
-This will create a folder `dist` containing two files, `main.js` and `chunk-[hash].js`, where `[hash]` is a content based hash string. You can supply your own naming patterns by specifying the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) and [`output.entryFileNames`](guide/en/#outputentryfilenames) options.
+This will create a folder `dist` containing two files, `main.js` and `chunk-[hash].js`, where `[hash]` is a content based hash string. You can supply your own naming patterns by specifying the [`output.chunkFileNames`](#outputchunkfilenames) and [`output.entryFileNames`](#outputentryfilenames) options.
 
 You can still run your code as before with the same output, albeit a little slower as loading and parsing of `./foo.js` will only commence once we call the exported function for the first time.
 

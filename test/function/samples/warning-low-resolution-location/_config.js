@@ -31,7 +31,7 @@ module.exports = {
 			message:
 				"The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
 			pos: 15,
-			url: 'https://rollupjs.org/guide/en/#error-this-is-undefined'
+			url: 'https://rollupjs.org/08-troubleshooting.html#error-this-is-undefined'
 		}
 	]
 };

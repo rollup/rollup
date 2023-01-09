@@ -7,7 +7,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Mixing named and default exports\n' +
-				'https://rollupjs.org/guide/en/#outputexports\n' +
+				'https://rollupjs.org/999-big-list-of-options.html#output-exports\n' +
 				'The following entry modules are using named and default exports together:\n' +
 				'main.js\n' +
 				'\n' +
@@ -21,7 +21,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Missing exports\n' +
-				'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module\n' +
+				'https://rollupjs.org/08-troubleshooting.html#error-name-is-not-exported-by-module\n' +
 				'main.js\n' +
 				'missing is not exported by dep.js\n' +
 				"4: import 'unresolvedExternal';\n" +
@@ -46,7 +46,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Unresolved dependencies\n' +
-				'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency\n' +
+				'https://rollupjs.org/08-troubleshooting.html#warning-treating-module-as-external-dependency\n' +
 				'unresolvedExternal (imported by "main.js" and "dep.js")\n' +
 				'otherUnresolvedExternal (imported by "dep.js")\n'
 		);
