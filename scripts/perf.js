@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 /* global gc */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -6,7 +5,9 @@ import { argv, chdir, cwd, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { createColors } from 'colorette';
 import prettyBytes from 'pretty-bytes';
+// eslint-disable-next-line import/no-unresolved
 import { loadConfigFile } from '../dist/loadConfigFile.js';
+// eslint-disable-next-line import/no-unresolved
 import { rollup } from '../dist/rollup.js';
 import { findConfigFileName } from './find-config.js';
 

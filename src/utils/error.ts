@@ -7,8 +7,8 @@ import type {
 	RollupWarning,
 	WarningHandler
 } from '../rollup/types';
-import { extname } from './path';
 import getCodeFrame from './getCodeFrame';
+import { extname } from './path';
 import { printQuotedStringList } from './printStringList';
 import relativeId from './relativeId';
 
