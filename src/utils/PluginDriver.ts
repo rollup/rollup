@@ -5,7 +5,6 @@ import type {
 	AddonHookFunction,
 	AddonHooks,
 	AsyncPluginHooks,
-	CallBeforeRunHook,
 	EmitFile,
 	FirstPluginHooks,
 	FunctionPluginHooks,
@@ -132,19 +131,32 @@ export class PluginDriver {
 		hookName: H,
 		parameters: Parameters<FunctionPluginHooks[H]>,
 		replaceContext?: ReplaceContext | null,
-		skipped?: ReadonlySet<Plugin> | null,
-		callBeforeRunHook?: CallBeforeRunHook
+		skipped?: ReadonlySet<Plugin> | null
 	): Promise<ReturnType<FunctionPluginHooks[H]> | null> {
 		let promise: Promise<ReturnType<FunctionPluginHooks[H]> | null> = Promise.resolve(null);
 		for (const plugin of this.getSortedPlugins(hookName)) {
 			if (skipped && skipped.has(plugin)) continue;
 			promise = promise.then(result => {
 				if (result != null) return result;
-				callBeforeRunHook?.(plugin);
 				return this.runHook(hookName, parameters, plugin, replaceContext);
 			});
 		}
 		return promise;
+	}
+
+	// chains, first non-null result stops and returns result and last plugin
+	async hookFirstAndGetPlugin<H extends AsyncPluginHooks & FirstPluginHooks>(
+		hookName: H,
+		parameters: Parameters<FunctionPluginHooks[H]>,
+		replaceContext?: ReplaceContext | null,
+		skipped?: ReadonlySet<Plugin> | null
+	): Promise<[NonNullable<ReturnType<FunctionPluginHooks[H]>>, Plugin] | null> {
+		for (const plugin of this.getSortedPlugins(hookName)) {
+			if (skipped?.has(plugin)) continue;
+			const result = await this.runHook(hookName, parameters, plugin, replaceContext);
+			if (result != null) return [result, plugin];
+		}
+		return null;
 	}
 
 	// chains synchronously, first non-null result stops and returns

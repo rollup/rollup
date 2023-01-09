@@ -16,8 +16,6 @@ export async function resolveId(
 	isEntry: boolean,
 	assertions: Record<string, string>
 ): Promise<ResolveIdResult> {
-	let lastRanPlugin: Plugin | null = null;
-
 	const pluginResult = await resolveIdViaPlugins(
 		source,
 		importer,
@@ -26,26 +24,24 @@ export async function resolveId(
 		skip,
 		customOptions,
 		isEntry,
-		assertions,
-		plugin => {
-			lastRanPlugin = plugin;
-		}
+		assertions
 	);
 
 	if (pluginResult != null) {
-		if (typeof pluginResult === 'object' && !pluginResult.resolvedBy) {
+		const [resolveIdResult, plugin] = pluginResult;
+		if (typeof resolveIdResult === 'object' && !resolveIdResult.resolvedBy) {
 			return {
-				...pluginResult,
-				resolvedBy: lastRanPlugin!.name
+				...resolveIdResult,
+				resolvedBy: plugin.name
 			};
 		}
-		if (typeof pluginResult === 'string') {
+		if (typeof resolveIdResult === 'string') {
 			return {
-				id: pluginResult,
-				resolvedBy: lastRanPlugin!.name
+				id: resolveIdResult,
+				resolvedBy: plugin.name
 			};
 		}
-		return pluginResult;
+		return resolveIdResult;
 	}
 
 	// external modules (non-entry modules that start with neither '.' or '/')

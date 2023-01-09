@@ -231,6 +231,8 @@ interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 
 export type ResolveIdResult = string | NullValue | false | PartialResolvedId;
 
+export type ResolveIdResultWithoutNullValue = string | false | PartialResolvedId;
+
 export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
@@ -937,5 +939,3 @@ export function defineConfig(optionsFunction: RollupOptionsFunction): RollupOpti
 export type RollupOptionsFunction = (
 	commandLineArguments: Record<string, any>
 ) => MaybePromise<RollupOptions | RollupOptions[]>;
-
-export type CallBeforeRunHook = (plugin: Plugin) => void;
