@@ -1,7 +1,7 @@
 const assert = require('node:assert');
+const { encode } = require('@jridgewell/sourcemap-codec');
 const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
-const { encode } = require('@jridgewell/sourcemap-codec');
 const getLocation = require('../../getLocation');
 
 module.exports = {
