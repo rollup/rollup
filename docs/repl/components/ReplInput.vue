@@ -4,7 +4,7 @@
 	<div class="modules" ref="modulesReference">
 		<InputModule
 			v-for="(module, i) in modulesStore.modules"
-			:key="module.name"
+			:key="i"
 			:module="module"
 			:is-main="i === 0"
 			@remove="removeModule(i)"
@@ -18,10 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { useModules } from '../stores/modules';
-import InputModule from './InputModule.vue';
-import InputHeader from './InputHeader.vue';
 import { ref } from 'vue';
+import { useModules } from '../stores/modules';
+import InputHeader from './InputHeader.vue';
+import InputModule from './InputModule.vue';
 
 const modulesStore = useModules();
 let uid = 1;

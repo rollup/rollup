@@ -14,7 +14,7 @@ export default withMermaid(
 			logo: '/rollup-logo.svg',
 			nav: [
 				{ link: '/00-introduction', text: 'guide' },
-				{ link: '/repl', text: 'repl' },
+				{ link: '/repl/', text: 'repl' },
 				{ link: 'https://is.gd/rollup_chat', text: 'chat' },
 				{ link: 'https://github.com/rollup/rollup', text: 'github' },
 				{ link: 'https://opencollective.com/rollup', text: 'opencollective' }

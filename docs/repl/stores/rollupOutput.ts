@@ -1,11 +1,5 @@
-import type { RequestedRollupInstance } from './rollup';
-import { useRollup } from './rollup';
-import type { Module } from './modules';
-import { useModules } from './modules';
-import { useOptions } from './options';
-import { dirname, resolve } from '../helpers/path';
-import { getFileNameFromMessage } from '../helpers/messages';
 import { defineStore } from 'pinia';
+import { ref, watch } from 'vue';
 import type {
 	OutputOptions,
 	RollupError,
@@ -13,7 +7,13 @@ import type {
 	RollupOutput,
 	RollupWarning
 } from '../../../src/rollup/types';
-import { ref, watch } from 'vue';
+import { getFileNameFromMessage } from '../helpers/messages';
+import { dirname, resolve } from '../helpers/path';
+import type { Module } from './modules';
+import { useModules } from './modules';
+import { useOptions } from './options';
+import type { RequestedRollupInstance } from './rollup';
+import { useRollup } from './rollup';
 
 interface GeneratedRollupOutput {
 	error: RollupError | null;
