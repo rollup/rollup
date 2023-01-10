@@ -1,3 +1,4 @@
 module.exports = {
-	description: 'tree-shake expressions optional chaining with literal values'
+	description: 'tree-shake expressions optional chaining with literal values',
+	solo: true
 };
