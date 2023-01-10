@@ -1,23 +1,13 @@
 import type MagicString from 'magic-string';
 import { errorModuleLevelDirective } from '../../utils/error';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { InclusionContext } from '../ExecutionContext';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { type ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	declare directive?: string;
 	declare expression: ExpressionNode;
-
-	getLiteralValueAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		return this.expression.getLiteralValueAtPath(path, recursionTracker, origin);
-	}
 
 	initialise(): void {
 		if (

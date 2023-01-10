@@ -1,5 +1,3 @@
-import type MagicString from 'magic-string';
-import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
@@ -30,12 +28,6 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.getObjectValue() == null) return false;
 		return this.expression.hasEffects(context);
-	}
-
-	render(code: MagicString, options: RenderOptions): void {
-		if (this.getObjectValue() == null) {
-			code.remove(this.start, this.end);
-		} else super.render(code, options);
 	}
 
 	private getObjectValue() {
