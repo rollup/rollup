@@ -1,5 +1,5 @@
-const { resolve } = require('node:path');
 const assert = require('node:assert');
+const { resolve } = require('node:path');
 
 const FOO_IMPORTED_PATH = './foo.js';
 const BAR_IMPORTED_PATH = './bar.js';
