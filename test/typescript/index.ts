@@ -1,4 +1,4 @@
-// TODO add comment again eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import/no-unresolved
 import type * as rollup from './dist/rollup';
 
 // Plugin API
