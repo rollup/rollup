@@ -118,4 +118,4 @@ You may reduce memory pressure by introducing code splitting by using dynamic im
 
 ### Error: Node tried to load your configuration file as CommonJS even though it is likely an ES module
 
-By default, Rollup will use Node's native module mechanism to load your Rollup configuration. That means if you use ES imports and exports in your configuration, you either need to define `"type": "module"` in your `package.json` file or use the `.mjs` extension for your configuration. See also [Configuration Files](01-command-line-reference.html#configuration-files) and [Caveats when using native Node ES modules](#caveats-when-using-native-node-es-modules) for more information.
+By default, Rollup will use Node's native module mechanism to load your Rollup configuration. That means if you use ES imports and exports in your configuration, you either need to define `"type": "module"` in your `package.json` file or use the `.mjs` extension for your configuration. See also [Configuration Files](../command-line-interface/index.md#configuration-files) and [Caveats when using native Node ES modules](#caveats-when-using-native-node-es-modules) for more information.

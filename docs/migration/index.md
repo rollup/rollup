@@ -21,7 +21,7 @@ For larger configs, it can make sense to update to `rollup@2.79.1` first, add th
 
 If you are using an ES module as configuration file, i.e. `import` and `export` syntax, you need to make sure Node will be loading your configuration as an ES module.
 
-The easiest way to ensure that is to change the file extension to `.mjs`, see also [Configuration Files](01-command-line-reference.html#configuration-files).
+The easiest way to ensure that is to change the file extension to `.mjs`, see also [Configuration Files](../command-line-interface/index.md#configuration-files).
 
 There are some additional caveats when using native Node ES modules, most notably
 
@@ -30,9 +30,9 @@ There are some additional caveats when using native Node ES modules, most notabl
 
 [Caveats when using native Node ES modules](#caveats-when-using-native-node-es-modules) will give you some alternatives for how to handle these things.
 
-Alternatively you can pass the [`--bundleConfigAsCjs`](01-command-line-reference.md#bundleconfigascjs) option to force the old loading behavior.
+Alternatively you can pass the [`--bundleConfigAsCjs`](../command-line-interface/index.md#bundleconfigascjs) option to force the old loading behavior.
 
-If you use the [`--configPlugin`](01-command-line-reference.md#configplugin-plugin) option, Rollup will now bundle your configuration as an ES module instead of CommonJS before running it. This allows you to easily import ES modules from your configuration but has the same caveats as using a native ES module, e.g. `__dirname` will no longer work. Again, you can pass the [`--bundleConfigAsCjs`](01-command-line-reference.md#bundleconfigascjs) option to force the old loading behavior.
+If you use the [`--configPlugin`](../command-line-interface/index.md#configplugin-plugin) option, Rollup will now bundle your configuration as an ES module instead of CommonJS before running it. This allows you to easily import ES modules from your configuration but has the same caveats as using a native ES module, e.g. `__dirname` will no longer work. Again, you can pass the [`--bundleConfigAsCjs`](../command-line-interface/index.md#bundleconfigascjs) option to force the old loading behavior.
 
 ### Changed Defaults
 
@@ -67,8 +67,8 @@ By default, when generating `cjs` output, Rollup will now keep any external, i.e
 
 ### Changes to the Plugin API
 
-Then general output generation flow has been reworked, see the [Output Generation Hooks](#output-generation-hooks) graph for the new plugin hook order. Probably the most obvious change is that the [`banner`](05-plugin-development.html#banner)[`/footer`](05-plugin-development.html#footer)[`/intro`](05-plugin-development.html#intro)[`/outro`](05-plugin-development.html#outro) are no longer invoked once at the beginning but rather per chunk. On the other hand, [`augmentChunkHash`](05-plugin-development.html#augmentchunkhash) is now evaluated after [`renderChunk`](05-plugin-development.html#renderchunk) when the hash is created.
+Then general output generation flow has been reworked, see the [Output Generation Hooks](#output-generation-hooks) graph for the new plugin hook order. Probably the most obvious change is that the [`banner`](../plugin-development/index.md#banner)[`/footer`](../plugin-development/index.md#footer)[`/intro`](../plugin-development/index.md#intro)[`/outro`](../plugin-development/index.md#outro) are no longer invoked once at the beginning but rather per chunk. On the other hand, [`augmentChunkHash`](../plugin-development/index.md#augmentchunkhash) is now evaluated after [`renderChunk`](../plugin-development/index.md#renderchunk) when the hash is created.
 
-As file hashes are now based on the actual content of the file after `renderChunk`, we no longer know exact file names before hashes are generated. Instead, the logic now relies on hash placeholders of the form `!~{001}~`. That means that all file names available to the `renderChunk` hook may contain placeholders and may not correspond to the final file names. This is not a problem though if you plan on using these files names within the chunks as Rollup will replace all placeholders before [`generateBundle`](05-plugin-development.html#generatebundle) runs.
+As file hashes are now based on the actual content of the file after `renderChunk`, we no longer know exact file names before hashes are generated. Instead, the logic now relies on hash placeholders of the form `!~{001}~`. That means that all file names available to the `renderChunk` hook may contain placeholders and may not correspond to the final file names. This is not a problem though if you plan on using these files names within the chunks as Rollup will replace all placeholders before [`generateBundle`](../plugin-development/index.md#generatebundle) runs.
 
-Not necessarily a breaking change, but plugins that add or remove imports in [`renderChunk`](05-plugin-development.html#renderchunk) should make sure they also update the corresponding `chunk` information that is passed to this hook. This will enable other plugins to rely on accurate chunk information without the need to pare the chunk themselves. See the [documentation](#renderchunk) of the hook for more information.
+Not necessarily a breaking change, but plugins that add or remove imports in [`renderChunk`](../plugin-development/index.md#renderchunk) should make sure they also update the corresponding `chunk` information that is passed to this hook. This will enable other plugins to rely on accurate chunk information without the need to pare the chunk themselves. See the [documentation](#renderchunk) of the hook for more information.

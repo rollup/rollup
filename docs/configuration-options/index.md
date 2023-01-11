@@ -116,7 +116,7 @@ export default {
 };
 ```
 
-The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](#thisemitfile)) by the end of the [`buildStart`](05-plugin-development.html#buildstart) hook.
+The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](#thisemitfile)) by the end of the [`buildStart`](../plugin-development/index.md#buildstart) hook.
 
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
 
@@ -423,7 +423,7 @@ The pattern to use for naming custom emitted assets to include in the build outp
 - `[hash]`: A hash based on the content of the asset. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The file name of the asset excluding any extension.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](05-plugin-development.html#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#outputchunkfilenames), [`output.entryFileNames`](#outputentryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#outputchunkfilenames), [`output.entryFileNames`](#outputentryfilenames).
 
 #### output.banner/output.footer
 
@@ -431,7 +431,7 @@ Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--ba
 
 A string to prepend/append to the bundle. You can also supply a function that returns a `Promise` that resolves to a `string` to generate it asynchronously (Note: `banner` and `footer` options will not break sourcemaps).
 
-If you supply a function, `chunk` contains additional information about the chunk using the same `ChunkInfo` type as the [`generateBundle`](05-plugin-development.html#generatebundle) hook with the following differences:
+If you supply a function, `chunk` contains additional information about the chunk using the same `ChunkInfo` type as the [`generateBundle`](../plugin-development/index.md#generatebundle) hook with the following differences:
 
 - `code` and `map` are not set as the chunk has not been rendered yet.
 - all referenced chunk file names that would contain hashes will contain hash placeholders instead. This includes `fileName`, `imports`, `importedBindings`, `dynamicImports` and `implicitlyLoadedBefore`. When you use such a placeholder file name or part of it in the code returned from this option, Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
@@ -459,10 +459,10 @@ Type: `string | ((chunkInfo: ChunkInfo) => string)`<br> CLI: `--chunkFileNames <
 The pattern to use for naming shared chunks created when code-splitting, or a function that is called per chunk to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
-- `[hash]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](05-plugin-development.html#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](#thisemitfile). Otherwise, it will be derived from the chunk contents.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](05-plugin-development.html#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#outputassetfilenames), [`output.entryFileNames`](#outputentryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#outputassetfilenames), [`output.entryFileNames`](#outputentryfilenames).
 
 #### output.compact
 
@@ -523,10 +523,10 @@ Type: `string | ((chunkInfo: ChunkInfo) => string)`<br> CLI: `--entryFileNames <
 The pattern to use for chunks created from entry points, or a function that is called per entry chunk to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
-- `[hash]`: A hash based only on the content of the final generated entry chunk, including transformations in [`renderChunk`](05-plugin-development.html#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash]`: A hash based only on the content of the final generated entry chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](05-plugin-development.html#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#outputassetfilenames), [`output.chunkFileNames`](#outputchunkfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#outputassetfilenames), [`output.chunkFileNames`](#outputchunkfilenames).
 
 This pattern will also be used for every file when setting the [`output.preserveModules`](#outputpreservemodules) option. Note that in this case, `[name]` will include the relative path from the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts`.
 
@@ -1090,7 +1090,7 @@ Even though it appears that setting this option to `true` makes the output large
 
 Type: `{ [id: string]: string } | ((id: string) => string)`
 
-Maps external module IDs to paths. External ids are ids that [cannot be resolved](08-troubleshooting.html#warning-treating-module-as-external-dependency) or ids explicitly provided by the [`external`](#external) option. Paths supplied by `output.paths` will be used in the generated bundle instead of the module ID, allowing you to, for example, load dependencies from a CDN:
+Maps external module IDs to paths. External ids are ids that [cannot be resolved](../troubleshooting/index.md#warning-treating-module-as-external-dependency) or ids explicitly provided by the [`external`](#external) option. Paths supplied by `output.paths` will be used in the generated bundle instead of the module ID, allowing you to, for example, load dependencies from a CDN:
 
 ```js
 // app.js
@@ -1247,7 +1247,7 @@ export default {
 
 Type: `boolean`<br> CLI: `--validate`/`--no-validate`<br> Default: `false`
 
-Re-parses each generated chunk to detect if the generated code is valid JavaScript. This can be useful to debug output generated by plugins that use the [`renderChunk`](05-plugin-development.html#renderchunk) hook to transform code.
+Re-parses each generated chunk to detect if the generated code is valid JavaScript. This can be useful to debug output generated by plugins that use the [`renderChunk`](../plugin-development/index.md#renderchunk) hook to transform code.
 
 If the code is invalid, a warning will be issued. Note that no error is thrown so that you can still inspect the generated output. To promote this warning to an error, you can watch for it in an [`onwarn`](#onwarn) handler.
 
@@ -1823,7 +1823,7 @@ console.log('this side-effect and the mutation are retained');
 console.log(foo);
 ```
 
-Note that despite the name, this option does not "add" side effects to modules that do not have side effects. If it is important that e.g. an empty module is "included" in the bundle because you need this for dependency tracking, the plugin interface allows you to designate modules as being excluded from tree-shaking via the [`resolveId`](05-plugin-development.html#resolveid), [`load`](05-plugin-development.html#load) or [`transform`](05-plugin-development.html#transform) hook.
+Note that despite the name, this option does not "add" side effects to modules that do not have side effects. If it is important that e.g. an empty module is "included" in the bundle because you need this for dependency tracking, the plugin interface allows you to designate modules as being excluded from tree-shaking via the [`resolveId`](../plugin-development/index.md#resolveid), [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) hook.
 
 **treeshake.preset**<br> Type: `"smallest" | "safest" | "recommended"`<br> CLI: `--treeshake <value>`<br>
 
@@ -1939,7 +1939,7 @@ Unfortunately, due to the way chunking works, chunk size is measured before any 
 
 Type: `boolean`<br> CLI: `--perf`/`--no-perf`<br> Default: `false`
 
-Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](#javascript-api), the returned bundle object will contain an additional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
+Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](../javascript-api/index.md), the returned bundle object will contain an additional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
 
 `getTimings()` returns an object of the following form:
 
@@ -2053,7 +2053,7 @@ Limits the number of files rollup will open in parallel when reading modules. Wi
 
 #### output.dynamicImportFunction
 
-_Use the [`renderDynamicImport`](05-plugin-development.html#renderdynamicimport) plugin hook instead._<br> Type: `string`<br> CLI: `--dynamicImportFunction <name>`<br> Default: `import`
+_Use the [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport) plugin hook instead._<br> Type: `string`<br> CLI: `--dynamicImportFunction <name>`<br> Default: `import`
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
 

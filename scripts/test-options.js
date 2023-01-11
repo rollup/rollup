@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 const [optionsText, helpText, commandReferenceText] = await Promise.all([
 	readFile(new URL('../docs/999-big-list-of-options.md', import.meta.url), 'utf8'),
 	readFile(new URL('../cli/help.md', import.meta.url), 'utf8'),
-	readFile(new URL('../docs/01-command-line-reference.md', import.meta.url), 'utf8')
+	readFile(new URL('../docs/command-line-interface/index.md', import.meta.url), 'utf8')
 ]);
 
 const optionSections = optionsText.split('\n### ');
@@ -86,7 +86,7 @@ for (const [index, line] of helpOptionLines.entries()) {
 	const optionListLine = optionListLines[index];
 	if (line !== optionListLine) {
 		console.error(
-			`The command lines in 01-command-line-reference.md does not match help.md. Expected line:\n${line}\n\nReceived line:\n${optionListLine}`
+			`The command lines in command-line-interface/index.md do not match help.md. Expected line:\n${line}\n\nReceived line:\n${optionListLine}`
 		);
 		process.exit(1);
 	}

@@ -30,7 +30,7 @@ rollup --config rollup.config.ts --configPlugin typescript
 
 Using the `--configPlugin` option will always force your config file to be transpiled to CommonJS first. Also have a look at [Config Intellisense](#config-intellisense) for more ways to use TypeScript typings in your config files.
 
-Config files support the options listed below. Consult the [big list of options](999-big-list-of-options.html) for details on each option:
+Config files support the options listed below. Consult the [big list of options](../configuration-options/index.md) for details on each option:
 
 ```javascript
 // rollup.config.js
@@ -425,7 +425,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --watch.skipWrite           Do not write files to disk when watching
 ```
 
-The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](999-big-list-of-options.html) for details.
+The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](../configuration-options/index.md) for details.
 
 #### `-h`/`--help`
 

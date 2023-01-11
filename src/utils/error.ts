@@ -396,7 +396,7 @@ export function errorCannotBundleConfigAsEsm(originalError: Error): RollupLog {
 		code: INVALID_CONFIG_MODULE_FORMAT,
 		message: `Rollup transpiled your configuration to an  ES module even though it appears to contain CommonJS elements. To resolve this, you can pass the "--bundleConfigAsCjs" flag to Rollup or change your configuration to only contain valid ESM code.\n\nOriginal error: ${originalError.message}`,
 		stack: originalError.stack,
-		url: 'https://rollupjs.org/01-command-line-reference.md#bundleconfigascjs'
+		url: 'https://rollupjs.org/command-line-interface/#bundleconfigascjs'
 	};
 }
 
@@ -406,7 +406,7 @@ export function errorCannotLoadConfigAsCjs(originalError: Error): RollupLog {
 		code: INVALID_CONFIG_MODULE_FORMAT,
 		message: `Node tried to load your configuration file as CommonJS even though it is likely an ES module. To resolve this, change the extension of your configuration to ".mjs", set "type": "module" in your package.json file or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
 		stack: originalError.stack,
-		url: 'https://rollupjs.org/01-command-line-reference.md#bundleconfigascjs'
+		url: 'https://rollupjs.org/command-line-interface/#bundleconfigascjs'
 	};
 }
 
@@ -416,7 +416,7 @@ export function errorCannotLoadConfigAsEsm(originalError: Error): RollupLog {
 		code: INVALID_CONFIG_MODULE_FORMAT,
 		message: `Node tried to load your configuration as an ES module even though it is likely CommonJS. To resolve this, change the extension of your configuration to ".cjs" or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
 		stack: originalError.stack,
-		url: 'https://rollupjs.org/01-command-line-reference.md#bundleconfigascjs'
+		url: 'https://rollupjs.org/command-line-interface/#bundleconfigascjs'
 	};
 }
 
@@ -520,7 +520,7 @@ export function errorMissingConfig(): RollupLog {
 	return {
 		code: MISSING_CONFIG,
 		message: 'Config file must export an options object, or an array of options objects',
-		url: 'https://rollupjs.org/01-command-line-reference.html#configuration-files'
+		url: 'https://rollupjs.org/command-line-interface/#configuration-files'
 	};
 }
 

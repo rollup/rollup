@@ -11,9 +11,9 @@ export default withMermaid(
 				copyright: 'Copyright © 2015-present Rollup contributors',
 				message: 'Released under the MIT License.'
 			},
-			logo: '/rollup-logo.svg',
+			logo: '../rollup-logo.svg',
 			nav: [
-				{ link: '/00-introduction', text: 'guide' },
+				{ link: '/introduction/', text: 'guide' },
 				{ link: '/repl/', text: 'repl' },
 				{ link: 'https://is.gd/rollup_chat', text: 'chat' },
 				{ link: 'https://github.com/rollup/rollup', text: 'github' },
@@ -23,15 +23,15 @@ export default withMermaid(
 				{
 					items: [
 						{
-							link: '/00-introduction',
+							link: '/introduction/',
 							text: 'Introduction'
 						},
 						{
-							link: '/01-command-line-reference',
+							link: '/command-line-interface/',
 							text: 'Command Line Interface'
 						},
 						{
-							link: '/02-javascript-api',
+							link: '/javascript-api/',
 							text: 'Javascript API'
 						}
 					],
@@ -40,27 +40,27 @@ export default withMermaid(
 				{
 					items: [
 						{
-							link: '/04-tutorial',
+							link: '/tutorial/',
 							text: 'Tutorial'
 						},
 						{
-							link: '/03-es-module-syntax',
+							link: '/es-module-syntax/',
 							text: 'ES Module Syntax'
 						},
 						{
-							link: '/06-faqs',
+							link: '/faqs/',
 							text: 'Frequently Asked Questions'
 						},
 						{
-							link: '/08-troubleshooting',
+							link: '/troubleshooting/',
 							text: 'Troubleshooting'
 						},
 						{
-							link: '/09-migration',
+							link: '/migration/',
 							text: 'Migrating to Rollup 3'
 						},
 						{
-							link: '/07-tools',
+							link: '/tools/',
 							text: 'Integrating Rollup With Other Tools'
 						}
 					],
@@ -69,11 +69,11 @@ export default withMermaid(
 				{
 					items: [
 						{
-							link: '/999-big-list-of-options',
+							link: '/configuration-options/',
 							text: 'Configuration Options'
 						},
 						{
-							link: '/05-plugin-development',
+							link: '/plugin-development/',
 							text: 'Plugin Development'
 						}
 					],
