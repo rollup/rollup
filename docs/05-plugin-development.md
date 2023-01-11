@@ -312,7 +312,7 @@ If `external` is `true`, then absolute ids will be converted to relative ids bas
 
 If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
 
-The value of `resolvedBy` refers to which plugin or `rollup` itself resolved the current source. `resolvedBy` can be explicitly declared in the returned object, if it not declared or the return of `resolveId` is `string`, it's value will be set to the name of current plugin by default. Also, it will affects the result of [`this.resolve`](guide/en/#thisresolve).
+`resolvedBy` can be explicitly declared in the returned object, it will affects the return of [`this.resolve`](guide/en/#thisresolve).
 
 If you return a value for `assertions` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, assertions: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `assertions` input parameter will be used. Pass an empty object to remove any assertions. While `assertions` do not influence rendering for bundled modules, they still need to be consistent across all imports of a module, otherwise a warning is emitted. The `load` and `transform` hooks can override this.
 
@@ -811,6 +811,7 @@ type ResolvedId = {
   assertions: { [key: string]: string }; // import assertions for this import
   meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
   moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
+  resolvedBy: string; // which plugin or Rollup resolved this module
   syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
 };
 ```
@@ -977,7 +978,7 @@ Use Rollup's internal acorn instance to parse code to an AST.
 
 #### `this.resolve`
 
-**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, assertions?: {[key: string]: string}, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", assertions: {[key: string]: string}, meta: {[plugin: string]: any} | null, moduleSideEffects: boolean | "no-treeshake", resolvedBy?: string, syntheticNamedExports: boolean | string>`
+**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, assertions?: {[key: string]: string}, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", assertions: {[key: string]: string}, meta: {[plugin: string]: any} | null, moduleSideEffects: boolean | "no-treeshake", resolvedBy: string, syntheticNamedExports: boolean | string>`
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](guide/en/#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
@@ -990,6 +991,8 @@ The value for `isEntry` you pass here will be passed along to the [`resolveId`](
 If you pass an object for `assertions`, it will simulate resolving an import with an assertion, e.g. `assertions: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](guide/en/#resolveid) hooks handling this call and may ultimately become part of the returned object.
 
 When calling this function from a `resolveId` hook, you should always check if it makes sense for you to pass along the `isEntry`, `custom` and `assertions` options.
+
+The value of `resolvedBy` refers to which plugin or Rollup resolved this source, if no plugin resolves this source, the value will be "rollup". If a `resolveId` hook in a plugin resolves this source, the value will be different, when `resolvedBy` is declared in the return of `resolveId` hook, then the value will be the value of the declaration, otherwise the value will be the name of the current plugin.
 
 #### `this.setAssetSource`
 
