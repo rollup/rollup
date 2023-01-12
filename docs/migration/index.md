@@ -15,7 +15,7 @@ When migrating from Rollup 1 or earlier, see also
 
 Make sure you run at least Node 14.18.0 and update all your Rollup plugins to their latest versions.
 
-For larger configs, it can make sense to update to `rollup@2.79.1` first, add the [`strictDeprecations`](#strictdeprecations) option to your config and resolve any errors that pop up. That way you can make sure you do not rely on features that may have been removed in Rollup 3. If you have errors in your plugins, please contact the plugin author.
+For larger configs, it can make sense to update to `rollup@2.79.1` first, add the [`strictDeprecations`](../configuration-options/index.md#strictdeprecations) option to your config and resolve any errors that pop up. That way you can make sure you do not rely on features that may have been removed in Rollup 3. If you have errors in your plugins, please contact the plugin author.
 
 ### Using Configuration Files
 
@@ -28,7 +28,7 @@ There are some additional caveats when using native Node ES modules, most notabl
 - you cannot simply import your `package.json` file
 - you cannot use `__dirname` to get the current directory
 
-[Caveats when using native Node ES modules](#caveats-when-using-native-node-es-modules) will give you some alternatives for how to handle these things.
+[Caveats when using native Node ES modules](../command-line-interface/index.md#caveats-when-using-native-node-es-modules) will give you some alternatives for how to handle these things.
 
 Alternatively you can pass the [`--bundleConfigAsCjs`](../command-line-interface/index.md#bundleconfigascjs) option to force the old loading behavior.
 
@@ -57,18 +57,18 @@ In general, though, the new default values are our recommended settings. Refer t
 
 ### More Changed Options
 
-- [`output.banner/footer`](#outputbanneroutputfooter)[`/intro/outro`](#outputintrooutputoutro) are now called per chunk and thus should not do any performance-heavy operations.
-- [`entryFileNames`](#outputentryfilenames) and [`chunkFileNames`](#outputchunkfilenames) functions no longer have access to the rendered module information via `modules`, but only to a list of included `moduleIds`.
-- When using [`output.preserveModules`](#outputpreservemodules) and `entryFileNames`, you can no longer use the `[ext]`, `[extName]` and `[assetExtName]` file name placeholders. Also, the path of a module is no longer prepended to the file name automatically but is included in the `[name]` placeholder.
+- [`output.banner/footer`](../configuration-options/index.md#output-banner-output-footer)[`/intro/outro`](../configuration-options/index.md#output-intro-output-outro) are now called per chunk and thus should not do any performance-heavy operations.
+- [`entryFileNames`](../configuration-options/index.md#output-entryfilenames) and [`chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) functions no longer have access to the rendered module information via `modules`, but only to a list of included `moduleIds`.
+- When using [`output.preserveModules`](../configuration-options/index.md#output-preservemodules) and `entryFileNames`, you can no longer use the `[ext]`, `[extName]` and `[assetExtName]` file name placeholders. Also, the path of a module is no longer prepended to the file name automatically but is included in the `[name]` placeholder.
 
 ### Dynamic Import in CommonJS Output
 
-By default, when generating `cjs` output, Rollup will now keep any external, i.e. non-bundled, dynamic imports as `import(…)` expressions in the output. This is supported in all Node versions starting with Node 14 and allows to load both CommonJS and ES modules from generated CommonJS output. If you need to support older Node versions, you can pass [`output.dynamicImportInCjs: false`](#outputdynamicimportincjs).
+By default, when generating `cjs` output, Rollup will now keep any external, i.e. non-bundled, dynamic imports as `import(…)` expressions in the output. This is supported in all Node versions starting with Node 14 and allows to load both CommonJS and ES modules from generated CommonJS output. If you need to support older Node versions, you can pass [`output.dynamicImportInCjs: false`](../configuration-options/index.md#output-dynamicimportincjs).
 
 ### Changes to the Plugin API
 
-Then general output generation flow has been reworked, see the [Output Generation Hooks](#output-generation-hooks) graph for the new plugin hook order. Probably the most obvious change is that the [`banner`](../plugin-development/index.md#banner)[`/footer`](../plugin-development/index.md#footer)[`/intro`](../plugin-development/index.md#intro)[`/outro`](../plugin-development/index.md#outro) are no longer invoked once at the beginning but rather per chunk. On the other hand, [`augmentChunkHash`](../plugin-development/index.md#augmentchunkhash) is now evaluated after [`renderChunk`](../plugin-development/index.md#renderchunk) when the hash is created.
+Then general output generation flow has been reworked, see the [Output Generation Hooks](../plugin-development/index.md#output-generation-hooks) graph for the new plugin hook order. Probably the most obvious change is that the [`banner`](../plugin-development/index.md#banner)[`/footer`](../plugin-development/index.md#footer)[`/intro`](../plugin-development/index.md#intro)[`/outro`](../plugin-development/index.md#outro) are no longer invoked once at the beginning but rather per chunk. On the other hand, [`augmentChunkHash`](../plugin-development/index.md#augmentchunkhash) is now evaluated after [`renderChunk`](../plugin-development/index.md#renderchunk) when the hash is created.
 
 As file hashes are now based on the actual content of the file after `renderChunk`, we no longer know exact file names before hashes are generated. Instead, the logic now relies on hash placeholders of the form `!~{001}~`. That means that all file names available to the `renderChunk` hook may contain placeholders and may not correspond to the final file names. This is not a problem though if you plan on using these files names within the chunks as Rollup will replace all placeholders before [`generateBundle`](../plugin-development/index.md#generatebundle) runs.
 
-Not necessarily a breaking change, but plugins that add or remove imports in [`renderChunk`](../plugin-development/index.md#renderchunk) should make sure they also update the corresponding `chunk` information that is passed to this hook. This will enable other plugins to rely on accurate chunk information without the need to pare the chunk themselves. See the [documentation](#renderchunk) of the hook for more information.
+Not necessarily a breaking change, but plugins that add or remove imports in [`renderChunk`](../plugin-development/index.md#renderchunk) should make sure they also update the corresponding `chunk` information that is passed to this hook. This will enable other plugins to rely on accurate chunk information without the need to pare the chunk themselves. See the [documentation](../plugin-development/index.md#renderchunk) of the hook for more information.

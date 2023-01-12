@@ -6,7 +6,7 @@ title: Plugin Development
 
 A Rollup plugin is an object with one or more of the [properties](#properties), [build hooks](#build-hooks), and [output generation hooks](#output-generation-hooks) described below, and which follows our [conventions](#conventions). A plugin should be distributed as a package which exports a function that can be called with plugin specific options and returns such an object.
 
-Plugins allow you to customise Rollup's behaviour by, for example, transpiling code before bundling, or finding third-party modules in your `node_modules` folder. For an example on how to use them, see [Using plugins](#using-plugins).
+Plugins allow you to customise Rollup's behaviour by, for example, transpiling code before bundling, or finding third-party modules in your `node_modules` folder. For an example on how to use them, see [Using plugins](../tutorial/index.md#using-plugins).
 
 A List of Plugins may be found at [github.com/rollup/awesome](https://github.com/rollup/awesome). If you would like to make a suggestion for a plugin, please submit a Pull Request.
 
@@ -265,7 +265,7 @@ Notifies a plugin when the watcher process will close so that all open resources
 
 #### `load`
 
-**Type:** `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, assertions?: {[key: string]: string} | null, meta?: {[plugin: string]: any} | null, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](#thisload) to preload the module corresponding to an id.<br> **Next Hook:** [`transform`](#transform) to transform the loaded file if no cache was used, or there was no cached copy with the same `code`, otherwise [`shouldTransformCachedModule`](#shouldtransformcachedmodule).
+**Type:** `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, assertions?: {[key: string]: string} | null, meta?: {[plugin: string]: any} | null, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](#this-load) to preload the module corresponding to an id.<br> **Next Hook:** [`transform`](#transform) to transform the loaded file if no cache was used, or there was no cached copy with the same `code`, otherwise [`shouldTransformCachedModule`](#shouldtransformcachedmodule).
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -277,13 +277,13 @@ See [synthetic named exports](#synthetic-named-exports) for the effect of the `s
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If a `meta` object is returned by this hook, it will be merged shallowly with any `meta` object returned by the resolveId hook. If no hook returns a `meta` object it will default to an empty object. The `transform` hook can further add or replace properties of this object.
 
-You can use [`this.getModuleInfo`](#thisgetmoduleinfo) to find out the previous values of `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
 #### `moduleParsed`
 
 **Type:** `(moduleInfo: ModuleInfo) => void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`transform`](#transform) where the currently handled file was transformed.<br> **Next Hook:** [`resolveId`](#resolveid) and [`resolveDynamicImport`](#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](#buildend).
 
-This hook is called each time a module has been fully parsed by Rollup. See [`this.getModuleInfo`](#thisgetmoduleinfo) for what information is passed to this hook.
+This hook is called each time a module has been fully parsed by Rollup. See [`this.getModuleInfo`](#this-getmoduleinfo) for what information is passed to this hook.
 
 In contrast to the [`transform`](#transform) hook, this hook is never cached and can be used to get information about both cached and other modules, including the final shape of the `meta` property, the `code` and the `ast`.
 
@@ -313,11 +313,11 @@ In case a dynamic import is not passed a string as argument, this hook gets acce
 - If a string is returned, this string is _not_ interpreted as a module id but is instead used as a replacement for the import argument. It is the responsibility of the plugin to make sure the generated code is valid.
 - To resolve such an import to an existing module, you can still return an object `{id, external}`.
 
-Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolve(source, importer)`](#thisresolve) on the plugin context.
+Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolve(source, importer)`](#this-resolve) on the plugin context.
 
 #### `resolveId`
 
-**Type:** `(source: string, importer: string | undefined, options: {isEntry: boolean, assertions: {[key: string]: string}, custom?: {[plugin: string]: any}}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", assertions?: {[key: string]: string} | null, meta?: {[plugin: string]: any} | null, moduleSideEffects?: boolean | "no-treeshake" | null, resolvedBy?: string, syntheticNamedExports?: boolean | string | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`buildStart`](#buildstart) if we are resolving an entry point, [`moduleParsed`](#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](#resolvedynamicimport). Additionally, this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](#thisemitfile) to emit an entry point or at any time by calling [`this.resolve`](#thisresolve) to manually resolve an id.<br> **Next Hook:** [`load`](#load) if the resolved id has not yet been loaded, otherwise [`buildEnd`](#buildend).
+**Type:** `(source: string, importer: string | undefined, options: {isEntry: boolean, assertions: {[key: string]: string}, custom?: {[plugin: string]: any}}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", assertions?: {[key: string]: string} | null, meta?: {[plugin: string]: any} | null, moduleSideEffects?: boolean | "no-treeshake" | null, resolvedBy?: string, syntheticNamedExports?: boolean | string | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`buildStart`](#buildstart) if we are resolving an entry point, [`moduleParsed`](#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](#resolvedynamicimport). Additionally, this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](#this-emitfile) to emit an entry point or at any time by calling [`this.resolve`](#this-resolve) to manually resolve an id.<br> **Next Hook:** [`load`](#load) if the resolved id has not yet been loaded, otherwise [`buildEnd`](#buildend).
 
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
 
@@ -327,9 +327,9 @@ import { foo } from '../bar.js';
 
 the source will be `"../bar.js"`.
 
-The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#thisemitfile) as here, you can provide an `importer` argument.
+The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](#this-emitfile) as here, you can provide an `importer` argument.
 
-For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](#thisresolve) context function.
+For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](#this-resolve) context function.
 
 You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will proxy all entry points to inject a polyfill import.
 
@@ -419,11 +419,11 @@ function externalizeDependencyPlugin() {
 }
 ```
 
-If `external` is `true`, then absolute ids will be converted to relative ids based on the user's choice for the [`makeAbsoluteExternalsRelative`](#makeabsoluteexternalsrelative) option. This choice can be overridden by passing either `external: "relative"` to always convert an absolute id to a relative id or `external: "absolute"` to keep it as an absolute id. When returning an object, relative external ids, i.e. ids starting with `./` or `../`, will _not_ be internally converted to an absolute id and converted back to a relative id in the output, but are instead included in the output unchanged. If you want relative ids to be renormalised and deduplicated instead, return an absolute file system location as `id` and choose `external: "relative"`.
+If `external` is `true`, then absolute ids will be converted to relative ids based on the user's choice for the [`makeAbsoluteExternalsRelative`](../configuration-options/index.md#makeabsoluteexternalsrelative) option. This choice can be overridden by passing either `external: "relative"` to always convert an absolute id to a relative id or `external: "absolute"` to keep it as an absolute id. When returning an object, relative external ids, i.e. ids starting with `./` or `../`, will _not_ be internally converted to an absolute id and converted back to a relative id in the output, but are instead included in the output unchanged. If you want relative ids to be renormalised and deduplicated instead, return an absolute file system location as `id` and choose `external: "relative"`.
 
 If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
 
-`resolvedBy` can be explicitly declared in the returned object. It will replace the corresponding field returned by [`this.resolve`](guide/en/#thisresolve).
+`resolvedBy` can be explicitly declared in the returned object. It will replace the corresponding field returned by [`this.resolve`](#this-resolve).
 
 If you return a value for `assertions` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, assertions: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `assertions` input parameter will be used. Pass an empty object to remove any assertions. While `assertions` do not influence rendering for bundled modules, they still need to be consistent across all imports of a module, otherwise a warning is emitted. The `load` and `transform` hooks can override this.
 
@@ -433,7 +433,7 @@ See [custom module meta-data](#custom-module-meta-data) for how to use the `meta
 
 Note that while `resolveId` will be called for each import of a module and can therefore resolve to the same `id` many times, values for `external`, `assertions`, `meta`, `moduleSideEffects` or `syntheticNamedExports` can only be set once before the module is loaded. The reason is that after this call, Rollup will continue with the [`load`](#load) and [`transform`](#transform) hooks for that module that may override these values and should take precedence if they do so.
 
-When triggering this hook from a plugin via [`this.resolve`](#thisresolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](#custom-resolver-options).
+When triggering this hook from a plugin via [`this.resolve`](#this-resolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](#custom-resolver-options).
 
 In watch mode or when using the cache explicitly, the resolved imports of a cached module are also taken from the cache and not determined via the `resolveId` hook again. To prevent this, you can return `true` from the [`shouldTransformCachedModule`](#shouldtransformcachedmodule) hook for that module. This will remove the module and its import resolutions from cache and call `transform` and `resolveId` again.
 
@@ -473,7 +473,7 @@ See [synthetic named exports](#synthetic-named-exports) for the effect of the `s
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module or eventually default to an empty object.
 
-You can use [`this.getModuleInfo`](#thisgetmoduleinfo) to find out the previous values of `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
 #### `watchChange`
 
@@ -608,7 +608,7 @@ flowchart TB
 	.-> closebundle
 ```
 
-Additionally, [`closeBundle`](#closebundle) can be called as the very last hook, but it is the responsibility of the User to manually call [`bundle.close()`](#rolluprollup) to trigger this. The CLI will always make sure this is the case.
+Additionally, [`closeBundle`](#closebundle) can be called as the very last hook, but it is the responsibility of the User to manually call [`bundle.close()`](../javascript-api/index.md#rollup-rollup) to trigger this. The CLI will always make sure this is the case.
 
 #### `augmentChunkHash`
 
@@ -635,21 +635,21 @@ function augmentWithDatePlugin() {
 
 **Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](#renderchunk) for the first chunk.
 
-Cf. [`output.banner/output.footer`](#outputbanneroutputfooter).
+Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-banner-output-footer).
 
 #### `closeBundle`
 
-**Type:** `closeBundle: () => Promise<void> | void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`buildEnd`](#buildend) if there was a build error, otherwise when [`bundle.close()`](#rolluprollup) is called, in which case this would be the last hook to be triggered.
+**Type:** `closeBundle: () => Promise<void> | void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`buildEnd`](#buildend) if there was a build error, otherwise when [`bundle.close()`](../javascript-api/index.md#rollup-rollup) is called, in which case this would be the last hook to be triggered.
 
 Can be used to clean up any external service that may be running. Rollup's CLI will make sure this hook is called after each run, but it is the responsibility of users of the JavaScript API to manually call `bundle.close()` once they are done generating bundles. For that reason, any plugin relying on this feature should carefully mention this in its documentation.
 
-If a plugin wants to retain resources across builds in watch mode, they can check for [`this.meta.watchMode`](#thismeta) in this hook and perform the necessary cleanup for watch mode in [`closeWatcher`](#closewatcher).
+If a plugin wants to retain resources across builds in watch mode, they can check for [`this.meta.watchMode`](#this-meta) in this hook and perform the necessary cleanup for watch mode in [`closeWatcher`](#closewatcher).
 
 #### `footer`
 
 **Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](#renderchunk) for the first chunk.
 
-Cf. [`output.banner/output.footer`](#outputbanneroutputfooter).
+Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-banner-output-footer).
 
 #### `generateBundle`
 
@@ -694,13 +694,13 @@ type ChunkInfo = {
 };
 ```
 
-You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](#thisemitfile) plugin context function.
+You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](#this-emitfile) plugin context function.
 
 #### `intro`
 
 **Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](#renderchunk) for the first chunk.
 
-Cf. [`output.intro/output.outro`](#outputintrooutputoutro).
+Cf. [`output.intro/output.outro`](../configuration-options/index.md#output-intro-output-outro).
 
 #### `outputOptions`
 
@@ -712,7 +712,7 @@ Replaces or manipulates the output options object passed to `bundle.generate()` 
 
 **Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](#renderchunk) for the first chunk.
 
-Cf. [`output.intro/output.outro`](#outputintrooutputoutro).
+Cf. [`output.intro/output.outro`](../configuration-options/index.md#output-intro-output-outro).
 
 #### `renderChunk`
 
@@ -894,19 +894,19 @@ type EmittedAsset = {
 };
 ```
 
-In both cases, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](#outputchunkfilenames) or [`output.assetFileNames`](#outputassetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
+In both cases, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
 
 You can reference the URL of an emitted file in any code returned by a [`load`](#load) or [`transform`](#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId`. See [File URLs](#file-urls) for more details and an example.
 
-The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](#thisgetfilename) to determine the file name as soon as it is available. If the file name is not set explicitly, then
+The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](#this-getfilename) to determine the file name as soon as it is available. If the file name is not set explicitly, then
 
 - asset file names are available starting with the [`renderStart`](#renderstart) hook. For assets that are emitted later, the file name will be available immediately after emitting the asset.
 - chunk file names that do not contain a hash are available as soon as chunks are created after the `renderStart` hook.
 - if a chunk file name would contain a hash, using `getFileName` in any hook before [`generateBundle`](#generatebundle) will return a name containing a placeholder instead of the actual name. If you use this file name or parts of it in a chunk you transform in [`renderChunk`](#renderchunk), Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
 
-If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](#preserveentrysignatures) for this particular chunk.
+If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](../configuration-options/index.md#preserveentrysignatures) for this particular chunk.
 
-This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](#outputchunkfilenames) name pattern will be used.
+This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) name pattern will be used.
 
 By default, Rollup assumes that emitted chunks are executed independent of other entry points, possibly even before any other code is executed. This means that if an emitted chunk shares a dependency with an existing entry point, Rollup will create an additional chunk for dependencies that are shared between those entry points. Providing a non-empty array of module ids for `implicitlyLoadedAfterOneOf` will change that behaviour by giving Rollup additional information to prevent this in some cases. Those ids will be resolved the same way as the `id` property, respecting the `importer` property if it is provided. Rollup will now assume that the emitted chunk is only executed if at least one of the entry points that lead to one of the ids in `implicitlyLoadedAfterOneOf` being loaded has already been executed, creating the same chunks as if the newly emitted chunk was only reachable via dynamic import from the modules in `implicitlyLoadedAfterOneOf`. Here is an example that uses this to create a simple HTML file with several scripts, creating optimized chunks to respect their execution order:
 
@@ -969,7 +969,7 @@ If there are no dynamic imports, this will create exactly three chunks where the
 
 Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
 
-If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](#thissetassetsource) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If an asset without a `fileName` is not deduplicated, the [`output.assetFileNames`](#outputassetfilenames) name pattern will be used.
+If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](#this-setassetsource) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If an asset without a `fileName` is not deduplicated, the [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) name pattern will be used.
 
 #### `this.error`
 
@@ -987,7 +987,7 @@ Get the combined source maps of all previous plugins. This context function can 
 
 **Type:** `(referenceId: string) => string`
 
-Get the file name of a chunk or asset that has been emitted via [`this.emitFile`](#thisemitfile). The file name will be relative to `outputOptions.dir`.
+Get the file name of a chunk or asset that has been emitted via [`this.emitFile`](#this-emitfile). The file name will be relative to `outputOptions.dir`.
 
 #### `this.getModuleIds`
 
@@ -1048,12 +1048,12 @@ type ResolvedId = {
 During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](#buildend) hook:
 
 - `id` and `isExternal` will never change.
-- `code`, `ast`, `hasDefaultExport`, `exports` and `exportedBindings` are only available after parsing, i.e. in the [`moduleParsed`](#moduleparsed) hook or after awaiting [`this.load`](#thisload). At that point, they will no longer change.
-- if `isEntry` is `true`, it will no longer change. It is however possible for modules to become entry points after they are parsed, either via [`this.emitFile`](#thisemitfile) or because a plugin inspects a potential entry point via [`this.load`](#thisload) in the [`resolveId`](#resolveid) hook when resolving an entry point. Therefore, it is not recommended relying on this flag in the [`transform`](#transform) hook. It will no longer change after `buildEnd`.
-- Similarly, `implicitlyLoadedAfterOneOf` can receive additional entries at any time before `buildEnd` via [`this.emitFile`](#thisemitfile).
+- `code`, `ast`, `hasDefaultExport`, `exports` and `exportedBindings` are only available after parsing, i.e. in the [`moduleParsed`](#moduleparsed) hook or after awaiting [`this.load`](#this-load). At that point, they will no longer change.
+- if `isEntry` is `true`, it will no longer change. It is however possible for modules to become entry points after they are parsed, either via [`this.emitFile`](#this-emitfile) or because a plugin inspects a potential entry point via [`this.load`](#this-load) in the [`resolveId`](#resolveid) hook when resolving an entry point. Therefore, it is not recommended relying on this flag in the [`transform`](#transform) hook. It will no longer change after `buildEnd`.
+- Similarly, `implicitlyLoadedAfterOneOf` can receive additional entries at any time before `buildEnd` via [`this.emitFile`](#this-emitfile).
 - `importers`, `dynamicImporters` and `implicitlyLoadedBefore` will start as empty arrays, which receive additional entries as new importers and implicit dependents are discovered. They will no longer change after `buildEnd`.
 - `isIncluded` is only available after `buildEnd`, at which point it will no longer change.
-- `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](#thisload) with the `resolveDependencies` flag. At that point, they will no longer change.
+- `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](#this-load) with the `resolveDependencies` flag. At that point, they will no longer change.
 - `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](#load) and [`transform`](#transform) hooks. Moreover, while most properties are read-only, these properties are writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` itself should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
 
 Returns `null` if the module id cannot be found.
@@ -1070,7 +1070,7 @@ Get ids of the files which has been watched previously. Include both files added
 
 Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](#load), [`transform`](#transform) and [`moduleParsed`](#moduleparsed) hooks that would be triggered if the module were imported by another module.
 
-This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](#thisresolve) to this function as long as it is neither `null` nor external.
+This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](#this-resolve) to this function as long as it is neither `null` nor external.
 
 The returned Promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the Promise returned by `this.load` wait until all dependency ids have been resolved.
 
@@ -1209,7 +1209,7 @@ Use Rollup's internal acorn instance to parse code to an AST.
 
 **Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, assertions?: {[key: string]: string}, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", assertions: {[key: string]: string}, meta: {[plugin: string]: any} | null, moduleSideEffects: boolean | "no-treeshake", resolvedBy: string, syntheticNamedExports: boolean | string>`
 
-Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](#resolveid) hook, `external` will be `"absolute"` instead of `true`.
+Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](../configuration-options/index.md#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
 If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the _exact same `source` and `importer`_ while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, do not use `skipSelf` but implement your own infinite loop prevention mechanism if necessary.
 
@@ -1251,7 +1251,7 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.
 
-- `this.moduleIds: IterableIterator<string>` - _**Use [`this.getModuleIds`](#thisgetmoduleids)**_ - An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
+- `this.moduleIds: IterableIterator<string>` - _**Use [`this.getModuleIds`](#this-getmoduleids)**_ - An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
 
   ```js
   for (const moduleId of this.moduleIds) {
@@ -1493,7 +1493,7 @@ Note the convention that custom options should be added using a property corresp
 
 #### Custom module meta-data
 
-Plugins can annotate modules with custom meta-data which can be set by themselves and other plugins via the [`resolveId`](#resolveid), [`load`](#load), and [`transform`](#transform) hooks and accessed via [`this.getModuleInfo`](#thisgetmoduleinfo), [`this.load`](#thisload) and the [`moduleParsed`](#moduleparsed) hook. This meta-data should always be JSON.stringifyable and will be persisted in the cache e.g. in watch mode.
+Plugins can annotate modules with custom meta-data which can be set by themselves and other plugins via the [`resolveId`](#resolveid), [`load`](#load), and [`transform`](#transform) hooks and accessed via [`this.getModuleInfo`](#this-getmoduleinfo), [`this.load`](#this-load) and the [`moduleParsed`](#moduleparsed) hook. This meta-data should always be JSON.stringifyable and will be persisted in the cache e.g. in watch mode.
 
 ```js
 function annotatingPlugin() {
@@ -1525,7 +1525,7 @@ Note the convention that plugins that add or modify data should use a property c
 
 If several plugins add meta-data or meta-data is added in different hooks, then these `meta` objects will be merged shallowly. That means if plugin `first` adds `{meta: {first: {resolved: "first"}}}` in the resolveId hook and `{meta: {first: {loaded: "first"}}}` in the load hook while plugin `second` adds `{meta: {second: {transformed: "second"}}}` in the `transform` hook, then the resulting `meta` object will be `{first: {loaded: "first"}, second: {transformed: "second"}}`. Here the result of the `resolveId` hook will be overwritten by the result of the `load` hook as the plugin was both storing them under its `first` top-level property. The `transform` data of the other plugin on the other hand will be placed next to it.
 
-The `meta` object of a module is created as soon as Rollup starts loading a module and is updated for each lifecycle hook of the module. If you store a reference to this object, you can also update it manually. To access the meta object of a module that has not been loaded yet, you can trigger its creation and loading the module via [`this.load`](#thisload):
+The `meta` object of a module is created as soon as Rollup starts loading a module and is updated for each lifecycle hook of the module. If you store a reference to this object, you can also update it manually. To access the meta object of a module that has not been loaded yet, you can trigger its creation and loading the module via [`this.load`](#this-load):
 
 ```js
 function plugin() {

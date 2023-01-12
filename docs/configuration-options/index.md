@@ -72,7 +72,7 @@ The conversion back to a relative import is done as if `output.file` or `output.
 
 Type: `string | string [] | { [entryName: string]: string }`<br> CLI: `-i`/`--input <filename>`
 
-The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](#outputfile) option is used, generated chunk names will follow the [`output.entryFileNames`](#outputentryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
+The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](#output-file) option is used, generated chunk names will follow the [`output.entryFileNames`](#output-entryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
 
 Note that it is possible when using the object form to put entry points into different sub-folders by adding a `/` to the name. The following will generate at least two entry chunks with the names `entry-a.js` and `entry-b/index.js`, i.e. the file `index.js` is placed in the folder `entry-b`:
 
@@ -91,7 +91,7 @@ export default {
 };
 ```
 
-If you want to convert a set of files to another format while maintaining the file structure and export signatures, the recommended way—instead of using [`output.preserveModules`](#outputpreservemodules) that may tree-shake exports as well as emit virtual files created by plugins—is to turn every file into an entry point. You can do so dynamically e.g. via the `glob` package:
+If you want to convert a set of files to another format while maintaining the file structure and export signatures, the recommended way—instead of using [`output.preserveModules`](#output-preservemodules) that may tree-shake exports as well as emit virtual files created by plugins—is to turn every file into an entry point. You can do so dynamically e.g. via the `glob` package:
 
 ```js
 import glob from 'glob';
@@ -116,7 +116,7 @@ export default {
 };
 ```
 
-The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](#thisemitfile)) by the end of the [`buildStart`](../plugin-development/index.md#buildstart) hook.
+The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](../plugin-development/index.md#this-emitfile)) by the end of the [`buildStart`](../plugin-development/index.md#buildstart) hook.
 
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
 
@@ -260,9 +260,9 @@ this.a.b.c = ...
 
 Type: `MaybeArray<MaybePromise<OutputPlugin | void>>`
 
-Adds a plugin just to this output. See [Using output plugins](#using-output-plugins) for more information on how to use output-specific plugins and [Plugins](#plugin-development) on how to write your own. For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins. Nested plugins will be flatten. Async plugin will be awaited and resolved.
+Adds a plugin just to this output. See [Using output plugins](../tutorial/index.md#using-output-plugins) for more information on how to use output-specific plugins and [Plugins](../plugin-development/index.md) on how to write your own. For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins. Nested plugins will be flattened. Async plugin will be awaited and resolved.
 
-Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [output generation hooks](#output-generation-hooks) to find out which hooks can be used.
+Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [output generation hooks](../plugin-development/index.md#output-generation-hooks) to find out which hooks can be used.
 
 The following will add minification to one of the outputs:
 
@@ -290,7 +290,7 @@ export default {
 
 Type: `MaybeArray<MaybePromise<Plugin | void>>`
 
-See [Using plugins](#using-plugins) for more information on how to use plugins and [Plugins](#plugin-development) on how to write your own (try it out, it's not as difficult as it may sound and very much extends what you can do with Rollup). For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins. Nested plugins will be flatten. Async plugins will be awaited and resolved.
+See [Using plugins](../tutorial/index.md#using-plugins) for more information on how to use plugins and [Plugins](../plugin-development/index.md) on how to write your own (try it out, it's not as difficult as it may sound and very much extends what you can do with Rollup). For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins. Nested plugins will be flatten. Async plugins will be awaited and resolved.
 
 ```js
 // rollup.config.js
@@ -372,7 +372,7 @@ Limits the number of files rollup will open in parallel when reading modules or 
 
 Type: `(warning: RollupWarning, defaultHandler: (warning: string | RollupWarning) => void) => void;`
 
-A function that will intercept warning messages. If not supplied, warnings will be deduplicated and printed to the console. When using the [`--silent`](#--silent) CLI option, this handler is the only way to get notified about warnings.
+A function that will intercept warning messages. If not supplied, warnings will be deduplicated and printed to the console. When using the [`--silent`](../command-line-interface/index.md#silent) CLI option, this handler is the only way to get notified about warnings.
 
 The function receives two arguments: the warning object and the default handler. Warnings objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of warnings are handled. Other properties are added depending on the type of warning. See [`utils/error.ts`](https://github.com/rollup/rollup/blob/master/src/utils/error.ts) for a complete list of errors and warnings together with their codes and properties.
 
@@ -423,7 +423,7 @@ The pattern to use for naming custom emitted assets to include in the build outp
 - `[hash]`: A hash based on the content of the asset. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The file name of the asset excluding any extension.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#outputchunkfilenames), [`output.entryFileNames`](#outputentryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#output-chunkfilenames), [`output.entryFileNames`](#output-entryfilenames).
 
 #### output.banner/output.footer
 
@@ -450,7 +450,7 @@ export default {
 };
 ```
 
-See also [`output.intro/output.outro`](#outputintrooutputoutro).
+See also [`output.intro/output.outro`](#output-intro-output-outro).
 
 #### output.chunkFileNames
 
@@ -460,9 +460,9 @@ The pattern to use for naming shared chunks created when code-splitting, or a fu
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
 - `[hash]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
-- `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](#thisemitfile). Otherwise, it will be derived from the chunk contents.
+- `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](#output-manualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](../plugin-development/index.md#this-emitfile). Otherwise, it will be derived from the chunk contents.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#outputassetfilenames), [`output.entryFileNames`](#outputentryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.entryFileNames`](#output-entryfilenames).
 
 #### output.compact
 
@@ -526,9 +526,9 @@ The pattern to use for chunks created from entry points, or a function that is c
 - `[hash]`: A hash based only on the content of the final generated entry chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
 - `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#outputassetfilenames), [`output.chunkFileNames`](#outputchunkfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.chunkFileNames`](#output-chunkfilenames).
 
-This pattern will also be used for every file when setting the [`output.preserveModules`](#outputpreservemodules) option. Note that in this case, `[name]` will include the relative path from the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts`.
+This pattern will also be used for every file when setting the [`output.preserveModules`](#output-preservemodules) option. Note that in this case, `[name]` will include the relative path from the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts`.
 
 #### output.extend
 
@@ -682,7 +682,7 @@ exports.foo = foo;
 
 Type: `boolean`<br> CLI: `--hoistTransitiveImports`/`--no-hoistTransitiveImports`<br> Default: `true`
 
-By default when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`output.preserveModules`](#outputpreservemodules) option as here, imports will never be hoisted.
+By default when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](../faqs/index.md#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`output.preserveModules`](#output-preservemodules) option as here, imports will never be hoisted.
 
 #### output.inlineDynamicImports
 
@@ -759,7 +759,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 
   When `esModule` is used, Rollup adds no additional interop helpers and also supports live-bindings for default exports.
 
-- `"auto"` combines both `"esModule"` and `"default"` by injecting helpers that contain code that detects at runtime if the required value contains the [`__esModule` property](#outputesmodule). Adding this property is a hack implemented by TypeScript `esModuleInterop`, Babel and other tools to signify that the required value is the namespace of a transpiled ES module.:
+- `"auto"` combines both `"esModule"` and `"default"` by injecting helpers that contain code that detects at runtime if the required value contains the [`__esModule` property](#output-esmodule). Adding this property is a hack implemented by TypeScript `esModuleInterop`, Babel and other tools to signify that the required value is the namespace of a transpiled ES module.:
 
   ```js
   var external = require('external1');
@@ -926,14 +926,14 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 
 There are some additional options that have an effect on the generated interop code:
 
-- Setting [`output.externalLiveBindings`](#outputexternallivebindings) to `false` will generate simplified namespace helpers as well as simplified code for extracted default imports.
-- Setting [`output.freeze`](#outputfreeze) to `false` will prevent generated interop namespace objects from being frozen.
+- Setting [`output.externalLiveBindings`](#output-externallivebindings) to `false` will generate simplified namespace helpers as well as simplified code for extracted default imports.
+- Setting [`output.freeze`](#output-freeze) to `false` will prevent generated interop namespace objects from being frozen.
 
 #### output.intro/output.outro
 
 Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--intro`/`--outro <text>`
 
-Similar to [`output.banner/output.footer`](#outputbanneroutputfooter), except that the code goes _inside_ any format-specific wrapper.
+Similar to [`output.banner/output.footer`](#output-banner-output-footer), except that the code goes _inside_ any format-specific wrapper.
 
 ```js
 export default {
@@ -973,7 +973,7 @@ manualChunks(id) {
 
 Be aware that manual chunks can change the behaviour of the application if side effects are triggered before the corresponding modules are actually used.
 
-When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](#thisgetmoduleinfo) and [`this.getModuleIds`](#thisgetmoduleids) on the plugin context.
+When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](../plugin-development/index.md#this-getmoduleinfo) and [`this.getModuleIds`](../plugin-development/index.md#this-getmoduleids) on the plugin context.
 
 This can be used to dynamically determine into which manual chunk a module should be placed depending on its position in the module graph. For instance consider a scenario where you have a set of components, each of which dynamically imports a set of translated strings, i.e.
 
@@ -1171,7 +1171,7 @@ console.log(main.default); // 42
 
 Type: `string`<br> CLI: `--preserveModulesRoot <directory-name>`
 
-A directory path to input modules that should be stripped away from [`output.dir`](#output-dir) path while [`output.preserveModules`](#outputpreservemodules) is `true`.
+A directory path to input modules that should be stripped away from [`output.dir`](#output-dir) path while [`output.preserveModules`](#output-preservemodules) is `true`.
 
 For example, given the following configuration:
 
@@ -1327,7 +1327,7 @@ const shared = 'shared';
 console.log(shared);
 ```
 
-At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](#thisemitfile) instead of using the [`input`](#input) option.
+At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](../plugin-development/index.md#this-emitfile) instead of using the [`input`](#input) option.
 
 #### strictDeprecations
 
@@ -2039,11 +2039,11 @@ Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 #### inlineDynamicImports
 
-_Use the [`output.inlineDynamicImports`](#outputinlinedynamicimports) output option instead, which has the same signature._
+_Use the [`output.inlineDynamicImports`](#output-inlinedynamicimports) output option instead, which has the same signature._
 
 #### manualChunks
 
-_Use the [`output.manualChunks`](#outputmanualchunks) output option instead, which has the same signature._
+_Use the [`output.manualChunks`](#output-manualchunks) output option instead, which has the same signature._
 
 #### maxParallelFileReads
 
@@ -2059,13 +2059,13 @@ This will rename the dynamic import function to the chosen name when outputting 
 
 #### output.preferConst
 
-_Use the [`output.generatedCode.constBindings`](#outputgeneratedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
+_Use the [`output.generatedCode.constBindings`](#output-generatedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
 
 Generate `const` declarations for exports rather than `var` declarations.
 
 #### output.namespaceToStringTag
 
-_Use [`output.generatedCode.symbols`](#outputgeneratedcode) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
+_Use [`output.generatedCode.symbols`](#output-generatedcode) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
 
 Whether to add spec compliant `.toString()` tags to namespace objects. If this option is set,
 
@@ -2078,4 +2078,4 @@ will always log `[object Module]`;
 
 #### preserveModules
 
-_Use the [`output.preserveModules`](#outputpreservemodules) output option instead, which has the same signature._
+_Use the [`output.preserveModules`](#output-preservemodules) output option instead, which has the same signature._

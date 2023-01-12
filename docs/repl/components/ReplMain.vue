@@ -20,8 +20,8 @@
 </template>
 
 <script setup lang="ts">
-import { useRollupOutput } from '../stores/rollupOutput';
 import { useSyncQueryWithStores, useUpdateStoresFromQuery } from '../helpers/query';
+import { useRollupOutput } from '../stores/rollupOutput';
 import ReplInput from './ReplInput.vue';
 import ReplOutput from './ReplOutput.vue';
 
@@ -38,7 +38,6 @@ button {
 	border: none;
 	outline: none;
 	cursor: pointer;
-	background-color: #eee;
 	padding: 0 1rem;
 	line-height: 2.25rem;
 	white-space: nowrap;
