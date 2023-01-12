@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 3.10.0
+
+_2023-01-12_
+
+### Features
+
+- Add information about the resolving plugin to resolved ids (#4789)
+- Improve treeshaking for optional chaining when the root is nullish (#4797)
+
+### Bug Fixes
+
+- Remove unnecessary internal defaults for acorn options (#4786)
+
+### Pull Requests
+
+- [#4785](https://github.com/rollup/rollup/pull/4785): Use @jridgewell/sourcemap-codec (@bluwy)
+- [#4786](https://github.com/rollup/rollup/pull/4786): Remove default acorn options + other fixes (@dnalborczyk)
+- [#4789](https://github.com/rollup/rollup/pull/4789): feat: add `resolvedBy` field to `ResolvedId` (@TrickyPi)
+- [#4794](https://github.com/rollup/rollup/pull/4794): fix: import can be shortened (@cunzaizhuyi)
+- [#4796](https://github.com/rollup/rollup/pull/4796): Update dependencies (@lukastaegert)
+- [#4797](https://github.com/rollup/rollup/pull/4797): feat: treeshake for optional chaining (@antfu)
+
 ## 3.9.1
 
 _2023-01-02_
