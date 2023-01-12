@@ -9,6 +9,7 @@ const tests = [
 			assertions: {},
 			external: false,
 			meta: {},
+			resolvedBy: 'rollup',
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -29,6 +30,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			resolvedBy: 'rollup',
 			syntheticNamedExports: false
 		}
 	},
@@ -40,6 +42,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			resolvedBy: 'rollup',
 			syntheticNamedExports: false
 		}
 	},
@@ -51,6 +54,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			resolvedBy: 'rollup',
 			syntheticNamedExports: false
 		}
 	},
@@ -62,6 +66,7 @@ const tests = [
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
+			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}
 	},
@@ -72,6 +77,7 @@ const tests = [
 			assertions: {},
 			external: true,
 			meta: {},
+			resolvedBy: 'rollup',
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -84,6 +90,7 @@ const tests = [
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
+			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}
 	},
@@ -95,6 +102,7 @@ const tests = [
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
+			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}
 	},
@@ -106,6 +114,7 @@ const tests = [
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
+			resolvedBy: 'at position 2',
 			syntheticNamedExports: false
 		}
 	}

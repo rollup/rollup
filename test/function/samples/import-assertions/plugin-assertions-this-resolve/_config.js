@@ -18,6 +18,7 @@ module.exports = {
 							id: 'external',
 							meta: {},
 							moduleSideEffects: true,
+							resolvedBy: 'third',
 							syntheticNamedExports: false
 						}
 					);

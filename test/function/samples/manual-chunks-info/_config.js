@@ -87,6 +87,7 @@ module.exports = {
 									id: 'external',
 									meta: {},
 									moduleSideEffects: true,
+									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],
@@ -105,6 +106,7 @@ module.exports = {
 									id: getId('lib'),
 									meta: {},
 									moduleSideEffects: true,
+									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],
@@ -242,6 +244,7 @@ module.exports = {
 									id: getId('dynamic'),
 									meta: {},
 									moduleSideEffects: true,
+									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],
@@ -264,6 +267,7 @@ module.exports = {
 									id: getId('lib'),
 									meta: {},
 									moduleSideEffects: true,
+									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								},
 								{
@@ -272,6 +276,7 @@ module.exports = {
 									id: 'external',
 									meta: {},
 									moduleSideEffects: true,
+									resolvedBy: 'rollup',
 									syntheticNamedExports: false
 								}
 							],

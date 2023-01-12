@@ -216,6 +216,7 @@ export interface PluginContextMeta {
 export interface ResolvedId extends ModuleOptions {
 	external: boolean | 'absolute';
 	id: string;
+	resolvedBy: string;
 }
 
 export interface ResolvedIdMap {
@@ -225,9 +226,12 @@ export interface ResolvedIdMap {
 interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean | 'absolute' | 'relative';
 	id: string;
+	resolvedBy?: string;
 }
 
 export type ResolveIdResult = string | NullValue | false | PartialResolvedId;
+
+export type ResolveIdResultWithoutNullValue = string | false | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,

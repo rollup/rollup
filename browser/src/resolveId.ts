@@ -26,7 +26,7 @@ export async function resolveId(
 		assertions
 	);
 	if (pluginResult == null) {
-		throwNoFileSystem('path.resolve');
+		return throwNoFileSystem('path.resolve')();
 	}
-	return pluginResult;
+	return pluginResult[0];
 }

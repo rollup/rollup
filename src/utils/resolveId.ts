@@ -26,7 +26,23 @@ export async function resolveId(
 		isEntry,
 		assertions
 	);
-	if (pluginResult != null) return pluginResult;
+
+	if (pluginResult != null) {
+		const [resolveIdResult, plugin] = pluginResult;
+		if (typeof resolveIdResult === 'object' && !resolveIdResult.resolvedBy) {
+			return {
+				...resolveIdResult,
+				resolvedBy: plugin.name
+			};
+		}
+		if (typeof resolveIdResult === 'string') {
+			return {
+				id: resolveIdResult,
+				resolvedBy: plugin.name
+			};
+		}
+		return resolveIdResult;
+	}
 
 	// external modules (non-entry modules that start with neither '.' or '/')
 	// are skipped at this stage.

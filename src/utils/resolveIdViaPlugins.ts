@@ -12,7 +12,7 @@ export function resolveIdViaPlugins(
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
 	assertions: Record<string, string>
-): Promise<ResolveIdResult> {
+): Promise<[NonNullable<ResolveIdResult>, Plugin] | null> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
 	if (skip) {
@@ -35,7 +35,7 @@ export function resolveIdViaPlugins(
 				)
 		});
 	}
-	return pluginDriver.hookFirst(
+	return pluginDriver.hookFirstAndGetPlugin(
 		'resolveId',
 		[source, importer, { assertions, custom: customOptions, isEntry }],
 		replaceContext,

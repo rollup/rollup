@@ -206,7 +206,7 @@ Note that the return value of this hook will not be passed to `resolveId` afterw
 
 #### `resolveId`
 
-**Type:** `(source: string, importer: string | undefined, options: {isEntry: boolean, assertions: {[key: string]: string}, custom?: {[plugin: string]: any}}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", assertions?: {[key: string]: string} | null, meta?: {[plugin: string]: any} | null, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`moduleParsed`](guide/en/#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally, this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfile) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolve) to manually resolve an id.<br> **Next Hook:** [`load`](guide/en/#load) if the resolved id has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
+**Type:** `(source: string, importer: string | undefined, options: {isEntry: boolean, assertions: {[key: string]: string}, custom?: {[plugin: string]: any}}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", assertions?: {[key: string]: string} | null, meta?: {[plugin: string]: any} | null, moduleSideEffects?: boolean | "no-treeshake" | null, resolvedBy?: string, syntheticNamedExports?: boolean | string | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`moduleParsed`](guide/en/#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally, this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfile) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolve) to manually resolve an id.<br> **Next Hook:** [`load`](guide/en/#load) if the resolved id has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
 
@@ -311,6 +311,8 @@ function externalizeDependencyPlugin() {
 If `external` is `true`, then absolute ids will be converted to relative ids based on the user's choice for the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option. This choice can be overridden by passing either `external: "relative"` to always convert an absolute id to a relative id or `external: "absolute"` to keep it as an absolute id. When returning an object, relative external ids, i.e. ids starting with `./` or `../`, will _not_ be internally converted to an absolute id and converted back to a relative id in the output, but are instead included in the output unchanged. If you want relative ids to be renormalised and deduplicated instead, return an absolute file system location as `id` and choose `external: "relative"`.
 
 If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
+
+`resolvedBy` can be explicitly declared in the returned object. It will replace the corresponding field returned by [`this.resolve`](guide/en/#thisresolve).
 
 If you return a value for `assertions` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, assertions: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `assertions` input parameter will be used. Pass an empty object to remove any assertions. While `assertions` do not influence rendering for bundled modules, they still need to be consistent across all imports of a module, otherwise a warning is emitted. The `load` and `transform` hooks can override this.
 
@@ -809,6 +811,7 @@ type ResolvedId = {
   assertions: { [key: string]: string }; // import assertions for this import
   meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
   moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
+  resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
   syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
 };
 ```
@@ -975,7 +978,7 @@ Use Rollup's internal acorn instance to parse code to an AST.
 
 #### `this.resolve`
 
-**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, assertions?: {[key: string]: string}, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", assertions: {[key: string]: string}, meta: {[plugin: string]: any} | null, moduleSideEffects: boolean | "no-treeshake", syntheticNamedExports: boolean | string>`
+**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, assertions?: {[key: string]: string}, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", assertions: {[key: string]: string}, meta: {[plugin: string]: any} | null, moduleSideEffects: boolean | "no-treeshake", resolvedBy: string, syntheticNamedExports: boolean | string>`
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](guide/en/#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
@@ -988,6 +991,8 @@ The value for `isEntry` you pass here will be passed along to the [`resolveId`](
 If you pass an object for `assertions`, it will simulate resolving an import with an assertion, e.g. `assertions: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](guide/en/#resolveid) hooks handling this call and may ultimately become part of the returned object.
 
 When calling this function from a `resolveId` hook, you should always check if it makes sense for you to pass along the `isEntry`, `custom` and `assertions` options.
+
+The value of `resolvedBy` refers to which plugin resolved this source. If it was resolved by Rollup itself, the value will be "rollup". If a `resolveId` hook in a plugin resolves this source, the value will be the name of the plugin unless it returned an explicit value for `resolvedBy`. This flag is only for debugging and documentation purposes and is not processed further by Rollup.
 
 #### `this.setAssetSource`
 
