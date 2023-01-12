@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { defineConfig } from 'vitepress';
 import '../types/declarations.d';
 import { withMermaid } from 'vitepress-plugin-mermaid';
@@ -8,12 +8,12 @@ const legacySlugsByPage: Record<string, Record<string, string>> = JSON.parse(
 );
 let currentSlugsAndTitles = new Map<string, string>();
 const slugsByPage = new Map<string, Set<string>>();
-// TODO Lukas do something with this
 const slugsAndPageByLegacySlug: Record<string, [page: string, slug: string]> = {};
 
 const markdownLinkRegExp = /(?<=\[[^\]]*]\()[^)]*/g;
 const relativeLinkRegExp = /^\.\.\/[\w-]+\/index\.md(#.+|\?.+)?$/;
 
+// TODO Lukas extract slugging logic to separate file
 export default withMermaid(
 	defineConfig({
 		buildEnd() {
@@ -41,12 +41,27 @@ export default withMermaid(
 								`Page ${page} references anchor ${anchor} on page ${linkPage} but it cannot be found.`
 							);
 						}
-					} else if (!href.startsWith('http')) {
+					} else if (!(href.startsWith('https://') || href.startsWith('<https://'))) {
 						throw new Error(
 							`Unexpected internal link in ${page}: ${href}. Relative links should be of the form ../page/index.md, absolute links should start with https://.`
 						);
 					}
 				}
+			}
+			const sortedSlugs = Object.fromEntries(
+				Object.entries(slugsAndPageByLegacySlug).sort(([a], [b]) => (a < b ? -1 : 1))
+			);
+			const slugsFileText = JSON.stringify(sortedSlugs);
+			const slugsFile = new URL(
+				`../guide/en/slugs-and-pages-by-legacy-slugs.json`,
+				import.meta.url
+			);
+			const originalSlugsFileText = readFileSync(slugsFile, 'utf8');
+			if (originalSlugsFileText !== slugsFileText) {
+				writeFileSync(slugsFile, slugsFileText);
+				throw new Error(
+					`The content of the legacy anchor mapping file has changed. You should commit the updated file and build again.`
+				);
 			}
 		},
 		description: 'compile JS code',

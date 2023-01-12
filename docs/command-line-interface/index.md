@@ -156,6 +156,7 @@ If you want to create your config asynchronously, Rollup can also handle a `Prom
 ```javascript
 // rollup.config.js
 import fetch from 'node-fetch';
+
 export default fetch('/some-remote-service-or-file-which-returns-actual-config');
 ```
 
@@ -206,7 +207,7 @@ export default commandLineArgs => {
   delete commandLineArgs.input;
   return {
     input: 'src/entries/' + inputBase,
-    output: {...}
+    output: { ... }
   }
 }
 ```
