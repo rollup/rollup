@@ -312,7 +312,7 @@ If `external` is `true`, then absolute ids will be converted to relative ids bas
 
 If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
 
-`resolvedBy` can be explicitly declared in the returned object, it will affects the return of [`this.resolve`](guide/en/#thisresolve).
+`resolvedBy` can be explicitly declared in the returned object. It will replace the corresponding field returned by [`this.resolve`](guide/en/#thisresolve).
 
 If you return a value for `assertions` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, assertions: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `assertions` input parameter will be used. Pass an empty object to remove any assertions. While `assertions` do not influence rendering for bundled modules, they still need to be consistent across all imports of a module, otherwise a warning is emitted. The `load` and `transform` hooks can override this.
 
@@ -811,7 +811,7 @@ type ResolvedId = {
   assertions: { [key: string]: string }; // import assertions for this import
   meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
   moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
-  resolvedBy: string; // which plugin or Rollup resolved this module
+  resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
   syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
 };
 ```
@@ -992,7 +992,7 @@ If you pass an object for `assertions`, it will simulate resolving an import wit
 
 When calling this function from a `resolveId` hook, you should always check if it makes sense for you to pass along the `isEntry`, `custom` and `assertions` options.
 
-The value of `resolvedBy` refers to which plugin or Rollup resolved this source, if no plugin resolves this source, the value will be "rollup". If a `resolveId` hook in a plugin resolves this source, the value will be different, when `resolvedBy` is declared in the return of `resolveId` hook, then the value will be the value of the declaration, otherwise the value will be the name of the current plugin.
+The value of `resolvedBy` refers to which plugin resolved this source. If it was resolved by Rollup itself, the value will be "rollup". If a `resolveId` hook in a plugin resolves this source, the value will be the name of the plugin unless it returned an explicit value for `resolvedBy`. This flag is only for debugging and documentation purposes and is not processed further by Rollup.
 
 #### `this.setAssetSource`
 

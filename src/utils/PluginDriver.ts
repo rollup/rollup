@@ -133,15 +133,9 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext | null,
 		skipped?: ReadonlySet<Plugin> | null
 	): Promise<ReturnType<FunctionPluginHooks[H]> | null> {
-		let promise: Promise<ReturnType<FunctionPluginHooks[H]> | null> = Promise.resolve(null);
-		for (const plugin of this.getSortedPlugins(hookName)) {
-			if (skipped && skipped.has(plugin)) continue;
-			promise = promise.then(result => {
-				if (result != null) return result;
-				return this.runHook(hookName, parameters, plugin, replaceContext);
-			});
-		}
-		return promise;
+		return this.hookFirstAndGetPlugin(hookName, parameters, replaceContext, skipped).then(
+			result => result && result[0]
+		);
 	}
 
 	// chains, first non-null result stops and returns result and last plugin
