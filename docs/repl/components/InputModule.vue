@@ -5,18 +5,12 @@
 		:class="{ 'entry-module': isMain || module.isEntry, 'has-input': !isMain }"
 	>
 		<header>
-			<span v-if="isMain" class="entry-module-name">
+			<span v-if="isMain" class="module-name">
 				main.js
 				<span class="entry-module-label">(entry module)</span>
 			</span>
 			<span v-else>
-				<input
-					ref="input"
-					v-model="module.name"
-					class="module-name"
-					@focus="selectName"
-					placeholder="foo.js"
-				/>
+				<input ref="input" v-model="module.name" @focus="selectName" placeholder="foo.js" />
 				<button class="remove" @click="emit('remove')">
 					<span class="label">remove</span>
 					<span class="icon-cancel"></span>
@@ -54,15 +48,15 @@ const selectName = (event: FocusEvent) => {
 <style scoped>
 .module {
 	margin: 0 0 0.5rem 0;
-	padding: 2px;
 	border-radius: 8px;
+	border: 2px solid var(--vp-c-bg-mute);
 	background-color: var(--vp-c-bg-mute);
 	color: var(--vp-c-text-1);
+	transition: all 0.2s;
 }
 
 .module.entry-module {
-	background-color: hsl(219 70% 85%);
-	color: #222;
+	border-color: var(--vp-c-brand);
 }
 
 header {
@@ -73,16 +67,16 @@ header {
 	position: relative;
 }
 
-.entry-module-name {
+.module-name {
 	display: block;
 	padding: 0.5em;
 }
 
 .entry-module-label {
-	opacity: 0.6;
 	position: absolute;
 	right: 0;
 	padding-right: 0.5em;
+	color: var(--vp-c-brand);
 }
 
 input {
@@ -93,11 +87,6 @@ input {
 .has-input header:hover,
 input:focus {
 	background-color: var(--vp-c-bg-alt);
-}
-
-.entry-module.has-input header:hover,
-.entry-module input:focus {
-	background-color: hsl(219 70% 90%);
 }
 
 button {
@@ -139,16 +128,24 @@ button .label {
 	position: absolute;
 	right: 100%;
 	opacity: 0;
-	-webkit-transition: opacity 0.2s;
-	transition: opacity 0.2s;
+	transition: all 0.2s;
 }
 
 .entry-module .toggle-entry .label {
+	color: var(--vp-c-brand);
 	opacity: 1;
 }
 
 .entry-module button.toggle-entry {
+	opacity: 1;
+}
+
+.entry-module button.toggle-entry .icon-minus {
 	opacity: 0.6;
+}
+
+.entry-module button.toggle-entry:hover .icon-minus {
+	opacity: 1;
 }
 
 button:hover .label,
@@ -160,5 +157,6 @@ button:active .label {
 .icon-plus,
 .icon-minus {
 	font-size: 0.8em;
+	transition: opacity 0.2s;
 }
 </style>
