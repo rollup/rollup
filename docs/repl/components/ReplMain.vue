@@ -43,11 +43,6 @@ button {
 	white-space: nowrap;
 }
 
-button:hover,
-button:active {
-	background-color: #eaeaea;
-}
-
 button:disabled {
 	cursor: default;
 }
@@ -77,16 +72,6 @@ input {
 	font-weight: normal;
 	font-style: normal;
 }
-/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
-/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
-/*
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  @font-face {
-    font-family: 'fontello';
-    src: url('../font/fontello.svg?58001839#fontello') format('svg');
-  }
-}
-*/
 
 [class^='icon-']:before,
 [class*=' icon-']:before {
