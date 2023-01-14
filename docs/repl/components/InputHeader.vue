@@ -11,8 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import { useModules } from '../stores/modules';
 import { examplesById } from '../stores/examples';
+import { useModules } from '../stores/modules';
 
 const modulesStore = useModules();
 const handleInput = (event: InputEvent) =>
@@ -34,20 +34,34 @@ select {
 	font-family: inherit;
 	position: relative;
 	border: none;
+	cursor: pointer;
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
-	border-radius: 0;
+	border-radius: 8px;
 	padding: 0 2.5rem 0 0.5rem;
-	background: #eee url(../images/select-arrow.svg) no-repeat 100% 50%;
+	background: var(--vp-c-bg-mute) url(../images/select-arrow.svg) no-repeat 100% 50%;
 	background-size: auto 100%;
 	outline: none;
 	line-height: 2.25rem;
 }
 
+.dark select {
+	background: var(--vp-c-bg-mute) url(../images/select-arrow-dark.svg) no-repeat 100% 50%;
+}
+
 select,
 .start-over {
 	margin-bottom: 0.25rem;
+}
+
+select:focus {
+	outline: 2px solid white;
+}
+
+button {
+	border-radius: 8px;
+	background: var(--vp-c-bg-mute);
 }
 
 @media (min-width: 400px) {
