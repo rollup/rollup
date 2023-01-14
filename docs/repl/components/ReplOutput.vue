@@ -1,6 +1,7 @@
 <template>
 	<OutputStatus />
 	<BundleOptions />
+	<RollupVersion />
 	<div v-if="!rollupOutputStore.output.error">
 		<article v-for="chunk in rollupOutputStore.output.output" :key="chunk.fileName" class="output">
 			<header v-if="rollupOutputStore.output.output.length > 1">
@@ -16,6 +17,7 @@ import { useRollupOutput } from '../stores/rollupOutput';
 import BundleOptions from './BundleOptions.vue';
 import OutputStatus from './OutputStatus.vue';
 import ReplEditor from './ReplEditor.vue';
+import RollupVersion from './RollupVersion.vue';
 
 const rollupOutputStore = useRollupOutput();
 rollupOutputStore.output.error;

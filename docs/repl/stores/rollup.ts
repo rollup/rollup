@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 import type * as Rollup from '../../../src/browser-entry';
 import type { RollupBuild, RollupOptions } from '../../../src/rollup/types';
-import { ref } from 'vue';
 import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
 
 function getRollupUrl({ type, version }: RollupRequest) {
@@ -88,8 +88,17 @@ export const useRollup = defineStore('rollup', () => {
 		}
 	}
 
+	function requestError(error: Error) {
+		rollup.value = {
+			error,
+			rollup: null,
+			version: null
+		};
+	}
+
 	return {
 		request,
+		requestError,
 		requestRollup,
 		rollup
 	};

@@ -1,5 +1,5 @@
-import type { OutputOptions } from '../../../src/rollup/types';
 import { watch } from 'vue';
+import type { OutputOptions } from '../../../src/rollup/types';
 import type { Module } from '../stores/modules';
 import { useModules } from '../stores/modules';
 import { useOptions } from '../stores/options';
@@ -57,11 +57,19 @@ export async function useUpdateStoresFromQuery() {
 	}
 
 	if (query.pr) {
-		rollupStore.requestRollup({ type: 'pr', version: query.pr });
+		if (/^\d+$/.test(query.pr)) {
+			rollupStore.requestRollup({ type: 'pr', version: query.pr });
+		} else {
+			rollupStore.requestError(new Error(`Unexpected pull request number in URL: ${query.pr}`));
+		}
 	} else if (import.meta.env.DEV && (query.local || !query.version)) {
 		rollupStore.requestRollup({ type: 'local', version: undefined });
 	} else {
-		rollupStore.requestRollup({ type: 'version', version: query.version });
+		if (/^\d+\.\d+\.\d+(-\d+)?$/.test(query.version)) {
+			rollupStore.requestRollup({ type: 'version', version: query.version });
+		} else {
+			rollupStore.requestError(new Error(`Unexpected Rollup version in URL: ${query.version}`));
+		}
 	}
 }
 
