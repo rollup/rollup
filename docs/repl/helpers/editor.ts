@@ -1,11 +1,12 @@
-import type { ViewUpdate } from '@codemirror/view';
-import { Decoration, dropCursor, EditorView, keymap, lineNumbers } from '@codemirror/view';
+import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { javascript } from '@codemirror/lang-javascript';
+import { HighlightStyle, indentOnInput, syntaxHighlighting } from '@codemirror/language';
 import type { StateEffectType } from '@codemirror/state';
 import { EditorState, StateEffect, StateField } from '@codemirror/state';
-import { defaultHighlightStyle, indentOnInput, syntaxHighlighting } from '@codemirror/language';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { javascript } from '@codemirror/lang-javascript';
+import type { ViewUpdate } from '@codemirror/view';
+import { Decoration, dropCursor, EditorView, keymap, lineNumbers } from '@codemirror/view';
+import { tags } from '@lezer/highlight';
 
 export type AddWarnings = StateEffectType<{
 	messages: { message: string; pos: number }[];
@@ -53,12 +54,20 @@ const theme = EditorView.baseTheme({
 		outline: 'none'
 	},
 	'.cm-content': {
-		color: '#333',
-		height: '100%'
+		background: 'var(--vp-code-block-bg)',
+		borderRadius: '6px',
+		caretColor: '#fff',
+		color: '#A6ACCD',
+		fontFamily: 'var(--vp-font-family-mono)',
+		fontSize: '14px',
+		height: '100%',
+		lineHeight: '24px',
+		padding: '8px'
 	},
 	'.cm-gutters': {
-		borderRight: '1px solid #eee',
-		color: '#999'
+		backgroundColor: 'transparent',
+		border: 'none',
+		color: 'var(--module-wrapper-color)'
 	},
 	'.cm-rollup-error': {
 		backgroundColor: 'var(--error-background)',
@@ -73,12 +82,31 @@ const theme = EditorView.baseTheme({
 		padding: '1px'
 	},
 	'.cm-scroller': {
-		fontFamily: 'Inconsolata, monospace',
-		fontSize: '16px',
+		borderRadius: '6px',
+		borderTopLeftRadius: '0',
+		borderTopRightRadius: '0',
+		fontFamily: 'var(--vp-font-family-mono)',
+		fontSize: '14px',
 		fontWeight: '400',
-		lineHeight: '1.2'
+		lineHeight: '24px',
+		marginTop: '2px'
 	}
 });
+
+const highlightStyle = HighlightStyle.define([
+	{ color: '#676E95', fontStyle: 'italic', tag: tags.comment },
+	{ color: '#C3E88D', tag: tags.string },
+	{ color: '#FF9CAC', tag: tags.literal },
+	// names
+	{ color: '#A6ACCD', tag: tags.name },
+	{ color: '#82AAFF', tag: tags.propertyName },
+	// punctuation
+	{ color: '#89DDFF', tag: tags.punctuation },
+	{ color: '#89DDFF', tag: tags.operator },
+	// keywords
+	{ color: '#89DDFF', tag: tags.keyword },
+	{ color: '#C792EA', tag: tags.definitionKeyword }
+]);
 
 export const createEditor = (
 	parent: HTMLElement,
@@ -102,7 +130,7 @@ export const createEditor = (
 			history(),
 			dropCursor(),
 			indentOnInput(),
-			syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+			syntaxHighlighting(highlightStyle, { fallback: true }),
 			closeBrackets(),
 			keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap]),
 			javascript(),

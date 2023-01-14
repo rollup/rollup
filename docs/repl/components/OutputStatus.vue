@@ -25,10 +25,10 @@
 </template>
 
 <script setup lang="ts">
-import StatusMessage from './StatusMessage.vue';
 import { computed } from 'vue';
 import { useRollup } from '../stores/rollup';
 import { useRollupOutput } from '../stores/rollupOutput';
+import StatusMessage from './StatusMessage.vue';
 
 const rollupStore = useRollup();
 const rollupOutputStore = useRollupOutput();
@@ -45,7 +45,7 @@ const warnings = computed(() => rollupOutputStore.output.warnings);
 	color: white;
 	word-break: break-word;
 	line-height: 1;
-	border-radius: 5px;
+	border-radius: 8px;
 }
 
 .success {

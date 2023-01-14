@@ -1,6 +1,9 @@
 <template>
 	<!-- eslint-disable vue/no-mutating-props -->
-	<article class="module" :class="{ 'entry-module': isMain || module.isEntry }">
+	<article
+		class="module"
+		:class="{ 'entry-module': isMain || module.isEntry, 'has-input': !isMain }"
+	>
 		<header>
 			<span v-if="isMain" class="entry-module-name">
 				main.js
@@ -51,17 +54,23 @@ const selectName = (event: FocusEvent) => {
 <style scoped>
 .module {
 	margin: 0 0 0.5rem 0;
-	border: 1px solid #f4f4f4;
+	padding: 2px;
+	border-radius: 8px;
+	background-color: var(--vp-c-bg-mute);
+	color: var(--vp-c-text-1);
+}
+
+.module.entry-module {
+	background-color: hsl(219 70% 85%);
+	color: #222;
 }
 
 header {
 	width: 100%;
-	border-bottom: 1px solid #f4f4f4;
+	border-radius: 6px;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
 	position: relative;
-}
-
-.entry-module {
-	border: 1px solid #ccc;
 }
 
 .entry-module-name {
@@ -70,7 +79,6 @@ header {
 }
 
 .entry-module-label {
-	color: #555;
 	opacity: 0.6;
 	position: absolute;
 	right: 0;
@@ -79,6 +87,17 @@ header {
 
 input {
 	padding: 0.75em 0.5em;
+	border-radius: 6px;
+}
+
+.has-input header:hover,
+input:focus {
+	background-color: var(--vp-c-bg-alt);
+}
+
+.entry-module.has-input header:hover,
+.entry-module input:focus {
+	background-color: hsl(219 70% 90%);
 }
 
 button {
@@ -101,12 +120,11 @@ button {
 
 .toggle-entry {
 	bottom: 0;
-	color: #555;
 }
 
 .remove {
 	top: 0;
-	color: #e94c43;
+	color: var(--vp-custom-block-danger-text);
 }
 
 button:hover,

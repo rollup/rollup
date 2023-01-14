@@ -65,13 +65,8 @@ input {
 	border: none;
 	outline: none;
 	line-height: 1;
-	color: #333;
-	background-color: inherit;
 }
 
-input:focus {
-	background-color: #eaeaea;
-}
 @font-face {
 	font-family: 'fontello';
 	src: url('../font/fontello.eot?58001839');

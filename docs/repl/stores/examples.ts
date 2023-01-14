@@ -12,16 +12,20 @@ const examples: [Example, ...Example[]] = [
 		modules: [
 			{
 				// language=JavaScript
-				code: `/* DYNAMIC IMPORTS
-\tRollup supports automatic chunking and lazy-loading
-\tvia dynamic imports utilizing the import mechanism
-\tof the host system. */
-if (displayMath) {
-\timport('./maths.js').then(maths => {
-\t\tconsole.log(maths.square(5));
-\t\tconsole.log(maths.cube(5));
-\t});
-}`,
+				code: `// DYNAMIC IMPORTS
+// Rollup supports automatic chunking and lazy-loading
+// via dynamic imports utilizing the import mechanism
+// of the host system.
+import square from './square.js';
+
+// Directly use some math
+console.log(square(2))
+
+// Dynamically import the rest
+import('./maths.js').then(maths => {
+\tconsole.log(maths.square(5));
+\tconsole.log(maths.cube(5));
+});`,
 				isEntry: true,
 				name: 'main.js'
 			},
@@ -37,7 +41,9 @@ export const cube = x => square(x) * x;`,
 			},
 			{
 				// language=JavaScript
-				code: `export default x => x * x;`,
+				code: `// Modules shared between the entry chunk and the
+// dynamic chunk are merged into the entry chunk.
+export default x => x * x;`,
 				isEntry: false,
 				name: 'square.js'
 			}

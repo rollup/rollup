@@ -13,9 +13,9 @@
 
 <script setup lang="ts">
 import { useRollupOutput } from '../stores/rollupOutput';
-import ReplEditor from './ReplEditor.vue';
-import OutputStatus from './OutputStatus.vue';
 import BundleOptions from './BundleOptions.vue';
+import OutputStatus from './OutputStatus.vue';
+import ReplEditor from './ReplEditor.vue';
 
 const rollupOutputStore = useRollupOutput();
 rollupOutputStore.output.error;
@@ -24,7 +24,9 @@ rollupOutputStore.output.error;
 <style scoped>
 .output {
 	margin: 0 0 0.5rem 0;
-	border: 1px solid #eee;
+	border-radius: 8px;
+	background-color: var(--vp-c-bg-mute);
+	color: var(--vp-c-text-1);
 }
 
 .module-name {
@@ -34,6 +36,5 @@ rollupOutputStore.output.error;
 
 header {
 	width: 100%;
-	border-bottom: 1px solid #f4f4f4;
 }
 </style>

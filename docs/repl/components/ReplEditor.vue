@@ -3,9 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import type { RollupWarning } from '../../../src/rollup/types';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
 import type { EditorView } from '@codemirror/view';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
+import type { RollupWarning } from '../../../src/rollup/types';
 import type { AddWarnings } from '../helpers/editor';
 import { getFileNameFromMessage } from '../helpers/messages';
 import { useRollupOutput } from '../stores/rollupOutput';

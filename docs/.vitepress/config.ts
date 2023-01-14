@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { defineConfig } from 'vitepress';
-import '../types/declarations.d';
+import '../declarations.d';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
 const legacySlugsByPage: Record<string, Record<string, string>> = JSON.parse(
