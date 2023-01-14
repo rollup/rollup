@@ -16,7 +16,7 @@ export default withMermaid(
 				copyright: 'Copyright © 2015-present Rollup contributors',
 				message: 'Released under the MIT License.'
 			},
-			logo: '../rollup-logo.svg',
+			logo: '/rollup-logo.svg',
 			nav: [
 				{ link: '/introduction/', text: 'guide' },
 				{ link: '/repl/', text: 'repl' },
