@@ -36,7 +36,7 @@
 				</section>
 				<section v-if="sortedImports.length > 0">
 					<h3>output.globals</h3>
-					<div v-for="x in sortedImports" :key="x">
+					<div v-for="x in sortedImports" :key="x" class="input-with-label">
 						<input v-model="optionsStore.options.globals[x]" />
 						<code>'{{ x }}'</code>
 					</div>
@@ -47,9 +47,9 @@
 </template>
 
 <script setup lang="ts">
-import { useRollupOutput } from '../stores/rollupOutput';
 import { computed } from 'vue';
 import { useOptions } from '../stores/options';
+import { useRollupOutput } from '../stores/rollupOutput';
 
 const rollupOutputStore = useRollupOutput();
 const optionsStore = useOptions();
@@ -66,17 +66,32 @@ const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 
 <style scoped>
 .options {
+	--bg-inactive: var(--vp-c-gray-light-3);
+	--bg-active: var(--vp-c-bg);
+	--bg-default: var(--vp-c-gray-light-5);
 	margin: 0 0 1.5rem 0;
-	border: 1px solid #eee;
 	line-height: 2rem;
+	background-color: var(--bg-default);
+	border-radius: 8px;
+}
+
+.dark .options {
+	--bg-inactive: var(--vp-c-gray-dark-3);
+	--bg-default: var(--vp-c-gray-dark-5);
+	background-color: var(--bg-default);
 }
 
 .option-buttons {
+	background-color: var(--bg-inactive);
+	border: 1px solid var(--bg-default);
+	border-radius: 8px;
+	padding: 2px;
 	display: flex;
 }
 
 button {
 	display: block;
+	border-radius: 6px;
 	font-size: 0.8rem;
 	margin: 0;
 	flex-basis: 0;
@@ -85,16 +100,8 @@ button {
 }
 
 .selected {
-	background-color: #ccc;
+	background-color: var(--bg-active);
 	font-weight: bold;
-}
-
-section {
-	border-bottom: 1px solid #eee;
-}
-
-section:last-child {
-	border: none;
 }
 
 h3 {
@@ -109,7 +116,13 @@ input {
 	font-size: 0.8rem;
 	padding: 0 0.5rem;
 	line-height: 2rem;
-	background-color: #eee;
+	background-color: var(--bg-inactive);
+	border: 1px solid var(--bg-default);
+	border-radius: 8px;
+}
+
+.input-with-label {
+	position: relative;
 }
 
 section code {
