@@ -2,13 +2,17 @@
 title: ES Module Syntax
 ---
 
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 The following is intended as a lightweight reference for the module behaviors defined in the [ES2015 specification](https://www.ecma-international.org/ecma-262/6.0/), since a proper understanding of the import and export statements are essential to the successful use of Rollup.
 
-### Importing
+## Importing
 
 Imported values cannot be reassigned, though imported objects and arrays _can_ be mutated (and the exporting module, and any other importers, will be affected by the mutation). In that way, they behave similarly to `const` declarations.
 
-#### Named Imports
+### Named Imports
 
 Import a specific item from a source module, with its original name.
 
@@ -22,7 +26,7 @@ Import a specific item from a source module, with a custom name assigned upon im
 import { something as somethingElse } from './module.js';
 ```
 
-#### Namespace Imports
+### Namespace Imports
 
 Import everything from the source module as an object which exposes all the source module's named exports as properties and methods.
 
@@ -32,7 +36,7 @@ import * as module from './module.js';
 
 The `something` example from above would then be attached to the imported object as a property, e.g. `module.something`. If present, the default export can be accessed via `module.default`.
 
-#### Default Import
+### Default Import
 
 Import the **default export** of the source module.
 
@@ -40,7 +44,7 @@ Import the **default export** of the source module.
 import something from './module.js';
 ```
 
-#### Empty Import
+### Empty Import
 
 Load the module code, but don't make any new objects available.
 
@@ -50,7 +54,7 @@ import './module.js';
 
 This is useful for polyfills, or when the primary purpose of the imported code is to muck about with prototypes.
 
-#### Dynamic Import
+### Dynamic Import
 
 Import modules using the [dynamic import API](https://github.com/tc39/proposal-dynamic-import#import).
 
@@ -62,9 +66,9 @@ import('./modules.js').then(({ default: DefaultExport, NamedExport }) => {
 
 This is useful for code-splitting applications and using modules on-the-fly.
 
-### Exporting
+## Exporting
 
-#### Named exports
+### Named exports
 
 Export a value that has been previously declared:
 
@@ -86,7 +90,7 @@ Export a value immediately upon declaration:
 export const something = true;
 ```
 
-#### Default Export
+### Default Export
 
 Export a single value as the source module's default export:
 
@@ -98,7 +102,7 @@ This practice is only recommended if your source module only has one export.
 
 It is bad practice to mix default and named exports in the same module, though it is allowed by the specification.
 
-### How bindings work
+## How bindings work
 
 ES modules export _live bindings_, not values, so values can be changed after they are initially imported as per [this demo](../repl/index.md?shareable=JTdCJTIyZXhhbXBsZSUyMiUzQW51bGwlMkMlMjJtb2R1bGVzJTIyJTNBJTVCJTdCJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMCU3QiUyMGNvdW50JTJDJTIwaW5jcmVtZW50JTIwJTdEJTIwZnJvbSUyMCcuJTJGaW5jcmVtZW50ZXIuanMnJTNCJTVDbiU1Q25jb25zb2xlLmxvZyhjb3VudCklM0IlMjAlMkYlMkYlMjAwJTVDbmluY3JlbWVudCgpJTNCJTVDbmNvbnNvbGUubG9nKGNvdW50KSUzQiUyMCUyRiUyRiUyMDElMjIlMkMlMjJpc0VudHJ5JTIyJTNBdHJ1ZSUyQyUyMm5hbWUlMjIlM0ElMjJtYWluLmpzJTIyJTdEJTJDJTdCJTIyY29kZSUyMiUzQSUyMmV4cG9ydCUyMGxldCUyMGNvdW50JTIwJTNEJTIwMCUzQiU1Q24lNUNuZXhwb3J0JTIwZnVuY3Rpb24lMjBpbmNyZW1lbnQoKSUyMCU3QiU1Q24lMjAlMjBjb3VudCUyMCUyQiUzRCUyMDElM0IlNUNuJTdEJTIyJTJDJTIyaXNFbnRyeSUyMiUzQWZhbHNlJTJDJTIybmFtZSUyMiUzQSUyMmluY3JlbWVudGVyLmpzJTIyJTdEJTVEJTJDJTIyb3B0aW9ucyUyMiUzQSU3QiUyMmFtZCUyMiUzQSU3QiUyMmlkJTIyJTNBJTIyJTIyJTdEJTJDJTIyZm9ybWF0JTIyJTNBJTIyZXMlMjIlMkMlMjJnbG9iYWxzJTIyJTNBJTdCJTdEJTJDJTIybmFtZSUyMiUzQSUyMm15QnVuZGxlJTIyJTdEJTdE):
 

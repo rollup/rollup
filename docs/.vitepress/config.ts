@@ -9,9 +9,17 @@ export default withMermaid(
 		description: 'compile JS code',
 		markdown: {
 			anchor: { callback },
-			linkify: false
+			lineNumbers: true,
+			linkify: false,
+			toc: {
+				level: [2, 3, 4]
+			}
 		},
 		themeConfig: {
+			editLink: {
+				pattern: 'https://github.com/rollup/rollup/edit/master/docs/:path',
+				text: 'Edit this page on GitHub'
+			},
 			footer: {
 				copyright: 'Copyright © 2015-present Rollup contributors',
 				message: 'Released under the MIT License.'
@@ -21,9 +29,9 @@ export default withMermaid(
 				{ link: '/introduction/', text: 'guide' },
 				{ link: '/repl/', text: 'repl' },
 				{ link: 'https://is.gd/rollup_chat', text: 'chat' },
-				{ link: 'https://github.com/rollup/rollup', text: 'github' },
 				{ link: 'https://opencollective.com/rollup', text: 'opencollective' }
 			],
+			outline: 'deep',
 			sidebar: [
 				{
 					items: [
@@ -66,7 +74,7 @@ export default withMermaid(
 						},
 						{
 							link: '/tools/',
-							text: 'Integrating Rollup With Other Tools'
+							text: 'Other Tools'
 						}
 					],
 					text: 'More info'
@@ -84,7 +92,8 @@ export default withMermaid(
 					],
 					text: 'API'
 				}
-			]
+			],
+			socialLinks: [{ icon: 'github', link: 'https://github.com/rollup/rollup' }]
 		},
 		title: 'Rollup',
 		transformPageData

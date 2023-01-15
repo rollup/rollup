@@ -2,9 +2,13 @@
 title: JavaScript API
 ---
 
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 Rollup provides a JavaScript API which is usable from Node.js. You will rarely need to use this, and should probably be using the command line API unless you are extending Rollup itself or using it for something esoteric, such as generating bundles programmatically.
 
-### rollup.rollup
+## rollup.rollup
 
 The `rollup.rollup` function receives an input options object as parameter and returns a Promise that resolves to a `bundle` object with various properties and methods as shown below. During this step, Rollup will build the module graph and perform tree-shaking, but will not generate any output.
 
@@ -100,7 +104,7 @@ async function generateOutputs(bundle) {
 }
 ```
 
-#### inputOptions object
+### inputOptions object
 
 The `inputOptions` object can contain the following properties (see the [big list of options](../configuration-options/index.md) for full details on these):
 
@@ -132,7 +136,7 @@ const inputOptions = {
 };
 ```
 
-#### outputOptions object
+### outputOptions object
 
 The `outputOptions` object can contain the following properties (see the [big list of options](../configuration-options/index.md) for full details on these):
 
@@ -186,7 +190,7 @@ const outputOptions = {
 };
 ```
 
-### rollup.watch
+## rollup.watch
 
 Rollup also provides a `rollup.watch` function that rebuilds your bundle when it detects that the individual modules have changed on disk. It is used internally when you run Rollup from the command line with the `--watch` flag. Note that when using watch mode via the JavaScript API, it is your responsibility to call `event.result.close()` in response to the `BUNDLE_END` event to allow plugins to clean up resources in the [`closeBundle`](../plugin-development/index.md#closebundle) hook, see below.
 
@@ -244,7 +248,7 @@ watcher.on('close', () => { /* the watcher was closed, see below */ })
 watcher.close();
 ```
 
-#### watchOptions
+### watchOptions
 
 The `watchOptions` argument is a config (or an array of configs) that you would export from a config file.
 
@@ -265,7 +269,7 @@ const watchOptions = {
 
 See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](../configuration-options/index.md) for info on `chokidar`, `include` and `exclude`.
 
-#### Programmatically loading a config file
+### Programmatically loading a config file
 
 In order to aid in generating such a config, rollup exposes the helper it uses to load config files in its command line interface via a separate entry-point. This helper receives a resolved `fileName` and optionally an object containing command line parameters:
 

@@ -5,6 +5,7 @@ hero:
   name: rollup.js
   text: Module bundler for JavaScript
   tagline: Compile small pieces of code into something larger and more complex
+  image: /rollup-logo.svg
   actions:
     - theme: brand
       text: Get Started

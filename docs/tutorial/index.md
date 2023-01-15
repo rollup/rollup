@@ -2,7 +2,11 @@
 title: Tutorial
 ---
 
-### Creating Your First Bundle
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Creating Your First Bundle
 
 _Before we begin, you'll need to have [Node.js](https://nodejs.org) installed so that you can use [NPM](https://npmjs.com). You'll also need to know how to access the [command line](https://www.codecademy.com/learn/learn-the-command-line) on your machine._
 
@@ -84,7 +88,7 @@ node
 
 Congratulations! You've created your first bundle with Rollup.
 
-### Using Config Files
+## Using Config Files
 
 So far, so good, but as we start adding more options it becomes a bit of a nuisance to type out the command.
 
@@ -127,7 +131,7 @@ rollup --config rollup.config.dev.js
 rollup --config rollup.config.prod.js
 ```
 
-### Installing Rollup locally
+## Installing Rollup locally
 
 When working within teams or distributed environments it can be wise to add Rollup as a _local_ dependency. Installing Rollup locally prevents the requirement that multiple contributors install Rollup separately as an extra step, and ensures that all contributors are using the same version of Rollup.
 
@@ -167,7 +171,7 @@ Once installed, it's common practice to add a single build script to `package.js
 
 _Note: Once installed locally, both NPM and Yarn will resolve the dependency's bin file and execute Rollup when called from a package script._
 
-### Using plugins
+## Using plugins
 
 So far, we've created a simple bundle from an entry point and a module imported via a relative path. As you build more complex bundles, you'll often need more flexibility – importing modules installed with NPM, compiling code with Babel, working with JSON files and so on.
 
@@ -238,7 +242,7 @@ module.exports = main;
 
 _Note: Only the data we actually need gets imported – `name` and `devDependencies` and other parts of `package.json` are ignored. That's **tree-shaking** in action._
 
-### Using output plugins
+## Using output plugins
 
 Some plugins can also be applied specifically to some outputs. See [plugin hooks](../plugin-development/index.md#build-hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
 
@@ -285,7 +289,7 @@ var version = (function () {
 })();
 ```
 
-### Code Splitting
+## Code Splitting
 
 For code splitting, there are cases where Rollup splits code into chunks automatically, like dynamic loading or multiple entry points, and there is a way to explicitly tell Rollup which modules to split into separate chunks via the [`output.manualChunks`](../configuration-options/index.md#output-manualchunks) option.
 

@@ -2,9 +2,13 @@
 title: Configuration Options
 ---
 
-### Core functionality
+# {{ $frontmatter.title }}
 
-#### external
+[[toc]]
+
+## Core functionality
+
+### external
 
 Type: `(string | RegExp)[] | RegExp | string | (id: string, parentId: string, isResolved: boolean) => boolean`<br> CLI: `-e`/`--external <external-id,another-external-id,...>`
 
@@ -68,7 +72,7 @@ console.log(x);
 
 The conversion back to a relative import is done as if `output.file` or `output.dir` were in the same location as the entry point or the common base directory of all entry points if there is more than one.
 
-#### input
+### input
 
 Type: `string | string [] | { [entryName: string]: string }`<br> CLI: `-i`/`--input <filename>`
 
@@ -138,19 +142,19 @@ File names containing spaces can be specified by using quotes:
 rollup "main entry"="src/entry 1.js" "src/other entry.js" --format es
 ```
 
-#### output.dir
+### output.dir
 
 Type: `string`<br> CLI: `-d`/`--dir <dirname>`
 
 The directory in which all generated chunks are placed. This option is required if more than one chunk is generated. Otherwise, the `file` option can be used instead.
 
-#### output.file
+### output.file
 
 Type: `string`<br> CLI: `-o`/`--file <filename>`
 
 The file to write to. Will also be used to generate sourcemaps, if applicable. Can only be used if not more than one chunk is generated.
 
-#### output.format
+### output.format
 
 Type: `string`<br> CLI: `-f`/`--format <formatspecifier>`<br> Default: `"es"`
 
@@ -163,7 +167,7 @@ Specifies the format of the generated bundle. One of the following:
 - `umd` – Universal Module Definition, works as `amd`, `cjs` and `iife` all in one
 - `system` – Native format of the SystemJS loader (alias: `systemjs`)
 
-#### output.globals
+### output.globals
 
 Type: `{ [id: string]: string } | ((id: string) => string)`<br> CLI: `-g`/`--globals <external-id:variableName,another-external-id:anotherVariableName,...>`
 
@@ -224,7 +228,7 @@ export default {
 };
 ```
 
-#### output.name
+### output.name
 
 Type: `string`<br> CLI: `-n`/`--name <variableName>`
 
@@ -256,7 +260,7 @@ this.a.b.c = ...
 */
 ```
 
-#### output.plugins
+### output.plugins
 
 Type: `MaybeArray<MaybePromise<OutputPlugin | void>>`
 
@@ -286,7 +290,7 @@ export default {
 };
 ```
 
-#### plugins
+### plugins
 
 Type: `MaybeArray<MaybePromise<Plugin | void>>`
 
@@ -315,9 +319,9 @@ export default (async () => ({
 
 (This example also demonstrates how to use an async IIFE and dynamic imports to avoid unnecessary module loading, which can be surprisingly slow.)
 
-### Advanced functionality
+## Advanced functionality
 
-#### cache
+### cache
 
 Type: `RollupCache | false`
 
@@ -346,7 +350,7 @@ buildWithCache()
   });
 ```
 
-#### makeAbsoluteExternalsRelative
+### makeAbsoluteExternalsRelative
 
 Type: `boolean | "ifRelativeSource"`<br> CLI: `--makeAbsoluteExternalsRelative`/`--no-makeAbsoluteExternalsRelative`<br> Default: `"ifRelativeSource"`
 
@@ -362,13 +366,13 @@ For this case, `"ifRelativeSource"` checks if the original import was a relative
 
 Note that when a relative path is directly marked as "external" using the [`external`](#external) option, then it will be the same relative path in the output. When it is resolved first via a plugin or Rollup core and then marked as external, the above logic will apply.
 
-#### maxParallelFileOps
+### maxParallelFileOps
 
 Type: `number`<br> CLI: `--maxParallelFileOps <number>`<br> Default: 20
 
 Limits the number of files rollup will open in parallel when reading modules or writing chunks. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the operating system allows.
 
-#### onwarn
+### onwarn
 
 Type: `(warning: RollupWarning, defaultHandler: (warning: string | RollupWarning) => void) => void;`
 
@@ -412,7 +416,7 @@ export default {
 };
 ```
 
-#### output.assetFileNames
+### output.assetFileNames
 
 Type: `string | ((assetInfo: AssetInfo) => string)`<br> CLI: `--assetFileNames <pattern>`<br> Default: `"assets/[name]-[hash][extname]"`
 
@@ -425,7 +429,7 @@ The pattern to use for naming custom emitted assets to include in the build outp
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#output-chunkfilenames), [`output.entryFileNames`](#output-entryfilenames).
 
-#### output.banner/output.footer
+### output.banner/output.footer
 
 Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--banner`/`--footer <text>`
 
@@ -452,7 +456,7 @@ export default {
 
 See also [`output.intro/output.outro`](#output-intro-output-outro).
 
-#### output.chunkFileNames
+### output.chunkFileNames
 
 Type: `string | ((chunkInfo: ChunkInfo) => string)`<br> CLI: `--chunkFileNames <pattern>`<br> Default: `"[name]-[hash].js"`
 
@@ -464,13 +468,13 @@ The pattern to use for naming shared chunks created when code-splitting, or a fu
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.entryFileNames`](#output-entryfilenames).
 
-#### output.compact
+### output.compact
 
 Type: `boolean`<br> CLI: `--compact`/`--no-compact`<br> Default: `false`
 
 This will minify the wrapper code generated by rollup. Note that this does not affect code written by the user. This option is useful when bundling pre-minified code.
 
-#### output.dynamicImportInCjs
+### output.dynamicImportInCjs
 
 Type: `boolean`<br> CLI: `--dynamicImportInCjs`/`--no-dynamicImportInCjs`<br> Default: `true`
 
@@ -516,7 +520,7 @@ Promise.resolve()
   .then(console.log);
 ```
 
-#### output.entryFileNames
+### output.entryFileNames
 
 Type: `string | ((chunkInfo: ChunkInfo) => string)`<br> CLI: `--entryFileNames <pattern>`<br> Default: `"[name].js"`
 
@@ -530,19 +534,19 @@ Forward slashes `/` can be used to place files in sub-directories. When using a 
 
 This pattern will also be used for every file when setting the [`output.preserveModules`](#output-preservemodules) option. Note that in this case, `[name]` will include the relative path from the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts`.
 
-#### output.extend
+### output.extend
 
 Type: `boolean`<br> CLI: `--extend`/`--no-extend`<br> Default: `false`
 
 Whether to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
-#### output.externalImportAssertions
+### output.externalImportAssertions
 
 Type: `boolean`<br> CLI: `--externalImportAssertions`/`--no-externalImportAssertions`<br> Default: `true`
 
 Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
 
-#### output.generatedCode
+### output.generatedCode
 
 Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean, symbols?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
 
@@ -678,19 +682,19 @@ const foo = 42;
 exports.foo = foo;
 ```
 
-#### output.hoistTransitiveImports
+### output.hoistTransitiveImports
 
 Type: `boolean`<br> CLI: `--hoistTransitiveImports`/`--no-hoistTransitiveImports`<br> Default: `true`
 
 By default when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](../faqs/index.md#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`output.preserveModules`](#output-preservemodules) option as here, imports will never be hoisted.
 
-#### output.inlineDynamicImports
+### output.inlineDynamicImports
 
 Type: `boolean`<br> CLI: `--inlineDynamicImports`/`--no-inlineDynamicImports` Default: `false`
 
 This will inline dynamic imports instead of creating new chunks to create a single bundle. Only possible if a single input is provided. Note that this will change the execution order: A module that is only imported dynamically will be executed immediately if the dynamic import is inlined.
 
-#### output.interop
+### output.interop
 
 Type: `"compat" | "auto" | "esModule" | "default" | "defaultOnly" | ((id: string) => "compat" | "auto" | "esModule" | "default" | "defaultOnly")`<br> CLI: `--interop <value>`<br> Default: `"default"`
 
@@ -929,7 +933,7 @@ There are some additional options that have an effect on the generated interop c
 - Setting [`output.externalLiveBindings`](#output-externallivebindings) to `false` will generate simplified namespace helpers as well as simplified code for extracted default imports.
 - Setting [`output.freeze`](#output-freeze) to `false` will prevent generated interop namespace objects from being frozen.
 
-#### output.intro/output.outro
+### output.intro/output.outro
 
 Type: `string | ((chunk: ChunkInfo) => string | Promise<string>)`<br> CLI: `--intro`/`--outro <text>`
 
@@ -945,7 +949,7 @@ export default {
 };
 ```
 
-#### output.manualChunks
+### output.manualChunks
 
 Type: `{ [chunkAlias: string]: string[] } | ((id: string, {getModuleInfo, getModuleIds}) => string | void)`
 
@@ -1027,7 +1031,7 @@ manualChunks(id, { getModuleInfo }) {
 }
 ```
 
-#### output.minifyInternalExports
+### output.minifyInternalExports
 
 Type: `boolean`<br> CLI: `--minifyInternalExports`/`--no-minifyInternalExports`<br> Default: `true` for formats `es` and `system` or if `output.compact` is `true`, `false` otherwise
 
@@ -1086,7 +1090,7 @@ console.log(importantValue);
 
 Even though it appears that setting this option to `true` makes the output larger, it actually makes it smaller if a minifier is used. In this case, `export { importantValue as i }` can become e.g. `export{a as i}` or even `export{i}`, while otherwise it would produce `export{ a as importantValue }` because a minifier usually will not change export signatures.
 
-#### output.paths
+### output.paths
 
 Type: `{ [id: string]: string } | ((id: string) => string)`
 
@@ -1118,7 +1122,7 @@ define(['https://d3js.org/d3.v4.min'], function (d3) {
 });
 ```
 
-#### output.preserveModules
+### output.preserveModules
 
 Type: `boolean`<br> CLI: `--preserveModules`/`--no-preserveModules`<br> Default: `false`
 
@@ -1167,7 +1171,7 @@ const main = require('./main.js');
 console.log(main.default); // 42
 ```
 
-#### output.preserveModulesRoot
+### output.preserveModulesRoot
 
 Type: `string`<br> CLI: `--preserveModulesRoot <directory-name>`
 
@@ -1193,25 +1197,25 @@ The `preserveModulesRoot` setting ensures that the input modules will be output 
 
 This option is particularly useful while using plugins such as `@rollup/plugin-node-resolve`, which may cause changes in the output directory structure. This can happen when third-party modules are not marked [`external`](#external), or while developing in a monorepo of multiple packages that rely on one another and are not marked [`external`](#external).
 
-#### output.sourcemap
+### output.sourcemap
 
 Type: `boolean | 'inline' | 'hidden'`<br> CLI: `-m`/`--sourcemap`/`--no-sourcemap`<br> Default: `false`
 
 If `true`, a separate sourcemap file will be created. If `"inline"`, the sourcemap will be appended to the resulting `output` file as a data URI. `"hidden"` works like `true` except that the corresponding sourcemap comments in the bundled files are suppressed.
 
-#### output.sourcemapBaseUrl
+### output.sourcemapBaseUrl
 
 Type: `string`<br> CLI: `--sourcemapBaseUrl <url>`
 
 By default, sourcemap files generated by Rollup uses relative URLs to reference the files they describe. By providing an absolute base URL, e.g. `https://example.com`, sourcemaps will use absolute URLs instead.
 
-#### output.sourcemapExcludeSources
+### output.sourcemapExcludeSources
 
 Type: `boolean`<br> CLI: `--sourcemapExcludeSources`/`--no-sourcemapExcludeSources`<br> Default: `false`
 
 If `true`, the actual code of the sources will not be added to the sourcemaps, making them considerably smaller.
 
-#### output.sourcemapFile
+### output.sourcemapFile
 
 Type: `string`<br> CLI: `--sourcemapFile <file-name-with-path>`
 
@@ -1219,7 +1223,7 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 
 `sourcemapFile` is not required if `output` is specified, in which case an output filename will be inferred by adding ".map" to the output filename for the bundle.
 
-#### output.sourcemapPathTransform
+### output.sourcemapPathTransform
 
 Type: `(relativeSourcePath: string, sourcemapPath: string) => string`
 
@@ -1243,7 +1247,7 @@ export default {
 };
 ```
 
-#### output.validate
+### output.validate
 
 Type: `boolean`<br> CLI: `--validate`/`--no-validate`<br> Default: `false`
 
@@ -1251,7 +1255,7 @@ Re-parses each generated chunk to detect if the generated code is valid JavaScri
 
 If the code is invalid, a warning will be issued. Note that no error is thrown so that you can still inspect the generated output. To promote this warning to an error, you can watch for it in an [`onwarn`](#onwarn) handler.
 
-#### preserveEntrySignatures
+### preserveEntrySignatures
 
 Type: `"strict" | "allow-extension" | "exports-only" | false`<br> CLI: `--preserveEntrySignatures <strict|allow-extension>`/`--no-preserveEntrySignatures`<br> Default: `"exports-only"`
 
@@ -1329,7 +1333,7 @@ console.log(shared);
 
 At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](../plugin-development/index.md#this-emitfile) instead of using the [`input`](#input) option.
 
-#### strictDeprecations
+### strictDeprecations
 
 Type: `boolean`<br> CLI: `--strictDeprecations`/`--no-strictDeprecations`<br> Default: `false`
 
@@ -1337,17 +1341,17 @@ When this flag is enabled, Rollup will throw an error instead of showing a warni
 
 This flag is intended to be used by e.g. plugin authors to be able to adjust their plugins for upcoming major releases as early as possible.
 
-### Danger zone
+## Danger zone
 
 You probably don't need to use these options unless you know what you are doing!
 
-#### acorn
+### acorn
 
 Type: `AcornOptions`
 
 Any options that should be passed through to Acorn's `parse` function, such as `allowReserved: true`. Cf. the [Acorn documentation](https://github.com/acornjs/acorn/tree/master/acorn#interface) for more available options.
 
-#### acornInjectPlugins
+### acornInjectPlugins
 
 Type: `AcornPluginFunction | AcornPluginFunction[]`
 
@@ -1364,19 +1368,19 @@ export default {
 
 in your rollup configuration. Note that this is different from using Babel in that the generated output will still contain JSX while Babel will replace it with valid JavaScript.
 
-#### context
+### context
 
 Type: `string`<br> CLI: `--context <contextVariable>`<br> Default: `undefined`
 
 By default, the context of a module – i.e., the value of `this` at the top level – is `undefined`. In rare cases you might need to change this to something else, like `'window'`.
 
-#### moduleContext
+### moduleContext
 
 Type: `((id: string) => string) | { [id: string]: string }`<br>
 
 Same as [`context`](#context), but per-module – can either be an object of `id: context` pairs, or an `id => context` function.
 
-#### output.amd
+### output.amd
 
 Type: `{ id?: string, autoId?: boolean, basePath?: string, define?: string }`
 
@@ -1472,7 +1476,7 @@ export default {
 // -> define(['./chunk-or-local-file.js', 'dependency', 'third/dependency'],...
 ```
 
-#### output.esModule
+### output.esModule
 
 Type: `boolean | "if-default-prop"`<br> CLI: `--esModule`/`--no-esModule`<br> Default: `"if-default-prop"`
 
@@ -1484,7 +1488,7 @@ Whether to add a `__esModule: true` property when generating exports for non-ES 
 
 See also [`output.interop`](#output-interop).
 
-#### output.exports
+### output.exports
 
 Type: `string`<br> CLI: `--exports <exportMode>`<br> Default: `'auto'`
 
@@ -1539,7 +1543,7 @@ Note: There are some tools such as Babel, TypeScript, Webpack, and `@rollup/plug
 
 In other words for those tools, you cannot create a package interface where `const lib = require("your-lib")` yields the same as `import lib from "your-lib"`. With named export mode however, `const {lib} = require("your-lib")` will be equivalent to `import {lib} from "your-lib"`.
 
-#### output.externalLiveBindings
+### output.externalLiveBindings
 
 Type: `boolean`<br> CLI: `--externalLiveBindings`/`--no-externalLiveBindings`<br> Default: `true`
 
@@ -1569,13 +1573,13 @@ var external = require('external');
 exports.x = external.x;
 ```
 
-#### output.freeze
+### output.freeze
 
 Type: `boolean`<br> CLI: `--freeze`/`--no-freeze`<br> Default: `true`
 
 Whether to `Object.freeze()` namespace import objects (i.e. `import * as namespaceImportObject from...`) that are accessed dynamically.
 
-#### output.indent
+### output.indent
 
 Type: `boolean | string`<br> CLI: `--indent`/`--no-indent`<br> Default: `true`
 
@@ -1592,13 +1596,13 @@ export default {
 };
 ```
 
-#### output.noConflict
+### output.noConflict
 
 Type: `boolean`<br> CLI: `--noConflict`/`--no-noConflict`<br> Default: `false`
 
 This will generate an additional `noConflict` export to UMD bundles. When called in an IIFE scenario, this method will return the bundle exports while restoring the corresponding global variable to its previous value.
 
-#### output.sanitizeFileName
+### output.sanitizeFileName
 
 Type: `boolean | (string) => string`<br> CLI: `--sanitizeFileName`/`no-sanitizeFileName` Default: `true`
 
@@ -1606,19 +1610,19 @@ Set to `false` to disable all chunk name sanitizations (removal of `\0`, `?` and
 
 Alternatively set to a function to allow custom chunk name sanitization.
 
-#### output.strict
+### output.strict
 
 Type: `boolean`<br> CLI: `--strict`/`--no-strict`<br> Default: `true`
 
 Whether to include the 'use strict' pragma at the top of generated non-ES bundles. Strictly speaking, ES modules are _always_ in strict mode, so you shouldn't disable this without good reason.
 
-#### output.systemNullSetters
+### output.systemNullSetters
 
 Type: `boolean`<br> CLI: `--systemNullSetters`/`--no-systemNullSetters`<br> Default: `true`
 
 When outputting the `system` module format, by default, empty setter functions are replaced with `null` as an output simplification. This is incompatible with SystemJS before v6.3.3. Deactivate this option to output empty functions instead that older SystemJS versions support.
 
-#### preserveSymlinks
+### preserveSymlinks
 
 Type: `boolean`<br> CLI: `--preserveSymlinks`<br> Default: `false`
 
@@ -1644,13 +1648,13 @@ export const x = 'next to original';
 
 If `preserveSymlinks` is `false`, then the bundle created from `/main.js` will log "next to original" as it will use the location of the symbolically linked file to resolve its dependencies. If `preserveSymlinks` is `true`, however, it will log "next to linked" as the symbolic link will not be resolved.
 
-#### shimMissingExports
+### shimMissingExports
 
 Type: `boolean`<br> CLI: `--shimMissingExports`/`--no-shimMissingExports`<br> Default: `false`
 
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
-#### treeshake
+### treeshake
 
 Type: `boolean | "smallest" | "safest" | "recommended" | { annotations?: boolean, correctVarValueBeforeDeclaration?: boolean, moduleSideEffects?: ModuleSideEffectsOption, preset?: "smallest" | "safest" | "recommended", propertyReadSideEffects?: boolean | 'always', tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }`<br> CLI: `--treeshake`/`--no-treeshake`<br> Default: `true`
 
@@ -1915,17 +1919,17 @@ const element = angular.element;
 
 In the example, the last line is always retained as accessing the `element` property could also throw an error if `angular` is e.g. `null`. To avoid this check, set `treeshake.propertyReadSideEffects` to `false` as well.
 
-### Experimental options
+## Experimental options
 
 These options reflect new features that have not yet been fully finalized. Availability, behaviour and usage may therefore be subject to change between minor versions.
 
-#### experimentalCacheExpiry
+### experimentalCacheExpiry
 
 Type: `number`<br> CLI: `--experimentalCacheExpiry <numberOfRuns>`<br> Default: `10`
 
 Determines after how many runs cached assets that are no longer used by plugins should be removed.
 
-#### experimentalMinChunkSize
+### experimentalMinChunkSize
 
 Type: `number`<br> CLI: `--experimentalMinChunkSize <size>`<br> Default: `0`
 
@@ -1935,7 +1939,7 @@ This will mean that the generated bundle will possibly load code that is not req
 
 Unfortunately, due to the way chunking works, chunk size is measured before any chunk rendering plugins like minifiers ran, which means you should use a high enough limit to take this into account.
 
-#### perf
+### perf
 
 Type: `boolean`<br> CLI: `--perf`/`--no-perf`<br> Default: `false`
 
@@ -1954,7 +1958,7 @@ Whether to collect performance timings. When used from the command line or a con
 
 For each key, the first number represents the elapsed time while the second represents the change in memory consumption, and the third represents the total memory consumption after this step. The order of these steps is the order used by `Object.keys`. Top level keys start with `#` and contain the timings of nested steps, i.e. in the example above, the 698ms of the `# BUILD` step include the 538ms of the `## parse modules` step.
 
-### Watch options
+## Watch options
 
 Type: `{ buildDelay?: number, chokidar?: ChokidarOptions, clearScreen?: boolean, exclude?: string, include?: string, skipWrite?: boolean } | false`<br> Default: `{}`<br>
 
@@ -1977,25 +1981,25 @@ export default [
 
 These options only take effect when running Rollup with the `--watch` flag, or using `rollup.watch`.
 
-#### watch.buildDelay
+### watch.buildDelay
 
 Type: `number`<br> CLI: `--watch.buildDelay <number>`<br> Default: `0`
 
 Configures how long Rollup will wait for further changes until it triggers a rebuild in milliseconds. By default, Rollup does not wait but there is a small debounce timeout configured in the chokidar instance. Setting this to a value greater than `0` will mean that Rollup will only trigger a rebuild if there was no change for the configured number of milliseconds. If several configurations are watched, Rollup will use the largest configured build delay.
 
-#### watch.chokidar
+### watch.chokidar
 
 Type: `ChokidarOptions`<br>
 
 An optional object of watch options that will be passed to the bundled [chokidar](https://github.com/paulmillr/chokidar) instance. See the [chokidar documentation](https://github.com/paulmillr/chokidar#api) to find out what options are available.
 
-#### watch.clearScreen
+### watch.clearScreen
 
 Type: `boolean`<br> CLI: `--watch.clearScreen`/`--no-watch.clearScreen`<br> Default: `true`
 
 Whether to clear the screen when a rebuild is triggered.
 
-#### watch.exclude
+### watch.exclude
 
 Type: `string | RegExp | (string | RegExp)[]`<br> CLI: `--watch.exclude <files>`
 
@@ -2011,7 +2015,7 @@ export default {
 };
 ```
 
-#### watch.include
+### watch.include
 
 Type: `string | RegExp | (string | RegExp)[]`<br> CLI: `--watch.include <files>`
 
@@ -2027,43 +2031,43 @@ export default {
 };
 ```
 
-#### watch.skipWrite
+### watch.skipWrite
 
 Type: `boolean`<br> CLI: `--watch.skipWrite`/`--no-watch.skipWrite`<br> Default: `false`
 
 Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
-### Deprecated options
+## Deprecated options
 
 ☢️ These options have been deprecated and may be removed in a future Rollup version.
 
-#### inlineDynamicImports
+### inlineDynamicImports
 
 _Use the [`output.inlineDynamicImports`](#output-inlinedynamicimports) output option instead, which has the same signature._
 
-#### manualChunks
+### manualChunks
 
 _Use the [`output.manualChunks`](#output-manualchunks) output option instead, which has the same signature._
 
-#### maxParallelFileReads
+### maxParallelFileReads
 
 _Use the [`maxParallelFileOps`](#maxparallelfileops) option instead._<br> Type: `number`<br> CLI: `--maxParallelFileReads <number>`<br> Default: 20
 
 Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the os allows.
 
-#### output.dynamicImportFunction
+### output.dynamicImportFunction
 
 _Use the [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport) plugin hook instead._<br> Type: `string`<br> CLI: `--dynamicImportFunction <name>`<br> Default: `import`
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
 
-#### output.preferConst
+### output.preferConst
 
 _Use the [`output.generatedCode.constBindings`](#output-generatedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
 
 Generate `const` declarations for exports rather than `var` declarations.
 
-#### output.namespaceToStringTag
+### output.namespaceToStringTag
 
 _Use [`output.generatedCode.symbols`](#output-generatedcode) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
 
@@ -2076,6 +2080,6 @@ console.log(String(namespace));
 
 will always log `[object Module]`;
 
-#### preserveModules
+### preserveModules
 
 _Use the [`output.preserveModules`](#output-preservemodules) output option instead, which has the same signature._

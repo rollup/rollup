@@ -2,7 +2,11 @@
 title: Integrating Rollup With Other Tools
 ---
 
-### With NPM Packages
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## With NPM Packages
 
 At some point, it's likely that your project will depend on packages installed from NPM into your `node_modules` folder. Unlike other bundlers such as Webpack and Browserify, Rollup doesn't know "out of the box" how to handle these dependencies - we need to add some configuration.
 
@@ -40,7 +44,7 @@ the-answer (imported by main.js)
 
 The resulting `bundle.js` will still work in Node.js, because the `import` declaration gets turned into a CommonJS `require` statement, but `the-answer` does _not_ get included in the bundle. For that, we need a plugin.
 
-#### @rollup/plugin-node-resolve
+### @rollup/plugin-node-resolve
 
 The [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) plugin teaches Rollup how to find external modules. Install it…
 
@@ -66,7 +70,7 @@ export default {
 
 This time, when you `npm run build`, no warning is emitted — the bundle contains the imported module.
 
-#### @rollup/plugin-commonjs
+### @rollup/plugin-commonjs
 
 Some libraries expose ES modules that you can import as-is — `the-answer` is one such module. But at the moment, the majority of packages on NPM are exposed as CommonJS modules instead. Until that changes, we need to convert CommonJS to ES2015 before Rollup can process them.
 
@@ -74,7 +78,7 @@ The [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/pack
 
 Note that most of the time `@rollup/plugin-commonjs` should go _before_ other plugins that transform your modules — this is to prevent other plugins from making changes that break the CommonJS detection. An exception for this rule is the Babel plugin, if you're using it then place it before the commonjs one.
 
-### Peer dependencies
+## Peer dependencies
 
 Let's say that you're building a library that has a peer dependency, such as React or Lodash. If you set up externals as described above, your rollup will bundle _all_ imports:
 
@@ -127,7 +131,7 @@ import _merge from 'lodash/merge';
 
 The array form of `external` does not handle wildcards, so this import will only be treated as external in the functional form.
 
-### Babel
+## Babel
 
 Many developers use [Babel](https://babeljs.io/) in their projects in order to use the latest JavaScript features that aren't yet supported by browsers and Node.js.
 
@@ -195,7 +199,7 @@ var main = function () {
 module.exports = main;
 ```
 
-### Gulp
+## Gulp
 
 Rollup returns Promises which are understood by gulp so integration is relatively painless.
 
@@ -245,7 +249,7 @@ gulp.task('build', async function () {
 });
 ```
 
-### Deno
+## Deno
 
 If you like to run Rollup in Deno you can use [esm.sh](https://esm.sh/) like so:
 

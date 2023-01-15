@@ -2,19 +2,23 @@
 title: Frequently Asked Questions
 ---
 
-#### Why are ES modules better than CommonJS Modules?
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Why are ES modules better than CommonJS Modules?
 
 ES modules are an official standard and the clear path forward for JavaScript code structure, whereas CommonJS modules are an idiosyncratic legacy format that served as a stopgap solution before ES modules had been proposed. ES modules allow static analysis that helps with optimizations like tree-shaking and scope-hoisting, and provide advanced features like circular references and live bindings.
 
-#### What Is "tree-shaking?"
+## What Is "tree-shaking?"
 
 Tree-shaking, also known as "live code inclusion", is Rollup's process of eliminating code that is not actually used in a given project. It is a [form of dead code elimination](https://medium.com/@Rich_Harris/tree-shaking-versus-dead-code-elimination-d3765df85c80#.jnypozs9n) but can be much more efficient than other approaches with regard to output size. The name is derived from the [abstract syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree) of the modules (not the module graph). The algorithm first marks all relevant statements and then "shakes the syntax tree" to remove all dead code. It is similar in idea to the [mark-and-sweep garbage collection algorithm](https://en.wikipedia.org/wiki/Tracing_garbage_collection). Even though this algorithm is not restricted to ES modules, they make it much more efficient as they allow Rollup to treat all modules together as a big abstract syntax tree with shared bindings.
 
-#### How do I use Rollup in Node.js with CommonJS modules?
+## How do I use Rollup in Node.js with CommonJS modules?
 
 Rollup strives to implement the specification for ES modules, not necessarily the behaviors of Node.js, NPM, `require()`, and CommonJS. Consequently, loading of CommonJS modules and use of Node's module location resolution logic are both implemented as optional plugins, not included by default in the Rollup core. Just `npm install` the [commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs) and [node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) plugins and then enable them using a `rollup.config.js` file and you should be all set. If the modules import JSON files, you will also need the [json](https://github.com/rollup/plugins/tree/master/packages/json) plugin.
 
-#### Why isn't node-resolve a built-in feature?
+## Why isn't node-resolve a built-in feature?
 
 There are two primary reasons:
 
@@ -24,7 +28,7 @@ There are two primary reasons:
 
 Please see [this issue](https://github.com/rollup/rollup/issues/1555#issuecomment-322862209) for a more verbose explanation.
 
-#### Why do additional imports turn up in my entry chunks when code-splitting?
+## Why do additional imports turn up in my entry chunks when code-splitting?
 
 By default, when creating multiple chunks, imports of dependencies of entry chunks will be added as empty imports to the entry chunks themselves. [Example](../repl/index.md?shareable=JTdCJTIybW9kdWxlcyUyMiUzQSU1QiU3QiUyMm5hbWUlMjIlM0ElMjJtYWluLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMHZhbHVlJTIwZnJvbSUyMCcuJTJGb3RoZXItZW50cnkuanMnJTNCJTVDbmNvbnNvbGUubG9nKHZhbHVlKSUzQiUyMiUyQyUyMmlzRW50cnklMjIlM0F0cnVlJTdEJTJDJTdCJTIybmFtZSUyMiUzQSUyMm90aGVyLWVudHJ5LmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMGV4dGVybmFsVmFsdWUlMjBmcm9tJTIwJ2V4dGVybmFsJyUzQiU1Q25leHBvcnQlMjBkZWZhdWx0JTIwMiUyMColMjBleHRlcm5hbFZhbHVlJTNCJTIyJTJDJTIyaXNFbnRyeSUyMiUzQXRydWUlN0QlNUQlMkMlMjJvcHRpb25zJTIyJTNBJTdCJTIyZm9ybWF0JTIyJTNBJTIyZXNtJTIyJTJDJTIybmFtZSUyMiUzQSUyMm15QnVuZGxlJTIyJTJDJTIyYW1kJTIyJTNBJTdCJTIyaWQlMjIlM0ElMjIlMjIlN0QlMkMlMjJnbG9iYWxzJTIyJTNBJTdCJTdEJTdEJTJDJTIyZXhhbXBsZSUyMiUzQW51bGwlN0Q=):
 
@@ -65,7 +69,7 @@ With this optimization, a JavaScript engine will discover all transitive depende
 
 There may be situations where this optimization is not desired, in which case you can turn it off via the [`output.hoistTransitiveImports`](../configuration-options/index.md#output-hoisttransitiveimports) option. This optimization is also never applied when using the [`output.preserveModules`](../configuration-options/index.md#output-preservemodules) option.
 
-#### How do I add polyfills to a Rollup bundle?
+## How do I add polyfills to a Rollup bundle?
 
 Even though Rollup will usually try to maintain exact module execution order when bundling, there are two situations when this is not always the case: code-splitting and external dependencies. The problem is most obvious with external dependencies, see the following [example](../repl/index.md?shareable=JTdCJTIybW9kdWxlcyUyMiUzQSU1QiU3QiUyMm5hbWUlMjIlM0ElMjJtYWluLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMCcuJTJGcG9seWZpbGwuanMnJTNCJTVDbmltcG9ydCUyMCdleHRlcm5hbCclM0IlNUNuY29uc29sZS5sb2coJ21haW4nKSUzQiUyMiUyQyUyMmlzRW50cnklMjIlM0F0cnVlJTdEJTJDJTdCJTIybmFtZSUyMiUzQSUyMnBvbHlmaWxsLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmNvbnNvbGUubG9nKCdwb2x5ZmlsbCcpJTNCJTIyJTJDJTIyaXNFbnRyeSUyMiUzQWZhbHNlJTdEJTVEJTJDJTIyb3B0aW9ucyUyMiUzQSU3QiUyMmZvcm1hdCUyMiUzQSUyMmVzbSUyMiUyQyUyMm5hbWUlMjIlM0ElMjJteUJ1bmRsZSUyMiUyQyUyMmFtZCUyMiUzQSU3QiUyMmlkJTIyJTNBJTIyJTIyJTdEJTJDJTIyZ2xvYmFscyUyMiUzQSU3QiU3RCU3RCUyQyUyMmV4YW1wbGUlMjIlM0FudWxsJTdE):
 
@@ -98,11 +102,11 @@ This is however a problem for polyfills, as those usually need to be executed fi
 1. If there are no external dependencies that depend on the polyfill, it is enough to add an import of the polyfill as first statement to each static entry point.
 2. Otherwise, additionally making the polyfill a separate entry or [manual chunk](../configuration-options/index.md#output-manualchunks) will always make sure it is executed first.
 
-#### Is Rollup meant for building libraries or applications?
+## Is Rollup meant for building libraries or applications?
 
 Rollup is already used by many major JavaScript libraries, and can also be used to build the vast majority of applications. However, if you want to use code-splitting or dynamic imports with older browsers, you will need an additional runtime to handle loading missing chunks. We recommend using the [SystemJS Production Build](https://github.com/systemjs/systemjs#browser-production) as it integrates nicely with Rollup's system format output and is capable of properly handling all the ES module live bindings and re-export edge cases. Alternatively, an AMD loader can be used as well.
 
-#### How do I run Rollup itself in a browser
+## How do I run Rollup itself in a browser
 
 While the regular Rollup build relies on some NodeJS features, there is also a browser build available that only uses browser APIs. You can install it via
 
@@ -192,6 +196,6 @@ rollup
   .then(({ output }) => console.log(output));
 ```
 
-#### Who made the Rollup logo? It's lovely.
+## Who made the Rollup logo? It's lovely.
 
 [Julian Lloyd](https://twitter.com/jlmakes)!

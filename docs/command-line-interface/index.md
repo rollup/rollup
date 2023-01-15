@@ -2,9 +2,13 @@
 title: Command Line Interface
 ---
 
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 Rollup should typically be used from the command line. You can provide an optional Rollup configuration file to simplify command line usage and enable advanced Rollup functionality.
 
-### Configuration Files
+## Configuration Files
 
 Rollup configuration files are optional, but they are powerful and convenient and thus **recommended**. A config file is an ES module that exports a default object with the desired options:
 
@@ -212,7 +216,7 @@ export default commandLineArgs => {
 }
 ```
 
-#### Config Intellisense
+### Config Intellisense
 
 Since Rollup ships with TypeScript typings, you can leverage your IDE's Intellisense with JSDoc type hints:
 
@@ -255,7 +259,7 @@ const config: RollupOptions = {
 export default config;
 ```
 
-### Differences to the JavaScript API
+## Differences to the JavaScript API
 
 While config files provide an easy way to configure Rollup, they also limit how Rollup can be invoked and configured. Especially if you are bundling Rollup into another build tool or want to integrate it into an advanced build process, it may be better to directly invoke Rollup programmatically from your scripts.
 
@@ -265,7 +269,7 @@ If you want to switch from config files to using the [JavaScript API](../javascr
 - You can no longer use an array of configurations. Instead, you should run `rollup.rollup` once for each set of `inputOptions`.
 - The `output` option will be ignored. Instead, you should run `bundle.generate(outputOptions)` or `bundle.write(outputOptions)` once for each set of `outputOptions`.
 
-### Loading a configuration from a Node package
+## Loading a configuration from a Node package
 
 For interoperability, Rollup also supports loading configuration files from packages installed into `node_modules`:
 
@@ -275,11 +279,11 @@ For interoperability, Rollup also supports loading configuration files from pack
 rollup --config node:my-special-config
 ```
 
-### Caveats when using native Node ES modules
+## Caveats when using native Node ES modules
 
 Especially when upgrading from an older Rollup version, there are some things you need to be aware of when using a native ES module for your configuration file.
 
-#### Getting the current directory
+### Getting the current directory
 
 With CommonJS files, people often use `__dirname` to access the current directory and resolve relative paths to absolute paths. This is not supported for native ES modules. Instead, we recommend the following approach e.g. to generate an absolute id for an external module:
 
@@ -294,7 +298,7 @@ export default {
 };
 ```
 
-#### Importing package.json
+### Importing package.json
 
 It can be useful to import your package file to e.g. mark your dependencies as "external" automatically. Depending on your Node version, there are different ways of doing that:
 
@@ -332,7 +336,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
   // ...
   ```
 
-### Command line flags
+## Command line flags
 
 Many options have command line equivalents. In those cases, any arguments passed here will override the config file, if you're using one. This is a list of all supported options:
 
@@ -428,11 +432,11 @@ Many options have command line equivalents. In those cases, any arguments passed
 
 The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](../configuration-options/index.md) for details.
 
-#### `-h`/`--help`
+### `-h`/`--help`
 
 Print the help document.
 
-#### `-p <plugin>`, `--plugin <plugin>`
+### `-p <plugin>`, `--plugin <plugin>`
 
 Use the specified plugin. There are several ways to specify plugins here:
 
@@ -474,7 +478,7 @@ By default, plugin functions will be called with no argument to create the plugi
 rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
 ```
 
-#### `--configPlugin <plugin>`
+### `--configPlugin <plugin>`
 
 Allows specifying Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
 
@@ -492,31 +496,31 @@ This option supports the same syntax as the [`--plugin`](#p-plugin-plugin-plugin
 
 Using this option will make Rollup transpile your configuration file to an ES module first before executing it. To transpile to CommonJS instead, also pass the [`--bundleConfigAsCjs`](#bundleconfigascjs) option.
 
-#### `--bundleConfigAsCjs`
+### `--bundleConfigAsCjs`
 
 This option will force your configuration to be transpiled to CommonJS.
 
 This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
 
-#### `-v`/`--version`
+### `-v`/`--version`
 
 Print the installed version number.
 
-#### `-w`/`--watch`
+### `-w`/`--watch`
 
 Rebuild the bundle when its source files change on disk.
 
 _Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](../plugin-development/index.md#this-meta), which is independent of the command line interface._
 
-#### `--silent`
+### `--silent`
 
 Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](#configuration-files).
 
-#### `--failAfterWarnings`
+### `--failAfterWarnings`
 
 Exit the build with an error if any warnings occurred, once the build is complete.
 
-#### `--environment <values>`
+### `--environment <values>`
 
 Pass additional settings to the config file via `process.ENV`.
 
@@ -542,19 +546,19 @@ npm run build -- --environment BUILD:development
 
 then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'development'`.
 
-#### `--waitForBundleInput`
+### `--waitForBundleInput`
 
 This will not throw an error if one of the entry point files is not available. Instead, it will wait until all files are present before starting the build. This is useful, especially in watch mode, when Rollup is consuming the output of another process.
 
-#### `--stdin=ext`
+### `--stdin=ext`
 
 Specify a virtual file extension when reading content from stdin. By default, Rollup will use the virtual file name `-` without an extension for content read from stdin. Some plugins, however, rely on file extensions to determine if they should process a file. See also [Reading a file from stdin](#reading-a-file-from-stdin).
 
-#### `--no-stdin`
+### `--no-stdin`
 
 Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` and `-.[ext]` as a regular file names instead of interpreting these as the name of `stdin`. See also [Reading a file from stdin](#reading-a-file-from-stdin).
 
-#### `--watch.onStart <cmd>`, `--watch.onBundleStart <cmd>`, `--watch.onBundleEnd <cmd>`, `--watch.onEnd <cmd>`, `--watch.onError <cmd>`
+### `--watch.onStart <cmd>`, `--watch.onBundleStart <cmd>`, `--watch.onBundleEnd <cmd>`, `--watch.onEnd <cmd>`, `--watch.onError <cmd>`
 
 When in watch mode, run a shell command `<cmd>` for a watch event code. See also [rollup.watch](../javascript-api/index.md#rollup-watch).
 
@@ -562,7 +566,7 @@ When in watch mode, run a shell command `<cmd>` for a watch event code. See also
 rollup -c --watch --watch.onEnd="node ./afterBuildScript.js"
 ```
 
-### Reading a file from stdin
+## Reading a file from stdin
 
 When using the command line interface, Rollup can also read content from stdin:
 
