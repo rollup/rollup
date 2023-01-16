@@ -12,7 +12,7 @@ At some point, it's likely that your project will depend on packages installed f
 
 Let's add a simple dependency called [the-answer](https://www.npmjs.com/package/the-answer), which exports the answer to the question of life, the universe and everything:
 
-```
+```shell
 npm install the-answer
 # or `npm i the-answer`
 ```
@@ -30,7 +30,7 @@ export default function () {
 
 …and run Rollup…
 
-```
+```shell
 npm run build
 ```
 
@@ -48,7 +48,7 @@ The resulting `bundle.js` will still work in Node.js, because the `import` decla
 
 The [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) plugin teaches Rollup how to find external modules. Install it…
 
-```
+```shell
 npm install --save-dev @rollup/plugin-node-resolve
 ```
 
@@ -137,7 +137,7 @@ Many developers use [Babel](https://babeljs.io/) in their projects in order to u
 
 The easiest way to use both Babel and Rollup is with [@rollup/plugin-babel](https://github.com/rollup/plugins/tree/master/packages/babel). First, install the plugin:
 
-```
+```shell
 npm i -D @rollup/plugin-babel @rollup/plugin-node-resolve
 ```
 
@@ -170,7 +170,7 @@ We're putting our `.babelrc.json` file in `src`, rather than the project root. T
 
 Now, before we run rollup, we need to install [`babel-core`](https://babeljs.io/docs/en/babel-core) and the [`env`](https://babeljs.io/docs/en/babel-preset-env) preset:
 
-```
+```shell
 npm i -D @babel/core @babel/preset-env
 ```
 

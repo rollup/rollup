@@ -36,7 +36,7 @@ var eval2 = eval;
 
 Using the [Function constructor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function) generates a function from the supplied string. Again, it runs in the global scope. If you need to call the function repeatedly, this is much, _much_ faster than using `eval`.
 
-## Tree-shaking Doesn't Seem to be Working
+## Tree-shaking doesn't seem to be working
 
 Sometimes, you'll end up with code in your bundle that doesn't seem like it should be there. For example, if you import a utility from `lodash-es`, you might expect that you'll get the bare minimum of code necessary for that utility to work.
 

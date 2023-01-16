@@ -110,7 +110,7 @@ Rollup is already used by many major JavaScript libraries, and can also be used 
 
 While the regular Rollup build relies on some NodeJS features, there is also a browser build available that only uses browser APIs. You can install it via
 
-```
+```shell
 npm install @rollup/browser
 ```
 

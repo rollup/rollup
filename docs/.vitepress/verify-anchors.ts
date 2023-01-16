@@ -68,7 +68,11 @@ export function transformPageData({ relativePath }: { relativePath: string }) {
 			if (legacySlug) {
 				slugsAndPageByLegacySlug[legacySlug] = [page, slug];
 			} else {
-				console.log('Slug without match', slug, JSON.stringify(legacyTitle));
+				console.log(
+					`Slug without legacy match in ${relativePath}: #${slug} from ${JSON.stringify(
+						legacyTitle
+					)}`
+				);
 			}
 		}
 	}

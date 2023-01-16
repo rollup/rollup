@@ -12,7 +12,7 @@ Rollup is a module bundler for JavaScript which compiles small pieces of code in
 
 ## Installation
 
-```
+```shell
 npm install --global rollup
 ```
 
@@ -28,21 +28,21 @@ These commands assume the entry point to your application is named `main.js`, an
 
 For browsers:
 
-```
+```shell
 # compile to a <script> containing a self-executing function ('iife')
 rollup main.js --file bundle.js --format iife
 ```
 
 For Node.js:
 
-```
+```shell
 # compile to a CommonJS module ('cjs')
 rollup main.js --file bundle.js --format cjs
 ```
 
 For both browsers and Node.js:
 
-```
+```shell
 # UMD format requires a bundle name
 rollup main.js --file bundle.js --format umd --name "myBundle"
 ```

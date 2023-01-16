@@ -28,7 +28,7 @@ If you want to write your configuration as a CommonJS module using `require` and
 
 You can also use other languages for your configuration files like TypeScript. To do that, install a corresponding Rollup plugin like `@rollup/plugin-typescript` and use the [`--configPlugin`](#configplugin-plugin) option:
 
-```
+```shell
 rollup --config rollup.config.ts --configPlugin typescript
 ```
 
@@ -173,7 +173,7 @@ export default Promise.all([fetch('get-config-1'), fetch('get-config-2')]);
 
 To use Rollup with a configuration file, pass the `--config` or `-c` flags:
 
-```
+```shell
 # pass a custom config file location to Rollup
 rollup --config my.config.js
 
@@ -273,7 +273,7 @@ If you want to switch from config files to using the [JavaScript API](../javascr
 
 For interoperability, Rollup also supports loading configuration files from packages installed into `node_modules`:
 
-```
+```shell
 # this will first try to load the package "rollup-config-my-special-config";
 # if that fails, it will then try to load "my-special-config"
 rollup --config node:my-special-config
@@ -468,13 +468,13 @@ Use the specified plugin. There are several ways to specify plugins here:
 
 If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
 
-```
+```shell
 rollup -i input.js -f es -p node-resolve -p commonjs,json
 ```
 
 By default, plugin functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
 
-```
+```shell
 rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
 ```
 
@@ -482,7 +482,7 @@ rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
 
 Allows specifying Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
 
-```
+```shell
 rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
 ```
 
@@ -540,7 +540,7 @@ will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'produ
 
 If you call this script via:
 
-```
+```shell
 npm run build -- --environment BUILD:development
 ```
 
@@ -570,7 +570,7 @@ rollup -c --watch --watch.onEnd="node ./afterBuildScript.js"
 
 When using the command line interface, Rollup can also read content from stdin:
 
-```
+```shell
 echo "export const foo = 42;" | rollup --format cjs --file out.js
 ```
 
@@ -584,7 +584,7 @@ in any file will prompt Rollup to try to read the imported file from `stdin` and
 
 As some plugins rely on file extensions to process files, you can specify a file extension for stdin via `--stdin=ext` where `ext` is the desired extension. In that case, the virtual file name will be `-.ext`:
 
-```
+```shell
 echo '{"foo": 42, "bar": "ok"}' | rollup --stdin=json -p json
 ```
 

@@ -8,7 +8,10 @@ export default withMermaid(
 		buildEnd,
 		description: 'compile JS code',
 		markdown: {
-			anchor: { callback },
+			anchor: {
+				callback,
+				level: 2
+			},
 			lineNumbers: true,
 			linkify: false,
 			toc: {

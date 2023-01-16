@@ -204,7 +204,7 @@ Alternatively, supply a function that will turn an external module ID into a glo
 
 When given as a command line argument, it should be a comma-separated list of `id:variableName` pairs:
 
-```
+```shell
 rollup -i src/main.js ... -g jquery:$,underscore:_
 ```
 
@@ -250,7 +250,7 @@ export default {
 
 Namespaces are supported i.e. your name can contain dots. The resulting bundle will contain the setup necessary for the namespacing.
 
-```
+```shell
 rollup -n "a.b.c"
 
 /* ->
