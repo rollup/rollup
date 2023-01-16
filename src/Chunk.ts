@@ -711,9 +711,10 @@ export default class Chunk {
 				if (alternativeReexportModule) {
 					const exportingChunk = this.chunkByModule.get(alternativeReexportModule);
 					if (exportingChunk && exportingChunk !== exportChunk) {
+						const variableNames = variableModule.getExportNamesByVariable().get(variable);
 						this.inputOptions.onwarn(
 							errorCyclicCrossChunkReexport(
-								variableModule.getExportNamesByVariable().get(variable)![0],
+								variableNames?.[0] ?? '????',
 								variableModule.id,
 								alternativeReexportModule.id,
 								importingModule.id
