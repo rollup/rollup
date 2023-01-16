@@ -23,7 +23,7 @@ let editor: EditorView;
 let previousCode = properties.code;
 
 onMounted(async () => {
-	const { createEditor, addWarnings } = await import('../helpers/editor.js');
+	const { createEditor, addWarnings } = await import('../helpers/editor');
 	addWarningsEffect = addWarnings;
 	editor = createEditor(
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion

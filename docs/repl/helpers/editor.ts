@@ -55,7 +55,6 @@ const theme = EditorView.baseTheme({
 	},
 	'.cm-content': {
 		background: 'var(--vp-code-block-bg)',
-		borderRadius: '6px',
 		caretColor: '#fff',
 		color: '#A6ACCD',
 		fontFamily: 'var(--vp-font-family-mono)',
@@ -65,9 +64,18 @@ const theme = EditorView.baseTheme({
 		padding: '8px'
 	},
 	'.cm-gutters': {
-		backgroundColor: 'transparent',
+		backgroundColor: 'var(--vp-code-block-bg)',
 		border: 'none',
-		color: 'var(--module-wrapper-color)'
+		borderRight: '1px solid var(--vp-c-divider-dark-2)',
+		color: 'var(--vp-code-line-number-color)',
+		minWidth: '32px'
+	},
+	'.cm-gutters .cm-gutterElement': {
+		textAlign: 'center'
+	},
+	'.cm-lineNumbers': {
+		alignItems: 'center',
+		width: '100%'
 	},
 	'.cm-rollup-error': {
 		backgroundColor: 'var(--error-background)',
@@ -82,9 +90,8 @@ const theme = EditorView.baseTheme({
 		padding: '1px'
 	},
 	'.cm-scroller': {
-		borderRadius: '6px',
-		borderTopLeftRadius: '0',
-		borderTopRightRadius: '0',
+		borderBottomLeftRadius: '8px',
+		borderBottomRightRadius: '8px',
 		fontFamily: 'var(--vp-font-family-mono)',
 		fontSize: '14px',
 		fontWeight: '400',

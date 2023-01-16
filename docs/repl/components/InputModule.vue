@@ -1,9 +1,6 @@
 <template>
 	<!-- eslint-disable vue/no-mutating-props -->
-	<article
-		class="module"
-		:class="{ 'entry-module': isMain || module.isEntry, 'has-input': !isMain }"
-	>
+	<article class="module" :class="{ 'entry-module': isMain || module.isEntry }">
 		<header>
 			<span v-if="isMain" class="module-name">
 				main.js
@@ -49,25 +46,37 @@ const selectName = (event: FocusEvent) => {
 .module {
 	margin: 0 0 0.5rem 0;
 	border-radius: 8px;
-	border: 2px solid var(--vp-c-bg-mute);
-	background-color: var(--vp-c-bg-mute);
+	background-color: var(--vp-code-block-bg);
 	color: var(--vp-c-text-1);
 	transition: all 0.2s;
 }
 
 .module.entry-module {
-	border-color: var(--vp-c-brand);
+	color: var(--vp-button-brand-text);
 }
 
 header {
 	width: 100%;
-	border-radius: 6px;
+	border-radius: 8px;
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
+	color: var(--vp-c-text-dark-1);
 	position: relative;
+	font-weight: 600;
 }
 
 .module-name {
+	border: 1px solid transparent;
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	display: block;
+	padding: 0.5em;
+}
+
+.entry-module .module-name {
+	border-color: var(--vp-button-brand-border);
+	color: var(--vp-button-brand-text);
+	background-color: var(--vp-button-brand-bg);
 	display: block;
 	padding: 0.5em;
 }
@@ -76,17 +85,33 @@ header {
 	position: absolute;
 	right: 0;
 	padding-right: 0.5em;
-	color: var(--vp-c-brand);
+	font-weight: 400;
+	color: var(--vp-button-brand-text);
 }
 
 input {
+	border: 1px solid transparent;
 	padding: 0.75em 0.5em;
-	border-radius: 6px;
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	font-weight: 600;
+	transition: all 0.2s;
 }
 
-.has-input header:hover,
+input:hover {
+	border-color: var(--vp-c-gray-dark-2);
+	background-color: var(--vp-c-gray-dark-3);
+}
+
 input:focus {
-	background-color: var(--vp-c-bg-alt);
+	border-color: var(--vp-c-gray-dark-2);
+	background-color: var(--vp-c-gray-dark-2);
+}
+
+.entry-module input {
+	border-color: var(--vp-button-brand-border);
+	color: var(--vp-button-brand-text);
+	background-color: var(--vp-button-brand-bg);
 }
 
 button {
@@ -101,9 +126,8 @@ button {
 	border: none;
 	cursor: pointer;
 	outline: none;
-	opacity: 0.4;
-	-webkit-transition: opacity 0.2s;
-	transition: opacity 0.2s;
+	opacity: 0.6;
+	transition: all 0.2s;
 	line-height: 1rem;
 }
 
@@ -112,14 +136,14 @@ button {
 }
 
 .remove {
-	top: 0;
-	color: var(--vp-custom-block-danger-text);
+	top: 4px;
+	color: var(--vp-c-brand);
 }
 
 button:hover,
 button:active,
-.entry-module .toggle-entry:hover,
-.entry-module .toggle-entry:active {
+.toggle-entry:hover,
+.toggle-entry:active {
 	opacity: 1;
 	background-color: transparent;
 }
@@ -132,7 +156,7 @@ button .label {
 }
 
 .entry-module .toggle-entry .label {
-	color: var(--vp-c-brand);
+	color: var(--vp-button-brand-text);
 	opacity: 1;
 }
 
@@ -148,15 +172,19 @@ button .label {
 	opacity: 1;
 }
 
+.entry-module .remove {
+	color: var(--vp-button-brand-text);
+}
+
 button:hover .label,
 button:active .label {
-	opacity: 0.6;
+	opacity: 1;
 }
 
 .icon-cancel,
 .icon-plus,
 .icon-minus {
 	font-size: 0.8em;
-	transition: opacity 0.2s;
+	transition: all 0.2s;
 }
 </style>
