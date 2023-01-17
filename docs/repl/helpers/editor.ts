@@ -106,6 +106,7 @@ const highlightStyle = HighlightStyle.define([
 	{ color: '#FF9CAC', tag: tags.literal },
 	// names
 	{ color: '#A6ACCD', tag: tags.name },
+	{ color: '#f07178', tag: tags.variableName },
 	{ color: '#82AAFF', tag: tags.propertyName },
 	// punctuation
 	{ color: '#89DDFF', tag: tags.punctuation },
