@@ -47,6 +47,11 @@ export default class Bundle {
 		const outputBundle = getOutputBundle(outputBundleBase);
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions);
 
+		const assetShouldBeReferenceKeys = Object.keys(outputBundle).filter(assetKey => {
+			const outputAsset = outputBundle[assetKey];
+			return outputAsset.type === 'asset' && outputAsset.needsCodeReference;
+		});
+
 		try {
 			timeStart('initialize render', 2);
 
@@ -80,6 +85,19 @@ export default class Bundle {
 		}
 
 		timeStart('generate bundle', 2);
+
+		const unReferencedAssets = new Set(assetShouldBeReferenceKeys);
+		for (const bundleKey of Object.keys(outputBundle)) {
+			const _outputBundle = outputBundle[bundleKey];
+			if (_outputBundle.type === 'chunk') {
+				for (const referencedFile of _outputBundle.referencedFiles) {
+					unReferencedAssets.has(referencedFile) && unReferencedAssets.delete(referencedFile);
+				}
+			}
+		}
+		for (const file of unReferencedAssets) {
+			delete outputBundle[file];
+		}
 
 		await this.pluginDriver.hookSeq('generateBundle', [
 			this.outputOptions,

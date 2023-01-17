@@ -80,6 +80,7 @@ interface ConsumedChunk {
 interface ConsumedAsset {
 	fileName: string | undefined;
 	name: string | undefined;
+	needsCodeReference: boolean;
 	source: string | Uint8Array | undefined;
 	type: 'asset';
 }
@@ -88,6 +89,7 @@ interface EmittedFile {
 	[key: string]: unknown;
 	fileName?: string;
 	name?: string;
+	needsCodeReference?: boolean;
 	type: 'chunk' | 'asset';
 }
 
@@ -291,6 +293,7 @@ export class FileEmitter {
 		const consumedAsset: ConsumedAsset = {
 			fileName: emittedAsset.fileName,
 			name: emittedAsset.name,
+			needsCodeReference: emittedAsset.needsCodeReference || false,
 			source,
 			type: 'asset'
 		};
@@ -351,7 +354,7 @@ export class FileEmitter {
 	}
 
 	private finalizeAsset(
-		consumedFile: Readonly<ConsumedFile>,
+		consumedFile: Readonly<ConsumedAsset>,
 		source: string | Uint8Array,
 		referenceId: string,
 		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
@@ -381,6 +384,7 @@ export class FileEmitter {
 		bundle[fileName] = {
 			fileName,
 			name: consumedFile.name,
+			needsCodeReference: consumedFile.needsCodeReference,
 			source,
 			type: 'asset'
 		};
