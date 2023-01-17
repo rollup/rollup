@@ -51,10 +51,25 @@ function createModule() {
 .new-module {
 	display: block;
 	width: 100%;
-	color: #3d9970;
-	border: none;
+	color: var(--vp-button-alt-text);
+	border: 1px solid var(--vp-button-alt-border);
+	background-color: var(--vp-button-alt-bg);
+	border-radius: 20px;
 	padding: 0;
 	margin-bottom: 0;
-	line-height: 2.25rem;
+	line-height: 38px;
+	transition: all 0.2s;
+}
+
+.new-module:hover {
+	color: var(--vp-button-alt-hover-text);
+	border-color: var(--vp-button-alt-hover-border);
+	background-color: var(--vp-button-alt-hover-bg);
+}
+
+.new-module:active {
+	color: var(--vp-button-alt-active-text);
+	border-color: var(--vp-button-alt-active-border);
+	background-color: var(--vp-button-alt-active-bg);
 }
 </style>

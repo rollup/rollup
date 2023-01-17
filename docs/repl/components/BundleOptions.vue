@@ -58,7 +58,7 @@ const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 	--bg-active: var(--vp-c-bg);
 	--bg-default: var(--vp-c-gray-light-5);
 	border: 1px solid var(--vp-c-divider-light);
-	margin: 0.5rem 0;
+	margin: 0 0 1rem 0;
 	line-height: 2rem;
 	background-color: var(--bg-default);
 	border-radius: 8px;

@@ -30,24 +30,21 @@ header {
 }
 
 select {
-	font-size: inherit;
 	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
 	position: relative;
-	border: none;
 	cursor: pointer;
-	-webkit-appearance: none;
-	-moz-appearance: none;
 	appearance: none;
 	border-radius: 8px;
-	padding: 0 2.5rem 0 0.5rem;
-	background: var(--vp-c-bg-mute) url(../images/select-arrow.svg) no-repeat 100% 50%;
+	padding: 0 48px 0 8px;
+	background: var(--vp-button-alt-bg) url(../images/select-arrow.svg) no-repeat 100% 50%;
 	background-size: auto 100%;
-	outline: none;
-	line-height: 2.25rem;
+	line-height: 38px;
 }
 
 .dark select {
-	background: var(--vp-c-bg-mute) url(../images/select-arrow-dark.svg) no-repeat 100% 50%;
+	background: var(--vp-button-alt-bg) url(../images/select-arrow-dark.svg) no-repeat 100% 50%;
 }
 
 select,
@@ -55,27 +52,29 @@ select,
 	margin-bottom: 0.25rem;
 }
 
-select:focus {
-	outline: 2px solid white;
-}
-
 button {
 	border-radius: 20px;
 	background-color: var(--vp-button-alt-bg);
-	border: 1px solid var(--vp-button-alt-border);
-	color: var(--vp-button-alt-text);
 	padding: 0 16px;
 	height: 40px;
 	font-size: 14px;
 	font-weight: 500;
 }
 
+select,
+button {
+	border: 1px solid var(--vp-button-alt-border);
+	color: var(--vp-button-alt-text);
+}
+
+select:hover,
 button:hover {
 	background-color: var(--vp-button-alt-hover-bg);
 	border-color: var(--vp-button-alt-hover-border);
 	color: var(--vp-button-alt-hover-text);
 }
 
+select:active,
 button:active {
 	background-color: var(--vp-button-alt-active-bg);
 	border-color: var(--vp-button-alt-active-border);

@@ -82,13 +82,14 @@ header {
 	position: absolute;
 	right: 0;
 	padding-right: 0.5em;
-	font-weight: 400;
 	color: var(--vp-button-brand-text);
+	font-size: 14px;
+	font-weight: 500;
 }
 
 input {
 	border: 1px solid transparent;
-	padding: 0.75em 0.5em;
+	padding: 0.6em 0.5em;
 	font-weight: 600;
 	transition: all 0.2s;
 }
@@ -114,7 +115,8 @@ button {
 	display: block;
 	right: 0;
 	font-family: inherit;
-	font-size: inherit;
+	font-size: 14px;
+	font-weight: 500;
 	padding: 0.2em;
 	margin: 0;
 	background-color: transparent;
