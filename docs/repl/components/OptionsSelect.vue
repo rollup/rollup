@@ -20,7 +20,7 @@ const emit = defineEmits<{ (event: 'select', selected: string): void }>();
 .select {
 	background-color: var(--bg-inactive);
 	border: 1px solid var(--bg-default);
-	border-radius: 8px;
+	border-radius: 7px;
 	padding: 2px;
 	display: flex;
 }
@@ -28,15 +28,18 @@ const emit = defineEmits<{ (event: 'select', selected: string): void }>();
 button {
 	display: block;
 	border-radius: 6px;
+	border: 1px solid transparent;
 	font-size: 0.8rem;
 	margin: 0;
 	flex-basis: 0;
 	flex-grow: 1;
 	line-height: 2rem;
+	transition: all 0.2s;
 }
 
 .selected {
 	background-color: var(--bg-active);
 	font-weight: bold;
+	border-color: var(--vp-c-brand);
 }
 </style>

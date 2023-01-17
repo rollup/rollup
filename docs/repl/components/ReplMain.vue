@@ -136,9 +136,10 @@ input {
 h2 {
 	white-space: nowrap;
 	margin-bottom: 0.25rem;
-	font-size: 24px;
-	line-height: 1.2;
-	font-weight: 300;
+	font-size: 20px;
+	line-height: 28px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
 }
 
 .repl {

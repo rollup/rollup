@@ -8,34 +8,27 @@
 				@select="selected => (optionsStore.options.format = selected)"
 			/>
 		</section>
-		<div v-if="!rollupOutputStore.output.error">
-			<section
-				v-if="optionsStore.options.format === 'amd' || optionsStore.options.format === 'umd'"
-			>
-				<h3>output.amd.id</h3>
-				<input
-					v-model="optionsStore.options.amd.id"
-					placeholder="leave blank for anonymous module"
-				/>
+		<section v-if="optionsStore.options.format === 'amd' || optionsStore.options.format === 'umd'">
+			<h3>output.amd.id</h3>
+			<input v-model="optionsStore.options.amd.id" placeholder="leave blank for anonymous module" />
+		</section>
+		<div
+			v-if="
+				rollupOutputStore.output.output[0] &&
+				(optionsStore.options.format === 'iife' || optionsStore.options.format === 'umd')
+			"
+		>
+			<section v-if="rollupOutputStore.output.output[0].exports.length > 0">
+				<h3>output.name</h3>
+				<input v-model="optionsStore.options.name" />
 			</section>
-			<div
-				v-if="
-					rollupOutputStore.output.output[0] &&
-					(optionsStore.options.format === 'iife' || optionsStore.options.format === 'umd')
-				"
-			>
-				<section v-if="rollupOutputStore.output.output[0].exports.length > 0">
-					<h3>output.name</h3>
-					<input v-model="optionsStore.options.name" />
-				</section>
-				<section v-if="sortedImports.length > 0">
-					<h3>output.globals</h3>
-					<div v-for="x in sortedImports" :key="x" class="input-with-label">
-						<input v-model="optionsStore.options.globals[x]" />
-						<code>'{{ x }}'</code>
-					</div>
-				</section>
-			</div>
+			<section v-if="sortedImports.length > 0">
+				<h3>output.globals</h3>
+				<div v-for="x in sortedImports" :key="x" class="input-with-label">
+					<input v-model="optionsStore.options.globals[x]" />
+					<code>'{{ x }}'</code>
+				</div>
+			</section>
 		</div>
 	</div>
 </template>
@@ -92,7 +85,7 @@ input {
 	line-height: 2rem;
 	background-color: var(--bg-inactive);
 	border: 1px solid var(--bg-default);
-	border-radius: 8px;
+	border-radius: 7px;
 }
 
 .input-with-label {
