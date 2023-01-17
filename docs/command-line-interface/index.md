@@ -14,11 +14,11 @@ Rollup configuration files are optional, but they are powerful and convenient an
 
 ```javascript
 export default {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  }
+	input: 'src/main.js',
+	output: {
+		file: 'bundle.js',
+		format: 'cjs'
+	}
 };
 ```
 
@@ -41,88 +41,88 @@ Config files support the options listed below. Consult the [big list of options]
 
 // can be an array (for multiple inputs)
 export default {
-  // core input options
-  external,
-  input, // conditionally required
-  plugins,
+	// core input options
+	external,
+	input, // conditionally required
+	plugins,
 
-  // advanced input options
-  cache,
-  onwarn,
-  preserveEntrySignatures,
-  strictDeprecations,
+	// advanced input options
+	cache,
+	onwarn,
+	preserveEntrySignatures,
+	strictDeprecations,
 
-  // danger zone
-  acorn,
-  acornInjectPlugins,
-  context,
-  moduleContext,
-  preserveSymlinks,
-  shimMissingExports,
-  treeshake,
+	// danger zone
+	acorn,
+	acornInjectPlugins,
+	context,
+	moduleContext,
+	preserveSymlinks,
+	shimMissingExports,
+	treeshake,
 
-  // experimental
-  experimentalCacheExpiry,
-  perf,
+	// experimental
+	experimentalCacheExpiry,
+	perf,
 
-  // required (can be an array, for multiple outputs)
-  output: {
-    // core output options
-    dir,
-    file,
-    format, // required
-    globals,
-    name,
-    plugins,
+	// required (can be an array, for multiple outputs)
+	output: {
+		// core output options
+		dir,
+		file,
+		format, // required
+		globals,
+		name,
+		plugins,
 
-    // advanced output options
-    assetFileNames,
-    banner,
-    chunkFileNames,
-    compact,
-    entryFileNames,
-    extend,
-    footer,
-    hoistTransitiveImports,
-    inlineDynamicImports,
-    interop,
-    intro,
-    manualChunks,
-    minifyInternalExports,
-    outro,
-    paths,
-    preserveModules,
-    preserveModulesRoot,
-    sourcemap,
-    sourcemapBaseUrl,
-    sourcemapExcludeSources,
-    sourcemapFile,
-    sourcemapPathTransform,
-    validate,
+		// advanced output options
+		assetFileNames,
+		banner,
+		chunkFileNames,
+		compact,
+		entryFileNames,
+		extend,
+		footer,
+		hoistTransitiveImports,
+		inlineDynamicImports,
+		interop,
+		intro,
+		manualChunks,
+		minifyInternalExports,
+		outro,
+		paths,
+		preserveModules,
+		preserveModulesRoot,
+		sourcemap,
+		sourcemapBaseUrl,
+		sourcemapExcludeSources,
+		sourcemapFile,
+		sourcemapPathTransform,
+		validate,
 
-    // danger zone
-    amd,
-    esModule,
-    exports,
-    externalLiveBindings,
-    freeze,
-    indent,
-    namespaceToStringTag,
-    noConflict,
-    preferConst,
-    sanitizeFileName,
-    strict,
-    systemNullSetters
-  },
+		// danger zone
+		amd,
+		esModule,
+		exports,
+		externalLiveBindings,
+		freeze,
+		indent,
+		namespaceToStringTag,
+		noConflict,
+		preferConst,
+		sanitizeFileName,
+		strict,
+		systemNullSetters
+	},
 
-  watch: {
-    buildDelay,
-    chokidar,
-    clearScreen,
-    skipWrite,
-    exclude,
-    include
-  }
+	watch: {
+		buildDelay,
+		chokidar,
+		clearScreen,
+		skipWrite,
+		exclude,
+		include
+	}
 };
 ```
 
@@ -132,26 +132,26 @@ You can export an **array** from your config file to build bundles from several 
 // rollup.config.js (building more than one bundle)
 
 export default [
-  {
-    input: 'main-a.js',
-    output: {
-      file: 'dist/bundle-a.js',
-      format: 'cjs'
-    }
-  },
-  {
-    input: 'main-b.js',
-    output: [
-      {
-        file: 'dist/bundle-b1.js',
-        format: 'cjs'
-      },
-      {
-        file: 'dist/bundle-b2.js',
-        format: 'es'
-      }
-    ]
-  }
+	{
+		input: 'main-a.js',
+		output: {
+			file: 'dist/bundle-a.js',
+			format: 'cjs'
+		}
+	},
+	{
+		input: 'main-b.js',
+		output: [
+			{
+				file: 'dist/bundle-b1.js',
+				format: 'cjs'
+			},
+			{
+				file: 'dist/bundle-b2.js',
+				format: 'es'
+			}
+		]
+	}
 ];
 ```
 
@@ -161,7 +161,7 @@ If you want to create your config asynchronously, Rollup can also handle a `Prom
 // rollup.config.js
 import fetch from 'node-fetch';
 
-export default fetch('/some-remote-service-or-file-which-returns-actual-config');
+export default fetch('/some-remote-service-which-returns-actual-config');
 ```
 
 Similarly, you can do this as well:
@@ -191,10 +191,10 @@ import defaultConfig from './rollup.default.config.js';
 import debugConfig from './rollup.debug.config.js';
 
 export default commandLineArgs => {
-  if (commandLineArgs.configDebug === true) {
-    return debugConfig;
-  }
-  return defaultConfig;
+	if (commandLineArgs.configDebug === true) {
+		return debugConfig;
+	}
+	return defaultConfig;
 };
 ```
 
@@ -226,7 +226,7 @@ Since Rollup ships with TypeScript typings, you can leverage your IDE's Intellis
  * @type {import('rollup').RollupOptions}
  */
 const config = {
-  /* your config */
+	/* your config */
 };
 export default config;
 ```
@@ -238,7 +238,7 @@ Alternatively you can use the `defineConfig` helper, which should provide Intell
 import { defineConfig } from 'rollup';
 
 export default defineConfig({
-  /* your config */
+	/* your config */
 });
 ```
 
@@ -254,7 +254,7 @@ You can also directly write your config in TypeScript via the [`--configPlugin`]
 import type { RollupOptions } from 'rollup';
 
 const config: RollupOptions = {
-  /* your config */
+	/* your config */
 };
 export default config;
 ```
@@ -293,8 +293,8 @@ import { fileURLToPath } from 'node:url'
 
 export default {
   ...,
-  // generates an absolute path for <currentdir>/src/some-external-file.js
-  external: [fileURLToPath(new URL('src/some-external-file.js', import.meta.url))]
+  // generates an absolute path for <currentdir>/src/some-file.js
+  external: [fileURLToPath(new URL('src/some-file.js', import.meta.url))]
 };
 ```
 
@@ -308,8 +308,9 @@ It can be useful to import your package file to e.g. mark your dependencies as "
   import pkg from './package.json' assert { type: 'json' };
 
   export default {
-    // Mark package dependencies as "external". Rest of configuration omitted.
-    external: Object.keys(pkg.dependencies)
+  	// Mark package dependencies as "external". Rest of configuration
+  	// omitted.
+  	external: Object.keys(pkg.dependencies)
   };
   ```
 
@@ -329,9 +330,12 @@ It can be useful to import your package file to e.g. mark your dependencies as "
   // rollup.config.mjs
   import { readFileSync } from 'node:fs';
 
-  // Use import.meta.url to make the path relative to the current source file instead of process.cwd()
-  // For more info: https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
-  const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)));
+  // Use import.meta.url to make the path relative to the current source
+  // file instead of process.cwd(). For more information:
+  // https://nodejs.org/docs/latest-v16.x/api/esm.html#importmetaurl
+  const packageJson = JSON.parse(
+  	readFileSync(new URL('./package.json', import.meta.url))
+  );
 
   // ...
   ```
@@ -532,9 +536,9 @@ will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'produ
 
 ```json
 {
-  "scripts": {
-    "build": "rollup -c --environment INCLUDE_DEPS,BUILD:production"
-  }
+	"scripts": {
+		"build": "rollup -c --environment INCLUDE_DEPS,BUILD:production"
+	}
 }
 ```
 

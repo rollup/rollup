@@ -38,7 +38,7 @@ First, we need an _entry point_. Paste this into a new file called `src/main.js`
 // src/main.js
 import foo from './foo.js';
 export default function () {
-  console.log(foo);
+	console.log(foo);
 }
 ```
 
@@ -63,7 +63,7 @@ The `-f` option (short for `--format`) specifies what kind of bundle we're creat
 const foo = 'hello world!';
 
 const main = function () {
-  console.log(foo);
+	console.log(foo);
 };
 
 module.exports = main;
@@ -99,11 +99,11 @@ Create a file in the project root called `rollup.config.js`, and add the followi
 ```js
 // rollup.config.js
 export default {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  }
+	input: 'src/main.js',
+	output: {
+		file: 'bundle.js',
+		format: 'cjs'
+	}
 };
 ```
 
@@ -163,9 +163,9 @@ Once installed, it's common practice to add a single build script to `package.js
 
 ```json
 {
-  "scripts": {
-    "build": "rollup --config"
-  }
+	"scripts": {
+		"build": "rollup --config"
+	}
 }
 ```
 
@@ -183,11 +183,11 @@ Create a file in the project root called `package.json`, and add the following c
 
 ```json
 {
-  "name": "rollup-tutorial",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "rollup -c"
-  }
+	"name": "rollup-tutorial",
+	"version": "1.0.0",
+	"scripts": {
+		"build": "rollup -c"
+	}
 }
 ```
 
@@ -206,7 +206,7 @@ Update your `src/main.js` file so that it imports from your package.json instead
 import { version } from '../package.json';
 
 export default function () {
-  console.log('version ' + version);
+	console.log('version ' + version);
 }
 ```
 
@@ -217,12 +217,12 @@ Edit your `rollup.config.js` file to include the JSON plugin:
 import json from '@rollup/plugin-json';
 
 export default {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  },
-  plugins: [json()]
+	input: 'src/main.js',
+	output: {
+		file: 'bundle.js',
+		format: 'cjs'
+	},
+	plugins: [json()]
 };
 ```
 
@@ -234,7 +234,7 @@ Run Rollup with `npm run build`. The result should look like this:
 var version = '1.0.0';
 
 function main() {
-  console.log('version ' + version);
+	console.log('version ' + version);
 }
 
 module.exports = main;
@@ -260,20 +260,20 @@ import json from '@rollup/plugin-json';
 import terser from '@rollup/plugin-terser';
 
 export default {
-  input: 'src/main.js',
-  output: [
-    {
-      file: 'bundle.js',
-      format: 'cjs'
-    },
-    {
-      file: 'bundle.min.js',
-      format: 'iife',
-      name: 'version',
-      plugins: [terser()]
-    }
-  ],
-  plugins: [json()]
+	input: 'src/main.js',
+	output: [
+		{
+			file: 'bundle.js',
+			format: 'cjs'
+		},
+		{
+			file: 'bundle.min.js',
+			format: 'iife',
+			name: 'version',
+			plugins: [terser()]
+		}
+	],
+	plugins: [json()]
 };
 ```
 
@@ -281,11 +281,11 @@ Besides `bundle.js`, Rollup will now create a second file `bundle.min.js`:
 
 ```js
 var version = (function () {
-  'use strict';
-  var n = '1.0.0';
-  return function () {
-    console.log('version ' + n);
-  };
+	'use strict';
+	var n = '1.0.0';
+	return function () {
+		console.log('version ' + n);
+	};
 })();
 ```
 
@@ -298,7 +298,7 @@ To use the code splitting feature to achieve the lazy dynamic loading (where som
 ```js
 // src/main.js
 export default function () {
-  import('./foo.js').then(({ default: foo }) => console.log(foo));
+	import('./foo.js').then(({ default: foo }) => console.log(foo));
 }
 ```
 
@@ -323,7 +323,9 @@ If we do not use the `--dir` option, Rollup will again print the chunks to `stdo
 'use strict';
 
 function main() {
-  Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) => console.log(foo));
+	Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) =>
+		console.log(foo)
+	);
 }
 
 module.exports = main;
@@ -344,7 +346,7 @@ A different use for code-splitting is the ability to specify several entry point
 // src/main2.js
 import foo from './foo.js';
 export default function () {
-  console.log(foo);
+	console.log(foo);
 }
 ```
 
@@ -361,7 +363,9 @@ will output
 'use strict';
 
 function main() {
-  Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) => console.log(foo));
+	Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) =>
+		console.log(foo)
+	);
 }
 
 module.exports = main;
@@ -372,7 +376,7 @@ module.exports = main;
 var foo_js = require('./chunk-b8774ea3.js');
 
 function main2() {
-  console.log(foo_js.default);
+	console.log(foo_js.default);
 }
 
 module.exports = main2;
@@ -398,8 +402,8 @@ rollup src/main.js src/main2.js -f es -d dist
 ```html
 <!DOCTYPE html>
 <script type="module">
-  import main2 from './dist/main2.js';
-  main2();
+	import main2 from './dist/main2.js';
+	main2();
 </script>
 ```
 
@@ -421,7 +425,7 @@ And then load either or both entry points in an HTML page as needed:
 <!DOCTYPE html>
 <script src="node_modules/systemjs/dist/s.min.js"></script>
 <script>
-  System.import('./dist/main2.js').then(({ default: main }) => main());
+	System.import('./dist/main2.js').then(({ default: main }) => main());
 </script>
 ```
 

@@ -60,7 +60,7 @@ Import modules using the [dynamic import API](https://github.com/tc39/proposal-d
 
 ```js
 import('./modules.js').then(({ default: DefaultExport, NamedExport }) => {
-  // do something with modules.
+	// do something with modules.
 });
 ```
 
@@ -111,7 +111,7 @@ ES modules export _live bindings_, not values, so values can be changed after th
 export let count = 0;
 
 export function increment() {
-  count += 1;
+	count += 1;
 }
 ```
 

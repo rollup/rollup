@@ -136,64 +136,64 @@ which will create a global variable `window.rollup`. As the browser build cannot
 
 ```js
 const modules = {
-  'main.js': "import foo from 'foo.js'; console.log(foo);",
-  'foo.js': 'export default 42;'
+	'main.js': "import foo from 'foo.js'; console.log(foo);",
+	'foo.js': 'export default 42;'
 };
 
 rollup
-  .rollup({
-    input: 'main.js',
-    plugins: [
-      {
-        name: 'loader',
-        resolveId(source) {
-          if (modules.hasOwnProperty(source)) {
-            return source;
-          }
-        },
-        load(id) {
-          if (modules.hasOwnProperty(id)) {
-            return modules[id];
-          }
-        }
-      }
-    ]
-  })
-  .then(bundle => bundle.generate({ format: 'es' }))
-  .then(({ output }) => console.log(output[0].code));
+	.rollup({
+		input: 'main.js',
+		plugins: [
+			{
+				name: 'loader',
+				resolveId(source) {
+					if (modules.hasOwnProperty(source)) {
+						return source;
+					}
+				},
+				load(id) {
+					if (modules.hasOwnProperty(id)) {
+						return modules[id];
+					}
+				}
+			}
+		]
+	})
+	.then(bundle => bundle.generate({ format: 'es' }))
+	.then(({ output }) => console.log(output[0].code));
 ```
 
 This example only supports two imports, `"main.js"` and `"foo.js"`, and no relative imports. Here is another example that uses absolute URLs as entry points and supports relative imports. In that case, we are just re-bundling Rollup itself, but it could be used on any other URL that exposes an ES module:
 
 ```js
 rollup
-  .rollup({
-    input: 'https://unpkg.com/rollup/dist/es/rollup.js',
-    plugins: [
-      {
-        name: 'url-resolver',
-        resolveId(source, importer) {
-          if (source[0] !== '.') {
-            try {
-              new URL(source);
-              // If it is a valid URL, return it
-              return source;
-            } catch {
-              // Otherwise make it external
-              return { id: source, external: true };
-            }
-          }
-          return new URL(source, importer).href;
-        },
-        async load(id) {
-          const response = await fetch(id);
-          return response.text();
-        }
-      }
-    ]
-  })
-  .then(bundle => bundle.generate({ format: 'es' }))
-  .then(({ output }) => console.log(output));
+	.rollup({
+		input: 'https://unpkg.com/rollup/dist/es/rollup.js',
+		plugins: [
+			{
+				name: 'url-resolver',
+				resolveId(source, importer) {
+					if (source[0] !== '.') {
+						try {
+							new URL(source);
+							// If it is a valid URL, return it
+							return source;
+						} catch {
+							// Otherwise make it external
+							return { id: source, external: true };
+						}
+					}
+					return new URL(source, importer).href;
+				},
+				async load(id) {
+					const response = await fetch(id);
+					return response.text();
+				}
+			}
+		]
+	})
+	.then(bundle => bundle.generate({ format: 'es' }))
+	.then(({ output }) => console.log(output));
 ```
 
 ## Who made the Rollup logo? It's lovely.

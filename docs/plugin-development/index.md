@@ -25,13 +25,16 @@ export default function myExample () {
     name: 'my-example', // this name will show up in warnings and errors
     resolveId ( source ) {
       if (source === 'virtual-module') {
-        return source; // this signals that rollup should not ask other plugins or check the file system to find this id
+        // this signals that rollup should not ask other plugins or check
+        // the file system to find this id
+        return source;
       }
       return null; // other ids should be handled as usually
     },
     load ( id ) {
       if (id === 'virtual-module') {
-        return 'export default "This is virtual!"'; // the source code for "virtual-module"
+        // the source code for "virtual-module"
+        return 'export default "This is virtual!"';
       }
       return null; // other ids should be handled as usually
     }
@@ -89,18 +92,18 @@ Instead of a function, hooks can also be objects. In that case, the actual hook 
 
   ```js
   export default function resolveFirst() {
-    return {
-      name: 'resolve-first',
-      resolveId: {
-        order: 'pre',
-        handler(source) {
-          if (source === 'external') {
-            return { id: source, external: true };
-          }
-          return null;
-        }
-      }
-    };
+  	return {
+  		name: 'resolve-first',
+  		resolveId: {
+  			order: 'pre',
+  			handler(source) {
+  				if (source === 'external') {
+  					return { id: source, external: true };
+  				}
+  				return null;
+  			}
+  		}
+  	};
   }
   ```
 
@@ -115,17 +118,17 @@ Instead of a function, hooks can also be objects. In that case, the actual hook 
   import { readdir } from 'node:fs/promises';
 
   export default function getFilesOnDisk() {
-    return {
-      name: 'getFilesOnDisk',
-      writeBundle: {
-        sequential: true,
-        order: 'post',
-        async handler({ dir }) {
-          const topLevelFiles = await readdir(resolve(dir));
-          console.log(topLevelFiles);
-        }
-      }
-    };
+  	return {
+  		name: 'getFilesOnDisk',
+  		writeBundle: {
+  			sequential: true,
+  			order: 'post',
+  			async handler({ dir }) {
+  				const topLevelFiles = await readdir(resolve(dir));
+  				console.log(topLevelFiles);
+  			}
+  		}
+  	};
   }
   ```
 
@@ -344,62 +347,70 @@ const POLYFILL_ID = '\0polyfill';
 const PROXY_SUFFIX = '?inject-polyfill-proxy';
 
 function injectPolyfillPlugin() {
-  return {
-    name: 'inject-polyfill',
-    async resolveId(source, importer, options) {
-      if (source === POLYFILL_ID) {
-        // It is important that side effects are always respected for polyfills,
-        // otherwise using "treeshake.moduleSideEffects: false" may prevent the
-        // polyfill from being included.
-        return { id: POLYFILL_ID, moduleSideEffects: true };
-      }
-      if (options.isEntry) {
-        // Determine what the actual entry would have been. We need "skipSelf"
-        // to avoid an infinite loop.
-        const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
-        // If it cannot be resolved or is external, just return it so that
-        // Rollup can display an error
-        if (!resolution || resolution.external) return resolution;
-        // In the load hook of the proxy, we need to know if the entry has a
-        // default export. There, however, we no longer have the full
-        // "resolution" object that may contain meta-data from other plugins
-        // that is only added on first load. Therefore we trigger loading here.
-        const moduleInfo = await this.load(resolution);
-        // We need to make sure side effects in the original entry point
-        // are respected even for treeshake.moduleSideEffects: false.
-        // "moduleSideEffects" is a writable property on ModuleInfo.
-        moduleInfo.moduleSideEffects = true;
-        // It is important that the new entry does not start with \0 and
-        // has the same directory as the original one to not mess up
-        // relative external import generation. Also keeping the name and
-        // just adding a "?query" to the end ensures that preserveModules
-        // will generate the original entry name for this entry.
-        return `${resolution.id}${PROXY_SUFFIX}`;
-      }
-      return null;
-    },
-    load(id) {
-      if (id === POLYFILL_ID) {
-        // Replace with actual polyfill
-        return "console.log('polyfill');";
-      }
-      if (id.endsWith(PROXY_SUFFIX)) {
-        const entryId = id.slice(0, -PROXY_SUFFIX.length);
-        // We know ModuleInfo.hasDefaultExport is reliable because we awaited
-        // this.load in resolveId
-        const { hasDefaultExport } = this.getModuleInfo(entryId);
-        let code =
-          `import ${JSON.stringify(POLYFILL_ID)};` + `export * from ${JSON.stringify(entryId)};`;
-        // Namespace reexports do not reexport default, so we need special
-        // handling here
-        if (hasDefaultExport) {
-          code += `export { default } from ${JSON.stringify(entryId)};`;
-        }
-        return code;
-      }
-      return null;
-    }
-  };
+	return {
+		name: 'inject-polyfill',
+		async resolveId(source, importer, options) {
+			if (source === POLYFILL_ID) {
+				// It is important that side effects are always respected
+				// for polyfills, otherwise using
+				// "treeshake.moduleSideEffects: false" may prevent the
+				// polyfill from being included.
+				return { id: POLYFILL_ID, moduleSideEffects: true };
+			}
+			if (options.isEntry) {
+				// Determine what the actual entry would have been. We need
+				// "skipSelf" to avoid an infinite loop.
+				const resolution = await this.resolve(source, importer, {
+					skipSelf: true,
+					...options
+				});
+				// If it cannot be resolved or is external, just return it
+				// so that Rollup can display an error
+				if (!resolution || resolution.external) return resolution;
+				// In the load hook of the proxy, we need to know if the
+				// entry has a default export. There, however, we no longer
+				// have the full "resolution" object that may contain
+				// meta-data from other plugins that is only added on first
+				// load. Therefore we trigger loading here.
+				const moduleInfo = await this.load(resolution);
+				// We need to make sure side effects in the original entry
+				// point are respected even for
+				// treeshake.moduleSideEffects: false. "moduleSideEffects"
+				// is a writable property on ModuleInfo.
+				moduleInfo.moduleSideEffects = true;
+				// It is important that the new entry does not start with
+				// \0 and has the same directory as the original one to not
+				// mess up relative external import generation. Also
+				// keeping the name and just adding a "?query" to the end
+				// ensures that preserveModules will generate the original
+				// entry name for this entry.
+				return `${resolution.id}${PROXY_SUFFIX}`;
+			}
+			return null;
+		},
+		load(id) {
+			if (id === POLYFILL_ID) {
+				// Replace with actual polyfill
+				return "console.log('polyfill');";
+			}
+			if (id.endsWith(PROXY_SUFFIX)) {
+				const entryId = id.slice(0, -PROXY_SUFFIX.length);
+				// We know ModuleInfo.hasDefaultExport is reliable because
+				// we awaited this.load in resolveId
+				const { hasDefaultExport } = this.getModuleInfo(entryId);
+				let code =
+					`import ${JSON.stringify(POLYFILL_ID)};` +
+					`export * from ${JSON.stringify(entryId)};`;
+				// Namespace reexports do not reexport default, so we need
+				// special handling here
+				if (hasDefaultExport) {
+					code += `export { default } from ${JSON.stringify(entryId)};`;
+				}
+				return code;
+			}
+			return null;
+		}
+	};
 }
 ```
 
@@ -411,15 +422,15 @@ If you return an object, then it is possible to resolve an import to a different
 
 ```js
 function externalizeDependencyPlugin() {
-  return {
-    name: 'externalize-dependency',
-    resolveId(source) {
-      if (source === 'my-dependency') {
-        return { id: 'my-dependency-develop', external: true };
-      }
-      return null;
-    }
-  };
+	return {
+		name: 'externalize-dependency',
+		resolveId(source) {
+			if (source === 'my-dependency') {
+				return { id: 'my-dependency-develop', external: true };
+			}
+			return null;
+		}
+	};
 }
 ```
 
@@ -624,14 +635,14 @@ The following plugin will invalidate the hash of chunk `foo` with the current ti
 
 ```js
 function augmentWithDatePlugin() {
-  return {
-    name: 'augment-with-date',
-    augmentChunkHash(chunkInfo) {
-      if (chunkInfo.name === 'foo') {
-        return Date.now().toString();
-      }
-    }
-  };
+	return {
+		name: 'augment-with-date',
+		augmentChunkHash(chunkInfo) {
+			if (chunkInfo.name === 'foo') {
+				return Date.now().toString();
+			}
+		}
+	};
 }
 ```
 
@@ -663,38 +674,38 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
 
 ```ts
 type AssetInfo = {
-  fileName: string;
-  name?: string;
-  source: string | Uint8Array;
-  type: 'asset';
+	fileName: string;
+	name?: string;
+	source: string | Uint8Array;
+	type: 'asset';
 };
 
 type ChunkInfo = {
-  code: string;
-  dynamicImports: string[];
-  exports: string[];
-  facadeModuleId: string | null;
-  fileName: string;
-  implicitlyLoadedBefore: string[];
-  imports: string[];
-  importedBindings: { [imported: string]: string[] };
-  isDynamicEntry: boolean;
-  isEntry: boolean;
-  isImplicitEntry: boolean;
-  map: SourceMap | null;
-  modules: {
-    [id: string]: {
-      renderedExports: string[];
-      removedExports: string[];
-      renderedLength: number;
-      originalLength: number;
-      code: string | null;
-    };
-  };
-  moduleIds: string[];
-  name: string;
-  referencedFiles: string[];
-  type: 'chunk';
+	code: string;
+	dynamicImports: string[];
+	exports: string[];
+	facadeModuleId: string | null;
+	fileName: string;
+	implicitlyLoadedBefore: string[];
+	imports: string[];
+	importedBindings: { [imported: string]: string[] };
+	isDynamicEntry: boolean;
+	isEntry: boolean;
+	isImplicitEntry: boolean;
+	map: SourceMap | null;
+	modules: {
+		[id: string]: {
+			renderedExports: string[];
+			removedExports: string[];
+			renderedLength: number;
+			originalLength: number;
+			code: string | null;
+		};
+	};
+	moduleIds: string[];
+	name: string;
+	referencedFiles: string[];
+	type: 'chunk';
 };
 ```
 
@@ -745,15 +756,15 @@ The following code will replace all dynamic imports with a custom handler, addin
 
 ```js
 function dynamicImportPolyfillPlugin() {
-  return {
-    name: 'dynamic-import-polyfill',
-    renderDynamicImport() {
-      return {
-        left: 'dynamicImportPolyfill(',
-        right: ', import.meta.url)'
-      };
-    }
-  };
+	return {
+		name: 'dynamic-import-polyfill',
+		renderDynamicImport() {
+			return {
+				left: 'dynamicImportPolyfill(',
+				right: ', import.meta.url)'
+			};
+		}
+	};
 }
 
 // input
@@ -767,21 +778,21 @@ The next plugin will make sure all dynamic imports of `esm-lib` are marked as ex
 
 ```js
 function retainImportExpressionPlugin() {
-  return {
-    name: 'retain-import-expression',
-    resolveDynamicImport(specifier) {
-      if (specifier === 'esm-lib') return false;
-      return null;
-    },
-    renderDynamicImport({ targetModuleId }) {
-      if (targetModuleId === 'esm-lib') {
-        return {
-          left: 'import(',
-          right: ')'
-        };
-      }
-    }
-  };
+	return {
+		name: 'retain-import-expression',
+		resolveDynamicImport(specifier) {
+			if (specifier === 'esm-lib') return false;
+			return null;
+		},
+		renderDynamicImport({ targetModuleId }) {
+			if (targetModuleId === 'esm-lib') {
+				return {
+					left: 'import(',
+					right: ')'
+				};
+			}
+		}
+	};
 }
 ```
 
@@ -818,12 +829,12 @@ The following plugin will always resolve all files relative to the current docum
 
 ```js
 function resolveToDocumentPlugin() {
-  return {
-    name: 'resolve-to-document',
-    resolveFileUrl({ fileName }) {
-      return `new URL('${fileName}', document.baseURI).href`;
-    }
-  };
+	return {
+		name: 'resolve-to-document',
+		resolveFileUrl({ fileName }) {
+			return `new URL('${fileName}', document.baseURI).href`;
+		}
+	};
 }
 ```
 
@@ -839,15 +850,18 @@ This behaviour can be changed—also for ES modules—via this hook. For each oc
 
 ```js
 function importMetaUrlCurrentModulePlugin() {
-  return {
-    name: 'import-meta-url-current-module',
-    resolveImportMeta(property, { moduleId }) {
-      if (property === 'url') {
-        return `new URL('${path.relative(process.cwd(), moduleId)}', document.baseURI).href`;
-      }
-      return null;
-    }
-  };
+	return {
+		name: 'import-meta-url-current-module',
+		resolveImportMeta(property, { moduleId }) {
+			if (property === 'url') {
+				return `new URL('${path.relative(
+					process.cwd(),
+					moduleId
+				)}', document.baseURI).href`;
+			}
+			return null;
+		}
+	};
 }
 ```
 
@@ -881,20 +895,20 @@ Emits a new file that is included in the build output and returns a `referenceId
 
 ```ts
 type EmittedChunk = {
-  type: 'chunk';
-  id: string;
-  name?: string;
-  fileName?: string;
-  implicitlyLoadedAfterOneOf?: string[];
-  importer?: string;
-  preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false;
+	type: 'chunk';
+	id: string;
+	name?: string;
+	fileName?: string;
+	implicitlyLoadedAfterOneOf?: string[];
+	importer?: string;
+	preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false;
 };
 
 type EmittedAsset = {
-  type: 'asset';
-  name?: string;
-  fileName?: string;
-  source?: string | Uint8Array;
+	type: 'asset';
+	name?: string;
+	fileName?: string;
+	source?: string | Uint8Array;
 };
 ```
 
@@ -917,30 +931,30 @@ By default, Rollup assumes that emitted chunks are executed independent of other
 ```js
 // rollup.config.js
 function generateHtmlPlugin() {
-  let ref1, ref2, ref3;
-  return {
-    name: 'generate-html',
-    buildStart() {
-      ref1 = this.emitFile({
-        type: 'chunk',
-        id: 'src/entry1'
-      });
-      ref2 = this.emitFile({
-        type: 'chunk',
-        id: 'src/entry2',
-        implicitlyLoadedAfterOneOf: ['src/entry1']
-      });
-      ref3 = this.emitFile({
-        type: 'chunk',
-        id: 'src/entry3',
-        implicitlyLoadedAfterOneOf: ['src/entry2']
-      });
-    },
-    generateBundle() {
-      this.emitFile({
-        type: 'asset',
-        fileName: 'index.html',
-        source: `
+	let ref1, ref2, ref3;
+	return {
+		name: 'generate-html',
+		buildStart() {
+			ref1 = this.emitFile({
+				type: 'chunk',
+				id: 'src/entry1'
+			});
+			ref2 = this.emitFile({
+				type: 'chunk',
+				id: 'src/entry2',
+				implicitlyLoadedAfterOneOf: ['src/entry1']
+			});
+			ref3 = this.emitFile({
+				type: 'chunk',
+				id: 'src/entry3',
+				implicitlyLoadedAfterOneOf: ['src/entry2']
+			});
+		},
+		generateBundle() {
+			this.emitFile({
+				type: 'asset',
+				fileName: 'index.html',
+				source: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -953,19 +967,19 @@ function generateHtmlPlugin() {
           <script src="${this.getFileName(ref3)}" type="module"></script>
         </body>
         </html>`
-      });
-    }
-  };
+			});
+		}
+	};
 }
 
 export default {
-  input: [],
-  preserveEntrySignatures: false,
-  plugins: [generateHtmlPlugin()],
-  output: {
-    format: 'es',
-    dir: 'dist'
-  }
+	input: [],
+	preserveEntrySignatures: false,
+	plugins: [generateHtmlPlugin()],
+	output: {
+		format: 'es',
+		dir: 'dist'
+	}
 };
 ```
 
@@ -1001,7 +1015,7 @@ Returns an `Iterator` that gives access to all module ids in the current graph. 
 
 ```js
 for (const moduleId of this.getModuleIds()) {
-  /* ... */
+	/* ... */
 }
 ```
 
@@ -1015,37 +1029,37 @@ Returns additional information about the module in question in the form
 
 ```ts
 type ModuleInfo = {
-  id: string; // the id of the module, for convenience
-  code: string | null; // the source code of the module, `null` if external or not yet available
-  ast: ESTree.Program; // the parsed abstract syntax tree if available
-  hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
-  isEntry: boolean; // is this a user- or plugin-defined entry point
-  isExternal: boolean; // for external modules that are referenced but not included in the graph
-  isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
-  importedIds: string[]; // the module ids statically imported by this module
-  importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
-  importers: string[]; // the ids of all modules that statically import this module
-  exportedBindings: Record<string, string[]> | null; // contains all exported variables associated with the path of `from`, `null` if external
-  exports: string[] | null; // all exported variables, `null` if external
-  dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
-  dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
-  dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
-  implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
-  implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
-  assertions: { [key: string]: string }; // import assertions for this module
-  meta: { [plugin: string]: any }; // custom module meta-data
-  moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
-  syntheticNamedExports: boolean | string; // final value of synthetic named exports
+	id: string; // the id of the module, for convenience
+	code: string | null; // the source code of the module, `null` if external or not yet available
+	ast: ESTree.Program; // the parsed abstract syntax tree if available
+	hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
+	isEntry: boolean; // is this a user- or plugin-defined entry point
+	isExternal: boolean; // for external modules that are referenced but not included in the graph
+	isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
+	importedIds: string[]; // the module ids statically imported by this module
+	importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
+	importers: string[]; // the ids of all modules that statically import this module
+	exportedBindings: Record<string, string[]> | null; // contains all exported variables associated with the path of `from`, `null` if external
+	exports: string[] | null; // all exported variables, `null` if external
+	dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
+	dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
+	dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
+	implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
+	implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
+	assertions: { [key: string]: string }; // import assertions for this module
+	meta: { [plugin: string]: any }; // custom module meta-data
+	moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
+	syntheticNamedExports: boolean | string; // final value of synthetic named exports
 };
 
 type ResolvedId = {
-  id: string; // the id of the imported module
-  external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
-  assertions: { [key: string]: string }; // import assertions for this import
-  meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
-  moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
-  resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
-  syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
+	id: string; // the id of the imported module
+	external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
+	assertions: { [key: string]: string }; // import assertions for this import
+	meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
+	moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
+	resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
+	syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
 };
 ```
 
@@ -1082,42 +1096,49 @@ Note that with regard to the `assertions`, `meta`, `moduleSideEffects` and `synt
 
 ```js
 export default function addProxyPlugin() {
-  return {
-    async resolveId(source, importer, options) {
-      if (importer?.endsWith('?proxy')) {
-        // Do not proxy ids used in proxies
-        return null;
-      }
-      // We make sure to pass on any resolveId options to this.resolve to get the module id
-      const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
-      // We can only pre-load existing and non-external ids
-      if (resolution && !resolution.external) {
-        // we pass on the entire resolution information
-        const moduleInfo = await this.load(resolution);
-        if (moduleInfo.code.includes('/* use proxy */')) {
-          return `${resolution.id}?proxy`;
-        }
-      }
-      // As we already fully resolved the module, there is no reason to resolve it again
-      return resolution;
-    },
-    load(id) {
-      if (id.endsWith('?proxy')) {
-        const importee = id.slice(0, -'?proxy'.length);
-        // Note that namespace reexports do not reexport default exports
-        let code = `console.log('proxy for ${importee}'); export * from ${JSON.stringify(
-          importee
-        )};`;
-        // We know that while resolving the proxy, importee was already fully
-        // loaded and parsed, so we can rely on hasDefaultExport
-        if (this.getModuleInfo(importee).hasDefaultExport) {
-          code += `export { default } from ${JSON.stringify(importee)};`;
-        }
-        return code;
-      }
-      return null;
-    }
-  };
+	return {
+		async resolveId(source, importer, options) {
+			if (importer?.endsWith('?proxy')) {
+				// Do not proxy ids used in proxies
+				return null;
+			}
+			// We make sure to pass on any resolveId options to
+			// this.resolve to get the module id
+			const resolution = await this.resolve(source, importer, {
+				skipSelf: true,
+				...options
+			});
+			// We can only pre-load existing and non-external ids
+			if (resolution && !resolution.external) {
+				// we pass on the entire resolution information
+				const moduleInfo = await this.load(resolution);
+				if (moduleInfo.code.includes('/* use proxy */')) {
+					return `${resolution.id}?proxy`;
+				}
+			}
+			// As we already fully resolved the module, there is no reason
+			// to resolve it again
+			return resolution;
+		},
+		load(id) {
+			if (id.endsWith('?proxy')) {
+				const importee = id.slice(0, -'?proxy'.length);
+				// Note that namespace reexports do not reexport default
+				// exports
+				let code = `console.log('proxy for ${importee}'); export * from ${JSON.stringify(
+					importee
+				)};`;
+				// We know that while resolving the proxy, importee was
+				// already fully loaded and parsed, so we can rely on
+				// hasDefaultExport
+				if (this.getModuleInfo(importee).hasDefaultExport) {
+					code += `export { default } from ${JSON.stringify(importee)};`;
+				}
+				return code;
+			}
+			return null;
+		}
+	};
 }
 ```
 
@@ -1133,62 +1154,68 @@ Here is another, more elaborate example where we scan entire dependency sub-grap
 const DYNAMIC_IMPORT_PROXY_PREFIX = '\0dynamic-import:';
 
 export default function dynamicChunkLogsPlugin() {
-  return {
-    name: 'dynamic-chunk-logs',
-    async resolveDynamicImport(specifier, importer) {
-      // Ignore non-static targets
-      if (!(typeof specifier === 'string')) return;
-      // Get the id and initial meta information of the import target
-      const resolved = await this.resolve(specifier, importer);
-      // Ignore external targets. Explicit externals have the "external"
-      // property while unresolved imports are "null".
-      if (resolved && !resolved.external) {
-        // We trigger loading the module without waiting for it here
-        // because meta information attached by resolveId hooks, that may
-        // be contained in "resolved" and that plugins like "commonjs" may
-        // depend upon, is only attached to a module the first time it is
-        // loaded.
-        // This ensures that this meta information is not lost when we later
-        // use "this.load" again in the load hook with just the module id.
-        this.load(resolved);
-        return `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`;
-      }
-    },
-    async load(id) {
-      // Ignore all files except our dynamic import proxies
-      if (!id.startsWith('\0dynamic-import:')) return null;
-      const actualId = id.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
-      // To allow loading modules in parallel while keeping complexity low,
-      // we do not directly await each "this.load" call but put their
-      // promises into an array where we await them via an async for loop.
-      const moduleInfoPromises = [this.load({ id: actualId, resolveDependencies: true })];
-      // We track each loaded dependency here so that we do not load a file
-      // twice and also do  not get stuck when there are circular
-      // dependencies.
-      const dependencies = new Set([actualId]);
-      // "importedIdResolutions" tracks the objects created by resolveId
-      // hooks. We are using those instead of "importedIds" so that again,
-      // important meta information is not lost.
-      for await (const { importedIdResolutions } of moduleInfoPromises) {
-        for (const resolved of importedIdResolutions) {
-          if (!dependencies.has(resolved.id)) {
-            dependencies.add(resolved.id);
-            moduleInfoPromises.push(this.load({ ...resolved, resolveDependencies: true }));
-          }
-        }
-      }
-      // We log all modules in a dynamic chunk when it is loaded.
-      let code = `console.log([${[...dependencies]
-        .map(JSON.stringify)
-        .join(', ')}]); export * from ${JSON.stringify(actualId)};`;
-      // Namespace reexports do not reexport default exports, which is why
-      // we reexport it manually if it exists
-      if (this.getModuleInfo(actualId).hasDefaultExport) {
-        code += `export { default } from ${JSON.stringify(actualId)};`;
-      }
-      return code;
-    }
-  };
+	return {
+		name: 'dynamic-chunk-logs',
+		async resolveDynamicImport(specifier, importer) {
+			// Ignore non-static targets
+			if (!(typeof specifier === 'string')) return;
+			// Get the id and initial meta information of the import target
+			const resolved = await this.resolve(specifier, importer);
+			// Ignore external targets. Explicit externals have the
+			// "external" property while unresolved imports are "null".
+			if (resolved && !resolved.external) {
+				// We trigger loading the module without waiting for it
+				// here because meta information attached by resolveId
+				// hooks, that may be contained in "resolved" and that
+				// plugins like "commonjs" may depend upon, is only
+				// attached to a module the first time it is loaded. This
+				// ensures that this meta information is not lost when we
+				// later use "this.load" again in the load hook with just
+				// the module id.
+				this.load(resolved);
+				return `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`;
+			}
+		},
+		async load(id) {
+			// Ignore all files except our dynamic import proxies
+			if (!id.startsWith('\0dynamic-import:')) return null;
+			const actualId = id.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
+			// To allow loading modules in parallel while keeping
+			// complexity low, we do not directly await each "this.load"
+			// call but put their promises into an array where we await
+			// them via an async for loop.
+			const moduleInfoPromises = [
+				this.load({ id: actualId, resolveDependencies: true })
+			];
+			// We track each loaded dependency here so that we do not load
+			// a file twice and also do  not get stuck when there are
+			// circular dependencies.
+			const dependencies = new Set([actualId]);
+			// "importedIdResolutions" tracks the objects created by
+			// resolveId hooks. We are using those instead of "importedIds"
+			// so that again, important meta information is not lost.
+			for await (const { importedIdResolutions } of moduleInfoPromises) {
+				for (const resolved of importedIdResolutions) {
+					if (!dependencies.has(resolved.id)) {
+						dependencies.add(resolved.id);
+						moduleInfoPromises.push(
+							this.load({ ...resolved, resolveDependencies: true })
+						);
+					}
+				}
+			}
+			// We log all modules in a dynamic chunk when it is loaded.
+			let code = `console.log([${[...dependencies]
+				.map(JSON.stringify)
+				.join(', ')}]); export * from ${JSON.stringify(actualId)};`;
+			// Namespace reexports do not reexport default exports, which
+			// is why we reexport it manually if it exists
+			if (this.getModuleInfo(actualId).hasDefaultExport) {
+				code += `export { default } from ${JSON.stringify(actualId)};`;
+			}
+			return code;
+		}
+	};
 }
 ```
 
@@ -1259,7 +1286,7 @@ The `position` argument is a character index where the warning was raised. If pr
 
   ```js
   for (const moduleId of this.moduleIds) {
-    /* ... */
+  	/* ... */
   }
   ```
 
@@ -1273,24 +1300,24 @@ The following example will detect imports of `.svg` files, emit the imported fil
 
 ```js
 function svgResolverPlugin() {
-  return {
-    name: 'svg-resolver',
-    resolveId(source, importer) {
-      if (source.endsWith('.svg')) {
-        return path.resolve(path.dirname(importer), source);
-      }
-    },
-    load(id) {
-      if (id.endsWith('.svg')) {
-        const referenceId = this.emitFile({
-          type: 'asset',
-          name: path.basename(id),
-          source: fs.readFileSync(id)
-        });
-        return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
-      }
-    }
-  };
+	return {
+		name: 'svg-resolver',
+		resolveId(source, importer) {
+			if (source.endsWith('.svg')) {
+				return path.resolve(path.dirname(importer), source);
+			}
+		},
+		load(id) {
+			if (id.endsWith('.svg')) {
+				const referenceId = this.emitFile({
+					type: 'asset',
+					name: path.basename(id),
+					source: fs.readFileSync(id)
+				});
+				return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
+			}
+		}
+	};
 }
 ```
 
@@ -1311,27 +1338,31 @@ The following example will detect imports prefixed with `register-paint-worklet:
 const REGISTER_WORKLET = 'register-paint-worklet:';
 
 function registerPaintWorkletPlugin() {
-  return {
-    name: 'register-paint-worklet',
-    load(id) {
-      if (id.startsWith(REGISTER_WORKLET)) {
-        return `CSS.paintWorklet.addModule(import.meta.ROLLUP_FILE_URL_${this.emitFile({
-          type: 'chunk',
-          id: id.slice(REGISTER_WORKLET.length)
-        })});`;
-      }
-    },
-    resolveId(source, importer) {
-      // We remove the prefix, resolve everything to absolute ids and add the prefix again
-      // This makes sure that you can use relative imports to define worklets
-      if (source.startsWith(REGISTER_WORKLET)) {
-        return this.resolve(source.slice(REGISTER_WORKLET.length), importer).then(
-          resolvedId => REGISTER_WORKLET + resolvedId.id
-        );
-      }
-      return null;
-    }
-  };
+	return {
+		name: 'register-paint-worklet',
+		load(id) {
+			if (id.startsWith(REGISTER_WORKLET)) {
+				return `CSS.paintWorklet.addModule(import.meta.ROLLUP_FILE_URL_${this.emitFile(
+					{
+						type: 'chunk',
+						id: id.slice(REGISTER_WORKLET.length)
+					}
+				)});`;
+			}
+		},
+		resolveId(source, importer) {
+			// We remove the prefix, resolve everything to absolute ids and
+			// add the prefix again. This makes sure that you can use
+			// relative imports to define worklets
+			if (source.startsWith(REGISTER_WORKLET)) {
+				return this.resolve(
+					source.slice(REGISTER_WORKLET.length),
+					importer
+				).then(resolvedId => REGISTER_WORKLET + resolvedId.id);
+			}
+			return null;
+		}
+	};
 }
 ```
 
@@ -1346,17 +1377,17 @@ document.body.innerHTML += `<h1 style="background-image: paint(vertical-lines);"
 // worklet.js
 import { color, size } from './config.js';
 registerPaint(
-  'vertical-lines',
-  class {
-    paint(ctx, geom) {
-      for (let x = 0; x < geom.width / size; x++) {
-        ctx.beginPath();
-        ctx.fillStyle = color;
-        ctx.rect(x * size, 0, 2, geom.height);
-        ctx.fill();
-      }
-    }
-  }
+	'vertical-lines',
+	class {
+		paint(ctx, geom) {
+			for (let x = 0; x < geom.width / size; x++) {
+				ctx.beginPath();
+				ctx.fillStyle = color;
+				ctx.rect(x * size, 0, 2, geom.height);
+				ctx.fill();
+			}
+		}
+	}
 );
 
 // config.js
@@ -1380,20 +1411,20 @@ The `transform` hook, if returning an object, can also include an `ast` property
 import { createFilter } from '@rollup/pluginutils';
 
 function transformCodePlugin(options = {}) {
-  const filter = createFilter(options.include, options.exclude);
+	const filter = createFilter(options.include, options.exclude);
 
-  return {
-    name: 'transform-code',
-    transform(code, id) {
-      if (!filter(id)) return;
+	return {
+		name: 'transform-code',
+		transform(code, id) {
+			if (!filter(id)) return;
 
-      // proceed with the transformation...
-      return {
-        code: generatedCode,
-        map: generatedSourceMap
-      };
-    }
-  };
+			// proceed with the transformation...
+			return {
+				code: generatedCode,
+				map: generatedSourceMap
+			};
+		}
+	};
 }
 ```
 
@@ -1405,8 +1436,8 @@ If it doesn't make sense to generate a sourcemap, (e.g. [rollup-plugin-string](h
 
 ```js
 return {
-  code: transformedCode,
-  map: { mappings: '' }
+	code: transformedCode,
+	map: { mappings: '' }
 };
 ```
 
@@ -1414,8 +1445,8 @@ If the transformation does not move code, you can preserve existing sourcemaps b
 
 ```js
 return {
-  code: transformedCode,
-  map: null
+	code: transformedCode,
+	map: null
 };
 ```
 
@@ -1430,8 +1461,8 @@ It is possible to designate a fallback export for missing exports by setting the
 ```js
 export const foo = 'explicit';
 export const __synthetic = {
-  foo: 'foo',
-  bar: 'bar'
+	foo: 'foo',
+	bar: 'bar'
 };
 ```
 
@@ -1469,27 +1500,27 @@ Custom resolver option offer a solution here by allowing to pass additional opti
 
 ```js
 function requestingPlugin() {
-  return {
-    name: 'requesting',
-    async buildStart() {
-      const resolution = await this.resolve('foo', undefined, {
-        custom: { resolving: { specialResolution: true } }
-      });
-      console.log(resolution.id); // "special"
-    }
-  };
+	return {
+		name: 'requesting',
+		async buildStart() {
+			const resolution = await this.resolve('foo', undefined, {
+				custom: { resolving: { specialResolution: true } }
+			});
+			console.log(resolution.id); // "special"
+		}
+	};
 }
 
 function resolvingPlugin() {
-  return {
-    name: 'resolving',
-    resolveId(id, importer, { custom }) {
-      if (custom.resolving?.specialResolution) {
-        return 'special';
-      }
-      return null;
-    }
-  };
+	return {
+		name: 'resolving',
+		resolveId(id, importer, { custom }) {
+			if (custom.resolving?.specialResolution) {
+				return 'special';
+			}
+			return null;
+		}
+	};
 }
 ```
 
@@ -1501,27 +1532,27 @@ Plugins can annotate modules with custom meta-data which can be set by themselve
 
 ```js
 function annotatingPlugin() {
-  return {
-    name: 'annotating',
-    transform(code, id) {
-      if (thisModuleIsSpecial(code, id)) {
-        return { meta: { annotating: { special: true } } };
-      }
-    }
-  };
+	return {
+		name: 'annotating',
+		transform(code, id) {
+			if (thisModuleIsSpecial(code, id)) {
+				return { meta: { annotating: { special: true } } };
+			}
+		}
+	};
 }
 
 function readingPlugin() {
-  let parentApi;
-  return {
-    name: 'reading',
-    buildEnd() {
-      const specialModules = Array.from(this.getModuleIds()).filter(
-        id => this.getModuleInfo(id).meta.annotating?.special
-      );
-      // do something with this list
-    }
-  };
+	let parentApi;
+	return {
+		name: 'reading',
+		buildEnd() {
+			const specialModules = Array.from(this.getModuleIds()).filter(
+				id => this.getModuleInfo(id).meta.annotating?.special
+			);
+			// do something with this list
+		}
+	};
 }
 ```
 
@@ -1533,19 +1564,20 @@ The `meta` object of a module is created as soon as Rollup starts loading a modu
 
 ```js
 function plugin() {
-  return {
-    name: 'test',
-    buildStart() {
-      // trigger loading a module. We could also pass an initial "meta" object
-      // here, but it would be ignored if the module was already loaded via
-      // other means
-      this.load({ id: 'my-id' });
-      // the module info is now available, we do not need to await this.load
-      const meta = this.getModuleInfo('my-id').meta;
-      // we can also modify meta manually now
-      meta.test = { some: 'data' };
-    }
-  };
+	return {
+		name: 'test',
+		buildStart() {
+			// trigger loading a module. We could also pass an initial
+			// "meta" object here, but it would be ignored if the module
+			// was already loaded via other means
+			this.load({ id: 'my-id' });
+			// the module info is now available, we do not need to await
+			// this.load
+			const meta = this.getModuleInfo('my-id').meta;
+			// we can also modify meta manually now
+			meta.test = { some: 'data' };
+		}
+	};
 }
 ```
 
@@ -1555,37 +1587,41 @@ For any other kind of inter-plugin communication, we recommend the pattern below
 
 ```js
 function parentPlugin() {
-  return {
-    name: 'parent',
-    api: {
-      //...methods and properties exposed for other plugins
-      doSomething(...args) {
-        // do something interesting
-      }
-    }
-    // ...plugin hooks
-  };
+	return {
+		name: 'parent',
+		api: {
+			//...methods and properties exposed for other plugins
+			doSomething(...args) {
+				// do something interesting
+			}
+		}
+		// ...plugin hooks
+	};
 }
 
 function dependentPlugin() {
-  let parentApi;
-  return {
-    name: 'dependent',
-    buildStart({ plugins }) {
-      const parentName = 'parent';
-      const parentPlugin = plugins.find(plugin => plugin.name === parentName);
-      if (!parentPlugin) {
-        // or handle this silently if it is optional
-        throw new Error(`This plugin depends on the "${parentName}" plugin.`);
-      }
-      // now you can access the API methods in subsequent hooks
-      parentApi = parentPlugin.api;
-    },
-    transform(code, id) {
-      if (thereIsAReasonToDoSomething(id)) {
-        parentApi.doSomething(id);
-      }
-    }
-  };
+	let parentApi;
+	return {
+		name: 'dependent',
+		buildStart({ plugins }) {
+			const parentName = 'parent';
+			const parentPlugin = plugins.find(
+				plugin => plugin.name === parentName
+			);
+			if (!parentPlugin) {
+				// or handle this silently if it is optional
+				throw new Error(
+					`This plugin depends on the "${parentName}" plugin.`
+				);
+			}
+			// now you can access the API methods in subsequent hooks
+			parentApi = parentPlugin.api;
+		},
+		transform(code, id) {
+			if (thereIsAReasonToDoSomething(id)) {
+				parentApi.doSomething(id);
+			}
+		}
+	};
 }
 ```

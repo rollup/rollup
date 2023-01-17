@@ -24,7 +24,7 @@ If we update our `src/main.js` file…
 import answer from 'the-answer';
 
 export default function () {
-  console.log('the answer is ' + answer);
+	console.log('the answer is ' + answer);
 }
 ```
 
@@ -59,12 +59,12 @@ npm install --save-dev @rollup/plugin-node-resolve
 import resolve from '@rollup/plugin-node-resolve';
 
 export default {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  },
-  plugins: [resolve()]
+	input: 'src/main.js',
+	output: {
+		file: 'bundle.js',
+		format: 'cjs'
+	},
+	plugins: [resolve()]
 };
 ```
 
@@ -96,19 +96,19 @@ Here is the config file:
 import resolve from '@rollup/plugin-node-resolve';
 
 export default {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  },
-  plugins: [
-    resolve({
-      // pass custom options to the resolve plugin
-      moduleDirectories: ['node_modules']
-    })
-  ],
-  // indicate which modules should be treated as external
-  external: ['lodash']
+	input: 'src/main.js',
+	output: {
+		file: 'bundle.js',
+		format: 'cjs'
+	},
+	plugins: [
+		resolve({
+			// pass custom options to the resolve plugin
+			moduleDirectories: ['node_modules']
+		})
+	],
+	// indicate which modules should be treated as external
+	external: ['lodash']
 };
 ```
 
@@ -118,8 +118,8 @@ The `external` key accepts either an array of module names, or a function which 
 
 ```js
 export default {
-  // ...
-  external: id => /lodash/.test(id)
+	// ...
+	external: id => /lodash/.test(id)
 };
 ```
 
@@ -149,12 +149,12 @@ import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 
 export default {
-  input: 'src/main.js',
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  },
-  plugins: [resolve(), babel({ babelHelpers: 'bundled' })]
+	input: 'src/main.js',
+	output: {
+		file: 'bundle.js',
+		format: 'cjs'
+	},
+	plugins: [resolve(), babel({ babelHelpers: 'bundled' })]
 };
 ```
 
@@ -162,7 +162,7 @@ Before Babel will actually compile your code, it needs to be configured. Create 
 
 ```json
 {
-  "presets": ["@babel/env"]
+	"presets": ["@babel/env"]
 }
 ```
 
@@ -181,7 +181,7 @@ Running Rollup now will create a bundle - except we're not actually using any ES
 import answer from 'the-answer';
 
 export default () => {
-  console.log(`the answer is ${answer}`);
+	console.log(`the answer is ${answer}`);
 };
 ```
 
@@ -193,7 +193,7 @@ Run Rollup with `npm run build`, and check the bundle:
 var index = 42;
 
 var main = function () {
-  console.log('the answer is ' + index);
+	console.log('the answer is ' + index);
 };
 
 module.exports = main;
@@ -211,19 +211,19 @@ const rollup = require('rollup');
 const rollupTypescript = require('@rollup/plugin-typescript');
 
 gulp.task('build', () => {
-  return rollup
-    .rollup({
-      input: './src/main.ts',
-      plugins: [rollupTypescript()]
-    })
-    .then(bundle => {
-      return bundle.write({
-        file: './dist/library.js',
-        format: 'umd',
-        name: 'library',
-        sourcemap: true
-      });
-    });
+	return rollup
+		.rollup({
+			input: './src/main.ts',
+			plugins: [rollupTypescript()]
+		})
+		.then(bundle => {
+			return bundle.write({
+				file: './dist/library.js',
+				format: 'umd',
+				name: 'library',
+				sourcemap: true
+			});
+		});
 });
 ```
 
@@ -235,17 +235,17 @@ const rollup = require('rollup');
 const rollupTypescript = require('@rollup/plugin-typescript');
 
 gulp.task('build', async function () {
-  const bundle = await rollup.rollup({
-    input: './src/main.ts',
-    plugins: [rollupTypescript()]
-  });
+	const bundle = await rollup.rollup({
+		input: './src/main.ts',
+		plugins: [rollupTypescript()]
+	});
 
-  await bundle.write({
-    file: './dist/library.js',
-    format: 'umd',
-    name: 'library',
-    sourcemap: true
-  });
+	await bundle.write({
+		file: './dist/library.js',
+		format: 'umd',
+		name: 'library',
+		sourcemap: true
+	});
 });
 ```
 

@@ -19,15 +19,20 @@ Either a function that takes an `id` and returns `true` (external) or `false` (n
 
 ```js
 // rollup.config.js
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath } from 'node:url';
 
 export default {
-  ...,
-  external: [
-    'some-externally-required-library',
-    fileURLToPath(new URL('src/some-local-file-that-should-not-be-bundled.js', import.meta.url)),
-    /node_modules/
-  ]
+	//...,
+	external: [
+		'some-externally-required-library',
+		fileURLToPath(
+			new URL(
+				'src/some-local-file-that-should-not-be-bundled.js',
+				import.meta.url
+			)
+		),
+		/node_modules/
+	]
 };
 ```
 
@@ -103,20 +108,23 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export default {
-  input: Object.fromEntries(
-    glob.sync('src/**/*.js').map(file => [
-      // This remove `src/` as well as the file extension from each file, so e.g.
-      // src/nested/foo.js becomes nested/foo
-      path.relative('src', file.slice(0, file.length - path.extname(file).length)),
-      // This expands the relative paths to absolute paths, so e.g.
-      // src/nested/foo becomes /project/src/nested/foo.js
-      fileURLToPath(new URL(file, import.meta.url))
-    ])
-  ),
-  output: {
-    format: 'es',
-    dir: 'dist'
-  }
+	input: Object.fromEntries(
+		glob.sync('src/**/*.js').map(file => [
+			// This remove `src/` as well as the file extension from each
+			// file, so e.g. src/nested/foo.js becomes nested/foo
+			path.relative(
+				'src',
+				file.slice(0, file.length - path.extname(file).length)
+			),
+			// This expands the relative paths to absolute paths, so e.g.
+			// src/nested/foo becomes /project/src/nested/foo.js
+			fileURLToPath(new URL(file, import.meta.url))
+		])
+	),
+	output: {
+		format: 'es',
+		dir: 'dist'
+	}
 };
 ```
 
@@ -212,19 +220,24 @@ To tell Rollup that a local file should be replaced by a global variable, use an
 
 ```js
 // rollup.config.js
-import { fileURLToPath } from 'node:url'
-const externalId = fileURLToPath(new URL('src/some-local-file-that-should-not-be-bundled.js', import.meta.url))
+import { fileURLToPath } from 'node:url';
+const externalId = fileURLToPath(
+	new URL(
+		'src/some-local-file-that-should-not-be-bundled.js',
+		import.meta.url
+	)
+);
 
 export default {
-  ...,
-  external: [externalId],
-  output: {
-    format: 'iife',
-    name: 'MyBundle',
-    globals: {
-      [externalId]: 'globalVariable'
-    }
-  }
+	//...,
+	external: [externalId],
+	output: {
+		format: 'iife',
+		name: 'MyBundle',
+		globals: {
+			[externalId]: 'globalVariable'
+		}
+	}
 };
 ```
 
@@ -275,18 +288,18 @@ The following will add minification to one of the outputs:
 import terser from '@rollup/plugin-terser';
 
 export default {
-  input: 'main.js',
-  output: [
-    {
-      file: 'bundle.js',
-      format: 'es'
-    },
-    {
-      file: 'bundle.min.js',
-      format: 'es',
-      plugins: [terser()]
-    }
-  ]
+	input: 'main.js',
+	output: [
+		{
+			file: 'bundle.js',
+			format: 'es'
+		},
+		{
+			file: 'bundle.min.js',
+			format: 'es',
+			plugins: [terser()]
+		}
+	]
 };
 ```
 
@@ -304,16 +317,16 @@ import commonjs from '@rollup/plugin-commonjs';
 const isProduction = process.env.NODE_ENV === 'production';
 
 export default (async () => ({
-  input: 'main.js',
-  plugins: [
-    resolve(),
-    commonjs(),
-    isProduction && (await import('@rollup/plugin-terser')).default()
-  ],
-  output: {
-    file: 'bundle.js',
-    format: 'cjs'
-  }
+	input: 'main.js',
+	plugins: [
+		resolve(),
+		commonjs(),
+		isProduction && (await import('@rollup/plugin-terser')).default()
+	],
+	output: {
+		file: 'bundle.js',
+		format: 'cjs'
+	}
 }))();
 ```
 
@@ -332,22 +345,22 @@ const rollup = require('rollup');
 let cache;
 
 async function buildWithCache() {
-  const bundle = await rollup.rollup({
-    cache // is ignored if falsy
-    // ... other input options
-  });
-  cache = bundle.cache; // store the cache object of the previous build
-  return bundle;
+	const bundle = await rollup.rollup({
+		cache // is ignored if falsy
+		// ... other input options
+	});
+	cache = bundle.cache; // store the cache object of the previous build
+	return bundle;
 }
 
 buildWithCache()
-  .then(bundle => {
-    // ... do something with the bundle
-  })
-  .then(() => buildWithCache()) // will use the cache of the previous build
-  .then(bundle => {
-    // ... do something with the bundle
-  });
+	.then(bundle => {
+		// ... do something with the bundle
+	})
+	.then(() => buildWithCache()) // will use the cache of the previous build
+	.then(bundle => {
+		// ... do something with the bundle
+	});
 ```
 
 ### makeAbsoluteExternalsRelative
@@ -356,7 +369,7 @@ Type: `boolean | "ifRelativeSource"`<br> CLI: `--makeAbsoluteExternalsRelative`/
 
 Determines if absolute external paths should be converted to relative paths in the output. This does not only apply to paths that are absolute in the source but also to paths that are resolved to an absolute path by either a plugin or Rollup core.
 
-For `true`, an external import like `import "/Users/Rollup/project/relative.js"` would be converted to a relative path. When converting an absolute path to a relative path, Rollup does _not_ take the `file` or `dir` options into account, because those may not be present e.g. for builds using the JavaScript API. Instead, it assumes that the root of the generated bundle is located at the common shared parent directory of all modules that were included in the bundle. Assuming that the common parent directory of all modules is `"/Users/Rollup/project"`, the import from above would likely be converted to `import "./relative.js"` in the output. If the output chunk is itself nested in a sub-directory by choosing e.g. `chunkFileNames: "chunks/[name].js"`, the import would be `"../relative.js"`.
+For `true`, an external import like `import "/Users/Rollup/project/relative.js"` would be converted to a relative path. When converting an absolute path to a relative path, Rollup does _not_ take the `file` or `dir` options into account, because those may not be present e.g. for builds using the JavaScript API. Instead, it assumes that the root of the generated bundle is located at the common shared parent directory of all modules that were included in the bundle. Assuming that the common parent directory of all modules is `"/Users/Rollup/project"`, the import from above would likely be converted to `import "./relative.js"` in the output. If the output chunk is itself nested in a subdirectory by choosing e.g. `chunkFileNames: "chunks/[name].js"`, the import would be `"../relative.js"`.
 
 As stated before, this would also apply to originally relative imports like `import "./relative.js"` that are resolved to an absolute path before they are marked as external by the [`external`](#external) option.
 
@@ -383,19 +396,21 @@ The function receives two arguments: the warning object and the default handler.
 ```js
 // rollup.config.js
 export default {
-  ...,
-  onwarn (warning, warn) {
-    // skip certain warnings
-    if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
+	//...,
+	onwarn(warning, warn) {
+		// skip certain warnings
+		if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
 
-    // throw on others
-    // Using Object.assign over new Error(warning.message) will make the CLI
-    // print additional information such as warning location and help url.
-    if (warning.code === 'MISSING_EXPORT') throw Object.assign(new Error(), warning);
+		// throw on others
+		// Using Object.assign over new Error(warning.message) will make
+		// the CLI print additional information such as warning location
+		// and help url.
+		if (warning.code === 'MISSING_EXPORT')
+			throw Object.assign(new Error(), warning);
 
-    // Use default for everything else
-    warn(warning);
-  }
+		// Use default for everything else
+		warn(warning);
+	}
 };
 ```
 
@@ -489,35 +504,35 @@ import('external').then(console.log);
 
 // cjs output with dynamicImportInCjs: false
 function _interopNamespaceDefault(e) {
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(
-          n,
-          k,
-          d.get
-            ? d
-            : {
-                enumerable: true,
-                get: function () {
-                  return e[k];
-                }
-              }
-        );
-      }
-    });
-  }
-  n.default = e;
-  return Object.freeze(n);
+	var n = Object.create(null);
+	if (e) {
+		Object.keys(e).forEach(function (k) {
+			if (k !== 'default') {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(
+					n,
+					k,
+					d.get
+						? d
+						: {
+								enumerable: true,
+								get: function () {
+									return e[k];
+								}
+						  }
+				);
+			}
+		});
+	}
+	n.default = e;
+	return Object.freeze(n);
 }
 
 Promise.resolve()
-  .then(function () {
-    return /*#__PURE__*/ _interopNamespaceDefault(require('external'));
-  })
-  .then(console.log);
+	.then(function () {
+		return /*#__PURE__*/ _interopNamespaceDefault(require('external'));
+	})
+	.then(console.log);
 ```
 
 ### output.entryFileNames
@@ -571,24 +586,24 @@ export * from 'external';
 var external = require('external');
 
 Object.keys(external).forEach(function (k) {
-  if (k !== 'default' && !exports.hasOwnProperty(k))
-    Object.defineProperty(exports, k, {
-      enumerable: true,
-      get: function () {
-        return external[k];
-      }
-    });
+	if (k !== 'default' && !exports.hasOwnProperty(k))
+		Object.defineProperty(exports, k, {
+			enumerable: true,
+			get: function () {
+				return external[k];
+			}
+		});
 });
 
 // cjs output with constBindings: true
 const external = require('external');
 
 for (const k in external) {
-  if (k !== 'default' && !exports.hasOwnProperty(k))
-    Object.defineProperty(exports, k, {
-      enumerable: true,
-      get: () => external[k]
-    });
+	if (k !== 'default' && !exports.hasOwnProperty(k))
+		Object.defineProperty(exports, k, {
+			enumerable: true,
+			get: () => external[k]
+		});
 }
 ```
 
@@ -603,24 +618,24 @@ export { foo, foo as bar };
 
 // system output with objectShorthand: false
 System.register('bundle', [], function (exports) {
-  'use strict';
-  return {
-    execute: function () {
-      const foo = 1;
-      exports({ foo: foo, bar: foo });
-    }
-  };
+	'use strict';
+	return {
+		execute: function () {
+			const foo = 1;
+			exports({ foo: foo, bar: foo });
+		}
+	};
 });
 
 // system output with objectShorthand: true
 System.register('bundle', [], function (exports) {
-  'use strict';
-  return {
-    execute: function () {
-      const foo = 1;
-      exports({ foo, bar: foo });
-    }
-  };
+	'use strict';
+	return {
+		execute: function () {
+			const foo = 1;
+			exports({ foo, bar: foo });
+		}
+	};
 });
 ```
 
@@ -630,14 +645,14 @@ Allows choosing one of the presets listed above while overriding some options.
 
 ```js
 export default {
-  // ...
-  output: {
-    generatedCode: {
-      preset: 'es2015',
-      arrowFunctions: false
-    }
-    // ...
-  }
+	// ...
+	output: {
+		generatedCode: {
+			preset: 'es2015',
+			arrowFunctions: false
+		}
+		// ...
+	}
 };
 ```
 
@@ -716,37 +731,38 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   var external = require('external1');
 
   function _interopNamespaceDefault(e) {
-    var n = Object.create(null);
-    if (e) {
-      Object.keys(e).forEach(function (k) {
-        if (k !== 'default') {
-          var d = Object.getOwnPropertyDescriptor(e, k);
-          Object.defineProperty(
-            n,
-            k,
-            d.get
-              ? d
-              : {
-                  enumerable: true,
-                  get: function () {
-                    return e[k];
-                  }
-                }
-          );
-        }
-      });
-    }
-    n.default = e;
-    return Object.freeze(n);
+  	var n = Object.create(null);
+  	if (e) {
+  		Object.keys(e).forEach(function (k) {
+  			if (k !== 'default') {
+  				var d = Object.getOwnPropertyDescriptor(e, k);
+  				Object.defineProperty(
+  					n,
+  					k,
+  					d.get
+  						? d
+  						: {
+  								enumerable: true,
+  								get: function () {
+  									return e[k];
+  								}
+  						  }
+  				);
+  			}
+  		});
+  	}
+  	n.default = e;
+  	return Object.freeze(n);
   }
 
-  var external__namespace = /*#__PURE__*/ _interopNamespaceDefault(external);
+  var external__namespace =
+  	/*#__PURE__*/ _interopNamespaceDefault(external);
   console.log(external, external__namespace.bar, external__namespace);
   Promise.resolve()
-    .then(function () {
-      return /*#__PURE__*/ _interopNamespaceDefault(require('external2'));
-    })
-    .then(console.log);
+  	.then(function () {
+  		return /*#__PURE__*/ _interopNamespaceDefault(require('external2'));
+  	})
+  	.then(console.log);
   ```
 
 - `"esModule"` assumes that required modules are transpiled ES modules where the required value corresponds to the module namespace, and the default export is the `.default` property of the exported object. This is the only interop type that will not inject any helper functions:
@@ -755,10 +771,10 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   var external = require('external1');
   console.log(external.default, external.bar, external);
   Promise.resolve()
-    .then(function () {
-      return require('external2');
-    })
-    .then(console.log);
+  	.then(function () {
+  		return require('external2');
+  	})
+  	.then(console.log);
   ```
 
   When `esModule` is used, Rollup adds no additional interop helpers and also supports live-bindings for default exports.
@@ -769,38 +785,42 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   var external = require('external1');
 
   function _interopNamespace(e) {
-    if (e && e.__esModule) return e;
-    var n = Object.create(null);
-    if (e) {
-      Object.keys(e).forEach(function (k) {
-        if (k !== 'default') {
-          var d = Object.getOwnPropertyDescriptor(e, k);
-          Object.defineProperty(
-            n,
-            k,
-            d.get
-              ? d
-              : {
-                  enumerable: true,
-                  get: function () {
-                    return e[k];
-                  }
-                }
-          );
-        }
-      });
-    }
-    n.default = e;
-    return Object.freeze(n);
+  	if (e && e.__esModule) return e;
+  	var n = Object.create(null);
+  	if (e) {
+  		Object.keys(e).forEach(function (k) {
+  			if (k !== 'default') {
+  				var d = Object.getOwnPropertyDescriptor(e, k);
+  				Object.defineProperty(
+  					n,
+  					k,
+  					d.get
+  						? d
+  						: {
+  								enumerable: true,
+  								get: function () {
+  									return e[k];
+  								}
+  						  }
+  				);
+  			}
+  		});
+  	}
+  	n.default = e;
+  	return Object.freeze(n);
   }
 
   var external__namespace = /*#__PURE__*/ _interopNamespace(external);
-  console.log(external__namespace.default, external__namespace.bar, external__namespace);
+  console.log(
+  	external__namespace.default,
+  	external__namespace.bar,
+  	external__namespace
+  );
   Promise.resolve()
-    .then(function () {
-      return /*#__PURE__*/ _interopNamespace(require('external2'));
-    })
-    .then(console.log);
+  	.then(function () {
+  		return /*#__PURE__*/ _interopNamespace(require('external2'));
+  	})
+  	.then(console.log);
   ```
 
   Note how Rollup is reusing the created namespace object to get the `default` export. If the namespace object is not needed, Rollup will use a simpler helper:
@@ -814,7 +834,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   var ext_default = require('external');
 
   function _interopDefault(e) {
-    return e && e.__esModule ? e : { default: e };
+  	return e && e.__esModule ? e : { default: e };
   }
 
   var ext_default__default = /*#__PURE__*/ _interopDefault(ext_default);
@@ -827,39 +847,43 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   var external = require('external1');
 
   function _interopNamespaceCompat(e) {
-    if (e && typeof e === 'object' && 'default' in e) return e;
-    var n = Object.create(null);
-    if (e) {
-      Object.keys(e).forEach(function (k) {
-        if (k !== 'default') {
-          var d = Object.getOwnPropertyDescriptor(e, k);
-          Object.defineProperty(
-            n,
-            k,
-            d.get
-              ? d
-              : {
-                  enumerable: true,
-                  get: function () {
-                    return e[k];
-                  }
-                }
-          );
-        }
-      });
-    }
-    n.default = e;
-    return Object.freeze(n);
+  	if (e && typeof e === 'object' && 'default' in e) return e;
+  	var n = Object.create(null);
+  	if (e) {
+  		Object.keys(e).forEach(function (k) {
+  			if (k !== 'default') {
+  				var d = Object.getOwnPropertyDescriptor(e, k);
+  				Object.defineProperty(
+  					n,
+  					k,
+  					d.get
+  						? d
+  						: {
+  								enumerable: true,
+  								get: function () {
+  									return e[k];
+  								}
+  						  }
+  				);
+  			}
+  		});
+  	}
+  	n.default = e;
+  	return Object.freeze(n);
   }
 
   var external__namespace = /*#__PURE__*/ _interopNamespaceCompat(external);
 
-  console.log(external__namespace.default, external__namespace.bar, external__namespace);
+  console.log(
+  	external__namespace.default,
+  	external__namespace.bar,
+  	external__namespace
+  );
   Promise.resolve()
-    .then(function () {
-      return /*#__PURE__*/ _interopNamespaceCompat(require('external2'));
-    })
-    .then(console.log);
+  	.then(function () {
+  		return /*#__PURE__*/ _interopNamespaceCompat(require('external2'));
+  	})
+  	.then(console.log);
   ```
 
   Similar to `"auto"`, Rollup will use a simpler helper if the namespace is not needed:
@@ -873,10 +897,13 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   var ext_default = require('external');
 
   function _interopDefaultCompat(e) {
-    return e && typeof e === 'object' && 'default' in e ? e : { default: e };
+  	return e && typeof e === 'object' && 'default' in e
+  		? e
+  		: { default: e };
   }
 
-  var ext_default__default = /*#__PURE__*/ _interopDefaultCompat(ext_default);
+  var ext_default__default =
+  	/*#__PURE__*/ _interopDefaultCompat(ext_default);
 
   console.log(ext_default__default.default);
   ```
@@ -893,16 +920,19 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   var ext_default = require('external1');
 
   function _interopNamespaceDefaultOnly(e) {
-    return Object.freeze({ __proto__: null, default: e });
+  	return Object.freeze({ __proto__: null, default: e });
   }
 
-  var ext_default__namespace = /*#__PURE__*/ _interopNamespaceDefaultOnly(ext_default);
+  var ext_default__namespace =
+  	/*#__PURE__*/ _interopNamespaceDefaultOnly(ext_default);
   console.log(ext_default, ext_default__namespace);
   Promise.resolve()
-    .then(function () {
-      return /*#__PURE__*/ _interopNamespaceDefaultOnly(require('external2'));
-    })
-    .then(console.log);
+  	.then(function () {
+  		return /*#__PURE__*/ _interopNamespaceDefaultOnly(
+  			require('external2')
+  		);
+  	})
+  	.then(console.log);
   ```
 
 - When a function is supplied, Rollup will pass each external id to this function once to control the interop type per dependency.
@@ -915,16 +945,16 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   const nodeBuiltins = new Set(builtins());
 
   export default {
-    // ...
-    output: {
-      // ...
-      interop(id) {
-        if (nodeBuiltins.has(id)) {
-          return 'default';
-        }
-        return 'defaultOnly';
-      }
-    }
+  	// ...
+  	output: {
+  		// ...
+  		interop(id) {
+  			if (nodeBuiltins.has(id)) {
+  				return 'default';
+  			}
+  			return 'defaultOnly';
+  		}
+  	}
   };
   ```
 
@@ -985,13 +1015,13 @@ This can be used to dynamically determine into which manual chunk a module shoul
 // Inside the "foo" component
 
 function getTranslatedStrings(currentLanguage) {
-  switch (currentLanguage) {
-    case 'en':
-      return import('./foo.strings.en.js');
-    case 'de':
-      return import('./foo.strings.de.js');
-    // ...
-  }
+	switch (currentLanguage) {
+		case 'en':
+			return import('./foo.strings.en.js');
+		case 'de':
+			return import('./foo.strings.de.js');
+		// ...
+	}
 }
 ```
 
@@ -1000,34 +1030,39 @@ If a lot of such components are used together, this will result in a lot of dyna
 The following code will merge all files of the same language that are only used by a single entry point:
 
 ```js
-manualChunks(id, { getModuleInfo }) {
-  const match = /.*\.strings\.(\w+)\.js/.exec(id);
-  if (match) {
-    const language = match[1]; // e.g. "en"
-    const dependentEntryPoints = [];
+function manualChunks(id, { getModuleInfo }) {
+	const match = /.*\.strings\.(\w+)\.js/.exec(id);
+	if (match) {
+		const language = match[1]; // e.g. "en"
+		const dependentEntryPoints = [];
 
-    // we use a Set here so we handle each module at most once. This
-    // prevents infinite loops in case of circular dependencies
-    const idsToHandle = new Set(getModuleInfo(id).dynamicImporters);
+		// we use a Set here so we handle each module at most once. This
+		// prevents infinite loops in case of circular dependencies
+		const idsToHandle = new Set(getModuleInfo(id).dynamicImporters);
 
-    for (const moduleId of idsToHandle) {
-      const { isEntry, dynamicImporters, importers } = getModuleInfo(moduleId);
-      if (isEntry || dynamicImporters.length > 0) dependentEntryPoints.push(moduleId);
+		for (const moduleId of idsToHandle) {
+			const { isEntry, dynamicImporters, importers } =
+				getModuleInfo(moduleId);
+			if (isEntry || dynamicImporters.length > 0)
+				dependentEntryPoints.push(moduleId);
 
-      // The Set iterator is intelligent enough to iterate over elements that
-      // are added during iteration
-      for (const importerId of importers) idsToHandle.add(importerId);
-    }
+			// The Set iterator is intelligent enough to iterate over
+			// elements that are added during iteration
+			for (const importerId of importers) idsToHandle.add(importerId);
+		}
 
-    // If there is a unique entry, we put it into a chunk based on the entry name
-    if (dependentEntryPoints.length === 1) {
-      return `${dependentEntryPoints[0].split('/').slice(-1)[0].split('.')[0]}.strings.${language}`;
-    }
-    // For multiple entries, we put it into a "shared" chunk
-    if (dependentEntryPoints.length > 1) {
-      return `shared.strings.${language}`;
-    }
-  }
+		// If there is a unique entry, we put it into a chunk based on the
+		// entry name
+		if (dependentEntryPoints.length === 1) {
+			return `${
+				dependentEntryPoints[0].split('/').slice(-1)[0].split('.')[0]
+			}.strings.${language}`;
+		}
+		// For multiple entries, we put it into a "shared" chunk
+		if (dependentEntryPoints.length > 1) {
+			return `shared.strings.${language}`;
+		}
+	}
 }
 ```
 
@@ -1104,21 +1139,21 @@ selectAll('p').style('color', 'purple');
 
 // rollup.config.js
 export default {
-  input: 'app.js',
-  external: ['d3'],
-  output: {
-    file: 'bundle.js',
-    format: 'amd',
-    paths: {
-      d3: 'https://d3js.org/d3.v4.min'
-    }
-  }
+	input: 'app.js',
+	external: ['d3'],
+	output: {
+		file: 'bundle.js',
+		format: 'amd',
+		paths: {
+			d3: 'https://d3js.org/d3.v4.min'
+		}
+	}
 };
 
 // bundle.js
 define(['https://d3js.org/d3.v4.min'], function (d3) {
-  d3.selectAll('p').style('color', 'purple');
-  // ...
+	d3.selectAll('p').style('color', 'purple');
+	// ...
 });
 ```
 
@@ -1181,15 +1216,15 @@ For example, given the following configuration:
 
 ```javascript
 export default {
-  input: ['src/module.js', `src/another/module.js`],
-  output: [
-    {
-      format: 'es',
-      dir: 'dist',
-      preserveModules: true,
-      preserveModulesRoot: 'src'
-    }
-  ]
+	input: ['src/module.js', `src/another/module.js`],
+	output: [
+		{
+			format: 'es',
+			dir: 'dist',
+			preserveModules: true,
+			preserveModulesRoot: 'src'
+		}
+	]
 };
 ```
 
@@ -1232,18 +1267,21 @@ A transformation to apply to each path in a sourcemap. `relativeSourcePath` is a
 ```js
 import path from 'node:path';
 export default {
-  input: 'src/main',
-  output: [
-    {
-      file: 'bundle.js',
-      sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
-        // will replace relative paths with absolute paths
-        return path.resolve(path.dirname(sourcemapPath), relativeSourcePath);
-      },
-      format: 'es',
-      sourcemap: true
-    }
-  ]
+	input: 'src/main',
+	output: [
+		{
+			file: 'bundle.js',
+			sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+				// will replace relative paths with absolute paths
+				return path.resolve(
+					path.dirname(sourcemapPath),
+					relativeSourcePath
+				);
+			},
+			format: 'es',
+			sourcemap: true
+		}
+	]
 };
 ```
 
@@ -1361,8 +1399,8 @@ A single plugin or an array of plugins to be injected into Acorn. For instance t
 import jsx from 'acorn-jsx';
 
 export default {
-  // … other options …
-  acornInjectPlugins: [jsx()]
+	// … other options …
+	acornInjectPlugins: [jsx()]
 };
 ```
 
@@ -1561,10 +1599,10 @@ export { x } from 'external';
 var external = require('external');
 
 Object.defineProperty(exports, 'x', {
-  enumerable: true,
-  get: function () {
-    return external.x;
-  }
+	enumerable: true,
+	get: function () {
+		return external.x;
+	}
 });
 
 // CJS output with externalLiveBindings: false
@@ -1679,9 +1717,9 @@ If `false`, ignore hints from pure annotations, i.e. comments containing `@__PUR
 /*@__PURE__*/ console.log('side-effect');
 
 class Impure {
-  constructor() {
-    console.log('side-effect');
-  }
+	constructor() {
+		console.log('side-effect');
+	}
 }
 
 /*@__PURE__*/ new Impure();
@@ -1696,17 +1734,17 @@ In some edge cases if a variable is accessed before its declaration assignment a
 let logBeforeDeclaration = false;
 
 function logIfEnabled() {
-  if (logBeforeDeclaration) {
-    log();
-  }
+	if (logBeforeDeclaration) {
+		log();
+	}
 
-  var value = true;
+	var value = true;
 
-  function log() {
-    if (!value) {
-      console.log('should be retained, value is undefined');
-    }
-  }
+	function log() {
+		if (!value) {
+			console.log('should be retained, value is undefined');
+		}
+	}
 }
 
 logIfEnabled(); // could be removed
@@ -1725,11 +1763,11 @@ Besides any functions matching that name, any properties on a pure function and 
 ```js
 // rollup.config.js
 export default {
-  treeshake: {
-    preset: 'smallest',
-    manualPureFunctions: ['styled', 'local']
-  }
-  // ...
+	treeshake: {
+		preset: 'smallest',
+		manualPureFunctions: ['styled', 'local']
+	}
+	// ...
 };
 
 // code
@@ -1738,7 +1776,7 @@ const local = console.log;
 
 local(); // removed
 styled.div`
-  color: blue;
+	color: blue;
 `; // removed
 styled?.div(); // removed
 styled()(); // removed
@@ -1835,11 +1873,11 @@ Allows choosing one of the presets listed above while overriding some options.
 
 ```js
 export default {
-  treeshake: {
-    preset: 'smallest',
-    propertyReadSideEffects: true
-  }
-  // ...
+	treeshake: {
+		preset: 'smallest',
+		propertyReadSideEffects: true
+	}
+	// ...
 };
 ```
 
@@ -1854,10 +1892,10 @@ If `'always'`, assume all member property accesses, including destructuring, hav
 ```javascript
 // Will be removed if treeshake.propertyReadSideEffects === false
 const foo = {
-  get bar() {
-    console.log('effect');
-    return 'bar';
-  }
+	get bar() {
+		console.log('effect');
+		return 'bar';
+	}
 };
 const result = foo.bar;
 const illegalAccess = foo.quux.tooDeep;
@@ -1869,30 +1907,30 @@ By default, Rollup assumes that many builtin globals of the runtime behave accor
 
 ```js
 function otherFn() {
-  // even though this function is called from a try-statement, the next line
-  // will be removed as side-effect-free
-  Object.create(null);
+	// even though this function is called from a try-statement, the next line
+	// will be removed as side-effect-free
+	Object.create(null);
 }
 
 function test(callback) {
-  try {
-    // calls to otherwise side-effect-free global functions are retained
-    // inside try-statements for tryCatchDeoptimization: true
-    Object.create(null);
+	try {
+		// calls to otherwise side-effect-free global functions are
+		// retained inside try-statements for tryCatchDeoptimization: true
+		Object.create(null);
 
-    // calls to other function are retained as well but the body of this
-    // function may again be subject to tree-shaking
-    otherFn();
+		// calls to other function are retained as well but the body of
+		// this function may again be subject to tree-shaking
+		otherFn();
 
-    // if a parameter is called, then all arguments passed to that function
-    // parameter will be deoptimized
-    callback();
-  } catch {}
+		// if a parameter is called, then all arguments passed to that
+		// function parameter will be deoptimized
+		callback();
+	} catch {}
 }
 
 test(() => {
-  // will be ratained
-  Object.create(null);
+	// will be ratained
+	Object.create(null);
 });
 
 // call will be retained but again, otherFn is not deoptimized
@@ -1967,15 +2005,15 @@ Specify options for watch mode or prevent this configuration from being watched.
 ```js
 // rollup.config.js
 export default [
-  {
-    input: 'main.js',
-    output: { file: 'bundle.cjs.js', format: 'cjs' }
-  },
-  {
-    input: 'main.js',
-    watch: false,
-    output: { file: 'bundle.es.js', format: 'es' }
-  }
+	{
+		input: 'main.js',
+		output: { file: 'bundle.cjs.js', format: 'cjs' }
+	},
+	{
+		input: 'main.js',
+		watch: false,
+		output: { file: 'bundle.es.js', format: 'es' }
+	}
 ];
 ```
 

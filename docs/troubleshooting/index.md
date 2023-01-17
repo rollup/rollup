@@ -26,9 +26,9 @@ Simply 'copying' `eval` provides you with a function that does exactly the same 
 var eval2 = eval;
 
 (function () {
-  var foo = 42;
-  eval('console.log("with eval:",foo)'); // logs 'with eval: 42'
-  eval2('console.log("with eval2:",foo)'); // throws ReferenceError
+	var foo = 42;
+	eval('console.log("with eval:",foo)'); // logs 'with eval: 42'
+	eval2('console.log("with eval2:",foo)'); // throws ReferenceError
 })();
 ```
 
@@ -81,10 +81,10 @@ import moment from 'moment';
 ```js
 // rollup.config.js
 export default {
-  entry: 'src/index.js',
-  dest: 'bundle.js',
-  format: 'cjs',
-  external: ['moment'] // <-- suppresses the warning
+	entry: 'src/index.js',
+	dest: 'bundle.js',
+	format: 'cjs',
+	external: ['moment'] // <-- suppresses the warning
 };
 ```
 
