@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { examplesById } from '../stores/examples';
+import examplesById from 'examples.json';
 import { useModules } from '../stores/modules';
 
 const modulesStore = useModules();

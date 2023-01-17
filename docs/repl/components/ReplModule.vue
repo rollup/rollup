@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { Module } from '../stores/modules';
+import type { Module } from '../../types';
 import ReplEditor from './ReplEditor.vue';
 
 defineProps<{

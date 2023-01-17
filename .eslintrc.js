@@ -56,6 +56,15 @@ module.exports = {
 				'@vue/eslint-config-prettier'
 			],
 			files: ['*.vue']
+		},
+		{
+			files: ['docs/repl/examples/**/*.js'],
+			rules: {
+				'import/namespace': 'off',
+				'import/no-unresolved': 'off',
+				'no-undef': 'off',
+				'unicorn/prevent-abbreviations': 'off'
+			}
 		}
 	],
 	parser: '@typescript-eslint/parser',
@@ -90,7 +99,7 @@ module.exports = {
 			'error',
 			{
 				// 'fsevents' is only available on macOS, and not installed on linux/windows
-				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types']
+				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types', 'examples.json']
 			}
 		],
 		'import/order': ['error', { alphabetize: { order: 'asc' } }],

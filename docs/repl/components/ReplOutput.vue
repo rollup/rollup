@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import type { OutputChunk } from 'rollup';
 import { computed } from 'vue';
-import type { Module } from '../stores/modules';
+import type { Module } from '../../types';
 import { useRollupOutput } from '../stores/rollupOutput';
 import BundleOptions from './BundleOptions.vue';
 import OutputStatus from './OutputStatus.vue';

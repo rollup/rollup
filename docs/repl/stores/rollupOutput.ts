@@ -7,9 +7,9 @@ import type {
 	RollupOutput,
 	RollupWarning
 } from '../../../src/rollup/types';
+import type { Module } from '../../types';
 import { getFileNameFromMessage } from '../helpers/messages';
 import { dirname, resolve } from '../helpers/path';
-import type { Module } from './modules';
 import { useModules } from './modules';
 import { useOptions } from './options';
 import type { RequestedRollupInstance } from './rollup';

@@ -1,6 +1,6 @@
 import { watch } from 'vue';
 import type { OutputOptions } from '../../../src/rollup/types';
-import type { Module } from '../stores/modules';
+import type { Module } from '../../types';
 import { useModules } from '../stores/modules';
 import { useOptions } from '../stores/options';
 import { useRollup } from '../stores/rollup';
