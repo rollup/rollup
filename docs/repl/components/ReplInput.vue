@@ -2,11 +2,13 @@
 	<InputHeader />
 
 	<div class="modules" ref="modulesReference">
-		<InputModule
+		<ReplModule
 			v-for="(module, i) in modulesStore.modules"
 			:key="i"
 			:module="module"
-			:is-main="i === 0"
+			:editable-header="i > 0"
+			editable
+			show-header
 			@remove="removeModule(i)"
 		/>
 	</div>
@@ -21,7 +23,7 @@
 import { ref } from 'vue';
 import { useModules } from '../stores/modules';
 import InputHeader from './InputHeader.vue';
-import InputModule from './InputModule.vue';
+import ReplModule from './ReplModule.vue';
 
 const modulesStore = useModules();
 let uid = 1;

@@ -17,13 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import type { RollupError } from '../../../src/rollup/types';
 import { computed } from 'vue';
+import type { RollupError } from '../../../src/rollup/types';
 import { getFileNameFromMessage } from '../helpers/messages';
 
 const properties = defineProps<{ isError?: boolean; message: RollupError }>();
 
-const websitePrefix = 'https://rollupjs.org/';
+const websitePrefix = 'https://rollupjs.org';
 
 const frame = computed(() => {
 	const { loc, id, frame } = properties.message;

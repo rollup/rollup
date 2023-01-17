@@ -1,12 +1,8 @@
 <template>
 	<!-- eslint-disable vue/no-mutating-props -->
-	<article class="module" :class="{ 'entry-module': isMain || module.isEntry }">
+	<article class="module" :class="{ 'entry-module': module.isEntry }">
 		<header>
-			<span v-if="isMain" class="module-name">
-				main.js
-				<span class="entry-module-label">(entry module)</span>
-			</span>
-			<span v-else>
+			<span v-if="editableHeader">
 				<input ref="input" v-model="module.name" @focus="selectName" placeholder="foo.js" />
 				<button class="remove" @click="emit('remove')">
 					<span class="label">remove</span>
@@ -18,8 +14,12 @@
 					<span v-else class="icon-plus"></span>
 				</button>
 			</span>
+			<span v-else-if="showHeader" class="module-name">
+				{{ module.name }}
+				<span v-if="module.isEntry" class="entry-module-label">(entry module)</span>
+			</span>
 		</header>
-		<ReplEditor v-model:code="module.code" :moduleName="module.name" />
+		<ReplEditor v-model:code="module.code" :moduleName="module.name" :readonly="!editable" />
 	</article>
 </template>
 
@@ -29,8 +29,10 @@ import type { Module } from '../stores/modules';
 import ReplEditor from './ReplEditor.vue';
 
 defineProps<{
-	isMain: boolean;
+	editable?: boolean;
+	editableHeader?: boolean;
 	module: Module;
+	showHeader: boolean;
 }>();
 const emit = defineEmits<{ (event: 'remove'): void }>();
 const input = ref<HTMLInputElement | null>(null);
@@ -136,7 +138,7 @@ button {
 }
 
 .remove {
-	top: 4px;
+	top: 2px;
 	color: var(--vp-c-brand);
 }
 

@@ -12,7 +12,6 @@ export default withMermaid(
 				callback,
 				level: 2
 			},
-			lineNumbers: true,
 			linkify: false,
 			toc: {
 				level: [2, 3, 4]
