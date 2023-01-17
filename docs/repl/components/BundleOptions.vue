@@ -2,18 +2,12 @@
 	<div class="options">
 		<section>
 			<h3>output.format</h3>
-			<div class="option-buttons">
-				<button
-					v-for="format in formats"
-					:key="format"
-					:class="{ selected: format === optionsStore.options.format }"
-					@click="optionsStore.options.format = format"
-				>
-					{{ format }}
-				</button>
-			</div>
+			<OptionsSelect
+				:values="formats"
+				:selected="optionsStore.options.format"
+				@select="selected => (optionsStore.options.format = selected)"
+			/>
 		</section>
-
 		<div v-if="!rollupOutputStore.output.error">
 			<section
 				v-if="optionsStore.options.format === 'amd' || optionsStore.options.format === 'umd'"
@@ -50,6 +44,7 @@
 import { computed } from 'vue';
 import { useOptions } from '../stores/options';
 import { useRollupOutput } from '../stores/rollupOutput';
+import OptionsSelect from './OptionsSelect.vue';
 
 const rollupOutputStore = useRollupOutput();
 const optionsStore = useOptions();
@@ -69,7 +64,8 @@ const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 	--bg-inactive: var(--vp-c-gray-light-3);
 	--bg-active: var(--vp-c-bg);
 	--bg-default: var(--vp-c-gray-light-5);
-	margin: 0 0 1.5rem 0;
+	border: 1px solid var(--vp-c-divider-light);
+	margin: 0.5rem 0;
 	line-height: 2rem;
 	background-color: var(--bg-default);
 	border-radius: 8px;
@@ -77,39 +73,17 @@ const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 
 .dark .options {
 	--bg-inactive: var(--vp-c-gray-dark-3);
-	--bg-default: var(--vp-c-gray-dark-5);
+	--bg-default: var(--vp-c-bg);
 	background-color: var(--bg-default);
-}
-
-.option-buttons {
-	background-color: var(--bg-inactive);
-	border: 1px solid var(--bg-default);
-	border-radius: 8px;
-	padding: 2px;
-	display: flex;
-}
-
-button {
-	display: block;
-	border-radius: 6px;
-	font-size: 0.8rem;
-	margin: 0;
-	flex-basis: 0;
-	flex-grow: 1;
-	line-height: 2rem;
-}
-
-.selected {
-	background-color: var(--bg-active);
-	font-weight: bold;
 }
 
 h3 {
 	padding: 0 0.5rem;
-	margin: 0;
-	font-size: 1em;
-	font-weight: 700;
-	line-height: 2rem;
+	color: var(--vp-c-text-2);
+	margin: 6px 0 2px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 20px;
 }
 
 input {

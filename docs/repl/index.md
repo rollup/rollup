@@ -1,5 +1,6 @@
 ---
 layout: home
+title: REPL
 ---
 
 <script setup lang="ts">
