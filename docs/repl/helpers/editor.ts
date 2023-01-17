@@ -54,7 +54,6 @@ const theme = EditorView.baseTheme({
 		outline: 'none'
 	},
 	'.cm-content': {
-		background: 'var(--vp-code-block-bg)',
 		caretColor: '#fff',
 		color: '#A6ACCD',
 		fontFamily: 'var(--vp-font-family-mono)',
@@ -66,6 +65,7 @@ const theme = EditorView.baseTheme({
 	'.cm-gutters': {
 		backgroundColor: 'var(--vp-code-block-bg)',
 		border: 'none',
+		borderRadius: '8px',
 		borderRight: '1px solid var(--vp-c-divider-dark-2)',
 		color: 'var(--vp-code-line-number-color)',
 		minWidth: '32px'

@@ -31,6 +31,7 @@ button {
 	border: 1px solid transparent;
 	font-size: 0.8rem;
 	margin: 0;
+	padding: 0;
 	flex-basis: 0;
 	flex-grow: 1;
 	line-height: 2rem;

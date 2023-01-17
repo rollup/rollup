@@ -60,8 +60,26 @@ select:focus {
 }
 
 button {
-	border-radius: 8px;
-	background: var(--vp-c-bg-mute);
+	border-radius: 20px;
+	background-color: var(--vp-button-alt-bg);
+	border: 1px solid var(--vp-button-alt-border);
+	color: var(--vp-button-alt-text);
+	padding: 0 16px;
+	height: 40px;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+button:hover {
+	background-color: var(--vp-button-alt-hover-bg);
+	border-color: var(--vp-button-alt-hover-border);
+	color: var(--vp-button-alt-hover-text);
+}
+
+button:active {
+	background-color: var(--vp-button-alt-active-bg);
+	border-color: var(--vp-button-alt-active-border);
+	color: var(--vp-button-alt-active-text);
 }
 
 @media (min-width: 400px) {

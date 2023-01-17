@@ -46,8 +46,8 @@ const selectName = (event: FocusEvent) => {
 
 <style scoped>
 .module {
-	margin: 0 0 0.5rem 0;
-	border-radius: 8px;
+	margin: 0 -16px 8px -16px;
+	border-radius: 0;
 	background-color: var(--vp-code-block-bg);
 	color: var(--vp-c-text-1);
 	transition: all 0.2s;
@@ -59,9 +59,6 @@ const selectName = (event: FocusEvent) => {
 
 header {
 	width: 100%;
-	border-radius: 8px;
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
 	color: var(--vp-c-text-dark-1);
 	position: relative;
 	font-weight: 600;
@@ -69,8 +66,6 @@ header {
 
 .module-name {
 	border: 1px solid transparent;
-	border-top-left-radius: 8px;
-	border-top-right-radius: 8px;
 	display: block;
 	padding: 0.5em;
 }
@@ -94,8 +89,6 @@ header {
 input {
 	border: 1px solid transparent;
 	padding: 0.75em 0.5em;
-	border-top-left-radius: 8px;
-	border-top-right-radius: 8px;
 	font-weight: 600;
 	transition: all 0.2s;
 }
@@ -188,5 +181,22 @@ button:active .label {
 .icon-minus {
 	font-size: 0.8em;
 	transition: all 0.2s;
+}
+
+@media (min-width: 640px) {
+	.module {
+		margin: 0 0 0.5rem 0;
+		border-radius: 8px;
+	}
+
+	.module-name {
+		border-top-left-radius: 8px;
+		border-top-right-radius: 8px;
+	}
+
+	input {
+		border-top-left-radius: 8px;
+		border-top-right-radius: 8px;
+	}
 }
 </style>
