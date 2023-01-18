@@ -65,7 +65,7 @@ export async function useUpdateStoresFromQuery() {
 	} else if (import.meta.env.DEV && (query.local || !query.version)) {
 		rollupStore.requestRollup({ type: 'local', version: undefined });
 	} else {
-		if (/^\d+\.\d+\.\d+(-\d+)?$/.test(query.version)) {
+		if (!query.version || /^\d+\.\d+\.\d+(-\d+)?$/.test(query.version)) {
 			rollupStore.requestRollup({ type: 'version', version: query.version });
 		} else {
 			rollupStore.requestError(new Error(`Unexpected Rollup version in URL: ${query.version}`));
