@@ -152,7 +152,7 @@ const getFormat = (config: OutputOptions): NormalizedOutputOptions['format'] => 
 		default: {
 			return error({
 				message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".`,
-				url: `https://rollupjs.org/fixme#outputformat`
+				url: `https://rollupjs.org/configuration-options/#output-format`
 			});
 		}
 	}

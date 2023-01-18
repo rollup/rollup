@@ -37,7 +37,7 @@ module.exports = {
 1: import { exists, doesNotExist } from './dep1.js';
                     ^
 2: export { exists };`,
-			url: 'https://rollupjs.org/08-troubleshooting.html#error-name-is-not-exported-by-module'
+			url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module'
 		}
 	]
 };

@@ -9,7 +9,7 @@ module.exports = {
 			id: ID_MAIN,
 			message:
 				'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
-			url: 'https://rollupjs.org/08-troubleshooting.html#avoiding-eval',
+			url: 'https://rollupjs.org/troubleshooting/#avoiding-eval',
 			pos: 13,
 			loc: {
 				column: 13,

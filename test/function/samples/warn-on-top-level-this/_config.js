@@ -20,7 +20,7 @@ module.exports = {
 				3: this.foo = 'bar';
 				   ^
 			`,
-			url: `https://rollupjs.org/08-troubleshooting.html#error-this-is-undefined`
+			url: `https://rollupjs.org/troubleshooting/#error-this-is-undefined`
 		}
 	],
 	runtimeError: error => {

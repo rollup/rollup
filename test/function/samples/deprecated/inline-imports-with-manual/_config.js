@@ -12,7 +12,7 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value for option "output.manualChunks" - this option is not supported for "output.inlineDynamicImports".',
-		url: 'https://rollupjs.org/fixme#outputmanualchunks'
+		url: 'https://rollupjs.org/configuration-options/#output-manualchunks'
 	},
 	warnings: []
 };

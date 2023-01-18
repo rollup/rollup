@@ -84,7 +84,7 @@ describe('misc', () => {
 						message:
 							'No name was provided for external module "lodash" in "output.globals" – guessing "_".',
 						names: ['_'],
-						url: 'https://rollupjs.org/999-big-list-of-options.html#output-globals'
+						url: 'https://rollupjs.org/configuration-options/#output-globals'
 					}
 				]);
 			});

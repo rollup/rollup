@@ -105,7 +105,7 @@ describe('The IIFE wrapper with an illegal name', () => {
 					code: 'ILLEGAL_IDENTIFIER_AS_NAME',
 					message:
 						'Given name "1name" is not a legal JS identifier. If you need this, you can try "output.extend: true".',
-					url: 'https://rollupjs.org/999-big-list-of-options.html#output-extend'
+					url: 'https://rollupjs.org/configuration-options/#output-extend'
 				})
 			));
 
@@ -119,7 +119,7 @@ describe('The IIFE wrapper with an illegal name', () => {
 					code: 'ILLEGAL_IDENTIFIER_AS_NAME',
 					message:
 						'Given name "my=name" is not a legal JS identifier. If you need this, you can try "output.extend: true".',
-					url: 'https://rollupjs.org/999-big-list-of-options.html#output-extend'
+					url: 'https://rollupjs.org/configuration-options/#output-extend'
 				})
 			));
 

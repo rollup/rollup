@@ -11,7 +11,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Broken sourcemap\n' +
-				'https://rollupjs.org/08-troubleshooting.html#warning-sourcemap-is-likely-to-be-incorrect\n' +
+				'https://rollupjs.org/troubleshooting/#warning-sourcemap-is-likely-to-be-incorrect\n' +
 				'Plugins that transform code (such as "test-plugin1", "test-plugin2" and "test-plugin3") should generate accompanying sourcemaps'
 		);
 	}

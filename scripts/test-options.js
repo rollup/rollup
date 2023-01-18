@@ -1,12 +1,12 @@
 import { readFile } from 'node:fs/promises';
 
 const [optionsText, helpText, commandReferenceText] = await Promise.all([
-	readFile(new URL('../docs/999-big-list-of-options.md', import.meta.url), 'utf8'),
+	readFile(new URL('../docs/configuration-options/index.md', import.meta.url), 'utf8'),
 	readFile(new URL('../cli/help.md', import.meta.url), 'utf8'),
 	readFile(new URL('../docs/command-line-interface/index.md', import.meta.url), 'utf8')
 ]);
 
-const optionSections = optionsText.split('\n### ');
+const optionSections = optionsText.split('\n## ');
 let searchedOptions = '';
 for (const section of optionSections.slice(1)) {
 	if (!(section.startsWith('Experimental') || section.startsWith('Deprecated'))) {
@@ -75,7 +75,7 @@ for (const line of splitHelpText) {
 const helpOptionLines = splitHelpText.filter(line => line.startsWith('-'));
 
 const cliFlagsText = commandReferenceText
-	.split('\n### ')
+	.split('\n## ')
 	.find(text => text.startsWith('Command line flags'));
 const optionListLines = cliFlagsText
 	.match(/```text\n([\S\s]*?)\n```/)[1]

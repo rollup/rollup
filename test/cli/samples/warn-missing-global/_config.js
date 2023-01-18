@@ -7,7 +7,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Missing global variable name\n' +
-				'https://rollupjs.org/999-big-list-of-options.html#output-globals\n' +
+				'https://rollupjs.org/configuration-options/#output-globals\n' +
 				'Use "output.globals" to specify browser global variable names corresponding to external modules:\n' +
 				'external (guessing "foo")'
 		)

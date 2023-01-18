@@ -12,7 +12,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Missing exports\n' +
-				'https://rollupjs.org/08-troubleshooting.html#error-name-is-not-exported-by-module\n' +
+				'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module\n' +
 				'main.js\n' +
 				'doesNotExist is not exported by dep.js\n' +
 				"4: import assert from 'assert';\n" +

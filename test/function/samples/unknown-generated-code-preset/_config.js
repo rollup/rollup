@@ -9,6 +9,6 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value "some-string" for option "output.generatedCode.preset" - valid values are "es2015" and "es5".',
-		url: 'https://rollupjs.org/fixme#outputgeneratedcode'
+		url: 'https://rollupjs.org/configuration-options/#output-generatedcode'
 	}
 };
