@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const markdownLinkRegExp = /(?<=\[[^\]]*]\()[^)]*/g;
+const mermaidLinkRegExp = /(?<=```mermaid[^`]*"#)[^"]+/gm;
 const relativeLinkRegExp = /^\.\.\/[\w-]+\/index\.md(#.+|\?.+)?$/;
 
 const legacySlugsByPage: Record<string, Record<string, string>> = JSON.parse(
@@ -38,6 +39,18 @@ export function buildEnd() {
 			} else if (!(href.startsWith('https://') || href.startsWith('<https://'))) {
 				throw new Error(
 					`Unexpected internal link in ${page}: ${href}. Relative links should be of the form ../page/index.md, absolute links should start with https://.`
+				);
+			}
+		}
+		while ((match = mermaidLinkRegExp.exec(text)) !== null) {
+			const anchor = match[0];
+			if (!slugs.has(anchor)) {
+				throw new Error(
+					`Page ${page} references anchor ${anchor} in a mermaid graph but it cannot be found on this page. Slugs found on this page:\n${[
+						...slugs
+					]
+						.sort()
+						.join('\n')}\n`
 				);
 			}
 		}
