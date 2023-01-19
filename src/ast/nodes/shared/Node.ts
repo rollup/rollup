@@ -4,6 +4,7 @@ import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
 import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
 import {
 	createHasEffectsContext,
@@ -113,7 +114,14 @@ export interface Node extends Entity {
 
 export type StatementNode = Node;
 
-export interface ExpressionNode extends ExpressionEntity, Node {}
+export interface ExpressionNode extends ExpressionEntity, Node {
+	isSkippedAsOptional?(origin: DeoptimizableEntity): boolean;
+}
+
+export interface ChainElement extends ExpressionNode {
+	optional: boolean;
+	isSkippedAsOptional(origin: DeoptimizableEntity): boolean;
+}
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	declare annotations?: acorn.Comment[];

@@ -41,6 +41,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
+import type { ChainElement } from './shared/Node';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 // To avoid infinite recursions
@@ -89,7 +90,10 @@ function getStringFromPath(path: PathWithPositions): string {
 	return pathString;
 }
 
-export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
+export default class MemberExpression
+	extends NodeBase
+	implements DeoptimizableEntity, ChainElement
+{
 	declare computed: boolean;
 	declare object: ExpressionNode | Super;
 	declare optional: boolean;
@@ -108,7 +112,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.bound = true;
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
-		if (baseVariable && baseVariable.isNamespace) {
+		if (baseVariable?.isNamespace) {
 			const resolvedVariable = resolveNamespaceVariables(
 				baseVariable,
 				path!.slice(1),
@@ -296,6 +300,16 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.accessInteraction = { thisArg: this.object, type: INTERACTION_ACCESSED };
 	}
 
+	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
+		return (
+			!this.variable &&
+			!this.isUndefined &&
+			((this.object as ExpressionNode).isSkippedAsOptional?.(origin) ||
+				(this.optional &&
+					this.object.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null))
+		);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,
@@ -440,9 +454,12 @@ function resolveNamespaceVariables(
 	const exportName = path[0].key;
 	const variable = (baseVariable as NamespaceVariable).context.traceExport(exportName);
 	if (!variable) {
-		const fileName = (baseVariable as NamespaceVariable).context.fileName;
-		astContext.warn(errorMissingExport(exportName, astContext.module.id, fileName), path[0].pos);
-		return 'undefined';
+		if (path.length === 1) {
+			const fileName = (baseVariable as NamespaceVariable).context.fileName;
+			astContext.warn(errorMissingExport(exportName, astContext.module.id, fileName), path[0].pos);
+			return 'undefined';
+		}
+		return null;
 	}
 	return resolveNamespaceVariables(variable, path.slice(1), astContext);
 }
