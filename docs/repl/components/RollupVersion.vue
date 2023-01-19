@@ -19,7 +19,7 @@ const version = computed(() => {
 		return 'Loading Rollup …  ';
 	}
 	const { type, version } = rollupStore.request;
-	const { version: actualVersion } = rollupStore.rollup;
+	const actualVersion = rollupStore.loaded.instance?.VERSION;
 	if (type === 'local') {
 		return actualVersion
 			? `Local development build (${actualVersion})`

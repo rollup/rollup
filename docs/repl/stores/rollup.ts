@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type * as Rollup from '../../../src/browser-entry';
 import type { RollupBuild, RollupOptions } from '../../../src/rollup/types';
+import type * as Rollup from '../helpers/importRollup';
 import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
 
 function getRollupUrl({ type, version }: RollupRequest) {
@@ -21,7 +21,7 @@ function getRollupUrl({ type, version }: RollupRequest) {
 
 function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
 	if (import.meta.env.DEV && rollupRequest.type === 'local') {
-		return import('../../../src/browser-entry');
+		return import('../helpers/importRollup');
 	}
 	const url = getRollupUrl(rollupRequest);
 	return new Promise((fulfil, reject) => {
@@ -43,16 +43,18 @@ function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
 	});
 }
 
-interface RollupInstance {
+interface LoadedRollup {
 	error: false;
-	rollup: (options: RollupOptions) => Promise<RollupBuild>;
-	version: string;
+	instance: {
+		VERSION: string;
+		rollup: (options: RollupOptions) => Promise<RollupBuild>;
+	};
 }
 
 export type RequestedRollupInstance =
-	| RollupInstance
+	| LoadedRollup
 	| {
-			[key in keyof RollupInstance]: key extends 'error' ? false | Error : null;
+			[key in keyof LoadedRollup]: key extends 'error' ? false | Error : null;
 	  };
 
 type RollupRequest =
@@ -63,43 +65,44 @@ type RollupRequest =
 	| { type: 'pr'; version: string };
 
 export const useRollup = defineStore('rollup', () => {
-	const rollup = ref<RequestedRollupInstance>({
+	const loaded = ref<RequestedRollupInstance>({
 		error: false,
-		rollup: null,
-		version: null
+		instance: null
 	});
 	const request = ref<RollupRequest | null>(null);
 
 	async function requestRollup(rollupRequest: RollupRequest) {
 		try {
 			request.value = rollupRequest;
-			const loadedRollup = await loadRollup(rollupRequest);
-			rollup.value = {
+			const instance = await loadRollup(rollupRequest);
+			if (import.meta.env.DEV) {
+				instance.onUpdate(newInstance => {
+					loaded.value = { error: false, instance: newInstance };
+				});
+			}
+			loaded.value = {
 				error: false,
-				rollup: loadedRollup.rollup,
-				version: loadedRollup.VERSION
+				instance
 			};
 		} catch (error) {
-			rollup.value = {
+			loaded.value = {
 				error: error as Error,
-				rollup: null,
-				version: null
+				instance: null
 			};
 		}
 	}
 
 	function requestError(error: Error) {
-		rollup.value = {
+		loaded.value = {
 			error,
-			rollup: null,
-			version: null
+			instance: null
 		};
 	}
 
 	return {
+		loaded,
 		request,
 		requestError,
-		requestRollup,
-		rollup
+		requestRollup
 	};
 });

@@ -83,7 +83,7 @@ export function useSyncQueryWithStores() {
 			() => optionsStore.options,
 			() => modulesStore.selectedExample,
 			() => rollupStore.request,
-			() => rollupStore.rollup.version
+			() => rollupStore.loaded.instance?.VERSION
 		],
 		([modules, options, selectedExample, rollupRequest, rollupVersion]) => {
 			const parameters: Record<string, string> = {};

@@ -34,16 +34,16 @@ function logWarning(message: RollupWarning) {
 	console.groupEnd();
 }
 
-function hashOptionsAndRollupVersion({ options, rollup: { version } }: BundleRequest) {
-	return JSON.stringify({ o: options, v: version });
+function hashOptionsAndRollupVersion({ options, rollup: { instance } }: BundleRequest) {
+	return JSON.stringify({ o: options, v: instance?.VERSION });
 }
 
-async function bundle({ rollup: { rollup, version }, modules, options, setOutput }: BundleRequest) {
-	if (modules.length === 0 || !rollup) {
+async function bundle({ rollup: { instance }, modules, options, setOutput }: BundleRequest) {
+	if (modules.length === 0 || !instance) {
 		return;
 	}
 	console.clear();
-	console.log(`running Rollup version %c${version}`, 'font-weight: bold');
+	console.log(`running Rollup version %c${instance.VERSION}`, 'font-weight: bold');
 
 	const modulesById = new Map<string, Module>();
 	for (const module of modules) {
@@ -82,7 +82,7 @@ async function bundle({ rollup: { rollup, version }, modules, options, setOutput
 		.map(module => module.name);
 
 	try {
-		const generated = await (await rollup(inputOptions)).generate(options);
+		const generated = await (await instance.rollup(inputOptions)).generate(options);
 		setOutput({
 			error: null,
 			output: generated.output,
@@ -124,7 +124,7 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 			});
 			return;
 		}
-		if (!bundleRequest.rollup.rollup) {
+		if (!bundleRequest.rollup.instance) {
 			return;
 		}
 		bundleDebounceTimeout = setTimeout(
@@ -144,7 +144,7 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 	}
 
 	watch(
-		[() => rollupStore.rollup, () => modulesStore.modules, () => optionsStore.options],
+		[() => rollupStore.loaded, () => modulesStore.modules, () => optionsStore.options],
 		([rollup, modules, options]: any) =>
 			requestBundle({
 				modules,

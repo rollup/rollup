@@ -33,7 +33,7 @@ import StatusMessage from './StatusMessage.vue';
 const rollupStore = useRollup();
 const rollupOutputStore = useRollupOutput();
 
-const waiting = computed(() => !(rollupStore.rollup.rollup || rollupStore.rollup.error));
+const waiting = computed(() => !(rollupStore.loaded.instance || rollupStore.loaded.error));
 const error = computed(() => rollupOutputStore.output.error);
 const warnings = computed(() => rollupOutputStore.output.warnings);
 </script>
