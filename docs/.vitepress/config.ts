@@ -7,6 +7,20 @@ export default withMermaid(
 	defineConfig({
 		buildEnd,
 		description: 'compile JS code',
+		head: [
+			['link', { href: '/favicon.png', rel: 'icon', type: 'image/png' }],
+			['link', { href: '/favicon.png', rel: 'apple-touch-icon', sizes: '128x128' }],
+			['link', { href: '/manifest.json', rel: 'manifest' }],
+			['meta', { content: '#333333', name: 'theme-color' }],
+			['meta', { content: 'yes', name: 'mobile-web-app-capable' }],
+			['meta', { content: 'default', name: 'apple-mobile-web-app-status-bar-style' }],
+			['meta', { content: 'summary_large_image', name: 'twitter:card' }],
+			['meta', { content: '@rollupjs', name: 'twitter:site' }],
+			['meta', { content: '@rollupjs', name: 'twitter:creator' }],
+			['meta', { content: 'Rollup', name: 'twitter:title' }],
+			['meta', { content: 'The JavaScript module bundler', name: 'twitter:description' }],
+			['meta', { content: 'https://rollupjs.org/twitter-card.jpg', name: 'twitter:image' }]
+		],
 		markdown: {
 			anchor: {
 				callback,
