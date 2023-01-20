@@ -1,0 +1,21 @@
+name: Deploy rollupjs.org
+
+on:
+  push:
+    tags:
+      - documentation-published
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: 'Deploy to Netlify'
+    steps:
+      - uses: jsmrcaga/action-netlify-deploy@v1.1.0
+        with:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_DEPLOY_TO_PROD: true
+          build_directory: docs/.vitepress/dist/
+          build_command: npm run build:docs
