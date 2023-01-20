@@ -13,7 +13,7 @@ jobs:
     name: 'Deploy to Netlify'
     runs-on: ubuntu-latest
     steps:
-      - uses: jsmrcaga/action-netlify-deploy@v1.1.0
+      - uses: jsmrcaga/action-netlify-deploy@v2
         with:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

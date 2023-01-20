@@ -75,7 +75,7 @@ jobs:
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.number }}
       - name: Update comment for Netlify deploy
-        uses: jakepartusch/wait-for-netlify-action@v1.4
+        uses: jakepartusch/wait-for-netlify-action@v1
         id: waitForNetlify
         with:
           site_name: "rollupjs"
