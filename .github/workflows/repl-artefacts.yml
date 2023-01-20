@@ -78,7 +78,7 @@ jobs:
         uses: jakepartusch/wait-for-netlify-action@v1.4
         id: waitForNetlify
         with:
-          site_name: "remarkable-travesseiro-a49bb0"
+          site_name: "rollupjs"
       - name: Update comment for Netlify
         uses: peter-evans/create-or-update-comment@v2
         if: ${{ steps.waitForNetlify.outputs.url }}
@@ -96,4 +96,4 @@ jobs:
             ```
 
             or load it into the REPL:
-            ${{ steps.waitForNetlify.outputs.url }}/repl/?pr=${{ github.event.number }}
+            ${{ steps.waitForNetlify.outputs.url }}repl/?pr=${{ github.event.number }}
