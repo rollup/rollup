@@ -311,7 +311,12 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 	await runWithEcho('git', ['commit', '-m', newVersion]);
 	await Promise.all([
 		runWithEcho('git', ['tag', gitTag]),
-		isMainBranch && runWithEcho('git', ['tag', DOCUMENTATION_TAG])
+		isMainBranch &&
+			runWithEcho(
+				'git',
+				['tag', DOCUMENTATION_TAG, '--annotate', '--force'],
+				`--message="Documentation for ${newVersion}"`
+			)
 	]);
 }
 
