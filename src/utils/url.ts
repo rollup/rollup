@@ -6,3 +6,7 @@ export function isValidUrl(url: string): boolean {
 	}
 	return true;
 }
+
+export function getRollupUrl(snippet: string) {
+	return `https://rollupjs.org/${snippet}`;
+}

@@ -8,6 +8,7 @@ import type {
 	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
+import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
 import type { CommandConfigObject } from './normalizeInputOptions';
 import {
 	defaultOnWarn,
@@ -142,7 +143,7 @@ async function mergeInputOptions(
 			config,
 			overrides,
 			'treeshake',
-			objectifyOptionWithPresets(treeshakePresets, 'treeshake', 'false, true, ')
+			objectifyOptionWithPresets(treeshakePresets, 'treeshake', URL_TREESHAKE, 'false, true, ')
 		),
 		watch: getWatch(config, overrides)
 	};
@@ -245,7 +246,12 @@ async function mergeOutputOptions(
 			config,
 			overrides,
 			'generatedCode',
-			objectifyOptionWithPresets(generatedCodePresets, 'output.generatedCode', '')
+			objectifyOptionWithPresets(
+				generatedCodePresets,
+				'output.generatedCode',
+				URL_OUTPUT_GENERATEDCODE,
+				''
+			)
 		),
 		globals: getOption('globals'),
 		hoistTransitiveImports: getOption('hoistTransitiveImports'),

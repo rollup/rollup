@@ -109,7 +109,7 @@ describe('sanity checks', () => {
 		}
 		assert.strictEqual(
 			error && error.message,
-			'You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".'
+			'Invalid value "vanilla" for option "output.format" - Valid values are "amd", "cjs", "system", "es", "iife" or "umd".'
 		);
 	});
 

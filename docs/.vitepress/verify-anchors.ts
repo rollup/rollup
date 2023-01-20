@@ -55,6 +55,10 @@ export function buildEnd() {
 			}
 		}
 	}
+	updateLegacySlugsFile();
+}
+
+function updateLegacySlugsFile() {
 	const sortedSlugs = Object.fromEntries(
 		Object.entries(slugsAndPageByLegacySlug).sort(([a], [b]) => (a < b ? -1 : 1))
 	);

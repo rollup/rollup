@@ -3,6 +3,16 @@ import { bold, gray, yellow } from '../../src/utils/colors';
 import { getNewArray, getOrCreate } from '../../src/utils/getOrCreate';
 import { printQuotedStringList } from '../../src/utils/printStringList';
 import relativeId from '../../src/utils/relativeId';
+import { getRollupUrl } from '../../src/utils/url';
+import {
+	URL_AVOIDING_EVAL,
+	URL_NAME_IS_NOT_EXPORTED,
+	URL_OUTPUT_EXPORTS,
+	URL_OUTPUT_GLOBALS,
+	URL_SOURCEMAP_IS_LIKELY_TO_BE_INCORRECT,
+	URL_THIS_IS_UNDEFINED,
+	URL_TREATING_MODULE_AS_EXTERNAL_DEPENDENCY
+} from '../../src/utils/urls';
 import { stderr } from '../logging';
 
 export interface BatchWarnings {
@@ -113,13 +123,13 @@ const deferredHandlers: {
 
 	EVAL(warnings) {
 		title('Use of eval is strongly discouraged');
-		info('https://rollupjs.org/troubleshooting/#avoiding-eval');
+		info(getRollupUrl(URL_AVOIDING_EVAL));
 		showTruncatedWarnings(warnings);
 	},
 
 	MISSING_EXPORT(warnings) {
 		title('Missing exports');
-		info('https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module');
+		info(getRollupUrl(URL_NAME_IS_NOT_EXPORTED));
 
 		for (const warning of warnings) {
 			stderr(bold(relativeId(warning.id!)));
@@ -130,7 +140,7 @@ const deferredHandlers: {
 
 	MISSING_GLOBAL_NAME(warnings) {
 		title(`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`);
-		info('https://rollupjs.org/configuration-options/#output-globals');
+		info(getRollupUrl(URL_OUTPUT_GLOBALS));
 		stderr(
 			`Use "output.globals" to specify browser global variable names corresponding to external modules:`
 		);
@@ -141,7 +151,7 @@ const deferredHandlers: {
 
 	MIXED_EXPORTS(warnings) {
 		title('Mixing named and default exports');
-		info(`https://rollupjs.org/configuration-options/#output-exports`);
+		info(getRollupUrl(URL_OUTPUT_EXPORTS));
 		stderr(bold('The following entry modules are using named and default exports together:'));
 		warnings.sort((a, b) => (a.id! < b.id! ? -1 : 1));
 		const displayedWarnings = warnings.length > 5 ? warnings.slice(0, 3) : warnings;
@@ -198,7 +208,7 @@ const deferredHandlers: {
 
 	SOURCEMAP_BROKEN(warnings) {
 		title(`Broken sourcemap`);
-		info('https://rollupjs.org/troubleshooting/#warning-sourcemap-is-likely-to-be-incorrect');
+		info(getRollupUrl(URL_SOURCEMAP_IS_LIKELY_TO_BE_INCORRECT));
 
 		const plugins = [...new Set(warnings.map(({ plugin }) => plugin).filter(Boolean))] as string[];
 		stderr(
@@ -210,13 +220,13 @@ const deferredHandlers: {
 
 	THIS_IS_UNDEFINED(warnings) {
 		title('"this" has been rewritten to "undefined"');
-		info('https://rollupjs.org/troubleshooting/#error-this-is-undefined');
+		info(getRollupUrl(URL_THIS_IS_UNDEFINED));
 		showTruncatedWarnings(warnings);
 	},
 
 	UNRESOLVED_IMPORT(warnings) {
 		title('Unresolved dependencies');
-		info('https://rollupjs.org/troubleshooting/#warning-treating-module-as-external-dependency');
+		info(getRollupUrl(URL_TREATING_MODULE_AS_EXTERNAL_DEPENDENCY));
 
 		const dependencies = new Map<string, string[]>();
 		for (const warning of warnings) {

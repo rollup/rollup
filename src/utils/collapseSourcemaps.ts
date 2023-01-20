@@ -6,7 +6,7 @@ import type {
 	SourceMapSegment,
 	WarningHandler
 } from '../rollup/types';
-import { error, errorSourcemapBroken } from './error';
+import { error, errorConflictingSourcemapSources, errorSourcemapBroken } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
@@ -84,9 +84,7 @@ class Link {
 					} else if (sourcesContent[sourceIndex] == null) {
 						sourcesContent[sourceIndex] = content;
 					} else if (content != null && sourcesContent[sourceIndex] !== content) {
-						return error({
-							message: `Multiple conflicting contents for sourcemap source ${filename}`
-						});
+						return error(errorConflictingSourcemapSources(filename));
 					}
 
 					const tracedSegment: SourceMapSegment = [segment[0], sourceIndex, line, column];
