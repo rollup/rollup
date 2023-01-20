@@ -16,7 +16,7 @@ hero:
 features:
   - icon: 🌍
     title: The Web, Node …
-    details: 'Many supported output formats: ES modules, CommonJS, UMD, SystemJS and more. Bundles not only for the web but many other platforms as well.'
+    details: 'Rollup supports many output formats: ES modules, CommonJS, UMD, SystemJS and more. Bundle not only for the web but for many other platforms as well.'
     link: /configuration-options/#output-format
     linkText: See all formats
   - icon: 🌳
@@ -26,7 +26,7 @@ features:
     linkText: Learn about tree-shaking
   - icon: 🗡️
     title: Code-splitting without overhead
-    details: Splits code based on different entry points and dynamic imports by just using the import mechanism of the output format.
+    details: Split code based on different entry points and dynamic imports by just using the import mechanism of the output format instead of customer loader code.
     link: /tutorial/#code-splitting
     linkText: How to use code-splitting
   - icon: 🔌
@@ -42,7 +42,7 @@ features:
   - icon:
       src: /vitejs-logo.svg
     title: The bundler behind Vite
-    details: Get the power of Rollup fully pre-configured for most web development flows with an insanely fast development server.
+    details: Developing for the web? Vite pre-configures Rollup for you with sensible defaults and powerful plugins while giving you an insanely fast development server.
     link: https://vitejs.dev/
     linkText: Check out Vite
 ---
