@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import { useSyncQueryWithStores, useUpdateStoresFromQuery } from '../helpers/query';
 import { useRollupOutput } from '../stores/rollupOutput';
 import ReplInput from './ReplInput.vue';
@@ -29,6 +30,18 @@ const rollupOutputStore = useRollupOutput();
 
 useUpdateStoresFromQuery();
 useSyncQueryWithStores();
+
+onMounted(() => {
+	document
+		.querySelector('meta[name="viewport"]')
+		?.setAttribute('content', 'width=device-width,initial-scale=1,maximum-scale=1');
+});
+
+onUnmounted(() => {
+	document
+		.querySelector('meta[name="viewport"]')
+		?.setAttribute('content', 'width=device-width,initial-scale=1');
+});
 </script>
 
 <style>

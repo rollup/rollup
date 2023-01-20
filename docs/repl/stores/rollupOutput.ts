@@ -42,7 +42,9 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 	if (modules.length === 0 || !instance) {
 		return;
 	}
-	console.clear();
+	if (import.meta.env.PROD) {
+		console.clear();
+	}
 	console.log(`running Rollup version %c${instance.VERSION}`, 'font-weight: bold');
 
 	const modulesById = new Map<string, Module>();
