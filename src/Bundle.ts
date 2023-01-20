@@ -24,7 +24,7 @@ import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
-import { getOutputBundle } from './utils/outputBundle';
+import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
 import { isAbsolute } from './utils/path';
 import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';
@@ -52,11 +52,6 @@ export default class Bundle {
 		const outputBundleBase: OutputBundle = Object.create(null);
 		const outputBundle = getOutputBundle(outputBundleBase);
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions);
-
-		const assetShouldBeReferenceKeys = Object.keys(outputBundle).filter(assetKey => {
-			const outputAsset = outputBundle[assetKey];
-			return outputAsset.type === 'asset' && outputAsset.needsCodeReference;
-		});
 
 		try {
 			timeStart('initialize render', 2);
@@ -90,20 +85,9 @@ export default class Bundle {
 			throw error_;
 		}
 
-		timeStart('generate bundle', 2);
+		removeUnreferencedAssets(outputBundle);
 
-		const unReferencedAssets = new Set(assetShouldBeReferenceKeys);
-		for (const bundleKey of Object.keys(outputBundle)) {
-			const _outputBundle = outputBundle[bundleKey];
-			if (_outputBundle.type === 'chunk') {
-				for (const referencedFile of _outputBundle.referencedFiles) {
-					unReferencedAssets.has(referencedFile) && unReferencedAssets.delete(referencedFile);
-				}
-			}
-		}
-		for (const file of unReferencedAssets) {
-			delete outputBundle[file];
-		}
+		timeStart('generate bundle', 2);
 
 		await this.pluginDriver.hookSeq('generateBundle', [
 			this.outputOptions,
