@@ -30,7 +30,9 @@ const version = computed(() => {
 			? `Pull request ${getPRLink(version)} (${actualVersion})`
 			: `Loading pull request ${getPRLink(version)} …`;
 	}
-	return actualVersion ? `Rollup ${getVersionLink(actualVersion)}` : `Loading Rollup ${version} …`;
+	return actualVersion
+		? `Rollup ${getVersionLink(actualVersion)}`
+		: `Loading Rollup ${version || '(latest)'} …`;
 });
 </script>
 
