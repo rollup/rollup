@@ -105,6 +105,7 @@ export const objectifyOptionWithPresets =
 	<T extends ObjectOptionWithPresets>(
 		presets: Record<string, T>,
 		optionName: string,
+		urlSnippet: string,
 		additionalValues: string
 	) =>
 	(value: unknown): Record<string, unknown> => {
@@ -116,7 +117,7 @@ export const objectifyOptionWithPresets =
 			error(
 				errorInvalidOption(
 					optionName,
-					getHashFromObjectOption(optionName),
+					urlSnippet,
 					`valid values are ${additionalValues}${printQuotedStringList(
 						Object.keys(presets)
 					)}. You can also supply an object for more fine-grained control`,
@@ -131,6 +132,7 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 	value: unknown,
 	presets: Record<string, T>,
 	optionName: string,
+	urlSnippet: string,
 	additionalValues: string
 ): Record<string, unknown> => {
 	const presetName: string | undefined = (value as any)?.preset;
@@ -142,18 +144,15 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 			error(
 				errorInvalidOption(
 					`${optionName}.preset`,
-					getHashFromObjectOption(optionName),
+					urlSnippet,
 					`valid values are ${printQuotedStringList(Object.keys(presets))}`,
 					presetName
 				)
 			);
 		}
 	}
-	return objectifyOptionWithPresets(presets, optionName, additionalValues)(value);
+	return objectifyOptionWithPresets(presets, optionName, urlSnippet, additionalValues)(value);
 };
-
-const getHashFromObjectOption = (optionName: string): string =>
-	optionName.split('.').join('').toLowerCase();
 
 export const normalizePluginOption: {
 	(plugins: InputPluginOption): Promise<Plugin[]>;

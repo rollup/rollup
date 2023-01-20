@@ -1,0 +1,4 @@
+{
+	"title": "Multiple Entry Modules",
+    "entryModules": ["main.js", "otherEntry.js"]
+}

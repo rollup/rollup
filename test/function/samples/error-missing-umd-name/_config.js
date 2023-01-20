@@ -5,6 +5,6 @@ module.exports = {
 		code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
 		message:
 			'You must supply "output.name" for UMD bundles that have exports so that the exports are accessible in environments without a module loader.',
-		url: 'https://rollupjs.org/guide/en/#outputname'
+		url: 'https://rollupjs.org/configuration-options/#output-name'
 	}
 };

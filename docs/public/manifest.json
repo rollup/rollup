@@ -1,0 +1,25 @@
+{
+	"name": "Rollup",
+	"short_name": "Rollup",
+	"display": "fullscreen",
+	"background_color": "#ff3333",
+	"theme_color": "#ff3333",
+	"scope": "/",
+	"icons": [
+		{
+			"src": "/favicon.png",
+			"type": "image/png",
+			"sizes": "128x128"
+		}
+	],
+	"shortcuts" : [
+		{
+			"name": "Guide",
+			"url": "/introduction/"
+		},
+		{
+			"name": "REPL",
+			"url": "/repl/"
+		}
+	]
+}

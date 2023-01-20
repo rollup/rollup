@@ -19,9 +19,11 @@ module.exports = {
 		'perf',
 		'tmp',
 		'_tmp',
+		'cache',
 		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',
-		'!/test/*/samples/**/rollup.config.js'
+		'!/test/*/samples/**/rollup.config.js',
+		'!.vitepress'
 	],
 	overrides: [
 		{
@@ -45,6 +47,23 @@ module.exports = {
 			files: ['test/**/*.js'],
 			rules: {
 				'sort-keys': 'off'
+			}
+		},
+		{
+			extends: [
+				'plugin:vue/vue3-essential',
+				'@vue/eslint-config-typescript/recommended',
+				'@vue/eslint-config-prettier'
+			],
+			files: ['*.vue']
+		},
+		{
+			files: ['docs/repl/examples/**/*.js'],
+			rules: {
+				'import/namespace': 'off',
+				'import/no-unresolved': 'off',
+				'no-undef': 'off',
+				'unicorn/prevent-abbreviations': 'off'
 			}
 		}
 	],
@@ -80,7 +99,7 @@ module.exports = {
 			'error',
 			{
 				// 'fsevents' is only available on macOS, and not installed on linux/windows
-				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types']
+				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types', 'examples.json']
 			}
 		],
 		'import/order': ['error', { alphabetize: { order: 'asc' } }],

@@ -7,6 +7,6 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value "some-string" for option "treeshake.preset" - valid values are "recommended", "safest" and "smallest".',
-		url: 'https://rollupjs.org/guide/en/#treeshake'
+		url: 'https://rollupjs.org/configuration-options/#treeshake'
 	}
 };

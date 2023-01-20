@@ -13,6 +13,7 @@ import { ensureArray } from '../ensureArray';
 import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
+import { URL_TREESHAKE } from '../urls';
 import {
 	defaultOnWarn,
 	getOptionWithPreset,
@@ -248,6 +249,7 @@ const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake']
 		config.treeshake,
 		treeshakePresets,
 		'treeshake',
+		URL_TREESHAKE,
 		'false, true, '
 	);
 	return {
@@ -288,7 +290,7 @@ const getHasModuleSideEffects = (
 		error(
 			errorInvalidOption(
 				'treeshake.moduleSideEffects',
-				'treeshake',
+				URL_TREESHAKE,
 				'please use one of false, "no-external", a function or an array'
 			)
 		);
