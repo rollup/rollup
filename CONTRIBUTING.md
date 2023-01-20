@@ -18,7 +18,31 @@ Working on your first Pull Request? You can learn how from this _free_ course, [
 
 ### How to run one test on your local machine
 
-you can set up `solo:true` in `_config.js` in one test and run `npm run test`.
+With `npm run test` you can run all tests together.
+
+To save time for quick iterations, you can add `solo:true` to the `_config.js` file of any given test to run just this one test. To further speed up rebuilds, note that most tests just need the CommonJS build of Rollup.
+
+For those tests, it is enough to run
+
+```shell
+npm run build:cjs
+npm run test:quick
+
+```
+
+Note that this does not run the browser tests and a few CLI tests will fail.
+
+### Developing with the website
+
+Running
+
+```shell
+npm run dev
+```
+
+will start the website locally in development mode via Vite. This will give you a live preview of the documentation. It will also verify that the documentation does not contain any dead links.
+
+A special feature of the website is that the REPL at `http://localhost:5173/repl/` is directly using the browser build of your local copy of Rollup created via Vite. It even supports full hot module replacement, which means that when you change anything within Rollup, the REPL will automatically rebundle the current code using your latest changes. This can come in very handy when working on a bug or tree-shaking improvement to allow extremely fast iterations.
 
 ## Submitting code
 
