@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.10.1
+
+_2023-01-20_
+
+### Bug Fixes
+
+- Fix some crashes when using optional chaining with namespaces and improve tree-shaking (#4812)
+- Avoid wrongly removed code when using optional chaining (#4812)
+
+### Pull Requests
+
+- [#4809](https://github.com/rollup/rollup/pull/4809): fix: rollup bin file is in dist folder (@saibotsivad)
+- [#4812](https://github.com/rollup/rollup/pull/4812): Rework tree-shaking support for optional chaining (@lukastaegert)
+
 ## 3.10.0
 
 _2023-01-12_
