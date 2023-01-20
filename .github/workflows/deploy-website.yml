@@ -2,7 +2,7 @@ name: Deploy rollupjs.org
 
 on:
   push:
-    tags:
+    branches:
       - documentation-published
 
 permissions:
