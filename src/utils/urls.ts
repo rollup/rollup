@@ -11,7 +11,7 @@ export const URL_SOURCEMAP_IS_LIKELY_TO_BE_INCORRECT =
 export const URL_OUTPUT_AMD = 'configuration-options/#output-amd';
 export const URL_OUTPUT_DIR = 'configuration-options/#output-dir';
 export const URL_OUTPUT_DYNAMICIMPORTFUNCTION =
-	'configuration-options/#output-dynamicImportFunction';
+	'configuration-options/#output-dynamicimportfunction';
 export const URL_OUTPUT_EXPORTS = 'configuration-options/#output-exports';
 export const URL_OUTPUT_EXTEND = 'configuration-options/#output-extend';
 export const URL_OUTPUT_FORMAT = 'configuration-options/#output-format';
