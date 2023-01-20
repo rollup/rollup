@@ -21,9 +21,13 @@ import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
+import type { ChainElement } from './shared/Node';
 import { type ExpressionNode, INCLUDE_PARAMETERS, type IncludeChildren } from './shared/Node';
 
-export default class CallExpression extends CallExpressionBase implements DeoptimizableEntity {
+export default class CallExpression
+	extends CallExpressionBase
+	implements DeoptimizableEntity, ChainElement
+{
 	declare arguments: (ExpressionNode | SpreadElement)[];
 	declare callee: ExpressionNode | Super;
 	declare optional: boolean;
@@ -88,6 +92,14 @@ export default class CallExpression extends CallExpressionBase implements Deopti
 			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
+	}
+
+	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
+		return (
+			(this.callee as ExpressionNode).isSkippedAsOptional?.(origin) ||
+			(this.optional &&
+				this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null)
+		);
 	}
 
 	render(
