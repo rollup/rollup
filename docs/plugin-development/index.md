@@ -907,6 +907,7 @@ type EmittedChunk = {
 type EmittedAsset = {
 	type: 'asset';
 	name?: string;
+	needsCodeReference?: boolean;
 	fileName?: string;
 	source?: string | Uint8Array;
 };
@@ -987,7 +988,7 @@ If there are no dynamic imports, this will create exactly three chunks where the
 
 Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
 
-If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](#this-setassetsource) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If an asset without a `fileName` is not deduplicated, the [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) name pattern will be used.
+If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](#this-setassetsource) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If an asset without a `fileName` is not deduplicated, the [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) name pattern will be used. If the `needsCodeReference` is `true` and this asset not referenced by any code, then Rollup will not emit it.
 
 ### `this.error`
 
@@ -1328,6 +1329,38 @@ import logo from '../images/logo.svg';
 const image = document.createElement('img');
 image.src = logo;
 document.body.appendChild(image);
+```
+
+Sometimes, the code which referenced this asset within a condition, like following
+
+```js
+import logo from '../images/logo.svg';
+if (COMPILER_FLAG) {
+	const image = document.createElement('img');
+	image.src = logo;
+	document.body.appendChild(image);
+}
+```
+
+And there are a plugin resolve `COMPLIER_FLAG` to `false`, then we will get an unexpected result the unreferenced asset also be emitted, but we can resolve this problem by setting `needsCodeReference` to true when calling [`this.emitFile`](#this-emitfile), like following
+
+```js
+function svgResolverPlugin() {
+	return {
+		/** ... */
+		load(id) {
+			if (id.endsWith('.svg')) {
+				const referenceId = this.emitFile({
+					type: 'asset',
+					name: path.basename(id),
+					needsCodeReference: true,
+					source: fs.readFileSync(id)
+				});
+				return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
+			}
+		}
+	};
+}
 ```
 
 Similar to assets, emitted chunks can be referenced from within JS code via `import.meta.ROLLUP_FILE_URL_referenceId` as well.
