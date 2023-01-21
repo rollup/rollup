@@ -12,24 +12,17 @@
 			<h3>output.amd.id</h3>
 			<input v-model="optionsStore.options.amd.id" placeholder="leave blank for anonymous module" />
 		</section>
-		<div
-			v-if="
-				rollupOutputStore.output.output[0] &&
-				(optionsStore.options.format === 'iife' || optionsStore.options.format === 'umd')
-			"
-		>
-			<section v-if="rollupOutputStore.output.output[0].exports.length > 0">
-				<h3>output.name</h3>
-				<input v-model="optionsStore.options.name" />
-			</section>
-			<section v-if="sortedImports.length > 0">
-				<h3>output.globals</h3>
-				<div v-for="x in sortedImports" :key="x" class="input-with-label">
-					<input v-model="optionsStore.options.globals[x]" />
-					<code>'{{ x }}'</code>
-				</div>
-			</section>
-		</div>
+		<section v-if="needsName">
+			<h3>output.name</h3>
+			<input v-model="optionsStore.options.name" />
+		</section>
+		<section v-if="importsThatNeedGLobals.length > 0">
+			<h3>output.globals</h3>
+			<div v-for="imported in importsThatNeedGLobals" :key="imported" class="input-with-label">
+				<input v-model="optionsStore.options.globals[imported]" />
+				<code>'{{ imported }}'</code>
+			</div>
+		</section>
 	</div>
 </template>
 
@@ -42,11 +35,18 @@ import OptionsSelect from './OptionsSelect.vue';
 const rollupOutputStore = useRollupOutput();
 const optionsStore = useOptions();
 
-const sortedImports = computed(() => {
+const importsThatNeedGLobals = computed(() => {
 	const { output } = rollupOutputStore.output;
 	const { format } = optionsStore.options;
 	if ((format !== 'iife' && format !== 'umd') || output.length === 0) return [];
 	return output[0].imports.sort((a, b) => (a < b ? -1 : 1));
+});
+
+const needsName = computed(() => {
+	const { output } = rollupOutputStore.output;
+	const { format } = optionsStore.options;
+	if ((format !== 'iife' && format !== 'umd') || output.length === 0) return false;
+	return output[0].exports.length > 0;
 });
 
 const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
