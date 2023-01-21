@@ -50,7 +50,7 @@ onMounted(async () => {
 		}
 	);
 
-	if (properties.moduleName) {
+	if (properties.moduleName && !properties.readonly) {
 		const addMarkers = (messages: RollupWarning[], type: 'warning' | 'error') => {
 			const relevantMessages = messages.filter(
 				(message): message is RollupWarning & { pos: number } =>
