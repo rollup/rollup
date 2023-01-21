@@ -91,7 +91,7 @@ describe('loadConfigFile', () => {
 			code: 'INVALID_CONFIG_MODULE_FORMAT',
 			message:
 				'Node tried to load your configuration file as CommonJS even though it is likely an ES module. To resolve this, change the extension of your configuration to ".mjs", set "type": "module" in your package.json file or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: Unexpected token \'export\'',
-			url: 'https://rollupjs.org/guide/en/#--bundleconfigascjs'
+			url: 'https://rollupjs.org/command-line-interface/#bundleconfigascjs'
 		});
 	});
 
@@ -140,7 +140,7 @@ describe('loadConfigFile', () => {
 			code: 'INVALID_CONFIG_MODULE_FORMAT',
 			message:
 				'Rollup transpiled your configuration to an  ES module even though it appears to contain CommonJS elements. To resolve this, you can pass the "--bundleConfigAsCjs" flag to Rollup or change your configuration to only contain valid ESM code.\n\nOriginal error: module is not defined in ES module scope',
-			url: 'https://rollupjs.org/guide/en/#--bundleconfigascjs'
+			url: 'https://rollupjs.org/command-line-interface/#bundleconfigascjs'
 		});
 	});
 

@@ -11,7 +11,7 @@ module.exports = {
 			id: ID_MAIN,
 			message:
 				'"unlessYouCreatedThisFileForSomeReason" is imported by "main.js", but could not be resolved – treating it as an external dependency.',
-			url: 'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency'
+			url: 'https://rollupjs.org/troubleshooting/#warning-treating-module-as-external-dependency'
 		}
 	],
 	runtimeError(error) {

@@ -51,15 +51,16 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Find Comment
         uses: peter-evans/find-comment@v2
-        id: fc
+        id: findComment
         with:
           issue-number: ${{ github.event.number }}
           comment-author: 'github-actions[bot]'
           body-includes: 'Thank you for your contribution!'
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v2
+        id: createInitialComment
         with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
+          comment-id: ${{ steps.findComment.outputs.comment-id }}
           issue-number: ${{ github.event.number }}
           edit-mode: replace
           body: |
@@ -73,3 +74,26 @@ jobs:
 
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.number }}
+      - name: Update comment for Netlify deploy
+        uses: jakepartusch/wait-for-netlify-action@v1
+        id: waitForNetlify
+        with:
+          site_name: "rollupjs"
+      - name: Update comment for Netlify
+        uses: peter-evans/create-or-update-comment@v2
+        if: ${{ steps.waitForNetlify.outputs.url }}
+        with:
+          comment-id: ${{ steps.createInitialComment.outputs.comment-id }}
+          issue-number: ${{ github.event.number }}
+          edit-mode: replace
+          body: |
+            ### Thank you for your contribution! ❤️
+
+            You can try out this pull request locally by installing Rollup via
+
+            ```bash
+            npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
+            ```
+
+            or load it into the REPL:
+            ${{ steps.waitForNetlify.outputs.url }}repl/?pr=${{ github.event.number }}

@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "3.10.0",
+  "version": "3.10.1",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -10,8 +10,11 @@
   },
   "scripts": {
     "build": "rollup --config rollup.config.ts --configPlugin typescript",
+    "dev": "vitepress dev docs",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
     "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript",
+    "build:docs": "vitepress build docs",
+    "preview:docs": "vitepress preview docs",
     "ci:lint": "concurrently 'npm:lint:js:nofix' 'npm:lint:markdown:nofix'",
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",
@@ -58,6 +61,12 @@
     "fsevents": "~2.3.2"
   },
   "devDependencies": {
+    "@codemirror/commands": "^6.1.3",
+    "@codemirror/lang-javascript": "^6.1.2",
+    "@codemirror/language": "^6.3.2",
+    "@codemirror/search": "^6.2.3",
+    "@codemirror/state": "^6.2.0",
+    "@codemirror/view": "^6.7.2",
     "@jridgewell/sourcemap-codec": "^1.4.14",
     "@rollup/plugin-alias": "^4.0.2",
     "@rollup/plugin-buble": "^1.0.1",
@@ -74,6 +83,8 @@
     "@types/yargs-parser": "^21.0.0",
     "@typescript-eslint/eslint-plugin": "^5.48.0",
     "@typescript-eslint/parser": "^5.48.0",
+    "@vue/eslint-config-prettier": "^7.0.0",
+    "@vue/eslint-config-typescript": "^11.0.2",
     "acorn": "^8.8.1",
     "acorn-import-assertions": "^1.8.0",
     "acorn-jsx": "^5.3.2",
@@ -92,6 +103,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-unicorn": "^45.0.2",
+    "eslint-plugin-vue": "^9.8.0",
     "fixturify": "^3.0.0",
     "flru": "^1.0.2",
     "fs-extra": "^11.1.0",
@@ -103,8 +115,10 @@
     "lint-staged": "^13.1.0",
     "locate-character": "^2.0.5",
     "magic-string": "^0.27.0",
+    "mermaid": "~9.1.7",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
+    "pinia": "^2.0.28",
     "prettier": "^2.8.2",
     "pretty-bytes": "^6.0.0",
     "pretty-ms": "^8.0.0",
@@ -122,8 +136,14 @@
     "terser": "^5.16.1",
     "tslib": "^2.4.1",
     "typescript": "^4.9.4",
+    "vitepress": "^1.0.0-alpha.35",
+    "vitepress-plugin-mermaid": "^2.0.8",
+    "vue": "^3.2.45",
     "weak-napi": "^2.0.2",
     "yargs-parser": "^21.1.1"
+  },
+  "overrides": {
+    "d3": "7.8.0"
   },
   "files": [
     "dist/**/*.js",

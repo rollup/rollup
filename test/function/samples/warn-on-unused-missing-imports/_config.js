@@ -11,7 +11,7 @@ module.exports = {
 			exporter: ID_FOO,
 			id: ID_MAIN,
 			message: '"b" is not exported by "foo.js", imported by "main.js".',
-			url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
+			url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module',
 			pos: 12,
 			loc: {
 				column: 12,

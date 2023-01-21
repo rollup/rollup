@@ -16,6 +16,18 @@ import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { isValidUrl } from '../url';
 import {
+	URL_OUTPUT_AMD,
+	URL_OUTPUT_DIR,
+	URL_OUTPUT_DYNAMICIMPORTFUNCTION,
+	URL_OUTPUT_FORMAT,
+	URL_OUTPUT_GENERATEDCODE,
+	URL_OUTPUT_INLINEDYNAMICIMPORTS,
+	URL_OUTPUT_INTEROP,
+	URL_OUTPUT_MANUALCHUNKS,
+	URL_OUTPUT_SOURCEMAPBASEURL,
+	URL_PRESERVEENTRYSIGNATURES
+} from '../urls';
+import {
 	generatedCodePresets,
 	getOptionWithPreset,
 	normalizePluginOption,
@@ -110,7 +122,7 @@ const getFile = (
 			return error(
 				errorInvalidOption(
 					'output.file',
-					'outputdir',
+					URL_OUTPUT_DIR,
 					'you must set "output.dir" instead of "output.file" when using the "output.preserveModules" option'
 				)
 			);
@@ -119,7 +131,7 @@ const getFile = (
 			return error(
 				errorInvalidOption(
 					'output.file',
-					'outputdir',
+					URL_OUTPUT_DIR,
 					'you must set "output.dir" instead of "output.file" when providing named inputs'
 				)
 			);
@@ -150,10 +162,14 @@ const getFormat = (config: OutputOptions): NormalizedOutputOptions['format'] => 
 			return configFormat;
 		}
 		default: {
-			return error({
-				message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".`,
-				url: `https://rollupjs.org/guide/en/#outputformat`
-			});
+			return error(
+				errorInvalidOption(
+					'output.format',
+					URL_OUTPUT_FORMAT,
+					`Valid values are "amd", "cjs", "system", "es", "iife" or "umd"`,
+					configFormat
+				)
+			);
 		}
 	}
 };
@@ -169,7 +185,7 @@ const getInlineDynamicImports = (
 		return error(
 			errorInvalidOption(
 				'output.inlineDynamicImports',
-				'outputinlinedynamicimports',
+				URL_OUTPUT_INLINEDYNAMICIMPORTS,
 				'multiple inputs are not supported when "output.inlineDynamicImports" is true'
 			)
 		);
@@ -188,7 +204,7 @@ const getPreserveModules = (
 			return error(
 				errorInvalidOption(
 					'output.inlineDynamicImports',
-					'outputinlinedynamicimports',
+					URL_OUTPUT_INLINEDYNAMICIMPORTS,
 					`this option is not supported for "output.preserveModules"`
 				)
 			);
@@ -197,7 +213,7 @@ const getPreserveModules = (
 			return error(
 				errorInvalidOption(
 					'preserveEntrySignatures',
-					'preserveentrysignatures',
+					URL_PRESERVEENTRYSIGNATURES,
 					'setting this option to false is not supported for "output.preserveModules"'
 				)
 			);
@@ -250,7 +266,7 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 		return error(
 			errorInvalidOption(
 				'output.amd.id',
-				'outputamd',
+				URL_OUTPUT_AMD,
 				'this option cannot be used together with "output.amd.autoId"/"output.amd.basePath"'
 			)
 		);
@@ -259,7 +275,7 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 		return error(
 			errorInvalidOption(
 				'output.amd.basePath',
-				'outputamd',
+				URL_OUTPUT_AMD,
 				'this option only works with "output.amd.autoId"'
 			)
 		);
@@ -301,7 +317,7 @@ const getDir = (
 		return error(
 			errorInvalidOption(
 				'output.dir',
-				'outputdir',
+				URL_OUTPUT_DIR,
 				'you must set either "output.file" for a single-file build or "output.dir" when generating multiple chunks'
 			)
 		);
@@ -325,7 +341,7 @@ const getDynamicImportFunction = (
 			inputOptions.onwarn(
 				errorInvalidOption(
 					'output.dynamicImportFunction',
-					'outputdynamicImportFunction',
+					URL_OUTPUT_DYNAMICIMPORTFUNCTION,
 					'this option is ignored for formats other than "es"'
 				)
 			);
@@ -366,6 +382,7 @@ const getGeneratedCode = (
 		config.generatedCode,
 		generatedCodePresets,
 		'output.generatedCode',
+		URL_OUTPUT_GENERATEDCODE,
 		''
 	);
 	return {
@@ -413,7 +430,7 @@ const validateInterop = (interop: InteropType): InteropType => {
 		return error(
 			errorInvalidOption(
 				'output.interop',
-				'outputinterop',
+				URL_OUTPUT_INTEROP,
 				// eslint-disable-next-line unicorn/prefer-spread
 				`use one of ${Array.from(ALLOWED_INTEROP_TYPES, value => JSON.stringify(value)).join(
 					', '
@@ -437,7 +454,7 @@ const getManualChunks = (
 			return error(
 				errorInvalidOption(
 					'output.manualChunks',
-					'outputmanualchunks',
+					URL_OUTPUT_MANUALCHUNKS,
 					'this option is not supported for "output.inlineDynamicImports"'
 				)
 			);
@@ -446,7 +463,7 @@ const getManualChunks = (
 			return error(
 				errorInvalidOption(
 					'output.manualChunks',
-					'outputmanualchunks',
+					URL_OUTPUT_MANUALCHUNKS,
 					'this option is not supported for "output.preserveModules"'
 				)
 			);
@@ -490,7 +507,7 @@ const getSourcemapBaseUrl = (
 		return error(
 			errorInvalidOption(
 				'output.sourcemapBaseUrl',
-				'outputsourcemapbaseurl',
+				URL_OUTPUT_SOURCEMAPBASEURL,
 				`must be a valid URL, received ${JSON.stringify(sourcemapBaseUrl)}`
 			)
 		);

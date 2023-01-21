@@ -3,6 +3,7 @@ import type { MaybeArray, RollupOptions, RollupWatcher } from '../rollup/types';
 import { ensureArray } from '../utils/ensureArray';
 import { error, errorInvalidOption } from '../utils/error';
 import { mergeOptions } from '../utils/options/mergeOptions';
+import { URL_WATCH } from '../utils/urls';
 import { WatchEmitter } from './WatchEmitter';
 import { loadFsEvents } from './fsevents-importer';
 
@@ -23,7 +24,7 @@ async function watchInternal(configs: MaybeArray<RollupOptions>, emitter: Rollup
 		return error(
 			errorInvalidOption(
 				'watch',
-				'watch',
+				URL_WATCH,
 				'there must be at least one config where "watch" is not set to "false"'
 			)
 		);

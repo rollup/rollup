@@ -25,7 +25,7 @@ module.exports = {
 		code: 'MISSING_EXPORT',
 		exporter: ID_EMPTY,
 		id: ID_MAIN,
-		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
+		url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module',
 		pos: 44,
 		loc: {
 			column: 7,

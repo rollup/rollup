@@ -10,6 +10,6 @@ module.exports = {
 		code: 'INVALID_OPTION',
 		message:
 			'Invalid value "true" for option "output.interop" - use one of "compat", "auto", "esModule", "default", "defaultOnly".',
-		url: 'https://rollupjs.org/guide/en/#outputinterop'
+		url: 'https://rollupjs.org/configuration-options/#output-interop'
 	}
 };

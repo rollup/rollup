@@ -7,7 +7,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Use of eval is strongly discouraged\n' +
-				'https://rollupjs.org/guide/en/#avoiding-eval\n' +
+				'https://rollupjs.org/troubleshooting/#avoiding-eval\n' +
 				'main.js\n' +
 				"1: eval('foo');\n" +
 				'   ^'

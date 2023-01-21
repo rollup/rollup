@@ -1,6 +1,7 @@
 .DS_Store
 /node_modules
 .gobble*
+cache
 dist
 _actual
 _actual.js
@@ -15,3 +16,4 @@ test/typescript/typings
 perf/
 .nyc_output/
 .github_token
+.temp

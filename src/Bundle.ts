@@ -28,6 +28,12 @@ import { getOutputBundle } from './utils/outputBundle';
 import { isAbsolute } from './utils/path';
 import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';
+import {
+	URL_OUTPUT_AMD,
+	URL_OUTPUT_DIR,
+	URL_OUTPUT_FORMAT,
+	URL_OUTPUT_SOURCEMAPFILE
+} from './utils/urls';
 
 export default class Bundle {
 	private readonly facadeChunkByModule = new Map<Module, Chunk>();
@@ -239,7 +245,7 @@ function validateOptionsForMultiChunkOutput(
 		return error(
 			errorInvalidOption(
 				'output.format',
-				'outputformat',
+				URL_OUTPUT_FORMAT,
 				'UMD and IIFE output formats are not supported for code-splitting builds',
 				outputOptions.format
 			)
@@ -248,7 +254,7 @@ function validateOptionsForMultiChunkOutput(
 		return error(
 			errorInvalidOption(
 				'output.file',
-				'outputdir',
+				URL_OUTPUT_DIR,
 				'when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option'
 			)
 		);
@@ -256,7 +262,7 @@ function validateOptionsForMultiChunkOutput(
 		return error(
 			errorInvalidOption(
 				'output.sourcemapFile',
-				'outputsourcemapfile',
+				URL_OUTPUT_SOURCEMAPFILE,
 				'"output.sourcemapFile" is only supported for single-file builds'
 			)
 		);
@@ -264,7 +270,7 @@ function validateOptionsForMultiChunkOutput(
 		onWarn(
 			errorInvalidOption(
 				'output.amd.id',
-				'outputamd',
+				URL_OUTPUT_AMD,
 				'this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead'
 			)
 		);
