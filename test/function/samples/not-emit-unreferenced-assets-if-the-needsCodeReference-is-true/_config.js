@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 module.exports = {
-	description: 'not emitted unreferenced assets that are needsCodeReference',
+	description: 'not emitted unreferenced assets if the needsCodeReference is true',
 	options: {
 		plugins: [
 			{
