@@ -28,9 +28,9 @@ const websitePrefix = 'https://rollupjs.org';
 const frame = computed(() => {
 	const { loc, id, frame } = properties.message;
 	const fileName = getFileNameFromMessage({ id, loc });
-	if (fileName) {
+	if (fileName && (loc || frame)) {
 		const location = loc ? ` (${loc.line}:${loc.column})` : '';
-		return `${fileName}${location}${frame ? '\n' : ''}${frame}`;
+		return `${fileName}${location}${frame ? `\n${frame}` : ''}`;
 	}
 	return '';
 });
