@@ -2,7 +2,7 @@
 	<div class="options">
 		<section>
 			<h3>output.format</h3>
-			<OptionsSelect
+			<StringSelectOption
 				:values="formats"
 				:selected="optionsStore.options.format"
 				@select="selected => (optionsStore.options.format = selected)"
@@ -30,7 +30,7 @@
 import { computed } from 'vue';
 import { useOptions } from '../stores/options';
 import { useRollupOutput } from '../stores/rollupOutput';
-import OptionsSelect from './OptionsSelect.vue';
+import StringSelectOption from './StringSelectOption.vue';
 
 const rollupOutputStore = useRollupOutput();
 const optionsStore = useOptions();
