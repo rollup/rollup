@@ -24,16 +24,47 @@
 			</div>
 		</section>
 	</div>
+	<div class="options">
+		<section v-for="option in options2Store.options" :key="option.name">
+			<h3>{{ option.name }}</h3>
+			<StringSelectOption
+				v-if="option.type === 'string-select'"
+				:values="option.options"
+				:selected="option.value"
+				@select="selected => options2Store.set(option.name, selected)"
+			/>
+			<BooleanOption
+				v-else-if="option.type === 'boolean'"
+				:selected="option.value"
+				@select="selected => options2Store.set(option.name, selected)"
+			/>
+		</section>
+	</div>
+	<select
+		v-if="options2Store.additionalAvailableOptions.length > 0"
+		@input="options2Store.addOption($event.target.value)"
+	>
+		<option disabled selected value="">More...</option>
+		<option
+			v-for="option in options2Store.additionalAvailableOptions"
+			:key="option"
+			:value="option"
+		>
+			{{ option }}
+		</option>
+	</select>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useOptions } from '../stores/options';
+import { useOptions, useOptions2 } from '../stores/options';
 import { useRollupOutput } from '../stores/rollupOutput';
+import BooleanOption from './BooleanOption.vue';
 import StringSelectOption from './StringSelectOption.vue';
 
 const rollupOutputStore = useRollupOutput();
 const optionsStore = useOptions();
+const options2Store = useOptions2();
 
 const importsThatNeedGLobals = computed(() => {
 	const { output } = rollupOutputStore.output;
@@ -58,7 +89,7 @@ const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 	--bg-active: var(--vp-c-bg);
 	--bg-default: var(--vp-c-gray-light-5);
 	border: 1px solid var(--vp-c-divider-light);
-	margin: 0 0 1rem 0;
+	margin: 0 0 8px 0;
 	line-height: 2rem;
 	background-color: var(--bg-default);
 	border-radius: 8px;
