@@ -6,7 +6,7 @@ import { useRollupOutput } from './rollupOutput';
 
 interface BaseOptionType<T> {
 	available: Ref<boolean>;
-	defaultValue: T;
+	defaultValue: T | undefined;
 	name: string;
 	required: Ref<boolean>;
 	type: string;
@@ -91,81 +91,56 @@ const isOptionShown = ({ required, available, value }: OptionType): boolean =>
 export const useOptions = defineStore('options2', () => {
 	const rollupOutputStore = useRollupOutput();
 
-	const optionOutputFormat: OptionTypeStringSelect = {
-		available: alwaysTrue,
+	const optionOutputFormat = getStringSelect({
 		defaultValue: 'es',
 		name: 'output.format',
-		options: computed(() =>
-			optionOutputPreserveModules.value.value === true ? codeSplittingFormats : allFormats
-		),
-		required: alwaysTrue,
-		type: 'string-select',
-		value: ref(undefined)
-	};
-	const optionOutputPreserveModules: OptionTypeBoolean = {
-		available: computed(
-			() =>
-				optionOutputFormat.value.value === undefined ||
-				codeSplittingFormats.includes(optionOutputFormat.value.value)
-		),
+		options: () =>
+			optionOutputPreserveModules.value.value === true ? codeSplittingFormats : allFormats,
+		required: () => true
+	});
+	const optionOutputPreserveModules = getBoolean({
+		available: () =>
+			optionOutputFormat.value.value !== undefined &&
+			amdFormats.has(optionOutputFormat.value.value),
 		defaultValue: false,
-		name: 'output.preserveModules',
-		required: alwaysFalse,
-		type: 'boolean',
-		value: ref(undefined)
-	};
-	const optionOutputAmdId: OptionTypeString = {
-		available: computed(
-			() =>
-				optionOutputFormat.value.value !== undefined &&
-				amdFormats.has(optionOutputFormat.value.value)
-		),
+		name: 'output.preserveModules'
+	});
+	const optionOutputAmdId = getString({
+		available: () =>
+			optionOutputFormat.value.value !== undefined &&
+			amdFormats.has(optionOutputFormat.value.value),
 		defaultValue: '',
 		name: 'output.amd.id',
-		placeholder: 'leave blank for anonymous module',
-		required: alwaysFalse,
-		type: 'string',
-		value: ref(undefined)
-	};
-	const optionOutputName: OptionTypeString = {
-		available: computed(
-			() =>
-				optionOutputFormat.value.value !== undefined &&
-				iifeFormats.has(optionOutputFormat.value.value)
-		),
+		placeholder: 'leave blank for anonymous module'
+	});
+	const optionOutputName = getString({
+		available: () =>
+			optionOutputFormat.value.value !== undefined &&
+			iifeFormats.has(optionOutputFormat.value.value),
 		defaultValue: 'myBundle',
 		name: 'output.name',
-		placeholder: null,
-		required: computed(() => {
+		required: () => {
 			console.log(rollupOutputStore.output.error?.code);
 			return rollupOutputStore.output.output[0]?.exports.length > 0;
-		}),
-		type: 'string',
-		value: ref(undefined)
-	};
-
-	// TODO Lukas select styling
-	// TODO Lukas remove button
-	// TODO Lukas create helpers to create those
-	const optionOutputGlobals: OptionTypeStringMapping = {
-		available: computed(
-			() =>
-				optionOutputFormat.value.value !== undefined &&
-				iifeFormats.has(optionOutputFormat.value.value) &&
-				optionOutputGlobals.keys.value.length > 0
-		),
-		defaultValue: {},
-		keys: computed(() => {
+		}
+	});
+	const optionOutputGlobals = getStringMapping({
+		available: () =>
+			optionOutputFormat.value.value !== undefined &&
+			iifeFormats.has(optionOutputFormat.value.value) &&
+			optionOutputGlobals.keys.value.length > 0,
+		keys: () => {
 			const output = rollupOutputStore.output.output;
 			if (!output || output.length === 0) return [];
 			return output[0].imports.sort((a, b) => (a < b ? -1 : 1));
-		}),
+		},
 		name: 'output.globals',
-		required: alwaysTrue,
-		type: 'string-mapping',
-		value: shallowRef(undefined)
-	};
+		required: () => true
+	});
 
+	// TODO Lukas select styling
+	// TODO Lukas remove button
+	// TODO Lukas more options
 	const optionList: OptionType[] = [
 		optionOutputFormat,
 		optionOutputPreserveModules,
@@ -208,6 +183,94 @@ export const useOptions = defineStore('options2', () => {
 		}
 	};
 });
+
+function getStringSelect({
+	defaultValue,
+	name,
+	options,
+	required
+}: {
+	defaultValue?: string;
+	name: string;
+	options: () => string[];
+	required?: () => boolean;
+}): OptionTypeStringSelect {
+	return {
+		available: alwaysTrue,
+		defaultValue,
+		name,
+		options: computed(options),
+		required: required ? computed(required) : alwaysFalse,
+		type: 'string-select',
+		value: ref(undefined)
+	};
+}
+
+function getBoolean({
+	available,
+	defaultValue,
+	name
+}: {
+	available?: () => boolean;
+	defaultValue?: boolean;
+	name: string;
+}): OptionTypeBoolean {
+	return {
+		available: available ? computed(available) : alwaysTrue,
+		defaultValue,
+		name,
+		required: alwaysFalse,
+		type: 'boolean',
+		value: ref(undefined)
+	};
+}
+
+function getString({
+	available,
+	defaultValue,
+	name,
+	placeholder,
+	required
+}: {
+	available?: () => boolean;
+	defaultValue?: string;
+	name: string;
+	placeholder?: string;
+	required?: () => boolean;
+}): OptionTypeString {
+	return {
+		available: available ? computed(available) : alwaysTrue,
+		defaultValue,
+		name,
+		placeholder: placeholder || null,
+		required: required ? computed(required) : alwaysFalse,
+		type: 'string',
+		value: ref(undefined)
+	};
+}
+
+function getStringMapping({
+	available,
+	keys,
+	name,
+	required
+}: {
+	available?: () => boolean;
+	keys: () => string[];
+	name: string;
+	placeholder?: string;
+	required?: () => boolean;
+}): OptionTypeStringMapping {
+	return {
+		available: available ? computed(available) : alwaysTrue,
+		defaultValue: {},
+		keys: computed(keys),
+		name,
+		required: required ? computed(required) : alwaysFalse,
+		type: 'string-mapping',
+		value: shallowRef(undefined)
+	};
+}
 
 function getOptionsObject(options: Ref<Option[]>): Ref<OutputOptions> {
 	let previousOptions = options.value.filter(({ value }) => value !== undefined);
