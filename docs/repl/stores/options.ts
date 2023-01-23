@@ -133,25 +133,30 @@ export const useOptions = defineStore('options2', () => {
 				optionOutputFormat.value.value !== undefined &&
 				iifeFormats.has(optionOutputFormat.value.value)
 		),
-		defaultValue: '',
+		defaultValue: 'myBundle',
 		name: 'output.name',
 		placeholder: null,
-		required: eagerComputed(() => rollupOutputStore.output?.output[0]?.exports.length > 0),
+		required: computed(() => {
+			console.log(rollupOutputStore.output.error?.code);
+			return rollupOutputStore.output.output[0]?.exports.length > 0;
+		}),
 		type: 'string',
 		value: ref(undefined)
 	};
 
+	// TODO Lukas select styling
+	// TODO Lukas remove button
 	// TODO Lukas create helpers to create those
 	const optionOutputGlobals: OptionTypeStringMapping = {
-		available: eagerComputed(
+		available: computed(
 			() =>
 				optionOutputFormat.value.value !== undefined &&
 				iifeFormats.has(optionOutputFormat.value.value) &&
 				optionOutputGlobals.keys.value.length > 0
 		),
 		defaultValue: {},
-		keys: eagerComputed(() => {
-			const output = rollupOutputStore.output?.output;
+		keys: computed(() => {
+			const output = rollupOutputStore.output.output;
 			if (!output || output.length === 0) return [];
 			return output[0].imports.sort((a, b) => (a < b ? -1 : 1));
 		}),
@@ -169,7 +174,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputGlobals
 	];
 
-	const options = eagerComputed<Option[]>(() =>
+	const options = computed<Option[]>(() =>
 		optionList
 			.filter(isOptionShown)
 			.map((option: OptionType) => mapOptions[option.type](option as any))
@@ -203,21 +208,6 @@ export const useOptions = defineStore('options2', () => {
 		}
 	};
 });
-
-function eagerComputed<T>(getValue: () => T): Ref<T> {
-	const result = shallowRef();
-	watchEffect(
-		() => {
-			const newValue = getValue();
-			if (newValue !== result.value) {
-				console.log('change', newValue, result.value);
-				result.value = newValue;
-			}
-		},
-		{ flush: 'sync' }
-	);
-	return result;
-}
 
 function getOptionsObject(options: Ref<Option[]>): Ref<OutputOptions> {
 	let previousOptions = options.value.filter(({ value }) => value !== undefined);
