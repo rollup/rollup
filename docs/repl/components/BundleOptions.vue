@@ -1,86 +1,57 @@
 <template>
 	<div class="options">
-		<section>
-			<h3>output.format</h3>
-			<StringSelectOption
-				:values="formats"
-				:selected="optionsStore.options.format"
-				@select="selected => (optionsStore.options.format = selected)"
-			/>
-		</section>
-		<section v-if="optionsStore.options.format === 'amd' || optionsStore.options.format === 'umd'">
-			<h3>output.amd.id</h3>
-			<input v-model="optionsStore.options.amd.id" placeholder="leave blank for anonymous module" />
-		</section>
-		<section v-if="needsName">
-			<h3>output.name</h3>
-			<input v-model="optionsStore.options.name" />
-		</section>
-		<section v-if="importsThatNeedGLobals.length > 0">
-			<h3>output.globals</h3>
-			<div v-for="imported in importsThatNeedGLobals" :key="imported" class="input-with-label">
-				<input v-model="optionsStore.options.globals[imported]" />
-				<code>'{{ imported }}'</code>
-			</div>
-		</section>
-	</div>
-	<div class="options">
-		<section v-for="option in options2Store.options" :key="option.name">
+		<section v-for="option in optionsStore.options" :key="option.name">
 			<h3>{{ option.name }}</h3>
 			<StringSelectOption
 				v-if="option.type === 'string-select'"
 				:values="option.options"
 				:selected="option.value"
-				@select="selected => options2Store.set(option.name, selected)"
+				@select="selected => optionsStore.set(option.name, selected)"
 			/>
 			<BooleanOption
 				v-else-if="option.type === 'boolean'"
 				:selected="option.value"
-				@select="selected => options2Store.set(option.name, selected)"
+				@select="selected => optionsStore.set(option.name, selected)"
 			/>
+			<input
+				v-else-if="option.type === 'string'"
+				:value="option.value"
+				:placeholder="option.placeholder"
+				@input="optionsStore.set(option.name, $event.target.value)"
+			/>
+			<div
+				v-else-if="option.type === 'string-mapping'"
+				v-for="imported in option.keys"
+				:key="imported"
+				class="input-with-label"
+			>
+				<input
+					:value="option.value[imported]"
+					@input="
+						optionsStore.set(option.name, { ...option.value, [imported]: $event.target.value })
+					"
+				/>
+				<code>'{{ imported }}'</code>
+			</div>
 		</section>
 	</div>
 	<select
-		v-if="options2Store.additionalAvailableOptions.length > 0"
-		@input="options2Store.addOption($event.target.value)"
+		v-if="optionsStore.additionalAvailableOptions.length > 0"
+		@input="optionsStore.addOption($event.target.value)"
 	>
 		<option disabled selected value="">More...</option>
-		<option
-			v-for="option in options2Store.additionalAvailableOptions"
-			:key="option"
-			:value="option"
-		>
+		<option v-for="option in optionsStore.additionalAvailableOptions" :key="option" :value="option">
 			{{ option }}
 		</option>
 	</select>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useOptions, useOptions2 } from '../stores/options';
-import { useRollupOutput } from '../stores/rollupOutput';
+import { useOptions } from '../stores/options';
 import BooleanOption from './BooleanOption.vue';
 import StringSelectOption from './StringSelectOption.vue';
 
-const rollupOutputStore = useRollupOutput();
 const optionsStore = useOptions();
-const options2Store = useOptions2();
-
-const importsThatNeedGLobals = computed(() => {
-	const { output } = rollupOutputStore.output;
-	const { format } = optionsStore.options;
-	if ((format !== 'iife' && format !== 'umd') || output.length === 0) return [];
-	return output[0].imports.sort((a, b) => (a < b ? -1 : 1));
-});
-
-const needsName = computed(() => {
-	const { output } = rollupOutputStore.output;
-	const { format } = optionsStore.options;
-	if ((format !== 'iife' && format !== 'umd') || output.length === 0) return false;
-	return output[0].exports.length > 0;
-});
-
-const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 </script>
 
 <style scoped>

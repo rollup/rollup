@@ -146,7 +146,7 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 	}
 
 	watch(
-		[() => rollupStore.loaded, () => modulesStore.modules, () => optionsStore.options],
+		[() => rollupStore.loaded, () => modulesStore.modules, () => optionsStore.optionsObject],
 		([rollup, modules, options]: any) =>
 			requestBundle({
 				modules,

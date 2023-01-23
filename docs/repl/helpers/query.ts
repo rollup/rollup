@@ -26,7 +26,7 @@ export async function useUpdateStoresFromQuery() {
 				options: OutputOptions;
 			} = JSON.parse(json);
 			modulesStore.set(queryModules, example);
-			optionsStore.set(queryOptions);
+			optionsStore.setAll(queryOptions);
 		} else if (query.gist) {
 			const result = await (
 				await fetch(`https://api.github.com/gists/${query.gist}`, {
@@ -80,7 +80,7 @@ export function useSyncQueryWithStores() {
 	watch(
 		[
 			() => modulesStore.modules,
-			() => optionsStore.options,
+			() => optionsStore.optionsObject,
 			() => modulesStore.selectedExample,
 			() => rollupStore.request,
 			() => rollupStore.loaded.instance?.VERSION
