@@ -143,7 +143,6 @@ export const useOptions = defineStore('options2', () => {
 	});
 
 	// TODO Lukas more options
-	// TODO Lukas change default example so that all formats are shown
 	const optionList: OptionType[] = [
 		optionOutputFormat,
 		optionOutputPreserveModules,

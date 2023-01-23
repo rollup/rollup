@@ -1,3 +1,4 @@
 {
-	"title": "Dynamic namespaces"
+	"title": "Multiple Entry Modules",
+    "entryModules": ["main.js", "otherEntry.js"]
 }

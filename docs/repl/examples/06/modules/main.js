@@ -1,8 +1,14 @@
-// STATIC NAMESPACES
-// ES6 modules let you import all of another module's
-// exports as a namespace...
-import * as assert from './assert';
+// DYNAMIC IMPORTS
+// Rollup supports automatic chunking and lazy-loading
+// via dynamic imports utilizing the import mechanism
+// of the host system.
+import square from './square.js';
 
-// ...but we can statically resolve this to the
-// original function definition
-assert.equal(1 + 1, 2);
+// Directly use some math
+console.log(square(2));
+
+// Dynamically import the rest
+import('./maths.js').then(maths => {
+	console.log(maths.square(5));
+	console.log(maths.cube(5));
+});

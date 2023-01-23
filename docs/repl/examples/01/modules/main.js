@@ -1,4 +1,17 @@
-// MULTIPLE ENTRY MODULES
-import hyperCube from './hyperCube.js';
+// NAMED EXPORTS
+// There are many ways to export bindings
+// from an ES2015 module
+export var foo = 1;
 
-console.log(hyperCube(5));
+export function bar() {
+	// try changing this to `foo++`
+	// when generating CommonJS
+	return foo;
+}
+
+function baz() {
+	return bar();
+}
+
+export { baz };
+export * from './qux';
