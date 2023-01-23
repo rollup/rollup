@@ -1,49 +1,60 @@
 <template>
-	<div class="options">
-		<section v-for="option in optionsStore.options" :key="option.name">
-			<h3>{{ option.name }}</h3>
-			<StringSelectOption
-				v-if="option.type === 'string-select'"
-				:values="option.options"
-				:selected="option.value"
-				@select="selected => optionsStore.set(option.name, selected)"
-			/>
-			<BooleanOption
-				v-else-if="option.type === 'boolean'"
-				:selected="option.value"
-				@select="selected => optionsStore.set(option.name, selected)"
-			/>
-			<input
-				v-else-if="option.type === 'string'"
-				:value="option.value"
-				:placeholder="option.placeholder"
-				@input="optionsStore.set(option.name, $event.target.value)"
-			/>
-			<div
-				v-else-if="option.type === 'string-mapping'"
-				v-for="imported in option.keys"
-				:key="imported"
-				class="input-with-label"
-			>
-				<input
-					:value="option.value[imported]"
-					@input="
-						optionsStore.set(option.name, { ...option.value, [imported]: $event.target.value })
-					"
+	<div class="options-panel">
+		<div class="options">
+			<section v-for="option in optionsStore.options" :key="option.name">
+				<h3>{{ option.name }}</h3>
+				<StringSelectOption
+					v-if="option.type === 'string-select'"
+					:values="option.options"
+					:selected="option.value"
+					@select="selected => optionsStore.set(option.name, selected)"
 				/>
-				<code>'{{ imported }}'</code>
-			</div>
-		</section>
+				<BooleanOption
+					v-else-if="option.type === 'boolean'"
+					:selected="option.value"
+					@select="selected => optionsStore.set(option.name, selected)"
+				/>
+				<input
+					v-else-if="option.type === 'string'"
+					:value="option.value"
+					:placeholder="option.placeholder"
+					@input="optionsStore.set(option.name, $event.target.value)"
+				/>
+				<div
+					v-else-if="option.type === 'string-mapping'"
+					v-for="imported in option.keys"
+					:key="imported"
+					class="input-with-label"
+				>
+					<input
+						:value="option.value[imported]"
+						@input="
+							optionsStore.set(option.name, { ...option.value, [imported]: $event.target.value })
+						"
+					/>
+					<code>'{{ imported }}'</code>
+				</div>
+			</section>
+		</div>
+		<div v-if="optionsStore.additionalAvailableOptions.length > 0" class="add-option">
+			<span class="icon-plus"></span>
+			<select
+				@input="
+					optionsStore.addOption($event.target.value);
+					$event.target.value = '_';
+				"
+			>
+				<option disabled selected value="_">add option</option>
+				<option
+					v-for="option in optionsStore.additionalAvailableOptions"
+					:key="option"
+					:value="option"
+				>
+					{{ option }}
+				</option>
+			</select>
+		</div>
 	</div>
-	<select
-		v-if="optionsStore.additionalAvailableOptions.length > 0"
-		@input="optionsStore.addOption($event.target.value)"
-	>
-		<option disabled selected value="">More...</option>
-		<option v-for="option in optionsStore.additionalAvailableOptions" :key="option" :value="option">
-			{{ option }}
-		</option>
-	</select>
 </template>
 
 <script setup lang="ts">
@@ -55,12 +66,15 @@ const optionsStore = useOptions();
 </script>
 
 <style scoped>
+.options-panel {
+	margin-bottom: 8px;
+}
+
 .options {
 	--bg-inactive: var(--vp-c-gray-light-3);
 	--bg-active: var(--vp-c-bg);
 	--bg-default: var(--vp-c-gray-light-5);
 	border: 1px solid var(--vp-c-divider-light);
-	margin: 0 0 8px 0;
 	line-height: 2rem;
 	background-color: var(--bg-default);
 	border-radius: 8px;
@@ -102,5 +116,36 @@ section code {
 	right: 0;
 	top: 0;
 	padding: 0 0.5rem 0 1.5rem;
+}
+
+.add-option {
+	display: flex;
+	flex-direction: row;
+	justify-content: end;
+	position: relative;
+	color: var(--vp-c-text-2);
+	transition: 0.2s all;
+}
+
+.add-option:hover {
+	color: var(--vp-c-text-1);
+}
+
+select {
+	text-align: end;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	position: relative;
+	cursor: pointer;
+	appearance: none;
+	background: transparent;
+	padding-right: 20px;
+}
+
+.icon-plus {
+	font-size: 0.8em;
+	position: absolute;
+	right: 0;
 }
 </style>

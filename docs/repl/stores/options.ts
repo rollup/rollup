@@ -95,13 +95,16 @@ export const useOptions = defineStore('options2', () => {
 		defaultValue: 'es',
 		name: 'output.format',
 		options: () =>
-			optionOutputPreserveModules.value.value === true ? codeSplittingFormats : allFormats,
+			optionOutputPreserveModules.value.value === true ||
+			rollupOutputStore.output?.output.length > 1
+				? codeSplittingFormats
+				: allFormats,
 		required: () => true
 	});
 	const optionOutputPreserveModules = getBoolean({
 		available: () =>
 			optionOutputFormat.value.value !== undefined &&
-			amdFormats.has(optionOutputFormat.value.value),
+			codeSplittingFormats.includes(optionOutputFormat.value.value),
 		defaultValue: false,
 		name: 'output.preserveModules'
 	});
@@ -119,10 +122,7 @@ export const useOptions = defineStore('options2', () => {
 			iifeFormats.has(optionOutputFormat.value.value),
 		defaultValue: 'myBundle',
 		name: 'output.name',
-		required: () => {
-			console.log(rollupOutputStore.output.error?.code);
-			return rollupOutputStore.output.output[0]?.exports.length > 0;
-		}
+		required: () => rollupOutputStore.output.output[0]?.exports.length > 0
 	});
 	const optionOutputGlobals = getStringMapping({
 		available: () =>
@@ -138,9 +138,9 @@ export const useOptions = defineStore('options2', () => {
 		required: () => true
 	});
 
-	// TODO Lukas select styling
 	// TODO Lukas remove button
 	// TODO Lukas more options
+	// TODO Lukas improve ids for preserveModules
 	const optionList: OptionType[] = [
 		optionOutputFormat,
 		optionOutputPreserveModules,
