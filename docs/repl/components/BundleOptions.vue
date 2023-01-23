@@ -2,7 +2,17 @@
 	<div class="options-panel">
 		<div class="options">
 			<section v-for="option in optionsStore.options" :key="option.name">
-				<h3>{{ option.name }}</h3>
+				<h3>
+					<a :href="getLinkForOption(option.name)">{{ option.name }}</a>
+					<button
+						v-if="option.removable"
+						class="remove"
+						@click="optionsStore.set(option.name, undefined)"
+					>
+						<span class="label">remove</span>
+						<span class="icon-cancel"></span>
+					</button>
+				</h3>
 				<StringSelectOption
 					v-if="option.type === 'string-select'"
 					:values="option.options"
@@ -63,6 +73,14 @@ import BooleanOption from './BooleanOption.vue';
 import StringSelectOption from './StringSelectOption.vue';
 
 const optionsStore = useOptions();
+
+// TODO Lukas support nested options like output.amd.id
+const getLinkForOption = (option: string) =>
+	`/configuration-options/#${option
+		.toLowerCase()
+		.split('.')
+		.slice(0, option.startsWith('output.') ? 2 : 1)
+		.join('-')}`;
 </script>
 
 <style scoped>
@@ -88,11 +106,22 @@ const optionsStore = useOptions();
 
 h3 {
 	padding: 0 0.5rem;
-	color: var(--vp-c-text-2);
 	margin: 6px 0 2px;
 	font-size: 14px;
 	font-weight: 500;
 	line-height: 20px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+h3 a {
+	color: var(--vp-c-text-2);
+	transition: 0.2s all;
+}
+
+h3 a:hover {
+	color: var(--vp-c-text-1);
 }
 
 input {
@@ -132,7 +161,6 @@ section code {
 }
 
 select {
-	text-align: end;
 	font-family: inherit;
 	font-size: 14px;
 	font-weight: 500;
@@ -141,11 +169,42 @@ select {
 	appearance: none;
 	background: transparent;
 	padding-right: 20px;
+	width: 100px;
 }
 
 .icon-plus {
 	font-size: 0.8em;
 	position: absolute;
 	right: 0;
+}
+
+button.remove {
+	color: var(--vp-c-brand);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	padding: 0.2em;
+	margin: 0;
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	outline: none;
+	opacity: 0.6;
+	transition: all 0.2s;
+	line-height: 1rem;
+}
+
+button.remove .label {
+	opacity: 0;
+	transition: all 0.2s;
+}
+
+button.remove:hover,
+button.remove:active {
+	opacity: 1;
+}
+button.remove:hover .label,
+button.remove:active .label {
+	opacity: 1;
 }
 </style>

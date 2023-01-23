@@ -39,33 +39,37 @@ type OptionType =
 	| OptionTypeStringMapping;
 
 const mapOptions = {
-	boolean({ defaultValue, name, value }: OptionTypeBoolean) {
+	boolean({ defaultValue, name, required, value }: OptionTypeBoolean) {
 		return {
 			name,
+			removable: !required.value,
 			type: 'boolean',
 			value: value.value === undefined ? defaultValue : value.value
 		} as const;
 	},
-	string({ defaultValue, name, placeholder, value }: OptionTypeString) {
+	string({ defaultValue, name, placeholder, required, value }: OptionTypeString) {
 		return {
 			name,
 			placeholder,
+			removable: !required.value,
 			type: 'string',
 			value: value.value === undefined ? defaultValue : value.value
 		} as const;
 	},
-	'string-mapping'({ defaultValue, keys, name, value }: OptionTypeStringMapping) {
+	'string-mapping'({ defaultValue, keys, name, required, value }: OptionTypeStringMapping) {
 		return {
 			keys: keys.value,
 			name,
+			removable: !required.value,
 			type: 'string-mapping',
 			value: value.value === undefined ? defaultValue : value.value
 		} as const;
 	},
-	'string-select'({ defaultValue, name, options, value }: OptionTypeStringSelect) {
+	'string-select'({ defaultValue, name, options, required, value }: OptionTypeStringSelect) {
 		return {
 			name,
 			options: options.value,
+			removable: !required.value,
 			type: 'string-select',
 			value:
 				value.value === undefined || !options.value.includes(value.value)
@@ -138,9 +142,10 @@ export const useOptions = defineStore('options2', () => {
 		required: () => true
 	});
 
-	// TODO Lukas remove button
 	// TODO Lukas more options
 	// TODO Lukas improve ids for preserveModules
+	// TODO Lukas add deeper links for nested options like output.amd.id
+	// TODO Lukas change default example so that all formats are shown
 	const optionList: OptionType[] = [
 		optionOutputFormat,
 		optionOutputPreserveModules,
