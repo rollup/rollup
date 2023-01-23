@@ -74,7 +74,6 @@ import StringSelectOption from './StringSelectOption.vue';
 
 const optionsStore = useOptions();
 
-// TODO Lukas support nested options like output.amd.id
 const getLinkForOption = (option: string) =>
 	`/configuration-options/#${option
 		.toLowerCase()

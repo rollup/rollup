@@ -143,8 +143,6 @@ export const useOptions = defineStore('options2', () => {
 	});
 
 	// TODO Lukas more options
-	// TODO Lukas improve ids for preserveModules
-	// TODO Lukas add deeper links for nested options like output.amd.id
 	// TODO Lukas change default example so that all formats are shown
 	const optionList: OptionType[] = [
 		optionOutputFormat,

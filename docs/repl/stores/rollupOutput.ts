@@ -38,6 +38,8 @@ function hashOptionsAndRollupVersion({ options, rollup: { instance } }: BundleRe
 	return JSON.stringify({ o: options, v: instance?.VERSION });
 }
 
+const LEADING_SLASH_REGEX = /^[/\\]/;
+
 async function bundle({ rollup: { instance }, modules, options, setOutput }: BundleRequest) {
 	if (modules.length === 0 || !instance) {
 		return;
@@ -61,18 +63,21 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		plugins: [
 			{
 				load(id) {
-					return modulesById.get(id)?.code;
+					return (modulesById.get(id) || modulesById.get(id.replace(LEADING_SLASH_REGEX, '')))
+						?.code;
 				},
 				name: 'browser-resolve',
 				resolveId(importee, importer) {
-					if (!importer) return importee;
+					if (!importer) {
+						return resolve('/', importee);
+					}
 					if (importee[0] !== '.') return false;
 
-					let resolved = resolve(dirname(importer), importee).replace(/^\.\//, '');
-					if (modulesById.has(resolved)) return resolved;
+					let resolved = resolve('/', dirname(importer), importee);
+					if (modulesById.has(resolved.replace(LEADING_SLASH_REGEX, ''))) return resolved;
 
 					resolved += '.js';
-					if (modulesById.has(resolved)) return resolved;
+					if (modulesById.has(resolved.replace(LEADING_SLASH_REGEX, ''))) return resolved;
 
 					throw new Error(`Could not resolve '${importee}' from '${importer}'.`);
 				}
