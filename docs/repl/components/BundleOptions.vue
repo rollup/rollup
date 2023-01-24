@@ -13,14 +13,9 @@
 						<span class="icon-cancel"></span>
 					</button>
 				</h3>
-				<StringSelectOption
-					v-if="option.type === 'string-select'"
+				<SelectOption
+					v-if="option.type === 'select'"
 					:values="option.options"
-					:selected="option.value"
-					@select="selected => optionsStore.set(option.name, selected)"
-				/>
-				<BooleanOption
-					v-else-if="option.type === 'boolean'"
 					:selected="option.value"
 					@select="selected => optionsStore.set(option.name, selected)"
 				/>
@@ -69,8 +64,7 @@
 
 <script setup lang="ts">
 import { useOptions } from '../stores/options';
-import BooleanOption from './BooleanOption.vue';
-import StringSelectOption from './StringSelectOption.vue';
+import SelectOption from './SelectOption.vue';
 
 const optionsStore = useOptions();
 

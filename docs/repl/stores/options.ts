@@ -13,13 +13,9 @@ interface BaseOptionType<T> {
 	value: Ref<T | undefined>;
 }
 
-interface OptionTypeBoolean extends BaseOptionType<boolean> {
-	type: 'boolean';
-}
-
-interface OptionTypeStringSelect extends BaseOptionType<string> {
-	options: Ref<string[]>;
-	type: 'string-select';
+interface OptionTypeSelect<T> extends BaseOptionType<T> {
+	options: Ref<T[]>;
+	type: 'select';
 }
 
 interface OptionTypeString extends BaseOptionType<string> {
@@ -32,19 +28,19 @@ interface OptionTypeStringMapping extends BaseOptionType<Record<string, string>>
 	type: 'string-mapping';
 }
 
-type OptionType =
-	| OptionTypeBoolean
-	| OptionTypeString
-	| OptionTypeStringSelect
-	| OptionTypeStringMapping;
+type OptionType = OptionTypeSelect<unknown> | OptionTypeString | OptionTypeStringMapping;
 
 const mapOptions = {
-	boolean({ defaultValue, name, required, value }: OptionTypeBoolean) {
+	select({ defaultValue, name, options, required, value }: OptionTypeSelect<unknown>) {
 		return {
 			name,
+			options: options.value,
 			removable: !required.value,
-			type: 'boolean',
-			value: value.value === undefined ? defaultValue : value.value
+			type: 'select',
+			value:
+				value.value === undefined || !options.value.includes(value.value)
+					? defaultValue
+					: value.value
 		} as const;
 	},
 	string({ defaultValue, name, placeholder, required, value }: OptionTypeString) {
@@ -64,18 +60,6 @@ const mapOptions = {
 			type: 'string-mapping',
 			value: value.value === undefined ? defaultValue : value.value
 		} as const;
-	},
-	'string-select'({ defaultValue, name, options, required, value }: OptionTypeStringSelect) {
-		return {
-			name,
-			options: options.value,
-			removable: !required.value,
-			type: 'string-select',
-			value:
-				value.value === undefined || !options.value.includes(value.value)
-					? defaultValue
-					: value.value
-		} as const;
 	}
 };
 
@@ -94,45 +78,82 @@ const isOptionShown = ({ required, available, value }: OptionType): boolean =>
 
 export const useOptions = defineStore('options2', () => {
 	const rollupOutputStore = useRollupOutput();
+	const outputHasMultipleChunks = computed(() => rollupOutputStore.output?.output.length > 1);
+	const isIifeFormat = computed(() => {
+		const { value } = optionOutputFormat.value;
+		return value != null && iifeFormats.has(value);
+	});
 
-	const optionOutputFormat = getStringSelect({
+	const optionOutputAmdId = getString({
+		available: () => {
+			const { value } = optionOutputFormat.value;
+			return value != null && amdFormats.has(value);
+		},
+		name: 'output.amd.id',
+		placeholder: 'leave blank for anonymous module'
+	});
+	const optionOutputBanner = getString({
+		name: 'output.banner'
+	});
+	const optionOutputChunkFileNames = getString({
+		available: outputHasMultipleChunks,
+		defaultValue: '[name]-[hash].js',
+		name: 'output.chunkFileNames'
+	});
+	const optionOutputCompact = getBoolean({
+		name: 'output.compact'
+	});
+	const optionOutputDynamicImportInCjs = getBoolean({
+		available: () => optionOutputFormat.value.value === 'cjs',
+		name: 'output.dynamicImportInCjs'
+	});
+	const optionOutputEntryFileNames = getString({
+		available: outputHasMultipleChunks,
+		defaultValue: '[name].js',
+		name: 'output.entryFileNames'
+	});
+	const optionOutputExtend = getBoolean({
+		available: isIifeFormat,
+		name: 'output.extend'
+	});
+	const optionOutputExternalImportAssertions = getBoolean({
+		available: () => optionOutputFormat.value.value === 'es',
+		name: 'output.externalImportAssertions'
+	});
+	const optionOutputFooter = getString({
+		name: 'output.footer'
+	});
+	const optionOutputFormat = getSelect({
 		defaultValue: 'es',
 		name: 'output.format',
 		options: () =>
-			optionOutputPreserveModules.value.value === true ||
-			rollupOutputStore.output?.output.length > 1
+			optionOutputPreserveModules.value.value === true || outputHasMultipleChunks.value
 				? codeSplittingFormats
 				: allFormats,
 		required: () => true
 	});
-	const optionOutputPreserveModules = getBoolean({
-		available: () =>
-			optionOutputFormat.value.value !== undefined &&
-			codeSplittingFormats.includes(optionOutputFormat.value.value),
-		defaultValue: false,
-		name: 'output.preserveModules'
+	const optionOutputGeneratedCodeArrowFunctions = getBoolean({
+		name: 'output.generatedCode.arrowFunctions'
 	});
-	const optionOutputAmdId = getString({
-		available: () =>
-			optionOutputFormat.value.value !== undefined &&
-			amdFormats.has(optionOutputFormat.value.value),
-		defaultValue: '',
-		name: 'output.amd.id',
-		placeholder: 'leave blank for anonymous module'
+	const optionOutputGeneratedCodeConstBindings = getBoolean({
+		name: 'output.generatedCode.constBindings'
 	});
-	const optionOutputName = getString({
-		available: () =>
-			optionOutputFormat.value.value !== undefined &&
-			iifeFormats.has(optionOutputFormat.value.value),
-		defaultValue: 'myBundle',
-		name: 'output.name',
-		required: () => rollupOutputStore.output.output[0]?.exports.length > 0
+	const optionOutputGeneratedCodeObjectShorthand = getBoolean({
+		name: 'output.generatedCode.objectShorthand'
+	});
+	const optionOutputGeneratedCodePreset = getSelect({
+		defaultValue: null,
+		name: 'output.generatedCode.preset',
+		options: () => [null, 'es5', 'es2015']
+	});
+	const optionOutputGeneratedCodeReservedNamesAsProperties = getBoolean({
+		name: 'output.generatedCode.reservedNamesAsProps'
+	});
+	const optionOutputGeneratedCodeSymbols = getBoolean({
+		name: 'output.generatedCode.symbols'
 	});
 	const optionOutputGlobals = getStringMapping({
-		available: () =>
-			optionOutputFormat.value.value !== undefined &&
-			iifeFormats.has(optionOutputFormat.value.value) &&
-			optionOutputGlobals.keys.value.length > 0,
+		available: () => isIifeFormat.value && optionOutputGlobals.keys.value.length > 0,
 		keys: () => {
 			const output = rollupOutputStore.output.output;
 			if (!output || output.length === 0) return [];
@@ -141,14 +162,48 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.globals',
 		required: () => true
 	});
+	const optionOutputIntro = getString({
+		name: 'output.intro'
+	});
+	const optionOutputName = getString({
+		available: isIifeFormat,
+		defaultValue: 'myBundle',
+		name: 'output.name',
+		required: () => rollupOutputStore.output.output[0]?.exports.length > 0
+	});
+	const optionOutputOutro = getString({
+		name: 'output.outro'
+	});
+	const optionOutputPreserveModules = getBoolean({
+		available: () => {
+			const { value } = optionOutputFormat.value;
+			return value != null && codeSplittingFormats.includes(value);
+		},
+		name: 'output.preserveModules'
+	});
 
-	// TODO Lukas more options
 	const optionList: OptionType[] = [
-		optionOutputFormat,
-		optionOutputPreserveModules,
 		optionOutputAmdId,
+		optionOutputBanner,
+		optionOutputChunkFileNames,
+		optionOutputCompact,
+		optionOutputDynamicImportInCjs,
+		optionOutputEntryFileNames,
+		optionOutputExtend,
+		optionOutputExternalImportAssertions,
+		optionOutputFooter,
+		optionOutputFormat,
+		optionOutputGeneratedCodeArrowFunctions,
+		optionOutputGeneratedCodeConstBindings,
+		optionOutputGeneratedCodeObjectShorthand,
+		optionOutputGeneratedCodePreset,
+		optionOutputGeneratedCodeReservedNamesAsProperties,
+		optionOutputGeneratedCodeSymbols,
+		optionOutputGlobals,
+		optionOutputIntro,
 		optionOutputName,
-		optionOutputGlobals
+		optionOutputOutro,
+		optionOutputPreserveModules
 	];
 
 	const options = computed<Option[]>(() =>
@@ -186,43 +241,43 @@ export const useOptions = defineStore('options2', () => {
 	};
 });
 
-function getStringSelect({
-	defaultValue,
-	name,
-	options,
-	required
-}: {
-	defaultValue?: string;
-	name: string;
-	options: () => string[];
-	required?: () => boolean;
-}): OptionTypeStringSelect {
-	return {
-		available: alwaysTrue,
-		defaultValue,
-		name,
-		options: computed(options),
-		required: required ? computed(required) : alwaysFalse,
-		type: 'string-select',
-		value: ref(undefined)
-	};
-}
-
 function getBoolean({
 	available,
 	defaultValue,
 	name
 }: {
-	available?: () => boolean;
+	available?: (() => boolean) | Ref<boolean>;
 	defaultValue?: boolean;
 	name: string;
-}): OptionTypeBoolean {
+}): OptionTypeSelect<boolean> {
+	return getSelect({
+		available,
+		defaultValue: defaultValue || false,
+		name,
+		options: () => [false, true]
+	});
+}
+
+function getSelect<T>({
+	available,
+	defaultValue,
+	name,
+	options,
+	required
+}: {
+	available?: (() => boolean) | Ref<boolean>;
+	defaultValue: T;
+	name: string;
+	options: () => T[];
+	required?: () => boolean;
+}): OptionTypeSelect<T> {
 	return {
-		available: available ? computed(available) : alwaysTrue,
+		available: typeof available === 'function' ? computed(available) : available || alwaysTrue,
 		defaultValue,
 		name,
-		required: alwaysFalse,
-		type: 'boolean',
+		options: computed(options),
+		required: required ? computed(required) : alwaysFalse,
+		type: 'select',
 		value: ref(undefined)
 	};
 }
@@ -234,15 +289,15 @@ function getString({
 	placeholder,
 	required
 }: {
-	available?: () => boolean;
+	available?: (() => boolean) | Ref<boolean>;
 	defaultValue?: string;
 	name: string;
 	placeholder?: string;
 	required?: () => boolean;
 }): OptionTypeString {
 	return {
-		available: available ? computed(available) : alwaysTrue,
-		defaultValue,
+		available: typeof available === 'function' ? computed(available) : available || alwaysTrue,
+		defaultValue: defaultValue ?? '',
 		name,
 		placeholder: placeholder || null,
 		required: required ? computed(required) : alwaysFalse,
