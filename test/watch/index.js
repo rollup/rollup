@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } = require('node:fs');
-const { unlink } = require('node:fs/promises');
+const { rm, unlink } = require('node:fs/promises');
 const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('node:process');
 const { copy, removeSync } = require('fs-extra');
@@ -12,7 +12,10 @@ describe('rollup.watch', () => {
 
 	beforeEach(() => {
 		chdir(cwd());
-		return removeSync('test/_tmp');
+		return rm('test/_tmp', {
+			force: true,
+			recursive: true
+		});
 	});
 
 	afterEach(() => {
