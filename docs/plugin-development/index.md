@@ -1331,7 +1331,7 @@ image.src = logo;
 document.body.appendChild(image);
 ```
 
-Sometimes, the code which referenced this asset within a condition, like following
+Sometimes, the code which referenced this asset within a condition, like the following code
 
 ```js
 import logo from '../images/logo.svg';
@@ -1342,7 +1342,7 @@ if (COMPILER_FLAG) {
 }
 ```
 
-And there are a plugin resolve `COMPLIER_FLAG` to `false`, then we will get an unexpected result the unreferenced asset also be emitted, but we can resolve this problem by setting `needsCodeReference` to true when calling [`this.emitFile`](#this-emitfile), like following
+And there is a plugin resolve `COMPLIER_FLAG` to `false`, then we will get an unexpected result the unreferenced asset also be emitted, but we can resolve this problem by setting `needsCodeReference` to true when calling [`this.emitFile`](#this-emitfile), like the following code
 
 ```js
 function svgResolverPlugin() {
