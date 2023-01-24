@@ -13,6 +13,7 @@ permissions:
 jobs:
   linux18:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     name: Node 18 + Coverage (Linux)
     steps:
       - name: Checkout Commit
@@ -35,6 +36,7 @@ jobs:
 
   linux16:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     name: Node 16 + Extra Tests (Linux)
     steps:
       - name: Checkout Commit
@@ -56,6 +58,7 @@ jobs:
 
   linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         node: ['14.18.0']
@@ -76,6 +79,7 @@ jobs:
 
   macos:
     runs-on: macos-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         node: ['14.18.0', '18']
@@ -96,6 +100,7 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         node: ['14.18.0', '18']
