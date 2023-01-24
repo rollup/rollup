@@ -1,9 +1,16 @@
 const assert = require('node:assert');
-const { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } = require('node:fs');
+const {
+	existsSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	unlinkSync,
+	writeFileSync
+} = require('node:fs');
 const { rm, unlink } = require('node:fs/promises');
 const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('node:process');
-const { copy, removeSync } = require('fs-extra');
+const { copy } = require('fs-extra');
 const rollup = require('../../dist/rollup');
 const { atomicWriteFileSync, wait } = require('../utils');
 
@@ -1104,7 +1111,10 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				[dynamicName, staticName, chunkName] = readdirSync('test/_tmp/output').sort();
-				removeSync('test/_tmp/output');
+				rmSync('test/_tmp/output', {
+					force: true,
+					recursive: true
+				});
 
 				// this should only update the hash of that particular entry point
 				atomicWriteFileSync(
@@ -1119,7 +1129,10 @@ describe('rollup.watch', () => {
 			() => {
 				const [newDynamicName, newStaticName, newChunkName] =
 					readdirSync('test/_tmp/output').sort();
-				removeSync('test/_tmp/output');
+				rmSync('test/_tmp/output', {
+					force: true,
+					recursive: true
+				});
 				assert.notEqual(newStaticName, staticName);
 				assert.strictEqual(newDynamicName, dynamicName);
 				assert.strictEqual(newChunkName, chunkName);
