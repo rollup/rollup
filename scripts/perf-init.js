@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import { rmdirSync } from 'node:fs';
+import { rmSync } from 'node:fs';
 import { argv, chdir, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { findConfigFileName } from './find-config.js';
@@ -19,7 +19,7 @@ if (argv.length !== 3 || !VALID_REPO.test(repoWithBranch)) {
 }
 
 console.error(`Cleaning up '${TARGET_DIR}'...`);
-rmdirSync(TARGET_DIR, {
+rmSync(TARGET_DIR, {
 	force: true,
 	recursive: true
 });
