@@ -354,7 +354,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(lastEvent, null);
 				atomicWriteFileSync(WATCHED_ID, 'another');
 				await wait(100);
-				unlinkSync(WATCHED_ID);
+				await unlink(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -365,7 +365,7 @@ describe('rollup.watch', () => {
 				lastEvent = null;
 				atomicWriteFileSync(WATCHED_ID, '123');
 				await wait(100);
-				unlinkSync(WATCHED_ID);
+				await unlink(WATCHED_ID);
 				// To ensure there is always another change to trigger a rebuild
 				atomicWriteFileSync(MAIN_ID, 'export default 43;');
 			},
