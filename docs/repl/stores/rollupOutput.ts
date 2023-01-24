@@ -17,6 +17,7 @@ import { useRollup } from './rollup';
 
 interface GeneratedRollupOutput {
 	error: RollupError | null;
+	externalImports: string[];
 	output: RollupOutput['output'] | never[];
 	warnings: RollupWarning[];
 }
@@ -55,6 +56,8 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 	}
 
 	const warnings: RollupWarning[] = [];
+	const externalImports = new Set<string>();
+
 	const inputOptions: RollupOptions = {
 		onwarn(warning) {
 			warnings.push(warning);
@@ -62,6 +65,9 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		},
 		plugins: [
 			{
+				buildStart() {
+					externalImports.clear();
+				},
 				load(id) {
 					return (modulesById.get(id) || modulesById.get(id.replace(LEADING_SLASH_REGEX, '')))
 						?.code;
@@ -71,7 +77,10 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 					if (!importer) {
 						return resolve('/', importee);
 					}
-					if (importee[0] !== '.') return false;
+					if (importee[0] !== '.') {
+						externalImports.add(importee);
+						return false;
+					}
 
 					let resolved = resolve('/', dirname(importer), importee);
 					if (modulesById.has(resolved.replace(LEADING_SLASH_REGEX, ''))) return resolved;
@@ -92,11 +101,12 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		const generated = await (await instance.rollup(inputOptions)).generate(options);
 		setOutput({
 			error: null,
+			externalImports: [...externalImports].sort((a, b) => (a < b ? -1 : 1)),
 			output: generated.output,
 			warnings
 		});
 	} catch (error) {
-		setOutput({ error: error as Error, output: [], warnings });
+		setOutput({ error: error as Error, externalImports: [], output: [], warnings });
 		logWarning({ ...(error as Error) });
 	}
 }
@@ -107,6 +117,7 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 	const optionsStore = useOptions();
 	const output = ref<GeneratedRollupOutput>({
 		error: null,
+		externalImports: [],
 		output: [],
 		warnings: []
 	});
@@ -121,11 +132,12 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 			nextBundleRequest = bundleRequest;
 			return;
 		}
-		// Otherwise, restart the debounce timeout
+		// Otherwise, restart the debounce-timeout
 		clearTimeout(bundleDebounceTimeout);
 		if (bundleRequest.rollup.error) {
 			bundleRequest.setOutput({
 				error: bundleRequest.rollup.error,
+				externalImports: [],
 				output: [],
 				warnings: []
 			});

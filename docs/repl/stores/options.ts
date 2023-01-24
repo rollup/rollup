@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import type { Ref } from 'vue';
 import { computed, ref, shallowRef, watchEffect } from 'vue';
 import type { OutputOptions } from '../../../src/rollup/types';
+import { useModules } from './modules';
 import { useRollupOutput } from './rollupOutput';
 
 interface BaseOptionType<T> {
@@ -72,17 +73,21 @@ const allFormats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 const codeSplittingFormats = ['es', 'amd', 'cjs', 'system'];
 const amdFormats = new Set(['amd', 'umd']);
 const iifeFormats = new Set(['iife', 'umd']);
+const interopFormats = new Set(['amd', 'cjs', 'iife', 'umd']);
 
 const isOptionShown = ({ required, available, value }: OptionType): boolean =>
 	available.value && (required.value || value.value !== undefined);
 
 export const useOptions = defineStore('options2', () => {
 	const rollupOutputStore = useRollupOutput();
+	const modulesStore = useModules();
+
 	const outputHasMultipleChunks = computed(() => rollupOutputStore.output?.output.length > 1);
 	const isIifeFormat = computed(() => {
 		const { value } = optionOutputFormat.value;
 		return value != null && iifeFormats.has(value);
 	});
+	const externalImports = computed(() => rollupOutputStore.output?.externalImports || []);
 
 	const optionOutputAmdId = getString({
 		available: () => {
@@ -153,17 +158,46 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.generatedCode.symbols'
 	});
 	const optionOutputGlobals = getStringMapping({
-		available: () => isIifeFormat.value && optionOutputGlobals.keys.value.length > 0,
-		keys: () => {
-			const output = rollupOutputStore.output.output;
-			if (!output || output.length === 0) return [];
-			return output[0].imports.sort((a, b) => (a < b ? -1 : 1));
-		},
+		available: () => isIifeFormat.value && externalImports.value.length > 0,
+		keys: externalImports,
 		name: 'output.globals',
 		required: () => true
 	});
+	const optionOutputHoistTransitiveImports = getBoolean({
+		available: outputHasMultipleChunks,
+		name: 'output.hoistTransitiveImports'
+	});
+	const optionOutputInlineDynamicImports = getBoolean({
+		available: () => {
+			const { modules } = modulesStore;
+			let entryPoints = 0;
+			for (const { isEntry } of modules) {
+				if (isEntry) {
+					entryPoints++;
+					if (entryPoints > 1) {
+						return false;
+					}
+				}
+			}
+			return true;
+		},
+		name: 'output.inlineDynamicImports'
+	});
+	const optionOutputInterop = getSelect({
+		available: () => {
+			const { value } = optionOutputFormat.value;
+			return value != null && interopFormats.has(value);
+		},
+		defaultValue: 'default',
+		name: 'output.interop',
+		options: () => ['compat', 'auto', 'esModule', 'default', 'defaultOnly']
+	});
 	const optionOutputIntro = getString({
 		name: 'output.intro'
+	});
+	const optionOutputMinifyInternalExports = getBoolean({
+		available: outputHasMultipleChunks,
+		name: 'output.minifyInternalExports'
 	});
 	const optionOutputName = getString({
 		available: isIifeFormat,
@@ -173,6 +207,11 @@ export const useOptions = defineStore('options2', () => {
 	});
 	const optionOutputOutro = getString({
 		name: 'output.outro'
+	});
+	const optionOutputPaths = getStringMapping({
+		available: () => externalImports.value.length > 0 && optionOutputFormat.value.value !== 'iife',
+		keys: externalImports,
+		name: 'output.paths'
 	});
 	const optionOutputPreserveModules = getBoolean({
 		available: () => {
@@ -200,9 +239,14 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputGeneratedCodeReservedNamesAsProperties,
 		optionOutputGeneratedCodeSymbols,
 		optionOutputGlobals,
+		optionOutputHoistTransitiveImports,
+		optionOutputInlineDynamicImports,
+		optionOutputInterop,
 		optionOutputIntro,
+		optionOutputMinifyInternalExports,
 		optionOutputName,
 		optionOutputOutro,
+		optionOutputPaths,
 		optionOutputPreserveModules
 	];
 
@@ -313,7 +357,7 @@ function getStringMapping({
 	required
 }: {
 	available?: () => boolean;
-	keys: () => string[];
+	keys: Ref<string[]>;
 	name: string;
 	placeholder?: string;
 	required?: () => boolean;
@@ -321,7 +365,7 @@ function getStringMapping({
 	return {
 		available: available ? computed(available) : alwaysTrue,
 		defaultValue: {},
-		keys: computed(keys),
+		keys,
 		name,
 		required: required ? computed(required) : alwaysFalse,
 		type: 'string-mapping',
