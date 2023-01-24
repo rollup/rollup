@@ -1,12 +1,5 @@
 const assert = require('node:assert');
-const {
-	existsSync,
-	readdirSync,
-	readFileSync,
-	rmSync,
-	unlinkSync,
-	writeFileSync
-} = require('node:fs');
+const { existsSync, readdirSync, readFileSync, rmSync, unlinkSync } = require('node:fs');
 const { rm, unlink, writeFile } = require('node:fs/promises');
 const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('node:process');
@@ -1394,7 +1387,9 @@ describe('rollup.watch', () => {
 			const transformFile = resolve('test/_tmp/input/transform');
 			const watchFiles = [buildStartFile, loadFile, resolveIdFile, transformFile];
 			await copy('test/watch/samples/basic', 'test/_tmp/input');
-			for (const file of watchFiles) writeFileSync(file, 'initial');
+
+			await Promise.all(watchFiles.map(file => writeFile(file, 'initial')));
+
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				output: {
@@ -1425,11 +1420,12 @@ describe('rollup.watch', () => {
 				'BUNDLE_START',
 				'BUNDLE_END',
 				'END',
-				() => {
+				async () => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 					// sometimes the watcher is triggered during the initial run
 					watchChangeIds.clear();
-					for (const file_2 of watchFiles) writeFileSync(file_2, 'changed');
+
+					await Promise.all(watchFiles.map(file => writeFile(file, 'changed')));
 				},
 				'START',
 				'BUNDLE_START',
