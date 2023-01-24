@@ -7,7 +7,7 @@ const {
 	unlinkSync,
 	writeFileSync
 } = require('node:fs');
-const { rm, unlink } = require('node:fs/promises');
+const { rm, unlink, writeFile } = require('node:fs/promises');
 const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('node:process');
 const { copy } = require('fs-extra');
@@ -1656,7 +1656,7 @@ describe('rollup.watch', () => {
 
 		it('respects unlinked and re-added watched files', async () => {
 			await copy('test/watch/samples/basic', 'test/_tmp/input');
-			writeFileSync('test/_tmp/input/dep', '');
+			await writeFile('test/_tmp/input/dep', '');
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				output: {
@@ -1703,7 +1703,7 @@ describe('rollup.watch', () => {
 			let transformRuns = 0;
 			await copy('test/watch/samples/watch-files', 'test/_tmp/input');
 			await wait(100);
-			writeFileSync('test/_tmp/input/alsoWatched', 'initial');
+			await writeFile('test/_tmp/input/alsoWatched', 'initial');
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				output: {
