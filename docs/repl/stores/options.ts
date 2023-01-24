@@ -222,7 +222,32 @@ export const useOptions = defineStore('options2', () => {
 		},
 		name: 'output.preserveModules'
 	});
+	const optionOutputPreserveModulesRoot = getString({
+		available: () => !!optionOutputPreserveModules.value.value,
+		name: 'output.preserveModulesRoot'
+	});
+	const optionOutputSourcemap = getBoolean({
+		name: 'output.sourcemap'
+	});
+	const optionOutputSourcemapBaseUrl = getString({
+		available: () => !!optionOutputSourcemap.value.value,
+		name: 'output.sourcemapBaseUrl'
+	});
+	const optionOutputSourcemapExcludeSources = getBoolean({
+		available: () => !!optionOutputSourcemap.value.value,
+		name: 'output.sourcemapExcludeSources'
+	});
+	const optionOutputValidate = getBoolean({
+		name: 'output.validate'
+	});
+	const optionPreserveEntrySignatures = getSelect({
+		available: outputHasMultipleChunks,
+		defaultValue: 'exports-only',
+		name: 'preserveEntrySignatures',
+		options: () => ['strict', 'allow-extension', 'exports-only', false]
+	});
 	const optionTreeshake = getBoolean({
+		defaultValue: true,
 		name: 'treeshake'
 	});
 
@@ -253,6 +278,12 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputOutro,
 		optionOutputPaths,
 		optionOutputPreserveModules,
+		optionOutputPreserveModulesRoot,
+		optionOutputSourcemap,
+		optionOutputSourcemapBaseUrl,
+		optionOutputSourcemapExcludeSources,
+		optionOutputValidate,
+		optionPreserveEntrySignatures,
 		optionTreeshake
 	];
 

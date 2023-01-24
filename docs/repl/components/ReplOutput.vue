@@ -24,10 +24,10 @@ import RollupVersion from './RollupVersion.vue';
 
 const rollupOutputStore = useRollupOutput();
 const chunkModules = computed<Module[]>(() =>
-	(
-		rollupOutputStore.output.output.filter(
-			(chunk): chunk is OutputChunk => chunk.type === 'chunk'
-		) as OutputChunk[]
-	).map(({ code, fileName }) => ({ code, isEntry: false, name: fileName }))
+	rollupOutputStore.output.output.map(chunk => ({
+		code: chunk.code || chunk.source,
+		isEntry: false,
+		name: chunk.fileName
+	}))
 );
 </script>
