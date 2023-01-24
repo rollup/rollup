@@ -1,12 +1,6 @@
 const assert = require('node:assert');
-const {
-	existsSync,
-	promises: fs,
-	readdirSync,
-	readFileSync,
-	unlinkSync,
-	writeFileSync
-} = require('node:fs');
+const { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } = require('node:fs');
+const { unlink } = require('node:fs/promises');
 const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('node:process');
 const { copy, removeSync } = require('fs-extra');
@@ -240,7 +234,7 @@ describe('rollup.watch', () => {
 		let ids;
 		const expectedIds = [WATCHED_ID, resolve('test/_tmp/input/main.js')];
 		await copy('test/watch/samples/watch-files', 'test/_tmp/input');
-		await fs.unlink(WATCHED_ID);
+		await unlink(WATCHED_ID);
 		await wait(100);
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
