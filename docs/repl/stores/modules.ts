@@ -2,6 +2,7 @@ import examplesById from 'examples.json';
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import type { Module } from '../../types';
+import { useOptions } from './options';
 
 const areModulesEqual = (modulesA: Module[], modulesB: Module[]) =>
 	modulesA.length === modulesB.length &&
@@ -13,6 +14,7 @@ const areModulesEqual = (modulesA: Module[], modulesB: Module[]) =>
 	);
 
 export const useModules = defineStore('modules', () => {
+	const optionsStore = useOptions();
 	const modules = ref<Module[]>([]);
 	const selectedExample = ref<string | null>(null);
 
@@ -36,10 +38,14 @@ export const useModules = defineStore('modules', () => {
 		modules,
 		selectedExample,
 		selectExample(value: string) {
-			modules.value = examplesById[value].modules.map((module: Module) => ({
+			const { modules: exampleModules, options } = examplesById[value];
+			modules.value = exampleModules.map((module: Module) => ({
 				...module
 			}));
 			selectedExample.value = value;
+			if (options) {
+				optionsStore.setAll(options);
+			}
 		},
 		set(newModules: Module[], newSelectedExample: string) {
 			selectedExample.value = newSelectedExample;

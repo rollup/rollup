@@ -147,6 +147,7 @@ section code {
 	position: relative;
 	color: var(--vp-c-text-2);
 	transition: 0.2s all;
+	margin-top: 4px;
 }
 
 .add-option:hover {

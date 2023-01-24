@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { Ref } from 'vue';
 import { computed, ref, shallowRef, watchEffect } from 'vue';
-import type { OutputOptions } from '../../../src/rollup/types';
+import type { RollupOptions } from '../../../src/rollup/types';
 import { useModules } from './modules';
 import { useRollupOutput } from './rollupOutput';
 
@@ -78,6 +78,7 @@ const interopFormats = new Set(['amd', 'cjs', 'iife', 'umd']);
 const isOptionShown = ({ required, available, value }: OptionType): boolean =>
 	available.value && (required.value || value.value !== undefined);
 
+// TODO Lukas add more reasonable options to examples
 export const useOptions = defineStore('options2', () => {
 	const rollupOutputStore = useRollupOutput();
 	const modulesStore = useModules();
@@ -169,7 +170,8 @@ export const useOptions = defineStore('options2', () => {
 	});
 	const optionOutputInlineDynamicImports = getBoolean({
 		available: () => {
-			const { modules } = modulesStore;
+			const modules = modulesStore.modules;
+			if (!modules) return false;
 			let entryPoints = 0;
 			for (const { isEntry } of modules) {
 				if (isEntry) {
@@ -220,6 +222,9 @@ export const useOptions = defineStore('options2', () => {
 		},
 		name: 'output.preserveModules'
 	});
+	const optionTreeshake = getBoolean({
+		name: 'treeshake'
+	});
 
 	const optionList: OptionType[] = [
 		optionOutputAmdId,
@@ -247,7 +252,8 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputName,
 		optionOutputOutro,
 		optionOutputPaths,
-		optionOutputPreserveModules
+		optionOutputPreserveModules,
+		optionTreeshake
 	];
 
 	const options = computed<Option[]>(() =>
@@ -271,9 +277,9 @@ export const useOptions = defineStore('options2', () => {
 		set(name: string, value: any) {
 			optionList.find(option => option.name === name)!.value.value = value;
 		},
-		setAll(options: OutputOptions) {
+		setAll(options: RollupOptions) {
 			for (const { name, value } of optionList) {
-				const path = name.slice('output.'.length).split('.');
+				const path = name.split('.');
 				let key: string | undefined;
 				let subOptions: any = options;
 				while ((key = path.shift())) {
@@ -373,9 +379,9 @@ function getStringMapping({
 	};
 }
 
-function getOptionsObject(options: Ref<Option[]>): Ref<OutputOptions> {
+function getOptionsObject(options: Ref<Option[]>): Ref<RollupOptions> {
 	let previousOptions = options.value.filter(({ value }) => value !== undefined);
-	const result = shallowRef<OutputOptions>({});
+	const result = shallowRef<RollupOptions>({});
 	watchEffect(
 		() => {
 			const filteredOptions = options.value.filter(({ value }) => value !== undefined);
@@ -391,7 +397,7 @@ function getOptionsObject(options: Ref<Option[]>): Ref<OutputOptions> {
 			previousOptions = filteredOptions;
 			const object = {};
 			for (const { name, value } of filteredOptions) {
-				const path = name.slice('output.'.length).split('.');
+				const path = name.split('.');
 				const valueKey = path.pop()!;
 				let key: string | undefined;
 				let subOptions: any = object;

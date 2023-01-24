@@ -58,7 +58,9 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 	const warnings: RollupWarning[] = [];
 	const externalImports = new Set<string>();
 
-	const inputOptions: RollupOptions = {
+	const rollupOptions: RollupOptions = {
+		...options,
+		input: modules.filter((module, index) => index === 0 || module.isEntry).map(({ name }) => name),
 		onwarn(warning) {
 			warnings.push(warning);
 			logWarning(warning);
@@ -93,12 +95,11 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 			}
 		]
 	};
-	inputOptions.input = modules
-		.filter((module, index) => index === 0 || module.isEntry)
-		.map(module => module.name);
 
 	try {
-		const generated = await (await instance.rollup(inputOptions)).generate(options);
+		const generated = await (
+			await instance.rollup(rollupOptions)
+		).generate((rollupOptions as { output?: OutputOptions }).output || {});
 		setOutput({
 			error: null,
 			externalImports: [...externalImports].sort((a, b) => (a < b ? -1 : 1)),

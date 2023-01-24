@@ -1,3 +1,6 @@
 {
-	"title": "Tree-shaking"
+	"title": "Tree-shaking",
+	"options": {
+		"treeshake": true
+	}
 }
