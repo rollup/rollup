@@ -97,9 +97,14 @@ export const useOptions = defineStore('options2', () => {
 		return value != null && interopFormats.has(value);
 	});
 	const externalImports = computed(() => rollupOutputStore.output?.externalImports || []);
-	const isTreeshakeEnabled = computed(() =>
-		[undefined, true].includes(optionTreeshake.value.value as any)
-	);
+	const isTreeshakeEnabled = computed(() => {
+		console.log(
+			'isTreeshakeEnabled',
+			optionTreeshake.value.value,
+			[undefined, true].includes(optionTreeshake.value.value as any)
+		);
+		return [undefined, true].includes(optionTreeshake.value.value as any);
+	});
 
 	const optionContext = getString({
 		name: 'context'
@@ -455,7 +460,8 @@ export const useOptions = defineStore('options2', () => {
 				while ((key = path.shift())) {
 					subOptions = subOptions?.[key];
 				}
-				value.value = subOptions;
+				// Special logic to handle treeshake option
+				value.value = subOptions && typeof subOptions === 'object' ? true : subOptions;
 			}
 		}
 	};
@@ -572,6 +578,7 @@ function getOptionsObject(options: Ref<Option[]>): Ref<RollupOptions> {
 				let key: string | undefined;
 				let subOptions: any = object;
 				while ((key = path.shift())) {
+					// Special logic to handle treeshake option
 					if (subOptions[key] === true) {
 						subOptions[key] = {};
 					}
