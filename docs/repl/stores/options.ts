@@ -78,7 +78,6 @@ const interopFormats = new Set(['amd', 'cjs', 'iife', 'umd']);
 const isOptionShown = ({ required, available, value }: OptionType) =>
 	available.value && (required.value || value.value !== undefined);
 
-// TODO Lukas add more reasonable options to examples
 export const useOptions = defineStore('options2', () => {
 	const rollupOutputStore = useRollupOutput();
 	const modulesStore = useModules();
@@ -97,16 +96,12 @@ export const useOptions = defineStore('options2', () => {
 		return value != null && interopFormats.has(value);
 	});
 	const externalImports = computed(() => rollupOutputStore.output?.externalImports || []);
-	const isTreeshakeEnabled = computed(() => {
-		console.log(
-			'isTreeshakeEnabled',
-			optionTreeshake.value.value,
-			[undefined, true].includes(optionTreeshake.value.value as any)
-		);
-		return [undefined, true].includes(optionTreeshake.value.value as any);
-	});
+	const isTreeshakeEnabled = computed(() =>
+		[undefined, true].includes(optionTreeshake.value.value as any)
+	);
 
 	const optionContext = getString({
+		defaultValue: 'undefined',
 		name: 'context'
 	});
 	const optionOutputAmdAutoId = getBoolean({
@@ -119,6 +114,7 @@ export const useOptions = defineStore('options2', () => {
 	});
 	const optionOutputAmdDefine = getString({
 		available: isAmdFormat,
+		defaultValue: 'define',
 		name: 'output.amd.define'
 	});
 	const optionOutputAmdForceJsExtensionForImports = getBoolean({
@@ -144,6 +140,7 @@ export const useOptions = defineStore('options2', () => {
 	});
 	const optionOutputDynamicImportInCjs = getBoolean({
 		available: () => optionOutputFormat.value.value === 'cjs',
+		defaultValue: true,
 		name: 'output.dynamicImportInCjs'
 	});
 	const optionOutputEntryFileNames = getString({
@@ -174,6 +171,7 @@ export const useOptions = defineStore('options2', () => {
 	});
 	const optionOutputExternalImportAssertions = getBoolean({
 		available: () => optionOutputFormat.value.value === 'es',
+		defaultValue: true,
 		name: 'output.externalImportAssertions'
 	});
 	const optionOutputFreeze = getBoolean({
@@ -207,6 +205,7 @@ export const useOptions = defineStore('options2', () => {
 		options: () => [null, 'es5', 'es2015']
 	});
 	const optionOutputGeneratedCodeReservedNamesAsProperties = getBoolean({
+		defaultValue: true,
 		name: 'output.generatedCode.reservedNamesAsProps'
 	});
 	const optionOutputGeneratedCodeSymbols = getBoolean({
@@ -220,6 +219,7 @@ export const useOptions = defineStore('options2', () => {
 	});
 	const optionOutputHoistTransitiveImports = getBoolean({
 		available: outputHasMultipleChunks,
+		defaultValue: true,
 		name: 'output.hoistTransitiveImports'
 	});
 	const optionOutputIndent = getBoolean({
@@ -281,7 +281,7 @@ export const useOptions = defineStore('options2', () => {
 	const optionOutputPreserveModules = getBoolean({
 		available: () => {
 			const { value } = optionOutputFormat.value;
-			return value != null && codeSplittingFormats.includes(value);
+			return value == null || codeSplittingFormats.includes(value);
 		},
 		name: 'output.preserveModules'
 	});
@@ -430,7 +430,6 @@ export const useOptions = defineStore('options2', () => {
 		optionTreeshakeTryCatchDeoptimization,
 		optionTreeshakeUnknownGlobalSideEffects
 	];
-
 	const options = computed<Option[]>(() =>
 		optionList
 			.filter(isOptionShown)
@@ -460,8 +459,7 @@ export const useOptions = defineStore('options2', () => {
 				while ((key = path.shift())) {
 					subOptions = subOptions?.[key];
 				}
-				// Special logic to handle treeshake option
-				value.value = subOptions && typeof subOptions === 'object' ? true : subOptions;
+				value.value = name === 'treeshake' && typeof subOptions === 'object' ? true : subOptions;
 			}
 		}
 	};

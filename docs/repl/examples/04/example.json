@@ -1,3 +1,8 @@
 {
-	"title": "Dynamic namespaces"
+	"title": "Dynamic namespaces",
+	"options": {
+		"output": {
+			"freeze": "true"
+		}
+	}
 }
