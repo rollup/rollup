@@ -6,7 +6,7 @@ import { useModules } from './modules';
 import { useRollupOutput } from './rollupOutput';
 
 interface BaseOptionType<T> {
-	available: Ref<boolean>;
+	available: Ref<boolean | undefined>;
 	defaultValue: T | undefined;
 	name: string;
 	required: Ref<boolean>;
@@ -75,7 +75,7 @@ const amdFormats = new Set(['amd', 'umd']);
 const iifeFormats = new Set(['iife', 'umd']);
 const interopFormats = new Set(['amd', 'cjs', 'iife', 'umd']);
 
-const isOptionShown = ({ required, available, value }: OptionType): boolean =>
+const isOptionShown = ({ required, available, value }: OptionType) =>
 	available.value && (required.value || value.value !== undefined);
 
 // TODO Lukas add more reasonable options to examples
@@ -84,17 +84,45 @@ export const useOptions = defineStore('options2', () => {
 	const modulesStore = useModules();
 
 	const outputHasMultipleChunks = computed(() => rollupOutputStore.output?.output.length > 1);
+	const isAmdFormat = computed(() => {
+		const { value } = optionOutputFormat.value;
+		return value != null && amdFormats.has(value);
+	});
 	const isIifeFormat = computed(() => {
 		const { value } = optionOutputFormat.value;
 		return value != null && iifeFormats.has(value);
 	});
+	const isInteropFormat = computed(() => {
+		const { value } = optionOutputFormat.value;
+		return value != null && interopFormats.has(value);
+	});
 	const externalImports = computed(() => rollupOutputStore.output?.externalImports || []);
+	const isTreeshakeEnabled = computed(() =>
+		[undefined, true].includes(optionTreeshake.value.value as any)
+	);
 
+	const optionContext = getString({
+		name: 'context'
+	});
+	const optionOutputAmdAutoId = getBoolean({
+		available: () => isAmdFormat.value,
+		name: 'output.amd.autoId'
+	});
+	const optionOutputAmdBasePath = getString({
+		available: optionOutputAmdAutoId.value,
+		name: 'output.amd.basePath'
+	});
+	const optionOutputAmdDefine = getString({
+		available: isAmdFormat,
+		name: 'output.amd.define'
+	});
+	const optionOutputAmdForceJsExtensionForImports = getBoolean({
+		available: () => isAmdFormat.value && outputHasMultipleChunks.value,
+		name: 'output.amd.forceJsExtensionForImports'
+	});
 	const optionOutputAmdId = getString({
-		available: () => {
-			const { value } = optionOutputFormat.value;
-			return value != null && amdFormats.has(value);
-		},
+		available: () =>
+			isAmdFormat.value && !outputHasMultipleChunks.value && !optionOutputAmdAutoId.value.value,
 		name: 'output.amd.id',
 		placeholder: 'leave blank for anonymous module'
 	});
@@ -118,13 +146,34 @@ export const useOptions = defineStore('options2', () => {
 		defaultValue: '[name].js',
 		name: 'output.entryFileNames'
 	});
+	const optionOutputEsModule = getSelect({
+		available: isInteropFormat,
+		defaultValue: 'if-default-prop',
+		name: 'output.esModule',
+		options: () => [false, true, 'if-default-prop']
+	});
+	const optionOutputExports = getSelect({
+		available: isInteropFormat,
+		defaultValue: 'auto',
+		name: 'output.exports',
+		options: () => ['auto', 'default', 'named', 'none']
+	});
 	const optionOutputExtend = getBoolean({
 		available: isIifeFormat,
 		name: 'output.extend'
 	});
+	const optionOutputExternalLiveBindings = getBoolean({
+		available: isInteropFormat,
+		defaultValue: true,
+		name: 'output.externalLiveBindings'
+	});
 	const optionOutputExternalImportAssertions = getBoolean({
 		available: () => optionOutputFormat.value.value === 'es',
 		name: 'output.externalImportAssertions'
+	});
+	const optionOutputFreeze = getBoolean({
+		defaultValue: true,
+		name: 'output.freeze'
 	});
 	const optionOutputFooter = getString({
 		name: 'output.footer'
@@ -168,6 +217,11 @@ export const useOptions = defineStore('options2', () => {
 		available: outputHasMultipleChunks,
 		name: 'output.hoistTransitiveImports'
 	});
+	const optionOutputIndent = getBoolean({
+		available: () => ['amd', 'iife', 'umd', 'system'].includes(optionOutputFormat.value.value!),
+		defaultValue: true,
+		name: 'output.indent'
+	});
 	const optionOutputInlineDynamicImports = getBoolean({
 		available: () => {
 			const modules = modulesStore.modules;
@@ -201,6 +255,10 @@ export const useOptions = defineStore('options2', () => {
 		available: outputHasMultipleChunks,
 		name: 'output.minifyInternalExports'
 	});
+	const optionOutputNoConflict = getBoolean({
+		available: () => optionOutputFormat.value.value === 'umd',
+		name: 'output.noConflice'
+	});
 	const optionOutputName = getString({
 		available: isIifeFormat,
 		defaultValue: 'myBundle',
@@ -223,19 +281,30 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.preserveModules'
 	});
 	const optionOutputPreserveModulesRoot = getString({
-		available: () => !!optionOutputPreserveModules.value.value,
+		available: optionOutputPreserveModules.value,
 		name: 'output.preserveModulesRoot'
 	});
 	const optionOutputSourcemap = getBoolean({
 		name: 'output.sourcemap'
 	});
+	const optionOutputSanitizeFileName = getBoolean({
+		available: outputHasMultipleChunks,
+		defaultValue: true,
+		name: 'output.sanitizeFileName'
+	});
 	const optionOutputSourcemapBaseUrl = getString({
-		available: () => !!optionOutputSourcemap.value.value,
+		available: optionOutputSourcemap.value,
 		name: 'output.sourcemapBaseUrl'
 	});
 	const optionOutputSourcemapExcludeSources = getBoolean({
-		available: () => !!optionOutputSourcemap.value.value,
+		available: optionOutputSourcemap.value,
 		name: 'output.sourcemapExcludeSources'
+	});
+	const optionOutputStrict = getBoolean({
+		available: () =>
+			optionOutputFormat.value.value !== undefined && optionOutputFormat.value.value !== 'es',
+		defaultValue: true,
+		name: 'output.strict'
 	});
 	const optionOutputValidate = getBoolean({
 		name: 'output.validate'
@@ -246,20 +315,77 @@ export const useOptions = defineStore('options2', () => {
 		name: 'preserveEntrySignatures',
 		options: () => ['strict', 'allow-extension', 'exports-only', false]
 	});
-	const optionTreeshake = getBoolean({
+	const optionOutputSystemNullSetters = getBoolean({
+		available: () => optionOutputFormat.value.value === 'system',
 		defaultValue: true,
-		name: 'treeshake'
+		name: 'output.systemNullSetters'
+	});
+	const optionShimMissingExports = getBoolean({
+		defaultValue: false,
+		name: 'shimMissingExports'
+	});
+	const optionTreeshake = getSelect({
+		defaultValue: true,
+		name: 'treeshake',
+		options: () => [false, true, 'smallest', 'safest', 'recommended']
+	});
+	const optionTreeshakeAnnotations = getBoolean({
+		available: isTreeshakeEnabled,
+		defaultValue: true,
+		name: 'treeshake.annotations'
+	});
+	const optionTreeshakeCorrectVariableValueBeforeDeclaration = getBoolean({
+		available: isTreeshakeEnabled,
+		defaultValue: false,
+		name: 'treeshake.correctVarValueBeforeDeclaration'
+	});
+	const optionTreeshakeModuleSideEffects = getSelect({
+		available: isTreeshakeEnabled,
+		defaultValue: true,
+		name: 'treeshake.moduleSideEffects',
+		options: () => [false, true, 'no-external']
+	});
+	const optionTreeshakePreset = getSelect({
+		available: isTreeshakeEnabled,
+		defaultValue: null,
+		name: 'treeshake.preset',
+		options: () => [null, 'smallest', 'safest', 'recommended']
+	});
+	const optionTreeshakePropertyReadSideEffects = getSelect({
+		available: isTreeshakeEnabled,
+		defaultValue: true,
+		name: 'treeshake.propertyReadSideEffects',
+		options: () => [false, true, 'always']
+	});
+	const optionTreeshakeTryCatchDeoptimization = getBoolean({
+		available: isTreeshakeEnabled,
+		defaultValue: true,
+		name: 'treeshake.tryCatchDeoptimization'
+	});
+	const optionTreeshakeUnknownGlobalSideEffects = getBoolean({
+		available: isTreeshakeEnabled,
+		defaultValue: true,
+		name: 'treeshake.unknownGlobalSideEffects'
 	});
 
 	const optionList: OptionType[] = [
+		optionContext,
+		optionOutputAmdAutoId,
+		optionOutputAmdBasePath,
+		optionOutputAmdDefine,
+		optionOutputAmdForceJsExtensionForImports,
 		optionOutputAmdId,
 		optionOutputBanner,
 		optionOutputChunkFileNames,
 		optionOutputCompact,
 		optionOutputDynamicImportInCjs,
 		optionOutputEntryFileNames,
+		optionOutputEsModule,
+		optionOutputExports,
 		optionOutputExtend,
+		optionOutputExternalLiveBindings,
 		optionOutputExternalImportAssertions,
+		optionOutputFreeze,
 		optionOutputFooter,
 		optionOutputFormat,
 		optionOutputGeneratedCodeArrowFunctions,
@@ -270,21 +396,34 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputGeneratedCodeSymbols,
 		optionOutputGlobals,
 		optionOutputHoistTransitiveImports,
+		optionOutputIndent,
 		optionOutputInlineDynamicImports,
 		optionOutputInterop,
 		optionOutputIntro,
 		optionOutputMinifyInternalExports,
+		optionOutputNoConflict,
 		optionOutputName,
 		optionOutputOutro,
 		optionOutputPaths,
 		optionOutputPreserveModules,
 		optionOutputPreserveModulesRoot,
 		optionOutputSourcemap,
+		optionOutputSanitizeFileName,
 		optionOutputSourcemapBaseUrl,
 		optionOutputSourcemapExcludeSources,
+		optionOutputStrict,
 		optionOutputValidate,
 		optionPreserveEntrySignatures,
-		optionTreeshake
+		optionOutputSystemNullSetters,
+		optionShimMissingExports,
+		optionTreeshake,
+		optionTreeshakeAnnotations,
+		optionTreeshakeCorrectVariableValueBeforeDeclaration,
+		optionTreeshakeModuleSideEffects,
+		optionTreeshakePreset,
+		optionTreeshakePropertyReadSideEffects,
+		optionTreeshakeTryCatchDeoptimization,
+		optionTreeshakeUnknownGlobalSideEffects
 	];
 
 	const options = computed<Option[]>(() =>
@@ -327,7 +466,7 @@ function getBoolean({
 	defaultValue,
 	name
 }: {
-	available?: (() => boolean) | Ref<boolean>;
+	available?: (() => boolean) | Ref<boolean | undefined>;
 	defaultValue?: boolean;
 	name: string;
 }): OptionTypeSelect<boolean> {
@@ -346,7 +485,7 @@ function getSelect<T>({
 	options,
 	required
 }: {
-	available?: (() => boolean) | Ref<boolean>;
+	available?: (() => boolean) | Ref<boolean | undefined>;
 	defaultValue: T;
 	name: string;
 	options: () => T[];
@@ -370,7 +509,7 @@ function getString({
 	placeholder,
 	required
 }: {
-	available?: (() => boolean) | Ref<boolean>;
+	available?: (() => boolean) | Ref<boolean | undefined>;
 	defaultValue?: string;
 	name: string;
 	placeholder?: string;
@@ -433,6 +572,9 @@ function getOptionsObject(options: Ref<Option[]>): Ref<RollupOptions> {
 				let key: string | undefined;
 				let subOptions: any = object;
 				while ((key = path.shift())) {
+					if (subOptions[key] === true) {
+						subOptions[key] = {};
+					}
 					subOptions = subOptions[key] ??= {};
 				}
 				subOptions[valueKey] = value;
