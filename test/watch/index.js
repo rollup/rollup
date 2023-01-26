@@ -1,15 +1,9 @@
 const assert = require('node:assert');
-const {
-	existsSync,
-	promises: fs,
-	readdirSync,
-	readFileSync,
-	unlinkSync,
-	writeFileSync
-} = require('node:fs');
+const { existsSync, readdirSync, readFileSync, rmSync, unlinkSync } = require('node:fs');
+const { rm, unlink, writeFile } = require('node:fs/promises');
 const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('node:process');
-const { copy, removeSync } = require('fs-extra');
+const { copy } = require('fs-extra');
 const rollup = require('../../dist/rollup');
 const { atomicWriteFileSync, wait } = require('../utils');
 
@@ -18,7 +12,10 @@ describe('rollup.watch', () => {
 
 	beforeEach(() => {
 		chdir(cwd());
-		return removeSync('test/_tmp');
+		return rm('test/_tmp', {
+			force: true,
+			recursive: true
+		});
 	});
 
 	afterEach(() => {
@@ -240,7 +237,7 @@ describe('rollup.watch', () => {
 		let ids;
 		const expectedIds = [WATCHED_ID, resolve('test/_tmp/input/main.js')];
 		await copy('test/watch/samples/watch-files', 'test/_tmp/input');
-		await fs.unlink(WATCHED_ID);
+		await unlink(WATCHED_ID);
 		await wait(100);
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -350,7 +347,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(lastEvent, null);
 				atomicWriteFileSync(WATCHED_ID, 'another');
 				await wait(100);
-				unlinkSync(WATCHED_ID);
+				await unlink(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -361,7 +358,7 @@ describe('rollup.watch', () => {
 				lastEvent = null;
 				atomicWriteFileSync(WATCHED_ID, '123');
 				await wait(100);
-				unlinkSync(WATCHED_ID);
+				await unlink(WATCHED_ID);
 				// To ensure there is always another change to trigger a rebuild
 				atomicWriteFileSync(MAIN_ID, 'export default 43;');
 			},
@@ -1107,7 +1104,10 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				[dynamicName, staticName, chunkName] = readdirSync('test/_tmp/output').sort();
-				removeSync('test/_tmp/output');
+				rmSync('test/_tmp/output', {
+					force: true,
+					recursive: true
+				});
 
 				// this should only update the hash of that particular entry point
 				atomicWriteFileSync(
@@ -1122,7 +1122,10 @@ describe('rollup.watch', () => {
 			() => {
 				const [newDynamicName, newStaticName, newChunkName] =
 					readdirSync('test/_tmp/output').sort();
-				removeSync('test/_tmp/output');
+				rmSync('test/_tmp/output', {
+					force: true,
+					recursive: true
+				});
 				assert.notEqual(newStaticName, staticName);
 				assert.strictEqual(newDynamicName, dynamicName);
 				assert.strictEqual(newChunkName, chunkName);
@@ -1384,7 +1387,9 @@ describe('rollup.watch', () => {
 			const transformFile = resolve('test/_tmp/input/transform');
 			const watchFiles = [buildStartFile, loadFile, resolveIdFile, transformFile];
 			await copy('test/watch/samples/basic', 'test/_tmp/input');
-			for (const file of watchFiles) writeFileSync(file, 'initial');
+
+			await Promise.all(watchFiles.map(file => writeFile(file, 'initial')));
+
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				output: {
@@ -1415,11 +1420,12 @@ describe('rollup.watch', () => {
 				'BUNDLE_START',
 				'BUNDLE_END',
 				'END',
-				() => {
+				async () => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 					// sometimes the watcher is triggered during the initial run
 					watchChangeIds.clear();
-					for (const file_2 of watchFiles) writeFileSync(file_2, 'changed');
+
+					await Promise.all(watchFiles.map(file => writeFile(file, 'changed')));
 				},
 				'START',
 				'BUNDLE_START',
@@ -1646,7 +1652,7 @@ describe('rollup.watch', () => {
 
 		it('respects unlinked and re-added watched files', async () => {
 			await copy('test/watch/samples/basic', 'test/_tmp/input');
-			writeFileSync('test/_tmp/input/dep', '');
+			await writeFile('test/_tmp/input/dep', '');
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				output: {
@@ -1693,7 +1699,7 @@ describe('rollup.watch', () => {
 			let transformRuns = 0;
 			await copy('test/watch/samples/watch-files', 'test/_tmp/input');
 			await wait(100);
-			writeFileSync('test/_tmp/input/alsoWatched', 'initial');
+			await writeFile('test/_tmp/input/alsoWatched', 'initial');
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				output: {
