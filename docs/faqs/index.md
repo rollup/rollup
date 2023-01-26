@@ -198,4 +198,4 @@ rollup
 
 ## Who made the Rollup logo? It's lovely.
 
-[Julian Lloyd](https://twitter.com/jlmakes)!
+[Julian Lloyd](https://github.com/jlmakes)!
