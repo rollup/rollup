@@ -43,18 +43,18 @@ If you use the [`--configPlugin`](../command-line-interface/index.md#configplugi
 Some options now have different default values. If you think you experience any issues, try adding the following to your configuration:
 
 ```js
-{
-  makeAbsoluteExternalsRelative: true,
-  preserveEntrySignatures: 'strict',
-  output: {
-    esModule: true,
-    generatedCode: {
-      reservedNamesAsProps: false
-    },
-    interop: 'compat',
-    systemNullSetters: false
-  }
-}
+({
+	makeAbsoluteExternalsRelative: true,
+	preserveEntrySignatures: 'strict',
+	output: {
+		esModule: true,
+		generatedCode: {
+			reservedNamesAsProps: false
+		},
+		interop: 'compat',
+		systemNullSetters: false
+	}
+});
 ```
 
 In general, though, the new default values are our recommended settings. Refer to the documentation of each setting for more details.
