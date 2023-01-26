@@ -21,6 +21,7 @@ module.exports = main;
 					assert.deepStrictEqual(bundle['main.js.map'], {
 						fileName: 'main.js.map',
 						name: undefined,
+						needsCodeReference: false,
 						source:
 							'{"version":3,"file":"main.js","sources":["main.js"],"sourcesContent":["export default 42;\\n"],"names":[],"mappings":";;AAAA,WAAe,EAAE;;;;"}',
 						type: 'asset'

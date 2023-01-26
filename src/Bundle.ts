@@ -24,7 +24,7 @@ import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
-import { getOutputBundle } from './utils/outputBundle';
+import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
 import { isAbsolute } from './utils/path';
 import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';
@@ -84,6 +84,8 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderError', [error_]);
 			throw error_;
 		}
+
+		removeUnreferencedAssets(outputBundle);
 
 		timeStart('generate bundle', 2);
 
