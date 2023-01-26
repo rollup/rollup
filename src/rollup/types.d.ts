@@ -758,6 +758,7 @@ export interface PreRenderedAsset {
 
 export interface OutputAsset extends PreRenderedAsset {
 	fileName: string;
+	needsCodeReference: boolean;
 }
 
 export interface RenderedModule {
