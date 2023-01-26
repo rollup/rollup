@@ -2,18 +2,18 @@
 	<div class="select">
 		<button
 			v-for="value in values"
-			:key="value"
+			:key="String(value)"
 			:class="{ selected: value === selected }"
 			@click="emit('select', value)"
 		>
-			{{ value }}
+			{{ String(value) }}
 		</button>
 	</div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ selected: string; values: string[] }>();
-const emit = defineEmits<{ (event: 'select', selected: string): void }>();
+defineProps<{ selected: unknown; values: unknown[] }>();
+const emit = defineEmits<{ (event: 'select', selected: unknown): void }>();
 </script>
 
 <style scoped>

@@ -13,11 +13,16 @@
 <script setup lang="ts">
 import examplesById from 'examples.json';
 import { useModules } from '../stores/modules';
+import { useOptions } from '../stores/options';
 
 const modulesStore = useModules();
+const optionsStore = useOptions();
 const handleInput = (event: InputEvent) =>
 	modulesStore.selectExample((event.target as HTMLSelectElement).value);
-const startOver = () => modulesStore.set([{ code: '', isEntry: true, name: 'main.js' }], '');
+const startOver = () => {
+	modulesStore.set([{ code: '', isEntry: true, name: 'main.js' }], '');
+	optionsStore.setAll({});
+};
 </script>
 
 <style scoped>

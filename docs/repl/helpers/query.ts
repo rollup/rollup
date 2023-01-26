@@ -1,5 +1,5 @@
 import { watch } from 'vue';
-import type { OutputOptions } from '../../../src/rollup/types';
+import type { OutputOptions, RollupOptions } from '../../../src/rollup/types';
 import type { Module } from '../../types';
 import { useModules } from '../stores/modules';
 import { useOptions } from '../stores/options';
@@ -23,10 +23,10 @@ export async function useUpdateStoresFromQuery() {
 			}: {
 				example: string;
 				modules: Module[];
-				options: OutputOptions;
+				options: RollupOptions | OutputOptions;
 			} = JSON.parse(json);
 			modulesStore.set(queryModules, example);
-			optionsStore.set(queryOptions);
+			optionsStore.setAll('output' in queryOptions ? queryOptions : { output: queryOptions });
 		} else if (query.gist) {
 			const result = await (
 				await fetch(`https://api.github.com/gists/${query.gist}`, {
@@ -80,7 +80,7 @@ export function useSyncQueryWithStores() {
 	watch(
 		[
 			() => modulesStore.modules,
-			() => optionsStore.options,
+			() => optionsStore.optionsObject,
 			() => modulesStore.selectedExample,
 			() => rollupStore.request,
 			() => rollupStore.loaded.instance?.VERSION

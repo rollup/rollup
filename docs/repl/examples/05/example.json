@@ -1,3 +1,12 @@
 {
-	"title": "External imports"
+	"title": "External imports",
+	"options": {
+		"output": {
+			"globals": {
+				"jquery": "$",
+				"$": "jquery"
+			},
+			"interop": "default"
+		}
+	}
 }

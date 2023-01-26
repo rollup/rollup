@@ -52,22 +52,22 @@ export function relative(from: string, to: string) {
 	return toParts.join('/');
 }
 
+const ANY_SLASH_REGEX = /[/\\]/;
+const TRAILING_SLASH_REGEX = /[/\\]$/;
+
 export function resolve(...paths: string[]) {
-	let resolvedParts = paths.shift()!.split(/[/\\]/);
-
+	let resolvedParts = paths.shift()!.replace(TRAILING_SLASH_REGEX, '').split(ANY_SLASH_REGEX);
 	for (const path of paths) {
+		const parts = path.replace(TRAILING_SLASH_REGEX, '').split(ANY_SLASH_REGEX);
 		if (isAbsolute(path)) {
-			resolvedParts = path.split(/[/\\]/);
+			resolvedParts = parts;
 		} else {
-			const parts = path.split(/[/\\]/);
-
 			while (parts[0] === '.' || parts[0] === '..') {
 				const part = parts.shift();
 				if (part === '..') {
 					resolvedParts.pop();
 				}
 			}
-
 			resolvedParts.push(...parts);
 		}
 	}

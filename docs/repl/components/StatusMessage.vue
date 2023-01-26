@@ -40,7 +40,7 @@ const isGuideUrl = (url: string) => url && url.startsWith(websitePrefix);
 
 <style scoped>
 .message {
-	line-height: 1;
+	line-height: 1.2;
 }
 
 .frame {

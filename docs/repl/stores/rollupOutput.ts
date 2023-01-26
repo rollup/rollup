@@ -17,6 +17,7 @@ import { useRollup } from './rollup';
 
 interface GeneratedRollupOutput {
 	error: RollupError | null;
+	externalImports: string[];
 	output: RollupOutput['output'] | never[];
 	warnings: RollupWarning[];
 }
@@ -38,6 +39,8 @@ function hashOptionsAndRollupVersion({ options, rollup: { instance } }: BundleRe
 	return JSON.stringify({ o: options, v: instance?.VERSION });
 }
 
+const LEADING_SLASH_REGEX = /^[/\\]/;
+
 async function bundle({ rollup: { instance }, modules, options, setOutput }: BundleRequest) {
 	if (modules.length === 0 || !instance) {
 		return;
@@ -53,45 +56,58 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 	}
 
 	const warnings: RollupWarning[] = [];
-	const inputOptions: RollupOptions = {
+	const externalImports = new Set<string>();
+
+	const rollupOptions: RollupOptions = {
+		...options,
+		input: modules.filter((module, index) => index === 0 || module.isEntry).map(({ name }) => name),
 		onwarn(warning) {
 			warnings.push(warning);
 			logWarning(warning);
 		},
 		plugins: [
 			{
+				buildStart() {
+					externalImports.clear();
+				},
 				load(id) {
-					return modulesById.get(id)?.code;
+					return (modulesById.get(id) || modulesById.get(id.replace(LEADING_SLASH_REGEX, '')))
+						?.code;
 				},
 				name: 'browser-resolve',
 				resolveId(importee, importer) {
-					if (!importer) return importee;
-					if (importee[0] !== '.') return false;
+					if (!importer) {
+						return resolve('/', importee);
+					}
+					if (importee[0] !== '.') {
+						externalImports.add(importee);
+						return false;
+					}
 
-					let resolved = resolve(dirname(importer), importee).replace(/^\.\//, '');
-					if (modulesById.has(resolved)) return resolved;
+					let resolved = resolve('/', dirname(importer), importee);
+					if (modulesById.has(resolved.replace(LEADING_SLASH_REGEX, ''))) return resolved;
 
 					resolved += '.js';
-					if (modulesById.has(resolved)) return resolved;
+					if (modulesById.has(resolved.replace(LEADING_SLASH_REGEX, ''))) return resolved;
 
 					throw new Error(`Could not resolve '${importee}' from '${importer}'.`);
 				}
 			}
 		]
 	};
-	inputOptions.input = modules
-		.filter((module, index) => index === 0 || module.isEntry)
-		.map(module => module.name);
 
 	try {
-		const generated = await (await instance.rollup(inputOptions)).generate(options);
+		const generated = await (
+			await instance.rollup(rollupOptions)
+		).generate((rollupOptions as { output?: OutputOptions }).output || {});
 		setOutput({
 			error: null,
+			externalImports: [...externalImports].sort((a, b) => (a < b ? -1 : 1)),
 			output: generated.output,
 			warnings
 		});
 	} catch (error) {
-		setOutput({ error: error as Error, output: [], warnings });
+		setOutput({ error: error as Error, externalImports: [], output: [], warnings });
 		logWarning({ ...(error as Error) });
 	}
 }
@@ -102,6 +118,7 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 	const optionsStore = useOptions();
 	const output = ref<GeneratedRollupOutput>({
 		error: null,
+		externalImports: [],
 		output: [],
 		warnings: []
 	});
@@ -116,11 +133,12 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 			nextBundleRequest = bundleRequest;
 			return;
 		}
-		// Otherwise, restart the debounce timeout
+		// Otherwise, restart the debounce-timeout
 		clearTimeout(bundleDebounceTimeout);
 		if (bundleRequest.rollup.error) {
 			bundleRequest.setOutput({
 				error: bundleRequest.rollup.error,
+				externalImports: [],
 				output: [],
 				warnings: []
 			});
@@ -146,7 +164,7 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 	}
 
 	watch(
-		[() => rollupStore.loaded, () => modulesStore.modules, () => optionsStore.options],
+		[() => rollupStore.loaded, () => modulesStore.modules, () => optionsStore.optionsObject],
 		([rollup, modules, options]: any) =>
 			requestBundle({
 				modules,

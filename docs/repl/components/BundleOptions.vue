@@ -1,64 +1,91 @@
 <template>
-	<div class="options">
-		<section>
-			<h3>output.format</h3>
-			<OptionsSelect
-				:values="formats"
-				:selected="optionsStore.options.format"
-				@select="selected => (optionsStore.options.format = selected)"
-			/>
-		</section>
-		<section v-if="optionsStore.options.format === 'amd' || optionsStore.options.format === 'umd'">
-			<h3>output.amd.id</h3>
-			<input v-model="optionsStore.options.amd.id" placeholder="leave blank for anonymous module" />
-		</section>
-		<section v-if="needsName">
-			<h3>output.name</h3>
-			<input v-model="optionsStore.options.name" />
-		</section>
-		<section v-if="importsThatNeedGLobals.length > 0">
-			<h3>output.globals</h3>
-			<div v-for="imported in importsThatNeedGLobals" :key="imported" class="input-with-label">
-				<input v-model="optionsStore.options.globals[imported]" />
-				<code>'{{ imported }}'</code>
-			</div>
-		</section>
+	<div class="options-panel">
+		<div class="options">
+			<section v-for="option in optionsStore.options" :key="option.name">
+				<h3>
+					<a :href="getLinkForOption(option.name)">{{ option.name }}</a>
+					<button
+						v-if="option.removable"
+						class="remove"
+						@click="optionsStore.set(option.name, undefined)"
+					>
+						<span class="label">remove</span>
+						<span class="icon-cancel"></span>
+					</button>
+				</h3>
+				<SelectOption
+					v-if="option.type === 'select'"
+					:values="option.options"
+					:selected="option.value"
+					@select="selected => optionsStore.set(option.name, selected)"
+				/>
+				<input
+					v-else-if="option.type === 'string'"
+					:value="option.value"
+					:placeholder="option.placeholder"
+					@input="optionsStore.set(option.name, $event.target.value)"
+				/>
+				<div
+					v-else-if="option.type === 'string-mapping'"
+					v-for="imported in option.keys"
+					:key="imported"
+					class="input-with-label"
+				>
+					<input
+						:value="option.value[imported]"
+						@input="
+							optionsStore.set(option.name, { ...option.value, [imported]: $event.target.value })
+						"
+					/>
+					<code>'{{ imported }}'</code>
+				</div>
+			</section>
+		</div>
+		<div v-if="optionsStore.additionalAvailableOptions.length > 0" class="add-option">
+			<span class="icon-plus"></span>
+			<select
+				@input="
+					optionsStore.addOption($event.target.value);
+					$event.target.value = '_';
+				"
+			>
+				<option disabled selected value="_">add option</option>
+				<option
+					v-for="option in optionsStore.additionalAvailableOptions"
+					:key="option"
+					:value="option"
+				>
+					{{ option }}
+				</option>
+			</select>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import { useOptions } from '../stores/options';
-import { useRollupOutput } from '../stores/rollupOutput';
-import OptionsSelect from './OptionsSelect.vue';
+import SelectOption from './SelectOption.vue';
 
-const rollupOutputStore = useRollupOutput();
 const optionsStore = useOptions();
 
-const importsThatNeedGLobals = computed(() => {
-	const { output } = rollupOutputStore.output;
-	const { format } = optionsStore.options;
-	if ((format !== 'iife' && format !== 'umd') || output.length === 0) return [];
-	return output[0].imports.sort((a, b) => (a < b ? -1 : 1));
-});
-
-const needsName = computed(() => {
-	const { output } = rollupOutputStore.output;
-	const { format } = optionsStore.options;
-	if ((format !== 'iife' && format !== 'umd') || output.length === 0) return false;
-	return output[0].exports.length > 0;
-});
-
-const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
+const getLinkForOption = (option: string) =>
+	`/configuration-options/#${option
+		.toLowerCase()
+		.split('.')
+		.slice(0, option.startsWith('output.') ? 2 : 1)
+		.join('-')}`;
 </script>
 
 <style scoped>
+.options-panel {
+	margin-bottom: 8px;
+}
+
 .options {
 	--bg-inactive: var(--vp-c-gray-light-3);
 	--bg-active: var(--vp-c-bg);
 	--bg-default: var(--vp-c-gray-light-5);
 	border: 1px solid var(--vp-c-divider-light);
-	margin: 0 0 1rem 0;
 	line-height: 2rem;
 	background-color: var(--bg-default);
 	border-radius: 8px;
@@ -72,11 +99,22 @@ const formats = ['es', 'amd', 'cjs', 'iife', 'umd', 'system'];
 
 h3 {
 	padding: 0 0.5rem;
-	color: var(--vp-c-text-2);
 	margin: 6px 0 2px;
 	font-size: 14px;
 	font-weight: 500;
 	line-height: 20px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+h3 a {
+	color: var(--vp-c-text-2);
+	transition: 0.2s all;
+}
+
+h3 a:hover {
+	color: var(--vp-c-text-1);
 }
 
 input {
@@ -100,5 +138,67 @@ section code {
 	right: 0;
 	top: 0;
 	padding: 0 0.5rem 0 1.5rem;
+}
+
+.add-option {
+	display: flex;
+	flex-direction: row;
+	justify-content: end;
+	position: relative;
+	color: var(--vp-c-text-2);
+	transition: 0.2s all;
+	margin-top: 4px;
+}
+
+.add-option:hover {
+	color: var(--vp-c-text-1);
+}
+
+select {
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	position: relative;
+	cursor: pointer;
+	appearance: none;
+	background: transparent;
+	padding-right: 20px;
+	width: 100px;
+}
+
+.icon-plus {
+	font-size: 0.8em;
+	position: absolute;
+	right: 0;
+}
+
+button.remove {
+	color: var(--vp-c-brand);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	padding: 0.2em;
+	margin: 0;
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	outline: none;
+	opacity: 0.6;
+	transition: all 0.2s;
+	line-height: 1rem;
+}
+
+button.remove .label {
+	opacity: 0;
+	transition: all 0.2s;
+}
+
+button.remove:hover,
+button.remove:active {
+	opacity: 1;
+}
+button.remove:hover .label,
+button.remove:active .label {
+	opacity: 1;
 }
 </style>

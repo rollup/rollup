@@ -1,4 +1,9 @@
 {
-	"title": "Multiple Entry Modules",
-    "entryModules": ["main.js", "otherEntry.js"]
+	"title": "Named exports",
+	"options": {
+		"output": {
+			"exports": "auto",
+			"esModule": "if-default-prop"
+		}
+	}
 }

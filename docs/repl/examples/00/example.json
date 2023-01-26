@@ -1,3 +1,6 @@
 {
-	"title": "Dynamic imports"
+	"title": "Tree-shaking",
+	"options": {
+		"treeshake": true
+	}
 }

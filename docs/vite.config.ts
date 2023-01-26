@@ -3,6 +3,7 @@ import alias from '@rollup/plugin-alias';
 import { defineConfig } from 'vite';
 import { moduleAliases } from '../build-plugins/aliases';
 import { resolutions } from '../build-plugins/replace-browser-modules';
+import type { RollupOptions } from '../src/rollup/types';
 import type { Example, Module } from './types';
 
 const examplesDirectory = new URL('repl/examples', import.meta.url);
@@ -45,9 +46,11 @@ export default defineConfig({
 						exampleFiles.map(async id => {
 							const {
 								entryModules = ['main.js'],
+								options = {},
 								title
 							}: {
 								entryModules?: string[];
+								options?: RollupOptions;
 								title: string;
 							} = JSON.parse(
 								await readFile(new URL(`examples/${id}/example.json`, examplesDirectory), 'utf8')
@@ -75,7 +78,7 @@ export default defineConfig({
 								return a.name < b.name ? -1 : 1;
 							});
 
-							return { id, modules, title };
+							return { id, modules, options, title };
 						})
 					);
 					const examplesById: Record<string, Example> = {};

@@ -1528,7 +1528,7 @@ See also [`output.interop`](#output-interop).
 
 ### output.exports
 
-Type: `string`<br> CLI: `--exports <exportMode>`<br> Default: `'auto'`
+Type: `"auto" | "default" | "named" | "none"`<br> CLI: `--exports <exportMode>`<br> Default: `'auto'`
 
 What export mode to use. Defaults to `auto`, which guesses your intentions based on what the `input` module exports:
 

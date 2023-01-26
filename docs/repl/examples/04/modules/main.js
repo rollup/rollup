@@ -1,15 +1,10 @@
-// NAMED EXPORTS
-// There are many ways to export bindings
-// from an ES2015 module
-export var foo = 1;
+// DYNAMIC NAMESPACES
+// In some cases, you don't know which exports will
+// be accessed until you actually run the code. In
+// these cases, Rollup creates a namespace object
+// for dynamic lookup
+import * as constants from './constants';
 
-export function bar() {
-	return foo; // try changing this to `foo++`
+for (const key of Object.keys(constants)) {
+	console.log(`The value of ${key} is ${constants[key]}`);
 }
-
-function baz() {
-	return bar();
-}
-
-export { baz };
-export * from './qux';

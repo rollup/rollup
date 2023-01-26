@@ -46,6 +46,7 @@ const warnings = computed(() => rollupOutputStore.output.warnings);
 	word-break: break-word;
 	line-height: 1;
 	border-radius: 8px;
+	transition: all 0.2s;
 }
 
 .success {
