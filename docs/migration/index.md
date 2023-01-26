@@ -42,19 +42,19 @@ If you use the [`--configPlugin`](../command-line-interface/index.md#configplugi
 
 Some options now have different default values. If you think you experience any issues, try adding the following to your configuration:
 
-```
-{
-  makeAbsoluteExternalsRelative: true,
-  preserveEntrySignatures: 'strict',
-  output: {
-    esModule: true,
-    generatedCode: {
-      reservedNamesAsProps: false
-    },
-    interop: 'compat',
-    systemNullSetters: false
-  }
-}
+```js
+({
+	makeAbsoluteExternalsRelative: true,
+	preserveEntrySignatures: 'strict',
+	output: {
+		esModule: true,
+		generatedCode: {
+			reservedNamesAsProps: false
+		},
+		interop: 'compat',
+		systemNullSetters: false
+	}
+});
 ```
 
 In general, though, the new default values are our recommended settings. Refer to the documentation of each setting for more details.
@@ -71,7 +71,7 @@ By default, when generating `cjs` output, Rollup will now keep any external, i.e
 
 ## Changes to the Plugin API
 
-Then general output generation flow has been reworked, see the [Output Generation Hooks](../plugin-development/index.md#output-generation-hooks) graph for the new plugin hook order. Probably the most obvious change is that the [`banner`](../plugin-development/index.md#banner)[`/footer`](../plugin-development/index.md#footer)[`/intro`](../plugin-development/index.md#intro)[`/outro`](../plugin-development/index.md#outro) are no longer invoked once at the beginning but rather per chunk. On the other hand, [`augmentChunkHash`](../plugin-development/index.md#augmentchunkhash) is now evaluated after [`renderChunk`](../plugin-development/index.md#renderchunk) when the hash is created.
+Then general output generation flow has been reworked, see the [Output Generation Hooks](../plugin-development/index.md#output-generation-hooks) graph for the new plugin hook order. Probably the most obvious change is that the [`banner`](../plugin-development/index.md#banner)/[`footer`](../plugin-development/index.md#footer)/[`intro`](../plugin-development/index.md#intro)/[`outro`](../plugin-development/index.md#outro) are no longer invoked once at the beginning but rather per chunk. On the other hand, [`augmentChunkHash`](../plugin-development/index.md#augmentchunkhash) is now evaluated after [`renderChunk`](../plugin-development/index.md#renderchunk) when the hash is created.
 
 As file hashes are now based on the actual content of the file after `renderChunk`, we no longer know exact file names before hashes are generated. Instead, the logic now relies on hash placeholders of the form `!~{001}~`. That means that all file names available to the `renderChunk` hook may contain placeholders and may not correspond to the final file names. This is not a problem though if you plan on using these files names within the chunks as Rollup will replace all placeholders before [`generateBundle`](../plugin-development/index.md#generatebundle) runs.
 
