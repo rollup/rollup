@@ -76,6 +76,7 @@ import type { PureFunctions } from './utils/pureFunctions';
 import type { RenderOptions } from './utils/renderHelpers';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
+import { URL_THIS_GETMODULEINFO } from './utils/urls';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 interface ImportDescription {
@@ -331,6 +332,7 @@ export default class Module {
 			get hasModuleSideEffects() {
 				warnDeprecation(
 					'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
+					URL_THIS_GETMODULEINFO,
 					true,
 					options
 				);

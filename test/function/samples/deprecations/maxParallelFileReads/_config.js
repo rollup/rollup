@@ -6,6 +6,7 @@ module.exports = {
 	error: {
 		code: 'DEPRECATED_FEATURE',
 		message:
-			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.'
+			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
+		url: 'https://rollupjs.org/configuration-options/#maxparallelfileops'
 	}
 };

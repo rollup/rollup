@@ -18,6 +18,7 @@ import {
 	warnDeprecation
 } from './error';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
+import { URL_THIS_GETMODULEIDS } from './urls';
 
 export function getPluginContext(
 	plugin: Plugin,
@@ -79,12 +80,11 @@ export function getPluginContext(
 			function* wrappedModuleIds() {
 				// We are wrapping this in a generator to only show the message once we are actually iterating
 				warnDeprecation(
-					{
-						message: `Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
-						plugin: plugin.name
-					},
+					`Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
+					URL_THIS_GETMODULEIDS,
 					true,
-					options
+					options,
+					plugin.name
 				);
 				yield* moduleIds;
 			}

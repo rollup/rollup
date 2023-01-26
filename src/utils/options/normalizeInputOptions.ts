@@ -13,7 +13,14 @@ import { ensureArray } from '../ensureArray';
 import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
-import { URL_TREESHAKE } from '../urls';
+import {
+	URL_MAXPARALLELFILEOPS,
+	URL_OUTPUT_INLINEDYNAMICIMPORTS,
+	URL_OUTPUT_MANUALCHUNKS,
+	URL_OUTPUT_PRESERVEMODULES,
+	URL_TREESHAKE,
+	URL_TREESHAKE_MODULESIDEEFFECTS
+} from '../urls';
 import {
 	defaultOnWarn,
 	getOptionWithPreset,
@@ -151,6 +158,7 @@ const getInlineDynamicImports = (
 	if (configInlineDynamicImports) {
 		warnDeprecationWithOptions(
 			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
+			URL_OUTPUT_INLINEDYNAMICIMPORTS,
 			true,
 			warn,
 			strictDeprecations
@@ -173,6 +181,7 @@ const getManualChunks = (
 	if (configManualChunks) {
 		warnDeprecationWithOptions(
 			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
+			URL_OUTPUT_MANUALCHUNKS,
 			true,
 			warn,
 			strictDeprecations
@@ -190,6 +199,7 @@ const getmaxParallelFileOps = (
 	if (typeof maxParallelFileReads === 'number') {
 		warnDeprecationWithOptions(
 			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
+			URL_MAXPARALLELFILEOPS,
 			true,
 			warn,
 			strictDeprecations
@@ -232,6 +242,7 @@ const getPreserveModules = (
 	if (configPreserveModules) {
 		warnDeprecationWithOptions(
 			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
+			URL_OUTPUT_PRESERVEMODULES,
 			true,
 			warn,
 			strictDeprecations
@@ -290,7 +301,7 @@ const getHasModuleSideEffects = (
 		error(
 			errorInvalidOption(
 				'treeshake.moduleSideEffects',
-				URL_TREESHAKE,
+				URL_TREESHAKE_MODULESIDEEFFECTS,
 				'please use one of false, "no-external", a function or an array'
 			)
 		);

@@ -16,16 +16,20 @@ import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { isValidUrl } from '../url';
 import {
-	URL_OUTPUT_AMD,
+	URL_OUTPUT_AMD_BASEPATH,
+	URL_OUTPUT_AMD_ID,
 	URL_OUTPUT_DIR,
 	URL_OUTPUT_DYNAMICIMPORTFUNCTION,
 	URL_OUTPUT_FORMAT,
 	URL_OUTPUT_GENERATEDCODE,
+	URL_OUTPUT_GENERATEDCODE_CONSTBINDINGS,
+	URL_OUTPUT_GENERATEDCODE_SYMBOLS,
 	URL_OUTPUT_INLINEDYNAMICIMPORTS,
 	URL_OUTPUT_INTEROP,
 	URL_OUTPUT_MANUALCHUNKS,
 	URL_OUTPUT_SOURCEMAPBASEURL,
-	URL_PRESERVEENTRYSIGNATURES
+	URL_PRESERVEENTRYSIGNATURES,
+	URL_RENDERDYNAMICIMPORT
 } from '../urls';
 import {
 	generatedCodePresets,
@@ -230,6 +234,7 @@ const getPreferConst = (
 	if (configPreferConst != null) {
 		warnDeprecation(
 			`The "output.preferConst" option is deprecated. Use the "output.generatedCode.constBindings" option instead.`,
+			URL_OUTPUT_GENERATEDCODE_CONSTBINDINGS,
 			true,
 			inputOptions
 		);
@@ -266,7 +271,7 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 		return error(
 			errorInvalidOption(
 				'output.amd.id',
-				URL_OUTPUT_AMD,
+				URL_OUTPUT_AMD_ID,
 				'this option cannot be used together with "output.amd.autoId"/"output.amd.basePath"'
 			)
 		);
@@ -275,7 +280,7 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 		return error(
 			errorInvalidOption(
 				'output.amd.basePath',
-				URL_OUTPUT_AMD,
+				URL_OUTPUT_AMD_BASEPATH,
 				'this option only works with "output.amd.autoId"'
 			)
 		);
@@ -334,6 +339,7 @@ const getDynamicImportFunction = (
 	if (configDynamicImportFunction) {
 		warnDeprecation(
 			`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
+			URL_RENDERDYNAMICIMPORT,
 			true,
 			inputOptions
 		);
@@ -488,6 +494,7 @@ const getNamespaceToStringTag = (
 	if (configNamespaceToStringTag != null) {
 		warnDeprecation(
 			`The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.`,
+			URL_OUTPUT_GENERATEDCODE_SYMBOLS,
 			true,
 			inputOptions
 		);
