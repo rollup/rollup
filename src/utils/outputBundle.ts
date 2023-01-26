@@ -37,19 +37,15 @@ export const getOutputBundle = (outputBundleBase: OutputBundle): OutputBundleWit
 
 export const removeUnreferencedAssets = (outputBundle: OutputBundleWithPlaceholders) => {
 	const unreferencedAssets = new Set<string>();
-	const bundleKeys = Object.keys(outputBundle);
+	const bundleEntries = Object.values(outputBundle);
 
-	for (const bundleKey of bundleKeys) {
-		const outputAsset = outputBundle[bundleKey];
-		outputAsset.type === 'asset' &&
-			outputAsset.needsCodeReference &&
-			unreferencedAssets.add(bundleKey);
+	for (const asset of bundleEntries) {
+		asset.type === 'asset' && asset.needsCodeReference && unreferencedAssets.add(asset.fileName);
 	}
 
-	for (const bundleKey of bundleKeys) {
-		const _outputBundle = outputBundle[bundleKey];
-		if (_outputBundle.type === 'chunk') {
-			for (const referencedFile of _outputBundle.referencedFiles) {
+	for (const chunk of bundleEntries) {
+		if (chunk.type === 'chunk') {
+			for (const referencedFile of chunk.referencedFiles) {
 				unreferencedAssets.has(referencedFile) && unreferencedAssets.delete(referencedFile);
 			}
 		}

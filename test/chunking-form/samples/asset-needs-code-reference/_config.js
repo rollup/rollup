@@ -3,8 +3,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 module.exports = {
-	description: 'not emitted unreferenced assets if the needsCodeReference is true',
+	description: 'does not emit unreferenced assets if needsCodeReference is true',
 	options: {
+		output: {
+			assetFileNames: '[name][extname]'
+		},
 		plugins: [
 			{
 				resolveId(source, importer) {
@@ -24,7 +27,7 @@ module.exports = {
 					}
 				},
 				generateBundle(_, bundle) {
-					assert.deepEqual(['main.js'], Object.keys(bundle));
+					assert.deepEqual(Object.keys(bundle), ['logo2.svg', 'main.js']);
 				}
 			}
 		]

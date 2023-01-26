@@ -1,9 +1,7 @@
-import asset from './logo.svg';
+var asset2 = new URL('logo2.svg', import.meta.url).href;
 
-if (false) {
+{
 	const image = document.createElement('img');
-	image.src = asset;
+	image.src = asset2;
 	document.body.appendChild(image);
 }
-
-assert.ok(true);
