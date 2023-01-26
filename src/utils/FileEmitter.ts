@@ -293,7 +293,7 @@ export class FileEmitter {
 		const consumedAsset: ConsumedAsset = {
 			fileName: emittedAsset.fileName,
 			name: emittedAsset.name,
-			needsCodeReference: emittedAsset.needsCodeReference || false,
+			needsCodeReference: !!emittedAsset.needsCodeReference,
 			source,
 			type: 'asset'
 		};
