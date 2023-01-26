@@ -34,3 +34,24 @@ export const getOutputBundle = (outputBundleBase: OutputBundle): OutputBundleWit
 		}
 	}) as OutputBundleWithPlaceholders;
 };
+
+export const removeUnreferencedAssets = (outputBundle: OutputBundleWithPlaceholders) => {
+	const unreferencedAssets = new Set<string>();
+	const bundleEntries = Object.values(outputBundle);
+
+	for (const asset of bundleEntries) {
+		asset.type === 'asset' && asset.needsCodeReference && unreferencedAssets.add(asset.fileName);
+	}
+
+	for (const chunk of bundleEntries) {
+		if (chunk.type === 'chunk') {
+			for (const referencedFile of chunk.referencedFiles) {
+				unreferencedAssets.has(referencedFile) && unreferencedAssets.delete(referencedFile);
+			}
+		}
+	}
+
+	for (const file of unreferencedAssets) {
+		delete outputBundle[file];
+	}
+};
