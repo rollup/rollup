@@ -6,13 +6,13 @@ const {
 	readdirSync,
 	renameSync,
 	unlinkSync,
+	rmSync,
 	writeFileSync,
 	writeSync
 } = require('node:fs');
 const { basename, join } = require('node:path');
 const { platform, version } = require('node:process');
 const fixturify = require('fixturify');
-const { removeSync } = require('fs-extra');
 
 exports.wait = function wait(ms) {
 	return new Promise(fulfil => {
@@ -133,7 +133,10 @@ function runTestsInDirectory(directory, runTest) {
 		loadConfigAndRunTest(directory, runTest);
 	} else if (fileNames.length === 0) {
 		console.warn(`Removing empty test directory ${directory}`);
-		removeSync(directory);
+		rmSync(directory, {
+			force: true,
+			recursive: true
+		});
 	} else {
 		describe(basename(directory), () => {
 			for (const fileName of fileNames.filter(name => name[0] !== '.').sort()) {
@@ -147,7 +150,10 @@ function getFileNamesAndRemoveOutput(directory) {
 	try {
 		return readdirSync(directory).filter(fileName => {
 			if (fileName === '_actual') {
-				removeSync(join(directory, '_actual'));
+				rmSync(join(directory, '_actual'), {
+					force: true,
+					recursive: true
+				});
 				return false;
 			}
 			if (fileName === '_actual.js') {
