@@ -18,7 +18,7 @@ export function getExportBlock(
 	externalLiveBindings: boolean,
 	mechanism = 'return '
 ): string {
-	const { _, cnst, getDirectReturnFunction, getFunctionIntro, getPropertyAccess, n, s } = snippets;
+	const { _, getDirectReturnFunction, getFunctionIntro, getPropertyAccess, n, s } = snippets;
 	if (!namedExportsMode) {
 		return `${n}${n}${mechanism}${getSingleDefaultExport(
 			exports,
@@ -96,13 +96,10 @@ export function getExportBlock(
 						t,
 						snippets
 					)}${s}${n}}`;
-					exportBlock +=
-						cnst === 'var' && specifier.needsLiveBinding
-							? `Object.keys(${name}).forEach(${getFunctionIntro(['k'], {
-									isAsync: false,
-									name: null
-							  })}${copyPropertyIfNecessary});`
-							: `for${_}(${cnst} k in ${name})${_}${copyPropertyIfNecessary}`;
+					exportBlock += `Object.keys(${name}).forEach(${getFunctionIntro(['k'], {
+						isAsync: false,
+						name: null
+					})}${copyPropertyIfNecessary});`;
 				}
 			}
 		}

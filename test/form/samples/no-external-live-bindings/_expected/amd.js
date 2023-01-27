@@ -15,8 +15,8 @@ define(['require', 'exports', 'external1', 'external2'], (function (require, exp
 
 	exports.external1 = external1.external1;
 	exports.dynamic = dynamic;
-	for (var k in external2) {
+	Object.keys(external2).forEach(function (k) {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
-	}
+	});
 
 }));

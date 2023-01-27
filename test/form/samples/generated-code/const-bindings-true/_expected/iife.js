@@ -38,12 +38,12 @@ var bundle = (function (exports, foo$1) {
 
 	exports.default = main;
 	exports.syntheticMissing = synthetic.syntheticMissing;
-	for (const k in foo$1) {
+	Object.keys(foo$1).forEach(k => {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: () => foo$1[k]
 		});
-	}
+	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
