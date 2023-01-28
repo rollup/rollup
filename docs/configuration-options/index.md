@@ -570,11 +570,15 @@ Which language features Rollup can safely use in generated code. This will not t
 - `"es5"`: Do not use ES2015+ features like arrow functions, but do not quote reserved names used as props.
 - `"es2015"`: Use any JavaScript features up to ES2015.
 
-**output.generatedCode.arrowFunctions**<br> Type: `boolean`<br> CLI: `--generatedCode.arrowFunctions`/`--no-generatedCode.arrowFunctions`<br> Default: `false`
+#### output.generatedCode.arrowFunctions
+
+Type: `boolean`<br> CLI: `--generatedCode.arrowFunctions`/`--no-generatedCode.arrowFunctions`<br> Default: `false`
 
 Whether to use arrow functions for auto-generated code snippets. Note that in certain places like module wrappers, Rollup will keep using regular functions wrapped in parentheses as in some JavaScript engines, these will provide [noticeably better performance](https://v8.dev/blog/preparser#pife).
 
-**output.generatedCode.constBindings**<br> Type: `boolean`<br> CLI: `--generatedCode.constBindings`/`--no-generatedCode.constBindings`<br> Default: `false`
+#### output.generatedCode.constBindings
+
+Type: `boolean`<br> CLI: `--generatedCode.constBindings`/`--no-generatedCode.constBindings`<br> Default: `false`
 
 This will use `const` instead of `var` in certain places and helper functions. This will allow Rollup to generate more efficient helpers due to block scoping.
 
@@ -607,7 +611,9 @@ for (const k in external) {
 }
 ```
 
-**output.generatedCode.objectShorthand**<br> Type: `boolean`<br> CLI: `--generatedCode.objectShorthand`/`--no-generatedCode.objectShorthand`<br> Default: `false`
+#### output.generatedCode.objectShorthand
+
+Type: `boolean`<br> CLI: `--generatedCode.objectShorthand`/`--no-generatedCode.objectShorthand`<br> Default: `false`
 
 Allows the use of shorthand notation in objects when the property name matches the value.
 
@@ -639,7 +645,9 @@ System.register('bundle', [], function (exports) {
 });
 ```
 
-**output.generatedCode.preset**<br> Type: `"es5" | "es2015"`<br> CLI: `--generatedCode <value>`
+#### output.generatedCode.preset
+
+Type: `"es5" | "es2015"`<br> CLI: `--generatedCode <value>`
 
 Allows choosing one of the presets listed above while overriding some options.
 
@@ -656,7 +664,9 @@ export default {
 };
 ```
 
-**output.generatedCode.reservedNamesAsProps**<br> Type: `boolean`<br> CLI: `--generatedCode.reservedNamesAsProps`/`--no-generatedCode.reservedNamesAsProps`<br> Default: `true`
+#### output.generatedCode.reservedNamesAsProps
+
+Type: `boolean`<br> CLI: `--generatedCode.reservedNamesAsProps`/`--no-generatedCode.reservedNamesAsProps`<br> Default: `true`
 
 Determine whether reserved words like "default" can be used as prop names without using quotes. This will make the syntax of the generated code ES3 compliant. Note however that for full ES3 compliance, you may also need to polyfill some builtin functions like `Object.keys` or `Array.prototype.forEach`.
 
@@ -676,7 +686,9 @@ const foo = null;
 exports.void = foo;
 ```
 
-**output.generatedCode.symbols**<br> Type: `boolean`<br> CLI: `--generatedCode.symbols`/`--no-generatedCode.symbols`<br> Default: `false`
+#### output.generatedCode.symbols
+
+Type: `boolean`<br> CLI: `--generatedCode.symbols`/`--no-generatedCode.symbols`<br> Default: `false`
 
 Whether to allow the use of `Symbol` in auto-generated code snippets. Currently, this only controls if namespaces will have the `Symbol.toStringTag` property set to the correct value of `Module`, which means that for a namespace, `String(namespace)` logs `[object Module]`. This again is used for feature detection in certain libraries and frameworks.
 
@@ -1424,7 +1436,9 @@ Type: `{ id?: string, autoId?: boolean, basePath?: string, define?: string }`
 
 Note `id` can only be used for single-file builds, and cannot be combined with `autoId`/`basePath`.
 
-**output.amd.id**<br> Type: `string`<br> CLI: `--amd.id <amdId>`
+#### output.amd.id
+
+Type: `string`<br> CLI: `--amd.id <amdId>`
 
 An ID to use for AMD/UMD bundles:
 
@@ -1441,7 +1455,9 @@ export default {
 // -> define('my-bundle', ['dependency'], ...
 ```
 
-**output.amd.autoId**<br> Type: `boolean`<br> CLI: `--amd.autoId`
+#### output.amd.autoId
+
+Type: `boolean`<br> CLI: `--amd.autoId`
 
 Set the ID to the chunk ID (with the '.js' extension removed).
 
@@ -1459,11 +1475,13 @@ export default {
 // -> define('dynamic-chunk', ['dependency'], ...
 ```
 
-**output.amd.basePath**<br> Type: `string`<br> CLI: `--amd.basePath`
+#### output.amd.basePath
+
+Type: `string`<br> CLI: `--amd.basePath`
 
 The path that will be prepended to the auto generated ID. This is useful if the build is going to be placed inside another AMD project, and is not at the root.
 
-Only valid with `output.amd.autoId`.
+Only valid with [`output.amd.autoId`](#output-amd-autoid).
 
 ```js
 // rollup.config.js
@@ -1480,7 +1498,9 @@ export default {
 // -> define('some/where/dynamic-chunk', ['dependency'], ...
 ```
 
-**output.amd.define**<br> Type: `string`<br> CLI: `--amd.define <defineFunctionName>`
+#### output.amd.define
+
+Type: `string`<br> CLI: `--amd.define <defineFunctionName>`
 
 A function name to use instead of `define`:
 
@@ -1497,7 +1517,9 @@ export default {
 // -> def(['dependency'],...
 ```
 
-**output.amd.forceJsExtensionForImports**<br> Type: `boolean`<br> CLI: `--amd.forceJsExtensionForImports`<br> Default: `false`
+#### output.amd.forceJsExtensionForImports
+
+Type: `boolean`<br> CLI: `--amd.forceJsExtensionForImports`<br> Default: `false`
 
 Add `.js` extension for imports of generated chunks and local AMD modules:
 
@@ -1699,17 +1721,19 @@ Type: `boolean | "smallest" | "safest" | "recommended" | { annotations?: boolean
 Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. You may also choose one of three presets that will automatically be updated if new options are added:
 
 - `"smallest"` will choose option values for you to minimize output size as much as possible. This should work for most code bases as long as you do not rely on certain patterns, which are currently:
-  - getters with side effects will only be retained if the return value is used (`treeshake.propertyReadSideEffects: false`)
-  - code from imported modules will only be retained if at least one exported value is used (`treeshake.moduleSideEffects: false`)
-  - you should not bundle polyfills that rely on detecting broken builtins (`treeshake.tryCatchDeoptimization: false`)
-  - some semantic issues may be swallowed (`treeshake.unknownGlobalSideEffects: false`, `treeshake.correctVarValueBeforeDeclaration: false`)
+  - getters with side effects will only be retained if the return value is used ([`treeshake.propertyReadSideEffects: false`](#treeshake-propertyreadsideeffects))
+  - code from imported modules will only be retained if at least one exported value is used ([`treeshake.moduleSideEffects: false`](#treeshake-modulesideeffects))
+  - you should not bundle polyfills that rely on detecting broken builtins ([`treeshake.tryCatchDeoptimization: false`](#treeshake-trycatchdeoptimization))
+  - some semantic issues may be swallowed ([`treeshake.unknownGlobalSideEffects: false`](#treeshake-unknownglobalsideeffects), [`treeshake.correctVarValueBeforeDeclaration: false`](#treeshake-correctvarvaluebeforedeclaration))
 - `"recommended"` should work well for most usage patterns. Some semantic issues may be swallowed, though (`treeshake.unknownGlobalSideEffects: false`, `treeshake.correctVarValueBeforeDeclaration: false`)
 - `"safest"` tries to be as spec compliant as possible while still providing some basic tree-shaking capabilities.
 - `true` is equivalent to not specifying the option and will always choose the default value (see below).
 
 If you discover a bug caused by the tree-shaking algorithm, please file an issue! Setting this option to an object implies tree-shaking is enabled and grants the following additional options:
 
-**treeshake.annotations**<br> Type: `boolean`<br> CLI: `--treeshake.annotations`/`--no-treeshake.annotations`<br> Default: `true`
+#### treeshake.annotations
+
+Type: `boolean`<br> CLI: `--treeshake.annotations`/`--no-treeshake.annotations`<br> Default: `true`
 
 If `false`, ignore hints from pure annotations, i.e. comments containing `@__PURE__` or `#__PURE__`, when determining side effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely removed unless this option is set to `false`, in which case it will remain unchanged.
 
@@ -1725,7 +1749,9 @@ class Impure {
 /*@__PURE__*/ new Impure();
 ```
 
-**treeshake.correctVarValueBeforeDeclaration**<br> Type: `boolean`<br> CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br> Default: `false`
+#### treeshake.correctVarValueBeforeDeclaration
+
+Type: `boolean`<br> CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br> Default: `false`
 
 In some edge cases if a variable is accessed before its declaration assignment and is not reassigned, then Rollup may incorrectly assume that variable is constant throughout the program, as in the example below. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`. Choosing `true` will make sure Rollup does not make any assumptions about the value of variables declared with `var`. Note though that this can have a noticeable negative impact on tree-shaking results.
 
@@ -1752,7 +1778,9 @@ logBeforeDeclaration = true;
 logIfEnabled(); // needs to be retained as it displays a log
 ```
 
-**treeshake.manualPureFunctions**<br> Type: `string[]`<br> CLI: `--treeshake.manualPureFunctions <names>`
+#### treeshake.manualPureFunctions
+
+Type: `string[]`<br> CLI: `--treeshake.manualPureFunctions <names>`
 
 Allows to manually define a list of function names that should always be considered "pure", i.e. they have no side effects like changing global state etc. when called. The check is performed solely by name.
 
@@ -1783,7 +1811,9 @@ styled()(); // removed
 styled().div(); // removed
 ```
 
-**treeshake.moduleSideEffects**<br> Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br> CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external`<br> Default: `true`
+#### treeshake.moduleSideEffects
+
+Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br> CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external`<br> Default: `true`
 
 If `false`, assume modules and external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
 
@@ -1867,7 +1897,9 @@ console.log(foo);
 
 Note that despite the name, this option does not "add" side effects to modules that do not have side effects. If it is important that e.g. an empty module is "included" in the bundle because you need this for dependency tracking, the plugin interface allows you to designate modules as being excluded from tree-shaking via the [`resolveId`](../plugin-development/index.md#resolveid), [`load`](../plugin-development/index.md#load) or [`transform`](../plugin-development/index.md#transform) hook.
 
-**treeshake.preset**<br> Type: `"smallest" | "safest" | "recommended"`<br> CLI: `--treeshake <value>`<br>
+#### treeshake.preset
+
+Type: `"smallest" | "safest" | "recommended"`<br> CLI: `--treeshake <value>`<br>
 
 Allows choosing one of the presets listed above while overriding some options.
 
@@ -1881,7 +1913,9 @@ export default {
 };
 ```
 
-**treeshake.propertyReadSideEffects**<br> Type: `boolean | 'always'`<br> CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br> Default: `true`
+#### treeshake.propertyReadSideEffects
+
+Type: `boolean | 'always'`<br> CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br> Default: `true`
 
 If `true`, retain unused property reads that Rollup can determine to have side effects. This includes accessing properties of `null` or `undefined` or triggering explicit getters via property access. Note that this does not cover destructuring assignment or getters on objects passed as function parameters.
 
@@ -1901,7 +1935,9 @@ const result = foo.bar;
 const illegalAccess = foo.quux.tooDeep;
 ```
 
-**treeshake.tryCatchDeoptimization**<br> Type: `boolean`<br> CLI: `--treeshake.tryCatchDeoptimization`/`--no-treeshake.tryCatchDeoptimization`<br> Default: `true`
+#### treeshake.tryCatchDeoptimization
+
+Type: `boolean`<br> CLI: `--treeshake.tryCatchDeoptimization`/`--no-treeshake.tryCatchDeoptimization`<br> Default: `true`
 
 By default, Rollup assumes that many builtin globals of the runtime behave according to the latest specs when tree-shaking and do not throw unexpected errors. In order to support e.g. feature detection workflows that rely on those errors being thrown, Rollup will by default deactivate tree-shaking inside try-statements. If a function parameter is called from within a try-statement, this parameter will be deoptimized as well. Set `treeshake.tryCatchDeoptimization` to `false` if you do not need this feature and want to have tree-shaking inside try-statements.
 
@@ -1937,7 +1973,9 @@ test(() => {
 test(otherFn);
 ```
 
-**treeshake.unknownGlobalSideEffects**<br> Type: `boolean`<br> CLI: `--treeshake.unknownGlobalSideEffects`/`--no-treeshake.unknownGlobalSideEffects`<br> Default: `true`
+#### treeshake.unknownGlobalSideEffects
+
+Type: `boolean`<br> CLI: `--treeshake.unknownGlobalSideEffects`/`--no-treeshake.unknownGlobalSideEffects`<br> Default: `true`
 
 Since accessing a non-existing global variable will throw an error, Rollup does by default retain any accesses to non-builtin global variables. Set this option to `false` to avoid this check. This is probably safe for most code-bases.
 
@@ -1955,7 +1993,7 @@ const element = angular.element;
 const element = angular.element;
 ```
 
-In the example, the last line is always retained as accessing the `element` property could also throw an error if `angular` is e.g. `null`. To avoid this check, set `treeshake.propertyReadSideEffects` to `false` as well.
+In the example, the last line is always retained as accessing the `element` property could also throw an error if `angular` is e.g. `null`. To avoid this check, set [`treeshake.propertyReadSideEffects`](#treeshake-propertyreadsideeffects) to `false` as well.
 
 ## Experimental options
 
@@ -2101,13 +2139,13 @@ This will rename the dynamic import function to the chosen name when outputting 
 
 ### output.preferConst
 
-_Use the [`output.generatedCode.constBindings`](#output-generatedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
+_Use the [`output.generatedCode.constBindings`](#output-generatedcode-constbindings) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
 
 Generate `const` declarations for exports rather than `var` declarations.
 
 ### output.namespaceToStringTag
 
-_Use [`output.generatedCode.symbols`](#output-generatedcode) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
+_Use [`output.generatedCode.symbols`](#output-generatedcode-symbols) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
 
 Whether to add spec compliant `.toString()` tags to namespace objects. If this option is set,
 

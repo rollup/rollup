@@ -3,6 +3,7 @@ import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './
 import { EMPTY_ARRAY } from './utils/blank';
 import { errorUnusedExternalImports, warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
+import { URL_THIS_GETMODULEINFO } from './utils/urls';
 
 export default class ExternalModule {
 	readonly dynamicImporters: string[] = [];
@@ -44,6 +45,7 @@ export default class ExternalModule {
 			get hasModuleSideEffects() {
 				warnDeprecation(
 					'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
+					URL_THIS_GETMODULEINFO,
 					true,
 					options
 				);

@@ -21,6 +21,7 @@ module.exports = {
 			'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
 		plugin: 'test',
 		pluginCode: 'DEPRECATED_FEATURE',
+		url: 'https://rollupjs.org/plugin-development/#this-getmoduleinfo',
 		watchFiles: [path.join(__dirname, 'main.js')]
 	}
 };

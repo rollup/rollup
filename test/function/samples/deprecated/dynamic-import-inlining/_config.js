@@ -16,7 +16,8 @@ module.exports = {
 		{
 			code: 'DEPRECATED_FEATURE',
 			message:
-				'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.'
+				'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
+			url: 'https://rollupjs.org/configuration-options/#output-inlinedynamicimports'
 		}
 	]
 };

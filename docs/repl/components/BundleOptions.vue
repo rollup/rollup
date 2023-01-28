@@ -69,11 +69,7 @@ import SelectOption from './SelectOption.vue';
 const optionsStore = useOptions();
 
 const getLinkForOption = (option: string) =>
-	`/configuration-options/#${option
-		.toLowerCase()
-		.split('.')
-		.slice(0, option.startsWith('output.') ? 2 : 1)
-		.join('-')}`;
+	`/configuration-options/#${option.toLowerCase().split('.').join('-')}`;
 </script>
 
 <style scoped>
