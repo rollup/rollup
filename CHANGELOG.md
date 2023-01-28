@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.12.0
+
+_2023-01-28_
+
+### Features
+
+- Change generated external namespace reexport helper code for CommonJS to better work with NodeJS named export detection (#4826)
+
+### Pull Requests
+
+- [#4825](https://github.com/rollup/rollup/pull/4825): Add and use anchors for nested options (@lukastaegert)
+- [#4826](https://github.com/rollup/rollup/pull/4826): Use old namespace reexport code pattern for better Node support (@lukastaegert)
+
 ## 3.11.0
 
 _2023-01-26_
@@ -10,7 +23,7 @@ _2023-01-26_
 
 ### Bug Fixes
 
-- Adapt documentation references in Rollup to new website (#4805)
+- Adapt documentation references in Rollup to new website (#4807)
 
 ### Pull Requests
 
