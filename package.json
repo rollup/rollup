@@ -30,6 +30,7 @@
     "prepublishOnly": "node scripts/check-release.js",
     "release": "node scripts/release.js",
     "test": "npm run build && npm run test:all",
+    "test:update-snapshots": "node scripts/update-snapshots.js",
     "test:cjs": "npm run build:cjs && npm run test:only",
     "test:quick": "mocha -b test/test.js",
     "test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,cyan,red 'npm:test:only' 'npm:test:browser' 'npm:test:typescript' 'npm:test:leak' 'npm:test:package' 'npm:test:options'",
