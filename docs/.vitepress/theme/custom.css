@@ -4,9 +4,7 @@
   --vp-c-brand-lighter: hsl(0 85% 80%);
   --vp-c-brand-dark: hsl(0 85% 57%);
   --vp-c-brand-darker: hsl(0 85% 40%);
-}
 
-:root {
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(
     120deg,
@@ -16,7 +14,6 @@
     hsl(0 100% 60%) 65%,
     hsl(358 58% 47%)
   );
-
   --vp-home-hero-image-background-image: linear-gradient(
     -45deg,
     hsl(0 100% 60% / 80%),
@@ -38,4 +35,8 @@
   :root {
     --vp-home-hero-image-filter: blur(72px);
   }
+}
+
+.vp-doc h4 {
+  margin: 8px 0 -16px;
 }

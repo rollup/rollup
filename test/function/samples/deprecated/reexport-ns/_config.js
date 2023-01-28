@@ -18,7 +18,8 @@ module.exports = {
 		{
 			code: 'DEPRECATED_FEATURE',
 			message:
-				'The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.'
+				'The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.',
+			url: 'https://rollupjs.org/configuration-options/#output-generatedcode-symbols'
 		}
 	]
 };

@@ -65,8 +65,9 @@ const theme = EditorView.baseTheme({
 	'.cm-gutters': {
 		backgroundColor: 'var(--vp-code-block-bg)',
 		border: 'none',
-		borderRadius: '8px',
+		borderBottomLeftRadius: '8px',
 		borderRight: '1px solid var(--vp-c-divider-dark-2)',
+		borderTopLeftRadius: '8px',
 		color: 'var(--vp-code-line-number-color)',
 		minWidth: '32px'
 	},

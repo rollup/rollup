@@ -4,7 +4,6 @@ import type {
 	InternalModuleFormat,
 	NormalizedInputOptions,
 	RollupLog,
-	RollupWarning,
 	WarningHandler
 } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
@@ -277,10 +276,16 @@ export function errorCyclicCrossChunkReexport(
 	};
 }
 
-export function errorDeprecation(deprecation: string | RollupWarning): RollupLog {
+export function errorDeprecation(
+	deprecation: string,
+	urlSnippet: string,
+	plugin?: string
+): RollupLog {
 	return {
 		code: DEPRECATED_FEATURE,
-		...(typeof deprecation === 'string' ? { message: deprecation } : deprecation)
+		message: deprecation,
+		url: getRollupUrl(urlSnippet),
+		...(plugin ? { plugin } : {})
 	};
 }
 
@@ -932,26 +937,32 @@ export function errorFailedValidation(message: string): RollupLog {
 }
 
 export function warnDeprecation(
-	deprecation: string | RollupWarning,
+	deprecation: string,
+	urlSnippet: string,
 	activeDeprecation: boolean,
-	options: NormalizedInputOptions
+	options: NormalizedInputOptions,
+	plugin?: string
 ): void {
 	warnDeprecationWithOptions(
 		deprecation,
+		urlSnippet,
 		activeDeprecation,
 		options.onwarn,
-		options.strictDeprecations
+		options.strictDeprecations,
+		plugin
 	);
 }
 
 export function warnDeprecationWithOptions(
-	deprecation: string | RollupWarning,
+	deprecation: string,
+	urlSnippet: string,
 	activeDeprecation: boolean,
 	warn: WarningHandler,
-	strictDeprecations: boolean
+	strictDeprecations: boolean,
+	plugin?: string
 ): void {
 	if (activeDeprecation || strictDeprecations) {
-		const warning = errorDeprecation(deprecation);
+		const warning = errorDeprecation(deprecation, urlSnippet, plugin);
 		if (strictDeprecations) {
 			return error(warning);
 		}
