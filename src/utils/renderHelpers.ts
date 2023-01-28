@@ -15,6 +15,7 @@ export interface RenderOptions {
 	namespaceToStringTag: boolean;
 	pluginDriver: PluginDriver;
 	snippets: GenerateCodeSnippets;
+	useOriginalName?: (variable: Variable) => boolean;
 }
 
 export interface NodeRenderOptions {

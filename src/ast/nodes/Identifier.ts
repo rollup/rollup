@@ -244,11 +244,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	render(
 		code: MagicString,
-		{ snippets: { getPropertyAccess } }: RenderOptions,
+		{ snippets: { getPropertyAccess }, useOriginalName }: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent, isShorthandProperty }: NodeRenderOptions = BLANK
 	): void {
 		if (this.variable) {
-			const name = this.variable.getName(getPropertyAccess);
+			const name = this.variable.getName(getPropertyAccess, useOriginalName);
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {

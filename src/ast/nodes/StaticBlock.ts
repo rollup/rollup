@@ -3,7 +3,10 @@ import { type RenderOptions, renderStatementList } from '../../utils/renderHelpe
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
+import type Variable from '../variables/Variable';
+import type ClassBody from './ClassBody';
 import type * as NodeType from './NodeType';
+import type ClassNode from './shared/ClassNode';
 import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
 
 export default class StaticBlock extends StatementBase {
@@ -30,6 +33,12 @@ export default class StaticBlock extends StatementBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
+		const classVariable = ((this.parent as ClassBody).parent as ClassNode).id!.variable;
+		const useOriginalName = (variable: Variable) => variable === classVariable;
+		options = {
+			...options,
+			useOriginalName
+		};
 		if (this.body.length > 0) {
 			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {

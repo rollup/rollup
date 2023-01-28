@@ -1,5 +1,6 @@
 import type ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
@@ -42,8 +43,11 @@ export default class Variable extends ExpressionEntity {
 		return this.renderBaseName || this.renderName || this.name;
 	}
 
-	getName(getPropertyAccess: (name: string) => string): string {
-		const name = this.renderName || this.name;
+	getName(
+		getPropertyAccess: (name: string) => string,
+		useOriginalName?: RenderOptions['useOriginalName']
+	): string {
+		const name = useOriginalName?.(this) ? this.name : this.renderName || this.name;
 		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
 	}
 
