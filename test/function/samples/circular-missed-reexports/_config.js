@@ -38,6 +38,14 @@ module.exports = {
                     ^
 2: export { exists };`,
 			url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module'
+		},
+		{
+			code: 'CYCLIC_CROSS_CHUNK_REEXPORT',
+			exporter: ID_DEP1,
+			id: ID_MAIN,
+			message:
+				'Export "exists4" of module "dep1.js" was reexported through module "dep2.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in "main.js" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.',
+			reexporter: ID_DEP2
 		}
 	]
 };
