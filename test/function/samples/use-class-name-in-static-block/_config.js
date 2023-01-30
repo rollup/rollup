@@ -1,4 +1,4 @@
 module.exports = {
-	description: 'use class name instead of renderName in static block',
+	description: 'use the original class name instead of renderName in class body',
 	minNodeVersion: 16
 };
