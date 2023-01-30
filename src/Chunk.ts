@@ -1378,12 +1378,13 @@ export default class Chunk {
 			const chunk = this.chunkByModule.get(variable.module as Module);
 			if (chunk !== this) {
 				this.imports.add(variable);
-				if (
-					!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules) &&
-					variable.module instanceof Module
-				) {
-					chunk!.exports.add(variable);
+				if (variable.module instanceof Module) {
 					this.checkCircularDependencyImport(variable, module);
+					// When preserving modules, we do not create namespace objects but directly
+					// use the actual namespaces, which would be broken by this logic.
+					if (!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+						chunk!.exports.add(variable);
+					}
 				}
 			}
 		}
