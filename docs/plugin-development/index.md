@@ -712,6 +712,14 @@ type ChunkInfo = {
 
 You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](#this-emitfile) plugin context function.
 
+::: danger
+
+Do not directly add assets to the bundle. This circumvents internal mechanisms that Rollup has for tracking assets. It can also cause your asset to miss vital properties that Rollup relies on internally and your plugin can break with minor Rollup releases.
+
+Instead, always use [`this.emitFile`](#this-emitfile).
+
+:::
+
 ### `intro`
 
 **Type:** `string | ((chunk: ChunkInfo) => string)`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk.<br> **Next Hook:** [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](#renderchunk) for the first chunk.
