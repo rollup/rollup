@@ -70,6 +70,7 @@
     "@codemirror/state": "^6.2.0",
     "@codemirror/view": "^6.7.3",
     "@jridgewell/sourcemap-codec": "^1.4.14",
+    "@mermaid-js/mermaid-cli": "^9.3.0",
     "@rollup/plugin-alias": "^4.0.2",
     "@rollup/plugin-buble": "^1.0.1",
     "@rollup/plugin-commonjs": "^24.0.0",
