@@ -117,6 +117,7 @@
     "lint-staged": "^13.1.0",
     "locate-character": "^2.0.5",
     "magic-string": "^0.29.0",
+    "mermaid": "^9.3.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "pinia": "^2.0.29",
@@ -138,7 +139,6 @@
     "tslib": "^2.4.1",
     "typescript": "^4.9.4",
     "vitepress": "^1.0.0-alpha.44",
-    "vitepress-plugin-mermaid": "^2.0.8",
     "vue": "^3.2.45",
     "weak-napi": "^2.0.2",
     "yargs-parser": "^21.1.1"
