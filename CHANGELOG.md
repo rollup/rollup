@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 3.12.1
+
+_2023-02-01_
+
+### Bug Fixes
+
+- Handle self-references in class static blocks and construtors when the class is renamed (#4827)
+- Improve warnings when creating circular chunks taht reexport variables (#4829)
+
+### Pull Requests
+
+- [#4827](https://github.com/rollup/rollup/pull/4827): fix: use the original class name in the class body (@TrickyPi)
+- [#4829](https://github.com/rollup/rollup/pull/4829): Improve and fix cross-chunk-reexport warning (@lukastaegert)
+- [#4830](https://github.com/rollup/rollup/pull/4830): Add Algolia doc search (@lukastaegert)
+- [#4831](https://github.com/rollup/rollup/pull/4831): Add warning not to add assets directly to the bundle (@lukastaegert)
+
 ## 3.12.0
 
 _2023-01-28_
