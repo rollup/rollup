@@ -1164,7 +1164,8 @@ export default class Chunk {
 			indent,
 			namespaceToStringTag,
 			pluginDriver,
-			snippets
+			snippets,
+			useOriginalName: null
 		};
 
 		let usesTopLevelAwait = false;
