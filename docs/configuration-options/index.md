@@ -1037,7 +1037,7 @@ function getTranslatedStrings(currentLanguage) {
 }
 ```
 
-If a lot of such components are used together, this will result in a lot of dynamic imports of very small chunks: Even though we known that all language files of the same language that are imported by the same chunk will always be used together, Rollup does not have this information.
+If a lot of such components are used together, this will result in a lot of dynamic imports of very small chunks: Even though we know that all language files of the same language that are imported by the same chunk will always be used together, Rollup does not have this information.
 
 The following code will merge all files of the same language that are only used by a single entry point:
 
