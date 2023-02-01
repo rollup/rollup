@@ -9,6 +9,7 @@ import type { Example, Module } from './types';
 const examplesDirectory = new URL('repl/examples', import.meta.url);
 
 export default defineConfig({
+	optimizeDeps: { include: ['moment-mini', '@braintree/sanitize-url'] },
 	plugins: [
 		{
 			apply: 'serve',
@@ -95,7 +96,7 @@ export default defineConfig({
 				}
 			}
 		},
-		alias(moduleAliases) as any
+		alias(moduleAliases)
 	]
 });
 
