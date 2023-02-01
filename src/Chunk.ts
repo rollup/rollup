@@ -710,13 +710,15 @@ export default class Chunk {
 				alternativeReexportModule = importingModule.alternativeReexportModules.get(variable);
 				if (alternativeReexportModule) {
 					const exportingChunk = this.chunkByModule.get(alternativeReexportModule);
-					if (exportingChunk && exportingChunk !== exportChunk) {
+					if (exportingChunk !== exportChunk) {
 						this.inputOptions.onwarn(
 							errorCyclicCrossChunkReexport(
-								variableModule.getExportNamesByVariable().get(variable)![0],
+								// Namespaces do not have an export name
+								variableModule.getExportNamesByVariable().get(variable)?.[0] || '*',
 								variableModule.id,
 								alternativeReexportModule.id,
-								importingModule.id
+								importingModule.id,
+								this.outputOptions.preserveModules
 							)
 						);
 					}
@@ -732,8 +734,10 @@ export default class Chunk {
 		for (const exportedVariable of map.keys()) {
 			const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
 			const importedVariable = isSynthetic ? exportedVariable.getBaseVariable() : exportedVariable;
+			this.checkCircularDependencyImport(importedVariable, module);
+			// When preserving modules, we do not create namespace objects but directly
+			// use the actual namespaces, which would be broken by this logic.
 			if (!(importedVariable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
-				this.checkCircularDependencyImport(importedVariable, module);
 				const exportingModule = importedVariable.module;
 				if (exportingModule instanceof Module) {
 					const chunk = this.chunkByModule.get(exportingModule);
@@ -1164,7 +1168,8 @@ export default class Chunk {
 			indent,
 			namespaceToStringTag,
 			pluginDriver,
-			snippets
+			snippets,
+			useOriginalName: null
 		};
 
 		let usesTopLevelAwait = false;
@@ -1373,12 +1378,13 @@ export default class Chunk {
 			const chunk = this.chunkByModule.get(variable.module as Module);
 			if (chunk !== this) {
 				this.imports.add(variable);
-				if (
-					!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules) &&
-					variable.module instanceof Module
-				) {
-					chunk!.exports.add(variable);
+				if (variable.module instanceof Module) {
 					this.checkCircularDependencyImport(variable, module);
+					// When preserving modules, we do not create namespace objects but directly
+					// use the actual namespaces, which would be broken by this logic.
+					if (!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+						chunk!.exports.add(variable);
+					}
 				}
 			}
 		}

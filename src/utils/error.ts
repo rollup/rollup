@@ -259,7 +259,8 @@ export function errorCyclicCrossChunkReexport(
 	exportName: string,
 	exporter: string,
 	reexporter: string,
-	importer: string
+	importer: string,
+	preserveModules: boolean
 ): RollupLog {
 	return {
 		code: CYCLIC_CROSS_CHUNK_REEXPORT,
@@ -271,7 +272,9 @@ export function errorCyclicCrossChunkReexport(
 			reexporter
 		)}" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in "${relativeId(
 			importer
-		)}" to point directly to the exporting module or do not use "preserveModules" to ensure these modules end up in the same chunk.`,
+		)}" to point directly to the exporting module or ${
+			preserveModules ? 'do not use "output.preserveModules"' : 'reconfigure "output.manualChunks"'
+		} to ensure these modules end up in the same chunk.`,
 		reexporter
 	};
 }
