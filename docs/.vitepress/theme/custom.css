@@ -48,3 +48,7 @@
 .vp-doc tr.transposed-table:nth-child(2n+1) {
   background: var(--vp-c-bg-soft);
 }
+
+.vp-doc tr.transposed-table > th {
+  white-space:nowrap;
+}
