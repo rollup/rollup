@@ -390,6 +390,13 @@ function mergeChunks(
 
 		for (const targetChunk of concatLazy(targetChunks)) {
 			if (mergedChunk === targetChunk) continue;
+			// Possible improvement:
+			// For dynamic entries depending on a pure chunk, it is safe to merge that
+			// chunk into the chunk doing the dynamic import (i.e. into an "already
+			// loaded chunk") even if it is not pure.
+			// One way of handling this could be to add all "already loaded entries"
+			// of the dynamic importers into the signature as well. That could also
+			// change the way we do code-splitting for already loaded entries.
 			const distance = pure
 				? getSignatureDistance(signature, targetChunk.signature, !targetChunk.pure)
 				: getSignatureDistance(targetChunk.signature, signature, true);

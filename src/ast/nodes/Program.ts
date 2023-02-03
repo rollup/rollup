@@ -19,8 +19,6 @@ export default class Program extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		// We are caching here to later more efficiently identify side-effect-free modules
-		if (this.hasCachedEffect) return true;
 		for (const node of this.body) {
 			if (node.hasEffects(context)) {
 				return (this.hasCachedEffect = true);
