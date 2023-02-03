@@ -23,6 +23,12 @@
     hsl(358 58% 47% / 80%)
   );
   --vp-home-hero-image-filter: blur(40px);
+
+  --vp-c-gray-light-3: #d1d1d1;
+  --vp-c-gray-light-5: #f2f2f2;
+  --vp-c-gray-dark-2: #484848;
+  --vp-c-gray-dark-3: #3a3a3a;
+
 }
 
 @media (min-width: 640px) {

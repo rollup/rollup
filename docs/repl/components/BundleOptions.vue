@@ -81,7 +81,7 @@ const getLinkForOption = (option: string) =>
 	--bg-inactive: var(--vp-c-gray-light-3);
 	--bg-active: var(--vp-c-bg);
 	--bg-default: var(--vp-c-gray-light-5);
-	border: 1px solid var(--vp-c-divider-light);
+	border: 1px solid var(--vp-c-divider);
 	line-height: 2rem;
 	background-color: var(--bg-default);
 	border-radius: 8px;
@@ -90,7 +90,6 @@ const getLinkForOption = (option: string) =>
 .dark .options {
 	--bg-inactive: var(--vp-c-gray-dark-3);
 	--bg-default: var(--vp-c-bg);
-	background-color: var(--bg-default);
 }
 
 h3 {
