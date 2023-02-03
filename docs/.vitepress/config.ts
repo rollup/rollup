@@ -1,6 +1,11 @@
+import alias from '@rollup/plugin-alias';
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
+import { moduleAliases } from '../../build-plugins/aliases';
+import { resolutions } from '../../build-plugins/replace-browser-modules';
 import '../declarations.d';
+import { examplesPlugin } from './create-examples';
+import { transposeTables } from './transpose-tables';
 import { buildEnd, callback, transformPageData } from './verify-anchors';
 
 export default withMermaid(
@@ -25,6 +30,9 @@ export default withMermaid(
 			anchor: {
 				callback,
 				level: 2
+			},
+			config(md) {
+				transposeTables(md);
 			},
 			linkify: false,
 			toc: {
@@ -117,6 +125,41 @@ export default withMermaid(
 			socialLinks: [{ icon: 'github', link: 'https://github.com/rollup/rollup' }]
 		},
 		title: 'Rollup',
-		transformPageData
+		transformPageData,
+		vite: {
+			optimizeDeps: { include: ['moment-mini', '@braintree/sanitize-url'] },
+			plugins: [
+				{
+					apply: 'serve',
+					enforce: 'pre',
+					name: 'replace-browser-modules',
+					resolveId(source, importer) {
+						if (importer && source.startsWith('/@fs')) {
+							const resolved = source.slice(4);
+							if (resolutions[resolved]) {
+								return resolutions[resolved];
+							}
+						}
+					},
+					transformIndexHtml(html) {
+						// Unfortunately, picomatch sneaks as a dedendency into the dev bundle.
+						// This fixes an error.
+						return html.replace('</head>', '<script>window.process={}</script></head>');
+					}
+				},
+				{
+					apply: 'build',
+					enforce: 'pre',
+					name: 'replace-local-rollup',
+					resolveId(source) {
+						if (source.includes('/browser-entry')) {
+							return false;
+						}
+					}
+				},
+				examplesPlugin(),
+				alias(moduleAliases)
+			]
+		}
 	})
 );
