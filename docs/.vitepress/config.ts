@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 import '../declarations.d';
+import { transposeTables } from './transpose-tables';
 import { buildEnd, callback, transformPageData } from './verify-anchors';
 
 export default withMermaid(
@@ -25,6 +26,9 @@ export default withMermaid(
 			anchor: {
 				callback,
 				level: 2
+			},
+			config(md) {
+				transposeTables(md);
 			},
 			linkify: false,
 			toc: {
