@@ -41,8 +41,8 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import type { ChainElement } from './shared/Node';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
+import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;

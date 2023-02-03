@@ -13,7 +13,6 @@
 </template>
 
 <script setup lang="ts">
-import type { OutputChunk } from 'rollup';
 import { computed } from 'vue';
 import type { Module } from '../../types';
 import { useRollupOutput } from '../stores/rollupOutput';
@@ -25,7 +24,7 @@ import RollupVersion from './RollupVersion.vue';
 const rollupOutputStore = useRollupOutput();
 const chunkModules = computed<Module[]>(() =>
 	rollupOutputStore.output.output.map(chunk => ({
-		code: chunk.code || chunk.source,
+		code: 'code' in chunk ? chunk.code : String(chunk.source),
 		isEntry: false,
 		name: chunk.fileName
 	}))

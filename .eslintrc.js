@@ -18,6 +18,7 @@ module.exports = {
 		'dist',
 		'perf',
 		'tmp',
+		'coverage',
 		'_tmp',
 		'cache',
 		'/test/*/samples/**/*.*',

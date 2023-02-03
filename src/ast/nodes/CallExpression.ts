@@ -21,8 +21,8 @@ import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import type { ChainElement } from './shared/Node';
-import { type ExpressionNode, INCLUDE_PARAMETERS, type IncludeChildren } from './shared/Node';
+import { INCLUDE_PARAMETERS } from './shared/Node';
+import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
 
 export default class CallExpression
 	extends CallExpressionBase
