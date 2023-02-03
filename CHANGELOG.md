@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.13.0
+
+_2023-02-03_
+
+### Features
+
+- Prevent chunk cycles when using `experimentalMinChunkSize` (#4723)
+
+### Pull Requests
+
+- [#4723](https://github.com/rollup/rollup/pull/4723): Improve minChunkSize algorithm (@lukastaegert)
+- [#4833](https://github.com/rollup/rollup/pull/4833): docs: Fix typo (@mturoci)
+- [#4835](https://github.com/rollup/rollup/pull/4835): Tables in docs (@lukastaegert)
+
 ## 3.12.1
 
 _2023-02-01_
