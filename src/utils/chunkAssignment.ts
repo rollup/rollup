@@ -1,4 +1,3 @@
-import prettyBytes from 'pretty-bytes';
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getNewSet, getOrCreate } from './getOrCreate';
@@ -272,67 +271,30 @@ function getOptimizedChunks(
 ) {
 	timeStart('optimize chunks', 3);
 	const chunkPartition = getPartitionedChunks(chunkModulesBySignature, minChunkSize);
-	console.log(`Created ${
-		chunkPartition.big.pure.size +
-		chunkPartition.big.sideEffect.size +
-		chunkPartition.small.pure.size +
-		chunkPartition.small.sideEffect.size
-	} chunks
------ pure  side effects
-small ${`${chunkPartition.small.pure.size}`.padEnd(5, ' ')} ${chunkPartition.small.sideEffect.size}
-  big ${`${chunkPartition.big.pure.size}`.padEnd(5, ' ')} ${chunkPartition.big.sideEffect.size}
-Unoptimized chunks contain ${getNumberOfCycles(chunkPartition)} cycles.
-`);
-
 	if (chunkPartition.small.sideEffect.size > 0) {
-		console.log(
-			`Trying to find merge targets for ${
-				chunkPartition.small.sideEffect.size
-			} chunks smaller than ${prettyBytes(minChunkSize)} with side effects...`
-		);
 		mergeChunks(
 			chunkPartition.small.sideEffect,
 			[chunkPartition.small.pure, chunkPartition.big.pure],
 			minChunkSize,
 			chunkPartition
 		);
-		console.log(
-			`${chunkPartition.small.sideEffect.size} chunks smaller than ${prettyBytes(
-				minChunkSize
-			)} with side effects remaining.\nGenerated chunks contain ${getNumberOfCycles(
-				chunkPartition
-			)} cycles.\n`
-		);
 	}
 
 	if (chunkPartition.small.pure.size > 0) {
-		console.log(
-			`Trying to find merge targets for ${
-				chunkPartition.small.pure.size
-			} pure chunks smaller than ${prettyBytes(minChunkSize)}...`
-		);
 		mergeChunks(
 			chunkPartition.small.pure,
 			[chunkPartition.small.pure, chunkPartition.big.sideEffect, chunkPartition.big.pure],
 			minChunkSize,
 			chunkPartition
 		);
-
-		console.log(
-			`${chunkPartition.small.pure.size} pure chunks smaller than ${prettyBytes(
-				minChunkSize
-			)} remaining.\nGenerated chunks contain ${getNumberOfCycles(chunkPartition)} cycles.\n`
-		);
 	}
 	timeEnd('optimize chunks', 3);
-	const result = [
+	return [
 		...chunkPartition.small.sideEffect,
 		...chunkPartition.small.pure,
 		...chunkPartition.big.sideEffect,
 		...chunkPartition.big.pure
 	];
-	console.log(`${result.length} chunks remaining.`);
-	return result;
 }
 
 const CHAR_DEPENDENT = 'X';
@@ -385,39 +347,6 @@ function getPartitionedChunks(
 		big: { pure: new Set(bigPureChunks), sideEffect: new Set(bigSideEffectChunks) },
 		small: { pure: new Set(smallPureChunks), sideEffect: new Set(smallSideEffectChunks) }
 	};
-}
-
-function getNumberOfCycles(partition: ChunkPartition) {
-	const parents = new Set<ChunkDescription>();
-	const analysedChunks = new Set<ChunkDescription>();
-	let cycles = 0;
-
-	const analyseChunk = (chunk: ChunkDescription) => {
-		for (const dependency of chunk.dependencies) {
-			if (parents.has(dependency)) {
-				if (!analysedChunks.has(dependency)) {
-					cycles++;
-				}
-				continue;
-			}
-			parents.add(dependency);
-			analyseChunk(dependency);
-		}
-		analysedChunks.add(chunk);
-	};
-
-	for (const chunk of [
-		...partition.big.pure,
-		...partition.big.sideEffect,
-		...partition.small.pure,
-		...partition.small.sideEffect
-	]) {
-		if (!parents.has(chunk)) {
-			parents.add(chunk);
-			analyseChunk(chunk);
-		}
-	}
-	return cycles;
 }
 
 function sortChunksAndAddDependencies(
