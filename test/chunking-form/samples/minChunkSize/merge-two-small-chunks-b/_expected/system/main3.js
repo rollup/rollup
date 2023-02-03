@@ -5,7 +5,7 @@ System.register(['./generated-big.js', './generated-small2.js'], (function () {
 		setters: [function (module) {
 			big = module.b;
 		}, function (module) {
-			small2 = module.a;
+			small2 = module.s;
 		}],
 		execute: (function () {
 

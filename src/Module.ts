@@ -4,7 +4,7 @@ import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
-import { createHasEffectsContext, createInclusionContext } from './ast/ExecutionContext';
+import { createInclusionContext } from './ast/ExecutionContext';
 import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -662,10 +662,7 @@ export default class Module {
 	}
 
 	hasEffects(): boolean {
-		return (
-			this.info.moduleSideEffects === 'no-treeshake' ||
-			(this.ast!.included && this.ast!.hasEffects(createHasEffectsContext()))
-		);
+		return this.info.moduleSideEffects === 'no-treeshake' || this.ast!.hasCachedEffects();
 	}
 
 	include(): void {
