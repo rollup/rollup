@@ -11,7 +11,8 @@ type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 export function getChunkAssignments(
 	entries: readonly Module[],
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
-	minChunkSize: number
+	minChunkSize: number,
+	deepChunkOptimization: boolean
 ): ChunkDefinitions {
 	const chunkDefinitions: ChunkDefinitions = [];
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
@@ -41,7 +42,8 @@ export function getChunkAssignments(
 				assignedEntriesByModule,
 				modulesInManualChunks,
 				staticEntries,
-				dynamicallyDependentEntriesByDynamicEntry
+				dynamicallyDependentEntriesByDynamicEntry,
+				deepChunkOptimization
 			);
 		}
 	}
@@ -141,7 +143,8 @@ function assignEntryToStaticDependencies(
 	assignedEntriesByModule: DependentModuleMap,
 	modulesInManualChunks: ReadonlySet<Module>,
 	staticEntries: ReadonlySet<Module>,
-	dynamicallyDependentEntriesByDynamicEntry: ReadonlyDependentModuleMap
+	dynamicallyDependentEntriesByDynamicEntry: ReadonlyDependentModuleMap,
+	deepChunkOptimization: boolean
 ) {
 	const dynamicallyDependentEntries = dynamicallyDependentEntriesByDynamicEntry.get(entry);
 	const modulesToHandle = new Set([entry]);
@@ -153,7 +156,8 @@ function assignEntryToStaticDependencies(
 				dynamicallyDependentEntries,
 				dependentEntriesByModule.get(module)!,
 				staticEntries,
-				dynamicallyDependentEntriesByDynamicEntry
+				dynamicallyDependentEntriesByDynamicEntry,
+				deepChunkOptimization
 			)
 		) {
 			continue;
@@ -178,9 +182,13 @@ function isModuleAlreadyLoaded(
 	dynamicallyDependentEntries: ReadonlySet<Module>,
 	containedIn: ReadonlySet<Module>,
 	staticEntries: ReadonlySet<Module>,
-	dynamicallyDependentEntriesByDynamicEntry: ReadonlyDependentModuleMap
+	dynamicallyDependentEntriesByDynamicEntry: ReadonlyDependentModuleMap,
+	deepChunkOptimization: boolean
 ): boolean {
-	if (dynamicallyDependentEntries.size > MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES) {
+	if (
+		!deepChunkOptimization &&
+		dynamicallyDependentEntries.size > MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES
+	) {
 		return false;
 	}
 	const entriesToCheck = new Set(dynamicallyDependentEntries);
@@ -190,7 +198,10 @@ function isModuleAlreadyLoaded(
 				return false;
 			}
 			const dynamicallyDependentEntries = dynamicallyDependentEntriesByDynamicEntry.get(entry)!;
-			if (dynamicallyDependentEntries.size > MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES) {
+			if (
+				!deepChunkOptimization &&
+				dynamicallyDependentEntries.size > MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES
+			) {
 				return false;
 			}
 			for (const dependentEntry of dynamicallyDependentEntries) {
