@@ -2269,6 +2269,16 @@ These options reflect new features that have not yet been fully finalized. Avail
 
 Determines after how many runs cached assets that are no longer used by plugins should be removed.
 
+### experimentalDeepDynamicChunkOptimization
+
+|  |  |
+| --: | :-- |
+| Type: | `number` |
+| CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
+| Default: | `false` |
+
+Currently, chunk generation may create too many chunks if many dynamic imports are used because the algorithm stops optimization when certain thresholds are surpassed to avoid performance issues. Set this flag to `true` to create potentially fewer chunks at the cost increased run time.
+
 ### experimentalMinChunkSize
 
 |          |                                     |
