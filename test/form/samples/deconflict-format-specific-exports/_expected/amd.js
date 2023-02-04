@@ -24,6 +24,4 @@ define(['exports'], (function (exports) { 'use strict';
 	nestedConflict();
 	nestedNoConflict();
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

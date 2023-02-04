@@ -1,19 +1,23 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import {
+	BROKEN_FLOW_NONE,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
-import Identifier from './Identifier';
+import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import {
-	ExpressionNode,
-	GenericEsTreeNode,
-	IncludeChildren,
+	type ExpressionNode,
+	type GenericEsTreeNode,
+	type IncludeChildren,
 	StatementBase,
-	StatementNode
+	type StatementNode
 } from './shared/Node';
 
 const unset = Symbol('unset');
@@ -37,20 +41,20 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			return true;
 		}
 		const testValue = this.getTestValue();
-		if (testValue === UnknownValue) {
+		if (typeof testValue === 'symbol') {
 			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
+			// eslint-disable-next-line unicorn/consistent-destructuring
 			const consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 			if (this.alternate === null) return false;
 			if (this.alternate.hasEffects(context)) return true;
 			context.brokenFlow =
+				// eslint-disable-next-line unicorn/consistent-destructuring
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 			return false;
 		}
-		return testValue
-			? this.consequent.hasEffects(context)
-			: this.alternate !== null && this.alternate.hasEffects(context);
+		return testValue ? this.consequent.hasEffects(context) : !!this.alternate?.hasEffects(context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -59,7 +63,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			this.includeRecursively(includeChildrenRecursively, context);
 		} else {
 			const testValue = this.getTestValue();
-			if (testValue === UnknownValue) {
+			if (typeof testValue === 'symbol') {
 				this.includeUnknownTest(context);
 			} else {
 				this.includeKnownTest(context, testValue);
@@ -99,14 +103,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		} else {
 			code.remove(this.start, this.consequent.start);
 		}
-		if (this.consequent.included && (noTreeshake || testValue === UnknownValue || testValue)) {
+		if (this.consequent.included && (noTreeshake || typeof testValue === 'symbol' || testValue)) {
 			this.consequent.render(code, options);
 		} else {
 			code.overwrite(this.consequent.start, this.consequent.end, includesIfElse ? ';' : '');
 			hoistedDeclarations.push(...this.consequentScope.hoistedDeclarations);
 		}
 		if (this.alternate) {
-			if (this.alternate.included && (noTreeshake || testValue === UnknownValue || !testValue)) {
+			if (this.alternate.included && (noTreeshake || typeof testValue === 'symbol' || !testValue)) {
 				if (includesIfElse) {
 					if (code.original.charCodeAt(this.alternate.start - 1) === 101) {
 						code.prependLeft(this.alternate.start, ' ');
@@ -127,6 +131,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.renderHoistedDeclarations(hoistedDeclarations, code, getPropertyAccess);
 	}
 
+	protected applyDeoptimizations() {}
+
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
 			return (this.testValue = this.test.getLiteralValueAtPath(
@@ -143,10 +149,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			this.test.include(context, false);
 		}
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.includeAsSingleStatement(context, false);
+			this.consequent.include(context, false, { asSingleStatement: true });
 		}
-		if (this.alternate !== null && !testValue && this.alternate.shouldBeIncluded(context)) {
-			this.alternate.includeAsSingleStatement(context, false);
+		if (!testValue && this.alternate?.shouldBeIncluded(context)) {
+			this.alternate.include(context, false, { asSingleStatement: true });
 		}
 	}
 
@@ -156,9 +162,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	) {
 		this.test.include(context, includeChildrenRecursively);
 		this.consequent.include(context, includeChildrenRecursively);
-		if (this.alternate !== null) {
-			this.alternate.include(context, includeChildrenRecursively);
-		}
+		this.alternate?.include(context, includeChildrenRecursively);
 	}
 
 	private includeUnknownTest(context: InclusionContext) {
@@ -166,23 +170,25 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		const { brokenFlow } = context;
 		let consequentBrokenFlow = BROKEN_FLOW_NONE;
 		if (this.consequent.shouldBeIncluded(context)) {
-			this.consequent.includeAsSingleStatement(context, false);
+			this.consequent.include(context, false, { asSingleStatement: true });
+			// eslint-disable-next-line unicorn/consistent-destructuring
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
-		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
-			this.alternate.includeAsSingleStatement(context, false);
+		if (this.alternate?.shouldBeIncluded(context)) {
+			this.alternate.include(context, false, { asSingleStatement: true });
 			context.brokenFlow =
+				// eslint-disable-next-line unicorn/consistent-destructuring
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 		}
 	}
 
 	private renderHoistedDeclarations(
-		hoistedDeclarations: Identifier[],
+		hoistedDeclarations: readonly Identifier[],
 		code: MagicString,
 		getPropertyAccess: (name: string) => string
 	) {
-		const hoistedVars = [
+		const hoistedVariables = [
 			...new Set(
 				hoistedDeclarations.map(identifier => {
 					const variable = identifier.variable!;
@@ -192,10 +198,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		]
 			.filter(Boolean)
 			.join(', ');
-		if (hoistedVars) {
+		if (hoistedVariables) {
 			const parentType = this.parent.type;
 			const needsBraces = parentType !== NodeType.Program && parentType !== NodeType.BlockStatement;
-			code.prependRight(this.start, `${needsBraces ? '{ ' : ''}var ${hoistedVars}; `);
+			code.prependRight(this.start, `${needsBraces ? '{ ' : ''}var ${hoistedVariables}; `);
 			if (needsBraces) {
 				code.appendLeft(this.end, ` }`);
 			}

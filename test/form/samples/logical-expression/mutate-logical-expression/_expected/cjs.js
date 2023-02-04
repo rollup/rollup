@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var aExp = {};
 var logicalAExp = aExp || {};
 logicalAExp.bar = 1;

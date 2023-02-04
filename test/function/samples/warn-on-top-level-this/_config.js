@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
@@ -20,11 +20,11 @@ module.exports = {
 				3: this.foo = 'bar';
 				   ^
 			`,
-			url: `https://rollupjs.org/guide/en/#error-this-is-undefined`
+			url: `https://rollupjs.org/troubleshooting/#error-this-is-undefined`
 		}
 	],
-	runtimeError: err => {
-		assertIncludes(err.message, 'Cannot set propert');
-		assertIncludes(err.message, "'foo'");
+	runtimeError: error => {
+		assertIncludes(error.message, 'Cannot set propert');
+		assertIncludes(error.message, "'foo'");
 	}
 };

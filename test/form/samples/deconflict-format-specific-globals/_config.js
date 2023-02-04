@@ -4,7 +4,9 @@ module.exports = {
 		external: 'external',
 		output: {
 			globals: { external: 'external' },
-			name: 'bundle'
+			name: 'bundle',
+			interop: 'auto',
+			dynamicImportInCjs: false
 		}
 	}
 };

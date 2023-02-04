@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const buble = require('buble');
 const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');

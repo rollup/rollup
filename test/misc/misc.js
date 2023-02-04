@@ -1,6 +1,6 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const rollup = require('../../dist/rollup');
-const { assertIncludes, loader } = require('../utils.js');
+const { loader } = require('../utils.js');
 
 describe('misc', () => {
 	it('avoids modification of options or their properties', () => {
@@ -49,7 +49,7 @@ describe('misc', () => {
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,
-					`Creating a browser bundle that depends on Node.js built-in modules ("util"). You might need to include https://github.com/snowpackjs/rollup-plugin-polyfill-node`
+					`Creating a browser bundle that depends on Node.js built-in modules ("util"). You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node`
 				);
 			});
 	});
@@ -80,10 +80,11 @@ describe('misc', () => {
 				assert.deepEqual(warnings, [
 					{
 						code: 'MISSING_GLOBAL_NAME',
-						guess: '_',
+						id: 'lodash',
 						message:
-							"No name was provided for external module 'lodash' in output.globals – guessing '_'",
-						source: 'lodash'
+							'No name was provided for external module "lodash" in "output.globals" – guessing "_".',
+						names: ['_'],
+						url: 'https://rollupjs.org/configuration-options/#output-globals'
 					}
 				]);
 			});
@@ -110,7 +111,7 @@ describe('misc', () => {
 				assert.equal(warnings.length, 0);
 				assert.deepEqual(
 					output.map(({ fileName }) => fileName),
-					['main1.js', 'main2.js', 'dep-f8bec8a7.js', 'dyndep-b0a9ee12.js']
+					['main1.js', 'main2.js', 'dep-9394ae8f.js', 'dyndep-d5d54b59.js']
 				);
 			});
 	});
@@ -121,8 +122,8 @@ describe('misc', () => {
 			plugins: [loader({ x: `console.log( 42 );` }), null, false, undefined]
 		}));
 
-	it('handles different import paths for different outputs', () => {
-		return rollup
+	it('handles different import paths for different outputs', () =>
+		rollup
 			.rollup({
 				input: 'x',
 				external: ['the-answer'],
@@ -150,8 +151,7 @@ describe('misc', () => {
 							assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 2')
 						)
 				])
-			);
-	});
+			));
 
 	it('allows passing the same object to `rollup` and `generate`', () => {
 		const options = {
@@ -221,38 +221,41 @@ console.log(x);
 			input: {
 				'base/main': 'main.js',
 				'base/main/feature': 'feature.js',
-				'base/main/feature/sub': 'subfeature.js'
+				'base/main/feature/sub': 'subfeature.js',
+				'base/main/feature/sub/sub': 'subsubfeature.js'
 			},
 			plugins: [
 				loader({
 					'main.js': 'export function fn () { return "main"; } console.log(fn());',
 					'feature.js': 'import { fn } from "main.js"; console.log(fn() + " feature");',
-					'subfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subfeature");'
+					'subfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subfeature");',
+					'subsubfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subsubfeature");'
 				})
 			]
 		});
 		const {
-			output: [main, feature, subfeature]
+			output: [main, feature, subfeature, subsubfeature]
 		} = await bundle.generate({
 			entryFileNames: `[name]`,
 			chunkFileNames: `[name]`,
 			format: 'es'
 		});
 		assert.strictEqual(main.fileName, 'base/main');
-		assert.ok(main.code.startsWith('function fn'));
 		assert.strictEqual(feature.fileName, 'base/main/feature');
 		assert.ok(feature.code.startsWith("import { fn } from '../main'"));
 		assert.strictEqual(subfeature.fileName, 'base/main/feature/sub');
 		assert.ok(subfeature.code.startsWith("import { fn } from '../../main'"));
+		assert.strictEqual(subsubfeature.fileName, 'base/main/feature/sub/sub');
+		assert.ok(subsubfeature.code.startsWith("import { fn } from '../../../main'"));
 	});
 
 	it('throws the proper error on max call stack exception', async () => {
-		const count = 10000;
+		const count = 10_000;
 		let source = '';
-		for (let i = 0; i < count; i++) {
+		for (let index = 0; index < count; index++) {
 			source += `if (foo) {`;
 		}
-		for (let i = 0; i < count; i++) {
+		for (let index = 0; index < count; index++) {
 			source += '}';
 		}
 		try {
@@ -266,9 +269,23 @@ console.log(x);
 					})
 				]
 			});
-		} catch (err) {
-			assert.notDeepStrictEqual(err.message, 'Maximum call stack size exceeded');
-			assert.strictEqual(err.name, 'Error');
+		} catch (error) {
+			assert.notDeepStrictEqual(error.message, 'Maximum call stack size exceeded');
+			assert.strictEqual(error.name, 'RollupError');
 		}
+	});
+
+	it('supports rendering es after rendering iife with inlined dynamic imports', async () => {
+		const bundle = await rollup.rollup({
+			input: 'main.js',
+			plugins: [
+				loader({
+					'main.js': "import('other.js');",
+					'other.js': "export const foo = 'bar';"
+				})
+			]
+		});
+		await bundle.generate({ format: 'iife', inlineDynamicImports: true });
+		await bundle.generate({ format: 'es', exports: 'auto' });
 	});
 });

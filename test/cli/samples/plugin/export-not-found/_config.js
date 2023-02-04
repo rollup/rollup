@@ -1,13 +1,13 @@
-const path = require('path');
+const path = require('node:path');
 const { assertIncludes } = require('../../../../utils.js');
 
 module.exports = {
 	description: 'Throws when the plugin export cannot be found',
 	skipIfWindows: true,
 	command: `echo 'console.log("ignored");' | rollup -p "./my-missing-plugin"`,
-	error(err) {
+	error(error) {
 		assertIncludes(
-			err.message,
+			error.message,
 			`[!] Error: Cannot find entry for plugin "${path.join(
 				__dirname,
 				'my-missing-plugin'

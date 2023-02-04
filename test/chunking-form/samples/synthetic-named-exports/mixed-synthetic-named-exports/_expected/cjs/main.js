@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 function _mergeNamespaces(n, m) {
   m.forEach(function (e) {
     e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
@@ -23,11 +21,11 @@ const d = {
 };
 const foo = 100;
 
-var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+var ns = /*#__PURE__*/_mergeNamespaces({
   __proto__: null,
-  foo: foo,
-  'default': d
-}, [d]));
+  default: d,
+  foo: foo
+}, [d]);
 
 const stuff = 12;
 console.log(stuff);

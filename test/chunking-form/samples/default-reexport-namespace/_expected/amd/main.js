@@ -12,6 +12,4 @@ define(['exports', './one'], (function (exports, one) { 'use strict';
 
 	exports.Component_one = __component__;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

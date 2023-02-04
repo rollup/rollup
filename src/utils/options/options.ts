@@ -1,12 +1,18 @@
-import {
+import type {
 	InputOptions,
+	InputPluginOption,
 	NormalizedGeneratedCodeOptions,
 	NormalizedOutputOptions,
 	NormalizedTreeshakingOptions,
 	OutputOptions,
+	OutputPlugin,
+	OutputPluginOption,
+	Plugin,
 	WarningHandler
 } from '../../rollup/types';
-import { errInvalidOption, error } from '../error';
+import { asyncFlatten } from '../asyncFlatten';
+import { EMPTY_ARRAY } from '../blank';
+import { error, errorInvalidOption, errorUnknownOption } from '../error';
 import { printQuotedStringList } from '../printStringList';
 
 export interface GenericConfigObject {
@@ -16,8 +22,8 @@ export interface GenericConfigObject {
 export const defaultOnWarn: WarningHandler = warning => console.warn(warning.message || warning);
 
 export function warnUnknownOptions(
-	passedOptions: GenericConfigObject,
-	validOptions: string[],
+	passedOptions: object,
+	validOptions: readonly string[],
 	optionType: string,
 	warn: WarningHandler,
 	ignoredKeys = /$./
@@ -27,14 +33,7 @@ export function warnUnknownOptions(
 		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
 	);
 	if (unknownOptions.length > 0) {
-		warn({
-			code: 'UNKNOWN_OPTION',
-			message: `Unknown ${optionType}: ${unknownOptions.join(', ')}. Allowed options: ${[
-				...validOptionSet
-			]
-				.sort()
-				.join(', ')}`
-		});
+		warn(errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
 	}
 }
 
@@ -48,6 +47,7 @@ export const treeshakePresets: {
 	recommended: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: false,
+		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
@@ -56,6 +56,7 @@ export const treeshakePresets: {
 	safest: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: true,
+		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
@@ -64,6 +65,7 @@ export const treeshakePresets: {
 	smallest: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: false,
+		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => false,
 		propertyReadSideEffects: false,
 		tryCatchDeoptimization: false,
@@ -80,13 +82,15 @@ export const generatedCodePresets: {
 		arrowFunctions: true,
 		constBindings: true,
 		objectShorthand: true,
-		reservedNamesAsProps: true
+		reservedNamesAsProps: true,
+		symbols: true
 	},
 	es5: {
 		arrowFunctions: false,
 		constBindings: false,
 		objectShorthand: false,
-		reservedNamesAsProps: true
+		reservedNamesAsProps: true,
+		symbols: false
 	}
 };
 
@@ -94,10 +98,14 @@ type ObjectOptionWithPresets =
 	| Partial<NormalizedTreeshakingOptions>
 	| Partial<NormalizedGeneratedCodeOptions>;
 
+export const objectifyOption = (value: unknown): Record<string, unknown> =>
+	value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+
 export const objectifyOptionWithPresets =
 	<T extends ObjectOptionWithPresets>(
 		presets: Record<string, T>,
 		optionName: string,
+		urlSnippet: string,
 		additionalValues: string
 	) =>
 	(value: unknown): Record<string, unknown> => {
@@ -107,9 +115,9 @@ export const objectifyOptionWithPresets =
 				return preset;
 			}
 			error(
-				errInvalidOption(
+				errorInvalidOption(
 					optionName,
-					getHashFromObjectOption(optionName),
+					urlSnippet,
 					`valid values are ${additionalValues}${printQuotedStringList(
 						Object.keys(presets)
 					)}. You can also supply an object for more fine-grained control`,
@@ -117,13 +125,14 @@ export const objectifyOptionWithPresets =
 				)
 			);
 		}
-		return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+		return objectifyOption(value);
 	};
 
 export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 	value: unknown,
 	presets: Record<string, T>,
 	optionName: string,
+	urlSnippet: string,
 	additionalValues: string
 ): Record<string, unknown> => {
 	const presetName: string | undefined = (value as any)?.preset;
@@ -133,17 +142,20 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 			return { ...preset, ...(value as Record<string, unknown>) };
 		} else {
 			error(
-				errInvalidOption(
+				errorInvalidOption(
 					`${optionName}.preset`,
-					getHashFromObjectOption(optionName),
+					urlSnippet,
 					`valid values are ${printQuotedStringList(Object.keys(presets))}`,
 					presetName
 				)
 			);
 		}
 	}
-	return objectifyOptionWithPresets(presets, optionName, additionalValues)(value);
+	return objectifyOptionWithPresets(presets, optionName, urlSnippet, additionalValues)(value);
 };
 
-const getHashFromObjectOption = (optionName: string): string =>
-	optionName.split('.').join('').toLowerCase();
+export const normalizePluginOption: {
+	(plugins: InputPluginOption): Promise<Plugin[]>;
+	(plugins: OutputPluginOption): Promise<OutputPlugin[]>;
+	(plugins: unknown): Promise<any[]>;
+} = async (plugins: any) => (await asyncFlatten([plugins])).filter(Boolean);

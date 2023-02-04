@@ -1,11 +1,16 @@
-import MagicString from 'magic-string';
-import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import Scope from '../scopes/Scope';
-import * as NodeType from './NodeType';
-import VariableDeclaration from './VariableDeclaration';
-import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
+import type Scope from '../scopes/Scope';
+import type * as NodeType from './NodeType';
+import type VariableDeclaration from './VariableDeclaration';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class ForStatement extends StatementBase {
 	declare body: StatementNode;
@@ -20,38 +25,36 @@ export default class ForStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (
-			(this.init && this.init.hasEffects(context)) ||
-			(this.test && this.test.hasEffects(context)) ||
-			(this.update && this.update.hasEffects(context))
+			this.init?.hasEffects(context) ||
+			this.test?.hasEffects(context) ||
+			this.update?.hasEffects(context)
 		)
 			return true;
-		const {
-			brokenFlow,
-			ignore: { breaks, continues }
-		} = context;
-		context.ignore.breaks = true;
-		context.ignore.continues = true;
+		const { brokenFlow, ignore } = context;
+		const { breaks, continues } = ignore;
+		ignore.breaks = true;
+		ignore.continues = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breaks = breaks;
-		context.ignore.continues = continues;
+		ignore.breaks = breaks;
+		ignore.continues = continues;
 		context.brokenFlow = brokenFlow;
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		if (this.init) this.init.includeAsSingleStatement(context, includeChildrenRecursively);
-		if (this.test) this.test.include(context, includeChildrenRecursively);
+		this.init?.include(context, includeChildrenRecursively, { asSingleStatement: true });
+		this.test?.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		if (this.update) this.update.include(context, includeChildrenRecursively);
-		this.body.includeAsSingleStatement(context, includeChildrenRecursively);
+		this.update?.include(context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
 		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		if (this.init) this.init.render(code, options, NO_SEMICOLON);
-		if (this.test) this.test.render(code, options, NO_SEMICOLON);
-		if (this.update) this.update.render(code, options, NO_SEMICOLON);
+		this.init?.render(code, options, NO_SEMICOLON);
+		this.test?.render(code, options, NO_SEMICOLON);
+		this.update?.render(code, options, NO_SEMICOLON);
 		this.body.render(code, options);
 	}
 }

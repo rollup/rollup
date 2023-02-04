@@ -1,29 +1,34 @@
-import fs from 'fs';
-import { PluginImpl } from 'rollup';
-import license, { Dependency, Person } from 'rollup-plugin-license';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import type { PluginImpl } from 'rollup';
+import license, { type Dependency, type Person } from 'rollup-plugin-license';
 
-function generateLicenseFile(dependencies: Dependency[]) {
-	const coreLicense = fs.readFileSync('LICENSE-CORE.md');
-	const licenses = new Set();
-	const dependencyLicenseTexts = dependencies
+async function generateLicenseFile(
+	directory: string,
+	dependencies: readonly Dependency[]
+): Promise<void> {
+	const coreLicense = await readFile('LICENSE-CORE.md', 'utf8');
+	const licenses = new Set<string>();
+	const dependencyLicenseTexts = [...dependencies]
+		.filter(({ name }) => name !== '@rollup/browser')
 		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
 		.map(({ name, license, licenseText, author, maintainers, contributors, repository }) => {
 			let text = `## ${name}\n`;
 			if (license) {
 				text += `License: ${license}\n`;
 			}
-			const names = new Set();
-			if (author && author.name) {
+			const names = new Set<string>();
+			if (author?.name) {
 				names.add(author.name);
 			}
 			// TODO there is an inconsistency in the rollup-plugin-license types
-			for (const person of contributors.concat(maintainers as unknown as Person[])) {
-				if (person && person.name) {
+			for (const person of [...contributors, ...(maintainers as unknown as Person[])]) {
+				if (person?.name) {
 					names.add(person.name);
 				}
 			}
 			if (names.size > 0) {
-				text += `By: ${Array.from(names).join(', ')}\n`;
+				text += `By: ${[...names].join(', ')}\n`;
 			}
 			if (repository) {
 				text += `Repository: ${(typeof repository === 'object' && repository.url) || repository}\n`;
@@ -39,7 +44,7 @@ function generateLicenseFile(dependencies: Dependency[]) {
 						.join('\n') +
 					'\n';
 			}
-			licenses.add(license);
+			licenses.add(license!);
 			return text;
 		})
 		.join('\n---------------------------------------\n\n');
@@ -49,36 +54,38 @@ function generateLicenseFile(dependencies: Dependency[]) {
 		coreLicense +
 		`\n# Licenses of bundled dependencies\n` +
 		`The published Rollup artifact additionally contains code with the following licenses:\n` +
-		`${Array.from(licenses).join(', ')}\n\n` +
+		`${[...licenses].join(', ')}\n\n` +
 		`# Bundled dependencies:\n` +
 		dependencyLicenseTexts;
-	const existingLicenseText = fs.readFileSync('LICENSE.md', 'utf8');
+	const licenseFile = join(directory, 'LICENSE.md');
+	const existingLicenseText = await readFile(licenseFile, 'utf8');
 	if (existingLicenseText !== licenseText) {
-		fs.writeFileSync('LICENSE.md', licenseText);
+		await writeFile(licenseFile, licenseText);
 		console.warn('LICENSE.md updated. You should commit the updated file.');
 	}
 }
 
-export default function getLicenseHandler(): {
+interface LicenseHandler {
 	collectLicenses: PluginImpl;
 	writeLicense: PluginImpl;
-} {
-	const licenses = new Map();
+}
+
+export default function getLicenseHandler(directory: string): LicenseHandler {
+	const licenses = new Map<string, Dependency>();
+	function addLicenses(dependencies: readonly Dependency[]) {
+		for (const dependency of dependencies) {
+			licenses.set(dependency.name!, dependency);
+		}
+	}
 	return {
 		collectLicenses() {
-			function addLicenses(dependencies: Dependency[]) {
-				for (const dependency of dependencies) {
-					licenses.set(dependency.name, dependency);
-				}
-			}
-
 			return license({ thirdParty: addLicenses });
 		},
 		writeLicense() {
 			return {
 				name: 'write-license',
 				writeBundle() {
-					generateLicenseFile(Array.from(licenses.values()));
+					return generateLicenseFile(directory, [...licenses.values()]);
 				}
 			};
 		}

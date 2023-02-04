@@ -3,7 +3,7 @@ System.register('leaflet.terminator', ['leaflet'], (function () {
 	var L;
 	return {
 		setters: [function (module) {
-			L = module["default"];
+			L = module.default;
 		}],
 		execute: (function () {
 

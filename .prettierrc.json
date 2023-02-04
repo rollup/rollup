@@ -6,9 +6,9 @@
 	"useTabs": true,
 	"overrides": [
 		{
-			"files": "*.md",
+			"files": "**/*.md",
 			"options": {
-				"useTabs": false,
+				"printWidth": 76,
 				"tabWidth": 2,
 				"proseWrap": "never"
 			}

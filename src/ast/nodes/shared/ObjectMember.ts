@@ -1,9 +1,12 @@
-import { CallOptions } from '../../CallOptions';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext } from '../../ExecutionContext';
-import { NodeEvent } from '../../NodeEvents';
-import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { HasEffectsContext } from '../../ExecutionContext';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArgument
+} from '../../NodeInteractions';
+import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 
 export class ObjectMember extends ExpressionEntity {
 	constructor(private readonly object: ExpressionEntity, private readonly key: string) {
@@ -14,16 +17,14 @@ export class ObjectMember extends ExpressionEntity {
 		this.object.deoptimizePath([this.key, ...path]);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.object.deoptimizeThisOnEventAtPath(
-			event,
+		this.object.deoptimizeThisOnInteractionAtPath(
+			interaction,
 			[this.key, ...path],
-			thisParameter,
 			recursionTracker
 		);
 	}
@@ -38,32 +39,23 @@ export class ObjectMember extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.key, ...path],
-			callOptions,
+			interaction,
 			recursionTracker,
 			origin
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return false;
-		return this.object.hasEffectsWhenAccessedAtPath([this.key, ...path], context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.object.hasEffectsWhenAssignedAtPath([this.key, ...path], context);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.object.hasEffectsWhenCalledAtPath([this.key, ...path], callOptions, context);
+		return this.object.hasEffectsOnInteractionAtPath([this.key, ...path], interaction, context);
 	}
 }

@@ -1,18 +1,23 @@
-const { basename, resolve } = require('path');
+// since we don't run the browser tests in an actual browser, we need to make `performance`
+// globally accessible same as in the browser. this can be removed once `performance` is
+// available globally in all supported platforms. [currently global for node.js v16+].
+global.performance = require('node:perf_hooks').performance;
+
+const { basename, resolve } = require('node:path');
 const fixturify = require('fixturify');
-const { rollup } = require('../../dist/rollup.browser.js');
+const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
 
-runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (directory, config) => {
 	(config.skip ? it.skip : config.solo ? it.only : it)(
-		basename(dir) + ': ' + config.description,
+		basename(directory) + ': ' + config.description,
 		async () => {
 			let bundle;
 			try {
 				bundle = await rollup({
 					input: 'main',
 					onwarn: warning => {
-						if (!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)) {
+						if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 							throw new Error(
 								`Unexpected warnings (${warning.code}): ${warning.message}\n` +
 									'If you expect warnings, list their codes in config.expectedWarnings'
@@ -22,12 +27,12 @@ runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) 
 					strictDeprecations: true,
 					...config.options
 				});
-			} catch (err) {
+			} catch (error) {
 				if (config.error) {
-					compareError(err, config.error);
+					compareError(error, config.error);
 					return;
 				} else {
-					throw err;
+					throw error;
 				}
 			}
 			if (config.error) {
@@ -40,37 +45,37 @@ runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) 
 					format: 'es',
 					...(config.options || {}).output
 				}));
-			} catch (err) {
+			} catch (error) {
 				if (config.generateError) {
-					compareError(err, config.generateError);
+					compareError(error, config.generateError);
 					return;
 				} else {
-					throw err;
+					throw error;
 				}
 			}
 			if (config.generateError) {
 				throw new Error('Expected an error while generating output');
 			}
-			assertOutputMatches(output, dir);
+			assertOutputMatches(output, directory);
 		}
 	);
 });
 
-function assertOutputMatches(output, dir) {
+function assertOutputMatches(output, directory) {
 	const actual = {};
 	for (const file of output) {
 		const filePath = file.fileName.split('/');
 		const fileName = filePath.pop();
-		let currentDir = actual;
+		let currentDirectory = actual;
 		for (const pathElement of filePath) {
-			if (!currentDir[pathElement]) {
-				currentDir[pathElement] = {};
+			if (!currentDirectory[pathElement]) {
+				currentDirectory[pathElement] = {};
 			}
-			currentDir = currentDir[pathElement] = currentDir[pathElement] || {};
+			currentDirectory = currentDirectory[pathElement] = currentDirectory[pathElement] || {};
 		}
-		currentDir[fileName] = file.source || file.code;
+		currentDirectory[fileName] = file.source || file.code;
 	}
-	fixturify.writeSync(resolve(dir, '_actual'), actual);
-	const expected = fixturify.readSync(resolve(dir, '_expected'));
+	fixturify.writeSync(resolve(directory, '_actual'), actual);
+	const expected = fixturify.readSync(resolve(directory, '_expected'));
 	assertFilesAreEqual(actual, expected);
 }

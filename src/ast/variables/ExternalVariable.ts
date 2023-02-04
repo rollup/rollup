@@ -1,11 +1,13 @@
-import ExternalModule from '../../ExternalModule';
-import Identifier from '../nodes/Identifier';
-import { ObjectPath } from '../utils/PathTracker';
+import type ExternalModule from '../../ExternalModule';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import type Identifier from '../nodes/Identifier';
+import type { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {
-	isNamespace: boolean;
-	module: ExternalModule;
+	readonly isNamespace: boolean;
+	readonly module: ExternalModule;
 	referenced = false;
 
 	constructor(module: ExternalModule, name: string) {
@@ -21,8 +23,8 @@ export default class ExternalVariable extends Variable {
 		}
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > (this.isNamespace ? 1 : 0);
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > (this.isNamespace ? 1 : 0);
 	}
 
 	include(): void {

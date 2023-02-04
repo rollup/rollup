@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
@@ -12,14 +12,14 @@ module.exports = {
 	async test(code, map) {
 		const smc = await new SourceMapConsumer(map);
 
-		let pattern = /Object\.create\( ([\w$\d]+)\.prototype \)/;
+		let pattern = /Object\.create\( ([\w$]+)\.prototype \)/;
 		let match = pattern.exec(code);
 
 		let generatedLoc = getLocation(code, match.index + 'Object.create ( '.length);
 		let original = smc.originalPositionFor(generatedLoc);
 		assert.equal(original.name, 'Bar');
 
-		pattern = /function Foo([\w$\d]+)/;
+		pattern = /function Foo([\w$]+)/;
 		match = pattern.exec(code);
 
 		generatedLoc = getLocation(code, match.index + 'function '.length);

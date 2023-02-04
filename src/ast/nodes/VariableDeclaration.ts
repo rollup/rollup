@@ -1,28 +1,31 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
 	getCommaSeparatedNodesWithBoundaries,
-	NodeRenderOptions,
-	RenderOptions
+	type NodeRenderOptions,
+	type RenderOptions
 } from '../../utils/renderHelpers';
 import {
 	getSystemExportStatement,
 	renderSystemExportExpression
 } from '../../utils/systemJsRendering';
-import { InclusionContext } from '../ExecutionContext';
+import type { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
-import Identifier, { IdentifierWithVariable } from './Identifier';
+import type Variable from '../variables/Variable';
+import ArrayPattern from './ArrayPattern';
+import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
-import VariableDeclarator from './VariableDeclarator';
-import { IncludeChildren, NodeBase } from './shared/Node';
+import ObjectPattern from './ObjectPattern';
+import type VariableDeclarator from './VariableDeclarator';
+import type { InclusionOptions } from './shared/Expression';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
 function areAllDeclarationsIncludedAndNotExported(
-	declarations: VariableDeclarator[],
-	exportNamesByVariable: Map<Variable, string[]>
+	declarations: readonly VariableDeclarator[],
+	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 ): boolean {
 	for (const declarator of declarations) {
 		if (!declarator.id.included) return false;
@@ -38,7 +41,7 @@ function areAllDeclarationsIncludedAndNotExported(
 }
 
 export default class VariableDeclaration extends NodeBase {
-	declare declarations: VariableDeclarator[];
+	declare declarations: readonly VariableDeclarator[];
 	declare kind: 'var' | 'let' | 'const';
 	declare type: NodeType.tVariableDeclaration;
 
@@ -48,27 +51,30 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(): boolean {
+	hasEffectsOnInteractionAtPath(): boolean {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+		{ asSingleStatement }: InclusionOptions = BLANK
+	): void {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
 				declarator.include(context, includeChildrenRecursively);
-		}
-	}
-
-	includeAsSingleStatement(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
-		this.included = true;
-		for (const declarator of this.declarations) {
-			if (includeChildrenRecursively || declarator.shouldBeIncluded(context)) {
-				declarator.include(context, includeChildrenRecursively);
-				declarator.id.include(context, includeChildrenRecursively);
+			const { id, init } = declarator;
+			if (asSingleStatement) {
+				id.include(context, includeChildrenRecursively);
+			}
+			if (
+				init &&
+				id.included &&
+				!init.included &&
+				(id instanceof ObjectPattern || id instanceof ArrayPattern)
+			) {
+				init.include(context, includeChildrenRecursively);
 			}
 		}
 	}
@@ -97,9 +103,11 @@ export default class VariableDeclaration extends NodeBase {
 				code.appendLeft(this.end, ';');
 			}
 		} else {
-			this.renderReplacedDeclarations(code, options, nodeRenderOptions);
+			this.renderReplacedDeclarations(code, options);
 		}
 	}
+
+	protected applyDeoptimizations() {}
 
 	private renderDeclarationEnd(
 		code: MagicString,
@@ -107,17 +115,16 @@ export default class VariableDeclaration extends NodeBase {
 		lastSeparatorPos: number | null,
 		actualContentEnd: number,
 		renderedContentEnd: number,
-		systemPatternExports: Variable[],
-		options: RenderOptions,
-		isNoStatement: boolean | undefined
+		systemPatternExports: readonly Variable[],
+		options: RenderOptions
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		if (!isNoStatement) {
-			separatorString += ';';
-		}
-		if (lastSeparatorPos !== null) {
+		separatorString += ';';
+		if (lastSeparatorPos === null) {
+			code.appendLeft(renderedContentEnd, separatorString);
+		} else {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
 				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ ||
@@ -134,8 +141,6 @@ export default class VariableDeclaration extends NodeBase {
 				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
 				code.remove(actualContentEnd, renderedContentEnd);
 			}
-		} else {
-			code.appendLeft(renderedContentEnd, separatorString);
 		}
 		if (systemPatternExports.length > 0) {
 			code.appendLeft(
@@ -145,11 +150,7 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	private renderReplacedDeclarations(
-		code: MagicString,
-		options: RenderOptions,
-		{ isNoStatement }: NodeRenderOptions
-	): void {
+	private renderReplacedDeclarations(code: MagicString, options: RenderOptions): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
@@ -231,14 +232,13 @@ export default class VariableDeclaration extends NodeBase {
 			actualContentEnd!,
 			renderedContentEnd,
 			aggregatedSystemExports,
-			options,
-			isNoStatement
+			options
 		);
 	}
 }
 
 function gatherSystemExportsAndGetSingleExport(
-	separatedNodes: {
+	separatedNodes: readonly {
 		node: VariableDeclarator;
 	}[],
 	options: RenderOptions,

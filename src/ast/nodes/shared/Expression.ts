@@ -1,35 +1,50 @@
-import { CallOptions } from '../../CallOptions';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { WritableEntity } from '../../Entity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { NodeEvent } from '../../NodeEvents';
-import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
-import { LiteralValue } from '../Literal';
-import SpreadElement from '../SpreadElement';
-import { ExpressionNode, IncludeChildren } from './Node';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { WritableEntity } from '../../Entity';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArgument
+} from '../../NodeInteractions';
+import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
+import { UNKNOWN_PATH } from '../../utils/PathTracker';
+import type { LiteralValue } from '../Literal';
+import type SpreadElement from '../SpreadElement';
+import type { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
+export const UnknownTruthyValue = Symbol('Unknown Truthy Value');
 
-export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
+export type LiteralValueOrUnknown =
+	| LiteralValue
+	| typeof UnknownValue
+	| typeof UnknownTruthyValue
+	| typeof SymbolToStringTag;
+
+export interface InclusionOptions {
+	/**
+	 * Include the id of a declarator even if unused to ensure it is a valid statement.
+	 */
+	asSingleStatement?: boolean;
+}
 
 export class ExpressionEntity implements WritableEntity {
 	included = false;
 
 	deoptimizePath(_path: ObjectPath): void {}
 
-	deoptimizeThisOnEventAtPath(
-		_event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		{ thisArg }: NodeInteractionWithThisArgument,
 		_path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		_recursionTracker: PathTracker
 	): void {
-		thisParameter.deoptimizePath(UNKNOWN_PATH);
+		thisArg!.deoptimizePath(UNKNOWN_PATH);
 	}
 
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
 	 * for inlining or comparing values.
-	 * Otherwise it should return UnknownValue.
+	 * Otherwise, it should return UnknownValue.
 	 */
 	getLiteralValueAtPath(
 		_path: ObjectPath,
@@ -41,39 +56,47 @@ export class ExpressionEntity implements WritableEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_callOptions: CallOptions,
+		_interaction: NodeInteractionCalled,
 		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
-	): ExpressionEntity {
-		return UNKNOWN_EXPRESSION;
+	): [expression: ExpressionEntity, isPure: boolean] {
+		return UNKNOWN_RETURN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
-		return true;
-	}
-
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
-		return true;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		_path: ObjectPath,
-		_callOptions: CallOptions,
+		_interaction: NodeInteraction,
 		_context: HasEffectsContext
 	): boolean {
 		return true;
 	}
 
-	include(_context: InclusionContext, _includeChildrenRecursively: IncludeChildren): void {
+	include(
+		_context: InclusionContext,
+		_includeChildrenRecursively: IncludeChildren,
+		_options?: InclusionOptions
+	): void {
 		this.included = true;
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
+	includeCallArguments(
+		context: InclusionContext,
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
+	): void {
+		for (const argument of parameters) {
+			argument.include(context, false);
 		}
+	}
+
+	shouldBeIncluded(_context: InclusionContext): boolean {
+		return true;
 	}
 }
 
 export const UNKNOWN_EXPRESSION: ExpressionEntity =
 	new (class UnknownExpression extends ExpressionEntity {})();
+
+export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: boolean] = [
+	UNKNOWN_EXPRESSION,
+	false
+];

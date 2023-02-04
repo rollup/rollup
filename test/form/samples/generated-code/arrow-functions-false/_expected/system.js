@@ -2,22 +2,22 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 	'use strict';
 	var _starExcludes = {
 		a: 1,
-		'default': 1,
+		default: 1,
 		foo: 1
 	};
-	var b, defaultLegacy, defaultLegacy__default, externalAuto, externalDefault, externalDefaultOnly;
+	var b, defaultCompat, defaultCompat__default, externalAuto, externalDefault, externalDefaultOnly;
 	return {
 		setters: [function () {}, function (module) {
 			b = module.b;
-			defaultLegacy = module;
-			defaultLegacy__default = module["default"];
+			defaultCompat = module;
+			defaultCompat__default = module.default;
 			var setter = { foo: module.foo };
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
 			exports(setter);
 		}, function (module) {
-			externalAuto = module["default"];
+			externalAuto = module.default;
 		}, function (module) {
 			externalDefault = module;
 		}, function (module) {
@@ -48,16 +48,16 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 			Promise.resolve().then(function () { return main; }).then(console.log);
 
 			module.import('external').then(console.log);
-			console.log(defaultLegacy__default);
+			console.log(defaultCompat__default);
 			console.log(externalAuto);
 			console.log(externalDefault);
 			console.log(externalDefaultOnly);
 
-			var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+			var main = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
 				get a () { return a; },
 				foo: foo
-			}, [defaultLegacy]));
+			}, [defaultCompat]);
 
 		})
 	};

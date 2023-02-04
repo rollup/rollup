@@ -4,11 +4,11 @@ module.exports = {
 		let error;
 		try {
 			exports.max(1, 2);
-		} catch (err) {
-			error = err;
+		} catch (error_) {
+			error = error_;
 		}
 		if (!(error instanceof ReferenceError)) {
-			throw new Error('Expected a ReferenceError to be thrown.');
+			throw new TypeError('Expected a ReferenceError to be thrown.');
 		}
 	}
 };

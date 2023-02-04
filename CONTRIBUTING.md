@@ -14,7 +14,35 @@ We welcome any type of contribution, not only code. You can help with
 
 ## Your First Contribution
 
-Working on your first Pull Request? You can learn how from this _free_ series, [How to Contribute to an Open Source Project on GitHub](https://egghead.io/series/how-to-contribute-to-an-open-source-project-on-github).
+Working on your first Pull Request? You can learn how from this _free_ course, [How to Contribute to an Open Source Project on GitHub](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github).
+
+### How to run one test on your local machine
+
+With `npm run test` you can run all tests together.
+
+To save time for quick iterations, you can add `solo:true` to the `_config.js` file of any given test to run just this one test. To further speed up rebuilds, note that most tests just need the CommonJS build of Rollup.
+
+For those tests, it is enough to run
+
+```shell
+npm run build:cjs
+npm run test:quick
+
+```
+
+Note that this does not run the browser tests and a few CLI tests will fail.
+
+### Developing with the website
+
+Running
+
+```shell
+npm run dev
+```
+
+will start the website locally in development mode via Vite. This will give you a live preview of the documentation. It will also verify that the documentation does not contain any dead links.
+
+A special feature of the website is that the REPL at `http://localhost:5173/repl/` is directly using the browser build of your local copy of Rollup created via Vite. It even supports full hot module replacement, which means that when you change anything within Rollup, the REPL will automatically rebundle the current code using your latest changes. This can come in very handy when working on a bug or tree-shaking improvement to allow extremely fast iterations.
 
 ## Submitting code
 
@@ -38,7 +66,7 @@ If you require technical assistance, [Stackoverflow](https://stackoverflow.com/q
 
 ### Contributors
 
-Thank you to all the people who have already contributed to rollup! <a href="graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
+Thank you to all the people who have already contributed to rollup! <a href="https://github.com/rollup/rollup/graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
 
 ### Backers
 

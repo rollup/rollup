@@ -1,36 +1,34 @@
-const assert = require('assert');
-const path = require('path');
-const sander = require('sander');
-const rollup = require('../../dist/rollup');
+const assert = require('node:assert');
+const { existsSync, readFileSync } = require('node:fs');
+const { basename, resolve } = require('node:path');
+const { rollup } = require('../../dist/rollup');
 const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
-runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config) => {
-	const isSingleFormatTest = sander.existsSync(dir + '/_expected.js');
+runTestSuiteWithSamples('form', resolve(__dirname, 'samples'), (directory, config) => {
+	const isSingleFormatTest = existsSync(directory + '/_expected.js');
 	const itOrDescribe = isSingleFormatTest ? it : describe;
 	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
-		path.basename(dir) + ': ' + config.description,
+		basename(directory) + ': ' + config.description,
 		() => {
 			let bundle;
 			const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
 				const warnings = [];
 				if (config.before) config.before();
 				try {
-					process.chdir(dir);
+					process.chdir(directory);
 					bundle =
 						bundle ||
-						(await rollup.rollup({
-							input: dir + '/main.js',
+						(await rollup({
+							input: directory + '/main.js',
 							onwarn: warning => {
-								if (
-									!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
-								) {
+								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 									warnings.push(warning);
 								}
 							},
 							strictDeprecations: true,
-							...(config.options || {})
+							...config.options
 						}));
 					await generateAndTestBundle(
 						bundle,
@@ -39,7 +37,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 							file: inputFile,
 							format: defaultFormat,
 							validate: true,
-							...((config.options || {}).output || {})
+							...(config.options || {}).output
 						},
 						bundleFile,
 						config
@@ -61,51 +59,50 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 			};
 
 			if (isSingleFormatTest) {
-				return runRollupTest(dir + '/_actual.js', dir + '/_expected.js', 'es');
+				return runRollupTest(directory + '/_actual.js', directory + '/_expected.js', 'es');
 			}
 
-			(config.formats || FORMATS).forEach(format =>
+			for (const format of config.formats || FORMATS)
 				it('generates ' + format, () =>
 					runRollupTest(
-						dir + '/_actual/' + format + '.js',
-						dir + '/_expected/' + format + '.js',
+						directory + '/_actual/' + format + '.js',
+						directory + '/_expected/' + format + '.js',
 						format
 					)
-				)
-			);
+				);
 		}
 	);
 });
 
 async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
 	await bundle.write(outputOptions);
-	const actualCode = normaliseOutput(sander.readFileSync(outputOptions.file));
+	const actualCode = normaliseOutput(readFileSync(outputOptions.file, 'utf8'));
 	let expectedCode;
 	let actualMap;
 	let expectedMap;
 
 	try {
-		expectedCode = normaliseOutput(sander.readFileSync(expectedFile));
-	} catch (err) {
+		expectedCode = normaliseOutput(readFileSync(expectedFile, 'utf8'));
+	} catch {
 		expectedCode = 'missing file';
 	}
 
 	try {
-		actualMap = JSON.parse(sander.readFileSync(outputOptions.file + '.map').toString());
+		actualMap = JSON.parse(readFileSync(outputOptions.file + '.map', 'utf8'));
 		actualMap.sourcesContent = actualMap.sourcesContent
 			? actualMap.sourcesContent.map(normaliseOutput)
 			: null;
-	} catch (err) {
-		assert.strictEqual(err.code, 'ENOENT');
+	} catch (error) {
+		assert.strictEqual(error.code, 'ENOENT');
 	}
 
 	try {
-		expectedMap = JSON.parse(sander.readFileSync(expectedFile + '.map').toString());
+		expectedMap = JSON.parse(readFileSync(expectedFile + '.map', 'utf8'));
 		expectedMap.sourcesContent = actualMap.sourcesContent
 			? expectedMap.sourcesContent.map(normaliseOutput)
 			: null;
-	} catch (err) {
-		assert.equal(err.code, 'ENOENT');
+	} catch (error) {
+		assert.equal(error.code, 'ENOENT');
 	}
 
 	if (show) {

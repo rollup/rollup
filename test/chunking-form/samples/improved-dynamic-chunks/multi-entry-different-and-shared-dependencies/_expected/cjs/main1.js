@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var fromMain1AndDynamic = require('./generated-from-main-1-and-dynamic.js');
 var fromMain1And2 = require('./generated-from-main-1-and-2.js');
 

@@ -1,10 +1,10 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkDependencies } from '../Chunk';
-import { NormalizedOutputOptions } from '../rollup/types';
-import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import type { Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependency } from '../Chunk';
+import type { NormalizedOutputOptions } from '../rollup/types';
+import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 export default function cjs(
 	magicString: MagicStringBundle,
@@ -12,6 +12,7 @@ export default function cjs(
 		accessedGlobals,
 		dependencies,
 		exports,
+		hasDefaultExport,
 		hasExports,
 		indent: t,
 		intro,
@@ -30,16 +31,15 @@ export default function cjs(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, n } = snippets;
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
-		isEntryFacade && esModule,
+		isEntryFacade && (esModule === true || (esModule === 'if-default-prop' && hasDefaultExport)),
 		isModuleFacade && namespaceToStringTag,
-		_,
-		n
+		snippets
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers += n + n;
@@ -69,27 +69,27 @@ export default function cjs(
 		`module.exports${_}=${_}`
 	);
 
-	return magicString.append(`${exportBlock}${outro}`);
+	magicString.append(`${exportBlock}${outro}`);
 }
 
 function getImportBlock(
-	dependencies: ChunkDependencies,
+	dependencies: readonly ChunkDependency[],
 	{ _, cnst, n }: GenerateCodeSnippets,
 	compact: boolean
 ): string {
 	let importBlock = '';
 	let definingVariable = false;
-	for (const { id, name, reexports, imports } of dependencies) {
+	for (const { importPath, name, reexports, imports } of dependencies) {
 		if (!reexports && !imports) {
 			if (importBlock) {
 				importBlock += compact && !definingVariable ? ',' : `;${n}`;
 			}
 			definingVariable = false;
-			importBlock += `require('${id}')`;
+			importBlock += `require('${importPath}')`;
 		} else {
 			importBlock += compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${cnst} `;
 			definingVariable = true;
-			importBlock += `${name}${_}=${_}require('${id}')`;
+			importBlock += `${name}${_}=${_}require('${importPath}')`;
 		}
 	}
 	if (importBlock) {

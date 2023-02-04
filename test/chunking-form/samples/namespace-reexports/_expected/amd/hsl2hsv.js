@@ -9,7 +9,7 @@ define(['exports'], (function (exports) { 'use strict';
 
   var p = 5;
 
-  exports["default"] = hsl2hsv;
+  exports.default = hsl2hsv;
   exports.p = p;
 
   Object.defineProperty(exports, '__esModule', { value: true });

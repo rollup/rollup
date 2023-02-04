@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'Allows omitting the code that handles external live bindings',
@@ -6,7 +6,8 @@ module.exports = {
 		external: () => true,
 		output: {
 			externalLiveBindings: false,
-			name: 'bundle'
+			name: 'bundle',
+			dynamicImportInCjs: false
 		}
 	},
 	context: {

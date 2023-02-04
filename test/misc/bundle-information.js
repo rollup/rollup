@@ -1,10 +1,10 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 describe('The bundle object', () => {
-	it('contains information about the generated chunks', () => {
-		return rollup
+	it('contains information about the generated chunks', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -28,14 +28,14 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1-ff0de9c1.js', 'input2-28dc81ee.js', 'generated-shared-c4fdd061.js'],
+					['input1-fffbf648.js', 'input2-ee435193.js', 'generated-shared-4eca6591.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import { u as used, s as shared } from './generated-shared-c4fdd061.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
-						`import './generated-shared-c4fdd061.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport { input2 as default };\n`,
+						`import { u as used, s as shared } from './generated-shared-4eca6591.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
+						`import './generated-shared-4eca6591.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport { input2 as default };\n`,
 						`console.log("shared");const used = "used"; var shared = "stuff";\n\nexport { shared as s, used as u };\n`
 					],
 					'code'
@@ -62,14 +62,14 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.imports),
-					[['generated-shared-c4fdd061.js'], ['generated-shared-c4fdd061.js'], []],
+					[['generated-shared-4eca6591.js'], ['generated-shared-4eca6591.js'], []],
 					'imports'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.importedBindings),
 					[
-						{ 'generated-shared-c4fdd061.js': ['u', 's'] },
-						{ 'generated-shared-c4fdd061.js': [] },
+						{ 'generated-shared-4eca6591.js': ['u', 's'] },
+						{ 'generated-shared-4eca6591.js': [] },
 						{}
 					],
 					'importedBindings'
@@ -117,11 +117,10 @@ describe('The bundle object', () => {
 					],
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('contains information about external imports and reexports', () => {
-		return rollup
+	it('contains information about external imports and reexports', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				external: ['external1', 'external2', 'external3'],
@@ -207,11 +206,10 @@ describe('The bundle object', () => {
 					],
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('handles entry facades as entry points but not the facaded chunk', () => {
-		return rollup
+	it('handles entry facades as entry points but not the facaded chunk', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -251,11 +249,10 @@ describe('The bundle object', () => {
 					['input1', 'input2', null],
 					'facadeModuleId'
 				);
-			});
-	});
+			}));
 
-	it('prioritizes the proper facade name over the proper facaded chunk name', () => {
-		return rollup
+	it('prioritizes the proper facade name over the proper facaded chunk name', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -286,11 +283,10 @@ describe('The bundle object', () => {
 					['input1', 'input2', null],
 					'facadeModuleId'
 				);
-			});
-	});
+			}));
 
-	it('marks dynamic entry points but only marks them as normal entry points if they actually are', () => {
-		return rollup
+	it('marks dynamic entry points but only marks them as normal entry points if they actually are', () =>
+		rollup
 			.rollup({
 				input: ['input', 'dynamic1'],
 				plugins: [
@@ -344,11 +340,10 @@ describe('The bundle object', () => {
 					[['dynamic1.js', 'generated-dynamic2.js'], [], []],
 					'dynamicImports'
 				);
-			});
-	});
+			}));
 
-	it('handles tainted dynamic entries', () => {
-		return rollup
+	it('handles tainted dynamic entries', () =>
+		rollup
 			.rollup({
 				input: ['input1', 'input2'],
 				plugins: [
@@ -394,11 +389,10 @@ describe('The bundle object', () => {
 					[['generated-dynamic.js'], [], []],
 					'dynamicImports'
 				);
-			});
-	});
+			}));
 
-	it('removes tree-shaken dynamic imports', () => {
-		return rollup
+	it('removes tree-shaken dynamic imports', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				plugins: [
@@ -452,14 +446,12 @@ describe('The bundle object', () => {
 					],
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('adds correct flags to files when preserving modules', () => {
-		return rollup
+	it('adds correct flags to files when preserving modules', () =>
+		rollup
 			.rollup({
 				input: ['input', 'dynamic1'],
-				preserveModules: true,
 				plugins: [
 					loader({
 						input: `import {other} from "other";console.log(other);Promise.all([import('dynamic1'), import('dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));`,
@@ -474,7 +466,8 @@ describe('The bundle object', () => {
 					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
-					chunkFileNames: 'generated-[name].js'
+					chunkFileNames: 'generated-[name].js',
+					preserveModules: true
 				})
 			)
 			.then(({ output }) => {
@@ -483,8 +476,8 @@ describe('The bundle object', () => {
 					[
 						'_virtual/input.js',
 						'_virtual/dynamic1.js',
-						'_virtual/other.js',
-						'_virtual/dynamic2.js'
+						'_virtual/dynamic2.js',
+						'_virtual/other.js'
 					],
 					'fileName'
 				);
@@ -500,14 +493,14 @@ describe('The bundle object', () => {
 
 console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
-						'const other = "other";\n\nexport { other };\n',
-						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
+						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n',
+						'const other = "other";\n\nexport { other };\n'
 					],
 					'code'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.name),
-					['input', 'dynamic1', 'other', 'dynamic2'],
+					['_virtual/input', '_virtual/dynamic1', '_virtual/dynamic2', '_virtual/other'],
 					'name'
 				);
 				assert.deepEqual(
@@ -522,7 +515,7 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.exports),
-					[[], ['dynamic1'], ['other'], ['dynamic2']],
+					[[], ['dynamic1'], ['dynamic2'], ['other']],
 					'exports'
 				);
 				assert.deepEqual(
@@ -539,7 +532,7 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
-								renderedLength: 141
+								renderedLength: 151
 							}
 						},
 						{
@@ -552,15 +545,6 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 							}
 						},
 						{
-							other: {
-								code: 'const other = "other";',
-								originalLength: 28,
-								removedExports: [],
-								renderedExports: ['other'],
-								renderedLength: 22
-							}
-						},
-						{
 							dynamic2: {
 								code: 'const dynamic2 = "dynamic2";',
 								originalLength: 34,
@@ -568,25 +552,33 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 								renderedExports: ['dynamic2'],
 								renderedLength: 28
 							}
+						},
+						{
+							other: {
+								code: 'const other = "other";',
+								originalLength: 28,
+								removedExports: [],
+								renderedExports: ['other'],
+								renderedLength: 22
+							}
 						}
 					],
 					'modules'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.isDynamicEntry),
-					[false, true, false, true],
+					[false, true, true, false],
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.facadeModuleId),
-					['input', 'dynamic1', 'other', 'dynamic2'],
+					['input', 'dynamic1', 'dynamic2', 'other'],
 					'facadeModuleId'
 				);
-			});
-	});
+			}));
 
-	it('contains correct information about rendered/removedExports when directly exporting items', () => {
-		return rollup
+	it('contains correct information about rendered/removedExports when directly exporting items', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				plugins: [
@@ -636,11 +628,10 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					},
 					'modules'
 				);
-			});
-	});
+			}));
 
-	it('contains correct information about rendered/removedExports when using export declaration', () => {
-		return rollup
+	it('contains correct information about rendered/removedExports when using export declaration', () =>
+		rollup
 			.rollup({
 				input: ['input'],
 				plugins: [
@@ -690,6 +681,5 @@ console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')
 					},
 					'modules'
 				);
-			});
-	});
+			}));
 });

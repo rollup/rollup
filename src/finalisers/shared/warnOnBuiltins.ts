@@ -1,44 +1,34 @@
-import { ChunkDependencies } from '../../Chunk';
-import { RollupWarning } from '../../rollup/types';
-import { printQuotedStringList } from '../../utils/printStringList';
+import builtinModules from 'builtin-modules/static';
+import type { ChunkDependency } from '../../Chunk';
+import type { RollupWarning } from '../../rollup/types';
+import { errorMissingNodeBuiltins } from '../../utils/error';
 
-const builtins = {
-	assert: true,
-	buffer: true,
-	console: true,
-	constants: true,
-	domain: true,
-	events: true,
-	http: true,
-	https: true,
-	os: true,
-	path: true,
-	process: true,
-	punycode: true,
-	querystring: true,
-	stream: true,
-	string_decoder: true,
-	timers: true,
-	tty: true,
-	url: true,
-	util: true,
-	vm: true,
-	zlib: true
-};
+const nodeBuiltins: ReadonlySet<string> = new Set([
+	...builtinModules,
+	// TODO
+	// remove once builtin-modules includes PR: https://github.com/sindresorhus/builtin-modules/pull/17
+	'assert/strict',
+	'dns/promises',
+	'fs/promises',
+	'path/posix',
+	'path/win32',
+	'readline/promises',
+	'stream/consumers',
+	'stream/promises',
+	'stream/web',
+	'timers/promises',
+	'util/types'
+]);
 
 export default function warnOnBuiltins(
 	warn: (warning: RollupWarning) => void,
-	dependencies: ChunkDependencies
+	dependencies: readonly ChunkDependency[]
 ): void {
-	const externalBuiltins = dependencies.map(({ id }) => id).filter(id => id in builtins);
+	const externalBuiltins = dependencies
+		.map(({ importPath }) => importPath)
+		.filter(importPath => nodeBuiltins.has(importPath) || importPath.startsWith('node:'));
 
-	if (!externalBuiltins.length) return;
+	if (externalBuiltins.length === 0) return;
 
-	warn({
-		code: 'MISSING_NODE_BUILTINS',
-		message: `Creating a browser bundle that depends on Node.js built-in modules (${printQuotedStringList(
-			externalBuiltins
-		)}). You might need to include https://github.com/snowpackjs/rollup-plugin-polyfill-node`,
-		modules: externalBuiltins
-	});
+	warn(errorMissingNodeBuiltins(externalBuiltins));
 }

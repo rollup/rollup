@@ -1,10 +1,10 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'does not add Symbol.toStringTag property to entry chunks with default export mode',
 	options: {
 		output: {
-			namespaceToStringTag: true,
+			generatedCode: { symbols: true },
 			exports: 'default'
 		}
 	},

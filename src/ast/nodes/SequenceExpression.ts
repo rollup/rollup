@@ -1,21 +1,20 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
-	NodeRenderOptions,
+	type NodeRenderOptions,
 	removeLineBreaks,
-	RenderOptions
+	type RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeInteraction, NodeInteractionWithThisArgument } from '../NodeInteractions';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
-import * as NodeType from './NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import type * as NodeType from './NodeType';
+import type { LiteralValueOrUnknown } from './shared/Expression';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	declare expressions: ExpressionNode[];
@@ -25,16 +24,14 @@ export default class SequenceExpression extends NodeBase {
 		this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
-			event,
+		this.expressions[this.expressions.length - 1].deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
-			thisParameter,
 			recursionTracker
 		);
 	}
@@ -58,28 +55,14 @@ export default class SequenceExpression extends NodeBase {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			path.length > 0 &&
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(
-			path,
-			context
-		);
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return this.expressions[this.expressions.length - 1].hasEffectsWhenCalledAtPath(
+		return this.expressions[this.expressions.length - 1].hasEffectsOnInteractionAtPath(
 			path,
-			callOptions,
+			interaction,
 			context
 		);
 	}

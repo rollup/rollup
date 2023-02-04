@@ -1,21 +1,37 @@
-import { getOrCreate } from '../../utils/getOrCreate';
-import { Entity } from '../Entity';
+import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
+import type { Entity } from '../Entity';
 
 export const UnknownKey = Symbol('Unknown Key');
+export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
 export const UnknownInteger = Symbol('Unknown Integer');
-export type ObjectPathKey = string | typeof UnknownKey | typeof UnknownInteger;
+export const SymbolToStringTag = Symbol('Symbol.toStringTag');
 
-export type ObjectPath = ObjectPathKey[];
+export type ObjectPathKey =
+	| string
+	| typeof UnknownKey
+	| typeof UnknownNonAccessorKey
+	| typeof UnknownInteger
+	| typeof SymbolToStringTag;
+
+export type ObjectPath = readonly ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
+// For deoptimizations, this means we are modifying an unknown property but did
+// not lose track of the object or are creating a setter/getter;
+// For assignment effects it means we do not check for setter/getter effects
+// but only if something is mutated that is included, which is relevant for
+// Object.defineProperty
+export const UNKNOWN_NON_ACCESSOR_PATH: ObjectPath = [UnknownNonAccessorKey];
 export const UNKNOWN_INTEGER_PATH: ObjectPath = [UnknownInteger];
 
 const EntitiesKey = Symbol('Entities');
 interface EntityPaths {
 	[pathSegment: string]: EntityPaths;
 	[EntitiesKey]: Set<Entity>;
+	[SymbolToStringTag]?: EntityPaths;
 	[UnknownInteger]?: EntityPaths;
 	[UnknownKey]?: EntityPaths;
+	[UnknownNonAccessorKey]?: EntityPaths;
 }
 
 export class PathTracker {
@@ -60,8 +76,10 @@ export const SHARED_RECURSION_TRACKER = new PathTracker();
 interface DiscriminatedEntityPaths {
 	[pathSegment: string]: DiscriminatedEntityPaths;
 	[EntitiesKey]: Map<unknown, Set<Entity>>;
+	[SymbolToStringTag]?: DiscriminatedEntityPaths;
 	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[UnknownKey]?: DiscriminatedEntityPaths;
+	[UnknownNonAccessorKey]?: DiscriminatedEntityPaths;
 }
 
 export class DiscriminatedPathTracker {
@@ -80,7 +98,7 @@ export class DiscriminatedPathTracker {
 				currentPaths[pathSegment] ||
 				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<Entity>>() } });
 		}
-		const trackedEntities = getOrCreate(currentPaths[EntitiesKey], discriminator, () => new Set());
+		const trackedEntities = getOrCreate(currentPaths[EntitiesKey], discriminator, getNewSet);
 		if (trackedEntities.has(entity)) return true;
 		trackedEntities.add(entity);
 		return false;

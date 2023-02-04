@@ -1,5 +1,6 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
+const { getObject } = require('../../../utils');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
@@ -14,15 +15,23 @@ module.exports = {
 		external: ['path'],
 		plugins: {
 			load(id) {
-				assert.deepStrictEqual(this.getModuleInfo(id), {
+				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(id))), {
+					assertions: {},
 					ast: null,
 					code: null,
 					dynamicImporters: [],
+					exportedBindings: {
+						'.': []
+					},
+					exports: [],
+					hasDefaultExport: null,
+					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
-					hasModuleSideEffects: true,
+					moduleSideEffects: true,
 					id,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [],
+					importedIdResolutions: [],
 					importedIds: [],
 					importers: [],
 					isEntry: id === ID_MAIN,
@@ -34,11 +43,110 @@ module.exports = {
 			},
 			renderStart() {
 				rendered = true;
-				assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN, ID_FOO, ID_PATH, ID_NESTED]);
 				assert.deepStrictEqual(
-					JSON.parse(JSON.stringify([...this.getModuleIds()].map(id => this.getModuleInfo(id)))),
-					[
-						{
+					getObject(
+						[...this.getModuleIds()].map(id => [
+							id,
+							JSON.parse(JSON.stringify(this.getModuleInfo(id)))
+						])
+					),
+					{
+						[ID_FOO]: {
+							id: ID_FOO,
+							assertions: {},
+							ast: {
+								type: 'Program',
+								start: 0,
+								end: 66,
+								body: [
+									{
+										type: 'ImportDeclaration',
+										start: 0,
+										end: 24,
+										specifiers: [
+											{
+												type: 'ImportDefaultSpecifier',
+												start: 7,
+												end: 11,
+												local: { type: 'Identifier', start: 7, end: 11, name: 'path' }
+											}
+										],
+										source: { type: 'Literal', start: 17, end: 23, value: 'path', raw: "'path'" }
+									},
+									{
+										type: 'ExportNamedDeclaration',
+										start: 26,
+										end: 65,
+										declaration: {
+											type: 'VariableDeclaration',
+											start: 33,
+											end: 65,
+											declarations: [
+												{
+													type: 'VariableDeclarator',
+													start: 39,
+													end: 64,
+													id: { type: 'Identifier', start: 39, end: 42, name: 'foo' },
+													init: {
+														type: 'CallExpression',
+														start: 45,
+														end: 64,
+														callee: {
+															type: 'MemberExpression',
+															start: 45,
+															end: 57,
+															object: { type: 'Identifier', start: 45, end: 49, name: 'path' },
+															property: { type: 'Identifier', start: 50, end: 57, name: 'resolve' },
+															computed: false,
+															optional: false
+														},
+														arguments: [
+															{ type: 'Literal', start: 58, end: 63, value: 'foo', raw: "'foo'" }
+														],
+														optional: false
+													}
+												}
+											],
+											kind: 'const'
+										},
+										specifiers: [],
+										source: null
+									}
+								],
+								sourceType: 'module'
+							},
+							code: "import path from 'path';\n\nexport const foo = path.resolve('foo');\n",
+							dynamicallyImportedIdResolutions: [],
+							exportedBindings: { '.': ['foo'] },
+							exports: ['foo'],
+							dynamicallyImportedIds: [],
+							dynamicImporters: [],
+							hasDefaultExport: false,
+							moduleSideEffects: true,
+							implicitlyLoadedAfterOneOf: [],
+							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									assertions: {},
+									external: true,
+									id: ID_PATH,
+									meta: {},
+									moduleSideEffects: true,
+									resolvedBy: 'rollup',
+									syntheticNamedExports: false
+								}
+							],
+							importedIds: [ID_PATH],
+							importers: [ID_MAIN, ID_NESTED],
+							isEntry: false,
+							isExternal: false,
+							isIncluded: true,
+							meta: {},
+							syntheticNamedExports: false
+						},
+						[ID_MAIN]: {
+							id: ID_MAIN,
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -163,12 +271,48 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: "export { foo } from './foo.js';\nexport const nested = import('./nested/nested');\nexport const path = import('path');\nexport const pathAgain = import(thePath);\n",
+							dynamicallyImportedIdResolutions: [
+								{
+									assertions: {},
+									external: false,
+									id: ID_NESTED,
+									meta: {},
+									moduleSideEffects: true,
+									resolvedBy: 'rollup',
+									syntheticNamedExports: false
+								},
+								{
+									assertions: {},
+									external: true,
+									id: ID_PATH,
+									meta: {},
+									moduleSideEffects: true,
+									resolvedBy: 'rollup',
+									syntheticNamedExports: false
+								}
+							],
 							dynamicallyImportedIds: [ID_NESTED, ID_PATH],
 							dynamicImporters: [],
-							hasModuleSideEffects: true,
-							id: ID_MAIN,
+							exportedBindings: {
+								'.': ['nested', 'path', 'pathAgain'],
+								'./foo.js': ['foo']
+							},
+							exports: ['nested', 'path', 'pathAgain', 'foo'],
+							hasDefaultExport: false,
+							moduleSideEffects: true,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									assertions: {},
+									external: false,
+									id: ID_FOO,
+									meta: {},
+									moduleSideEffects: true,
+									resolvedBy: 'rollup',
+									syntheticNamedExports: false
+								}
+							],
 							importedIds: [ID_FOO],
 							importers: [],
 							isEntry: true,
@@ -177,101 +321,9 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						},
-						{
-							ast: {
-								type: 'Program',
-								start: 0,
-								end: 66,
-								body: [
-									{
-										type: 'ImportDeclaration',
-										start: 0,
-										end: 24,
-										specifiers: [
-											{
-												type: 'ImportDefaultSpecifier',
-												start: 7,
-												end: 11,
-												local: { type: 'Identifier', start: 7, end: 11, name: 'path' }
-											}
-										],
-										source: { type: 'Literal', start: 17, end: 23, value: 'path', raw: "'path'" }
-									},
-									{
-										type: 'ExportNamedDeclaration',
-										start: 26,
-										end: 65,
-										declaration: {
-											type: 'VariableDeclaration',
-											start: 33,
-											end: 65,
-											declarations: [
-												{
-													type: 'VariableDeclarator',
-													start: 39,
-													end: 64,
-													id: { type: 'Identifier', start: 39, end: 42, name: 'foo' },
-													init: {
-														type: 'CallExpression',
-														start: 45,
-														end: 64,
-														callee: {
-															type: 'MemberExpression',
-															start: 45,
-															end: 57,
-															object: { type: 'Identifier', start: 45, end: 49, name: 'path' },
-															property: { type: 'Identifier', start: 50, end: 57, name: 'resolve' },
-															computed: false,
-															optional: false
-														},
-														arguments: [
-															{ type: 'Literal', start: 58, end: 63, value: 'foo', raw: "'foo'" }
-														],
-														optional: false
-													}
-												}
-											],
-											kind: 'const'
-										},
-										specifiers: [],
-										source: null
-									}
-								],
-								sourceType: 'module'
-							},
-							code: "import path from 'path';\n\nexport const foo = path.resolve('foo');\n",
-							dynamicallyImportedIds: [],
-							dynamicImporters: [],
-							hasModuleSideEffects: true,
-							id: ID_FOO,
-							implicitlyLoadedAfterOneOf: [],
-							implicitlyLoadedBefore: [],
-							importedIds: [ID_PATH],
-							importers: [ID_MAIN, ID_NESTED],
-							isEntry: false,
-							isExternal: false,
-							isIncluded: true,
-							meta: {},
-							syntheticNamedExports: false
-						},
-						{
-							ast: null,
-							code: null,
-							dynamicallyImportedIds: [],
-							dynamicImporters: [ID_MAIN],
-							hasModuleSideEffects: true,
-							id: ID_PATH,
-							implicitlyLoadedAfterOneOf: [],
-							implicitlyLoadedBefore: [],
-							importedIds: [],
-							importers: [ID_FOO],
-							isEntry: false,
-							isExternal: true,
-							isIncluded: null,
-							meta: {},
-							syntheticNamedExports: false
-						},
-						{
+						[ID_NESTED]: {
+							id: ID_NESTED,
+							assertions: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -337,12 +389,26 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: "import { foo } from '../foo.js';\n\nexport const nested = 'nested' + foo;\n",
+							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							dynamicImporters: [ID_MAIN],
-							hasModuleSideEffects: true,
-							id: ID_NESTED,
+							exports: ['nested'],
+							exportedBindings: { '.': ['nested'] },
+							hasDefaultExport: false,
+							moduleSideEffects: true,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									assertions: {},
+									external: false,
+									id: ID_FOO,
+									meta: {},
+									moduleSideEffects: true,
+									resolvedBy: 'rollup',
+									syntheticNamedExports: false
+								}
+							],
 							importedIds: [ID_FOO],
 							importers: [],
 							isEntry: false,
@@ -350,8 +416,31 @@ module.exports = {
 							isIncluded: true,
 							meta: {},
 							syntheticNamedExports: false
+						},
+						[ID_PATH]: {
+							id: ID_PATH,
+							assertions: {},
+							ast: null,
+							code: null,
+							dynamicallyImportedIdResolutions: [],
+							dynamicallyImportedIds: [],
+							dynamicImporters: [ID_MAIN],
+							exportedBindings: null,
+							exports: null,
+							hasDefaultExport: null,
+							moduleSideEffects: true,
+							implicitlyLoadedAfterOneOf: [],
+							implicitlyLoadedBefore: [],
+							importedIdResolutions: [],
+							importedIds: [],
+							importers: [ID_FOO],
+							isEntry: false,
+							isExternal: true,
+							isIncluded: null,
+							meta: {},
+							syntheticNamedExports: false
 						}
-					]
+					}
 				);
 			}
 		}

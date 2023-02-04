@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 
@@ -22,48 +22,59 @@ module.exports = {
 				},
 				resolveId(source, importer, { isEntry }) {
 					switch (source) {
-						case ID_MAIN:
+						case ID_MAIN: {
 							assert.strictEqual(importer, undefined, source);
 							assert.strictEqual(isEntry, true, source);
 							break;
-						case './dep.js':
+						}
+						case './dep.js': {
 							assert.strictEqual(importer, ID_MAIN, source);
 							assert.strictEqual(isEntry, false, source);
 							break;
-						case 'chunkWithoutImporter.js':
+						}
+						case 'chunkWithoutImporter.js': {
 							assert.strictEqual(importer, undefined, source);
 							assert.strictEqual(isEntry, true, source);
 							break;
-						case './chunkWithImporter.js':
+						}
+						case './chunkWithImporter.js': {
 							assert.strictEqual(importer, ID_MAIN, source);
 							assert.strictEqual(isEntry, true, source);
 							break;
-						case './resolutionWithoutImporter':
+						}
+						case './resolutionWithoutImporter': {
 							assert.strictEqual(importer, undefined, source);
 							assert.strictEqual(isEntry, true, source);
 							break;
-						case './resolutionWithoutImporterEntry':
+						}
+						case './resolutionWithoutImporterEntry': {
 							assert.strictEqual(importer, undefined, source);
 							assert.strictEqual(isEntry, true, source);
 							break;
-						case './resolutionWithoutImporterNonEntry':
+						}
+						case './resolutionWithoutImporterNonEntry': {
 							assert.strictEqual(importer, undefined, source);
 							assert.strictEqual(isEntry, false, source);
 							break;
-						case './resolutionWithImporter':
+						}
+						case './resolutionWithImporter': {
 							assert.strictEqual(importer, ID_MAIN, source);
 							assert.strictEqual(isEntry, false, source);
 							break;
-						case './resolutionWithImporterEntry':
+						}
+						case './resolutionWithImporterEntry': {
 							assert.strictEqual(importer, ID_MAIN, source);
 							assert.strictEqual(isEntry, true, source);
 							break;
-						case './resolutionWithImporterNonEntry':
+						}
+						case './resolutionWithImporterNonEntry': {
 							assert.strictEqual(importer, ID_MAIN, source);
 							assert.strictEqual(isEntry, false, source);
 							break;
-						default:
+						}
+						default: {
 							throw new Error(`Unexpected resolution of ${source}`);
+						}
 					}
 				}
 			}

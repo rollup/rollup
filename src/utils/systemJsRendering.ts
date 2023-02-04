@@ -1,9 +1,9 @@
-import MagicString from 'magic-string';
-import Variable from '../ast/variables/Variable';
-import { RenderOptions } from './renderHelpers';
+import type MagicString from 'magic-string';
+import type Variable from '../ast/variables/Variable';
+import type { RenderOptions } from './renderHelpers';
 
 export function getSystemExportStatement(
-	exportedVariables: Variable[],
+	exportedVariables: readonly Variable[],
 	{ exportNamesByVariable, snippets: { _, getObject, getPropertyAccess } }: RenderOptions,
 	modifier = ''
 ): string {
@@ -41,7 +41,7 @@ export function renderSystemExportExpression(
 }
 
 export function renderSystemExportFunction(
-	exportedVariables: Variable[],
+	exportedVariables: readonly Variable[],
 	expressionStart: number,
 	expressionEnd: number,
 	needsParens: boolean | undefined,

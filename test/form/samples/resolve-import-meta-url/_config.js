@@ -3,9 +3,9 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveImportMeta(prop, { chunkId, moduleId }) {
+				resolveImportMeta(property, { chunkId, moduleId }) {
 					if (!moduleId.endsWith('resolved.js')) {
-						return `'${prop}=${chunkId}:${moduleId
+						return `'${property}=${chunkId}:${moduleId
 							.replace(/\\/g, '/')
 							.split('/')
 							.slice(-2)
@@ -15,7 +15,7 @@ module.exports = {
 				}
 			},
 			{
-				resolveImportMeta(prop, { moduleId }) {
+				resolveImportMeta(property, { moduleId }) {
 					if (!moduleId.endsWith('unresolved.js')) {
 						return `'resolved'`;
 					}

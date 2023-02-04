@@ -1,7 +1,6 @@
 define(['require', './generated-dep'], (function (require, dep) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -14,11 +13,11 @@ define(['require', './generated-dep'], (function (require, dep) { 'use strict';
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
-	new Promise(function (resolve, reject) { require(['./ext\'ernal'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['./ext\'ernal'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); });
 
 	console.log('main', dep.value);
 

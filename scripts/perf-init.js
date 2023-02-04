@@ -1,52 +1,40 @@
 /* eslint-disable no-console */
 
-const fs = require('fs');
-const path = require('path');
-const execa = require('execa');
-const sander = require('sander');
-const repoWithBranch = process.argv[2];
+import { rmSync } from 'node:fs';
+import { argv, chdir, exit } from 'node:process';
+import { fileURLToPath } from 'node:url';
+import { findConfigFileName } from './find-config.js';
+import { runWithEcho } from './helpers.js';
 
-const TARGET_DIR = path.resolve(__dirname, '..', 'perf');
-const VALID_REPO = /^([^/\s#]+\/[^/\s#]+)(#([^/\s#]+))?$/;
+const TARGET_DIR = fileURLToPath(new URL('../perf', import.meta.url).href);
+const VALID_REPO = /^([^\s#/]+\/[^\s#/]+)(#([^\s#/]+))?$/;
+const repoWithBranch = argv[2];
 
-if (process.argv.length !== 3 || !VALID_REPO.test(repoWithBranch)) {
+if (argv.length !== 3 || !VALID_REPO.test(repoWithBranch)) {
 	console.error(
 		'You need to provide a GitHub repo in the form <username>/<repo> or <username>/<repo>#branch, e.g. ' +
 			'"npm run perf:init rollup/rollup"'
 	);
-	process.exit(1);
+	exit(1);
 }
+
 console.error(`Cleaning up '${TARGET_DIR}'...`);
-sander.rimrafSync(TARGET_DIR);
+rmSync(TARGET_DIR, {
+	force: true,
+	recursive: true
+});
 
 const [, repo, , branch] = VALID_REPO.exec(repoWithBranch);
 
-setupNewRepo(repo, branch).catch(error => {
-	console.error(error.message);
-	process.exit(1);
-});
-
-function execWithOutput(command, args) {
-	const call = execa(command, args);
-	call.stderr.pipe(process.stderr);
-	return call;
+const gitArguments = ['clone', '--depth', 1, '--progress'];
+if (branch) {
+	console.error(`Cloning branch "${branch}" of "${repo}"...`);
+	gitArguments.push('--branch', branch);
+} else {
+	console.error(`Cloning "${repo}"...`);
 }
-
-async function setupNewRepo(repo, branch) {
-	const gitArgs = ['clone', '--depth', 1, '--progress'];
-	if (branch) {
-		console.error(`Cloning branch "${branch}" of "${repo}"...`);
-		gitArgs.push('--branch', branch);
-	} else {
-		console.error(`Cloning "${repo}"...`);
-	}
-	gitArgs.push(`https://github.com/${repo}.git`, TARGET_DIR);
-	await execWithOutput('git', gitArgs);
-	try {
-		fs.accessSync(path.resolve(TARGET_DIR, 'rollup.config.js'), fs.constants.R_OK);
-	} catch (e) {
-		throw new Error('The repository needs to have a file "rollup.config.js" at the top level.');
-	}
-	process.chdir(TARGET_DIR);
-	await execWithOutput('npm', ['install']);
-}
+gitArguments.push(`https://github.com/${repo}.git`, TARGET_DIR);
+await runWithEcho('git', gitArguments);
+await findConfigFileName(TARGET_DIR);
+chdir(TARGET_DIR);
+await runWithEcho('npm', ['install']);

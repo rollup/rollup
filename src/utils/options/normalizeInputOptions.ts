@@ -1,22 +1,30 @@
-import * as acorn from 'acorn';
-import {
+import type * as acorn from 'acorn';
+import { importAssertions } from 'acorn-import-assertions';
+import type {
 	HasModuleSideEffects,
 	InputOptions,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
-	PreserveEntrySignaturesOption,
-	PureModulesOption,
 	RollupBuild,
 	WarningHandler
 } from '../../rollup/types';
+import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
-import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
+import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
 import {
+	URL_MAXPARALLELFILEOPS,
+	URL_OUTPUT_INLINEDYNAMICIMPORTS,
+	URL_OUTPUT_MANUALCHUNKS,
+	URL_OUTPUT_PRESERVEMODULES,
+	URL_TREESHAKE,
+	URL_TREESHAKE_MODULESIDEEFFECTS
+} from '../urls';
+import {
 	defaultOnWarn,
-	GenericConfigObject,
 	getOptionWithPreset,
+	normalizePluginOption,
 	treeshakePresets,
 	warnUnknownOptions
 } from './options';
@@ -27,10 +35,10 @@ export interface CommandConfigObject {
 	globals: { [id: string]: string } | undefined;
 }
 
-export function normalizeInputOptions(config: InputOptions): {
+export async function normalizeInputOptions(config: InputOptions): Promise<{
 	options: NormalizedInputOptions;
 	unsetOptions: Set<string>;
-} {
+}> {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();
@@ -38,6 +46,7 @@ export function normalizeInputOptions(config: InputOptions): {
 	const context = config.context ?? 'undefined';
 	const onwarn = getOnwarn(config);
 	const strictDeprecations = config.strictDeprecations || false;
+	const maxParallelFileOps = getmaxParallelFileOps(config, onwarn, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
 		acorn: getAcorn(config) as unknown as NormalizedInputOptions['acorn'],
 		acornInjectPlugins: getAcornInjectPlugins(config),
@@ -47,23 +56,24 @@ export function normalizeInputOptions(config: InputOptions): {
 		external: getIdMatcher(config.external),
 		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
 		input: getInput(config),
-		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? true,
+		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
-		maxParallelFileReads: getMaxParallelFileReads(config),
+		maxParallelFileOps,
+		maxParallelFileReads: maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: config.perf || false,
-		plugins: ensureArray(config.plugins),
-		preserveEntrySignatures: getPreserveEntrySignatures(config, unsetOptions),
+		plugins: await normalizePluginOption(config.plugins),
+		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
 		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,
 		shimMissingExports: config.shimMissingExports || false,
 		strictDeprecations,
-		treeshake: getTreeshake(config, onwarn, strictDeprecations)
+		treeshake: getTreeshake(config)
 	};
 
 	warnUnknownOptions(
-		config as GenericConfigObject,
+		config,
 		[...Object.keys(options), 'watch'],
 		'input options',
 		options.onwarn,
@@ -77,14 +87,16 @@ const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
 	return onwarn
 		? warning => {
 				warning.toString = () => {
-					let str = '';
+					let warningString = '';
 
-					if (warning.plugin) str += `(${warning.plugin} plugin) `;
+					if (warning.plugin) warningString += `(${warning.plugin} plugin) `;
 					if (warning.loc)
-						str += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${warning.loc.column}) `;
-					str += warning.message;
+						warningString += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${
+							warning.loc.column
+						}) `;
+					warningString += warning.message;
 
-					return str;
+					return warningString;
 				};
 				onwarn(warning, defaultOnWarn);
 		  }
@@ -92,16 +104,17 @@ const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
 };
 
 const getAcorn = (config: InputOptions): acorn.Options => ({
-	allowAwaitOutsideFunction: true,
 	ecmaVersion: 'latest',
-	preserveParens: false,
 	sourceType: 'module',
 	...config.acorn
 });
 
 const getAcornInjectPlugins = (
 	config: InputOptions
-): NormalizedInputOptions['acornInjectPlugins'] => ensureArray(config.acornInjectPlugins);
+): NormalizedInputOptions['acornInjectPlugins'] => [
+	importAssertions,
+	...ensureArray(config.acornInjectPlugins)
+];
 
 const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
 	(config.cache as unknown as RollupBuild)?.cache || config.cache;
@@ -113,13 +126,13 @@ const getIdMatcher = <T extends Array<any>>(
 		| string
 		| RegExp
 		| (string | RegExp)[]
-		| ((id: string, ...args: T) => boolean | null | undefined)
-): ((id: string, ...args: T) => boolean) => {
+		| ((id: string, ...parameters: T) => boolean | null | void)
+): ((id: string, ...parameters: T) => boolean) => {
 	if (option === true) {
 		return () => true;
 	}
 	if (typeof option === 'function') {
-		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
+		return (id, ...parameters) => (!id.startsWith('\0') && option(id, ...parameters)) || false;
 	}
 	if (option) {
 		const ids = new Set<string>();
@@ -131,7 +144,7 @@ const getIdMatcher = <T extends Array<any>>(
 				ids.add(value);
 			}
 		}
-		return (id: string, ..._args) => ids.has(id) || matchers.some(matcher => matcher.test(id));
+		return (id: string, ..._arguments) => ids.has(id) || matchers.some(matcher => matcher.test(id));
 	}
 	return () => false;
 };
@@ -145,7 +158,8 @@ const getInlineDynamicImports = (
 	if (configInlineDynamicImports) {
 		warnDeprecationWithOptions(
 			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
-			false,
+			URL_OUTPUT_INLINEDYNAMICIMPORTS,
+			true,
 			warn,
 			strictDeprecations
 		);
@@ -167,7 +181,8 @@ const getManualChunks = (
 	if (configManualChunks) {
 		warnDeprecationWithOptions(
 			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
-			false,
+			URL_OUTPUT_MANUALCHUNKS,
+			true,
 			warn,
 			strictDeprecations
 		);
@@ -175,13 +190,25 @@ const getManualChunks = (
 	return configManualChunks;
 };
 
-const getMaxParallelFileReads = (
-	config: InputOptions
-): NormalizedInputOptions['maxParallelFileReads'] => {
-	const maxParallelFileReads = config.maxParallelFileReads as unknown;
+const getmaxParallelFileOps = (
+	config: InputOptions,
+	warn: WarningHandler,
+	strictDeprecations: boolean
+): NormalizedInputOptions['maxParallelFileOps'] => {
+	const maxParallelFileReads = config.maxParallelFileReads;
 	if (typeof maxParallelFileReads === 'number') {
-		if (maxParallelFileReads <= 0) return Infinity;
-		return maxParallelFileReads;
+		warnDeprecationWithOptions(
+			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
+			URL_MAXPARALLELFILEOPS,
+			true,
+			warn,
+			strictDeprecations
+		);
+	}
+	const maxParallelFileOps = config.maxParallelFileOps ?? maxParallelFileReads;
+	if (typeof maxParallelFileOps === 'number') {
+		if (maxParallelFileOps <= 0) return Infinity;
+		return maxParallelFileOps;
 	}
 	return 20;
 };
@@ -190,34 +217,20 @@ const getModuleContext = (
 	config: InputOptions,
 	context: string
 ): NormalizedInputOptions['moduleContext'] => {
-	const configModuleContext = config.moduleContext as
-		| ((id: string) => string | null | undefined)
-		| { [id: string]: string }
-		| undefined;
+	const configModuleContext = config.moduleContext;
 	if (typeof configModuleContext === 'function') {
 		return id => configModuleContext(id) ?? context;
 	}
 	if (configModuleContext) {
-		const contextByModuleId = Object.create(null);
+		const contextByModuleId: {
+			[key: string]: string;
+		} = Object.create(null);
 		for (const [key, moduleContext] of Object.entries(configModuleContext)) {
 			contextByModuleId[resolve(key)] = moduleContext;
 		}
-		return id => contextByModuleId[id] || context;
+		return id => contextByModuleId[id] ?? context;
 	}
 	return () => context;
-};
-
-const getPreserveEntrySignatures = (
-	config: InputOptions,
-	unsetOptions: Set<string>
-): NormalizedInputOptions['preserveEntrySignatures'] => {
-	const configPreserveEntrySignatures = config.preserveEntrySignatures as
-		| PreserveEntrySignaturesOption
-		| undefined;
-	if (configPreserveEntrySignatures == null) {
-		unsetOptions.add('preserveEntrySignatures');
-	}
-	return configPreserveEntrySignatures ?? 'strict';
 };
 
 const getPreserveModules = (
@@ -229,7 +242,8 @@ const getPreserveModules = (
 	if (configPreserveModules) {
 		warnDeprecationWithOptions(
 			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
-			false,
+			URL_OUTPUT_PRESERVEMODULES,
+			true,
 			warn,
 			strictDeprecations
 		);
@@ -237,11 +251,7 @@ const getPreserveModules = (
 	return configPreserveModules;
 };
 
-const getTreeshake = (
-	config: InputOptions,
-	warn: WarningHandler,
-	strictDeprecations: boolean
-): NormalizedInputOptions['treeshake'] => {
+const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake'] => {
 	const configTreeshake = config.treeshake;
 	if (configTreeshake === false) {
 		return false;
@@ -250,29 +260,17 @@ const getTreeshake = (
 		config.treeshake,
 		treeshakePresets,
 		'treeshake',
+		URL_TREESHAKE,
 		'false, true, '
 	);
-	if (typeof configWithPreset.pureExternalModules !== 'undefined') {
-		warnDeprecationWithOptions(
-			`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-			true,
-			warn,
-			strictDeprecations
-		);
-	}
 	return {
 		annotations: configWithPreset.annotations !== false,
 		correctVarValueBeforeDeclaration: configWithPreset.correctVarValueBeforeDeclaration === true,
-		moduleSideEffects:
-			typeof configTreeshake === 'object' && configTreeshake.pureExternalModules
-				? getHasModuleSideEffects(
-						configTreeshake.moduleSideEffects,
-						configTreeshake.pureExternalModules
-				  )
-				: getHasModuleSideEffects(
-						configWithPreset.moduleSideEffects as ModuleSideEffectsOption | undefined,
-						undefined
-				  ),
+		manualPureFunctions:
+			(configWithPreset.manualPureFunctions as readonly string[] | undefined) ?? EMPTY_ARRAY,
+		moduleSideEffects: getHasModuleSideEffects(
+			configWithPreset.moduleSideEffects as ModuleSideEffectsOption | undefined
+		),
 		propertyReadSideEffects:
 			configWithPreset.propertyReadSideEffects === 'always'
 				? 'always'
@@ -283,8 +281,7 @@ const getTreeshake = (
 };
 
 const getHasModuleSideEffects = (
-	moduleSideEffectsOption: ModuleSideEffectsOption | undefined,
-	pureExternalModules: PureModulesOption | undefined
+	moduleSideEffectsOption: ModuleSideEffectsOption | undefined
 ): HasModuleSideEffects => {
 	if (typeof moduleSideEffectsOption === 'boolean') {
 		return () => moduleSideEffectsOption;
@@ -294,7 +291,7 @@ const getHasModuleSideEffects = (
 	}
 	if (typeof moduleSideEffectsOption === 'function') {
 		return (id, external) =>
-			!id.startsWith('\0') ? moduleSideEffectsOption(id, external) !== false : true;
+			id.startsWith('\0') ? true : moduleSideEffectsOption(id, external) !== false;
 	}
 	if (Array.isArray(moduleSideEffectsOption)) {
 		const ids = new Set(moduleSideEffectsOption);
@@ -302,13 +299,12 @@ const getHasModuleSideEffects = (
 	}
 	if (moduleSideEffectsOption) {
 		error(
-			errInvalidOption(
+			errorInvalidOption(
 				'treeshake.moduleSideEffects',
-				'treeshake',
+				URL_TREESHAKE_MODULESIDEEFFECTS,
 				'please use one of false, "no-external", a function or an array'
 			)
 		);
 	}
-	const isPureExternalModule = getIdMatcher(pureExternalModules);
-	return (id, external) => !(external && isPureExternalModule(id));
+	return () => true;
 };

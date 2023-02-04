@@ -19,34 +19,44 @@ Basic options:
 -p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
---amd.id <id>               ID for AMD module (default is anonymous)
 --amd.autoId                Generate the AMD ID based off the chunk name
 --amd.basePath <prefix>     Path to prepend to auto generated AMD ID
 --amd.define <name>         Function to use in place of `define`
+--amd.forceJsExtensionForImports Use `.js` extension in AMD imports
+--amd.id <id>               ID for AMD module (default is anonymous)
 --assetFileNames <pattern>  Name pattern for emitted assets
 --banner <text>             Code to insert at top of bundle (outside wrapper)
 --chunkFileNames <pattern>  Name pattern for emitted secondary chunks
 --compact                   Minify wrapper code
 --context <variable>        Specify top-level `this` value
+--no-dynamicImportInCjs     Write external dynamic CommonJS imports as require
 --entryFileNames <pattern>  Name pattern for emitted entry chunks
 --environment <values>      Settings passed to config file (see example)
 --no-esModule               Do not add __esModule property
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
+--no-externalImportAssertions Omit import assertions in "es" output
 --no-externalLiveBindings   Do not generate code to support live bindings
 --failAfterWarnings         Exit with an error if the build produced warnings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
+--generatedCode <preset>    Which code features to use (es5/es2015)
+--generatedCode.arrowFunctions Use arrow functions in generated code
+--generatedCode.constBindings Use "const" in generated code
+--generatedCode.objectShorthand Use shorthand properties in generated code
+--no-generatedCode.reservedNamesAsProps Always quote reserved names as props
+--generatedCode.symbols     Use symbols in generated code
 --no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
---no-interop                Do not include interop block
 --inlineDynamicImports      Create single bundle when using dynamic imports
+--no-interop                Do not include interop block
 --intro <text>              Code to insert at top of bundle (inside wrapper)
+--no-makeAbsoluteExternalsRelative Prevent normalization of external imports
+--maxParallelFileOps <value> How many files to read in parallel
 --minifyInternalExports     Force or disable minification of internal exports
---namespaceToStringTag      Create proper `.toString` methods for namespaces
 --noConflict                Generate a noConflict method for UMD globals
 --outro <text>              Code to insert at end of bundle (inside wrapper)
---preferConst               Use `const` instead of `var` for exports
+--perf                      Display performance timings
 --no-preserveEntrySignatures Avoid facade chunks for entry points
 --preserveModules           Preserve module structure
 --preserveModulesRoot       Put preserved modules under this path at root level
@@ -54,26 +64,34 @@ Basic options:
 --no-sanitizeFileName       Do not replace invalid characters in file names
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
+--sourcemapBaseUrl <url>    Emit absolute sourcemap URLs with given base
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --stdin=ext                 Specify file extension used for stdin input
 --no-stdin                  Do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
---systemNullSetters         Replace empty SystemJS setters with `null`
+--no-systemNullSetters      Do not replace empty SystemJS setters with `null`
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
---no-treeshake.moduleSideEffects Assume modules have no side-effects
---no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--treeshake.correctVarValueBeforeDeclaration Deoptimize variables until declared
+--treeshake.manualPureFunctions <names> Manually declare functions as pure
+--no-treeshake.moduleSideEffects Assume modules have no side effects
+--no-treeshake.propertyReadSideEffects Ignore property access side effects
 --no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
 --no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
+--validate                  Validate output
 --waitForBundleInput        Wait for bundle input files
 --watch.buildDelay <number> Throttle watch rebuilds
 --no-watch.clearScreen      Do not clear the screen when rebuilding
---watch.skipWrite           Do not write files to disk when watching
 --watch.exclude <files>     Exclude files from being watched
 --watch.include <files>     Limit watching to specified files
---validate                  Validate output
+--watch.onBundleEnd <cmd>   Shell command to run on `"BUNDLE_END"` event
+--watch.onBundleStart <cmd> Shell command to run on `"BUNDLE_START"` event
+--watch.onEnd <cmd>         Shell command to run on `"END"` event
+--watch.onError <cmd>       Shell command to run on `"ERROR"` event
+--watch.onStart <cmd>       Shell command to run on `"START"` event
+--watch.skipWrite           Do not write files to disk when watching
 
 Examples:
 

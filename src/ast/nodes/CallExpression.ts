@@ -1,45 +1,37 @@
-import MagicString from 'magic-string';
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import {
-	findFirstOccurrenceOutsideComment,
-	NodeRenderOptions,
-	RenderOptions
-} from '../../utils/renderHelpers';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
+import { errorCannotCallNamespace, errorEval } from '../../utils/error';
+import { renderCallArguments } from '../../utils/renderCallArguments';
+import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
+import { INTERACTION_CALLED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
-import * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
-import Super from './Super';
-import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
-} from './shared/Expression';
-import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
+import type * as NodeType from './NodeType';
+import type SpreadElement from './SpreadElement';
+import type Super from './Super';
+import CallExpressionBase from './shared/CallExpressionBase';
+import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
+import { INCLUDE_PARAMETERS } from './shared/Node';
+import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
 
-export default class CallExpression extends NodeBase implements DeoptimizableEntity {
+export default class CallExpression
+	extends CallExpressionBase
+	implements DeoptimizableEntity, ChainElement
+{
 	declare arguments: (ExpressionNode | SpreadElement)[];
 	declare callee: ExpressionNode | Super;
 	declare optional: boolean;
 	declare type: NodeType.tCallExpression;
-	protected deoptimized = false;
-	private declare callOptions: CallOptions;
-	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
-	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
-	private returnExpression: ExpressionEntity | null = null;
 
 	bind(): void {
 		super.bind();
@@ -47,132 +39,22 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.context.warn(
-					{
-						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${this.callee.name}')`
-					},
-					this.start
-				);
+				this.context.warn(errorCannotCallNamespace(this.callee.name), this.start);
 			}
 
 			if (this.callee.name === 'eval') {
-				this.context.warn(
-					{
-						code: 'EVAL',
-						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://rollupjs.org/guide/en/#avoiding-eval'
-					},
-					this.start
-				);
+				this.context.warn(errorEval(this.context.module.id), this.start);
 			}
 		}
-		this.callOptions = {
+		this.interaction = {
 			args: this.arguments,
-			thisParam:
+			thisArg:
 				this.callee instanceof MemberExpression && !this.callee.variable
 					? this.callee.object
 					: null,
+			type: INTERACTION_CALLED,
 			withNew: false
 		};
-	}
-
-	deoptimizeCache(): void {
-		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
-			this.returnExpression = UNKNOWN_EXPRESSION;
-			for (const expression of this.deoptimizableDependentExpressions) {
-				expression.deoptimizeCache();
-			}
-			for (const expression of this.expressionsToBeDeoptimized) {
-				expression.deoptimizePath(UNKNOWN_PATH);
-			}
-		}
-	}
-
-	deoptimizePath(path: ObjectPath): void {
-		if (
-			path.length === 0 ||
-			this.context.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
-		) {
-			return;
-		}
-		const returnExpression = this.getReturnExpression();
-		if (returnExpression !== UNKNOWN_EXPRESSION) {
-			returnExpression.deoptimizePath(path);
-		}
-	}
-
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
-		path: ObjectPath,
-		thisParameter: ExpressionEntity,
-		recursionTracker: PathTracker
-	): void {
-		const returnExpression = this.getReturnExpression(recursionTracker);
-		if (returnExpression === UNKNOWN_EXPRESSION) {
-			thisParameter.deoptimizePath(UNKNOWN_PATH);
-		} else {
-			recursionTracker.withTrackedEntityAtPath(
-				path,
-				returnExpression,
-				() => {
-					this.expressionsToBeDeoptimized.add(thisParameter);
-					returnExpression.deoptimizeThisOnEventAtPath(
-						event,
-						path,
-						thisParameter,
-						recursionTracker
-					);
-				},
-				undefined
-			);
-		}
-	}
-
-	getLiteralValueAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): LiteralValueOrUnknown {
-		const returnExpression = this.getReturnExpression(recursionTracker);
-		if (returnExpression === UNKNOWN_EXPRESSION) {
-			return UnknownValue;
-		}
-		return recursionTracker.withTrackedEntityAtPath(
-			path,
-			returnExpression,
-			() => {
-				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
-			},
-			UnknownValue
-		);
-	}
-
-	getReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): ExpressionEntity {
-		const returnExpression = this.getReturnExpression(recursionTracker);
-		if (this.returnExpression === UNKNOWN_EXPRESSION) {
-			return UNKNOWN_EXPRESSION;
-		}
-		return recursionTracker.withTrackedEntityAtPath(
-			path,
-			returnExpression,
-			() => {
-				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getReturnExpressionWhenCalledAtPath(
-					path,
-					callOptions,
-					recursionTracker,
-					origin
-				);
-			},
-			UNKNOWN_EXPRESSION
-		);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -187,38 +69,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				return false;
 			return (
 				this.callee.hasEffects(context) ||
-				this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
 			);
 		} finally {
 			if (!this.deoptimized) this.applyDeoptimizations();
 		}
-	}
-
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	): boolean {
-		return (
-			!(
-				callOptions.withNew ? context.instantiated : context.called
-			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
-			this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context)
-		);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -237,10 +92,14 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
-		const returnExpression = this.getReturnExpression();
-		if (!returnExpression.included) {
-			returnExpression.include(context, false);
-		}
+	}
+
+	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
+		return (
+			(this.callee as ExpressionNode).isSkippedAsOptional?.(origin) ||
+			(this.optional &&
+				this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null)
+		);
 	}
 
 	render(
@@ -252,46 +111,15 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			isCalleeOfRenderedParent: true,
 			renderedSurroundingElement
 		});
-		if (this.arguments.length > 0) {
-			if (this.arguments[this.arguments.length - 1].included) {
-				for (const arg of this.arguments) {
-					arg.render(code, options);
-				}
-			} else {
-				let lastIncludedIndex = this.arguments.length - 2;
-				while (lastIncludedIndex >= 0 && !this.arguments[lastIncludedIndex].included) {
-					lastIncludedIndex--;
-				}
-				if (lastIncludedIndex >= 0) {
-					for (let index = 0; index <= lastIncludedIndex; index++) {
-						this.arguments[index].render(code, options);
-					}
-					code.remove(
-						findFirstOccurrenceOutsideComment(
-							code.original,
-							',',
-							this.arguments[lastIncludedIndex].end
-						),
-						this.end - 1
-					);
-				} else {
-					code.remove(
-						findFirstOccurrenceOutsideComment(code.original, '(', this.callee.end) + 1,
-						this.end - 1
-					);
-				}
-			}
-		}
+		renderCallArguments(code, options, this);
 	}
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		const { thisParam } = this.callOptions;
-		if (thisParam) {
-			this.callee.deoptimizeThisOnEventAtPath(
-				EVENT_CALLED,
+		if (this.interaction.thisArg) {
+			this.callee.deoptimizeThisOnInteractionAtPath(
+				this.interaction as NodeInteractionWithThisArgument,
 				EMPTY_PATH,
-				thisParam,
 				SHARED_RECURSION_TRACKER
 			);
 		}
@@ -302,14 +130,14 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		this.context.requestTreeshakingPass();
 	}
 
-	private getReturnExpression(
+	protected getReturnExpression(
 		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
-			this.returnExpression = UNKNOWN_EXPRESSION;
+			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
 			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
-				this.callOptions,
+				this.interaction,
 				recursionTracker,
 				this
 			));

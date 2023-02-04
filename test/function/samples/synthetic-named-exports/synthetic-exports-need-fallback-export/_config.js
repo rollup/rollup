@@ -1,5 +1,6 @@
-const path = require('path');
-const DEP_ID = path.join(__dirname, 'dep.js');
+const path = require('node:path');
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_DEP = path.join(__dirname, 'dep.js');
 
 module.exports = {
 	description: 'synthetic named exports modules need their fallback export',
@@ -16,8 +17,9 @@ module.exports = {
 	},
 	error: {
 		code: 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
-		id: DEP_ID,
-		message: `Module "dep.js" that is marked with 'syntheticNamedExports: "__synthetic"' needs an export named "__synthetic" that does not reexport an unresolved named export of the same module.`,
-		watchFiles: [path.join(__dirname, 'main.js'), DEP_ID]
+		exporter: ID_DEP,
+		watchFiles: [ID_DEP, ID_MAIN],
+		message:
+			'Module "dep.js" that is marked with `syntheticNamedExports: "__synthetic"` needs an explicit export named "__synthetic" that does not reexport an unresolved named export of the same module.'
 	}
 };

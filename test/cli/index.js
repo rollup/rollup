@@ -1,47 +1,62 @@
-const assert = require('assert');
-const { exec } = require('child_process');
-const path = require('path');
-const sander = require('sander');
+const assert = require('node:assert');
+const { exec } = require('node:child_process');
+const { existsSync, readFileSync } = require('node:fs');
+const { basename, resolve, sep } = require('node:path');
+const process = require('node:process');
+const { copySync, removeSync, statSync } = require('fs-extra');
 const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
-	assertDirectoriesAreEqual
+	assertDirectoriesAreEqual,
+	getFileNamesAndRemoveOutput
 } = require('../utils.js');
 
 const cwd = process.cwd();
 
-sander.rimrafSync(__dirname, 'node_modules');
-sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
+removeSync(resolve(__dirname, 'node_modules'));
+copySync(resolve(__dirname, 'node_modules_rename_me'), resolve(__dirname, 'node_modules'));
 
 runTestSuiteWithSamples(
 	'cli',
-	path.resolve(__dirname, 'samples'),
-	(dir, config) => {
-		(config.skip ? it.skip : config.solo ? it.only : it)(
-			path.basename(dir) + ': ' + config.description,
-			done => {
-				process.chdir(config.cwd || dir);
-				if (config.before) config.before();
+	resolve(__dirname, 'samples'),
+	(directory, config) => {
+		// allow to repeat flaky tests for debugging on CLI
+		for (let pass = 0; pass < (config.repeat || 1); pass++) {
+			runTest(directory, config, pass);
+		}
+	},
+	() => process.chdir(cwd)
+);
 
-				const command = config.command.replace(
-					/(^| )rollup($| )/g,
-					`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
-				);
+function runTest(directory, config, pass) {
+	const name = basename(directory) + ': ' + config.description;
+	(config.skip ? it.skip : config.solo ? it.only : it)(
+		pass > 0 ? `${name} (pass ${pass + 1})` : name,
+		done => {
+			process.chdir(config.cwd || directory);
+			if (pass > 0) {
+				getFileNamesAndRemoveOutput(directory);
+			}
+			const command = config.command.replace(
+				/(^| )rollup($| )/g,
+				`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
+			);
 
+			Promise.resolve(config.before && config.before()).then(() => {
 				const childProcess = exec(
 					command,
 					{
-						timeout: 40000,
+						timeout: 40_000,
 						env: { ...process.env, FORCE_COLOR: '0', ...config.env }
 					},
-					(err, code, stderr) => {
-						if (config.after) config.after();
-						if (err && !err.killed) {
+					(error, code, stderr) => {
+						if (config.after) config.after(error, code, stderr);
+						if (error && !error.killed) {
 							if (config.error) {
-								const shouldContinue = config.error(err);
+								const shouldContinue = config.error(error);
 								if (!shouldContinue) return done();
 							} else {
-								throw err;
+								throw error;
 							}
 						}
 
@@ -56,11 +71,11 @@ runTestSuiteWithSamples(
 
 						if (config.execute) {
 							try {
-								const fn = new Function('require', 'module', 'exports', 'assert', code);
+								const function_ = new Function('require', 'module', 'exports', 'assert', code);
 								const module = {
 									exports: {}
 								};
-								fn(require, module, module.exports, assert);
+								function_(require, module, module.exports, assert);
 
 								if (config.error) {
 									unintendedError = new Error('Expected an error while executing output');
@@ -69,11 +84,11 @@ runTestSuiteWithSamples(
 								if (config.exports) {
 									config.exports(module.exports);
 								}
-							} catch (err) {
+							} catch (error) {
 								if (config.error) {
-									config.error(err);
+									config.error(error);
 								} else {
-									unintendedError = err;
+									unintendedError = error;
 								}
 							}
 
@@ -88,33 +103,30 @@ runTestSuiteWithSamples(
 							try {
 								config.result(code);
 								done();
-							} catch (err) {
-								done(err);
+							} catch (error) {
+								done(error);
 							}
 						} else if (config.test) {
 							try {
 								config.test();
 								done();
-							} catch (err) {
-								done(err);
+							} catch (error) {
+								done(error);
 							}
-						} else if (
-							sander.existsSync('_expected') &&
-							sander.statSync('_expected').isDirectory()
-						) {
+						} else if (existsSync('_expected') && statSync('_expected').isDirectory()) {
 							try {
 								assertDirectoriesAreEqual('_actual', '_expected');
 								done();
-							} catch (err) {
-								done(err);
+							} catch (error) {
+								done(error);
 							}
 						} else {
-							const expected = sander.readFileSync('_expected.js').toString();
+							const expected = readFileSync('_expected.js', 'utf8');
 							try {
 								assert.equal(normaliseOutput(code), normaliseOutput(expected));
 								done();
-							} catch (err) {
-								done(err);
+							} catch (error) {
+								done(error);
 							}
 						}
 					}
@@ -126,14 +138,13 @@ runTestSuiteWithSamples(
 							if (await config.abortOnStderr(data)) {
 								childProcess.kill('SIGTERM');
 							}
-						} catch (err) {
+						} catch (error) {
 							childProcess.kill('SIGTERM');
-							done(err);
+							done(error);
 						}
 					}
 				});
-			}
-		).timeout(50000);
-	},
-	() => process.chdir(cwd)
-);
+			});
+		}
+	).timeout(50_000);
+}

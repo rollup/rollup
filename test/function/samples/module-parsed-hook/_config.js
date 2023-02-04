@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 const parsedModules = [];
 
@@ -17,6 +17,8 @@ module.exports = {
 			buildEnd() {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(parsedModules)), [
 					{
+						id: ID_MAIN,
+						assertions: {},
 						ast: {
 							type: 'Program',
 							start: 0,
@@ -48,12 +50,26 @@ module.exports = {
 							sourceType: 'module'
 						},
 						code: "export { value } from './dep.js';\n",
+						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],
 						dynamicImporters: [],
-						hasModuleSideEffects: true,
-						id: ID_MAIN,
+						exportedBindings: { '.': [], './dep.js': ['value'] },
+						exports: ['value'],
+						hasDefaultExport: false,
+						moduleSideEffects: true,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
+						importedIdResolutions: [
+							{
+								assertions: {},
+								external: false,
+								id: ID_DEP,
+								meta: {},
+								moduleSideEffects: true,
+								resolvedBy: 'rollup',
+								syntheticNamedExports: false
+							}
+						],
 						importedIds: [ID_DEP],
 						importers: [],
 						isEntry: true,
@@ -63,6 +79,8 @@ module.exports = {
 						syntheticNamedExports: false
 					},
 					{
+						id: ID_DEP,
+						assertions: {},
 						ast: {
 							type: 'Program',
 							start: 0,
@@ -94,12 +112,16 @@ module.exports = {
 							sourceType: 'module'
 						},
 						code: 'export const value = 42;\n',
+						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],
 						dynamicImporters: [],
-						hasModuleSideEffects: true,
-						id: ID_DEP,
+						exportedBindings: { '.': ['value'] },
+						exports: ['value'],
+						hasDefaultExport: false,
+						moduleSideEffects: true,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
+						importedIdResolutions: [],
 						importedIds: [],
 						importers: [ID_MAIN],
 						isEntry: false,

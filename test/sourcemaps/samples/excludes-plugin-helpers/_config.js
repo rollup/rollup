@@ -1,6 +1,6 @@
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+const assert = require('node:assert');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 
 const HELPER = '\0helper';
 
@@ -18,7 +18,7 @@ module.exports = {
 
 				load(id) {
 					if (id === HELPER) {
-						return fs.readFileSync(path.join(__dirname, 'helper.js'), 'utf-8');
+						return readFileSync(path.join(__dirname, 'helper.js'), 'utf8');
 					}
 				}
 			}

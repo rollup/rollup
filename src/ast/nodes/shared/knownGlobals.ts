@@ -1,11 +1,18 @@
 /* eslint sort-keys: "off" */
 
-import { ObjectPath } from '../../utils/PathTracker';
+import type { HasEffectsContext } from '../../ExecutionContext';
+import type { NodeInteractionCalled } from '../../NodeInteractions';
+import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../../NodeInteractions';
+import type { ObjectPath } from '../../utils/PathTracker';
+import { SymbolToStringTag, UNKNOWN_NON_ACCESSOR_PATH } from '../../utils/PathTracker';
+import type { LiteralValueOrUnknown } from './Expression';
+import { UnknownTruthyValue } from './Expression';
 
 const ValueProperties = Symbol('Value Properties');
 
 interface ValueDescription {
-	pure: boolean;
+	getLiteralValue(): LiteralValueOrUnknown;
+	hasEffectsWhenCalled(interaction: NodeInteractionCalled, context: HasEffectsContext): boolean;
 }
 
 interface GlobalDescription {
@@ -14,8 +21,19 @@ interface GlobalDescription {
 	__proto__: null;
 }
 
-const PURE: ValueDescription = { pure: true };
-const IMPURE: ValueDescription = { pure: false };
+const getTruthyLiteralValue = (): LiteralValueOrUnknown => UnknownTruthyValue;
+const returnFalse = () => false;
+const returnTrue = () => true;
+
+const PURE: ValueDescription = {
+	getLiteralValue: getTruthyLiteralValue,
+	hasEffectsWhenCalled: returnFalse
+};
+
+const IMPURE: ValueDescription = {
+	getLiteralValue: getTruthyLiteralValue,
+	hasEffectsWhenCalled: returnTrue
+};
 
 // We use shortened variables to reduce file size here
 /* OBJECT */
@@ -28,6 +46,24 @@ const O: GlobalDescription = {
 const PF: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE
+};
+
+/* FUNCTION THAT MUTATES FIRST ARG WITHOUT TRIGGERING ACCESSORS */
+const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: {
+		getLiteralValue: getTruthyLiteralValue,
+		hasEffectsWhenCalled({ args }, context) {
+			return (
+				args.length === 0 ||
+				args[0].hasEffectsOnInteractionAtPath(
+					UNKNOWN_NON_ACCESSOR_PATH,
+					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+					context
+				)
+			);
+		}
+	}
 };
 
 /* CONSTRUCTOR */
@@ -173,6 +209,12 @@ const knownGlobals: GlobalDescription = {
 		__proto__: null,
 		[ValueProperties]: PURE,
 		create: PF,
+		// Technically those can throw in certain situations, but we ignore this as
+		// code that relies on this will hopefully wrap this in a try-catch, which
+		// deoptimizes everything anyway
+		defineProperty: MUTATES_ARG_WITHOUT_ACCESSOR,
+		defineProperties: MUTATES_ARG_WITHOUT_ACCESSOR,
+		freeze: MUTATES_ARG_WITHOUT_ACCESSOR,
 		getOwnPropertyDescriptor: PF,
 		getOwnPropertyDescriptors: PF,
 		getOwnPropertyNames: PF,
@@ -184,6 +226,8 @@ const knownGlobals: GlobalDescription = {
 		isFrozen: PF,
 		isSealed: PF,
 		keys: PF,
+		fromEntries: PF,
+		entries: PF,
 		prototype: O
 	},
 	parseFloat: PF,
@@ -220,7 +264,16 @@ const knownGlobals: GlobalDescription = {
 		[ValueProperties]: PURE,
 		for: PF,
 		keyFor: PF,
-		prototype: O
+		prototype: O,
+		toStringTag: {
+			__proto__: null,
+			[ValueProperties]: {
+				getLiteralValue() {
+					return SymbolToStringTag;
+				},
+				hasEffectsWhenCalled: returnTrue
+			}
+		}
 	},
 	SyntaxError: PC,
 	toLocaleString: O,
@@ -848,7 +901,7 @@ for (const global of ['window', 'global', 'self', 'globalThis']) {
 	knownGlobals[global] = knownGlobals;
 }
 
-function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
+export function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
 	let currentGlobal: GlobalDescription | null = knownGlobals;
 	for (const pathSegment of path) {
 		if (typeof pathSegment !== 'string') {
@@ -860,16 +913,4 @@ function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
 		}
 	}
 	return currentGlobal[ValueProperties];
-}
-
-export function isPureGlobal(path: ObjectPath): boolean {
-	const globalAtPath = getGlobalAtPath(path);
-	return globalAtPath !== null && globalAtPath.pure;
-}
-
-export function isGlobalMember(path: ObjectPath): boolean {
-	if (path.length === 1) {
-		return path[0] === 'undefined' || getGlobalAtPath(path) !== null;
-	}
-	return getGlobalAtPath(path.slice(0, -1)) !== null;
 }

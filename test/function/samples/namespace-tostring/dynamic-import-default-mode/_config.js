@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description:
@@ -6,7 +6,7 @@ module.exports = {
 	options: {
 		input: ['main', 'foo'],
 		output: {
-			namespaceToStringTag: true
+			generatedCode: { symbols: true }
 		}
 	},
 	async exports(exports) {

@@ -1,0 +1,1 @@
+export { small } from './small';

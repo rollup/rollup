@@ -1,6 +1,6 @@
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+const assert = require('node:assert');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 
 const cachedModules = {
 	'@main.js': 'import foo from "./foo"; export default foo();'
@@ -25,7 +25,7 @@ module.exports = {
 						return cachedModules[moduleId];
 					}
 
-					return fs.readFileSync(moduleId, 'utf-8');
+					return readFileSync(moduleId, 'utf8');
 				}
 			}
 		]

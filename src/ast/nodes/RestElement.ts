@@ -1,21 +1,21 @@
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UnknownKey } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteractionAssigned } from '../NodeInteractions';
+import { EMPTY_PATH, type ObjectPath, UnknownKey } from '../utils/PathTracker';
+import type LocalVariable from '../variables/LocalVariable';
+import type Variable from '../variables/Variable';
+import type * as NodeType from './NodeType';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { PatternNode } from './shared/Pattern';
 
 export default class RestElement extends NodeBase implements PatternNode {
 	declare argument: PatternNode;
 	declare type: NodeType.tRestElement;
-	protected deoptimized = false;
 	private declarationInit: ExpressionEntity | null = null;
 
 	addExportedVariables(
-		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		this.argument.addExportedVariables(variables, exportNamesByVariable);
 	}
@@ -29,8 +29,15 @@ export default class RestElement extends NodeBase implements PatternNode {
 		path.length === 0 && this.argument.deoptimizePath(EMPTY_PATH);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteractionAssigned,
+		context: HasEffectsContext
+	): boolean {
+		return (
+			path.length > 0 ||
+			this.argument.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)
+		);
 	}
 
 	markDeclarationReached(): void {

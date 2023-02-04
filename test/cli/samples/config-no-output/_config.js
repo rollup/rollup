@@ -1,12 +1,12 @@
-const assert = require('assert');
-const fs = require('fs');
+const assert = require('node:assert');
+const { readFileSync, unlinkSync } = require('node:fs');
 
 module.exports = {
 	description: 'uses -o from CLI',
 	command: 'rollup -c -o output.js',
 	test() {
-		const output = fs.readFileSync('output.js', 'utf-8');
+		const output = readFileSync('output.js', 'utf8');
 		assert.equal(output.trim(), 'console.log(42);');
-		fs.unlinkSync('output.js');
+		unlinkSync('output.js');
 	}
 };

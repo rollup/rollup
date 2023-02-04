@@ -11,7 +11,7 @@ module.exports = {
 	context: {
 		require(id) {
 			switch (id) {
-				case 'external-module':
+				case 'external-module': {
 					return Object.defineProperty(
 						{
 							get default() {
@@ -24,13 +24,15 @@ module.exports = {
 						'__esModule',
 						{ value: true }
 					);
-				case 'external-cjs':
+				}
+				case 'external-cjs': {
 					return {
 						get barCjs() {
 							return 'bar';
 						}
 					};
-				case 'external-cjs-with-default':
+				}
+				case 'external-cjs-with-default': {
 					return {
 						get default() {
 							return 'foo';
@@ -39,8 +41,10 @@ module.exports = {
 							return 'bar';
 						}
 					};
-				default:
+				}
+				default: {
 					throw new Error(`Unexpected import "${id}"`);
+				}
 			}
 		}
 	}

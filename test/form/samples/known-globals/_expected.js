@@ -1,1 +1,2 @@
-console.log('main');
+// retained
+Math[globalThis.unknown].foo;

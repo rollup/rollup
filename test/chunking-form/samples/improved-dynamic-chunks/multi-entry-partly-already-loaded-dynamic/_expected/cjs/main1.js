@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var dep2 = require('./generated-dep2.js');
 
 const value1 = 'shared1';

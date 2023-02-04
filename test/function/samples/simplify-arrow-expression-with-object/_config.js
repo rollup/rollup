@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'correctly simplifies arrow expressions where the right hand side becomes an object',

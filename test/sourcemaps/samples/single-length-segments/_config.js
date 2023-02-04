@@ -1,10 +1,10 @@
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+const assert = require('node:assert');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-const original = fs.readFileSync(path.resolve(__dirname, 'main.js'), 'utf-8');
+const original = readFileSync(path.resolve(__dirname, 'main.js'), 'utf8');
 
 module.exports = {
 	description: 'handles single-length sourcemap segments',
@@ -13,8 +13,8 @@ module.exports = {
 			{
 				transform() {
 					return {
-						code: fs.readFileSync(path.resolve(__dirname, 'output.js'), 'utf-8'),
-						map: fs.readFileSync(path.resolve(__dirname, 'output.js.map'), 'utf-8')
+						code: readFileSync(path.resolve(__dirname, 'output.js'), 'utf8'),
+						map: readFileSync(path.resolve(__dirname, 'output.js.map'), 'utf8')
 					};
 				}
 			}
@@ -26,7 +26,7 @@ module.exports = {
 	async test(code, map) {
 		const smc = await new SourceMapConsumer(map);
 
-		['Foo', 'log'].forEach(token => {
+		for (const token of ['Foo', 'log']) {
 			const generatedLoc = getLocation(code, code.indexOf(token));
 			const originalLoc = smc.originalPositionFor(generatedLoc);
 			const expectedLoc = getLocation(original, original.indexOf(token));
@@ -34,6 +34,6 @@ module.exports = {
 			assert.ok(/main/.test(originalLoc.source));
 			assert.equal(originalLoc.line, expectedLoc.line);
 			assert.equal(originalLoc.column, expectedLoc.column);
-		});
+		}
 	}
 };

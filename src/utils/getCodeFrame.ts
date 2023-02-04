@@ -1,11 +1,11 @@
-function spaces(i: number) {
+function spaces(index: number): string {
 	let result = '';
-	while (i--) result += ' ';
+	while (index--) result += ' ';
 	return result;
 }
 
-function tabsToSpaces(str: string) {
-	return str.replace(/^\t+/, match => match.split('\t').join('  '));
+function tabsToSpaces(value: string): string {
+	return value.replace(/^\t+/, match => match.split('\t').join('  '));
 }
 
 export default function getCodeFrame(source: string, line: number, column: number): string {
@@ -23,18 +23,19 @@ export default function getCodeFrame(source: string, line: number, column: numbe
 	const digits = String(frameEnd).length;
 
 	return lines
-		.map((str, i) => {
-			const isErrorLine = frameStart + i + 1 === line;
+		.map((sourceLine, index) => {
+			const isErrorLine = frameStart + index + 1 === line;
 
-			let lineNum = String(i + frameStart + 1);
-			while (lineNum.length < digits) lineNum = ` ${lineNum}`;
+			let lineNumber = String(index + frameStart + 1);
+			while (lineNumber.length < digits) lineNumber = ` ${lineNumber}`;
 
 			if (isErrorLine) {
-				const indicator = spaces(digits + 2 + tabsToSpaces(str.slice(0, column)).length) + '^';
-				return `${lineNum}: ${tabsToSpaces(str)}\n${indicator}`;
+				const indicator =
+					spaces(digits + 2 + tabsToSpaces(sourceLine.slice(0, column)).length) + '^';
+				return `${lineNumber}: ${tabsToSpaces(sourceLine)}\n${indicator}`;
 			}
 
-			return `${lineNum}: ${tabsToSpaces(str)}`;
+			return `${lineNumber}: ${tabsToSpaces(sourceLine)}`;
 		})
 		.join('\n');
 }

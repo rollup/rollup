@@ -1,27 +1,38 @@
-import Module, { AstContext } from '../../Module';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import Identifier from '../nodes/Identifier';
-import * as NodeType from '../nodes/NodeType';
-import SpreadElement from '../nodes/SpreadElement';
+import type { AstContext } from '../../Module';
+import type Module from '../../Module';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArgument
+} from '../NodeInteractions';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED
+} from '../NodeInteractions';
+import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import type Identifier from '../nodes/Identifier';
+import * as NodeType from '../nodes/NodeType';
+import type SpreadElement from '../nodes/SpreadElement';
+import {
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
-import { ExpressionNode, Node } from '../nodes/shared/Node';
-import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
+import type { Node } from '../nodes/shared/Node';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
-	declarations: (Identifier | ExportDefaultDeclaration)[];
+	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity | null;
-	module: Module;
+	readonly module: Module;
 
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
@@ -81,19 +92,18 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		if (this.isReassigned || !this.init) {
-			return thisParameter.deoptimizePath(UNKNOWN_PATH);
+			return interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
 		}
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() => this.init!.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker),
+			() => this.init!.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker),
 			undefined
 		);
 	}
@@ -119,12 +129,12 @@ export default class LocalVariable extends Variable {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.isReassigned || !this.init) {
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
 			path,
@@ -133,42 +143,44 @@ export default class LocalVariable extends Variable {
 				this.expressionsToBeDeoptimized.push(origin);
 				return this.init!.getReturnExpressionWhenCalledAtPath(
 					path,
-					callOptions,
+					interaction,
 					recursionTracker,
 					origin
 				);
 			},
-			UNKNOWN_EXPRESSION
+			UNKNOWN_RETURN_EXPRESSION
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.init.hasEffectsWhenAccessedAtPath(path, context))!;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.included) return true;
-		if (path.length === 0) return false;
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-			this.init.hasEffectsWhenAssignedAtPath(path, context))!;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (this.isReassigned) return true;
-		return (this.init &&
-			!(
-				callOptions.withNew ? context.instantiated : context.called
-			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
-			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
+		switch (interaction.type) {
+			case INTERACTION_ACCESSED: {
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			}
+			case INTERACTION_ASSIGNED: {
+				if (this.included) return true;
+				if (path.length === 0) return false;
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			}
+			case INTERACTION_CALLED: {
+				if (this.isReassigned) return true;
+				return (this.init &&
+					!(
+						interaction.withNew ? context.instantiated : context.called
+					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+			}
+		}
 	}
 
 	include(): void {
@@ -189,14 +201,17 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		parameters: readonly (ExpressionEntity | SpreadElement)[]
+	): void {
 		if (this.isReassigned || (this.init && context.includedCallArguments.has(this.init))) {
-			for (const arg of args) {
-				arg.include(context, false);
+			for (const argument of parameters) {
+				argument.include(context, false);
 			}
 		} else if (this.init) {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, args);
+			this.init.includeCallArguments(context, parameters);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

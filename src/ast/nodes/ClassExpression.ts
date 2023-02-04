@@ -1,6 +1,6 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 

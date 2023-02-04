@@ -1,10 +1,10 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkDependencies, ChunkExports, ModuleDeclarations } from '../Chunk';
-import { NormalizedOutputOptions } from '../rollup/types';
-import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import type { Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependency, ChunkExports, ModuleDeclarations } from '../Chunk';
+import type { NormalizedOutputOptions } from '../rollup/types';
+import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 export default function system(
 	magicString: MagicStringBundle,
@@ -27,7 +27,7 @@ export default function system(
 		strict,
 		systemNullSetters
 	}: NormalizedOutputOptions
-): Bundle {
+): void {
 	const { _, getFunctionIntro, getNonArrowFunctionIntro, n, s } = snippets;
 	const { importBindings, setters, starExcludes } = analyzeDependencies(
 		dependencies,
@@ -36,7 +36,7 @@ export default function system(
 		snippets
 	);
 	const registeredName = name ? `'${name}',${_}` : '';
-	const wrapperParams = accessedGlobals.has('module')
+	const wrapperParameters = accessedGlobals.has('module')
 		? ['exports', 'module']
 		: hasExports
 		? ['exports']
@@ -46,14 +46,15 @@ export default function system(
 	// cf. https://v8.dev/blog/preparser#pife
 	let wrapperStart =
 		`System.register(${registeredName}[` +
-		dependencies.map(({ id }) => `'${id}'`).join(`,${_}`) +
-		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
-			strict ? "'use strict';" : ''
-		}` +
+		dependencies.map(({ importPath }) => `'${importPath}'`).join(`,${_}`) +
+		`],${_}(${getNonArrowFunctionIntro(wrapperParameters, {
+			isAsync: false,
+			name: null
+		})}{${n}${t}${strict ? "'use strict';" : ''}` +
 		getStarExcludesBlock(starExcludes, t, snippets) +
 		getImportBindingsBlock(importBindings, t, snippets) +
 		`${n}${t}return${_}{${
-			setters.length
+			setters.length > 0
 				? `${n}${t}${t}setters:${_}[${setters
 						.map(setter =>
 							setter
@@ -75,29 +76,32 @@ export default function system(
 
 	const wrapperEnd = `${t}${t}})${n}${t}}${s}${n}}));`;
 
-	magicString.prepend(
-		intro +
-			getHelpersBlock(
-				null,
-				accessedGlobals,
-				t,
-				snippets,
-				externalLiveBindings,
-				freeze,
-				namespaceToStringTag
-			) +
-			getHoistedExportsBlock(exports, t, snippets)
-	);
-	magicString.append(
-		`${outro}${n}${n}` +
-			getSyntheticExportsBlock(exports, t, snippets) +
-			getMissingExportsBlock(exports, t, snippets)
-	);
-	return magicString.indent(`${t}${t}${t}`).append(wrapperEnd).prepend(wrapperStart);
+	magicString
+		.prepend(
+			intro +
+				getHelpersBlock(
+					null,
+					accessedGlobals,
+					t,
+					snippets,
+					externalLiveBindings,
+					freeze,
+					namespaceToStringTag
+				) +
+				getHoistedExportsBlock(exports, t, snippets)
+		)
+		.append(
+			`${outro}${n}${n}` +
+				getSyntheticExportsBlock(exports, t, snippets) +
+				getMissingExportsBlock(exports, t, snippets)
+		)
+		.indent(`${t}${t}${t}`)
+		.append(wrapperEnd)
+		.prepend(wrapperStart);
 }
 
 function analyzeDependencies(
-	dependencies: ChunkDependencies,
+	dependencies: ChunkDependency[],
 	exports: ChunkExports,
 	t: string,
 	{ _, cnst, getObject, getPropertyAccess, n }: GenerateCodeSnippets
@@ -171,22 +175,22 @@ const getStarExcludes = ({ dependencies, exports }: ModuleDeclarations): Set<str
 };
 
 const getStarExcludesBlock = (
-	starExcludes: Set<string> | null,
+	starExcludes: ReadonlySet<string> | null,
 	t: string,
 	{ _, cnst, getObject, n }: GenerateCodeSnippets
 ): string =>
 	starExcludes
 		? `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(
-				[...starExcludes].map(prop => [prop, '1']),
+				[...starExcludes].map(property => [property, '1']),
 				{ lineBreakIndent: { base: t, t } }
 		  )};`
 		: '';
 
 const getImportBindingsBlock = (
-	importBindings: string[],
+	importBindings: readonly string[],
 	t: string,
 	{ _, n }: GenerateCodeSnippets
-): string => (importBindings.length ? `${n}${t}var ${importBindings.join(`,${_}`)};` : '');
+): string => (importBindings.length > 0 ? `${n}${t}var ${importBindings.join(`,${_}`)};` : '');
 
 const getHoistedExportsBlock = (
 	exports: ChunkExports,
@@ -200,7 +204,7 @@ const getHoistedExportsBlock = (
 	);
 
 function getExportsBlock(
-	exports: { name: string; value: string }[],
+	exports: readonly { name: string; value: string }[],
 	t: string,
 	{ _, n }: GenerateCodeSnippets
 ): string {

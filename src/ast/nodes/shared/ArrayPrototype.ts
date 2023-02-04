@@ -1,6 +1,6 @@
 import { UnknownInteger } from '../../utils/PathTracker';
 import { UNKNOWN_LITERAL_BOOLEAN, UNKNOWN_LITERAL_NUMBER } from '../../values';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
 import {
 	Method,
 	METHOD_RETURNS_BOOLEAN,
@@ -8,7 +8,7 @@ import {
 	METHOD_RETURNS_STRING,
 	METHOD_RETURNS_UNKNOWN
 } from './MethodTypes';
-import { ObjectEntity, ObjectProperty, PropertyMap } from './ObjectEntity';
+import { ObjectEntity, type ObjectProperty, type PropertyMap } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
 const NEW_ARRAY_PROPERTIES: ObjectProperty[] = [
@@ -128,6 +128,8 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		filter: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY,
 		find: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
 		findIndex: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NUMBER,
+		findLast: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
+		findLastIndex: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NUMBER,
 		flat: METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY,
 		flatMap: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY,
 		forEach: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,

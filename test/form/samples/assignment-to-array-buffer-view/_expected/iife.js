@@ -10,8 +10,6 @@ var bundle = (function (exports) {
 
 	exports.view8 = view8;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({});

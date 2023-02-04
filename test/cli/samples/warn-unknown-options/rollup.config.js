@@ -1,5 +1,5 @@
+var assert = require('node:assert');
 var replace = require('@rollup/plugin-replace');
-var assert = require('assert');
 
 let warnings = 0;
 

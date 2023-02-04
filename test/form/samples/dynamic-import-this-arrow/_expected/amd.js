@@ -1,7 +1,6 @@
 define(['require', 'exports', 'input'], (function (require, exports, input) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(k => {
@@ -14,7 +13,7 @@ define(['require', 'exports', 'input'], (function (require, exports, input) { 'u
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -24,14 +23,12 @@ define(['require', 'exports', 'input'], (function (require, exports, input) { 'u
 		}
 
 		getImport() {
-			return new Promise((resolve, reject) => require([this.outputPath], m => resolve(/*#__PURE__*/_interopNamespace(m)), reject));
+			return new Promise((resolve, reject) => require([this.outputPath], m => resolve(/*#__PURE__*/_interopNamespaceDefault(m)), reject));
 		}
 	}
 
 	const promise = new Importer().getImport();
 
 	exports.promise = promise;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

@@ -1,5 +1,1190 @@
 # rollup changelog
 
+## 3.13.0
+
+_2023-02-03_
+
+### Features
+
+- Prevent chunk cycles when using `experimentalMinChunkSize` (#4723)
+
+### Pull Requests
+
+- [#4723](https://github.com/rollup/rollup/pull/4723): Improve minChunkSize algorithm (@lukastaegert)
+- [#4833](https://github.com/rollup/rollup/pull/4833): docs: Fix typo (@mturoci)
+- [#4835](https://github.com/rollup/rollup/pull/4835): Tables in docs (@lukastaegert)
+
+## 3.12.1
+
+_2023-02-01_
+
+### Bug Fixes
+
+- Handle self-references in class static blocks and construtors when the class is renamed (#4827)
+- Improve warnings when creating circular chunks taht reexport variables (#4829)
+
+### Pull Requests
+
+- [#4827](https://github.com/rollup/rollup/pull/4827): fix: use the original class name in the class body (@TrickyPi)
+- [#4829](https://github.com/rollup/rollup/pull/4829): Improve and fix cross-chunk-reexport warning (@lukastaegert)
+- [#4830](https://github.com/rollup/rollup/pull/4830): Add Algolia doc search (@lukastaegert)
+- [#4831](https://github.com/rollup/rollup/pull/4831): Add warning not to add assets directly to the bundle (@lukastaegert)
+
+## 3.12.0
+
+_2023-01-28_
+
+### Features
+
+- Change generated external namespace reexport helper code for CommonJS to better work with NodeJS named export detection (#4826)
+
+### Pull Requests
+
+- [#4825](https://github.com/rollup/rollup/pull/4825): Add and use anchors for nested options (@lukastaegert)
+- [#4826](https://github.com/rollup/rollup/pull/4826): Use old namespace reexport code pattern for better Node support (@lukastaegert)
+
+## 3.11.0
+
+_2023-01-26_
+
+### Features
+
+- Support opt-in tree-shaking for emitted assets based on code references (#4805)
+
+### Bug Fixes
+
+- Adapt documentation references in Rollup to new website (#4807)
+
+### Pull Requests
+
+- [#4805](https://github.com/rollup/rollup/pull/4805): feat: add needsCodeReference field to EmittedAsset (@TrickyPi)
+- [#4807](https://github.com/rollup/rollup/pull/4807): Rewrite website in Vitepress and merge it into the main repository (@lukastaegert)
+- [#4816](https://github.com/rollup/rollup/pull/4816): web-publisher: Update docs/faqs/index.md (@PuruVJ)
+- [#4819](https://github.com/rollup/rollup/pull/4819): Replace fs-extra with built-ins (@dnalborczyk)
+- [#4820](https://github.com/rollup/rollup/pull/4820): Introduce timeout-minutes in Github actions ci (@dnalborczyk)
+- [#4822](https://github.com/rollup/rollup/pull/4822): Tweak document landing page (@sapphi-red)
+- [#4823](https://github.com/rollup/rollup/pull/4823): Minor migration guide improvements (@sapphi-red)
+- [#4824](https://github.com/rollup/rollup/pull/4824): Add most options to the REPL (@lukastaegert)
+
+## 3.10.1
+
+_2023-01-20_
+
+### Bug Fixes
+
+- Fix some crashes when using optional chaining with namespaces and improve tree-shaking (#4812)
+- Avoid wrongly removed code when using optional chaining (#4812)
+
+### Pull Requests
+
+- [#4809](https://github.com/rollup/rollup/pull/4809): fix: rollup bin file is in dist folder (@saibotsivad)
+- [#4812](https://github.com/rollup/rollup/pull/4812): Rework tree-shaking support for optional chaining (@lukastaegert)
+
+## 3.10.0
+
+_2023-01-12_
+
+### Features
+
+- Add information about the resolving plugin to resolved ids (#4789)
+- Improve treeshaking for optional chaining when the root is nullish (#4797)
+
+### Bug Fixes
+
+- Remove unnecessary internal defaults for acorn options (#4786)
+
+### Pull Requests
+
+- [#4785](https://github.com/rollup/rollup/pull/4785): Use @jridgewell/sourcemap-codec (@bluwy)
+- [#4786](https://github.com/rollup/rollup/pull/4786): Remove default acorn options + other fixes (@dnalborczyk)
+- [#4789](https://github.com/rollup/rollup/pull/4789): feat: add `resolvedBy` field to `ResolvedId` (@TrickyPi)
+- [#4794](https://github.com/rollup/rollup/pull/4794): fix: import can be shortened (@cunzaizhuyi)
+- [#4796](https://github.com/rollup/rollup/pull/4796): Update dependencies (@lukastaegert)
+- [#4797](https://github.com/rollup/rollup/pull/4797): feat: treeshake for optional chaining (@antfu)
+
+## 3.9.1
+
+_2023-01-02_
+
+### Bug Fixes
+
+- Sort keys in generated dynamic namespace objects (#4780)
+- Do not consider Array.group to be side effect free as the specs have changed (#4779)
+
+### Pull Requests
+
+- [#4777](https://github.com/rollup/rollup/pull/4777): Import from node:fs/promises (@dnalborczyk)
+- [#4778](https://github.com/rollup/rollup/pull/4778): Bump deps (@dnalborczyk)
+- [#4779](https://github.com/rollup/rollup/pull/4779): Remove array grouping (web compat issue) (@dnalborczyk)
+- [#4780](https://github.com/rollup/rollup/pull/4780): Sort namespace object keys (@dnalborczyk)
+- [#4781](https://github.com/rollup/rollup/pull/4781): Use Set and builtin-modules package (@dnalborczyk)
+- [#4782](https://github.com/rollup/rollup/pull/4782): Use more restrictive types (@dnalborczyk)
+
+## 3.9.0
+
+_2022-12-28_
+
+### Features
+
+- Support ES2022 arbitrary module namespace identifiers (#4770)
+- Add optional `version` property to plugin type (#4771)
+
+### Pull Requests
+
+- [#4768](https://github.com/rollup/rollup/pull/4768): Fix small typo in 999-big-list-of-options.md (@ericmutta)
+- [#4769](https://github.com/rollup/rollup/pull/4769): docs: add a instruction about how to run one test on your local computer (@TrickyPi)
+- [#4770](https://github.com/rollup/rollup/pull/4770): Add support for arbitrary module namespace identifiers (@lukastaegert)
+- [#4771](https://github.com/rollup/rollup/pull/4771): Add `version` property to Plugin type (@Septh)
+
+## 3.8.1
+
+_2022-12-23_
+
+### Bug Fixes
+
+- Reduce memory footprint when explicitly passing `cache: false` (#4762)
+- Fix a crash when preserving modules and reexporting namespaces (#4766)
+
+### Pull Requests
+
+- [#4762](https://github.com/rollup/rollup/pull/4762): Improve AST garbage collection (@bluwy)
+- [#4766](https://github.com/rollup/rollup/pull/4766): Fix handling of namespace reexports when preserving modules (@lukastaegert)
+
+## 3.8.0
+
+_2022-12-22_
+
+### Features
+
+- Deduplicate ESM exports and reexports when preserving modules (#4759)
+
+### Bug Fixes
+
+- Handle files that are emitted as a side effect of the manualChunks option (#4759)
+
+### Pull Requests
+
+- [#4759](https://github.com/rollup/rollup/pull/4759): feat: deduplicate reexports and renderedExports to simplify output (@TrickyPi)
+- [#4761](https://github.com/rollup/rollup/pull/4761): Support emitting files via manualChunks in output (@lukastaegert)
+- [#4763](https://github.com/rollup/rollup/pull/4763): docs: update outdated info (@TrickyPi)
+
+## 3.7.5
+
+_2022-12-17_
+
+### Bug Fixes
+
+- Avoid name shadowing when default exporting a class that matches the name of another class (#4756)
+- Do not display the error message both in a separate line and in the stack trace in rollup CLI (#4749)
+- Make type of `RollupWarning.cause` compatible with `Error.cause` (#4757)
+- Do not swallow side effects when interacting with modules namespaces nested in another object (#4758)
+
+### Pull Requests
+
+- [#4749](https://github.com/rollup/rollup/pull/4749): feat: simplify `stack` info in cli error (@TrickyPi)
+- [#4756](https://github.com/rollup/rollup/pull/4756): Avoid name conflicts for default exported classes (@lukastaegert)
+- [#4757](https://github.com/rollup/rollup/pull/4757): fix: RollupLog cause allow unknown (@Shinigami92)
+- [#4758](https://github.com/rollup/rollup/pull/4758): Correctly handle side effects when a namespace is nested in an object (@lukastaegert)
+
+## 3.7.4
+
+_2022-12-13_
+
+### Bug Fixes
+
+- Do not remove calls to `.exec` and `.test` for included stateful regular expressions (#4742)
+
+### Pull Requests
+
+- [#4742](https://github.com/rollup/rollup/pull/4742): fix: check whether RegExp have the global or sticky flags set (@TrickyPi)
+
+## 3.7.3
+
+_2022-12-11_
+
+### Bug Fixes
+
+- Ensure `this.getFileName` no longer returns a placeholder as soon as hash placeholders have been resolved (#4747)
+
+### Pull Requests
+
+- [#4747](https://github.com/rollup/rollup/pull/4747): provide hashed file name when using this.getFileName in generateBundle (@lukastaegert)
+
+## 3.7.2
+
+_2022-12-10_
+
+### Bug Fixes
+
+- Improve chunk generation performance when one module is dynamically imported by many other modules (#4736)
+
+### Pull Requests
+
+- [#4736](https://github.com/rollup/rollup/pull/4736): Improve chunk assignment performance (@lukastaegert)
+
+## 3.7.1
+
+_2022-12-09_
+
+### Bug Fixes
+
+- Ad a hint to use @rollup/plugin-json when imports from a JSON file are not found (#4741)
+
+### Pull Requests
+
+- [#4741](https://github.com/rollup/rollup/pull/4741): fix: provide json hint when importing a no export json file (@TrickyPi)
+
+## 3.7.0
+
+_2022-12-08_
+
+### Features
+
+- Do not treat `.test` and `.exec` on regular expressions as side effects (#4737)
+
+### Pull Requests
+
+- [#4737](https://github.com/rollup/rollup/pull/4737): feat: add sutiable RegExp prototype methods (@TrickyPi)
+
+## 3.6.0
+
+_2022-12-05_
+
+### Features
+
+- extend `this.getModuleInfo` with information about exports (#4731)
+
+### Pull Requests
+
+- [#4731](https://github.com/rollup/rollup/pull/4731): feat: add `exports` and `exportedBindings` to `Module` class (@TrickyPi)
+
+## 3.5.1
+
+_2022-12-01_
+
+### Bug Fixes
+
+- Accept functions returning a config in defineConfig (#4728)
+
+### Pull Requests
+
+- [#4728](https://github.com/rollup/rollup/pull/4728): Overload defineConfig to accept a RollupOptionsFunction parameter (@Septh)
+
+## 3.5.0
+
+_2022-11-27_
+
+### Features
+
+- Add `treeshake.manualPureFunctions` to override static analysis for explicit function names (#4718)
+
+### Bug Fixes
+
+- Do not throw when a plugin uses `this.load` without awaiting its result (#4725)
+
+### Pull Requests
+
+- [#4718](https://github.com/rollup/rollup/pull/4718): Add simple way to manually declare pure functions (@lukastaegert)
+- [#4725](https://github.com/rollup/rollup/pull/4725): Fix isIncluded error when using rollup-plugin-typescript2 (@lukastaegert)
+
+## 3.4.0
+
+_2022-11-22_
+
+### Features
+
+- Do not keep unused `Object.freeze` calls on object literals (#4720)
+
+### Pull Requests
+
+- [#4720](https://github.com/rollup/rollup/pull/4720): Only consider Object.freeze a side effect if the argument is used (@lukastaegert)
+
+## 3.3.0
+
+_2022-11-12_
+
+### Features
+
+- Add "experimentalMinChunkSize" option to merge smaller chunks into larger ones (#4705)
+- Automatically deduplicate assets again when the source is a `Buffer` (#4712)
+- Deduplicate `Buffer` with `string` assets (#4712)
+
+### Bug Fixes
+
+- Support plugins with object hooks when using `perf: true` (#4707)
+
+### Pull Requests
+
+- [#4702](https://github.com/rollup/rollup/pull/4702): docs: add additional tips for heap out of memory (@benmccann)
+- [#4705](https://github.com/rollup/rollup/pull/4705): Allow to define minimum chunk size limit (@lukastaegert)
+- [#4707](https://github.com/rollup/rollup/pull/4707): Fix perf timers for object hooks (@lukastaegert)
+- [#4710](https://github.com/rollup/rollup/pull/4710): Update terser docs (@nikolas)
+- [#4712](https://github.com/rollup/rollup/pull/4712): feat: deduplicate assets with buffer source (@patak-dev)
+
+## 3.2.5
+
+_2022-11-01_
+
+### Bug Fixes
+
+- We deconflicting classes, ensure the original class name still does not shadow variables (#4697)
+
+### Pull Requests
+
+- [#4697](https://github.com/rollup/rollup/pull/4697): Prevent class ids from shadowing other variables (@lukastaegert)
+
+## 3.2.4
+
+_2022-10-31_
+
+### Bug Fixes
+
+- Always use forward slashes in chunk ids when preserving modules, even on Windows (#4693)
+- Escape problematic characters in ids when rewriting `import.meta.url` (#4693)
+
+### Pull Requests
+
+- [#4685](https://github.com/rollup/rollup/pull/4685): update package-lock version (@jerry-lllman)
+- [#4689](https://github.com/rollup/rollup/pull/4689): Update 07-tools.md (@cokert)
+- [#4693](https://github.com/rollup/rollup/pull/4693): Use correct import.meta.url slashes on Windows (@lukastaegert)
+
+## 3.2.3
+
+_2022-10-18_
+
+### Bug Fixes
+
+- Fix an issue whre Rollup confused `new.target` with `import.meta` (#4679)
+- Ensure that Rollup does not make assumptions about the value of unknown namespace import members (#4684)
+
+### Pull Requests
+
+- [#4679](https://github.com/rollup/rollup/pull/4679): Do not rewrite new.target (@lukastaegert)
+- [#4683](https://github.com/rollup/rollup/pull/4683): Remove typo in resolveId documentation (@ChrispyChris)
+- [#4684](https://github.com/rollup/rollup/pull/4684): Return correct values for unknown namespace members (@lukastaegert)
+
+## 3.2.2
+
+_2022-10-16_
+
+### Bug Fixes
+
+- Do not hang/crash on hashbang comments in input modules (#4676)
+
+### Pull Requests
+
+- [#4675](https://github.com/rollup/rollup/pull/4675): refactor: improve & simplify types (@sxzz)
+- [#4676](https://github.com/rollup/rollup/pull/4676): Ignore hashhbang comments (@lukastaegert)
+
+## 3.2.1
+
+_2022-10-16_
+
+### Bug Fixes
+
+- Rewrite class declarations to preserve their .name property if necessary (#4674)
+
+### Pull Requests
+
+- [#4674](https://github.com/rollup/rollup/pull/4674): Preserve rendered class names (@lukastaegert)
+
+## 3.2.0
+
+_2022-10-15_
+
+### Features
+
+- Support providing Promises as plugins like Vite (#4671)
+
+### Pull Requests
+
+- [#4666](https://github.com/rollup/rollup/pull/4666): Add unicorn plugin (@lukastaegert)
+- [#4667](https://github.com/rollup/rollup/pull/4667): refactor: improve types (@sxzz)
+- [#4668](https://github.com/rollup/rollup/pull/4668): fix: nested plugin in options stage (@sxzz)
+- [#4669](https://github.com/rollup/rollup/pull/4669): refactor: merge duplicate imports (@c0dedance)
+- [#4670](https://github.com/rollup/rollup/pull/4670): docs: fix minor typo in migration documentation (@ThisIsMissEm)
+- [#4671](https://github.com/rollup/rollup/pull/4671): feat: support async plugins (@sxzz)
+
+## 3.1.0
+
+_2022-10-12_
+
+### Features
+
+- Support using arrays of plugins as plugins like Vite (#4657)
+
+### Pull Requests
+
+- [#4657](https://github.com/rollup/rollup/pull/4657): feat: support nested plugin (@sxzz)
+
+## 3.0.1
+
+_2022-10-12_
+
+### Bug Fixes
+
+- Fix installation on Windows (#4662)
+- Avoid missing parameters that are only used in a destructuring initializer (#4663)
+
+### Pull Requests
+
+- [#4661](https://github.com/rollup/rollup/pull/4661): Enforce type imports (@lukastaegert)
+- [#4662](https://github.com/rollup/rollup/pull/4662): fix: missing "node" causes run script error (@c0dedance)
+- [#4663](https://github.com/rollup/rollup/pull/4663): Ensure the initializer of a destructuring declaration is always included if the id is included (@lukastaegert)
+- [#4664](https://github.com/rollup/rollup/pull/4664): fix: remove lint:js:nofix script redundancy options (@c0dedance)
+
+## 3.0.0
+
+_2022-10-11_
+
+### Breaking Changes
+
+#### General Changes
+
+- Rollup now requires at least Node 14.18.0 to run (#4548 and #4596)
+- The browser build has been split into a separate package `@rollup/browser` (#4593)
+- The node build uses the `node:` prefix for imports of builtin modules (#4596)
+- Some previously deprecated features have been removed (#4552):
+  - Some plugin context functions have been removed:
+    - `this.emitAsset()`: use `this.emitFile()`
+    - `this.emitChunk()`: use `this.emitFile()`
+    - `this.getAssetFileName()`: use `this.getFileName()`
+    - `this.getChunkFileName()`: use `this.getFileName()`
+    - `this.isExternal()`: use `this.resolve()`
+    - `this.resolveId()`: use `this.resolve()`
+  - The `resolveAssetUrl` plugin hook has been removed: use `resolveFileUrl`
+  - Rollup no longer passes `assetReferenceId` or `chunkReferenceId` parameters to `resolveFileUrl`
+  - The `treeshake.pureExternalModules` option has been removed: use `treeshake.moduleSideEffects: 'no-external'`
+  - You may no longer use `true` or `false` for `output.interop`. As a replacement for `true`, you can use "compat"
+  - Emitted assets no longer have an `isAsset` flag in the bundle
+  - Rollup will no longer fix assets added directly to the bundle by adding the `type: "asset"` field
+- Some features that were previously marked for deprecation now show warnings when used (#4552):
+  - Some options have been deprecated:
+    - `inlineDynamicImports` as part of the input options: use `output. inlineDynamicImports`
+    - `manualChunks` as part of the input options: use `output. manualChunks `
+    - `maxParallelFileReads`: use `maxParallelFileOps
+    - `output.preferConst`: use `output.generatedCode.constBindings`
+    - `output.dynamicImportFunction`: use the `renderDynamicImport` plugin hook
+    - `output.namespaceToStringTag`: use `output.generatedCode.symbols`
+    - `preserveModules` as part of the input options: use `output. preserveModules `
+  - You should no longer access `this.moduleIds` in plugins: use `this.getModuleIds()`
+  - You should no longer access `this.getModuleInfo(...).hasModuleSideEffects` in plugins: use `this.getModuleInfo(...).moduleSideEffects`
+- Configuration files are only bundled if either the `--configPlugin` or the `--bundleConfigAsCjs` options are used. The configuration is bundled to an ES module unless the `--bundleConfigAsCjs` option is used. In all other cases, configuration is now loaded using Node's native mechanisms (#4574 and #4621)
+- The properties attached to some errors have been changed so that there are fewer different possible properties with consistent types (#4579)
+- Some errors have been replaced by others (ILLEGAL_NAMESPACE_REASSIGNMENT -> ILLEGAL_REASSIGNMENT, NON_EXISTENT_EXPORT -> MISSING_EXPORT) (#4579)
+- Files in `rollup/dist/*` can only be required using their file extension (#4581)
+- The `loadConfigFile` helper now has a named export of the same name instead of a default export (#4581)
+- When using the API and sourcemaps, sourcemap comments are contained in the emitted files and sourcemaps are emitted as regular assets (#4605)
+- Watch mode no longer uses Node's EventEmitter but a custom implementation that awaits Promises returned from event handlers (#4609)
+- Assets may only be deduplicated with previously emitted assets if their source is a `string` (#4644)
+- By default, Rollup will keep external dynamic imports as `import(…)` in commonjs output unless `output.dynamicImportInCjs` is set to false (#4647)
+
+#### Changes to Rollup Options
+
+- As functions passed to `output.banner/footer/intro/outro` are now called per-chunk, they should be careful to avoid performance-heavy operations (#4543)
+- `entryFileNames/chunkFileNames` functions now longer have access to the rendered module information via `modules`, only to a list of included `moduleIds` (#4543)
+- The path of a module is no longer prepended to the corresponding chunk when preserving modules (#4565)
+- When preserving modules, the `[name]` placeholder (as well as the `chunkInfo.name` property when using a function) now includes the relative path of the chunk as well as optionally the file extension if the extension is not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts` (#4565)
+- The `[ext]`, `[extName]` and `[assetExtName]` placeholders are no longer supported when preserving modules (#4565)
+- The `perf` option no longer collects timings for the asynchronous part of plugin hooks as the readings were wildly inaccurate and very misleading, and timings are adapted to the new hashing algorithm (#4566)
+- Change the default value of `makeAbsoluteExternalsRelative` to "ifRelativeSource" so that absolute external imports will no longer become relative imports in the output, while relative external imports will still be renormalized (#4567)
+- Change the default for `output.generatedCode.reservedNamesAsProps` to no longer quote properties like `default` by default (#4568)
+- Change the default for `preserveEntrySignatures` to "exports-only" so that by default, empty facades for entry chunks are no longer created (#4576)
+- Change the default for `output.interop` to "default" to better align with NodeJS interop (#4611)
+- Change the default for `output.esModule` to "if-default-prop", which only adds \_\_esModule when the default export would be a property (#4611)
+- Change the default for `output.systemNullSetters` to `true`, which requires at least SystemJS 6.3.3 (#4649)
+
+#### Plugin API Changes
+
+- Plugins that add/change/remove imports or exports in `renderChunk` should make sure to update `ChunkInfo.imports/importedBindings/exports` accordingly (#4543)
+- The order of plugin hooks when generating output has changed (#4543)
+- Chunk information passed to `renderChunk` now contains names with hash placeholders instead of final names, which will be replaced when used in the returned code or `ChunkInfo.imports/importedBindings/exports` (#4543 and #4631)
+- Hooks defined in output plugins will now run after hooks defined in input plugins (used to be the other way around) (#3846)
+
+### Features
+
+- Functions passed to `output.banner/footer/intro/outro` are now called per-chunk with some chunk information (#4543)
+- Plugins can access the entire chunk graph via an additional parameter in `renderChunk` (#4543)
+- Chunk hashes only depend on the actual content of the chunk and are otherwise stable against things like renamed/moved source files or changed module resolution order (#4543)
+- The length of generated file hashes can be customized both globally and per-chunk (#4543)
+- When preserving modules, the regular `entryFileNames` logic is used and the path is included in the `[name]` property. This finally gives full control over file names when preserving modules (#4565)
+- `output.entryFileNames` now also supports the `[hash]` placeholder when preserving modules (#4565)
+- The `perf` option will now collect (synchronous) timings for all plugin hooks, not just a small selection (#4566)
+- All errors thrown by Rollup have `name: RollupError` now to make clearer that those are custom error types (#4579)
+- Error properties that reference modules (such as id and ids) will now always contain the full ids. Only the error message will use shortened ids (#4579)
+- Errors that are thrown in response to other errors (e.g. parse errors thrown by acorn) will now use the standardized cause property to reference the original error (#4579)
+- If sourcemaps are enabled, files will contain the appropriate sourcemap comment in `generateBundle` and sourcemap files are available as regular assets (#4605)
+- Returning a Promise from an event handler attached to a RollupWatcher instance will make Rollup wait for the Promise to resolve (#4609)
+- There is a new value "compat" for output.interop that is similar to "auto" but uses duck-typing to determine if there is a default export (#4611)
+- There is a new value "if-default-prop" for esModule that only adds an `__esModule` marker to the bundle if there is a default export that is rendered as a property (#4611)
+- Rollup can statically resolve checks for `foo[Symbol.toStringTag]` to "Module" if foo is a namespace (#4611)
+- There is a new CLI option `--bundleConfigAsCjs` which will force the configuration to be bundled to CommonJS (#4621)
+- Import assertions for external imports that are present in the input files will be retained in ESM output (#4646)
+- Rollup will warn when a module is imported with conflicting import assertions (#4646)
+- Plugins can add, remove or change import assertions when resolving ids (#4646)
+- The `output.externalImportAssertions` option allows to turn off emission of import assertions (#4646)
+- Use `output.dynamicImportInCjs` to control if dynamic imports are emitted as `import(…)` or wrapped `require(…)` when generating commonjs output (#4647)
+
+### Bug Fixes
+
+- Chunk hashes take changes in `renderChunk`, e.g. minification, into account (#4543)
+- Hashes of referenced assets are properly reflected in the chunk hash (#4543)
+- No longer warn about implicitly using default export mode to not tempt users to switch to named export mode and break Node compatibility (#4624)
+- Avoid performance issues when emitting thousands of assets (#4644)
+
+### Pull Requests
+
+- [#3846](https://github.com/rollup/rollup/pull/3846): [v3.0] Run output plugins last (@aleclarson)
+- [#4543](https://github.com/rollup/rollup/pull/4543): [v3.0] New hashing algorithm that "fixes (nearly) everything" (@lukastaegert)
+- [#4548](https://github.com/rollup/rollup/pull/4548): [v3.0] Deprecate Node 12 (@lukastaegert)
+- [#4552](https://github.com/rollup/rollup/pull/4552): [v3.0] Remove actively deprecated features, show warnings for other deprecated features (@lukastaegert)
+- [#4558](https://github.com/rollup/rollup/pull/4558): [v3.0] Convert build scripts to ESM, update dependencies (@lukastaegert)
+- [#4565](https://github.com/rollup/rollup/pull/4565): [v3.0] Rework file name patterns when preserving modules (@lukastaegert)
+- [#4566](https://github.com/rollup/rollup/pull/4566): [v3.0] Restructure timings (@lukastaegert)
+- [#4567](https://github.com/rollup/rollup/pull/4567): [v3.0] Change default for makeAbsoluteExternalsRelative (@lukastaegert)
+- [#4568](https://github.com/rollup/rollup/pull/4568): [v3.0] Change default for output.generatedCode.reservedNamesAsProps (@lukastaegert)
+- [#4574](https://github.com/rollup/rollup/pull/4574): [v3.0] Better esm config file support (@lukastaegert)
+- [#4575](https://github.com/rollup/rollup/pull/4575): [v3.0] Show deprecation warning for maxParallelFileReads (@lukastaegert)
+- [#4576](https://github.com/rollup/rollup/pull/4576): [v3.0] Change default for preserveEntrySignatures to exports-only (@lukastaegert)
+- [#4579](https://github.com/rollup/rollup/pull/4579): [v3.0] Refine errors and warnings (@lukastaegert)
+- [#4581](https://github.com/rollup/rollup/pull/4581): [v3.0] Use named export for loadConfigFile (@lukastaegert)
+- [#4592](https://github.com/rollup/rollup/pull/4592): [v3.0] Port doc changes from #4572 and #4583 to 3.0 (@berniegp)
+- [#4593](https://github.com/rollup/rollup/pull/4593): [v3.0] Browser build (@lukastaegert)
+- [#4596](https://github.com/rollup/rollup/pull/4596): [v3.0] Use "node:" prefix for imports of node builtins (@lukastaegert)
+- [#4605](https://github.com/rollup/rollup/pull/4605): [v3.0] Better sourcemap emission (@lukastaegert)
+- [#4609](https://github.com/rollup/rollup/pull/4609): [v3.0] Custom awaiting watch emitter (@lukastaegert)
+- [#4611](https://github.com/rollup/rollup/pull/4611): [v3.0] Improve interop defaults (@lukastaegert)
+- [#4621](https://github.com/rollup/rollup/pull/4621): [v3.0] Always try to load config files via Node if possible (@lukastaegert)
+- [#4624](https://github.com/rollup/rollup/pull/4624): [v3.0] Remove warning when using implicit default export mode (@lukastaegert)
+- [#4631](https://github.com/rollup/rollup/pull/4631): [v3.0] Use ASCII characters for hash placeholders (@lukastaegert)
+- [#4644](https://github.com/rollup/rollup/pull/4644): [v3.0] Improve performance of asset emissions (@lukastaegert)
+- [#4646](https://github.com/rollup/rollup/pull/4646): [v3.0] Basic support for import assertions (@lukastaegert)
+- [#4647](https://github.com/rollup/rollup/pull/4647): [v3.0] Keep dynamic imports in CommonJS output (@lukastaegert)
+- [#4649](https://github.com/rollup/rollup/pull/4649): [v3.0] Change default for systemNullSetters (@lukastaegert)
+- [#4651](https://github.com/rollup/rollup/pull/4651): [v3.0] use compiler target ES2020 (@dnalborczyk)
+
+## 2.79.1
+
+_2022-09-22_
+
+### Bug Fixes
+
+- Avoid massive performance degradation when creating thousands of chunks (#4643)
+
+### Pull Requests
+
+- [#4639](https://github.com/rollup/rollup/pull/4639): fix: typo docs and contributors link in CONTRIBUTING.md (@takurinton)
+- [#4641](https://github.com/rollup/rollup/pull/4641): Update type definition of resolveId (@ivanjonas)
+- [#4643](https://github.com/rollup/rollup/pull/4643): Improve performance of chunk naming collision check (@lukastaegert)
+
+## 2.79.0
+
+_2022-08-31_
+
+### Features
+
+- Add `amd.forceJsExtensionForImports` to enforce using `.js` extensions for relative AMD imports (#4607)
+
+### Pull Requests
+
+- [#4607](https://github.com/rollup/rollup/pull/4607): add option to keep extensions for amd (@wh1tevs)
+
+## 2.78.1
+
+_2022-08-19_
+
+### Bug Fixes
+
+- Avoid inferring "arguments" as name for a default export placeholder variable (#4613)
+
+### Pull Requests
+
+- [#4613](https://github.com/rollup/rollup/pull/4613): Prevent using arguments for generated variable names (@lukastaegert)
+
+## 2.78.0
+
+_2022-08-14_
+
+### Features
+
+- Support writing plugin hooks as objects with a "handler" property (#4600)
+- Allow changing execution order per plugin hook (#4600)
+- Add flag to execute plugins in async parallel hooks sequentially (#4600)
+
+### Pull Requests
+
+- [#4600](https://github.com/rollup/rollup/pull/4600): Allow using objects as hooks to change execution order (@lukastaegert)
+
+## 2.77.3
+
+_2022-08-11_
+
+### Bug Fixes
+
+- Correctly resolve preserveModulesRoot in Vite (#4591)
+
+### Pull Requests
+
+- [#4591](https://github.com/rollup/rollup/pull/4591): resolve currentPath (@cleverpp)
+
+## 2.77.2
+
+_2022-07-27_
+
+### Bug Fixes
+
+- Avoid a rendering failure when mixing outputs with inlined and non-inlined dynamic imports (#4589)
+
+### Pull Requests
+
+- [#4589](https://github.com/rollup/rollup/pull/4589): Handle generating non-inlined imports after inlined ones (@lukastaegert)
+
+## 2.77.1
+
+_2022-07-26_
+
+### Bug Fixes
+
+- Ensure IIFE output generates a global variable when generating ES5 (#4588)
+
+### Pull Requests
+
+- [#4577](https://github.com/rollup/rollup/pull/4577): broken link removed (@Jawad-H)
+- [#4580](https://github.com/rollup/rollup/pull/4580): Update dependencies (@lukastaegert)
+- [#4584](https://github.com/rollup/rollup/pull/4584): Documentation clarity and syntax improvements (@berniegp)
+- [#4588](https://github.com/rollup/rollup/pull/4588): Use var for IIFE (@lukastaegert)
+
+## 2.77.0
+
+_2022-07-15_
+
+### Features
+
+- Introduce `maxParallelFileOps` to limit both read and write operations, default to 20 and replaces `maxParallelFileRead` (#4570)
+
+### Bug Fixes
+
+- Avoid including variables referenced from return statements that are never reached (#4573)
+
+### Pull Requests
+
+- [#4570](https://github.com/rollup/rollup/pull/4570): Introduce maxParallelFileOps to limit parallel writes (@lukastaegert)
+- [#4572](https://github.com/rollup/rollup/pull/4572): Document more ways to read package.json in ESM (@berniegp)
+- [#4573](https://github.com/rollup/rollup/pull/4573): Do not include unused return expressions (@lukastaegert)
+
+## 2.76.0
+
+_2022-07-08_
+
+### Features
+
+- Allow setting a `sourcmapBaseUrl` for absolute paths in sourcemaps (#4527)
+
+### Bug Fixes
+
+- Support absolute CLI plugin paths on Windows (#4533)
+
+### Pull Requests
+
+- [#4527](https://github.com/rollup/rollup/pull/4527): Add sourcemapBaseUrl option (@nickgarlis)
+- [#4533](https://github.com/rollup/rollup/pull/4533): Add support for absolute plugin paths (@ygoe)
+- [#4538](https://github.com/rollup/rollup/pull/4538): chore: Included githubactions in the dependabot config (@naveensrinivasan)
+- [#4546](https://github.com/rollup/rollup/pull/4546): Adapt Node versions on CI to prepare for v3 (@lukastaegert)
+- [#4556](https://github.com/rollup/rollup/pull/4556): Improve error message for invalid patterns (@DysphoricUnicorn)
+- [#4559](https://github.com/rollup/rollup/pull/4559): Update dependencies (@lukastaegert)
+- [#4560](https://github.com/rollup/rollup/pull/4560): Bump peter-evans/create-or-update-comment from 1 to 2 (@dependabot)
+- [#4561](https://github.com/rollup/rollup/pull/4561): Bump peter-evans/find-comment from 1 to 2 (@dependabot)
+- [#4562](https://github.com/rollup/rollup/pull/4562): Bump codecov/codecov-action from 1 to 3 (@dependabot)
+
+## 2.75.7
+
+_2022-06-20_
+
+### Bug Fixes
+
+- Mark Array.prototype.group/groupToMap as side effect free. (#4531)
+
+### Pull Requests
+
+- [#4523](https://github.com/rollup/rollup/pull/4523): chore: remove source map workaround, bump deps (@dnalborczyk)
+- [#4525](https://github.com/rollup/rollup/pull/4525): Add regression tests for instanceof (@lukastaegert)
+- [#4528](https://github.com/rollup/rollup/pull/4528): chore: Set permissions for GitHub actions (@naveensrinivasan)
+- [#4531](https://github.com/rollup/rollup/pull/4531): fix: rename Array.prototype.group/groupToMap (@dnalborczyk)
+- [#4535](https://github.com/rollup/rollup/pull/4535): chore: bump resolve from 1.22.0 to 1.22.1 (@pos777)
+
+## 2.75.6
+
+_2022-06-07_
+
+### Bug Fixes
+
+- Properly deoptimize "this" when using member expressions with getters/setters in for loops and update expressions (#4522)
+
+### Pull Requests
+
+- [#4522](https://github.com/rollup/rollup/pull/4522): Refactor side effect handling for property interactions (@lukastaegert)
+
+## 2.75.5
+
+_2022-06-01_
+
+### Bug Fixes
+
+- Avoid crashes when using logical expressions for unused constructor arguments (#4519)
+- Fix missing parameter defaults for calls from try statements and functions returned by functions (#4520)
+
+### Pull Requests
+
+- [#4519](https://github.com/rollup/rollup/pull/4519): Try to make logical expression deoptimization more robust (@lukastaegert)
+- [#4520](https://github.com/rollup/rollup/pull/4520): Roll back parameter default tree shaking (@lukastaegert)
+
+## 2.75.4
+
+_2022-05-31_
+
+### Bug Fixes
+
+- Ensure parameter defaults are retained when a function is used as an object property (#4516)
+
+### Pull Requests
+
+- [#4516](https://github.com/rollup/rollup/pull/4516): Deoptimize parameter defaults when referenced from object/array/class literals (@lukastaegert)
+
+## 2.75.3
+
+_2022-05-29_
+
+### Bug Fixes
+
+- Retain parameter defaults for functions that are defaults themselves (#4515)
+- Track mutations for objects as default values (#4515)
+
+### Pull Requests
+
+- [#4515](https://github.com/rollup/rollup/pull/4515): Ensure parameter defaults are deoptimized (@lukastaegert)
+
+## 2.75.1
+
+_2022-05-28_
+
+### Pull Requests
+
+- [#4513](https://github.com/rollup/rollup/pull/4513): Update link to node polyfill repo (@lukastaegert)
+
+## 2.75.0
+
+_2022-05-27_
+
+### Features
+
+- Re-implement default parameter tree-shaking for top-level functions (#4510)
+- Do not consider calling string methods like `.trim()` on template literals a side effect (#4511)
+
+### Pull Requests
+
+- [#4510](https://github.com/rollup/rollup/pull/4510): Tree-shake parameter defaults (replaces #4498) (@lukastaegert)
+- [#4511](https://github.com/rollup/rollup/pull/4511): Tree-shake side-effect-free string methods on template literals (@lukastaegert)
+
+## 2.74.1
+
+_2022-05-19_
+
+### Bug Fixes
+
+- Revert #4498 until some issues are understood and resolved
+
+## 2.74.0
+
+_2022-05-19_
+
+### Features
+
+- Remove unneeded default values for function parameters (#4498)
+
+### Bug Fixes
+
+- Use a consistent mechanism to resolve the config file to avoid issues on Windows (#4501)
+- Avoid an inaccurate warning about an event emitter leak for complicated builds (#4502)
+- Ensure that reexporting values from other chunks via dynamic imports does not reference non-imported variables (#4499)
+
+### Pull Requests
+
+- [#4498](https://github.com/rollup/rollup/pull/4498): Tree shake parameter defaults (@lukastaegert)
+- [#4499](https://github.com/rollup/rollup/pull/4499): Ensure reexports are available for namespaces (@lukastaegert)
+- [#4501](https://github.com/rollup/rollup/pull/4501): fix: config path problem on windows (@pos777)
+- [#4502](https://github.com/rollup/rollup/pull/4502): Avoid maximum listeners exceeded warning (@lukastaegert)
+
+## 2.73.0
+
+_2022-05-13_
+
+### Features
+
+- Do not treat Object.defineProperty/ies as side effect when called on an unused object (#4493)
+- Do not assume that assigning a property can create a getter with side effects (#4493)
+- Do not treat string.prototype.replace(All) as side effect when used with two literals (#4493)
+
+### Bug Fixes
+
+- Detect side effects when manually declaring getters on functions (#4493)
+
+### Pull Requests
+
+- [#4493](https://github.com/rollup/rollup/pull/4493): Handle getters on functions and improve property deoptimization (@lukastaegert)
+- [#4494](https://github.com/rollup/rollup/pull/4494): Do not treat string.replace as side effect when used with a literal (@lukastaegert)
+- [#4495](https://github.com/rollup/rollup/pull/4495): Update docs for --configPlugin using typescript (@Jimmydalecleveland)
+
+## 2.72.1
+
+_2022-05-07_
+
+### Bug Fixes
+
+- Improve tree-shaking of classes with super classes in certain scenarios (#4489)
+
+### Pull Requests
+
+- [#4489](https://github.com/rollup/rollup/pull/4489): Do not deoptimize entire super class when adding a property (@lukastaegert)
+
+## 2.72.0
+
+_2022-05-05_
+
+### Features
+
+- Add CLI hooks to run external commands at certain points in watch mode (#4457)
+
+### Bug Fixes
+
+- Fix an issue that could accidentally treat relevant assignments as side effect free (#4486)
+
+### Pull Requests
+
+- [#4457](https://github.com/rollup/rollup/pull/4457): feat: CLI event hook flags (@Harris-Miller)
+- [#4486](https://github.com/rollup/rollup/pull/4486): Fix reassignment tracking (@lukastaegert)
+
+## 2.71.1
+
+_2022-04-30_
+
+### Bug Fixes
+
+- Allow importing loadConfigFile without extension (#4483)
+
+### Pull Requests
+
+- [#4483](https://github.com/rollup/rollup/pull/4483): Add exports exception for loadConfigFile (@lukastaegert)
+
+## 2.71.0
+
+_2022-04-30_
+
+## Features
+
+- Mark `Object.hasOwn` as pure (#4482)
+
+### Bug Fixes
+
+- Prevent infinite recursion and display proper warning for recursive reexports (#4472)
+- Fix type issue in TypeScript nightly (#4471)
+
+### Pull Requests
+
+- [#4467](https://github.com/rollup/rollup/pull/4467): docs: update deprecated option in tools.md (@kimjh96)
+- [#4471](https://github.com/rollup/rollup/pull/4471): Fix: tsc did not build (@frank-dspeed)
+- [#4472](https://github.com/rollup/rollup/pull/4472): Throw proper error when indirectly reexporting a recursive binding (@lukastaegert)
+- [#4475](https://github.com/rollup/rollup/pull/4475): chore: bump deps (#4475) (@dnalborczyk)
+- [#4477](https://github.com/rollup/rollup/pull/4477): chore: bump github actions (@dnalborczyk)
+- [#4478](https://github.com/rollup/rollup/pull/4478): ci: test with node.js v18, remove v17 (@dnalborczyk)
+- [#4479](https://github.com/rollup/rollup/pull/4479): chore(repo): replace `git.io` in the issue template (@SukkaW)
+- [#4482](https://github.com/rollup/rollup/pull/4482): feat: add Object.hasOwn as pure function (@dnalborczyk)
+
+## 2.70.2
+
+_2022-04-15_
+
+### Bug Fixes
+
+- Do not enforce undefined return values in TypeScript types (#4463)
+
+### Pull Requests
+
+- [#4463](https://github.com/rollup/rollup/pull/4463): use void for options hook instead of undefined (@ycmjason)
+
+## 2.70.1
+
+_2022-03-14_
+
+### Bug Fixes
+
+- Handle unfinished hook action errors as regular errors and avoid console logging (#4434)
+- Allow access to "dist" folder in a Node 17 compatible way (#4436)
+
+### Pull Requests
+
+- [#4434](https://github.com/rollup/rollup/pull/4434): Track unfinished hook actions as regular errors (@lukastaegert)
+- [#4436](https://github.com/rollup/rollup/pull/4436): Update package.json (@frank-dspeed)
+
+## 2.70.0
+
+_2022-03-07_
+
+### Features
+
+- Make the `watchChange` and `closeWatcher` hooks asynchronous and make Rollup wait for these hooks before continuing (#4427)
+
+### Bug Fixes
+
+- Do not abort watch mode for errors in `watchChange` but display them properly (#4427)
+
+### Pull Requests
+
+- [#4427](https://github.com/rollup/rollup/pull/4427): Do not abort watch mode on errors in watchChange (@lukastaegert)
+
+## 2.69.2
+
+_2022-03-06_
+
+### Bug Fixes
+
+- Mark `Object.entries` and `Object.fromEntries` as pure (#4429)
+- Make sure new properties on Array.prototype and Object.prototype are not evaluated as "undefined" (#4428)
+
+### Pull Requests
+
+- [#4428](https://github.com/rollup/rollup/pull/4428): Treat unknown prototype props as unknown (@lukastaegert)
+- [#4429](https://github.com/rollup/rollup/pull/4429): Treat unknown prototype props as unknown (@869288142)
+
+## 2.69.1
+
+_2022-03-04_
+
+### Bug Fixes
+
+- Approximate source position instead of ignoring it when using a low-resolution source map in a transform hook (#4334)
+
+### Pull Requests
+
+- [#4334](https://github.com/rollup/rollup/pull/4334): fix(sourcemap): fall back to low-resolution line mapping (@aleclarson and @lukastaegert)
+
+## 2.69.0
+
+_2022-03-02_
+
+### Features
+
+- Introduce new `output.generatedCode.symbols` to control the usage of Symbols in Rollup-generated code (#4378)
+- soft-deprecate `output.namespaceToStringTag` in favor of `output.generatedCode.symbols` (#4378)
+
+### Bug Fixes
+
+- Properly handle `./` and `../` as external dependencies (#4419)
+- Make generated "Module" namespace toStringTag non-enumerable for correct Object.assign/spread behaviour (#4378)
+- Add file name to error when top-level-await is used in disallowed formats (#4421)
+
+### Pull Requests
+
+- [#4378](https://github.com/rollup/rollup/pull/4378): Make namespace @@toStringTag "Module" non-enumerable (@dnalborczyk and @lukastaegert)
+- [#4413](https://github.com/rollup/rollup/pull/4413): refactor: some code and type fixes (@dnalborczyk)
+- [#4418](https://github.com/rollup/rollup/pull/4418): chore: bump deps (@dnalborczyk)
+- [#4419](https://github.com/rollup/rollup/pull/4419): Properly handle upper directories as external dependencies (@lukastaegert)
+- [#4421](https://github.com/rollup/rollup/pull/4421): Improve the error prompt and output the error file name (@caoxiemeihao)
+- [#4423](https://github.com/rollup/rollup/pull/4423): Update 999-big-list-of-options.md (@leoj3n)
+
+## 2.68.0
+
+_2022-02-22_
+
+### Features
+
+- provide information about cached import resolutions in `shouldTransformCachedModule` (#4414)
+- Add "types" field to Rollup's package exports (#4416)
+
+### Pull Requests
+
+- [#4410](https://github.com/rollup/rollup/pull/4410): refactor: use map for declarations and name suggestions (@dnalborczyk)
+- [#4411](https://github.com/rollup/rollup/pull/4411): refactor: use map for namespace reexports by name (@dnalborczyk)
+- [#4412](https://github.com/rollup/rollup/pull/4412): refactor: use includes where appropriate (@dnalborczyk)
+- [#4414](https://github.com/rollup/rollup/pull/4414): Add resolved sources to shouldTransformCachedModule (@lukastaegert)
+- [#4416](https://github.com/rollup/rollup/pull/4416): Add Typescript 4.5 nodenext node12 module resolution support (@frank-dspeed)
+
+## 2.67.3
+
+_2022-02-18_
+
+### Bug Fixes
+
+- Do not swallow other errors when unfinished hook actions are detected (#4409)
+- Add additional information to output when there are unfinished hook actions (#4409)
+
+### Pull Requests
+
+- [#4399](https://github.com/rollup/rollup/pull/4399): docs: remove const (@TrickyPi)
+- [#4401](https://github.com/rollup/rollup/pull/4401): Improve test stability by getting independent of module id ordering in more places (@lukastaegert)
+- [#4403](https://github.com/rollup/rollup/pull/4403): fix: remove unnecessary property descriptor spread (@dnalborczyk)
+- [#4404](https://github.com/rollup/rollup/pull/4404): refactor: use map for import descriptions + re-export descriptions (@dnalborczyk)
+- [#4405](https://github.com/rollup/rollup/pull/4405): refactor: module exports to map (@dnalborczyk)
+- [#4406](https://github.com/rollup/rollup/pull/4406): Fix a typo in 'Direct plugin communication' code example (@younesmln)
+- [#4407](https://github.com/rollup/rollup/pull/4407): Document how resolveId is cached (@lukastaegert)
+- [#4409](https://github.com/rollup/rollup/pull/4409): Print ids for unfinished moduleParsed and shouldTransformCachedModule hooks (@lukastaegert)
+
+## 2.67.2
+
+_2022-02-10_
+
+### Bug Fixes
+
+- Ensure consistent order between manual chunks to fix hashing issues (#4397)
+
+### Pull Requests
+
+- [#4390](https://github.com/rollup/rollup/pull/4390): refactor: add @types/estree explicitly, fix dynamic type imports (@dnalborczyk)
+- [#4391](https://github.com/rollup/rollup/pull/4391): chore: remove acorn-walk ambient type definitions (@dnalborczyk)
+- [#4397](https://github.com/rollup/rollup/pull/4397): Sort manual chunks generated via a function by name (@lukastaegert)
+
+## 2.67.1
+
+_2022-02-07_
+
+### Bug Fixes
+
+- Make chunk file and variable names more deterministic when emitting chunks (#4386)
+- Improve default module resolver performance by using non-blocking IO (#4386)
+
+### Pull Requests
+
+- [#4373](https://github.com/rollup/rollup/pull/4373): fix: even more types (@dnalborczyk)
+- [#4382](https://github.com/rollup/rollup/pull/4382): Update contribution tut link desc (@lemredd)
+- [#4383](https://github.com/rollup/rollup/pull/4383): chore: bump deps (@dnalborczyk)
+- [#4384](https://github.com/rollup/rollup/pull/4384): chore: move "wait" to utils + re-use (@dnalborczyk)
+- [#4385](https://github.com/rollup/rollup/pull/4385): refactor: convert watch tests to async functions (@dnalborczyk)
+- [#4386](https://github.com/rollup/rollup/pull/4386): refactor: use fs.promises in resolve id, Part 4 (@dnalborczyk and @lukastaegert)
+- [#4389](https://github.com/rollup/rollup/pull/4389): refactor: use fs.promises in generate license file, rollup config, Part 5 (@dnalborczyk)
+
+## 2.67.0
+
+_2022-02-02_
+
+### Features
+
+- Improve side effect detection when using Array.prototype.groupBy/groupByToMap (#4360)
+- Allow changing `moduleSideEffects` at any time during the build (#4379)
+- Soft-deprecate `ModuleInfo.hasModuleSideEffects` in favour of `ModuleInfo.moduleSideEffects` (#4379)
+
+### Bug Fixes
+
+- Do not include queries and hashes in generated file names when preserving modules (#4374)
+
+### Pull Requests
+
+- [#4319](https://github.com/rollup/rollup/pull/4319): refactor: use fs, fs-extra, remove sander (@dnalborczyk)
+- [#4360](https://github.com/rollup/rollup/pull/4360): feat: add Array.prototype.groupBy/groupByToMap (@dnalborczyk)
+- [#4361](https://github.com/rollup/rollup/pull/4361): fix: more types (@dnalborczyk)
+- [#4369](https://github.com/rollup/rollup/pull/4369): fix: remove acorn-walk patch (@dnalborczyk)
+- [#4371](https://github.com/rollup/rollup/pull/4371): refactor: use fs.promises in cli/run (@dnalborczyk)
+- [#4372](https://github.com/rollup/rollup/pull/4372): refactor: use fs.promises in module loader (@dnalborczyk)
+- [#4374](https://github.com/rollup/rollup/pull/4374): Ignore queries and hashes in file names when preserving modules (@lukastaegert)
+- [#4375](https://github.com/rollup/rollup/pull/4375): Fix typo in \_config.js (@eltociear)
+- [#4376](https://github.com/rollup/rollup/pull/4376): refactor: fs.promises, move mkdir to writeoutputfile, Part 3 (@dnalborczyk)
+- [#4379](https://github.com/rollup/rollup/pull/4379): Deprecate hasModuleSideEffects in favor of moduleSideEffects and ensure it is mutable on ModuleInfo (@lukastaegert)
+
+## 2.66.1
+
+_2022-01-25_
+
+### Bug Fixes
+
+- Only warn for conflicting names in namespace reexports if it actually causes problems (#4363)
+- Only allow explicit exports or reexports as synthetic namespaces and hide them from namespace reexports (#4364)
+
+### Pull Requests
+
+- [#4362](https://github.com/rollup/rollup/pull/4362): refactor: convert exportsByName object to map (@dnalborczyk)
+- [#4363](https://github.com/rollup/rollup/pull/4363): Do not warn unnecessarily for namespace conflicts (@lukastaegert)
+- [#4364](https://github.com/rollup/rollup/pull/4364): Do not expose synthetic namespace export in entries and namespaces (@lukastaegert)
+
+## 2.66.0
+
+_2022-01-22_
+
+### Features
+
+- Note if a module has a default export in ModuleInfo to allow writing better proxy modules (#4356)
+- Add option to wait until all imported ids have been resolved when awaiting `this.load` (#4358)
+
+### Pull Requests
+
+- [#4356](https://github.com/rollup/rollup/pull/4356): Add hasDefaultExport to ModuleInfo (@lukastaegert)
+- [#4358](https://github.com/rollup/rollup/pull/4358): Add "resolveDependencies" option to "this.load" (@lukastaegert)
+
+## 2.65.0
+
+_2022-01-21_
+
+### Features
+
+- Add complete import resolution objects to ModuleInfo for use in `this.load` (#4354)
+
+### Bug Fixes
+
+- Use correct context in plugin hooks with `perf: true` (#4357)
+
+### Pull Requests
+
+- [#4351](https://github.com/rollup/rollup/pull/4351): refactor: re-use source mapping url (@dnalborczyk)
+- [#4352](https://github.com/rollup/rollup/pull/4352): refactor: replace require-relative with built-in require.resolve (@dnalborczyk)
+- [#4353](https://github.com/rollup/rollup/pull/4353): chore: bump deps (@dnalborczyk)
+- [#4354](https://github.com/rollup/rollup/pull/4354): Add importedIdResolutions to moduleInfo (@lukastaegert)
+- [#4355](https://github.com/rollup/rollup/pull/4355): chore: remove external from config (@dnalborczyk)
+- [#4357](https://github.com/rollup/rollup/pull/4357): fix: timed plugin context (@dnalborczyk)
+
+## 2.64.0
+
+_2022-01-14_
+
+### Features
+
+- Allow inspecting cached modules and forcing them to be transformed again via shouldTransformCachedModule (#4320)
+- Do not wait for the config file to be parsed in watch mode if it is updated before that (#4344)
+
+### Bug Fixes
+
+- Do not mutate objects returned as `meta` from the resolveId hook (#4347)
+
+### Pull Requests
+
+- [#4326](https://github.com/rollup/rollup/pull/4326): refactor: type fixes (@dnalborczyk)
+- [#4339](https://github.com/rollup/rollup/pull/4339): More watch test stabilization (@lukastaegert)
+- [#4340](https://github.com/rollup/rollup/pull/4340): refactor: performance timers for node.js and browser (@dnalborczyk)
+- [#4341](https://github.com/rollup/rollup/pull/4341): Implement shouldTransformCachedModule hook (@lukastaegert)
+- [#4344](https://github.com/rollup/rollup/pull/4344): Directly restart Rollup when config file change is detected in watch mode (@lukastaegert)
+- [#4347](https://github.com/rollup/rollup/pull/4347): Create a shallow copy when returning meta from resolveId (@lukastaegert)
+
+## 2.63.0
+
+_2022-01-04_
+
+### Features
+
+- Report a helpful error if rollup exits due to an empty event loop when using `this.load` (#4320)
+- Allow directly mutating ModuleInfo.meta for modules and never replace this object (#4328)
+- Detect additional side effect free array prototype methods (#4332)
+
+### Bug Fixes
+
+- Do not watch if CLI watch options are specified but `--watch` is missing (#4335)
+
+### Pull Requests
+
+- [#4320](https://github.com/rollup/rollup/pull/4320): Detect unfulfilled async hook actions and report error on exit (@kzc)
+- [#4328](https://github.com/rollup/rollup/pull/4328): Make initial ModuleInfo.meta mutable and maintain object identity (@lukastaegert)
+- [#4318](https://github.com/rollup/rollup/pull/4318): Stabilize watch tests (@lukastaegert)
+- [#4331](https://github.com/rollup/rollup/pull/4331): Improve JS docs example (@lukastaegert)
+- [#4332](https://github.com/rollup/rollup/pull/4332): add support for Array.prototype.findLast,findLastIndex (@dnalborczyk)
+- [#4333](https://github.com/rollup/rollup/pull/4333): convert utils.transform to async function (@dnalborczyk)
+- [#4335](https://github.com/rollup/rollup/pull/4335): Do not watch unless --watch is specified explicitly (@lukastaegert)
+- [#4338](https://github.com/rollup/rollup/pull/4338): Add build delay for plugin event test (@lukastaegert)
+
 ## 2.62.0
 
 _2021-12-24_

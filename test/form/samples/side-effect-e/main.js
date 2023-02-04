@@ -10,5 +10,3 @@ function foo () {
 }
 
 foo();
-
-export default 42;

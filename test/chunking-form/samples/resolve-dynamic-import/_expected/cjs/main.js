@@ -5,30 +5,12 @@ require('to-indirect-relative-external');
 require('direct-absolute-external');
 require('to-indirect-absolute-external');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
-	var n = Object.create(null);
-	if (e) {
-		Object.keys(e).forEach(function (k) {
-			if (k !== 'default') {
-				var d = Object.getOwnPropertyDescriptor(e, k);
-				Object.defineProperty(n, k, d.get ? d : {
-					enumerable: true,
-					get: function () { return e[k]; }
-				});
-			}
-		});
-	}
-	n["default"] = e;
-	return Object.freeze(n);
-}
-
 // nested
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./direct-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('direct-absolute-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-absolute-external')); });
+import('./direct-relative-external');
+import('to-indirect-relative-external');
+import('direct-absolute-external');
+import('to-indirect-absolute-external');
 
 const value = 'existing';
 console.log('existing');
@@ -40,12 +22,12 @@ var existing = /*#__PURE__*/Object.freeze({
 
 //main
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./direct-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-relative-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('direct-absolute-external')); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-absolute-external')); });
+import('./direct-relative-external');
+import('to-indirect-relative-external');
+import('direct-absolute-external');
+import('to-indirect-absolute-external');
 
-(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })('dynamic-direct-external' + unknown);
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-dynamic-indirect-external')); });
+import('dynamic-direct-external' + unknown);
+import('to-dynamic-indirect-external');
 Promise.resolve().then(function () { return existing; });
-(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })('my' + 'replacement');
+import('my' + 'replacement');

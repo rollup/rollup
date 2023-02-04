@@ -1,22 +1,48 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
-import { LiteralValue } from './Literal';
-import * as NodeType from './NodeType';
-import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import type { LiteralValue } from './Literal';
+import type * as NodeType from './NodeType';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
+
+type Operator =
+	| '!='
+	| '!=='
+	| '%'
+	| '&'
+	| '*'
+	| '**'
+	| '+'
+	| '-'
+	| '/'
+	| '<'
+	| '<<'
+	| '<='
+	| '=='
+	| '==='
+	| '>'
+	| '>='
+	| '>>'
+	| '>>>'
+	| '^'
+	| '|'
+	| 'in'
+	| 'instanceof';
 
 const binaryOperators: {
-	[operator: string]: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;
+	[operator in Operator]?: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;
 } = {
 	'!=': (left, right) => left != right,
 	'!==': (left, right) => left !== right,
@@ -28,21 +54,20 @@ const binaryOperators: {
 	'+': (left: any, right: any) => left + right,
 	'-': (left: any, right: any) => left - right,
 	'/': (left: any, right: any) => left / right,
-	'<': (left, right) => (left as NonNullable<LiteralValue>) < (right as NonNullable<LiteralValue>),
+	'<': (left, right) => left! < right!,
 	'<<': (left: any, right: any) => left << right,
-	'<=': (left, right) =>
-		(left as NonNullable<LiteralValue>) <= (right as NonNullable<LiteralValue>),
+	'<=': (left, right) => left! <= right!,
 	'==': (left, right) => left == right,
 	'===': (left, right) => left === right,
-	'>': (left, right) => (left as NonNullable<LiteralValue>) > (right as NonNullable<LiteralValue>),
-	'>=': (left, right) =>
-		(left as NonNullable<LiteralValue>) >= (right as NonNullable<LiteralValue>),
+	'>': (left, right) => left! > right!,
+	'>=': (left, right) => left! >= right!,
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
-	in: () => UnknownValue,
-	instanceof: () => UnknownValue,
 	'|': (left: any, right: any) => left | right
+	// We use the fallback for cases where we return something unknown
+	// in: () => UnknownValue,
+	// instanceof: () => UnknownValue,
 };
 
 export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
@@ -60,15 +85,15 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UnknownValue;
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (leftValue === UnknownValue) return UnknownValue;
+		if (typeof leftValue === 'symbol') return UnknownValue;
 
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (rightValue === UnknownValue) return UnknownValue;
+		if (typeof rightValue === 'symbol') return UnknownValue;
 
-		const operatorFn = binaryOperators[this.operator];
-		if (!operatorFn) return UnknownValue;
+		const operatorFunction = binaryOperators[this.operator];
+		if (!operatorFunction) return UnknownValue;
 
-		return operatorFn(leftValue, rightValue);
+		return operatorFunction(leftValue, rightValue);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -77,13 +102,14 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 			this.operator === '+' &&
 			this.parent instanceof ExpressionStatement &&
 			this.left.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this) === ''
-		)
+		) {
 			return true;
+		}
 		return super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
 	render(

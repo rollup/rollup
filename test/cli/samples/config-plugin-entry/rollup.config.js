@@ -4,8 +4,8 @@ export default {
 	},
 	plugins: [
 		{
-			options: opts => {
-				opts.input = 'main.js';
+			options: options => {
+				options.input = 'main.js';
 			}
 		}
 	]

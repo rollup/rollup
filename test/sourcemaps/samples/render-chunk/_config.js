@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const { SourceMapConsumer } = require('source-map');
 const terser = require('terser');
 const getLocation = require('../../getLocation');

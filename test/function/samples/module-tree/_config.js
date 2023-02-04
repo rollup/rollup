@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 module.exports = {
 	description: 'bundle.modules includes dependencies (#903)',
@@ -34,9 +34,9 @@ module.exports = {
 	},
 	warnings: [
 		{
-			chunkName: 'main',
 			code: 'EMPTY_BUNDLE',
-			message: 'Generated an empty chunk: "main"'
+			message: 'Generated an empty chunk: "main".',
+			names: ['main']
 		}
 	]
 };

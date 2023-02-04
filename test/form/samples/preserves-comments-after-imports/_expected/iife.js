@@ -9,8 +9,6 @@ var myBundle = (function (exports) {
 
 	exports.obj = obj;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({});

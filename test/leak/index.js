@@ -1,6 +1,7 @@
-const path = require('path');
+const path = require('node:path');
 const weak = require('weak-napi');
 const rollup = require('../..');
+const { wait } = require('../utils');
 
 var shouldCollect = false;
 var isCollected = false;
@@ -9,13 +10,11 @@ function onCollect() {
 	isCollected = true;
 }
 
-const wait = () => new Promise(resolve => setTimeout(resolve));
-
 async function waitForGC() {
 	const startTime = process.hrtime();
 	do {
 		global.gc();
-		await wait();
+		await wait(0);
 	} while (!isCollected && process.hrtime(startTime)[0] < 3);
 }
 
@@ -42,7 +41,7 @@ run()
 		console.log('Success: Previous bundle was correctly garbage collected.');
 		process.exit(0);
 	})
-	.catch(err => {
-		console.error(err.message);
+	.catch(error => {
+		console.error(error.message);
 		process.exit(1);
 	});

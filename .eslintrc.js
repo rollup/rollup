@@ -10,22 +10,29 @@ module.exports = {
 		'prettier',
 		'plugin:prettier/recommended',
 		'plugin:import/recommended',
-		'plugin:import/typescript'
+		'plugin:import/typescript',
+		'plugin:unicorn/recommended'
 	],
 	ignorePatterns: [
-		'node_modules/**/*.*',
-		'dist/**/*.*',
-		'/test/**/*.*',
-		'!/test/*.js',
-		'!/test/*/*.js',
-		'/test/node_modules/*.*',
-		'!/test/*/samples/**/_config.js'
+		'node_modules',
+		'dist',
+		'perf',
+		'tmp',
+		'coverage',
+		'_tmp',
+		'cache',
+		'/test/*/samples/**/*.*',
+		'!/test/*/samples/**/_config.js',
+		'!/test/*/samples/**/rollup.config.js',
+		'!.vitepress'
 	],
 	overrides: [
 		{
 			files: ['*.js'],
 			rules: {
-				'@typescript-eslint/explicit-module-boundary-types': 'off'
+				'@typescript-eslint/explicit-module-boundary-types': 'off',
+				'unicorn/no-process-exit': 'off',
+				'unicorn/prefer-module': 'off'
 			}
 		},
 		{
@@ -42,13 +49,26 @@ module.exports = {
 			rules: {
 				'sort-keys': 'off'
 			}
+		},
+		{
+			extends: [
+				'plugin:vue/vue3-essential',
+				'@vue/eslint-config-typescript/recommended',
+				'@vue/eslint-config-prettier'
+			],
+			files: ['*.vue']
+		},
+		{
+			files: ['docs/repl/examples/**/*.js'],
+			rules: {
+				'import/namespace': 'off',
+				'import/no-unresolved': 'off',
+				'no-undef': 'off',
+				'unicorn/prevent-abbreviations': 'off'
+			}
 		}
 	],
 	parser: '@typescript-eslint/parser',
-	parserOptions: {
-		ecmaVersion: 2018,
-		sourceType: 'module'
-	},
 	plugins: ['@typescript-eslint'],
 	rules: {
 		'@typescript-eslint/consistent-type-assertions': [
@@ -56,6 +76,7 @@ module.exports = {
 			{ assertionStyle: 'as', objectLiteralTypeAssertions: 'allow' }
 		],
 		'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+		'@typescript-eslint/consistent-type-imports': 'error',
 		'@typescript-eslint/member-ordering': [
 			'error',
 			{
@@ -69,11 +90,18 @@ module.exports = {
 		'@typescript-eslint/no-empty-function': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',
-		'@typescript-eslint/no-unused-vars': 'off',
+		'@typescript-eslint/no-unused-vars': [
+			'error',
+			{ argsIgnorePattern: '^_', ignoreRestSiblings: true, varsIgnorePattern: '^_' }
+		],
+		'arrow-body-style': ['error', 'as-needed'],
 		'dot-notation': 'error',
 		'import/no-unresolved': [
 			'error',
-			{ ignore: ['package.json', 'is-reference', 'help.md', 'types'] }
+			{
+				// 'fsevents' is only available on macOS, and not installed on linux/windows
+				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types', 'examples.json']
+			}
 		],
 		'import/order': ['error', { alphabetize: { order: 'asc' } }],
 		'no-constant-condition': ['error', { checkLoops: false }],
@@ -89,6 +117,18 @@ module.exports = {
 				ignoreMemberSort: false
 			}
 		],
-		'sort-keys': ['error', 'asc', { caseSensitive: false }]
+		'sort-keys': ['error', 'asc', { caseSensitive: false }],
+		'unicorn/filename-case': 'off',
+		'unicorn/no-array-callback-reference': 'off',
+		'unicorn/no-array-reduce': 'off',
+		'unicorn/no-await-expression-member': 'off',
+		'unicorn/no-nested-ternary': 'off',
+		'unicorn/no-null': 'off',
+		'unicorn/no-this-assignment': 'off',
+		'unicorn/no-useless-undefined': 'off',
+		'unicorn/prefer-code-point': 'off',
+		'unicorn/prefer-math-trunc': 'off',
+		'unicorn/prefer-number-properties': 'off',
+		'unicorn/prefer-top-level-await': 'off'
 	}
 };

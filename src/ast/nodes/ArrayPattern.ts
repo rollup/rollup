@@ -1,24 +1,23 @@
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteractionAssigned } from '../NodeInteractions';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
+import type LocalVariable from '../variables/LocalVariable';
+import type Variable from '../variables/Variable';
+import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { PatternNode } from './shared/Pattern';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
 	declare elements: (PatternNode | null)[];
 	declare type: NodeType.tArrayPattern;
 
 	addExportedVariables(
-		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const element of this.elements) {
-			if (element !== null) {
-				element.addExportedVariables(variables, exportNamesByVariable);
-			}
+			element?.addExportedVariables(variables, exportNamesByVariable);
 		}
 	}
 
@@ -32,30 +31,28 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		return variables;
 	}
 
-	deoptimizePath(path: ObjectPath): void {
-		if (path.length === 0) {
-			for (const element of this.elements) {
-				if (element !== null) {
-					element.deoptimizePath(path);
-				}
-			}
+	// Patterns can only be deoptimized at the empty path at the moment
+	deoptimizePath(): void {
+		for (const element of this.elements) {
+			element?.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length > 0) return true;
+	// Patterns are only checked at the emtpy path at the moment
+	hasEffectsOnInteractionAtPath(
+		_path: ObjectPath,
+		interaction: NodeInteractionAssigned,
+		context: HasEffectsContext
+	): boolean {
 		for (const element of this.elements) {
-			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
-				return true;
+			if (element?.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)) return true;
 		}
 		return false;
 	}
 
 	markDeclarationReached(): void {
 		for (const element of this.elements) {
-			if (element !== null) {
-				element.markDeclarationReached();
-			}
+			element?.markDeclarationReached();
 		}
 	}
 }

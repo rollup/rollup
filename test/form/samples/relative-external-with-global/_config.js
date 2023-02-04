@@ -1,4 +1,4 @@
-const { resolve } = require('path');
+const { resolve } = require('node:path');
 
 const throttle = resolve(__dirname, 'lib/throttle.js');
 

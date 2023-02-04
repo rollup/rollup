@@ -1,5 +1,5 @@
-const assert = require('assert');
-const fs = require('fs');
+const assert = require('node:assert');
+const { readFileSync } = require('node:fs');
 const buble = require('buble');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
@@ -16,7 +16,7 @@ module.exports = {
 						id = id.replace(/bar.js$/, 'foo.js');
 					}
 
-					const code = fs.readFileSync(id, 'utf-8');
+					const code = readFileSync(id, 'utf8');
 
 					const out = buble.transform(code, {
 						transforms: { modules: false },

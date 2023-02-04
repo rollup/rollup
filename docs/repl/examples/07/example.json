@@ -1,0 +1,10 @@
+{
+	"title": "Multiple Entry Modules",
+    "entryModules": ["main.js", "otherEntry.js"],
+  "options": {
+    "output": {
+      "minifyInternalExports": false,
+      "preserveModules": false
+    }
+  }
+}

@@ -1,5 +1,5 @@
-import { GlobalsOption } from '../../rollup/types';
-import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type { GlobalsOption } from '../../rollup/types';
+import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 
 export default function setupNamespace(
 	name: string,
@@ -19,7 +19,7 @@ export default function setupNamespace(
 				propertyPath += getPropertyAccess(part);
 				return `${propertyPath}${_}=${_}${propertyPath}${_}||${_}{}${s}`;
 			})
-			.join(compact ? ',' : '\n') + (compact && parts.length ? ';' : '\n')
+			.join(compact ? ',' : '\n') + (compact && parts.length > 0 ? ';' : '\n')
 	);
 }
 
@@ -36,13 +36,13 @@ export function assignToDeepVariable(
 
 	let propertyPath = root;
 	let deepAssignment =
-		parts
-			.map(part => {
+		[
+			...parts.map(part => {
 				propertyPath += getPropertyAccess(part);
 				return `${propertyPath}${_}=${_}${propertyPath}${_}||${_}{}`;
-			})
-			.concat(`${propertyPath}${getPropertyAccess(last)}`)
-			.join(`,${_}`) + `${_}=${_}${assignment}`;
+			}),
+			`${propertyPath}${getPropertyAccess(last)}`
+		].join(`,${_}`) + `${_}=${_}${assignment}`;
 	if (parts.length > 0) {
 		deepAssignment = `(${deepAssignment})`;
 	}

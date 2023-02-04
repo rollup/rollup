@@ -8,8 +8,6 @@ var myBundle = (function (exports) {
 	exports.depJs = dep$1;
 	exports.depMjs = dep;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({});

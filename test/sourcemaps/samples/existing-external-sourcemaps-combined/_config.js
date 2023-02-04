@@ -1,8 +1,8 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'removes sourcemap comments',
 	async test(code) {
-		assert.strictEqual(code.indexOf('sourceMappingURL'), -1);
+		assert.ok(!code.includes('sourceMappingURL=main.js.map'));
 	}
 };

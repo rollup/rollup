@@ -1,41 +1,43 @@
 export const VERSION: string;
 
-export interface RollupError extends RollupLogProps {
-	parserError?: Error;
+// utils
+type NullValue = null | undefined | void;
+type MaybeArray<T> = T | T[];
+type MaybePromise<T> = T | Promise<T>;
+
+type PartialNull<T> = {
+	[P in keyof T]: T[P] | null;
+};
+
+export interface RollupError extends RollupLog {
+	name?: string;
 	stack?: string;
 	watchFiles?: string[];
 }
 
-export interface RollupWarning extends RollupLogProps {
-	chunkName?: string;
-	cycle?: string[];
-	exportName?: string;
-	exporter?: string;
-	guess?: string;
-	importer?: string;
-	missing?: string;
-	modules?: string[];
-	names?: string[];
-	reexporter?: string;
-	source?: string;
-	sources?: string[];
-}
+export type RollupWarning = RollupLog;
 
-export interface RollupLogProps {
+export interface RollupLog {
+	binding?: string;
+	cause?: unknown;
 	code?: string;
+	exporter?: string;
 	frame?: string;
 	hook?: string;
 	id?: string;
+	ids?: string[];
 	loc?: {
 		column: number;
 		file?: string;
 		line: number;
 	};
 	message: string;
-	name?: string;
+	names?: string[];
 	plugin?: string;
 	pluginCode?: string;
 	pos?: number;
+	reexporter?: string;
+	stack?: string;
 	url?: string;
 }
 
@@ -85,11 +87,8 @@ export interface SourceMap {
 
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
-type PartialNull<T> = {
-	[P in keyof T]: T[P] | null;
-};
-
 interface ModuleOptions {
+	assertions: Record<string, string>;
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;
@@ -101,22 +100,22 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 	map?: SourceMapInput;
 }
 
-export interface TransformModuleJSON extends Partial<PartialNull<ModuleOptions>> {
+export interface TransformModuleJSON {
 	ast?: AcornNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
-	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[];
 }
 
-export interface ModuleJSON extends TransformModuleJSON {
+export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
 	ast: AcornNode;
 	dependencies: string[];
 	id: string;
+	resolvedIds: ResolvedIdMap;
 	transformFiles: EmittedFile[] | undefined;
 }
 
@@ -150,28 +149,28 @@ export interface EmittedChunk {
 
 export type EmittedFile = EmittedAsset | EmittedChunk;
 
-export type EmitAsset = (name: string, source?: string | Uint8Array) => string;
-
-export type EmitChunk = (id: string, options?: { name?: string }) => string;
-
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
-interface ModuleInfo {
+interface ModuleInfo extends ModuleOptions {
 	ast: AcornNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
+	dynamicallyImportedIdResolutions: readonly ResolvedId[];
 	dynamicallyImportedIds: readonly string[];
+	exportedBindings: Record<string, string[]> | null;
+	exports: string[] | null;
+	hasDefaultExport: boolean | null;
+	/** @deprecated Use `moduleSideEffects` instead */
 	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
 	implicitlyLoadedBefore: readonly string[];
+	importedIdResolutions: readonly ResolvedId[];
 	importedIds: readonly string[];
 	importers: readonly string[];
 	isEntry: boolean;
 	isExternal: boolean;
 	isIncluded: boolean | null;
-	meta: CustomPluginOptions;
-	syntheticNamedExports: boolean | string;
 }
 
 export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
@@ -183,33 +182,28 @@ export interface CustomPluginOptions {
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
-	/** @deprecated Use `this.emitFile` instead */
-	emitAsset: EmitAsset;
-	/** @deprecated Use `this.emitFile` instead */
-	emitChunk: EmitChunk;
 	emitFile: EmitFile;
-	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
-	/** @deprecated Use `this.getFileName` instead */
-	getAssetFileName: (assetReferenceId: string) => string;
-	/** @deprecated Use `this.getFileName` instead */
-	getChunkFileName: (chunkReferenceId: string) => string;
+	error: (error: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	getWatchFiles: () => string[];
-	/** @deprecated Use `this.resolve` instead */
-	isExternal: IsExternal;
-	load: (options: { id: string } & Partial<PartialNull<ModuleOptions>>) => Promise<ModuleInfo>;
+	load: (
+		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
+	) => Promise<ModuleInfo>;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options?: any) => AcornNode;
 	resolve: (
 		source: string,
 		importer?: string,
-		options?: { custom?: CustomPluginOptions; isEntry?: boolean; skipSelf?: boolean }
+		options?: {
+			assertions?: Record<string, string>;
+			custom?: CustomPluginOptions;
+			isEntry?: boolean;
+			skipSelf?: boolean;
+		}
 	) => Promise<ResolvedId | null>;
-	/** @deprecated Use `this.resolve` instead */
-	resolveId: (source: string, importer?: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
 }
@@ -222,6 +216,7 @@ export interface PluginContextMeta {
 export interface ResolvedId extends ModuleOptions {
 	external: boolean | 'absolute';
 	id: string;
+	resolvedBy: string;
 }
 
 export interface ResolvedIdMap {
@@ -231,16 +226,32 @@ export interface ResolvedIdMap {
 interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean | 'absolute' | 'relative';
 	id: string;
+	resolvedBy?: string;
 }
 
-export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;
+export type ResolveIdResult = string | NullValue | false | PartialResolvedId;
+
+export type ResolveIdResultWithoutNullValue = string | false | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
 	importer: string | undefined,
-	options: { custom?: CustomPluginOptions; isEntry: boolean }
-) => Promise<ResolveIdResult> | ResolveIdResult;
+	options: { assertions: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
+) => ResolveIdResult;
+
+export type ShouldTransformCachedModuleHook = (
+	this: PluginContext,
+	options: {
+		ast: AcornNode;
+		code: string;
+		id: string;
+		meta: CustomPluginOptions;
+		moduleSideEffects: boolean | 'no-treeshake';
+		resolvedSources: ResolvedIdMap;
+		syntheticNamedExports: boolean | string;
+	}
+) => boolean;
 
 export type IsExternal = (
 	source: string,
@@ -248,78 +259,65 @@ export type IsExternal = (
 	isResolved: boolean
 ) => boolean;
 
-export type IsPureModule = (id: string) => boolean | null | undefined;
+export type IsPureModule = (id: string) => boolean | NullValue;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
-type LoadResult = SourceDescription | string | null | undefined;
+export type LoadResult = SourceDescription | string | NullValue;
 
-export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
+export type LoadHook = (this: PluginContext, id: string) => LoadResult;
 
 export interface TransformPluginContext extends PluginContext {
 	getCombinedSourcemap: () => SourceMap;
 }
 
-export type TransformResult = string | null | undefined | Partial<SourceDescription>;
+export type TransformResult = string | NullValue | Partial<SourceDescription>;
 
 export type TransformHook = (
 	this: TransformPluginContext,
 	code: string,
 	id: string
-) => Promise<TransformResult> | TransformResult;
+) => TransformResult;
 
-export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => Promise<void> | void;
+export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => void;
 
 export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
 	chunk: RenderedChunk,
-	options: NormalizedOutputOptions
-) =>
-	| Promise<{ code: string; map?: SourceMapInput } | null>
-	| { code: string; map?: SourceMapInput }
-	| string
-	| null
-	| undefined;
+	options: NormalizedOutputOptions,
+	meta: { chunks: Record<string, RenderedChunk> }
+) => { code: string; map?: SourceMapInput } | string | NullValue;
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | AcornNode,
-	importer: string
-) => Promise<ResolveIdResult> | ResolveIdResult;
+	importer: string,
+	options: { assertions: Record<string, string> }
+) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (
 	this: PluginContext,
-	prop: string | null,
+	property: string | null,
 	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
-) => string | null | undefined;
-
-export type ResolveAssetUrlHook = (
-	this: PluginContext,
-	options: {
-		assetFileName: string;
-		chunkId: string;
-		format: InternalModuleFormat;
-		moduleId: string;
-		relativeAssetPath: string;
-	}
-) => string | null | undefined;
+) => string | NullValue;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
-		assetReferenceId: string | null;
 		chunkId: string;
-		chunkReferenceId: string | null;
 		fileName: string;
 		format: InternalModuleFormat;
 		moduleId: string;
 		referenceId: string;
 		relativePath: string;
 	}
-) => string | null | undefined;
+) => string | NullValue;
 
-export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
+export type AddonHookFunction = (
+	this: PluginContext,
+	chunk: RenderedChunk
+) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
 
 export type ChangeEvent = 'create' | 'update' | 'delete';
@@ -346,40 +344,22 @@ export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
 }
 
-export interface FilePlaceholder {
-	type: 'placeholder';
-}
-
-export interface OutputBundleWithPlaceholders {
-	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
-}
-
-export interface PluginHooks extends OutputPluginHooks {
-	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
-	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
-	closeBundle: (this: PluginContext) => Promise<void> | void;
+export interface FunctionPluginHooks {
+	augmentChunkHash: (this: PluginContext, chunk: RenderedChunk) => string | void;
+	buildEnd: (this: PluginContext, error?: Error) => void;
+	buildStart: (this: PluginContext, options: NormalizedInputOptions) => void;
+	closeBundle: (this: PluginContext) => void;
 	closeWatcher: (this: PluginContext) => void;
-	load: LoadHook;
-	moduleParsed: ModuleParsedHook;
-	options: (
-		this: MinimalPluginContext,
-		options: InputOptions
-	) => Promise<InputOptions | null | undefined> | InputOptions | null | undefined;
-	resolveDynamicImport: ResolveDynamicImportHook;
-	resolveId: ResolveIdHook;
-	transform: TransformHook;
-	watchChange: WatchChangeHook;
-}
-
-interface OutputPluginHooks {
-	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
 	generateBundle: (
 		this: PluginContext,
 		options: NormalizedOutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
-	) => void | Promise<void>;
-	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
+	) => void;
+	load: LoadHook;
+	moduleParsed: ModuleParsedHook;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | NullValue;
+	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | NullValue;
 	renderChunk: RenderChunkHook;
 	renderDynamicImport: (
 		this: PluginContext,
@@ -389,92 +369,103 @@ interface OutputPluginHooks {
 			moduleId: string;
 			targetModuleId: string | null;
 		}
-	) => { left: string; right: string } | null | undefined;
-	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
+	) => { left: string; right: string } | NullValue;
+	renderError: (this: PluginContext, error?: Error) => void;
 	renderStart: (
 		this: PluginContext,
 		outputOptions: NormalizedOutputOptions,
 		inputOptions: NormalizedInputOptions
-	) => Promise<void> | void;
-	/** @deprecated Use `resolveFileUrl` instead */
-	resolveAssetUrl: ResolveAssetUrlHook;
+	) => void;
+	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveFileUrl: ResolveFileUrlHook;
+	resolveId: ResolveIdHook;
 	resolveImportMeta: ResolveImportMetaHook;
+	shouldTransformCachedModule: ShouldTransformCachedModuleHook;
+	transform: TransformHook;
+	watchChange: WatchChangeHook;
 	writeBundle: (
 		this: PluginContext,
 		options: NormalizedOutputOptions,
 		bundle: OutputBundle
-	) => void | Promise<void>;
+	) => void;
 }
 
-export type AsyncPluginHooks =
-	| 'options'
-	| 'buildEnd'
-	| 'buildStart'
+export type OutputPluginHooks =
+	| 'augmentChunkHash'
 	| 'generateBundle'
-	| 'load'
-	| 'moduleParsed'
+	| 'outputOptions'
 	| 'renderChunk'
+	| 'renderDynamicImport'
 	| 'renderError'
 	| 'renderStart'
-	| 'resolveDynamicImport'
-	| 'resolveId'
-	| 'transform'
-	| 'writeBundle'
-	| 'closeBundle';
+	| 'resolveFileUrl'
+	| 'resolveImportMeta'
+	| 'writeBundle';
 
-export type PluginValueHooks = 'banner' | 'footer' | 'intro' | 'outro';
+export type InputPluginHooks = Exclude<keyof FunctionPluginHooks, OutputPluginHooks>;
 
-export type SyncPluginHooks = Exclude<keyof PluginHooks, AsyncPluginHooks>;
+export type SyncPluginHooks =
+	| 'augmentChunkHash'
+	| 'outputOptions'
+	| 'renderDynamicImport'
+	| 'resolveFileUrl'
+	| 'resolveImportMeta';
+
+export type AsyncPluginHooks = Exclude<keyof FunctionPluginHooks, SyncPluginHooks>;
 
 export type FirstPluginHooks =
 	| 'load'
 	| 'renderDynamicImport'
-	| 'resolveAssetUrl'
 	| 'resolveDynamicImport'
 	| 'resolveFileUrl'
 	| 'resolveId'
-	| 'resolveImportMeta';
+	| 'resolveImportMeta'
+	| 'shouldTransformCachedModule';
 
 export type SequentialPluginHooks =
 	| 'augmentChunkHash'
-	| 'closeWatcher'
 	| 'generateBundle'
 	| 'options'
 	| 'outputOptions'
 	| 'renderChunk'
-	| 'transform'
-	| 'watchChange';
+	| 'transform';
 
-export type ParallelPluginHooks =
-	| 'banner'
-	| 'buildEnd'
-	| 'buildStart'
-	| 'footer'
-	| 'intro'
-	| 'moduleParsed'
-	| 'outro'
-	| 'renderError'
-	| 'renderStart'
-	| 'writeBundle'
-	| 'closeBundle';
+export type ParallelPluginHooks = Exclude<
+	keyof FunctionPluginHooks | AddonHooks,
+	FirstPluginHooks | SequentialPluginHooks
+>;
 
-interface OutputPluginValueHooks {
-	banner: AddonHook;
-	cacheKey: string;
-	footer: AddonHook;
-	intro: AddonHook;
-	outro: AddonHook;
+export type AddonHooks = 'banner' | 'footer' | 'intro' | 'outro';
+
+type MakeAsync<Function_> = Function_ extends (
+	this: infer This,
+	...parameters: infer Arguments
+) => infer Return
+	? (this: This, ...parameters: Arguments) => Return | Promise<Return>
+	: never;
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
+
+export type PluginHooks = {
+	[K in keyof FunctionPluginHooks]: ObjectHook<
+		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K],
+		// eslint-disable-next-line @typescript-eslint/ban-types
+		K extends ParallelPluginHooks ? { sequential?: boolean } : {}
+	>;
+};
+
+export interface OutputPlugin
+	extends Partial<{ [K in OutputPluginHooks]: PluginHooks[K] }>,
+		Partial<{ [K in AddonHooks]: ObjectHook<AddonHook> }> {
+	cacheKey?: string;
+	name: string;
+	version?: string;
 }
 
-export interface Plugin extends Partial<PluginHooks>, Partial<OutputPluginValueHooks> {
+export interface Plugin extends OutputPlugin, Partial<PluginHooks> {
 	// for inter-plugin communication
 	api?: any;
-	name: string;
-}
-
-export interface OutputPlugin extends Partial<OutputPluginHooks>, Partial<OutputPluginValueHooks> {
-	name: string;
 }
 
 type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
@@ -482,6 +473,7 @@ type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 export interface NormalizedTreeshakingOptions {
 	annotations: boolean;
 	correctVarValueBeforeDeclaration: boolean;
+	manualPureFunctions: readonly string[];
 	moduleSideEffects: HasModuleSideEffects;
 	propertyReadSideEffects: boolean | 'always';
 	tryCatchDeoptimization: boolean;
@@ -492,25 +484,19 @@ export interface TreeshakingOptions
 	extends Partial<Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>> {
 	moduleSideEffects?: ModuleSideEffectsOption;
 	preset?: TreeshakingPreset;
-	/** @deprecated Use `moduleSideEffects` instead */
-	pureExternalModules?: PureModulesOption;
 }
 
-interface GetManualChunkApi {
+interface ManualChunkMeta {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
-export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | undefined;
+export type GetManualChunk = (id: string, meta: ManualChunkMeta) => string | NullValue;
 
 export type ExternalOption =
 	| (string | RegExp)[]
 	| string
 	| RegExp
-	| ((
-			source: string,
-			importer: string | undefined,
-			isResolved: boolean
-	  ) => boolean | null | undefined);
+	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | NullValue);
 export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
@@ -521,6 +507,8 @@ export type SourcemapPathTransformOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string
 ) => string;
+
+export type InputPluginOption = MaybePromise<Plugin | NullValue | false | InputPluginOption[]>;
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
@@ -535,11 +523,13 @@ export interface InputOptions {
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
+	maxParallelFileOps?: number;
+	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads?: number;
-	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
+	moduleContext?: ((id: string) => string | NullValue) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
-	plugins?: (Plugin | null | false | undefined)[];
+	plugins?: InputPluginOption;
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	/** @deprecated Use the "preserveModules" output option instead. */
 	preserveModules?: boolean;
@@ -548,6 +538,10 @@ export interface InputOptions {
 	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingPreset | TreeshakingOptions;
 	watch?: WatcherOptions | false;
+}
+
+export interface InputOptionsWithPlugins extends InputOptions {
+	plugins: Plugin[];
 }
 
 export interface NormalizedInputOptions {
@@ -563,6 +557,8 @@ export interface NormalizedInputOptions {
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks: ManualChunksOption | undefined;
+	maxParallelFileOps: number;
+	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads: number;
 	moduleContext: (id: string) => string;
 	onwarn: WarningHandler;
@@ -588,6 +584,7 @@ interface NormalizedGeneratedCodeOptions {
 	constBindings: boolean;
 	objectShorthand: boolean;
 	reservedNamesAsProps: boolean;
+	symbols: boolean;
 }
 
 interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
@@ -596,7 +593,7 @@ interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
-export type InteropType = boolean | 'auto' | 'esModule' | 'default' | 'defaultOnly';
+export type InteropType = 'compat' | 'auto' | 'esModule' | 'default' | 'defaultOnly';
 
 export type GetInterop = (id: string | null) => InteropType;
 
@@ -616,6 +613,7 @@ export type AmdOptions = (
 	  }
 ) & {
 	define?: string;
+	forceJsExtensionForImports?: boolean;
 };
 
 export type NormalizedAmdOptions = (
@@ -629,26 +627,34 @@ export type NormalizedAmdOptions = (
 	  }
 ) & {
 	define: string;
+	forceJsExtensionForImports: boolean;
 };
+
+type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
+
+type OutputPluginOption = MaybePromise<OutputPlugin | NullValue | false | OutputPluginOption[]>;
 
 export interface OutputOptions {
 	amd?: AmdOptions;
 	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
-	banner?: string | (() => string | Promise<string>);
+	banner?: string | AddonFunction;
 	chunkFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
+	dynamicImportInCjs?: boolean;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
-	esModule?: boolean;
+	esModule?: boolean | 'if-default-prop';
+	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
+	externalImportAssertions?: boolean;
 	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
-	footer?: string | (() => string | Promise<string>);
+	footer?: string | AddonFunction;
 	format?: ModuleFormat;
 	freeze?: boolean;
 	generatedCode?: GeneratedCodePreset | GeneratedCodeOptions;
@@ -657,21 +663,23 @@ export interface OutputOptions {
 	indent?: string | boolean;
 	inlineDynamicImports?: boolean;
 	interop?: InteropType | GetInterop;
-	intro?: string | (() => string | Promise<string>);
+	intro?: string | AddonFunction;
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
 	name?: string;
+	/** @deprecated Use "generatedCode.symbols" instead. */
 	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
-	outro?: string | (() => string | Promise<string>);
+	outro?: string | AddonFunction;
 	paths?: OptionsPaths;
-	plugins?: (OutputPlugin | null | false | undefined)[];
-	/** @deprecated Use the "generatedCode.constBindings" instead. */
+	plugins?: OutputPluginOption;
+	/** @deprecated Use "generatedCode.constBindings" instead. */
 	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
 	sanitizeFileName?: boolean | ((fileName: string) => string);
 	sourcemap?: boolean | 'inline' | 'hidden';
+	sourcemapBaseUrl?: string;
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
 	sourcemapPathTransform?: SourcemapPathTransformOption;
@@ -683,19 +691,22 @@ export interface OutputOptions {
 export interface NormalizedOutputOptions {
 	amd: NormalizedAmdOptions;
 	assetFileNames: string | ((chunkInfo: PreRenderedAsset) => string);
-	banner: () => string | Promise<string>;
+	banner: AddonFunction;
 	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact: boolean;
 	dir: string | undefined;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction: string | undefined;
+	dynamicImportInCjs: boolean;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
-	esModule: boolean;
+	esModule: boolean | 'if-default-prop';
+	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
+	externalImportAssertions: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
-	footer: () => string | Promise<string>;
+	footer: AddonFunction;
 	format: InternalModuleFormat;
 	freeze: boolean;
 	generatedCode: NormalizedGeneratedCodeOptions;
@@ -704,21 +715,23 @@ export interface NormalizedOutputOptions {
 	indent: true | string;
 	inlineDynamicImports: boolean;
 	interop: GetInterop;
-	intro: () => string | Promise<string>;
+	intro: AddonFunction;
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
+	/** @deprecated Use "generatedCode.symbols" instead. */
 	namespaceToStringTag: boolean;
 	noConflict: boolean;
-	outro: () => string | Promise<string>;
+	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
-	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
+	/** @deprecated Use "generatedCode.constBindings" instead. */
 	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
 	sanitizeFileName: (fileName: string) => string;
 	sourcemap: boolean | 'inline' | 'hidden';
+	sourcemapBaseUrl: string | undefined;
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
 	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
@@ -745,8 +758,7 @@ export interface PreRenderedAsset {
 
 export interface OutputAsset extends PreRenderedAsset {
 	fileName: string;
-	/** @deprecated Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead */
-	isAsset: true;
+	needsCodeReference: boolean;
 }
 
 export interface RenderedModule {
@@ -763,15 +775,12 @@ export interface PreRenderedChunk {
 	isDynamicEntry: boolean;
 	isEntry: boolean;
 	isImplicitEntry: boolean;
-	modules: {
-		[id: string]: RenderedModule;
-	};
+	moduleIds: string[];
 	name: string;
 	type: 'chunk';
 }
 
 export interface RenderedChunk extends PreRenderedChunk {
-	code?: string;
 	dynamicImports: string[];
 	fileName: string;
 	implicitlyLoadedBefore: string[];
@@ -779,12 +788,15 @@ export interface RenderedChunk extends PreRenderedChunk {
 		[imported: string]: string[];
 	};
 	imports: string[];
-	map?: SourceMap;
+	modules: {
+		[id: string]: RenderedModule;
+	};
 	referencedFiles: string[];
 }
 
 export interface OutputChunk extends RenderedChunk {
 	code: string;
+	map: SourceMap | null;
 }
 
 export interface SerializablePluginCache {
@@ -815,7 +827,7 @@ export interface RollupOptions extends InputOptions {
 	output?: OutputOptions | OutputOptions[];
 }
 
-export interface MergedRollupOptions extends InputOptions {
+export interface MergedRollupOptions extends InputOptionsWithPlugins {
 	output: OutputOptions[];
 }
 
@@ -844,6 +856,8 @@ export interface ChokidarOptions {
 	usePolling?: boolean;
 }
 
+export type RollupWatchHooks = 'onError' | 'onStart' | 'onBundleStart' | 'onBundleEnd' | 'onEnd';
+
 export interface WatcherOptions {
 	buildDelay?: number;
 	chokidar?: ChokidarOptions;
@@ -858,22 +872,37 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions | false;
 }
 
-interface TypedEventEmitter<T extends { [event: string]: (...args: any) => any }> {
-	addListener<K extends keyof T>(event: K, listener: T[K]): this;
-	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
-	eventNames(): Array<keyof T>;
-	getMaxListeners(): number;
-	listenerCount(type: keyof T): number;
-	listeners<K extends keyof T>(event: K): Array<T[K]>;
-	off<K extends keyof T>(event: K, listener: T[K]): this;
-	on<K extends keyof T>(event: K, listener: T[K]): this;
-	once<K extends keyof T>(event: K, listener: T[K]): this;
-	prependListener<K extends keyof T>(event: K, listener: T[K]): this;
-	prependOnceListener<K extends keyof T>(event: K, listener: T[K]): this;
-	rawListeners<K extends keyof T>(event: K): Array<T[K]>;
-	removeAllListeners<K extends keyof T>(event?: K): this;
-	removeListener<K extends keyof T>(event: K, listener: T[K]): this;
-	setMaxListeners(n: number): this;
+export type AwaitedEventListener<
+	T extends { [event: string]: (...parameters: any) => any },
+	K extends keyof T
+> = (...parameters: Parameters<T[K]>) => void | Promise<void>;
+
+export interface AwaitingEventEmitter<T extends { [event: string]: (...parameters: any) => any }> {
+	close(): Promise<void>;
+	emit<K extends keyof T>(event: K, ...parameters: Parameters<T[K]>): Promise<unknown>;
+	/**
+	 * Removes an event listener.
+	 */
+	off<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this;
+	/**
+	 * Registers an event listener that will be awaited before Rollup continues.
+	 * All listeners will be awaited in parallel while rejections are tracked via
+	 * Promise.all.
+	 */
+	on<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this;
+	/**
+	 * Registers an event listener that will be awaited before Rollup continues.
+	 * All listeners will be awaited in parallel while rejections are tracked via
+	 * Promise.all.
+	 * Listeners are removed automatically when removeListenersForCurrentRun is
+	 * called, which happens automatically after each run.
+	 */
+	onCurrentRun<K extends keyof T>(
+		event: K,
+		listener: (...parameters: Parameters<T[K]>) => Promise<ReturnType<T[K]>>
+	): this;
+	removeAllListeners(): this;
+	removeListenersForCurrentRun(): this;
 }
 
 export type RollupWatcherEvent =
@@ -889,15 +918,12 @@ export type RollupWatcherEvent =
 	| { code: 'END' }
 	| { code: 'ERROR'; error: RollupError; result: RollupBuild | null };
 
-export interface RollupWatcher
-	extends TypedEventEmitter<{
-		change: (id: string, change: { event: ChangeEvent }) => void;
-		close: () => void;
-		event: (event: RollupWatcherEvent) => void;
-		restart: () => void;
-	}> {
-	close(): void;
-}
+export type RollupWatcher = AwaitingEventEmitter<{
+	change: (id: string, change: { event: ChangeEvent }) => void;
+	close: () => void;
+	event: (event: RollupWatcherEvent) => void;
+	restart: () => void;
+}>;
 
 export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
 
@@ -909,3 +935,8 @@ interface AcornNode {
 
 export function defineConfig(options: RollupOptions): RollupOptions;
 export function defineConfig(options: RollupOptions[]): RollupOptions[];
+export function defineConfig(optionsFunction: RollupOptionsFunction): RollupOptionsFunction;
+
+export type RollupOptionsFunction = (
+	commandLineArguments: Record<string, any>
+) => MaybePromise<RollupOptions | RollupOptions[]>;

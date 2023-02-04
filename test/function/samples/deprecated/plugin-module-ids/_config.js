@@ -1,5 +1,5 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 let rendered = false;
 
@@ -11,9 +11,9 @@ module.exports = {
 		plugins: {
 			renderStart() {
 				rendered = true;
-				assert.deepStrictEqual(Array.from(this.moduleIds), [
-					path.join(__dirname, 'main.js'),
+				assert.deepStrictEqual([...this.moduleIds].sort(), [
 					path.join(__dirname, 'foo.js'),
+					path.join(__dirname, 'main.js'),
 					'path'
 				]);
 			}
@@ -21,5 +21,14 @@ module.exports = {
 	},
 	bundle() {
 		assert.ok(rendered);
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'Accessing "this.moduleIds" on the plugin context by plugin at position 1 is deprecated. The "this.getModuleIds" plugin context function should be used instead.',
+			plugin: 'at position 1',
+			url: 'https://rollupjs.org/plugin-development/#this-getmoduleids'
+		}
+	]
 };

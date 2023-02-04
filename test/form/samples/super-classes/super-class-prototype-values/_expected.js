@@ -1,7 +1,4 @@
 console.log('retained');
-console.log('retained');
-// Note that isTrueProp is not part of the prototype
-console.log('retained');
 
 const prop = { isTrue: true };
 class SuperDeopt {

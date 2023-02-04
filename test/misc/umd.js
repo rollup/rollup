@@ -1,5 +1,5 @@
-const assert = require('assert');
-const rollup = require('../../dist/rollup');
+const assert = require('node:assert');
+const { rollup } = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 function runTestCode(code, thisValue, globals) {
@@ -8,8 +8,8 @@ function runTestCode(code, thisValue, globals) {
 
 	const globalsWithAssert = { ...globals, assert };
 	const globalKeys = Object.keys(globalsWithAssert);
-	const fn = new Function(globalKeys, code);
-	fn.apply(
+	const function_ = new Function(globalKeys, code);
+	function_.apply(
 		thisValue,
 		globalKeys.map(key => globalsWithAssert[key])
 	);
@@ -33,34 +33,38 @@ function runNodeTest(code) {
 	return module.exports;
 }
 
-function runAmdTest(code, outputOptions) {
-	let defineArgs;
-	function define(...args) {
-		defineArgs = args;
+function runAmdTest(code) {
+	let defineArguments;
+	function define(...parameters) {
+		defineArguments = parameters;
 	}
 	define.amd = true;
 
 	runTestCode(code, undefined, { define });
-	if (typeof defineArgs[0] === 'function') {
-		return defineArgs[0]() || {};
+	if (typeof defineArguments[0] === 'function') {
+		return defineArguments[0]() || {};
 	}
 	const module = { exports: {} };
 	const result =
-		defineArgs[1](
-			...defineArgs[0].map(injection => {
+		defineArguments[1](
+			...defineArguments[0].map(injection => {
 				switch (injection) {
-					case 'module':
+					case 'module': {
 						return module;
-					case 'exports':
+					}
+					case 'exports': {
 						return module.exports;
-					case 'external':
+					}
+					case 'external': {
 						return 'external';
-					default:
+					}
+					default: {
 						throw new Error(`unexpected AMD injection ${injection}`);
+					}
 				}
 			})
 		) || {};
-	return defineArgs[0].indexOf('exports') === -1 ? result : module.exports;
+	return defineArguments[0].includes('exports') ? module.exports : result;
 }
 
 function runIifeTestWithThis(code, outputOptions) {
@@ -113,13 +117,13 @@ function getIifeExports(global, outputOptions) {
 	if (outputOptions.name) {
 		return outputOptions.name
 			.split('.')
-			.reduce((currentVar, nextKey) => currentVar[nextKey] || {}, global);
+			.reduce((currentVariable, nextKey) => currentVariable[nextKey] || {}, global);
 	}
 	return {};
 }
 
 async function getUmdCode(inputCode, outputOptions) {
-	const bundle = await rollup.rollup({
+	const bundle = await rollup({
 		input: 'input',
 		external: ['external'],
 		plugins: [loader({ input: inputCode })]
@@ -142,7 +146,7 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 		return (umdCodePromise = getUmdCode(code, outputOptions));
 	}
 
-	[
+	for (const { environmentName, runTest } of [
 		{
 			environmentName: 'node',
 			runTest: runNodeTest
@@ -167,20 +171,19 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 			environmentName: 'iife with existing globals',
 			runTest: runIifeWithExistingValuesTest
 		}
-	].forEach(({ environmentName, runTest }) =>
+	])
 		it(`works in ${environmentName} environment`, async () => {
 			assert.deepEqual(
 				runTest(await getUmdCodePromise(), outputOptions),
 				expectedExports,
 				'expected exports are returned'
 			);
-		})
-	);
+		});
 }
 
-['bundle', 'my.@nested/value.bundle'].forEach(name =>
-	[false, true].forEach(compact =>
-		[false, true].forEach(noConflict =>
+for (const name of ['bundle', 'my.@nested/value.bundle'])
+	for (const compact of [false, true]) {
+		for (const noConflict of [false, true])
 			describe(`The UMD wrapper with name="${name}", compact=${compact}, noConflict=${noConflict}`, () => {
 				const outputOptions = { compact, name, noConflict };
 
@@ -209,7 +212,5 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 					runTestsWithCode('import value from "external"; export default {value};', outputOptions, {
 						value: 'external'
 					}));
-			})
-		)
-	)
-);
+			});
+	}

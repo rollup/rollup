@@ -1,26 +1,32 @@
-const path = require('path');
-const rollup = require('../../dist/rollup');
+const { basename, resolve } = require('node:path');
+const { chdir } = require('node:process');
+const { rollup } = require('../../dist/rollup');
 const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
-runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (directory, config) => {
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
-		path.basename(dir) + ': ' + config.description,
+		basename(directory) + ': ' + config.description,
 		() => {
 			let bundle;
 
+			if (config.before) {
+				before(config.before);
+			}
+			if (config.after) {
+				after(config.after);
+			}
+
 			for (const format of FORMATS) {
 				it('generates ' + format, async () => {
-					process.chdir(dir);
+					chdir(directory);
 					bundle =
 						bundle ||
-						(await rollup.rollup({
-							input: [dir + '/main.js'],
+						(await rollup({
+							input: [directory + '/main.js'],
 							onwarn: warning => {
-								if (
-									!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
-								) {
+								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 									throw new Error(
 										`Unexpected warnings (${warning.code}): ${warning.message}\n` +
 											'If you expect warnings, list their codes in config.expectedWarnings'
@@ -28,19 +34,19 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 								}
 							},
 							strictDeprecations: true,
-							...(config.options || {})
+							...config.options
 						}));
 					await generateAndTestBundle(
 						bundle,
 						{
-							dir: `${dir}/_actual/${format}`,
+							dir: `${directory}/_actual/${format}`,
 							exports: 'auto',
 							format,
 							chunkFileNames: 'generated-[name].js',
 							validate: true,
-							...((config.options || {}).output || {})
+							...(config.options || {}).output
 						},
-						`${dir}/_expected/${format}`,
+						`${directory}/_expected/${format}`,
 						config
 					);
 				});
@@ -49,7 +55,7 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 	);
 });
 
-async function generateAndTestBundle(bundle, outputOptions, expectedDir, config) {
+async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, config) {
 	await bundle.write({
 		...outputOptions,
 		dir: `${outputOptions.dir}${config.nestedDir ? '/' + config.nestedDir : ''}`
@@ -57,7 +63,7 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDir, config)
 	if (outputOptions.format === 'amd' && config.runAmd) {
 		try {
 			const exports = await new Promise((resolve, reject) => {
-				global.assert = require('assert');
+				global.assert = require('node:assert');
 				const requirejs = require('requirejs');
 				requirejs.config({ baseUrl: outputOptions.dir });
 				requirejs([config.nestedDir ? `${config.nestedDir}/main` : 'main'], resolve, reject);
@@ -71,5 +77,5 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDir, config)
 			delete global.assert;
 		}
 	}
-	assertDirectoriesAreEqual(outputOptions.dir, expectedDir);
+	assertDirectoriesAreEqual(outputOptions.dir, expectedDirectory);
 }

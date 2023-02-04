@@ -18,8 +18,6 @@ var bundle = (function (exports) {
 	exports.cFoo = cFoo;
 	exports.dBar = dBar;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 	return exports;
 
 })({});

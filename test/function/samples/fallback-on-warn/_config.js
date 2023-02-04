@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 let oldConsoleWarn;
 const warnings = [];
 
@@ -9,12 +9,12 @@ module.exports = {
 	},
 	before() {
 		oldConsoleWarn = console.warn;
-		console.warn = msg => warnings.push(msg);
+		console.warn = message => warnings.push(message);
 	},
 	after() {
 		console.warn = oldConsoleWarn;
 		assert.deepStrictEqual(warnings, [
-			'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification'
+			'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.'
 		]);
 	}
 };

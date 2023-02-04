@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 require('./generated-separate.js');
 
 var inlined$1 = 'inlined';
@@ -10,7 +8,7 @@ console.log('inlined');
 
 var inlined$2 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	'default': inlined$1,
+	default: inlined$1,
 	x: x
 });
 

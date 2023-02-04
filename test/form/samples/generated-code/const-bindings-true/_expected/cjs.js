@@ -4,10 +4,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 const foo$1 = require('external');
 
-const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
-
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceCompat(e) {
+	if (e && typeof e === 'object' && 'default' in e) return e;
 	const n = Object.create(null);
 	if (e) {
 		for (const k in e) {
@@ -20,12 +18,11 @@ function _interopNamespace(e) {
 			}
 		}
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
-const foo__default = /*#__PURE__*/_interopDefaultLegacy(foo$1);
-const foo__namespace = /*#__PURE__*/_interopNamespace(foo$1);
+const foo__namespace = /*#__PURE__*/_interopNamespaceCompat(foo$1);
 
 const _missingExportShim = void 0;
 
@@ -39,14 +36,14 @@ const other = /*#__PURE__*/Object.freeze({
 
 const synthetic = { bar: 'baz' };
 
-console.log(foo__default["default"], foo__namespace, other, bar, _missingExportShim);
+console.log(foo__namespace.default, foo__namespace, other, bar, _missingExportShim);
 const main = 42;
 
-exports["default"] = main;
+exports.default = main;
 exports.syntheticMissing = synthetic.syntheticMissing;
-for (const k in foo$1) {
+Object.keys(foo$1).forEach(k => {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 		enumerable: true,
 		get: () => foo$1[k]
 	});
-}
+});

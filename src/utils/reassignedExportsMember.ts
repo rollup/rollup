@@ -1,8 +1,8 @@
-import Variable from '../ast/variables/Variable';
+import type Variable from '../ast/variables/Variable';
 
 export function isReassignedExportsMember(
 	variable: Variable,
-	exportNamesByVariable: Map<Variable, string[]>
+	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 ): boolean {
 	return (
 		variable.renderBaseName !== null && exportNamesByVariable.has(variable) && variable.isReassigned

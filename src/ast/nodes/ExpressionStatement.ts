@@ -1,8 +1,9 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { InclusionContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import { errorModuleLevelDirective } from '../../utils/error';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import type { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase } from './shared/Node';
+import { type ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	declare directive?: string;
@@ -16,10 +17,7 @@ export default class ExpressionStatement extends StatementBase {
 		) {
 			this.context.warn(
 				// This is necessary, because either way (deleting or not) can lead to errors.
-				{
-					code: 'MODULE_LEVEL_DIRECTIVE',
-					message: `Module level directives cause errors when bundled, '${this.directive}' was ignored.`
-				},
+				errorModuleLevelDirective(this.directive, this.context.module.id),
 				this.start
 			);
 		}
@@ -36,4 +34,6 @@ export default class ExpressionStatement extends StatementBase {
 
 		return super.shouldBeIncluded(context);
 	}
+
+	protected applyDeoptimizations() {}
 }

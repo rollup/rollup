@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const rollup = require('../../dist/rollup');
 const { loader, compareError } = require('../utils.js');
 
@@ -22,20 +22,20 @@ describe('sanity checks', () => {
 	});
 
 	it('node API passes warning and default handler to custom onwarn function', async () => {
-		let args;
+		let parameters;
 		await rollup.rollup({
 			input: 'x',
 			plugins: [loader({ x: `eval(42);` })],
 			onwarn(warning, onwarn) {
-				args = [warning, onwarn];
+				parameters = [warning, onwarn];
 			}
 		});
-		assert.equal(args[0].code, 'EVAL');
+		assert.equal(parameters[0].code, 'EVAL');
 		assert.equal(
-			args[0].message,
-			'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification'
+			parameters[0].message,
+			'Use of eval in "x" is strongly discouraged as it poses security risks and may cause issues with minification.'
 		);
-		assert.equal(typeof args[1], 'function');
+		assert.equal(typeof parameters[1], 'function');
 	});
 
 	it('fails without options.input', async () => {
@@ -109,7 +109,7 @@ describe('sanity checks', () => {
 		}
 		assert.strictEqual(
 			error && error.message,
-			'You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".'
+			'Invalid value "vanilla" for option "output.format" - Valid values are "amd", "cjs", "system", "es", "iife" or "umd".'
 		);
 	});
 
@@ -197,10 +197,13 @@ describe('sanity checks', () => {
 	it('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', async () => {
 		const bundle = await rollup.rollup({
 			input: 'x',
-			inlineDynamicImports: true,
 			plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })]
 		});
-		await bundle.generate({ file: 'x', format: 'es' });
+		await bundle.generate({
+			file: 'x',
+			format: 'es',
+			inlineDynamicImports: true
+		});
 	});
 
 	it('throws when using the object form of "input" together with the "file" option', async () => {

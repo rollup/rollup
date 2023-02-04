@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const { readFileSync } = require('node:fs');
+const path = require('node:path');
 
 module.exports = {
 	description: 'allows referencing emitted files',
@@ -21,7 +21,7 @@ module.exports = {
 					return `export default import.meta.ROLLUP_FILE_URL_${this.emitFile({
 						type: 'asset',
 						name: path.basename(id),
-						source: fs.readFileSync(id)
+						source: readFileSync(id)
 					})};`;
 				}
 			}

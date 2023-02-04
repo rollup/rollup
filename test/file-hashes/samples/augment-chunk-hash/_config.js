@@ -1,5 +1,6 @@
 const augment1 = '/*foo*/';
 const augment2 = '/*bar*/';
+
 module.exports = {
 	description: 'augmentChunkHash updates hashes across all modules when returning something',
 	options1: {

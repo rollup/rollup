@@ -1,44 +1,45 @@
-import { GenerateCodeSnippets } from './generateCodeSnippets';
+import type { InteropType } from '../rollup/types';
+import type { GenerateCodeSnippets } from './generateCodeSnippets';
 
 const INTEROP_DEFAULT_VARIABLE = '_interopDefault';
-const INTEROP_DEFAULT_LEGACY_VARIABLE = '_interopDefaultLegacy';
+const INTEROP_DEFAULT_COMPAT_VARIABLE = '_interopDefaultCompat';
 const INTEROP_NAMESPACE_VARIABLE = '_interopNamespace';
+const INTEROP_NAMESPACE_COMPAT_VARIABLE = '_interopNamespaceCompat';
 const INTEROP_NAMESPACE_DEFAULT_VARIABLE = '_interopNamespaceDefault';
 export const INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE = '_interopNamespaceDefaultOnly';
 export const MERGE_NAMESPACES_VARIABLE = '_mergeNamespaces';
 
-export const defaultInteropHelpersByInteropType: { [interopType: string]: string | null } = {
+export const defaultInteropHelpersByInteropType: { [T in InteropType]: string | null } = {
 	auto: INTEROP_DEFAULT_VARIABLE,
+	compat: INTEROP_DEFAULT_COMPAT_VARIABLE,
 	default: null,
 	defaultOnly: null,
-	esModule: null,
-	false: null,
-	true: INTEROP_DEFAULT_LEGACY_VARIABLE
+	esModule: null
 };
 
-export const isDefaultAProperty = (interopType: string, externalLiveBindings: boolean): boolean =>
+export const isDefaultAProperty = (
+	interopType: InteropType,
+	externalLiveBindings: boolean
+): boolean =>
 	interopType === 'esModule' ||
-	(externalLiveBindings && (interopType === 'auto' || interopType === 'true'));
+	(externalLiveBindings && (interopType === 'auto' || interopType === 'compat'));
 
-export const namespaceInteropHelpersByInteropType: { [interopType: string]: string | null } = {
+export const namespaceInteropHelpersByInteropType: { [T in InteropType]: string | null } = {
 	auto: INTEROP_NAMESPACE_VARIABLE,
+	compat: INTEROP_NAMESPACE_COMPAT_VARIABLE,
 	default: INTEROP_NAMESPACE_DEFAULT_VARIABLE,
 	defaultOnly: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
-	esModule: null,
-	false: null,
-	true: INTEROP_NAMESPACE_VARIABLE
+	esModule: null
 };
 
 export const canDefaultBeTakenFromNamespace = (
-	interopType: string,
+	interopType: InteropType,
 	externalLiveBindings: boolean
-): boolean =>
-	isDefaultAProperty(interopType, externalLiveBindings) &&
-	defaultInteropHelpersByInteropType[interopType] === INTEROP_DEFAULT_VARIABLE;
+): boolean => interopType !== 'esModule' && isDefaultAProperty(interopType, externalLiveBindings);
 
 export const getHelpersBlock = (
-	additionalHelpers: Set<string> | null,
-	accessedGlobals: Set<string>,
+	additionalHelpers: ReadonlySet<string> | null,
+	accessedGlobals: ReadonlySet<string>,
 	indent: string,
 	snippets: GenerateCodeSnippets,
 	liveBindings: boolean,
@@ -72,18 +73,18 @@ const HELPER_GENERATORS: {
 		liveBindings: boolean,
 		freeze: boolean,
 		namespaceToStringTag: boolean,
-		usedHelpers: Set<string>
+		usedHelpers: ReadonlySet<string>
 	) => string;
 } = {
-	[INTEROP_DEFAULT_LEGACY_VARIABLE](_t, snippets, liveBindings) {
+	[INTEROP_DEFAULT_COMPAT_VARIABLE](_t, snippets, liveBindings) {
 		const { _, getDirectReturnFunction, n } = snippets;
 		const [left, right] = getDirectReturnFunction(['e'], {
 			functionReturn: true,
 			lineBreakIndent: null,
-			name: INTEROP_DEFAULT_LEGACY_VARIABLE
+			name: INTEROP_DEFAULT_COMPAT_VARIABLE
 		});
 		return (
-			`${left}e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
+			`${left}${getIsCompatNamespace(snippets)}${_}?${_}` +
 			`${
 				liveBindings ? getDefaultLiveBinding(snippets) : getDefaultStatic(snippets)
 			}${right}${n}${n}`
@@ -103,30 +104,58 @@ const HELPER_GENERATORS: {
 			}${right}${n}${n}`
 		);
 	},
+	[INTEROP_NAMESPACE_COMPAT_VARIABLE](
+		t,
+		snippets,
+		liveBindings,
+		freeze,
+		namespaceToStringTag,
+		usedHelpers
+	) {
+		const { _, getDirectReturnFunction, n } = snippets;
+		if (usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)) {
+			const [left, right] = getDirectReturnFunction(['e'], {
+				functionReturn: true,
+				lineBreakIndent: null,
+				name: INTEROP_NAMESPACE_COMPAT_VARIABLE
+			});
+			return `${left}${getIsCompatNamespace(
+				snippets
+			)}${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${right}${n}${n}`;
+		}
+		return (
+			`function ${INTEROP_NAMESPACE_COMPAT_VARIABLE}(e)${_}{${n}` +
+			`${t}if${_}(${getIsCompatNamespace(snippets)})${_}return e;${n}` +
+			createNamespaceObject(t, t, snippets, liveBindings, freeze, namespaceToStringTag) +
+			`}${n}${n}`
+		);
+	},
 	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE](
 		_t,
-		{ _, getDirectReturnFunction, getObject, n },
+		snippets,
 		_liveBindings: boolean,
 		freeze: boolean,
 		namespaceToStringTag: boolean
 	) {
+		const { getDirectReturnFunction, getObject, n } = snippets;
 		const [left, right] = getDirectReturnFunction(['e'], {
 			functionReturn: true,
 			lineBreakIndent: null,
 			name: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
 		});
 		return `${left}${getFrozen(
-			getObject(
-				[
-					['__proto__', 'null'],
-					...(namespaceToStringTag
-						? [[null, `[Symbol.toStringTag]:${_}'Module'`] as [null, string]]
-						: []),
-					['default', 'e']
-				],
-				{ lineBreakIndent: null }
-			),
-			freeze
+			freeze,
+			getWithToStringTag(
+				namespaceToStringTag,
+				getObject(
+					[
+						['__proto__', 'null'],
+						['default', 'e']
+					],
+					{ lineBreakIndent: null }
+				),
+				snippets
+			)
 		)}${right}${n}${n}`;
 	},
 	[INTEROP_NAMESPACE_DEFAULT_VARIABLE](t, snippets, liveBindings, freeze, namespaceToStringTag) {
@@ -161,7 +190,7 @@ const HELPER_GENERATORS: {
 			`}${n}${n}`
 		);
 	},
-	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze) {
+	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze, namespaceToStringTag) {
 		const { _, cnst, n } = snippets;
 		const useForEach = cnst === 'var' && liveBindings;
 		return (
@@ -180,7 +209,10 @@ const HELPER_GENERATORS: {
 				t,
 				snippets
 			)}${n}` +
-			`${t}return ${getFrozen('n', freeze)};${n}` +
+			`${t}return ${getFrozen(
+				freeze,
+				getWithToStringTag(namespaceToStringTag, 'n', snippets)
+			)};${n}` +
 			`}${n}${n}`
 		);
 	}
@@ -192,43 +224,46 @@ const getDefaultLiveBinding = ({ _, getObject }: GenerateCodeSnippets) =>
 const getDefaultStatic = ({ _, getPropertyAccess }: GenerateCodeSnippets) =>
 	`e${getPropertyAccess('default')}${_}:${_}e`;
 
+const getIsCompatNamespace = ({ _ }: GenerateCodeSnippets) =>
+	`e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e`;
+
 const createNamespaceObject = (
 	t: string,
-	i: string,
+	index: string,
 	snippets: GenerateCodeSnippets,
 	liveBindings: boolean,
 	freeze: boolean,
 	namespaceToStringTag: boolean
 ) => {
-	const { _, cnst, getPropertyAccess, n, s } = snippets;
+	const { _, cnst, getObject, getPropertyAccess, n, s } = snippets;
 	const copyProperty =
 		`{${n}` +
 		(liveBindings ? copyNonDefaultOwnPropertyLiveBinding : copyPropertyStatic)(
 			t,
-			i + t + t,
+			index + t + t,
 			snippets
 		) +
-		`${i}${t}}`;
+		`${index}${t}}`;
 	return (
-		`${i}${cnst} n${_}=${_}${
+		`${index}${cnst} n${_}=${_}Object.create(null${
 			namespaceToStringTag
-				? `{__proto__:${_}null,${_}[Symbol.toStringTag]:${_}'Module'}`
-				: 'Object.create(null)'
-		};${n}` +
-		`${i}if${_}(e)${_}{${n}` +
-		`${i}${t}${loopOverKeys(copyProperty, !liveBindings, snippets)}${n}` +
-		`${i}}${n}` +
-		`${i}n${getPropertyAccess('default')}${_}=${_}e;${n}` +
-		`${i}return ${getFrozen('n', freeze)}${s}${n}`
+				? `,${_}{${_}[Symbol.toStringTag]:${_}${getToStringTagValue(getObject)}${_}}`
+				: ''
+		});${n}` +
+		`${index}if${_}(e)${_}{${n}` +
+		`${index}${t}${loopOverKeys(copyProperty, !liveBindings, snippets)}${n}` +
+		`${index}}${n}` +
+		`${index}n${getPropertyAccess('default')}${_}=${_}e;${n}` +
+		`${index}return ${getFrozen(freeze, 'n')}${s}${n}`
 	);
 };
 
 const loopOverKeys = (
 	body: string,
-	allowVarLoopVariable: boolean,
+	allowVariableLoopVariable: boolean,
 	{ _, cnst, getFunctionIntro, s }: GenerateCodeSnippets
 ) =>
-	cnst !== 'var' || allowVarLoopVariable
+	cnst !== 'var' || allowVariableLoopVariable
 		? `for${_}(${cnst} k in e)${_}${body}`
 		: `Object.keys(e).forEach(${getFunctionIntro(['k'], {
 				isAsync: false,
@@ -267,20 +302,20 @@ const loopOverNamespaces = (
 
 const copyNonDefaultOwnPropertyLiveBinding = (
 	t: string,
-	i: string,
+	index: string,
 	snippets: GenerateCodeSnippets
 ) => {
 	const { _, n } = snippets;
 	return (
-		`${i}if${_}(k${_}!==${_}'default')${_}{${n}` +
-		copyOwnPropertyLiveBinding(t, i + t, snippets) +
-		`${i}}${n}`
+		`${index}if${_}(k${_}!==${_}'default')${_}{${n}` +
+		copyOwnPropertyLiveBinding(t, index + t, snippets) +
+		`${index}}${n}`
 	);
 };
 
 const copyOwnPropertyLiveBinding = (
 	t: string,
-	i: string,
+	index: string,
 	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
 ) => {
 	const [left, right] = getDirectReturnFunction([], {
@@ -289,17 +324,17 @@ const copyOwnPropertyLiveBinding = (
 		name: null
 	});
 	return (
-		`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
-		`${i}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
-		`${i}${t}enumerable:${_}true,${n}` +
-		`${i}${t}get:${_}${left}e[k]${right}${n}` +
-		`${i}});${n}`
+		`${index}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+		`${index}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+		`${index}${t}enumerable:${_}true,${n}` +
+		`${index}${t}get:${_}${left}e[k]${right}${n}` +
+		`${index}});${n}`
 	);
 };
 
 const copyPropertyLiveBinding = (
 	t: string,
-	i: string,
+	index: string,
 	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
 ) => {
 	const [left, right] = getDirectReturnFunction([], {
@@ -308,20 +343,37 @@ const copyPropertyLiveBinding = (
 		name: null
 	});
 	return (
-		`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
-		`${i}if${_}(d)${_}{${n}` +
-		`${i}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
-		`${i}${t}${t}enumerable:${_}true,${n}` +
-		`${i}${t}${t}get:${_}${left}e[k]${right}${n}` +
-		`${i}${t}});${n}` +
-		`${i}}${n}`
+		`${index}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+		`${index}if${_}(d)${_}{${n}` +
+		`${index}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+		`${index}${t}${t}enumerable:${_}true,${n}` +
+		`${index}${t}${t}get:${_}${left}e[k]${right}${n}` +
+		`${index}${t}});${n}` +
+		`${index}}${n}`
 	);
 };
 
-const copyPropertyStatic = (_t: string, i: string, { _, n }: GenerateCodeSnippets) =>
-	`${i}n[k]${_}=${_}e[k];${n}`;
+const copyPropertyStatic = (_t: string, index: string, { _, n }: GenerateCodeSnippets) =>
+	`${index}n[k]${_}=${_}e[k];${n}`;
 
-const getFrozen = (fragment: string, freeze: boolean) =>
+const getFrozen = (freeze: boolean, fragment: string) =>
 	freeze ? `Object.freeze(${fragment})` : fragment;
 
+const getWithToStringTag = (
+	namespaceToStringTag: boolean,
+	fragment: string,
+	{ _, getObject }: GenerateCodeSnippets
+) =>
+	namespaceToStringTag
+		? `Object.defineProperty(${fragment},${_}Symbol.toStringTag,${_}${getToStringTagValue(
+				getObject
+		  )})`
+		: fragment;
+
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);
+
+export function getToStringTagValue(getObject: GenerateCodeSnippets['getObject']) {
+	return getObject([['value', "'Module'"]], {
+		lineBreakIndent: null
+	});
+}

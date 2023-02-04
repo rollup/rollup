@@ -11,8 +11,8 @@ import('external').then(console.log);
 export * from 'external';
 export { foo } from 'external';
 
-import defaultLegacy from 'external';
-console.log(defaultLegacy);
+import defaultCompat from 'external';
+console.log(defaultCompat);
 
 import externalAuto from 'externalAuto';
 console.log(externalAuto);

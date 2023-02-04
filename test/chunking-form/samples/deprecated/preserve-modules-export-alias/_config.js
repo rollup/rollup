@@ -4,5 +4,6 @@ module.exports = {
 		strictDeprecations: false,
 		input: ['main1.js', 'main2.js'],
 		preserveModules: true
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

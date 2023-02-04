@@ -1,36 +1,45 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
-import { PluginDriver } from '../utils/PluginDriver';
-import { ensureArray } from '../utils/ensureArray';
-import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
-import { writeFile } from '../utils/fs';
+import type { PluginDriver } from '../utils/PluginDriver';
+import { getSortedValidatedPlugins } from '../utils/PluginDriver';
+import {
+	error,
+	errorAlreadyClosed,
+	errorCannotEmitFromOptionsHook,
+	// eslint-disable-next-line unicorn/prevent-abbreviations
+	errorMissingFileOrDirOption
+} from '../utils/error';
+import { mkdir, writeFile } from '../utils/fs';
+import { catchUnfinishedHookActions } from '../utils/hookActions';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
-import { GenericConfigObject } from '../utils/options/options';
-import { basename, dirname, resolve } from '../utils/path';
+import { normalizePluginOption } from '../utils/options/options';
+import { dirname, resolve } from '../utils/path';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
-import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import {
+import type {
+	InputOptions,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputAsset,
+	OutputBundle,
 	OutputChunk,
 	OutputOptions,
 	Plugin,
 	RollupBuild,
 	RollupOptions,
+	RollupOptionsFunction,
 	RollupOutput,
 	RollupWatcher
 } from './types';
 
-export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
+export default function rollup(rawInputOptions: RollupOptions): Promise<RollupBuild> {
 	return rollupInternal(rawInputOptions, null);
 }
 
 export async function rollupInternal(
-	rawInputOptions: GenericConfigObject,
+	rawInputOptions: RollupOptions,
 	watcher: RollupWatcher | null
 ): Promise<RollupBuild> {
 	const { options: inputOptions, unsetOptions: unsetInputOptions } = await getInputOptions(
@@ -41,27 +50,32 @@ export async function rollupInternal(
 
 	const graph = new Graph(inputOptions, watcher);
 
-	// remove the cache option from the memory after graph creation (cache is not used anymore)
+	// remove the cache object from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;
-	delete inputOptions.cache;
-	delete rawInputOptions.cache;
+	if (rawInputOptions.cache) {
+		inputOptions.cache = undefined;
+		rawInputOptions.cache = undefined;
+	}
 
 	timeStart('BUILD', 1);
 
-	try {
-		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
-		await graph.build();
-	} catch (err: any) {
-		const watchFiles = Object.keys(graph.watchFiles);
-		if (watchFiles.length > 0) {
-			err.watchFiles = watchFiles;
+	await catchUnfinishedHookActions(graph.pluginDriver, async () => {
+		try {
+			timeStart('initialize', 2);
+			await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
+			timeEnd('initialize', 2);
+			await graph.build();
+		} catch (error_: any) {
+			const watchFiles = Object.keys(graph.watchFiles);
+			if (watchFiles.length > 0) {
+				error_.watchFiles = watchFiles;
+			}
+			await graph.pluginDriver.hookParallel('buildEnd', [error_]);
+			await graph.pluginDriver.hookParallel('closeBundle', []);
+			throw error_;
 		}
-		await graph.pluginDriver.hookParallel('buildEnd', [err]);
-		await graph.pluginDriver.hookParallel('closeBundle', []);
-		throw err;
-	}
-
-	await graph.pluginDriver.hookParallel('buildEnd', []);
+		await graph.pluginDriver.hookParallel('buildEnd', []);
+	});
 
 	timeEnd('BUILD', 1);
 
@@ -76,27 +90,15 @@ export async function rollupInternal(
 		},
 		closed: false,
 		async generate(rawOutputOptions: OutputOptions) {
-			if (result.closed) return error(errAlreadyClosed());
+			if (result.closed) return error(errorAlreadyClosed());
 
-			return handleGenerateWrite(
-				false,
-				inputOptions,
-				unsetInputOptions,
-				rawOutputOptions as GenericConfigObject,
-				graph
-			);
+			return handleGenerateWrite(false, inputOptions, unsetInputOptions, rawOutputOptions, graph);
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
-			if (result.closed) return error(errAlreadyClosed());
+			if (result.closed) return error(errorAlreadyClosed());
 
-			return handleGenerateWrite(
-				true,
-				inputOptions,
-				unsetInputOptions,
-				rawOutputOptions as GenericConfigObject,
-				graph
-			);
+			return handleGenerateWrite(true, inputOptions, unsetInputOptions, rawOutputOptions, graph);
 		}
 	};
 	if (inputOptions.perf) result.getTimings = getTimings;
@@ -104,14 +106,17 @@ export async function rollupInternal(
 }
 
 async function getInputOptions(
-	rawInputOptions: GenericConfigObject,
+	rawInputOptions: InputOptions,
 	watchMode: boolean
 ): Promise<{ options: NormalizedInputOptions; unsetOptions: Set<string> }> {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	const rawPlugins = ensureArray(rawInputOptions.plugins) as Plugin[];
-	const { options, unsetOptions } = normalizeInputOptions(
+	const rawPlugins = getSortedValidatedPlugins(
+		'options',
+		await normalizePluginOption(rawInputOptions.plugins)
+	);
+	const { options, unsetOptions } = await normalizeInputOptions(
 		await rawPlugins.reduce(applyOptionHook(watchMode), Promise.resolve(rawInputOptions))
 	);
 	normalizePlugins(options.plugins, ANONYMOUS_PLUGIN_PREFIX);
@@ -119,28 +124,19 @@ async function getInputOptions(
 }
 
 function applyOptionHook(watchMode: boolean) {
-	return async (
-		inputOptions: Promise<GenericConfigObject>,
-		plugin: Plugin
-	): Promise<GenericConfigObject> => {
-		if (plugin.options) {
-			return (
-				((await plugin.options.call(
-					{ meta: { rollupVersion, watchMode } },
-					await inputOptions
-				)) as GenericConfigObject) || inputOptions
-			);
-		}
-
-		return inputOptions;
+	return async (inputOptions: Promise<RollupOptions>, plugin: Plugin): Promise<InputOptions> => {
+		const handler = 'handler' in plugin.options! ? plugin.options.handler : plugin.options!;
+		return (
+			(await handler.call({ meta: { rollupVersion, watchMode } }, await inputOptions)) ||
+			inputOptions
+		);
 	};
 }
 
-function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
-	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
-		const plugin = plugins[pluginIndex];
+function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): void {
+	for (const [index, plugin] of plugins.entries()) {
 		if (!plugin.name) {
-			plugin.name = `${anonymousPrefix}${pluginIndex + 1}`;
+			plugin.name = `${anonymousPrefix}${index + 1}`;
 		}
 	}
 }
@@ -148,71 +144,81 @@ function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
 async function handleGenerateWrite(
 	isWrite: boolean,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>,
-	rawOutputOptions: GenericConfigObject,
+	unsetInputOptions: ReadonlySet<string>,
+	rawOutputOptions: OutputOptions,
 	graph: Graph
 ): Promise<RollupOutput> {
 	const {
 		options: outputOptions,
 		outputPluginDriver,
 		unsetOptions
-	} = getOutputOptionsAndPluginDriver(
+	} = await getOutputOptionsAndPluginDriver(
 		rawOutputOptions,
 		graph.pluginDriver,
 		inputOptions,
 		unsetInputOptions
 	);
-	const bundle = new Bundle(outputOptions, unsetOptions, inputOptions, outputPluginDriver, graph);
-	const generated = await bundle.generate(isWrite);
-	if (isWrite) {
-		if (!outputOptions.dir && !outputOptions.file) {
-			return error({
-				code: 'MISSING_OPTION',
-				message: 'You must specify "output.file" or "output.dir" for the build.'
-			});
+	return catchUnfinishedHookActions(outputPluginDriver, async () => {
+		const bundle = new Bundle(outputOptions, unsetOptions, inputOptions, outputPluginDriver, graph);
+		const generated = await bundle.generate(isWrite);
+		if (isWrite) {
+			timeStart('WRITE', 1);
+			if (!outputOptions.dir && !outputOptions.file) {
+				return error(errorMissingFileOrDirOption());
+			}
+			await Promise.all(
+				Object.values(generated).map(chunk =>
+					graph.fileOperationQueue.run(() => writeOutputFile(chunk, outputOptions))
+				)
+			);
+			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
+			timeEnd('WRITE', 1);
 		}
-		await Promise.all(Object.values(generated).map(chunk => writeOutputFile(chunk, outputOptions)));
-		await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
-	}
-	return createOutput(generated);
+		return createOutput(generated);
+	});
 }
 
-function getOutputOptionsAndPluginDriver(
-	rawOutputOptions: GenericConfigObject,
+async function getOutputOptionsAndPluginDriver(
+	rawOutputOptions: OutputOptions,
 	inputPluginDriver: PluginDriver,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>
-): {
+	unsetInputOptions: ReadonlySet<string>
+): Promise<{
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
 	unsetOptions: Set<string>;
-} {
+}> {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
-	const rawPlugins = ensureArray(rawOutputOptions.plugins) as Plugin[];
+	const rawPlugins = await normalizePluginOption(rawOutputOptions.plugins);
 	normalizePlugins(rawPlugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX);
 	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
 	return {
-		...getOutputOptions(inputOptions, unsetInputOptions, rawOutputOptions, outputPluginDriver),
+		...(await getOutputOptions(
+			inputOptions,
+			unsetInputOptions,
+			rawOutputOptions,
+			outputPluginDriver
+		)),
 		outputPluginDriver
 	};
 }
 
 function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>,
-	rawOutputOptions: GenericConfigObject,
+	unsetInputOptions: ReadonlySet<string>,
+	rawOutputOptions: OutputOptions,
 	outputPluginDriver: PluginDriver
-): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
+): Promise<{ options: NormalizedOutputOptions; unsetOptions: Set<string> }> {
 	return normalizeOutputOptions(
 		outputPluginDriver.hookReduceArg0Sync(
 			'outputOptions',
-			[rawOutputOptions.output || rawOutputOptions] as [OutputOptions],
+			[rawOutputOptions],
 			(outputOptions, result) => result || outputOptions,
 			pluginContext => {
-				const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
+				const emitError = () => pluginContext.error(errorCannotEmitFromOptionsHook());
 				return {
 					...pluginContext,
 					emitFile: emitError,
@@ -225,21 +231,17 @@ function getOutputOptions(
 	);
 }
 
-function createOutput(
-	outputBundle: Record<string, OutputChunk | OutputAsset | Record<string, never>>
-): RollupOutput {
+function createOutput(outputBundle: OutputBundle): RollupOutput {
 	return {
 		output: (
 			Object.values(outputBundle).filter(outputFile => Object.keys(outputFile).length > 0) as (
 				| OutputChunk
 				| OutputAsset
 			)[]
-		).sort((outputFileA, outputFileB) => {
-			const fileTypeA = getSortingFileType(outputFileA);
-			const fileTypeB = getSortingFileType(outputFileB);
-			if (fileTypeA === fileTypeB) return 0;
-			return fileTypeA < fileTypeB ? -1 : 1;
-		}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
+		).sort(
+			(outputFileA, outputFileB) =>
+				getSortingFileType(outputFileA) - getSortingFileType(outputFileB)
+		) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
 	};
 }
 
@@ -259,32 +261,16 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 	return SortingFileType.SECONDARY_CHUNK;
 }
 
-function writeOutputFile(
+async function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: NormalizedOutputOptions
 ): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
-	let writeSourceMapPromise: Promise<void> | undefined;
-	let source: string | Uint8Array;
-	if (outputFile.type === 'asset') {
-		source = outputFile.source;
-	} else {
-		source = outputFile.code;
-		if (outputOptions.sourcemap && outputFile.map) {
-			let url: string;
-			if (outputOptions.sourcemap === 'inline') {
-				url = outputFile.map.toUrl();
-			} else {
-				url = `${basename(outputFile.fileName)}.map`;
-				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
-			}
-			if (outputOptions.sourcemap !== 'hidden') {
-				source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-			}
-		}
-	}
 
-	return Promise.all([writeFile(fileName, source), writeSourceMapPromise]);
+	// 'recursive: true' does not throw if the folder structure, or parts of it, already exist
+	await mkdir(dirname(fileName), { recursive: true });
+
+	return writeFile(fileName, outputFile.type === 'asset' ? outputFile.source : outputFile.code);
 }
 
 /**
@@ -292,6 +278,8 @@ function writeOutputFile(
  * Mainly to facilitate IDE code prompts, after all, export default does not prompt, even if you add @type annotations, it is not accurate
  * @param options
  */
-export function defineConfig<T extends RollupOptions | RollupOptions[]>(options: T): T {
+export function defineConfig<T extends RollupOptions | RollupOptions[] | RollupOptionsFunction>(
+	options: T
+): T {
 	return options;
 }

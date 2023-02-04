@@ -1,21 +1,22 @@
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteractionAssigned } from '../NodeInteractions';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
+import type LocalVariable from '../variables/LocalVariable';
+import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import Property from './Property';
-import RestElement from './RestElement';
-import { ExpressionEntity } from './shared/Expression';
+import type Property from './Property';
+import type RestElement from './RestElement';
+import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { PatternNode } from './shared/Pattern';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
-	declare properties: (Property | RestElement)[];
+	declare properties: readonly (Property | RestElement)[];
 	declare type: NodeType.tObjectPattern;
 
 	addExportedVariables(
-		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const property of this.properties) {
 			if (property.type === NodeType.Property) {
@@ -45,10 +46,15 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length > 0) return true;
+	hasEffectsOnInteractionAtPath(
+		// At the moment, this is only triggered for assignment left-hand sides,
+		// where the path is empty
+		_path: ObjectPath,
+		interaction: NodeInteractionAssigned,
+		context: HasEffectsContext
+	): boolean {
 		for (const property of this.properties) {
-			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;
+			if (property.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)) return true;
 		}
 		return false;
 	}

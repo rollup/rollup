@@ -3,5 +3,6 @@ module.exports = {
 	options: {
 		strictDeprecations: false,
 		inlineDynamicImports: true
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

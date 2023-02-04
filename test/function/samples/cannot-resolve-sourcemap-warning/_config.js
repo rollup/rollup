@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
@@ -7,12 +7,15 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			transform() {
-				return { code: 'export default this', map: { mappings: 'X' } };
+				return { code: 'export default this', map: { mappings: '' } };
 			}
 		}
 	},
 	warnings: [
 		{
+			cause: {
+				message: "Can't resolve original location of error."
+			},
 			code: 'SOURCEMAP_ERROR',
 			id: ID_MAIN,
 			loc: {
@@ -39,7 +42,7 @@ module.exports = {
 			message:
 				"The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten",
 			pos: 15,
-			url: 'https://rollupjs.org/guide/en/#error-this-is-undefined'
+			url: 'https://rollupjs.org/troubleshooting/#error-this-is-undefined'
 		}
 	]
 };

@@ -3,11 +3,11 @@ System.register([], (function (exports) {
   return {
     execute: (function () {
 
-      class C$1 {
+      let C$1 = class C {
         fn (num) {
           console.log(num - p);
         }
-      }
+      };
 
       var p$1 = exports('p', 43);
 

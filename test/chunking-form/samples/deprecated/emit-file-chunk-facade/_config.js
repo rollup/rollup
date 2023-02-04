@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 let referenceId;
 
 module.exports = {
@@ -17,5 +17,6 @@ module.exports = {
 				assert.strictEqual(this.getFileName(referenceId), 'generated-buildStart.js');
 			}
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

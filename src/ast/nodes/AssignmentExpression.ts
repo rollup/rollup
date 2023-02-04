@@ -1,25 +1,30 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
-	NodeRenderOptions,
+	type NodeRenderOptions,
 	removeLineBreaks,
-	RenderOptions
+	type RenderOptions
 } from '../../utils/renderHelpers';
 import {
 	renderSystemExportExpression,
 	renderSystemExportFunction,
 	renderSystemExportSequenceAfterExpression
 } from '../../utils/systemJsRendering';
-import { createHasEffectsContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
+import {
+	createHasEffectsContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
+import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
 	declare left: ExpressionNode | PatternNode;
@@ -39,36 +44,42 @@ export default class AssignmentExpression extends NodeBase {
 		| '**=';
 	declare right: ExpressionNode;
 	declare type: NodeType.tAssignmentExpression;
-	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (!this.deoptimized) this.applyDeoptimizations();
+		const { deoptimized, left, operator, right } = this;
+		if (!deoptimized) this.applyDeoptimizations();
+		// MemberExpressions do not access the property before assignments if the
+		// operator is '='.
 		return (
-			this.right.hasEffects(context) ||
-			this.left.hasEffects(context) ||
-			this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
+			right.hasEffects(context) || left.hasEffectsAsAssignmentTarget(context, operator !== '=')
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
+		return this.right.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
+		const { deoptimized, left, right, operator } = this;
+		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		let hasEffectsContext;
 		if (
 			includeChildrenRecursively ||
-			this.operator !== '=' ||
-			this.left.included ||
-			((hasEffectsContext = createHasEffectsContext()),
-			this.left.hasEffects(hasEffectsContext) ||
-				this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, hasEffectsContext))
+			operator !== '=' ||
+			left.included ||
+			left.hasEffectsAsAssignmentTarget(createHasEffectsContext(), false)
 		) {
-			this.left.include(context, includeChildrenRecursively);
+			left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
 		}
-		this.right.include(context, includeChildrenRecursively);
+		right.include(context, includeChildrenRecursively);
+	}
+
+	initialise(): void {
+		this.left.setAssignedValue(this.right);
 	}
 
 	render(
@@ -76,36 +87,37 @@ export default class AssignmentExpression extends NodeBase {
 		options: RenderOptions,
 		{ preventASI, renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
-		if (this.left.included) {
-			this.left.render(code, options);
-			this.right.render(code, options);
+		const { left, right, start, end, parent } = this;
+		if (left.included) {
+			left.render(code, options);
+			right.render(code, options);
 		} else {
 			const inclusionStart = findNonWhiteSpace(
 				code.original,
-				findFirstOccurrenceOutsideComment(code.original, '=', this.left.end) + 1
+				findFirstOccurrenceOutsideComment(code.original, '=', left.end) + 1
 			);
-			code.remove(this.start, inclusionStart);
+			code.remove(start, inclusionStart);
 			if (preventASI) {
-				removeLineBreaks(code, inclusionStart, this.right.start);
+				removeLineBreaks(code, inclusionStart, right.start);
 			}
-			this.right.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
-				renderedSurroundingElement: renderedSurroundingElement || this.parent.type
+			right.render(code, options, {
+				renderedParentType: renderedParentType || parent.type,
+				renderedSurroundingElement: renderedSurroundingElement || parent.type
 			});
 		}
 		if (options.format === 'system') {
-			if (this.left instanceof Identifier) {
-				const variable = this.left.variable!;
+			if (left instanceof Identifier) {
+				const variable = left.variable!;
 				const exportNames = options.exportNamesByVariable.get(variable);
 				if (exportNames) {
 					if (exportNames.length === 1) {
-						renderSystemExportExpression(variable, this.start, this.end, code, options);
+						renderSystemExportExpression(variable, start, end, code, options);
 					} else {
 						renderSystemExportSequenceAfterExpression(
 							variable,
-							this.start,
-							this.end,
-							this.parent.type !== NodeType.ExpressionStatement,
+							start,
+							end,
+							parent.type !== NodeType.ExpressionStatement,
 							code,
 							options
 						);
@@ -114,12 +126,12 @@ export default class AssignmentExpression extends NodeBase {
 				}
 			} else {
 				const systemPatternExports: Variable[] = [];
-				this.left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
+				left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
 				if (systemPatternExports.length > 0) {
 					renderSystemExportFunction(
 						systemPatternExports,
-						this.start,
-						this.end,
+						start,
+						end,
 						renderedSurroundingElement === NodeType.ExpressionStatement,
 						code,
 						options
@@ -129,13 +141,13 @@ export default class AssignmentExpression extends NodeBase {
 			}
 		}
 		if (
-			this.left.included &&
-			this.left instanceof ObjectPattern &&
+			left.included &&
+			left instanceof ObjectPattern &&
 			(renderedSurroundingElement === NodeType.ExpressionStatement ||
 				renderedSurroundingElement === NodeType.ArrowFunctionExpression)
 		) {
-			code.appendRight(this.start, '(');
-			code.prependLeft(this.end, ')');
+			code.appendRight(start, '(');
+			code.prependLeft(end, ')');
 		}
 	}
 

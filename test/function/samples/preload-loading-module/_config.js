@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 let preloadedCode;
 
@@ -11,7 +11,7 @@ module.exports = {
 				load(id) {
 					this.load({ id }).then(({ code }) => (preloadedCode = code));
 				},
-				buildEnd(err) {
+				buildEnd() {
 					assert.strictEqual(preloadedCode, 'assert.ok(true);\n');
 				}
 			}

@@ -8,5 +8,6 @@ module.exports = {
 			name: 'myBundle',
 			preferConst: true
 		}
-	}
+	},
+	expectedWarnings: ['DEPRECATED_FEATURE']
 };

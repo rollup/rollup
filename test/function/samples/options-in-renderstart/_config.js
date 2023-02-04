@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 const checkedOptions = [];
 
 module.exports = {
@@ -22,10 +22,10 @@ module.exports = {
 	},
 	exports: () => {
 		assert.deepStrictEqual(checkedOptions, [
-			'output-plugin',
+			'input-plugin',
 			'cjs',
 			'global',
-			'input-plugin',
+			'output-plugin',
 			'cjs',
 			'global'
 		]);

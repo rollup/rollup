@@ -1,11 +1,12 @@
-import { Plugin } from '../../src/rollup/types';
+import process from 'node:process';
+import type { Plugin } from '../../src/rollup/types';
 
 export const stdinName = '-';
 
 let stdinResult: Promise<string> | null = null;
 
-export function stdinPlugin(arg: unknown): Plugin {
-	const suffix = typeof arg == 'string' && arg.length ? '.' + arg : '';
+export function stdinPlugin(argument: unknown): Plugin {
+	const suffix = typeof argument == 'string' && argument.length > 0 ? '.' + argument : '';
 	return {
 		load(id) {
 			if (id === stdinName || id.startsWith(stdinName + '.')) {
@@ -31,8 +32,8 @@ function readStdin(): Promise<string> {
 				const result = chunks.join('');
 				resolve(result);
 			})
-			.on('error', err => {
-				reject(err);
+			.on('error', error => {
+				reject(error);
 			});
 	});
 }

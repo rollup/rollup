@@ -1,13 +1,13 @@
-const path = require('path');
+const path = require('node:path');
 const rollup = require('../../dist/rollup');
 const { runTestSuiteWithSamples } = require('../utils.js');
 
-runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (directory, config) => {
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
-		path.basename(dir) + ': ' + config.description,
+		path.basename(directory) + ': ' + config.description,
 		() => {
 			it(`generates correct hashes`, () => {
-				process.chdir(dir);
+				process.chdir(directory);
 				return Promise.all(
 					[config.options1, config.options2].map(options =>
 						rollup.rollup(options).then(bundle =>
@@ -29,9 +29,9 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 					for (const contents of fileContentsByHash.values()) {
 						if (contents.size > 1) {
 							throw new Error(
-								`Two chunks contained different code even though the hashes were the same: ${Array.from(
-									contents
-								)
+								`Two chunks contained different code even though the hashes were the same: ${[
+									...contents
+								]
 									.map(JSON.stringify)
 									.join(' != ')}`
 							);

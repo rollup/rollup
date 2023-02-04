@@ -1,33 +1,44 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import {
 	renderSystemExportExpression,
 	renderSystemExportSequenceAfterExpression,
 	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeInteraction, NodeInteractionAssigned } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
+import { NodeBase } from './shared/Node';
+import type { ExpressionNode, IncludeChildren } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare operator: '++' | '--';
 	declare prefix: boolean;
 	declare type: NodeType.tUpdateExpression;
-	protected deoptimized = false;
+	private declare interaction: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		return (
-			this.argument.hasEffects(context) ||
-			this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
-		);
+		return this.argument.hasEffectsAsAssignmentTarget(context, true);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return path.length > 1 || type !== INTERACTION_ACCESSED;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		this.included = true;
+		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
+	}
+
+	initialise() {
+		this.argument.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

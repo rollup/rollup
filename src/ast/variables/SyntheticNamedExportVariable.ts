@@ -1,11 +1,12 @@
-import Module, { AstContext } from '../../Module';
+import type Module from '../../Module';
+import type { AstContext } from '../../Module';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
 export default class SyntheticNamedExportVariable extends Variable {
-	context: AstContext;
-	module: Module;
-	syntheticNamespace: Variable;
+	readonly context: AstContext;
+	readonly module: Module;
+	readonly syntheticNamespace: Variable;
 
 	private baseVariable: Variable | null = null;
 

@@ -7,9 +7,6 @@ module.exports = {
 	stderr: stderr =>
 		assertIncludes(
 			stderr,
-			'[!] (plugin at position 1) Error: My error.\n' +
-				'main.js (1:5)\n' +
-				'custom code frame\n' +
-				'Error: My error.'
+			'[!] (plugin at position 1) Error: My error.\n' + 'main.js (1:5)\n' + 'custom code frame\n'
 		)
 };

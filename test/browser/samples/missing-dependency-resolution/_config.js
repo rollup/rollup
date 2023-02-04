@@ -9,8 +9,10 @@ console.log(foo);`
 		})
 	},
 	error: {
+		code: 'NO_FS_IN_BROWSER',
 		message:
-			"Unexpected warnings (UNRESOLVED_IMPORT): 'dep' is imported by main, but could not be resolved – treating it as an external dependency\nIf you expect warnings, list their codes in config.expectedWarnings",
+			'Cannot access the file system (via "path.resolve") when using the browser build of Rollup. Make sure you supply a plugin with custom resolveId and load hooks to Rollup.',
+		url: 'https://rollupjs.org/plugin-development/#a-simple-example',
 		watchFiles: ['main']
 	}
 };

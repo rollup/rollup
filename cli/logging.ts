@@ -1,36 +1,43 @@
-import { RollupError } from '../src/rollup/types';
+import process from 'node:process';
+import type { RollupError } from '../src/rollup/types';
 import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
-export const stderr = console.error.bind(console);
+export const stderr = (...parameters: readonly unknown[]) =>
+	process.stderr.write(`${parameters.join('')}\n`);
 
-export function handleError(err: RollupError, recover = false): void {
-	let description = err.message || err;
-	if (err.name) description = `${err.name}: ${description}`;
-	const message = (err.plugin ? `(plugin ${err.plugin}) ${description}` : description) || err;
+export function handleError(error: RollupError, recover = false): void {
+	const name = error.name || (error.cause as Error)?.name;
+	const nameSection = name ? `${name}: ` : '';
+	const pluginSection = error.plugin ? `(plugin ${error.plugin}) ` : '';
+	const message = `${pluginSection}${nameSection}${error.message}`;
 
-	stderr(bold(red(`[!] ${bold(message.toString())}`)));
+	const outputLines = [bold(red(`[!] ${bold(message.toString())}`))];
 
-	if (err.url) {
-		stderr(cyan(err.url));
+	if (error.url) {
+		outputLines.push(cyan(error.url));
 	}
 
-	if (err.loc) {
-		stderr(`${relativeId((err.loc.file || err.id)!)} (${err.loc.line}:${err.loc.column})`);
-	} else if (err.id) {
-		stderr(relativeId(err.id));
+	if (error.loc) {
+		outputLines.push(
+			`${relativeId((error.loc.file || error.id)!)} (${error.loc.line}:${error.loc.column})`
+		);
+	} else if (error.id) {
+		outputLines.push(relativeId(error.id));
 	}
 
-	if (err.frame) {
-		stderr(dim(err.frame));
+	if (error.frame) {
+		outputLines.push(dim(error.frame));
 	}
 
-	if (err.stack) {
-		stderr(dim(err.stack));
+	if (error.stack) {
+		outputLines.push(dim(error.stack?.replace(`${nameSection}${error.message}\n`, '')));
 	}
 
-	stderr('');
+	outputLines.push('', '');
+	stderr(outputLines.join('\n'));
 
+	// eslint-disable-next-line unicorn/no-process-exit
 	if (!recover) process.exit(1);
 }

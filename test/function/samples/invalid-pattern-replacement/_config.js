@@ -5,6 +5,6 @@ module.exports = {
 	},
 	generateError: {
 		code: 'VALIDATION_ERROR',
-		message: '"[invalid]" is not a valid placeholder in "output.entryFileNames" pattern.'
+		message: '"[invalid]" is not a valid placeholder in the "output.entryFileNames" pattern.'
 	}
 };

@@ -1,14 +1,14 @@
-import MagicString from 'magic-string';
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { HasEffectsContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import type { HasEffectsContext } from '../ExecutionContext';
 import { UnknownKey } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import * as NodeType from './NodeType';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
+import type LocalVariable from '../variables/LocalVariable';
+import type * as NodeType from './NodeType';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
-import { ExpressionNode } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { ExpressionNode } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export default class Property extends MethodBase implements PatternNode {
 	declare key: ExpressionNode;
@@ -16,7 +16,6 @@ export default class Property extends MethodBase implements PatternNode {
 	declare method: boolean;
 	declare shorthand: boolean;
 	declare type: NodeType.tProperty;
-	protected deoptimized = false;
 	private declarationInit: ExpressionEntity | null = null;
 
 	declare(kind: string, init: ExpressionEntity): LocalVariable[] {

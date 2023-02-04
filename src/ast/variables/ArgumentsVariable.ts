@@ -1,6 +1,8 @@
-import { AstContext } from '../../Module';
+import type { AstContext } from '../../Module';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import { ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
 export default class ArgumentsVariable extends LocalVariable {
@@ -8,15 +10,7 @@ export default class ArgumentsVariable extends LocalVariable {
 		super('arguments', null, UNKNOWN_EXPRESSION, context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenAssignedAtPath(): boolean {
-		return true;
-	}
-
-	hasEffectsWhenCalledAtPath(): boolean {
-		return true;
+	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 }

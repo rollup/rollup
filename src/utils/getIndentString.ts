@@ -1,6 +1,6 @@
-import Module from '../Module';
+import type Module from '../Module';
 
-function guessIndentString(code: string) {
+function guessIndentString(code: string): string | null {
 	const lines = code.split('\n');
 
 	const tabbed = lines.filter(line => /^\t+/.test(line));
@@ -19,15 +19,15 @@ function guessIndentString(code: string) {
 
 	// Otherwise, we need to guess the multiple
 	const min = spaced.reduce((previous, current) => {
-		const numSpaces = /^ +/.exec(current)![0].length;
-		return Math.min(numSpaces, previous);
+		const numberSpaces = /^ +/.exec(current)![0].length;
+		return Math.min(numberSpaces, previous);
 	}, Infinity);
 
-	return new Array(min + 1).join(' ');
+	return ' '.repeat(min);
 }
 
 export default function getIndentString(
-	modules: Module[],
+	modules: readonly Module[],
 	options: { indent: true | string }
 ): string {
 	if (options.indent !== true) return options.indent;

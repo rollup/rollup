@@ -4,7 +4,7 @@ module.exports = {
 	options: {
 		input: ['main', 'foo'],
 		output: {
-			namespaceToStringTag: true
+			generatedCode: { symbols: true }
 		}
 	}
 };

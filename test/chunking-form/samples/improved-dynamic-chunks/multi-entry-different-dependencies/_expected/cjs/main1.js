@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var dep1 = require('./generated-dep1.js');
 var dep2 = require('./generated-dep2.js');
 

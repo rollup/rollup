@@ -4,6 +4,4 @@ define(['exports', './generated-emitted'], (function (exports, emitted) { 'use s
 
 	exports.id = emitted.id;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

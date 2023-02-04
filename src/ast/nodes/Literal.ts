@@ -1,21 +1,26 @@
-import MagicString from 'magic-string';
-import { CallOptions } from '../CallOptions';
-import { HasEffectsContext } from '../ExecutionContext';
-import { ObjectPath } from '../utils/PathTracker';
+import type MagicString from 'magic-string';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED
+} from '../NodeInteractions';
+import type { ObjectPath } from '../utils/PathTracker';
 import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	MemberDescription
+	type MemberDescription
 } from '../values';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { GenericEsTreeNode, NodeBase } from './shared/Node';
+import { type GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 
@@ -29,7 +34,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 
 	private declare members: { [key: string]: MemberDescription };
 
-	deoptimizeThisOnEventAtPath(): void {}
+	deoptimizeThisOnInteractionAtPath(): void {}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (
@@ -45,31 +50,39 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		return this.value;
 	}
 
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		if (path.length !== 1) return UNKNOWN_EXPRESSION;
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath
+	): [expression: ExpressionEntity, isPure: boolean] {
+		if (path.length !== 1) return UNKNOWN_RETURN_EXPRESSION;
 		return getMemberReturnExpressionWhenCalled(this.members, path[0]);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-		if (this.value === null) {
-			return path.length > 0;
-		}
-		return path.length > 1;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
-		return path.length > 0;
-	}
-
-	hasEffectsWhenCalledAtPath(
+	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, context);
+		switch (interaction.type) {
+			case INTERACTION_ACCESSED: {
+				return path.length > (this.value === null ? 0 : 1);
+			}
+			case INTERACTION_ASSIGNED: {
+				return true;
+			}
+			case INTERACTION_CALLED: {
+				if (
+					this.included &&
+					this.value instanceof RegExp &&
+					(this.value.global || this.value.sticky)
+				) {
+					return true;
+				}
+				return (
+					path.length !== 1 ||
+					hasMemberEffectWhenCalled(this.members, path[0], interaction, context)
+				);
+			}
 		}
-		return true;
 	}
 
 	initialise(): void {

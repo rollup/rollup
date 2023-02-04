@@ -1,39 +1,41 @@
-import { NormalizedOutputOptions } from '../rollup/types';
-import { PluginDriver } from './PluginDriver';
-import { error } from './error';
+import type { NormalizedOutputOptions, RenderedChunk } from '../rollup/types';
+import type { PluginDriver } from './PluginDriver';
+import { error, errorAddonNotGenerated } from './error';
 
 export interface Addons {
-	banner?: string;
-	footer?: string;
-	intro?: string;
-	outro?: string;
+	banner: string;
+	footer: string;
+	intro: string;
+	outro: string;
 }
 
-const concatSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);
-const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
+const concatSeparator = (out: string, next: string) => (next ? `${out}\n${next}` : out);
+const concatDblSeparator = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
 
 export async function createAddons(
 	options: NormalizedOutputOptions,
-	outputPluginDriver: PluginDriver
+	outputPluginDriver: PluginDriver,
+	chunk: RenderedChunk
 ): Promise<Addons> {
 	try {
 		let [banner, footer, intro, outro] = await Promise.all([
-			outputPluginDriver.hookReduceValue('banner', options.banner(), [], concatSep),
-			outputPluginDriver.hookReduceValue('footer', options.footer(), [], concatSep),
-			outputPluginDriver.hookReduceValue('intro', options.intro(), [], concatDblSep),
-			outputPluginDriver.hookReduceValue('outro', options.outro(), [], concatDblSep)
+			outputPluginDriver.hookReduceValue('banner', options.banner(chunk), [chunk], concatSeparator),
+			outputPluginDriver.hookReduceValue('footer', options.footer(chunk), [chunk], concatSeparator),
+			outputPluginDriver.hookReduceValue(
+				'intro',
+				options.intro(chunk),
+				[chunk],
+				concatDblSeparator
+			),
+			outputPluginDriver.hookReduceValue('outro', options.outro(chunk), [chunk], concatDblSeparator)
 		]);
 		if (intro) intro += '\n\n';
 		if (outro) outro = `\n\n${outro}`;
-		if (banner.length) banner += '\n';
-		if (footer.length) footer = '\n' + footer;
+		if (banner) banner += '\n';
+		if (footer) footer = '\n' + footer;
 
 		return { banner, footer, intro, outro };
-	} catch (err: any) {
-		return error({
-			code: 'ADDON_ERROR',
-			message: `Could not retrieve ${err.hook}. Check configuration of plugin ${err.plugin}.
-\tError Message: ${err.message}`
-		});
+	} catch (error_: any) {
+		return error(errorAddonNotGenerated(error_.message, error_.hook, error_.plugin));
 	}
 }

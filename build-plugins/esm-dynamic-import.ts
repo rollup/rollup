@@ -1,21 +1,26 @@
-import { Plugin } from 'rollup';
+import type { Plugin } from 'rollup';
 
-export default function addBinShebangAndEsmImport(): Plugin {
-	let importFound = false;
+const expectedImports = 3;
+
+export default function esmDynamicImport(): Plugin {
+	let importsFound = 0;
 	return {
 		generateBundle() {
-			if (!importFound) {
+			if (importsFound !== expectedImports) {
 				throw new Error(
-					'Could not find dynamic import in "loadConfigFile.ts", was the file renamed?'
+					`Could not find ${expectedImports} dynamic imports in "loadConfigFile.ts" and "commandPlugin.ts", found ${importsFound}.`
 				);
 			}
 		},
 		name: 'esm-dynamic-import',
 		renderDynamicImport({ moduleId }) {
-			importFound = true;
 			if (moduleId.endsWith('commandPlugins.ts') || moduleId.endsWith('loadConfigFile.ts')) {
+				importsFound++;
 				return { left: 'import(', right: ')' };
 			}
+		},
+		renderStart() {
+			importsFound = 0;
 		}
 	};
 }

@@ -4,8 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.external1, global.external2));
 })(this, (function (exports, external1, external2) { 'use strict';
 
-	function _interopNamespace(e) {
-		if (e && e.__esModule) return e;
+	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
@@ -18,7 +17,7 @@
 				}
 			});
 		}
-		n["default"] = e;
+		n.default = e;
 		return Object.freeze(n);
 	}
 
@@ -37,28 +36,26 @@
 		return Object.freeze(n);
 	}
 
-	var external1__namespace = /*#__PURE__*/_interopNamespace(external1);
-	var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
+	var external1__namespace = /*#__PURE__*/_interopNamespaceDefault(external1);
+	var external2__namespace = /*#__PURE__*/_interopNamespaceDefault(external2);
 
-	var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	var reexportExternal = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null
-	}, [external1__namespace]));
+	}, [external1__namespace]);
 
 	const extra = 'extra';
 
 	const override = 'override';
 	var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 
-	var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	var reexportExternalsWithOverride$1 = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
-		override: override,
-		'default': reexportExternalsWithOverride,
-		extra: extra
-	}, [reexportExternalsWithOverride, external1__namespace, external2__namespace]));
+		default: reexportExternalsWithOverride,
+		extra: extra,
+		override: override
+	}, [reexportExternalsWithOverride, external1__namespace, external2__namespace]);
 
 	exports.external = reexportExternal;
 	exports.externalOverride = reexportExternalsWithOverride$1;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

@@ -1,7 +1,7 @@
 System.register(['./main.js'], (function () {
 	'use strict';
 	return {
-		setters: [function () {}],
+		setters: [null],
 		execute: (function () {
 
 

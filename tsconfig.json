@@ -6,15 +6,14 @@
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"noEmitOnError": true,
-		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"pretty": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ES2018",
+		"target": "ES2020",
 		"useDefineForClassFields": false
 	},
 	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts"],
-	"exclude": ["dist", "node_modules", "test/typescript"]
+	"exclude": ["dist", "node_modules", "test/typescript", "browser/dist"]
 }

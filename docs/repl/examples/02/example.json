@@ -1,0 +1,9 @@
+{
+	"title": "Default exports",
+	"options": {
+		"output": {
+			"exports": "auto",
+			"esModule": "if-default-prop"
+		}
+	}
+}

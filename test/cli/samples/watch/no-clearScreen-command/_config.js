@@ -1,6 +1,6 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
-const UNDERLINE = '\u001b[4m';
+const UNDERLINE = '\u001B[4m';
 
 module.exports = {
 	description: 'allows disabling clearing the screen from the command line',

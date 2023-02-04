@@ -1,11 +1,27 @@
-import { CallOptions, NO_ARGS } from './CallOptions';
-import { HasEffectsContext } from './ExecutionContext';
-import { LiteralValue } from './nodes/Literal';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
-import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
+import type { HasEffectsContext } from './ExecutionContext';
+import type { NodeInteraction, NodeInteractionCalled } from './NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	INTERACTION_CALLED,
+	NODE_INTERACTION_UNKNOWN_CALL
+} from './NodeInteractions';
+import type { LiteralValue } from './nodes/Literal';
+import {
+	ExpressionEntity,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION
+} from './nodes/shared/Expression';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	type ObjectPathKey,
+	SHARED_RECURSION_TRACKER
+} from './utils/PathTracker';
 
 export interface MemberDescription {
-	callsArgs: number[] | null;
+	hasEffectsWhenCalled:
+		| ((interaction: NodeInteractionCalled, context: HasEffectsContext) => boolean)
+		| null;
 	returns: ExpressionEntity;
 }
 
@@ -33,31 +49,32 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity =
 
 const returnsUnknown: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_EXPRESSION
 	}
 };
 
 export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 	new (class UnknownBoolean extends ExpressionEntity {
-		getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
+		getReturnExpressionWhenCalledAtPath(
+			path: ObjectPath
+		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
 				return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
 			}
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenCalledAtPath(
+		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
-			callOptions: CallOptions,
+			interaction: NodeInteraction,
 			context: HasEffectsContext
 		): boolean {
-			if (path.length === 1) {
-				return hasMemberEffectWhenCalled(literalBooleanMembers, path[0], callOptions, context);
+			if (interaction.type === INTERACTION_ACCESSED) {
+				return path.length > 1;
+			}
+			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
+				return hasMemberEffectWhenCalled(literalBooleanMembers, path[0], interaction, context);
 			}
 			return true;
 		}
@@ -65,31 +82,32 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 
 const returnsBoolean: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_LITERAL_BOOLEAN
 	}
 };
 
 export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 	new (class UnknownNumber extends ExpressionEntity {
-		getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
+		getReturnExpressionWhenCalledAtPath(
+			path: ObjectPath
+		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
 				return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
 			}
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenCalledAtPath(
+		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
-			callOptions: CallOptions,
+			interaction: NodeInteraction,
 			context: HasEffectsContext
 		): boolean {
-			if (path.length === 1) {
-				return hasMemberEffectWhenCalled(literalNumberMembers, path[0], callOptions, context);
+			if (interaction.type === INTERACTION_ACCESSED) {
+				return path.length > 1;
+			}
+			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
+				return hasMemberEffectWhenCalled(literalNumberMembers, path[0], interaction, context);
 			}
 			return true;
 		}
@@ -97,31 +115,32 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 
 const returnsNumber: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
 		returns: UNKNOWN_LITERAL_NUMBER
 	}
 };
 
 export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 	new (class UnknownString extends ExpressionEntity {
-		getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
+		getReturnExpressionWhenCalledAtPath(
+			path: ObjectPath
+		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
 				return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
 			}
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
 
-		hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
-			return path.length > 1;
-		}
-
-		hasEffectsWhenCalledAtPath(
+		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
-			callOptions: CallOptions,
+			interaction: NodeInteraction,
 			context: HasEffectsContext
 		): boolean {
-			if (path.length === 1) {
-				return hasMemberEffectWhenCalled(literalStringMembers, path[0], callOptions, context);
+			if (interaction.type === INTERACTION_ACCESSED) {
+				return path.length > 1;
+			}
+			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
+				return hasMemberEffectWhenCalled(literalStringMembers, path[0], interaction, context);
 			}
 			return true;
 		}
@@ -129,7 +148,27 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 
 const returnsString: RawMemberDescription = {
 	value: {
-		callsArgs: null,
+		hasEffectsWhenCalled: null,
+		returns: UNKNOWN_LITERAL_STRING
+	}
+};
+
+const stringReplace: RawMemberDescription = {
+	value: {
+		hasEffectsWhenCalled({ args }, context) {
+			const argument1 = args[1];
+			return (
+				args.length < 2 ||
+				(typeof argument1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+					deoptimizeCache() {}
+				}) === 'symbol' &&
+					argument1.hasEffectsOnInteractionAtPath(
+						EMPTY_PATH,
+						NODE_INTERACTION_UNKNOWN_CALL,
+						context
+					))
+			);
+		},
 		returns: UNKNOWN_LITERAL_STRING
 	}
 };
@@ -161,7 +200,20 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
-const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
+/**
+ * RegExp are stateful when they have the global or sticky flags set.
+ * But if we actually don't use them, the side effect does not matter.
+ * the check logic in `hasEffectsOnInteractionAtPath`.
+ */
+const literalRegExpMembers: MemberDescriptions = assembleMemberDescriptions(
+	{
+		exec: returnsUnknown,
+		test: returnsBoolean
+	},
+	objectMembers
+);
+
+export const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		anchor: returnsString,
 
@@ -189,18 +241,8 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		padEnd: returnsString,
 		padStart: returnsString,
 		repeat: returnsString,
-		replace: {
-			value: {
-				callsArgs: [1],
-				returns: UNKNOWN_LITERAL_STRING
-			}
-		},
-		replaceAll: {
-			value: {
-				callsArgs: [1],
-				returns: UNKNOWN_LITERAL_STRING
-			}
-		},
+		replace: stringReplace,
+		replaceAll: stringReplace,
 		search: returnsNumber,
 		slice: returnsString,
 		small: returnsString,
@@ -229,50 +271,39 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(
 	value: T
 ): MemberDescriptions {
-	switch (typeof value) {
-		case 'boolean':
-			return literalBooleanMembers;
-		case 'number':
-			return literalNumberMembers;
-		case 'string':
-			return literalStringMembers;
-		default:
-			return Object.create(null);
+	if (value instanceof RegExp) {
+		return literalRegExpMembers;
 	}
+	switch (typeof value) {
+		case 'boolean': {
+			return literalBooleanMembers;
+		}
+		case 'number': {
+			return literalNumberMembers;
+		}
+		case 'string': {
+			return literalStringMembers;
+		}
+	}
+	return Object.create(null);
 }
 
 export function hasMemberEffectWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey,
-	callOptions: CallOptions,
+	interaction: NodeInteractionCalled,
 	context: HasEffectsContext
 ): boolean {
 	if (typeof memberName !== 'string' || !members[memberName]) {
 		return true;
 	}
-	if (!members[memberName].callsArgs) return false;
-	for (const argIndex of members[memberName].callsArgs!) {
-		if (
-			callOptions.args[argIndex] &&
-			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				{
-					args: NO_ARGS,
-					thisParam: null,
-					withNew: false
-				},
-				context
-			)
-		)
-			return true;
-	}
-	return false;
+	return members[memberName].hasEffectsWhenCalled?.(interaction, context) || false;
 }
 
 export function getMemberReturnExpressionWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey
-): ExpressionEntity {
-	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_EXPRESSION;
-	return members[memberName].returns;
+): [expression: ExpressionEntity, isPure: boolean] {
+	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_RETURN_EXPRESSION;
+	return [members[memberName].returns, false];
 }

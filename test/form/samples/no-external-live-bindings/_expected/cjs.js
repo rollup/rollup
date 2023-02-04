@@ -1,26 +1,23 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var external1 = require('external1');
 var external2 = require('external2');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
 		for (var k in e) {
 			n[k] = e[k];
 		}
 	}
-	n["default"] = e;
+	n.default = e;
 	return Object.freeze(n);
 }
 
-const dynamic = Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('external3')); });
+const dynamic = Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('external3')); });
 
 exports.external1 = external1.external1;
 exports.dynamic = dynamic;
-for (var k in external2) {
+Object.keys(external2).forEach(function (k) {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
-}
+});

@@ -3,7 +3,7 @@ System.register(['./one.js'], (function (exports) {
 	var __icon__$1;
 	return {
 		setters: [function (module) {
-			__icon__$1 = module["default"];
+			__icon__$1 = module.default;
 		}],
 		execute: (function () {
 

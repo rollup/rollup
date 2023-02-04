@@ -2,7 +2,7 @@ const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'displays warnings when a config is loaded',
-	command: 'rollup -c',
+	command: 'rollup -c --bundleConfigAsCjs',
 	stderr: stderr =>
 		assertIncludes(
 			stderr,

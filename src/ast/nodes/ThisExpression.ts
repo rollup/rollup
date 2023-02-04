@@ -1,11 +1,12 @@
-import MagicString from 'magic-string';
-import { HasEffectsContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
+import type MagicString from 'magic-string';
+import { errorThisIsUndefined } from '../../utils/error';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction, NodeInteractionWithThisArgument } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import ModuleScope from '../scopes/ModuleScope';
-import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type Variable from '../variables/Variable';
+import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase {
@@ -21,27 +22,28 @@ export default class ThisExpression extends NodeBase {
 		this.variable.deoptimizePath(path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.variable.deoptimizeThisOnEventAtPath(
-			event,
+		// We rewrite the parameter so that a ThisVariable can detect self-mutations
+		this.variable.deoptimizeThisOnInteractionAtPath(
+			interaction.thisArg === this ? { ...interaction, thisArg: this.variable } : interaction,
 			path,
-			// We rewrite the parameter so that a ThisVariable can detect self-mutations
-			thisParameter === this ? this.variable : thisParameter,
 			recursionTracker
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.variable.hasEffectsWhenAssignedAtPath(path, context);
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
+		if (path.length === 0) {
+			return interaction.type !== INTERACTION_ACCESSED;
+		}
+		return this.variable.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	include(): void {
@@ -55,14 +57,7 @@ export default class ThisExpression extends NodeBase {
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {
-			this.context.warn(
-				{
-					code: 'THIS_IS_UNDEFINED',
-					message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
-					url: `https://rollupjs.org/guide/en/#error-this-is-undefined`
-				},
-				this.start
-			);
+			this.context.warn(errorThisIsUndefined(), this.start);
 		}
 	}
 

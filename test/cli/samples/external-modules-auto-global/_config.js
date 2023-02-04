@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'populates options.external with --global keys',
@@ -6,6 +6,6 @@ module.exports = {
 		'rollup main.js --format iife --globals mathematics:Math,promises:Promise --external promises',
 	execute: true,
 	stderr(stderr) {
-		assert.strictEqual(stderr.indexOf('(!)'), -1);
+		assert.ok(!stderr.includes('(!)'));
 	}
 };

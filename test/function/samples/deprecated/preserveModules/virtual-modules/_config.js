@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'Generates actual files for virtual modules when preserving modules',
@@ -29,5 +29,13 @@ module.exports = {
 				['main.js', '_virtual/_virtualModule.js', 'lib/lib.js']
 			)
 		);
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
+			url: 'https://rollupjs.org/configuration-options/#output-preservemodules'
+		}
+	]
 };

@@ -21,9 +21,7 @@
   <a href="https://github.com/rollup/rollup/blob/master/LICENSE.md">
     <img src="https://img.shields.io/npm/l/rollup.svg" alt="license">
   </a>
-  <a href="https://david-dm.org/rollup/rollup">
-    <img src="https://david-dm.org/rollup/rollup/status.svg" alt="dependency status">
-  </a>
+ 
   <a href='https://is.gd/rollup_chat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge'>
     <img src='https://img.shields.io/discord/466787075518365708?color=778cd1&label=chat' alt='Join the chat at https://is.gd/rollup_chat'>
   </a>
@@ -37,7 +35,7 @@ Rollup is a module bundler for JavaScript which compiles small pieces of code in
 
 ## Quick Start Guide
 
-Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](https://rollupjs.org/#command-line-reference) with an optional configuration file, or else through its [JavaScript API](https://rollupjs.org/guide/en/#javascript-api). Run `rollup --help` to see the available options and parameters. The starter project templates, [rollup-starter-lib](https://github.com/rollup/rollup-starter-lib) and [rollup-starter-app](https://github.com/rollup/rollup-starter-app), demonstrate common configuration options, and more detailed instructions are available throughout the [user guide](https://rollupjs.org/).
+Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](https://rollupjs.org/command-line-interface/) with an optional configuration file or else through its [JavaScript API](https://rollupjs.org/javascript-api/). Run `rollup --help` to see the available options and parameters. The starter project templates, [rollup-starter-lib](https://github.com/rollup/rollup-starter-lib) and [rollup-starter-app](https://github.com/rollup/rollup-starter-app), demonstrate common configuration options, and more detailed instructions are available throughout the [user guide](https://rollupjs.org/introduction/).
 
 ### Commands
 
@@ -78,7 +76,7 @@ For example, with CommonJS, the _entire tool or library must be imported_.
 
 ```js
 // import the entire utils object with CommonJS
-var utils = require('utils');
+var utils = require('node:utils');
 var query = 'Rollup';
 // use the ajax method of the utils object
 utils.ajax('https://api.example.com?search=' + query).then(handleResponse);
@@ -88,7 +86,7 @@ But with ES modules, instead of importing the whole `utils` object, we can just 
 
 ```js
 // import the ajax function with an ES import statement
-import { ajax } from 'utils';
+import { ajax } from 'node:utils';
 var query = 'Rollup';
 // call the ajax function
 ajax('https://api.example.com?search=' + query).then(handleResponse);
@@ -120,7 +118,7 @@ Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/rollup#sponsor)]
 
-<a href="https://opencollective.com/rollup/sponsor/0/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/0/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/1/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/1/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/2/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/2/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/3/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/3/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/4/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/4/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/5/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/5/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/6/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/6/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/7/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/7/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/8/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/8/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/9/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/9/avatar.svg"></a>
+<a href="https://opencollective.com/rollup/sponsor/0/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/0/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/1/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/1/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/2/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/2/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/3/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/3/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/4/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/4/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/5/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/5/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/6/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/6/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/7/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/7/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/8/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/8/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/9/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/9/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/10/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/10/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/11/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/11/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/12/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/12/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/13/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/13/avatar.svg"></a> <a href="https://opencollective.com/rollup/sponsor/14/website" target="_blank"><img src="https://opencollective.com/rollup/sponsor/14/avatar.svg"></a>
 
 ## License
 

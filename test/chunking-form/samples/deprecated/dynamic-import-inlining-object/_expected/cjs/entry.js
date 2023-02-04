@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 const bar = 2;
 Promise.resolve().then(function () { return foo$1; });
 

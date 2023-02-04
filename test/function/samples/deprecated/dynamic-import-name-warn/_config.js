@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
 module.exports = {
 	description: 'warns when specifying a custom importer function for formats other than "es"',
@@ -18,7 +18,8 @@ module.exports = {
 		},
 		output: {
 			dynamicImportFunction: 'myImporter',
-			format: 'cjs'
+			format: 'cjs',
+			dynamicImportInCjs: false
 		}
 	},
 	exports(exports) {
@@ -28,10 +29,16 @@ module.exports = {
 	},
 	warnings: [
 		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.',
+			url: 'https://rollupjs.org/plugin-development/#renderdynamicimport'
+		},
+		{
 			code: 'INVALID_OPTION',
 			message:
 				'Invalid value for option "output.dynamicImportFunction" - this option is ignored for formats other than "es".',
-			url: 'https://rollupjs.org/guide/en/#outputdynamicImportFunction'
+			url: 'https://rollupjs.org/configuration-options/#output-dynamicimportfunction'
 		}
 	]
 };

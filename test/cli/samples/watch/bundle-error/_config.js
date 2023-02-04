@@ -1,22 +1,23 @@
-const fs = require('fs');
-const path = require('path');
+const { unlinkSync, writeFileSync } = require('node:fs');
+const path = require('node:path');
+const { atomicWriteFileSync } = require('../../../../utils');
 
 let mainFile;
 
 module.exports = {
 	description: 'recovers from errors during bundling',
-	command: 'rollup -cw',
+	command: 'rollup -cw --bundleConfigAsCjs',
 	before() {
 		mainFile = path.resolve(__dirname, 'main.js');
-		fs.writeFileSync(mainFile, '<=>');
+		writeFileSync(mainFile, '<=>');
 	},
 	after() {
 		// synchronous sometimes does not seem to work, probably because the watch is not yet removed properly
-		setTimeout(() => fs.unlinkSync(mainFile), 300);
+		setTimeout(() => unlinkSync(mainFile), 300);
 	},
 	abortOnStderr(data) {
-		if (data.includes('Error: Unexpected token')) {
-			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 500);
+		if (data.includes('[!] RollupError: Unexpected token')) {
+			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 500);
 			return false;
 		}
 		if (data.includes('created _actual')) {

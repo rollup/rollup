@@ -2,9 +2,9 @@ System.register(['./generated-index.js', './generated-dep.js', 'external'], (fun
 	'use strict';
 	var reexported;
 	return {
-		setters: [function () {}, function (module) {
+		setters: [null, function (module) {
 			reexported = module.r;
-		}, function () {}],
+		}, null],
 		execute: (function () {
 
 			console.log(reexported);

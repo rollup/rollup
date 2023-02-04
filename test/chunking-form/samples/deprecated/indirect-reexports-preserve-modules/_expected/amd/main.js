@@ -5,6 +5,4 @@ define(['exports', './components/index', './components/sub/index'], (function (e
 	exports.baz = index.baz;
 	exports.foo = index$1.foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

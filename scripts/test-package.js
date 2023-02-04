@@ -1,16 +1,14 @@
-const pkg = require('../package.json');
+import { readFile } from 'node:fs/promises';
 
-function checkChokidar() {
-	const chokidarPkg = require('../node_modules/chokidar/package.json');
-	const chokidarFsevents =
-		chokidarPkg.dependencies.fsevents || chokidarPkg.optionalDependencies.fsevents;
-	if (!chokidarFsevents) return;
-	const pkgFsevents = pkg.optionalDependencies.fsevents;
-	if (chokidarFsevents !== pkgFsevents) {
-		throw new Error(
-			`The dependency "fsevents" should exist with the same version range "${chokidarFsevents}" as it has for chokidar but it has "${pkgFsevents}".`
-		);
-	}
+const package_ = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+const chokidarPackage = JSON.parse(
+	await readFile(new URL('../node_modules/chokidar/package.json', import.meta.url), 'utf8')
+);
+const chokidarFsevents =
+	chokidarPackage.dependencies.fsevents || chokidarPackage.optionalDependencies.fsevents;
+const packageFsevents = package_.optionalDependencies.fsevents;
+if (chokidarFsevents !== packageFsevents) {
+	throw new Error(
+		`The dependency "fsevents" should exist with the same version range "${chokidarFsevents}" as it has for chokidar but it has "${packageFsevents}".`
+	);
 }
-
-checkChokidar();

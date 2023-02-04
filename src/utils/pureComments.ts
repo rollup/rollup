@@ -1,5 +1,5 @@
-import * as acorn from 'acorn';
-import { BaseWalker, base as basicWalker } from 'acorn-walk';
+import type * as acorn from 'acorn';
+import { base as basicWalker } from 'acorn-walk';
 import {
 	BinaryExpression,
 	CallExpression,
@@ -11,16 +11,6 @@ import {
 	SequenceExpression
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
-
-// patch up acorn-walk until class-fields are officially supported
-basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
-	if (node.computed) {
-		c(node.key, st, 'Expression');
-	}
-	if (node.value) {
-		c(node.value, st, 'Expression');
-	}
-};
 
 interface CommentState {
 	annotationIndex: number;
@@ -39,16 +29,18 @@ interface NodeWithComments extends acorn.Node {
 function handlePureAnnotationsOfNode(
 	node: acorn.Node,
 	state: CommentState,
-	type: string = node.type
-) {
-	const { annotations } = state;
+	type = node.type
+): void {
+	const { annotations, code } = state;
+	// eslint-disable-next-line unicorn/consistent-destructuring
 	let comment = annotations[state.annotationIndex];
 	while (comment && node.start >= comment.end) {
-		markPureNode(node, comment, state.code);
+		markPureNode(node, comment, code);
 		comment = annotations[++state.annotationIndex];
 	}
 	if (comment && comment.end <= node.end) {
-		(basicWalker as BaseWalker<CommentState>)[type](node, state, handlePureAnnotationsOfNode);
+		basicWalker[type](node, state, handlePureAnnotationsOfNode);
+		// eslint-disable-next-line unicorn/consistent-destructuring
 		while ((comment = annotations[state.annotationIndex]) && comment.end <= node.end) {
 			++state.annotationIndex;
 			annotateNode(node, comment, false);
@@ -59,8 +51,8 @@ function handlePureAnnotationsOfNode(
 const neitherWithespaceNorBrackets = /[^\s(]/g;
 const noWhitespace = /\S/g;
 
-function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: string) {
-	const annotatedNodes = [];
+function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: string): void {
+	const annotatedNodes: NodeWithComments[] = [];
 	let invalidAnnotation: boolean | undefined;
 	const codeInBetween = code.slice(comment.end, node.start);
 	if (doesNotMatchOutsideComment(codeInBetween, neitherWithespaceNorBrackets)) {
@@ -69,10 +61,11 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 			annotatedNodes.push(node);
 			switch (node.type) {
 				case ExpressionStatement:
-				case ChainExpression:
+				case ChainExpression: {
 					node = (node as any).expression;
 					continue;
-				case SequenceExpression:
+				}
+				case SequenceExpression: {
 					// if there are parentheses, the annotation would apply to the entire expression
 					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
 						node = (node as any).expressions[0];
@@ -80,7 +73,8 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					}
 					invalidAnnotation = true;
 					break;
-				case ConditionalExpression:
+				}
+				case ConditionalExpression: {
 					// if there are parentheses, the annotation would apply to the entire expression
 					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
 						node = (node as any).test;
@@ -88,8 +82,9 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					}
 					invalidAnnotation = true;
 					break;
+				}
 				case LogicalExpression:
-				case BinaryExpression:
+				case BinaryExpression: {
 					// if there are parentheses, the annotation would apply to the entire expression
 					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
 						node = (node as any).left;
@@ -97,11 +92,14 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					}
 					invalidAnnotation = true;
 					break;
+				}
 				case CallExpression:
-				case NewExpression:
+				case NewExpression: {
 					break;
-				default:
+				}
+				default: {
 					invalidAnnotation = true;
+				}
 			}
 			break;
 		}
@@ -136,10 +134,10 @@ function doesNotMatchOutsideComment(code: string, forbiddenChars: RegExp): boole
 	return true;
 }
 
-const pureCommentRegex = /[@#]__PURE__/;
+const pureCommentRegex = /[#@]__PURE__/;
 
 export function addAnnotations(
-	comments: acorn.Comment[],
+	comments: readonly acorn.Comment[],
 	esTreeAst: acorn.Node,
 	code: string
 ): void {
@@ -162,7 +160,7 @@ export function addAnnotations(
 	});
 }
 
-function annotateNode(node: NodeWithComments, comment: acorn.Comment, valid: boolean) {
+function annotateNode(node: NodeWithComments, comment: acorn.Comment, valid: boolean): void {
 	const key = valid ? ANNOTATION_KEY : INVALID_COMMENT_KEY;
 	const property = node[key];
 	if (property) {

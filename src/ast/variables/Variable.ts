@@ -1,12 +1,16 @@
-import ExternalModule from '../../ExternalModule';
-import Module from '../../Module';
-import { HasEffectsContext } from '../ExecutionContext';
-import Identifier from '../nodes/Identifier';
+import type ExternalModule from '../../ExternalModule';
+import type Module from '../../Module';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeInteraction } from '../NodeInteractions';
+import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
 
 export default class Variable extends ExpressionEntity {
 	alwaysRendered = false;
+	forbiddenNames: Set<string> | null = null;
 	initReached = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
@@ -27,17 +31,35 @@ export default class Variable extends ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier): void {}
 
+	/**
+	 * Prevent this variable from being renamed to this name to avoid name
+	 * collisions
+	 */
+	forbidName(name: string) {
+		(this.forbiddenNames ||= new Set()).add(name);
+	}
+
 	getBaseVariableName(): string {
 		return this.renderBaseName || this.renderName || this.name;
 	}
 
-	getName(getPropertyAccess: (name: string) => string): string {
+	getName(
+		getPropertyAccess: (name: string) => string,
+		useOriginalName?: RenderOptions['useOriginalName']
+	): string {
+		if (useOriginalName?.(this)) {
+			return this.name;
+		}
 		const name = this.renderName || this.name;
 		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext): boolean {
-		return path.length > 0;
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		{ type }: NodeInteraction,
+		_context: HasEffectsContext
+	): boolean {
+		return type !== INTERACTION_ACCESSED || path.length > 0;
 	}
 
 	/**

@@ -1,20 +1,25 @@
-import { CallOptions } from '../../CallOptions';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext } from '../../ExecutionContext';
-import { EVENT_ACCESSED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { HasEffectsContext } from '../../ExecutionContext';
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+	NodeInteractionWithThisArgument
+} from '../../NodeInteractions';
+import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
+import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
 import {
-	ObjectPath,
-	ObjectPathKey,
-	PathTracker,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
-	UnknownKey
+	UnknownKey,
+	UnknownNonAccessorKey
 } from '../../utils/PathTracker';
+import type { LiteralValueOrUnknown } from './Expression';
 import {
 	ExpressionEntity,
-	LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
 
@@ -35,6 +40,7 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> =
 		Object.create(null);
 	private readonly gettersByKey: PropertyMap = Object.create(null);
+	private hasLostTrack = false;
 	private hasUnknownDeoptimizedInteger = false;
 	private hasUnknownDeoptimizedProperty = false;
 	private readonly propertiesAndGettersByKey: PropertyMap = Object.create(null);
@@ -64,14 +70,20 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 	}
 
-	deoptimizeAllProperties(): void {
-		if (this.hasUnknownDeoptimizedProperty) {
+	deoptimizeAllProperties(noAccessors?: boolean): void {
+		const isDeoptimized = this.hasLostTrack || this.hasUnknownDeoptimizedProperty;
+		if (noAccessors) {
+			this.hasUnknownDeoptimizedProperty = true;
+		} else {
+			this.hasLostTrack = true;
+		}
+		if (isDeoptimized) {
 			return;
 		}
-		this.hasUnknownDeoptimizedProperty = true;
-		for (const properties of Object.values(this.propertiesAndGettersByKey).concat(
-			Object.values(this.settersByKey)
-		)) {
+		for (const properties of [
+			...Object.values(this.propertiesAndGettersByKey),
+			...Object.values(this.settersByKey)
+		]) {
 			for (const property of properties) {
 				property.deoptimizePath(UNKNOWN_PATH);
 			}
@@ -82,7 +94,11 @@ export class ObjectEntity extends ExpressionEntity {
 	}
 
 	deoptimizeIntegerProperties(): void {
-		if (this.hasUnknownDeoptimizedProperty || this.hasUnknownDeoptimizedInteger) {
+		if (
+			this.hasLostTrack ||
+			this.hasUnknownDeoptimizedProperty ||
+			this.hasUnknownDeoptimizedInteger
+		) {
 			return;
 		}
 		this.hasUnknownDeoptimizedInteger = true;
@@ -96,15 +112,18 @@ export class ObjectEntity extends ExpressionEntity {
 		this.deoptimizeCachedIntegerEntities();
 	}
 
+	// Assumption: If only a specific path is deoptimized, no accessors are created
 	deoptimizePath(path: ObjectPath): void {
-		if (this.hasUnknownDeoptimizedProperty || this.immutable) return;
+		if (this.hasLostTrack || this.immutable) {
+			return;
+		}
 		const key = path[0];
 		if (path.length === 1) {
 			if (typeof key !== 'string') {
 				if (key === UnknownInteger) {
 					return this.deoptimizeIntegerProperties();
 				}
-				return this.deoptimizeAllProperties();
+				return this.deoptimizeAllProperties(key === UnknownNonAccessorKey);
 			}
 			if (!this.deoptimizedPaths[key]) {
 				this.deoptimizedPaths[key] = true;
@@ -122,42 +141,42 @@ export class ObjectEntity extends ExpressionEntity {
 
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of typeof key === 'string'
-			? (this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters).concat(
-					this.settersByKey[key] || this.unmatchableSetters
-			  )
+			? [
+					...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+					...(this.settersByKey[key] || this.unmatchableSetters)
+			  ]
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
-		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [UnknownKey, UnknownKey] : path);
+		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [...path, UnknownKey] : path);
 	}
 
-	deoptimizeThisOnEventAtPath(
-		event: NodeEvent,
+	deoptimizeThisOnInteractionAtPath(
+		interaction: NodeInteractionWithThisArgument,
 		path: ObjectPath,
-		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
 		const [key, ...subPath] = path;
 
 		if (
-			this.hasUnknownDeoptimizedProperty ||
+			this.hasLostTrack ||
 			// single paths that are deoptimized will not become getters or setters
-			((event === EVENT_CALLED || path.length > 1) &&
-				typeof key === 'string' &&
-				this.deoptimizedPaths[key])
+			((interaction.type === INTERACTION_CALLED || path.length > 1) &&
+				(this.hasUnknownDeoptimizedProperty ||
+					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
-			thisParameter.deoptimizePath(UNKNOWN_PATH);
+			interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
 			return;
 		}
 
 		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
-			event === EVENT_CALLED || path.length > 1
+			interaction.type === INTERACTION_CALLED || path.length > 1
 				? [
 						this.propertiesAndGettersByKey,
 						this.propertiesAndGettersByKey,
 						this.unmatchablePropertiesAndGetters
 				  ]
-				: event === EVENT_ACCESSED
+				: interaction.type === INTERACTION_ACCESSED
 				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
 				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 
@@ -166,41 +185,41 @@ export class ObjectEntity extends ExpressionEntity {
 				const properties = relevantPropertiesByKey[key];
 				if (properties) {
 					for (const property of properties) {
-						property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+						property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 					}
 				}
 				if (!this.immutable) {
-					this.thisParametersToBeDeoptimized.add(thisParameter);
+					this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 				}
 				return;
 			}
 			for (const property of relevantUnmatchableProperties) {
-				property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
 			if (INTEGER_REG_EXP.test(key)) {
 				for (const property of this.unknownIntegerProps) {
-					property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
 			}
 		} else {
-			for (const properties of Object.values(relevantPropertiesByKey).concat([
+			for (const properties of [
+				...Object.values(relevantPropertiesByKey),
 				relevantUnmatchableProperties
-			])) {
+			]) {
 				for (const property of properties) {
-					property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 				}
 			}
 			for (const property of this.unknownIntegerProps) {
-				property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
 			}
 		}
 		if (!this.immutable) {
-			this.thisParametersToBeDeoptimized.add(thisParameter);
+			this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 		}
-		this.prototypeExpression?.deoptimizeThisOnEventAtPath(
-			event,
+		this.prototypeExpression?.deoptimizeThisOnInteractionAtPath(
+			interaction,
 			path,
-			thisParameter,
 			recursionTracker
 		);
 	}
@@ -211,7 +230,7 @@ export class ObjectEntity extends ExpressionEntity {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
-			return UnknownValue;
+			return UnknownTruthyValue;
 		}
 		const key = path[0];
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
@@ -229,19 +248,19 @@ export class ObjectEntity extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
+		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	): ExpressionEntity {
+	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length === 0) {
-			return UNKNOWN_EXPRESSION;
+			return UNKNOWN_RETURN_EXPRESSION;
 		}
-		const key = path[0];
+		const [key, ...subPath] = path;
 		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
 		if (expressionAtPath) {
 			return expressionAtPath.getReturnExpressionWhenCalledAtPath(
-				path.slice(1),
-				callOptions,
+				subPath,
+				interaction,
 				recursionTracker,
 				origin
 			);
@@ -249,116 +268,65 @@ export class ObjectEntity extends ExpressionEntity {
 		if (this.prototypeExpression) {
 			return this.prototypeExpression.getReturnExpressionWhenCalledAtPath(
 				path,
-				callOptions,
+				interaction,
 				recursionTracker,
 				origin
 			);
 		}
-		return UNKNOWN_EXPRESSION;
+		return UNKNOWN_RETURN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
 		const [key, ...subPath] = path;
-		if (path.length > 1) {
-			if (typeof key !== 'string') {
-				return true;
-			}
+		if (subPath.length > 0 || interaction.type === INTERACTION_CALLED) {
 			const expressionAtPath = this.getMemberExpression(key);
 			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAccessedAtPath(subPath, context);
+				return expressionAtPath.hasEffectsOnInteractionAtPath(subPath, interaction, context);
 			}
 			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
+				return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
 			}
 			return true;
 		}
-
-		if (this.hasUnknownDeoptimizedProperty) return true;
+		if (key === UnknownNonAccessorKey) return false;
+		if (this.hasLostTrack) return true;
+		const [propertiesAndAccessorsByKey, accessorsByKey, unmatchableAccessors] =
+			interaction.type === INTERACTION_ACCESSED
+				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
+				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 		if (typeof key === 'string') {
-			if (this.propertiesAndGettersByKey[key]) {
-				const getters = this.gettersByKey[key];
-				if (getters) {
-					for (const getter of getters) {
-						if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+			if (propertiesAndAccessorsByKey[key]) {
+				const accessors = accessorsByKey[key];
+				if (accessors) {
+					for (const accessor of accessors) {
+						if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
 					}
 				}
 				return false;
 			}
-			for (const getter of this.unmatchableGetters) {
-				if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) {
+			for (const accessor of unmatchableAccessors) {
+				if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) {
 					return true;
 				}
 			}
 		} else {
-			for (const getters of Object.values(this.gettersByKey).concat([this.unmatchableGetters])) {
-				for (const getter of getters) {
-					if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+			for (const accessors of [...Object.values(accessorsByKey), unmatchableAccessors]) {
+				for (const accessor of accessors) {
+					if (accessor.hasEffectsOnInteractionAtPath(subPath, interaction, context)) return true;
 				}
 			}
 		}
 		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
+			return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		const [key, ...subPath] = path;
-		if (path.length > 1) {
-			if (typeof key !== 'string') {
-				return true;
-			}
-			const expressionAtPath = this.getMemberExpression(key);
-			if (expressionAtPath) {
-				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
-			}
-			if (this.prototypeExpression) {
-				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
-			}
-			return true;
-		}
-
-		if (this.hasUnknownDeoptimizedProperty) return true;
-		// We do not need to test for unknown properties as in that case, hasUnknownDeoptimizedProperty is true
-		if (typeof key === 'string') {
-			if (this.propertiesAndSettersByKey[key]) {
-				const setters = this.settersByKey[key];
-				if (setters) {
-					for (const setter of setters) {
-						if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
-					}
-				}
-				return false;
-			}
-			for (const property of this.unmatchableSetters) {
-				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) {
-					return true;
-				}
-			}
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
-		}
-		return false;
-	}
-
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	): boolean {
-		const key = path[0];
-		const expressionAtPath = this.getMemberExpression(key);
-		if (expressionAtPath) {
-			return expressionAtPath.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, context);
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.hasEffectsWhenCalledAtPath(path, callOptions, context);
-		}
-		return true;
-	}
-
-	private buildPropertyMaps(properties: ObjectProperty[]): void {
+	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {
 		const {
 			allProperties,
 			propertiesAndGettersByKey,
@@ -374,16 +342,7 @@ export class ObjectEntity extends ExpressionEntity {
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);
-			if (typeof key !== 'string') {
-				if (key === UnknownInteger) {
-					unknownIntegerProps.push(property);
-					continue;
-				}
-				if (kind === 'set') unmatchableSetters.push(property);
-				if (kind === 'get') unmatchableGetters.push(property);
-				if (kind !== 'get') unmatchablePropertiesAndSetters.push(property);
-				if (kind !== 'set') unmatchablePropertiesAndGetters.push(property);
-			} else {
+			if (typeof key === 'string') {
 				if (kind === 'set') {
 					if (!propertiesAndSettersByKey[key]) {
 						propertiesAndSettersByKey[key] = [property, ...unmatchablePropertiesAndSetters];
@@ -402,6 +361,15 @@ export class ObjectEntity extends ExpressionEntity {
 						propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters];
 					}
 				}
+			} else {
+				if (key === UnknownInteger) {
+					unknownIntegerProps.push(property);
+					continue;
+				}
+				if (kind === 'set') unmatchableSetters.push(property);
+				if (kind === 'get') unmatchableGetters.push(property);
+				if (kind !== 'get') unmatchablePropertiesAndSetters.push(property);
+				if (kind !== 'set') unmatchablePropertiesAndGetters.push(property);
 			}
 		}
 	}
@@ -434,6 +402,7 @@ export class ObjectEntity extends ExpressionEntity {
 
 	private getMemberExpression(key: ObjectPathKey): ExpressionEntity | null {
 		if (
+			this.hasLostTrack ||
 			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
 			(this.hasUnknownDeoptimizedInteger && INTEGER_REG_EXP.test(key)) ||
@@ -448,7 +417,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (
 			properties ||
 			this.unmatchablePropertiesAndGetters.length > 0 ||
-			(this.unknownIntegerProps.length && INTEGER_REG_EXP.test(key))
+			(this.unknownIntegerProps.length > 0 && INTEGER_REG_EXP.test(key))
 		) {
 			return UNKNOWN_EXPRESSION;
 		}

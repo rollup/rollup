@@ -4,6 +4,4 @@ define(['exports', '../generated-buildStart'], (function (exports, buildStart) {
 
 	exports.id = buildStart.id;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

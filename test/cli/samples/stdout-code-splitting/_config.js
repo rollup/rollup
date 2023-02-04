@@ -1,7 +1,7 @@
-const assert = require('assert');
+const assert = require('node:assert');
 
-const COLOR = '\u001b[36m\u001b[1m';
-const STANDARD = '\u001b[22m\u001b[39m';
+const COLOR = '\u001B[36m\u001B[1m';
+const STANDARD = '\u001B[22m\u001B[39m';
 
 module.exports = {
 	description: 'bundles multiple files to stdout while adding file names',
@@ -20,7 +20,7 @@ module.exports = {
 				`${COLOR}//→ main2.js:${STANDARD}\n` +
 				"console.log('main2');\n" +
 				'\n' +
-				`${COLOR}//→ assets/asset-74b448a5:${STANDARD}\n` +
+				`${COLOR}//→ assets/asset-185f8db3:${STANDARD}\n` +
 				'Hello'
 		);
 	}

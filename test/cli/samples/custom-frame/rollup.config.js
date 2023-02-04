@@ -6,10 +6,10 @@ module.exports = {
 	plugins: [
 		{
 			transform() {
-				const err = new Error('My error.');
-				err.frame = 'custom code frame';
-				this.error(err);
+				const error = new Error('My error.');
+				error.frame = 'custom code frame';
+				this.error(error);
 			}
-		},
+		}
 	]
 };

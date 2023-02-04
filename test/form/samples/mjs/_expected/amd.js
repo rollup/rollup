@@ -7,6 +7,4 @@ define(['exports'], (function (exports) { 'use strict';
 	exports.depJs = dep$1;
 	exports.depMjs = dep;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-
 }));

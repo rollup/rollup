@@ -1,8 +1,9 @@
-const assert = require('assert');
-const path = require('path');
+const assert = require('node:assert');
+const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP1 = path.join(__dirname, 'dep1.js');
+const ID_DEP2 = path.join(__dirname, 'dep2.js');
 
 module.exports = {
 	description: 'handles circular reexports',
@@ -12,22 +13,20 @@ module.exports = {
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['dep1.js', 'dep2.js', 'dep1.js'],
-			importer: 'dep1.js',
+			ids: [ID_DEP1, ID_DEP2, ID_DEP1],
 			message: 'Circular dependency: dep1.js -> dep2.js -> dep1.js'
 		},
 		{
 			code: 'CIRCULAR_DEPENDENCY',
-			cycle: ['dep1.js', 'dep1.js'],
-			importer: 'dep1.js',
+			ids: [ID_DEP1, ID_DEP1],
 			message: 'Circular dependency: dep1.js -> dep1.js'
 		},
 		{
-			code: 'NON_EXISTENT_EXPORT',
-			message: "Non-existent export 'doesNotExist' is imported from dep1.js",
-			name: 'doesNotExist',
-			source: ID_DEP1,
+			binding: 'doesNotExist',
+			code: 'MISSING_EXPORT',
 			id: ID_MAIN,
+			message: '"doesNotExist" is not exported by "dep1.js", imported by "main.js".',
+			exporter: ID_DEP1,
 			pos: 17,
 			loc: {
 				file: ID_MAIN,
@@ -37,7 +36,16 @@ module.exports = {
 			frame: `
 1: import { exists, doesNotExist } from './dep1.js';
                     ^
-2: export { exists };`
+2: export { exists };`,
+			url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module'
+		},
+		{
+			code: 'CYCLIC_CROSS_CHUNK_REEXPORT',
+			exporter: ID_DEP1,
+			id: ID_MAIN,
+			message:
+				'Export "exists4" of module "dep1.js" was reexported through module "dep2.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in "main.js" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.',
+			reexporter: ID_DEP2
 		}
 	]
 };

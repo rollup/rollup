@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 function _mergeNamespaces(n, m) {
 	m.forEach(function (e) {
 		e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
@@ -25,21 +23,21 @@ var synthetic = {
 };
 const foo = 'foo';
 
-var synthetic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+var synthetic$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
-	'default': synthetic,
+	default: synthetic,
 	foo: foo
-}, [synthetic]));
+}, [synthetic]);
 
 const bar = 'bar';
 var dep = 'not-overwritten';
 
-var dep$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+var dep$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	bar: bar,
-	'default': dep,
-	synthetic: synthetic$1,
-	foo: foo
-}, [synthetic]));
+	default: dep,
+	foo: foo,
+	synthetic: synthetic$1
+}, [synthetic]);
 
 exports.dep = dep$1;

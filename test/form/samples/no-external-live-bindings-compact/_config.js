@@ -9,7 +9,8 @@ module.exports = {
 			},
 			compact: true,
 			externalLiveBindings: false,
-			name: 'bundle'
+			name: 'bundle',
+			dynamicImportInCjs: false
 		}
 	}
 };
