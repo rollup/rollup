@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.14.0
+
+_2023-02-05_
+
+### Features
+
+- Add `experimentalDeepDynamicChunkOptimization` option to produce fewer chunks from dynamic imports (#4837)
+
+### Pull Requests
+
+- [#4837](https://github.com/rollup/rollup/pull/4837): Add flag to re-enable deep dynamic chunk optimization (@lukastaegert)
+- [#4839](https://github.com/rollup/rollup/pull/4839): fix: correct incorrect assertions (@TrickyPi)
+
 ## 3.13.0
 
 _2023-02-03_
