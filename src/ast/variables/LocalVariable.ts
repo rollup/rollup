@@ -160,25 +160,31 @@ export default class LocalVariable extends Variable {
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
 				if (this.isReassigned) return true;
-				return (this.init &&
+				return !!(
+					this.init &&
 					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+				);
 			}
 			case INTERACTION_ASSIGNED: {
 				if (this.included) return true;
 				if (path.length === 0) return false;
 				if (this.isReassigned) return true;
-				return (this.init &&
+				return !!(
+					this.init &&
 					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+				);
 			}
 			case INTERACTION_CALLED: {
 				if (this.isReassigned) return true;
-				return (this.init &&
+				return !!(
+					this.init &&
 					!(
 						interaction.withNew ? context.instantiated : context.called
 					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context))!;
+					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+				);
 			}
 		}
 	}
