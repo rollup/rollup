@@ -122,7 +122,10 @@ export default withMermaid(
 					text: 'API'
 				}
 			],
-			socialLinks: [{ icon: 'github', link: 'https://github.com/rollup/rollup' }]
+			socialLinks: [
+				{ icon: 'github', link: 'https://github.com/rollup/rollup' },
+				{ icon: 'mastodon', link: 'https://m.webtoo.ls/@rollupjs' }
+			]
 		},
 		title: 'Rollup',
 		transformPageData,
