@@ -60,7 +60,8 @@ export default class FunctionNode extends FunctionBase {
 				breaks: false,
 				continues: false,
 				labels: new Set(),
-				returnYield: true
+				returnYield: true,
+				this: ignore.this
 			};
 			if (this.body.hasEffects(context)) return true;
 			context.brokenFlow = brokenFlow;

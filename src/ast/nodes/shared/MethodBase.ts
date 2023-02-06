@@ -135,6 +135,9 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				context
 			);
 		}
+		if (this.kind === 'constructor') {
+			context.ignore.this = true;
+		}
 		return this.getAccessedValue()[0].hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
