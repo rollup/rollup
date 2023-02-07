@@ -2273,7 +2273,7 @@ Determines after how many runs cached assets that are no longer used by plugins 
 
 |  |  |
 | --: | :-- |
-| Type: | `number` |
+| Type: | `boolean` |
 | CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
 | Default: | `false` |
 
