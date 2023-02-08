@@ -711,8 +711,8 @@ function augmentWithDatePlugin() {
 ### banner
 
 |  |  |
-| --: | :-- | --- |
-| Type: | `string | ((chunk: ChunkInfo) => string)` |
+| --: | :-- |
+| Type: | `string \| ((chunk: ChunkInfo) => string)` |
 | Kind: | async, sequential |
 | Previous: | [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk |
 | Next: | [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the next chunk if there is another one, otherwise [`renderChunk`](#renderchunk) for the first chunk |
