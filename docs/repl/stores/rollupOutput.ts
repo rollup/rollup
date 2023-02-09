@@ -30,8 +30,8 @@ interface BundleRequest {
 }
 
 function logWarning(message: RollupWarning) {
-	console.group(getFileNameFromMessage(message) || '');
-	console.warn(message);
+	console.group(getFileNameFromMessage(message) || 'general error');
+	console.warn(message.stack || message.message, { ...message });
 	console.groupEnd();
 }
 
@@ -108,7 +108,7 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		});
 	} catch (error) {
 		setOutput({ error: error as Error, externalImports: [], output: [], warnings });
-		logWarning({ ...(error as Error) });
+		logWarning(error as Error);
 	}
 }
 

@@ -817,10 +817,11 @@ By default, when creating multiple chunks, transitive imports of entry chunks wi
 
 ### output.inlineDynamicImports
 
-|  |  |
-| --: | :-- |
-| Type: | `boolean` |
-| CLI: | `--inlineDynamicImports`/`--no-inlineDynamicImports` Default: `false` |
+|          |                                                      |
+| -------: | :--------------------------------------------------- |
+|    Type: | `boolean`                                            |
+|     CLI: | `--inlineDynamicImports`/`--no-inlineDynamicImports` |
+| Default: | `false`                                              |
 
 This will inline dynamic imports instead of creating new chunks to create a single bundle. Only possible if a single input is provided. Note that this will change the execution order: A module that is only imported dynamically will be executed immediately if the dynamic import is inlined.
 
@@ -1560,9 +1561,9 @@ Any options that should be passed through to Acorn's `parse` function, such as `
 
 ### acornInjectPlugins
 
-|       |                      |
-| ----: | :------------------- | ---------------------- |
-| Type: | `AcornPluginFunction | AcornPluginFunction[]` |
+|       |                                                |
+| ----: | :--------------------------------------------- |
+| Type: | `AcornPluginFunction \| AcornPluginFunction[]` |
 
 A single plugin or an array of plugins to be injected into Acorn. For instance to use JSX syntax, you can specify
 
@@ -2273,7 +2274,7 @@ Determines after how many runs cached assets that are no longer used by plugins 
 
 |  |  |
 | --: | :-- |
-| Type: | `number` |
+| Type: | `boolean` |
 | CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
 | Default: | `false` |
 
@@ -2319,8 +2320,9 @@ For each key, the first number represents the elapsed time while the second repr
 ## watch
 
 |  |  |
-| --: | :-- | --- |
-| Type: | `{ buildDelay?: number, chokidar?: ChokidarOptions, clearScreen?: boolean, exclude?: string, include?: string, skipWrite?: boolean } | false`<br> Default: `{}` |
+| --: | :-- |
+| Type: | `{ buildDelay?: number, chokidar?: ChokidarOptions, clearScreen?: boolean, exclude?: string, include?: string, skipWrite?: boolean } \| false` |
+| Default: | `{}` |
 
 Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
 
