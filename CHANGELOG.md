@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 3.15.0
+
+_2023-02-10_
+
+### Features
+
+- Do not consider instantiating a constructor a side effect if it adds properties to "this" and is instantiated elsewhere (#4842)
+
+### Bug Fixes
+
+- Improve side effect detection in constructors (#4842)
+
+### Pull Requests
+
+- [#4842](https://github.com/rollup/rollup/pull/4842): fix: add this option to context.ignore (@TrickyPi)
+- [#4843](https://github.com/rollup/rollup/pull/4843): fixed the logo link (@oMatheuss)
+- [#4844](https://github.com/rollup/rollup/pull/4844): Update index.md (@cunzaizhuyi)
+- [#4845](https://github.com/rollup/rollup/pull/4845): docs: fix style (@TrickyPi)
+
 ## 3.14.0
 
 _2023-02-05_
