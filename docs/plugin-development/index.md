@@ -290,8 +290,17 @@ Notifies a plugin when the watcher process will close so that all open resources
 
 ### load
 
+|  |  |
+| --: | :-- |
+| Type: | `(id: string) => LoadResult` |
+| Kind: | async, first |
+| Previous: | [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](#this-load) to preload the module corresponding to an id |
+| Next: | [`transform`](#transform) to transform the loaded file if no cache was used, or there was no cached copy with the same `code`, otherwise [`shouldTransformCachedModule`](#shouldtransformcachedmodule) |
+
 ```typescript
-interface ReturnObj {
+type LoadResult = string | null | SourceDescription;
+
+interface SourceDescription {
 	code: string;
 	map?: string | SourceMap;
 	ast?: ESTree.Program;
@@ -300,15 +309,7 @@ interface ReturnObj {
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
 }
-type ResultType = string | null | ReturnObj;
 ```
-
-|  |  |
-| --: | :-- |
-| Type: | `(id: string) => ResultType` |
-| Kind: | async, first |
-| Previous: | [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](#this-load) to preload the module corresponding to an id |
-| Next: | [`transform`](#transform) to transform the loaded file if no cache was used, or there was no cached copy with the same `code`, otherwise [`shouldTransformCachedModule`](#shouldtransformcachedmodule) |
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See the section on [source code transformations](#source-code-transformations).
 
@@ -354,10 +355,35 @@ This is the only hook that does not have access to most [plugin context](#plugin
 
 |  |  |
 | --: | :-- |
-| Type: | `(specifier: string \| ESTree.Node, importer: string, {assertions: {[key: string]: string}}) => string \| false \| null \| {id: string, external?: boolean \| "relative" \| "absolute", assertions?: {[key: string]: string} \| null, meta?: {[plugin: string]: any} \| null, moduleSideEffects?: boolean \| "no-treeshake" \| null, syntheticNamedExports?: boolean \| string \| null}` |
+| Type: | `ResolveDynamicImportHook` |
 | Kind: | async, first |
 | Previous: | [`moduleParsed`](#moduleparsed) for the importing file |
 | Next: | [`load`](#load) if the hook resolved with an id that has not yet been loaded, [`resolveId`](#resolveid) if the dynamic import contains a string and was not resolved by the hook, otherwise [`buildEnd`](#buildend) |
+
+```typescript
+type ResolveDynamicImportHook = (
+	specifier: string | AcornNode,
+	importer: string,
+	options: { assertions: Record<string, string> }
+) => ResolveIdResult;
+
+type ResolveIdResult =
+	| string
+	| null
+	| undefined
+	| false
+	| PartialResolvedId;
+
+interface PartialResolvedId {
+	assertions: Record<string, string>;
+	meta: { [plugin: string]: any };
+	moduleSideEffects: boolean | 'no-treeshake';
+	syntheticNamedExports: boolean | string;
+	external?: boolean | 'absolute' | 'relative';
+	id: string;
+	resolvedBy?: string;
+}
+```
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
@@ -377,10 +403,34 @@ Note that the return value of this hook will not be passed to `resolveId` afterw
 
 |  |  |
 | --: | :-- |
-| Type: | `(source: string, importer: string \| undefined, options: {isEntry: boolean, assertions: {[key: string]: string}, custom?: {[plugin: string]: any}}) => string \| false \| null \| {id: string, external?: boolean \| "relative" \| "absolute", assertions?: {[key: string]: string} \| null, meta?: {[plugin: string]: any} \| null, moduleSideEffects?: boolean \| "no-treeshake" \| null, resolvedBy?: string, syntheticNamedExports?: boolean \| string \| null}` |
+| Type: | `ResolveIdHook` |
 | Kind: | async, first |
 | Previous: | [`buildStart`](#buildstart) if we are resolving an entry point, [`moduleParsed`](#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](#resolvedynamicimport). Additionally, this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](#this-emitfile) to emit an entry point or at any time by calling [`this.resolve`](#this-resolve) to manually resolve an id |
 | Next: | [`load`](#load) if the resolved id has not yet been loaded, otherwise [`buildEnd`](#buildend) |
+
+```typescript
+type ResolveIdHook = (
+	source: string,
+	importer: string | undefined,
+	options: {
+      assertions: Record<string, string>;
+      custom?: {[plugin: string]: any}};
+      isEntry: boolean
+    }
+) => ResolveIdResult;
+
+type ResolveIdResult = string | null | undefined | false | PartialResolvedId;
+
+interface PartialResolvedId {
+  id: string;
+  external?: boolean | 'absolute' | 'relative';
+  resolvedBy?: string;
+  assertions: Record<string, string>;
+  meta: {[plugin: string]: any}};
+  moduleSideEffects: boolean | 'no-treeshake';
+  syntheticNamedExports: boolean | string;
+}
+```
 
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
 
@@ -512,10 +562,21 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 
 |  |  |
 | --: | :-- |
-| Type: | `({id: string, code: string, ast: ESTree.Program, resolvedSources: {[source: string]: ResolvedId}, assertions: {[key: string]: string}, meta: {[plugin: string]: any}, moduleSideEffects: boolean \| "no-treeshake", syntheticNamedExports: boolean \| string}) => boolean` |
+| Type: | `ShouldTransformCachedModuleHook` |
 | Kind: | async, first |
 | Previous: | [`load`](#load) where the cached file was loaded to compare its code with the cached version |
 | Next: | [`moduleParsed`](#moduleparsed) if no plugin returns `true`, otherwise [`transform`](#transform) |
+
+```typescript
+type ShouldTransformCachedModuleHook = ({
+		ast: AcornNode;
+		code: string;
+		id: string;
+		meta: {[plugin: string]: any};
+		moduleSideEffects: boolean | 'no-treeshake';
+		syntheticNamedExports: boolean | string;
+	}) => boolean;
+```
 
 If the Rollup cache is used (e.g. in watch mode or explicitly via the JavaScript API), Rollup will skip the [`transform`](#transform) hook of a module if after the [`load`](#transform) hook, the loaded `code` is identical to the code of the cached copy. To prevent this, discard the cached copy and instead transform a module, plugins can implement this hook and return `true`.
 
@@ -527,10 +588,28 @@ If a plugin does not return `true`, Rollup will trigger this hook for other plug
 
 |  |  |
 | --: | :-- |
-| Type: | `(code: string, id: string) => string \| null \| {code?: string, map?: string \| SourceMap, ast? : ESTree.Program, assertions?: {[key: string]: string} \| null, meta?: {[plugin: string]: any} \| null, moduleSideEffects?: boolean \| "no-treeshake" \| null, syntheticNamedExports?: boolean \| string \| null}` |
+| Type: | `({code: string, id: string}) => TransformResult` |
 | Kind: | async, sequential |
 | Previous: | [`load`](#load) where the currently handled file was loaded. If caching is used and there was a cached copy of that module, [`shouldTransformCachedModule`](#shouldtransformcachedmodule) if a plugin returned `true` for that hook |
 | Next: | [`moduleParsed`](#moduleparsed) once the file has been processed and parsed |
+
+```typescript
+type TransformResult =
+	| string
+	| null
+	| undefined
+	| Partial<SourceDescription>;
+
+interface SourceDescription {
+	code: string;
+	map?: string | SourceMap;
+	ast?: ESTree.Program;
+	assertions?: { [key: string]: string } | null;
+	meta?: { [plugin: string]: any } | null;
+	moduleSideEffects?: boolean | 'no-treeshake' | null;
+	syntheticNamedExports?: boolean | string | null;
+}
+```
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -851,10 +930,19 @@ Cf. [`output.intro/output.outro`](../configuration-options/index.md#output-intro
 
 |  |  |
 | --: | :-- |
-| Type: | `(code: string, chunk: ChunkInfo, options: OutputOptions, meta: { chunks: {[id: string]: ChunkInfo} }) => string \| { code: string, map: SourceMap } \| null` |
+| Type: | `RenderChunkHook` |
 | Kind: | async, sequential |
 | Previous: | [`banner`](#banner), [`footer`](#footer), [`intro`](#intro), [`outro`](#outro) of the last chunk |
 | Next: | [`augmentChunkHash`](#augmentchunkhash) |
+
+```typescript
+type RenderChunkHook = (
+	code: string,
+	chunk: RenderedChunk,
+	options: NormalizedOutputOptions,
+	meta: { chunks: Record<string, RenderedChunk> }
+) => { code: string; map?: SourceMapInput } | string | null | undefined;
+```
 
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations. If you change code in this hook and want to support source maps, you need to return a `map` describing your changes, see [the section on source code transformations](#source-code-transformations).
 
@@ -871,10 +959,20 @@ Can be used to transform individual chunks. Called for each Rollup output chunk 
 
 |  |  |
 | --: | :-- |
-| Type: | `({format: string, moduleId: string, targetModuleId: string \| null, customResolution: string \| null}) => {left: string, right: string} \| null` |
+| Type: | `renderDynamicImportHook` |
 | Kind: | sync, first |
 | Previous: | [`renderStart`](#renderstart) if this is the first chunk, otherwise [`banner`](#banner), [`footer`](#footer), [`intro`](#intro), [`outro`](#outro) of the previous chunk |
 | Next: | [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk |
+
+```typescript
+type renderDynamicImportHook =
+        ({
+          customResolution: string | null;
+          format: string;
+          moduleId: string;
+          targetModuleId: string | null;
+        }) => { left: string; right: string } | null | undefined;
+```
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
 
@@ -952,10 +1050,23 @@ Called initially each time `bundle.generate()` or `bundle.write()` is called. To
 
 |  |  |
 | --: | :-- |
-| Type: | `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string \| null` |
+| Type: | `ResolveFileUrlHook` |
 | Kind: | sync, first |
 | Previous: | [`renderDynamicImport`](#renderdynamicimport) for each dynamic import expression in the current chunk |
 | Next: | [`banner`](#banner), [`footer`](#footer), [`intro`](#intro), [`outro`](#outro) in parallel for the current chunk |
+
+```typescript
+type ResolveFileUrlHook = (
+	{
+		chunkId: string;
+		fileName: string;
+		format: InternalModuleFormat;
+		moduleId: string;
+		referenceId: string;
+		relativePath: string;
+	}
+) => string | NullValue;
+```
 
 Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import.meta.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
 
@@ -1254,9 +1365,21 @@ Get ids of the files which has been watched previously. Include both files added
 
 ### this.load
 
-|  |  |
-| --: | :-- |
-| Type: | `({id: string, resolveDependencies?: boolean, assertions?: {[key: string]: string} \| null, meta?: {[plugin: string]: any} \| null, moduleSideEffects?: boolean \| "no-treeshake" \| null, syntheticNamedExports?: boolean \| string \| null}) => Promise<ModuleInfo>` |
+|       |        |
+| ----: | :----- |
+| Type: | `Load` |
+
+```typescript
+type Load =
+  ({
+    id: string;
+    resolveDependencies?: boolean;
+    assertions: Record<string, string>;
+    meta: CustomPluginOptions;
+    moduleSideEffects: boolean | 'no-treeshake';
+    syntheticNamedExports: boolean | string;
+  }) => Promise<ModuleInfo>
+```
 
 Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](#load), [`transform`](#transform) and [`moduleParsed`](#moduleparsed) hooks that would be triggered if the module were imported by another module.
 
@@ -1414,9 +1537,30 @@ Use Rollup's internal acorn instance to parse code to an AST.
 
 ### this.resolve
 
-|  |  |
-| --: | :-- |
-| Type: | `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, assertions?: {[key: string]: string}, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean \| "absolute", assertions: {[key: string]: string}, meta: {[plugin: string]: any} \| null, moduleSideEffects: boolean \| "no-treeshake", resolvedBy: string, syntheticNamedExports: boolean \| string>` |
+|       |           |
+| ----: | :-------- |
+| Type: | `Resolve` |
+
+```typescript
+type Resolve = (
+	source: string,
+	importer?: string,
+	options?: {
+		skipSelf?: boolean;
+		isEntry?: boolean;
+		assertions?: { [key: string]: string };
+		custom?: { [plugin: string]: any };
+	}
+) => Promise<{
+	id: string;
+	external: boolean | 'absolute';
+	assertions: { [key: string]: string };
+	meta: { [plugin: string]: any } | null;
+	moduleSideEffects: boolean | 'no-treeshake';
+	resolvedBy: string;
+	syntheticNamedExports: boolean | string;
+}>;
+```
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](../configuration-options/index.md#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 

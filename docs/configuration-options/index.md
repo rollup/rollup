@@ -1943,11 +1943,32 @@ If this option is provided, bundling will not fail if bindings are imported from
 
 ### treeshake
 
-|  |  |
-| --: | :-- |
-| Type: | `boolean \| "smallest"\| "safest"\| "recommended"\| { annotations?: boolean, correctVarValueBeforeDeclaration?: boolean, moduleSideEffects?: ModuleSideEffectsOption, preset?: "smallest"\| "safest"\| "recommended", propertyReadSideEffects?: boolean\| 'always', tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }` |
-| CLI: | `--treeshake`/`--no-treeshake` |
-| Default: | `true` |
+|          |                                                      |
+| -------: | :--------------------------------------------------- |
+|    Type: | `boolean \| TreeshakingPreset \| TreeshakingOptions` |
+|     CLI: | `--treeshake`/`--no-treeshake`                       |
+| Default: | `true`                                               |
+
+```typescript
+type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
+
+interface TreeshakingOptions {
+	annotations?: boolean;
+	correctVarValueBeforeDeclaration?: boolean;
+	moduleSideEffects?: ModuleSideEffectsOption;
+	preset?: TreeshakingPreset;
+	propertyReadSideEffects?: boolean | 'always';
+	tryCatchDeoptimization?: boolean;
+	unknownGlobalSideEffects?: boolean;
+}
+
+type ModuleSideEffectsOption =
+	| boolean
+	| 'no-external'
+	| string[]
+	| HasModuleSideEffects;
+type HasModuleSideEffects = (id: string, external: boolean) => boolean;
+```
 
 Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. You may also choose one of three presets that will automatically be updated if new options are added:
 
@@ -2319,10 +2340,21 @@ For each key, the first number represents the elapsed time while the second repr
 
 ## watch
 
-|  |  |
-| --: | :-- |
-| Type: | `{ buildDelay?: number, chokidar?: ChokidarOptions, clearScreen?: boolean, exclude?: string, include?: string, skipWrite?: boolean } \| false` |
-| Default: | `{}` |
+|          |                           |
+| -------: | :------------------------ |
+|    Type: | `WatcherOptions \| false` |
+| Default: | `{}`                      |
+
+```typescript
+interface WatcherOptions {
+	buildDelay?: number;
+	chokidar?: ChokidarOptions;
+	clearScreen?: boolean;
+	exclude?: string | RegExp | (string | RegExp)[];
+	include?: string | RegExp | (string | RegExp)[];
+	skipWrite?: boolean;
+}
+```
 
 Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
 
