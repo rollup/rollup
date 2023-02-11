@@ -4,12 +4,14 @@ import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { timeEnd, timeStart } from './timers';
 
-type DependentModuleMap = Map<Module, Set<Module>>;
-type ReadonlyDependentModuleMap = ReadonlyMap<Module, ReadonlySet<Module>>;
+type ModuleDependentEntryMap = Map<Module, Set<number>>;
+type ReadonlyModuleDependentEntryMap = ReadonlyMap<Module, ReadonlySet<number>>;
+type EntryDependentEntryMap = Map<number, Set<number>>;
+type ReadonlyEntryDependentEntryMap = ReadonlyMap<number, ReadonlySet<number>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 export function getChunkAssignments(
-	entries: readonly Module[],
+	entries: ReadonlyArray<Module>,
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number,
 	deepChunkOptimization: boolean
@@ -31,13 +33,20 @@ export function getChunkAssignments(
 	const { allEntries, dependentEntriesByModule, dynamicallyDependentEntriesByDynamicEntry } =
 		analyzeModuleGraph(entries);
 
-	const staticEntries = new Set(entries);
-	const assignedEntriesByModule: DependentModuleMap = new Map();
+	const staticEntriesSet = new Set(entries);
+	const staticEntries = new Set<number>();
+	for (const [entryIndex, entry] of allEntries.entries()) {
+		if (staticEntriesSet.has(entry)) {
+			staticEntries.add(entryIndex);
+		}
+	}
+	const assignedEntriesByModule: ModuleDependentEntryMap = new Map();
 
-	for (const entry of allEntries) {
+	for (const [entryIndex, entry] of allEntries.entries()) {
 		if (!modulesInManualChunks.has(entry)) {
 			assignEntryToStaticDependencies(
-				entry,
+				entryIndex,
+				allEntries,
 				dependentEntriesByModule,
 				assignedEntriesByModule,
 				modulesInManualChunks,
@@ -70,17 +79,18 @@ function addStaticDependenciesToManualChunk(
 }
 
 function analyzeModuleGraph(entries: Iterable<Module>): {
-	allEntries: Module[];
-	dependentEntriesByModule: DependentModuleMap;
-	dynamicallyDependentEntriesByDynamicEntry: DependentModuleMap;
+	allEntries: ReadonlyArray<Module>;
+	dependentEntriesByModule: ReadonlyModuleDependentEntryMap;
+	dynamicallyDependentEntriesByDynamicEntry: ReadonlyEntryDependentEntryMap;
 } {
-	const dynamicEntries = new Set<Module>();
-	const dependentEntriesByModule: DependentModuleMap = new Map();
-	const allEntries = new Set(entries);
-	for (const currentEntry of allEntries) {
+	const dynamicEntryModules = new Set<Module>();
+	const dependentEntriesByModule: ModuleDependentEntryMap = new Map();
+	const allEntriesSet = new Set(entries);
+	let entryIndex = 0;
+	for (const currentEntry of allEntriesSet) {
 		const modulesToHandle = new Set([currentEntry]);
 		for (const module of modulesToHandle) {
-			getOrCreate(dependentEntriesByModule, module, getNewSet).add(currentEntry);
+			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					modulesToHandle.add(dependency);
@@ -90,41 +100,52 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 				if (
 					resolution instanceof Module &&
 					resolution.includedDynamicImporters.length > 0 &&
-					!allEntries.has(resolution)
+					!allEntriesSet.has(resolution)
 				) {
-					dynamicEntries.add(resolution);
-					allEntries.add(resolution);
+					dynamicEntryModules.add(resolution);
+					allEntriesSet.add(resolution);
 				}
 			}
 			for (const dependency of module.implicitlyLoadedBefore) {
-				if (!allEntries.has(dependency)) {
-					dynamicEntries.add(dependency);
-					allEntries.add(dependency);
+				if (!allEntriesSet.has(dependency)) {
+					dynamicEntryModules.add(dependency);
+					allEntriesSet.add(dependency);
 				}
 			}
 		}
+		entryIndex++;
+	}
+	const allEntries = [...allEntriesSet];
+	const dynamicEntries = new Set<number>();
+	for (const [index, entry] of allEntries.entries()) {
+		if (dynamicEntryModules.has(entry)) {
+			dynamicEntries.add(index);
+		}
 	}
 	return {
-		allEntries: [...allEntries],
+		allEntries,
 		dependentEntriesByModule,
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
-			dynamicEntries
+			dynamicEntries,
+			allEntries
 		)
 	};
 }
 
 function getDynamicallyDependentEntriesByDynamicEntry(
-	dependentEntriesByModule: ReadonlyDependentModuleMap,
-	dynamicEntries: ReadonlySet<Module>
-): DependentModuleMap {
-	const dynamicallyDependentEntriesByDynamicEntry: DependentModuleMap = new Map();
-	for (const dynamicEntry of dynamicEntries) {
+	dependentEntriesByModule: ReadonlyModuleDependentEntryMap,
+	dynamicEntries: ReadonlySet<number>,
+	allEntries: ReadonlyArray<Module>
+): ReadonlyEntryDependentEntryMap {
+	const dynamicallyDependentEntriesByDynamicEntry: EntryDependentEntryMap = new Map();
+	for (const dynamicEntryIndex of dynamicEntries) {
 		const dynamicallyDependentEntries = getOrCreate(
 			dynamicallyDependentEntriesByDynamicEntry,
-			dynamicEntry,
-			getNewSet
+			dynamicEntryIndex,
+			getNewSet<number>
 		);
+		const dynamicEntry = allEntries[dynamicEntryIndex];
 		for (const importer of [
 			...dynamicEntry.includedDynamicImporters,
 			...dynamicEntry.implicitlyLoadedAfter
@@ -138,18 +159,19 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 }
 
 function assignEntryToStaticDependencies(
-	entry: Module,
-	dependentEntriesByModule: ReadonlyDependentModuleMap,
-	assignedEntriesByModule: DependentModuleMap,
+	entryIndex: number,
+	allEntries: ReadonlyArray<Module>,
+	dependentEntriesByModule: ReadonlyModuleDependentEntryMap,
+	assignedEntriesByModule: ModuleDependentEntryMap,
 	modulesInManualChunks: ReadonlySet<Module>,
-	staticEntries: ReadonlySet<Module>,
-	dynamicallyDependentEntriesByDynamicEntry: ReadonlyDependentModuleMap,
+	staticEntries: ReadonlySet<number>,
+	dynamicallyDependentEntriesByDynamicEntry: ReadonlyEntryDependentEntryMap,
 	deepChunkOptimization: boolean
 ) {
-	const dynamicallyDependentEntries = dynamicallyDependentEntriesByDynamicEntry.get(entry);
-	const modulesToHandle = new Set([entry]);
+	const dynamicallyDependentEntries = dynamicallyDependentEntriesByDynamicEntry.get(entryIndex);
+	const modulesToHandle = new Set([allEntries[entryIndex]]);
 	for (const module of modulesToHandle) {
-		const assignedEntries = getOrCreate(assignedEntriesByModule, module, getNewSet);
+		const assignedEntries = getOrCreate(assignedEntriesByModule, module, getNewSet<number>);
 		if (
 			dynamicallyDependentEntries &&
 			isModuleAlreadyLoaded(
@@ -162,7 +184,7 @@ function assignEntryToStaticDependencies(
 		) {
 			continue;
 		} else {
-			assignedEntries.add(entry);
+			assignedEntries.add(entryIndex);
 		}
 		for (const dependency of module.getDependenciesToBeIncluded()) {
 			if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
@@ -179,10 +201,10 @@ const MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES = 3;
 // - all modules that are in the same chunk after this will behave the same
 //   -> Do not iterate by module but by equivalence group and merge chunks
 function isModuleAlreadyLoaded(
-	dynamicallyDependentEntries: ReadonlySet<Module>,
-	containedIn: ReadonlySet<Module>,
-	staticEntries: ReadonlySet<Module>,
-	dynamicallyDependentEntriesByDynamicEntry: ReadonlyDependentModuleMap,
+	dynamicallyDependentEntries: ReadonlySet<number>,
+	containedIn: ReadonlySet<number>,
+	staticEntries: ReadonlySet<number>,
+	dynamicallyDependentEntriesByDynamicEntry: ReadonlyEntryDependentEntryMap,
 	deepChunkOptimization: boolean
 ): boolean {
 	if (
@@ -233,8 +255,8 @@ type ChunkPartition = {
 };
 
 function createChunks(
-	allEntries: Module[],
-	assignedEntriesByModule: DependentModuleMap,
+	allEntries: ReadonlyArray<Module>,
+	assignedEntriesByModule: ReadonlyModuleDependentEntryMap,
 	minChunkSize: number
 ): ChunkDefinitions {
 	const chunkModulesBySignature = getChunkModulesBySignature(assignedEntriesByModule, allEntries);
@@ -252,13 +274,13 @@ function createChunks(
 }
 
 function getChunkModulesBySignature(
-	assignedEntriesByModule: ReadonlyDependentModuleMap,
-	allEntries: Module[]
+	assignedEntriesByModule: ReadonlyModuleDependentEntryMap,
+	allEntries: ReadonlyArray<Module>
 ) {
 	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
 	for (const [module, assignedEntries] of assignedEntriesByModule) {
 		let chunkSignature = '';
-		for (const entry of allEntries) {
+		for (const entry of allEntries.keys()) {
 			chunkSignature += assignedEntries.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
 		}
 		const chunk = chunkModules[chunkSignature];
