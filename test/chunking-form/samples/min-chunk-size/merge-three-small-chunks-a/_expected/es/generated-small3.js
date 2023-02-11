@@ -1,7 +1,0 @@
-const small1 = '123456789012345678901234567890';
-
-const small2 = '123456789012345678901234567890';
-
-const small3 = '123456789012345678901234567890';
-
-export { small2 as a, small3 as b, small1 as s };

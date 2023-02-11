@@ -1,5 +1,4 @@
 module.exports = {
-	solo: true,
 	description: 'uses the merge target that is closest',
 	options: {
 		input: [
