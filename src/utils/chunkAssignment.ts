@@ -266,15 +266,68 @@ function getChunkModulesBySignature(
 
 /**
  * This function tries to get rid of small chunks by merging them with other
- * chunks. In order to merge chunks, one must obey the following rule:
- * - When merging several chunks, at most one of the chunks can have side
- *   effects
- * - When one of the chunks has side effects, the entry points depending on that
- *   chunk need to be a super set of the entry points depending on the other
- *   chunks
- * - Pure chunks can always be merged
- * - We use the entry point dependence signature to calculate "chunk distance",
- *   i.e. how likely it is that two chunks are loaded together
+ * chunks.
+ *
+ * We can only merge chunks safely if after the merge, loading any entry point
+ * in any allowed order will not trigger side effects that should not have been
+ * triggered. While side effects are usually things like global function calls,
+ * global variable mutations or potentially thrown errors, details do not
+ * matter here, and we just discern chunks without side effects (pure chunks)
+ * from other chunks.
+ *
+ * As a first step, we assign each pre-generated chunk with side effects a
+ * label. I.e. we have side effect "A" if the non-pure chunk "A" is loaded.
+ *
+ * Now to determine the side effects of loading a chunk, one also has to take
+ * the side effects of its dependencies into account. So if A depends on B
+ * (A -> B) and both have side effects, loading A triggers effects AB.
+ *
+ * Now from the previous step we know that each chunk has a signature, which
+ * corresponds to all entry points that will cause that particular chunk to
+ * load. E.g. if E1 -> A and E2 -> A, then the signature of A contains E1 and
+ * E2. Starting from that idea, we can determine a set of chunks—and thus a set
+ * of side effects—that must have been triggered if a certain chunk has been
+ * loaded. Basically it is the intersection of all chunks loaded by the entry
+ * points that load a given chunk. We call the corresponding side effects the
+ * collateral side effects of that chunk.
+ *
+ * Example:
+ * E1 -> ABC, E2 -> ADF, A-> G, B -> D
+ * Then taking dependencies into account, E1 -> ABCDG, E2 -> ADFG
+ * The intersection is ADG. So we know that when A is loaded, D and G must also
+ * be in memory even though neither D nor A is a dependency of the other.
+ * If all have side effects, we call ADG the collateral side effects of A. The
+ * collateral side effects need to remain constant when merging chunks.
+ *
+ * In contrast, we have the dependency side effects of A, which represents
+ * the side effects we trigger if we directly load A. In this example, the
+ * dependency side effects are AG.
+ *
+ * With these concepts, we are allowed to merge two chunks if
+ * a) the dependency side effects of each chunk are a subset of the collateral
+ *    side effects of the other chunk, so no additional side effects are
+ *    triggered, or
+ * b) The signature of chunk A is a subset of the signature of chunk B while the
+ *    dependency side effects of A are a subset of the collateral side effects
+ *    of B. Because in that scenario, whenever A is loaded, B is loaded as well.
+ *    But there are cases when B is loaded that A is not loaded. So if we merge
+ *    the chunks, all dependency side effects of A will be added to the
+ *    collateral side effects of B, and as the latter is not allowed to change,
+ *    the former need to be a subset of the latter.
+ *
+ * Another consideration when merging small chunks into other chunks is to avoid
+ * that too much additional code is loaded. This is achieved when the signature
+ * of the small chunk is a subset of the signature of the other chunk. Because
+ * then when the small chunk is loaded, the other chunk was loaded/in memory
+ * anyway.
+ *
+ * So the algorithm performs merges in two passes:
+ * 1. First we try to merge small chunks A only into other chunks B if the
+ *    signature of A is a subset of the signature of B and the dependency side
+ *    effects of A are a subset of the collateral side effects of B.
+ * 2. Only then for all remaining small chunks, we look for arbitrary merges
+ *    following the above rules (a) and (b), starting with the smallest chunks
+ *    to look for possible merge targets.
  */
 function getOptimizedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
