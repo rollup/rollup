@@ -430,6 +430,8 @@ function mergeChunks(
 			const { dependencies, dependentChunks } = closestChunk;
 			for (const dependency of mergedChunk.dependencies) {
 				dependencies.add(dependency);
+				dependency.dependentChunks.delete(mergedChunk);
+				dependency.dependentChunks.add(closestChunk);
 			}
 			for (const dependentChunk of mergedChunk.dependentChunks) {
 				dependentChunks.add(dependentChunk);
