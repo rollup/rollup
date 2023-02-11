@@ -1,6 +1,6 @@
 module.exports = {
-	description:
-		'merges small chunks into shared chunks that are loaded by a super-set of entry points',
+	solo: true,
+	description: 'does not merge small chunks that have side effects',
 	options: {
 		input: ['main1.js', 'main2.js', 'main3.js'],
 		output: {
