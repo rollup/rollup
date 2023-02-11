@@ -1,5 +1,5 @@
 'use strict';
 
-require('./generated-chunk.js');
+require('./generated-effect.js');
 
 console.log();

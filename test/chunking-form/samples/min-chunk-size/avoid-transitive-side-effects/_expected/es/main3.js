@@ -1,3 +1,3 @@
-import './generated-chunk.js';
+import './generated-effect.js';
 
 console.log();

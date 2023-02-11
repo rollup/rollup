@@ -1,4 +1,4 @@
-define(['./generated-chunk'], (function (chunk) { 'use strict';
+define(['./generated-effect'], (function (effect) { 'use strict';
 
 	console.log();
 

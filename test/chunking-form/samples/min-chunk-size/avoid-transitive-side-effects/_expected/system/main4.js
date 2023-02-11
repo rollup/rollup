@@ -1,4 +1,4 @@
-System.register(['./generated-small.js', './generated-chunk.js'], (function () {
+System.register(['./generated-small.js', './generated-chunk.js', './generated-effect.js'], (function () {
 	'use strict';
 	var small, big;
 	return {
@@ -6,7 +6,7 @@ System.register(['./generated-small.js', './generated-chunk.js'], (function () {
 			small = module.s;
 		}, function (module) {
 			big = module.b;
-		}],
+		}, null],
 		execute: (function () {
 
 			console.log(small, big);

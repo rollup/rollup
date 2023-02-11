@@ -2,7 +2,6 @@ import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
-import relativeId from './relativeId';
 import { timeEnd, timeStart } from './timers';
 
 type DependentModuleMap = Map<Module, Set<Module>>;
@@ -239,10 +238,6 @@ function createChunks(
 	minChunkSize: number
 ): ChunkDefinitions {
 	const chunkModulesBySignature = getChunkModulesBySignature(assignedEntriesByModule, allEntries);
-	console.log(
-		'All entries:',
-		Object.values(allEntries).map((module, index) => [index, relativeId(module.id)])
-	);
 	return minChunkSize === 0
 		? Object.values(chunkModulesBySignature).map(modules => ({
 				alias: null,
@@ -368,7 +363,6 @@ function getOptimizedChunks(
 const CHAR_DEPENDENT = 'X';
 const CHAR_INDEPENDENT = '_';
 
-// TODO Lukas extract helpers?
 function getPartitionedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
 	numberOfEntries: number,
@@ -476,18 +470,14 @@ function compareChunkSize(
 	return sizeA - sizeB;
 }
 
-// TODO Lukas extract stuff?
 function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 	for (const onlySubsetMerge of [true, false]) {
-		console.log('Pass:', onlySubsetMerge, '- small chunks:', chunkPartition.small.size);
 		for (const mergedChunk of chunkPartition.small) {
-			console.log('merge', mergedChunk.size, [...mergedChunk.dependentEntries]);
 			let closestChunk: ChunkDescription | null = null;
 			let closestChunkDistance = Infinity;
 			const { modules, pure, size } = mergedChunk;
 			for (const targetChunk of concatLazy([chunkPartition.small, chunkPartition.big])) {
 				if (mergedChunk === targetChunk) continue;
-				console.log('  target', targetChunk.size, [...targetChunk.dependentEntries]);
 				const distance = getChunkEntryDistance(mergedChunk, targetChunk, onlySubsetMerge);
 				if (
 					distance < closestChunkDistance &&
@@ -505,31 +495,6 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 			if (closestChunk) {
 				chunkPartition.small.delete(mergedChunk);
 				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
-				console.log('-> merged to', closestChunk.size, [...closestChunk.dependentEntries]);
-				console.log(
-					'first',
-					[...mergedChunk.dependentEntries],
-					'sideEffects:',
-					[...mergedChunk.sideEffects],
-					'correlated:',
-					[...mergedChunk.correlatedSideEffects],
-					'modules',
-					modules.map(m => relativeId(m.id)),
-					'dependencies:',
-					[...mergedChunk.dependencies].map(d => [...d.dependentEntries])
-				);
-				console.log(
-					'second',
-					[...closestChunk.dependentEntries],
-					'sideEffects:',
-					[...closestChunk.sideEffects],
-					'correlated:',
-					[...closestChunk.correlatedSideEffects],
-					'modules',
-					closestChunk.modules.map(m => relativeId(m.id)),
-					'dependencies:',
-					[...closestChunk.dependencies].map(d => [...d.dependentEntries])
-				);
 				closestChunk.modules.push(...modules);
 				closestChunk.size += size;
 				closestChunk.pure &&= pure;
