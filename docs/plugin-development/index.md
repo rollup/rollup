@@ -290,9 +290,22 @@ Notifies a plugin when the watcher process will close so that all open resources
 
 ### load
 
+```typescript
+interface ReturnObj {
+	code: string;
+	map?: string | SourceMap;
+	ast?: ESTree.Program;
+	assertions?: { [key: string]: string } | null;
+	meta?: { [plugin: string]: any } | null;
+	moduleSideEffects?: boolean | 'no-treeshake' | null;
+	syntheticNamedExports?: boolean | string | null;
+}
+type ResultType = string | null | ReturnObj;
+```
+
 |  |  |
 | --: | :-- |
-| Type: | `(id: string) => string \| null \| {code: string, map?: string \| SourceMap, ast? : ESTree.Program, assertions?: {[key: string]: string} \| null, meta?: {[plugin: string]: any} \| null, moduleSideEffects?: boolean \| "no-treeshake" \| null, syntheticNamedExports?: boolean \| string \| null}` |
+| Type: | `(id: string) => ResultType` |
 | Kind: | async, first |
 | Previous: | [`resolveId`](#resolveid) or [`resolveDynamicImport`](#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](#this-load) to preload the module corresponding to an id |
 | Next: | [`transform`](#transform) to transform the loaded file if no cache was used, or there was no cached copy with the same `code`, otherwise [`shouldTransformCachedModule`](#shouldtransformcachedmodule) |
