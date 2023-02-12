@@ -25,6 +25,15 @@
 					:placeholder="option.placeholder"
 					@input="optionsStore.set(option.name, $event.target.value)"
 				/>
+				<input
+					v-else-if="option.type === 'number'"
+					:value="option.value"
+					:placeholder="option.placeholder"
+					type="number"
+					min="0"
+					step="1"
+					@input="optionsStore.set(option.name, Number($event.target.value))"
+				/>
 				<div
 					v-else-if="option.type === 'string-mapping'"
 					v-for="imported in option.keys"

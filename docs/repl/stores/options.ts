@@ -29,9 +29,27 @@ interface OptionTypeStringMapping extends BaseOptionType<Record<string, string>>
 	type: 'string-mapping';
 }
 
-type OptionType = OptionTypeSelect<unknown> | OptionTypeString | OptionTypeStringMapping;
+interface OptionTypeNumber extends BaseOptionType<number> {
+	placeholder: string | null;
+	type: 'number';
+}
+
+type OptionType =
+	| OptionTypeSelect<unknown>
+	| OptionTypeString
+	| OptionTypeStringMapping
+	| OptionTypeNumber;
 
 const mapOptions = {
+	number({ defaultValue, name, placeholder, required, value }: OptionTypeNumber) {
+		return {
+			name,
+			placeholder,
+			removable: !required.value,
+			type: 'number',
+			value: value.value === undefined ? defaultValue : value.value
+		} as const;
+	},
 	select({ defaultValue, name, options, required, value }: OptionTypeSelect<unknown>) {
 		return {
 			name,
@@ -153,6 +171,10 @@ export const useOptions = defineStore('options2', () => {
 		defaultValue: 'if-default-prop',
 		name: 'output.esModule',
 		options: () => [false, true, 'if-default-prop']
+	});
+	const optionOutputExperimentalMinChunkSize = getNumber({
+		defaultValue: 0,
+		name: 'output.experimentalMinChunkSize'
 	});
 	const optionOutputExports = getSelect({
 		available: isInteropFormat,
@@ -386,6 +408,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputDynamicImportInCjs,
 		optionOutputEntryFileNames,
 		optionOutputEsModule,
+		optionOutputExperimentalMinChunkSize,
 		optionOutputExports,
 		optionOutputExtend,
 		optionOutputExternalLiveBindings,
@@ -550,6 +573,30 @@ function getStringMapping({
 		required: required ? computed(required) : alwaysFalse,
 		type: 'string-mapping',
 		value: shallowRef(undefined)
+	};
+}
+
+function getNumber({
+	available,
+	defaultValue,
+	name,
+	placeholder,
+	required
+}: {
+	available?: (() => boolean) | Ref<boolean | undefined>;
+	defaultValue?: number;
+	name: string;
+	placeholder?: string;
+	required?: () => boolean;
+}): OptionTypeNumber {
+	return {
+		available: typeof available === 'function' ? computed(available) : available || alwaysTrue,
+		defaultValue: defaultValue ?? 0,
+		name,
+		placeholder: placeholder || null,
+		required: required ? computed(required) : alwaysFalse,
+		type: 'number',
+		value: ref(undefined)
 	};
 }
 
