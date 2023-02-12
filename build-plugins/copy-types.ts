@@ -16,3 +16,24 @@ export default function copyTypes(fileName: string): Plugin {
 		name: 'copy-types'
 	};
 }
+
+export function copyAllTypes(): Plugin[] {
+	return [
+		copyTypes('rollup.d.ts'),
+		{
+			async generateBundle(_options, _bundle, isWrite) {
+				if (isWrite) {
+					this.emitFile({
+						fileName: 'loadConfigFile.d.ts',
+						source: (await readFile(resolve('cli/run/loadConfigFileType.d.ts'), 'utf8')).replace(
+							'../../src/rollup/types',
+							'./rollup'
+						),
+						type: 'asset'
+					});
+				}
+			},
+			name: 'copy-loadConfigFile-type'
+		}
+	];
+}

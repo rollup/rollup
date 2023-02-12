@@ -10,9 +10,9 @@ import type { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types'
 import { bold, cyan, green, underline } from '../../src/utils/colors';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import type { BatchWarnings } from './batchWarnings';
 import { getConfigPath } from './getConfigPath';
 import { loadConfigFile } from './loadConfigFile';
+import type { BatchWarnings } from './loadConfigFileType';
 import loadConfigFromCommand from './loadConfigFromCommand';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';

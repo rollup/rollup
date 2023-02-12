@@ -6,7 +6,7 @@ import { bold, cyan, green } from '../../src/utils/colors';
 import { errorOnlyInlineSourcemapsForStdout } from '../../src/utils/error';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import type { BatchWarnings } from './batchWarnings';
+import type { BatchWarnings } from './loadConfigFileType';
 import { printTimings } from './timings';
 
 export default async function build(

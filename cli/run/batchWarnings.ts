@@ -14,13 +14,7 @@ import {
 	URL_TREATING_MODULE_AS_EXTERNAL_DEPENDENCY
 } from '../../src/utils/urls';
 import { stderr } from '../logging';
-
-export interface BatchWarnings {
-	add: (warning: RollupWarning) => void;
-	readonly count: number;
-	flush: () => void;
-	readonly warningOccurred: boolean;
-}
+import type { BatchWarnings } from './loadConfigFileType';
 
 export default function batchWarnings(): BatchWarnings {
 	let count = 0;
