@@ -368,7 +368,11 @@ type ResolveDynamicImportHook = (
 ) => ResolveIdResult;
 ```
 
-::: tip The return type **ResolveIdResult** is the same as that of the [`resolveId`](#resolveid) hook. :::
+::: tip
+
+The return type **ResolveIdResult** is the same as that of the [`resolveId`](#resolveid) hook.
+
+:::
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
@@ -1533,7 +1537,11 @@ type Resolve = (
 ) => ResolvedId;
 ```
 
-::: tip The return type **ResolvedId** of this hook is defined in [`this.getModuleInfo`](#/this.getModuleInfo). :::
+::: tip
+
+The return type **ResolvedId** of this hook is defined in [`this.getModuleInfo`](#/this.getModuleInfo).
+
+:::
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](../configuration-options/index.md#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
