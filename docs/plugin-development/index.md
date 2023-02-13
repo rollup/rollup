@@ -366,24 +366,9 @@ type ResolveDynamicImportHook = (
 	importer: string,
 	options: { assertions: Record<string, string> }
 ) => ResolveIdResult;
-
-type ResolveIdResult =
-	| string
-	| null
-	| undefined
-	| false
-	| PartialResolvedId;
-
-interface PartialResolvedId {
-	assertions: Record<string, string>;
-	meta: { [plugin: string]: any };
-	moduleSideEffects: boolean | 'no-treeshake';
-	syntheticNamedExports: boolean | string;
-	external?: boolean | 'absolute' | 'relative';
-	id: string;
-	resolvedBy?: string;
-}
 ```
+
+::: tip The return type **ResolveIdResult** is the same as that of the [`resolveId`](#resolveid) hook. :::
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
@@ -410,16 +395,16 @@ Note that the return value of this hook will not be passed to `resolveId` afterw
 
 ```typescript
 type ResolveIdHook = (
-	source: string,
-	importer: string | undefined,
-	options: {
-      assertions: Record<string, string>;
-      custom?: {[plugin: string]: any}};
-      isEntry: boolean
-    }
+  source: string,
+  importer: string | undefined,
+  options: {
+    assertions: Record<string, string>;
+    custom?: {[plugin: string]: any}};
+    isEntry: boolean
+  }
 ) => ResolveIdResult;
 
-type ResolveIdResult = string | null | undefined | false | PartialResolvedId;
+type ResolveIdResult = string | null | false | PartialResolvedId;
 
 interface PartialResolvedId {
   id: string;
@@ -569,13 +554,13 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 
 ```typescript
 type ShouldTransformCachedModuleHook = ({
-		ast: AcornNode;
-		code: string;
-		id: string;
-		meta: {[plugin: string]: any};
-		moduleSideEffects: boolean | 'no-treeshake';
-		syntheticNamedExports: boolean | string;
-	}) => boolean;
+  ast: AcornNode;
+  code: string;
+  id: string;
+  meta: {[plugin: string]: any};
+  moduleSideEffects: boolean | 'no-treeshake';
+  syntheticNamedExports: boolean | string;
+}) => boolean;
 ```
 
 If the Rollup cache is used (e.g. in watch mode or explicitly via the JavaScript API), Rollup will skip the [`transform`](#transform) hook of a module if after the [`load`](#transform) hook, the loaded `code` is identical to the code of the cached copy. To prevent this, discard the cached copy and instead transform a module, plugins can implement this hook and return `true`.
@@ -594,11 +579,7 @@ If a plugin does not return `true`, Rollup will trigger this hook for other plug
 | Next: | [`moduleParsed`](#moduleparsed) once the file has been processed and parsed |
 
 ```typescript
-type TransformResult =
-	| string
-	| null
-	| undefined
-	| Partial<SourceDescription>;
+type TransformResult = string | null | Partial<SourceDescription>;
 
 interface SourceDescription {
 	code: string;
@@ -843,45 +824,45 @@ Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-ban
 | Previous: | [`augmentChunkHash`](#augmentchunkhash) |
 | Next: | [`writeBundle`](#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](#outputoptions) if another output is generated |
 
-Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
-
 ```ts
-type AssetInfo = {
-	fileName: string;
-	name?: string;
-	needsCodeReference: boolean;
-	source: string | Uint8Array;
-	type: 'asset';
+interface AssetInfo = {
+  fileName: string;
+  name?: string;
+  needsCodeReference: boolean;
+  source: string | Uint8Array;
+  type: 'asset';
 };
 
-type ChunkInfo = {
-	code: string;
-	dynamicImports: string[];
-	exports: string[];
-	facadeModuleId: string | null;
-	fileName: string;
-	implicitlyLoadedBefore: string[];
-	imports: string[];
-	importedBindings: { [imported: string]: string[] };
-	isDynamicEntry: boolean;
-	isEntry: boolean;
-	isImplicitEntry: boolean;
-	map: SourceMap | null;
-	modules: {
-		[id: string]: {
-			renderedExports: string[];
-			removedExports: string[];
-			renderedLength: number;
-			originalLength: number;
-			code: string | null;
-		};
-	};
-	moduleIds: string[];
-	name: string;
-	referencedFiles: string[];
-	type: 'chunk';
+interface ChunkInfo = {
+  code: string;
+  dynamicImports: string[];
+  exports: string[];
+  facadeModuleId: string | null;
+  fileName: string;
+  implicitlyLoadedBefore: string[];
+  imports: string[];
+  importedBindings: { [imported: string]: string[] };
+  isDynamicEntry: boolean;
+  isEntry: boolean;
+  isImplicitEntry: boolean;
+  map: SourceMap | null;
+  modules: {
+    [id: string]: {
+      renderedExports: string[];
+      removedExports: string[];
+      renderedLength: number;
+      originalLength: number;
+      code: string | null;
+    };
+  };
+  moduleIds: string[];
+  name: string;
+  referencedFiles: string[];
+  type: 'chunk';
 };
 ```
+
+Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details.
 
 You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](#this-emitfile) plugin context function.
 
@@ -941,7 +922,7 @@ type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: NormalizedOutputOptions,
 	meta: { chunks: Record<string, RenderedChunk> }
-) => { code: string; map?: SourceMapInput } | string | null | undefined;
+) => { code: string; map?: SourceMapInput } | string | null;
 ```
 
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations. If you change code in this hook and want to support source maps, you need to return a `map` describing your changes, see [the section on source code transformations](#source-code-transformations).
@@ -965,13 +946,12 @@ Can be used to transform individual chunks. Called for each Rollup output chunk 
 | Next: | [`resolveFileUrl`](#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](#resolveimportmeta) for all other accesses to `import.meta` in the current chunk |
 
 ```typescript
-type renderDynamicImportHook =
-        ({
-          customResolution: string | null;
-          format: string;
-          moduleId: string;
-          targetModuleId: string | null;
-        }) => { left: string; right: string } | null | undefined;
+type renderDynamicImportHook = ({
+  customResolution: string | null;
+  format: string;
+  moduleId: string;
+  targetModuleId: string | null;
+}) => { left: string; right: string } | null;
 ```
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
@@ -1159,27 +1139,27 @@ In general, it is recommended to use `this.addWatchFile` from within the hook th
 | ----: | :------------------------------------------------------ |
 | Type: | `(emittedFile: EmittedChunk \| EmittedAsset) => string` |
 
-Emits a new file that is included in the build output and returns a `referenceId` that can be used in various places to reference the emitted file. `emittedFile` can have one of two forms:
-
 ```ts
-type EmittedChunk = {
-	type: 'chunk';
-	id: string;
-	name?: string;
-	fileName?: string;
-	implicitlyLoadedAfterOneOf?: string[];
-	importer?: string;
-	preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false;
+interface EmittedChunk = {
+  type: 'chunk';
+  id: string;
+  name?: string;
+  fileName?: string;
+  implicitlyLoadedAfterOneOf?: string[];
+  importer?: string;
+  preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false;
 };
 
-type EmittedAsset = {
-	type: 'asset';
-	name?: string;
-	needsCodeReference?: boolean;
-	fileName?: string;
-	source?: string | Uint8Array;
+interface EmittedAsset = {
+  type: 'asset';
+  name?: string;
+  needsCodeReference?: boolean;
+  fileName?: string;
+  source?: string | Uint8Array;
 };
 ```
+
+Emits a new file that is included in the build output and returns a `referenceId` that can be used in various places to reference the emitted file. You can emit either chunks or assets.
 
 In both cases, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise, if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
 
@@ -1304,43 +1284,43 @@ or converted into an Array via `Array.from(this.getModuleIds())`.
 | ----: | :------------------------------------------- |
 | Type: | `(moduleId: string) => (ModuleInfo \| null)` |
 
-Returns additional information about the module in question in the form
-
 ```ts
-type ModuleInfo = {
-	id: string; // the id of the module, for convenience
-	code: string | null; // the source code of the module, `null` if external or not yet available
-	ast: ESTree.Program; // the parsed abstract syntax tree if available
-	hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
-	isEntry: boolean; // is this a user- or plugin-defined entry point
-	isExternal: boolean; // for external modules that are referenced but not included in the graph
-	isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
-	importedIds: string[]; // the module ids statically imported by this module
-	importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
-	importers: string[]; // the ids of all modules that statically import this module
-	exportedBindings: Record<string, string[]> | null; // contains all exported variables associated with the path of `from`, `null` if external
-	exports: string[] | null; // all exported variables, `null` if external
-	dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
-	dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
-	dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
-	implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
-	implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
-	assertions: { [key: string]: string }; // import assertions for this module
-	meta: { [plugin: string]: any }; // custom module meta-data
-	moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
-	syntheticNamedExports: boolean | string; // final value of synthetic named exports
+interface ModuleInfo = {
+  id: string; // the id of the module, for convenience
+  code: string | null; // the source code of the module, `null` if external or not yet available
+  ast: ESTree.Program; // the parsed abstract syntax tree if available
+  hasDefaultExport: boolean | null; // is there a default export, `null` if external or not yet available
+  isEntry: boolean; // is this a user- or plugin-defined entry point
+  isExternal: boolean; // for external modules that are referenced but not included in the graph
+  isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
+  importedIds: string[]; // the module ids statically imported by this module
+  importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
+  importers: string[]; // the ids of all modules that statically import this module
+  exportedBindings: Record<string, string[]> | null; // contains all exported variables associated with the path of `from`, `null` if external
+  exports: string[] | null; // all exported variables, `null` if external
+  dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
+  dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
+  dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
+  implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
+  implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
+  assertions: { [key: string]: string }; // import assertions for this module
+  meta: { [plugin: string]: any }; // custom module meta-data
+  moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
+  syntheticNamedExports: boolean | string; // final value of synthetic named exports
 };
 
-type ResolvedId = {
-	id: string; // the id of the imported module
-	external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
-	assertions: { [key: string]: string }; // import assertions for this import
-	meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
-	moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
-	resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
-	syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
+interface ResolvedId = {
+  id: string; // the id of the imported module
+  external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
+  assertions: { [key: string]: string }; // import assertions for this import
+  meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
+  moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
+  resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
+  syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
 };
 ```
+
+Returns additional information about the module in question.
 
 During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](#buildend) hook:
 
@@ -1370,15 +1350,14 @@ Get ids of the files which has been watched previously. Include both files added
 | Type: | `Load` |
 
 ```typescript
-type Load =
-  ({
-    id: string;
-    resolveDependencies?: boolean;
-    assertions: Record<string, string>;
-    meta: CustomPluginOptions;
-    moduleSideEffects: boolean | 'no-treeshake';
-    syntheticNamedExports: boolean | string;
-  }) => Promise<ModuleInfo>
+type Load = ({
+  id: string;
+  resolveDependencies?: boolean;
+  assertions?: Record<string, string> | null;
+  meta?: CustomPluginOptions | null;
+  moduleSideEffects?: boolean | 'no-treeshake' | null;
+  syntheticNamedExports?: boolean | string | null;
+}) => Promise<ModuleInfo>
 ```
 
 Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](#load), [`transform`](#transform) and [`moduleParsed`](#moduleparsed) hooks that would be triggered if the module were imported by another module.
@@ -1551,18 +1530,10 @@ type Resolve = (
 		assertions?: { [key: string]: string };
 		custom?: { [plugin: string]: any };
 	}
-) => Promise<{
-	id: string;
-	external: boolean | 'absolute';
-	assertions: { [key: string]: string };
-	meta: { [plugin: string]: any } | null;
-	moduleSideEffects: boolean | 'no-treeshake';
-	resolvedBy: string;
-	syntheticNamedExports: boolean | string;
-}>;
+) => ResolvedId;
 ```
 
-Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](../configuration-options/index.md#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](#resolveid) hook, `external` will be `"absolute"` instead of `true`.
+::: tip The return type **ResolvedId** of this hook is defined in [`this.getModuleInfo`](#/this.getModuleInfo). ::: Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](../configuration-options/index.md#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
 If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the _exact same `source` and `importer`_ while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, do not use `skipSelf` but implement your own infinite loop prevention mechanism if necessary.
 
