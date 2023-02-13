@@ -67,8 +67,6 @@ export async function normalizeOutputOptions(
 		dynamicImportInCjs: config.dynamicImportInCjs ?? true,
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: config.esModule ?? 'if-default-prop',
-		experimentalDeepDynamicChunkOptimization:
-			config.experimentalDeepDynamicChunkOptimization || false,
 		experimentalMinChunkSize: config.experimentalMinChunkSize || 0,
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
