@@ -234,7 +234,7 @@ console.log(x);
 			]
 		});
 		const {
-			output: [main, feature, subfeature, subsubfeature]
+			output: [feature, subfeature, subsubfeature, main]
 		} = await bundle.generate({
 			entryFileNames: `[name]`,
 			chunkFileNames: `[name]`,

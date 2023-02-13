@@ -920,14 +920,14 @@ describe('hooks', () => {
 						modules: ['d', 'a']
 					},
 					{
-						fileName: 'generated-c.js',
-						imports: [],
-						modules: ['c']
-					},
-					{
 						fileName: 'generated-b.js',
 						imports: ['generated-c.js'],
 						modules: ['b']
+					},
+					{
+						fileName: 'generated-c.js',
+						imports: [],
+						modules: ['c']
 					}
 				]);
 			});
