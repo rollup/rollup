@@ -10,10 +10,17 @@ type EntryDependentEntryMap = Map<number, Set<number>>;
 type ReadonlyEntryDependentEntryMap = ReadonlyMap<number, ReadonlySet<number>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
+interface ChunksBySignature {
+	[chunkSignature: string]: {
+		dependentEntries: Set<number>;
+		modules: Module[];
+	};
+}
+
 export function getChunkAssignments(
 	entries: ReadonlyArray<Module>,
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
-	_minChunkSize: number
+	minChunkSize: number
 ): ChunkDefinitions {
 	const chunkDefinitions: ChunkDefinitions = [];
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
@@ -36,19 +43,16 @@ export function getChunkAssignments(
 		dynamicImportsByEntry
 	} = analyzeModuleGraph(entries);
 
-	const chunkModules: {
-		[chunkSignature: string]: { dependentEntries: Set<number>; modules: Module[] };
-	} = Object.create(null);
+	const chunkModules: ChunksBySignature = Object.create(null);
 	for (const [module, dependentEntries] of dependentEntriesByModule) {
 		if (modulesInManualChunks.has(module)) {
 			continue;
 		}
-		// TODO Lukas use BigInt?
-		let chunkSignature = '';
-		for (const entry of allEntries.keys()) {
-			chunkSignature += dependentEntries.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
+		let chunkSignature = 0n;
+		for (const entryIndex of dependentEntries) {
+			chunkSignature |= 1n << BigInt(entryIndex);
 		}
-		(chunkModules[chunkSignature] ||= {
+		(chunkModules[String(chunkSignature)] ||= {
 			dependentEntries: new Set(dependentEntries),
 			modules: []
 		}).modules.push(module);
@@ -105,26 +109,40 @@ export function getChunkAssignments(
 		chunkMask <<= 1n;
 	}
 
-	const optimizedChunkModules: {
-		[chunkSignature: string]: Module[];
-	} = Object.create(null);
+	// TODO Lukas see if we can merge with the other function e.g. by a mapping generator function?
+	const optimizedChunkModules: ChunksBySignature = Object.create(null);
 	for (const { dependentEntries, modules } of initialChunks) {
-		// TODO Lukas use BigInt?
-		let chunkSignature = '';
-		for (const entry of allEntries.keys()) {
-			chunkSignature += dependentEntries.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
+		let chunkSignature = 0n;
+		for (const entryIndex of dependentEntries) {
+			chunkSignature |= 1n << BigInt(entryIndex);
 		}
-		(optimizedChunkModules[chunkSignature] ||= []).push(...modules);
+		(optimizedChunkModules[String(chunkSignature)] ||= {
+			dependentEntries,
+			modules: []
+		}).modules.push(...modules);
 	}
 
 	// TODO Lukas add minChunkSize optimization
-	chunkDefinitions.push(
-		...Object.values(optimizedChunkModules).map(modules => ({
-			alias: null,
-			modules
-		}))
-	);
+	chunkDefinitions.push(...createChunks(allEntries, optimizedChunkModules, minChunkSize));
 	return chunkDefinitions;
+}
+
+function createChunks(
+	allEntries: ReadonlyArray<Module>,
+	chunkModulesBySignature: ChunksBySignature,
+	minChunkSize: number
+): ChunkDefinitions {
+	return minChunkSize === 0
+		? Object.values(chunkModulesBySignature).map(({ modules }) => ({
+				alias: null,
+				modules
+		  }))
+		: getOptimizedChunks(chunkModulesBySignature, allEntries.length, minChunkSize).map(
+				({ modules }) => ({
+					alias: null,
+					modules
+				})
+		  );
 }
 
 function addStaticDependenciesToManualChunk(
@@ -344,64 +362,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 	return dynamicallyDependentEntriesByDynamicEntry;
 }
 
-function _assignEntryToStaticDependencies(
-	entryIndex: number,
-	allEntries: ReadonlyArray<Module>,
-	assignedEntriesByModule: ModuleDependentEntryMap,
-	modulesInManualChunks: ReadonlySet<Module>
-) {
-	const modulesToHandle = new Set([allEntries[entryIndex]]);
-	for (const module of modulesToHandle) {
-		const assignedEntries = getOrCreate(assignedEntriesByModule, module, getNewSet<number>);
-		assignedEntries.add(entryIndex);
-		for (const dependency of module.getDependenciesToBeIncluded()) {
-			if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
-				modulesToHandle.add(dependency);
-			}
-		}
-	}
-}
-
-const MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES = 3;
-
-// An approach to further speed this up might be
-// - first, create chunks without looking for modules already in memory
-// - all modules that are in the same chunk after this will behave the same
-//   -> Do not iterate by module but by equivalence group and merge chunks
-function _isModuleAlreadyLoaded(
-	dynamicallyDependentEntries: ReadonlySet<number>,
-	containedIn: ReadonlySet<number>,
-	staticEntries: ReadonlySet<number>,
-	dynamicallyDependentEntriesByDynamicEntry: ReadonlyEntryDependentEntryMap,
-	deepChunkOptimization: boolean
-): boolean {
-	if (
-		!deepChunkOptimization &&
-		dynamicallyDependentEntries.size > MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES
-	) {
-		return false;
-	}
-	const entriesToCheck = new Set(dynamicallyDependentEntries);
-	for (const entry of entriesToCheck) {
-		if (!containedIn.has(entry)) {
-			if (staticEntries.has(entry)) {
-				return false;
-			}
-			const dynamicallyDependentEntries = dynamicallyDependentEntriesByDynamicEntry.get(entry)!;
-			if (
-				!deepChunkOptimization &&
-				dynamicallyDependentEntries.size > MAX_ENTRIES_TO_CHECK_FOR_SHARED_DEPENDENCIES
-			) {
-				return false;
-			}
-			for (const dependentEntry of dynamicallyDependentEntries) {
-				entriesToCheck.add(dependentEntry);
-			}
-		}
-	}
-	return true;
-}
-
+// TODO Lukas start to ReadOnlyfy here
 interface ChunkDescription {
 	// The signatures of all side effects included in or loaded with this chunk.
 	// This is the intersection of all dependent entry side effects. As chunks are
@@ -421,45 +382,6 @@ interface ChunkDescription {
 type ChunkPartition = {
 	[key in 'small' | 'big']: Set<ChunkDescription>;
 };
-
-function _createChunks(
-	allEntries: ReadonlyArray<Module>,
-	assignedEntriesByModule: ReadonlyModuleDependentEntryMap,
-	minChunkSize: number
-): ChunkDefinitions {
-	const chunkModulesBySignature = getChunkModulesBySignature(assignedEntriesByModule, allEntries);
-	return minChunkSize === 0
-		? Object.values(chunkModulesBySignature).map(modules => ({
-				alias: null,
-				modules
-		  }))
-		: getOptimizedChunks(chunkModulesBySignature, allEntries.length, minChunkSize).map(
-				({ modules }) => ({
-					alias: null,
-					modules
-				})
-		  );
-}
-
-function getChunkModulesBySignature(
-	assignedEntriesByModule: ReadonlyModuleDependentEntryMap,
-	allEntries: ReadonlyArray<Module>
-) {
-	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
-	for (const [module, assignedEntries] of assignedEntriesByModule) {
-		let chunkSignature = '';
-		for (const entry of allEntries.keys()) {
-			chunkSignature += assignedEntries.has(entry) ? CHAR_DEPENDENT : CHAR_INDEPENDENT;
-		}
-		const chunk = chunkModules[chunkSignature];
-		if (chunk) {
-			chunk.push(module);
-		} else {
-			chunkModules[chunkSignature] = [module];
-		}
-	}
-	return chunkModules;
-}
 
 /**
  * This function tries to get rid of small chunks by merging them with other
@@ -536,7 +458,7 @@ function getChunkModulesBySignature(
 //  technique similar to what we do for side effects to compare the size of the
 //  static dependencies that are not part of the correlated dependencies
 function getOptimizedChunks(
-	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	chunkModulesBySignature: ChunksBySignature,
 	numberOfEntries: number,
 	minChunkSize: number
 ) {
@@ -567,11 +489,8 @@ function getOptimizedChunks(
 	return [...chunkPartition.small, ...chunkPartition.big];
 }
 
-const CHAR_DEPENDENT = 'X';
-const CHAR_INDEPENDENT = '_';
-
 function getPartitionedChunks(
-	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	chunkModulesBySignature: ChunksBySignature,
 	numberOfEntries: number,
 	minChunkSize: number
 ): ChunkPartition {
@@ -582,15 +501,12 @@ function getPartitionedChunks(
 	for (let index = 0; index < numberOfEntries; index++) {
 		sideEffectsByEntry.push(new Set());
 	}
-	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
-		const dependentEntries = new Set<number>();
-		for (let position = 0; position < numberOfEntries; position++) {
-			if (signature[position] === CHAR_DEPENDENT) {
-				dependentEntries.add(position);
-			}
-		}
+	for (const [signature, { dependentEntries, modules }] of Object.entries(
+		chunkModulesBySignature
+	)) {
 		const chunkDescription: ChunkDescription = {
 			correlatedSideEffects: new Set(),
+			// TODO Lukas does Bigint make sense for these three? Do we need to iterate some of them?
 			dependencies: new Set(),
 			dependentChunks: new Set(),
 			dependentEntries,
