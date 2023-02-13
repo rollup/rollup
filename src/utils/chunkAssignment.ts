@@ -105,7 +105,6 @@ export function getChunkAssignments(
 		chunkMask <<= 1n;
 	}
 
-	// TODO Lukas debug why this is not yet working
 	const optimizedChunkModules: {
 		[chunkSignature: string]: Module[];
 	} = Object.create(null);
@@ -119,10 +118,13 @@ export function getChunkAssignments(
 	}
 
 	// TODO Lukas add minChunkSize optimization
-	return Object.values(optimizedChunkModules).map(modules => ({
-		alias: null,
-		modules
-	}));
+	chunkDefinitions.push(
+		...Object.values(optimizedChunkModules).map(modules => ({
+			alias: null,
+			modules
+		}))
+	);
+	return chunkDefinitions;
 }
 
 function addStaticDependenciesToManualChunk(
