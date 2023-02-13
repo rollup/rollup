@@ -165,13 +165,8 @@ export default class Bundle {
 		bundle: OutputBundleWithPlaceholders,
 		getHashPlaceholder: HashPlaceholderGenerator
 	): Promise<Chunk[]> {
-		const {
-			experimentalDeepDynamicChunkOptimization,
-			experimentalMinChunkSize,
-			inlineDynamicImports,
-			manualChunks,
-			preserveModules
-		} = this.outputOptions;
+		const { experimentalMinChunkSize, inlineDynamicImports, manualChunks, preserveModules } =
+			this.outputOptions;
 		const manualChunkAliasByEntry =
 			typeof manualChunks === 'object'
 				? await this.addManualChunks(manualChunks)
@@ -193,8 +188,7 @@ export default class Bundle {
 			: getChunkAssignments(
 					this.graph.entryModules,
 					manualChunkAliasByEntry,
-					experimentalMinChunkSize,
-					experimentalDeepDynamicChunkOptimization
+					experimentalMinChunkSize
 			  )) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
