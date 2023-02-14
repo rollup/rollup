@@ -1539,7 +1539,7 @@ type Resolve = (
 
 ::: tip
 
-The return type **ResolvedId** of this hook is defined in [`this.getModuleInfo`](#/this.getModuleInfo).
+The return type **ResolvedId** of this hook is defined in [`this.getModuleInfo`](#this-getmoduleinfo).
 
 :::
 
