@@ -527,6 +527,7 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 					dependentChunk.dependencies.add(closestChunk);
 				}
 				dependencies.delete(closestChunk);
+				dependentChunks.delete(closestChunk);
 				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
 			}
 		}
