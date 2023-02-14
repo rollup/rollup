@@ -59,7 +59,7 @@ exports.compareWarnings = function compareWarnings(actual, expected) {
 };
 
 function sortWarnings(a, b) {
-	return a === b ? 0 : a < b ? -1 : 1;
+	return a.message === b.message ? 0 : a.message < b.message ? -1 : 1;
 }
 
 function deindent(stringValue) {
