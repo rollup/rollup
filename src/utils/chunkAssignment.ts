@@ -19,36 +19,23 @@ interface ModulesWithDependentEntries {
 	modules: Module[];
 }
 
-export function getChunkAssignments(
-	entries: ReadonlyArray<Module>,
-	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
-	minChunkSize: number
-): ChunkDefinitions {
-	const { chunkDefinitions, modulesInManualChunks } =
-		getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry);
-	const {
-		allEntries,
-		dependentEntriesByModule,
-		dynamicallyDependentEntriesByDynamicEntry,
-		dynamicImportsByEntry
-	} = analyzeModuleGraph(entries, modulesInManualChunks);
-
-	// Each chunk is identified by its position in this array
-	const initialChunks = Object.values(
-		getChunksBySignature(getModulesWithDependentEntries(dependentEntriesByModule))
-	);
-
+function removeUnnecessaryDependentEntries(
+	chunks: ModulesWithDependentEntries[],
+	dynamicallyDependentEntriesByDynamicEntry: ReadonlyMap<number, ReadonlySet<number>>,
+	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>,
+	allEntries: ReadonlyArray<Module>
+) {
 	// The indices correspond to the indices in allEntries. The chunks correspond
 	// to bits in the bigint values where chunk 0 is the lowest bit.
 	const staticDependenciesPerEntry: bigint[] = allEntries.map(() => 0n);
-	const allChunksLoaded = (1n << BigInt(initialChunks.length)) - 1n;
+	const allChunksLoaded = (1n << BigInt(chunks.length)) - 1n;
 	const alreadyLoadedChunksPerEntry = allEntries.map((_entry, entryIndex) =>
 		dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? allChunksLoaded : 0n
 	);
 
 	// This toggles the bits for each chunk that is a dependency of an entry
 	let chunkMask = 1n;
-	for (const { dependentEntries } of initialChunks) {
+	for (const { dependentEntries } of chunks) {
 		for (const entryIndex of dependentEntries) {
 			staticDependenciesPerEntry[entryIndex] |= chunkMask;
 		}
@@ -73,11 +60,10 @@ export function getChunkAssignments(
 		}
 	}
 
-	// Then we iterate through the dependent entry points of each chunk and if they
-	// are dynamic and the chunk is already in memory for that entry, we remove it
-	// from the depdent entries of that chunk.
+	// Remove entries from dependent entries if a chunk is already loaded without
+	// that entry.
 	chunkMask = 1n;
-	for (const { dependentEntries } of initialChunks) {
+	for (const { dependentEntries } of chunks) {
 		for (const entryIndex of dependentEntries) {
 			if ((alreadyLoadedChunksPerEntry[entryIndex] & chunkMask) === chunkMask) {
 				dependentEntries.delete(entryIndex);
@@ -85,6 +71,33 @@ export function getChunkAssignments(
 		}
 		chunkMask <<= 1n;
 	}
+}
+
+export function getChunkAssignments(
+	entries: ReadonlyArray<Module>,
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
+	minChunkSize: number
+): ChunkDefinitions {
+	const { chunkDefinitions, modulesInManualChunks } =
+		getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry);
+	const {
+		allEntries,
+		dependentEntriesByModule,
+		dynamicallyDependentEntriesByDynamicEntry,
+		dynamicImportsByEntry
+	} = analyzeModuleGraph(entries, modulesInManualChunks);
+
+	// Each chunk is identified by its position in this array
+	const initialChunks = Object.values(
+		getChunksBySignature(getModulesWithDependentEntries(dependentEntriesByModule))
+	);
+
+	removeUnnecessaryDependentEntries(
+		initialChunks,
+		dynamicallyDependentEntriesByDynamicEntry,
+		dynamicImportsByEntry,
+		allEntries
+	);
 
 	chunkDefinitions.push(
 		...createChunks(allEntries, getChunksBySignature(initialChunks), minChunkSize)
