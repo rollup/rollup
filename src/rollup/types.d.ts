@@ -52,7 +52,7 @@ export interface ExistingDecodedSourceMap {
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];
-	sourcesContent?: string[];
+	sourcesContent?: (string | null)[];
 	version: number;
 }
 
@@ -62,7 +62,7 @@ export interface ExistingRawSourceMap {
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];
-	sourcesContent?: string[];
+	sourcesContent?: (string | null)[];
 	version: number;
 }
 
@@ -79,7 +79,7 @@ export interface SourceMap {
 	mappings: string;
 	names: string[];
 	sources: string[];
-	sourcesContent: string[];
+	sourcesContent: (string | null)[];
 	version: number;
 	toString(): string;
 	toUrl(): string;

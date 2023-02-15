@@ -116,7 +116,7 @@
     "is-reference": "^3.0.1",
     "lint-staged": "^13.1.0",
     "locate-character": "^2.0.5",
-    "magic-string": "^0.27.0",
+    "magic-string": "^0.29.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "pinia": "^2.0.29",

@@ -10,11 +10,11 @@ import { error, errorConflictingSourcemapSources, errorSourcemapBroken } from '.
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
-	readonly content: string;
+	readonly content: string | null;
 	readonly filename: string;
 	isOriginal = true;
 
-	constructor(filename: string, content: string) {
+	constructor(filename: string, content: string | null) {
 		this.filename = filename;
 		this.content = content;
 	}
@@ -48,7 +48,7 @@ class Link {
 	traceMappings() {
 		const sources: string[] = [];
 		const sourceIndexMap = new Map<string, number>();
-		const sourcesContent: string[] = [];
+		const sourcesContent: (string | null)[] = [];
 		const names: string[] = [];
 		const nameIndexMap = new Map<string, number>();
 
