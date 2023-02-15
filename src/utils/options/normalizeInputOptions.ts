@@ -117,7 +117,9 @@ const getAcornInjectPlugins = (
 ];
 
 const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
-	(config.cache as unknown as RollupBuild)?.cache || config.cache;
+	config.cache === true // `true` is the default
+		? undefined
+		: (config.cache as unknown as RollupBuild)?.cache || config.cache;
 
 const getIdMatcher = <T extends Array<any>>(
 	option:
