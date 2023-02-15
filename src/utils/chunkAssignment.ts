@@ -5,10 +5,6 @@ import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { timeEnd, timeStart } from './timers';
 
-type ModuleDependentEntryMap = Map<Module, Set<number>>;
-type ReadonlyModuleDependentEntryMap = ReadonlyMap<Module, ReadonlySet<number>>;
-type EntryDependentEntryMap = Map<number, Set<number>>;
-type ReadonlyEntryDependentEntryMap = ReadonlyMap<number, ReadonlySet<number>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 interface ChunksBySignature {
@@ -19,9 +15,15 @@ interface ModulesWithDependentEntries {
 	modules: Module[];
 }
 
+/**
+ * This removes all unnecessary dynamic entries from the dependenEntries in its
+ * first argument. It will also consume its second argument, so if
+ * dynamicallyDependentEntriesByDynamicEntry is ever needed after this, we
+ * should make a copy.
+ */
 function removeUnnecessaryDependentEntries(
 	chunks: ModulesWithDependentEntries[],
-	dynamicallyDependentEntriesByDynamicEntry: ReadonlyMap<number, ReadonlySet<number>>,
+	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>,
 	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>,
 	allEntries: ReadonlyArray<Module>
 ) {
@@ -42,20 +44,29 @@ function removeUnnecessaryDependentEntries(
 		chunkMask <<= 1n;
 	}
 
-	const dynamicEntriesToUpdate = new Set(dynamicallyDependentEntriesByDynamicEntry.keys());
-	for (const dynamicEntryIndex of dynamicEntriesToUpdate) {
-		dynamicEntriesToUpdate.delete(dynamicEntryIndex);
+	// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
+	// If we no longer want this, we should make a copy here.
+	const updatedDynamicallyDependentEntriesByDynamicEntry =
+		dynamicallyDependentEntriesByDynamicEntry;
+	for (const [
+		dynamicEntryIndex,
+		updatedDynamicallyDependentEntries
+	] of updatedDynamicallyDependentEntriesByDynamicEntry) {
+		updatedDynamicallyDependentEntriesByDynamicEntry.delete(dynamicEntryIndex);
 		const previousLoadedModules = alreadyLoadedChunksPerEntry[dynamicEntryIndex];
 		let newLoadedModules = previousLoadedModules;
-		for (const entryIndex of dynamicallyDependentEntriesByDynamicEntry.get(dynamicEntryIndex)!) {
+		for (const entryIndex of updatedDynamicallyDependentEntries) {
 			newLoadedModules &=
 				staticDependenciesPerEntry[entryIndex] | alreadyLoadedChunksPerEntry[entryIndex];
 		}
 		if (newLoadedModules !== previousLoadedModules) {
 			alreadyLoadedChunksPerEntry[dynamicEntryIndex] = newLoadedModules;
-			// TODO Lukas possible optimization: Note only which sets have changed
 			for (const dynamicImport of dynamicImportsByEntry[dynamicEntryIndex]) {
-				dynamicEntriesToUpdate.add(dynamicImport);
+				getOrCreate(
+					updatedDynamicallyDependentEntriesByDynamicEntry,
+					dynamicImport,
+					getNewSet<number>
+				).add(dynamicEntryIndex);
 			}
 		}
 	}
@@ -92,6 +103,8 @@ export function getChunkAssignments(
 		getChunksBySignature(getModulesWithDependentEntries(dependentEntriesByModule))
 	);
 
+	// This mutates initialChunks but also clears
+	// dynamicallyDependentEntriesByDynamicEntry as side effect
 	removeUnnecessaryDependentEntries(
 		initialChunks,
 		dynamicallyDependentEntriesByDynamicEntry,
@@ -142,7 +155,7 @@ function getChunksBySignature(
 	return chunkModules;
 }
 
-function* getModulesWithDependentEntries(dependentEntriesByModule: ModuleDependentEntryMap) {
+function* getModulesWithDependentEntries(dependentEntriesByModule: Map<Module, Set<number>>) {
 	for (const [module, dependentEntries] of dependentEntriesByModule) {
 		yield { dependentEntries, modules: [module] };
 	}
@@ -293,12 +306,12 @@ function analyzeModuleGraph(
 	modulesInManualChunks: Set<Module>
 ): {
 	allEntries: ReadonlyArray<Module>;
-	dependentEntriesByModule: ModuleDependentEntryMap;
+	dependentEntriesByModule: Map<Module, Set<number>>;
 	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>;
-	dynamicallyDependentEntriesByDynamicEntry: ReadonlyEntryDependentEntryMap;
+	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>;
 } {
 	const dynamicEntryModules = new Set<Module>();
-	const dependentEntriesByModule: ModuleDependentEntryMap = new Map();
+	const dependentEntriesByModule: Map<Module, Set<number>> = new Map();
 	const dynamicImportModulesByEntry: Set<Module>[] = [];
 	const allEntriesSet = new Set(entries);
 	let entryIndex = 0;
@@ -365,11 +378,11 @@ function analyzeModuleGraph(
 }
 
 function getDynamicallyDependentEntriesByDynamicEntry(
-	dependentEntriesByModule: ReadonlyModuleDependentEntryMap,
+	dependentEntriesByModule: ReadonlyMap<Module, ReadonlySet<number>>,
 	dynamicEntries: ReadonlySet<number>,
 	allEntries: ReadonlyArray<Module>
-): ReadonlyEntryDependentEntryMap {
-	const dynamicallyDependentEntriesByDynamicEntry: EntryDependentEntryMap = new Map();
+): Map<number, Set<number>> {
+	const dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>> = new Map();
 	for (const dynamicEntryIndex of dynamicEntries) {
 		const dynamicallyDependentEntries = getOrCreate(
 			dynamicallyDependentEntriesByDynamicEntry,
