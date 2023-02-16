@@ -2504,6 +2504,18 @@ _Use the [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimp
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
 
+### output.experimentalDeepDynamicChunkOptimization
+
+_This option is no longer needed._
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
+| Default: | `false` |
+
+This option was used to prevent performance issues with the full chunk optimization algorithm. As the algorithm is much faster now, this option is now ignored by Rollup and should no longer be used.
+
 ### output.preferConst
 
 _Use the [`output.generatedCode.constBindings`](#output-generatedcode-constbindings) option instead._

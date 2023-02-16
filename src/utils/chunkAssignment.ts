@@ -356,9 +356,8 @@ function removeUnnecessaryDependentEntries(
 	// The indices correspond to the indices in allEntries. The chunks correspond
 	// to bits in the bigint values where chunk 0 is the lowest bit.
 	const staticDependenciesPerEntry: bigint[] = allEntries.map(() => 0n);
-	const allChunksLoaded = (1n << BigInt(chunks.length)) - 1n;
-	const alreadyLoadedChunksPerEntry = allEntries.map((_entry, entryIndex) =>
-		dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? allChunksLoaded : 0n
+	const alreadyLoadedChunksPerEntry: bigint[] = allEntries.map((_entry, entryIndex) =>
+		dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? -1n : 0n
 	);
 
 	// This toggles the bits for each chunk that is a dependency of an entry
