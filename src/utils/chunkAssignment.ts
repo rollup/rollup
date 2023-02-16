@@ -342,6 +342,9 @@ function getChunkModulesBySignature(
  *    following the above rules (a) and (b), starting with the smallest chunks
  *    to look for possible merge targets.
  */
+// TODO instead of picking the "closest" chunk, we could actually use a
+//  technique similar to what we do for side effects to compare the size of the
+//  static dependencies that are not part of the correlated dependencies
 function getOptimizedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
 	numberOfEntries: number,
@@ -353,9 +356,23 @@ function getOptimizedChunks(
 		numberOfEntries,
 		minChunkSize
 	);
+	console.log(
+		'Before eliminating small chunks, there were\n',
+		Object.keys(chunkModulesBySignature).length,
+		'chunks, of which\n',
+		chunkPartition.small.size,
+		'were below minChunkSize.'
+	);
 	if (chunkPartition.small.size > 0) {
 		mergeChunks(chunkPartition, minChunkSize);
 	}
+	console.log(
+		'After merging chunks,\n',
+		chunkPartition.small.size + chunkPartition.big.size,
+		'chunks remain, of which\n',
+		chunkPartition.small.size,
+		'are below minChunkSize.'
+	);
 	timeEnd('optimize chunks', 3);
 	return [...chunkPartition.small, ...chunkPartition.big];
 }
@@ -471,8 +488,6 @@ function compareChunkSize(
 }
 
 function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
-	console.log('---- Initial chunks');
-	printConsistencyCheck(chunkPartition);
 	for (const allowArbitraryMerges of [false, true]) {
 		for (const mergedChunk of chunkPartition.small) {
 			let closestChunk: ChunkDescription | null = null;
@@ -531,8 +546,6 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
 			}
 		}
-		console.log('---- After run with arbitrary merges:', allowArbitraryMerges);
-		printConsistencyCheck(chunkPartition);
 	}
 }
 
@@ -609,62 +622,4 @@ function getChunkEntryDistance(
 		}
 	}
 	return distance;
-}
-
-function printConsistencyCheck(partition: ChunkPartition) {
-	console.log(`Chunks\n  small: ${partition.small.size},\n  large: ${partition.big.size}`);
-	const chunks = new Set([...partition.big, ...partition.small]);
-	console.log('Number of cycles:', getNumberOfCycles(chunks));
-	let missingDependencies = 0;
-	let missingDependentChunks = 0;
-	const seenModules = new Set<Module>();
-	for (const { modules, dependencies, dependentChunks } of chunks) {
-		for (const module of modules) {
-			if (seenModules.has(module)) {
-				console.log(`Module ${module.id} is duplicated between chunks.`);
-			}
-			seenModules.add(module);
-		}
-		for (const dependency of dependencies) {
-			if (!chunks.has(dependency)) {
-				missingDependencies++;
-			}
-		}
-		for (const dependency of dependentChunks) {
-			if (!chunks.has(dependency)) {
-				missingDependentChunks++;
-			}
-		}
-	}
-	console.log(
-		`Missing\n  dependencies: ${missingDependencies},\n  dependent chunks: ${missingDependentChunks}\n`
-	);
-}
-
-function getNumberOfCycles(chunks: Iterable<ChunkDescription>) {
-	const parents = new Set<ChunkDescription>();
-	const analysedChunks = new Set<ChunkDescription>();
-	let cycles = 0;
-
-	const analyseChunk = (chunk: ChunkDescription) => {
-		for (const dependency of chunk.dependencies) {
-			if (parents.has(dependency)) {
-				if (!analysedChunks.has(dependency)) {
-					cycles++;
-				}
-				continue;
-			}
-			parents.add(dependency);
-			analyseChunk(dependency);
-		}
-		analysedChunks.add(chunk);
-	};
-
-	for (const chunk of chunks) {
-		if (!parents.has(chunk)) {
-			parents.add(chunk);
-			analyseChunk(chunk);
-		}
-	}
-	return cycles;
 }
