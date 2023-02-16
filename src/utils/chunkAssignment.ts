@@ -70,7 +70,7 @@ function addStaticDependenciesToManualChunk(
 }
 
 function analyzeModuleGraph(entries: Iterable<Module>): {
-	allEntries: Iterable<Module>;
+	allEntries: Module[];
 	dependentEntriesByModule: DependentModuleMap;
 	dynamicallyDependentEntriesByDynamicEntry: DependentModuleMap;
 } {
@@ -105,7 +105,7 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 		}
 	}
 	return {
-		allEntries,
+		allEntries: [...allEntries],
 		dependentEntriesByModule,
 		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
 			dependentEntriesByModule,
@@ -213,22 +213,27 @@ function isModuleAlreadyLoaded(
 }
 
 interface ChunkDescription {
+	// The signatures of all side effects included in or loaded with this chunk.
+	// This is the intersection of all dependent entry side effects. As chunks are
+	// merged, these sets are intersected.
+	correlatedSideEffects: Set<string>;
 	dependencies: Set<ChunkDescription>;
 	dependentChunks: Set<ChunkDescription>;
+	// The indices of the entries depending on this chunk
+	dependentEntries: Set<number>;
 	modules: Module[];
 	pure: boolean;
-	signature: string;
+	// These are only the sideEffects contained in that chunk
+	sideEffects: Set<string>;
 	size: number;
 }
 
 type ChunkPartition = {
-	[key in 'small' | 'big']: {
-		[subKey in 'pure' | 'sideEffect']: Set<ChunkDescription>;
-	};
+	[key in 'small' | 'big']: Set<ChunkDescription>;
 };
 
 function createChunks(
-	allEntries: Iterable<Module>,
+	allEntries: Module[],
 	assignedEntriesByModule: DependentModuleMap,
 	minChunkSize: number
 ): ChunkDefinitions {
@@ -238,15 +243,17 @@ function createChunks(
 				alias: null,
 				modules
 		  }))
-		: getOptimizedChunks(chunkModulesBySignature, minChunkSize).map(({ modules }) => ({
-				alias: null,
-				modules
-		  }));
+		: getOptimizedChunks(chunkModulesBySignature, allEntries.length, minChunkSize).map(
+				({ modules }) => ({
+					alias: null,
+					modules
+				})
+		  );
 }
 
 function getChunkModulesBySignature(
 	assignedEntriesByModule: ReadonlyDependentModuleMap,
-	allEntries: Iterable<Module>
+	allEntries: Module[]
 ) {
 	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
 	for (const [module, assignedEntries] of assignedEntriesByModule) {
@@ -266,68 +273,140 @@ function getChunkModulesBySignature(
 
 /**
  * This function tries to get rid of small chunks by merging them with other
- * chunks. In order to merge chunks, one must obey the following rule:
- * - When merging several chunks, at most one of the chunks can have side
- *   effects
- * - When one of the chunks has side effects, the entry points depending on that
- *   chunk need to be a super set of the entry points depending on the other
- *   chunks
- * - Pure chunks can always be merged
- * - We use the entry point dependence signature to calculate "chunk distance",
- *   i.e. how likely it is that two chunks are loaded together
+ * chunks.
+ *
+ * We can only merge chunks safely if after the merge, loading any entry point
+ * in any allowed order will not trigger side effects that should not have been
+ * triggered. While side effects are usually things like global function calls,
+ * global variable mutations or potentially thrown errors, details do not
+ * matter here, and we just discern chunks without side effects (pure chunks)
+ * from other chunks.
+ *
+ * As a first step, we assign each pre-generated chunk with side effects a
+ * label. I.e. we have side effect "A" if the non-pure chunk "A" is loaded.
+ *
+ * Now to determine the side effects of loading a chunk, one also has to take
+ * the side effects of its dependencies into account. So if A depends on B
+ * (A -> B) and both have side effects, loading A triggers effects AB.
+ *
+ * Now from the previous step we know that each chunk is uniquely determine by
+ * the entry points that depend on it and cause it to load, which we will call
+ * its dependent entry points.
+ *
+ * E.g. if X -> A and Y -> A, then the dependent entry points of A are XY.
+ * Starting from that idea, we can determine a set of chunks—and thus a set
+ * of side effects—that must have been triggered if a certain chunk has been
+ * loaded. Basically, it is the intersection of all chunks loaded by the
+ * dependent entry points of a given chunk. We call the corresponding side
+ * effects the correlated side effects of that chunk.
+ *
+ * Example:
+ * X -> ABC, Y -> ADE, A-> F, B -> D
+ * Then taking dependencies into account, X -> ABCDF, Y -> ADEF
+ * The intersection is ADF. So we know that when A is loaded, D and F must also
+ * be in memory even though neither D nor A is a dependency of the other.
+ * If all have side effects, we call ADF the correlated side effects of A. The
+ * correlated side effects need to remain constant when merging chunks.
+ *
+ * In contrast, we have the dependency side effects of A, which represents
+ * the side effects we trigger if we directly load A. In this example, the
+ * dependency side effects are AF.
+ * For entry chunks, dependency and correlated side effects are the same.
+ *
+ * With these concepts, merging chunks is allowed if the correlated side effects
+ * of each entry do not change. Thus, we are allowed to merge two chunks if
+ * a) the dependency side effects of each chunk are a subset of the correlated
+ *    side effects of the other chunk, so no additional side effects are
+ *    triggered for any entry, or
+ * b) The signature of chunk A is a subset of the signature of chunk B while the
+ *    dependency side effects of A are a subset of the correlated side effects
+ *    of B. Because in that scenario, whenever A is loaded, B is loaded as well.
+ *    But there are cases when B is loaded where A is not loaded. So if we merge
+ *    the chunks, all dependency side effects of A will be added to the
+ *    correlated side effects of B, and as the latter is not allowed to change,
+ *    the former need to be a subset of the latter.
+ *
+ * Another consideration when merging small chunks into other chunks is to avoid
+ * that too much additional code is loaded. This is achieved when the dependent
+ * entries of the small chunk are a subset of the dependent entries of the other
+ * chunk. Because then when the small chunk is loaded, the other chunk was
+ * loaded/in memory anyway, so at most when the other chunk is loaded, the
+ * additional size of the small chunk is loaded unnecessarily.
+ *
+ * So the algorithm performs merges in two passes:
+ * 1. First we try to merge small chunks A only into other chunks B if the
+ *    dependent entries of A are a subset of the dependent entries of B and the
+ *    dependency side effects of A are a subset of the correlated side effects
+ *    of B.
+ * 2. Only then for all remaining small chunks, we look for arbitrary merges
+ *    following the above rules (a) and (b), starting with the smallest chunks
+ *    to look for possible merge targets.
  */
+// TODO instead of picking the "closest" chunk, we could actually use a
+//  technique similar to what we do for side effects to compare the size of the
+//  static dependencies that are not part of the correlated dependencies
 function getOptimizedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	numberOfEntries: number,
 	minChunkSize: number
 ) {
 	timeStart('optimize chunks', 3);
-	const chunkPartition = getPartitionedChunks(chunkModulesBySignature, minChunkSize);
-	if (chunkPartition.small.sideEffect.size > 0) {
-		mergeChunks(
-			chunkPartition.small.sideEffect,
-			[chunkPartition.small.pure, chunkPartition.big.pure],
-			minChunkSize,
-			chunkPartition
-		);
+	const chunkPartition = getPartitionedChunks(
+		chunkModulesBySignature,
+		numberOfEntries,
+		minChunkSize
+	);
+	console.log(
+		'Before eliminating small chunks, there were\n',
+		Object.keys(chunkModulesBySignature).length,
+		'chunks, of which\n',
+		chunkPartition.small.size,
+		'were below minChunkSize.'
+	);
+	if (chunkPartition.small.size > 0) {
+		mergeChunks(chunkPartition, minChunkSize);
 	}
-
-	if (chunkPartition.small.pure.size > 0) {
-		mergeChunks(
-			chunkPartition.small.pure,
-			[chunkPartition.small.pure, chunkPartition.big.sideEffect, chunkPartition.big.pure],
-			minChunkSize,
-			chunkPartition
-		);
-	}
+	console.log(
+		'After merging chunks,\n',
+		chunkPartition.small.size + chunkPartition.big.size,
+		'chunks remain, of which\n',
+		chunkPartition.small.size,
+		'are below minChunkSize.'
+	);
 	timeEnd('optimize chunks', 3);
-	return [
-		...chunkPartition.small.sideEffect,
-		...chunkPartition.small.pure,
-		...chunkPartition.big.sideEffect,
-		...chunkPartition.big.pure
-	];
+	return [...chunkPartition.small, ...chunkPartition.big];
 }
 
 const CHAR_DEPENDENT = 'X';
 const CHAR_INDEPENDENT = '_';
-const CHAR_CODE_DEPENDENT = CHAR_DEPENDENT.charCodeAt(0);
 
 function getPartitionedChunks(
 	chunkModulesBySignature: { [chunkSignature: string]: Module[] },
+	numberOfEntries: number,
 	minChunkSize: number
 ): ChunkPartition {
-	const smallPureChunks: ChunkDescription[] = [];
-	const bigPureChunks: ChunkDescription[] = [];
-	const smallSideEffectChunks: ChunkDescription[] = [];
-	const bigSideEffectChunks: ChunkDescription[] = [];
+	const smallChunks: ChunkDescription[] = [];
+	const bigChunks: ChunkDescription[] = [];
 	const chunkByModule = new Map<Module, ChunkDescription>();
+	const sideEffectsByEntry: Set<string>[] = [];
+	for (let index = 0; index < numberOfEntries; index++) {
+		sideEffectsByEntry.push(new Set());
+	}
 	for (const [signature, modules] of Object.entries(chunkModulesBySignature)) {
+		const dependentEntries = new Set<number>();
+		for (let position = 0; position < numberOfEntries; position++) {
+			if (signature[position] === CHAR_DEPENDENT) {
+				dependentEntries.add(position);
+			}
+		}
 		const chunkDescription: ChunkDescription = {
-			dependencies: new Set<ChunkDescription>(),
-			dependentChunks: new Set<ChunkDescription>(),
+			correlatedSideEffects: new Set(),
+			dependencies: new Set(),
+			dependentChunks: new Set(),
+			dependentEntries,
 			modules,
 			pure: true,
-			signature,
+			sideEffects: new Set(),
 			size: 0
 		};
 		let size = 0;
@@ -341,33 +420,36 @@ function getPartitionedChunks(
 		}
 		chunkDescription.pure = pure;
 		chunkDescription.size = size;
-		(size < minChunkSize
-			? pure
-				? smallPureChunks
-				: smallSideEffectChunks
-			: pure
-			? bigPureChunks
-			: bigSideEffectChunks
-		).push(chunkDescription);
+		if (!pure) {
+			for (const entryIndex of dependentEntries) {
+				sideEffectsByEntry[entryIndex].add(signature);
+			}
+			// In the beginning, each chunk is only its own side effect. After
+			// merging, additional side effects can accumulate.
+			chunkDescription.sideEffects.add(signature);
+		}
+		(size < minChunkSize ? smallChunks : bigChunks).push(chunkDescription);
 	}
-	sortChunksAndAddDependencies(
-		[bigPureChunks, bigSideEffectChunks, smallPureChunks, smallSideEffectChunks],
-		chunkByModule
+	sortChunksAndAddDependenciesAndEffects(
+		[bigChunks, smallChunks],
+		chunkByModule,
+		sideEffectsByEntry
 	);
 	return {
-		big: { pure: new Set(bigPureChunks), sideEffect: new Set(bigSideEffectChunks) },
-		small: { pure: new Set(smallPureChunks), sideEffect: new Set(smallSideEffectChunks) }
+		big: new Set(bigChunks),
+		small: new Set(smallChunks)
 	};
 }
 
-function sortChunksAndAddDependencies(
+function sortChunksAndAddDependenciesAndEffects(
 	chunkLists: ChunkDescription[][],
-	chunkByModule: Map<Module, ChunkDescription>
+	chunkByModule: Map<Module, ChunkDescription>,
+	sideEffectsByEntry: Set<string>[]
 ) {
 	for (const chunks of chunkLists) {
-		chunks.sort(compareChunks);
+		chunks.sort(compareChunkSize);
 		for (const chunk of chunks) {
-			const { dependencies, modules } = chunk;
+			const { dependencies, modules, correlatedSideEffects, dependentEntries } = chunk;
 			for (const module of modules) {
 				for (const dependency of module.getDependenciesToBeIncluded()) {
 					const dependencyChunk = chunkByModule.get(dependency as Module);
@@ -377,91 +459,136 @@ function sortChunksAndAddDependencies(
 					}
 				}
 			}
+			let firstEntry = true;
+			// Correlated side effects is the intersection of all entry side effects
+			for (const entryIndex of dependentEntries) {
+				const entryEffects = sideEffectsByEntry[entryIndex];
+				if (firstEntry) {
+					for (const sideEffect of entryEffects) {
+						correlatedSideEffects.add(sideEffect);
+					}
+					firstEntry = false;
+				} else {
+					for (const sideEffect of correlatedSideEffects) {
+						if (!entryEffects.has(sideEffect)) {
+							correlatedSideEffects.delete(sideEffect);
+						}
+					}
+				}
+			}
 		}
 	}
 }
 
-function compareChunks(
+function compareChunkSize(
 	{ size: sizeA }: ChunkDescription,
 	{ size: sizeB }: ChunkDescription
 ): number {
 	return sizeA - sizeB;
 }
 
-function mergeChunks(
-	chunksToBeMerged: Set<ChunkDescription>,
-	targetChunks: Set<ChunkDescription>[],
-	minChunkSize: number,
-	chunkPartition: ChunkPartition
-) {
-	for (const mergedChunk of chunksToBeMerged) {
-		let closestChunk: ChunkDescription | null = null;
-		let closestChunkDistance = Infinity;
-		const { signature, modules, pure, size } = mergedChunk;
-
-		for (const targetChunk of concatLazy(targetChunks)) {
-			if (mergedChunk === targetChunk) continue;
-			// Possible improvement:
-			// For dynamic entries depending on a pure chunk, it is safe to merge that
-			// chunk into the chunk doing the dynamic import (i.e. into an "already
-			// loaded chunk") even if it is not pure.
-			// One way of handling this could be to add all "already loaded entries"
-			// of the dynamic importers into the signature as well. That could also
-			// change the way we do code-splitting for already loaded entries.
-			const distance = pure
-				? getSignatureDistance(signature, targetChunk.signature, !targetChunk.pure)
-				: getSignatureDistance(targetChunk.signature, signature, true);
-			if (distance < closestChunkDistance && isValidMerge(mergedChunk, targetChunk)) {
-				if (distance === 1) {
+function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
+	for (const allowArbitraryMerges of [false, true]) {
+		for (const mergedChunk of chunkPartition.small) {
+			let closestChunk: ChunkDescription | null = null;
+			let closestChunkDistance = Infinity;
+			const { modules, pure, size } = mergedChunk;
+			for (const targetChunk of concatLazy([chunkPartition.small, chunkPartition.big])) {
+				if (mergedChunk === targetChunk) continue;
+				// If both chunks are small, we also allow for unrelated merges during
+				// the first pass
+				const onlySubsetMerge = !allowArbitraryMerges && targetChunk.size >= minChunkSize;
+				const distance = getChunkEntryDistance(mergedChunk, targetChunk, onlySubsetMerge);
+				if (
+					distance < closestChunkDistance &&
+					isValidMerge(mergedChunk, targetChunk, onlySubsetMerge)
+				) {
 					closestChunk = targetChunk;
-					break;
+					closestChunkDistance = distance;
 				}
-				closestChunk = targetChunk;
-				closestChunkDistance = distance;
 			}
-		}
-		if (closestChunk) {
-			chunksToBeMerged.delete(mergedChunk);
-			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
-			closestChunk.modules.push(...modules);
-			closestChunk.size += size;
-			closestChunk.pure &&= pure;
-			closestChunk.signature = mergeSignatures(signature, closestChunk.signature);
-			const { dependencies, dependentChunks } = closestChunk;
-			for (const dependency of mergedChunk.dependencies) {
-				dependencies.add(dependency);
+			if (closestChunk) {
+				chunkPartition.small.delete(mergedChunk);
+				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
+				closestChunk.modules.push(...modules);
+				closestChunk.size += size;
+				closestChunk.pure &&= pure;
+				const {
+					correlatedSideEffects,
+					dependencies,
+					dependentChunks,
+					dependentEntries,
+					sideEffects
+				} = closestChunk;
+				for (const sideEffect of correlatedSideEffects) {
+					if (!mergedChunk.correlatedSideEffects.has(sideEffect)) {
+						correlatedSideEffects.delete(sideEffect);
+					}
+				}
+				for (const entry of mergedChunk.dependentEntries) {
+					dependentEntries.add(entry);
+				}
+				for (const sideEffect of mergedChunk.sideEffects) {
+					sideEffects.add(sideEffect);
+				}
+				for (const dependency of mergedChunk.dependencies) {
+					dependencies.add(dependency);
+					dependency.dependentChunks.delete(mergedChunk);
+					dependency.dependentChunks.add(closestChunk);
+				}
+				for (const dependentChunk of mergedChunk.dependentChunks) {
+					dependentChunks.add(dependentChunk);
+					dependentChunk.dependencies.delete(mergedChunk);
+					dependentChunk.dependencies.add(closestChunk);
+				}
+				dependencies.delete(closestChunk);
+				dependentChunks.delete(closestChunk);
+				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
 			}
-			for (const dependentChunk of mergedChunk.dependentChunks) {
-				dependentChunks.add(dependentChunk);
-				dependentChunk.dependencies.delete(mergedChunk);
-				dependentChunk.dependencies.add(closestChunk);
-			}
-			dependencies.delete(closestChunk);
-			getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
 		}
 	}
 }
 
 // Merging will not produce cycles if none of the direct non-merged dependencies
 // of a chunk have the other chunk as a transitive dependency
-function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
+function isValidMerge(
+	mergedChunk: ChunkDescription,
+	targetChunk: ChunkDescription,
+	onlySubsetMerge: boolean
+) {
 	return !(
-		hasTransitiveDependency(mergedChunk, targetChunk) ||
-		hasTransitiveDependency(targetChunk, mergedChunk)
+		hasTransitiveDependencyOrNonCorrelatedSideEffect(mergedChunk, targetChunk, true) ||
+		hasTransitiveDependencyOrNonCorrelatedSideEffect(targetChunk, mergedChunk, !onlySubsetMerge)
 	);
 }
 
-function hasTransitiveDependency(
+function hasTransitiveDependencyOrNonCorrelatedSideEffect(
 	dependentChunk: ChunkDescription,
-	dependencyChunk: ChunkDescription
+	dependencyChunk: ChunkDescription,
+	checkSideEffects: boolean
 ) {
+	const { correlatedSideEffects } = dependencyChunk;
+	if (checkSideEffects) {
+		for (const sideEffect of dependentChunk.sideEffects) {
+			if (!correlatedSideEffects.has(sideEffect)) {
+				return true;
+			}
+		}
+	}
 	const chunksToCheck = new Set(dependentChunk.dependencies);
-	for (const { dependencies } of chunksToCheck) {
+	for (const { dependencies, sideEffects } of chunksToCheck) {
 		for (const dependency of dependencies) {
 			if (dependency === dependencyChunk) {
 				return true;
 			}
 			chunksToCheck.add(dependency);
+		}
+		if (checkSideEffects) {
+			for (const sideEffect of sideEffects) {
+				if (!correlatedSideEffects.has(sideEffect)) {
+					return true;
+				}
+			}
 		}
 	}
 	return false;
@@ -472,38 +599,27 @@ function getChunksInPartition(
 	minChunkSize: number,
 	chunkPartition: ChunkPartition
 ): Set<ChunkDescription> {
-	const subPartition = chunk.size < minChunkSize ? chunkPartition.small : chunkPartition.big;
-	return chunk.pure ? subPartition.pure : subPartition.sideEffect;
+	return chunk.size < minChunkSize ? chunkPartition.small : chunkPartition.big;
 }
 
-function getSignatureDistance(
-	sourceSignature: string,
-	targetSignature: string,
-	enforceSubset: boolean
+function getChunkEntryDistance(
+	{ dependentEntries: sourceEntries }: ChunkDescription,
+	{ dependentEntries: targetEntries }: ChunkDescription,
+	enforceSubest: boolean
 ): number {
 	let distance = 0;
-	const { length } = sourceSignature;
-	for (let index = 0; index < length; index++) {
-		const sourceValue = sourceSignature.charCodeAt(index);
-		if (sourceValue !== targetSignature.charCodeAt(index)) {
-			if (enforceSubset && sourceValue === CHAR_CODE_DEPENDENT) {
+	for (const entryIndex of targetEntries) {
+		if (!sourceEntries.has(entryIndex)) {
+			distance++;
+		}
+	}
+	for (const entryIndex of sourceEntries) {
+		if (!targetEntries.has(entryIndex)) {
+			if (enforceSubest) {
 				return Infinity;
 			}
 			distance++;
 		}
 	}
 	return distance;
-}
-
-function mergeSignatures(sourceSignature: string, targetSignature: string): string {
-	let signature = '';
-	const { length } = sourceSignature;
-	for (let index = 0; index < length; index++) {
-		signature +=
-			sourceSignature.charCodeAt(index) === CHAR_CODE_DEPENDENT ||
-			targetSignature.charCodeAt(index) === CHAR_CODE_DEPENDENT
-				? CHAR_DEPENDENT
-				: CHAR_INDEPENDENT;
-	}
-	return signature;
 }
