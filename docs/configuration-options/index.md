@@ -1413,6 +1413,32 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 
 `sourcemapFile` is not required if `output` is specified, in which case an output filename will be inferred by adding ".map" to the output filename for the bundle.
 
+### output.sourcemapIgnoreList
+
+|       |                                                                  |
+| ----: | :--------------------------------------------------------------- |
+| Type: | `(relativeSourcePath: string, sourcemapPath: string) => boolean` |
+
+A predicate to decide whether or not to ignore-list source files in a sourcemap, used to populate the [`x_google_ignoreList` source map extension](https://developer.chrome.com/blog/devtools-better-angular-debugging/#the-x_google_ignorelist-source-map-extension). `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
+
+```js
+import path from 'node:path';
+export default {
+	input: 'src/main',
+	output: [
+		{
+			file: 'bundle.js',
+			sourcemapIgnoreList: (relativeSourcePath, sourcemapPath) => {
+				// will ignore-list all files with node_modules in their paths
+				return relativeSourcePath.includes('node_modules');
+			},
+			format: 'es',
+			sourcemap: true
+		}
+	]
+};
+```
+
 ### output.sourcemapPathTransform
 
 |       |                                                                 |

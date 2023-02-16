@@ -137,7 +137,8 @@ async function transformChunk(
 		sourcemap,
 		sourcemapExcludeSources,
 		sourcemapFile,
-		sourcemapPathTransform
+		sourcemapPathTransform,
+		sourcemapIgnoreList
 	} = options;
 	if (!compact && code[code.length - 1] !== '\n') code += '\n';
 
@@ -158,21 +159,31 @@ async function transformChunk(
 			sourcemapExcludeSources,
 			onwarn
 		);
-		map.sources = map.sources
-			.map(sourcePath => {
-				if (sourcemapPathTransform) {
-					const newSourcePath = sourcemapPathTransform(sourcePath, `${resultingFile}.map`);
-
-					if (typeof newSourcePath !== 'string') {
-						error(errorFailedValidation(`sourcemapPathTransform function must return a string.`));
-					}
-
-					return newSourcePath;
+		for (let sourcesIndex = 0; sourcesIndex < map.sources.length; ++sourcesIndex) {
+			let sourcePath = map.sources[sourcesIndex];
+			const sourcemapPath = `${resultingFile}.map`;
+			if (sourcemapIgnoreList) {
+				const ignoreList = sourcemapIgnoreList(sourcePath, sourcemapPath);
+				if (typeof ignoreList !== 'boolean') {
+					error(errorFailedValidation('sourcemapIgnoreList function must return a boolean.'));
 				}
-
-				return sourcePath;
-			})
-			.map(normalize);
+				if (ignoreList) {
+					if (map.x_google_ignoreList === undefined) {
+						map.x_google_ignoreList = [];
+					}
+					if (!map.x_google_ignoreList.includes(sourcesIndex)) {
+						map.x_google_ignoreList.push(sourcesIndex);
+					}
+				}
+			}
+			if (sourcemapPathTransform) {
+				sourcePath = sourcemapPathTransform(sourcePath, sourcemapPath);
+				if (typeof sourcePath !== 'string') {
+					error(errorFailedValidation(`sourcemapPathTransform function must return a string.`));
+				}
+			}
+			map.sources[sourcesIndex] = normalize(sourcePath);
+		}
 
 		timeEnd('sourcemaps', 3);
 	}

@@ -54,6 +54,7 @@ export interface ExistingDecodedSourceMap {
 	sources: string[];
 	sourcesContent?: (string | null)[];
 	version: number;
+	x_google_ignoreList?: number[];
 }
 
 export interface ExistingRawSourceMap {
@@ -64,6 +65,7 @@ export interface ExistingRawSourceMap {
 	sources: string[];
 	sourcesContent?: (string | null)[];
 	version: number;
+	x_google_ignoreList?: number[];
 }
 
 export type DecodedSourceMapOrMissing =
@@ -507,6 +509,10 @@ export type SourcemapPathTransformOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string
 ) => string;
+export type SourcemapIgnoreListOption = (
+	relativeSourcePath: string,
+	sourcemapPath: string
+) => boolean;
 
 export type InputPluginOption = MaybePromise<Plugin | NullValue | false | InputPluginOption[]>;
 
@@ -683,6 +689,7 @@ export interface OutputOptions {
 	sourcemapBaseUrl?: string;
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
+	sourcemapIgnoreList?: SourcemapIgnoreListOption;
 	sourcemapPathTransform?: SourcemapPathTransformOption;
 	strict?: boolean;
 	systemNullSetters?: boolean;
@@ -736,6 +743,7 @@ export interface NormalizedOutputOptions {
 	sourcemapBaseUrl: string | undefined;
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
+	sourcemapIgnoreList: SourcemapIgnoreListOption | undefined;
 	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
 	strict: boolean;
 	systemNullSetters: boolean;
