@@ -362,10 +362,10 @@ export default (async () => ({
 
 ### cache
 
-|       |                       |
-| ----: | :-------------------- |
-| Type: | `RollupCache \| boolean` |
-| Default: | `true` |
+|          |                          |
+| -------: | :----------------------- |
+|    Type: | `RollupCache \| boolean` |
+| Default: | `true`                   |
 
 The `cache` property of a previous bundle. Use it to speed up subsequent builds in watch mode — Rollup will only reanalyse the modules that have changed. Setting this option explicitly to `false` will prevent generating the `cache` property on the bundle and also deactivate caching for plugins.
 
