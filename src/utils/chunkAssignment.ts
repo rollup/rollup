@@ -1,6 +1,5 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { EMPTY_ARRAY } from './blank';
 import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
 import { timeEnd, timeStart } from './timers';
@@ -146,11 +145,13 @@ export function getChunkAssignments(
 		dependentEntriesByModule,
 		dynamicallyDependentEntriesByDynamicEntry,
 		dynamicImportsByEntry
-	} = analyzeModuleGraph(entries, modulesInManualChunks);
+	} = analyzeModuleGraph(entries);
 
 	// Each chunk is identified by its position in this array
 	const initialChunks = Object.values(
-		getChunksBySignature(getModulesWithDependentEntries(dependentEntriesByModule))
+		getChunksBySignature(
+			getModulesWithDependentEntries(dependentEntriesByModule, modulesInManualChunks)
+		)
 	);
 
 	// This mutates initialChunks but also clears
@@ -204,10 +205,7 @@ function addStaticDependenciesToManualChunk(
 	}
 }
 
-function analyzeModuleGraph(
-	entries: Iterable<Module>,
-	modulesInManualChunks: Set<Module>
-): {
+function analyzeModuleGraph(entries: Iterable<Module>): {
 	allEntries: ReadonlyArray<Module>;
 	dependentEntriesByModule: Map<Module, Set<number>>;
 	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>;
@@ -223,9 +221,7 @@ function analyzeModuleGraph(
 		dynamicImportModulesByEntry.push(dynamicImportsForCurrentEntry);
 		const modulesToHandle = new Set([currentEntry]);
 		for (const module of modulesToHandle) {
-			if (!modulesInManualChunks.has(module)) {
-				getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
-			}
+			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					modulesToHandle.add(dependency);
@@ -310,7 +306,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 			dynamicEntry.includedDynamicImporters,
 			dynamicEntry.implicitlyLoadedAfter
 		])) {
-			for (const entry of dependentEntriesByModule.get(importer) || EMPTY_ARRAY) {
+			for (const entry of dependentEntriesByModule.get(importer)!) {
 				dynamicallyDependentEntries.add(entry);
 			}
 		}
@@ -335,9 +331,14 @@ function getChunksBySignature(
 	return chunkModules;
 }
 
-function* getModulesWithDependentEntries(dependentEntriesByModule: Map<Module, Set<number>>) {
+function* getModulesWithDependentEntries(
+	dependentEntriesByModule: Map<Module, Set<number>>,
+	modulesInManualChunks: Set<Module>
+) {
 	for (const [module, dependentEntries] of dependentEntriesByModule) {
-		yield { dependentEntries, modules: [module] };
+		if (!modulesInManualChunks.has(module)) {
+			yield { dependentEntries, modules: [module] };
+		}
 	}
 }
 
