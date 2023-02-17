@@ -16,7 +16,6 @@ export default function addCliEntry(): Plugin {
 			});
 		},
 		name: 'add-cli-entry',
-		//@ts-expect-error sourcesContent was changed to allow for null elements in recent versions of magic-string.
 		renderChunk(code, chunkInfo) {
 			if (chunkInfo.fileName === CLI_CHUNK) {
 				const magicString = new MagicString(code);
