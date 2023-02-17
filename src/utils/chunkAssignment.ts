@@ -11,10 +11,11 @@ type ReadonlyEntryDependentEntryMap = ReadonlyMap<number, ReadonlySet<number>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 interface ChunksBySignature {
-	[chunkSignature: string]: {
-		dependentEntries: Set<number>;
-		modules: Module[];
-	};
+	[chunkSignature: string]: ModulesWithDependentEntries;
+}
+interface ModulesWithDependentEntries {
+	dependentEntries: Set<number>;
+	modules: Module[];
 }
 
 export function getChunkAssignments(
@@ -22,20 +23,7 @@ export function getChunkAssignments(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number
 ): ChunkDefinitions {
-	const chunkDefinitions: ChunkDefinitions = [];
-	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
-	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
-	for (const [entry, alias] of manualChunkAliasByEntry) {
-		addStaticDependenciesToManualChunk(
-			entry,
-			(manualChunkModulesByAlias[alias] ||= []),
-			modulesInManualChunks
-		);
-	}
-	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
-		chunkDefinitions.push({ alias, modules });
-	}
-
+	const { chunkDefinitions } = getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry);
 	const {
 		allEntries,
 		dependentEntriesByModule,
@@ -43,23 +31,10 @@ export function getChunkAssignments(
 		dynamicImportsByEntry
 	} = analyzeModuleGraph(entries);
 
-	const chunkModules: ChunksBySignature = Object.create(null);
-	for (const [module, dependentEntries] of dependentEntriesByModule) {
-		if (modulesInManualChunks.has(module)) {
-			continue;
-		}
-		let chunkSignature = 0n;
-		for (const entryIndex of dependentEntries) {
-			chunkSignature |= 1n << BigInt(entryIndex);
-		}
-		(chunkModules[String(chunkSignature)] ||= {
-			dependentEntries: new Set(dependentEntries),
-			modules: []
-		}).modules.push(module);
-	}
-
 	// Each chunk is identified by its position in this array
-	const initialChunks = Object.values(chunkModules);
+	const initialChunks = Object.values(
+		getChunksBySignature(getModulesWithDependentEntries(dependentEntriesByModule))
+	);
 
 	// The indices correspond to the indices in allEntries. The chunks correspond
 	// to bits in the bigint values where chunk 0 is the lowest bit.
@@ -109,22 +84,59 @@ export function getChunkAssignments(
 		chunkMask <<= 1n;
 	}
 
-	// TODO Lukas see if we can merge with the other function e.g. by a mapping generator function?
-	const optimizedChunkModules: ChunksBySignature = Object.create(null);
-	for (const { dependentEntries, modules } of initialChunks) {
+	chunkDefinitions.push(
+		...createChunks(allEntries, getChunksBySignature(initialChunks), minChunkSize)
+	);
+	return chunkDefinitions;
+}
+
+function getChunkDefinitionsFromManualChunks(
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>
+): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
+	const chunkDefinitions: ChunkDefinitions = [];
+	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
+	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
+	for (const [entry, alias] of manualChunkAliasByEntry) {
+		addStaticDependenciesToManualChunk(
+			entry,
+			(manualChunkModulesByAlias[alias] ||= []),
+			modulesInManualChunks
+		);
+	}
+	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
+		chunkDefinitions.push({ alias, modules });
+	}
+	return { chunkDefinitions, modulesInManualChunks };
+}
+
+// TODO Lukas sort functions by usage
+function getChunksBySignature(
+	modulesWithDependentEntries: Iterable<ModulesWithDependentEntries>
+): ChunksBySignature {
+	const chunkModules: ChunksBySignature = Object.create(null);
+	for (const { dependentEntries, modules } of modulesWithDependentEntries) {
 		let chunkSignature = 0n;
 		for (const entryIndex of dependentEntries) {
 			chunkSignature |= 1n << BigInt(entryIndex);
 		}
-		(optimizedChunkModules[String(chunkSignature)] ||= {
-			dependentEntries,
+		(chunkModules[String(chunkSignature)] ||= {
+			dependentEntries: new Set(dependentEntries),
 			modules: []
 		}).modules.push(...modules);
 	}
+	return chunkModules;
+}
 
-	// TODO Lukas add minChunkSize optimization
-	chunkDefinitions.push(...createChunks(allEntries, optimizedChunkModules, minChunkSize));
-	return chunkDefinitions;
+// function* getModulesWithDependentEntries(dependentEntriesByModule: ModuleDependentEntryMap) {
+// 	for (const [module, dependentEntries] of dependentEntriesByModule) {
+// 		yield { dependentEntries, modules: [module] };
+// 	}
+// }
+function getModulesWithDependentEntries(dependentEntriesByModule: ModuleDependentEntryMap) {
+	return [...dependentEntriesByModule].map(([module, dependentEntries]) => ({
+		dependentEntries,
+		modules: [module]
+	}));
 }
 
 function createChunks(
@@ -162,6 +174,7 @@ function addStaticDependenciesToManualChunk(
 	}
 }
 
+// TODO Lukas rework this text
 /**
  * At its core, the algorithm first starts from each static or dynamic entry
  * point and then assigns that entry point to all modules than can be reached
@@ -268,7 +281,7 @@ function addStaticDependenciesToManualChunk(
  */
 function analyzeModuleGraph(entries: Iterable<Module>): {
 	allEntries: ReadonlyArray<Module>;
-	dependentEntriesByModule: ReadonlyModuleDependentEntryMap;
+	dependentEntriesByModule: ModuleDependentEntryMap;
 	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>;
 	dynamicallyDependentEntriesByDynamicEntry: ReadonlyEntryDependentEntryMap;
 } {
@@ -354,7 +367,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 			...dynamicEntry.includedDynamicImporters,
 			...dynamicEntry.implicitlyLoadedAfter
 		]) {
-			for (const entry of dependentEntriesByModule.get(importer)!) {
+			for (const entry of dependentEntriesByModule.get(importer) || []) {
 				dynamicallyDependentEntries.add(entry);
 			}
 		}
