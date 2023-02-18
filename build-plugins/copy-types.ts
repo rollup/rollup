@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { Plugin } from 'rollup';
 
-export default function copyTypes(fileName: string): Plugin {
+function copyRollupType(fileName: string): Plugin {
 	return {
 		async generateBundle(_options, _bundle, isWrite) {
 			if (isWrite) {
@@ -13,13 +13,17 @@ export default function copyTypes(fileName: string): Plugin {
 				});
 			}
 		},
-		name: 'copy-types'
+		name: 'copy-rollup-type'
 	};
 }
 
-export function copyAllTypes(): Plugin[] {
+export function copyBrowserTypes(): Plugin {
+	return copyRollupType('rollup.browser.d.ts');
+}
+
+export function copyNodeTypes(): Plugin[] {
 	return [
-		copyTypes('rollup.d.ts'),
+		copyRollupType('rollup.d.ts'),
 		{
 			async generateBundle(_options, _bundle, isWrite) {
 				if (isWrite) {
