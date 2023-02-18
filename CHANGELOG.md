@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 3.17.0
+
+_2023-02-18_
+
+### Features
+
+- Deprecate `experimentalDeepDynamicChunkOptimization` and always run the full chunk generation algorithm (#4862)
+
+### Bug Fixes
+
+- Fix an issue that caused very slow builds for projects with over 1000 dynamic imports when `experimentalDeepDynamicChunkOptimization` was enabled (#4862)
+
+### Pull Requests
+
+- [#4862](https://github.com/rollup/rollup/pull/4862): Improve chunking performance (@lukastaegert)
+
 ## 3.16.0
 
 _2023-02-17_
