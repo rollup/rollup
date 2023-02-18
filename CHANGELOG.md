@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.17.1
+
+_2023-02-18_
+
+### Bug Fixes
+
+- Add TypeScript types for `loadConfigFile` (#4853)
+- Fix an issue that could include unused classes in the bundle if their super class was in a file with `moduleSideEffects: false` (#4866)
+
+### Pull Requests
+
+- [#4853](https://github.com/rollup/rollup/pull/4853): feat: export loadConfigFile type (@TrickyPi)
+- [#4866](https://github.com/rollup/rollup/pull/4866): Do not mark variable access in files without side effects as TDZ (@lukastaegert)
+
 ## 3.17.0
 
 _2023-02-18_
