@@ -62,7 +62,9 @@ export async function mergeOptions(
 		command,
 		[
 			...Object.keys(inputOptions),
-			...Object.keys(outputOptions[0]).filter(option => option !== 'sourcemapPathTransform'),
+			...Object.keys(outputOptions[0]).filter(
+				option => option !== 'sourcemapIgnoreList' && option !== 'sourcemapPathTransform'
+			),
 			...Object.keys(commandAliases),
 			'bundleConfigAsCjs',
 			'config',
@@ -233,6 +235,7 @@ async function mergeOutputOptions(
 		dynamicImportInCjs: getOption('dynamicImportInCjs'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule'),
+		experimentalDeepDynamicChunkOptimization: getOption('experimentalDeepDynamicChunkOptimization'),
 		experimentalMinChunkSize: getOption('experimentalMinChunkSize'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
@@ -275,6 +278,7 @@ async function mergeOutputOptions(
 		sourcemapBaseUrl: getOption('sourcemapBaseUrl'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),
+		sourcemapIgnoreList: getOption('sourcemapIgnoreList'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict'),
 		systemNullSetters: getOption('systemNullSetters'),

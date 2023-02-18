@@ -97,6 +97,7 @@ export default {
 		sourcemapBaseUrl,
 		sourcemapExcludeSources,
 		sourcemapFile,
+		sourcemapIgnoreList,
 		sourcemapPathTransform,
 		validate,
 

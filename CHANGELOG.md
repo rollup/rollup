@@ -1,5 +1,90 @@
 # rollup changelog
 
+## 3.17.1
+
+_2023-02-18_
+
+### Bug Fixes
+
+- Add TypeScript types for `loadConfigFile` (#4853)
+- Fix an issue that could include unused classes in the bundle if their super class was in a file with `moduleSideEffects: false` (#4866)
+
+### Pull Requests
+
+- [#4853](https://github.com/rollup/rollup/pull/4853): feat: export loadConfigFile type (@TrickyPi)
+- [#4866](https://github.com/rollup/rollup/pull/4866): Do not mark variable access in files without side effects as TDZ (@lukastaegert)
+
+## 3.17.0
+
+_2023-02-18_
+
+### Features
+
+- Deprecate `experimentalDeepDynamicChunkOptimization` and always run the full chunk generation algorithm (#4862)
+
+### Bug Fixes
+
+- Fix an issue that caused very slow builds for projects with over 1000 dynamic imports when `experimentalDeepDynamicChunkOptimization` was enabled (#4862)
+
+### Pull Requests
+
+- [#4862](https://github.com/rollup/rollup/pull/4862): Improve chunking performance (@lukastaegert)
+
+## 3.16.0
+
+_2023-02-17_
+
+### Features
+
+- Support `output.sourcemapIgnoreList` option to mark file sources as ignored in the `x_google_ignoreList` attribute of the resulting sourcemap (#4848)
+- Support sourcemaps where `sourcesContent` contains `null` entries (#4846)
+- Allow explicitly passing `true` for the `cache` option to override Vite's default (#4859)
+
+### Bug Fixes
+
+- Fix an issue where unrelated side effects spilled into other chunks when using the `experimentalMinChunkSize` option (#4851)
+
+### Pull Requests
+
+- [#4846](https://github.com/rollup/rollup/pull/4846): Update magic-string and adjust types. (@bmeurer)
+- [#4848](https://github.com/rollup/rollup/pull/4848): Introduce `sourcemapIgnoreList` predicate. (@bmeurer)
+- [#4851](https://github.com/rollup/rollup/pull/4851): Fix chunk graph update when merging chunks for minChunkSize (@lukastaegert)
+- [#4852](https://github.com/rollup/rollup/pull/4852): docs: make api params more readable (@cunzaizhuyi)
+- [#4856](https://github.com/rollup/rollup/pull/4856): simplify code in includeStatements (@TrickyPi)
+- [#4859](https://github.com/rollup/rollup/pull/4859): Allow to pass "true" to InputOptions.cache (@danielrentz)
+
+## 3.15.0
+
+_2023-02-10_
+
+### Features
+
+- Do not consider instantiating a constructor a side effect if it adds properties to "this" and is instantiated elsewhere (#4842)
+
+### Bug Fixes
+
+- Improve side effect detection in constructors (#4842)
+
+### Pull Requests
+
+- [#4842](https://github.com/rollup/rollup/pull/4842): fix: add this option to context.ignore (@TrickyPi)
+- [#4843](https://github.com/rollup/rollup/pull/4843): fixed the logo link (@oMatheuss)
+- [#4844](https://github.com/rollup/rollup/pull/4844): Update index.md (@cunzaizhuyi)
+- [#4845](https://github.com/rollup/rollup/pull/4845): docs: fix style (@TrickyPi)
+
+## 3.14.0
+
+_2023-02-05_
+
+### Features
+
+- Add `experimentalDeepDynamicChunkOptimization` option to produce fewer chunks from dynamic imports (#4837)
+
+### Pull Requests
+
+- [#4837](https://github.com/rollup/rollup/pull/4837): Add flag to re-enable deep dynamic chunk optimization (@lukastaegert)
+- [#4839](https://github.com/rollup/rollup/pull/4839): fix: correct incorrect assertions (@TrickyPi)
+
 ## 3.13.0
 
 _2023-02-03_

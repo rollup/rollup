@@ -43,7 +43,8 @@ export default class ArrowFunctionExpression extends FunctionBase {
 				breaks: false,
 				continues: false,
 				labels: new Set(),
-				returnYield: true
+				returnYield: true,
+				this: false
 			};
 			if (this.body.hasEffects(context)) return true;
 			context.ignore = ignore;

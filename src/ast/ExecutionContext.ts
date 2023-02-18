@@ -8,6 +8,7 @@ interface ExecutionContextIgnore {
 	continues: boolean;
 	labels: Set<string>;
 	returnYield: boolean;
+	this: boolean;
 }
 
 export const BROKEN_FLOW_NONE = 0;
@@ -51,7 +52,8 @@ export function createHasEffectsContext(): HasEffectsContext {
 			breaks: false,
 			continues: false,
 			labels: new Set(),
-			returnYield: false
+			returnYield: false,
+			this: false
 		},
 		includedLabels: new Set(),
 		instantiated: new DiscriminatedPathTracker(),

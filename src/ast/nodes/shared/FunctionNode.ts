@@ -20,9 +20,14 @@ export default class FunctionNode extends FunctionBase {
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;
+	private declare constructedEntity: ObjectEntity;
 
 	createScope(parentScope: FunctionScope): void {
 		this.scope = new FunctionScope(parentScope, this.context);
+		this.constructedEntity = new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE);
+		// This makes sure that all deoptimizations of "this" are applied to the
+		// constructed entity.
+		this.scope.thisVariable.addEntityToBeDeoptimized(this.constructedEntity);
 	}
 
 	deoptimizeThisOnInteractionAtPath(
@@ -51,16 +56,15 @@ export default class FunctionNode extends FunctionBase {
 			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 			context.replacedVariableInits.set(
 				this.scope.thisVariable,
-				interaction.withNew
-					? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
-					: UNKNOWN_EXPRESSION
+				interaction.withNew ? this.constructedEntity : UNKNOWN_EXPRESSION
 			);
 			const { brokenFlow, ignore, replacedVariableInits } = context;
 			context.ignore = {
 				breaks: false,
 				continues: false,
 				labels: new Set(),
-				returnYield: true
+				returnYield: true,
+				this: interaction.withNew
 			};
 			if (this.body.hasEffects(context)) return true;
 			context.brokenFlow = brokenFlow;

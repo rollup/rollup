@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "3.13.0",
+  "version": "3.17.1",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -29,6 +29,7 @@
     "prepare": "husky install && node scripts/check-release.js || npm run build",
     "prepublishOnly": "node scripts/check-release.js",
     "release": "node scripts/release.js",
+    "release:docs": "git fetch --update-head-ok origin master:master && git branch --force documentation-published master && git push origin documentation-published",
     "test": "npm run build && npm run test:all",
     "test:update-snapshots": "node scripts/update-snapshots.js",
     "test:cjs": "npm run build:cjs && npm run test:only",
@@ -115,7 +116,7 @@
     "is-reference": "^3.0.1",
     "lint-staged": "^13.1.0",
     "locate-character": "^2.0.5",
-    "magic-string": "^0.27.0",
+    "magic-string": "^0.29.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "pinia": "^2.0.29",
@@ -123,7 +124,7 @@
     "pretty-bytes": "^6.0.0",
     "pretty-ms": "^8.0.0",
     "requirejs": "^2.3.6",
-    "rollup": "^3.9.1",
+    "rollup": "^3.16.0",
     "rollup-plugin-license": "^3.0.1",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-thatworks": "^1.0.4",
@@ -161,7 +162,11 @@
       "require": "./dist/rollup.js",
       "import": "./dist/es/rollup.js"
     },
-    "./loadConfigFile": "./dist/loadConfigFile.js",
+    "./loadConfigFile": {
+      "types": "./dist/loadConfigFile.d.ts",
+      "require": "./dist/loadConfigFile.js",
+      "default": "./dist/loadConfigFile.js"
+    },
     "./dist/*": "./dist/*"
   }
 }

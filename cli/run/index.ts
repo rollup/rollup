@@ -5,10 +5,10 @@ import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { loadFsEvents } from '../../src/watch/fsevents-importer';
 import { handleError } from '../logging';
-import type { BatchWarnings } from './batchWarnings';
 import build from './build';
 import { getConfigPath } from './getConfigPath';
 import { loadConfigFile } from './loadConfigFile';
+import type { BatchWarnings } from './loadConfigFileType';
 import loadConfigFromCommand from './loadConfigFromCommand';
 
 export default async function runRollup(command: Record<string, any>): Promise<void> {

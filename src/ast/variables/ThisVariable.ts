@@ -74,13 +74,15 @@ export default class ThisVariable extends LocalVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		return (
-			this.getInit(context).hasEffectsOnInteractionAtPath(path, interaction, context) ||
-			super.hasEffectsOnInteractionAtPath(path, interaction, context)
-		);
-	}
-
-	private getInit(context: HasEffectsContext): ExpressionEntity {
-		return context.replacedVariableInits.get(this) || UNKNOWN_EXPRESSION;
+		const replacedVariableInit = context.replacedVariableInits.get(this);
+		if (replacedVariableInit) {
+			return (
+				replacedVariableInit.hasEffectsOnInteractionAtPath(path, interaction, context) ||
+				// If the surrounding function is included, all mutations of "this" must
+				// be counted as side effects, which is what this second line does.
+				(!context.ignore.this && super.hasEffectsOnInteractionAtPath(path, interaction, context))
+			);
+		}
+		return UNKNOWN_EXPRESSION.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 }

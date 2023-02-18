@@ -46,15 +46,21 @@ exports.compareError = function compareError(actual, expected) {
 
 exports.compareWarnings = function compareWarnings(actual, expected) {
 	assert.deepEqual(
-		actual.map(normaliseError),
-		expected.map(warning => {
-			if (warning.frame) {
-				warning.frame = deindent(warning.frame);
-			}
-			return warning;
-		})
+		actual.map(normaliseError).sort(sortWarnings),
+		expected
+			.map(warning => {
+				if (warning.frame) {
+					warning.frame = deindent(warning.frame);
+				}
+				return warning;
+			})
+			.sort(sortWarnings)
 	);
 };
+
+function sortWarnings(a, b) {
+	return a.message === b.message ? 0 : a.message < b.message ? -1 : 1;
+}
 
 function deindent(stringValue) {
 	return stringValue.slice(1).replace(/^\t+/gm, '').replace(/\s+$/gm, '').trim();

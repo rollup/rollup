@@ -209,9 +209,14 @@ export default class Identifier extends NodeBase implements PatternNode {
 		if (this.isTDZAccess !== null) return this.isTDZAccess;
 
 		if (
-			!(this.variable instanceof LocalVariable) ||
-			!this.variable.kind ||
-			!(this.variable.kind in tdzVariableKinds)
+			!(
+				this.variable instanceof LocalVariable &&
+				this.variable.kind &&
+				this.variable.kind in tdzVariableKinds &&
+				// we ignore possible TDZs due to circular module dependencies as
+				// otherwise we get many false positives
+				this.variable.module === this.context.module
+			)
 		) {
 			return (this.isTDZAccess = false);
 		}

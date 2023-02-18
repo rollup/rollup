@@ -16,13 +16,11 @@ import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import type { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
-import batchWarnings, { type BatchWarnings } from './batchWarnings';
+import batchWarnings from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
+import type { LoadConfigFile } from './loadConfigFileType';
 
-export async function loadConfigFile(
-	fileName: string,
-	commandOptions: any = {}
-): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
+export const loadConfigFile: LoadConfigFile = async (fileName, commandOptions = {}) => {
 	const configs = await getConfigList(
 		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions)),
 		commandOptions
@@ -40,7 +38,7 @@ export async function loadConfigFile(
 		warnings.flush();
 		throw error_;
 	}
-}
+};
 
 async function getConfigFileExport(fileName: string, commandOptions: Record<string, unknown>) {
 	if (commandOptions.configPlugin || commandOptions.bundleConfigAsCjs) {

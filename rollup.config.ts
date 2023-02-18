@@ -12,7 +12,7 @@ import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
-import copyTypes from './build-plugins/copy-types';
+import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
@@ -75,7 +75,6 @@ export default async function (
 			freeze: false,
 			generatedCode: 'es2015',
 			interop: 'default',
-			manualChunks: { rollup: ['src/node-entry.ts'] },
 			sourcemap: true
 		},
 		plugins: [
@@ -83,7 +82,7 @@ export default async function (
 			addCliEntry(),
 			esmDynamicImport(),
 			!command.configTest && collectLicenses(),
-			!command.configTest && copyTypes('rollup.d.ts')
+			!command.configTest && copyNodeTypes()
 		],
 		strictDeprecations: true,
 		treeshake
@@ -118,7 +117,7 @@ export default async function (
 				file: 'browser/dist/rollup.browser.js',
 				format: 'umd',
 				name: 'rollup',
-				plugins: [copyTypes('rollup.browser.d.ts')],
+				plugins: [copyBrowserTypes()],
 				sourcemap: true
 			},
 			{

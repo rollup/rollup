@@ -18,6 +18,8 @@ export const URL_OUTPUT_EXPORTS = 'configuration-options/#output-exports';
 export const URL_OUTPUT_EXTEND = 'configuration-options/#output-extend';
 export const URL_OUTPUT_FORMAT = 'configuration-options/#output-format';
 export const URL_OUTPUT_GENERATEDCODE = 'configuration-options/#output-generatedcode';
+export const URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION =
+	'configuration-options/#output-experimentaldeepdynamicchunkoptimization';
 export const URL_OUTPUT_GENERATEDCODE_CONSTBINDINGS =
 	'configuration-options/#output-generatedcode-constbindings';
 export const URL_OUTPUT_GENERATEDCODE_SYMBOLS =
