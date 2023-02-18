@@ -162,7 +162,11 @@
       "require": "./dist/rollup.js",
       "import": "./dist/es/rollup.js"
     },
-    "./loadConfigFile": "./dist/loadConfigFile.js",
+    "./loadConfigFile": {
+      "types": "./dist/loadConfigFile.d.ts",
+      "require": "./dist/loadConfigFile.js",
+      "default": "./dist/loadConfigFile.js"
+    },
     "./dist/*": "./dist/*"
   }
 }
