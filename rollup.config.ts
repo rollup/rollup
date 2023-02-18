@@ -75,7 +75,6 @@ export default async function (
 			freeze: false,
 			generatedCode: 'es2015',
 			interop: 'default',
-			manualChunks: { rollup: ['src/node-entry.ts'] },
 			sourcemap: true
 		},
 		plugins: [

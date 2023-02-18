@@ -98,7 +98,11 @@ export class DiscriminatedPathTracker {
 				currentPaths[pathSegment] ||
 				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<Entity>>() } });
 		}
-		const trackedEntities = getOrCreate(currentPaths[EntitiesKey], discriminator, getNewSet);
+		const trackedEntities = getOrCreate(
+			currentPaths[EntitiesKey],
+			discriminator,
+			getNewSet<Entity>
+		);
 		if (trackedEntities.has(entity)) return true;
 		trackedEntities.add(entity);
 		return false;

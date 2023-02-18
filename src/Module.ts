@@ -166,10 +166,10 @@ function getVariableForExportNameRecursive(
 }
 
 function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<Module> {
-	const sideEffectModules = getOrCreate<Variable, Set<Module>>(
+	const sideEffectModules = getOrCreate(
 		module.sideEffectDependenciesByVariable,
 		variable,
-		getNewSet
+		getNewSet<Module>
 	);
 	let currentVariable: Variable | null = variable;
 	const referencedVariables = new Set([currentVariable]);
@@ -616,7 +616,7 @@ export default class Module {
 				getOrCreate(
 					importerForSideEffects.sideEffectDependenciesByVariable,
 					variable,
-					getNewSet
+					getNewSet<Module>
 				).add(this);
 				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
 			}

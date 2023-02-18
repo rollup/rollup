@@ -13,7 +13,6 @@ export default function conditionalFsEventsImport(): Plugin {
 			}
 		},
 		name: 'conditional-fs-events-import',
-		//@ts-expect-error sourcesContent was changed to allow for null elements in recent versions of magic-string.
 		transform(code, id) {
 			if (id.endsWith('fsevents-handler.js')) {
 				transformed = true;

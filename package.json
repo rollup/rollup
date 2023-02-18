@@ -124,7 +124,7 @@
     "pretty-bytes": "^6.0.0",
     "pretty-ms": "^8.0.0",
     "requirejs": "^2.3.6",
-    "rollup": "^3.9.1",
+    "rollup": "^3.16.0",
     "rollup-plugin-license": "^3.0.1",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-thatworks": "^1.0.4",

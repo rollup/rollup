@@ -16,7 +16,7 @@ console.log({
   "name": "dep2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "chunk-dep2-f4e7f39c.js",
+  "fileName": "chunk-dep2-0da9d5f1.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {},
   "imports": [],
@@ -35,5 +35,5 @@ console.log({
     "asset-test-9f86d081"
   ]
 });
-console.log('all chunks', ["entry-main1-bb9f9ac2.js","chunk-dep2-f4e7f39c.js","entry-main2-2ba44c5c.js"])
+console.log('all chunks', ["entry-main1-f3f64fb9.js","entry-main2-d0add96f.js","chunk-dep2-0da9d5f1.js"])
 console.log('referenced asset in renderChunk', 'asset-test-9f86d081');
