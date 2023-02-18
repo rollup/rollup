@@ -362,9 +362,10 @@ export default (async () => ({
 
 ### cache
 
-|       |                        |
-| ----: | :--------------------- |
-| Type: | `RollupCache \| false` |
+|          |                          |
+| -------: | :----------------------- |
+|    Type: | `RollupCache \| boolean` |
+| Default: | `true`                   |
 
 The `cache` property of a previous bundle. Use it to speed up subsequent builds in watch mode — Rollup will only reanalyse the modules that have changed. Setting this option explicitly to `false` will prevent generating the `cache` property on the bundle and also deactivate caching for plugins.
 
@@ -1412,6 +1413,32 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 
 `sourcemapFile` is not required if `output` is specified, in which case an output filename will be inferred by adding ".map" to the output filename for the bundle.
 
+### output.sourcemapIgnoreList
+
+|       |                                                                  |
+| ----: | :--------------------------------------------------------------- |
+| Type: | `(relativeSourcePath: string, sourcemapPath: string) => boolean` |
+
+A predicate to decide whether or not to ignore-list source files in a sourcemap, used to populate the [`x_google_ignoreList` source map extension](https://developer.chrome.com/blog/devtools-better-angular-debugging/#the-x_google_ignorelist-source-map-extension). `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
+
+```js
+import path from 'node:path';
+export default {
+	input: 'src/main',
+	output: [
+		{
+			file: 'bundle.js',
+			sourcemapIgnoreList: (relativeSourcePath, sourcemapPath) => {
+				// will ignore-list all files with node_modules in their paths
+				return relativeSourcePath.includes('node_modules');
+			},
+			format: 'es',
+			sourcemap: true
+		}
+	]
+};
+```
+
 ### output.sourcemapPathTransform
 
 |       |                                                                 |
@@ -1943,11 +1970,32 @@ If this option is provided, bundling will not fail if bindings are imported from
 
 ### treeshake
 
-|  |  |
-| --: | :-- |
-| Type: | `boolean \| "smallest"\| "safest"\| "recommended"\| { annotations?: boolean, correctVarValueBeforeDeclaration?: boolean, moduleSideEffects?: ModuleSideEffectsOption, preset?: "smallest"\| "safest"\| "recommended", propertyReadSideEffects?: boolean\| 'always', tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }` |
-| CLI: | `--treeshake`/`--no-treeshake` |
-| Default: | `true` |
+|          |                                                      |
+| -------: | :--------------------------------------------------- |
+|    Type: | `boolean \| TreeshakingPreset \| TreeshakingOptions` |
+|     CLI: | `--treeshake`/`--no-treeshake`                       |
+| Default: | `true`                                               |
+
+```typescript
+type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
+
+interface TreeshakingOptions {
+	annotations?: boolean;
+	correctVarValueBeforeDeclaration?: boolean;
+	moduleSideEffects?: ModuleSideEffectsOption;
+	preset?: TreeshakingPreset;
+	propertyReadSideEffects?: boolean | 'always';
+	tryCatchDeoptimization?: boolean;
+	unknownGlobalSideEffects?: boolean;
+}
+
+type ModuleSideEffectsOption =
+	| boolean
+	| 'no-external'
+	| string[]
+	| HasModuleSideEffects;
+type HasModuleSideEffects = (id: string, external: boolean) => boolean;
+```
 
 Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. You may also choose one of three presets that will automatically be updated if new options are added:
 
@@ -2270,16 +2318,6 @@ These options reflect new features that have not yet been fully finalized. Avail
 
 Determines after how many runs cached assets that are no longer used by plugins should be removed.
 
-### experimentalDeepDynamicChunkOptimization
-
-|  |  |
-| --: | :-- |
-| Type: | `boolean` |
-| CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
-| Default: | `false` |
-
-Currently, chunk generation may create too many chunks if many dynamic imports are used. This is because the algorithm aborts optimization when certain thresholds are surpassed to avoid performance issues. Set this flag to `true` to create potentially fewer chunks at the cost of build performance.
-
 ### experimentalMinChunkSize
 
 |          |                                     |
@@ -2319,10 +2357,21 @@ For each key, the first number represents the elapsed time while the second repr
 
 ## watch
 
-|  |  |
-| --: | :-- |
-| Type: | `{ buildDelay?: number, chokidar?: ChokidarOptions, clearScreen?: boolean, exclude?: string, include?: string, skipWrite?: boolean } \| false` |
-| Default: | `{}` |
+|          |                           |
+| -------: | :------------------------ |
+|    Type: | `WatcherOptions \| false` |
+| Default: | `{}`                      |
+
+```typescript
+interface WatcherOptions {
+	buildDelay?: number;
+	chokidar?: ChokidarOptions;
+	clearScreen?: boolean;
+	exclude?: string | RegExp | (string | RegExp)[];
+	include?: string | RegExp | (string | RegExp)[];
+	skipWrite?: boolean;
+}
+```
 
 Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
 
@@ -2454,6 +2503,18 @@ _Use the [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimp
 | Default: | `import`                         |
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
+
+### output.experimentalDeepDynamicChunkOptimization
+
+_This option is no longer needed._
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
+| Default: | `false` |
+
+This option was used to prevent performance issues with the full chunk optimization algorithm. As the algorithm is much faster now, this option is now ignored by Rollup and should no longer be used.
 
 ### output.preferConst
 

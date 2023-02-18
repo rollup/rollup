@@ -52,8 +52,9 @@ export interface ExistingDecodedSourceMap {
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];
-	sourcesContent?: string[];
+	sourcesContent?: (string | null)[];
 	version: number;
+	x_google_ignoreList?: number[];
 }
 
 export interface ExistingRawSourceMap {
@@ -62,8 +63,9 @@ export interface ExistingRawSourceMap {
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];
-	sourcesContent?: string[];
+	sourcesContent?: (string | null)[];
 	version: number;
+	x_google_ignoreList?: number[];
 }
 
 export type DecodedSourceMapOrMissing =
@@ -79,7 +81,7 @@ export interface SourceMap {
 	mappings: string;
 	names: string[];
 	sources: string[];
-	sourcesContent: string[];
+	sourcesContent: (string | null)[];
 	version: number;
 	toString(): string;
 	toUrl(): string;
@@ -507,13 +509,17 @@ export type SourcemapPathTransformOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string
 ) => string;
+export type SourcemapIgnoreListOption = (
+	relativeSourcePath: string,
+	sourcemapPath: string
+) => boolean;
 
 export type InputPluginOption = MaybePromise<Plugin | NullValue | false | InputPluginOption[]>;
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
 	acornInjectPlugins?: (() => unknown)[] | (() => unknown);
-	cache?: false | RollupCache;
+	cache?: boolean | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;
 	external?: ExternalOption;
@@ -647,6 +653,7 @@ export interface OutputOptions {
 	dynamicImportInCjs?: boolean;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule?: boolean | 'if-default-prop';
+	/** @deprecated This option is no longer needed and ignored. */
 	experimentalDeepDynamicChunkOptimization?: boolean;
 	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
@@ -683,6 +690,7 @@ export interface OutputOptions {
 	sourcemapBaseUrl?: string;
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
+	sourcemapIgnoreList?: SourcemapIgnoreListOption;
 	sourcemapPathTransform?: SourcemapPathTransformOption;
 	strict?: boolean;
 	systemNullSetters?: boolean;
@@ -701,6 +709,7 @@ export interface NormalizedOutputOptions {
 	dynamicImportInCjs: boolean;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule: boolean | 'if-default-prop';
+	/** @deprecated This option is no longer needed and ignored. */
 	experimentalDeepDynamicChunkOptimization: boolean;
 	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
@@ -736,6 +745,7 @@ export interface NormalizedOutputOptions {
 	sourcemapBaseUrl: string | undefined;
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
+	sourcemapIgnoreList: SourcemapIgnoreListOption | undefined;
 	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
 	strict: boolean;
 	systemNullSetters: boolean;

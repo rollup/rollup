@@ -1,5 +1,44 @@
 # rollup changelog
 
+## 3.17.0
+
+_2023-02-18_
+
+### Features
+
+- Deprecate `experimentalDeepDynamicChunkOptimization` and always run the full chunk generation algorithm (#4862)
+
+### Bug Fixes
+
+- Fix an issue that caused very slow builds for projects with over 1000 dynamic imports when `experimentalDeepDynamicChunkOptimization` was enabled (#4862)
+
+### Pull Requests
+
+- [#4862](https://github.com/rollup/rollup/pull/4862): Improve chunking performance (@lukastaegert)
+
+## 3.16.0
+
+_2023-02-17_
+
+### Features
+
+- Support `output.sourcemapIgnoreList` option to mark file sources as ignored in the `x_google_ignoreList` attribute of the resulting sourcemap (#4848)
+- Support sourcemaps where `sourcesContent` contains `null` entries (#4846)
+- Allow explicitly passing `true` for the `cache` option to override Vite's default (#4859)
+
+### Bug Fixes
+
+- Fix an issue where unrelated side effects spilled into other chunks when using the `experimentalMinChunkSize` option (#4851)
+
+### Pull Requests
+
+- [#4846](https://github.com/rollup/rollup/pull/4846): Update magic-string and adjust types. (@bmeurer)
+- [#4848](https://github.com/rollup/rollup/pull/4848): Introduce `sourcemapIgnoreList` predicate. (@bmeurer)
+- [#4851](https://github.com/rollup/rollup/pull/4851): Fix chunk graph update when merging chunks for minChunkSize (@lukastaegert)
+- [#4852](https://github.com/rollup/rollup/pull/4852): docs: make api params more readable (@cunzaizhuyi)
+- [#4856](https://github.com/rollup/rollup/pull/4856): simplify code in includeStatements (@TrickyPi)
+- [#4859](https://github.com/rollup/rollup/pull/4859): Allow to pass "true" to InputOptions.cache (@danielrentz)
+
 ## 3.15.0
 
 _2023-02-10_
