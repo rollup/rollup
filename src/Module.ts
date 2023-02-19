@@ -598,6 +598,13 @@ export default class Module {
 			}
 			if (importerForSideEffects) {
 				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
+				if (this.info.moduleSideEffects) {
+					getOrCreate(
+						importerForSideEffects.sideEffectDependenciesByVariable,
+						variable,
+						getNewSet<Module>
+					).add(this);
+				}
 			}
 			return [variable];
 		}
@@ -613,12 +620,12 @@ export default class Module {
 				searchedNamesAndModules
 			})!;
 			if (importerForSideEffects) {
+				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
 				getOrCreate(
 					importerForSideEffects.sideEffectDependenciesByVariable,
 					variable,
 					getNewSet<Module>
 				).add(this);
-				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
 			}
 			return [variable];
 		}
