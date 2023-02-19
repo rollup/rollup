@@ -135,6 +135,7 @@ export interface MinimalPluginContext {
 export interface EmittedAsset {
 	fileName?: string;
 	name?: string;
+	needsCodeReference?: boolean;
 	source?: string | Uint8Array;
 	type: 'asset';
 }
