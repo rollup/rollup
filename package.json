@@ -14,6 +14,7 @@
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
     "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript",
     "build:docs": "vitepress build docs",
+    "build:docs-cn": "vitepress build docs-cn",
     "preview:docs": "vitepress preview docs",
     "ci:lint": "concurrently 'npm:lint:js:nofix' 'npm:lint:markdown:nofix'",
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
