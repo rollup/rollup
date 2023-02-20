@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 3.17.2
+
+_2023-02-20_
+
+### Bug Fixes
+
+- Do not omit code if a file that only re-exports a used variable has `moduleSideEffects` set to `true` (#4867)
+- Add missing `needsCodeReference` property in TypeScript for asset tree-shaking (#4868)
+- Add correct side effect configuration for additional Object and Promise methods (#4323)
+
+### Pull Requests
+
+- [#4323](https://github.com/rollup/rollup/pull/4323): feat: add known globals (@dnalborczyk)
+- [#4867](https://github.com/rollup/rollup/pull/4867): Include side effects of re-exporters unless they have moduleSideEffects: false (@lukastaegert)
+- [#4868](https://github.com/rollup/rollup/pull/4868): Add `needsCodeReference` property to `EmittedAsset` (@sapphi-red)
+
 ## 3.17.1
 
 _2023-02-18_
