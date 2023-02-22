@@ -1,9 +1,9 @@
 import type MagicString from 'magic-string';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import { createHasEffectsContext } from '../ExecutionContext';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createHasEffectsContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
-import { type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
+import { type IncludeChildren, logEffect, NodeBase, type StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
 	declare body: readonly StatementNode[];
@@ -21,6 +21,7 @@ export default class Program extends NodeBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) {
+				logEffect(node, this.context.module);
 				return (this.hasCachedEffect = true);
 			}
 		}

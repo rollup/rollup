@@ -7,7 +7,13 @@ import type Scope from '../scopes/Scope';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type IncludeChildren, type Node, StatementBase, type StatementNode } from './shared/Node';
+import {
+	type IncludeChildren,
+	logEffect,
+	type Node,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class BlockStatement extends StatementBase {
 	declare body: readonly StatementNode[];
@@ -33,7 +39,10 @@ export default class BlockStatement extends StatementBase {
 		if (this.deoptimizeBody) return true;
 		for (const node of this.body) {
 			if (context.brokenFlow) break;
-			if (node.hasEffects(context)) return true;
+			if (node.hasEffects(context)) {
+				logEffect(node, this.context.module);
+				return true;
+			}
 		}
 		return false;
 	}
