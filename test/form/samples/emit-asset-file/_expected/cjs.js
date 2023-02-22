@@ -1,6 +1,6 @@
 'use strict';
 
-var logo = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/logo-a2a2cdc4.svg').href : new URL('assets/logo-a2a2cdc4.svg', document.currentScript && document.currentScript.src || document.baseURI).href);
+var logo = (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__dirname + '/assets/logo-a2a2cdc4.svg').href : new URL('assets/logo-a2a2cdc4.svg', document.currentScript && document.currentScript.src || document.baseURI).href);
 
 function showImage(url) {
 	console.log(url);
