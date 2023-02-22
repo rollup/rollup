@@ -1,8 +1,9 @@
 import type * as acorn from 'acorn';
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
-import type { AstContext } from '../../../Module';
+import type { AstContext, default as Module } from '../../../Module';
 import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
+import relativeId from '../../../utils/relativeId';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -171,8 +172,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	): void {}
 
 	/**
-	 * Override this to bind assignments to variables and do any initialisations that
-	 * require the scopes to be populated with variables.
+	 * Override this to bind assignments to variables and do any initialisations
+	 * that require the scopes to be populated with variables.
 	 */
 	bind(): void {
 		for (const key of this.keys) {
@@ -188,7 +189,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	/**
-	 * Override if this node should receive a different scope than the parent scope.
+	 * Override if this node should receive a different scope than the parent
+	 * scope.
 	 */
 	createScope(parentScope: ChildScope): void {
 		this.scope = parentScope;
@@ -244,7 +246,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	/**
-	 * Override to perform special initialisation steps after the scope is initialised
+	 * Override to perform special initialisation steps after the scope is
+	 * initialised
 	 */
 	initialise(): void {}
 
@@ -350,4 +353,21 @@ export function locateNode(node: Node): Location & { file: string } {
 
 export function logNode(node: Node): string {
 	return node.context.code.slice(node.start, node.end);
+}
+
+export function logEffect(node: Node, module: Module) {
+	if (!module.hasLoggedEffect) {
+		module.hasLoggedEffect = true;
+		let effect = logNode(node);
+		let truncated = false;
+		if (effect.length > 150) {
+			truncated = true;
+			effect = effect.slice(0, 150) + '...';
+		}
+		console.log(
+			`==> First side effect in ${relativeId(module.id)}${truncated ? ' (truncated)' : ''}:`
+		);
+		console.log(effect);
+		console.log('<==\n');
+	}
 }
