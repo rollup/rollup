@@ -1,9 +1,8 @@
 import type * as acorn from 'acorn';
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
-import type { AstContext, default as Module } from '../../../Module';
+import type { AstContext } from '../../../Module';
 import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
-import relativeId from '../../../utils/relativeId';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -353,21 +352,4 @@ export function locateNode(node: Node): Location & { file: string } {
 
 export function logNode(node: Node): string {
 	return node.context.code.slice(node.start, node.end);
-}
-
-export function logEffect(node: Node, module: Module) {
-	if (!module.hasLoggedEffect) {
-		module.hasLoggedEffect = true;
-		let effect = logNode(node);
-		let truncated = false;
-		if (effect.length > 150) {
-			truncated = true;
-			effect = effect.slice(0, 150) + '...';
-		}
-		console.log(
-			`==> First side effect in ${relativeId(module.id)}${truncated ? ' (truncated)' : ''}:`
-		);
-		console.log(effect);
-		console.log('<==\n');
-	}
 }
