@@ -1,9 +1,10 @@
 import type MagicString from 'magic-string';
+import relativeId from '../../utils/relativeId';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
-import { type IncludeChildren, logEffect, NodeBase, type StatementNode } from './shared/Node';
+import { type IncludeChildren, logNode, NodeBase, type StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
 	declare body: readonly StatementNode[];
@@ -11,6 +12,7 @@ export default class Program extends NodeBase {
 	declare type: NodeType.tProgram;
 
 	private hasCachedEffect: boolean | null = null;
+	private hasLoggedEffect = false;
 
 	hasCachedEffects(): boolean {
 		return this.hasCachedEffect === null
@@ -21,7 +23,22 @@ export default class Program extends NodeBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) {
-				logEffect(node, this.context.module);
+				if (!this.hasLoggedEffect) {
+					this.hasLoggedEffect = true;
+					let effect = logNode(node);
+					let truncated = false;
+					if (effect.length > 150) {
+						truncated = true;
+						effect = effect.slice(0, 150) + '...';
+					}
+					console.log(
+						`==> First side effect in ${relativeId(this.context.module.id)}${
+							truncated ? ' (truncated)' : ''
+						}:`
+					);
+					console.log(effect);
+					console.log('<==\n');
+				}
 				return (this.hasCachedEffect = true);
 			}
 		}
