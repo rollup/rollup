@@ -691,7 +691,7 @@ export interface OutputOptions {
 	sourcemapBaseUrl?: string;
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
-	sourcemapIgnoreList?: SourcemapIgnoreListOption;
+	sourcemapIgnoreList?: boolean | SourcemapIgnoreListOption;
 	sourcemapPathTransform?: SourcemapPathTransformOption;
 	strict?: boolean;
 	systemNullSetters?: boolean;
@@ -746,7 +746,7 @@ export interface NormalizedOutputOptions {
 	sourcemapBaseUrl: string | undefined;
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
-	sourcemapIgnoreList: SourcemapIgnoreListOption | undefined;
+	sourcemapIgnoreList: SourcemapIgnoreListOption;
 	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
 	strict: boolean;
 	systemNullSetters: boolean;

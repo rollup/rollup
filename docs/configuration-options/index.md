@@ -1415,9 +1415,9 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 
 ### output.sourcemapIgnoreList
 
-|       |                                                                  |
-| ----: | :--------------------------------------------------------------- |
-| Type: | `(relativeSourcePath: string, sourcemapPath: string) => boolean` |
+|  |  |
+| --: | :-- |
+| Type: | `boolean \| (relativeSourcePath: string, sourcemapPath: string) => boolean` |
 
 A predicate to decide whether or not to ignore-list source files in a sourcemap, used to populate the [`x_google_ignoreList` source map extension](https://developer.chrome.com/blog/devtools-better-angular-debugging/#the-x_google_ignorelist-source-map-extension). `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
 
@@ -1438,6 +1438,8 @@ export default {
 	]
 };
 ```
+
+When you don't specify this option explicitly, by default it will put all files with `node_modules` in their path on the ignore list. You can specify `false` here to turn off the ignore-listing completely.
 
 ### output.sourcemapPathTransform
 
