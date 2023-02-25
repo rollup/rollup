@@ -162,6 +162,11 @@ const getGenericImportMetaMechanism =
 			: 'undefined';
 	};
 
+const getFileUrlFromFullPath = (path: string) => `require('u' + 'rl').pathToFileURL(${path}).href`;
+
+const getFileUrlFromRelativePath = (path: string) =>
+	getFileUrlFromFullPath(`__dirname + '/${path}'`);
+
 const getUrlFromDocument = (chunkId: string, umd = false) =>
 	`${
 		umd ? `typeof document === 'undefined' ? location.href : ` : ''
@@ -175,17 +180,16 @@ const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string)
 		return getResolveUrl(`require.toUrl('${relativePath}'), document.baseURI`);
 	},
 	cjs: relativePath =>
-		`(typeof document === 'undefined' ? ${`require('u' + 'rl').pathToFileURL(__dirname + '/${relativePath}').href`} : ${getRelativeUrlFromDocument(
+		`(typeof document === 'undefined' ? ${getFileUrlFromRelativePath(
 			relativePath
-		)})`,
+		)} : ${getRelativeUrlFromDocument(relativePath)})`,
 	es: relativePath => getResolveUrl(`'${relativePath}', import.meta.url`),
 	iife: relativePath => getRelativeUrlFromDocument(relativePath),
 	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
 	umd: relativePath =>
-		`(typeof document === 'undefined' && typeof location === 'undefined' ? ${`require('u' + 'rl').pathToFileURL(__dirname + '/${relativePath}').href`} : ${getRelativeUrlFromDocument(
-			relativePath,
-			true
-		)})`
+		`(typeof document === 'undefined' && typeof location === 'undefined' ? ${getFileUrlFromRelativePath(
+			relativePath
+		)} : ${getRelativeUrlFromDocument(relativePath, true)})`
 };
 
 const importMetaMechanisms: Record<
@@ -195,18 +199,17 @@ const importMetaMechanisms: Record<
 	amd: getGenericImportMetaMechanism(() => getResolveUrl(`module.uri, document.baseURI`)),
 	cjs: getGenericImportMetaMechanism(
 		chunkId =>
-			`(typeof document === 'undefined' ? ${`require('u' + 'rl').pathToFileURL(__filename).href`} : ${getUrlFromDocument(
-				chunkId
-			)})`
+			`(typeof document === 'undefined' ? ${getFileUrlFromFullPath(
+				'__filename'
+			)} : ${getUrlFromDocument(chunkId)})`
 	),
 	iife: getGenericImportMetaMechanism(chunkId => getUrlFromDocument(chunkId)),
 	system: (property, { snippets: { getPropertyAccess } }) =>
 		property === null ? `module.meta` : `module.meta${getPropertyAccess(property)}`,
 	umd: getGenericImportMetaMechanism(
 		chunkId =>
-			`(typeof document === 'undefined' && typeof location === 'undefined' ? ${`require('u' + 'rl').pathToFileURL(__filename).href`} : ${getUrlFromDocument(
-				chunkId,
-				true
-			)})`
+			`(typeof document === 'undefined' && typeof location === 'undefined' ? ${getFileUrlFromFullPath(
+				'__filename'
+			)} : ${getUrlFromDocument(chunkId, true)})`
 	)
 };

@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+const { pathToFileURL } = require('node:url');
 
 module.exports = {
 	description: 'lists referenced files in the bundle',
@@ -32,13 +33,14 @@ module.exports = {
 		}
 	},
 	context: {
-		__dirname: '/dir' // This should be an absolute path.
+		__dirname: 'dir'
 	},
 	exports(exports) {
+		const directoryURL = pathToFileURL('dir');
 		assert.deepStrictEqual(exports, {
-			asset: 'file:///dir/assets/asset.txt',
-			chunk: 'file:///dir/chunks/ref.js',
-			urlEncoding: 'file:///dir/chunks/My%252FFile.js'
+			asset: `${directoryURL}/assets/asset.txt`,
+			chunk: `${directoryURL}/chunks/ref.js`,
+			urlEncoding: `${directoryURL}/chunks/My%252FFile.js`
 		});
 	}
 };
