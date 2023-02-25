@@ -3,7 +3,7 @@
 var shared = require('./chunks/shared.js');
 
 const getWorkerMessage = () => new Promise(resolve => {
-  const worker = new Worker((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/chunks/worker-proxy.js').href : new URL('chunks/worker-proxy.js', document.currentScript && document.currentScript.src || document.baseURI).href));
+  const worker = new Worker((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__dirname + '/chunks/worker-proxy.js').href : new URL('chunks/worker-proxy.js', document.currentScript && document.currentScript.src || document.baseURI).href));
   worker.onmessage = resolve;
 });
 
