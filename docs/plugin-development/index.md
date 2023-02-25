@@ -577,7 +577,7 @@ If a plugin does not return `true`, Rollup will trigger this hook for other plug
 
 |  |  |
 | --: | :-- |
-| Type: | `({code: string, id: string}) => TransformResult` |
+| Type: | `(code: string, id: string) => TransformResult` |
 | Kind: | async, sequential |
 | Previous: | [`load`](#load) where the currently handled file was loaded. If caching is used and there was a cached copy of that module, [`shouldTransformCachedModule`](#shouldtransformcachedmodule) if a plugin returned `true` for that hook |
 | Next: | [`moduleParsed`](#moduleparsed) once the file has been processed and parsed |
