@@ -51,14 +51,12 @@ async function runTest(config, command) {
 			command,
 			{
 				timeout: 40_000,
-				env: { ...process.env, FORCE_COLOR: '0', ...config.env }
+				env: { ...process.env, FORCE_COLOR: '0', ...config.env },
+				killSignal: 'SIGKILL'
 			},
 			(error, code, stderr) => {
 				if (config.after) config.after(error, code, stderr);
-				if (error) {
-					if (error.killed) {
-						return reject(new Error('Test aborted due to timeout.', { cause: error }));
-					}
+				if (error && !error.killed) {
 					if (config.error) {
 						if (!config.error(error)) {
 							return resolve();
@@ -66,6 +64,9 @@ async function runTest(config, command) {
 					} else {
 						return reject(error);
 					}
+				}
+				if (childProcess.signalCode === 'SIGKILL') {
+					return reject(new Error('Test aborted due to timeout.'));
 				}
 
 				if ('stderr' in config) {
