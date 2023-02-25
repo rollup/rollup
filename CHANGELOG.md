@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 3.17.3
+
+_2023-02-25_
+
+### Bug Fixes
+
+- Handle non-URL-safe characters when poly-filling import.meta.url (#4875)
+
+### Pull Requests
+
+- [#4870](https://github.com/rollup/rollup/pull/4870): fix: style optimization in dark mode (@huodoushigemi)
+- [#4875](https://github.com/rollup/rollup/pull/4875): Fix transformation of `import.meta.url` in CommonJS (@fasttime)
+- [#4876](https://github.com/rollup/rollup/pull/4876): fix: wrong params of the transform hook (@ZzqiZQute)
+- [#4878](https://github.com/rollup/rollup/pull/4878): Improve test stability (@lukastaegert)
+
 ## 3.17.2
 
 _2023-02-20_
