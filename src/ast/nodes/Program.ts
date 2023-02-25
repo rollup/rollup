@@ -1,10 +1,13 @@
+import { locate } from 'locate-character';
 import type MagicString from 'magic-string';
+import getCodeFrame from '../../utils/getCodeFrame';
+import { getOriginalLocation } from '../../utils/getOriginalLocation';
 import relativeId from '../../utils/relativeId';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
-import { type IncludeChildren, logNode, NodeBase, type StatementNode } from './shared/Node';
+import { type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
 	declare body: readonly StatementNode[];
@@ -25,19 +28,31 @@ export default class Program extends NodeBase {
 			if (node.hasEffects(context)) {
 				if (!this.hasLoggedEffect) {
 					this.hasLoggedEffect = true;
-					let effect = logNode(node);
-					let truncated = false;
-					if (effect.length > 150) {
-						truncated = true;
-						effect = effect.slice(0, 150) + '...';
-					}
+					const { code, module } = this.context;
+					const { line, column } = locate(code, node.start, { offsetLine: 1 });
 					console.log(
-						`==> First side effect in ${relativeId(this.context.module.id)}${
-							truncated ? ' (truncated)' : ''
-						}:`
+						`First side effect in ${relativeId(
+							module.id
+						)} is at (${line}:${column})\n${getCodeFrame(code, line, column)}`
 					);
-					console.log(effect);
-					console.log('<==\n');
+					try {
+						const { column: originalColumn, line: originalLine } = getOriginalLocation(
+							module.sourcemapChain,
+							{ column, line }
+						);
+						if (originalLine !== line) {
+							console.log(
+								`Original location is at (${originalLine}:${originalColumn})\n${getCodeFrame(
+									module.originalCode,
+									originalLine,
+									originalColumn
+								)}\n`
+							);
+						}
+					} catch {
+						/* ignored */
+					}
+					console.log();
 				}
 				return (this.hasCachedEffect = true);
 			}
