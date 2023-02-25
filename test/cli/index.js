@@ -21,15 +21,23 @@ runTestSuiteWithSamples(
 	(directory, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
 			basename(directory) + ': ' + config.description,
-			() => {
+			async () => {
 				process.chdir(config.cwd || directory);
 				const command = config.command.replace(
 					/(^| )rollup($| )/g,
 					`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
 				);
-				return runTest(config, command);
+				try {
+					await runTest(config, command);
+				} catch (error) {
+					if (config.retry) {
+						console.error('Initial test run failed: ' + error.message + '\nRETRYING...\n');
+						return runTest(config, command);
+					}
+					throw error;
+				}
 			}
-		).timeout(50_000);
+		).timeout(80_000);
 	},
 	() => process.chdir(cwd)
 );
@@ -47,12 +55,16 @@ async function runTest(config, command) {
 			},
 			(error, code, stderr) => {
 				if (config.after) config.after(error, code, stderr);
-				if (error && !error.killed) {
+				if (error) {
+					if (error.killed) {
+						return reject(new Error('Test aborted due to timeout.', { cause: error }));
+					}
 					if (config.error) {
-						const shouldContinue = config.error(error);
-						if (!shouldContinue) return resolve();
+						if (!config.error(error)) {
+							return resolve();
+						}
 					} else {
-						throw error;
+						return reject(error);
 					}
 				}
 
@@ -94,36 +106,38 @@ async function runTest(config, command) {
 
 					if (config.solo) console.groupEnd();
 
-					unintendedError ? reject(unintendedError) : resolve();
-				} else if (config.result) {
+					return unintendedError ? reject(unintendedError) : resolve();
+				}
+				if (config.result) {
 					try {
 						config.result(code);
-						resolve();
+						return resolve();
 					} catch (error) {
-						reject(error);
+						return reject(error);
 					}
-				} else if (config.test) {
+				}
+				if (config.test) {
 					try {
 						config.test();
-						resolve();
+						return resolve();
 					} catch (error) {
-						reject(error);
+						return reject(error);
 					}
-				} else if (existsSync('_expected') && statSync('_expected').isDirectory()) {
+				}
+				if (existsSync('_expected') && statSync('_expected').isDirectory()) {
 					try {
 						assertDirectoriesAreEqual('_actual', '_expected');
-						resolve();
+						return resolve();
 					} catch (error) {
-						reject(error);
+						return reject(error);
 					}
-				} else {
-					const expected = readFileSync('_expected.js', 'utf8');
-					try {
-						assert.equal(normaliseOutput(code), normaliseOutput(expected));
-						resolve();
-					} catch (error) {
-						reject(error);
-					}
+				}
+				const expected = readFileSync('_expected.js', 'utf8');
+				try {
+					assert.equal(normaliseOutput(code), normaliseOutput(expected));
+					return resolve();
+				} catch (error) {
+					return reject(error);
 				}
 			}
 		);
