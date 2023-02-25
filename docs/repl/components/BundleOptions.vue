@@ -51,7 +51,6 @@
 			</section>
 		</div>
 		<div v-if="optionsStore.additionalAvailableOptions.length > 0" class="add-option">
-			<span class="icon-plus"></span>
 			<select
 				@input="
 					optionsStore.addOption($event.target.value);
@@ -67,6 +66,7 @@
 					{{ option }}
 				</option>
 			</select>
+			<span class="icon-plus"></span>
 		</div>
 	</div>
 </template>
@@ -165,7 +165,7 @@ select {
 	position: relative;
 	cursor: pointer;
 	appearance: none;
-	background: transparent;
+	background: var(--vp-c-bg);
 	padding-right: 20px;
 	width: 100px;
 }
