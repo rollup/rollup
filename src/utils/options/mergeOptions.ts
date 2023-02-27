@@ -125,6 +125,7 @@ async function mergeInputOptions(
 		cache: config.cache as false | RollupCache | undefined,
 		context: getOption('context'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry'),
+		experimentalLogSideEffects: getOption('experimentalLogSideEffects'),
 		external: getExternal(config, overrides),
 		inlineDynamicImports: getOption('inlineDynamicImports'),
 		input: getOption('input') || [],

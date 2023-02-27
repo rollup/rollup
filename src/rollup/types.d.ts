@@ -523,6 +523,7 @@ export interface InputOptions {
 	cache?: boolean | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;
+	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports?: boolean;
@@ -557,6 +558,7 @@ export interface NormalizedInputOptions {
 	cache: false | undefined | RollupCache;
 	context: string;
 	experimentalCacheExpiry: number;
+	experimentalLogSideEffects: boolean;
 	external: IsExternal;
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports: boolean | undefined;

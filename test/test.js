@@ -11,6 +11,6 @@ describe('rollup', function () {
 	require('./incremental/index.js');
 	require('./hooks/index.js');
 	require('./load-config-file/index.js');
-	// require('./cli/index.js');
-	// require('./watch/index.js');
+	require('./cli/index.js');
+	require('./watch/index.js');
 });

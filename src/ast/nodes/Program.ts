@@ -26,7 +26,7 @@ export default class Program extends NodeBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) {
-				if (!this.hasLoggedEffect) {
+				if (this.context.options.experimentalLogSideEffects && !this.hasLoggedEffect) {
 					this.hasLoggedEffect = true;
 					const { code, module } = this.context;
 					const { line, column } = locate(code, node.start, { offsetLine: 1 });
