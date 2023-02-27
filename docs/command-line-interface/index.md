@@ -63,6 +63,7 @@ export default {
 
 	// experimental
 	experimentalCacheExpiry,
+	experimentalLogSideEffects,
 	perf,
 
 	// required (can be an array, for multiple outputs)
@@ -70,7 +71,7 @@ export default {
 		// core output options
 		dir,
 		file,
-		format, // required
+		format,
 		globals,
 		name,
 		plugins,
@@ -113,7 +114,10 @@ export default {
 		preferConst,
 		sanitizeFileName,
 		strict,
-		systemNullSetters
+		systemNullSetters,
+
+		// experimental
+		experimentalMinChunkSize
 	},
 
 	watch: {
