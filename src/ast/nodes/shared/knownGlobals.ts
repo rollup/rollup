@@ -290,6 +290,7 @@ const knownGlobals: GlobalDescription = {
 	URIError: PC,
 	valueOf: O,
 	WeakMap: PC,
+	WeakRef: PC,
 	WeakSet: PC,
 
 	// Web API globals shared by Browsers, Node.js, WinterCG (Cloudflare Workers, Deno and others)
