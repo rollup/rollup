@@ -232,12 +232,11 @@ async function transformChunksAndGenerateContentHashes(
 				};
 				const { code } = transformedChunk;
 				if (hashPlaceholder) {
-					const hash = createHash();
 					// To create a reproducible content-only hash, all placeholders are
 					// replaced with the same value before hashing
 					const { containedPlaceholders, transformedCode } =
 						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
-					hash.update(transformedCode);
+					const hash = createHash().update(transformedCode);
 					const hashAugmentation = pluginDriver.hookReduceValueSync(
 						'augmentChunkHash',
 						'',
@@ -293,8 +292,7 @@ function generateFinalHashes(
 		do {
 			// In case of a hash collision, create a hash of the hash
 			if (finalHash) {
-				hash = createHash();
-				hash.update(finalHash);
+				hash = createHash().update(finalHash);
 			}
 			finalHash = hash.digest('hex').slice(0, placeholder.length);
 			finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash);
