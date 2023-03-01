@@ -215,7 +215,9 @@ const knownGlobals: GlobalDescription = {
 		// deoptimizes everything anyway
 		defineProperty: MUTATES_ARG_WITHOUT_ACCESSOR,
 		defineProperties: MUTATES_ARG_WITHOUT_ACCESSOR,
+		entries: PF,
 		freeze: MUTATES_ARG_WITHOUT_ACCESSOR,
+		fromEntries: PF,
 		getOwnPropertyDescriptor: PF,
 		getOwnPropertyDescriptors: PF,
 		getOwnPropertyNames: PF,
@@ -227,8 +229,6 @@ const knownGlobals: GlobalDescription = {
 		isFrozen: PF,
 		isSealed: PF,
 		keys: PF,
-		fromEntries: PF,
-		entries: PF,
 		prototype: O
 	},
 	parseFloat: PF,
