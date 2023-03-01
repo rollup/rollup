@@ -14,10 +14,6 @@ export const resolutions = {
 	[resolve('src/utils/resolveId')]: resolve('browser/src/resolveId.ts')
 };
 
-for (const [key, value] of Object.entries(resolutions)) {
-	resolutions[`${key}.ts`] = value;
-}
-
 export default function replaceBrowserModules(): Plugin {
 	return {
 		name: 'replace-browser-modules',
