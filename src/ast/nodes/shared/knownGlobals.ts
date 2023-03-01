@@ -853,6 +853,7 @@ const knownGlobals: GlobalDescription = {
 	TreeWalker: C,
 	UIEvent: C,
 	URL: C,
+	URLPattern: C,
 	URLSearchParams: C,
 	TextDecoder: C,
 	TextEncoder: C,
