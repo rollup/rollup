@@ -171,8 +171,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	): void {}
 
 	/**
-	 * Override this to bind assignments to variables and do any initialisations that
-	 * require the scopes to be populated with variables.
+	 * Override this to bind assignments to variables and do any initialisations
+	 * that require the scopes to be populated with variables.
 	 */
 	bind(): void {
 		for (const key of this.keys) {
@@ -188,7 +188,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	/**
-	 * Override if this node should receive a different scope than the parent scope.
+	 * Override if this node should receive a different scope than the parent
+	 * scope.
 	 */
 	createScope(parentScope: ChildScope): void {
 		this.scope = parentScope;
@@ -244,7 +245,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	/**
-	 * Override to perform special initialisation steps after the scope is initialised
+	 * Override to perform special initialisation steps after the scope is
+	 * initialised
 	 */
 	initialise(): void {}
 
