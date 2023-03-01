@@ -104,6 +104,7 @@ const knownGlobals: GlobalDescription = {
 	// Common globals
 	__proto__: null,
 	[ValueProperties]: IMPURE,
+	AggregateError: PC,
 	Array: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
