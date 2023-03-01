@@ -53,6 +53,7 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 		cache: getCache(config),
 		context,
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
+		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
 		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
 		input: getInput(config),

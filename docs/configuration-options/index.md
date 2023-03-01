@@ -1415,9 +1415,9 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 
 ### output.sourcemapIgnoreList
 
-|       |                                                                  |
-| ----: | :--------------------------------------------------------------- |
-| Type: | `(relativeSourcePath: string, sourcemapPath: string) => boolean` |
+|  |  |
+| --: | :-- |
+| Type: | `boolean \| (relativeSourcePath: string, sourcemapPath: string) => boolean` |
 
 A predicate to decide whether or not to ignore-list source files in a sourcemap, used to populate the [`x_google_ignoreList` source map extension](https://developer.chrome.com/blog/devtools-better-angular-debugging/#the-x_google_ignorelist-source-map-extension). `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
 
@@ -1438,6 +1438,8 @@ export default {
 	]
 };
 ```
+
+When you don't specify this option explicitly, by default it will put all files with `node_modules` in their path on the ignore list. You can specify `false` here to turn off the ignore-listing completely.
 
 ### output.sourcemapPathTransform
 
@@ -2074,7 +2076,7 @@ logIfEnabled(); // needs to be retained as it displays a log
 
 Allows to manually define a list of function names that should always be considered "pure", i.e. they have no side effects like changing global state etc. when called. The check is performed solely by name.
 
-This can not only help with dead code removal, but can also improve JavaScript chunk generation especially when using [`experimentalMinChunkSize`](#experimentalminchunksize).
+This can not only help with dead code removal, but can also improve JavaScript chunk generation especially when using [`output.experimentalMinChunkSize`](#output-experimentalminchunksize).
 
 Besides any functions matching that name, any properties on a pure function and any functions returned from a pure functions will also be considered pure functions, and accessing any properties is not checked for side effects.
 
@@ -2318,7 +2320,19 @@ These options reflect new features that have not yet been fully finalized. Avail
 
 Determines after how many runs cached assets that are no longer used by plugins should be removed.
 
-### experimentalMinChunkSize
+### experimentalLogSideEffects
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| CLI: | `--experimentalLogSideEffects`/`--no-experimentalLogSideEffects` |
+| Default: | `false` |
+
+When set to `true`, this will log the first side effect it finds in every file to the console. This can be very helpful to figure which files have side effects and what the actual side effects are. Removing side effects can improve tree-shaking and chunk generation and is crucial to make [`output.experimentalMinChunkSize`](#output-experimentalminchunksize) work.
+
+This option will only log top-level statements, though. Sometimes, e.g. in case of immediately-invoked-function-expressions, the actual side effect can be hidden inside a nested expression.
+
+### output.experimentalMinChunkSize
 
 |          |                                     |
 | -------: | :---------------------------------- |

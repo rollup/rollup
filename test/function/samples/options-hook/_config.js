@@ -16,6 +16,7 @@ module.exports = {
 					acornInjectPlugins: [null],
 					context: 'undefined',
 					experimentalCacheExpiry: 10,
+					experimentalLogSideEffects: false,
 					input: ['used'],
 					makeAbsoluteExternalsRelative: 'ifRelativeSource',
 					maxParallelFileOps: 20,

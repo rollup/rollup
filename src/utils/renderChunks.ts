@@ -1,6 +1,5 @@
 import type { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import type { ChunkRenderResult } from '../Chunk';
-import type Chunk from '../Chunk';
+import type { default as Chunk, ChunkRenderResult } from '../Chunk';
 import type Module from '../Module';
 import type {
 	DecodedSourceMapOrMissing,
@@ -162,18 +161,16 @@ async function transformChunk(
 		for (let sourcesIndex = 0; sourcesIndex < map.sources.length; ++sourcesIndex) {
 			let sourcePath = map.sources[sourcesIndex];
 			const sourcemapPath = `${resultingFile}.map`;
-			if (sourcemapIgnoreList) {
-				const ignoreList = sourcemapIgnoreList(sourcePath, sourcemapPath);
-				if (typeof ignoreList !== 'boolean') {
-					error(errorFailedValidation('sourcemapIgnoreList function must return a boolean.'));
+			const ignoreList = sourcemapIgnoreList(sourcePath, sourcemapPath);
+			if (typeof ignoreList !== 'boolean') {
+				error(errorFailedValidation('sourcemapIgnoreList function must return a boolean.'));
+			}
+			if (ignoreList) {
+				if (map.x_google_ignoreList === undefined) {
+					map.x_google_ignoreList = [];
 				}
-				if (ignoreList) {
-					if (map.x_google_ignoreList === undefined) {
-						map.x_google_ignoreList = [];
-					}
-					if (!map.x_google_ignoreList.includes(sourcesIndex)) {
-						map.x_google_ignoreList.push(sourcesIndex);
-					}
+				if (!map.x_google_ignoreList.includes(sourcesIndex)) {
+					map.x_google_ignoreList.push(sourcesIndex);
 				}
 			}
 			if (sourcemapPathTransform) {

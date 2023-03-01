@@ -63,6 +63,7 @@ export default {
 
 	// experimental
 	experimentalCacheExpiry,
+	experimentalLogSideEffects,
 	perf,
 
 	// required (can be an array, for multiple outputs)
@@ -70,7 +71,7 @@ export default {
 		// core output options
 		dir,
 		file,
-		format, // required
+		format,
 		globals,
 		name,
 		plugins,
@@ -113,7 +114,10 @@ export default {
 		preferConst,
 		sanitizeFileName,
 		strict,
-		systemNullSetters
+		systemNullSetters,
+
+		// experimental
+		experimentalMinChunkSize
 	},
 
 	watch: {
@@ -345,7 +349,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
 
 Many options have command line equivalents. In those cases, any arguments passed here will override the config file, if you're using one. This is a list of all supported options:
 
-```text
+```
 -c, --config <filename>     Use this config file (if argument is used but value
                               is unspecified, defaults to rollup.config.js)
 -d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)

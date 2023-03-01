@@ -4,7 +4,6 @@ import type {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputOptions,
-	SourcemapIgnoreListOption,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
 import {
@@ -109,7 +108,12 @@ export async function normalizeOutputOptions(
 		sourcemapBaseUrl: getSourcemapBaseUrl(config),
 		sourcemapExcludeSources: config.sourcemapExcludeSources || false,
 		sourcemapFile: config.sourcemapFile,
-		sourcemapIgnoreList: config.sourcemapIgnoreList as SourcemapIgnoreListOption | undefined,
+		sourcemapIgnoreList:
+			typeof config.sourcemapIgnoreList === 'function'
+				? config.sourcemapIgnoreList
+				: config.sourcemapIgnoreList === false
+				? () => false
+				: relativeSourcePath => relativeSourcePath.includes('node_modules'),
 		sourcemapPathTransform: config.sourcemapPathTransform as
 			| SourcemapPathTransformOption
 			| undefined,

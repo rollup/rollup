@@ -78,7 +78,7 @@ const cliFlagsText = commandReferenceText
 	.split('\n## ')
 	.find(text => text.startsWith('Command line flags'));
 const optionListLines = cliFlagsText
-	.match(/```text\n([\S\s]*?)\n```/)[1]
+	.match(/```\n([\S\s]*?)\n```/)[1]
 	.split('\n')
 	.filter(line => line.startsWith('-'));
 

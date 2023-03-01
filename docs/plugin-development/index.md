@@ -1141,7 +1141,7 @@ In general, it is recommended to use `this.addWatchFile` from within the hook th
 | ----: | :------------------------------------------------------ |
 | Type: | `(emittedFile: EmittedChunk \| EmittedAsset) => string` |
 
-```ts
+```typescript
 interface EmittedChunk {
 	type: 'chunk';
 	id: string;
@@ -1286,7 +1286,7 @@ or converted into an Array via `Array.from(this.getModuleIds())`.
 | ----: | :------------------------------------------- |
 | Type: | `(moduleId: string) => (ModuleInfo \| null)` |
 
-```ts
+```typescript
 interface ModuleInfo {
 	id: string; // the id of the module, for convenience
 	code: string | null; // the source code of the module, `null` if external or not yet available
