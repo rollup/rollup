@@ -138,10 +138,7 @@ export default withMermaid(
 					name: 'replace-browser-modules',
 					resolveId(source, importer) {
 						if (importer && source.startsWith('/@fs')) {
-							const resolved = source.slice(4);
-							if (resolutions[resolved]) {
-								return resolutions[resolved];
-							}
+							return resolutions.get(source.slice(4));
 						}
 					},
 					transformIndexHtml(html) {
