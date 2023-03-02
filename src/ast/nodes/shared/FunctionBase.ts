@@ -16,6 +16,7 @@ import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
+import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
@@ -50,11 +51,21 @@ export default abstract class FunctionBase extends NodeBase {
 				path,
 				recursionTracker
 			);
-		} else if (interaction.type === INTERACTION_CALLED) {
-			// TODO Lukas refine
-			if ('args' in interaction) {
-				for (const arg of interaction.args) {
-					arg.deoptimizePath(UNKNOWN_PATH);
+		} else if (interaction.type === INTERACTION_CALLED && 'args' in interaction) {
+			console.log('FunctionBase deopt');
+			const { parameters } = this.scope;
+			const { args } = interaction;
+			let hasRest = false;
+			for (let position = 0; position < args.length; position++) {
+				const parameter = this.params[position];
+				if (hasRest || parameter instanceof RestElement) {
+					hasRest = true;
+					args[position].deoptimizePath(UNKNOWN_PATH);
+				} else if (parameter instanceof Identifier) {
+					// args[position].deoptimizePath(UNKNOWN_PATH);
+					parameters[position][0].addEntityToBeDeoptimized(args[position]);
+				} else if (parameter) {
+					args[position].deoptimizePath(UNKNOWN_PATH);
 				}
 			}
 		}

@@ -7,11 +7,7 @@ import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHe
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import {
-	EMPTY_PATH,
-	type PathTracker,
-	SHARED_RECURSION_TRACKER
-} from '../utils/PathTracker';
+import { EMPTY_PATH, type PathTracker, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';

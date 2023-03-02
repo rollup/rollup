@@ -6,6 +6,7 @@ export const INTERACTION_ACCESSED = 0;
 export const INTERACTION_ASSIGNED = 1;
 export const INTERACTION_CALLED = 2;
 
+// TODO Lukas maybe add args?:null and remove all "'args' in" checks?
 export interface NodeInteractionAccessed {
 	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_ACCESSED;
