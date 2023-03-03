@@ -51,8 +51,7 @@ export default abstract class FunctionBase extends NodeBase {
 				path,
 				recursionTracker
 			);
-		} else if (interaction.type === INTERACTION_CALLED && 'args' in interaction) {
-			console.log('FunctionBase deopt');
+		} else if (interaction.type === INTERACTION_CALLED && interaction.args) {
 			const { parameters } = this.scope;
 			const { args } = interaction;
 			let hasRest = false;

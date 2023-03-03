@@ -1,11 +1,7 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import {
-	INTERACTION_ASSIGNED,
-	INTERACTION_CALLED,
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
+import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../../NodeInteractions';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
 	type ExpressionEntity,
@@ -28,9 +24,9 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		recursionTracker: PathTracker
 	): void {
 		// TODO Lukas refine
-		if ('args' in interaction) {
-			for (const arg of interaction.args) {
-				arg.deoptimizePath(UNKNOWN_PATH);
+		if (interaction.args) {
+			for (const argument of interaction.args) {
+				argument.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
 		const { thisArg } = interaction;

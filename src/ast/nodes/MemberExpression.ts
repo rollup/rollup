@@ -146,7 +146,7 @@ export default class MemberExpression
 				);
 			} else {
 				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-				if ('args' in interaction) {
+				if (interaction.args) {
 					for (const argument of interaction.args) {
 						argument.deoptimizePath(UNKNOWN_PATH);
 					}
@@ -301,7 +301,7 @@ export default class MemberExpression
 
 	initialise(): void {
 		this.propertyKey = getResolvablePropertyKey(this);
-		this.accessInteraction = { thisArg: this.object, type: INTERACTION_ACCESSED };
+		this.accessInteraction = { args: null, thisArg: this.object, type: INTERACTION_ACCESSED };
 	}
 
 	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {

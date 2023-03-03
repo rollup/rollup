@@ -34,7 +34,7 @@ export class ExpressionEntity implements WritableEntity {
 		_recursionTracker: PathTracker
 	): void {
 		interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-		if ('args' in interaction) {
+		if (interaction.args) {
 			for (const argument of interaction.args) {
 				argument.deoptimizePath(UNKNOWN_PATH);
 			}

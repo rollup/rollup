@@ -1,8 +1,5 @@
 import type { HasEffectsContext } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,

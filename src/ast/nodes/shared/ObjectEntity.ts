@@ -104,7 +104,7 @@ export class ObjectEntity extends ExpressionEntity {
 					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
 			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if ('args' in interaction) {
+			if (interaction.args) {
 				for (const argument of interaction.args) {
 					argument.deoptimizePath(UNKNOWN_PATH);
 				}
@@ -136,7 +136,7 @@ export class ObjectEntity extends ExpressionEntity {
 						this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 					}
 					// TODO Lukas refine
-					if ('args' in interaction) {
+					if (interaction.args) {
 						for (const argument of interaction.args) {
 							argument.deoptimizePath(UNKNOWN_PATH);
 						}
@@ -170,7 +170,7 @@ export class ObjectEntity extends ExpressionEntity {
 				this.thisParametersToBeDeoptimized.add(interaction.thisArg);
 			}
 			// TODO Lukas refine
-			if ('args' in interaction) {
+			if (interaction.args) {
 				for (const argument of interaction.args) {
 					argument.deoptimizePath(UNKNOWN_PATH);
 				}

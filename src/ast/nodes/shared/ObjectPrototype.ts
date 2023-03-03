@@ -23,7 +23,7 @@ const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 		deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
 			if (interaction.type === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {
 				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-				if ('args' in interaction) {
+				if (interaction.args) {
 					for (const argument of interaction.args) {
 						argument.deoptimizePath(UNKNOWN_PATH);
 					}

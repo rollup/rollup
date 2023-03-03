@@ -1,12 +1,12 @@
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { Entity } from '../Entity';
-import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
-import { ExpressionEntity } from '../nodes/shared/Expression';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { NodeInteraction } from '../NodeInteractions';
+import type { ExpressionEntity } from '../nodes/shared/Expression';
+import { UNKNOWN_RETURN_EXPRESSION } from '../nodes/shared/Expression';
+import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	DiscriminatedPathTracker,
 	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
+	UnknownKey
 } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
@@ -18,53 +18,39 @@ interface DeoptimizationInteraction {
 export default class ParameterVariable extends LocalVariable {
 	private readonly deoptimizationInteractions: DeoptimizationInteraction[] = [];
 	private readonly deoptimizations = new DiscriminatedPathTracker();
-	private readonly deoptimizedPaths: ObjectPath[] = [];
-	private readonly deoptimizedReturns: {
-		calledPath: ObjectPath;
-		deoptimizedPath: ObjectPath;
-		interaction: NodeInteractionCalled;
-		origin: DeoptimizableEntity;
-	}[] = [];
+	private readonly deoptimizedFields = new Set<ObjectPathKey>();
 	private readonly entitiesToBeDeoptimized = new Set<ExpressionEntity>();
-	private readonly returnTrackingEntity: Entity = {};
 
 	addEntityToBeDeoptimized(entity: ExpressionEntity): void {
-		for (const path of this.deoptimizedPaths) {
-			entity.deoptimizePath(path);
+		if (this.deoptimizedFields.has(UnknownKey)) {
+			entity.deoptimizePath(UNKNOWN_PATH);
+		} else {
+			for (const field of this.deoptimizedFields) {
+				entity.deoptimizePath([field]);
+			}
 		}
 		for (const { interaction, path } of this.deoptimizationInteractions) {
 			entity.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
-		}
-		for (const { calledPath, deoptimizedPath, interaction, origin } of this.deoptimizedReturns) {
-			entity
-				.getReturnExpressionWhenCalledAtPath(
-					calledPath,
-					interaction,
-					SHARED_RECURSION_TRACKER,
-					origin
-				)[0]
-				.deoptimizePath(deoptimizedPath);
 		}
 		this.entitiesToBeDeoptimized.add(entity);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
-		console.log(
-			'deoptimizeArgumentsOnInteractionAtPath',
-			this.entitiesToBeDeoptimized.size,
-			this.deoptimizationInteractions.length
-		);
-		// TODO Lukas refine
-		if ('args' in interaction) {
-			for (const argument of interaction.args) {
-				argument.deoptimizePath(UNKNOWN_PATH);
+		// For performance reasons, we fully deoptimize all deeper interactions
+		if (path.length >= 2) {
+			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+			if (interaction.args) {
+				for (const argument of interaction.args) {
+					argument.deoptimizePath(UNKNOWN_PATH);
+				}
 			}
+			return;
 		}
 		if (
 			interaction.thisArg &&
 			!this.deoptimizations.trackEntityAtPathAndGetIfTracked(
 				path,
-				interaction.type,
+				interaction.args,
 				interaction.thisArg
 			)
 		) {
@@ -78,61 +64,31 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
-	// TODO Lukas we need a better path tracker per entity that just tracks deoptimized paths
 	deoptimizePath(path: ObjectPath): void {
-		console.log('deoptimizePath', this.entitiesToBeDeoptimized.size, this.deoptimizedPaths.length);
-		if (
-			path.length === 0 ||
-			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
-		) {
+		if (path.length === 0 || this.deoptimizedFields.has(UnknownKey)) {
 			return;
 		}
-		this.deoptimizedPaths.push(path);
+		const key = path[0];
+		if (this.deoptimizedFields.has(key)) {
+			return;
+		}
+		this.deoptimizedFields.add(key);
 		for (const entity of this.entitiesToBeDeoptimized) {
 			entity.deoptimizePath(path);
 		}
 	}
 
 	getReturnExpressionWhenCalledAtPath(
-		calledPath: ObjectPath,
-		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		path: ObjectPath
 	): [expression: ExpressionEntity, isPure: boolean] {
-		console.log('getReturnExpressionWhenCalledAtPath');
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const parameter = this;
-		return [
-			new (class ReturnExpressino extends ExpressionEntity {
-				deoptimizePath(deoptimizedPath: ObjectPath) {
-					if (
-						deoptimizedPath.length === 0 ||
-						parameter.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(
-							deoptimizedPath,
-							parameter.returnTrackingEntity
-						)
-					) {
-						return;
-					}
-					console.log(
-						'deoptimizePath return',
-						parameter.entitiesToBeDeoptimized.size,
-						parameter.deoptimizedReturns.length
-					);
-					parameter.deoptimizedReturns.push({ calledPath, deoptimizedPath, interaction, origin });
-					for (const entity of parameter.entitiesToBeDeoptimized) {
-						entity
-							.getReturnExpressionWhenCalledAtPath(
-								calledPath,
-								interaction,
-								recursionTracker,
-								origin
-							)[0]
-							.deoptimizePath(deoptimizedPath);
-					}
-				}
-			})(),
-			false
-		];
+		// We deoptimize everything that is called as that will trivially deoptimize
+		// the corresponding return expressions as well and avoid badly performing
+		// and complicated alternatives
+		if (path.length === 0) {
+			this.deoptimizePath(UNKNOWN_PATH);
+		} else if (!this.deoptimizedFields.has(path[0])) {
+			this.deoptimizePath(path.slice(0, 1));
+		}
+		return UNKNOWN_RETURN_EXPRESSION;
 	}
 }

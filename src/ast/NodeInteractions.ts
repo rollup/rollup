@@ -6,13 +6,14 @@ export const INTERACTION_ACCESSED = 0;
 export const INTERACTION_ASSIGNED = 1;
 export const INTERACTION_CALLED = 2;
 
-// TODO Lukas maybe add args?:null and remove all "'args' in" checks?
 export interface NodeInteractionAccessed {
+	args: null;
 	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_ACCESSED;
 }
 
 export const NODE_INTERACTION_UNKNOWN_ACCESS: NodeInteractionAccessed = {
+	args: null,
 	thisArg: null,
 	type: INTERACTION_ACCESSED
 };
@@ -50,6 +51,8 @@ export const NODE_INTERACTION_UNKNOWN_CALL: NodeInteractionCalled = {
 	withNew: false
 };
 
+// For tracking, called and assigned are uniquely determined by their .args
+// while accessed is determined by .thisArg
 export type NodeInteraction =
 	| NodeInteractionAccessed
 	| NodeInteractionAssigned

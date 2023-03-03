@@ -49,7 +49,7 @@ export default class NamespaceVariable extends Variable {
 				);
 			} else {
 				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-				if ('args' in interaction) {
+				if (interaction.args) {
 					for (const argument of interaction.args) {
 						argument.deoptimizePath(UNKNOWN_PATH);
 					}

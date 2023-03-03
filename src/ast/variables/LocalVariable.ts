@@ -72,7 +72,7 @@ export default class LocalVariable extends Variable {
 	): void {
 		if (this.isReassigned || !this.init) {
 			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if ('args' in interaction) {
+			if (interaction.args) {
 				for (const argument of interaction.args) {
 					argument.deoptimizePath(UNKNOWN_PATH);
 				}
