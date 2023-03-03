@@ -33,7 +33,6 @@ export class Method extends ExpressionEntity {
 		super();
 	}
 
-	// TODO Lukas more necessary for arguments?
 	deoptimizeArgumentsOnInteractionAtPath(
 		{ type, thisArg }: NodeInteraction,
 		path: ObjectPath

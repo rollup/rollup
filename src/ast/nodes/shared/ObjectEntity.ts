@@ -31,6 +31,7 @@ export interface PropertyMap {
 const INTEGER_REG_EXP = /^\d+$/;
 
 export class ObjectEntity extends ExpressionEntity {
+	private readonly additionalExpressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly allProperties: ExpressionEntity[] = [];
 	private readonly deoptimizedPaths: Record<string, boolean> = Object.create(null);
 	private readonly expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> =
@@ -42,7 +43,6 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly propertiesAndGettersByKey: PropertyMap = Object.create(null);
 	private readonly propertiesAndSettersByKey: PropertyMap = Object.create(null);
 	private readonly settersByKey: PropertyMap = Object.create(null);
-	private readonly thisParametersToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly unknownIntegerProps: ExpressionEntity[] = [];
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
 	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
@@ -95,17 +95,18 @@ export class ObjectEntity extends ExpressionEntity {
 		recursionTracker: PathTracker
 	): void {
 		const [key, ...subPath] = path;
+		const { args, thisArg, type } = interaction;
 
 		if (
 			this.hasLostTrack ||
 			// single paths that are deoptimized will not become getters or setters
-			((interaction.type === INTERACTION_CALLED || path.length > 1) &&
+			((type === INTERACTION_CALLED || path.length > 1) &&
 				(this.hasUnknownDeoptimizedProperty ||
 					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
-			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if (interaction.args) {
-				for (const argument of interaction.args) {
+			thisArg?.deoptimizePath(UNKNOWN_PATH);
+			if (args) {
+				for (const argument of args) {
 					argument.deoptimizePath(UNKNOWN_PATH);
 				}
 			}
@@ -113,13 +114,13 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 
 		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
-			interaction.type === INTERACTION_CALLED || path.length > 1
+			type === INTERACTION_CALLED || path.length > 1
 				? [
 						this.propertiesAndGettersByKey,
 						this.propertiesAndGettersByKey,
 						this.unmatchablePropertiesAndGetters
 				  ]
-				: interaction.type === INTERACTION_ACCESSED
+				: type === INTERACTION_ACCESSED
 				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
 				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 
@@ -132,13 +133,12 @@ export class ObjectEntity extends ExpressionEntity {
 					}
 				}
 				if (!this.immutable) {
-					if (interaction.thisArg) {
-						this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+					if (thisArg) {
+						this.additionalExpressionsToBeDeoptimized.add(thisArg);
 					}
-					// TODO Lukas refine
-					if (interaction.args) {
-						for (const argument of interaction.args) {
-							argument.deoptimizePath(UNKNOWN_PATH);
+					if (args) {
+						for (const argument of args) {
+							this.additionalExpressionsToBeDeoptimized.add(argument);
 						}
 					}
 				}
@@ -166,13 +166,12 @@ export class ObjectEntity extends ExpressionEntity {
 			}
 		}
 		if (!this.immutable) {
-			if (interaction.thisArg) {
-				this.thisParametersToBeDeoptimized.add(interaction.thisArg);
+			if (thisArg) {
+				this.additionalExpressionsToBeDeoptimized.add(thisArg);
 			}
-			// TODO Lukas refine
-			if (interaction.args) {
-				for (const argument of interaction.args) {
-					argument.deoptimizePath(UNKNOWN_PATH);
+			if (args) {
+				for (const argument of args) {
+					this.additionalExpressionsToBeDeoptimized.add(argument);
 				}
 			}
 		}
@@ -397,7 +396,7 @@ export class ObjectEntity extends ExpressionEntity {
 				expression.deoptimizeCache();
 			}
 		}
-		for (const expression of this.thisParametersToBeDeoptimized) {
+		for (const expression of this.additionalExpressionsToBeDeoptimized) {
 			expression.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
@@ -412,7 +411,7 @@ export class ObjectEntity extends ExpressionEntity {
 				}
 			}
 		}
-		for (const expression of this.thisParametersToBeDeoptimized) {
+		for (const expression of this.additionalExpressionsToBeDeoptimized) {
 			expression.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}
 	}

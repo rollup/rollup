@@ -15,8 +15,6 @@ export default class ThisVariable extends ParameterVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		// TODO Lukas instead of ParameterVariable, this should either directly go
-		// to LocalVariable or reimplement its "included" logic
 		const replacedVariableInit = context.replacedVariableInits.get(this);
 		if (replacedVariableInit) {
 			return (

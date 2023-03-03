@@ -48,6 +48,7 @@ const PF: GlobalDescription = {
 	[ValueProperties]: PURE
 };
 
+// TODO Lukas this should of course also deoptimize the argument!
 /* FUNCTION THAT MUTATES FIRST ARG WITHOUT TRIGGERING ACCESSORS */
 const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 	__proto__: null,
