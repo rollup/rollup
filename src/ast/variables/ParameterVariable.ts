@@ -1,6 +1,6 @@
 import type { NodeInteraction } from '../NodeInteractions';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNKNOWN_RETURN_EXPRESSION } from '../nodes/shared/Expression';
+import { deoptimizeInteraction, UNKNOWN_RETURN_EXPRESSION } from '../nodes/shared/Expression';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	DiscriminatedPathTracker,
@@ -38,12 +38,7 @@ export default class ParameterVariable extends LocalVariable {
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
 		// For performance reasons, we fully deoptimize all deeper interactions
 		if (path.length >= 2) {
-			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if (interaction.args) {
-				for (const argument of interaction.args) {
-					argument.deoptimizePath(UNKNOWN_PATH);
-				}
-			}
+			deoptimizeInteraction(interaction);
 			return;
 		}
 		if (

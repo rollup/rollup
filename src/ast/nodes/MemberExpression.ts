@@ -35,6 +35,7 @@ import type PrivateIdentifier from './PrivateIdentifier';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import {
+	deoptimizeInteraction,
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION,
@@ -145,12 +146,7 @@ export default class MemberExpression
 					recursionTracker
 				);
 			} else {
-				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-				if (interaction.args) {
-					for (const argument of interaction.args) {
-						argument.deoptimizePath(UNKNOWN_PATH);
-					}
-				}
+				deoptimizeInteraction(interaction);
 			}
 		}
 	}

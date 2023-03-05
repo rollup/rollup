@@ -1,9 +1,8 @@
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
-import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValueOrUnknown } from './Expression';
-import { ExpressionEntity, UnknownValue } from './Expression';
+import { deoptimizeInteraction, ExpressionEntity, UnknownValue } from './Expression';
 import {
 	METHOD_RETURNS_BOOLEAN,
 	METHOD_RETURNS_STRING,
@@ -22,12 +21,7 @@ const OBJECT_PROTOTYPE_FALLBACK: ExpressionEntity =
 	new (class ObjectPrototypeFallbackExpression extends ExpressionEntity {
 		deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
 			if (interaction.type === INTERACTION_CALLED && path.length === 1 && !isInteger(path[0])) {
-				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-				if (interaction.args) {
-					for (const argument of interaction.args) {
-						argument.deoptimizePath(UNKNOWN_PATH);
-					}
-				}
+				deoptimizeInteraction(interaction);
 			}
 		}
 

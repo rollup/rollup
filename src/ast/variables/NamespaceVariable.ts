@@ -7,10 +7,10 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
-import { UnknownValue } from '../nodes/shared/Expression';
+import { deoptimizeInteraction, UnknownValue } from '../nodes/shared/Expression';
 import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import { SymbolToStringTag, UNKNOWN_PATH } from '../utils/PathTracker';
+import { SymbolToStringTag } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -48,12 +48,7 @@ export default class NamespaceVariable extends Variable {
 					recursionTracker
 				);
 			} else {
-				interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-				if (interaction.args) {
-					for (const argument of interaction.args) {
-						argument.deoptimizePath(UNKNOWN_PATH);
-					}
-				}
+				deoptimizeInteraction(interaction);
 			}
 		}
 	}

@@ -51,7 +51,7 @@ export default abstract class FunctionBase extends NodeBase {
 				path,
 				recursionTracker
 			);
-		} else if (interaction.type === INTERACTION_CALLED && interaction.args) {
+		} else if (interaction.type === INTERACTION_CALLED) {
 			const { parameters } = this.scope;
 			const { args } = interaction;
 			let hasRest = false;

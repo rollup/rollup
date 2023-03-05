@@ -33,12 +33,7 @@ export class ExpressionEntity implements WritableEntity {
 		_path: ObjectPath,
 		_recursionTracker: PathTracker
 	): void {
-		interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-		if (interaction.args) {
-			for (const argument of interaction.args) {
-				argument.deoptimizePath(UNKNOWN_PATH);
-			}
-		}
+		deoptimizeInteraction(interaction);
 	}
 
 	deoptimizePath(_path: ObjectPath): void {}
@@ -102,3 +97,12 @@ export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: b
 	UNKNOWN_EXPRESSION,
 	false
 ];
+
+export const deoptimizeInteraction = (interaction: NodeInteraction) => {
+	interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+	if (interaction.args) {
+		for (const argument of interaction.args) {
+			argument.deoptimizePath(UNKNOWN_PATH);
+		}
+	}
+};

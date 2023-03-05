@@ -13,6 +13,7 @@ import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import type SpreadElement from '../nodes/SpreadElement';
 import {
+	deoptimizeInteraction,
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
@@ -71,12 +72,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: PathTracker
 	): void {
 		if (this.isReassigned || !this.init) {
-			interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if (interaction.args) {
-				for (const argument of interaction.args) {
-					argument.deoptimizePath(UNKNOWN_PATH);
-				}
-			}
+			deoptimizeInteraction(interaction);
 			return;
 		}
 		recursionTracker.withTrackedEntityAtPath(
