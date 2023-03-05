@@ -1,7 +1,6 @@
-import { NodeInteraction } from '../NodeInteractions';
-import type { ObjectPath } from '../utils/PathTracker';
-import { PathTracker } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
+import type { NodeInteraction } from '../NodeInteractions';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 

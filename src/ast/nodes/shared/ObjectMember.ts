@@ -1,6 +1,6 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 

@@ -9,10 +9,7 @@ import {
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';

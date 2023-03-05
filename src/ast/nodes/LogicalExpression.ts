@@ -10,10 +10,7 @@ import {
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type ObjectPath,

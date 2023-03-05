@@ -7,10 +7,7 @@ import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
