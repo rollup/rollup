@@ -2,6 +2,7 @@
   "name": "rollup",
   "version": "3.19.1",
   "description": "Next-generation ES module bundler",
+  "packageManager": "pnpm@7.29.0",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
   "types": "dist/rollup.d.ts",
