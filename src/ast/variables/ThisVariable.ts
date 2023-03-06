@@ -7,7 +7,7 @@ import ParameterVariable from './ParameterVariable';
 
 export default class ThisVariable extends ParameterVariable {
 	constructor(context: AstContext) {
-		super('this', null, null, context);
+		super('this', null, context);
 	}
 
 	hasEffectsOnInteractionAtPath(
@@ -15,15 +15,8 @@ export default class ThisVariable extends ParameterVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		const replacedVariableInit = context.replacedVariableInits.get(this);
-		if (replacedVariableInit) {
-			return (
-				replacedVariableInit.hasEffectsOnInteractionAtPath(path, interaction, context) ||
-				// If the surrounding function is included, all mutations of "this" must
-				// be counted as side effects, which is what this second line does.
-				(!context.ignore.this && super.hasEffectsOnInteractionAtPath(path, interaction, context))
-			);
-		}
-		return UNKNOWN_EXPRESSION.hasEffectsOnInteractionAtPath(path, interaction, context);
+		return (
+			context.replacedVariableInits.get(this) || UNKNOWN_EXPRESSION
+		).hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 }

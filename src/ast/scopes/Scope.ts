@@ -13,7 +13,7 @@ export default class Scope {
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,
-		init: ExpressionEntity | null,
+		init: ExpressionEntity,
 		_isHoisted: boolean
 	): LocalVariable {
 		const name = identifier.name;

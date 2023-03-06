@@ -45,13 +45,7 @@ export default abstract class FunctionBase extends NodeBase {
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		if (path.length > 0) {
-			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
-				interaction,
-				path,
-				recursionTracker
-			);
-		} else if (interaction.type === INTERACTION_CALLED) {
+		if (interaction.type === INTERACTION_CALLED) {
 			const { parameters } = this.scope;
 			const { args } = interaction;
 			let hasRest = false;
@@ -67,6 +61,12 @@ export default abstract class FunctionBase extends NodeBase {
 					args[position].deoptimizePath(UNKNOWN_PATH);
 				}
 			}
+		} else {
+			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
+				interaction,
+				path,
+				recursionTracker
+			);
 		}
 	}
 

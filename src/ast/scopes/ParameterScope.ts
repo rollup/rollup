@@ -3,7 +3,6 @@ import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import type LocalVariable from '../variables/LocalVariable';
 import ParameterVariable from '../variables/ParameterVariable';
 import ChildScope from './ChildScope';
@@ -28,7 +27,7 @@ export default class ParameterScope extends ChildScope {
 	 */
 	addParameterDeclaration(identifier: Identifier): ParameterVariable {
 		const { name } = identifier;
-		const variable = new ParameterVariable(name, identifier, UNKNOWN_EXPRESSION, this.context);
+		const variable = new ParameterVariable(name, identifier, this.context);
 		const localVariable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
 		if (localVariable) {
 			this.hoistedBodyVarScope.variables.set(name, variable);

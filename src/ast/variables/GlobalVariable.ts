@@ -27,7 +27,7 @@ export default class GlobalVariable extends Variable {
 			// are also covered via other means, we keep them for completeness
 			case INTERACTION_ACCESSED:
 			case INTERACTION_ASSIGNED: {
-				if (!getGlobalAtPath(path.length === 0 ? [this.name] : [this.name, ...path].slice(0, -1))) {
+				if (!getGlobalAtPath([this.name, ...path].slice(0, -1))) {
 					super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 				}
 				return;

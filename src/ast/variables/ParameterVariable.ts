@@ -1,6 +1,13 @@
+import type { AstContext } from '../../Module';
 import type { NodeInteraction } from '../NodeInteractions';
+import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { deoptimizeInteraction, UNKNOWN_RETURN_EXPRESSION } from '../nodes/shared/Expression';
+import {
+	deoptimizeInteraction,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION
+} from '../nodes/shared/Expression';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	DiscriminatedPathTracker,
@@ -20,6 +27,14 @@ export default class ParameterVariable extends LocalVariable {
 	private readonly deoptimizations = new DiscriminatedPathTracker();
 	private readonly deoptimizedFields = new Set<ObjectPathKey>();
 	private readonly entitiesToBeDeoptimized = new Set<ExpressionEntity>();
+
+	constructor(
+		name: string,
+		declarator: Identifier | ExportDefaultDeclaration | null,
+		context: AstContext
+	) {
+		super(name, declarator, UNKNOWN_EXPRESSION, context);
+	}
 
 	addEntityToBeDeoptimized(entity: ExpressionEntity): void {
 		if (this.deoptimizedFields.has(UnknownKey)) {
