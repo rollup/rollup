@@ -19,12 +19,15 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: refs/pull/${{ github.event.number }}/merge
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 14
+          cache: pnpm
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Build artefacts
         run: npm run build:cjs && npm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
@@ -78,7 +81,7 @@ jobs:
         uses: jakepartusch/wait-for-netlify-action@v1
         id: waitForNetlify
         with:
-          site_name: "rollupjs"
+          site_name: 'rollupjs'
       - name: Update comment for Netlify
         uses: peter-evans/create-or-update-comment@v2
         if: ${{ steps.waitForNetlify.outputs.url }}
