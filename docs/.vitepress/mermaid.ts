@@ -49,7 +49,6 @@ export function renderMermaidGraphsPlugin(): Plugin {
 	}
 
 	return {
-		apply: 'serve',
 		enforce: 'pre',
 		name: 'render-mermaid-charts',
 		async transform(code, id) {
