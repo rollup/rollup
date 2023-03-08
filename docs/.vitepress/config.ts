@@ -4,7 +4,7 @@ import { moduleAliases } from '../../build-plugins/aliases';
 import { resolutions } from '../../build-plugins/replace-browser-modules';
 import '../declarations.d';
 import { examplesPlugin } from './create-examples';
-import { markdownConfig } from './mermaid';
+import { renderMermaidGraphsPlugin } from './mermaid';
 import { transposeTables } from './transpose-tables';
 import { buildEnd, callback, transformPageData } from './verify-anchors';
 
@@ -31,7 +31,6 @@ export default defineConfig({
 			level: 2
 		},
 		config(md) {
-			markdownConfig(md);
 			transposeTables(md);
 		},
 		linkify: false,
@@ -132,6 +131,7 @@ export default defineConfig({
 	vite: {
 		optimizeDeps: { include: ['moment-mini', '@braintree/sanitize-url'] },
 		plugins: [
+			renderMermaidGraphsPlugin(),
 			{
 				apply: 'serve',
 				enforce: 'pre',

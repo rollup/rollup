@@ -58,3 +58,25 @@
 .vp-doc tr.transposed-table > th {
   white-space:nowrap;
 }
+
+svg[id^="mermaid-"] {
+  line-height: 1.5;
+  background-color: transparent !important;
+}
+
+.dark svg[id^="mermaid-"] .flowchart-link {
+  stroke: lightgrey !important;
+}
+
+.dark svg[id^="mermaid-"] .marker {
+  stroke: lightgrey !important;
+  fill: lightgrey !important;
+}
+
+.dark svg[id^="mermaid-"] .edgeLabel {
+  background-color: #585858 !important;
+}
+
+.dark svg[id^="mermaid-"] span {
+  color: #ccc !important;
+}
