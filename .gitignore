@@ -17,5 +17,4 @@ perf/
 .nyc_output/
 .github_token
 .temp
-# for git worktree to be able to release in the background
-/main-branch
+docs/.vitepress/graphs
