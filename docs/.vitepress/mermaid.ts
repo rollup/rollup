@@ -18,6 +18,7 @@ export function renderMermaidGraphsPlugin(): Plugin {
 	const existingGraphFileNamesPromise = getFilesInDirectory(graphsDirectory).then(
 		files => new Set(files.filter(name => name.endsWith('.svg')))
 	);
+
 	const existingGraphsByName = new Map<string, string>();
 
 	async function renderGraph(codeBlock: string, outFile: string) {
