@@ -1,10 +1,6 @@
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -23,16 +19,16 @@ export default class PropertyDefinition extends NodeBase {
 	declare type: NodeType.tPropertyDefinition;
 	declare value: ExpressionNode | null;
 
-	deoptimizePath(path: ObjectPath): void {
-		this.value?.deoptimizePath(path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		this.value?.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
+		this.value?.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+	}
+
+	deoptimizePath(path: ObjectPath): void {
+		this.value?.deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(

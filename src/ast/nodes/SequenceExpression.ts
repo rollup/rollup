@@ -9,7 +9,7 @@ import {
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction, NodeInteractionWithThisArgument } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
@@ -20,20 +20,20 @@ export default class SequenceExpression extends NodeBase {
 	declare expressions: ExpressionNode[];
 	declare type: NodeType.tSequenceExpression;
 
-	deoptimizePath(path: ObjectPath): void {
-		this.expressions[this.expressions.length - 1].deoptimizePath(path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		this.expressions[this.expressions.length - 1].deoptimizeThisOnInteractionAtPath(
+		this.expressions[this.expressions.length - 1].deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
 			path,
 			recursionTracker
 		);
+	}
+
+	deoptimizePath(path: ObjectPath): void {
+		this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(

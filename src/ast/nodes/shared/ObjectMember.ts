@@ -1,10 +1,6 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 
@@ -13,20 +9,20 @@ export class ObjectMember extends ExpressionEntity {
 		super();
 	}
 
-	deoptimizePath(path: ObjectPath): void {
-		this.object.deoptimizePath([this.key, ...path]);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		this.object.deoptimizeThisOnInteractionAtPath(
+		this.object.deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
 			[this.key, ...path],
 			recursionTracker
 		);
+	}
+
+	deoptimizePath(path: ObjectPath): void {
+		this.object.deoptimizePath([this.key, ...path]);
 	}
 
 	getLiteralValueAtPath(

@@ -3,14 +3,15 @@ import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import LocalVariable from '../variables/LocalVariable';
+import type LocalVariable from '../variables/LocalVariable';
+import ParameterVariable from '../variables/ParameterVariable';
 import ChildScope from './ChildScope';
 import type Scope from './Scope';
 
 export default class ParameterScope extends ChildScope {
 	readonly hoistedBodyVarScope: ChildScope;
-	protected parameters: readonly LocalVariable[][] = [];
+	parameters: readonly ParameterVariable[][] = [];
+
 	private readonly context: AstContext;
 	private hasRest = false;
 
@@ -22,21 +23,21 @@ export default class ParameterScope extends ChildScope {
 
 	/**
 	 * Adds a parameter to this scope. Parameters must be added in the correct
-	 * order, e.g. from left to right.
+	 * order, i.e. from left to right.
 	 */
-	addParameterDeclaration(identifier: Identifier): LocalVariable {
-		const name = identifier.name;
-		let variable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
-		if (variable) {
-			variable.addDeclaration(identifier, null);
-		} else {
-			variable = new LocalVariable(name, identifier, UNKNOWN_EXPRESSION, this.context);
+	addParameterDeclaration(identifier: Identifier): ParameterVariable {
+		const { name } = identifier;
+		const variable = new ParameterVariable(name, identifier, this.context);
+		const localVariable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
+		if (localVariable) {
+			this.hoistedBodyVarScope.variables.set(name, variable);
+			variable.mergeDeclarations(localVariable);
 		}
 		this.variables.set(name, variable);
 		return variable;
 	}
 
-	addParameterVariables(parameters: LocalVariable[][], hasRest: boolean): void {
+	addParameterVariables(parameters: ParameterVariable[][], hasRest: boolean): void {
 		this.parameters = parameters;
 		for (const parameterList of parameters) {
 			for (const parameter of parameterList) {

@@ -8,7 +8,7 @@ export default class BlockScope extends ChildScope {
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,
-		init: ExpressionEntity | null,
+		init: ExpressionEntity,
 		isHoisted: boolean
 	): LocalVariable {
 		if (isHoisted) {

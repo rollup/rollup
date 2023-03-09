@@ -4,6 +4,6 @@ import type { ExpressionEntity } from './Expression';
 import type { Node } from './Node';
 
 export interface PatternNode extends WritableEntity, Node {
-	declare(kind: string, init: ExpressionEntity | null): LocalVariable[];
+	declare(kind: string, init: ExpressionEntity): LocalVariable[];
 	markDeclarationReached(): void;
 }

@@ -9,7 +9,7 @@ export default class CatchScope extends ParameterScope {
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,
-		init: ExpressionEntity | null,
+		init: ExpressionEntity,
 		isHoisted: boolean
 	): LocalVariable {
 		const existingParameter = this.variables.get(identifier.name) as LocalVariable;

@@ -2,10 +2,9 @@ import type MagicString from 'magic-string';
 import { errorCannotCallNamespace } from '../../utils/error';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { PathTracker } from '../utils/PathTracker';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
@@ -78,17 +77,11 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		if (this.interaction.thisArg) {
-			this.tag.deoptimizeThisOnInteractionAtPath(
-				this.interaction as NodeInteractionWithThisArgument,
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER
-			);
-		}
-		for (const argument of this.quasi.expressions) {
-			// This will make sure all properties of parameters behave as "unknown"
-			argument.deoptimizePath(UNKNOWN_PATH);
-		}
+		this.tag.deoptimizeArgumentsOnInteractionAtPath(
+			this.interaction,
+			EMPTY_PATH,
+			SHARED_RECURSION_TRACKER
+		);
 		this.context.requestTreeshakingPass();
 	}
 

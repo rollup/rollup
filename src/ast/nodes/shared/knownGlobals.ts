@@ -1,16 +1,22 @@
 /* eslint sort-keys: "off" */
 
+import { doNothing } from '../../../utils/doNothing';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteractionCalled } from '../../NodeInteractions';
 import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../../NodeInteractions';
 import type { ObjectPath } from '../../utils/PathTracker';
-import { SymbolToStringTag, UNKNOWN_NON_ACCESSOR_PATH } from '../../utils/PathTracker';
+import {
+	SymbolToStringTag,
+	UNKNOWN_NON_ACCESSOR_PATH,
+	UNKNOWN_PATH
+} from '../../utils/PathTracker';
 import type { LiteralValueOrUnknown } from './Expression';
 import { UnknownTruthyValue } from './Expression';
 
 const ValueProperties = Symbol('Value Properties');
 
 interface ValueDescription {
+	deoptimizeArgumentsOnCall(interaction: NodeInteractionCalled): void;
 	getLiteralValue(): LiteralValueOrUnknown;
 	hasEffectsWhenCalled(interaction: NodeInteractionCalled, context: HasEffectsContext): boolean;
 }
@@ -26,11 +32,13 @@ const returnFalse = () => false;
 const returnTrue = () => true;
 
 const PURE: ValueDescription = {
+	deoptimizeArgumentsOnCall: doNothing,
 	getLiteralValue: getTruthyLiteralValue,
 	hasEffectsWhenCalled: returnFalse
 };
 
 const IMPURE: ValueDescription = {
+	deoptimizeArgumentsOnCall: doNothing,
 	getLiteralValue: getTruthyLiteralValue,
 	hasEffectsWhenCalled: returnTrue
 };
@@ -52,6 +60,9 @@ const PF: GlobalDescription = {
 const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: {
+		deoptimizeArgumentsOnCall({ args: [firstArgument] }: NodeInteractionCalled) {
+			firstArgument?.deoptimizePath(UNKNOWN_PATH);
+		},
 		getLiteralValue: getTruthyLiteralValue,
 		hasEffectsWhenCalled({ args }, context) {
 			return (
@@ -268,6 +279,7 @@ const knownGlobals: GlobalDescription = {
 		toStringTag: {
 			__proto__: null,
 			[ValueProperties]: {
+				deoptimizeArgumentsOnCall: doNothing,
 				getLiteralValue() {
 					return SymbolToStringTag;
 				},
@@ -294,7 +306,30 @@ const knownGlobals: GlobalDescription = {
 	// Additional globals shared by Node and Browser that are not strictly part of the language
 	clearInterval: C,
 	clearTimeout: C,
-	console: O,
+	console: {
+		__proto__: null,
+		[ValueProperties]: IMPURE,
+		assert: C,
+		clear: C,
+		count: C,
+		countReset: C,
+		debug: C,
+		dir: C,
+		dirxml: C,
+		error: C,
+		exception: C,
+		group: C,
+		groupCollapsed: C,
+		groupEnd: C,
+		info: C,
+		log: C,
+		table: C,
+		time: C,
+		timeEnd: C,
+		timeLog: C,
+		trace: C,
+		warn: C
+	},
 	Intl: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,

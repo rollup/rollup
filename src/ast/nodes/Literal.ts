@@ -34,7 +34,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 
 	private declare members: { [key: string]: MemberDescription };
 
-	deoptimizeThisOnInteractionAtPath(): void {}
+	deoptimizeArgumentsOnInteractionAtPath(): void {}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (

@@ -17,6 +17,33 @@ export default class GlobalVariable extends Variable {
 	// been reassigned
 	isReassigned = true;
 
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	) {
+		switch (interaction.type) {
+			// While there is no point in testing these cases as at the moment, they
+			// are also covered via other means, we keep them for completeness
+			case INTERACTION_ACCESSED:
+			case INTERACTION_ASSIGNED: {
+				if (!getGlobalAtPath([this.name, ...path].slice(0, -1))) {
+					super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+				}
+				return;
+			}
+			case INTERACTION_CALLED: {
+				const globalAtPath = getGlobalAtPath([this.name, ...path]);
+				if (globalAtPath) {
+					globalAtPath.deoptimizeArgumentsOnCall(interaction);
+				} else {
+					super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+				}
+				return;
+			}
+		}
+	}
+
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		_recursionTracker: PathTracker,

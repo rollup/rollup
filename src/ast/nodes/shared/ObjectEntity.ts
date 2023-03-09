@@ -1,10 +1,6 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
 import {
@@ -35,6 +31,7 @@ export interface PropertyMap {
 const INTEGER_REG_EXP = /^\d+$/;
 
 export class ObjectEntity extends ExpressionEntity {
+	private readonly additionalExpressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly allProperties: ExpressionEntity[] = [];
 	private readonly deoptimizedPaths: Record<string, boolean> = Object.create(null);
 	private readonly expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> =
@@ -46,7 +43,6 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly propertiesAndGettersByKey: PropertyMap = Object.create(null);
 	private readonly propertiesAndSettersByKey: PropertyMap = Object.create(null);
 	private readonly settersByKey: PropertyMap = Object.create(null);
-	private readonly thisParametersToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly unknownIntegerProps: ExpressionEntity[] = [];
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
 	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
@@ -91,6 +87,99 @@ export class ObjectEntity extends ExpressionEntity {
 		// While the prototype itself cannot be mutated, each property can
 		this.prototypeExpression?.deoptimizePath([UnknownKey, UnknownKey]);
 		this.deoptimizeCachedEntities();
+	}
+
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	): void {
+		const [key, ...subPath] = path;
+		const { args, thisArg, type } = interaction;
+
+		if (
+			this.hasLostTrack ||
+			// single paths that are deoptimized will not become getters or setters
+			((type === INTERACTION_CALLED || path.length > 1) &&
+				(this.hasUnknownDeoptimizedProperty ||
+					(typeof key === 'string' && this.deoptimizedPaths[key])))
+		) {
+			thisArg?.deoptimizePath(UNKNOWN_PATH);
+			if (args) {
+				for (const argument of args) {
+					argument.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
+			return;
+		}
+
+		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
+			type === INTERACTION_CALLED || path.length > 1
+				? [
+						this.propertiesAndGettersByKey,
+						this.propertiesAndGettersByKey,
+						this.unmatchablePropertiesAndGetters
+				  ]
+				: type === INTERACTION_ACCESSED
+				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
+				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
+
+		if (typeof key === 'string') {
+			if (propertiesForExactMatchByKey[key]) {
+				const properties = relevantPropertiesByKey[key];
+				if (properties) {
+					for (const property of properties) {
+						property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+					}
+				}
+				if (!this.immutable) {
+					if (thisArg) {
+						this.additionalExpressionsToBeDeoptimized.add(thisArg);
+					}
+					if (args) {
+						for (const argument of args) {
+							this.additionalExpressionsToBeDeoptimized.add(argument);
+						}
+					}
+				}
+				return;
+			}
+			for (const property of relevantUnmatchableProperties) {
+				property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+			}
+			if (INTEGER_REG_EXP.test(key)) {
+				for (const property of this.unknownIntegerProps) {
+					property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+				}
+			}
+		} else {
+			for (const properties of [
+				...Object.values(relevantPropertiesByKey),
+				relevantUnmatchableProperties
+			]) {
+				for (const property of properties) {
+					property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+				}
+			}
+			for (const property of this.unknownIntegerProps) {
+				property.deoptimizeArgumentsOnInteractionAtPath(interaction, subPath, recursionTracker);
+			}
+		}
+		if (!this.immutable) {
+			if (thisArg) {
+				this.additionalExpressionsToBeDeoptimized.add(thisArg);
+			}
+			if (args) {
+				for (const argument of args) {
+					this.additionalExpressionsToBeDeoptimized.add(argument);
+				}
+			}
+		}
+		this.prototypeExpression?.deoptimizeArgumentsOnInteractionAtPath(
+			interaction,
+			path,
+			recursionTracker
+		);
 	}
 
 	deoptimizeIntegerProperties(): void {
@@ -149,79 +238,6 @@ export class ObjectEntity extends ExpressionEntity {
 			property.deoptimizePath(subPath);
 		}
 		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [...path, UnknownKey] : path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
-		path: ObjectPath,
-		recursionTracker: PathTracker
-	): void {
-		const [key, ...subPath] = path;
-
-		if (
-			this.hasLostTrack ||
-			// single paths that are deoptimized will not become getters or setters
-			((interaction.type === INTERACTION_CALLED || path.length > 1) &&
-				(this.hasUnknownDeoptimizedProperty ||
-					(typeof key === 'string' && this.deoptimizedPaths[key])))
-		) {
-			interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
-			return;
-		}
-
-		const [propertiesForExactMatchByKey, relevantPropertiesByKey, relevantUnmatchableProperties] =
-			interaction.type === INTERACTION_CALLED || path.length > 1
-				? [
-						this.propertiesAndGettersByKey,
-						this.propertiesAndGettersByKey,
-						this.unmatchablePropertiesAndGetters
-				  ]
-				: interaction.type === INTERACTION_ACCESSED
-				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
-				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
-
-		if (typeof key === 'string') {
-			if (propertiesForExactMatchByKey[key]) {
-				const properties = relevantPropertiesByKey[key];
-				if (properties) {
-					for (const property of properties) {
-						property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-					}
-				}
-				if (!this.immutable) {
-					this.thisParametersToBeDeoptimized.add(interaction.thisArg);
-				}
-				return;
-			}
-			for (const property of relevantUnmatchableProperties) {
-				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-			}
-			if (INTEGER_REG_EXP.test(key)) {
-				for (const property of this.unknownIntegerProps) {
-					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-				}
-			}
-		} else {
-			for (const properties of [
-				...Object.values(relevantPropertiesByKey),
-				relevantUnmatchableProperties
-			]) {
-				for (const property of properties) {
-					property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-				}
-			}
-			for (const property of this.unknownIntegerProps) {
-				property.deoptimizeThisOnInteractionAtPath(interaction, subPath, recursionTracker);
-			}
-		}
-		if (!this.immutable) {
-			this.thisParametersToBeDeoptimized.add(interaction.thisArg);
-		}
-		this.prototypeExpression?.deoptimizeThisOnInteractionAtPath(
-			interaction,
-			path,
-			recursionTracker
-		);
 	}
 
 	getLiteralValueAtPath(
@@ -380,7 +396,7 @@ export class ObjectEntity extends ExpressionEntity {
 				expression.deoptimizeCache();
 			}
 		}
-		for (const expression of this.thisParametersToBeDeoptimized) {
+		for (const expression of this.additionalExpressionsToBeDeoptimized) {
 			expression.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
@@ -395,7 +411,7 @@ export class ObjectEntity extends ExpressionEntity {
 				}
 			}
 		}
-		for (const expression of this.thisParametersToBeDeoptimized) {
+		for (const expression of this.additionalExpressionsToBeDeoptimized) {
 			expression.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}
 	}

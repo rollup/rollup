@@ -4,6 +4,7 @@ import type {
 	PluginHooks,
 	SerializedTimings
 } from '../rollup/types';
+import { doNothing } from './doNothing';
 import performance from './performance';
 import process from './process';
 
@@ -14,8 +15,6 @@ interface Timer {
 	time: number;
 	totalMemory: number;
 }
-
-const NOOP = (): void => {};
 
 let timers = new Map<string, Timer>();
 
@@ -80,8 +79,8 @@ export function getTimings(): SerializedTimings {
 	return newTimings;
 }
 
-export let timeStart: (label: string, level?: number) => void = NOOP;
-export let timeEnd: (label: string, level?: number) => void = NOOP;
+export let timeStart: (label: string, level?: number) => void = doNothing;
+export let timeEnd: (label: string, level?: number) => void = doNothing;
 
 const TIMED_PLUGIN_HOOKS: readonly (keyof PluginHooks)[] = [
 	'augmentChunkHash',
@@ -140,7 +139,7 @@ export function initialiseTimers(inputOptions: NormalizedInputOptions): void {
 		timeEnd = timeEndImpl;
 		inputOptions.plugins = inputOptions.plugins!.map(getPluginWithTimers);
 	} else {
-		timeStart = NOOP;
-		timeEnd = NOOP;
+		timeStart = doNothing;
+		timeEnd = doNothing;
 	}
 }
