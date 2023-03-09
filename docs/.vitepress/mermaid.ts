@@ -4,6 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import type { Plugin } from 'vite';
+import { mkdir } from '../../src/utils/fs';
 import { getFilesInDirectory } from './helpers';
 
 const execPromise = promisify(exec);
@@ -15,10 +16,9 @@ const styleTagRegExp = /<style>[\S\s]*?<\/style>/gm;
 const configFileURL = new URL('mermaid.config.json', import.meta.url);
 
 export function renderMermaidGraphsPlugin(): Plugin {
-	const existingGraphFileNamesPromise = getFilesInDirectory(graphsDirectory).then(
-		files => new Set(files.filter(name => name.endsWith('.svg')))
-	);
-
+	const existingGraphFileNamesPromise = mkdir(graphsDirectory, { recursive: true })
+		.then(() => getFilesInDirectory(graphsDirectory))
+		.then(files => new Set(files.filter(name => name.endsWith('.svg'))));
 	const existingGraphsByName = new Map<string, string>();
 
 	async function renderGraph(codeBlock: string, outFile: string) {
