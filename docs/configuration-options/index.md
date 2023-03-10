@@ -1901,10 +1901,11 @@ This will generate an additional `noConflict` export to UMD bundles. When called
 
 ### output.sanitizeFileName
 
-|       |                                                            |
-| ----: | :--------------------------------------------------------- |
-| Type: | `boolean \| (string) => string`                            |
-|  CLI: | `--sanitizeFileName`/`no-sanitizeFileName` Default: `true` |
+|          |                                            |
+| -------: | :----------------------------------------- |
+|    Type: | `boolean \| (string) => string`            |
+|     CLI: | `--sanitizeFileName`/`no-sanitizeFileName` |
+| Default: | `true`                                     |
 
 Set to `false` to disable all chunk name sanitizations (removal of `\0`, `?` and `*` characters).
 
