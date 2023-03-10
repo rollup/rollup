@@ -1,5 +1,5 @@
 class Foo {
-    static {}
+    static /* { */ {}
 }
 
 class Bar {

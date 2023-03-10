@@ -1,5 +1,5 @@
 export class Foo {
-    static {/** 1 */1}
+    static /* { */ {/** 1 */1}
 }
 
 export class Bar {
