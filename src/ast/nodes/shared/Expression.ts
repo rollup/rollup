@@ -1,11 +1,7 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { WritableEntity } from '../../Entity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
@@ -23,7 +19,8 @@ export type LiteralValueOrUnknown =
 
 export interface InclusionOptions {
 	/**
-	 * Include the id of a declarator even if unused to ensure it is a valid statement.
+	 * Include the id of a declarator even if unused to ensure it is a valid
+	 * statement.
 	 */
 	asSingleStatement?: boolean;
 }
@@ -31,20 +28,20 @@ export interface InclusionOptions {
 export class ExpressionEntity implements WritableEntity {
 	included = false;
 
-	deoptimizePath(_path: ObjectPath): void {}
-
-	deoptimizeThisOnInteractionAtPath(
-		{ thisArg }: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		_path: ObjectPath,
 		_recursionTracker: PathTracker
 	): void {
-		thisArg!.deoptimizePath(UNKNOWN_PATH);
+		deoptimizeInteraction(interaction);
 	}
 
+	deoptimizePath(_path: ObjectPath): void {}
+
 	/**
-	 * If possible it returns a stringifyable literal value for this node that can be used
-	 * for inlining or comparing values.
-	 * Otherwise, it should return UnknownValue.
+	 * If possible it returns a stringifyable literal value for this node that
+	 * can be used for inlining or comparing values. Otherwise, it should return
+	 * UnknownValue.
 	 */
 	getLiteralValueAtPath(
 		_path: ObjectPath,
@@ -100,3 +97,12 @@ export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: b
 	UNKNOWN_EXPRESSION,
 	false
 ];
+
+export const deoptimizeInteraction = (interaction: NodeInteraction) => {
+	interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
+	if (interaction.args) {
+		for (const argument of interaction.args) {
+			argument.deoptimizePath(UNKNOWN_PATH);
+		}
+	}
+};

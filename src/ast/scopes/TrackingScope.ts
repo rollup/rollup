@@ -10,7 +10,7 @@ export default class TrackingScope extends BlockScope {
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,
-		init: ExpressionEntity | null,
+		init: ExpressionEntity,
 		isHoisted: boolean
 	): LocalVariable {
 		this.hoistedDeclarations.push(identifier);

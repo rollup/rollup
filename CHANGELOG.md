@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.19.0
+
+_2023-03-09_
+
+### Features
+
+- Make reassignment tracking of call parameters more specific to no lose information when an object is passed to a function (#4892)
+
+### Pull Requests
+
+- [#4890](https://github.com/rollup/rollup/pull/4890): Fix `npm run dev` (@lukastaegert)
+- [#4892](https://github.com/rollup/rollup/pull/4892): Only selectively deoptimize call parameters (@lukastaegert)
+- [#4897](https://github.com/rollup/rollup/pull/4897): Pre-render mermaid graphs on website (@lukastaegert)
+
 ## 3.18.0
 
 _2023-03-01_

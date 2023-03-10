@@ -1,10 +1,6 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
@@ -35,21 +31,13 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 
 	private accessedValue: [expression: ExpressionEntity, isPure: boolean] | null = null;
 
-	// As getter properties directly receive their values from fixed function
-	// expressions, there is no known situation where a getter is deoptimized.
-	deoptimizeCache(): void {}
-
-	deoptimizePath(path: ObjectPath): void {
-		this.getAccessedValue()[0].deoptimizePath(path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
 		if (interaction.type === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
-			return this.value.deoptimizeThisOnInteractionAtPath(
+			return this.value.deoptimizeArgumentsOnInteractionAtPath(
 				{
 					args: NO_ARGS,
 					thisArg: interaction.thisArg,
@@ -61,7 +49,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 			);
 		}
 		if (interaction.type === INTERACTION_ASSIGNED && this.kind === 'set' && path.length === 0) {
-			return this.value.deoptimizeThisOnInteractionAtPath(
+			return this.value.deoptimizeArgumentsOnInteractionAtPath(
 				{
 					args: interaction.args,
 					thisArg: interaction.thisArg,
@@ -72,11 +60,19 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				recursionTracker
 			);
 		}
-		this.getAccessedValue()[0].deoptimizeThisOnInteractionAtPath(
+		this.getAccessedValue()[0].deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
 			path,
 			recursionTracker
 		);
+	}
+
+	// As getter properties directly receive their values from fixed function
+	// expressions, there is no known situation where a getter is deoptimized.
+	deoptimizeCache(): void {}
+
+	deoptimizePath(path: ObjectPath): void {
+		this.getAccessedValue()[0].deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(

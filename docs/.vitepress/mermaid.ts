@@ -19,7 +19,7 @@ export function renderMermaidGraphsPlugin(): Plugin {
 	const existingGraphFileNamesPromise = mkdir(graphsDirectory, { recursive: true })
 		.then(() => getFilesInDirectory(graphsDirectory))
 		.then(files => new Set(files.filter(name => name.endsWith('.svg'))));
-	const existingGraphsByName = new Map<string, string>();
+	const existingGraphsByName = new Map<string, Promise<string>>();
 
 	async function renderGraph(codeBlock: string, outFile: string) {
 		const existingGraphFileNames = await existingGraphFileNamesPromise;
@@ -46,6 +46,7 @@ export function renderMermaidGraphsPlugin(): Plugin {
 				extractedStyles.push(styleTag);
 				return '';
 			});
+		console.log('Extracted styles from mermaid chart:', extractedStyles.length);
 		return `${extractedStyles.join('')}\n${baseGraph}`;
 	}
 
@@ -64,9 +65,9 @@ export function renderMermaidGraphsPlugin(): Plugin {
 					mermaidCodeBlocks.map(async (codeBlock, index) => {
 						const outFile = `${createHash('sha256').update(codeBlock).digest('base64url')}.svg`;
 						if (!existingGraphsByName.has(outFile)) {
-							existingGraphsByName.set(outFile, await renderGraph(codeBlock, outFile));
+							existingGraphsByName.set(outFile, renderGraph(codeBlock, outFile));
 						}
-						renderedGraphs[index] = existingGraphsByName.get(outFile)!;
+						renderedGraphs[index] = await existingGraphsByName.get(outFile)!;
 					})
 				);
 				return code.replace(mermaidRegExp, () => renderedGraphs.shift()!);

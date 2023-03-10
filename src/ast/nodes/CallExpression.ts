@@ -6,14 +6,8 @@ import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import {
-	EMPTY_PATH,
-	type PathTracker,
-	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH
-} from '../utils/PathTracker';
+import { EMPTY_PATH, type PathTracker, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -21,8 +15,8 @@ import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import { INCLUDE_PARAMETERS } from './shared/Node';
 import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
+import { INCLUDE_PARAMETERS } from './shared/Node';
 
 export default class CallExpression
 	extends CallExpressionBase
@@ -116,17 +110,11 @@ export default class CallExpression
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		if (this.interaction.thisArg) {
-			this.callee.deoptimizeThisOnInteractionAtPath(
-				this.interaction as NodeInteractionWithThisArgument,
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER
-			);
-		}
-		for (const argument of this.arguments) {
-			// This will make sure all properties of parameters behave as "unknown"
-			argument.deoptimizePath(UNKNOWN_PATH);
-		}
+		this.callee.deoptimizeArgumentsOnInteractionAtPath(
+			this.interaction,
+			EMPTY_PATH,
+			SHARED_RECURSION_TRACKER
+		);
 		this.context.requestTreeshakingPass();
 	}
 

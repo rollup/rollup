@@ -1,6 +1,6 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionWithThisArgument } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
@@ -10,13 +10,13 @@ export default class SpreadElement extends NodeBase {
 	declare argument: ExpressionNode;
 	declare type: NodeType.tSpreadElement;
 
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
 		if (path.length > 0) {
-			this.argument.deoptimizeThisOnInteractionAtPath(
+			this.argument.deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
 				[UnknownKey, ...path],
 				recursionTracker

@@ -7,11 +7,13 @@ export const INTERACTION_ASSIGNED = 1;
 export const INTERACTION_CALLED = 2;
 
 export interface NodeInteractionAccessed {
+	args: null;
 	thisArg: ExpressionEntity | null;
 	type: typeof INTERACTION_ACCESSED;
 }
 
 export const NODE_INTERACTION_UNKNOWN_ACCESS: NodeInteractionAccessed = {
+	args: null,
 	thisArg: null,
 	type: INTERACTION_ACCESSED
 };
@@ -49,9 +51,9 @@ export const NODE_INTERACTION_UNKNOWN_CALL: NodeInteractionCalled = {
 	withNew: false
 };
 
+// For tracking, called and assigned are uniquely determined by their .args
+// while accessed is determined by .thisArg
 export type NodeInteraction =
 	| NodeInteractionAccessed
 	| NodeInteractionAssigned
 	| NodeInteractionCalled;
-
-export type NodeInteractionWithThisArgument = NodeInteraction & { thisArg: ExpressionEntity };

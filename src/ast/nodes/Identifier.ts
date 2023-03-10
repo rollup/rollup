@@ -7,11 +7,7 @@ import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
@@ -102,6 +98,14 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return [(this.variable = variable)];
 	}
 
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	): void {
+		this.variable!.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+	}
+
 	deoptimizePath(path: ObjectPath): void {
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
@@ -109,14 +113,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		// We keep conditional chaining because an unknown Node could have an
 		// Identifier as property that might be deoptimized by default
 		this.variable?.deoptimizePath(path);
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
-		path: ObjectPath,
-		recursionTracker: PathTracker
-	): void {
-		this.variable!.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

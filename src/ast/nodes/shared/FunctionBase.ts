@@ -5,11 +5,7 @@ import {
 	type HasEffectsContext,
 	type InclusionContext
 } from '../../ExecutionContext';
-import type {
-	NodeInteraction,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
-} from '../../NodeInteractions';
+import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS,
@@ -18,7 +14,9 @@ import {
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
+import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
@@ -42,22 +40,42 @@ export default abstract class FunctionBase extends NodeBase {
 	protected objectEntity: ObjectEntity | null = null;
 	private deoptimizedReturn = false;
 
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	): void {
+		if (interaction.type === INTERACTION_CALLED) {
+			const { parameters } = this.scope;
+			const { args } = interaction;
+			let hasRest = false;
+			for (let position = 0; position < args.length; position++) {
+				const parameter = this.params[position];
+				if (hasRest || parameter instanceof RestElement) {
+					hasRest = true;
+					args[position].deoptimizePath(UNKNOWN_PATH);
+				} else if (parameter instanceof Identifier) {
+					// args[position].deoptimizePath(UNKNOWN_PATH);
+					parameters[position][0].addEntityToBeDeoptimized(args[position]);
+				} else if (parameter) {
+					args[position].deoptimizePath(UNKNOWN_PATH);
+				}
+			}
+		} else {
+			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
+				interaction,
+				path,
+				recursionTracker
+			);
+		}
+	}
+
 	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
 		if (path.length === 1 && path[0] === UnknownKey) {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the return expression needs to be reassigned
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-		}
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
-		path: ObjectPath,
-		recursionTracker: PathTracker
-	): void {
-		if (path.length > 0) {
-			this.getObjectEntity().deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
 		}
 	}
 
@@ -147,7 +165,9 @@ export default abstract class FunctionBase extends NodeBase {
 
 	initialise(): void {
 		this.scope.addParameterVariables(
-			this.params.map(parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION)),
+			this.params.map(
+				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+			),
 			this.params[this.params.length - 1] instanceof RestElement
 		);
 		if (this.body instanceof BlockStatement) {

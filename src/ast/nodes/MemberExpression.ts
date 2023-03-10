@@ -10,8 +10,7 @@ import type {
 	NodeInteraction,
 	NodeInteractionAccessed,
 	NodeInteractionAssigned,
-	NodeInteractionCalled,
-	NodeInteractionWithThisArgument
+	NodeInteractionCalled
 } from '../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED } from '../NodeInteractions';
 import {
@@ -36,13 +35,14 @@ import type PrivateIdentifier from './PrivateIdentifier';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import {
+	deoptimizeInteraction,
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { NodeBase } from './shared/Node';
 import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -131,6 +131,26 @@ export default class MemberExpression
 		}
 	}
 
+	deoptimizeArgumentsOnInteractionAtPath(
+		interaction: NodeInteraction,
+		path: ObjectPath,
+		recursionTracker: PathTracker
+	): void {
+		if (this.variable) {
+			this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+		} else if (!this.isUndefined) {
+			if (path.length < MAX_PATH_DEPTH) {
+				this.object.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					[this.getPropertyKey(), ...path],
+					recursionTracker
+				);
+			} else {
+				deoptimizeInteraction(interaction);
+			}
+		}
+	}
+
 	deoptimizeCache(): void {
 		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
 		this.expressionsToBeDeoptimized = [];
@@ -151,26 +171,6 @@ export default class MemberExpression
 				propertyKey === UnknownKey ? UnknownNonAccessorKey : propertyKey,
 				...path
 			]);
-		}
-	}
-
-	deoptimizeThisOnInteractionAtPath(
-		interaction: NodeInteractionWithThisArgument,
-		path: ObjectPath,
-		recursionTracker: PathTracker
-	): void {
-		if (this.variable) {
-			this.variable.deoptimizeThisOnInteractionAtPath(interaction, path, recursionTracker);
-		} else if (!this.isUndefined) {
-			if (path.length < MAX_PATH_DEPTH) {
-				this.object.deoptimizeThisOnInteractionAtPath(
-					interaction,
-					[this.getPropertyKey(), ...path],
-					recursionTracker
-				);
-			} else {
-				interaction.thisArg.deoptimizePath(UNKNOWN_PATH);
-			}
 		}
 	}
 
@@ -297,7 +297,7 @@ export default class MemberExpression
 
 	initialise(): void {
 		this.propertyKey = getResolvablePropertyKey(this);
-		this.accessInteraction = { thisArg: this.object, type: INTERACTION_ACCESSED };
+		this.accessInteraction = { args: null, thisArg: this.object, type: INTERACTION_ACCESSED };
 	}
 
 	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
@@ -357,7 +357,7 @@ export default class MemberExpression
 			!(this.variable || this.isUndefined)
 		) {
 			const propertyKey = this.getPropertyKey();
-			this.object.deoptimizeThisOnInteractionAtPath(
+			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.accessInteraction,
 				[propertyKey],
 				SHARED_RECURSION_TRACKER
@@ -376,7 +376,7 @@ export default class MemberExpression
 			propertyReadSideEffects &&
 			!(this.variable || this.isUndefined)
 		) {
-			this.object.deoptimizeThisOnInteractionAtPath(
+			this.object.deoptimizeArgumentsOnInteractionAtPath(
 				this.assignmentInteraction,
 				[this.getPropertyKey()],
 				SHARED_RECURSION_TRACKER
