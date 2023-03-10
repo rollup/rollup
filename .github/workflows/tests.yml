@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Run tests with coverage
-        run: npm run ci:coverage
+        run: pnpm run ci:coverage
         env:
           CI: true
       - uses: codecov/codecov-action@v3
@@ -54,11 +54,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Lint
-        run: npm run ci:lint
+        run: pnpm run ci:lint
       - name: Vulnerabilities
-        run: npm audit
+        run: pnpm audit
       - name: Run all tests
-        run: npm run ci:test
+        run: pnpm run ci:test
         env:
           CI: true
 
@@ -82,7 +82,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Run tests
-        run: npm run ci:test:only
+        run: pnpm run ci:test:only
         env:
           CI: true
 
@@ -106,7 +106,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Run tests
-        run: npm run ci:test:only
+        run: pnpm run ci:test:only
         env:
           CI: true
 
@@ -130,6 +130,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Run tests
-        run: npm run ci:test:only
+        run: pnpm run ci:test:only
         env:
           CI: true

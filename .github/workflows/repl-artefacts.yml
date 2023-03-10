@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Build artefacts
-        run: npm run build:cjs && npm run build:bootstrap
+        run: pnpm run build:cjs && pnpm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
         uses: zdurham/s3-upload-github-action@master
         with:
@@ -72,7 +72,7 @@ jobs:
             You can try out this pull request locally by installing Rollup via
 
             ```bash
-            npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
+            pnpm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
             or load it into the REPL:
@@ -95,7 +95,7 @@ jobs:
             You can try out this pull request locally by installing Rollup via
 
             ```bash
-            npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
+            pnpm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
             or load it into the REPL:

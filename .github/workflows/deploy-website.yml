@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts && pnpm rebuild puppeteer
       - name: Build docs
-        run: npm run build:docs
+        run: pnpm run build:docs
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2
         with:
