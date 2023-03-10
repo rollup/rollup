@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.19.1
+
+_2023-03-10_
+
+### Bug Fixes
+
+- Produce valid code when the first statement in aclass static block is tree-shaken (#4898)
+
+### Pull Requests
+
+- [#4898](https://github.com/rollup/rollup/pull/4898): fix: set a correct node location for static blocks (@TrickyPi)
+- [#4900](https://github.com/rollup/rollup/pull/4900): docs: fix table at `output.sanitizeFileName` section (@0x009922)
+
 ## 3.19.0
 
 _2023-03-09_
