@@ -16,6 +16,7 @@ import type { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
+import type ForOfStatement from './ForOfStatement';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
@@ -48,6 +49,10 @@ export default class VariableDeclaration extends NodeBase {
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {
 			declarator.deoptimizePath(EMPTY_PATH);
+		}
+		if (this.parent.type === NodeType.ForOfStatement) {
+			const forOfStatement = this.parent as ForOfStatement;
+			forOfStatement.right.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
