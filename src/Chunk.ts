@@ -1242,7 +1242,8 @@ export default class Chunk {
 						pluginDriver,
 						accessedGlobalsByScope,
 						`'${(facadeChunk || chunk).getImportPath(fileName)}'`,
-						!facadeChunk?.strictFacade && chunk.exportNamesByVariable.get(resolution.namespace)![0],
+						!facadeChunk?.strictFacade &&
+							chunk.exportNamesByVariable.get(resolution.namespace)?.[0],
 						null
 					);
 				}
