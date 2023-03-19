@@ -365,14 +365,23 @@ export class FileEmitter {
 		if (!fileName) {
 			const sourceHash = getSourceHash(source);
 			fileName = fileNamesBySource.get(sourceHash);
-			if (!fileName) {
-				fileName = generateAssetFileName(
-					consumedFile.name,
-					source,
-					sourceHash,
-					outputOptions,
-					bundle
-				);
+			const newFileName = generateAssetFileName(
+				consumedFile.name,
+				source,
+				sourceHash,
+				outputOptions,
+				bundle
+			);
+			// make sure file name deterministic in parallel emits, always use the shorter and smaller file name
+			if (
+				!fileName ||
+				fileName.length > newFileName.length ||
+				(fileName.length === newFileName.length && fileName.localeCompare(newFileName) > 0)
+			) {
+				if (fileName) {
+					delete bundle[fileName];
+				}
+				fileName = newFileName;
 				fileNamesBySource.set(sourceHash, fileName);
 			}
 		}
