@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			module.import('./lib.js').then(console.log);
+			module.import('./lib.js').then(function (n) { return n.l; }).then(console.log);
 
 		})
 	};
