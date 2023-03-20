@@ -376,7 +376,7 @@ export class FileEmitter {
 			if (
 				!fileName ||
 				fileName.length > newFileName.length ||
-				(fileName.length === newFileName.length && fileName.localeCompare(newFileName) > 0)
+				(fileName.length === newFileName.length && fileName > newFileName)
 			) {
 				if (fileName) {
 					delete bundle[fileName];

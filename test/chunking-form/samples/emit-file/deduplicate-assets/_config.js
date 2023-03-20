@@ -10,7 +10,6 @@ function asyncify(callback) {
 }
 module.exports = {
 	description: 'deduplicates asset that have the same source',
-	solo: true,
 	options: {
 		input: ['main.js'],
 		plugins: {
