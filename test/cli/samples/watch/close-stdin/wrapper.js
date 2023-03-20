@@ -14,7 +14,7 @@ process.stdin = new Readable({
 });
 
 const outputDir = resolve(__dirname, '_actual');
-mkdirSync(outputDir);
+mkdirSync(outputDir, {recursive: true});
 const outputFile = resolve(outputDir, 'out.js');
 const INITIAL_OUTPUT = 'NOT WRITTEN';
 writeFileSync(outputFile, INITIAL_OUTPUT);

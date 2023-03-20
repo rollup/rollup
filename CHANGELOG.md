@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 3.20.0
+
+_2023-03-20_
+
+### Features
+
+- Allow dynamically imported files to have synthetic named exports when preserving modules (#4913)
+
+### Bug Fixes
+
+- Use deterministic file name when emitting several files with same source (#4912)
+- Fix a crash when dynamically importing a file with synthetic named exports when preserving modules (#4913)
+
+### Pull Requests
+
+- [#4912](https://github.com/rollup/rollup/pull/4912): fix: make file name deterministic in parallel emits (fix #4909) (@sun0day)
+- [#4913](https://github.com/rollup/rollup/pull/4913): Provide synthetic namespace for dynamic imports when perserving modules (@lukastaegert)
+
 ## 3.19.1
 
 _2023-03-10_

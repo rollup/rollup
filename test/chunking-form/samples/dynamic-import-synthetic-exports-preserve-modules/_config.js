@@ -12,6 +12,7 @@ module.exports = {
 			}
 		},
 		output: {
+			exports: 'named',
 			preserveModules: true
 		}
 	}
