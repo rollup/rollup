@@ -4,13 +4,16 @@ module.exports = {
 		input: ['main.js'],
 		plugins: {
 			buildStart() {
-				this.emitFile({ type: 'asset', name: 'string.txt', source: 'string' });
+				// emit 'string' source in a random order
 				this.emitFile({ type: 'asset', name: 'stringSameSource.txt', source: 'string' });
+				this.emitFile({ type: 'asset', name: 'string2.txt', source: 'string' });
+				this.emitFile({ type: 'asset', name: 'string1.txt', source: 'string' });
 				this.emitFile({
 					type: 'asset',
 					name: 'sameStringAsBuffer.txt',
 					source: Buffer.from('string') // Test cross Buffer/string deduplication
 				});
+
 				// Different string source
 				this.emitFile({ type: 'asset', name: 'otherString.txt', source: 'otherString' });
 
