@@ -425,7 +425,11 @@ export class FileEmitter {
 				outputOptions,
 				bundle
 			);
-			if (!fileName || assetFileName < fileName) {
+			if (
+				!fileName ||
+				assetFileName.length < fileName.length ||
+				(assetFileName.length === fileName.length && assetFileName < fileName)
+			) {
 				fileName = assetFileName;
 				usedConsumedFile = consumedFile;
 			}

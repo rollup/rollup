@@ -2,7 +2,7 @@ const assert = require('node:assert');
 let string1Id,
 	string2Id,
 	stringSameSourceId,
-	stringSameAsBufferId,
+	sameStringAsBufferId,
 	otherStringId,
 	bufferId,
 	bufferSameSourceId,
@@ -23,9 +23,9 @@ module.exports = {
 				});
 				string2Id = this.emitFile({ type: 'asset', name: 'string2.txt', source: 'string' });
 				string1Id = this.emitFile({ type: 'asset', name: 'string1.txt', source: 'string' });
-				stringSameAsBufferId = this.emitFile({
+				sameStringAsBufferId = this.emitFile({
 					type: 'asset',
-					name: 'stringSameAsBuffer.txt',
+					name: 'sameStringAsBuffer.txt',
 					source: Buffer.from('string') // Test cross Buffer/string deduplication
 				});
 
@@ -77,9 +77,9 @@ module.exports = {
 					'stringSameSource'
 				);
 				assert.strictEqual(
-					this.getFileName(stringSameAsBufferId),
+					this.getFileName(sameStringAsBufferId),
 					'assets/string1-473287f8.txt',
-					'stringSameAsBuffer'
+					'sameStringAsBuffer'
 				);
 				assert.strictEqual(
 					this.getFileName(otherStringId),
