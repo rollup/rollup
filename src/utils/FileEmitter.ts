@@ -21,6 +21,7 @@ import {
 	errorInvalidRollupPhaseForChunkEmission,
 	errorNoAssetSourceSet
 } from './error';
+import { getOrCreate } from './getOrCreate';
 import { defaultHashSize } from './hashPlaceholders';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
@@ -74,6 +75,7 @@ interface ConsumedChunk {
 	fileName: string | undefined;
 	module: null | Module;
 	name: string;
+	referenceId: string;
 	type: 'chunk';
 }
 
@@ -81,6 +83,7 @@ interface ConsumedAsset {
 	fileName: string | undefined;
 	name: string | undefined;
 	needsCodeReference: boolean;
+	referenceId: string;
 	source: string | Uint8Array | undefined;
 	type: 'asset';
 }
@@ -231,11 +234,11 @@ export class FileEmitter {
 		}
 		const source = getValidSource(requestedSource, consumedFile, referenceId);
 		if (this.output) {
-			this.finalizeAsset(consumedFile, source, referenceId, this.output);
+			this.finalizeAdditionalAsset(consumedFile, source, this.output);
 		} else {
 			consumedFile.source = source;
 			for (const emitter of this.outputFileEmitters) {
-				emitter.finalizeAsset(consumedFile, source, referenceId, emitter.output!);
+				emitter.finalizeAdditionalAsset(consumedFile, source, emitter.output!);
 			}
 		}
 	};
@@ -258,10 +261,19 @@ export class FileEmitter {
 				reserveFileNameInBundle(emittedFile.fileName, output, this.options.onwarn);
 			}
 		}
-		for (const [referenceId, consumedFile] of this.filesByReferenceId) {
+		const consumedAssetsByHash = new Map<string, ConsumedAsset[]>();
+		for (const consumedFile of this.filesByReferenceId.values()) {
 			if (consumedFile.type === 'asset' && consumedFile.source !== undefined) {
-				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, output);
+				if (consumedFile.fileName) {
+					this.finalizeAdditionalAsset(consumedFile, consumedFile.source, output);
+				} else {
+					const sourceHash = getSourceHash(consumedFile.source);
+					getOrCreate(consumedAssetsByHash, sourceHash, () => []).push(consumedFile);
+				}
 			}
+		}
+		for (const [sourceHash, consumedFiles] of consumedAssetsByHash) {
+			this.finalizeAssetsWithSameSource(consumedFiles, sourceHash, output);
 		}
 	};
 
@@ -278,6 +290,7 @@ export class FileEmitter {
 			this.filesByReferenceId.has(referenceId) ||
 			this.outputFileEmitters.some(({ filesByReferenceId }) => filesByReferenceId.has(referenceId))
 		);
+		file.referenceId = referenceId;
 		this.filesByReferenceId.set(referenceId, file);
 		for (const { filesByReferenceId } of this.outputFileEmitters) {
 			filesByReferenceId.set(referenceId, file);
@@ -294,6 +307,7 @@ export class FileEmitter {
 			fileName: emittedAsset.fileName,
 			name: emittedAsset.name,
 			needsCodeReference: !!emittedAsset.needsCodeReference,
+			referenceId: '',
 			source,
 			type: 'asset'
 		};
@@ -302,10 +316,10 @@ export class FileEmitter {
 			emittedAsset.fileName || emittedAsset.name || String(this.nextIdBase++)
 		);
 		if (this.output) {
-			this.emitAssetWithReferenceId(consumedAsset, referenceId, this.output);
+			this.emitAssetWithReferenceId(consumedAsset, this.output);
 		} else {
 			for (const fileEmitter of this.outputFileEmitters) {
-				fileEmitter.emitAssetWithReferenceId(consumedAsset, referenceId, fileEmitter.output!);
+				fileEmitter.emitAssetWithReferenceId(consumedAsset, fileEmitter.output!);
 			}
 		}
 		return referenceId;
@@ -313,7 +327,6 @@ export class FileEmitter {
 
 	private emitAssetWithReferenceId(
 		consumedAsset: Readonly<ConsumedAsset>,
-		referenceId: string,
 		output: FileEmitterOutput
 	) {
 		const { fileName, source } = consumedAsset;
@@ -321,7 +334,7 @@ export class FileEmitter {
 			reserveFileNameInBundle(fileName, output, this.options.onwarn);
 		}
 		if (source !== undefined) {
-			this.finalizeAsset(consumedAsset, source, referenceId, output);
+			this.finalizeAdditionalAsset(consumedAsset, source, output);
 		}
 	}
 
@@ -340,6 +353,7 @@ export class FileEmitter {
 			fileName: emittedChunk.fileName,
 			module: null,
 			name: emittedChunk.name || emittedChunk.id,
+			referenceId: '',
 			type: 'chunk'
 		};
 		this.graph.moduleLoader
@@ -353,35 +367,25 @@ export class FileEmitter {
 		return this.assignReferenceId(consumedChunk, emittedChunk.id);
 	}
 
-	private finalizeAsset(
+	private finalizeAdditionalAsset(
 		consumedFile: Readonly<ConsumedAsset>,
 		source: string | Uint8Array,
-		referenceId: string,
 		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
 	): void {
-		let fileName = consumedFile.fileName;
+		let { fileName, needsCodeReference, referenceId } = consumedFile;
 
 		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
 			const sourceHash = getSourceHash(source);
 			fileName = fileNamesBySource.get(sourceHash);
-			const newFileName = generateAssetFileName(
-				consumedFile.name,
-				source,
-				sourceHash,
-				outputOptions,
-				bundle
-			);
-			// make sure file name deterministic in parallel emits, always use the shorter and smaller file name
-			if (
-				!fileName ||
-				fileName.length > newFileName.length ||
-				(fileName.length === newFileName.length && fileName > newFileName)
-			) {
-				if (fileName) {
-					delete bundle[fileName];
-				}
-				fileName = newFileName;
+			if (!fileName) {
+				fileName = generateAssetFileName(
+					consumedFile.name,
+					source,
+					sourceHash,
+					outputOptions,
+					bundle
+				);
 				fileNamesBySource.set(sourceHash, fileName);
 			}
 		}
@@ -390,11 +394,59 @@ export class FileEmitter {
 		const assetWithFileName = { ...consumedFile, fileName, source };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
 
+		const existingAsset = bundle[fileName];
+		if (existingAsset?.type === 'asset') {
+			existingAsset.needsCodeReference &&= needsCodeReference;
+		} else {
+			bundle[fileName] = {
+				fileName,
+				name: consumedFile.name,
+				needsCodeReference,
+				source,
+				type: 'asset'
+			};
+		}
+	}
+
+	private finalizeAssetsWithSameSource(
+		consumedFiles: ReadonlyArray<ConsumedAsset>,
+		sourceHash: string,
+		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
+	): void {
+		let fileName = '';
+		let usedConsumedFile: ConsumedAsset;
+		let needsCodeReference = true;
+		for (const consumedFile of consumedFiles) {
+			needsCodeReference &&= consumedFile.needsCodeReference;
+			const assetFileName = generateAssetFileName(
+				consumedFile.name,
+				consumedFile.source!,
+				sourceHash,
+				outputOptions,
+				bundle
+			);
+			if (
+				!fileName ||
+				assetFileName.length < fileName.length ||
+				(assetFileName.length === fileName.length && assetFileName < fileName)
+			) {
+				fileName = assetFileName;
+				usedConsumedFile = consumedFile;
+			}
+		}
+		fileNamesBySource.set(sourceHash, fileName);
+
+		for (const consumedFile of consumedFiles) {
+			// We must not modify the original assets to avoid interaction between outputs
+			const assetWithFileName = { ...consumedFile, fileName };
+			this.filesByReferenceId.set(consumedFile.referenceId, assetWithFileName);
+		}
+
 		bundle[fileName] = {
 			fileName,
-			name: consumedFile.name,
-			needsCodeReference: consumedFile.needsCodeReference,
-			source,
+			name: usedConsumedFile!.name,
+			needsCodeReference,
+			source: usedConsumedFile!.source!,
 			type: 'asset'
 		};
 	}
