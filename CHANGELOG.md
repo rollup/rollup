@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.20.1
+
+_2023-03-23_
+
+### Bug Fixes
+
+- Fix returned file name from this.getFileName when assets are deduplicated (#4919)
+
+### Pull Requests
+
+- [#4919](https://github.com/rollup/rollup/pull/4919): Only set asset names when finalizing (@lukastaegert)
+
 ## 3.20.0
 
 _2023-03-20_
