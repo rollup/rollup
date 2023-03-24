@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.20.2
+
+_2023-03-24_
+
+### Bug Fixes
+
+- Fix a crash when using a manual chunk entry that is not already included in the module graph (#4921)
+- Fix a crash when reporting a warning with incorrect sourcemap information (#4922)
+
+### Pull Requests
+
+- [#4921](https://github.com/rollup/rollup/pull/4921): Handle manual chunks where the entry is not part of the module graph (@lukastaegert)
+- [#4922](https://github.com/rollup/rollup/pull/4922): Do not fail if the location of a warning is outside the original source (@lukastaegert)
+
 ## 3.20.1
 
 _2023-03-23_
