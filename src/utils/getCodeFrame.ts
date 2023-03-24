@@ -15,7 +15,7 @@ const ELLIPSIS = '...';
 export default function getCodeFrame(source: string, line: number, column: number): string {
 	let lines = source.split('\n');
 	// Needed if a plugin did not generate correct sourcemaps
-	if (line >= lines.length) return '';
+	if (line > lines.length) return '';
 	const maxLineLength = Math.max(
 		tabsToSpaces(lines[line - 1].slice(0, column)).length +
 			MIN_CHARACTERS_SHOWN_AFTER_LOCATION +
