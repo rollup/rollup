@@ -18,6 +18,9 @@ export default class Program extends NodeBase {
 	private hasLoggedEffect = false;
 
 	hasCachedEffects(): boolean {
+		if (!this.included) {
+			return false;
+		}
 		return this.hasCachedEffect === null
 			? (this.hasCachedEffect = this.hasEffects(createHasEffectsContext()))
 			: this.hasCachedEffect;
