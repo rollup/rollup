@@ -44,7 +44,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 button {
 	font-family: inherit;
 	font-size: inherit;
