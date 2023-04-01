@@ -9,7 +9,7 @@
 		<div class="right">
 			<h2>
 				...
-				{{ rollupOutputStore.output.length > 1 ? 'chunks come' : 'bundle comes' }}
+				{{ rollupOutputStore.output.output.length > 1 ? 'chunks come' : 'bundle comes' }}
 				out
 			</h2>
 			<div class="output">
@@ -44,7 +44,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 button {
 	font-family: inherit;
 	font-size: inherit;
