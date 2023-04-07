@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -26,25 +27,22 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 		const { args, thisArg } = interaction;
 		const [returnExpression, isPure] = this.getReturnExpression(recursionTracker);
 		if (isPure) return;
+		const deoptimizedExpressions = [thisArg, ...(args || EMPTY_ARRAY)].filter(
+			(expression): expression is ExpressionEntity =>
+				!!expression && expression !== UNKNOWN_EXPRESSION
+		);
+		if (deoptimizedExpressions.length === 0) return;
 		if (returnExpression === UNKNOWN_EXPRESSION) {
-			thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if (args) {
-				for (const argument of args) {
-					argument.deoptimizePath(UNKNOWN_PATH);
-				}
+			for (const expression of deoptimizedExpressions) {
+				expression.deoptimizePath(UNKNOWN_PATH);
 			}
 		} else {
 			recursionTracker.withTrackedEntityAtPath(
 				path,
 				returnExpression,
 				() => {
-					if (thisArg) {
-						this.expressionsToBeDeoptimized.add(thisArg);
-					}
-					if (args) {
-						for (const argument of args) {
-							this.expressionsToBeDeoptimized.add(argument);
-						}
+					for (const expression of deoptimizedExpressions) {
+						this.expressionsToBeDeoptimized.add(expression);
 					}
 					returnExpression.deoptimizeArgumentsOnInteractionAtPath(
 						interaction,
