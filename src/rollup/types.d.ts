@@ -254,7 +254,7 @@ export type ShouldTransformCachedModuleHook = (
 		resolvedSources: ResolvedIdMap;
 		syntheticNamedExports: boolean | string;
 	}
-) => boolean;
+) => boolean | NullValue;
 
 export type IsExternal = (
 	source: string,
