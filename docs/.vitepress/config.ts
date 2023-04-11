@@ -129,7 +129,6 @@ export default defineConfig({
 	title: 'Rollup',
 	transformPageData,
 	vite: {
-		optimizeDeps: { include: ['moment-mini', '@braintree/sanitize-url'] },
 		plugins: [
 			renderMermaidGraphsPlugin(),
 			{

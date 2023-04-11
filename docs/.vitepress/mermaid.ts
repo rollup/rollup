@@ -14,6 +14,7 @@ const mermaidRegExp = /^```mermaid\n([\S\s]*?)\n```/gm;
 const greaterThanRegExp = /&gt;/g;
 const styleTagRegExp = /<style>[\S\s]*?<\/style>/gm;
 const configFileURL = new URL('mermaid.config.json', import.meta.url);
+const puppeteerConfigFileURL = new URL('puppeteer-config.json', import.meta.url);
 
 export function renderMermaidGraphsPlugin(): Plugin {
 	const existingGraphFileNamesPromise = mkdir(graphsDirectory, { recursive: true })
@@ -28,7 +29,9 @@ export function renderMermaidGraphsPlugin(): Plugin {
 			const inFileURL = new URL(`${outFile}.mmd`, graphsDirectory);
 			await writeFile(inFileURL, codeBlock);
 			const { stdout, stderr } = await execPromise(
-				`npx mmdc --configFile ${fileURLToPath(configFileURL)} --input ${fileURLToPath(
+				`npx mmdc --configFile ${fileURLToPath(
+					configFileURL
+				)} --puppeteerConfigFile ${fileURLToPath(puppeteerConfigFileURL)} --input ${fileURLToPath(
 					inFileURL
 				)} --output ${fileURLToPath(outFileURL)}`
 			);

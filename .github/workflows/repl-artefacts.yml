@@ -57,7 +57,7 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: 'Thank you for your contribution!'
       - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v3
         id: createInitialComment
         with:
           comment-id: ${{ steps.findComment.outputs.comment-id }}
@@ -80,7 +80,7 @@ jobs:
         with:
           site_name: "rollupjs"
       - name: Update comment for Netlify
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v3
         if: ${{ steps.waitForNetlify.outputs.url }}
         with:
           comment-id: ${{ steps.createInitialComment.outputs.comment-id }}
