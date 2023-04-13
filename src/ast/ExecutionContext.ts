@@ -21,6 +21,7 @@ interface ControlFlowContext {
 }
 
 export interface InclusionContext extends ControlFlowContext {
+	existedBroken: boolean;
 	includedCallArguments: Set<Entity>;
 }
 
@@ -37,6 +38,7 @@ export interface HasEffectsContext extends ControlFlowContext {
 export function createInclusionContext(): InclusionContext {
 	return {
 		brokenFlow: BROKEN_FLOW_NONE,
+		existedBroken: false,
 		includedCallArguments: new Set(),
 		includedLabels: new Set()
 	};

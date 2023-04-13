@@ -2,6 +2,7 @@ import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import {
+	BROKEN_FLOW_BREAK_CONTINUE,
 	BROKEN_FLOW_NONE,
 	type HasEffectsContext,
 	type InclusionContext
@@ -173,10 +174,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			this.consequent.include(context, false, { asSingleStatement: true });
 			// eslint-disable-next-line unicorn/consistent-destructuring
 			consequentBrokenFlow = context.brokenFlow;
+			context.existedBroken ||= consequentBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate?.shouldBeIncluded(context)) {
 			this.alternate.include(context, false, { asSingleStatement: true });
+			// eslint-disable-next-line unicorn/consistent-destructuring
+			context.existedBroken ||= context.brokenFlow === BROKEN_FLOW_BREAK_CONTINUE;
 			context.brokenFlow =
 				// eslint-disable-next-line unicorn/consistent-destructuring
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
