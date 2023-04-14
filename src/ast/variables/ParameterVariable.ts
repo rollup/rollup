@@ -50,17 +50,17 @@ export default class ParameterVariable extends LocalVariable {
 			// the interaction cache at this point provided we keep this optimization
 			// in mind when adding new interactions
 			if (!this.entitiesToBeDeoptimized.has(UNKNOWN_EXPRESSION)) {
+				this.entitiesToBeDeoptimized.add(UNKNOWN_EXPRESSION);
 				for (const { interaction } of this.deoptimizationInteractions) {
 					deoptimizeInteraction(interaction);
 				}
 				this.deoptimizationInteractions = NO_INTERACTIONS;
-				this.entitiesToBeDeoptimized.add(UNKNOWN_EXPRESSION);
 			}
 		} else if (this.deoptimizedFields.has(UnknownKey)) {
 			// This means that we already deoptimized all interactions and no longer
 			// track them
 			entity.deoptimizePath(UNKNOWN_PATH);
-		} else {
+		} else if (!this.entitiesToBeDeoptimized.has(entity)) {
 			this.entitiesToBeDeoptimized.add(entity);
 			for (const field of this.deoptimizedFields) {
 				entity.deoptimizePath([field]);
