@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { BLANK } from '../../utils/blank';
+import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import { errorIllegalImportReassignment, errorMissingExport } from '../../utils/error';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -152,10 +152,10 @@ export default class MemberExpression
 	}
 
 	deoptimizeCache(): void {
-		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-		this.expressionsToBeDeoptimized = [];
+		const { expressionsToBeDeoptimized, object } = this;
+		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 		this.propertyKey = UnknownKey;
-		this.object.deoptimizePath(UNKNOWN_PATH);
+		object.deoptimizePath(UNKNOWN_PATH);
 		for (const expression of expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
 		}

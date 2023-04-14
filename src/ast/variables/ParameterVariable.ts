@@ -24,7 +24,7 @@ interface DeoptimizationInteraction {
 	path: ObjectPath;
 }
 
-const MAX_TRACKED_INTERACTIONS = 10;
+const MAX_TRACKED_INTERACTIONS = 20;
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
 const EMPTY_PATH_TRACKER = new PathTracker();

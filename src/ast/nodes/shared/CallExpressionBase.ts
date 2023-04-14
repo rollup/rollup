@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY, EMPTY_SET } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -15,8 +16,8 @@ import { NodeBase } from './Node';
 export default abstract class CallExpressionBase extends NodeBase implements DeoptimizableEntity {
 	protected declare interaction: NodeInteractionCalled;
 	protected returnExpression: [expression: ExpressionEntity, isPure: boolean] | null = null;
-	private readonly deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
-	private readonly expressionsToBeDeoptimized = new Set<ExpressionEntity>();
+	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
+	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
@@ -56,10 +57,13 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	deoptimizeCache(): void {
 		if (this.returnExpression?.[0] !== UNKNOWN_EXPRESSION) {
 			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
-			for (const expression of this.deoptimizableDependentExpressions) {
+			const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
+			this.expressionsToBeDeoptimized = EMPTY_SET;
+			this.deoptimizableDependentExpressions = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			for (const expression of deoptimizableDependentExpressions) {
 				expression.deoptimizeCache();
 			}
-			for (const expression of this.expressionsToBeDeoptimized) {
+			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
