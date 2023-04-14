@@ -1,5 +1,6 @@
 import type { NormalizedOutputOptions } from '../rollup/types';
 import RESERVED_NAMES from './RESERVED_NAMES';
+import { isValidIdentifier } from './isValidIdentifier';
 
 export interface GenerateCodeSnippets {
 	_: string;
@@ -83,8 +84,8 @@ export function getGenerateCodeSnippets({
 	];
 
 	const isValidPropertyName = reservedNamesAsProps
-		? (name: string): boolean => validPropertyName.test(name)
-		: (name: string): boolean => !RESERVED_NAMES.has(name) && validPropertyName.test(name);
+		? isValidIdentifier
+		: (name: string): boolean => !RESERVED_NAMES.has(name) && isValidIdentifier(name);
 
 	return {
 		_,
@@ -130,5 +131,3 @@ export function getGenerateCodeSnippets({
 
 const wrapIfNeeded = (code: string, needsParens: boolean | undefined): string =>
 	needsParens ? `(${code})` : code;
-
-const validPropertyName = /^(?!\d)[\w$]+$/;

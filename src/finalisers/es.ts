@@ -3,6 +3,7 @@ import type { ChunkDependency, ChunkExports, ImportSpecifier, ReexportSpecifier 
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
+import { isValidIdentifier } from '../utils/isValidIdentifier';
 import type { FinaliserOptions } from './index';
 
 export default function es(
@@ -121,10 +122,6 @@ function getImportBlock(
 	return importBlock;
 }
 
-function isLegalJsIdentifier(name: string): boolean {
-	return /^[$A-Z_a-z][\w$]*$/.test(name);
-}
-
 function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets): string[] {
 	const exportBlock: string[] = [];
 	const exportDeclaration: string[] = [];
@@ -136,7 +133,7 @@ function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets
 			specifier.exported === specifier.local
 				? specifier.local
 				: `${specifier.local} as ${
-						isLegalJsIdentifier(specifier.exported)
+						isValidIdentifier(specifier.exported)
 							? specifier.exported
 							: JSON.stringify(specifier.exported)
 				  }`
