@@ -185,8 +185,8 @@ export default class MemberExpression
 		if (this.isUndefined) {
 			return undefined;
 		}
-		this.expressionsToBeDeoptimized.push(origin);
-		if (path.length < MAX_PATH_DEPTH) {
+		if (this.propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+			this.expressionsToBeDeoptimized.push(origin);
 			return this.object.getLiteralValueAtPath(
 				[this.getPropertyKey(), ...path],
 				recursionTracker,
@@ -213,8 +213,8 @@ export default class MemberExpression
 		if (this.isUndefined) {
 			return [UNDEFINED_EXPRESSION, false];
 		}
-		this.expressionsToBeDeoptimized.push(origin);
-		if (path.length < MAX_PATH_DEPTH) {
+		if (this.propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+			this.expressionsToBeDeoptimized.push(origin);
 			return this.object.getReturnExpressionWhenCalledAtPath(
 				[this.getPropertyKey(), ...path],
 				interaction,
