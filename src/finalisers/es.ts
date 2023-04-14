@@ -121,6 +121,10 @@ function getImportBlock(
 	return importBlock;
 }
 
+function isLegalJsIdentifier(name: string): boolean {
+	return /^[$A-Z_a-z][\w$]*$/.test(name);
+}
+
 function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets): string[] {
 	const exportBlock: string[] = [];
 	const exportDeclaration: string[] = [];
@@ -131,7 +135,11 @@ function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets
 		exportDeclaration.push(
 			specifier.exported === specifier.local
 				? specifier.local
-				: `${specifier.local} as ${specifier.exported}`
+				: `${specifier.local} as ${
+						isLegalJsIdentifier(specifier.exported)
+							? specifier.exported
+							: JSON.stringify(specifier.exported)
+				  }`
 		);
 	}
 	if (exportDeclaration.length > 0) {
