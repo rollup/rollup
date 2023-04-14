@@ -12,7 +12,7 @@ import {
 } from '../nodes/shared/Expression';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
-	DiscriminatedPathTracker,
+	PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
 	UnknownKey
@@ -26,12 +26,12 @@ interface DeoptimizationInteraction {
 
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
-const EMPTY_PATH_TRACKER = new DiscriminatedPathTracker();
+const EMPTY_PATH_TRACKER = new PathTracker();
 const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION]);
 
 export default class ParameterVariable extends LocalVariable {
 	private deoptimizationInteractions: DeoptimizationInteraction[] = [];
-	private deoptimizations = new DiscriminatedPathTracker();
+	private deoptimizations = new PathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
 
@@ -82,13 +82,7 @@ export default class ParameterVariable extends LocalVariable {
 			deoptimizeInteraction(interaction);
 			return;
 		}
-		if (
-			!this.deoptimizations.trackEntityAtPathAndGetIfTracked(
-				path,
-				interaction.args,
-				interaction.thisArg
-			)
-		) {
+		if (!this.deoptimizations.trackEntityAtPathAndGetIfTracked(path, interaction.args)) {
 			for (const entity of this.entitiesToBeDeoptimized) {
 				entity.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
 			}

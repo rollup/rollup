@@ -23,7 +23,6 @@ export default class ThisExpression extends NodeBase {
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		// TODO Lukas merge thisArg and args into one tuple
 		this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 

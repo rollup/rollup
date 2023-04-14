@@ -60,14 +60,14 @@ const PF: GlobalDescription = {
 const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: {
-		deoptimizeArgumentsOnCall({ args: [firstArgument] }: NodeInteractionCalled) {
+		deoptimizeArgumentsOnCall({ args: [, firstArgument] }: NodeInteractionCalled) {
 			firstArgument?.deoptimizePath(UNKNOWN_PATH);
 		},
 		getLiteralValue: getTruthyLiteralValue,
 		hasEffectsWhenCalled({ args }, context) {
 			return (
-				args.length === 0 ||
-				args[0].hasEffectsOnInteractionAtPath(
+				args.length <= 1 ||
+				args[1].hasEffectsOnInteractionAtPath(
 					UNKNOWN_NON_ACCESSOR_PATH,
 					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					context

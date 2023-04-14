@@ -12,6 +12,7 @@ import {
 } from '../../utils/PathTracker';
 import type { LiteralValueOrUnknown } from './Expression';
 import {
+	deoptimizeInteraction,
 	ExpressionEntity,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
@@ -95,7 +96,7 @@ export class ObjectEntity extends ExpressionEntity {
 		recursionTracker: PathTracker
 	): void {
 		const [key, ...subPath] = path;
-		const { args, thisArg, type } = interaction;
+		const { args, type } = interaction;
 
 		if (
 			this.hasLostTrack ||
@@ -104,12 +105,7 @@ export class ObjectEntity extends ExpressionEntity {
 				(this.hasUnknownDeoptimizedProperty ||
 					(typeof key === 'string' && this.deoptimizedPaths[key])))
 		) {
-			thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if (args) {
-				for (const argument of args) {
-					argument.deoptimizePath(UNKNOWN_PATH);
-				}
-			}
+			deoptimizeInteraction(interaction);
 			return;
 		}
 
@@ -133,11 +129,8 @@ export class ObjectEntity extends ExpressionEntity {
 					}
 				}
 				if (!this.immutable) {
-					if (thisArg) {
-						this.additionalExpressionsToBeDeoptimized.add(thisArg);
-					}
-					if (args) {
-						for (const argument of args) {
+					for (const argument of args) {
+						if (argument) {
 							this.additionalExpressionsToBeDeoptimized.add(argument);
 						}
 					}
@@ -166,11 +159,8 @@ export class ObjectEntity extends ExpressionEntity {
 			}
 		}
 		if (!this.immutable) {
-			if (thisArg) {
-				this.additionalExpressionsToBeDeoptimized.add(thisArg);
-			}
-			if (args) {
-				for (const argument of args) {
+			for (const argument of args) {
+				if (argument) {
 					this.additionalExpressionsToBeDeoptimized.add(argument);
 				}
 			}

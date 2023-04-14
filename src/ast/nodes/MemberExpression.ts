@@ -101,8 +101,8 @@ export default class MemberExpression
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
-	protected declare assignmentInteraction: NodeInteractionAssigned & { thisArg: ExpressionEntity };
-	private declare accessInteraction: NodeInteractionAccessed & { thisArg: ExpressionEntity };
+	protected declare assignmentInteraction: NodeInteractionAssigned;
+	private declare accessInteraction: NodeInteractionAccessed;
 	private assignmentDeoptimized = false;
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
@@ -297,7 +297,7 @@ export default class MemberExpression
 
 	initialise(): void {
 		this.propertyKey = getResolvablePropertyKey(this);
-		this.accessInteraction = { args: null, thisArg: this.object, type: INTERACTION_ACCESSED };
+		this.accessInteraction = { args: [this.object], type: INTERACTION_ACCESSED };
 	}
 
 	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
@@ -340,8 +340,7 @@ export default class MemberExpression
 
 	setAssignedValue(value: ExpressionEntity) {
 		this.assignmentInteraction = {
-			args: [value],
-			thisArg: this.object,
+			args: [this.object, value],
 			type: INTERACTION_ASSIGNED
 		};
 	}

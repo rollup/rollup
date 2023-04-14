@@ -41,11 +41,12 @@ export default class CallExpression
 			}
 		}
 		this.interaction = {
-			args: this.arguments,
-			thisArg:
+			args: [
 				this.callee instanceof MemberExpression && !this.callee.variable
 					? this.callee.object
 					: null,
+				...this.arguments
+			],
 			type: INTERACTION_CALLED,
 			withNew: false
 		};
