@@ -24,6 +24,7 @@ interface DeoptimizationInteraction {
 	path: ObjectPath;
 }
 
+const MAX_TRACKED_INTERACTIONS = 10;
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
 const EMPTY_PATH_TRACKER = new PathTracker();
@@ -75,6 +76,7 @@ export default class ParameterVariable extends LocalVariable {
 		if (
 			path.length >= 2 ||
 			this.entitiesToBeDeoptimized.has(UNKNOWN_EXPRESSION) ||
+			this.deoptimizationInteractions.length >= MAX_TRACKED_INTERACTIONS ||
 			(path.length === 1 &&
 				(this.deoptimizedFields.has(UnknownKey) ||
 					(interaction.type === INTERACTION_CALLED && this.deoptimizedFields.has(path[0]))))
