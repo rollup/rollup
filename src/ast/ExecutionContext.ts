@@ -3,19 +3,19 @@ import type { ExpressionEntity } from './nodes/shared/Expression';
 import { DiscriminatedPathTracker, PathTracker } from './utils/PathTracker';
 import type ThisVariable from './variables/ThisVariable';
 
-export const UnlabeledBreak = Symbol('Unlabeled Break');
-export const UnlabeledContinue = Symbol('Unlabeled Continue');
-export type Label = string | typeof UnlabeledBreak | typeof UnlabeledContinue;
-
 interface ExecutionContextIgnore {
-	labels: Set<Label>;
+	breaks: boolean;
+	continues: boolean;
+	labels: Set<string>;
 	returnYield: boolean;
 	this: boolean;
 }
 
 interface ControlFlowContext {
 	brokenFlow: boolean;
-	includedLabels: Set<Label>;
+	hasBreak: boolean;
+	hasContinue: boolean;
+	includedLabels: Set<string>;
 }
 
 export interface InclusionContext extends ControlFlowContext {
@@ -35,6 +35,8 @@ export interface HasEffectsContext extends ControlFlowContext {
 export function createInclusionContext(): InclusionContext {
 	return {
 		brokenFlow: false,
+		hasBreak: false,
+		hasContinue: false,
 		includedCallArguments: new Set(),
 		includedLabels: new Set()
 	};
@@ -46,7 +48,11 @@ export function createHasEffectsContext(): HasEffectsContext {
 		assigned: new PathTracker(),
 		brokenFlow: false,
 		called: new DiscriminatedPathTracker(),
+		hasBreak: false,
+		hasContinue: false,
 		ignore: {
+			breaks: false,
+			continues: false,
 			labels: new Set(),
 			returnYield: false,
 			this: false

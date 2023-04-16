@@ -1,32 +1,18 @@
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { UnlabeledBreak, UnlabeledContinue } from '../../ExecutionContext';
 import type { StatementNode } from './Node';
 
 export function hasLoopBodyEffects(context: HasEffectsContext, body: StatementNode): boolean {
-	const {
-		brokenFlow,
-		includedLabels,
-		ignore: { labels }
-	} = context;
-	const hasBreak = includedLabels.delete(UnlabeledBreak);
-	const ignoreBreaks = labels.has(UnlabeledBreak);
-	labels.add(UnlabeledBreak);
-	const hasContinue = includedLabels.delete(UnlabeledContinue);
-	const ignoreContinues = labels.has(UnlabeledContinue);
-	labels.add(UnlabeledContinue);
+	const { brokenFlow, hasBreak, hasContinue, ignore } = context;
+	const { breaks, continues } = ignore;
+	ignore.breaks = true;
+	ignore.continues = true;
+	context.hasBreak = false;
+	context.hasContinue = false;
 	if (body.hasEffects(context)) return true;
-	if (!ignoreBreaks) labels.delete(UnlabeledBreak);
-	if (!ignoreContinues) labels.delete(UnlabeledContinue);
-	if (hasBreak) {
-		includedLabels.add(UnlabeledBreak);
-	} else {
-		includedLabels.delete(UnlabeledBreak);
-	}
-	if (hasContinue) {
-		includedLabels.add(UnlabeledContinue);
-	} else {
-		includedLabels.delete(UnlabeledContinue);
-	}
+	ignore.breaks = breaks;
+	ignore.continues = continues;
+	context.hasBreak = hasBreak;
+	context.hasContinue = hasContinue;
 	context.brokenFlow = brokenFlow;
 	return false;
 }
@@ -36,19 +22,11 @@ export function includeLoopBody(
 	body: StatementNode,
 	includeChildrenRecursively: boolean | 'variables'
 ) {
-	const { brokenFlow, includedLabels } = context;
-	const hasBreak = includedLabels.delete(UnlabeledBreak);
-	const hasContinue = includedLabels.delete(UnlabeledContinue);
+	const { brokenFlow, hasBreak, hasContinue } = context;
+	context.hasBreak = false;
+	context.hasContinue = false;
 	body.include(context, includeChildrenRecursively, { asSingleStatement: true });
-	if (hasBreak) {
-		includedLabels.add(UnlabeledBreak);
-	} else {
-		includedLabels.delete(UnlabeledBreak);
-	}
-	if (hasContinue) {
-		includedLabels.add(UnlabeledContinue);
-	} else {
-		includedLabels.delete(UnlabeledContinue);
-	}
+	context.hasBreak = hasBreak;
+	context.hasContinue = hasContinue;
 	context.brokenFlow = brokenFlow;
 }

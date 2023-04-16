@@ -1,5 +1,5 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import type { HasEffectsContext, InclusionContext, Label } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type BlockStatement from './BlockStatement';
 import type CatchClause from './CatchClause';
 import type * as NodeType from './NodeType';
@@ -12,7 +12,7 @@ export default class TryStatement extends StatementBase {
 	declare type: NodeType.tTryStatement;
 
 	private directlyIncluded = false;
-	private includedLabelsAfterBlock: Label[] | null = null;
+	private includedLabelsAfterBlock: string[] | null = null;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		return (

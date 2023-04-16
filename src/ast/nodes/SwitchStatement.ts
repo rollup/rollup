@@ -3,8 +3,7 @@ import { type RenderOptions, renderStatementList } from '../../utils/renderHelpe
 import {
 	createHasEffectsContext,
 	type HasEffectsContext,
-	type InclusionContext,
-	UnlabeledBreak
+	type InclusionContext
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
@@ -25,37 +24,31 @@ export default class SwitchStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.discriminant.hasEffects(context)) return true;
-		const {
-			brokenFlow,
-			includedLabels,
-			ignore: { labels }
-		} = context;
-		const ignoreBreaks = labels.has(UnlabeledBreak);
-		labels.add(UnlabeledBreak);
-		const hasBreak = includedLabels.delete(UnlabeledBreak);
+		const { brokenFlow, hasBreak, ignore } = context;
+		const { breaks } = ignore;
+		ignore.breaks = true;
+		context.hasBreak = false;
 		let onlyHasBrokenFlow = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
 			// eslint-disable-next-line unicorn/consistent-destructuring
-			onlyHasBrokenFlow &&= context.brokenFlow && !includedLabels.has(UnlabeledBreak);
-			includedLabels.delete(UnlabeledBreak);
+			onlyHasBrokenFlow &&= context.brokenFlow && !context.hasBreak;
+			context.hasBreak = false;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.defaultCase !== null) {
 			context.brokenFlow = onlyHasBrokenFlow;
 		}
-		if (hasBreak) {
-			includedLabels.add(UnlabeledBreak);
-		}
-		if (!ignoreBreaks) labels.delete(UnlabeledBreak);
+		ignore.breaks = breaks;
+		context.hasBreak = hasBreak;
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
-		const { brokenFlow, includedLabels } = context;
-		const hasBreak = includedLabels.delete(UnlabeledBreak);
+		const { brokenFlow, hasBreak } = context;
+		context.hasBreak = false;
 		let onlyHasBrokenFlow = true;
 		let isCaseIncluded =
 			includeChildrenRecursively ||
@@ -67,14 +60,14 @@ export default class SwitchStatement extends StatementBase {
 			}
 			if (!isCaseIncluded) {
 				const hasEffectsContext = createHasEffectsContext();
-				hasEffectsContext.ignore.labels.add(UnlabeledBreak);
+				hasEffectsContext.ignore.breaks = true;
 				isCaseIncluded = switchCase.hasEffects(hasEffectsContext);
 			}
 			if (isCaseIncluded) {
 				switchCase.include(context, includeChildrenRecursively);
 				// eslint-disable-next-line unicorn/consistent-destructuring
-				onlyHasBrokenFlow &&= context.brokenFlow && !includedLabels.has(UnlabeledBreak);
-				includedLabels.delete(UnlabeledBreak);
+				onlyHasBrokenFlow &&= context.brokenFlow && !context.hasBreak;
+				context.hasBreak = false;
 				context.brokenFlow = brokenFlow;
 			} else {
 				onlyHasBrokenFlow = brokenFlow;
@@ -83,9 +76,7 @@ export default class SwitchStatement extends StatementBase {
 		if (isCaseIncluded && this.defaultCase !== null) {
 			context.brokenFlow = onlyHasBrokenFlow;
 		}
-		if (hasBreak) {
-			includedLabels.add(UnlabeledBreak);
-		}
+		context.hasBreak = hasBreak;
 	}
 
 	initialise(): void {

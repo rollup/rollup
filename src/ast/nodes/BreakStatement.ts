@@ -1,4 +1,4 @@
-import { type HasEffectsContext, type InclusionContext, UnlabeledBreak } from '../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
@@ -8,9 +8,13 @@ export default class BreakStatement extends StatementBase {
 	declare type: NodeType.tBreakStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		const labelName = this.label?.name || UnlabeledBreak;
-		if (!context.ignore.labels.has(labelName)) return true;
-		context.includedLabels.add(labelName);
+		if (this.label) {
+			if (!context.ignore.labels.has(this.label.name)) return true;
+			context.includedLabels.add(this.label.name);
+		} else {
+			if (!context.ignore.breaks) return true;
+			context.hasBreak = true;
+		}
 		context.brokenFlow = true;
 		return false;
 	}
@@ -21,7 +25,7 @@ export default class BreakStatement extends StatementBase {
 			this.label.include();
 			context.includedLabels.add(this.label.name);
 		} else {
-			context.includedLabels.add(UnlabeledBreak);
+			context.hasBreak = true;
 		}
 		context.brokenFlow = true;
 	}

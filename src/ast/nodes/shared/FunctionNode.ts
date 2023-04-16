@@ -60,6 +60,8 @@ export default class FunctionNode extends FunctionBase {
 			);
 			const { brokenFlow, ignore, replacedVariableInits } = context;
 			context.ignore = {
+				breaks: false,
+				continues: false,
 				labels: new Set(),
 				returnYield: true,
 				this: interaction.withNew
