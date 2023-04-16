@@ -1,12 +1,7 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import {
-	BROKEN_FLOW_BREAK_CONTINUE,
-	BROKEN_FLOW_NONE,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
@@ -50,9 +45,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			context.brokenFlow = brokenFlow;
 			if (this.alternate === null) return false;
 			if (this.alternate.hasEffects(context)) return true;
-			context.brokenFlow =
-				// eslint-disable-next-line unicorn/consistent-destructuring
-				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
+			// eslint-disable-next-line unicorn/consistent-destructuring
+			context.brokenFlow = context.brokenFlow && consequentBrokenFlow;
 			return false;
 		}
 		return testValue ? this.consequent.hasEffects(context) : !!this.alternate?.hasEffects(context);
@@ -169,21 +163,17 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	private includeUnknownTest(context: InclusionContext) {
 		this.test.include(context, false);
 		const { brokenFlow } = context;
-		let consequentBrokenFlow = BROKEN_FLOW_NONE;
+		let consequentBrokenFlow = false;
 		if (this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false, { asSingleStatement: true });
 			// eslint-disable-next-line unicorn/consistent-destructuring
 			consequentBrokenFlow = context.brokenFlow;
-			context.existedBroken ||= consequentBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate?.shouldBeIncluded(context)) {
 			this.alternate.include(context, false, { asSingleStatement: true });
 			// eslint-disable-next-line unicorn/consistent-destructuring
-			context.existedBroken ||= context.brokenFlow === BROKEN_FLOW_BREAK_CONTINUE;
-			context.brokenFlow =
-				// eslint-disable-next-line unicorn/consistent-destructuring
-				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
+			context.brokenFlow = context.brokenFlow && consequentBrokenFlow;
 		}
 	}
 

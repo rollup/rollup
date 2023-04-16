@@ -1,10 +1,6 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import {
-	BROKEN_FLOW_NONE,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_CALLED,
@@ -151,7 +147,7 @@ export default abstract class FunctionBase extends NodeBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
-		context.brokenFlow = BROKEN_FLOW_NONE;
+		context.brokenFlow = false;
 		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}

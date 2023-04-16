@@ -15,6 +15,7 @@ import {
 	type StatementNode
 } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import { includeLoopBody } from './shared/loops';
 
 export default class ForOfStatement extends StatementBase {
 	declare await: boolean;
@@ -39,9 +40,7 @@ export default class ForOfStatement extends StatementBase {
 		this.included = true;
 		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
 		right.include(context, includeChildrenRecursively);
-		const { brokenFlow } = context;
-		body.include(context, includeChildrenRecursively, { asSingleStatement: true });
-		context.brokenFlow = brokenFlow;
+		includeLoopBody(context, body, includeChildrenRecursively);
 	}
 
 	initialise() {

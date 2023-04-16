@@ -1,10 +1,10 @@
 import type MagicString from 'magic-string';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
-	BROKEN_FLOW_BREAK_CONTINUE,
 	createHasEffectsContext,
 	type HasEffectsContext,
-	type InclusionContext
+	type InclusionContext,
+	UnlabeledBreak
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type Scope from '../scopes/Scope';
@@ -25,28 +25,38 @@ export default class SwitchStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.discriminant.hasEffects(context)) return true;
-		const { brokenFlow, ignore } = context;
-		const { breaks } = ignore;
-		let minBrokenFlow = Infinity;
-		ignore.breaks = true;
+		const {
+			brokenFlow,
+			includedLabels,
+			ignore: { labels }
+		} = context;
+		const ignoreBreaks = labels.has(UnlabeledBreak);
+		labels.add(UnlabeledBreak);
+		const hasBreak = includedLabels.delete(UnlabeledBreak);
+		let onlyHasBrokenFlow = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
 			// eslint-disable-next-line unicorn/consistent-destructuring
-			minBrokenFlow = context.brokenFlow < minBrokenFlow ? context.brokenFlow : minBrokenFlow;
+			onlyHasBrokenFlow &&= context.brokenFlow && !includedLabels.has(UnlabeledBreak);
+			includedLabels.delete(UnlabeledBreak);
 			context.brokenFlow = brokenFlow;
 		}
-		if (this.defaultCase !== null && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
-			context.brokenFlow = minBrokenFlow;
+		if (this.defaultCase !== null) {
+			context.brokenFlow = onlyHasBrokenFlow;
 		}
-		ignore.breaks = breaks;
+		if (hasBreak) {
+			includedLabels.add(UnlabeledBreak);
+		}
+		if (!ignoreBreaks) labels.delete(UnlabeledBreak);
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
-		const { brokenFlow } = context;
-		let minBrokenFlow = Infinity;
+		const { brokenFlow, includedLabels } = context;
+		const hasBreak = includedLabels.delete(UnlabeledBreak);
+		let onlyHasBrokenFlow = true;
 		let isCaseIncluded =
 			includeChildrenRecursively ||
 			(this.defaultCase !== null && this.defaultCase < this.cases.length - 1);
@@ -57,24 +67,24 @@ export default class SwitchStatement extends StatementBase {
 			}
 			if (!isCaseIncluded) {
 				const hasEffectsContext = createHasEffectsContext();
-				hasEffectsContext.ignore.breaks = true;
+				hasEffectsContext.ignore.labels.add(UnlabeledBreak);
 				isCaseIncluded = switchCase.hasEffects(hasEffectsContext);
 			}
 			if (isCaseIncluded) {
 				switchCase.include(context, includeChildrenRecursively);
 				// eslint-disable-next-line unicorn/consistent-destructuring
-				minBrokenFlow = minBrokenFlow < context.brokenFlow ? minBrokenFlow : context.brokenFlow;
+				onlyHasBrokenFlow &&= context.brokenFlow && !includedLabels.has(UnlabeledBreak);
+				includedLabels.delete(UnlabeledBreak);
 				context.brokenFlow = brokenFlow;
 			} else {
-				minBrokenFlow = brokenFlow;
+				onlyHasBrokenFlow = brokenFlow;
 			}
 		}
-		if (
-			isCaseIncluded &&
-			this.defaultCase !== null &&
-			!(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)
-		) {
-			context.brokenFlow = minBrokenFlow;
+		if (isCaseIncluded && this.defaultCase !== null) {
+			context.brokenFlow = onlyHasBrokenFlow;
+		}
+		if (hasBreak) {
+			includedLabels.add(UnlabeledBreak);
 		}
 	}
 

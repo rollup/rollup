@@ -40,8 +40,6 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		if (interaction.type === INTERACTION_CALLED) {
 			const { ignore, brokenFlow } = context;
 			context.ignore = {
-				breaks: false,
-				continues: false,
 				labels: new Set(),
 				returnYield: true,
 				this: false

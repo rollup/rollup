@@ -5,12 +5,7 @@ import {
 	type RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
-import {
-	BROKEN_FLOW_BREAK_CONTINUE,
-	BROKEN_FLOW_ERROR_RETURN_LABEL,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
 import {
 	type ExpressionNode,
@@ -40,9 +35,6 @@ export default class SwitchCase extends NodeBase {
 		for (const node of this.consequent) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
 				node.include(context, includeChildrenRecursively);
-		}
-		if (context.existedBroken && context.brokenFlow === BROKEN_FLOW_ERROR_RETURN_LABEL) {
-			context.brokenFlow = BROKEN_FLOW_BREAK_CONTINUE;
 		}
 	}
 
