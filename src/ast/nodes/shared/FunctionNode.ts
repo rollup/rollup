@@ -36,8 +36,9 @@ export default class FunctionNode extends FunctionBase {
 		recursionTracker: PathTracker
 	): void {
 		super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
-		if (interaction.type === INTERACTION_CALLED && path.length === 0 && interaction.thisArg) {
-			this.scope.thisVariable.addEntityToBeDeoptimized(interaction.thisArg);
+		if (interaction.type === INTERACTION_CALLED && path.length === 0 && interaction.args[0]) {
+			// args[0] is the "this" argument
+			this.scope.thisVariable.addEntityToBeDeoptimized(interaction.args[0]);
 		}
 	}
 

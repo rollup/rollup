@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { BLANK } from '../../utils/blank';
+import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import { errorIllegalImportReassignment, errorMissingExport } from '../../utils/error';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -101,8 +101,8 @@ export default class MemberExpression
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
-	protected declare assignmentInteraction: NodeInteractionAssigned & { thisArg: ExpressionEntity };
-	private declare accessInteraction: NodeInteractionAccessed & { thisArg: ExpressionEntity };
+	protected declare assignmentInteraction: NodeInteractionAssigned;
+	private declare accessInteraction: NodeInteractionAccessed;
 	private assignmentDeoptimized = false;
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
@@ -152,10 +152,10 @@ export default class MemberExpression
 	}
 
 	deoptimizeCache(): void {
-		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-		this.expressionsToBeDeoptimized = [];
+		const { expressionsToBeDeoptimized, object } = this;
+		this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 		this.propertyKey = UnknownKey;
-		this.object.deoptimizePath(UNKNOWN_PATH);
+		object.deoptimizePath(UNKNOWN_PATH);
 		for (const expression of expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
 		}
@@ -185,8 +185,8 @@ export default class MemberExpression
 		if (this.isUndefined) {
 			return undefined;
 		}
-		this.expressionsToBeDeoptimized.push(origin);
-		if (path.length < MAX_PATH_DEPTH) {
+		if (this.propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+			this.expressionsToBeDeoptimized.push(origin);
 			return this.object.getLiteralValueAtPath(
 				[this.getPropertyKey(), ...path],
 				recursionTracker,
@@ -213,8 +213,8 @@ export default class MemberExpression
 		if (this.isUndefined) {
 			return [UNDEFINED_EXPRESSION, false];
 		}
-		this.expressionsToBeDeoptimized.push(origin);
-		if (path.length < MAX_PATH_DEPTH) {
+		if (this.propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
+			this.expressionsToBeDeoptimized.push(origin);
 			return this.object.getReturnExpressionWhenCalledAtPath(
 				[this.getPropertyKey(), ...path],
 				interaction,
@@ -297,7 +297,7 @@ export default class MemberExpression
 
 	initialise(): void {
 		this.propertyKey = getResolvablePropertyKey(this);
-		this.accessInteraction = { args: null, thisArg: this.object, type: INTERACTION_ACCESSED };
+		this.accessInteraction = { args: [this.object], type: INTERACTION_ACCESSED };
 	}
 
 	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
@@ -340,8 +340,7 @@ export default class MemberExpression
 
 	setAssignedValue(value: ExpressionEntity) {
 		this.assignmentInteraction = {
-			args: [value],
-			thisArg: this.object,
+			args: [this.object, value],
 			type: INTERACTION_ASSIGNED
 		};
 	}

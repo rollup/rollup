@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
+import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -54,12 +54,14 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
-			for (const expression of this.expressionsToBeDeoptimized) {
+			const { context, expressionsToBeDeoptimized } = this;
+			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
 			// Request another pass because we need to ensure "include" runs again if
 			// it is rendered
-			this.context.requestTreeshakingPass();
+			context.requestTreeshakingPass();
 		}
 	}
 
