@@ -156,9 +156,9 @@ const returnsString: RawMemberDescription = {
 const stringReplace: RawMemberDescription = {
 	value: {
 		hasEffectsWhenCalled({ args }, context) {
-			const argument1 = args[1];
+			const argument1 = args[2];
 			return (
-				args.length < 2 ||
+				args.length < 3 ||
 				(typeof argument1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
 					deoptimizeCache() {}
 				}) === 'symbol' &&

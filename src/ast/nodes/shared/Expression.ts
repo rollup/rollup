@@ -99,10 +99,7 @@ export const UNKNOWN_RETURN_EXPRESSION: [expression: ExpressionEntity, isPure: b
 ];
 
 export const deoptimizeInteraction = (interaction: NodeInteraction) => {
-	interaction.thisArg?.deoptimizePath(UNKNOWN_PATH);
-	if (interaction.args) {
-		for (const argument of interaction.args) {
-			argument.deoptimizePath(UNKNOWN_PATH);
-		}
+	for (const argument of interaction.args) {
+		argument?.deoptimizePath(UNKNOWN_PATH);
 	}
 };

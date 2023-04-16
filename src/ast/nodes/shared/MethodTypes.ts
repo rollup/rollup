@@ -33,18 +33,15 @@ export class Method extends ExpressionEntity {
 		super();
 	}
 
-	deoptimizeArgumentsOnInteractionAtPath(
-		{ type, thisArg }: NodeInteraction,
-		path: ObjectPath
-	): void {
+	deoptimizeArgumentsOnInteractionAtPath({ args, type }: NodeInteraction, path: ObjectPath): void {
 		if (type === INTERACTION_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
-			thisArg?.deoptimizePath(UNKNOWN_INTEGER_PATH);
+			args[0]?.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		{ thisArg }: NodeInteractionCalled
+		{ args }: NodeInteractionCalled
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
 			return UNKNOWN_RETURN_EXPRESSION;
@@ -52,7 +49,7 @@ export class Method extends ExpressionEntity {
 		return [
 			this.description.returnsPrimitive ||
 				(this.description.returns === 'self'
-					? thisArg || UNKNOWN_EXPRESSION
+					? args[0] || UNKNOWN_EXPRESSION
 					: this.description.returns()),
 			false
 		];
@@ -68,10 +65,10 @@ export class Method extends ExpressionEntity {
 			return true;
 		}
 		if (type === INTERACTION_CALLED) {
-			const { args, thisArg } = interaction;
+			const { args } = interaction;
 			if (
 				this.description.mutatesSelfAsArray === true &&
-				thisArg?.hasEffectsOnInteractionAtPath(
+				args[0]?.hasEffectsOnInteractionAtPath(
 					UNKNOWN_INTEGER_PATH,
 					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 					context
@@ -82,7 +79,7 @@ export class Method extends ExpressionEntity {
 			if (this.description.callsArgs) {
 				for (const argumentIndex of this.description.callsArgs) {
 					if (
-						args[argumentIndex]?.hasEffectsOnInteractionAtPath(
+						args[argumentIndex + 1]?.hasEffectsOnInteractionAtPath(
 							EMPTY_PATH,
 							NODE_INTERACTION_UNKNOWN_CALL,
 							context
