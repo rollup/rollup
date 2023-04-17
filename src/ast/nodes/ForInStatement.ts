@@ -15,6 +15,7 @@ import {
 	type StatementNode
 } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 
 export default class ForInStatement extends StatementBase {
 	declare body: StatementNode;
@@ -30,15 +31,7 @@ export default class ForInStatement extends StatementBase {
 		const { body, deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		if (left.hasEffectsAsAssignmentTarget(context, false) || right.hasEffects(context)) return true;
-		const { brokenFlow, ignore } = context;
-		const { breaks, continues } = ignore;
-		ignore.breaks = true;
-		ignore.continues = true;
-		if (body.hasEffects(context)) return true;
-		ignore.breaks = breaks;
-		ignore.continues = continues;
-		context.brokenFlow = brokenFlow;
-		return false;
+		return hasLoopBodyEffects(context, body);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -47,9 +40,7 @@ export default class ForInStatement extends StatementBase {
 		this.included = true;
 		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
 		right.include(context, includeChildrenRecursively);
-		const { brokenFlow } = context;
-		body.include(context, includeChildrenRecursively, { asSingleStatement: true });
-		context.brokenFlow = brokenFlow;
+		includeLoopBody(context, body, includeChildrenRecursively);
 	}
 
 	initialise() {
