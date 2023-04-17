@@ -6,6 +6,9 @@ import { getHelpersBlock } from '../utils/interopHelpers';
 import { isValidIdentifier } from '../utils/isValidIdentifier';
 import type { FinaliserOptions } from './index';
 
+const safeExportName = (name: string): string =>
+	isValidIdentifier(name) ? name : JSON.stringify(name);
+
 export default function es(
 	magicString: MagicStringBundle,
 	{ accessedGlobals, indent: t, intro, outro, dependencies, exports, snippets }: FinaliserOptions,
@@ -69,7 +72,7 @@ function getImportBlock(
 						.map(specifier =>
 							specifier.imported === specifier.local
 								? specifier.imported
-								: `${specifier.imported} as ${specifier.local}`
+								: `${safeExportName(specifier.imported)} as ${specifier.local}`
 						)
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
@@ -101,7 +104,9 @@ function getImportBlock(
 				for (const specifier of namespaceReexports) {
 					importBlock.push(
 						`export${_}{${_}${
-							name === specifier.reexported ? name : `${name} as ${specifier.reexported}`
+							name === specifier.reexported
+								? name
+								: `${name} as ${safeExportName(specifier.reexported)}`
 						} };`
 					);
 				}
@@ -111,8 +116,8 @@ function getImportBlock(
 					`export${_}{${_}${namedReexports
 						.map(specifier =>
 							specifier.imported === specifier.reexported
-								? specifier.imported
-								: `${specifier.imported} as ${specifier.reexported}`
+								? safeExportName(specifier.imported)
+								: `${safeExportName(specifier.imported)} as ${safeExportName(specifier.reexported)}`
 						)
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
@@ -132,11 +137,7 @@ function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets
 		exportDeclaration.push(
 			specifier.exported === specifier.local
 				? specifier.local
-				: `${specifier.local} as ${
-						isValidIdentifier(specifier.exported)
-							? specifier.exported
-							: JSON.stringify(specifier.exported)
-				  }`
+				: `${specifier.local} as ${safeExportName(specifier.exported)}`
 		);
 	}
 	if (exportDeclaration.length > 0) {
