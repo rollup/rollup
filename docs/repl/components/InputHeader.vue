@@ -6,7 +6,7 @@
 				{{ example.title }}
 			</option>
 		</select>
-		<button class="start-over" @click="startOver">Start over</button>
+		<button class="repl-button start-over" @click="startOver">Start over</button>
 	</header>
 </template>
 

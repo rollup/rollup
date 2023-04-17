@@ -6,11 +6,11 @@
 					<a :href="getLinkForOption(option.name)">{{ option.name }}</a>
 					<button
 						v-if="option.removable"
-						class="remove"
+						class="repl-button remove"
 						@click="optionsStore.set(option.name, undefined)"
 					>
 						<span class="label">remove</span>
-						<span class="icon-cancel"></span>
+						<span class="repl-icon-cancel"></span>
 					</button>
 				</h3>
 				<SelectOption
@@ -66,7 +66,7 @@
 					{{ option }}
 				</option>
 			</select>
-			<span class="icon-plus"></span>
+			<span class="repl-icon-plus"></span>
 		</div>
 	</div>
 </template>
@@ -102,7 +102,7 @@ const getLinkForOption = (option: string) =>
 }
 
 h3 {
-	padding: 0 0.5rem;
+	padding: 0 0 0 0.5rem;
 	margin: 6px 0 2px;
 	font-size: 14px;
 	font-weight: 500;
@@ -167,10 +167,10 @@ select {
 	appearance: none;
 	background: var(--vp-c-bg);
 	padding-right: 20px;
-	width: 100px;
+	width: 94px;
 }
 
-.icon-plus {
+.repl-icon-plus {
 	font-size: 0.8em;
 	position: absolute;
 	right: 0;
@@ -181,7 +181,7 @@ button.remove {
 	font-family: inherit;
 	font-size: 14px;
 	font-weight: 500;
-	padding: 0.2em;
+	padding: 0.2em 0 0.2em 0.2em;
 	margin: 0;
 	background-color: transparent;
 	border: none;
@@ -195,6 +195,7 @@ button.remove {
 button.remove .label {
 	opacity: 0;
 	transition: all 0.2s;
+	padding-right: 0.2em;
 }
 
 button.remove:hover,
