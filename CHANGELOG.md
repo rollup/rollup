@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.20.4
+
+_2023-04-17_
+
+### Bug Fixes
+
+- Do not remove breaks statements after switch statements with conditional breaks (#4937)
+
+### Pull Requests
+
+- [#4937](https://github.com/rollup/rollup/pull/4937): fix: handle conditional breaks in nested switch statement cases (@TrickyPi and @lukastaegert)
+
 ## 3.20.3
 
 _2023-04-16_
