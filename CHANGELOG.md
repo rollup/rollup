@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.20.5
+
+_2023-04-18_
+
+### Bug Fixes
+
+- Handle import and export names that are not valid JavaScript identifiers (#4939)
+
+### Pull Requests
+
+- [#4939](https://github.com/rollup/rollup/pull/4939): Fixed imports/exports that are illegal identifiers in the es output (@Andarist)
+- [#4941](https://github.com/rollup/rollup/pull/4941): Reinstate global styles (@lukastaegert)
+
 ## 3.20.4
 
 _2023-04-17_
