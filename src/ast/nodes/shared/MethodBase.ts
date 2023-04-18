@@ -5,7 +5,6 @@ import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
 	INTERACTION_CALLED,
-	NO_ARGS,
 	NODE_INTERACTION_UNKNOWN_CALL
 } from '../../NodeInteractions';
 import {
@@ -39,8 +38,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		if (interaction.type === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
 			return this.value.deoptimizeArgumentsOnInteractionAtPath(
 				{
-					args: NO_ARGS,
-					thisArg: interaction.thisArg,
+					args: interaction.args,
 					type: INTERACTION_CALLED,
 					withNew: false
 				},
@@ -52,7 +50,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 			return this.value.deoptimizeArgumentsOnInteractionAtPath(
 				{
 					args: interaction.args,
-					thisArg: interaction.thisArg,
 					type: INTERACTION_CALLED,
 					withNew: false
 				},
@@ -110,8 +107,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 			return this.value.hasEffectsOnInteractionAtPath(
 				EMPTY_PATH,
 				{
-					args: NO_ARGS,
-					thisArg: interaction.thisArg,
+					args: interaction.args,
 					type: INTERACTION_CALLED,
 					withNew: false
 				},
@@ -124,7 +120,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				EMPTY_PATH,
 				{
 					args: interaction.args,
-					thisArg: interaction.thisArg,
 					type: INTERACTION_CALLED,
 					withNew: false
 				},

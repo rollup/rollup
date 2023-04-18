@@ -74,14 +74,14 @@ jobs:
 
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.number }}
-      - name: Update comment for Netlify deploy
-        uses: jakepartusch/wait-for-netlify-action@v1
-        id: waitForNetlify
+      - name: Find Vercel preview URL
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.1
+        id: waitForVercel
         with:
-          site_name: "rollupjs"
-      - name: Update comment for Netlify
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update comment with Vercel preview URL
         uses: peter-evans/create-or-update-comment@v3
-        if: ${{ steps.waitForNetlify.outputs.url }}
+        if: ${{ steps.waitForVercel.outputs.url }}
         with:
           comment-id: ${{ steps.createInitialComment.outputs.comment-id }}
           issue-number: ${{ github.event.number }}
@@ -96,4 +96,4 @@ jobs:
             ```
 
             or load it into the REPL:
-            ${{ steps.waitForNetlify.outputs.url }}/repl/?pr=${{ github.event.number }}
+            ${{ steps.waitForVercel.outputs.url }}/repl/?pr=${{ github.event.number }}

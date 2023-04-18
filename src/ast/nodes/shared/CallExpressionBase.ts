@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY, EMPTY_SET } from '../../../utils/blank';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -15,36 +16,32 @@ import { NodeBase } from './Node';
 export default abstract class CallExpressionBase extends NodeBase implements DeoptimizableEntity {
 	protected declare interaction: NodeInteractionCalled;
 	protected returnExpression: [expression: ExpressionEntity, isPure: boolean] | null = null;
-	private readonly deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
-	private readonly expressionsToBeDeoptimized = new Set<ExpressionEntity>();
+	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
+	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		const { args, thisArg } = interaction;
+		const { args } = interaction;
 		const [returnExpression, isPure] = this.getReturnExpression(recursionTracker);
 		if (isPure) return;
+		const deoptimizedExpressions = args.filter(
+			expression => !!expression && expression !== UNKNOWN_EXPRESSION
+		) as ExpressionEntity[];
+		if (deoptimizedExpressions.length === 0) return;
 		if (returnExpression === UNKNOWN_EXPRESSION) {
-			thisArg?.deoptimizePath(UNKNOWN_PATH);
-			if (args) {
-				for (const argument of args) {
-					argument.deoptimizePath(UNKNOWN_PATH);
-				}
+			for (const expression of deoptimizedExpressions) {
+				expression.deoptimizePath(UNKNOWN_PATH);
 			}
 		} else {
 			recursionTracker.withTrackedEntityAtPath(
 				path,
 				returnExpression,
 				() => {
-					if (thisArg) {
-						this.expressionsToBeDeoptimized.add(thisArg);
-					}
-					if (args) {
-						for (const argument of args) {
-							this.expressionsToBeDeoptimized.add(argument);
-						}
+					for (const expression of deoptimizedExpressions) {
+						this.expressionsToBeDeoptimized.add(expression);
 					}
 					returnExpression.deoptimizeArgumentsOnInteractionAtPath(
 						interaction,
@@ -60,10 +57,13 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	deoptimizeCache(): void {
 		if (this.returnExpression?.[0] !== UNKNOWN_EXPRESSION) {
 			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
-			for (const expression of this.deoptimizableDependentExpressions) {
+			const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
+			this.expressionsToBeDeoptimized = EMPTY_SET;
+			this.deoptimizableDependentExpressions = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			for (const expression of deoptimizableDependentExpressions) {
 				expression.deoptimizeCache();
 			}
-			for (const expression of this.expressionsToBeDeoptimized) {
+			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizePath(UNKNOWN_PATH);
 			}
 		}

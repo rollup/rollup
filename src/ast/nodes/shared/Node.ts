@@ -65,7 +65,7 @@ export interface Node extends Entity {
 	/**
 	 * Special version of hasEffects for assignment left-hand sides which ensures
 	 * that accessor effects are checked as well. This is necessary to do from the
-	 * child so that member expressions can use the correct thisArg value.
+	 * child so that member expressions can use the correct this value.
 	 * setAssignedValue needs to be called during initialise to use this.
 	 */
 	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean;
@@ -84,7 +84,7 @@ export interface Node extends Entity {
 	/**
 	 * Special version of include for assignment left-hand sides which ensures
 	 * that accessors are handled correctly. This is necessary to do from the
-	 * child so that member expressions can use the correct thisArg value.
+	 * child so that member expressions can use the correct this value.
 	 * setAssignedValue needs to be called during initialise to use this.
 	 */
 	includeAsAssignmentTarget(
@@ -309,7 +309,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	setAssignedValue(value: ExpressionEntity): void {
-		this.assignmentInteraction = { args: [value], thisArg: null, type: INTERACTION_ASSIGNED };
+		this.assignmentInteraction = { args: [null, value], type: INTERACTION_ASSIGNED };
 	}
 
 	shouldBeIncluded(context: InclusionContext): boolean {

@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "3.20.2",
+  "version": "3.20.4",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",

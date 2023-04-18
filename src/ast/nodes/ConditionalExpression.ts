@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
+import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import {
 	findFirstOccurrenceOutsideComment,
@@ -44,7 +44,9 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
-			for (const expression of this.expressionsToBeDeoptimized) {
+			const { expressionsToBeDeoptimized } = this;
+			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
 		}
