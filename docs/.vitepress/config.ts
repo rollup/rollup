@@ -25,6 +25,10 @@ export default defineConfig({
 		['meta', { content: 'The JavaScript module bundler', name: 'twitter:description' }],
 		['meta', { content: 'https://rollupjs.org/twitter-card.jpg', name: 'twitter:image' }]
 	],
+	locales: {
+		root: { label: 'English' },
+		zh: { label: '简体中文', link: 'https://cn.rollupjs.org' }
+	},
 	markdown: {
 		anchor: {
 			callback,
