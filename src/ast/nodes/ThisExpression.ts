@@ -23,12 +23,7 @@ export default class ThisExpression extends NodeBase {
 		path: ObjectPath,
 		recursionTracker: PathTracker
 	): void {
-		// We rewrite the parameter so that a ThisVariable can detect self-mutations
-		this.variable.deoptimizeArgumentsOnInteractionAtPath(
-			interaction.thisArg === this ? { ...interaction, thisArg: this.variable } : interaction,
-			path,
-			recursionTracker
-		);
+		this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 	}
 
 	deoptimizePath(path: ObjectPath): void {

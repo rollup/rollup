@@ -90,18 +90,18 @@ export class DiscriminatedPathTracker {
 	trackEntityAtPathAndGetIfTracked(
 		path: ObjectPath,
 		discriminator: unknown,
-		entity: Entity
+		entity: unknown
 	): boolean {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
 			currentPaths = currentPaths[pathSegment] =
 				currentPaths[pathSegment] ||
-				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<Entity>>() } });
+				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<unknown>>() } });
 		}
 		const trackedEntities = getOrCreate(
 			currentPaths[EntitiesKey],
 			discriminator,
-			getNewSet<Entity>
+			getNewSet<unknown>
 		);
 		if (trackedEntities.has(entity)) return true;
 		trackedEntities.add(entity);

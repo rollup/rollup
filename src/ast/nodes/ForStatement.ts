@@ -11,6 +11,7 @@ import {
 	StatementBase,
 	type StatementNode
 } from './shared/Node';
+import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 
 export default class ForStatement extends StatementBase {
 	declare body: StatementNode;
@@ -28,27 +29,18 @@ export default class ForStatement extends StatementBase {
 			this.init?.hasEffects(context) ||
 			this.test?.hasEffects(context) ||
 			this.update?.hasEffects(context)
-		)
+		) {
 			return true;
-		const { brokenFlow, ignore } = context;
-		const { breaks, continues } = ignore;
-		ignore.breaks = true;
-		ignore.continues = true;
-		if (this.body.hasEffects(context)) return true;
-		ignore.breaks = breaks;
-		ignore.continues = continues;
-		context.brokenFlow = brokenFlow;
-		return false;
+		}
+		return hasLoopBodyEffects(context, this.body);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.init?.include(context, includeChildrenRecursively, { asSingleStatement: true });
 		this.test?.include(context, includeChildrenRecursively);
-		const { brokenFlow } = context;
 		this.update?.include(context, includeChildrenRecursively);
-		this.body.include(context, includeChildrenRecursively, { asSingleStatement: true });
-		context.brokenFlow = brokenFlow;
+		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

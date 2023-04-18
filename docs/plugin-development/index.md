@@ -564,14 +564,14 @@ type ShouldTransformCachedModuleHook = (options: {
 	meta: { [plugin: string]: any };
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;
-}) => boolean;
+}) => boolean | NullValue;
 ```
 
 If the Rollup cache is used (e.g. in watch mode or explicitly via the JavaScript API), Rollup will skip the [`transform`](#transform) hook of a module if after the [`load`](#transform) hook, the loaded `code` is identical to the code of the cached copy. To prevent this, discard the cached copy and instead transform a module, plugins can implement this hook and return `true`.
 
 This hook can also be used to find out which modules were cached and access their cached meta information.
 
-If a plugin does not return `true`, Rollup will trigger this hook for other plugins, otherwise all remaining plugins will be skipped.
+If a plugin does not return a boolean, Rollup will trigger this hook for other plugins, otherwise all remaining plugins will be skipped.
 
 ### transform
 

@@ -18,6 +18,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;
 	declare tag: ExpressionNode;
 	declare type: NodeType.tTaggedTemplateExpression;
+	private declare args: ExpressionEntity[];
 
 	bind(): void {
 		super.bind();
@@ -54,7 +55,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			this.tag.include(context, includeChildrenRecursively);
 			this.quasi.include(context, includeChildrenRecursively);
 		}
-		this.tag.includeCallArguments(context, this.interaction.args);
+		this.tag.includeCallArguments(context, this.args);
 		const [returnExpression] = this.getReturnExpression();
 		if (!returnExpression.included) {
 			returnExpression.include(context, false);
@@ -62,9 +63,12 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	initialise(): void {
+		this.args = [UNKNOWN_EXPRESSION, ...this.quasi.expressions];
 		this.interaction = {
-			args: [UNKNOWN_EXPRESSION, ...this.quasi.expressions],
-			thisArg: this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
+			args: [
+				this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
+				...this.args
+			],
 			type: INTERACTION_CALLED,
 			withNew: false
 		};

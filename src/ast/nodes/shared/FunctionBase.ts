@@ -1,10 +1,6 @@
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import {
-	BROKEN_FLOW_NONE,
-	type HasEffectsContext,
-	type InclusionContext
-} from '../../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import {
 	INTERACTION_CALLED,
@@ -49,16 +45,17 @@ export default abstract class FunctionBase extends NodeBase {
 			const { parameters } = this.scope;
 			const { args } = interaction;
 			let hasRest = false;
-			for (let position = 0; position < args.length; position++) {
+			for (let position = 0; position < args.length - 1; position++) {
 				const parameter = this.params[position];
+				// Only the "this" argument arg[0] can be null
+				const argument = args[position + 1]!;
 				if (hasRest || parameter instanceof RestElement) {
 					hasRest = true;
-					args[position].deoptimizePath(UNKNOWN_PATH);
+					argument.deoptimizePath(UNKNOWN_PATH);
 				} else if (parameter instanceof Identifier) {
-					// args[position].deoptimizePath(UNKNOWN_PATH);
-					parameters[position][0].addEntityToBeDeoptimized(args[position]);
+					parameters[position][0].addEntityToBeDeoptimized(argument);
 				} else if (parameter) {
-					args[position].deoptimizePath(UNKNOWN_PATH);
+					argument.deoptimizePath(UNKNOWN_PATH);
 				}
 			}
 		} else {
@@ -151,7 +148,7 @@ export default abstract class FunctionBase extends NodeBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
-		context.brokenFlow = BROKEN_FLOW_NONE;
+		context.brokenFlow = false;
 		this.body.include(context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
