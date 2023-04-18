@@ -4,12 +4,12 @@
 		:class="waiting ? 'waiting' : error ? 'error' : warnings.length > 0 ? 'warnings' : 'success'"
 	>
 		<span v-if="waiting">
-			<span class="icon icon-attention"></span>
+			<span class="repl-icon-attention"></span>
 			Loading Rollup...
 		</span>
 		<StatusMessage v-else-if="error" :message="error" isError />
 		<span v-else-if="warnings.length > 0">
-			<span class="icon icon-attention" />
+			<span class="repl-icon-attention" />
 			Rollup completed with warnings:
 			<ul class="warning-list">
 				<li v-for="(warning, i) in warnings" :key="i" class="warning">
@@ -18,7 +18,7 @@
 			</ul>
 		</span>
 		<span v-else>
-			<span class="icon icon-ok"></span>
+			<span class="repl-icon-ok"></span>
 			Rollup successful!
 		</span>
 	</div>

@@ -1,7 +1,7 @@
 <template>
 	<div class="message">
 		<span v-if="isError">
-			<span class="icon icon-error" />
+			<span class="repl-icon icon-error" />
 			<strong>{{ ' ' + message.name }}:</strong>
 		</span>
 		{{ message.message }}
