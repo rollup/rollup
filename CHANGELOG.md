@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.20.6
+
+_2023-04-18_
+
+### Bug Fixes
+
+- Revert handling of non-JS import and export names due to regressions (#4914)
+
+### Pull Requests
+
+- [#4914](https://github.com/rollup/rollup/pull/4914): feat: add locales in vitepress config (@iDestin)
+- [#4946](https://github.com/rollup/rollup/pull/4946): Revert #4939 for now (@lukastaegert)
+
 ## 3.20.5
 
 _2023-04-18_
