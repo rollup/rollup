@@ -6,6 +6,7 @@ on:
       - master
   pull_request:
     types: [synchronize, opened, reopened]
+  merge_group:
 
 permissions:
   contents: read
