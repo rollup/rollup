@@ -27,7 +27,7 @@ export default defineConfig({
 	],
 	locales: {
 		root: { label: 'English' },
-		zh: { label: '简体中文', link: 'https://rollup-docs-cn.netlify.app' }
+		zh: { label: '简体中文', link: 'https://cn.rollupjs.org' }
 	},
 	markdown: {
 		anchor: {
