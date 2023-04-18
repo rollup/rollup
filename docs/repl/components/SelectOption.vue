@@ -3,6 +3,7 @@
 		<button
 			v-for="value in values"
 			:key="String(value)"
+			class="repl-button"
 			:class="{ selected: value === selected }"
 			@click="emit('select', value)"
 		>

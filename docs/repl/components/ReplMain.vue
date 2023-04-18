@@ -44,8 +44,9 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
-button {
+<style>
+/* global styles */
+.repl-button {
 	font-family: inherit;
 	font-size: inherit;
 	border: none;
@@ -56,12 +57,8 @@ button {
 	white-space: nowrap;
 }
 
-button:disabled {
+.repl-button:disabled {
 	cursor: default;
-}
-
-.icon {
-	font-size: 0.8em;
 }
 
 input {
@@ -86,8 +83,8 @@ input {
 	font-style: normal;
 }
 
-[class^='icon-']:before,
-[class*=' icon-']:before {
+[class^='repl-icon-']:before,
+[class*=' repl-icon-']:before {
 	font-family: 'fontello';
 	font-style: normal;
 	font-weight: normal;
@@ -98,49 +95,35 @@ input {
 	width: 1em;
 	margin-right: 0.2em;
 	text-align: center;
-	/* opacity: .8; */
 
 	/* For safety - reset parent styles, that can break glyph codes*/
 	font-variant: normal;
 	text-transform: none;
 
-	/* fix buttons height, for twitter bootstrap */
-	line-height: 1em;
-
-	/* Animation center compensation - margins should be symmetric */
-	/* remove if not needed */
-	margin-left: 0.2em;
-
-	/* you can be more comfortable with increased icons size */
-	/* font-size: 120%; */
-
 	/* Font smoothing. That was taken from TWBS */
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-
-	/* Uncomment for 3D effect */
-	/* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
 
-.icon-pencil:before {
+.repl-icon-pencil:before {
 	content: '\e800';
 } /* '' */
-.icon-cancel:before {
+.repl-icon-cancel:before {
 	content: '\e801';
 } /* '' */
-.icon-plus:before {
+.repl-icon-plus:before {
 	content: '\e802';
 } /* '' */
-.icon-minus:before {
+.repl-icon-minus:before {
 	content: '\e803';
 } /* '' */
-.icon-ok:before {
+.repl-icon-ok:before {
 	content: '\e804';
 } /* '' */
-.icon-error:before {
+.repl-icon-error:before {
 	content: '\e805';
 } /* '' */
-.icon-attention:before {
+.repl-icon-attention:before {
 	content: '\e806';
 } /* '' */
 </style>

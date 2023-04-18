@@ -13,8 +13,8 @@
 		/>
 	</div>
 
-	<button class="new-module" @click="createModule">
-		<span class="icon icon-plus"></span>
+	<button class="repl-button new-module" @click="createModule">
+		<span class="repl-icon-plus"></span>
 		add module
 	</button>
 </template>
