@@ -14,6 +14,7 @@ import type ChildScope from '../scopes/ChildScope';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type AwaitExpression from './AwaitExpression';
 import type Identifier from './Identifier';
+import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type ObjectExpression from './ObjectExpression';
 import type ObjectPattern from './ObjectPattern';
@@ -50,32 +51,46 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	/**
-	 * Get imported variables for static usage,
-	 * for example `const { foo } = await import('bar')`.
+	 * Get imported variables for static usage, valid cases are:
 	 *
-	 * Returns undefined if not a static import
+	 * - `const { foo } = await import('bar')`.
+	 * - `(await import('bar')).foo`
+	 *
+	 * Returns undefined if it's not deterministic.
 	 */
-	getStaticImportedVariables(): string[] | undefined {
+	getStaticImportedNames(): string[] | undefined {
 		if (this.parent?.type !== 'AwaitExpression') return;
 
 		const awaitExpression = this.parent as AwaitExpression;
-		if (awaitExpression.parent?.type !== 'VariableDeclarator') return;
 
-		const variableDeclarator = awaitExpression.parent as VariableDeclarator;
-		if (variableDeclarator.id?.type !== 'ObjectPattern') return;
+		// Case 1: const { foo } = await import('bar')
+		if (awaitExpression.parent?.type === 'VariableDeclarator') {
+			const variableDeclarator = awaitExpression.parent as VariableDeclarator;
+			if (variableDeclarator.id?.type !== 'ObjectPattern') return;
 
-		const objectPattern = variableDeclarator.id as ObjectPattern;
+			const objectPattern = variableDeclarator.id as ObjectPattern;
 
-		const variables: string[] = [];
+			const variables: string[] = [];
 
-		for (const property of objectPattern.properties) {
-			if (property.type === 'RestElement') return;
-			if (property.computed) return;
-			if (property.key.type !== 'Identifier') return;
-			variables.push((property.key as Identifier).name);
+			for (const property of objectPattern.properties) {
+				if (property.type === 'RestElement') return;
+				if (property.computed) return;
+				if (property.key.type !== 'Identifier') return;
+				variables.push((property.key as Identifier).name);
+			}
+
+			return variables;
 		}
+		// Case 2: (await import('bar')).foo
+		else {
+			if (awaitExpression.parent?.type !== 'MemberExpression') return;
 
-		return variables;
+			const memberExpression = awaitExpression.parent as MemberExpression;
+			if (memberExpression.computed) return;
+			if (memberExpression.property.type !== 'Identifier') return;
+
+			return [(memberExpression.property as Identifier).name];
+		}
 	}
 
 	hasEffects(): boolean {

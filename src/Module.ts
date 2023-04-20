@@ -1239,7 +1239,7 @@ export default class Module {
 
 			const staticVariables =
 				this.options.treeshake && this.options.treeshake.staticDynamicImports
-					? node.getStaticImportedVariables()
+					? node.getStaticImportedNames()
 					: undefined;
 
 			if (staticVariables) {
