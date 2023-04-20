@@ -1,17 +1,13 @@
-export function foo3() {
-  return 'foo3';
+export function foo4() {
+  return 'foo4';
 }
 
-export function bar3() {
-  return 'bar3';
+export function bar4() {
+  return 'bar4'; // this should be tree-shaken
 }
 
-export function baz3() {
-  return 'baz3';
+export function baz4() {
+  return 'baz4'; // this should be tree-shaken
 }
 
-export function qux3() {
-  return 'qux3'; // this should be tree-shaken
-}
-
-export * from './sub4.js';
+console.log('side-effect4')
