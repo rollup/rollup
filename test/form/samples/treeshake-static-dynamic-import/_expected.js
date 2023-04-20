@@ -15,7 +15,6 @@ console.log('side-effect1');
 
 var sub1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  bar1: bar1,
   foo1: foo1
 });
 

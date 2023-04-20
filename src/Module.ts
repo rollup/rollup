@@ -1233,9 +1233,14 @@ export default class Module {
 				resolution: string | Module | ExternalModule | undefined;
 			}
 		).resolution;
+
 		if (resolution instanceof Module) {
 			resolution.includedDynamicImporters.push(this);
-			const staticVariables = node.getStaticImportedVariables();
+
+			const staticVariables =
+				this.options.treeshake && this.options.treeshake.staticDynamicImports
+					? node.getStaticImportedVariables()
+					: undefined;
 
 			if (staticVariables) {
 				resolution.includeExportsByNames(staticVariables);
