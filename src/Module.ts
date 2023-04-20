@@ -716,7 +716,7 @@ export default class Module {
 		this.includeAllExports(false);
 	}
 
-	includeExportsByNames(names: string[]): void {
+	includeExportsByNames(names: string[], includeNamespaceMembers: boolean): void {
 		for (const name of names) {
 			const variable = this.getVariableForExportName(name)[0];
 			if (variable) {
@@ -724,10 +724,14 @@ export default class Module {
 				if (!variable.included) {
 					this.includeVariable(variable);
 				}
-				if (variable instanceof ExternalVariable) {
-					variable.module.reexported = true;
-				}
+				// if (variable instanceof ExternalVariable) {
+				// 	variable.module.reexported = true;
+				// }
 			}
+		}
+
+		if (includeNamespaceMembers) {
+			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 
@@ -1243,7 +1247,7 @@ export default class Module {
 					: undefined;
 
 			if (importedNames) {
-				resolution.includeExportsByNames(importedNames);
+				resolution.includeExportsByNames(importedNames, true);
 			} else {
 				resolution.includeAllExports(true);
 			}

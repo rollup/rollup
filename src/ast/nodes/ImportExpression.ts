@@ -12,7 +12,10 @@ import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../uti
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import type NamespaceVariable from '../variables/NamespaceVariable';
+import type ArrowFunctionExpression from './ArrowFunctionExpression';
 import type AwaitExpression from './AwaitExpression';
+import type CallExpression from './CallExpression';
+import type FunctionExpression from './FunctionExpression';
 import type Identifier from './Identifier';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -55,43 +58,55 @@ export default class ImportExpression extends NodeBase {
 	 *
 	 * - `const { foo } = await import('bar')`.
 	 * - `(await import('bar')).foo`
+	 * - `import('bar').then(({ foo }) => {})`
 	 *
 	 * Returns undefined if it's not deterministic.
 	 */
 	getDeterministicImportedNames(): string[] | undefined {
-		if (this.parent?.type !== 'AwaitExpression') return;
+		if (this.parent?.type === 'AwaitExpression') {
+			const awaitExpression = this.parent as AwaitExpression;
 
-		const awaitExpression = this.parent as AwaitExpression;
+			// Case 1: const { foo } = await import('bar')
+			if (awaitExpression.parent?.type === 'VariableDeclarator') {
+				const variableDeclarator = awaitExpression.parent as VariableDeclarator;
+				if (variableDeclarator.id?.type !== 'ObjectPattern') return;
 
-		// Case 1: const { foo } = await import('bar')
-		if (awaitExpression.parent?.type === 'VariableDeclarator') {
-			const variableDeclarator = awaitExpression.parent as VariableDeclarator;
-			if (variableDeclarator.id?.type !== 'ObjectPattern') return;
-
-			const objectPattern = variableDeclarator.id as ObjectPattern;
-
-			const variables: string[] = [];
-
-			for (const property of objectPattern.properties) {
-				if (
-					property.type === 'RestElement' ||
-					property.computed ||
-					property.key.type !== 'Identifier'
-				)
-					return;
-				variables.push((property.key as Identifier).name);
+				return getDeterministicObjectDestructure(variableDeclarator.id as ObjectPattern);
 			}
+			// Case 2: (await import('bar')).foo
+			else {
+				if (awaitExpression.parent?.type !== 'MemberExpression') return;
 
-			return variables;
+				const memberExpression = awaitExpression.parent as MemberExpression;
+				if (memberExpression.computed || memberExpression.property.type !== 'Identifier') return;
+
+				return [(memberExpression.property as Identifier).name];
+			}
 		}
-		// Case 2: (await import('bar')).foo
-		else {
-			if (awaitExpression.parent?.type !== 'MemberExpression') return;
+		// Case 3: import('bar').then(({ foo }) => {})
+		else if (this.parent?.type === 'MemberExpression') {
+			const memberExpression = this.parent as MemberExpression;
+			if (
+				memberExpression.property.type !== 'Identifier' ||
+				(memberExpression.property as Identifier).name !== 'then' ||
+				memberExpression.parent?.type !== 'CallExpression'
+			)
+				return;
 
-			const memberExpression = awaitExpression.parent as MemberExpression;
-			if (memberExpression.computed || memberExpression.property.type !== 'Identifier') return;
+			const callExpression = memberExpression.parent as CallExpression;
 
-			return [(memberExpression.property as Identifier).name];
+			if (
+				callExpression.arguments.length !== 1 ||
+				!['ArrowFunctionExpression', 'FunctionExpression'].includes(
+					callExpression.arguments[0].type
+				)
+			)
+				return;
+
+			const callback = callExpression.arguments[0] as ArrowFunctionExpression | FunctionExpression;
+			if (callback.params.length !== 1 || callback.params[0].type !== 'ObjectPattern') return;
+
+			return getDeterministicObjectDestructure(callback.params[0] as ObjectPattern);
 		}
 	}
 
@@ -346,3 +361,15 @@ const accessedImportGlobals: Record<string, string[]> = {
 	cjs: ['require'],
 	system: ['module']
 };
+
+function getDeterministicObjectDestructure(objectPattern: ObjectPattern): string[] | undefined {
+	const variables: string[] = [];
+
+	for (const property of objectPattern.properties) {
+		if (property.type === 'RestElement' || property.computed || property.key.type !== 'Identifier')
+			return;
+		variables.push((property.key as Identifier).name);
+	}
+
+	return variables;
+}
