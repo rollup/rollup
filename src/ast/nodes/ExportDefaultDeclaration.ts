@@ -21,18 +21,10 @@ function getDeclarationStart(code: string, start: number): number {
 	return findNonWhiteSpace(code, findFirstOccurrenceOutsideComment(code, 'default', start) + 7);
 }
 
-function getIdInsertPosition(
-	code: string,
-	declarationKeyword: string,
-	endMarker: string,
-	start: number
-): number {
+function getFunctionIdInsertPosition(code: string, start: number): number {
 	const declarationEnd =
-		findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
-	code = code.slice(
-		declarationEnd,
-		findFirstOccurrenceOutsideComment(code, endMarker, declarationEnd)
-	);
+		findFirstOccurrenceOutsideComment(code, 'function', start) + 'function'.length;
+	code = code.slice(declarationEnd, findFirstOccurrenceOutsideComment(code, '(', declarationEnd));
 	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
 	if (generatorStarPos === -1) {
 		return declarationEnd;
@@ -76,18 +68,18 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.renderNamedDeclaration(
 				code,
 				declarationStart,
-				'function',
-				'(',
-				this.declaration.id === null,
+				this.declaration.id === null
+					? getFunctionIdInsertPosition(code.original, declarationStart)
+					: null,
 				options
 			);
 		} else if (this.declaration instanceof ClassDeclaration) {
 			this.renderNamedDeclaration(
 				code,
 				declarationStart,
-				'class',
-				'{',
-				this.declaration.id === null,
+				this.declaration.id === null
+					? findFirstOccurrenceOutsideComment(code.original, 'class', start) + 'class'.length
+					: null,
 				options
 			);
 		} else if (this.variable.getOriginalVariable() !== this.variable) {
@@ -114,9 +106,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	private renderNamedDeclaration(
 		code: MagicString,
 		declarationStart: number,
-		declarationKeyword: string,
-		endMarker: string,
-		needsId: boolean,
+		idInsertPosition: number | null,
 		options: RenderOptions
 	): void {
 		const {
@@ -128,11 +118,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		// Remove `export default`
 		code.remove(this.start, declarationStart);
 
-		if (needsId) {
-			code.appendLeft(
-				getIdInsertPosition(code.original, declarationKeyword, endMarker, declarationStart),
-				` ${name}`
-			);
+		if (idInsertPosition !== null) {
+			code.appendLeft(idInsertPosition, ` ${name}`);
 		}
 		if (
 			format === 'system' &&
