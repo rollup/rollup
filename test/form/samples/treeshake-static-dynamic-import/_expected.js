@@ -9,10 +9,6 @@ function foo1() {
   return 'foo1';
 }
 
-function bar1() {
-  return 'bar1'; // this should be tree-shaken
-}
-
 console.log('side-effect1');
 
 var sub1 = /*#__PURE__*/Object.freeze({

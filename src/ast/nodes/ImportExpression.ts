@@ -12,8 +12,12 @@ import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../uti
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import type NamespaceVariable from '../variables/NamespaceVariable';
+import type AwaitExpression from './AwaitExpression';
+import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
 import type ObjectExpression from './ObjectExpression';
+import type ObjectPattern from './ObjectPattern';
+import type VariableDeclarator from './VariableDeclarator';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -43,6 +47,35 @@ export default class ImportExpression extends NodeBase {
 	// Do not bind assertions
 	bind(): void {
 		this.source.bind();
+	}
+
+	/**
+	 * Get imported variables for static usage,
+	 * for example `const { foo } = await import('bar')`.
+	 *
+	 * Returns undefined if not a static import
+	 */
+	getStaticImportedVariables(): string[] | undefined {
+		if (this.parent?.type !== 'AwaitExpression') return;
+
+		const awaitExpression = this.parent as AwaitExpression;
+		if (awaitExpression.parent?.type !== 'VariableDeclarator') return;
+
+		const variableDeclarator = awaitExpression.parent as VariableDeclarator;
+		if (variableDeclarator.id?.type !== 'ObjectPattern') return;
+
+		const objectPattern = variableDeclarator.id as ObjectPattern;
+
+		const variables: string[] = [];
+
+		for (const property of objectPattern.properties) {
+			if (property.type === 'RestElement') return;
+			if (property.computed) return;
+			if (property.key.type !== 'Identifier') return;
+			variables.push((property.key as Identifier).name);
+		}
+
+		return variables;
 	}
 
 	hasEffects(): boolean {

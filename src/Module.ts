@@ -678,30 +678,43 @@ export default class Module {
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
+		this.includeExportsByNames(
+			[...this.exports.keys(), ...this.getReexports()],
+			includeNamespaceMembers
+		);
+	}
+
+	includeAllInBundle(): void {
+		this.ast!.include(createInclusionContext(), true);
+		this.includeAllExports(false);
+	}
+
+	includeExportsByNames(names: string[], includeNamespaceMembers = false): void {
 		if (!this.isExecuted) {
 			markModuleAndImpureDependenciesAsExecuted(this);
 			this.graph.needsTreeshakingPass = true;
 		}
 
-		for (const exportName of this.exports.keys()) {
-			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
-				const variable = this.getVariableForExportName(exportName)[0]!;
-				variable.deoptimizePath(UNKNOWN_PATH);
-				if (!variable.included) {
-					this.includeVariable(variable);
-				}
-			}
-		}
+		const reexports = this.getReexports();
 
-		for (const name of this.getReexports()) {
-			const [variable] = this.getVariableForExportName(name);
-			if (variable) {
-				variable.deoptimizePath(UNKNOWN_PATH);
-				if (!variable.included) {
-					this.includeVariable(variable);
+		for (const name of names) {
+			const variable = this.getVariableForExportName(name)[0]!;
+			if (reexports.includes(name)) {
+				if (variable) {
+					variable.deoptimizePath(UNKNOWN_PATH);
+					if (!variable.included) {
+						this.includeVariable(variable);
+					}
+					if (variable instanceof ExternalVariable) {
+						variable.module.reexported = true;
+					}
 				}
-				if (variable instanceof ExternalVariable) {
-					variable.module.reexported = true;
+			} else {
+				if (includeNamespaceMembers || name !== this.info.syntheticNamedExports) {
+					variable.deoptimizePath(UNKNOWN_PATH);
+					if (!variable.included) {
+						this.includeVariable(variable);
+					}
 				}
 			}
 		}
@@ -709,11 +722,6 @@ export default class Module {
 		if (includeNamespaceMembers) {
 			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
-	}
-
-	includeAllInBundle(): void {
-		this.ast!.include(createInclusionContext(), true);
-		this.includeAllExports(false);
 	}
 
 	isIncluded(): boolean | null {
@@ -1220,7 +1228,13 @@ export default class Module {
 		).resolution;
 		if (resolution instanceof Module) {
 			resolution.includedDynamicImporters.push(this);
-			resolution.includeAllExports(true);
+			const staticVariables = node.getStaticImportedVariables();
+
+			if (staticVariables) {
+				resolution.includeExportsByNames(staticVariables);
+			} else {
+				resolution.includeAllExports(true);
+			}
 		}
 	}
 
