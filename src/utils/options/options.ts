@@ -47,30 +47,30 @@ export const treeshakePresets: {
 	recommended: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: false,
+		deterministicDynamicImports: false,
 		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
-		staticDynamicImports: false,
 		tryCatchDeoptimization: true,
 		unknownGlobalSideEffects: false
 	},
 	safest: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: true,
+		deterministicDynamicImports: true,
 		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
-		staticDynamicImports: true,
 		tryCatchDeoptimization: true,
 		unknownGlobalSideEffects: true
 	},
 	smallest: {
 		annotations: true,
 		correctVarValueBeforeDeclaration: false,
+		deterministicDynamicImports: false,
 		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => false,
 		propertyReadSideEffects: false,
-		staticDynamicImports: false,
 		tryCatchDeoptimization: false,
 		unknownGlobalSideEffects: false
 	}

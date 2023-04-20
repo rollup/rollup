@@ -1238,7 +1238,7 @@ export default class Module {
 			resolution.includedDynamicImporters.push(this);
 
 			const staticVariables =
-				this.options.treeshake && this.options.treeshake.staticDynamicImports
+				this.options.treeshake && this.options.treeshake.deterministicDynamicImports
 					? node.getStaticImportedNames()
 					: undefined;
 

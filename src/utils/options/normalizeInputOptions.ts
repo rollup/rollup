@@ -269,6 +269,7 @@ const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake']
 	return {
 		annotations: configWithPreset.annotations !== false,
 		correctVarValueBeforeDeclaration: configWithPreset.correctVarValueBeforeDeclaration === true,
+		deterministicDynamicImports: configWithPreset.deterministicDynamicImports !== false,
 		manualPureFunctions:
 			(configWithPreset.manualPureFunctions as readonly string[] | undefined) ?? EMPTY_ARRAY,
 		moduleSideEffects: getHasModuleSideEffects(
@@ -278,7 +279,6 @@ const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake']
 			configWithPreset.propertyReadSideEffects === 'always'
 				? 'always'
 				: configWithPreset.propertyReadSideEffects !== false,
-		staticDynamicImports: configWithPreset.staticDynamicImports !== false,
 		tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
 		unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
 	};
