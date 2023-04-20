@@ -678,10 +678,37 @@ export default class Module {
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
-		this.includeExportsByNames(
-			[...this.exports.keys(), ...this.getReexports()],
-			includeNamespaceMembers
-		);
+		if (!this.isExecuted) {
+			markModuleAndImpureDependenciesAsExecuted(this);
+			this.graph.needsTreeshakingPass = true;
+		}
+
+		for (const exportName of this.exports.keys()) {
+			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
+				const variable = this.getVariableForExportName(exportName)[0]!;
+				variable.deoptimizePath(UNKNOWN_PATH);
+				if (!variable.included) {
+					this.includeVariable(variable);
+				}
+			}
+		}
+
+		for (const name of this.getReexports()) {
+			const [variable] = this.getVariableForExportName(name);
+			if (variable) {
+				variable.deoptimizePath(UNKNOWN_PATH);
+				if (!variable.included) {
+					this.includeVariable(variable);
+				}
+				if (variable instanceof ExternalVariable) {
+					variable.module.reexported = true;
+				}
+			}
+		}
+
+		if (includeNamespaceMembers) {
+			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
+		}
 	}
 
 	includeAllInBundle(): void {
@@ -689,38 +716,18 @@ export default class Module {
 		this.includeAllExports(false);
 	}
 
-	includeExportsByNames(names: string[], includeNamespaceMembers = false): void {
-		if (!this.isExecuted) {
-			markModuleAndImpureDependenciesAsExecuted(this);
-			this.graph.needsTreeshakingPass = true;
-		}
-
-		const reexports = this.getReexports();
-
+	includeExportsByNames(names: string[]): void {
 		for (const name of names) {
-			const variable = this.getVariableForExportName(name)[0]!;
-			if (reexports.includes(name)) {
-				if (variable) {
-					variable.deoptimizePath(UNKNOWN_PATH);
-					if (!variable.included) {
-						this.includeVariable(variable);
-					}
-					if (variable instanceof ExternalVariable) {
-						variable.module.reexported = true;
-					}
+			const variable = this.getVariableForExportName(name)[0];
+			if (variable) {
+				variable.deoptimizePath(UNKNOWN_PATH);
+				if (!variable.included) {
+					this.includeVariable(variable);
 				}
-			} else {
-				if (includeNamespaceMembers || name !== this.info.syntheticNamedExports) {
-					variable.deoptimizePath(UNKNOWN_PATH);
-					if (!variable.included) {
-						this.includeVariable(variable);
-					}
+				if (variable instanceof ExternalVariable) {
+					variable.module.reexported = true;
 				}
 			}
-		}
-
-		if (includeNamespaceMembers) {
-			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 

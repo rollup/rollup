@@ -1,8 +1,10 @@
 async function entry() {
-  await Promise.resolve().then(function () { return sub1; });
-  await Promise.resolve().then(function () { return sub2; });
+  const { foo1: foo } = await Promise.resolve().then(function () { return sub1; });
+  const { foo2 } = await Promise.resolve().then(function () { return sub2; });
 
   Promise.resolve().then(function () { return sub2; }); // this should make sub2.js not be tree-shaken
+
+  console.log(foo(), foo2());
 }
 
 function foo1() {
