@@ -9,11 +9,13 @@ async function entry() {
   // multiple
   ;(await Promise.resolve().then(function () { return sub3; })).bar3();
   const { foo3, baz3 } = await Promise.resolve().then(function () { return sub3; });
+  const { foo4 } = await Promise.resolve().then(function () { return sub3; });
 
   console.log([
     foo(),
     foo2(),
     foo3(),
+    foo4(),
     baz3(),
   ]);
 }
@@ -43,6 +45,12 @@ var sub2 = /*#__PURE__*/Object.freeze({
   foo2: foo2
 });
 
+function foo4() {
+  return 'foo4';
+}
+
+console.log('side-effect4');
+
 function foo3() {
   return 'foo3';
 }
@@ -59,7 +67,8 @@ var sub3 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   bar3: bar3,
   baz3: baz3,
-  foo3: foo3
+  foo3: foo3,
+  foo4: foo4
 });
 
 export { entry };

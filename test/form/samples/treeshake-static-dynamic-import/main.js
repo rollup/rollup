@@ -9,11 +9,13 @@ export async function entry() {
   // multiple
   ;(await import('./sub3')).bar3()
   const { foo3, baz3 } = await import('./sub3.js');
+  const { foo4 } = await import('./sub3.js');
 
   console.log([
     foo(),
     foo2(),
     foo3(),
+    foo4(),
     baz3(),
   ]);
 }

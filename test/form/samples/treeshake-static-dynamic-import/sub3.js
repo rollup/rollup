@@ -13,3 +13,5 @@ export function baz3() {
 export function qux3() {
   return 'qux3'; // this should be tree-shaken
 }
+
+export * from './sub4.js';
