@@ -1237,13 +1237,13 @@ export default class Module {
 		if (resolution instanceof Module) {
 			resolution.includedDynamicImporters.push(this);
 
-			const staticVariables =
+			const importedNames =
 				this.options.treeshake && this.options.treeshake.deterministicDynamicImports
-					? node.getStaticImportedNames()
+					? node.getDeterministicImportedNames()
 					: undefined;
 
-			if (staticVariables) {
-				resolution.includeExportsByNames(staticVariables);
+			if (importedNames) {
+				resolution.includeExportsByNames(importedNames);
 			} else {
 				resolution.includeAllExports(true);
 			}

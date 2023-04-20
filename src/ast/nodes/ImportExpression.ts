@@ -51,14 +51,14 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	/**
-	 * Get imported variables for static usage, valid cases are:
+	 * Get imported variables for deterministic usage, valid cases are:
 	 *
 	 * - `const { foo } = await import('bar')`.
 	 * - `(await import('bar')).foo`
 	 *
 	 * Returns undefined if it's not deterministic.
 	 */
-	getStaticImportedNames(): string[] | undefined {
+	getDeterministicImportedNames(): string[] | undefined {
 		if (this.parent?.type !== 'AwaitExpression') return;
 
 		const awaitExpression = this.parent as AwaitExpression;
