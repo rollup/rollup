@@ -73,9 +73,12 @@ export default class ImportExpression extends NodeBase {
 			const variables: string[] = [];
 
 			for (const property of objectPattern.properties) {
-				if (property.type === 'RestElement') return;
-				if (property.computed) return;
-				if (property.key.type !== 'Identifier') return;
+				if (
+					property.type === 'RestElement' ||
+					property.computed ||
+					property.key.type !== 'Identifier'
+				)
+					return;
 				variables.push((property.key as Identifier).name);
 			}
 
@@ -86,8 +89,7 @@ export default class ImportExpression extends NodeBase {
 			if (awaitExpression.parent?.type !== 'MemberExpression') return;
 
 			const memberExpression = awaitExpression.parent as MemberExpression;
-			if (memberExpression.computed) return;
-			if (memberExpression.property.type !== 'Identifier') return;
+			if (memberExpression.computed || memberExpression.property.type !== 'Identifier') return;
 
 			return [(memberExpression.property as Identifier).name];
 		}
