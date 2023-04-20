@@ -278,6 +278,7 @@ const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake']
 			configWithPreset.propertyReadSideEffects === 'always'
 				? 'always'
 				: configWithPreset.propertyReadSideEffects !== false,
+		staticDynamicImports: configWithPreset.staticDynamicImports !== false,
 		tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
 		unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
 	};

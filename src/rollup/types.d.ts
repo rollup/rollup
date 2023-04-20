@@ -479,6 +479,7 @@ export interface NormalizedTreeshakingOptions {
 	manualPureFunctions: readonly string[];
 	moduleSideEffects: HasModuleSideEffects;
 	propertyReadSideEffects: boolean | 'always';
+	staticDynamicImports: boolean;
 	tryCatchDeoptimization: boolean;
 	unknownGlobalSideEffects: boolean;
 }

@@ -50,6 +50,7 @@ export const treeshakePresets: {
 		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
+		staticDynamicImports: false,
 		tryCatchDeoptimization: true,
 		unknownGlobalSideEffects: false
 	},
@@ -59,6 +60,7 @@ export const treeshakePresets: {
 		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
+		staticDynamicImports: true,
 		tryCatchDeoptimization: true,
 		unknownGlobalSideEffects: true
 	},
@@ -68,6 +70,7 @@ export const treeshakePresets: {
 		manualPureFunctions: EMPTY_ARRAY,
 		moduleSideEffects: () => false,
 		propertyReadSideEffects: false,
+		staticDynamicImports: false,
 		tryCatchDeoptimization: false,
 		unknownGlobalSideEffects: false
 	}
