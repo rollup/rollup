@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 3.20.7
+
+_2023-04-21_
+
+### Bug Fixes
+
+- Properly track array element mutations when iterating with a for-of loop (#4949)
+- Handle default exporting an anonymous class that extends another class (#4950)
+
+### Pull Requests
+
+- [#4943](https://github.com/rollup/rollup/pull/4943): Add a test for reserved keywords used as import/export specifiers (@Andarist)
+- [#4949](https://github.com/rollup/rollup/pull/4949): Deoptimize right side in for-of loops (@lukastaegert)
+- [#4950](https://github.com/rollup/rollup/pull/4950): Support default exported classes that extend other classes (@lukastaegert)
+
 ## 3.20.6
 
 _2023-04-18_
