@@ -717,12 +717,20 @@ export default class Module {
 	}
 
 	includeExportsByNames(names: readonly string[], includeNamespaceMembers: boolean): void {
+		if (!this.isExecuted) {
+			markModuleAndImpureDependenciesAsExecuted(this);
+			this.graph.needsTreeshakingPass = true;
+		}
+
 		for (const name of names) {
 			const variable = this.getVariableForExportName(name)[0];
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
 					this.includeVariable(variable);
+				}
+				if (variable instanceof ExternalVariable) {
+					variable.module.reexported = true;
 				}
 			}
 		}
