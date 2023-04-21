@@ -716,7 +716,7 @@ export default class Module {
 		this.includeAllExports(false);
 	}
 
-	includeExportsByNames(names: string[], includeNamespaceMembers: boolean): void {
+	includeExportsByNames(names: readonly string[], includeNamespaceMembers: boolean): void {
 		for (const name of names) {
 			const variable = this.getVariableForExportName(name)[0];
 			if (variable) {
@@ -724,9 +724,6 @@ export default class Module {
 				if (!variable.included) {
 					this.includeVariable(variable);
 				}
-				// if (variable instanceof ExternalVariable) {
-				// 	variable.module.reexported = true;
-				// }
 			}
 		}
 

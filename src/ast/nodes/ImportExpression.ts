@@ -64,7 +64,7 @@ export default class ImportExpression extends NodeBase {
 	 * Returns empty array if it's side-effect only import.
 	 * Returns undefined if it's not fully deterministic.
 	 */
-	getDeterministicImportedNames(): Readonly<string[] | undefined> {
+	getDeterministicImportedNames(): readonly string[] | undefined {
 		// side-effect only
 		if (this.parent.type === 'ExpressionStatement') {
 			return EMPTY_ARRAY;
