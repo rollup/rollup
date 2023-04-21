@@ -269,7 +269,6 @@ const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake']
 	return {
 		annotations: configWithPreset.annotations !== false,
 		correctVarValueBeforeDeclaration: configWithPreset.correctVarValueBeforeDeclaration === true,
-		deterministicDynamicImports: configWithPreset.deterministicDynamicImports !== false,
 		manualPureFunctions:
 			(configWithPreset.manualPureFunctions as readonly string[] | undefined) ?? EMPTY_ARRAY,
 		moduleSideEffects: getHasModuleSideEffects(
