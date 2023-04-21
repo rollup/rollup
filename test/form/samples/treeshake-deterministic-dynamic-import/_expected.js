@@ -7,6 +7,14 @@ async function entry() {
   Promise.resolve().then(function () { return sub2; }).then(({ baz2 }) => baz2);
   Promise.resolve().then(function () { return sub2; }).then(function({ reexported }) { });
 
+  // side-effect only
+  Promise.resolve().then(function () { return effect1; });
+  await Promise.resolve().then(function () { return effect2; });
+  Promise.resolve().then(function () { return effect3; }).then(function() { });
+  Promise.resolve().then(function () { return effect4; }).then();
+  Promise.resolve().then(function () { return effect5; }).catch(() => {});
+  Promise.resolve().then(function () { return effect6; }).finally(() => {});
+
   // bail out
   await Promise.resolve().then(function () { return bail1$1; });
   Promise.resolve().then(function () { return bail1$1; }); // this make it bail out
@@ -15,11 +23,16 @@ async function entry() {
 
   (await Promise.resolve().then(function () { return bail3$1; }))[foo];
 
-  await Promise.resolve().then(function () { return bail4$1; }).name4;
+  await Promise.resolve().then(function () { return bail4$1; }).name4; // access on promise, not on export
 
   Promise.resolve().then(function () { return bail5$1; }).then(foo);
 
   await Promise.resolve().then(function () { return bail6$1; }).then(function({ named6, ...args }) { });
+
+  [
+    Promise.resolve().then(function () { return bail7$1; }),
+    Promise.resolve().then(function () { return bail8$1; }),
+  ];
 }
 
 function foo1() {
@@ -63,6 +76,30 @@ var sub2 = /*#__PURE__*/Object.freeze({
   foo2: foo2,
   foo3: foo3,
   reexported: bar3
+});
+
+var effect1 = /*#__PURE__*/Object.freeze({
+  __proto__: null
+});
+
+var effect2 = /*#__PURE__*/Object.freeze({
+  __proto__: null
+});
+
+var effect3 = /*#__PURE__*/Object.freeze({
+  __proto__: null
+});
+
+var effect4 = /*#__PURE__*/Object.freeze({
+  __proto__: null
+});
+
+var effect5 = /*#__PURE__*/Object.freeze({
+  __proto__: null
+});
+
+var effect6 = /*#__PURE__*/Object.freeze({
+  __proto__: null
 });
 
 var bail1 = 'should be included 1';
@@ -117,6 +154,24 @@ var bail6$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   default: bail6,
   named6: named6
+});
+
+var bail7 = 'should be included 7';
+const named7 = 'bail7';
+
+var bail7$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: bail7,
+  named7: named7
+});
+
+var bail8 = 'should be included 8';
+const named8 = 'bail8';
+
+var bail8$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: bail8,
+  named8: named8
 });
 
 export { entry };

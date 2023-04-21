@@ -3,6 +3,7 @@ import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
+import { EMPTY_ARRAY } from '../../utils/blank';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
@@ -60,11 +61,22 @@ export default class ImportExpression extends NodeBase {
 	 * - `(await import('bar')).foo`
 	 * - `import('bar').then(({ foo }) => {})`
 	 *
-	 * Returns undefined if it's not deterministic.
+	 * Returns empty array if it's side-effect only import.
+	 * Returns undefined if it's not fully deterministic.
 	 */
-	getDeterministicImportedNames(): string[] | undefined {
+	getDeterministicImportedNames(): Readonly<string[] | undefined> {
+		// side-effect only
+		if (this.parent.type === 'ExpressionStatement') {
+			return EMPTY_ARRAY;
+		}
+
 		if (this.parent?.type === 'AwaitExpression') {
 			const awaitExpression = this.parent as AwaitExpression;
+
+			// side-effect only
+			if (awaitExpression.parent.type === 'ExpressionStatement') {
+				return EMPTY_ARRAY;
+			}
 
 			// Case 1: const { foo } = await import('bar')
 			if (awaitExpression.parent?.type === 'VariableDeclarator') {
@@ -87,13 +99,28 @@ export default class ImportExpression extends NodeBase {
 		else if (this.parent?.type === 'MemberExpression') {
 			const memberExpression = this.parent as MemberExpression;
 			if (
-				memberExpression.property.type !== 'Identifier' ||
-				(memberExpression.property as Identifier).name !== 'then' ||
-				memberExpression.parent?.type !== 'CallExpression'
+				memberExpression.parent?.type !== 'CallExpression' ||
+				memberExpression.property.type !== 'Identifier'
 			)
 				return;
 
+			const memberName = (memberExpression.property as Identifier).name;
 			const callExpression = memberExpression.parent as CallExpression;
+
+			// side-effect only, when only chaining .catch or .finally
+			if (
+				callExpression.parent.type === 'ExpressionStatement' &&
+				['catch', 'finally'].includes(memberName)
+			) {
+				return EMPTY_ARRAY;
+			} else if (memberName !== 'then') {
+				return;
+			}
+
+			// side-effect only
+			if (callExpression.arguments.length === 0) {
+				return EMPTY_ARRAY;
+			}
 
 			if (
 				callExpression.arguments.length !== 1 ||
@@ -104,6 +131,12 @@ export default class ImportExpression extends NodeBase {
 				return;
 
 			const callback = callExpression.arguments[0] as ArrowFunctionExpression | FunctionExpression;
+
+			// side-effect only
+			if (callback.params.length === 0) {
+				return EMPTY_ARRAY;
+			}
+
 			if (callback.params.length !== 1 || callback.params[0].type !== 'ObjectPattern') return;
 
 			return getDeterministicObjectDestructure(callback.params[0] as ObjectPattern);
