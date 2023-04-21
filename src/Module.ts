@@ -729,9 +729,6 @@ export default class Module {
 				if (!variable.included) {
 					this.includeVariable(variable);
 				}
-				if (variable instanceof ExternalVariable) {
-					variable.module.reexported = true;
-				}
 			}
 		}
 
