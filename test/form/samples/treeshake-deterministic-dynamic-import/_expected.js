@@ -78,25 +78,37 @@ var sub2 = /*#__PURE__*/Object.freeze({
   reexported: bar3
 });
 
+console.log('side-effect 1 should be included');
+
 var effect1 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
+
+console.log('side-effect 2 should be included');
 
 var effect2 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
+console.log('side-effect 3 should be included');
+
 var effect3 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
+
+console.log('side-effect 4 should be included');
 
 var effect4 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
+console.log('side-effect 5 should be included');
+
 var effect5 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
+
+console.log('side-effect 6 should be included');
 
 var effect6 = /*#__PURE__*/Object.freeze({
   __proto__: null
