@@ -13,16 +13,17 @@ import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../uti
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import type NamespaceVariable from '../variables/NamespaceVariable';
-import type ArrowFunctionExpression from './ArrowFunctionExpression';
-import type AwaitExpression from './AwaitExpression';
-import type CallExpression from './CallExpression';
-import type FunctionExpression from './FunctionExpression';
-import type Identifier from './Identifier';
-import type MemberExpression from './MemberExpression';
+import ArrowFunctionExpression from './ArrowFunctionExpression';
+import AwaitExpression from './AwaitExpression';
+import CallExpression from './CallExpression';
+import ExpressionStatement from './ExpressionStatement';
+import FunctionExpression from './FunctionExpression';
+import Identifier from './Identifier';
+import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type ObjectExpression from './ObjectExpression';
-import type ObjectPattern from './ObjectPattern';
-import type VariableDeclarator from './VariableDeclarator';
+import ObjectPattern from './ObjectPattern';
+import VariableDeclarator from './VariableDeclarator';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -65,81 +66,86 @@ export default class ImportExpression extends NodeBase {
 	 * Returns undefined if it's not fully deterministic.
 	 */
 	getDeterministicImportedNames(): readonly string[] | undefined {
-		// side-effect only
-		if (this.parent.type === 'ExpressionStatement') {
+		const parent1 = this.parent;
+
+		// Side-effect only: import('bar')
+		if (parent1 instanceof ExpressionStatement) {
 			return EMPTY_ARRAY;
 		}
 
-		if (this.parent?.type === 'AwaitExpression') {
-			const awaitExpression = this.parent as AwaitExpression;
+		if (parent1 instanceof AwaitExpression) {
+			const parent2 = parent1.parent;
 
-			// side-effect only
-			if (awaitExpression.parent.type === 'ExpressionStatement') {
+			// Side-effect only: await import('bar')
+			if (parent2 instanceof ExpressionStatement) {
 				return EMPTY_ARRAY;
 			}
 
 			// Case 1: const { foo } = await import('bar')
-			if (awaitExpression.parent?.type === 'VariableDeclarator') {
-				const variableDeclarator = awaitExpression.parent as VariableDeclarator;
-				if (variableDeclarator.id?.type !== 'ObjectPattern') return;
-
-				return getDeterministicObjectDestructure(variableDeclarator.id as ObjectPattern);
+			if (parent2 instanceof VariableDeclarator) {
+				const declaration = parent2.id;
+				return declaration instanceof ObjectPattern
+					? getDeterministicObjectDestructure(declaration)
+					: undefined;
 			}
+
 			// Case 2: (await import('bar')).foo
-			else {
-				if (awaitExpression.parent?.type !== 'MemberExpression') return;
-
-				const memberExpression = awaitExpression.parent as MemberExpression;
-				if (memberExpression.computed || memberExpression.property.type !== 'Identifier') return;
-
-				return [(memberExpression.property as Identifier).name];
+			if (parent2 instanceof MemberExpression) {
+				const id = parent2.property;
+				if (!parent2.computed && id instanceof Identifier) {
+					return [id.name];
+				}
 			}
-		}
-		// Case 3: import('bar').then(({ foo }) => {})
-		else if (this.parent?.type === 'MemberExpression') {
-			const memberExpression = this.parent as MemberExpression;
-			if (
-				memberExpression.parent?.type !== 'CallExpression' ||
-				memberExpression.property.type !== 'Identifier'
-			)
-				return;
 
-			const memberName = (memberExpression.property as Identifier).name;
-			const callExpression = memberExpression.parent as CallExpression;
+			return;
+		}
+
+		// Case 3: import('bar').then(({ foo }) => {})
+		if (parent1 instanceof MemberExpression) {
+			const callExpression = parent1.parent;
+			const property = parent1.property;
+
+			if (!(callExpression instanceof CallExpression) || !(property instanceof Identifier)) {
+				return;
+			}
+
+			const memberName = property.name;
 
 			// side-effect only, when only chaining .catch or .finally
 			if (
-				callExpression.parent.type === 'ExpressionStatement' &&
+				callExpression.parent instanceof ExpressionStatement &&
 				['catch', 'finally'].includes(memberName)
 			) {
 				return EMPTY_ARRAY;
-			} else if (memberName !== 'then') {
-				return;
 			}
 
-			// side-effect only
+			if (memberName !== 'then') return;
+
+			// Side-effect only: import('bar').then()
 			if (callExpression.arguments.length === 0) {
 				return EMPTY_ARRAY;
 			}
 
+			const argument = callExpression.arguments[0];
+
 			if (
 				callExpression.arguments.length !== 1 ||
-				!['ArrowFunctionExpression', 'FunctionExpression'].includes(
-					callExpression.arguments[0].type
-				)
-			)
+				!(argument instanceof ArrowFunctionExpression || argument instanceof FunctionExpression)
+			) {
 				return;
+			}
 
-			const callback = callExpression.arguments[0] as ArrowFunctionExpression | FunctionExpression;
-
-			// side-effect only
-			if (callback.params.length === 0) {
+			// Side-effect only: import('bar').then(() => {})
+			if (argument.params.length === 0) {
 				return EMPTY_ARRAY;
 			}
 
-			if (callback.params.length !== 1 || callback.params[0].type !== 'ObjectPattern') return;
+			const declaration = argument.params[0];
+			if (argument.params.length === 1 && declaration instanceof ObjectPattern) {
+				return getDeterministicObjectDestructure(declaration);
+			}
 
-			return getDeterministicObjectDestructure(callback.params[0] as ObjectPattern);
+			return;
 		}
 	}
 

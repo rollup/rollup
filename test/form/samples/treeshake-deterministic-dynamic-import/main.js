@@ -35,4 +35,8 @@ export async function entry() {
     import('./bail-7.js'),
     import('./bail-8.js'),
   ]
+
+  const { [foo]: bar } = await import('./bail-9.js')
+
+  import('./bail-10.js').then(({ [foo]: bar }) => {})
 }
