@@ -77,7 +77,10 @@ export interface TestConfigBase {
 	minNodeVersion?: string;
 }
 
-export type TestConfigForm = TestConfigBase;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TestConfigForm extends TestConfigBase {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TestConfigSourcemap extends TestConfigBase {}
 
 export interface TestConfigFileHash extends TestConfigBase {
 	options1?: RollupOptions;
@@ -87,8 +90,8 @@ export interface TestConfigFileHash extends TestConfigBase {
 
 export interface TestConfigCli extends TestConfigBase {
 	command?: string;
-	cwd: string;
-	retry: number;
+	cwd?: string;
+	retry?: number;
 	/**
 	 * Assert the stderr of the build.
 	 */
@@ -97,6 +100,8 @@ export interface TestConfigCli extends TestConfigBase {
 	 * Assert the stderr stream, return true to abort the test.
 	 */
 	abortOnStderr?: (data: string) => boolean | void | Promise<boolean | void>;
+
+	result?: (code: string) => void;
 }
 
 export interface TestConfigChunkingForm extends TestConfigBase {

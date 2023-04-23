@@ -1,5 +1,5 @@
-import type { TestConfigForm } from '../types';
+import type { TestConfigSourcemap } from '../types';
 
 declare global {
-	function defineTest(config: TestConfigForm): TestConfigForm;
+	function defineTest(config: TestConfigSourcemap): TestConfigSourcemap;
 }
