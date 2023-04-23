@@ -716,11 +716,13 @@ export default class Module {
 		this.includeAllExports(false);
 	}
 
-	includeExportsByNames(names: readonly string[], includeNamespaceMembers: boolean): void {
+	includeExportsByNames(names: readonly string[]): void {
 		if (!this.isExecuted) {
 			markModuleAndImpureDependenciesAsExecuted(this);
 			this.graph.needsTreeshakingPass = true;
 		}
+
+		let includeNamespaceMembers = false;
 
 		for (const name of names) {
 			const variable = this.getVariableForExportName(name)[0];
@@ -729,6 +731,10 @@ export default class Module {
 				if (!variable.included) {
 					this.includeVariable(variable);
 				}
+			}
+
+			if (!this.exports.has(name) && !this.reexportDescriptions.has(name)) {
+				includeNamespaceMembers = true;
 			}
 		}
 
@@ -1248,7 +1254,7 @@ export default class Module {
 				: undefined;
 
 			if (importedNames) {
-				resolution.includeExportsByNames(importedNames, true);
+				resolution.includeExportsByNames(importedNames);
 			} else {
 				resolution.includeAllExports(true);
 			}

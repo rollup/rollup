@@ -4,6 +4,7 @@ module.exports = {
 		output: {
 			inlineDynamicImports: true
 		},
+		external: ['external'],
 		plugins: [
 			{
 				resolveId(id) {

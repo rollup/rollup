@@ -9,6 +9,9 @@ export async function entry() {
   import('./sub2.js').then(({ baz2 }) => baz2)
   import('./sub2.js').then(function({ reexported }) { reexported })
 
+  // external with unknown namespace
+  const { foo4, x } = await import('./sub4');
+
   // side-effect only
   import('./effect-1.js')
   await import('./effect-2.js')

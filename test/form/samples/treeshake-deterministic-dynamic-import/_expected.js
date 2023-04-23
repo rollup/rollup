@@ -1,3 +1,20 @@
+import * as external from 'external';
+
+function _mergeNamespaces(n, m) {
+  m.forEach(function (e) {
+    e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
+      if (k !== 'default' && !(k in n)) {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  });
+  return Object.freeze(n);
+}
+
 async function entry() {
   // simple
   const { foo1: foo } = await Promise.resolve().then(function () { return sub1; });
@@ -6,6 +23,9 @@ async function entry() {
   await Promise.resolve().then(function () { return sub2; });
   Promise.resolve().then(function () { return sub2; }).then(({ baz2 }) => baz2);
   Promise.resolve().then(function () { return sub2; }).then(function({ reexported }) { });
+
+  // external with unknown namespace
+  await Promise.resolve().then(function () { return sub4; });
 
   // side-effect only
   Promise.resolve().then(function () { return effect1; });
@@ -81,6 +101,13 @@ var sub2 = /*#__PURE__*/Object.freeze({
   foo3: foo3,
   reexported: bar3
 });
+
+const foo4 = 3;
+
+var sub4 = /*#__PURE__*/_mergeNamespaces({
+  __proto__: null,
+  foo4: foo4
+}, [external]);
 
 console.log('side-effect 1 should be included');
 
