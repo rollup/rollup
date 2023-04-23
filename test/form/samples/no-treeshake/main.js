@@ -51,3 +51,5 @@ test({
 try {
 	const x = 1;
 } catch {}
+
+const { fred } = await import('./dynamic-imported.js');
