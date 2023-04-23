@@ -36,22 +36,18 @@ module.exports = {
 					}
 					return null;
 				}
-			},
-			{
-				generateBundle(_, bundle) {
-					const code = bundle['_actual.js'].code;
-
-					assert.ok(!code.includes('@tree-shaken'));
-
-					for (let index = 1; index <= 10; index++) {
-						assert.ok(code.includes(`@included-bail-${index}`));
-					}
-
-					for (let index = 1; index <= 6; index++) {
-						assert.ok(code.includes(`@included-effect-${index}`));
-					}
-				}
 			}
 		]
+	},
+	test(code) {
+		assert.ok(!code.includes('@tree-shaken'));
+
+		for (let index = 1; index <= 10; index++) {
+			assert.ok(code.includes(`@included-bail-${index}`));
+		}
+
+		for (let index = 1; index <= 6; index++) {
+			assert.ok(code.includes(`@included-effect-${index}`));
+		}
 	}
 };
