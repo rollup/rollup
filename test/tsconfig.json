@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "esnext",
+    "lib": ["ES2021"],
+    "moduleResolution": "node",
+    "types": [
+      "node",
+      "./types.d.ts"
+    ],
+    "strict": true
+  },
+  "include": [
+    "**/_config.js"
+  ]
+}

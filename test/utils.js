@@ -181,6 +181,7 @@ function getFileNamesAndRemoveOutput(directory) {
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
 function loadConfigAndRunTest(directory, runTest) {
+	globalThis.defineRollupTest ||= config => config;
 	const configFile = join(directory, '_config.js');
 	const config = require(configFile);
 	if (!config || !config.description) {

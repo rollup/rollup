@@ -4,5 +4,6 @@
   "typescript.format.enable": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
-  }
+  },
+  "references.preferredLocation": "peek"
 }

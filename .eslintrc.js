@@ -66,6 +66,12 @@ module.exports = {
 				'no-undef': 'off',
 				'unicorn/prevent-abbreviations': 'off'
 			}
+		},
+		{
+			files: ['test/**/_config.js'],
+			rules: {
+				'no-undef': 'off'
+			}
 		}
 	],
 	parser: '@typescript-eslint/parser',

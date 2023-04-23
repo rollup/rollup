@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'fails if a file cannot be loaded',
 	options: {
 		plugins: {
@@ -14,4 +14,4 @@ module.exports = {
 		url: 'https://rollupjs.org/plugin-development/#a-simple-example',
 		watchFiles: ['main']
 	}
-};
+});
