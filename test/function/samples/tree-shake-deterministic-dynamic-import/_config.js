@@ -4,7 +4,6 @@ module.exports = {
 		output: {
 			inlineDynamicImports: true
 		},
-		external: ['external'],
 		plugins: [
 			{
 				resolveId(id) {
@@ -36,5 +35,12 @@ module.exports = {
 				}
 			}
 		]
+	},
+	async exports({ allExports }) {
+		await allExports();
+	},
+	context: {
+		named1: 'named1',
+		named4: 'named4'
 	}
 };
