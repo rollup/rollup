@@ -110,43 +110,43 @@ var sub4 = /*#__PURE__*/_mergeNamespaces({
   foo4: foo4
 }, [external]);
 
-console.log('side-effect 1 should be included');
+console.log('@included-effect-1');
 
 var effect1 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
-console.log('side-effect 2 should be included');
+console.log('@included-effect-2');
 
 var effect2 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
-console.log('side-effect 3 should be included');
+console.log('@included-effect-3');
 
 var effect3 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
-console.log('side-effect 4 should be included');
+console.log('@included-effect-4');
 
 var effect4 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
-console.log('side-effect 5 should be included');
+console.log('@included-effect-5');
 
 var effect5 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
-console.log('side-effect 6 should be included');
+console.log('@included-effect-6');
 
 var effect6 = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
-var bail1 = 'should be included 1';
+var bail1 = '@included-bail-1';
 const named1 = 'bail1';
 
 var bail1$1 = /*#__PURE__*/Object.freeze({
@@ -155,7 +155,7 @@ var bail1$1 = /*#__PURE__*/Object.freeze({
   named1: named1
 });
 
-var bail2 = 'should be included 2';
+var bail2 = '@included-bail-2';
 const named2 = 'bail2';
 
 var bail2$1 = /*#__PURE__*/Object.freeze({
@@ -164,7 +164,7 @@ var bail2$1 = /*#__PURE__*/Object.freeze({
   named2: named2
 });
 
-var bail3 = 'should be included 3';
+var bail3 = '@included-bail-3';
 const named3 = 'bail3';
 
 var bail3$1 = /*#__PURE__*/Object.freeze({
@@ -173,7 +173,7 @@ var bail3$1 = /*#__PURE__*/Object.freeze({
   named3: named3
 });
 
-var bail4 = 'should be included 4';
+var bail4 = '@included-bail-4';
 const named4 = 'bail4';
 
 var bail4$1 = /*#__PURE__*/Object.freeze({
@@ -182,7 +182,7 @@ var bail4$1 = /*#__PURE__*/Object.freeze({
   named4: named4
 });
 
-var bail5 = 'should be included 5';
+var bail5 = '@included-bail-5';
 const named5 = 'bail5';
 
 var bail5$1 = /*#__PURE__*/Object.freeze({
@@ -191,7 +191,7 @@ var bail5$1 = /*#__PURE__*/Object.freeze({
   named5: named5
 });
 
-var bail6 = 'should be included 6';
+var bail6 = '@included-bail-6';
 const named6 = 'bail6';
 
 var bail6$1 = /*#__PURE__*/Object.freeze({
@@ -200,7 +200,7 @@ var bail6$1 = /*#__PURE__*/Object.freeze({
   named6: named6
 });
 
-var bail7 = 'should be included 7';
+var bail7 = '@included-bail-7';
 const named7 = 'bail7';
 
 var bail7$1 = /*#__PURE__*/Object.freeze({
@@ -209,7 +209,7 @@ var bail7$1 = /*#__PURE__*/Object.freeze({
   named7: named7
 });
 
-var bail8 = 'should be included 8';
+var bail8 = '@included-bail-8';
 const named8 = 'bail8';
 
 var bail8$1 = /*#__PURE__*/Object.freeze({
@@ -218,7 +218,7 @@ var bail8$1 = /*#__PURE__*/Object.freeze({
   named8: named8
 });
 
-var bail9 = 'should be included 9';
+var bail9 = '@included-bail-9';
 const named9 = 'bail9';
 
 var bail9$1 = /*#__PURE__*/Object.freeze({
@@ -227,7 +227,7 @@ var bail9$1 = /*#__PURE__*/Object.freeze({
   named9: named9
 });
 
-var bail10 = 'should be included 10';
+var bail10 = '@included-bail-10';
 const named10 = 'bail10';
 
 var bail10$1 = /*#__PURE__*/Object.freeze({

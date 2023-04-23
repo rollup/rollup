@@ -1,3 +1,5 @@
+const assert = require('node:assert');
+
 module.exports = {
 	description: 'treeshakes dynamic imports when the target is deterministic',
 	options: {
@@ -19,20 +21,35 @@ module.exports = {
 						if (match[1] === 'bail')
 							return {
 								code: [
-									`export default 'should be included ${match[2]}'`,
+									`export default '@included-bail-${match[2]}'`,
 									`export const named${match[2]} = 'bail${match[2]}';`
 								].join('\n')
 							};
 						else if (match[1] === 'effect') {
 							return {
 								code: [
-									'export function fn() { /* this should be tree-shaken */ }',
-									`console.log('side-effect ${match[2]} should be included');`
+									'export function fn() { /* @tree-shaken */ }',
+									`console.log('@included-effect-${match[2]}');`
 								].join('\n')
 							};
 						}
 					}
 					return null;
+				}
+			},
+			{
+				generateBundle(_, bundle) {
+					const code = bundle['_actual.js'].code;
+
+					assert.ok(!code.includes('@tree-shaken'));
+
+					for (let index = 1; index <= 10; index++) {
+						assert.ok(code.includes(`@included-bail-${index}`));
+					}
+
+					for (let index = 1; index <= 6; index++) {
+						assert.ok(code.includes(`@included-effect-${index}`));
+					}
 				}
 			}
 		]
