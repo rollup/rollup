@@ -7,6 +7,7 @@
     "moduleResolution": "node",
     "types": [
       "node",
+      "mocha",
       "./types.d.ts"
     ],
     "strict": true

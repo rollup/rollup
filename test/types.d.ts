@@ -11,7 +11,9 @@ export interface RollupTestConfig {
 	 * Skip this test.
 	 */
 	skip?: boolean;
-
+	/**
+	 * Execute the bundled code.
+	 */
 	execute?: boolean;
 
 	/**
@@ -34,6 +36,10 @@ export interface RollupTestConfig {
 	 * Environment variables to set for the test.
 	 */
 	env?: Record<string, string | undefined>;
+	/**
+	 * The global context executed the bundled code.
+	 */
+	context?: Record<string, any>;
 	/**
 	 * The directory to run the test in.
 	 */

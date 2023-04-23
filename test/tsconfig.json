@@ -7,9 +7,10 @@
     "moduleResolution": "node",
     "types": [
       "node",
+      "mocha",
       "./types.d.ts"
-    ],
-    "strict": true
+    ]
+    // "strict": true // maybe later
   },
   "include": [
     "**/_config.js"

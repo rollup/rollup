@@ -1,3 +1,10 @@
+/**
+ * @typedef {import('../src/rollup/types').RollupError} RollupError
+ * @typedef {import('../src/rollup/types').RollupWarning} RollupWarning
+ * @typedef {import('./types').RollupTestConfig} RollupTestConfig
+ * @typedef {(directory: string, config: RollupTestConfig) => void} RunTestFunction
+ */
+
 const assert = require('node:assert');
 const {
 	closeSync,
@@ -18,6 +25,10 @@ if (!globalThis.defineRollupTest) {
 	globalThis.defineRollupTest = config => config;
 }
 
+/**
+ * @param {number} ms
+ * @returns {Promise<void>}
+ */
 exports.wait = function wait(ms) {
 	return new Promise(fulfil => {
 		setTimeout(fulfil, ms);
@@ -40,6 +51,10 @@ function normaliseError(error) {
 	return clone;
 }
 
+/**
+ * @param {RollupError} actual
+ * @param {RollupError} expected
+ */
 exports.compareError = function compareError(actual, expected) {
 	actual = normaliseError(actual);
 	if (expected.frame) {
@@ -48,6 +63,10 @@ exports.compareError = function compareError(actual, expected) {
 	assert.deepEqual(actual, expected);
 };
 
+/**
+ * @param {RollupWarning[]} actual
+ * @param {RollupWarning[]} expected
+ */
 exports.compareWarnings = function compareWarnings(actual, expected) {
 	assert.deepEqual(
 		actual.map(normaliseError).sort(sortWarnings),
@@ -62,10 +81,17 @@ exports.compareWarnings = function compareWarnings(actual, expected) {
 	);
 };
 
+/**
+ * @param {RollupWarning} a
+ * @param {RollupWarning} b
+ */
 function sortWarnings(a, b) {
 	return a.message === b.message ? 0 : a.message < b.message ? -1 : 1;
 }
 
+/**
+ * @param {string} stringValue
+ */
 function deindent(stringValue) {
 	return stringValue.slice(1).replace(/^\t+/gm, '').replace(/\s+$/gm, '').trim();
 }
@@ -85,6 +111,9 @@ exports.executeBundle = async function executeBundle(bundle, require) {
 	return module.exports;
 };
 
+/**
+ * @type {(entries: Iterable<[string, any]>) => Record<string, any)}
+ */
 exports.getObject = function getObject(entries) {
 	const object = {};
 	for (const [key, value] of entries) {
@@ -110,21 +139,40 @@ exports.normaliseOutput = function normaliseOutput(code) {
 	return code.toString().trim().replace(/\r\n/g, '\n');
 };
 
+/**
+ * @param {string} suiteName
+ * @param {string} samplesDirectory
+ * @param {RunTestFunction} runTest
+ */
 function runTestSuiteWithSamples(suiteName, samplesDirectory, runTest, onTeardown) {
 	describe(suiteName, () => runSamples(samplesDirectory, runTest, onTeardown));
 }
 
 // You can run only or skip certain kinds of tests by appending .only or .skip
+/**
+ * @param {string} suiteName
+ * @param {string} samplesDirectory
+ * @param {RunTestFunction} runTest
+ * @param {() => void | Promise<void>} onTeardown
+ */
 runTestSuiteWithSamples.only = function (suiteName, samplesDirectory, runTest, onTeardown) {
 	describe.only(suiteName, () => runSamples(samplesDirectory, runTest, onTeardown));
 };
 
+/**
+ * @param {string} suiteName
+ */
 runTestSuiteWithSamples.skip = function (suiteName) {
 	describe.skip(suiteName, () => {});
 };
 
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 
+/**
+ * @param {string} samplesDirectory
+ * @param {RunTestFunction} runTest
+ * @param {Mocha.Func} onTeardown
+ */
 function runSamples(samplesDirectory, runTest, onTeardown) {
 	if (onTeardown) {
 		afterEach(onTeardown);
@@ -137,6 +185,10 @@ function runSamples(samplesDirectory, runTest, onTeardown) {
 	}
 }
 
+/**
+ * @param {string} directory
+ * @param {RunTestFunction} runTest
+ */
 function runTestsInDirectory(directory, runTest) {
 	const fileNames = getFileNamesAndRemoveOutput(directory);
 	if (fileNames.includes('_config.js')) {
@@ -156,6 +208,9 @@ function runTestsInDirectory(directory, runTest) {
 	}
 }
 
+/**
+ * @param {string} directory
+ */
 function getFileNamesAndRemoveOutput(directory) {
 	try {
 		return readdirSync(directory).filter(fileName => {
@@ -184,6 +239,10 @@ function getFileNamesAndRemoveOutput(directory) {
 
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
+/**
+ * @param {string} directory
+ * @param {RunTestFunction} runTest
+ */
 function loadConfigAndRunTest(directory, runTest) {
 	const configFile = join(directory, '_config.js');
 	const config = require(configFile);
@@ -199,6 +258,10 @@ function loadConfigAndRunTest(directory, runTest) {
 	}
 }
 
+/**
+ * @param {string} actualDirectory
+ * @param {string} expectedDirectory
+ */
 exports.assertDirectoriesAreEqual = function assertDirectoriesAreEqual(
 	actualDirectory,
 	expectedDirectory
@@ -232,6 +295,10 @@ function assertFilesAreEqual(actualFiles, expectedFiles, directories = []) {
 
 exports.assertFilesAreEqual = assertFilesAreEqual;
 
+/**
+ * @param {string} actual
+ * @param {string} expected
+ */
 exports.assertIncludes = function assertIncludes(actual, expected) {
 	try {
 		assert.ok(
@@ -245,6 +312,10 @@ exports.assertIncludes = function assertIncludes(actual, expected) {
 	}
 };
 
+/**
+ * @param {string} actual
+ * @param {string} expected
+ */
 exports.assertDoesNotInclude = function assertDoesNotInclude(actual, expected) {
 	try {
 		assert.ok(
@@ -258,9 +329,14 @@ exports.assertDoesNotInclude = function assertDoesNotInclude(actual, expected) {
 	}
 };
 
-// Workaround a race condition in fs.writeFileSync that temporarily creates
-// an empty file for a brief moment which may be read by rollup watch - even
-// if the content being overwritten is identical.
+/**
+ * Workaround a race condition in fs.writeFileSync that temporarily creates
+ * an empty file for a brief moment which may be read by rollup watch - even
+ * if the content being overwritten is identical.
+ *
+ * @param {string} filePath
+ * @param {string} contents
+ */
 function atomicWriteFileSync(filePath, contents) {
 	const stagingPath = filePath + '_';
 	writeFileSync(stagingPath, contents);
@@ -269,7 +345,12 @@ function atomicWriteFileSync(filePath, contents) {
 
 exports.atomicWriteFileSync = atomicWriteFileSync;
 
-// It appears that on macOS, it sometimes takes long for the file system to update
+/**
+ * It appears that on macOS, it sometimes takes long for the file system to update
+ *
+ * @param {string} filePath
+ * @param {string} contents
+ */
 exports.writeAndSync = function writeAndSync(filePath, contents) {
 	const file = openSync(filePath, 'w');
 	writeSync(file, contents);
@@ -277,9 +358,14 @@ exports.writeAndSync = function writeAndSync(filePath, contents) {
 	closeSync(file);
 };
 
-// Sometimes, watchers on macOS do not seem to fire. In those cases, it helps
-// to write the same content again. This function returns a callback to stop
-// further updates.
+/**
+ * Sometimes, watchers on macOS do not seem to fire. In those cases, it helps
+ * to write the same content again. This function returns a callback to stop
+ * further updates.
+ *
+ * @param {string} filePath
+ * @param {string} contents
+ */
 exports.writeAndRetry = function writeAndRetry(filePath, contents) {
 	let retries = 0;
 	let updateRetryTimeout;
@@ -297,6 +383,10 @@ exports.writeAndRetry = function writeAndRetry(filePath, contents) {
 	return () => clearTimeout(updateRetryTimeout);
 };
 
+/**
+ * @param {any} object
+ * @param {any} replaced
+ */
 exports.replaceDirectoryInStringifiedObject = function replaceDirectoryInStringifiedObject(
 	object,
 	replaced

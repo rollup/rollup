@@ -1,5 +1,8 @@
 const assert = require('node:assert');
 const path = require('node:path');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const rollup = require('../../dist/rollup');
 const { compareError, compareWarnings, runTestSuiteWithSamples } = require('../utils.js');
 
