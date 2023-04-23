@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for invalid patterns',
 	options: {
 		output: { entryFileNames: '../main.js' }

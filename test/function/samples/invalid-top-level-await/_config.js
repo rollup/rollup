@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for invalid top-level-await format',
 	generateError: {
 		code: 'INVALID_TLA_FORMAT',

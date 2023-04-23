@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'accepts false for `sourcemapIgnoreList` to disable the default ignore-listing of node_modules',
 	options: {

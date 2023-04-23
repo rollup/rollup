@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deconflicts the interop function',
 	options: {
 		external(id) {

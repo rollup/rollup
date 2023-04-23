@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles duplicate entry modules when using the object form',
 	options: {
 		input: ['entry', 'entry.js']

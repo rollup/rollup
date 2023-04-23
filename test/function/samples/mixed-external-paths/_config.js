@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows using the path option selectively',
 	options: {
 		external: ['dep-a', 'dep-b'],

@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_F = path.join(__dirname, 'f.js');
 const ID_G = path.join(__dirname, 'g.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Anonymous function declarations are hoisted',
 	warnings: [
 		{

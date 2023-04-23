@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'emits unreferenced assets if needsCodeReference is true if they are also emitted without that flag',
 	options: {

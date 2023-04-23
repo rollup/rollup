@@ -1,6 +1,6 @@
 const { loader } = require('../../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deconflicts files against named files',
 	options: {
 		input: 'main',

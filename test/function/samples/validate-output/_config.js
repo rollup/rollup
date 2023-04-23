@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles validate failure',
 	options: {
 		onwarn(warning) {

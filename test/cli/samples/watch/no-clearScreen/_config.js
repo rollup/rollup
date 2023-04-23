@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const UNDERLINE = '\u001B[4m';
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows disabling clearing the screen',
 	command: 'node wrapper.js -cw',
 	env: { FORCE_COLOR: '1', TERM: 'xterm' },

@@ -2,7 +2,7 @@ const assert = require('node:assert');
 let oldConsoleWarn;
 const warnings = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'provides a default handler for warnings to onwarn that handles strings and objects',
 	options: {
 		onwarn(warning, defaultHandler) {

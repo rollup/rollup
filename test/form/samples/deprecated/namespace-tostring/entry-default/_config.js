@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not add Symbol.toStringTag property to entry chunks with default export mode',
 	options: {
 		strictDeprecations: false,

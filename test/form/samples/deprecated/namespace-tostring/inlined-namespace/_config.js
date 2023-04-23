@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'adds Symbol.toStringTag property to inlined namespaces',
 	options: {
 		strictDeprecations: false,

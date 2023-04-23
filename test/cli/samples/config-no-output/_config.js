@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { readFileSync, unlinkSync } = require('node:fs');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses -o from CLI',
 	command: 'rollup -c -o output.js',
 	test() {

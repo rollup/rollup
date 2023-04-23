@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'adds a banner/footer',
 	options: {
 		output: {

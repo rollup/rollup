@@ -1,3 +1,3 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deshadows top-level declarations'
 });

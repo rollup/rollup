@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows to avoid null setters for side effect only imports',
 	options: {
 		external: ['external'],

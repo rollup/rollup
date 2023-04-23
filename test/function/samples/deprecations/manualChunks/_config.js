@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'marks the "manualChunks" input option as deprecated',
 	options: {
 		manualChunks() {

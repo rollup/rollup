@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns for invalid options',
 	options: {
 		treeshake: {

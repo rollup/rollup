@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'synthetic named exports modules need their fallback export',
 	options: {
 		plugins: [

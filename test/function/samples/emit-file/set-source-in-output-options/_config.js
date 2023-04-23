@@ -1,6 +1,6 @@
 let referenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when trying to set file sources in  the outputOptions hook',
 	options: {
 		input: 'main',

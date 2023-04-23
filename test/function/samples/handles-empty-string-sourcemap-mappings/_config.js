@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles transforms that return sourcemap with empty mappings',
 
 	options: {

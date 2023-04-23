@@ -4,7 +4,7 @@ const path = require('node:path');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'generates correct sourcemap with reified namespace (#668)',
 	async test(code, map) {
 		const smc = await new SourceMapConsumer(map);

@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_ARRAY_JSON = path.join(__dirname, 'array.json');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'should provide json hint when importing a no export json file',
 	error: {
 		binding: 'default',

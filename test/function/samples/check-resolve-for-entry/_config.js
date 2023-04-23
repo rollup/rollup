@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'checks that entry is resolved',
 	options: {
 		input: 'not/a/path/that/actually/really/exists'

@@ -6,7 +6,7 @@ const cachedModules = {
 	'@main.js': 'import foo from "./foo"; export default foo();'
 };
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'applies custom resolver to entry point',
 	options: {
 		plugins: [

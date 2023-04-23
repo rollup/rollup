@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Returns the raw AST nodes for unresolvable dynamic imports',
 	options: {
 		plugins: [

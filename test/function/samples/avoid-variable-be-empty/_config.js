@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'avoid variable from empty module name be empty',
 	options: {
 		input: '',

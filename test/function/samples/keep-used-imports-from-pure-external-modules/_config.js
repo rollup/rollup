@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'imports from pure external modules that are used should not be omitted',
 	options: {
 		external: ['warning'],

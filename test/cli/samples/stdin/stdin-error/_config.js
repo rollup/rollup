@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles stdin errors',
 	command: `node wrapper.js`,
 	error(error) {

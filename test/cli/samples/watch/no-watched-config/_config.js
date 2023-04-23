@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws if no config is watched',
 	command: 'rollup -cw',
 	error: () => true,

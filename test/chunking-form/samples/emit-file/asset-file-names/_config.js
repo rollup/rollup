@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports custom asset file names',
 	options: {
 		input: ['main.js'],

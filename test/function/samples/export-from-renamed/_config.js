@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows export { x as y } from ...',
 	exports(exports) {
 		assert.equal(exports.y, 42);

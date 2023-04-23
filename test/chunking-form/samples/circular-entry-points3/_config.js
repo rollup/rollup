@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'creates facades for all circular entry points if they become tainted by another entry',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],

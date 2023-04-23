@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws error only with first plugin renderChunk',
 	options: {
 		plugins: [

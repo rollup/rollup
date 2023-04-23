@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deconflicts synthetic named exports',
 	options: {
 		plugins: [

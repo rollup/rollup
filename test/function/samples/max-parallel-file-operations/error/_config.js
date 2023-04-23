@@ -4,7 +4,7 @@ const { loader } = require('../../../../utils.js');
 
 const fsReadFile = fs.readFile;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'maxParallelFileOps: fileRead error is forwarded',
 	options: {
 		input: 'main',

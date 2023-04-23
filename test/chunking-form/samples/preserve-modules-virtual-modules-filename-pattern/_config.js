@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'Generates actual files whose filename adheres to entryFileNames for virtual modules when preserving modules',
 	options: {

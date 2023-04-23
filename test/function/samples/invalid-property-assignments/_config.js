@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'includes invalid property assignments',
 	context: { globalOther: 'other' },
 	options: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'external modules can not have syntheticNamedExports',
 	options: {
 		plugins: [

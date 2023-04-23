@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'fails if an entry cannot be resolved',
 	error: {
 		code: 'NO_FS_IN_BROWSER',

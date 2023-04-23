@@ -5,7 +5,7 @@ const mockedValue = {
 	val: 'A value'
 };
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows a nonexistent relative module to be configured as external',
 	options: {
 		external: [path.join(__dirname, './nonexistent-relative-dependency.js')]

@@ -4,7 +4,7 @@ const { atomicWriteFileSync } = require('../../../utils');
 
 let mainFile;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'waits for bundle input',
 	command: 'rollup -c --waitForBundleInput',
 	before() {

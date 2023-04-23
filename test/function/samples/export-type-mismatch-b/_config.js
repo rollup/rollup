@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'export type must be auto, default, named or none',
 	options: { output: { exports: 'blah' } },
 	generateError: {

@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 let preloadedCode;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'waits for pre-loaded modules that are currently loading',
 	options: {
 		plugins: [

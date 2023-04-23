@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not hang on missing module (#53)',
 	warnings: [
 		{

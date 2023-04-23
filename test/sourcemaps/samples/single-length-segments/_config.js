@@ -6,7 +6,7 @@ const getLocation = require('../../getLocation');
 
 const original = readFileSync(path.resolve(__dirname, 'main.js'), 'utf8');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles single-length sourcemap segments',
 	options: {
 		plugins: [

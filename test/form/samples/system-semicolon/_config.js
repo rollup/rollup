@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports asi in system binding output',
 	options: {
 		output: {

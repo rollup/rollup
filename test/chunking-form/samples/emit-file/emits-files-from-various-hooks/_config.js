@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports emitting assets from plugin hooks',
 	options: {
 		input: ['main.js'],

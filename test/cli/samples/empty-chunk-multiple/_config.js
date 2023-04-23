@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'shows warning when multiple chunks empty',
 	command: 'rollup -c',
 	error: () => true,

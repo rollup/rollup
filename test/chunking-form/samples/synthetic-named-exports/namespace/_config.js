@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports re-exported synthetic exports in namespace objects',
 	options: {
 		plugins: [

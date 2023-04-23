@@ -1,3 +1,3 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles known getters that modify "this"'
 });

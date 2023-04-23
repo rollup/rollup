@@ -18,6 +18,9 @@ copySync(resolve(__dirname, 'node_modules_rename_me'), resolve(__dirname, 'node_
 runTestSuiteWithSamples(
 	'cli',
 	resolve(__dirname, 'samples'),
+	/**
+	 * @param {import('../types').TestConfigCli} config
+	 */
 	(directory, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
 			basename(directory) + ': ' + config.description,

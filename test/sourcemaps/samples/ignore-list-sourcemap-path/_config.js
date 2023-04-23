@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'correctly passes source map path',
 	options: {
 		output: {

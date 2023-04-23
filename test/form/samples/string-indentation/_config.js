@@ -1,3 +1,3 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'indentation is preserved in multi-line strings'
 });

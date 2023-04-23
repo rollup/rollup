@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'respects the NO_COLOR environment variable',
 	command: 'rollup -i main1.js -i main2.js -f es',
 	env: { FORCE_COLOR: undefined, NO_COLOR: true },

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		"merges chunks if their dependency side effects are a subset of the other's correlated side effects",
 	options: {

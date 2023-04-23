@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Preserve modules id case sensitive',
 	options: {
 		strictDeprecations: false,

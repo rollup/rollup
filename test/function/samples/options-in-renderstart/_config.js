@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const checkedOptions = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'makes input and output options available in renderStart',
 	options: {
 		context: 'global',

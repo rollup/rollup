@@ -1,6 +1,6 @@
 const { loader } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'fails if a dependency cannot be resolved',
 	options: {
 		plugins: loader({

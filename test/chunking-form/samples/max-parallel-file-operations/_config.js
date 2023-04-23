@@ -6,7 +6,7 @@ const fsWriteFile = fs.writeFile;
 let currentWrites = 0;
 let maxWrites = 0;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'maxParallelFileOps limits write operations',
 	options: {
 		maxParallelFileOps: 3,

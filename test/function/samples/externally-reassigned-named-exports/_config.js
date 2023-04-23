@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'calls to externally reassigned methods of named exports must be retained',
 	exports(exports) {
 		let triggered1 = false;

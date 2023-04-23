@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for invalid placeholders in patterns',
 	options: {
 		output: { entryFileNames: '[invalid].js' }

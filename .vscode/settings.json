@@ -5,5 +5,6 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "references.preferredLocation": "peek"
+  "references.preferredLocation": "peek",
+  "vue.features.codeActions.enable": false
 }

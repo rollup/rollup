@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'defaults to adding files within node_modules to the ignore list',
 	options: {
 		output: {

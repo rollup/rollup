@@ -120,7 +120,7 @@ const tests = [
 	}
 ];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'returns the correct results for the context resolve helper',
 	options: {
 		external: [

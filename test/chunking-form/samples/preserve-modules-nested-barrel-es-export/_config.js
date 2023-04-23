@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'confirm exports are deconflicted when exporting nested index aliases',
 	options: {
 		input: 'main.js',

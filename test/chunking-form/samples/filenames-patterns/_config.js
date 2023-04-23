@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'filenames custom pattern',
 	options: {
 		input: ['main1.js', 'main2.js'],

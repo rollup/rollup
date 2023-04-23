@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when accessing the file name before the asset source is set',
 	options: {
 		plugins: {

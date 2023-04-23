@@ -3,7 +3,7 @@ let noImporterReferenceId;
 let mainReferenceId;
 let nestedReferenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows specifying an importer when resolving ids',
 	options: {
 		input: 'main',

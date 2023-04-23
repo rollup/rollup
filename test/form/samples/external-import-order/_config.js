@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Retain the execution order of external imports',
 	options: {
 		external(id) {

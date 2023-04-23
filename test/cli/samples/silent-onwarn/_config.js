@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'triggers onwarn with --silent',
 	command: 'rollup -c --silent',
 	stderr: stderr => {

@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_A = path.join(__dirname, 'a.js');
 const ID_B = path.join(__dirname, 'b.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'cycles work with default exports',
 	warnings: [
 		{

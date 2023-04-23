@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when a module cannot be loaded',
 	options: {
 		plugins: [

@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'normalizes both relative and absolute external paths when set to true',
 	options: {
 		makeAbsoluteExternalsRelative: true,

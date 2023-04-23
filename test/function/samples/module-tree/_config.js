@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'bundle.modules includes dependencies (#903)',
 	bundle(bundle) {
 		const modules = bundle.cache.modules.map(module => ({

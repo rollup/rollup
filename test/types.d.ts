@@ -2,7 +2,7 @@
 import type { SourceMap } from 'magic-string';
 import type { RollupError, RollupOptions } from '../src/rollup/types';
 
-export interface RollupTestConfig {
+export interface TestConfigBase {
 	/**
 	 * Only run this test. Should never be committed.
 	 */
@@ -20,10 +20,6 @@ export interface RollupTestConfig {
 	 * Description of the test.
 	 */
 	description: string;
-	/**
-	 * The command to run for the test.
-	 */
-	command?: string;
 	/**
 	 * Rollup options
 	 */
@@ -53,28 +49,12 @@ export interface RollupTestConfig {
 	 * Called after the test is run.
 	 */
 	after?: () => void | Promise<void>;
-	/**
-	 * Assert the stderr of the build.
-	 */
-	stderr?: (stderr: string) => void | Promise<void>;
-	/**
-	 * Assert the stderr stream, return true to abort the test.
-	 */
-	abortOnStderr?: (data: string) => boolean | void | Promise<boolean | void>;
-
-	/**
-	 * Execute the AMD module.
-	 */
-	runAmd?:
-		| boolean
-		| {
-				exports?: (exportObject: any) => void | Promise<void>;
-		  };
 
 	/**
 	 * Test the expected error.
 	 */
 	error?: RollupError | ((error: RollupError) => boolean | void);
+	generateError?: RollupError;
 	/**
 	 * Test the expected warnings.
 	 */
@@ -95,15 +75,43 @@ export interface RollupTestConfig {
 	skipIfWindows?: boolean;
 	onlyWindows?: boolean;
 	minNodeVersion?: string;
+}
 
+export type TestConfigForm = TestConfigBase;
+
+export interface TestConfigFileHash extends TestConfigBase {
 	options1?: RollupOptions;
 	options2?: RollupOptions;
+	show?: boolean;
 }
 
-declare global {
+export interface TestConfigCli extends TestConfigBase {
+	command?: string;
+	cwd: string;
+	retry: number;
 	/**
-	 * Define configuration for a test.
-	 * This function is available globally in the test files.
+	 * Assert the stderr of the build.
 	 */
-	function defineRollupTest(config: RollupTestConfig): RollupTestConfig;
+	stderr?: (stderr: string) => void | Promise<void>;
+	/**
+	 * Assert the stderr stream, return true to abort the test.
+	 */
+	abortOnStderr?: (data: string) => boolean | void | Promise<boolean | void>;
 }
+
+export interface TestConfigChunkingForm extends TestConfigBase {
+	/**
+	 * Execute the AMD module.
+	 */
+	runAmd?:
+		| boolean
+		| {
+				exports?: (exportObject: any) => void | Promise<void>;
+		  };
+}
+
+export interface TestConfigFunction extends TestConfigBase {
+	runtimeError?(error: Error): void;
+}
+
+export type RunTestFunction = <C extends TestConfigBase>(directory: string, config: C) => void;

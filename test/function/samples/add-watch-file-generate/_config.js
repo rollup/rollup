@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when adding watch files during generate',
 	options: {
 		plugins: {

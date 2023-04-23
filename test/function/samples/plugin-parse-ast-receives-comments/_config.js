@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const comments = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'plugin parse ast receives comments',
 	options: {
 		plugins: [

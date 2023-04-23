@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports compact output with compact: true',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {

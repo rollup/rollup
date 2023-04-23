@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deactivates try-catch-deoptimization via option',
 	options: {
 		treeshake: {

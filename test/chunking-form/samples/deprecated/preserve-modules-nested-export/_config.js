@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'confirm exports are preserved when exporting a module',
 	options: {
 		strictDeprecations: false,

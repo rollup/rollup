@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'escapes reserved names used as props',
 	options: {
 		input: ['main', 'main2'],

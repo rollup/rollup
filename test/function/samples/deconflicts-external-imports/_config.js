@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deconflicts external imports',
 	context: {
 		require(id) {

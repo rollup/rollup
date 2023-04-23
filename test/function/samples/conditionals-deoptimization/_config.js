@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles deoptimization of conditionals',
 	exports(exports) {
 		assert.deepStrictEqual(exports, {

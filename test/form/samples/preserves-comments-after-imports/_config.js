@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'preserves comments between imports and first statement',
 	options: { output: { name: 'myBundle' } }
 });

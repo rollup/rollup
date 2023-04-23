@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not omit side-effects from unknown globals',
 	exports(exports) {
 		let error;

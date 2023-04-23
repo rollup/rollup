@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws error if config does not export an object',
 	command: 'rollup -c',
 	error(error) {

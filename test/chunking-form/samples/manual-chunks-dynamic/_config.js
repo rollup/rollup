@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports dynamic manual chunks',
 	options: {
 		input: ['main.js'],

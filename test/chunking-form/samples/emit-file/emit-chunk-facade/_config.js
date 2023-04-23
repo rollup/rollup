@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'retrieves the correct name of an emitted chunk in case a facade is created',
 	options: {
 		input: 'main',

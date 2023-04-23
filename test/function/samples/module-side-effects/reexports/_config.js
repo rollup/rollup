@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const sideEffects = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles reexporting values when module side-effects are false',
 	context: {
 		sideEffects

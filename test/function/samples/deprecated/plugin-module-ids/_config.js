@@ -3,7 +3,7 @@ const path = require('node:path');
 
 let rendered = false;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'provides all module ids on the plugin context',
 	options: {
 		strictDeprecations: false,

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows adding additional chunks and retrieving their file name',
 	options: {
 		input: 'main',

@@ -1,7 +1,7 @@
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows referencing emitted files',
 	options: {
 		strictDeprecations: false,

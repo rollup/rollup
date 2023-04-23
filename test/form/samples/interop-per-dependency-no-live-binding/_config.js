@@ -1,6 +1,6 @@
 const checkedIds = new Set();
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows to configure the interop type per external dependency',
 	options: {
 		external: id => id.startsWith('external'),

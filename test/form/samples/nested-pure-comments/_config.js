@@ -1,3 +1,3 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'correctly associates pure comments before sequence expressions etc.'
 });

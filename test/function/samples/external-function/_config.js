@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows external option to be a function (#522)',
 	options: {
 		external: id => id === 'external'

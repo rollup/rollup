@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns about import and export related issues',
 	command: 'rollup -c',
 	stderr: stderr => {

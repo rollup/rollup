@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'populates file property of sourcemap with final name when using hashes',
 	options: {
 		output: {

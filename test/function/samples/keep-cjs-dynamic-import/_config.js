@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'keeps dynamic imports in CJS output by default',
 	options: { external: ['external-esm'] },
 	async exports({ result }) {

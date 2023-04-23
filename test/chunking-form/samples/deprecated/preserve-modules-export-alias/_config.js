@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'confirm export aliases are preserved in modules',
 	options: {
 		strictDeprecations: false,

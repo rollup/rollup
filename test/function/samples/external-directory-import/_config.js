@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles using ../ as external import (#4349)',
 	options: {
 		external() {

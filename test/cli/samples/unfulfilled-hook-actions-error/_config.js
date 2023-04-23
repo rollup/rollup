@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { assertIncludes, assertDoesNotInclude } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not show unfulfilled hook actions if there are errors',
 	command: 'node build.mjs',
 	after(error) {

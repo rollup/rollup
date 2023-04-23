@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for unknown string values for the treeshake option',
 	options: {
 		treeshake: 'some-string'

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses correct interop per chunk when importing from external modules',
 	options: {
 		external: module => module.includes('external'),

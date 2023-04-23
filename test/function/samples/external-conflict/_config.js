@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'external paths from custom resolver remain external (#633)',
 	options: {
 		external: (_id, parent) => parent === 'dep',

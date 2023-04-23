@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows plugins to provide assertions for this.resolve',
 	options: {
 		plugins: [

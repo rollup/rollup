@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deduplicates hashes for identical files',
 	options: {
 		input: ['main1', 'main2'],

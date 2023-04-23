@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Generates actual files for virtual modules when preserving modules',
 	options: {
 		plugins: [

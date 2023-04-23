@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles chained namespace reexports from externals',
 	options: {
 		external: 'external'

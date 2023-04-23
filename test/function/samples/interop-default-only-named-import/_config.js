@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when using a named import with interop "defaultOnly"',
 	options: {
 		external: 'external',

@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_PROXY = path.join(__dirname, 'main.js?proxy');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles pre-loading a cyclic module in the resolveId hook',
 	warnings: [
 		{

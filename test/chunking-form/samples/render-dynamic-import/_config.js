@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports custom rendering for dynamic imports',
 	options: {
 		plugins: {

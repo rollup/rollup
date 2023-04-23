@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_DEP1 = path.join(__dirname, 'dep1.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'shims missing exports',
 	options: {
 		shimMissingExports: true

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows to use amd.autoId with amd.basePath, and chunks folder',
 	options: {
 		input: ['main'],

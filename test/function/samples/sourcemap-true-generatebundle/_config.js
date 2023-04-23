@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'emits sourcemaps before generateBundle hook',
 	options: {
 		plugins: [

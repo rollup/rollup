@@ -2,7 +2,7 @@ const { join } = require('node:path');
 const ID_MAIN = join(__dirname, 'main.js');
 const ID_CONSTANTS = join(__dirname, 'constants.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not fail if a warning has an incorrect location due to missing sourcemaps',
 	options: {
 		plugins: [

@@ -4,7 +4,7 @@ const { SourceMapConsumer } = require('source-map');
 const terser = require('terser');
 const getLocation = require('../../getLocation');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'names are recovered if transforms are used',
 	options: {
 		plugins: [

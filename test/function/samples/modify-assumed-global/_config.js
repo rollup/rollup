@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const Math = {};
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'side-effects to assumed globals are included',
 	context: {
 		Math

@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws if a config in node_modules cannot be found',
 	command: 'rollup --config node:baz',
 	error: () => true,

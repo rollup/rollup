@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const executionOrder = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'Uses correct execution order when several modules in a chunk have external dependencies',
 	context: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns if empty bundle is generated  (#444)',
 	warnings: [
 		{

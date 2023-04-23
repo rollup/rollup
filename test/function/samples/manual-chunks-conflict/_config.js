@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Throws for conflicts between manual chunks',
 	options: {
 		input: ['main.js'],

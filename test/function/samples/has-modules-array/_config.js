@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'user-facing bundle has modules array',
 	bundle(bundle) {
 		assert.ok(bundle.cache.modules);

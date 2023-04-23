@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'allows overriding imports of external namespace reexports without external live-bindings',
 	options: {

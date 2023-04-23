@@ -3,7 +3,7 @@ const assert = require('node:assert');
 let bar = 'initial bar';
 let defaultValue = 'initial foo';
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'handles conflicts with added interop default variables and supports default live bindings',
 	options: {

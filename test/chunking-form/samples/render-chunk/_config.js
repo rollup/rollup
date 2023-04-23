@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { replaceDirectoryInStringifiedObject } = require('../../../utils');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'transforms chunks in the renderChunk hook, also transforming hashes added in the hook',
 	options: {

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { pathToFileURL } = require('node:url');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'lists referenced files in the bundle',
 	options: {
 		input: 'main',

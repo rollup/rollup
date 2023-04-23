@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'recognizes side-effects when applying mutable array methods to chained array methods (#3555)',
 	exports(exports) {

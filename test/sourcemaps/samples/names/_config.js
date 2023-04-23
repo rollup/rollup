@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'names are recovered (https://github.com/rollup/rollup/issues/101)',
 	options: {
 		output: {

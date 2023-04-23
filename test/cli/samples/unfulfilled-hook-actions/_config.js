@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'show errors with non-zero exit code for unfulfilled async plugin actions on exit',
 	command: 'rollup -c --silent',
 	after(error) {

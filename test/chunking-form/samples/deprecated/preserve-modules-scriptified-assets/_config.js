@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'scriptified assets have extension in preserveModules output filename',
 	options: {
 		strictDeprecations: false,

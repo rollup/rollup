@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for relative paths as input names',
 	options: {
 		input: { '../test': 'main.js' }

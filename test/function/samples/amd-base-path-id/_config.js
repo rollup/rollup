@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when using both the amd.basePath and the amd.id option',
 	options: {
 		output: { dir: 'dist', amd: { basePath: 'a', id: 'a' } }

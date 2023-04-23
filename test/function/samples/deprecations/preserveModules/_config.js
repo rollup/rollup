@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'marks the "preserveModules" input option as deprecated',
 	options: {
 		preserveModules: true

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'avoids hoisting transitive dependencies via flag',
 	options: {
 		input: ['main1.js', 'main2.js'],

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when reexporting a namespace with interop "defaultOnly"',
 	options: {
 		external: 'external',

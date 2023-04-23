@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not attempt to resolve external IDs',
 	options: {
 		external: ['external'],

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses the merge target that is closest',
 	options: {
 		input: [

@@ -1,6 +1,6 @@
 const commonjs = require('@rollup/plugin-commonjs');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Handles output from @rollup/plugin-commonjs',
 	expectedWarnings: ['MIXED_EXPORTS'],
 	options: {

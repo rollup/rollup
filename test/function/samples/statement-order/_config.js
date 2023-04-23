@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'correct statement order is preserved even in weird edge cases',
 	context: {
 		getAnswer(object) {

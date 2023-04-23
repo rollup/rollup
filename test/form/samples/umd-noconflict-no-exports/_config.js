@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'exports noConflict even when there are no exports',
 	options: {
 		output: {

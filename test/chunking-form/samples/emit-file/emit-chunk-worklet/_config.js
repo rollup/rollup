@@ -1,6 +1,6 @@
 const REGISTER_WORKLET = 'register-paint-worklet:';
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows adding additional chunks to be used in worklets',
 	options: {
 		input: 'main',

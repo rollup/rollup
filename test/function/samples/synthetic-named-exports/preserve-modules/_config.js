@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles a dynamic import with synthetic named exports in preserveModules mode',
 	options: {
 		output: {

@@ -2,7 +2,7 @@ const { unlinkSync } = require('node:fs');
 const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'displays warnings for broken sourcemaps',
 	command: 'rollup -c',
 	stderr: stderr => {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for unknown presets for the generatedCode option',
 	options: {
 		output: {

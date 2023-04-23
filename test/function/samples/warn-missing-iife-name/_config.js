@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns if no name is provided for an IIFE bundle',
 	options: { output: { format: 'iife' } },
 	warnings: [

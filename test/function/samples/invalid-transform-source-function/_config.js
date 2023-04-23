@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'throw descriptive error if sourcemapPathTransform-function does not return a string (#3484)',
 	options: {

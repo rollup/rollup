@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'entryFileNames pattern supported in combination with preserveModules',
 	options: {
 		strictDeprecations: false,

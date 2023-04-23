@@ -1,19 +1,16 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    // "checkJs": true, // enable once all files are converted to TS
+    "checkJs": true,
     "target": "esnext",
     "lib": ["ES2021"],
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "types": [
       "node",
       "mocha",
       "./types.d.ts"
-    ],
-    "strict": true
-  },
-  "include": [
-    "./utils.js",
-    "*/index.js"
-  ]
+    ]
+    // "strict": true // maybe later
+  }
 }

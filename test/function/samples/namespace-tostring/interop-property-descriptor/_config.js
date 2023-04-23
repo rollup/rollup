@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'generated interop namespaces should have correct Symbol.toStringTag',
 	context: {
 		require() {

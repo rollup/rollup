@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'chunk export deshadowing',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {

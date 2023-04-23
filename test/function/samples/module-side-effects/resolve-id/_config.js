@@ -4,7 +4,7 @@ const { getObject } = require('../../../../utils');
 
 const sideEffects = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not include modules without used exports if moduleSideEffect is false',
 	context: {
 		sideEffects

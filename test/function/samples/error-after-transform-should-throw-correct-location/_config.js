@@ -3,7 +3,7 @@ const MagicString = require('magic-string');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_EMPTY = path.join(__dirname, 'empty.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'error after transform should throw with correct location of file',
 	options: {
 		plugins: [

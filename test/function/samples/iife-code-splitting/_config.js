@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when generating multiple chunks for an IIFE build',
 	options: {
 		output: { format: 'iife' }

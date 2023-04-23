@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports destructuring declarations for systemJS',
 	options: {
 		output: {

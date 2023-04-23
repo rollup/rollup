@@ -2,7 +2,7 @@ const assert = require('node:assert');
 let oldConsoleWarn;
 const warnings = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'logs as a fallback if no onwarn handler is provided',
 	options: {
 		onwarn: null

@@ -6,7 +6,7 @@ const fsReadFile = fs.readFile;
 let currentReads = 0;
 let maxReads = 0;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'maxParallelFileOps not set',
 	before() {
 		fs.readFile = async (path, options) => {

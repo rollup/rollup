@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'tries to load .js config file if package type is "module"',
 	command: 'cd sub && rollup -c rollup.config.js',
 	error: () => true,

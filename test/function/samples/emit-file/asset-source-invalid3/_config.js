@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when setting an empty asset source',
 	options: {
 		plugins: {

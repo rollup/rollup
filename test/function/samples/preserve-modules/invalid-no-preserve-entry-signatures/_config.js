@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when setting preserveEntrySignatures to false',
 	options: {
 		input: ['main.js'],

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'fails if a file cannot be loaded',
 	options: {
 		plugins: {

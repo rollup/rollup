@@ -4,7 +4,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 
 let initialMeta;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows to freely modify moduleInfo.meta and maintain object identity',
 	options: {
 		plugins: [

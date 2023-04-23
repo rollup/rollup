@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'watches without a config file',
 	command: 'rollup main.js --watch --format es --file _actual/main.js',
 	abortOnStderr(data) {

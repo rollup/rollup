@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'avoids conflicts with global variables when re-exporting synthetic named exports',
 	options: {
 		plugins: [

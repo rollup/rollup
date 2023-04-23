@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when trying to set the asset source of a chunk',
 	options: {
 		plugins: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'Identifies the entry chunk with the manual chunk that has the same entry if the aliases match',
 	options: {

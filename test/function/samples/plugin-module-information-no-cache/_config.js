@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles accessing module information via plugins with cache disabled',
 	options: {
 		cache: false,

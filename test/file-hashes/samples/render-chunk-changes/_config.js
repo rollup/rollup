@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'reflects changes in renderChunk',
 	options1: {
 		input: 'main',

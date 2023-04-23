@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'dynamic import inlining',
 	options: {
 		strictDeprecations: false,

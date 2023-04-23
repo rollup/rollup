@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles accessing module information via plugins early in a graceful way',
 	options: {
 		external: ['path'],

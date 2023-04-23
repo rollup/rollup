@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'runs output plugins last',
 	options: {
 		plugins: [

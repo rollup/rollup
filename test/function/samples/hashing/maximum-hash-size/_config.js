@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when the maximum hash size is exceeded',
 	options: { output: { chunkFileNames: '[hash:65].js' } },
 	generateError: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles adding or deleting symbols in generateBundle',
 	options: {
 		plugins: [

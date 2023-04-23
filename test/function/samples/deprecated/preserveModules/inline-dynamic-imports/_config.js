@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Inlining dynamic imports is not supported when preserving modules',
 	options: {
 		strictDeprecations: false,

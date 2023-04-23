@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws error only with first plugin transform',
 	options: {
 		plugins: [

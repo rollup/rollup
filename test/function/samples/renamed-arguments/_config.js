@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'function arguments are renamed as appropriate (#32)',
 	exports(exports) {
 		const object = {};

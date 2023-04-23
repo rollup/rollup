@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns if multiple files with the same name are emitted',
 	options: {
 		input: 'main.js',

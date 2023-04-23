@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'includes an external module with a false resolve return',
 	options: {
 		input: 'main.js',

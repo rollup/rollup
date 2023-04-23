@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'all code should be included if tree-shaking is disabled',
 	options: {
 		external: ['external'],

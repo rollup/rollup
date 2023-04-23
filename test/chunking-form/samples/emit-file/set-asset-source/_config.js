@@ -13,7 +13,7 @@ let renderChunkNamed;
 let generateBundle;
 let generateBundleNamed;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports setting the asset source during generate',
 	options: {
 		input: ['main.js'],

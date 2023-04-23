@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when providing a non-string value for an addon hook',
 	options: {
 		plugins: {

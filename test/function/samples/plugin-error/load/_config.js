@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'buildStart hooks can use this.error',
 	options: {
 		plugins: [

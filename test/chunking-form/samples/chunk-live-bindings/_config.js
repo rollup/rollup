@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'ES module live bindings in chunks',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {

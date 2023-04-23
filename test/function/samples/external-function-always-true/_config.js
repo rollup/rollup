@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Does not call external for entry point',
 	options: {
 		external(id, parentId) {

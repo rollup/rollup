@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'adds Symbol.toStringTag property to dynamic imports',
 	options: {
 		output: {

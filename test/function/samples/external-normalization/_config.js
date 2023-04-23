@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'external paths from custom resolver remain external (#633)',
 	options: {
 		external: ['path'],

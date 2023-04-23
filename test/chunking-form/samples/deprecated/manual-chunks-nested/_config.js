@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'manual chunks can contain nested modules',
 	options: {
 		strictDeprecations: false,

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns if code calls an external namespace',
 	options: {
 		external: ['fs']

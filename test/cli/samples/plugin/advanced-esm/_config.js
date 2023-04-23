@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'load an ESM-only rollup plugin from node_modules as well as CJS plugins',
 	skipIfWindows: true,
 

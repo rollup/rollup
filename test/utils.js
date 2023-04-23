@@ -1,8 +1,8 @@
 /**
  * @typedef {import('../src/rollup/types').RollupError} RollupError
  * @typedef {import('../src/rollup/types').RollupWarning} RollupWarning
- * @typedef {import('./types').RollupTestConfig} RollupTestConfig
- * @typedef {(directory: string, config: RollupTestConfig) => void} RunTestFunction
+ * @typedef {import('../src/rollup/types').Plugin} Plugin
+ * @typedef {import('./types').TestConfigBase} TestConfigBase
  */
 
 const assert = require('node:assert');
@@ -21,8 +21,8 @@ const { basename, join } = require('node:path');
 const { platform, version } = require('node:process');
 const fixturify = require('fixturify');
 
-if (!globalThis.defineRollupTest) {
-	globalThis.defineRollupTest = config => config;
+if (!globalThis.defineTest) {
+	globalThis.defineTest = config => config;
 }
 
 /**
@@ -112,7 +112,8 @@ exports.executeBundle = async function executeBundle(bundle, require) {
 };
 
 /**
- * @type {(entries: Iterable<[string, any]>) => Record<string, any)}
+ * @param {Iterable<[string, any]>} entries
+ * @returns {Record<string, any>}
  */
 exports.getObject = function getObject(entries) {
 	const object = {};
@@ -122,13 +123,17 @@ exports.getObject = function getObject(entries) {
 	return object;
 };
 
+/**
+ * @param {Record<string, string>} modules
+ * @returns {Plugin}
+ */
 exports.loader = function loader(modules) {
 	modules = Object.assign(Object.create(null), modules);
 	return {
+		name: 'test-plugin-loader',
 		resolveId(id) {
 			return id in modules ? id : null;
 		},
-
 		load(id) {
 			return modules[id];
 		}
@@ -140,9 +145,11 @@ exports.normaliseOutput = function normaliseOutput(code) {
 };
 
 /**
+ * @template {TestConfigBase} C
  * @param {string} suiteName
  * @param {string} samplesDirectory
- * @param {RunTestFunction} runTest
+ * @param {(directory: string, config: C) => void} runTest
+ * @param {() => void | Promise<void>} [onTeardown]
  */
 function runTestSuiteWithSamples(suiteName, samplesDirectory, runTest, onTeardown) {
 	describe(suiteName, () => runSamples(samplesDirectory, runTest, onTeardown));
@@ -150,9 +157,10 @@ function runTestSuiteWithSamples(suiteName, samplesDirectory, runTest, onTeardow
 
 // You can run only or skip certain kinds of tests by appending .only or .skip
 /**
+ * @template {TestConfigBase} C
  * @param {string} suiteName
  * @param {string} samplesDirectory
- * @param {RunTestFunction} runTest
+ * @param {(directory: string, config: C) => void} runTest
  * @param {() => void | Promise<void>} onTeardown
  */
 runTestSuiteWithSamples.only = function (suiteName, samplesDirectory, runTest, onTeardown) {
@@ -169,8 +177,9 @@ runTestSuiteWithSamples.skip = function (suiteName) {
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 
 /**
+ * @template {TestConfigBase} C
  * @param {string} samplesDirectory
- * @param {RunTestFunction} runTest
+ * @param {(directory: string, config: C) => void} runTest
  * @param {Mocha.Func} onTeardown
  */
 function runSamples(samplesDirectory, runTest, onTeardown) {
@@ -186,8 +195,9 @@ function runSamples(samplesDirectory, runTest, onTeardown) {
 }
 
 /**
+ * @template {TestConfigBase} C
  * @param {string} directory
- * @param {RunTestFunction} runTest
+ * @param {(directory: string, config: C) => void} runTest
  */
 function runTestsInDirectory(directory, runTest) {
 	const fileNames = getFileNamesAndRemoveOutput(directory);
@@ -240,8 +250,9 @@ function getFileNamesAndRemoveOutput(directory) {
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
 /**
+ * @template {TestConfigBase} C
  * @param {string} directory
- * @param {RunTestFunction} runTest
+ * @param {(directory: string, config: C) => void} runTest
  */
 function loadConfigAndRunTest(directory, runTest) {
 	const configFile = join(directory, '_config.js');

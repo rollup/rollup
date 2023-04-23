@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses arrow functions',
 	options: {
 		input: ['main', 'main2'],

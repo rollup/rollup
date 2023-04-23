@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles external aliased named imports that shadow another name',
 	options: {
 		external: ['acorn'],

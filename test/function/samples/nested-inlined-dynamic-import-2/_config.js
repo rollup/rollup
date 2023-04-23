@@ -3,7 +3,7 @@ const path = require('node:path');
 const ID_LIB1 = path.join(__dirname, 'lib1.js');
 const ID_LIB2 = path.join(__dirname, 'lib2.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deconflicts variables when nested dynamic imports are inlined',
 	warnings: [
 		{

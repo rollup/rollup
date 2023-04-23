@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles interop "auto" without live-bindings support',
 	options: {
 		external: id => id.startsWith('external') || id === 'update',

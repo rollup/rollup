@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles multiple entry points with a shared dependency',
 	options: {
 		input: ['main', 'other'],

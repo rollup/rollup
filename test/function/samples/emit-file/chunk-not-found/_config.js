@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Throws if an emitted entry chunk cannot be resolved',
 	options: {
 		input: 'main.js',

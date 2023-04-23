@@ -5,7 +5,7 @@ const ID_OVERRIDE = path.join(__dirname, 'override.js');
 const ID_NOOVERRIDE = path.join(__dirname, 'noOverride.js');
 const ID_HIDDENNAMESPACE = path.join(__dirname, 'hiddenNamespace.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not expose synthetic named exports on entry points',
 	options: {
 		plugins: [

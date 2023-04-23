@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'chunking circular entry points',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {

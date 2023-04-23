@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'includes default parameters for exported functions',
 	exports({ funDecl, funExp, arrow }) {
 		assert.strictEqual(funDecl(), 'defaultValue', 'function declaration');

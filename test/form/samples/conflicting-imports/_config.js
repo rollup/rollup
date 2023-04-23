@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'ensures bundle imports are deconflicted (#659)',
 	options: {
 		external: ['foo', 'bar'],

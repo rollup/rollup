@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when providing a value for a sync function hook',
 	options: {
 		plugins: {

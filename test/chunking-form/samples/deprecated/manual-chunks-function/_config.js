@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows to define manual chunks via a function',
 	options: {
 		strictDeprecations: false,

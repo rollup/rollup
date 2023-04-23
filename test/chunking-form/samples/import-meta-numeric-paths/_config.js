@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports nested numeric paths without issues on Windows',
 	options: {
 		output: { preserveModules: true },

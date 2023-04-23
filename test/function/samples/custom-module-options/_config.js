@@ -30,7 +30,7 @@ function getTestPlugin(index) {
 	};
 }
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports adding custom options to modules',
 	options: {
 		plugins: [

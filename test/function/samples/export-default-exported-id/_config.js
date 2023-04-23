@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'exports an id that is also a default export',
 	options: {
 		output: { exports: 'named' }

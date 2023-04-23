@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for anonymous plugins reading the cache',
 	options: {
 		plugins: {

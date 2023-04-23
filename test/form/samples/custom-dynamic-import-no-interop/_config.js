@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not add any interop when using a custom dynamic import handler',
 	options: {
 		external: 'external',

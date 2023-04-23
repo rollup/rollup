@@ -1,13 +1,16 @@
 // since we don't run the browser tests in an actual browser, we need to make `performance`
 // globally accessible same as in the browser. this can be removed once `performance` is
 // available globally in all supported platforms. [currently global for node.js v16+].
+// @ts-expect-error ignore
 global.performance = require('node:perf_hooks').performance;
 
 const { basename, resolve } = require('node:path');
 const fixturify = require('fixturify');
+
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
+// @ts-expect-error cast to Rollup
 const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
 

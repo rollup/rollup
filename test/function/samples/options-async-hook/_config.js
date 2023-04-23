@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { promises: fs } = require('node:fs');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'resolves promises between sequential options hooks',
 	options: {
 		input: 'super-unused',

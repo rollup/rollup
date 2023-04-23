@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Support external namespace reexport',
 	options: {
 		external: ['highcharts'],

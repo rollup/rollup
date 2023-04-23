@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'avoids name conflicts with local variables named Symbol',
 	options: {
 		output: {

@@ -8,7 +8,7 @@ const loadedModules = [];
 const transformedModules = [];
 const parsedModules = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows pre-loading modules via this.load',
 	options: {
 		plugins: [

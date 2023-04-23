@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deconflicts format specific globals',
 	options: {
 		external: 'external',

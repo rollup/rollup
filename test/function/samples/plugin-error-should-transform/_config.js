@@ -4,7 +4,7 @@ const acorn = require('acorn');
 const code = 'export default 42;\n';
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'errors in shouldTransformCachedModule abort the build',
 	options: {
 		cache: {

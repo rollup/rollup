@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns when specifying a custom importer function for formats other than "es"',
 	context: {
 		require(path) {

@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports this.load() in buildEnd and renderStart',
 	options: {
 		plugins: [

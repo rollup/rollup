@@ -1,6 +1,6 @@
 const { loader } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'bundles files for the browser',
 	options: {
 		plugins: loader({

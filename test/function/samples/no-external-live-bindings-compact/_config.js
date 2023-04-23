@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Allows omitting the code that handles external live bindings',
 	options: {
 		external: () => true,

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles dynamic imports from facades using default export mode',
 	options: {
 		input: ['main', 'foo', 'bar']

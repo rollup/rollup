@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles manual chunks with circular dependencies',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {

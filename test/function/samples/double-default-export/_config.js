@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_FOO = path.join(__dirname, 'foo.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws on double default exports',
 	error: {
 		cause: {

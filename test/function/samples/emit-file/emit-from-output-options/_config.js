@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when trying to emit files from the outputOptions hook',
 	options: {
 		input: 'main',

@@ -9,7 +9,7 @@ let string1Id,
 	sameBufferAsStringId,
 	otherBufferId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deduplicates asset that have the same source',
 	options: {
 		input: ['main.js'],

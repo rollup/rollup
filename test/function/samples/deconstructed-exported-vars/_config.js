@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows destructuring in exported variable declarations, synthetic or otherwise',
 	exports(exports) {
 		assert.equal(exports.a, 1);

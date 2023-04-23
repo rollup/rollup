@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: '`this.error(...)` accepts { line, column } object as second parameter (#1265)',
 	options: {
 		plugins: [

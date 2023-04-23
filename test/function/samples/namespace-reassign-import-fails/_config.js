@@ -4,7 +4,7 @@ const { assertIncludes } = require('../../../utils.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns for reassignments to namespace exports',
 	code(code) {
 		assertIncludes(code, 'foo = 2');

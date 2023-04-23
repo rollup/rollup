@@ -5,7 +5,7 @@ const ID_REEXPORT = path.join(__dirname, 'reexport.js');
 const ID_FIRST = path.join(__dirname, 'first.js');
 const ID_SECOND = path.join(__dirname, 'second.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when a conflicting binding is imported via a named import',
 	error: {
 		binding: 'foo',

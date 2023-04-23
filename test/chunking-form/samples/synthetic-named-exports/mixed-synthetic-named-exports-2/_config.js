@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'mixed synthetic named exports 2',
 	options: {
 		input: ['main.js', 'main2.js'],

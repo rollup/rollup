@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports setting asset sources as side effect of the manual chunks option',
 	options: {
 		output: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Manual chunks are not supported when inlining dynamic imports',
 	options: {
 		strictDeprecations: false,

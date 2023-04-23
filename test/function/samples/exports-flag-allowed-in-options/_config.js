@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'exports flag is passed through to bundle options',
 	options: {
 		output: { exports: 'named' }

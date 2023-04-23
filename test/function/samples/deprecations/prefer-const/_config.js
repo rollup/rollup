@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'marks the "output.preferConst" option as deprecated',
 	options: {
 		output: {

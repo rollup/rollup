@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'cannot have named exports if explicit export type is default',
 	options: { output: { exports: 'none' } },
 	generateError: {

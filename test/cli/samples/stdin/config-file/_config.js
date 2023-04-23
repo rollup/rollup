@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'does not replace input with stdin but allows referencing it when using a config file',
 	skipIfWindows: true,

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports custom file name sanitizer functions',
 	options: {
 		plugins: [

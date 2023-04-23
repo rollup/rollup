@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws if two plugins with the same name and no cache key access the cache',
 	options: {
 		plugins: [

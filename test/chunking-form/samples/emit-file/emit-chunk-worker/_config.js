@@ -3,7 +3,7 @@ const path = require('node:path');
 let workerId;
 let proxyId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows adding additional chunks to be used in workers',
 	options: {
 		input: 'main',

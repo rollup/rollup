@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'overrides the generatedCode option when using presets',
 	command: 'rollup main.js --format es --generatedCode unknown',
 	error: () => true,

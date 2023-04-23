@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Supports object hooks with perf=true',
 	options: {
 		perf: true,

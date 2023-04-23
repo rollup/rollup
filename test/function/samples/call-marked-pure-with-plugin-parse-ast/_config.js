@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'external function calls marked with pure comment do not have effects and should be removed even if parsed by PluginContext.parse method',
 	options: {

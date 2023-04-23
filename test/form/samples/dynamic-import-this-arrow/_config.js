@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses correct "this" in dynamic imports when using arrow functions',
 	options: {
 		external: ['input', 'output'],

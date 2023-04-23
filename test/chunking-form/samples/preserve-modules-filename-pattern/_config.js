@@ -14,7 +14,7 @@ const expectedNames = new Set([
 	'no-ext'
 ]);
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'entryFileNames pattern supported in combination with preserveModules',
 	options: {
 		input: 'src/main.js',

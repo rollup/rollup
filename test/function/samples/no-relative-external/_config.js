@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'missing relative imports are an error, not a warning',
 	error: {
 		code: 'UNRESOLVED_IMPORT',

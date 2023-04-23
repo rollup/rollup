@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'marks the "output.experimentalDeepDynamicChunkOptimization" option as deprecated',
 	options: {
 		output: {

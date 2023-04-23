@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Throws when adding a chunk after the modules have finished loading',
 	options: {
 		input: 'main.js',

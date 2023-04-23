@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'when there are two valid merge targets, the one that is loaded under more similar conditions is preferred',
 	options: {

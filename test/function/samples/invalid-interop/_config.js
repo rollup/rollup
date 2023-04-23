@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for invalid interop values',
 	options: {
 		external: 'external',

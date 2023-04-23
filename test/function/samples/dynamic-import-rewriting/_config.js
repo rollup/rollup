@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Dynamic import string specifier resolving',
 	options: {
 		external: ['asdf'],

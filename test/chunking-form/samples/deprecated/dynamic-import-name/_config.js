@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows specifying a custom importer function',
 	options: {
 		strictDeprecations: false,

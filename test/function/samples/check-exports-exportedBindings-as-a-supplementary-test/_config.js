@@ -20,7 +20,7 @@ const expectedResult = {
 	}
 };
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'check exports and exportedBindings in moduleParsed as a supplementary test',
 	options: {
 		plugins: {

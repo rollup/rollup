@@ -1,7 +1,7 @@
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'exports an anonymous function with custom ID resolver', // yeah, this is a real edge case
 	options: {
 		plugins: [

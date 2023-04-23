@@ -4,7 +4,7 @@ let named;
 let star;
 let defaulted;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles external live-bindings',
 	options: {
 		external: ['named', 'star', 'defaulted'],

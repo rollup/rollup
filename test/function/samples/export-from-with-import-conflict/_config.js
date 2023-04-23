@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'ignores conflict between import declaration and export from declaration',
 	exports(exports) {
 		assert.equal(exports.foo, 'a-bar');

@@ -59,7 +59,7 @@ function addPlugin(order, sequential) {
 	plugins.push(plugin);
 }
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows to enforce sequential plugin hook order for parallel plugin hooks',
 	options: {
 		plugins

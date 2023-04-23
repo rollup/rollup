@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses tree-shaking information to improve chunking',
 	options: {
 		input: {

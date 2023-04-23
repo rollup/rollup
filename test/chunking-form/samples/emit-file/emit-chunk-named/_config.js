@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows naming emitted chunks',
 	options: {
 		input: 'main',

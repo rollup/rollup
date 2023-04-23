@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'adds an intro/outro',
 	options: {
 		output: {

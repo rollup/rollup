@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { join } = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'includes a relative external module only once (two external deps)',
 	options: {
 		external: [join(__dirname, './foo.js'), join(__dirname, './first/foo.js')]

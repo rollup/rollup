@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'displays warnings when a config is loaded',
 	command: 'rollup -c --bundleConfigAsCjs',
 	stderr: stderr =>

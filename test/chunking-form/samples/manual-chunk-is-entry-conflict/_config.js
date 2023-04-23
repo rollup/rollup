@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Uses entry alias if manual chunks are entry chunks with different alias',
 	options: {
 		input: {

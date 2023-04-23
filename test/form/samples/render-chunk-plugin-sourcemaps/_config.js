@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'supports returning undefined source maps from render chunk hooks, when source maps are enabled',
 	expectedWarnings: ['SOURCEMAP_BROKEN'],

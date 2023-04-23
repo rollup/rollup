@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not emit unreferenced assets if needsCodeReference is true',
 	options: {
 		output: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles setters that modify "this" on prototypes for unknown properties',
 	context: {
 		require() {

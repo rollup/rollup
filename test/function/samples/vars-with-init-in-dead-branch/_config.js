@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles vars with init in dead branch (#1198)',
 	warnings: [
 		{

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports emitting chunks as side effect of the manual chunks option',
 	options: {
 		output: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'watches using a node_modules config files',
 	command: 'rollup --watch --config node:custom',
 	abortOnStderr(data) {

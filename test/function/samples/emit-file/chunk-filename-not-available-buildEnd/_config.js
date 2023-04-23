@@ -1,6 +1,6 @@
 let chunkId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Throws when accessing the filename before it has been generated in buildEnd',
 	options: {
 		input: 'main.js',

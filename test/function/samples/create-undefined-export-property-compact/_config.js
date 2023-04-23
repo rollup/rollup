@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'creates an export as an exports property even if is has no initializer',
 	options: { output: { compact: true } },
 	exports(exports) {

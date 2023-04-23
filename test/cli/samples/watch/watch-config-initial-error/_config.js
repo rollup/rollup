@@ -4,7 +4,7 @@ const { atomicWriteFileSync } = require('../../../../utils');
 
 let configFile;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'keeps watching the config file in case the initial file contains an error',
 	command: 'rollup -cw',
 	before() {

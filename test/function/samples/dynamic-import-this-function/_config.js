@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses correct "this" in dynamic imports when not using arrow functions',
 	context: {
 		require(id) {

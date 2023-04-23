@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows plugins to hook render chunk',
 	options: {
 		plugins: [

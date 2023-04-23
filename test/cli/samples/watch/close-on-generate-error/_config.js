@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'closes the bundle on generate errors',
 	command: 'rollup -cw',
 	abortOnStderr(data) {

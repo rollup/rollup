@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'correctly exports resolved import.meta.url',
 	options: {
 		plugins: [

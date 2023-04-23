@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when configuring a length for placeholder other than "hash"',
 	options: { output: { chunkFileNames: '[name:3].js' } },
 	generateError: {

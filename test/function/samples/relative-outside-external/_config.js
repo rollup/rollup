@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const cwd = process.cwd;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'correctly resolves relative external imports from outside directories',
 	options: {
 		external() {

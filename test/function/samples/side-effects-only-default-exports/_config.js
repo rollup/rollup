@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const mutated = {};
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Wraps inlined default exports which are rendered for side-effects only',
 	options: {
 		external: ['external']

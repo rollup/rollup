@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 let referenceId;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles implicit dependencies where the dependant is inlined into the same chunk',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {

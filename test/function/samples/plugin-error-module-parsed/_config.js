@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'errors in moduleParsed abort the build',
 	options: {
 		plugins: [

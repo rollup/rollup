@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'relative external ids are absolutely resolved',
 	options: {
 		external(id) {

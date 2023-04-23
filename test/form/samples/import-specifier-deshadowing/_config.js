@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'deshadows aliased import bindings',
 	options: {
 		external: ['react-sticky'],

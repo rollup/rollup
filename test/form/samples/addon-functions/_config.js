@@ -31,7 +31,7 @@ const assertChunkData = chunk =>
 			'}'
 	);
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'provides module information when adding addons',
 	options: {
 		output: {

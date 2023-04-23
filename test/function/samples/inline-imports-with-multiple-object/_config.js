@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Having multiple inputs in an object is not supported when inlining dynamic imports',
 	options: {
 		input: { main: 'main.js', lib: 'lib.js' },

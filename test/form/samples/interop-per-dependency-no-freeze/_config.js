@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'respects the freeze option',
 	options: {
 		external: id => id.startsWith('external'),

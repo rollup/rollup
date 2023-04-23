@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_LIB = path.join(__dirname, 'lib.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'direct self import',
 	warnings: [
 		{

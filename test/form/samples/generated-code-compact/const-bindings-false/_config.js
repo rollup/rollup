@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not use block bindings',
 	expectedWarnings: ['SHIMMED_EXPORT'],
 	options: {

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles hoisted variables in chained if statements',
 	exports(exports) {
 		exports.test(true);

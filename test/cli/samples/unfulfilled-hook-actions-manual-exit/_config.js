@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { assertDoesNotInclude } = require('../../../utils');
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'does not show unfulfilled hook actions when exiting manually with a non-zero exit code',
 	command: 'rollup -c --silent',

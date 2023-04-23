@@ -24,7 +24,7 @@ function addPlugin(order) {
 	plugins.push(plugin, stringPlugin);
 }
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows to enforce addon order',
 	options: {
 		plugins

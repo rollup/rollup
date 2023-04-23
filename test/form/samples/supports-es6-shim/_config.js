@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports es6-shim',
 	options: {
 		onwarn(warning) {

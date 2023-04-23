@@ -5,7 +5,7 @@ const modules = {
 	'x/y': 'export default 24;'
 };
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not mangle input',
 	options: {
 		input: 'x\\y',

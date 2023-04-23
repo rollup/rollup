@@ -1,6 +1,6 @@
 const { readFileSync } = require('node:fs');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses custom loaders, falling back to default',
 	options: {
 		plugins: [

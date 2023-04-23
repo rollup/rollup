@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles statically resolvable "if" statements (#2134)',
 	context: {
 		value: 1

@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'basic sourcemap support',
 	async test(code, map) {
 		assert.equal(map.version, 3);

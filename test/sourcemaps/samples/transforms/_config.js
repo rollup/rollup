@@ -4,11 +4,12 @@ const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin1',
 				transform(source) {
 					return buble.transform(source, {
 						transforms: { modules: false }
@@ -17,6 +18,7 @@ module.exports = defineRollupTest({
 			},
 
 			{
+				name: 'test-plugin2',
 				transform(source) {
 					const s = new MagicString(source);
 					s.append('\nassert.equal( 1 + 1, 2 );\nassert.equal( 2 + 2, 4 );');

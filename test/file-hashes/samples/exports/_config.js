@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'creates different hashes if the generated exports differ',
 	options1: {
 		input: ['main1', 'other']

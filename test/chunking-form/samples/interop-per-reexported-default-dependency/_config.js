@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'allows to configure the interop type per reexported default from an external dependency',
 	options: {

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Adds timing information to bundle when bundling with perf=true',
 	options: {
 		input: ['main.js', 'main2.js'],

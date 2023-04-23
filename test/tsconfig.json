@@ -1,21 +1,17 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "target": "esnext",
-    "lib": ["ES2021"],
-    "moduleResolution": "node",
-    "types": [
-      "node",
-      "mocha",
-      "./types.d.ts"
-    ]
-    // "strict": true // maybe later
+    "checkJs": true
   },
   "include": [
-    "**/_config.js"
+    "./utils.js"
   ],
   "references": [
-    "./tsconfig.utils.json"
+    "./browser/tsconfig.json",
+    "./chunking-form/tsconfig.json",
+    "./file-hash/tsconfig.json",
+    "./form/tsconfig.json",
+    "./function/tsconfig.json",
+    "./sourcemaps/tsconfig.json"
   ]
 }

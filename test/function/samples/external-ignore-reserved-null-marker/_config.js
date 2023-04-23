@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'external function ignores \\0 started ids',
 	options: {
 		external(id) {

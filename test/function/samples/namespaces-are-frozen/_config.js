@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'namespaces should be non-extensible and its properties immutatable and non-configurable',
 

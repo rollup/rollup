@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'imports and exports of non-entry points are tracked',
 	options: {
 		strictDeprecations: false,

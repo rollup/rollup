@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const foo = {};
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'tracks mutations of aliased objects',
 	context: {
 		foo

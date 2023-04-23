@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'manual chunks can have other manual chunks as dependencies',
 	options: {
 		strictDeprecations: false,

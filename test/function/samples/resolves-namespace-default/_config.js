@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: "namespace's 'default' properties should be available",
 
 	exports(exports) {

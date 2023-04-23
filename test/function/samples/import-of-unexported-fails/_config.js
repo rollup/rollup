@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_EMPTY = path.join(__dirname, 'empty.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'marking an imported, but unexported, identifier should throw',
 	error: {
 		binding: 'default',

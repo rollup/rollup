@@ -12,7 +12,7 @@ const configContent =
 	'\t}\n' +
 	'};';
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not rebuild if the config file is updated without change',
 	command: 'rollup -cw',
 	before() {

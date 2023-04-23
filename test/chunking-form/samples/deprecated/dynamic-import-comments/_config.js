@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'should not remove inline comments inside dynamic import',
 	options: {
 		strictDeprecations: false,

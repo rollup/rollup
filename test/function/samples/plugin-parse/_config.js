@@ -1,6 +1,6 @@
 const MagicString = require('magic-string');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'plugin transform hooks can use `this.parse(code, options)`',
 	options: {
 		plugins: [

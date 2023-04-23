@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports emitting assets from plugin hooks',
 	options: {
 		plugins: {

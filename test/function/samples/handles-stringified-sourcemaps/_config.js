@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles transforms that return stringified source maps (#377)',
 
 	options: {

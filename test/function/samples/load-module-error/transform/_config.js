@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'plugin transform hooks can use `this.error({...}, char)` (#1140)',
 	options: {
 		plugins: [

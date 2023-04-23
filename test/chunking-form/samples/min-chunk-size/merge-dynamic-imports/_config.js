@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'merges small chunks with side effects into suitable pure chunks',
 	options: {
 		output: {

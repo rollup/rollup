@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Assigning manual chunks fails when preserving modules',
 	options: {
 		strictDeprecations: false,

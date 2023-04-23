@@ -6,7 +6,7 @@ const BAR_IMPORTED_PATH = './bar.js';
 const OTHER_IMPORTED_PATH = './other.js';
 const MAIN_PATH = resolve(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'validate resolvedBy logic',
 	options: {
 		plugins: [

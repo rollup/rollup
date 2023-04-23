@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when using both the file and the dir option',
 	options: {
 		output: { file: 'bundle.js', dir: 'dist' }

@@ -1,6 +1,6 @@
 const { loader } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'ignores queries and hashes for chunk names when preserving modules',
 	options: {
 		input: ['a.js?query', 'b.js#hash'],

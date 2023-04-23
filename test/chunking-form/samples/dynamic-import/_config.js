@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles dynamic imports with a shared dependency',
 	options: {
 		input: ['main'],

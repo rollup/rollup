@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'detect side effect in member expression assignment when not top level',
 	code(code) {
 		assert.ok(code.includes('function set(key, value) { foo[key] = value; }'), code);

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws when an nested property of an unknown object property is accessed',
 	context: {
 		require() {

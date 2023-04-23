@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not remove calls to props without value',
 	exports({ callProp, callStaticProp }) {
 		let hasError = false;

@@ -3,7 +3,7 @@ const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'get combined sourcemap in transforming',
 	options: {
 		plugins: [

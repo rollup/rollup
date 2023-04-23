@@ -15,7 +15,7 @@ const pluginB = Promise.resolve({
 	}
 });
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'works when nested plugin',
 	options: {
 		// eslint-disable-next-line no-sparse-arrays

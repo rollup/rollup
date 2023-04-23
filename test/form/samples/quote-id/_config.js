@@ -4,7 +4,7 @@ const external1 = "quoted'\r\n\u2028\u2029external1";
 const external2 = path.join(__dirname, "quoted'\r\n\u2028\u2029external2");
 const external3 = 'C:\\File\\Path.js';
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles escaping for external ids',
 	options: {
 		output: {

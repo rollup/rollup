@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for invalid asset names with absolute path on Windows OS',
 	options: {
 		plugins: {

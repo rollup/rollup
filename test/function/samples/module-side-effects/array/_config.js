@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const path = require('node:path');
 const sideEffects = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports setting module side effects via an array',
 	context: {
 		require(id) {

@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_CSS = path.join(__dirname, 'file.css');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'throws with an extended error message when failing to parse a file without .(m)js extension',
 	error: {

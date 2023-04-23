@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'marks the "maxParallelFileReads" option as deprecated',
 	options: {
 		maxParallelFileReads: 3

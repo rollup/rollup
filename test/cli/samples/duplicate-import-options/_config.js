@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws if different types of entries are combined',
 	command: 'rollup main.js --format es --input main.js',
 	error: () => true,

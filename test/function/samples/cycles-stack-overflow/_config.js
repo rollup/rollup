@@ -3,7 +3,7 @@ const ID_B = path.join(__dirname, 'b.js');
 const ID_C = path.join(__dirname, 'c.js');
 const ID_D = path.join(__dirname, 'd.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not stack overflow on crazy cyclical dependencies',
 	warnings: [
 		{

@@ -1,7 +1,7 @@
 const path = require('node:path');
 const EXISTING = path.resolve(__dirname, 'existing.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Supports all resolution formats for dynamic imports',
 	options: {
 		plugins: {

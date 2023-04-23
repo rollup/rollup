@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'use CLI --validate to test whether output is well formed',
 	skipIfWindows: true,
 	command: `rollup main.js --silent --outro 'console.log("end"); /*' -o _actual/out.js --validate`,

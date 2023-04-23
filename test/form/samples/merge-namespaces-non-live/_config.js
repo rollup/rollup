@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'merges namespaces without live-bindings',
 	options: {
 		external: ['external1', 'external2'],

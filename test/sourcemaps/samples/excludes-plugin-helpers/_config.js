@@ -4,7 +4,7 @@ const path = require('node:path');
 
 const HELPER = '\0helper';
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'excludes plugin helpers from sources',
 	options: {
 		output: {
@@ -12,6 +12,8 @@ module.exports = defineRollupTest({
 		},
 		plugins: [
 			{
+				name: 'test-plugin',
+
 				resolveId(id) {
 					if (id === HELPER) return id;
 				},

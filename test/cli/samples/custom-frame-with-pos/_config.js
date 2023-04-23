@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'custom (plugin generated) code frame taking priority over pos generated one',
 	command: 'rollup -c',
 	error: () => true,

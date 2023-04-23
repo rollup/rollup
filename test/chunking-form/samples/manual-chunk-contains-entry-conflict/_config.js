@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	expectedWarnings: ['EMPTY_BUNDLE'],
 	description: 'Uses entry alias if manual chunks contain entry chunks with different alias',
 	options: {

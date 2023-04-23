@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'adds Symbol.toStringTag property to entry chunks with named exports',
 	options: {
 		strictDeprecations: false,

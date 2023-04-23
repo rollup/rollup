@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'correct sourcemaps are written (inline)',
 	skipIfWindows: true,
 	options: {

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'ignores non-bundled modules when inlining dynamic imports',
 	options: {
 		strictDeprecations: false,

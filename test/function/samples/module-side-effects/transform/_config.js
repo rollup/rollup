@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const path = require('node:path');
 const sideEffects = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles setting moduleSideEffects in the transform hook',
 	context: {
 		sideEffects

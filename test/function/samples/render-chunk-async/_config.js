@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'bundle transformers can be asynchronous',
 	options: {
 		plugins: [

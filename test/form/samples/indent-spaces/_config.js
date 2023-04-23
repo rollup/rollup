@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'auto-indents with indent: true',
 	options: {
 		output: {

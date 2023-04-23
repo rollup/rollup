@@ -4,7 +4,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 
 const sideEffects = [];
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports setting module side effects to false for external modules',
 	context: {
 		require(id) {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'loaders are permitted to return the empty string',
 	options: {
 		plugins: [

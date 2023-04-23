@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'prunes pure unused external imports ([#1352])',
 	expectedWarnings: ['EMPTY_BUNDLE'],
 	options: {

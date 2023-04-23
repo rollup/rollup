@@ -3,7 +3,7 @@ const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'disallows updates to namespace exports',
 	code(code) {
 		assertIncludes(code, 'foo++');

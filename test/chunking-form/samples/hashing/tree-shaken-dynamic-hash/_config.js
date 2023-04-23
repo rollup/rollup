@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'Does not fail when calculating the hash of a file containing a tree-shaken dynamic import',
 	options: {

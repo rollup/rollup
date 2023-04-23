@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'handles cross-chunk live-bindings in compact mode',
 	options: {
 		input: ['main.js', 'named.js', 'star.js'],

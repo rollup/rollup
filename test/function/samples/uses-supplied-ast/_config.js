@@ -20,7 +20,7 @@ const modules = {
 };
 modules.foo.ast._ignoredProp = {};
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'uses supplied AST',
 	options: {
 		plugins: [

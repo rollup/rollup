@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'populates file property of sourcemap when plugins are used (#986)',
 	options: {
 		plugins: [

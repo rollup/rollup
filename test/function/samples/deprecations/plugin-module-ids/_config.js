@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'provides all module ids on the plugin context',
 	options: {
 		external: ['path'],

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'supports external dynamic imports with live bindings in compact mode',
 	options: {
 		external() {

@@ -9,7 +9,7 @@ const ID_PATH = 'path';
 
 let rendered = false;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'provides module information on the plugin context',
 	options: {
 		external: ['path'],

@@ -1,6 +1,6 @@
 const { join, dirname } = require('node:path').posix;
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'renormalizes external paths if possible',
 	options: {
 		input: ['/main.js', '/nested/entry.js'],

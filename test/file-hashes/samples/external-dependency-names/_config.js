@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'creates different hashes if the names of external dependencies differ',
 	options1: {
 		input: { mainA: 'main1a', mainB: 'main1b' },

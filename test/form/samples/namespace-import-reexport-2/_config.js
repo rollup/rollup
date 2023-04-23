@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'properly associate or shadow variables in and around functions',
 	options: {
 		external: ['external1', 'external2'],

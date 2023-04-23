@@ -1,7 +1,7 @@
 const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns on top-level this (#770)',
 	warnings: [
 		{

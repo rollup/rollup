@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'includes side effects of re-exporters unless they have moduleSideEffects: false',
 	options: {
 		plugins: [

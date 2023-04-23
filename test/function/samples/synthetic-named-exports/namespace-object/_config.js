@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'does not include named synthetic namespaces in namespace objects',
 	options: {
 		plugins: [

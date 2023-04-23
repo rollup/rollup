@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'empty chunk pruning',
 	expectedWarnings: ['EMPTY_BUNDLE'],
 	options: {

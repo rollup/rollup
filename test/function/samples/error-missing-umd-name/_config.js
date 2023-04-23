@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws an error if no name is provided for a UMD bundle',
 	options: { output: { format: 'umd' } },
 	generateError: {

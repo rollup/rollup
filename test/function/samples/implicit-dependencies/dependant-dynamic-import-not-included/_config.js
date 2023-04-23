@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'throws when a module that is loaded before an emitted chunk is only linked to the module graph via a tree-shaken dynamic import',
 	options: {

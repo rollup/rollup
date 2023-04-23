@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns on missing (but unused) imports',
 	warnings: [
 		{

@@ -35,6 +35,7 @@ describe('rollup.watch', () => {
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
 			plugins: {
+				name: 'test-plugin',
 				options() {
 					assert.strictEqual(this.meta.watchMode, true, 'watchMode in options');
 				},

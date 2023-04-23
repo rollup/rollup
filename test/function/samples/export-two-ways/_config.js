@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'exports the same binding more than one way',
 	exports(exports) {
 		assert.equal(exports.a, 2);

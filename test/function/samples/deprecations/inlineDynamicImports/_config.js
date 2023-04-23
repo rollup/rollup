@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'marks the "inlineDynamicImports" input option as deprecated',
 	options: {
 		inlineDynamicImports: true

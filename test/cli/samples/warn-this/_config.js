@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns "this" is used on the top level',
 	command: 'rollup -c',
 	stderr: stderr =>

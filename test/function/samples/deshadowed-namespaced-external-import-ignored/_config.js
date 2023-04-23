@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: '#1547',
 	options: {
 		external: ['external']

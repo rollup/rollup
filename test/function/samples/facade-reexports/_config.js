@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'handles reexports when creating a facade chunk and transitive dependencies are not hoisted',
 	options: {

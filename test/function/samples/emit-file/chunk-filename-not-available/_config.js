@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'Throws when accessing the filename before it has been generated',
 	options: {
 		input: 'main.js',

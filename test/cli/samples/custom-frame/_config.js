@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'errors with plugin generated code frames also contain stack',
 	command: 'rollup -c',
 	error: () => true,

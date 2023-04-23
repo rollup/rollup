@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'correctly simplifies arrow expressions where the right hand side becomes an object',
 	exports(exports) {
 		assert.deepStrictEqual(exports.conditional(), { x: 42, y: 43 });

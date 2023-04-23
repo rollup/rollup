@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows catching failed dynamic imports',
 	options: {
 		input: ['main', 'exists-default'],

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'warns when input hooks are used in output plugins',
 	options: {
 		output: {

@@ -2,7 +2,7 @@ function getCode(id) {
 	return `const unused = 'unused in ${id}';`;
 }
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'allows disabling tree-shaking for modules',
 	options: {
 		plugins: {

@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description:
 		'does not avoid separate chunks if too many modules dynamically import the same chunk',
 	options: {

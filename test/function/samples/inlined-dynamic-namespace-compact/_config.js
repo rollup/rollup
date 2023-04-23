@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'properly resolves inlined dynamic namespaces in compact mode',
 	options: { output: { compact: true } },
 	exports(exports) {

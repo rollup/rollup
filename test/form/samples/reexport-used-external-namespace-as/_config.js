@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'reexport external namespace as name if the namespace is also used',
 	options: {
 		external: ['external1', 'external2'],

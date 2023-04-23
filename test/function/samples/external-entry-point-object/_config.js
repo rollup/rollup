@@ -1,4 +1,4 @@
-module.exports = defineRollupTest({
+module.exports = defineTest({
 	description: 'throws for entry points that are resolved as an external object by plugins',
 	options: {
 		plugins: {
