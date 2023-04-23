@@ -14,6 +14,10 @@ const { basename, join } = require('node:path');
 const { platform, version } = require('node:process');
 const fixturify = require('fixturify');
 
+if (!globalThis.defineRollupTest) {
+	globalThis.defineRollupTest = config => config;
+}
+
 exports.wait = function wait(ms) {
 	return new Promise(fulfil => {
 		setTimeout(fulfil, ms);
@@ -181,7 +185,6 @@ function getFileNamesAndRemoveOutput(directory) {
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
 function loadConfigAndRunTest(directory, runTest) {
-	globalThis.defineRollupTest ||= config => config;
 	const configFile = join(directory, '_config.js');
 	const config = require(configFile);
 	if (!config || !config.description) {

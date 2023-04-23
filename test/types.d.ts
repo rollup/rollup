@@ -95,5 +95,9 @@ export interface RollupTestConfig {
 }
 
 declare global {
+	/**
+	 * Define configuration for a test.
+	 * This function is available globally in the test files.
+	 */
 	function defineRollupTest(config: RollupTestConfig): RollupTestConfig;
 }
