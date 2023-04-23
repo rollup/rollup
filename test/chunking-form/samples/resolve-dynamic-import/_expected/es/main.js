@@ -10,12 +10,10 @@ import('to-indirect-relative-external');
 import('direct-absolute-external');
 import('to-indirect-absolute-external');
 
-const value = 'existing';
 console.log('existing');
 
 var existing = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	value: value
+	__proto__: null
 });
 
 //main

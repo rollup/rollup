@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.21.0
+
+_2023-04-23_
+
+### Features
+
+- Support tree-shaking of named exports in dynamic imports when using destructuring and similar patterns (#4952)
+
+### Pull Requests
+
+- [#4952](https://github.com/rollup/rollup/pull/4952): feat: tree-shake deterministic dynamic imports (@antfu)
+
 ## 3.20.7
 
 _2023-04-21_
