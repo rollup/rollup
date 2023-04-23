@@ -5,6 +5,9 @@ global.performance = require('node:perf_hooks').performance;
 
 const { basename, resolve } = require('node:path');
 const fixturify = require('fixturify');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
 

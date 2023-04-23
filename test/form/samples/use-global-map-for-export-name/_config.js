@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'applies globals to output name',
 	options: {
 		output: {
@@ -7,4 +7,4 @@ module.exports = {
 		},
 		external: ['leaflet']
 	}
-};
+});

@@ -4,7 +4,7 @@ const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'handles combining low-resolution and high-resolution source-maps when transforming',
 	options: {
 		output: { name: 'bundle' },
@@ -44,4 +44,4 @@ module.exports = {
 		assert.strictEqual(originalLoc.line, 1);
 		assert.strictEqual(originalLoc.column, 0);
 	}
-};
+});

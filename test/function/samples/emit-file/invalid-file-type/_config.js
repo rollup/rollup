@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'throws for invalid file types',
 	options: {
 		plugins: {
@@ -15,4 +15,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}
-};
+});

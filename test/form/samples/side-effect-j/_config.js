@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'includes late function declarations with side-effects',
 	options: { output: { name: 'myBundle' } }
-};
+});

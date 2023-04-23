@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'does not output reserved system format identifiers',
 	options: {
 		external: ['test'],
@@ -7,4 +7,4 @@ module.exports = {
 			globals: { test: 'test' }
 		}
 	}
-};
+});

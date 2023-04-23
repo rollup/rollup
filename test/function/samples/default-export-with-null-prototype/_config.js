@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'default exports of objects with null prototypes are supported',
 	options: {
 		external: ['foo'],
@@ -15,4 +15,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

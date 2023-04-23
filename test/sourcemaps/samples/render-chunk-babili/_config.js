@@ -3,7 +3,7 @@ const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 const babiliResults = require('./babili-results');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'generates valid sourcemap when source could not be determined',
 	options: {
 		plugins: [
@@ -33,4 +33,4 @@ module.exports = {
 		assert.equal(originalLoc.line, 1);
 		assert.equal(originalLoc.column, 8);
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'handles async plugin options',
 	options: {
 		preserveEntrySignatures: false,
@@ -22,4 +22,4 @@ module.exports = {
 	exports(exports) {
 		assert.strictEqual(exports.foo, 1);
 	}
-};
+});

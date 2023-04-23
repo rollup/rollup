@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'sanitizes chunk names from virtual entry points',
 	options: {
 		input: ['main1'],
@@ -17,4 +17,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

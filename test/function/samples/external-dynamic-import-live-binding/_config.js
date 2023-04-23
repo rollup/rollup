@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'supports external dynamic imports with live bindings',
 	options: {
 		external() {
@@ -71,4 +71,4 @@ module.exports = {
 			assert.strictEqual(results[3].default.otherValue, 4);
 		});
 	}
-};
+});

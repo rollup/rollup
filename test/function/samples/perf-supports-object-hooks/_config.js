@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'Supports object hooks with perf=true',
 	options: {
 		perf: true,
@@ -13,4 +13,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

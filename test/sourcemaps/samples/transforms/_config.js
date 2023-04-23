@@ -4,7 +4,7 @@ const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
@@ -46,4 +46,4 @@ module.exports = {
 		assert.equal(originalLoc.line, 3);
 		assert.equal(originalLoc.column, 8);
 	}
-};
+});

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'handles treeshake preset true',
 	options: {
 		treeshake: true,
@@ -20,4 +20,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows to configure the interop type per reexported external dependency',
 	options: {
 		external: id => id.startsWith('external'),
@@ -12,4 +12,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

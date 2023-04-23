@@ -4,6 +4,9 @@ const { rm, unlink, writeFile } = require('node:fs/promises');
 const { resolve } = require('node:path');
 const { chdir, cwd, hrtime } = require('node:process');
 const { copy } = require('fs-extra');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const rollup = require('../../dist/rollup');
 const { atomicWriteFileSync, wait } = require('../utils');
 

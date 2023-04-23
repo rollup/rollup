@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
@@ -27,4 +27,4 @@ module.exports = {
 			url: `https://rollupjs.org/troubleshooting/#warning-sourcemap-is-likely-to-be-incorrect`
 		}
 	]
-};
+});

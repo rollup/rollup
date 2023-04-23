@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows using the "preset" option with overrides',
 	options: {
 		treeshake: {
@@ -23,4 +23,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

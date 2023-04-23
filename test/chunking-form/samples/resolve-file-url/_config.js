@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows to configure file urls',
 	options: {
 		output: {
@@ -48,4 +48,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

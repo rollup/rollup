@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'Removes unused babel helpers from the build (#1595)',
 	expectedWarnings: ['EMPTY_BUNDLE']
-};
+});

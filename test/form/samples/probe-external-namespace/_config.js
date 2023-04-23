@@ -1,6 +1,6 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allow probing external namespaces without causing errors due to missing imports',
 	options: {
 		external: 'external'
 	}
-};
+});

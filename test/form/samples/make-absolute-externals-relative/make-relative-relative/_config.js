@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description:
 		'only normalizes external paths that were originally relative when set to "ifRelativeSource"',
 	options: {
@@ -49,4 +49,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

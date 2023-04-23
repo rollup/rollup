@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'respects "named" export mode in all chunks when preserving modules',
 	options: {
 		strictDeprecations: false,
@@ -9,4 +9,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

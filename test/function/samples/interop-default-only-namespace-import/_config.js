@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows importing a namespace when interop is "defaultOnly"',
 	options: {
 		external: 'external',
@@ -6,4 +6,4 @@ module.exports = {
 			interop: 'defaultOnly'
 		}
 	}
-};
+});

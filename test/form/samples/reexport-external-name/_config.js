@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 're-exports a named export from an external module',
 	options: {
 		external: ['external1', 'external2'],
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

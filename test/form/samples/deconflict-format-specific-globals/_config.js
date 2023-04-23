@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'deconflicts format specific globals',
 	options: {
 		external: 'external',
@@ -9,4 +9,4 @@ module.exports = {
 			dynamicImportInCjs: false
 		}
 	}
-};
+});

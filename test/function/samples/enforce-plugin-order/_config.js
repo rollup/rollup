@@ -73,7 +73,7 @@ function addPlugin(order) {
 	plugins.push(plugin);
 }
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows to enforce plugin hook order',
 	options: {
 		plugins,
@@ -105,4 +105,4 @@ module.exports = {
 			);
 		}
 	}
-};
+});

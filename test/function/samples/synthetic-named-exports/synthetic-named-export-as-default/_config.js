@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'makes sure default exports of synthetic named exports are snapshots',
 	options: {
 		plugins: {
@@ -7,4 +7,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

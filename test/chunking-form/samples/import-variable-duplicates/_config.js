@@ -1,6 +1,6 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'chunk duplicate import deshadowing',
 	options: {
 		input: ['main1.js', 'main2.js', 'first.js', 'head.js']
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'respects the freeze option',
 	options: {
 		external: id => id.startsWith('external'),
@@ -13,4 +13,4 @@ module.exports = {
 			dynamicImportInCjs: false
 		}
 	}
-};
+});

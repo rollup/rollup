@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows a namespace to be assigned to a variable',
 	warnings: [
 		{
@@ -7,4 +7,4 @@ module.exports = {
 			names: ['main']
 		}
 	]
-};
+});

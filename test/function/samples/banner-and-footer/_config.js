@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'adds a banner/footer',
 	options: {
 		output: {
@@ -32,4 +32,4 @@ module.exports = {
 			'Could not retrieve "banner". Check configuration of plugin "at position 3".\n' +
 			'\tError Message: Could not generate banner.'
 	}
-};
+});

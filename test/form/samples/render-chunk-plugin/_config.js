@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows plugins to hook render chunk',
 	options: {
 		plugins: [
@@ -14,4 +14,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

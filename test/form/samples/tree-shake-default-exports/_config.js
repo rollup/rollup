@@ -1,3 +1,3 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'properly remove unused default exports'
-};
+});

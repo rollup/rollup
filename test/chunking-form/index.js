@@ -1,5 +1,8 @@
 const { basename, resolve } = require('node:path');
 const { chdir } = require('node:process');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const { rollup } = require('../../dist/rollup');
 const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 

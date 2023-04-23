@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'adds a banner/footer',
 	options: {
 		output: {
@@ -26,4 +26,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

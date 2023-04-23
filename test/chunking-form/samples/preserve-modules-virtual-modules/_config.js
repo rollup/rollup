@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'Generates actual files for virtual modules when preserving modules',
 	options: {
 		input: 'main.js',
@@ -19,4 +19,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'throws for unknown presets for the treeshake option',
 	options: {
 		treeshake: { preset: 'some-string' }
@@ -9,4 +9,4 @@ module.exports = {
 			'Invalid value "some-string" for option "treeshake.preset" - valid values are "recommended", "safest" and "smallest".',
 		url: 'https://rollupjs.org/configuration-options/#treeshake'
 	}
-};
+});

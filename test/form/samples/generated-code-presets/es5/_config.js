@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'handles generatedCode preset "es5"',
 	options: {
 		output: {
@@ -19,4 +19,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

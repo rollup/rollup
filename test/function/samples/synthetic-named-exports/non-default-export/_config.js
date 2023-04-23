@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'supports providing a named export to generate synthetic exports',
 	options: {
 		plugins: [
@@ -26,4 +26,4 @@ module.exports = {
 			synthetic: 'synthetic'
 		});
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows plugins to read and write import assertions in resolveDynamicImport',
 	options: {
 		plugins: [
@@ -19,4 +19,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

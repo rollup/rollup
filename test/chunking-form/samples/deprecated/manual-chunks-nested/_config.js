@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'manual chunks can contain nested modules',
 	options: {
 		strictDeprecations: false,
@@ -8,4 +8,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

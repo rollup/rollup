@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'keep import assertions for dynamic imports',
 	expectedWarnings: 'UNRESOLVED_IMPORT',
 	options: {
@@ -24,4 +24,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

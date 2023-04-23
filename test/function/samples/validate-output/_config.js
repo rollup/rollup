@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'handles validate failure',
 	options: {
 		onwarn(warning) {
@@ -23,4 +23,4 @@ module.exports = {
 			line: 5
 		}
 	}
-};
+});

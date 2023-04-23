@@ -1,6 +1,9 @@
 const assert = require('node:assert');
 const { existsSync, readFileSync } = require('node:fs');
 const { basename, resolve } = require('node:path');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const { rollup } = require('../../dist/rollup');
 const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 

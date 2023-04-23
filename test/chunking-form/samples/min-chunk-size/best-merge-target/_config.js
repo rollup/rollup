@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'uses the merge target that is closest',
 	options: {
 		input: [
@@ -16,4 +16,4 @@ module.exports = {
 			experimentalMinChunkSize: 100
 		}
 	}
-};
+});

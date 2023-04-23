@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'keeps any import assertions on input',
 	expectedWarnings: 'UNRESOLVED_IMPORT',
 	options: {
@@ -8,4 +8,4 @@ module.exports = {
 		},
 		output: { name: 'bundle' }
 	}
-};
+});

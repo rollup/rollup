@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'supports dynamically importing a module with synthetic named exports',
 	options: {
 		plugins: [
@@ -25,4 +25,4 @@ module.exports = {
 		assert.strictEqual(namespace.baz, undefined);
 		assert.deepStrictEqual(namespace.default, { foo: 'foo' });
 	}
-};
+});

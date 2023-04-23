@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'simple chunking',
 	options: {
 		input: {
@@ -10,4 +10,4 @@ module.exports = {
 			chunkFileNames: 'chunks/chunk.js'
 		}
 	}
-};
+});

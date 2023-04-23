@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows adding modules already in the graph as entry points',
 	options: {
 		input: {
@@ -16,4 +16,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

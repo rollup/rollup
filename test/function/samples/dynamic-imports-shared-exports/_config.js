@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows sharing imports between dynamic chunks',
 	options: {
 		preserveEntrySignatures: 'allow-extension'
@@ -6,4 +6,4 @@ module.exports = {
 	exports(exports) {
 		return exports.promise;
 	}
-};
+});

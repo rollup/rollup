@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows to read and modify options in the options hook',
 	options: {
 		input: 'unused',
@@ -51,4 +51,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

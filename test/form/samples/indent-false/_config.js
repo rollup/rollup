@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'does not indent with indent: false',
 	options: {
 		output: {
@@ -6,4 +6,4 @@ module.exports = {
 			indent: false
 		}
 	}
-};
+});

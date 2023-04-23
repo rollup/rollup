@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'imports external module for side effects',
 	context: {
 		// override require here, making "foo" appear as a global module
@@ -12,4 +12,4 @@ module.exports = {
 	options: {
 		external: ['foo']
 	}
-};
+});

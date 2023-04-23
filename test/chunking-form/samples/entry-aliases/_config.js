@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'alias module dependency inlining',
 	options: {
 		input: {
@@ -10,4 +10,4 @@ module.exports = {
 			entryFileNames: '[name]'
 		}
 	}
-};
+});

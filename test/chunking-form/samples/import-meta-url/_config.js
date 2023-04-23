@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'supports import.meta.url',
 	options: {
 		preserveEntrySignatures: false,
@@ -6,4 +6,4 @@ module.exports = {
 			chunkFileNames: 'nested/chunk.js'
 		}
 	}
-};
+});

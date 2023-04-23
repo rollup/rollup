@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'Removes unused functions where the prototype is iterable',
 	expectedWarnings: ['EMPTY_BUNDLE']
-};
+});

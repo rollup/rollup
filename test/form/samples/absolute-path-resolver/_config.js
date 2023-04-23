@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'normalizes absolute ids',
 	options: {
 		plugins: [
@@ -13,4 +13,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

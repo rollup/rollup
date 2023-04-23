@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'reexport external namespace as name',
 	options: {
 		external: 'external',
@@ -7,4 +7,4 @@ module.exports = {
 			globals: { external: 'external' }
 		}
 	}
-};
+});

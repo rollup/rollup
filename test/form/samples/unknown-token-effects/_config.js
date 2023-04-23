@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'does not tree-shake unknown tokens',
 	options: {
 		acornInjectPlugins: Parser =>
@@ -14,4 +14,4 @@ module.exports = {
 				}
 			}
 	}
-};
+});

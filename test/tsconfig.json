@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "checkJs": true,
     "target": "esnext",
     "lib": ["ES2021"],
     "moduleResolution": "node",
@@ -12,5 +13,8 @@
   },
   "include": [
     "**/_config.js"
+  ],
+  "references": [
+    "./tsconfig.utils.json"
   ]
 }

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const MagicString = require('magic-string');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows sourcemap chains with some untransformed modules (#404)',
 	options: {
 		plugins: [
@@ -24,4 +24,4 @@ module.exports = {
 	test() {
 		assert.ok(true);
 	}
-};
+});

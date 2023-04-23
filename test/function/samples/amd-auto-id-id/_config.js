@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'throws when using both the amd.autoId and the amd.id option',
 	options: {
 		output: { dir: 'dist', amd: { autoId: 'a', id: 'a' } }
@@ -9,4 +9,4 @@ module.exports = {
 			'Invalid value for option "output.amd.id" - this option cannot be used together with "output.amd.autoId"/"output.amd.basePath".',
 		url: 'https://rollupjs.org/configuration-options/#output-amd-id'
 	}
-};
+});

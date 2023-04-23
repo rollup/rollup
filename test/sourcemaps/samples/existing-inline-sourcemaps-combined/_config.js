@@ -1,8 +1,8 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'removes existing inline sourcemaps',
 	async test(code) {
 		assert.ok(!code.includes('sourceMappingURL=data'));
 	}
-};
+});

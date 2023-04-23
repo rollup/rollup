@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows plugins to read and write import assertions in resolveId',
 	options: {
 		output: { name: 'bundle' },
@@ -14,4 +14,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

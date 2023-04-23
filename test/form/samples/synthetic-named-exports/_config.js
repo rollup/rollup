@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'synthetic named exports',
 	options: {
 		plugins: [
@@ -26,4 +26,4 @@ export default d;`,
 			}
 		]
 	}
-};
+});

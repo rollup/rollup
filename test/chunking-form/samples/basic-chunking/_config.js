@@ -1,6 +1,6 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'simple chunking',
 	options: {
 		input: ['main1.js', 'main2.js']
 	}
-};
+});

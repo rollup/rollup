@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'escapes reserved names used as props',
 	options: {
 		external: ['external', 'external2', 'externalDefaultOnly'],
@@ -20,4 +20,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

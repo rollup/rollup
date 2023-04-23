@@ -1,3 +1,3 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'Properly renders conditionals in hoisted variables in dead branches'
-};
+});

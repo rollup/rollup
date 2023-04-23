@@ -1,6 +1,6 @@
 const Buffer = global.Buffer;
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'supports emitting assets as Uint8Arrays when Buffer is not available',
 	before() {
 		delete global.Buffer;
@@ -25,4 +25,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

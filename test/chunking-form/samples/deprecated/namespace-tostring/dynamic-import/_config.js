@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'adds Symbol.toStringTag property to dynamic imports',
 	options: {
 		strictDeprecations: false,
@@ -7,4 +7,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'adds an intro/outro',
 	options: {
 		output: {
@@ -39,4 +39,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'missing export compact',
 	expectedWarnings: ['SHIMMED_EXPORT'],
 	options: {
@@ -8,4 +8,4 @@ module.exports = {
 			compact: true
 		}
 	}
-};
+});

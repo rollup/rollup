@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'Allows omitting the code that handles external live bindings',
 	options: {
 		external: () => true,
@@ -12,4 +12,4 @@ module.exports = {
 			dynamicImportInCjs: false
 		}
 	}
-};
+});

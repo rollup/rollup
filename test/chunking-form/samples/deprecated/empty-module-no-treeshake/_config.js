@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const path = require('node:path');
 const { getObject } = require('../../../../utils');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'associates empty modules with chunks if tree-shaking is disabled for them',
 	options: {
 		strictDeprecations: false,
@@ -66,4 +66,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

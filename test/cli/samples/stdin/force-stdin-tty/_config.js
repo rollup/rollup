@@ -1,5 +1,5 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows forcing stdin input on TTY interfaces via option',
 	skipIfWindows: true,
 	command: `echo "console.log('PASS');" | ./wrapper.js -f es --stdin`
-};
+});

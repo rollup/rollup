@@ -1,3 +1,3 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'detect accessing TDZ variables within the declaration'
-};
+});

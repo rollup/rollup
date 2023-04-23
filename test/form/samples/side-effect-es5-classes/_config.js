@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'omits ES5 classes which are pure (e.g. they only assign to `this`)',
 	expectedWarnings: ['THIS_IS_UNDEFINED']
-};
+});

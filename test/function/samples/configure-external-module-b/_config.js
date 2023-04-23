@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows external module to be configured (b)',
 	options: {
 		external: ['path']
@@ -8,4 +8,4 @@ module.exports = {
 	exports() {
 		assert.equal(require('node:path').resolve.configured, 'yes');
 	}
-};
+});

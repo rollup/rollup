@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'resolver error is not caught',
 	options: {
 		plugins: [
@@ -23,4 +23,4 @@ module.exports = {
 		message: 'nope',
 		plugin: 'at position 1'
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'adds Symbol.toStringTag property to inlined namespaces',
 	options: {
 		strictDeprecations: false,
@@ -14,4 +14,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-generatedcode-symbols'
 		}
 	]
-};
+});

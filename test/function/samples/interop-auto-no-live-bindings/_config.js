@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'handles interop "auto" without live-bindings support',
 	options: {
 		external: id => id.startsWith('external') || id === 'update',
@@ -48,4 +48,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

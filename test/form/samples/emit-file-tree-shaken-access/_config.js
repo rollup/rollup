@@ -1,7 +1,7 @@
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'does not include format globals when tree-shaking an asset access',
 	options: {
 		plugins: {
@@ -21,4 +21,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

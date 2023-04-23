@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'uses const instead of var if specified (#653)',
 	options: {
 		strictDeprecations: false,
@@ -10,4 +10,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

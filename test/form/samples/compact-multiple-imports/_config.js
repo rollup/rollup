@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'correctly handles empty external imports in compact mode',
 	options: {
 		external(id) {
@@ -12,4 +12,4 @@ module.exports = {
 			compact: true
 		}
 	}
-};
+});

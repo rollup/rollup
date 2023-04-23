@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'throws for invalid asset names with absolute path on Windows OS',
 	options: {
 		plugins: {
@@ -16,4 +16,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}
-};
+});

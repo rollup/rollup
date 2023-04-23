@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'uses correct import.meta.url in config files',
 	command: 'rollup -c --bundleConfigAsCjs'
-};
+});

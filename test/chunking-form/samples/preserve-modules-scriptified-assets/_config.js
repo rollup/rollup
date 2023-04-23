@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'scriptified assets have extension in preserveModules output filename',
 	options: {
 		input: 'src/main.js',
@@ -27,4 +27,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

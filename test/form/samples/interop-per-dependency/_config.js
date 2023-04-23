@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows to configure the interop type per external dependency',
 	options: {
 		external: id => id.startsWith('external'),
@@ -15,4 +15,4 @@ module.exports = {
 			dynamicImportInCjs: false
 		}
 	}
-};
+});

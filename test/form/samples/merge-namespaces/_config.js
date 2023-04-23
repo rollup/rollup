@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'merges namespaces with live-bindings',
 	options: {
 		external: ['external1', 'external2'],
@@ -10,4 +10,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

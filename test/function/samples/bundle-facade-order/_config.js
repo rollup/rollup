@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'respects the order of entry points when there are additional facades for chunks',
 	options: {
 		input: {
@@ -24,4 +24,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

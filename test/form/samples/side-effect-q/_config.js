@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'discards effects in conditional expressions with known test values',
 	expectedWarnings: ['EMPTY_BUNDLE']
-};
+});

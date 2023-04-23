@@ -1,3 +1,3 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'adds .js to module paths with non-extension dots in them'
-};
+});

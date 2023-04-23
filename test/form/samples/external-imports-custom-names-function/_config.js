@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'allows globals to be specified as a function',
 	options: {
 		external: ['a-b-c'],
@@ -8,4 +8,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

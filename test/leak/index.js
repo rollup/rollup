@@ -1,5 +1,8 @@
 const path = require('node:path');
 const weak = require('weak-napi');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const rollup = require('../..');
 const { wait } = require('../utils');
 

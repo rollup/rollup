@@ -1,4 +1,7 @@
 const path = require('node:path');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const rollup = require('../../dist/rollup');
 const { runTestSuiteWithSamples } = require('../utils.js');
 

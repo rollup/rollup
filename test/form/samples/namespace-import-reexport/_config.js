@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'properly associate or shadow variables in and around functions',
 	options: {
 		external: ['external-package'],
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'iife'
 		}
 	}
-};
+});

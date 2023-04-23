@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 're-exports a named external export as default',
 	expectedWarnings: ['MIXED_EXPORTS'],
 	options: {
@@ -8,4 +8,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'avoid variable from empty module name be empty',
 	options: {
 		input: '',
@@ -16,4 +16,4 @@ module.exports = {
 			format: 'cjs'
 		}
 	}
-};
+});

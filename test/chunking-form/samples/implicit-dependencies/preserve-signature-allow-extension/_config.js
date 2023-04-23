@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'supports implicit dependencies when emitting files',
 	options: {
 		plugins: {
@@ -13,4 +13,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

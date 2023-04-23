@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineRollupTest({
 	description: 'runs output plugins last',
 	options: {
 		plugins: [
@@ -20,4 +20,4 @@ module.exports = {
 			]
 		}
 	}
-};
+});
