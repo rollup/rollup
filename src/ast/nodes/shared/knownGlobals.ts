@@ -164,7 +164,7 @@ const knownGlobals: GlobalDescription = {
 	isNaN: PF,
 	isPrototypeOf: O,
 	JSON: O,
-	Map: PC,
+	Map: C,
 	Math: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
