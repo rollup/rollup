@@ -18,6 +18,7 @@ function _mergeNamespaces(n, m) {
 async function entry() {
   // simple
   const { foo1: foo } = await Promise.resolve().then(function () { return sub1; });
+  await Promise.resolve().then(function () { return sub1; });
 (await Promise.resolve().then(function () { return sub2; })).bar2();
   await Promise.resolve().then(function () { return sub2; });
   await Promise.resolve().then(function () { return sub2; });

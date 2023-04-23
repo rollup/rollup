@@ -1,6 +1,7 @@
 export async function entry() {
   // simple
   const { foo1: foo } = await import('./sub1.js');
+  const { doesNotExists } = await import('./sub1.js');
 
   // multiple
   ;(await import('./sub2.js')).bar2()
