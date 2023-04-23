@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const buble = require('buble');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 

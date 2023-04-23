@@ -5,6 +5,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform() {
 					return null;
 				}

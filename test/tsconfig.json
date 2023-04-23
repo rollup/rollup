@@ -7,11 +7,23 @@
     "./utils.js"
   ],
   "references": [
-    "./browser/tsconfig.json",
-    "./chunking-form/tsconfig.json",
-    "./file-hash/tsconfig.json",
-    "./form/tsconfig.json",
-    "./function/tsconfig.json",
-    "./sourcemaps/tsconfig.json"
+    {
+      "path": "./browser"
+    },
+    {
+      "path": "./chunking-form"
+    },
+    {
+      "path": "./file-hashes"
+    },
+    {
+      "path": "./form"
+    },
+    {
+      "path": "./function"
+    },
+    {
+      "path": "./sourcemaps"
+    }
   ]
 }

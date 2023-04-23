@@ -11,6 +11,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform() {
 					return {
 						code: readFileSync(path.resolve(__dirname, 'output.js'), 'utf8'),

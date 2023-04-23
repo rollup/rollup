@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 
 module.exports = defineTest({
 	description: 'allows sourcemap chains with some untransformed modules (#404)',

@@ -2,14 +2,14 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
+    "composite": true,
     "target": "esnext",
     "lib": ["ES2021"],
     "esModuleInterop": true,
     "moduleResolution": "node",
     "types": [
       "node",
-      "mocha",
-      "./types.d.ts"
+      "mocha"
     ]
     // "strict": true // maybe later
   }

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { encode } = require('@jridgewell/sourcemap-codec');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
@@ -16,9 +16,11 @@ module.exports = defineTest({
 					// [generatedColumn, sourceIndex, sourceLine, sourceColumn];
 					// this mapping only maps the second line to the first with no column
 					// details
+					/** @type {import('@jridgewell/sourcemap-codec').SourceMapMappings} */
 					const decodedMap = [[], [[0, 0, 0, 0]]];
 					return {
 						code: `console.log('added');\n${code}`,
+						/** @type {any} */
 						map: { mappings: encode(decodedMap) }
 					};
 				}

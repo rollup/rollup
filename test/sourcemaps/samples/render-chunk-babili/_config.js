@@ -8,6 +8,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				renderChunk(code, chunk, options) {
 					const format = options.format;
 

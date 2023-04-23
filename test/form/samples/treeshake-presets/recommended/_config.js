@@ -7,6 +7,7 @@ module.exports = defineTest({
 		treeshake: 'recommended',
 		plugins: [
 			{
+				name: 'test-plugin',
 				buildStart(options) {
 					assert.strictEqual(options.treeshake.correctVarValueBeforeDeclaration, false);
 					assert.strictEqual(options.treeshake.propertyReadSideEffects, true);

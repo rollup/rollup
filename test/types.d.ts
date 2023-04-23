@@ -29,10 +29,6 @@ export interface TestConfigBase {
 	 */
 	formats?: string[];
 	/**
-	 * Environment variables to set for the test.
-	 */
-	env?: Record<string, string | undefined>;
-	/**
 	 * The global context executed the bundled code.
 	 */
 	context?: Record<string, any>;
@@ -92,6 +88,10 @@ export interface TestConfigCli extends TestConfigBase {
 	command?: string;
 	cwd?: string;
 	retry?: number;
+	/**
+	 * Environment variables to set for the test.
+	 */
+	env?: Record<string, string | boolean | undefined>;
 	/**
 	 * Assert the stderr of the build.
 	 */
