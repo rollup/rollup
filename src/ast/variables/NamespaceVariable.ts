@@ -133,8 +133,9 @@ export default class NamespaceVariable extends Variable {
 			snippets: { _, cnst, getObject, getPropertyAccess, n, s }
 		} = options;
 		const memberVariables = this.getMemberVariables();
-		const members: [key: string | null, value: string][] = Object.entries(memberVariables).map(
-			([name, original]) => {
+		const members: [key: string | null, value: string][] = Object.entries(memberVariables)
+			.filter(([_, variable]) => variable.included)
+			.map(([name, original]) => {
 				if (this.referencedEarly || original.isReassigned) {
 					return [
 						null,
@@ -143,8 +144,7 @@ export default class NamespaceVariable extends Variable {
 				}
 
 				return [name, original.getName(getPropertyAccess)];
-			}
-		);
+			});
 		members.unshift([null, `__proto__:${_}null`]);
 
 		let output = getObject(members, { lineBreakIndent: { base: '', t } });

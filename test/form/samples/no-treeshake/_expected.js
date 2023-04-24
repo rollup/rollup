@@ -54,4 +54,16 @@ try {
 	const x = 1;
 } catch {}
 
+const { fred: fred$1 } = await Promise.resolve().then(function () { return dynamicImported$1; });
+
+const fred = 1;
+
+var dynamicImported = () => fred;
+
+var dynamicImported$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: dynamicImported,
+	fred: fred
+});
+
 export { create, getPrototypeOf, quux, quux as strange };
