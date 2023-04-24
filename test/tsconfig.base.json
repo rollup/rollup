@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    // enable this to capture type errors, or add @ts-check to the top of the file
+    // "checkJs": true, 
     "allowJs": true,
-    "checkJs": true,
     "composite": true,
     "target": "esnext",
     "module": "node16",
@@ -12,6 +13,5 @@
       "node",
       "mocha"
     ]
-    // "strict": true // maybe later
   }
 }
