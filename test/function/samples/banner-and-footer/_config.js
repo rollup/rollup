@@ -32,7 +32,7 @@ module.exports = defineTest({
 	generateError: {
 		code: 'ADDON_ERROR',
 		message:
-			'Could not retrieve "banner". Check configuration of plugin "at position 3".\n' +
+			'Could not retrieve "banner". Check configuration of plugin "test-plugin3".\n' +
 			'\tError Message: Could not generate banner.'
 	}
 });
