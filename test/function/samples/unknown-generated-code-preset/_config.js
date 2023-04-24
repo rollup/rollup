@@ -2,7 +2,10 @@ module.exports = defineTest({
 	description: 'throws for unknown presets for the generatedCode option',
 	options: {
 		output: {
-			generatedCode: { preset: 'some-string' }
+			generatedCode: {
+				// @ts-expect-error expected error
+				preset: 'some-string'
+			}
 		}
 	},
 	generateError: {

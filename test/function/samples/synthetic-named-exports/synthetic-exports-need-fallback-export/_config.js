@@ -7,6 +7,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform(code, id) {
 					if (id.endsWith('dep.js')) {
 						return { code, syntheticNamedExports: '__synthetic' };

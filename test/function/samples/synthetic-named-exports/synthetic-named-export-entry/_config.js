@@ -10,6 +10,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin1',
 				transform(code, id) {
 					switch (id) {
 						case ID_MAIN: {

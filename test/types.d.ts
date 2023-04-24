@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import type { SourceMap } from 'magic-string';
-import type { RollupError, RollupOptions } from '../src/rollup/types';
+import type { RollupBuild, RollupError, RollupOptions } from '../src/rollup/types';
 
 export interface TestConfigBase {
 	/**
@@ -11,6 +11,10 @@ export interface TestConfigBase {
 	 * Skip this test.
 	 */
 	skip?: boolean;
+	/**
+	 * Display in the test output.
+	 */
+	show?: boolean;
 	/**
 	 * Execute the bundled code.
 	 */
@@ -49,7 +53,7 @@ export interface TestConfigBase {
 	/**
 	 * Test the expected error.
 	 */
-	error?: RollupError | ((error: RollupError) => boolean | void);
+	error?: RollupError;
 	generateError?: RollupError;
 	/**
 	 * Test the expected warnings.
@@ -81,7 +85,6 @@ export interface TestConfigSourcemap extends TestConfigBase {}
 export interface TestConfigFileHash extends TestConfigBase {
 	options1?: RollupOptions;
 	options2?: RollupOptions;
-	show?: boolean;
 }
 
 export interface TestConfigCli extends TestConfigBase {
@@ -117,6 +120,8 @@ export interface TestConfigChunkingForm extends TestConfigBase {
 
 export interface TestConfigFunction extends TestConfigBase {
 	runtimeError?(error: Error): void;
+	bundle?(bundle: RollupBuild): void;
+	code?(code: string): void;
 }
 
 export type RunTestFunction = <C extends TestConfigBase>(directory: string, config: C) => void;

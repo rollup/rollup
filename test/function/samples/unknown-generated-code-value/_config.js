@@ -2,6 +2,7 @@ module.exports = defineTest({
 	description: 'throws for unknown string values for the generatedCode option',
 	options: {
 		output: {
+			// @ts-expect-error expected error
 			generatedCode: 'some-string'
 		}
 	},

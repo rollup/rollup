@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
@@ -8,6 +8,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin1',
 				async transform(code, id) {
 					const sourcemap = this.getCombinedSourcemap();
 					const smc = await new SourceMapConsumer(sourcemap);
@@ -32,6 +33,7 @@ module.exports = defineTest({
 				}
 			},
 			{
+				name: 'test-plugin2',
 				async transform(code, id) {
 					const sourcemap = this.getCombinedSourcemap();
 					const smc = await new SourceMapConsumer(sourcemap);

@@ -1,3 +1,8 @@
+/**
+ * @param {string} source
+ * @param {string | number} search
+ * @returns {{ line: number, column: number } | undefined}
+ */
 module.exports = function getLocation(source, search) {
 	var lines = source.split('\n');
 	var length_ = lines.length;

@@ -1,6 +1,7 @@
 module.exports = defineTest({
 	description: 'throws for unknown string values for the treeshake option',
 	options: {
+		// @ts-expect-error expected error
 		treeshake: 'some-string'
 	},
 	error: {

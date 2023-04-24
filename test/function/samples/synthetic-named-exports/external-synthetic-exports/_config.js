@@ -3,6 +3,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				resolveId(id) {
 					if (id === 'dep') {
 						return {

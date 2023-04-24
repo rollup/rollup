@@ -4,7 +4,8 @@
     "checkJs": true,
     "composite": true,
     "target": "esnext",
-    "lib": ["ES2021"],
+    "module": "node16",
+    "lib": ["esnext"],
     "esModuleInterop": true,
     "moduleResolution": "node",
     "types": [

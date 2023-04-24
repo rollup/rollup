@@ -5,6 +5,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform(code) {
 					return { code, syntheticNamedExports: '__synthetic' };
 				}
