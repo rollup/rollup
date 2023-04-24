@@ -1,12 +1,14 @@
-assert.ok(
-	new Map({
-		[Symbol.iterator]() {
-			return {
-				next() {
-					console.log('side effect');
-					return { done: true };
-				}
-			};
-		}
-	})
-);
+let effect = false;
+
+new Map({
+	[Symbol.iterator]() {
+		return {
+			next() {
+				effect = true;
+				return { done: true };
+			}
+		};
+	}
+});
+
+assert.ok(effect);
