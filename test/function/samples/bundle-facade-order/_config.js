@@ -9,6 +9,7 @@ module.exports = defineTest({
 			other: 'other'
 		},
 		plugins: {
+			name: 'test-plugin',
 			generateBundle(options, bundle) {
 				assert.deepStrictEqual(
 					Object.keys(bundle).map(id => [id, bundle[id].code]),

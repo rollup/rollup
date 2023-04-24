@@ -1,7 +1,13 @@
 module.exports = defineTest({
 	description: 'throws when using only amd.basePath option',
 	options: {
-		output: { dir: 'dist', amd: { basePath: 'a' } }
+		output: {
+			dir: 'dist',
+			amd: {
+				// @ts-expect-error expected error
+				basePath: 'a'
+			}
+		}
 	},
 	generateError: {
 		code: 'INVALID_OPTION',

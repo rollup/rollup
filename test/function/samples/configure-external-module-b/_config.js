@@ -6,6 +6,7 @@ module.exports = defineTest({
 		external: ['path']
 	},
 	exports() {
+		// @ts-expect-error missing types
 		assert.equal(require('node:path').resolve.configured, 'yes');
 	}
 });

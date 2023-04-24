@@ -7,18 +7,21 @@ module.exports = defineTest({
 		},
 		plugins: [
 			{
+				name: 'test-plugin1',
 				banner: '/* first banner */',
 				footer() {
 					return '/* first footer */';
 				}
 			},
 			{
+				name: 'test-plugin2',
 				banner() {
 					return '/* second banner */';
 				},
 				footer: '/* second footer */'
 			},
 			{
+				name: 'test-plugin3',
 				banner() {
 					return Promise.reject(new Error('Could not generate banner.'));
 				},

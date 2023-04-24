@@ -4,6 +4,7 @@ module.exports = defineTest({
 		input: '',
 		plugins: [
 			{
+				name: 'test-plugin',
 				resolveId() {
 					return '';
 				},

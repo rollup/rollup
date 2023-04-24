@@ -1,7 +1,16 @@
+// @ts-check
+
 module.exports = defineTest({
 	description: 'throws when using both the amd.basePath and the amd.id option',
 	options: {
-		output: { dir: 'dist', amd: { basePath: 'a', id: 'a' } }
+		output: {
+			dir: 'dist',
+			amd: {
+				// @ts-expect-error expected error
+				basePath: 'a',
+				id: 'a'
+			}
+		}
 	},
 	generateError: {
 		code: 'INVALID_OPTION',
