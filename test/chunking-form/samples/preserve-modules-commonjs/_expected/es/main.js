@@ -1,4 +1,4 @@
-import commonjs from './commonjs.js';
+import value from './commonjs.js';
 import require$$0 from 'external';
 
-console.log(commonjs, require$$0);
+console.log(value, require$$0);
