@@ -1,10 +1,10 @@
-let effects = [];
+let effects = 0;
 
 const iterable = {
 	[Symbol.iterator]() {
 		return {
 			next() {
-				effects.push('effect');
+				effects++;
 				return { done: true };
 			}
 		};
@@ -26,4 +26,4 @@ Uint8Array.from(iterable);
 Uint8ClampedArray.from(iterable);
 Object.fromEntries(iterable);
 
-assert.equal(effects.length, 14);
+assert.equal(effects, 14);
