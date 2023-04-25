@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+// @ts-expect-error export outside root
 const { replaceDirectoryInStringifiedObject } = require('../../../utils');
 const assertChunkData = chunk =>
 	assert.strictEqual(
