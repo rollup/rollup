@@ -62,7 +62,7 @@ export interface TestConfigBase {
 	/**
 	 * Expected warning codes
 	 */
-	expectedWarnings?: string[];
+	expectedWarnings?: string | string[];
 	/**
 	 * Test the output of the build.
 	 */

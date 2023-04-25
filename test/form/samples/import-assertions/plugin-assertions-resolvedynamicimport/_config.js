@@ -3,6 +3,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test',
 				resolveDynamicImport(specifier, importer, { assertions }) {
 					const resolutionOptions = {
 						external: true,

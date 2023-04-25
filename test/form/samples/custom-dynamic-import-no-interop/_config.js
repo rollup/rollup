@@ -6,6 +6,7 @@ module.exports = defineTest({
 			interop: 'auto'
 		},
 		plugins: {
+			name: 'test',
 			renderDynamicImport() {
 				return { left: 'getIt(', right: ')' };
 			}

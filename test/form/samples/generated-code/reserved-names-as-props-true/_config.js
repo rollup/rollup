@@ -13,6 +13,7 @@ module.exports = defineTest({
 		},
 		plugins: [
 			{
+				name: 'test',
 				transform() {
 					return { syntheticNamedExports: true };
 				}

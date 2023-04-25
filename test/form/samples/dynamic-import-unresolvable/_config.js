@@ -5,12 +5,15 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test',
 				resolveDynamicImport(specifier) {
 					if (specifier === './seven.js') {
 						return false;
 					}
 					assert.ok(specifier);
-					assert.strictEqual(typeof specifier, 'object');
+					if (typeof specifier !== 'object') {
+						throw new TypeError(`Unexpected specifier type ${typeof specifier}.`);
+					}
 					if (specifier.type === 'Literal') {
 						return "'./seven.js'";
 					}

@@ -10,7 +10,7 @@ module.exports = defineTest({
 		treeshake: true,
 		plugins: [
 			require('@rollup/plugin-node-resolve').default(),
-			require('@rollup/plugin-commonjs')()
+			require('@rollup/plugin-commonjs').default()
 		]
 	}
 });

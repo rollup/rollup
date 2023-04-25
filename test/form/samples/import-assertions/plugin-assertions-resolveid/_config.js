@@ -4,6 +4,7 @@ module.exports = defineTest({
 		output: { name: 'bundle' },
 		plugins: [
 			{
+				name: 'test',
 				resolveId(source, importer, { assertions, isEntry }) {
 					return {
 						id: source,

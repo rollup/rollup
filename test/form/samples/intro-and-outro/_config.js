@@ -10,6 +10,7 @@ module.exports = defineTest({
 		external: ['external'],
 		plugins: [
 			{
+				name: 'first',
 				intro() {
 					return '// intro 1';
 				},
@@ -18,6 +19,7 @@ module.exports = defineTest({
 				}
 			},
 			{
+				name: 'second',
 				intro() {
 					return '// intro 2';
 				},
@@ -26,6 +28,7 @@ module.exports = defineTest({
 				}
 			},
 			{
+				name: 'third',
 				intro() {
 					return Promise.resolve('// intro 3');
 				},
@@ -34,6 +37,7 @@ module.exports = defineTest({
 				}
 			},
 			{
+				name: 'fourth',
 				intro: '// intro 4',
 				outro: '// outro 4'
 			}

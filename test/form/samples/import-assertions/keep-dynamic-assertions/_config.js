@@ -8,6 +8,7 @@ module.exports = defineTest({
 		},
 		plugins: [
 			{
+				name: 'test',
 				resolveDynamicImport(specifier) {
 					if (typeof specifier === 'object') {
 						if (specifier.type === 'TemplateLiteral') {

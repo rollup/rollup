@@ -7,18 +7,21 @@ module.exports = defineTest({
 		},
 		plugins: [
 			{
+				name: 'first',
 				banner: '/* first banner */',
 				footer() {
 					return '/* first footer */';
 				}
 			},
 			{
+				name: 'second',
 				banner() {
 					return '/* second banner */';
 				},
 				footer: '/* second footer */'
 			},
 			{
+				name: 'third',
 				banner() {
 					return Promise.resolve('/* 3rd banner */');
 				},

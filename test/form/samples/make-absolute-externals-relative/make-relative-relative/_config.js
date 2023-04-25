@@ -22,6 +22,7 @@ module.exports = defineTest({
 				return true;
 		},
 		plugins: {
+			name: 'test',
 			async buildStart() {
 				// eslint-disable-next-line unicorn/consistent-function-scoping
 				const testExternal = async (source, expected) =>

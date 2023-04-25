@@ -3,6 +3,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test',
 				resolveId(id) {
 					if (id.endsWith('dep1.js')) {
 						return id;

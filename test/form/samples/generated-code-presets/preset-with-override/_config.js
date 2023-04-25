@@ -14,6 +14,7 @@ module.exports = defineTest({
 		},
 		plugins: [
 			{
+				name: 'test',
 				renderStart(options) {
 					assert.strictEqual(options.generatedCode.arrowFunctions, false);
 					assert.strictEqual(options.generatedCode.objectShorthand, true);

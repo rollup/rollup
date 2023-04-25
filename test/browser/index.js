@@ -10,7 +10,6 @@ const fixturify = require('fixturify');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
-// @ts-expect-error cast to Rollup
 const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
 
@@ -68,6 +67,7 @@ runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (directory, co
 });
 
 function assertOutputMatches(output, directory) {
+	/** @type any */
 	const actual = {};
 	for (const file of output) {
 		const filePath = file.fileName.split('/');

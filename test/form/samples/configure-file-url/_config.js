@@ -3,6 +3,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'first',
 				resolveId(id) {
 					if (id.endsWith('solved')) {
 						return id;
@@ -32,6 +33,7 @@ module.exports = defineTest({
 				}
 			},
 			{
+				name: 'second',
 				resolveFileUrl({ moduleId }) {
 					if (moduleId === 'resolved') {
 						return `'resolved'`;

@@ -10,6 +10,7 @@ module.exports = defineTest({
 	},
 	options: {
 		plugins: {
+			name: 'test',
 			resolveId(id) {
 				if (id.startsWith('asset')) {
 					return id;

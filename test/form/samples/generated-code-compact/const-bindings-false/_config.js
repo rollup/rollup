@@ -14,6 +14,7 @@ module.exports = defineTest({
 		},
 		plugins: [
 			{
+				name: 'test',
 				transform(code, id) {
 					if (id.endsWith('synthetic.js')) {
 						return { syntheticNamedExports: true };

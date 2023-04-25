@@ -4,6 +4,7 @@ module.exports = defineTest({
 		external: ['external1', 'external2'],
 		plugins: [
 			{
+				name: 'test',
 				transform() {
 					return { syntheticNamedExports: '__synthetic' };
 				}

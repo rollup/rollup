@@ -5,6 +5,7 @@ module.exports = defineTest({
 	options: {
 		plugins: [
 			{
+				name: 'test',
 				transform(code, id) {
 					if (/main/.test(id)) {
 						return code.replace('"./a.js"', JSON.stringify(path.resolve(__dirname, 'a.js')));

@@ -6,6 +6,7 @@ module.exports = defineTest({
 		external: id => id.startsWith('external'),
 		output: {
 			externalLiveBindings: false,
+			/** @type any */
 			interop(id) {
 				if (checkedIds.has(id)) {
 					throw new Error(`Interop for id ${id} has been requested twice.`);

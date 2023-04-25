@@ -519,7 +519,7 @@ export type InputPluginOption = MaybePromise<Plugin | NullValue | false | InputP
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
-	acornInjectPlugins?: (() => unknown)[] | (() => unknown);
+	acornInjectPlugins?: ((...arguments_: any[]) => unknown)[] | ((...arguments_: any[]) => unknown);
 	cache?: boolean | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;

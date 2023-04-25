@@ -2,6 +2,7 @@ module.exports = defineTest({
 	description: 'fails if a file cannot be loaded',
 	options: {
 		plugins: {
+			name: 'test',
 			resolveId(source) {
 				return source;
 			}

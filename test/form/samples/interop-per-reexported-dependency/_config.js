@@ -3,6 +3,7 @@ module.exports = defineTest({
 	options: {
 		external: id => id.startsWith('external'),
 		output: {
+			/** @type any */
 			interop(id) {
 				return id.split('-')[1];
 			},
