@@ -1,3 +1,4 @@
+import { getDefaultExportFromCjs } from '../_virtual/_commonjsHelpers.js';
 import '../custom_modules/@my-scope/my-base-pkg/index.js';
 import { __exports as myBasePkg } from '../_virtual/index.js';
 
@@ -7,4 +8,6 @@ var module = {
   base2,
 };
 
-export { module as default };
+var module$1 = /*@__PURE__*/getDefaultExportFromCjs(module);
+
+export { module$1 as default };
