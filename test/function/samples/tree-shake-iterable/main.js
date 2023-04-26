@@ -15,6 +15,9 @@ new Map(iterable);
 new Set(iterable);
 new WeakMap(iterable);
 new WeakSet(iterable);
+Array.from(iterable);
+BigInt64Array.from(iterable);
+BigUint64Array.from(iterable);
 Float32Array.from(iterable);
 Float64Array.from(iterable);
 Int16Array.from(iterable);
@@ -26,4 +29,4 @@ Uint8Array.from(iterable);
 Uint8ClampedArray.from(iterable);
 Object.fromEntries(iterable);
 
-assert.equal(effects, 14);
+assert.equal(effects.length, 17);

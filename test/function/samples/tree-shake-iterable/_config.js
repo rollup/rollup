@@ -1,3 +1,3 @@
 module.exports = {
-	description: 'Retain functions that consume iterable'
+	description: 'retain functions that accept a iterable that has side effects on iteration'
 };
