@@ -29,4 +29,4 @@ Uint8Array.from(iterable);
 Uint8ClampedArray.from(iterable);
 Object.fromEntries(iterable);
 
-assert.equal(effects.length, 17);
+assert.equal(effects, 17);
