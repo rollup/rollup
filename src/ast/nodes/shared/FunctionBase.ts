@@ -54,8 +54,11 @@ export default abstract class FunctionBase extends NodeBase {
 					argument.deoptimizePath(UNKNOWN_PATH);
 				} else if (parameter instanceof Identifier) {
 					parameters[position][0].addEntityToBeDeoptimized(argument);
+					this.addArgumentToBeDeoptimized(argument);
 				} else if (parameter) {
 					argument.deoptimizePath(UNKNOWN_PATH);
+				} else {
+					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
 		} else {
@@ -180,6 +183,8 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 		super.parseNode(esTreeNode);
 	}
+
+	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}
 
 	protected applyDeoptimizations() {}
 
