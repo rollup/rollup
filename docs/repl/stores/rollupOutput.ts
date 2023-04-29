@@ -48,7 +48,7 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 	if (import.meta.env.PROD) {
 		console.clear();
 	}
-	console.log(`running Rollup version %c${instance.VERSION}`, 'font-weight: bold');
+	console.group(`running Rollup version ${instance.VERSION}`);
 
 	const modulesById = new Map<string, Module>();
 	for (const module of modules) {
@@ -96,10 +96,12 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		]
 	};
 
+	console.log('%coptions:', 'font-weight: bold; color: blue', rollupOptions);
 	try {
 		const generated = await (
 			await instance.rollup(rollupOptions)
 		).generate((rollupOptions as { output?: OutputOptions }).output || {});
+		console.log('%coutput:', 'font-weight: bold; color: green', generated.output);
 		setOutput({
 			error: null,
 			externalImports: [...externalImports].sort((a, b) => (a < b ? -1 : 1)),
@@ -107,9 +109,16 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 			warnings
 		});
 	} catch (error) {
+		console.log(
+			'%cerror:',
+			'font-weight: bold; color: red',
+			error,
+			JSON.parse(JSON.stringify(error))
+		);
 		setOutput({ error: error as Error, externalImports: [], output: [], warnings });
 		logWarning(error as Error);
 	}
+	console.groupEnd();
 }
 
 export const useRollupOutput = defineStore('rollupOutput', () => {

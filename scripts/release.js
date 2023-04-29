@@ -8,7 +8,7 @@ import inquirer from 'inquirer';
 import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';
-import { cyan, red } from './colors.js';
+import { cyan } from './colors.js';
 import { runAndGetStdout, runWithEcho } from './helpers.js';
 
 // We execute everything from the main directory
@@ -240,44 +240,26 @@ async function installDependenciesBuildAndTest() {
 }
 
 async function waitForChangelogUpdate(version) {
-	const { changelogUpdated } = await inquirer.prompt([
-		{
-			message: `Please confirm that the changelog has been updated to continue`,
-			name: 'changelogUpdated',
-			type: 'confirm'
-		}
-	]);
-
-	if (!changelogUpdated) {
-		console.log(red`Aborting release.`);
-		exit();
-	}
-
 	let changelogEntry = '';
 	while (true) {
 		await runWithEcho('npx', ['prettier', '--write', CHANGELOG]);
 		const changelog = await readFile(CHANGELOG, 'utf8');
 		const { text: newEntry } = getFirstChangelogEntry(changelog);
-		if (newEntry !== changelogEntry) {
-			changelogEntry = newEntry;
-			console.log(cyan('You generated the following changelog entry:\n') + changelogEntry);
-			const { changelogConfirmed } = await inquirer.prompt([
-				{
-					message: `Please edit the changelog again or confirm the changelog is acceptable to continue to release "${version}".`,
-					name: 'changelogConfirmed',
-					type: 'confirm'
-				}
-			]);
-			if (!changelogConfirmed) {
-				console.log(red`Aborting release.`);
-				exit();
-			}
-			continue;
+		if (newEntry === changelogEntry) {
+			console.log(cyan('No further changes, continuing release.'));
+			break;
 		}
-		break;
+		changelogEntry = newEntry;
+		console.log(cyan('You generated the following changelog entry:\n') + changelogEntry);
+		await inquirer.prompt([
+			{
+				choices: ['ok'],
+				message: `Please edit the changelog or confirm the changelog is acceptable to continue to release "${version}".`,
+				type: 'list'
+			}
+		]);
 	}
 
-	console.log(cyan('No further changes, continuing release.'));
 	return changelogEntry;
 }
 

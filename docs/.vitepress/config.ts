@@ -1,7 +1,7 @@
 import alias from '@rollup/plugin-alias';
 import { defineConfig } from 'vitepress';
 import { moduleAliases } from '../../build-plugins/aliases';
-import { resolutions } from '../../build-plugins/replace-browser-modules';
+import replaceBrowserModules from '../../build-plugins/replace-browser-modules';
 import '../declarations.d';
 import { examplesPlugin } from './create-examples';
 import { renderMermaidGraphsPlugin } from './mermaid';
@@ -135,21 +135,7 @@ export default defineConfig({
 	vite: {
 		plugins: [
 			renderMermaidGraphsPlugin(),
-			{
-				apply: 'serve',
-				enforce: 'pre',
-				name: 'replace-browser-modules',
-				resolveId(source, importer) {
-					if (importer && source.startsWith('/@fs')) {
-						return resolutions.get(source.slice(4));
-					}
-				},
-				transformIndexHtml(html) {
-					// Unfortunately, picomatch sneaks as a dedendency into the dev bundle.
-					// This fixes an error.
-					return html.replace('</head>', '<script>window.process={}</script></head>');
-				}
-			},
+			replaceBrowserModules(),
 			{
 				apply: 'build',
 				enforce: 'pre',
