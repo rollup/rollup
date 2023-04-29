@@ -136,7 +136,7 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.amd.define'
 	});
 	const optionOutputAmdForceJsExtensionForImports = getBoolean({
-		available: () => isAmdFormat.value && outputHasMultipleChunks.value,
+		available: isAmdFormat,
 		name: 'output.amd.forceJsExtensionForImports'
 	});
 	const optionOutputAmdId = getString({
@@ -149,7 +149,7 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.banner'
 	});
 	const optionOutputChunkFileNames = getString({
-		available: outputHasMultipleChunks,
+		available: alwaysTrue,
 		defaultValue: '[name]-[hash].js',
 		name: 'output.chunkFileNames'
 	});
@@ -162,7 +162,7 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.dynamicImportInCjs'
 	});
 	const optionOutputEntryFileNames = getString({
-		available: outputHasMultipleChunks,
+		available: alwaysTrue,
 		defaultValue: '[name].js',
 		name: 'output.entryFileNames'
 	});
@@ -240,7 +240,7 @@ export const useOptions = defineStore('options2', () => {
 		required: () => true
 	});
 	const optionOutputHoistTransitiveImports = getBoolean({
-		available: outputHasMultipleChunks,
+		available: alwaysTrue,
 		defaultValue: true,
 		name: 'output.hoistTransitiveImports'
 	});
@@ -279,7 +279,7 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.intro'
 	});
 	const optionOutputMinifyInternalExports = getBoolean({
-		available: outputHasMultipleChunks,
+		available: alwaysTrue,
 		name: 'output.minifyInternalExports'
 	});
 	const optionOutputNoConflict = getBoolean({
@@ -315,7 +315,7 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.sourcemap'
 	});
 	const optionOutputSanitizeFileName = getBoolean({
-		available: outputHasMultipleChunks,
+		available: alwaysTrue,
 		defaultValue: true,
 		name: 'output.sanitizeFileName'
 	});
@@ -337,7 +337,7 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.validate'
 	});
 	const optionPreserveEntrySignatures = getSelect({
-		available: outputHasMultipleChunks,
+		available: alwaysTrue,
 		defaultValue: 'exports-only',
 		name: 'preserveEntrySignatures',
 		options: () => ['strict', 'allow-extension', 'exports-only', false]
