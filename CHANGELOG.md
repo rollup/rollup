@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.21.2
+
+_2023-04-30_
+
+### Bug Fixes
+
+- Mark global functions that trigger iterators as impure for now (#4955)
+
+### Pull Requests
+
+- [#4955](https://github.com/rollup/rollup/pull/4955): fix: mark some known globals or their functions as impure (@TrickyPi)
+
 ## 3.21.1
 
 _2023-04-29_
