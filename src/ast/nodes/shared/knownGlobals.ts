@@ -94,7 +94,7 @@ const PC: GlobalDescription = {
 const ARRAY_TYPE: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE,
-	from: PF,
+	from: O,
 	of: PF,
 	prototype: O
 };
@@ -164,7 +164,7 @@ const knownGlobals: GlobalDescription = {
 	isNaN: PF,
 	isPrototypeOf: O,
 	JSON: O,
-	Map: PC,
+	Map: C,
 	Math: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
@@ -237,7 +237,7 @@ const knownGlobals: GlobalDescription = {
 		isFrozen: PF,
 		isSealed: PF,
 		keys: PF,
-		fromEntries: PF,
+		fromEntries: O,
 		entries: PF,
 		prototype: O
 	},
@@ -260,7 +260,7 @@ const knownGlobals: GlobalDescription = {
 	ReferenceError: PC,
 	Reflect: O,
 	RegExp: PC,
-	Set: PC,
+	Set: C,
 	SharedArrayBuffer: C,
 	String: {
 		__proto__: null,
@@ -300,8 +300,8 @@ const knownGlobals: GlobalDescription = {
 	unescape: PF,
 	URIError: PC,
 	valueOf: O,
-	WeakMap: PC,
-	WeakSet: PC,
+	WeakMap: C,
+	WeakSet: C,
 
 	// Additional globals shared by Node and Browser that are not strictly part of the language
 	clearInterval: C,
