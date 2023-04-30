@@ -1,5 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
+// @ts-expect-error not included in types
 const { getObject } = require('../../../../utils');
 
 module.exports = defineTest({

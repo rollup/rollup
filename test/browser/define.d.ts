@@ -1,5 +1,5 @@
-import type { TestConfigBase } from '../types';
+import type { TestConfigBrowser } from '../types';
 
 declare global {
-	function defineTest(config: TestConfigBase): TestConfigBase;
+	function defineTest(config: TestConfigBrowser): TestConfigBrowser;
 }

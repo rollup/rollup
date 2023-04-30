@@ -1,113 +1,76 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 import type { SourceMap } from 'magic-string';
 import type { RollupBuild, RollupError, RollupOptions } from '../src/rollup/types';
 
 export interface TestConfigBase {
 	/**
-	 * Only run this test. Should never be committed.
+	 * Description of the test. Determines the name of the test in the test
+	 * runner.
 	 */
-	solo?: boolean;
+	description: string;
+	/**
+	 * Only run this test if the major Node version is high enough.
+	 */
+	minNodeVersion?: number;
+	/**
+	 * Only run this test on Windows.
+	 */
+	onlyWindows?: boolean;
 	/**
 	 * Skip this test.
 	 */
 	skip?: boolean;
 	/**
-	 * Display in the test output.
+	 * Do not run this test on Windows.
 	 */
-	show?: boolean;
+	skipIfWindows?: boolean;
 	/**
-	 * Execute the bundled code.
+	 * Only run this test. Should never be committed.
 	 */
-	execute?: boolean;
+	solo?: boolean;
+}
 
+export interface TestConfigBrowser extends TestConfigBase {
 	/**
-	 * Description of the test.
+	 * Expected error when running rollup.rollup()
 	 */
-	description: string;
+	error?: RollupError;
 	/**
-	 * Rollup options
+	 * Expected warning codes. Any of these warnings will not cause the test to
+	 * fail.
+	 */
+	expectedWarnings?: string[];
+	/**
+	 * Expected error when running bundle.generate().
+	 */
+	generateError?: RollupError;
+	/**
+	 * Rollup options for bundling.
 	 */
 	options?: RollupOptions;
-	/**
-	 * Bundle formats to test.
-	 */
-	formats?: string[];
-	/**
-	 * The global context executed the bundled code.
-	 */
-	context?: Record<string, any>;
-	/**
-	 * The directory to run the test in.
-	 */
-	nestedDir?: string;
+}
 
+export interface TestConfigChunkingForm extends TestConfigBase {
+	/**
+	 * Called after the test is run.
+	 */
+	after?: () => void | Promise<void>;
 	/**
 	 * Called before the test is run.
 	 */
 	before?: () => void | Promise<void>;
 	/**
-	 * Called after the test is run.
+	 * Expected warning codes. Any of these warnings will not cause the test to
+	 * fail.
 	 */
-	after?: () => void | Promise<void>;
-
+	expectedWarnings?: string[];
 	/**
-	 * Test the expected error.
+	 * The directory to bundle the code in.
 	 */
-	error?: RollupError;
-	generateError?: RollupError;
+	nestedDir?: string;
 	/**
-	 * Test the expected warnings.
+	 * Rollup options for bundling.
 	 */
-	warnings?: RollupError[] | ((warnings: RollupError[]) => boolean | void);
-	/**
-	 * Expected warning codes
-	 */
-	expectedWarnings?: string | string[];
-	/**
-	 * Test the output of the build.
-	 */
-	test?: (code: string, map: SourceMap) => void | Promise<void>;
-	/**
-	 * Assetions for the exports of the bundle.
-	 */
-	exports?: (exportObject: any) => void | Promise<void>;
-
-	skipIfWindows?: boolean;
-	onlyWindows?: boolean;
-	minNodeVersion?: string;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface TestConfigForm extends TestConfigBase {}
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface TestConfigSourcemap extends TestConfigBase {}
-
-export interface TestConfigFileHash extends TestConfigBase {
-	options1?: RollupOptions;
-	options2?: RollupOptions;
-}
-
-export interface TestConfigCli extends TestConfigBase {
-	command?: string;
-	cwd?: string;
-	retry?: number;
-	/**
-	 * Environment variables to set for the test.
-	 */
-	env?: Record<string, string | boolean | undefined>;
-	/**
-	 * Assert the stderr of the build.
-	 */
-	stderr?: (stderr: string) => void | Promise<void>;
-	/**
-	 * Assert the stderr stream, return true to abort the test.
-	 */
-	abortOnStderr?: (data: string) => boolean | void | Promise<boolean | void>;
-
-	result?: (code: string) => void;
-}
-
-export interface TestConfigChunkingForm extends TestConfigBase {
+	options?: RollupOptions;
 	/**
 	 * Execute the AMD module.
 	 */
@@ -118,10 +81,153 @@ export interface TestConfigChunkingForm extends TestConfigBase {
 		  };
 }
 
-export interface TestConfigFunction extends TestConfigBase {
-	runtimeError?(error: Error): void;
-	bundle?(bundle: RollupBuild): void;
-	code?(code: string): void;
+export interface TestConfigCli extends TestConfigBase {
+	/**
+	 * Assert the stderr stream, return true to abort the test.
+	 */
+	abortOnStderr?: (data: string) => boolean | void | Promise<boolean | void>;
+	/**
+	 * Called after the test is run.
+	 */
+	after?: (error: Error | null, stdout: string, stderr: string) => void | Promise<void>;
+	/**
+	 * Called before the test is run.
+	 */
+	before?: () => void | Promise<void>;
+	command?: string;
+	cwd?: string;
+	/**
+	 * Environment variables to set for the test.
+	 */
+	env?: Record<string, string | boolean | undefined>;
+	/**
+	 * Test the expected error. Assertions about the test output will only
+	 * be performed afterward if you return "true" or do not supply this option.
+	 */
+	error?: (error: RollupError) => boolean | void;
+	/**
+	 * Execute the bundled code.
+	 */
+	execute?: boolean;
+	/**
+	 * Run assertions against the exports of the bundle after executing it.
+	 */
+	exports?: (exportObject: any) => void | Promise<void>;
+	/**
+	 * Run assertions against the generated code when bundling to stdout.
+	 */
+	result?: (code: string) => void;
+	retry?: number;
+	/**
+	 * Display generated output in console.
+	 */
+	show?: boolean;
+	/**
+	 * Assert the stderr of the build. Assertions about the test output will only
+	 * be performed afterward if you return "true" or do not supply this option.
+	 */
+	stderr?: (stderr: string) => boolean | undefined;
+	/**
+	 * Run assertions after the command has finished.
+	 */
+	test?: () => void;
 }
 
-export type RunTestFunction = <C extends TestConfigBase>(directory: string, config: C) => void;
+export interface TestConfigFileHash extends TestConfigBase {
+	options1: RollupOptions;
+	options2: RollupOptions;
+}
+
+export interface TestConfigForm extends TestConfigBase {
+	/**
+	 * Called after the test is run.
+	 */
+	after?: () => void | Promise<void>;
+	/**
+	 * Called before the test is run.
+	 */
+	before?: () => void | Promise<void>;
+	/**
+	 * Expected warning codes. Any of these warnings will not cause the test to
+	 * fail.
+	 */
+	expectedWarnings?: string[];
+	/**
+	 * Output formats to test.
+	 */
+	formats?: string[];
+	/**
+	 * Rollup options for bundling.
+	 */
+	options?: RollupOptions;
+}
+
+export interface TestConfigFunction extends TestConfigBase {
+	/**
+	 * Called after the test is run.
+	 */
+	after?: () => void | Promise<void>;
+	/**
+	 * Called before the test is run.
+	 */
+	before?: () => void | Promise<void>;
+	/**
+	 * Make assertions against the generated Rollup output object.
+	 */
+	bundle?: (bundle: RollupBuild) => void | Promise<void>;
+	/**
+	 * Make assertions against the generated code.
+	 */
+	code?: (code: string | Record<string, string>) => void;
+	/**
+	 * The global context executed the bundled code.
+	 */
+	context?: Record<string, any>;
+	/**
+	 * Expected error when running rollup.rollup()
+	 */
+	error?: RollupError;
+	/**
+	 * Assetions for the exports of the bundle.
+	 */
+	exports?: (exportObject: any) => void | Promise<void>;
+	/**
+	 * Expected error when running bundle.generate().
+	 */
+	generateError?: RollupError;
+	/**
+	 * Make assertions against an expected runtime error.
+	 */
+	runtimeError?: (error: Error) => void;
+	/**
+	 * Display generated output in console.
+	 */
+	show?: boolean;
+	/**
+	 * Test the expected warnings.
+	 */
+	warnings?: RollupError[] | ((warnings: RollupError[]) => boolean | void);
+}
+
+export interface TestConfigSourcemap extends TestConfigBase {
+	/**
+	 * Output formats to test.
+	 */
+	formats?: string[];
+	/**
+	 * Rollup options for bundling.
+	 */
+	options?: RollupOptions;
+	/**
+	 * Generate the bundle and run assertions.
+	 */
+	test: (
+		code: string,
+		map: SourceMap,
+		options: { fileName: string; format: string }
+	) => void | Promise<void>;
+	/**
+	 * List expected warnings.
+	 */
+	warnings?: RollupError[];
+}

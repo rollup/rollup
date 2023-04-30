@@ -13,58 +13,65 @@ const fixturify = require('fixturify');
 const { rollup } = require('../../browser/dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
 
-runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (directory, config) => {
-	(config.skip ? it.skip : config.solo ? it.only : it)(
-		basename(directory) + ': ' + config.description,
-		async () => {
-			let bundle;
-			try {
-				bundle = await rollup({
-					input: 'main',
-					onwarn: warning => {
-						if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
-							throw new Error(
-								`Unexpected warnings (${warning.code}): ${warning.message}\n` +
-									'If you expect warnings, list their codes in config.expectedWarnings'
-							);
-						}
-					},
-					strictDeprecations: true,
-					...config.options
-				});
-			} catch (error) {
+runTestSuiteWithSamples(
+	'browser',
+	resolve(__dirname, 'samples'),
+	/**
+	 * @param {import('../types').TestConfigBrowser} config
+	 */
+	(directory, config) => {
+		(config.skip ? it.skip : config.solo ? it.only : it)(
+			basename(directory) + ': ' + config.description,
+			async () => {
+				let bundle;
+				try {
+					bundle = await rollup({
+						input: 'main',
+						onwarn: warning => {
+							if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
+								throw new Error(
+									`Unexpected warnings (${warning.code}): ${warning.message}\n` +
+										'If you expect warnings, list their codes in config.expectedWarnings'
+								);
+							}
+						},
+						strictDeprecations: true,
+						...config.options
+					});
+				} catch (error) {
+					if (config.error) {
+						compareError(error, config.error);
+						return;
+					} else {
+						throw error;
+					}
+				}
 				if (config.error) {
-					compareError(error, config.error);
-					return;
-				} else {
-					throw error;
+					throw new Error('Expected an error while rolling up');
 				}
-			}
-			if (config.error) {
-				throw new Error('Expected an error while rolling up');
-			}
-			let output;
-			try {
-				({ output } = await bundle.generate({
-					exports: 'auto',
-					format: 'es',
-					...(config.options || {}).output
-				}));
-			} catch (error) {
+				let output;
+				try {
+					({ output } = await bundle.generate({
+						exports: 'auto',
+						format: 'es',
+						...(config.options || {}).output
+					}));
+				} catch (error) {
+					if (config.generateError) {
+						compareError(error, config.generateError);
+						return;
+					} else {
+						throw error;
+					}
+				}
 				if (config.generateError) {
-					compareError(error, config.generateError);
-					return;
-				} else {
-					throw error;
+					throw new Error('Expected an error while generating output');
 				}
+				assertOutputMatches(output, directory);
 			}
-			if (config.generateError) {
-				throw new Error('Expected an error while generating output');
-			}
-			assertOutputMatches(output, directory);
-		}
-	);
-});
+		);
+	}
+);
 
 function assertOutputMatches(output, directory) {
 	/** @type any */

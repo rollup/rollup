@@ -2,7 +2,9 @@ const path = require('node:path');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
+// @ts-expect-error not included in types
 const rollup = require('../../dist/rollup');
+// @ts-expect-error not included in types
 const { runTestSuiteWithSamples } = require('../utils.js');
 
 runTestSuiteWithSamples(

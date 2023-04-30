@@ -57,8 +57,10 @@ async function runTest(config, command) {
 				env: { ...process.env, FORCE_COLOR: '0', ...config.env },
 				killSignal: 'SIGKILL'
 			},
-			(error, code, stderr) => {
-				if (config.after) config.after(error, code, stderr);
+			async (error, code, stderr) => {
+				if (config.after) {
+					await config.after(error, code, stderr);
+				}
 				if (error && !error.killed) {
 					if (config.error) {
 						if (!config.error(error)) {
@@ -94,7 +96,7 @@ async function runTest(config, command) {
 						}
 
 						if (config.exports) {
-							config.exports(module.exports);
+							await config.exports(module.exports);
 						}
 					} catch (error) {
 						if (config.error) {

@@ -3,6 +3,7 @@ const path = require('node:path');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
+// @ts-expect-error not included in types
 const rollup = require('../../dist/rollup');
 const { compareError, compareWarnings, runTestSuiteWithSamples } = require('../utils.js');
 
@@ -58,9 +59,11 @@ runTestSuiteWithSamples(
 	(directory, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
 			path.basename(directory) + ': ' + config.description,
-			() => {
+			async () => {
 				if (config.show) console.group(path.basename(directory));
-				if (config.before) config.before();
+				if (config.before) {
+					await config.before();
+				}
 				process.chdir(directory);
 				const warnings = [];
 
@@ -173,7 +176,9 @@ runTestSuiteWithSamples(
 										}
 										if (config.show) console.groupEnd();
 										if (unintendedError) throw unintendedError;
-										if (config.after) config.after();
+										if (config.after) {
+											return config.after();
+										}
 									});
 							});
 					})
@@ -183,7 +188,9 @@ runTestSuiteWithSamples(
 						} else {
 							throw error;
 						}
-						if (config.after) config.after();
+						if (config.after) {
+							return config.after();
+						}
 					});
 			}
 		);

@@ -17,7 +17,8 @@ module.exports = defineTest({
 					return { code, map: null };
 				}
 			}
-		]
+		],
+		output: { sourcemap: true }
 	},
 	warnings: [
 		{

@@ -1,6 +1,6 @@
 module.exports = defineTest({
 	description: 'keep import assertions for dynamic imports',
-	expectedWarnings: 'UNRESOLVED_IMPORT',
+	expectedWarnings: ['UNRESOLVED_IMPORT'],
 	options: {
 		external: id => {
 			if (id === 'unresolved') return null;

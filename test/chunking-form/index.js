@@ -8,55 +8,64 @@ const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
-runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (directory, config) => {
-	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
-		basename(directory) + ': ' + config.description,
-		() => {
-			let bundle;
+runTestSuiteWithSamples(
+	'chunking form',
+	resolve(__dirname, 'samples'),
+	/**
+	 * @param {import('../types').TestConfigChunkingForm} config
+	 */
+	(directory, config) => {
+		(config.skip ? describe.skip : config.solo ? describe.only : describe)(
+			basename(directory) + ': ' + config.description,
+			async () => {
+				let bundle;
 
-			if (config.before) {
-				before(config.before);
-			}
-			if (config.after) {
-				after(config.after);
-			}
+				if (config.before) {
+					await before(config.before);
+				}
+				if (config.after) {
+					await after(config.after);
+				}
 
-			for (const format of FORMATS) {
-				it('generates ' + format, async () => {
-					chdir(directory);
-					bundle =
-						bundle ||
-						(await rollup({
-							input: [directory + '/main.js'],
-							onwarn: warning => {
-								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
-									throw new Error(
-										`Unexpected warnings (${warning.code}): ${warning.message}\n` +
-											'If you expect warnings, list their codes in config.expectedWarnings'
-									);
-								}
+				for (const format of FORMATS) {
+					it('generates ' + format, async () => {
+						chdir(directory);
+						bundle =
+							bundle ||
+							(await rollup({
+								input: [directory + '/main.js'],
+								onwarn: warning => {
+									if (
+										!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))
+									) {
+										throw new Error(
+											`Unexpected warnings (${warning.code}): ${warning.message}\n` +
+												'If you expect warnings, list their codes in config.expectedWarnings'
+										);
+									}
+								},
+								strictDeprecations: true,
+								...config.options
+							}));
+						await generateAndTestBundle(
+							bundle,
+							{
+								dir: `${directory}/_actual/${format}`,
+								exports: 'auto',
+								format,
+								chunkFileNames: 'generated-[name].js',
+								validate: true,
+								...(config.options || {}).output
 							},
-							strictDeprecations: true,
-							...config.options
-						}));
-					await generateAndTestBundle(
-						bundle,
-						{
-							dir: `${directory}/_actual/${format}`,
-							exports: 'auto',
-							format,
-							chunkFileNames: 'generated-[name].js',
-							validate: true,
-							...(config.options || {}).output
-						},
-						`${directory}/_expected/${format}`,
-						config
-					);
-				});
+							`${directory}/_expected/${format}`,
+							config
+						);
+					});
+				}
 			}
-		}
-	);
-});
+		);
+	}
+);
 
 async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, config) {
 	await bundle.write({
