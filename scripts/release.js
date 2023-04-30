@@ -255,6 +255,7 @@ async function waitForChangelogUpdate(version) {
 			{
 				choices: ['ok'],
 				message: `Please edit the changelog or confirm the changelog is acceptable to continue to release "${version}".`,
+				name: 'ok',
 				type: 'list'
 			}
 		]);
