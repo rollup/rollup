@@ -1,6 +1,6 @@
 const { loader } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'ignores queries and hashes for chunk names when preserving modules',
 	options: {
 		input: ['a.js?query', 'b.js#hash'],
@@ -12,4 +12,4 @@ module.exports = {
 			})
 		]
 	}
-};
+});

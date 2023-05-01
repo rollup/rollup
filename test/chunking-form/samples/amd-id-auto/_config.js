@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to use amd.autoId',
 	options: {
 		input: ['main'],
@@ -13,4 +13,4 @@ module.exports = {
 			return exports.getA();
 		}
 	}
-};
+});

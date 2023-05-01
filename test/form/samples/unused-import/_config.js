@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'excludes unused imports ([#595])',
 	options: {
 		external: ['external'],
@@ -6,4 +6,4 @@ module.exports = {
 			globals: { external: 'external' }
 		}
 	}
-};
+});

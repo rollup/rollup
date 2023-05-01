@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles deoptimization of conditionals',
 	exports(exports) {
 		assert.deepStrictEqual(exports, {
@@ -14,4 +14,4 @@ module.exports = {
 			log2b: true
 		});
 	}
-};
+});

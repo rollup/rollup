@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not remove inline comments inside dynamic imports',
 	options: {
 		input: 'main.js',
@@ -12,4 +12,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

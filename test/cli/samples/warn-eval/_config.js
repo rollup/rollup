@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns when eval is used',
 	command: 'rollup -c',
 	stderr: stderr =>
@@ -12,4 +12,4 @@ module.exports = {
 				"1: eval('foo');\n" +
 				'   ^'
 		)
-};
+});

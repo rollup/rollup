@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws error if module is not found',
 	error: {
 		code: 'UNRESOLVED_IMPORT',
@@ -10,4 +10,4 @@ module.exports = {
 		watchFiles: [ID_MAIN],
 		message: 'Could not resolve "./mod" from "main.js"'
 	}
-};
+});

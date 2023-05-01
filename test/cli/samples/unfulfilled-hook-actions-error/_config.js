@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { assertIncludes, assertDoesNotInclude } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not show unfulfilled hook actions if there are errors',
 	command: 'node build.mjs',
 	after(error) {
@@ -12,4 +12,4 @@ module.exports = {
 		assertIncludes(stderr, 'Error: Error must be displayed.');
 		assertDoesNotInclude(stderr, 'Unfinished');
 	}
-};
+});

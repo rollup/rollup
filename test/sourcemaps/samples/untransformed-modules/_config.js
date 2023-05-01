@@ -1,11 +1,12 @@
 const assert = require('node:assert');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows sourcemap chains with some untransformed modules (#404)',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform(code, id) {
 					if (/untransformed-modules\/foo/.test(id)) {
 						const s = new MagicString(code);
@@ -24,4 +25,4 @@ module.exports = {
 	test() {
 		assert.ok(true);
 	}
-};
+});

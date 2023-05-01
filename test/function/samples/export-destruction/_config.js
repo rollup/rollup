@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handle destruction patterns in export declarations',
 
 	exports(exports) {
@@ -8,4 +8,4 @@ module.exports = {
 		assert.equal(exports.baz, 5);
 		assert.equal(exports.quux, 17);
 	}
-};
+});

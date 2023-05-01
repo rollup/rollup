@@ -6,7 +6,7 @@ const ID_THIRD = path.join(__dirname, 'third.js');
 const DYNAMIC_IMPORT_PROXY_PREFIX = '\0dynamic-import:';
 const chunks = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to wait for dependency resolution in this.load to scan dependency trees',
 	context: { chunks },
 	async exports(exports) {
@@ -90,4 +90,4 @@ module.exports = {
 			message: 'Circular dependency: second.js -> third.js -> second.js'
 		}
 	]
-};
+});

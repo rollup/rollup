@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const execution = { index: 0 };
 
-module.exports = {
+module.exports = defineTest({
 	description: 'sorts imports between chunks to closely match the actual execution order',
 	context: { execution },
 	options: {
@@ -10,4 +10,4 @@ module.exports = {
 	exports() {
 		assert.equal(execution.index, 4);
 	}
-};
+});

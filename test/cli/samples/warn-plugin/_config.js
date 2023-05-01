@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'displays warnings from plugins',
 	command: 'rollup -c',
 	stderr: stderr =>
@@ -15,4 +15,4 @@ module.exports = {
 				'other.js: (1:2)\n' +
 				'custom frame'
 		)
-};
+});

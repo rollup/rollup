@@ -6,7 +6,7 @@ const fsReadFile = fs.readFile;
 let currentReads = 0;
 let maxReads = 0;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'maxParallelFileReads with plugin',
 	options: {
 		strictDeprecations: false,
@@ -41,4 +41,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#maxparallelfileops'
 		}
 	]
-};
+});

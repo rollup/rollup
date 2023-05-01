@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'statically resolves Symbol.toStringTag for inlined namespaces',
 	expectedWarnings: ['MISSING_EXPORT'],
 	options: {
@@ -6,4 +6,4 @@ module.exports = {
 			generatedCode: { symbols: true }
 		}
 	}
-};
+});

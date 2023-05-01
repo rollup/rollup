@@ -14,7 +14,7 @@ const expectedNames = new Set([
 	'no-ext'
 ]);
 
-module.exports = {
+module.exports = defineTest({
 	description: 'entryFileNames pattern supported in combination with preserveModules',
 	options: {
 		input: 'src/main.js',
@@ -41,4 +41,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

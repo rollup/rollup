@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles vars with init in dead branch (#1198)',
 	warnings: [
 		{
@@ -7,4 +7,4 @@ module.exports = {
 			names: ['main']
 		}
 	]
-};
+});

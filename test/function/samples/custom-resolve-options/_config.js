@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports custom resolve options',
 	options: {
 		plugins: [
@@ -34,4 +34,4 @@ module.exports = {
 			second: 'the-actual-id'
 		});
 	}
-};
+});

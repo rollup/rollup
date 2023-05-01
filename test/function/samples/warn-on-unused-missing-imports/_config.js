@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns on missing (but unused) imports',
 	warnings: [
 		{
@@ -25,4 +25,4 @@ module.exports = {
 				3: assert.equal( a, 42 );`
 		}
 	]
-};
+});

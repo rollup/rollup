@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Support external namespace reexport',
 	options: {
 		external: ['highcharts'],
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'myBundle'
 		}
 	}
-};
+});

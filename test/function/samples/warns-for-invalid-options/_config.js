@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'warns for invalid options',
 	options: {
 		myInvalidInputOption: true,
@@ -20,4 +20,4 @@ module.exports = {
 				require('../../../misc/optionList').output
 		}
 	]
-};
+});

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const VIRTUAL_ID = '\0virtual';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not pass internal modules to moduleSideEffects',
 	expectedWarnings: ['EMPTY_BUNDLE'],
 	options: {
@@ -25,4 +25,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let imported = false;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows specifying a custom importer function',
 	context: {
 		myImporter(path) {
@@ -33,4 +33,4 @@ module.exports = {
 			url: 'https://rollupjs.org/plugin-development/#renderdynamicimport'
 		}
 	]
-};
+});

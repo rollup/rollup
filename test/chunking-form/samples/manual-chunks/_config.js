@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'manual chunks support',
 	options: {
 		input: ['main.js'],
@@ -9,4 +9,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Having multiple inputs in an object is not supported when inlining dynamic imports',
 	options: {
 		strictDeprecations: false,
@@ -18,4 +18,4 @@ module.exports = {
 				'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.'
 		}
 	]
-};
+});

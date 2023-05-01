@@ -1,3 +1,3 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'properly handles exporting async functions'
-};
+});

@@ -1,7 +1,7 @@
 const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns on top-level this (#770)',
 	warnings: [
 		{
@@ -27,4 +27,4 @@ module.exports = {
 		assertIncludes(error.message, 'Cannot set propert');
 		assertIncludes(error.message, "'foo'");
 	}
-};
+});

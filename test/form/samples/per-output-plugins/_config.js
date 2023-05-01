@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows specifying per-output plugins',
 	options: {
 		output: {
@@ -17,4 +17,4 @@ module.exports = {
 			]
 		}
 	}
-};
+});

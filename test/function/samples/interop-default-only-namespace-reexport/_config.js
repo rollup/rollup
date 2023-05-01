@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'warns when reexporting a namespace with interop "defaultOnly"',
 	options: {
 		external: 'external',
@@ -15,4 +15,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-interop'
 		}
 	]
-};
+});

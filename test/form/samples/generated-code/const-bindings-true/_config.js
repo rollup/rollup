@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'uses block bindings',
 	expectedWarnings: ['SHIMMED_EXPORT'],
 	options: {
@@ -13,6 +13,7 @@ module.exports = {
 		},
 		plugins: [
 			{
+				name: 'test',
 				transform(code, id) {
 					if (id.endsWith('synthetic.js')) {
 						return { syntheticNamedExports: true };
@@ -21,4 +22,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

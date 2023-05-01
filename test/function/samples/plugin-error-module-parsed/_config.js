@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'errors in moduleParsed abort the build',
 	options: {
 		plugins: [
@@ -19,4 +19,4 @@ module.exports = {
 		plugin: 'testPlugin',
 		watchFiles: [path.join(__dirname, 'main.js')]
 	}
-};
+});

@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'aggregates warnings of different types',
 	command: 'rollup -c',
 	stderr: stderr => {
@@ -41,4 +41,4 @@ module.exports = {
 				"3: import url from 'url';\n"
 		);
 	}
-};
+});

@@ -3,7 +3,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 const ID_BAR = path.join(__dirname, 'bar.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'default export is not re-exported with export *',
 	error: {
 		binding: 'default',
@@ -26,4 +26,4 @@ module.exports = {
 		`,
 		url: `https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module`
 	}
-};
+});

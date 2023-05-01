@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when not setting the asset source',
 	options: {
 		plugins: {
@@ -12,4 +12,4 @@ module.exports = {
 		code: 'ASSET_SOURCE_MISSING',
 		message: 'Plugin error creating asset "test.ext" - no asset source set.'
 	}
-};
+});

@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when a module that is loaded before an emitted chunk is external',
 	options: {
 		plugins: {
@@ -25,4 +25,4 @@ module.exports = {
 			'Module "external" that should be implicitly loaded before "dep.js" cannot be external.',
 		watchFiles: [path.join(__dirname, 'dep.js'), path.join(__dirname, 'main.js')]
 	}
-};
+});

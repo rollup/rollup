@@ -1,7 +1,7 @@
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows referencing emitted files',
 	options: {
 		strictDeprecations: false,
@@ -11,8 +11,9 @@ module.exports = {
 			chunkFileNames: 'nested/chunk.js'
 		},
 		plugins: {
+			name: 'test-plugin',
 			resolveId(id, importee) {
-				if (id.endsWith('.svg')) {
+				if (id.endsWith('.svg') && importee) {
 					return path.resolve(path.dirname(importee), id);
 				}
 			},
@@ -27,4 +28,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

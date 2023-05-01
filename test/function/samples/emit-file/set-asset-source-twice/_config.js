@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when setting the asset source twice',
 	options: {
 		plugins: {
@@ -17,4 +17,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'ASSET_SOURCE_ALREADY_SET'
 	}
-};
+});

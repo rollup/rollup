@@ -2,7 +2,7 @@ const assert = require('node:assert');
 let oldConsoleWarn;
 const warnings = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'provides a default handler for warnings to onwarn that handles strings and objects',
 	options: {
 		onwarn(warning, defaultHandler) {
@@ -24,4 +24,4 @@ module.exports = {
 			'Entry module "main.js" is using named and default exports together. Consumers of your bundle will have to use `chunk.default` to access the default export, which may not be what you want. Use `output.exports: "named"` to disable this warning.'
 		]);
 	}
-};
+});

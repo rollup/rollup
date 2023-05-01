@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not export aliased binding under original name (#438)',
 	exports(exports) {
 		assert.equal(exports.number, 0);
@@ -9,4 +9,4 @@ module.exports = {
 
 		assert.ok(!('count' in exports));
 	}
-};
+});

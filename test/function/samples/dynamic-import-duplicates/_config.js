@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Dynamic import inlining',
 	options: {
 		output: { inlineDynamicImports: true }
@@ -11,4 +11,4 @@ module.exports = {
 			assert.equal(y, 42);
 		});
 	}
-};
+});

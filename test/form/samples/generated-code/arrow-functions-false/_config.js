@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not use arrow functions',
 	options: {
 		external: [
@@ -30,4 +30,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

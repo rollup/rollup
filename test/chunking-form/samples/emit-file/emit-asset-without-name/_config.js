@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports emitting an asset without a name',
 	options: {
 		input: ['main.js'],
@@ -8,4 +8,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

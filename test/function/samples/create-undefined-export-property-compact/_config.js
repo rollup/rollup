@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'creates an export as an exports property even if is has no initializer',
 	options: { output: { compact: true } },
 	exports(exports) {
@@ -14,4 +14,4 @@ module.exports = {
 		assert.strictEqual(exports.foo, 'defined');
 		assert.strictEqual(exports.bar, 'defined');
 	}
-};
+});

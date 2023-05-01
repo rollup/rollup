@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when using a named import with interop "defaultOnly"',
 	options: {
 		external: 'external',
@@ -13,4 +13,4 @@ module.exports = {
 		message:
 			'The named export "foo" was imported from the external module "external" even though its interop type is "defaultOnly". Either remove or change this import or change the value of the "output.interop" option.'
 	}
-};
+});

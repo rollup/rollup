@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles dynamic imports from facades using default export mode',
 	options: {
 		input: ['main', 'foo', 'bar']
@@ -10,4 +10,4 @@ module.exports = {
 			assert.deepStrictEqual(exported, { __proto__: null, default: 4 })
 		);
 	}
-};
+});

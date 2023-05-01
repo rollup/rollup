@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports custom asset file names',
 	options: {
 		input: ['main.js'],
@@ -12,4 +12,4 @@ module.exports = {
 			assetFileNames: '[ext]/[hash]-[name][extname]'
 		}
 	}
-};
+});

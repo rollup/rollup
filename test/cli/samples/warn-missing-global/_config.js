@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns when there is a missing global variable name',
 	command: 'rollup -c',
 	stderr: stderr =>
@@ -11,4 +11,4 @@ module.exports = {
 				'Use "output.globals" to specify browser global variable names corresponding to external modules:\n' +
 				'external (guessing "foo")'
 		)
-};
+});

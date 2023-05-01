@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles manual chunks with circular dependencies',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY', 'DEPRECATED_FEATURE'],
 	options: {
@@ -6,4 +6,4 @@ module.exports = {
 		input: 'main',
 		manualChunks: { lib1: ['lib1'], lib2: ['lib2'] }
 	}
-};
+});

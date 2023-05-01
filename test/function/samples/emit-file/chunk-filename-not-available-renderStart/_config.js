@@ -1,6 +1,6 @@
 let chunkId;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Throws when accessing the filename before it has been generated in renderStart',
 	options: {
 		input: 'main.js',
@@ -22,4 +22,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'CHUNK_NOT_GENERATED'
 	}
-};
+});

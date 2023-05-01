@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns for conflicting import assertions',
 	options: {
 		external: id => id.startsWith('external')
@@ -61,4 +61,4 @@ module.exports = {
 				'Module "other.js" tried to import "dep.js" with "type": "bar" assertions, but it was already imported elsewhere with "type": "foo" assertions. Please ensure that import assertions for the same module are always consistent.'
 		}
 	]
-};
+});

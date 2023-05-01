@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles fully deoptimized objects',
 	context: {
 		require() {
@@ -8,4 +8,4 @@ module.exports = {
 	options: {
 		external: ['external']
 	}
-};
+});

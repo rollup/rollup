@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles empty imports when generating IIFE output',
 	expectedWarnings: ['MISSING_NODE_BUILTINS', 'UNRESOLVED_IMPORT'],
 	options: {
@@ -11,4 +11,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

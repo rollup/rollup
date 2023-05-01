@@ -5,7 +5,7 @@ const ID_REEXPORT = path.join(__dirname, 'reexport.js');
 const ID_FIRST = path.join(__dirname, 'first.js');
 const ID_SECOND = path.join(__dirname, 'second.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when a conflicting binding is imported via a named import',
 	error: {
 		binding: 'foo',
@@ -27,4 +27,4 @@ module.exports = {
 		watchFiles: [ID_FIRST, ID_MAIN, ID_REEXPORT, ID_SECOND],
 		message: '"foo" is not exported by "reexport.js", imported by "main.js".'
 	}
-};
+});

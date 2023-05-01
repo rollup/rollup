@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'uses a custom external path resolver (asynchronous)',
 	options: {
 		plugins: [
@@ -16,4 +16,4 @@ module.exports = {
 	exports(exports) {
 		assert.ok(exports.success);
 	}
-};
+});

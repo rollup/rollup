@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'deconflicts synthetic named exports across chunks',
 	options: {
 		input: ['main', 'foo'],
@@ -16,4 +16,4 @@ module.exports = {
 	exports(exports) {
 		assert.strictEqual(exports(2), 4);
 	}
-};
+});

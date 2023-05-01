@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows module name with dashes to be added to the global object',
 	options: {
 		output: {
@@ -6,4 +6,4 @@ module.exports = {
 			name: 'module-name-with-dashes'
 		}
 	}
-};
+});

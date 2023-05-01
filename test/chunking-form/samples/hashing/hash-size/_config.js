@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows configurable hash size',
 	options: {
 		input: ['main1.js', 'main2.js'],
@@ -17,4 +17,4 @@ module.exports = {
 			assetFileNames: '[name]-[hash:18][extname]'
 		}
 	}
-};
+});

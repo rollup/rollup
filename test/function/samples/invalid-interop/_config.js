@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws for invalid interop values',
 	options: {
 		external: 'external',
@@ -12,4 +12,4 @@ module.exports = {
 			'Invalid value "true" for option "output.interop" - use one of "compat", "auto", "esModule", "default", "defaultOnly".',
 		url: 'https://rollupjs.org/configuration-options/#output-interop'
 	}
-};
+});

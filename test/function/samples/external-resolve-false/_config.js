@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'includes an external module with a false resolve return',
 	options: {
 		input: 'main.js',
@@ -18,4 +18,4 @@ module.exports = {
 			return 1;
 		}
 	}
-};
+});

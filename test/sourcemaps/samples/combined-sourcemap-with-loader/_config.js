@@ -1,15 +1,16 @@
 const assert = require('node:assert');
 const { readFileSync } = require('node:fs');
 const buble = require('buble');
-const MagicString = require('magic-string');
+const MagicString = require('magic-string').default;
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'get combined sourcemap in transforming with loader',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin1',
 				load(id) {
 					const code = readFileSync(id, 'utf8');
 					const out = buble.transform(code, {
@@ -22,6 +23,7 @@ module.exports = {
 				}
 			},
 			{
+				name: 'test-plugin2',
 				async transform(code, id) {
 					const sourcemap = this.getCombinedSourcemap();
 					const smc = await new SourceMapConsumer(sourcemap);
@@ -46,6 +48,7 @@ module.exports = {
 				}
 			},
 			{
+				name: 'test-plugin3',
 				async transform(code, id) {
 					const sourcemap = this.getCombinedSourcemap();
 					const smc = await new SourceMapConsumer(sourcemap);
@@ -76,7 +79,7 @@ module.exports = {
 		testFoo(code, smc);
 		testMain(code, smc);
 	}
-};
+});
 
 function testFoo(code, smc) {
 	const generatedLoc = getLocation(code, code.indexOf(42));

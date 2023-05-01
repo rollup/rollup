@@ -3,7 +3,7 @@ const { readFileSync } = require('node:fs');
 const path = require('node:path');
 const { SourceMapConsumer } = require('source-map');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'allows using the transform hook for annotations only without returning a code property and breaking sourcemaps',
 	options: {
@@ -38,4 +38,4 @@ module.exports = {
 			sourcemap: true
 		}
 	}
-};
+});

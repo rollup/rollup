@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws if no config is watched',
 	command: 'rollup -cw',
 	error: () => true,
@@ -10,4 +10,4 @@ module.exports = {
 			'[!] RollupError: Invalid value for option "watch" - there must be at least one config where "watch" is not set to "false".'
 		);
 	}
-};
+});

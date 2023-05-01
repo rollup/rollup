@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "checkJs": true
+  },
+  "include": [
+    "./utils.js"
+  ],
+  "references": [
+    {
+      "path": "./browser"
+    },
+    {
+      "path": "./chunking-form"
+    },
+    {
+      "path": "./file-hashes"
+    },
+    {
+      "path": "./form"
+    },
+    {
+      "path": "./function"
+    },
+    {
+      "path": "./sourcemaps"
+    }
+  ]
+}

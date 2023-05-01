@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'handles reexports when creating a facade chunk and transitive dependencies are not hoisted',
 	options: {
@@ -13,4 +13,4 @@ module.exports = {
 		assert.strictEqual(exports.external, true);
 		assert.strictEqual(await exports.dynamic(), 'liblib');
 	}
-};
+});

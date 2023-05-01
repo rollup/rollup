@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: '#1547',
 	options: {
 		external: ['external']
@@ -9,4 +9,4 @@ module.exports = {
 			throw new Error('huh?');
 		}
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not add Symbol.toStringTag property to entry chunks with default export mode',
 	options: {
 		output: {
@@ -13,4 +13,4 @@ module.exports = {
 		assert.strictEqual(Object.prototype.toString.call(exports), '[object Object]');
 		assert.strictEqual(exports.foo, 42);
 	}
-};
+});

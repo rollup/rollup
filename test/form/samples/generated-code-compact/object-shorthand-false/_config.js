@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not use object shorthand syntax',
 	options: {
 		output: {
@@ -9,4 +9,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

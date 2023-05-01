@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'provides full importedIds and dynamicallyImportedIds in the moduleParsed hook',
 	options: {
 		plugins: [
@@ -28,4 +28,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

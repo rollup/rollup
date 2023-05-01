@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Adds plugin context to plugins with perf=true',
 	options: {
 		perf: true,
@@ -24,4 +24,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

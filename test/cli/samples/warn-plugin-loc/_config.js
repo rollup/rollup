@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'correctly adds locations to plugin warnings',
 	command: 'rollup -c',
 	stderr: stderr => {
@@ -14,4 +14,4 @@ module.exports = {
 				'file-id3: (3:4)\n'
 		);
 	}
-};
+});

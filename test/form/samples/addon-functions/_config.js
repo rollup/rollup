@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+// @ts-expect-error not included in types
 const { replaceDirectoryInStringifiedObject } = require('../../../utils');
 const assertChunkData = chunk =>
 	assert.strictEqual(
@@ -31,7 +32,7 @@ const assertChunkData = chunk =>
 			'}'
 	);
 
-module.exports = {
+module.exports = defineTest({
 	description: 'provides module information when adding addons',
 	options: {
 		output: {
@@ -93,4 +94,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports namespaces with external star reexports',
 	options: {
 		external: ['fs', 'path'],
@@ -27,4 +27,4 @@ module.exports = {
 		assert.strictEqual(exports.fsOverride.readFileSync, fs.readFileSync);
 		assert.strictEqual(exports.fsOverride.dirname, path.dirname);
 	}
-};
+});

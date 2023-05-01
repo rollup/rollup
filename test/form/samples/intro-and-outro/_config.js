@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'adds an intro/outro',
 	options: {
 		output: {
@@ -10,6 +10,7 @@ module.exports = {
 		external: ['external'],
 		plugins: [
 			{
+				name: 'first',
 				intro() {
 					return '// intro 1';
 				},
@@ -18,6 +19,7 @@ module.exports = {
 				}
 			},
 			{
+				name: 'second',
 				intro() {
 					return '// intro 2';
 				},
@@ -26,6 +28,7 @@ module.exports = {
 				}
 			},
 			{
+				name: 'third',
 				intro() {
 					return Promise.resolve('// intro 3');
 				},
@@ -34,9 +37,10 @@ module.exports = {
 				}
 			},
 			{
+				name: 'fourth',
 				intro: '// intro 4',
 				outro: '// outro 4'
 			}
 		]
 	}
-};
+});

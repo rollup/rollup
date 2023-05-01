@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'adds a fallback in case synthetic named exports are falsy',
 	options: {
 		plugins: [
@@ -9,4 +9,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

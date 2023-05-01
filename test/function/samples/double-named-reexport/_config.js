@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws on duplicate named exports',
 	error: {
 		cause: {
@@ -31,4 +31,4 @@ module.exports = {
 			            ^
 		`
 	}
-};
+});

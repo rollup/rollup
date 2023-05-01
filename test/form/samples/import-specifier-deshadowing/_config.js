@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'deshadows aliased import bindings',
 	options: {
 		external: ['react-sticky'],
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'Sticky'
 		}
 	}
-};
+});

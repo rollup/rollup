@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'accepts false for `sourcemapIgnoreList` to disable the default ignore-listing of node_modules',
 	options: {
@@ -16,4 +16,4 @@ module.exports = {
 		assert.deepEqual(map.sources, ['lib.js', 'main.js']);
 		assert.strictEqual(map.x_google_ignoreList, undefined);
 	}
-};
+});

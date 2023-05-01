@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'avoid facades if possible when using manual chunks',
 	options: {
 		strictDeprecations: false,
@@ -8,4 +8,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { pathToFileURL } = require('node:url');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'lists referenced files in the bundle',
 	options: {
 		input: 'main',
@@ -43,4 +43,4 @@ module.exports = {
 			urlEncoding: `${directoryURL}/chunks/My%252FFile.js`
 		});
 	}
-};
+});

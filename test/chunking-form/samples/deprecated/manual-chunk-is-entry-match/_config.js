@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description:
 		'Identifies the entry chunk with the manual chunk that has the same entry if the aliases match',
 	options: {
@@ -11,4 +11,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

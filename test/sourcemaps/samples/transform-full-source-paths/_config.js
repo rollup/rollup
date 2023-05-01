@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'provides the full source map path when transforming source maps',
 	options: {
 		output: {
@@ -14,4 +14,4 @@ module.exports = {
 	test(code, map) {
 		assert.deepEqual(map.sources, [path.resolve(__dirname, 'main.js').replace(/\\/g, '/')]);
 	}
-};
+});

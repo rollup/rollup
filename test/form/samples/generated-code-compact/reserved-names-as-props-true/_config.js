@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'escapes reserved names used as props',
 	options: {
 		external: ['external', 'external2', 'externalDefaultOnly'],
@@ -14,10 +14,11 @@ module.exports = {
 		},
 		plugins: [
 			{
+				name: 'test',
 				transform() {
 					return { syntheticNamedExports: true };
 				}
 			}
 		]
 	}
-};
+});

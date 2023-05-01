@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Dynamic import string specifier resolving',
 	options: {
 		external: ['asdf'],
@@ -18,4 +18,4 @@ module.exports = {
 			assert.strictEqual(error.message.slice(0, expectedError.length), expectedError)
 		);
 	}
-};
+});

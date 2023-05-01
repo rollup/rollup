@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'escapes reserved names used as props',
 	options: {
 		input: ['main', 'main2'],
@@ -9,4 +9,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws if two plugins with the same name and no cache key access the cache',
 	options: {
 		plugins: [
@@ -24,4 +24,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'DUPLICATE_PLUGIN_NAME'
 	}
-};
+});

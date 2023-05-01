@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Generates actual files for virtual modules when preserving modules',
 	options: {
 		strictDeprecations: false,
@@ -38,4 +38,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-preservemodules'
 		}
 	]
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to read and modify options in the options hook',
 	exports(exports) {
 		assert.deepStrictEqual(exports, {
@@ -76,4 +76,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

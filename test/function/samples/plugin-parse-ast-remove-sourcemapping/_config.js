@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'remove source mapping comment even if code is parsed by PluginContext.parse method',
 	options: {
 		plugins: [
@@ -15,4 +15,4 @@ module.exports = {
 	code(code) {
 		assert.ok(code.search(/sourceMappingURL/) === -1);
 	}
-};
+});

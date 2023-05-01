@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles reexporting external values when module side-effects are false',
 	context: {
 		require(id) {
@@ -21,4 +21,4 @@ module.exports = {
 			moduleSideEffects: false
 		}
 	}
-};
+});

@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'disallows non-top-level imports',
 	error: {
 		cause: {
@@ -30,4 +30,4 @@ module.exports = {
 		watchFiles: [ID_MAIN],
 		message: "'import' and 'export' may only appear at the top level"
 	}
-};
+});

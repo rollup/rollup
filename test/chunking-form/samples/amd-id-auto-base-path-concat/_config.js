@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: "allows to use amd.autoId with amd.basePath and works when concat'd into one file",
 	options: {
 		input: ['main'],
@@ -31,4 +31,4 @@ module.exports = {
 			return exports.getA();
 		}
 	}
-};
+});

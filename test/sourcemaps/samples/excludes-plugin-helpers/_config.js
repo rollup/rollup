@@ -4,7 +4,7 @@ const path = require('node:path');
 
 const HELPER = '\0helper';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'excludes plugin helpers from sources',
 	options: {
 		output: {
@@ -12,6 +12,8 @@ module.exports = {
 		},
 		plugins: [
 			{
+				name: 'test-plugin',
+
 				resolveId(id) {
 					if (id === HELPER) return id;
 				},
@@ -29,4 +31,4 @@ module.exports = {
 		assert.equal(map.sourcesContent.length, 1);
 		assert.ok(/main/.test(map.sources[0]));
 	}
-};
+});

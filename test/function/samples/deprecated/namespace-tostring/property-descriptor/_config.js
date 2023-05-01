@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'namespace export should have @@toStringTag with correct property descriptors #4336',
 	options: {
 		strictDeprecations: false,
@@ -14,4 +14,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-generatedcode-symbols'
 		}
 	]
-};
+});

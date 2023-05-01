@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'filenames custom pattern',
 	options: {
 		input: ['main1.js', 'main2.js'],
@@ -7,4 +7,4 @@ module.exports = {
 			chunkFileNames: 'chunk-[name]-[hash]-[format].js'
 		}
 	}
-};
+});

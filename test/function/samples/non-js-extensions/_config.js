@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'non .js extensions are preserved',
 	options: {
 		plugins: [
@@ -13,4 +13,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

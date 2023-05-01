@@ -1,3 +1,3 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'circular member expression'
-};
+});

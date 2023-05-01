@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles external live-bindings',
 	options: {
 		external: ['named', 'star'],
@@ -42,4 +42,4 @@ module.exports = {
 		exports.incrementStar();
 		assert.equal(exports.star, 1, 'star');
 	}
-};
+});

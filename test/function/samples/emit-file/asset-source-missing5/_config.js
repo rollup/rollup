@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when not setting the asset source and accessing the asset URL',
 	options: {
 		plugins: {
@@ -16,4 +16,4 @@ module.exports = {
 		message:
 			'Plugin error - Unable to get file name for asset "test.ext". Ensure that the source is set and that generate is called first. If you reference assets via import.meta.ROLLUP_FILE_URL_<referenceId>, you need to either have set their source after "renderStart" or need to provide an explicit "fileName" when emitting them.'
 	}
-};
+});

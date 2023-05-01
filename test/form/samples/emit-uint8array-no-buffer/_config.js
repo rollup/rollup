@@ -1,6 +1,6 @@
 const Buffer = global.Buffer;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports emitting assets as Uint8Arrays when Buffer is not available',
 	before() {
 		delete global.Buffer;
@@ -10,6 +10,7 @@ module.exports = {
 	},
 	options: {
 		plugins: {
+			name: 'test',
 			resolveId(id) {
 				if (id.startsWith('asset')) {
 					return id;
@@ -25,4 +26,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

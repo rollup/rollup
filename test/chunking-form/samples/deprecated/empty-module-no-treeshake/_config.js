@@ -1,8 +1,9 @@
 const assert = require('node:assert');
 const path = require('node:path');
+// @ts-expect-error not included in types
 const { getObject } = require('../../../../utils');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'associates empty modules with chunks if tree-shaking is disabled for them',
 	options: {
 		strictDeprecations: false,
@@ -66,4 +67,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

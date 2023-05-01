@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'adds a banner/footer',
 	options: {
 		output: {
@@ -7,18 +7,21 @@ module.exports = {
 		},
 		plugins: [
 			{
+				name: 'test-plugin1',
 				banner: '/* first banner */',
 				footer() {
 					return '/* first footer */';
 				}
 			},
 			{
+				name: 'test-plugin2',
 				banner() {
 					return '/* second banner */';
 				},
 				footer: '/* second footer */'
 			},
 			{
+				name: 'test-plugin3',
 				banner() {
 					return Promise.reject(new Error('Could not generate banner.'));
 				},
@@ -29,7 +32,7 @@ module.exports = {
 	generateError: {
 		code: 'ADDON_ERROR',
 		message:
-			'Could not retrieve "banner". Check configuration of plugin "at position 3".\n' +
+			'Could not retrieve "banner". Check configuration of plugin "test-plugin3".\n' +
 			'\tError Message: Could not generate banner.'
 	}
-};
+});

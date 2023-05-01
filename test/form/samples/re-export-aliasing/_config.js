@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'external re-exports aliasing',
 	options: {
 		output: {
@@ -7,4 +7,4 @@ module.exports = {
 		},
 		external: ['d']
 	}
-};
+});

@@ -1,3 +1,3 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'removes unused nested statements'
-};
+});

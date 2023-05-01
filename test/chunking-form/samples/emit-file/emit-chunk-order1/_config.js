@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'creates a consistent chunking order (needs to be consistent with the other test of this kind)',
 	options: {
@@ -33,4 +33,4 @@ console.log(id, value);
 			}
 		}
 	}
-};
+});

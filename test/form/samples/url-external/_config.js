@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports URL externals',
 	options: {
 		external: ['https://external.com/external.js'],
@@ -6,4 +6,4 @@ module.exports = {
 			globals: { 'https://external.com/external.js': 'external' }
 		}
 	}
-};
+});

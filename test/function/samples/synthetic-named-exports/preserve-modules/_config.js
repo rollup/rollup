@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles a dynamic import with synthetic named exports in preserveModules mode',
 	options: {
 		output: {
@@ -21,4 +21,4 @@ module.exports = {
 		const { foo } = await exports.promise;
 		assert.strictEqual(foo, 'bar');
 	}
-};
+});

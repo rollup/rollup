@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles manual chunks where the root is not part of the module graph',
 	options: {
 		input: ['main.js'],
@@ -8,4 +8,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

@@ -9,7 +9,7 @@ let string1Id,
 	sameBufferAsStringId,
 	otherBufferId;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'deduplicates asset that have the same source',
 	options: {
 		input: ['main.js'],
@@ -105,4 +105,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'exports an id that is also a default export',
 	options: {
 		output: { exports: 'named' }
@@ -9,4 +9,4 @@ module.exports = {
 		assert.ok(new exports.default().ok);
 		assert.ok(new exports.Image().ok);
 	}
-};
+});

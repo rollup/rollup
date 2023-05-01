@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_ARRAY_JSON = path.join(__dirname, 'array.json');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'should provide json hint when importing a no export json file',
 	error: {
 		binding: 'default',
@@ -25,4 +25,4 @@ module.exports = {
 		message:
 			'"default" is not exported by "array.json", imported by "main.js". (Note that you need @rollup/plugin-json to import JSON files)'
 	}
-};
+});

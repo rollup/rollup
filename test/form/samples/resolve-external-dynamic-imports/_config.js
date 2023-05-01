@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not resolve external dynamic imports via plugins (#2481)',
 	options: {
 		output: {
@@ -18,4 +18,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

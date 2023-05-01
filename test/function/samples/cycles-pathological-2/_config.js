@@ -4,7 +4,7 @@ const ID_B = path.join(__dirname, 'b.js');
 const ID_C = path.join(__dirname, 'c.js');
 const ID_D = path.join(__dirname, 'd.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'resolves even more pathological cyclical dependencies gracefully',
 	warnings: [
 		{
@@ -23,4 +23,4 @@ module.exports = {
 			message: 'Circular dependency: main.js -> b.js -> d.js -> c.js -> main.js'
 		}
 	]
-};
+});

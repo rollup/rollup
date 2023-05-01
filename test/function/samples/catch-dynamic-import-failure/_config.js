@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows catching failed dynamic imports',
 	options: {
 		input: ['main', 'exists-default'],
@@ -14,4 +14,4 @@ module.exports = {
 			assert.strictEqual(result[2].message.slice(0, expectedError.length), expectedError);
 		});
 	}
-};
+});

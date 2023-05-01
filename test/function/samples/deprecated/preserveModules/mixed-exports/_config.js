@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_LIB1 = path.join(__dirname, 'lib1.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns for mixed exports in all chunks when preserving modules',
 	options: {
 		strictDeprecations: false,
@@ -31,4 +31,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-exports'
 		}
 	]
-};
+});

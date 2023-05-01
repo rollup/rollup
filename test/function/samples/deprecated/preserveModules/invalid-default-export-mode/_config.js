@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when using default export mode with named exports',
 	options: {
 		strictDeprecations: false,
@@ -14,4 +14,4 @@ module.exports = {
 			'"default" was specified for "output.exports", but entry module "lib.js" has the following exports: "value"',
 		url: 'https://rollupjs.org/configuration-options/#output-exports'
 	}
-};
+});

@@ -18,3 +18,4 @@ perf/
 .github_token
 .temp
 docs/.vitepress/graphs
+*.tsbuildinfo

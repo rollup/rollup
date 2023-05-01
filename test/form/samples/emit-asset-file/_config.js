@@ -2,10 +2,11 @@ const assert = require('node:assert');
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports emitting assets from plugin hooks',
 	options: {
 		plugins: {
+			name: 'test',
 			resolveId(id, importee) {
 				if (id.endsWith('.svg')) {
 					return path.resolve(path.dirname(importee), id);
@@ -26,13 +27,17 @@ module.exports = {
 				assert.strictEqual(keys[0], 'assets/logo-a2a2cdc4.svg');
 				const asset = outputBundle[keys[0]];
 				assert.strictEqual(asset.fileName, 'assets/logo-a2a2cdc4.svg');
-				assert.strictEqual(asset.type, 'asset');
+				if (asset.type !== 'asset') {
+					throw new Error(`Unexpected asset type ${asset.type}.`);
+				}
+				/** @type {any} */
+				const source = asset.source;
 				assert.ok(
-					asset.source.equals(readFileSync(path.resolve(__dirname, 'logo.svg'))),
+					source.equals(readFileSync(path.resolve(__dirname, 'logo.svg'))),
 					'asset has correct source'
 				);
 				assert.ok(keys[1].endsWith('.js'), `${keys[1]} ends with ".js"`);
 			}
 		}
 	}
-};
+});

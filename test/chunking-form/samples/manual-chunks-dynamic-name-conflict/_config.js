@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles name conflicts in manual chunks',
 	options: {
 		input: ['main.js'],
@@ -8,4 +8,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

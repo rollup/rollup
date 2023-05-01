@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles circular synthetic exports',
 	options: {
 		plugins: [
@@ -21,4 +21,4 @@ module.exports = {
 		message:
 			'Module "main.js" that is marked with `syntheticNamedExports: "__synthetic"` needs an explicit export named "__synthetic" that does not reexport an unresolved named export of the same module.'
 	}
-};
+});

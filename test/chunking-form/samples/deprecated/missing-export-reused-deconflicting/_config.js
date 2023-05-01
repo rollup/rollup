@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles using dependencies with shimmed missing exports as ',
 	expectedWarnings: ['SHIMMED_EXPORT', 'DEPRECATED_FEATURE'],
 	options: {
@@ -7,4 +7,4 @@ module.exports = {
 		preserveModules: true,
 		shimMissingExports: true
 	}
-};
+});

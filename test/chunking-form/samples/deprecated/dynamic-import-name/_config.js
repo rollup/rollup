@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows specifying a custom importer function',
 	options: {
 		strictDeprecations: false,
@@ -14,4 +14,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

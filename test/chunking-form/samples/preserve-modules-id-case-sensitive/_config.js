@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Preserve modules id case sensitive',
 	options: {
 		input: 'main.js',
@@ -18,4 +18,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

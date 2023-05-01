@@ -20,14 +20,15 @@ const expectedResult = {
 	}
 };
 
-module.exports = {
+module.exports = defineTest({
 	description: 'check exports and exportedBindings in moduleParsed as a supplementary test',
 	options: {
 		plugins: {
+			name: 'test-plugin',
 			moduleParsed(moduleInfo) {
 				const { exports, exportedBindings, id } = moduleInfo;
 				assert.deepStrictEqual({ exports, exportedBindings }, expectedResult[id]);
 			}
 		}
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles dynamic imports in manual chunks',
 	options: {
 		input: 'main.js',
@@ -8,4 +8,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

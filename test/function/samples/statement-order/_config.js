@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'correct statement order is preserved even in weird edge cases',
 	context: {
 		getAnswer(object) {
@@ -10,4 +10,4 @@ module.exports = {
 	exports(exports) {
 		assert.equal(exports, 'right');
 	}
-};
+});

@@ -6,7 +6,7 @@ function getId(name) {
 	return path.join(__dirname, `${name}.js`);
 }
 
-module.exports = {
+module.exports = defineTest({
 	description: 'provides additional chunk information to a manualChunks function',
 	options: {
 		external: 'external',
@@ -316,4 +316,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

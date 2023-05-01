@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'external paths (#754)',
 	options: {
 		external: ['foo'],
@@ -7,4 +7,4 @@ module.exports = {
 			paths: id => `https://unpkg.com/${id}`
 		}
 	}
-};
+});

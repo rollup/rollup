@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not add Symbol.toStringTag property to entry chunks with default export mode',
 	options: {
 		strictDeprecations: false,
@@ -22,4 +22,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-generatedcode-symbols'
 		}
 	]
-};
+});

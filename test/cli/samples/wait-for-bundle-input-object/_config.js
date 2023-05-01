@@ -5,7 +5,7 @@ const { atomicWriteFileSync } = require('../../../utils');
 let second;
 let third;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'waits for multiple named bundle inputs',
 	command: 'rollup -c --waitForBundleInput',
 	before() {
@@ -23,4 +23,4 @@ module.exports = {
 			atomicWriteFileSync(third, "export default 'third'");
 		}
 	}
-};
+});

@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws for invalid top-level-await format',
 	generateError: {
 		code: 'INVALID_TLA_FORMAT',
@@ -9,4 +9,4 @@ module.exports = {
 		message:
 			'Module format "cjs" does not support top-level await. Use the "es" or "system" output formats rather.'
 	}
-};
+});

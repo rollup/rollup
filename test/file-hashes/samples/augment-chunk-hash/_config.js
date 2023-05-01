@@ -1,7 +1,7 @@
 const augment1 = '/*foo*/';
 const augment2 = '/*bar*/';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'augmentChunkHash updates hashes across all modules when returning something',
 	options1: {
 		input: 'main',
@@ -47,4 +47,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -1,6 +1,6 @@
 const { join, dirname } = require('node:path').posix;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'renormalizes external paths if possible',
 	options: {
 		input: ['/main.js', '/nested/entry.js'],
@@ -8,6 +8,7 @@ module.exports = {
 			return id.endsWith('ext');
 		},
 		plugins: {
+			name: 'test-plugin',
 			resolveId(source, importer) {
 				if (source.endsWith('ext.js')) {
 					return false;
@@ -44,4 +45,4 @@ import './nested-ext.js';`;
 			}
 		}
 	}
-};
+});

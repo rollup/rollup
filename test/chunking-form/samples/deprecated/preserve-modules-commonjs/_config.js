@@ -1,6 +1,6 @@
 const commonjs = require('@rollup/plugin-commonjs');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Handles output from @rollup/plugin-commonjs',
 	expectedWarnings: ['MIXED_EXPORTS', 'DEPRECATED_FEATURE'],
 	options: {
@@ -10,4 +10,4 @@ module.exports = {
 		external: ['external'],
 		plugins: [commonjs()]
 	}
-};
+});

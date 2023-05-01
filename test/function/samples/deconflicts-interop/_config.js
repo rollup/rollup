@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'deconflicts the interop function',
 	options: {
 		external(id) {
@@ -28,4 +28,4 @@ module.exports = {
 		require: () =>
 			Object.defineProperty({ foo: 'foo', default: 'bar' }, '__esModule', { value: true })
 	}
-};
+});

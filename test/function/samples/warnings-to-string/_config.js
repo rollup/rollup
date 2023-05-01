@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'provides a string conversion for warnings',
 	options: {
 		plugins: {
@@ -16,4 +16,4 @@ module.exports = {
 			'Generated an empty chunk: "main".'
 		]);
 	}
-};
+});

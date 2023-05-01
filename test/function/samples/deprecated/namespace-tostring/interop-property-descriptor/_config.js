@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'generated interop namespaces should have correct Symbol.toStringTag',
 	context: {
 		require() {
@@ -25,4 +25,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-generatedcode-symbols'
 		}
 	]
-};
+});

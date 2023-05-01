@@ -4,7 +4,7 @@ let referenceIdName;
 let referenceIdFileName1;
 let referenceIdFileName2;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'deduplicates with named chunks defined by the user',
 	options: {
 		input: { mainChunk: 'main', mainChunkFacade: 'main' },
@@ -29,4 +29,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

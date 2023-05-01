@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Supports chunk names from config when preserving modules',
 	options: {
 		input: { 'main-entry': 'main.js' },
@@ -15,4 +15,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

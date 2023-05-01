@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'creates different hashes if the name pattern differs',
 	options1: {
 		input: {
@@ -18,4 +18,4 @@ module.exports = {
 			entryFileNames: '[name]-[hash].js'
 		}
 	}
-};
+});

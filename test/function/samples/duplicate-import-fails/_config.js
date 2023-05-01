@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'disallows duplicate imports',
 	error: {
 		cause: {
@@ -31,6 +31,6 @@ module.exports = {
 			4: assert.equal(a, 1);
 		`
 	}
-};
+});
 
 // test copied from https://github.com/esnext/es6-module-transpiler/tree/master/test/examples/duplicate-import-fails

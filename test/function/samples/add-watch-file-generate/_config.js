@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when adding watch files during generate',
 	options: {
 		plugins: {
@@ -17,4 +17,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'INVALID_ROLLUP_PHASE'
 	}
-};
+});

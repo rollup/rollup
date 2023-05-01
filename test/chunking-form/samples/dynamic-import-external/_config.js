@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'marks dynamic imports as external when resolveDynamicImport returns false',
 	options: {
 		input: 'main.js',
@@ -8,4 +8,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

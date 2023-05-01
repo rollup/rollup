@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'uses correct "this" in dynamic imports when using arrow functions',
 	context: {
 		require(id) {
@@ -27,4 +27,4 @@ module.exports = {
 			dynamicImportInCjs: false
 		}
 	}
-};
+});

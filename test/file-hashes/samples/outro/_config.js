@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'creates different hashes if the outro differs',
 	options1: {
 		input: 'main',
@@ -12,4 +12,4 @@ module.exports = {
 			outro: 'console.log(2);'
 		}
 	}
-};
+});

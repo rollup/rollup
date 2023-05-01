@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to define manual chunks via a function',
 	options: {
 		input: ['main-a'],
@@ -25,4 +25,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

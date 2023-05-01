@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'throw descriptive error if sourcemapPathTransform-function does not return a string (#3484)',
 	options: {
@@ -15,4 +15,4 @@ module.exports = {
 		code: 'VALIDATION_ERROR',
 		message: 'sourcemapPathTransform function must return a string.'
 	}
-};
+});

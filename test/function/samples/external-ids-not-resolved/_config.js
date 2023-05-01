@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not attempt to resolve external IDs',
 	options: {
 		external: ['external'],
@@ -12,4 +12,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not add Symbol.toStringTag property to entry chunks with default export mode',
 	options: {
 		output: {
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when providing a non-string value for an addon hook',
 	options: {
 		plugins: {
@@ -10,4 +10,4 @@ module.exports = {
 		message:
 			'Could not retrieve "intro". Check configuration of plugin "at position 1".\n\tError Message: Error running plugin hook "intro" for plugin "at position 1", expected a string, a function hook or an object with a "handler" string or function.'
 	}
-};
+});

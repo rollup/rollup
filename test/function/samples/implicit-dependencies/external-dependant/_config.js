@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when a module that is loaded before an emitted chunk does not exist',
 	options: {
 		plugins: {
@@ -20,4 +20,4 @@ module.exports = {
 			'Module "does-not-exist" that should be implicitly loaded before "dep.js" could not be resolved.',
 		watchFiles: [path.join(__dirname, 'dep.js'), path.join(__dirname, 'main.js')]
 	}
-};
+});

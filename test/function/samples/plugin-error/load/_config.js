@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'buildStart hooks can use this.error',
 	options: {
 		plugins: [
@@ -19,4 +19,4 @@ module.exports = {
 		hook: 'load',
 		watchFiles: [path.join(__dirname, 'main.js')]
 	}
-};
+});

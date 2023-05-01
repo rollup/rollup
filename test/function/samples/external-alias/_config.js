@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'includes an external module included dynamically by an alias',
 	options: {
 		input: path.join(__dirname, 'first', 'main.js'),
@@ -25,4 +25,4 @@ module.exports = {
 			return 1;
 		}
 	}
-};
+});

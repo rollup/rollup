@@ -1,8 +1,11 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws for unknown presets for the generatedCode option',
 	options: {
 		output: {
-			generatedCode: { preset: 'some-string' }
+			generatedCode: {
+				// @ts-expect-error expected error
+				preset: 'some-string'
+			}
 		}
 	},
 	generateError: {
@@ -11,4 +14,4 @@ module.exports = {
 			'Invalid value "some-string" for option "output.generatedCode.preset" - valid values are "es2015" and "es5".',
 		url: 'https://rollupjs.org/configuration-options/#output-generatedcode'
 	}
-};
+});

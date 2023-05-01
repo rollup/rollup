@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns that accessing "ModuleInfo.hasModuleSideEffects" is deprecated',
 	options: {
 		strictDeprecations: true,
@@ -24,4 +24,4 @@ module.exports = {
 		url: 'https://rollupjs.org/plugin-development/#this-getmoduleinfo',
 		watchFiles: [path.join(__dirname, 'main.js')]
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'includes inline sourcemap comments in generateBundle hook',
 	options: {
 		plugins: [
@@ -23,4 +23,4 @@ module.exports = main;
 		],
 		output: { sourcemap: 'inline' }
 	}
-};
+});

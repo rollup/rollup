@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'avoids name conflicts with local variables named Object',
 	options: {
 		external: 'external',
@@ -17,4 +17,4 @@ module.exports = {
 		assert.strictEqual(exports.foo.foo, 'foo');
 		assert.strictEqual(exports.foo.default.foo, 'foo');
 	}
-};
+});

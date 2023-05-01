@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const mutated = {};
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Wraps inlined default exports which are rendered for side-effects only',
 	options: {
 		external: ['external']
@@ -15,4 +15,4 @@ module.exports = {
 		assert.ok(mutated.extremelyMutated);
 		assert.ok(mutated.utterlyMutated);
 	}
-};
+});

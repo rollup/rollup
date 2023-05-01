@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles transforms that return sourcemap with empty mappings',
 
 	options: {
@@ -15,4 +15,4 @@ module.exports = {
 		// ensure source maps are generated
 		output: { sourcemap: true }
 	}
-};
+});

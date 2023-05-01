@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'onError event hook shell commands write to stderr',
 	command: 'node wrapper.js -cw --watch.onError "echo error"',
 	abortOnStderr(data) {
@@ -15,4 +15,4 @@ module.exports = {
 error`
 		);
 	}
-};
+});

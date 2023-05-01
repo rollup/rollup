@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to use amd.autoId with amd.basePath, and chunks folder',
 	options: {
 		input: ['main'],
@@ -16,4 +16,4 @@ module.exports = {
 			return exports.getA();
 		}
 	}
-};
+});

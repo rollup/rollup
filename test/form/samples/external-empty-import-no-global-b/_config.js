@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not expect a global to be provided for empty imports (#1217)',
 	options: {
 		external: ['babel-polyfill', 'other'],
@@ -10,4 +10,4 @@ module.exports = {
 			globals: { other: 'other' }
 		}
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'populates file property of sourcemap with final name when using hashes',
 	options: {
 		output: {
@@ -12,4 +12,4 @@ module.exports = {
 	test: (code, map, { fileName }) => {
 		assert.strictEqual(map.file, fileName);
 	}
-};
+});

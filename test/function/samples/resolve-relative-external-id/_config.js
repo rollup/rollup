@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'resolves relative external ids',
 	options: {
 		external: [path.join(__dirname, 'external.js'), path.join(__dirname, 'nested', 'external.js')],
@@ -31,4 +31,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

@@ -1,7 +1,7 @@
 const path = require('node:path');
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Throws when the plugin export cannot be found',
 	skipIfWindows: true,
 	command: `echo 'console.log("ignored");' | rollup -p "./my-missing-plugin"`,
@@ -14,4 +14,4 @@ module.exports = {
 			)}". The plugin needs to export a function either as "default" or "myMissingPlugin" for Rollup to recognize it.`
 		);
 	}
-};
+});

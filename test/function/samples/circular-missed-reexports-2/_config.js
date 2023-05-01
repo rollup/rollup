@@ -4,7 +4,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP1 = path.join(__dirname, 'dep1.js');
 const ID_DEP2 = path.join(__dirname, 'dep2.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles circular reexports',
 	exports(exports) {
 		assert.strictEqual(exports.exists, 42);
@@ -16,4 +16,4 @@ module.exports = {
 			'"doesNotExist" cannot be exported from "dep1.js" as it is a reexport that references itself.',
 		watchFiles: [ID_DEP1, ID_DEP2, ID_MAIN]
 	}
-};
+});

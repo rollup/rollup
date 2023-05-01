@@ -13,7 +13,7 @@ let renderChunkNamed;
 let generateBundle;
 let generateBundleNamed;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports setting the asset source during generate',
 	options: {
 		input: ['main.js'],
@@ -88,4 +88,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

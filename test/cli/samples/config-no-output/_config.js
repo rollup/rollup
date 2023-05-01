@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { readFileSync, unlinkSync } = require('node:fs');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'uses -o from CLI',
 	command: 'rollup -c -o output.js',
 	test() {
@@ -9,4 +9,4 @@ module.exports = {
 		assert.equal(output.trim(), 'console.log(42);');
 		unlinkSync('output.js');
 	}
-};
+});

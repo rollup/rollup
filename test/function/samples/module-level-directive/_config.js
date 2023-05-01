@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'module level directives should produce warnings',
 	warnings: [
 		{
@@ -22,4 +22,4 @@ module.exports = {
 				3: export default 1;`
 		}
 	]
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows overriding imports of external namespace reexports',
 	options: {
 		external: 'external',
@@ -7,4 +7,4 @@ module.exports = {
 			globals: { external: 'external' }
 		}
 	}
-};
+});

@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws error if load returns something wacky',
 	options: {
 		plugins: [
@@ -19,4 +19,4 @@ module.exports = {
 		message:
 			'Error loading "main.js": plugin load hook should return a string, a { code, map } object, or nothing/null.'
 	}
-};
+});

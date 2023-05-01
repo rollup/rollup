@@ -1,6 +1,6 @@
 const REGISTER_WORKLET = 'register-paint-worklet:';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows adding additional chunks to be used in worklets',
 	options: {
 		input: 'main',
@@ -26,4 +26,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

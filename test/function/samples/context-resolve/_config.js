@@ -120,7 +120,7 @@ const tests = [
 	}
 ];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'returns the correct results for the context resolve helper',
 	options: {
 		external: [
@@ -170,4 +170,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

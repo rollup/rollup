@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'overrides the treeshake option when using presets',
 	command: 'rollup main.js --format es --treeshake unknown',
 	error: () => true,
@@ -11,4 +11,4 @@ module.exports = {
 				'https://rollupjs.org/configuration-options/#treeshake'
 		);
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Externals aliases with deshadowing',
 	options: {
 		external: ['a', 'b'],
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'myBundle'
 		}
 	}
-};
+});

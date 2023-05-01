@@ -5,7 +5,7 @@ const ID_DATA = path.join(__dirname, 'data.js');
 const ID_TAG = path.join(__dirname, 'tag.js');
 const executionOrder = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'preserves execution order for circular dependencies when preserving modules',
 	options: {
 		output: { preserveModules: true }
@@ -38,4 +38,4 @@ module.exports = {
 			message: 'Circular dependency: tag.js -> index.js -> tag.js'
 		}
 	]
-};
+});

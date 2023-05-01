@@ -3,7 +3,7 @@ const path = require('node:path');
 
 let rendered = false;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'provides all module ids on the plugin context',
 	options: {
 		strictDeprecations: false,
@@ -31,4 +31,4 @@ module.exports = {
 			url: 'https://rollupjs.org/plugin-development/#this-getmoduleids'
 		}
 	]
-};
+});

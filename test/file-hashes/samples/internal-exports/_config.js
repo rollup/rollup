@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'creates different hashes if generated internal exports differ',
 	options1: {
 		input: ['main1', 'other']
@@ -6,4 +6,4 @@ module.exports = {
 	options2: {
 		input: ['main2', 'other']
 	}
-};
+});

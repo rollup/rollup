@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles unknown setters that modify "this"',
 	context: {
 		require() {
@@ -8,4 +8,4 @@ module.exports = {
 	options: {
 		external: ['external']
 	}
-};
+});

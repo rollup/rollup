@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns "this" is used on the top level',
 	command: 'rollup -c',
 	stderr: stderr =>
@@ -12,4 +12,4 @@ module.exports = {
 				'1: console.log(this);\n' +
 				'               ^'
 		)
-};
+});

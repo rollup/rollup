@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles when a sourcemap cannot be resolved in a warning',
 	options: {
 		plugins: {
@@ -45,4 +45,4 @@ module.exports = {
 			url: 'https://rollupjs.org/troubleshooting/#error-this-is-undefined'
 		}
 	]
-};
+});

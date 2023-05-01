@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns when mixed exports are used',
 	command: 'rollup -c',
 	stderr: stderr => {
@@ -17,4 +17,4 @@ module.exports = {
 				'Consumers of your bundle will have to use chunk.default to access their default export, which may not be what you want. Use `output.exports: "named"` to disable this warning.\n'
 		);
 	}
-};
+});

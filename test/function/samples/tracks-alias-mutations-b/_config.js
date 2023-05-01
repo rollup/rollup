@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const foo = {};
 
-module.exports = {
+module.exports = defineTest({
 	description: 'tracks mutations of aliased objects',
 	context: {
 		foo
@@ -10,4 +10,4 @@ module.exports = {
 	exports() {
 		assert.equal(foo.x, 42);
 	}
-};
+});

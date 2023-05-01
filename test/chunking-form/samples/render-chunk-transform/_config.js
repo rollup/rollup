@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { replaceDirectoryInStringifiedObject } = require('../../../utils');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'replaces hashes when mutating chunk info in renderChunk',
 	options: {
 		input: ['main1', 'main2'],
@@ -73,4 +73,4 @@ module.exports = {
 			chunkFileNames: 'chunk-[name]-[hash].js'
 		}
 	}
-};
+});

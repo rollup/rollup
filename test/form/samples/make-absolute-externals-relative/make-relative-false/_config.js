@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not normalize external paths when set to false',
 	options: {
 		makeAbsoluteExternalsRelative: false,
@@ -19,6 +19,7 @@ module.exports = {
 				return true;
 		},
 		plugins: {
+			name: 'test',
 			async buildStart() {
 				// eslint-disable-next-line unicorn/consistent-function-scoping
 				const testExternal = async (source, expected) =>
@@ -43,4 +44,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

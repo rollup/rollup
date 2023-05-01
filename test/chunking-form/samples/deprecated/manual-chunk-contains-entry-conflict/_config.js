@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Uses entry alias if manual chunks contain entry chunks with different alias',
 	options: {
 		strictDeprecations: false,
@@ -11,4 +11,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

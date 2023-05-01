@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'correctly handles multiple export * declarations (#1252)',
 	options: {
 		external: ['foo', 'bar', 'baz'],
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'myBundle'
 		}
 	}
-};
+});

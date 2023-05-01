@@ -1,6 +1,7 @@
+// @ts-expect-error not included in types
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'tries to load .js config file if package type is "module"',
 	command: 'cd sub && rollup -c rollup.config.js',
 	error: () => true,
@@ -15,4 +16,4 @@ module.exports = {
 			'contains "type": "module". To treat it as a CommonJS script, rename it to use the \'.cjs\' file extension.'
 		);
 	}
-};
+});

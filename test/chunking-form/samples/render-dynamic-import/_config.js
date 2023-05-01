@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports custom rendering for dynamic imports',
 	options: {
 		plugins: {
@@ -20,4 +20,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

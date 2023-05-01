@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'deconflicts variables when nested dynamic imports are inlined via inlineDynamicImports',
 	options: {
@@ -9,4 +9,4 @@ module.exports = {
 	exports(exports) {
 		return exports().then(result => assert.strictEqual(result, 43));
 	}
-};
+});

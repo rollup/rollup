@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'exports flag is passed through to bundle options',
 	options: {
 		output: { exports: 'named' }
@@ -9,4 +9,4 @@ module.exports = {
 		assert.equal(exports.y, 42);
 		assert.ok(!('x' in exports));
 	}
-};
+});

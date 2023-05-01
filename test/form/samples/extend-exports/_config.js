@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'extends module correctly',
 	options: {
 		output: {
@@ -6,4 +6,4 @@ module.exports = {
 			name: 'foo'
 		}
 	}
-};
+});

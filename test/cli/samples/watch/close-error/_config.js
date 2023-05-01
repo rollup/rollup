@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'displays errors when closing the watcher',
 	command: 'rollup -cw',
 	abortOnStderr(data) {
@@ -6,4 +6,4 @@ module.exports = {
 			return true;
 		}
 	}
-};
+});

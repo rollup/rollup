@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Allows overriding behaviour for emitted chunks',
 	options: {
 		input: [],
@@ -32,4 +32,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

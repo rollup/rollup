@@ -1,6 +1,6 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'keep import assertions for dynamic imports',
-	expectedWarnings: 'UNRESOLVED_IMPORT',
+	expectedWarnings: ['UNRESOLVED_IMPORT'],
 	options: {
 		external: id => {
 			if (id === 'unresolved') return null;
@@ -8,6 +8,7 @@ module.exports = {
 		},
 		plugins: [
 			{
+				name: 'test',
 				resolveDynamicImport(specifier) {
 					if (typeof specifier === 'object') {
 						if (specifier.type === 'TemplateLiteral') {
@@ -24,4 +25,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles dynamic imports with a shared dependency',
 	options: {
 		input: ['main'],
@@ -11,4 +11,4 @@ module.exports = {
 			return exports.promise;
 		}
 	}
-};
+});

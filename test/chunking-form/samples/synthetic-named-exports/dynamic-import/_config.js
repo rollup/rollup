@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'synthetic named exports',
 	options: {
 		input: ['main.js'],
@@ -12,4 +12,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

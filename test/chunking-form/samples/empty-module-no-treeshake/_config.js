@@ -2,11 +2,12 @@ const assert = require('node:assert');
 const path = require('node:path');
 const { getObject } = require('../../../utils');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'associates empty modules with chunks if tree-shaking is disabled for them',
 	options: {
 		input: ['main1.js', 'main2.js'],
 		plugins: {
+			name: 'test-plugin',
 			resolveId(id) {
 				if (id.startsWith('empty')) {
 					if (id === 'emptyResolved') {
@@ -64,4 +65,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

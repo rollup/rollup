@@ -2,7 +2,7 @@ const assert = require('node:assert');
 let oldConsoleWarn;
 const warnings = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'logs as a fallback if no onwarn handler is provided',
 	options: {
 		onwarn: null
@@ -17,4 +17,4 @@ module.exports = {
 			'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.'
 		]);
 	}
-};
+});

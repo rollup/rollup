@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'marks the "inlineDynamicImports" input option as deprecated',
 	options: {
 		inlineDynamicImports: true
@@ -9,4 +9,4 @@ module.exports = {
 			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
 		url: 'https://rollupjs.org/configuration-options/#output-inlinedynamicimports'
 	}
-};
+});

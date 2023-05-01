@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when setting the asset source in the transform hook',
 	options: {
 		plugins: {
@@ -22,4 +22,4 @@ module.exports = {
 		pluginCode: 'INVALID_SETASSETSOURCE',
 		watchFiles: [path.join(__dirname, 'main.js')]
 	}
-};
+});

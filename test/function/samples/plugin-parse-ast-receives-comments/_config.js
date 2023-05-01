@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const comments = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'plugin parse ast receives comments',
 	options: {
 		plugins: [
@@ -21,4 +21,4 @@ module.exports = {
 	after() {
 		assert.ok(comments.length > 0);
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'simple chunking',
 	options: {
 		input: {
@@ -10,4 +10,4 @@ module.exports = {
 			chunkFileNames: 'chunks/chunk.js'
 		}
 	}
-};
+});

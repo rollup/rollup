@@ -1,6 +1,6 @@
 const { resolve } = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'guesses global names if necessary',
 	expectedWarnings: ['MISSING_GLOBAL_NAME'],
 	options: {
@@ -12,4 +12,4 @@ module.exports = {
 			resolve(__dirname, 'relative.js')
 		]
 	}
-};
+});

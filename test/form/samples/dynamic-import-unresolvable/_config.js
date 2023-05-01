@@ -1,16 +1,19 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Returns the raw AST nodes for unresolvable dynamic imports',
 	options: {
 		plugins: [
 			{
+				name: 'test',
 				resolveDynamicImport(specifier) {
 					if (specifier === './seven.js') {
 						return false;
 					}
 					assert.ok(specifier);
-					assert.strictEqual(typeof specifier, 'object');
+					if (typeof specifier !== 'object') {
+						throw new TypeError(`Unexpected specifier type ${typeof specifier}.`);
+					}
 					if (specifier.type === 'Literal') {
 						return "'./seven.js'";
 					}
@@ -22,4 +25,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

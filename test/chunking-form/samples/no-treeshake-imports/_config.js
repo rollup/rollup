@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'includes all imports when setting moduleSideEffects to "no-treeshake"',
 	options: {
 		input: ['main1', 'main2'],
@@ -10,4 +10,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

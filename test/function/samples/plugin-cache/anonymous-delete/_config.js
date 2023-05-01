@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws for anonymous plugins deleting from the cache',
 	options: {
 		plugins: {
@@ -15,4 +15,4 @@ module.exports = {
 		plugin: 'at position 1',
 		pluginCode: 'ANONYMOUS_PLUGIN_CACHE'
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles shared dependencies when there are only reexports',
 	options: {
 		plugins: {
@@ -12,4 +12,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

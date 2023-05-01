@@ -5,7 +5,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_LIB = path.join(__dirname, 'lib.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'makes sure actual entry points are never implicit dependencies',
 	options: {
 		input: ['main', 'dep'],
@@ -191,4 +191,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

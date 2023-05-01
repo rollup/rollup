@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_DEP1 = path.join(__dirname, 'dep1.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'shims missing exports',
 	options: {
 		shimMissingExports: true
@@ -14,4 +14,4 @@ module.exports = {
 			message: 'Missing export "missing" has been shimmed in module "dep1.js".'
 		}
 	]
-};
+});

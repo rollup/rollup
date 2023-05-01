@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows external option to be an array of regex and strings',
 	options: {
 		external: [/external/, 'other']
@@ -10,4 +10,4 @@ module.exports = {
 			return require(id);
 		}
 	}
-};
+});

@@ -5,7 +5,7 @@ const modules = {
 	'x/y': 'export default 24;'
 };
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not mangle input',
 	options: {
 		input: 'x\\y',
@@ -23,4 +23,4 @@ module.exports = {
 	exports(exports) {
 		assert.equal(exports, 42);
 	}
-};
+});

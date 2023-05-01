@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not drop indirect reexports when preserving modules',
 	expectedWarnings: ['MIXED_EXPORTS', 'DEPRECATED_FEATURE'],
 	options: {
@@ -6,4 +6,4 @@ module.exports = {
 		output: { name: 'bundle' },
 		preserveModules: true
 	}
-};
+});

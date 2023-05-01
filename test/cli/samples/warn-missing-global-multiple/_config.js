@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns when there are multiple missing globals',
 	command: 'rollup -c',
 	stderr: stderr =>
@@ -13,4 +13,4 @@ module.exports = {
 				'external2 (guessing "foo2")\n' +
 				'external3 (guessing "foo3")'
 		)
-};
+});

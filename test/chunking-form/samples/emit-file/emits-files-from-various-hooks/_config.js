@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports emitting assets from plugin hooks',
 	options: {
 		input: ['main.js'],
@@ -81,4 +81,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

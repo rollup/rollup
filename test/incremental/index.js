@@ -1,5 +1,8 @@
 const assert = require('node:assert');
 const acorn = require('acorn');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const rollup = require('../../dist/rollup');
 const { executeBundle, getObject } = require('../utils.js');
 

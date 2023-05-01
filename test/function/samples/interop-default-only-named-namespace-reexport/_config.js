@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows reexporting a namespace as a name when interop is "defaultOnly"',
 	options: {
 		external: 'external',
@@ -11,4 +11,4 @@ module.exports = {
 	exports(exports) {
 		assert.deepStrictEqual(exports, { foo: { __proto__: null, default: { external: true } } });
 	}
-};
+});

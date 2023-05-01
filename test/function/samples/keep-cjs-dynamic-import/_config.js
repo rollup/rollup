@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'keeps dynamic imports in CJS output by default',
 	options: { external: ['external-esm'] },
 	async exports({ result }) {
@@ -11,4 +11,4 @@ module.exports = {
 		Object.defineProperty(expected, Symbol.toStringTag, { value: 'Module' });
 		assert.deepStrictEqual(await result, expected);
 	}
-};
+});

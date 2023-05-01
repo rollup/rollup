@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'exports noConflict method for default umd when requested',
 	options: {
 		output: {
@@ -6,4 +6,4 @@ module.exports = {
 			name: 'my.name.spaced.module'
 		}
 	}
-};
+});

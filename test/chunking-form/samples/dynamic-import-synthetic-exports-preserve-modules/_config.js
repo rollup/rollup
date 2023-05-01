@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description:
 		'handle dynamically importing a module with synthetic named exports when preserving modules',
 	options: {
@@ -16,4 +16,4 @@ module.exports = {
 			preserveModules: true
 		}
 	}
-};
+});

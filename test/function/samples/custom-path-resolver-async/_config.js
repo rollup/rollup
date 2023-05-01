@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'uses a custom path resolver (asynchronous)',
 	options: {
 		plugins: [
@@ -17,4 +17,4 @@ module.exports = {
 	exports(exports) {
 		assert.strictEqual(exports.path, require('node:path'));
 	}
-};
+});

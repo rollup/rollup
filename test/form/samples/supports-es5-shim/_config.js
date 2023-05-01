@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports es5-shim',
 	options: {
 		onwarn(warning) {
@@ -14,4 +14,4 @@ module.exports = {
 			require('@rollup/plugin-commonjs')()
 		]
 	}
-};
+});

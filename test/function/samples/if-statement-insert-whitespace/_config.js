@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'inserts necessary white-space when simplifying if-statements (#3419)',
 	options: {
 		external: 'external'
@@ -8,4 +8,4 @@ module.exports = {
 			return false;
 		}
 	}
-};
+});

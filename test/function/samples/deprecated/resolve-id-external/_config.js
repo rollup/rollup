@@ -3,7 +3,7 @@ const path = require('node:path');
 const sideEffects = [];
 const { getObject } = require('../../../../utils');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not include modules without used exports if moduleSideEffect is false',
 	context: {
 		require(id) {
@@ -84,4 +84,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

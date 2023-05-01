@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'uses tree-shaking information to improve chunking',
 	options: {
 		input: {
@@ -6,4 +6,4 @@ module.exports = {
 			entryB: 'main2.js'
 		}
 	}
-};
+});

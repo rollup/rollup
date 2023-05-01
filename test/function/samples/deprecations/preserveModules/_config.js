@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'marks the "preserveModules" input option as deprecated',
 	options: {
 		preserveModules: true
@@ -9,4 +9,4 @@ module.exports = {
 			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
 		url: 'https://rollupjs.org/configuration-options/#output-preservemodules'
 	}
-};
+});

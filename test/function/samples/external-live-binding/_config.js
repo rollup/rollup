@@ -4,7 +4,7 @@ let named;
 let star;
 let defaulted;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles external live-bindings',
 	options: {
 		external: ['named', 'star', 'defaulted'],
@@ -57,4 +57,4 @@ module.exports = {
 		// make sure the default is not reexported
 		assert.equal(exports.default, undefined);
 	}
-};
+});

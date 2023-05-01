@@ -6,7 +6,7 @@ const cachedModules = {
 	'@main.js': 'import foo from "./foo"; export default foo();'
 };
 
-module.exports = {
+module.exports = defineTest({
 	description: 'applies custom resolver to entry point',
 	options: {
 		plugins: [
@@ -33,4 +33,4 @@ module.exports = {
 	exports(exports) {
 		assert.equal(exports, 42);
 	}
-};
+});

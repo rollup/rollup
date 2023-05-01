@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const sideEffects = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows transformers to transform code to an empty string',
 	context: { sideEffects },
 	exports() {
@@ -18,4 +18,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

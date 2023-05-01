@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles adding or deleting symbols in generateBundle',
 	options: {
 		plugins: [
@@ -12,4 +12,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

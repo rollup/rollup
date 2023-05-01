@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'warns if no name is provided for an IIFE bundle',
 	options: { output: { format: 'iife' } },
 	warnings: [
@@ -9,4 +9,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-name'
 		}
 	]
-};
+});

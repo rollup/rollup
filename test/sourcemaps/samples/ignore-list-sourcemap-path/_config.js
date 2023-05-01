@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'correctly passes source map path',
 	options: {
 		output: {
@@ -18,4 +18,4 @@ module.exports = {
 		assert.deepEqual(map.sources, ['main.js']);
 		assert.deepEqual(map.x_google_ignoreList, [0]);
 	}
-};
+});

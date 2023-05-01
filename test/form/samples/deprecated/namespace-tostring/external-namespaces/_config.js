@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'adds Symbol.toStringTag property to external namespaces',
 	options: {
 		strictDeprecations: false,
@@ -31,4 +31,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

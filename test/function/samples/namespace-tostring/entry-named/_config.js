@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'adds Symbol.toStringTag property to entry chunks with named exports',
 	options: {
 		output: {
@@ -18,4 +18,4 @@ module.exports = {
 		assert.strictEqual(Object.prototype.toString.call(copied), '[object Object]');
 		assert.strictEqual(copied[Symbol.toStringTag], undefined);
 	}
-};
+});

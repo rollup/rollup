@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'closes the bundle on generate errors',
 	command: 'rollup -cw',
 	abortOnStderr(data) {
@@ -16,4 +16,4 @@ module.exports = {
 		assertIncludes(stderr, 'Bundle closed');
 		return false;
 	}
-};
+});

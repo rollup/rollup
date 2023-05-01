@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to avoid null setters for side effect only imports',
 	options: {
 		external: ['external'],
@@ -7,4 +7,4 @@ module.exports = {
 			systemNullSetters: false
 		}
 	}
-};
+});

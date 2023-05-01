@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { promises: fs } = require('node:fs');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'resolves promises between sequential options hooks',
 	options: {
 		input: 'super-unused',
@@ -28,4 +28,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

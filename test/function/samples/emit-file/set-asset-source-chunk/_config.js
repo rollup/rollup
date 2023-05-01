@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when trying to set the asset source of a chunk',
 	options: {
 		plugins: {
@@ -16,4 +16,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}
-};
+});

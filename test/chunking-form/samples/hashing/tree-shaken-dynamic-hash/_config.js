@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description:
 		'Does not fail when calculating the hash of a file containing a tree-shaken dynamic import',
 	options: {
@@ -7,4 +7,4 @@ module.exports = {
 			entryFileNames: '[hash].js'
 		}
 	}
-};
+});

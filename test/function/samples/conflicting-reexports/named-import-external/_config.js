@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_REEXPORT = path.join(__dirname, 'reexport.js');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'warns when a conflicting binding is imported via a named import from external namespaces',
 	warnings: [
@@ -27,4 +27,4 @@ module.exports = {
 			return { foo: id };
 		}
 	}
-};
+});

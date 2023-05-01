@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'retrieves the correct name of an emitted chunk in case a facade is created',
 	options: {
 		strictDeprecations: false,
@@ -19,4 +19,4 @@ module.exports = {
 		}
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'provides all module ids on the plugin context',
 	options: {
 		external: ['path'],
@@ -18,4 +18,4 @@ module.exports = {
 		pluginCode: 'DEPRECATED_FEATURE',
 		url: 'https://rollupjs.org/plugin-development/#this-getmoduleids'
 	}
-};
+});

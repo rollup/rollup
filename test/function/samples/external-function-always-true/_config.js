@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Does not call external for entry point',
 	options: {
 		external(id, parentId) {
@@ -6,4 +6,4 @@ module.exports = {
 			return true;
 		}
 	}
-};
+});

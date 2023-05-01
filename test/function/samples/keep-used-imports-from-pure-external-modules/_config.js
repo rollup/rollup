@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'imports from pure external modules that are used should not be omitted',
 	options: {
 		external: ['warning'],
@@ -14,4 +14,4 @@ module.exports = {
 			throw new Error('Unexpected import', id);
 		}
 	}
-};
+});

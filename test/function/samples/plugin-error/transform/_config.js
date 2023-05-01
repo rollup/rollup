@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'plugin transform hooks can use `this.error({...}, char)` (#1140)',
 	options: {
 		plugins: [
@@ -30,4 +30,4 @@ module.exports = {
 			                         ^
 		`
 	}
-};
+});

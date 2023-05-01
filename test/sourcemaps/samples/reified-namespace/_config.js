@@ -4,7 +4,7 @@ const path = require('node:path');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'generates correct sourcemap with reified namespace (#668)',
 	async test(code, map) {
 		const smc = await new SourceMapConsumer(map);
@@ -19,4 +19,4 @@ module.exports = {
 		assert.equal(actual.column, expected.column);
 		assert.equal(actual.source, '../main.js');
 	}
-};
+});

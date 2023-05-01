@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_A = path.join(__dirname, 'a.js');
 const ID_B = path.join(__dirname, 'b.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'cycles work with default exports',
 	warnings: [
 		{
@@ -11,6 +11,6 @@ module.exports = {
 			message: 'Circular dependency: a.js -> b.js -> a.js'
 		}
 	]
-};
+});
 
 // test copied from https://github.com/esnext/es6-module-transpiler/tree/master/test/examples/cycles-defaults

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns if code calls an external namespace',
 	options: {
 		external: ['fs']
@@ -11,4 +11,4 @@ module.exports = {
 			'main.js (8:1) Cannot call a namespace ("foo").'
 		]);
 	}
-};
+});

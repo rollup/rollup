@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'supports re-exported synthetic exports in namespace objects with correct export precedence',
 	options: {
@@ -41,4 +41,4 @@ module.exports = {
 			}
 		});
 	}
-};
+});

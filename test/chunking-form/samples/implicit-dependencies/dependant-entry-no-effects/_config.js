@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'properly emits a chunk when it is implicitly loaded after an empty entry module',
 	expectedWarnings: ['EMPTY_BUNDLE'],
 	options: {
@@ -13,4 +13,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

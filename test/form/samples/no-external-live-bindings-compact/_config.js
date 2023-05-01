@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Allows omitting the code that handles external live bindings in compact mode',
 	options: {
 		external: () => true,
@@ -13,4 +13,4 @@ module.exports = {
 			dynamicImportInCjs: false
 		}
 	}
-};
+});

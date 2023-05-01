@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description:
 		'merges small chunks into shared chunks that are loaded by a super-set of entry points',
 	options: {
@@ -7,4 +7,4 @@ module.exports = {
 			experimentalMinChunkSize: 100
 		}
 	}
-};
+});

@@ -4,7 +4,7 @@ let barCjs = 'bar';
 let fooDefault = 'foo';
 let barDefault = 'bar';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles interop "esModule" with live-bindings support',
 	options: {
 		external: id => id.startsWith('external') || id === 'update',
@@ -64,4 +64,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

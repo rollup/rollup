@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Manual chunks are not supported when inlining dynamic imports',
 	options: {
 		strictDeprecations: false,
@@ -15,4 +15,4 @@ module.exports = {
 		url: 'https://rollupjs.org/configuration-options/#output-manualchunks'
 	},
 	warnings: []
-};
+});

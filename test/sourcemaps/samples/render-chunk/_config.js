@@ -3,11 +3,12 @@ const { SourceMapConsumer } = require('source-map');
 const terser = require('terser');
 const getLocation = require('../../getLocation');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				renderChunk(code) {
 					const options = {
 						sourceMap: {
@@ -36,4 +37,4 @@ module.exports = {
 		assert.equal(originalLoc.line, 1);
 		assert.equal(originalLoc.column, 8);
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws for invalid sourcemapBaseUrl',
 	options: {
 		output: {
@@ -11,4 +11,4 @@ module.exports = {
 			'Invalid value for option "output.sourcemapBaseUrl" - must be a valid URL, received "example.com".',
 		url: 'https://rollupjs.org/configuration-options/#output-sourcemapbaseurl'
 	}
-};
+});

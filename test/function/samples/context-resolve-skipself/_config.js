@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows a plugin to skip its own resolveId hook when using this.resolve',
 	options: {
 		plugins: [
@@ -39,4 +39,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

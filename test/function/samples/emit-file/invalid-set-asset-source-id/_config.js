@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws for invalid asset ids',
 	options: {
 		plugins: {
@@ -15,4 +15,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'ASSET_NOT_FOUND'
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Dynamic import expression replacement',
 	options: {
 		plugins: [
@@ -28,4 +28,4 @@ module.exports = {
 			assert.strictEqual(error.message.slice(0, expectedError.length), expectedError)
 		);
 	}
-};
+});

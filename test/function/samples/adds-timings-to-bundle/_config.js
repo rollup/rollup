@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Adds timing information to bundle when bundling with perf=true',
 	options: {
 		perf: true
@@ -16,4 +16,4 @@ module.exports = {
 			assert.ok(timings[timer][0] >= 0, 'Timer is not non-negative.');
 		}
 	}
-};
+});

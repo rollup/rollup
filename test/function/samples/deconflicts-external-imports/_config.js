@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'deconflicts external imports',
 	context: {
 		require(id) {
@@ -10,4 +10,4 @@ module.exports = {
 	options: {
 		external: ['foo', 'bar']
 	}
-};
+});

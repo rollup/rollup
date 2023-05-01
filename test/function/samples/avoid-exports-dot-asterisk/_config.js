@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'avoid return or set module.exports to dot-asterisk style',
 	options: {
 		external: () => true,
@@ -6,4 +6,4 @@ module.exports = {
 			format: 'cjs'
 		}
 	}
-};
+});

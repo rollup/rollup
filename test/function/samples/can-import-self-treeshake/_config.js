@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_LIB = path.join(__dirname, 'lib.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'direct self import',
 	warnings: [
 		{
@@ -15,4 +15,4 @@ module.exports = {
 			names: ['main']
 		}
 	]
-};
+});

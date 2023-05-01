@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_EMPTY = path.join(__dirname, 'empty.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'reexporting a missing identifier should print an error',
 	error: {
 		binding: 'foo',
@@ -22,4 +22,4 @@ module.exports = {
 		watchFiles: [ID_EMPTY, ID_MAIN],
 		message: '"foo" is not exported by "empty.js", imported by "main.js".'
 	}
-};
+});

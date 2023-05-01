@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles generatedCode preset "es2015"',
 	options: {
 		output: {
@@ -14,6 +14,7 @@ module.exports = {
 		},
 		plugins: [
 			{
+				name: 'test',
 				renderStart(options) {
 					assert.strictEqual(options.generatedCode.arrowFunctions, false);
 					assert.strictEqual(options.generatedCode.objectShorthand, true);
@@ -22,4 +23,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -5,7 +5,7 @@ const { wait, writeAndSync, writeAndRetry } = require('../../../../utils');
 const configFile = path.join(__dirname, 'rollup.config.mjs');
 let stopUpdate;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
 	before() {
@@ -70,4 +70,4 @@ module.exports = {
 			return true;
 		}
 	}
-};
+});

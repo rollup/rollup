@@ -15,10 +15,10 @@ const pluginB = Promise.resolve({
 	}
 });
 
-module.exports = {
+module.exports = defineTest({
 	description: 'works when nested plugin',
 	options: {
 		// eslint-disable-next-line no-sparse-arrays
 		plugins: [[Promise.resolve(pluginA)], [undefined, Promise.resolve([null])], ,]
 	}
-};
+});

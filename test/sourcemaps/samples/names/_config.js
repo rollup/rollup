@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'names are recovered (https://github.com/rollup/rollup/issues/101)',
 	options: {
 		output: {
@@ -26,4 +26,4 @@ module.exports = {
 		original = smc.originalPositionFor(generatedLoc);
 		assert.equal(original.name, 'Foo');
 	}
-};
+});

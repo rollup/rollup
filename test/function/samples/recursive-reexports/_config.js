@@ -3,7 +3,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_OTHER = path.join(__dirname, 'other.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles recursive namespace reexports',
 	exports(exports) {
 		assert.deepStrictEqual(exports, { main: 'main', other: 'other' });
@@ -15,4 +15,4 @@ module.exports = {
 			message: 'Circular dependency: main.js -> other.js -> main.js'
 		}
 	]
-};
+});

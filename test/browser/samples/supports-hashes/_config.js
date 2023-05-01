@@ -1,6 +1,6 @@
 const { loader } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'bundles files for the browser',
 	options: {
 		input: ['main', 'dep'],
@@ -13,4 +13,4 @@ console.log(foo);`,
 			entryFileNames: '[name]-[hash].js'
 		}
 	}
-};
+});

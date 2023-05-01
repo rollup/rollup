@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'imports external namespaces',
 	options: {
 		external: ['foo', 'bar'],
@@ -6,4 +6,4 @@ module.exports = {
 			globals: { foo: 'foo', bar: 'bar' }
 		}
 	}
-};
+});

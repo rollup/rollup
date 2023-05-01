@@ -6,7 +6,7 @@ const fsWriteFile = fs.writeFile;
 let currentWrites = 0;
 let maxWrites = 0;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'maxParallelFileOps limits write operations',
 	options: {
 		maxParallelFileOps: 3,
@@ -25,4 +25,4 @@ module.exports = {
 		fs.writeFile = fsWriteFile;
 		assert.strictEqual(maxWrites, 3, 'Wrong number of parallel file writes: ' + maxWrites);
 	}
-};
+});

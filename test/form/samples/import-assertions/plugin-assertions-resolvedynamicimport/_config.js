@@ -1,8 +1,9 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows plugins to read and write import assertions in resolveDynamicImport',
 	options: {
 		plugins: [
 			{
+				name: 'test',
 				resolveDynamicImport(specifier, importer, { assertions }) {
 					const resolutionOptions = {
 						external: true,
@@ -19,4 +20,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

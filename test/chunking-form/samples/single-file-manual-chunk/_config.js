@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'chunk aliasing with extensions',
 	options: {
 		output: {
@@ -9,4 +9,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

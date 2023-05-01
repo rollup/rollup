@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'export from does not cause erroneous warning if multiple modules export default',
 	warnings: [],
 	exports: exports => {
@@ -9,4 +9,4 @@ module.exports = {
 			bar: 'bar'
 		});
 	}
-};
+});

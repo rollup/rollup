@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when a module that is loaded before an emitted chunk is fully tree-shaken',
 	options: {
 		plugins: {
@@ -24,4 +24,4 @@ module.exports = {
 			path.join(__dirname, 'main.js')
 		]
 	}
-};
+});

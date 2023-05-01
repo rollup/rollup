@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows naming emitted chunks',
 	options: {
 		input: 'main',
@@ -14,4 +14,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
@@ -17,7 +17,8 @@ module.exports = {
 					return { code, map: null };
 				}
 			}
-		]
+		],
+		output: { sourcemap: true }
 	},
 	warnings: [
 		{
@@ -27,4 +28,4 @@ module.exports = {
 			url: `https://rollupjs.org/troubleshooting/#warning-sourcemap-is-likely-to-be-incorrect`
 		}
 	]
-};
+});

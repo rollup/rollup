@@ -4,7 +4,7 @@ let barCjs = 'bar';
 let fooDefault = 'foo';
 let barDefault = 'bar';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles interop "defaultOnly"',
 	options: {
 		external: id => id.startsWith('external') || id === 'update',
@@ -62,4 +62,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

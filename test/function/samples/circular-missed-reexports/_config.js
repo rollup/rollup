@@ -5,7 +5,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP1 = path.join(__dirname, 'dep1.js');
 const ID_DEP2 = path.join(__dirname, 'dep2.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles circular reexports',
 	exports(exports) {
 		assert.strictEqual(exports.exists, 42);
@@ -48,4 +48,4 @@ module.exports = {
 			reexporter: ID_DEP2
 		}
 	]
-};
+});

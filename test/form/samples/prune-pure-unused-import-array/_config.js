@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'prunes pure unused external imports ([#1352])',
 	options: {
 		external: ['external', 'other'],
@@ -7,4 +7,4 @@ module.exports = {
 			globals: { other: 'other' }
 		}
 	}
-};
+});

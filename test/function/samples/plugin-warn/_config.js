@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'plugin transform hooks can use `this.warn({...}, char)` (#1140)',
 	options: {
 		plugins: [
@@ -41,4 +41,4 @@ module.exports = {
 			`
 		}
 	]
-};
+});

@@ -4,7 +4,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEB = path.join(__dirname, 'deb.js');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'supports using a function that returns a pattern for entryFileNames, with output.preserveModules option',
 	options: {
@@ -53,4 +53,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

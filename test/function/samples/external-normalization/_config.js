@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'external paths from custom resolver remain external (#633)',
 	options: {
 		external: ['path'],
@@ -17,4 +17,4 @@ module.exports = {
 	exports: exports => {
 		assert.equal(exports, path.resolve);
 	}
-};
+});

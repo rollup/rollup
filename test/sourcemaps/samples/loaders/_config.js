@@ -4,7 +4,7 @@ const buble = require('buble');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
@@ -62,4 +62,4 @@ module.exports = {
 		assert.equal(originalLoc.line, 4);
 		assert.equal(originalLoc.column, 19);
 	}
-};
+});

@@ -9,7 +9,7 @@ const ID_LIB2 = path.join(__dirname, 'lib2.js');
 const ID_LIB3 = path.join(__dirname, 'lib3.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports emitting the same chunk with different and multiple dependencies',
 	options: {
 		input: ['main1', 'main2'],
@@ -428,4 +428,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports adding custom options to external modules',
 	options: {
 		plugins: [
@@ -22,4 +22,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

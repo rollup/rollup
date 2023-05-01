@@ -1,6 +1,6 @@
 const MAGIC_ENTRY = 'main';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles inlining dynamic imports when treeshaking is disabled for modules (#4098)',
 	options: {
 		input: MAGIC_ENTRY,
@@ -26,4 +26,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

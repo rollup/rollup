@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'entryFileNames pattern supported in combination with preserveModules',
 	options: {
 		strictDeprecations: false,
@@ -9,4 +9,4 @@ module.exports = {
 		preserveModules: true
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

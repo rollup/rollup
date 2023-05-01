@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: '`this.warn(...)` accepts { line, column } object as second parameter (#1265)',
 	options: {
 		plugins: [
@@ -31,4 +31,4 @@ module.exports = {
 			`
 		}
 	]
-};
+});

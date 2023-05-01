@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'disallows updates to imported bindings',
 	error: {
 		code: 'ILLEGAL_REASSIGNMENT',
@@ -21,6 +21,6 @@ module.exports = {
 		watchFiles: [ID_FOO, ID_MAIN],
 		message: 'Illegal reassignment of import "a" in "main.js".'
 	}
-};
+});
 
 // test copied from https://github.com/esnext/es6-module-transpiler/tree/master/test/examples/update-expression-of-import-fails

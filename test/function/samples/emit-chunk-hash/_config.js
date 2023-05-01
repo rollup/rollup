@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'gives access to the hashed filed name via this.getFileName in generateBundle',
 	options: {
 		input: 'main',
@@ -17,4 +17,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

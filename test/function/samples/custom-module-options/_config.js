@@ -30,7 +30,7 @@ function getTestPlugin(index) {
 	};
 }
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports adding custom options to modules',
 	options: {
 		plugins: [
@@ -73,4 +73,4 @@ module.exports = {
 			value3: { 'test-3': { loaded: 3 }, 'test-1': { transformed: 1 } }
 		});
 	}
-};
+});

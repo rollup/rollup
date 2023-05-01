@@ -1,6 +1,6 @@
 const { loader } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'fails if a dependency cannot be resolved',
 	options: {
 		plugins: loader({
@@ -15,4 +15,4 @@ console.log(foo);`
 		url: 'https://rollupjs.org/plugin-development/#a-simple-example',
 		watchFiles: ['main']
 	}
-};
+});

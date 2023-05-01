@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'event hook shell commands write to stderr',
 	retry: true,
 	command:
@@ -34,4 +34,4 @@ bundleEnd`
 end`
 		);
 	}
-};
+});

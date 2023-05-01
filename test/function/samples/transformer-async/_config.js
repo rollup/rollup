@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'transformers can be asynchronous',
 	options: {
 		plugins: [
@@ -19,4 +19,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

@@ -4,11 +4,12 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEB = path.join(__dirname, 'deb.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports using a function that returns a pattern for FileNames',
 	options: {
 		input: ['main.js'],
 		plugins: {
+			name: 'test-plugin',
 			transform() {
 				this.emitFile({ type: 'asset', name: 'test.txt', source: 'hello world' });
 				return null;
@@ -63,4 +64,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

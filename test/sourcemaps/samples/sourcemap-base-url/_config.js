@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'adds a sourcemap base url',
 	options: {
 		output: {
@@ -19,4 +19,4 @@ module.exports = {
 			`//# sourceMappingURL=https://example.com/bundle.${profile.format}.js.map`
 		);
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Renders updates of exported variables for SystemJS output in compact mode',
 	options: {
 		output: {
@@ -6,4 +6,4 @@ module.exports = {
 			compact: true
 		}
 	}
-};
+});

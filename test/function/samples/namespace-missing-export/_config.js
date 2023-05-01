@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_EMPTY = path.join(__dirname, 'empty.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'replaces missing namespace members with undefined and warns about them',
 	warnings: [
 		{
@@ -25,4 +25,4 @@ module.exports = {
 				                            ^`
 		}
 	]
-};
+});

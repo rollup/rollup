@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Throws when adding a chunk after the modules have finished loading',
 	options: {
 		input: 'main.js',
@@ -16,4 +16,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'INVALID_ROLLUP_PHASE'
 	}
-};
+});

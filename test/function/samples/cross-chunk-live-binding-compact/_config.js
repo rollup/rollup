@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles cross-chunk live-bindings in compact mode',
 	options: {
 		input: ['main.js', 'named.js', 'star.js'],
@@ -17,4 +17,4 @@ module.exports = {
 		exports.incrementStar();
 		assert.equal(exports.star, 1, 'star');
 	}
-};
+});

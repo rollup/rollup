@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'chunking compact and mangled output',
 	options: {
 		input: ['main1.js', 'main2.js'],
@@ -7,4 +7,4 @@ module.exports = {
 			compact: true
 		}
 	}
-};
+});

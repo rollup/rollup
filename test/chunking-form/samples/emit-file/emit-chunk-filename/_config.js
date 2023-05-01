@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 let referenceId;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports specifying a file name when emitting a chunk',
 	options: {
 		input: 'main',
@@ -24,4 +24,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

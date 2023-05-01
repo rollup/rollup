@@ -4,7 +4,7 @@ const { loader } = require('../../../../utils.js');
 
 const fsReadFile = fs.readFile;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'maxParallelFileOps: fileRead error is forwarded',
 	options: {
 		input: 'main',
@@ -28,4 +28,4 @@ module.exports = {
 		message: `Could not load ${join(__dirname, 'dep.js')} (imported by main): broken`,
 		watchFiles: [join(__dirname, 'dep.js'), 'main']
 	}
-};
+});

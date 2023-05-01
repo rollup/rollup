@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'ignores non-bundled modules when inlining dynamic imports',
 	options: {
 		strictDeprecations: false,
@@ -23,4 +23,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-inlinedynamicimports'
 		}
 	]
-};
+});

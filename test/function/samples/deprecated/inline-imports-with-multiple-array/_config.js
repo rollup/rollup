@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Having multiple inputs in an array is not supported when inlining dynamic imports',
 	options: {
 		strictDeprecations: false,
@@ -12,4 +12,4 @@ module.exports = {
 		url: 'https://rollupjs.org/configuration-options/#output-inlinedynamicimports'
 	},
 	warnings: []
-};
+});

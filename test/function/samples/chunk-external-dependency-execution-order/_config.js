@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const executionOrder = [];
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'Uses correct execution order when several modules in a chunk have external dependencies',
 	context: {
@@ -17,4 +17,4 @@ module.exports = {
 	exports() {
 		assert.deepStrictEqual(executionOrder, ['external-first', 'external-second', 'dep', 'main']);
 	}
-};
+});

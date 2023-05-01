@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'imports namespace (systemjs only)',
 	options: {
 		external: ['dependency'],
@@ -6,4 +6,4 @@ module.exports = {
 			format: 'system'
 		}
 	}
-};
+});

@@ -1,5 +1,8 @@
 const { basename, resolve } = require('node:path');
 const { chdir } = require('node:process');
+/**
+ * @type {import('../../src/rollup/types')} Rollup
+ */
 const { rollup } = require('../../dist/rollup');
 const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
@@ -63,6 +66,7 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, c
 	if (outputOptions.format === 'amd' && config.runAmd) {
 		try {
 			const exports = await new Promise((resolve, reject) => {
+				// @ts-expect-error global
 				global.assert = require('node:assert');
 				const requirejs = require('requirejs');
 				requirejs.config({ baseUrl: outputOptions.dir });
@@ -73,7 +77,9 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, c
 			}
 		} finally {
 			delete require.cache[require.resolve('requirejs')];
+			// @ts-expect-error global
 			delete global.requirejsVars;
+			// @ts-expect-error global
 			delete global.assert;
 		}
 	}

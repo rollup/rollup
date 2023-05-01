@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'warns if empty bundle is generated  (#444)',
 	warnings: [
 		{
@@ -7,4 +7,4 @@ module.exports = {
 			names: ['main']
 		}
 	]
-};
+});

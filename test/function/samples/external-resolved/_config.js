@@ -2,7 +2,7 @@ const assert = require('node:assert');
 
 const testedIds = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'passes both unresolved and resolved ids to the external option',
 	context: {
 		require() {
@@ -53,4 +53,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

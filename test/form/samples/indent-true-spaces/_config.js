@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'auto-indents with spaces and indent: true',
 	options: {
 		output: {
@@ -6,4 +6,4 @@ module.exports = {
 			indent: true
 		}
 	}
-};
+});

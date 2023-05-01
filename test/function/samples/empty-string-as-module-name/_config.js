@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows using empty string as a valid module name',
 	options: {
 		external: () => false,
@@ -12,4 +12,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

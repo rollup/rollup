@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles chained namespace reexports from externals',
 	options: {
 		external: 'external'
@@ -14,4 +14,4 @@ module.exports = {
 	exports({ foo }) {
 		assert.strictEqual(foo, 42);
 	}
-};
+});

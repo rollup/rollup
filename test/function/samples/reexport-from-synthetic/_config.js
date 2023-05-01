@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles reexporting a synthetic namespace from a non-synthetic module',
 	options: {
 		plugins: [
@@ -9,4 +9,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

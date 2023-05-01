@@ -2,7 +2,7 @@ const { resolve } = require('node:path');
 
 const resolved = resolve(__dirname, 'foo.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'external paths (#754)',
 	options: {
 		external: [resolved],
@@ -11,4 +11,4 @@ module.exports = {
 			paths: { [resolved]: '../foo' }
 		}
 	}
-};
+});

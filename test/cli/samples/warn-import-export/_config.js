@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns about import and export related issues',
 	command: 'rollup -c',
 	stderr: stderr => {
@@ -51,4 +51,4 @@ module.exports = {
 				'otherUnresolvedExternal (imported by "dep.js")\n'
 		);
 	}
-};
+});

@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { readFileSync, unlinkSync } = require('node:fs');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'omits sourcemap comments',
 	command: 'rollup -i main.js -f es -m hidden -o output.js',
 	test() {
@@ -13,4 +13,4 @@ module.exports = {
 		);
 		unlinkSync('output.js.map');
 	}
-};
+});

@@ -1,8 +1,9 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports custom file name sanitizer functions',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				buildStart() {
 					this.emitFile({ type: 'asset', name: 'asset.txt', source: 'asset' });
 				}
@@ -15,4 +16,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

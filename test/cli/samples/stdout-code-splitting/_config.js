@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const COLOR = '\u001B[36m\u001B[1m';
 const STANDARD = '\u001B[22m\u001B[39m';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'bundles multiple files to stdout while adding file names',
 	skipIfWindows: true,
 	command:
@@ -24,4 +24,4 @@ module.exports = {
 				'Hello'
 		);
 	}
-};
+});

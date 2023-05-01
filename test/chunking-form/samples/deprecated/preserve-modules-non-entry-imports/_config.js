@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'imports and exports of non-entry points are tracked',
 	options: {
 		strictDeprecations: false,
@@ -6,4 +6,4 @@ module.exports = {
 		preserveModules: true
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

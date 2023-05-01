@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const cwd = process.cwd;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'correctly resolves relative external imports from outside directories',
 	options: {
 		external() {
@@ -20,4 +20,4 @@ module.exports = {
 		process.cwd = cwd;
 		assert.strictEqual(exports.value, '../../../test.js');
 	}
-};
+});

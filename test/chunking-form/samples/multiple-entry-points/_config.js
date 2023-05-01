@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles multiple entry points with a shared dependency',
 	options: {
 		input: ['main', 'other'],
@@ -7,4 +7,4 @@ module.exports = {
 		}
 	},
 	runAmd: true
-};
+});

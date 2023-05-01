@@ -1,7 +1,7 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'merges reexports in systemjs',
 	options: {
-		external: true,
+		external: () => true,
 		output: { format: 'system' }
 	}
-};
+});

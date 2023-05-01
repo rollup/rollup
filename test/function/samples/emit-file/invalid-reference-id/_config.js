@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws for invalid reference ids',
 	options: {
 		plugins: {
@@ -12,4 +12,4 @@ module.exports = {
 		code: 'FILE_NOT_FOUND',
 		message: 'Plugin error - Unable to get file name for unknown file "invalid".'
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when setting an empty asset source',
 	options: {
 		plugins: {
@@ -17,4 +17,4 @@ module.exports = {
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}
-};
+});

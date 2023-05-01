@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { join } = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'includes a relative external module only once (two external deps)',
 	options: {
 		external: [join(__dirname, './foo.js'), join(__dirname, './first/foo.js')]
@@ -15,4 +15,4 @@ module.exports = {
 	exports(exports) {
 		assert.ok(exports === 'ab' || exports === 'ba', 'two different modules should be required');
 	}
-};
+});

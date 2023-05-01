@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'entry point facade creation',
 	options: {
 		input: {
@@ -6,4 +6,4 @@ module.exports = {
 			main2alias: 'main2.js'
 		}
 	}
-};
+});

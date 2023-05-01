@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports namespaces with external star reexports',
 	options: {
 		external: ['external1', 'external2'],
@@ -21,4 +21,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

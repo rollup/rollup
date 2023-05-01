@@ -5,7 +5,7 @@ const ID_TYPES = path.join(__dirname, 'types.js');
 const ID_FORMATTERS = path.join(__dirname, 'formatters.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'correctly handles namespace reexports with circular dependencies when using manual chunks',
 	options: {
@@ -64,4 +64,4 @@ module.exports = {
 			names: ['index.js']
 		}
 	]
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when trying to emit files from the outputOptions hook',
 	options: {
 		input: 'main',
@@ -19,4 +19,4 @@ module.exports = {
 		plugin: 'at position 1',
 		pluginCode: 'CANNOT_EMIT_FROM_OPTIONS_HOOK'
 	}
-};
+});

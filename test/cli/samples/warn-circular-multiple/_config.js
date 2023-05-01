@@ -1,6 +1,6 @@
 const { assertIncludes } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns for multiple circular dependencies',
 	command: 'rollup -c',
 	stderr: stderr =>
@@ -13,4 +13,4 @@ module.exports = {
 				'...and 3 more\n' +
 				''
 		)
-};
+});

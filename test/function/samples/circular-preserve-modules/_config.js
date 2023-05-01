@@ -3,7 +3,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FIRST = path.join(__dirname, 'first.js');
 const ID_SECOND = path.join(__dirname, 'second.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'correctly handles circular dependencies when preserving modules',
 	options: {
 		output: { preserveModules: true }
@@ -36,4 +36,4 @@ module.exports = {
 			reexporter: ID_MAIN
 		}
 	]
-};
+});

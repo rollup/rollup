@@ -6,7 +6,7 @@ const fsReadFile = fs.readFile;
 let currentReads = 0;
 let maxReads = 0;
 
-module.exports = {
+module.exports = defineTest({
 	description: 'maxParallelFileOps not set',
 	before() {
 		fs.readFile = async (path, options) => {
@@ -22,4 +22,4 @@ module.exports = {
 		fs.readFile = fsReadFile;
 		assert.strictEqual(maxReads, 5, 'Wrong number of parallel file reads: ' + maxReads);
 	}
-};
+});

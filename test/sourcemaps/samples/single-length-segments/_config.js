@@ -6,11 +6,12 @@ const getLocation = require('../../getLocation');
 
 const original = readFileSync(path.resolve(__dirname, 'main.js'), 'utf8');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles single-length sourcemap segments',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform() {
 					return {
 						code: readFileSync(path.resolve(__dirname, 'output.js'), 'utf8'),
@@ -36,4 +37,4 @@ module.exports = {
 			assert.equal(originalLoc.column, expectedLoc.column);
 		}
 	}
-};
+});

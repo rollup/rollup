@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'populates ignore list',
 	options: {
 		output: {
@@ -15,4 +15,4 @@ module.exports = {
 		assert.deepEqual(map.sources, ['lib1.js', 'lib2.js', 'main.js']);
 		assert.deepEqual(map.x_google_ignoreList, [0, 1]);
 	}
-};
+});

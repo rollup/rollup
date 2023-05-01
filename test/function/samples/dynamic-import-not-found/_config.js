@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns if a dynamic import is not found',
 	context: {
 		require(id) {
@@ -20,4 +20,4 @@ module.exports = {
 			url: 'https://rollupjs.org/troubleshooting/#warning-treating-module-as-external-dependency'
 		}
 	]
-};
+});

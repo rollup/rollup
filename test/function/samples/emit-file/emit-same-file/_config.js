@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'warns if multiple files with the same name are emitted',
 	options: {
 		input: 'main.js',
@@ -27,4 +27,4 @@ module.exports = {
 				'The emitted file "generateBundle" overwrites a previously emitted file of the same name.'
 		}
 	]
-};
+});

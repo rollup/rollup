@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'buildStart hooks can use this.error',
 	options: {
 		plugins: [
@@ -16,4 +16,4 @@ module.exports = {
 		message: 'nope',
 		hook: 'resolveId'
 	}
-};
+});

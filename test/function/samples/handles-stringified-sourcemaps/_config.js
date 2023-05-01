@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles transforms that return stringified source maps (#377)',
 
 	options: {
@@ -16,4 +16,4 @@ module.exports = {
 		// ensure source maps are generated
 		output: { sourcemap: true }
 	}
-};
+});

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'calls to externally reassigned global methods must be retained',
 	exports(exports) {
 		let triggered1 = false;
@@ -20,4 +20,4 @@ module.exports = {
 		assert.ok(triggered1);
 		assert.ok(triggered2);
 	}
-};
+});

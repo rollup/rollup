@@ -3,7 +3,7 @@ const path = require('node:path');
 const ID_A = path.join(__dirname, 'a.js');
 const ID_B = path.join(__dirname, 'b.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not stack overflow on `export * from X` cycles',
 	code(code) {
 		assert.equal(
@@ -18,4 +18,4 @@ module.exports = {
 			message: 'Circular dependency: a.js -> b.js -> a.js'
 		}
 	]
-};
+});

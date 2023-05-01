@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'uses arrow functions',
 	options: {
 		input: ['main', 'main2'],
@@ -6,4 +6,4 @@ module.exports = {
 			generatedCode: { arrowFunctions: true }
 		}
 	}
-};
+});

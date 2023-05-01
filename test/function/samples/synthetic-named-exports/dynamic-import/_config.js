@@ -1,10 +1,11 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports dynamically importing a module with synthetic named exports',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform(code, id) {
 					if (id.endsWith('dep.js')) {
 						return { code, syntheticNamedExports: true };
@@ -25,4 +26,4 @@ module.exports = {
 		assert.strictEqual(namespace.baz, undefined);
 		assert.deepStrictEqual(namespace.default, { foo: 'foo' });
 	}
-};
+});

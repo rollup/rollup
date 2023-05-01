@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns if default and named exports are used in auto mode',
 	warnings: [
 		{
@@ -12,4 +12,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-exports'
 		}
 	]
-};
+});

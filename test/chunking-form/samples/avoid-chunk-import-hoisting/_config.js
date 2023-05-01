@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'avoids hoisting transitive dependencies via flag',
 	options: {
 		input: ['main1.js', 'main2.js'],
@@ -7,4 +7,4 @@ module.exports = {
 			hoistTransitiveImports: false
 		}
 	}
-};
+});

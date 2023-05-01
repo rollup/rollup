@@ -1,9 +1,12 @@
 const assert = require('node:assert');
 const path = require('node:path');
+/**
+ * @type {string[]}
+ */
 const sideEffects = [];
 const { getObject } = require('../../../../utils');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not include modules without used exports if moduleSideEffect is false',
 	context: {
 		require(id) {
@@ -82,4 +85,4 @@ module.exports = {
 			assert.strictEqual(warning.code, 'UNUSED_EXTERNAL_IMPORT');
 		}
 	}
-};
+});

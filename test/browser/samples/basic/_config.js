@@ -1,6 +1,6 @@
 const { loader } = require('../../../utils.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'bundles files for the browser',
 	options: {
 		plugins: loader({
@@ -9,4 +9,4 @@ console.log(foo);`,
 			dep: `export const foo = 42;`
 		})
 	}
-};
+});

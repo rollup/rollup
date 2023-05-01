@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'all code should be included if tree-shaking is disabled',
 	options: {
 		external: ['external'],
@@ -9,4 +9,4 @@ module.exports = {
 			inlineDynamicImports: true
 		}
 	}
-};
+});

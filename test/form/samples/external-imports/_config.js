@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'prefixes global names with `global.` when creating UMD bundle (#57)',
 	expectedWarnings: ['UNUSED_EXTERNAL_IMPORT'],
 	options: {
@@ -12,4 +12,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

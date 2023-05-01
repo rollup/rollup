@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 're-exports * from external module (#791)',
 	options: {
 		external: ['external']
@@ -19,4 +19,4 @@ module.exports = {
 		assert.equal(exports.foo, 1);
 		assert.equal(exports.bar, 2);
 	}
-};
+});

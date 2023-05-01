@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows overriding imports of external namespace reexports',
 	options: {
 		external: 'path'
@@ -13,4 +13,4 @@ module.exports = {
 		exports.reassign();
 		assert.strictEqual(exports.resolve, 'defined');
 	}
-};
+});

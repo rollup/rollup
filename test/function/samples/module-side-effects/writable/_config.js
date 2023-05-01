@@ -3,7 +3,7 @@
 const POLYFILL_ID = '\0polyfill';
 const PROXY_SUFFIX = '?inject-polyfill-proxy';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'ModuleInfo.moduleSideEffects should be writable during build time',
 	options: {
 		treeshake: { moduleSideEffects: false },
@@ -66,4 +66,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

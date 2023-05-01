@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_JSON = path.join(__dirname, 'file.json');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'throws with an extended error message when failing to parse a file with ".json" extension',
 	error: {
@@ -32,4 +32,4 @@ module.exports = {
 		watchFiles: [ID_JSON, ID_MAIN],
 		message: 'Unexpected token (Note that you need @rollup/plugin-json to import JSON files)'
 	}
-};
+});

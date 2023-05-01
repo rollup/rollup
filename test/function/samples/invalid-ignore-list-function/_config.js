@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throw descriptive error if sourcemapIgnoreList-function does not return a boolean',
 	options: {
 		output: {
@@ -14,4 +14,4 @@ module.exports = {
 		code: 'VALIDATION_ERROR',
 		message: 'sourcemapIgnoreList function must return a boolean.'
 	}
-};
+});

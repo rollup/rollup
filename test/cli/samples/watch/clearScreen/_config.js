@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const CLEAR_SCREEN = '\u001Bc';
 const UNDERLINE = '\u001B[4m';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'clears the screen before bundling',
 	command: 'node wrapper.js -cw',
 	env: { FORCE_COLOR: '1', TERM: 'xterm' },
@@ -15,4 +15,4 @@ module.exports = {
 	stderr(stderr) {
 		assert.strictEqual(stderr.slice(0, 12), `${CLEAR_SCREEN}${UNDERLINE}rollup`);
 	}
-};
+});

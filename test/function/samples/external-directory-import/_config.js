@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles using ../ as external import (#4349)',
 	options: {
 		external() {
@@ -8,4 +8,4 @@ module.exports = {
 	context: {
 		require: id => id
 	}
-};
+});

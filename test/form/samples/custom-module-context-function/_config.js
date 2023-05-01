@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows custom module-specific context with a function option',
 	expectedWarnings: ['THIS_IS_UNDEFINED'],
 	options: {
@@ -11,4 +11,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

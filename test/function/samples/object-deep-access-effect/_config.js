@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when an nested property of an unknown object property is accessed',
 	context: {
 		require() {
@@ -8,4 +8,4 @@ module.exports = {
 	options: {
 		external: ['external']
 	}
-};
+});

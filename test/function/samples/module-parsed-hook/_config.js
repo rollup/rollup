@@ -6,7 +6,7 @@ const parsedModules = [];
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'calls the moduleParsedHook once a module is parsed',
 	options: {
 		plugins: {
@@ -134,4 +134,4 @@ module.exports = {
 			}
 		}
 	}
-};
+});

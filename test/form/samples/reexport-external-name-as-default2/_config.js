@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 're-exports a named external export as default via another file',
 	options: {
 		external: ['external'],
@@ -7,4 +7,4 @@ module.exports = {
 			name: 'bundle'
 		}
 	}
-};
+});

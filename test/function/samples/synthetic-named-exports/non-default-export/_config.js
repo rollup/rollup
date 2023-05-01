@@ -1,10 +1,11 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports providing a named export to generate synthetic exports',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				transform(code, id) {
 					if (id.endsWith('dep.js')) {
 						return { code, syntheticNamedExports: '__synthetic' };
@@ -26,4 +27,4 @@ module.exports = {
 			synthetic: 'synthetic'
 		});
 	}
-};
+});

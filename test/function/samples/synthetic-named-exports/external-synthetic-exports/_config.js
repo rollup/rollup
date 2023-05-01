@@ -1,8 +1,9 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'external modules can not have syntheticNamedExports',
 	options: {
 		plugins: [
 			{
+				name: 'test-plugin',
 				resolveId(id) {
 					if (id === 'dep') {
 						return {
@@ -27,4 +28,4 @@ module.exports = {
 			return 1;
 		}
 	}
-};
+});

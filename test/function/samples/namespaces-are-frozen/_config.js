@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'namespaces should be non-extensible and its properties immutatable and non-configurable',
 
@@ -19,7 +19,7 @@ module.exports = {
 			mutate(ns);
 		});
 	}
-};
+});
 
 function extend(object) {
 	'use strict';

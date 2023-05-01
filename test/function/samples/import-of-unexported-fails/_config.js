@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_EMPTY = path.join(__dirname, 'empty.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'marking an imported, but unexported, identifier should throw',
 	error: {
 		binding: 'default',
@@ -25,4 +25,4 @@ module.exports = {
 		watchFiles: [ID_EMPTY, ID_MAIN],
 		message: '"default" is not exported by "empty.js", imported by "main.js".'
 	}
-};
+});

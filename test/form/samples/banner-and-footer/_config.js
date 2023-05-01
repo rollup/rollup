@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'adds a banner/footer',
 	options: {
 		output: {
@@ -7,18 +7,21 @@ module.exports = {
 		},
 		plugins: [
 			{
+				name: 'first',
 				banner: '/* first banner */',
 				footer() {
 					return '/* first footer */';
 				}
 			},
 			{
+				name: 'second',
 				banner() {
 					return '/* second banner */';
 				},
 				footer: '/* second footer */'
 			},
 			{
+				name: 'third',
 				banner() {
 					return Promise.resolve('/* 3rd banner */');
 				},
@@ -26,4 +29,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

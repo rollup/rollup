@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'deconflicts variables when nested dynamic imports are inlined via inlineDynamicImports',
 	options: {
@@ -18,4 +18,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-inlinedynamicimports'
 		}
 	]
-};
+});

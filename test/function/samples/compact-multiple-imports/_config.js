@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'correctly handles empty external imports in compact mode',
 	context: {
 		require(id) {
@@ -13,4 +13,4 @@ module.exports = {
 			compact: true
 		}
 	}
-};
+});

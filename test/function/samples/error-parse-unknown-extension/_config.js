@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_CSS = path.join(__dirname, 'file.css');
 
-module.exports = {
+module.exports = defineTest({
 	description:
 		'throws with an extended error message when failing to parse a file without .(m)js extension',
 	error: {
@@ -32,4 +32,4 @@ module.exports = {
 		watchFiles: [ID_CSS, ID_MAIN],
 		message: 'Unexpected token (Note that you need plugins to import files that are not JavaScript)'
 	}
-};
+});

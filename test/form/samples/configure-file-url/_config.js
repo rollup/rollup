@@ -1,8 +1,9 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to configure file urls',
 	options: {
 		plugins: [
 			{
+				name: 'first',
 				resolveId(id) {
 					if (id.endsWith('solved')) {
 						return id;
@@ -32,6 +33,7 @@ module.exports = {
 				}
 			},
 			{
+				name: 'second',
 				resolveFileUrl({ moduleId }) {
 					if (moduleId === 'resolved') {
 						return `'resolved'`;
@@ -41,4 +43,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

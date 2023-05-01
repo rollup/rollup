@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'respects getters when accessing properties of an instance',
 	context: {
 		require(id) {
@@ -19,4 +19,4 @@ module.exports = {
 	options: {
 		external: ['external']
 	}
-};
+});

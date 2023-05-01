@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'throws when using none export mode with named exports',
 	options: {
 		input: ['main.js'],
@@ -13,4 +13,4 @@ module.exports = {
 			'"none" was specified for "output.exports", but entry module "lib.js" has the following exports: "value"',
 		url: 'https://rollupjs.org/configuration-options/#output-exports'
 	}
-};
+});

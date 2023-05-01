@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports this.load() in buildEnd and renderStart',
 	options: {
 		plugins: [
@@ -20,4 +20,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

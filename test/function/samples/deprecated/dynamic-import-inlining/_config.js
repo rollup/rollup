@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Dynamic import inlining',
 	options: {
 		strictDeprecations: false,
@@ -20,4 +20,4 @@ module.exports = {
 			url: 'https://rollupjs.org/configuration-options/#output-inlinedynamicimports'
 		}
 	]
-};
+});

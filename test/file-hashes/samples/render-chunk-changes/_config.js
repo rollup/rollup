@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'reflects changes in renderChunk',
 	options1: {
 		input: 'main',
@@ -24,4 +24,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

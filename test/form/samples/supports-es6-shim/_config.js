@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'supports es6-shim',
 	options: {
 		onwarn(warning) {
@@ -10,7 +10,7 @@ module.exports = {
 		treeshake: true,
 		plugins: [
 			require('@rollup/plugin-node-resolve').default(),
-			require('@rollup/plugin-commonjs')()
+			require('@rollup/plugin-commonjs').default()
 		]
 	}
-};
+});

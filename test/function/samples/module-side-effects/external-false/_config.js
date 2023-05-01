@@ -4,7 +4,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 
 const sideEffects = [];
 
-module.exports = {
+module.exports = defineTest({
 	description: 'supports setting module side effects to false for external modules',
 	context: {
 		require(id) {
@@ -54,4 +54,4 @@ module.exports = {
 			url: 'https://rollupjs.org/troubleshooting/#warning-treating-module-as-external-dependency'
 		}
 	]
-};
+});

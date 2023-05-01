@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'Throws if an emitted entry chunk cannot be resolved',
 	options: {
 		input: 'main.js',
@@ -16,4 +16,4 @@ module.exports = {
 		watchFiles: [ID_MAIN],
 		message: 'Could not resolve entry module "not-found.js".'
 	}
-};
+});

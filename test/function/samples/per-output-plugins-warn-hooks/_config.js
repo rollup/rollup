@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'warns when input hooks are used in output plugins',
 	options: {
 		output: {
@@ -74,4 +74,4 @@ module.exports = {
 				'The "buildStart" hook used by the output plugin at output position 2 is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
 		}
 	]
-};
+});

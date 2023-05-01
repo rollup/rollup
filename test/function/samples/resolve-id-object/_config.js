@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'allows resolving an id with an object',
 	options: {
 		plugins: {
@@ -28,4 +28,4 @@ module.exports = {
 			throw new Error(`Unexpected external id ${id}.`);
 		}
 	}
-};
+});

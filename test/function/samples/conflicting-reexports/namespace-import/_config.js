@@ -4,7 +4,7 @@ const ID_FIRST = path.join(__dirname, 'first.js');
 const ID_SECOND = path.join(__dirname, 'second.js');
 const ID_REEXPORT = path.join(__dirname, 'reexport.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns when a conflicting binding is imported via a namespace import',
 	warnings: [
 		{
@@ -35,4 +35,4 @@ module.exports = {
 				                         ^`
 		}
 	]
-};
+});

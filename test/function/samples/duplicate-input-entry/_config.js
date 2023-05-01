@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles duplicate entry modules when using the object form',
 	options: {
 		input: ['entry', 'entry.js']
@@ -8,4 +8,4 @@ module.exports = {
 	exports(exports) {
 		assert.deepStrictEqual(exports, { entry: 'main' });
 	}
-};
+});

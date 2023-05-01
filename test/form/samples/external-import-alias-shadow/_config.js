@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles external aliased named imports that shadow another name',
 	options: {
 		external: ['acorn'],
@@ -6,4 +6,4 @@ module.exports = {
 			globals: { acorn: 'acorn' }
 		}
 	}
-};
+});

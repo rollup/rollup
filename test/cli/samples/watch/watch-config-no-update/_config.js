@@ -12,7 +12,7 @@ const configContent =
 	'\t}\n' +
 	'};';
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not rebuild if the config file is updated without change',
 	command: 'rollup -cw',
 	before() {
@@ -38,4 +38,4 @@ module.exports = {
 			throw new Error(`stderr output does not match: ${JSON.stringify(stderr)}`);
 		}
 	}
-};
+});

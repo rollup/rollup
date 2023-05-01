@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'avoids name conflicts with local variables named Symbol',
 	options: {
 		output: {
@@ -11,4 +11,4 @@ module.exports = {
 		assert.strictEqual(exports.Symbol, null);
 		assert.strictEqual(exports.toString(), '[object Module]');
 	}
-};
+});

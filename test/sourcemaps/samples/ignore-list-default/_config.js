@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'defaults to adding files within node_modules to the ignore list',
 	options: {
 		output: {
@@ -14,4 +14,4 @@ module.exports = {
 		assert.deepEqual(map.sources, ['lib.js', 'main.js']);
 		assert.deepEqual(map.x_google_ignoreList, [0]);
 	}
-};
+});

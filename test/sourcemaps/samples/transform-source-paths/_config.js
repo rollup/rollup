@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'transform sourcemap paths (#2168)',
 	options: {
 		output: {
@@ -13,4 +13,4 @@ module.exports = {
 	test(code, map) {
 		assert.deepEqual(map.sources, ['~/pkg-name/main.js']);
 	}
-};
+});

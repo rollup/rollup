@@ -18,6 +18,9 @@ copySync(resolve(__dirname, 'node_modules_rename_me'), resolve(__dirname, 'node_
 runTestSuiteWithSamples(
 	'cli',
 	resolve(__dirname, 'samples'),
+	/**
+	 * @param {import('../types').TestConfigCli} config
+	 */
 	(directory, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
 			basename(directory) + ': ' + config.description,
@@ -54,8 +57,10 @@ async function runTest(config, command) {
 				env: { ...process.env, FORCE_COLOR: '0', ...config.env },
 				killSignal: 'SIGKILL'
 			},
-			(error, code, stderr) => {
-				if (config.after) config.after(error, code, stderr);
+			async (error, code, stderr) => {
+				if (config.after) {
+					await config.after(error, code, stderr);
+				}
 				if (error && !error.killed) {
 					if (config.error) {
 						if (!config.error(error)) {
@@ -91,7 +96,7 @@ async function runTest(config, command) {
 						}
 
 						if (config.exports) {
-							config.exports(module.exports);
+							await config.exports(module.exports);
 						}
 					} catch (error) {
 						if (config.error) {

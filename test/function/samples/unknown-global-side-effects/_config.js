@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'does not omit side-effects from unknown globals',
 	exports(exports) {
 		let error;
@@ -11,4 +11,4 @@ module.exports = {
 			throw new TypeError('Expected a ReferenceError to be thrown.');
 		}
 	}
-};
+});

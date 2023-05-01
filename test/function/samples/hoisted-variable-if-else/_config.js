@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'handles hoisted variables in chained if statements',
 	exports(exports) {
 		exports.test(true);
@@ -10,4 +10,4 @@ module.exports = {
 		exports.test('loop');
 		assert.strictEqual(exports.result, 'fourth');
 	}
-};
+});

@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'handles getters that modify "this" on prototypes for unknown properties',
 	context: {
 		require() {
@@ -8,4 +8,4 @@ module.exports = {
 	options: {
 		external: ['external']
 	}
-};
+});

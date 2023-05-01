@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'dynamic imports are handled correctly when preserving modules',
 	options: {
 		strictDeprecations: false,
@@ -6,4 +6,4 @@ module.exports = {
 		preserveModules: true
 	},
 	expectedWarnings: ['DEPRECATED_FEATURE']
-};
+});

@@ -4,7 +4,7 @@ const { assertIncludes } = require('../../../utils.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns for reassignments to namespace exports',
 	code(code) {
 		assertIncludes(code, 'foo = 2');
@@ -67,6 +67,6 @@ module.exports = {
 	runtimeError(error) {
 		assert.strictEqual(error.message, 'Assignment to constant variable.');
 	}
-};
+});
 
 // test copied from https://github.com/esnext/es6-module-transpiler/tree/master/test/examples/namespace-reassign-import-fails

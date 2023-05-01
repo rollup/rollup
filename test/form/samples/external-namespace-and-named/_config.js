@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'Correctly handles external namespace tracing with both namespace and named exports',
 	options: {
 		external: ['foo'],
@@ -6,4 +6,4 @@ module.exports = {
 			globals: { foo: 'foo' }
 		}
 	}
-};
+});

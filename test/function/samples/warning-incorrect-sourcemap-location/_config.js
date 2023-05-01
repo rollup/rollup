@@ -2,7 +2,7 @@ const { join } = require('node:path');
 const ID_MAIN = join(__dirname, 'main.js');
 const ID_CONSTANTS = join(__dirname, 'constants.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'does not fail if a warning has an incorrect location due to missing sourcemaps',
 	options: {
 		plugins: [
@@ -31,4 +31,4 @@ module.exports = {
 			url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module'
 		}
 	]
-};
+});

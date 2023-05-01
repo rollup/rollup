@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'allows to configure import.meta.url',
 	options: {
 		plugins: [
@@ -24,4 +24,4 @@ module.exports = {
 			}
 		]
 	}
-};
+});

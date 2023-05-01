@@ -1,7 +1,7 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'warns about use of eval',
 	warnings: [
 		{
@@ -21,4 +21,4 @@ module.exports = {
 				                ^`
 		}
 	]
-};
+});

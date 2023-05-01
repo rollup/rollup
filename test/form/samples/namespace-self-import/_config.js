@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'namespace early import hoisting',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {
@@ -6,4 +6,4 @@ module.exports = {
 			name: 'iife'
 		}
 	}
-};
+});

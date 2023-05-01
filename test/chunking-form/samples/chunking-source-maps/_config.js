@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = defineTest({
 	description: 'source maps',
 	options: {
 		input: ['main1.js', 'main2.js'],
@@ -6,4 +6,4 @@ module.exports = {
 			sourcemap: true
 		}
 	}
-};
+});

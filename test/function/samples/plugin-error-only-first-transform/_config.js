@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-module.exports = {
+module.exports = defineTest({
 	description: 'throws error only with first plugin transform',
 	options: {
 		plugins: [
@@ -26,4 +26,4 @@ module.exports = {
 		id: path.join(__dirname, 'main.js'),
 		watchFiles: [path.join(__dirname, 'main.js')]
 	}
-};
+});
