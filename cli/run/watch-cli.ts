@@ -154,9 +154,10 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		if (watcher) await watcher.close();
 		if (configWatcher) configWatcher.close();
 
-		if (code) {
-			// eslint-disable-next-line unicorn/no-process-exit
-			process.exit(code);
-		}
+		// eslint-disable-next-line unicorn/no-process-exit
+		process.exit(code || 0);
 	}
+
+	// return a promise that never resolves to keep the process running
+	return new Promise(() => {});
 }
