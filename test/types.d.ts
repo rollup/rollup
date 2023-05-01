@@ -53,11 +53,11 @@ export interface TestConfigChunkingForm extends TestConfigBase {
 	/**
 	 * Called after the test is run.
 	 */
-	after?: () => void | Promise<void>;
+	after?: () => void;
 	/**
 	 * Called before the test is run.
 	 */
-	before?: () => void | Promise<void>;
+	before?: () => void;
 	/**
 	 * Expected warning codes. Any of these warnings will not cause the test to
 	 * fail.

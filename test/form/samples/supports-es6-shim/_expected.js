@@ -1,10 +1,6 @@
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-var es6ShimExports = {};
-var es6Shim = {
-  get exports(){ return es6ShimExports; },
-  set exports(v){ es6ShimExports = v; },
-};
+var es6Shim = {exports: {}};
 
 /*!
  * https://github.com/paulmillr/es6-shim
@@ -1536,7 +1532,7 @@ var es6Shim = {
 	    var ES5ObjectShims = {
 	      // 19.1.3.9
 	      // shim from https://gist.github.com/WebReflection/5593554
-	      setPrototypeOf: (function (Object, magic) {
+	      setPrototypeOf: (function (Object) {
 	        var set;
 
 	        var checkArgs = function (O, proto) {
@@ -1556,16 +1552,16 @@ var es6Shim = {
 
 	        try {
 	          // this works already in Firefox and Safari
-	          set = Object.getOwnPropertyDescriptor(Object.prototype, magic).set;
+	          set = Object.getOwnPropertyDescriptor(Object.prototype, '__proto__').set;
 	          _call(set, {}, null);
 	        } catch (e) {
-	          if (Object.prototype !== {}[magic]) {
+	          if (Object.prototype !== ({}).__proto__) { // eslint-disable-line no-proto
 	            // IE < 11 cannot be shimmed
 	            return;
 	          }
 	          // probably Chrome or some old Mobile stock browser
 	          set = function (proto) {
-	            this[magic] = proto;
+	            this.__proto__ = proto; // eslint-disable-line no-proto
 	          };
 	          // please note that this will **not** work
 	          // in those browsers that do not inherit
@@ -1585,7 +1581,7 @@ var es6Shim = {
 	          // we can even delete Object.prototype.__proto__;
 	        }
 	        return setPrototypeOf;
-	      }(Object, '__proto__'))
+	      }(Object))
 	    };
 
 	    defineProperties(Object, ES5ObjectShims);
@@ -1798,6 +1794,7 @@ var es6Shim = {
 	      return '/' + pattern + '/' + flags;
 	    }, true);
 	    Value.preserveToString(RegExp.prototype.toString, origRegExpToString);
+	    RegExp.prototype.toString.prototype = void 0;
 	  }
 
 	  if (supportsDescriptors && (!regExpSupportsFlagsWithRegex || regExpNeedsToSupportSymbolMatch)) {
@@ -3892,5 +3889,5 @@ var es6Shim = {
 	  }
 
 	  return globals;
-	}));
+	})); 
 } (es6Shim));

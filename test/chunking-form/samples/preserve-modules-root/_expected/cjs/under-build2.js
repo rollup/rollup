@@ -1,5 +1,6 @@
 'use strict';
 
+var _commonjsHelpers = require('./_virtual/_commonjsHelpers.js');
 require('./custom_modules/@my-scope/my-base-pkg/index.js');
 var index = require('./_virtual/index.js');
 
@@ -9,4 +10,6 @@ var underBuild = {
 	base
 };
 
-module.exports = underBuild;
+var underBuild$1 = /*@__PURE__*/_commonjsHelpers.getDefaultExportFromCjs(underBuild);
+
+module.exports = underBuild$1;

@@ -1,10 +1,6 @@
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-var es5ShimExports = {};
-var es5Shim = {
-  get exports(){ return es5ShimExports; },
-  set exports(v){ es5ShimExports = v; },
-};
+var es5Shim = {exports: {}};
 
 /*!
  * https://github.com/es-shims/es5-shim
@@ -2332,5 +2328,5 @@ var es5Shim = {
 	        // can't use defineProperties here because of toString enumeration issue in IE <= 8
 	        RegExp.prototype.toString = regexToString;
 	    }
-	}));
+	})); 
 } (es5Shim));

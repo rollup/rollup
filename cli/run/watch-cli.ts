@@ -4,7 +4,7 @@ import process from 'node:process';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';
-import onExit from 'signal-exit';
+import { onExit } from 'signal-exit';
 import * as rollup from '../../src/node-entry';
 import type { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
 import { bold, cyan, green, underline } from '../../src/utils/colors';
@@ -146,7 +146,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		});
 	}
 
-	async function close(code: number | null): Promise<void> {
+	async function close(code: number | null | undefined): Promise<void> {
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);

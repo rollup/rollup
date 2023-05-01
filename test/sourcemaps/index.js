@@ -61,6 +61,6 @@ async function generateAndTestBundle(bundle, outputOptions, config, format, warn
 	}
 	const {
 		output: [{ code, map, fileName }]
-	} = await bundle.generate(outputOptions);
+	} = await bundle.write(outputOptions);
 	await config.test(code, map, { fileName, format });
 }
