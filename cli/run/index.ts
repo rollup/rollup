@@ -55,7 +55,7 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 	if (isWatchEnabled(command.watch)) {
 		await loadFsEvents();
 		const { watch } = await import('./watch-cli');
-		watch(command);
+		await watch(command);
 	} else {
 		try {
 			const { options, warnings } = await getConfigs(command);
