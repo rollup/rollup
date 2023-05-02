@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.21.3
+
+_2023-05-02_
+
+### Bug Fixes
+
+- Run `process.exit()` when Rollup CLI finishes successfully to solve issues on some systems (#4969)
+
+### Pull Requests
+
+- [#4954](https://github.com/rollup/rollup/pull/4954): test: enable typecheck for \_config files (@antfu)
+- [#4969](https://github.com/rollup/rollup/pull/4969): Automatically force close Rollup when done (@lukastaegert)
+
 ## 3.21.2
 
 _2023-04-30_
