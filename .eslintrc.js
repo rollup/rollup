@@ -36,6 +36,12 @@ module.exports = {
 			}
 		},
 		{
+			files: ['./*.ts', 'cli/**/*.ts'],
+			rules: {
+				'unicorn/no-process-exit': 'off'
+			}
+		},
+		{
 			files: ['*.js', 'cli/**/*.ts'],
 			rules: {
 				'@typescript-eslint/no-var-requires': 'off'

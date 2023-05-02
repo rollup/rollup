@@ -1,3 +1,4 @@
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
@@ -137,7 +138,17 @@ export default async function (
 			terser({ module: true, output: { comments: 'some' } }),
 			collectLicensesBrowser(),
 			writeLicenseBrowser(),
-			cleanBeforeWrite('browser/dist')
+			cleanBeforeWrite('browser/dist'),
+			{
+				// TODO remove after next Rollup dependency update
+				closeBundle() {
+					// On CI, macOS runs sometimes do not close properly. This is a hack
+					// to fix this until the problem is understood.
+					console.log('Force quit.');
+					setTimeout(() => process.exit(0));
+				},
+				name: 'force-close'
+			}
 		],
 		strictDeprecations: true,
 		treeshake

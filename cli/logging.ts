@@ -38,6 +38,5 @@ export function handleError(error: RollupError, recover = false): void {
 	outputLines.push('', '');
 	stderr(outputLines.join('\n'));
 
-	// eslint-disable-next-line unicorn/no-process-exit
 	if (!recover) process.exit(1);
 }

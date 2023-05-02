@@ -22,6 +22,5 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 		// do nothing
 	}
 
-	// eslint-disable-next-line unicorn/no-process-exit
 	run(command).then(() => process.exit(0));
 }
