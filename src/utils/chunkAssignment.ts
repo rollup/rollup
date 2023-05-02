@@ -169,6 +169,8 @@ export function getChunkAssignments(
 	return chunkDefinitions;
 }
 
+// TODO Lukas to prevent empty chunks, find chunks that contain only a single
+//  empty module and see if there is a valid merge target for them
 function getChunkDefinitionsFromManualChunks(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
