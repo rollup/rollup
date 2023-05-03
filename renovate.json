@@ -5,14 +5,32 @@
 	"rangeStrategy": "bump",
 	"packageRules": [
 		{
+			"matchPackageNames": ["node", "npm"],
+			"enabled": false
+		},
+		{
+			"matchPackageNames": ["@types/node"],
+			"matchUpdateTypes": [
+				"major",
+				"minor",
+				"bump",
+				"replacement"
+			],
+			"enabled": false
+		},
+		{
 			"matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest", "lockFileMaintenance"],
 			"automerge": true,
-			"groupName": "default"
+			"automergeSchedule": ["after 10am on Friday"],
+			"groupName": "minor/patch updates"
 		}
 	],
 	"internalChecksFilter": "strict",
 	"lockFileMaintenance": {
-		"enabled": true
+		"enabled": true,
+		"schedule": ["before 4am on Friday"]
 	},
-	"minimumReleaseAge": "5 days"
+	"minimumReleaseAge": "5 days",
+	"schedule": ["before 4am on Friday"],
+	"automergeStrategy": "squash"
 }
