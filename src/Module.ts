@@ -747,7 +747,11 @@ export default class Module {
 		// Modules where this.ast is missing have been loaded via this.load and are
 		// not yet fully processed, hence they cannot be included.
 		return (
-			this.ast && (this.ast.included || this.namespace.included || this.importedFromNotTreeshaken)
+			this.ast &&
+			(this.ast.included ||
+				this.namespace.included ||
+				this.importedFromNotTreeshaken ||
+				this.exportShimVariable.included)
 		);
 	}
 
