@@ -1,6 +1,18 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base"
-  ]
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:base"],
+	"configMigration": true,
+	"rangeStrategy": "bump",
+	"packageRules": [
+		{
+			"matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest", "lockFileMaintenance"],
+			"automerge": true,
+			"groupName": "default"
+		}
+	],
+	"internalChecksFilter": "strict",
+	"lockFileMaintenance": {
+		"enabled": true
+	},
+	"minimumReleaseAge": "5 days"
 }
