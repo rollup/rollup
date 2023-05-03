@@ -28,6 +28,7 @@
 		"enabled": true,
 		"schedule": ["before 4am on Friday"]
 	},
+	"minimumReleaseAge": "5 days",
 	"schedule": ["before 4am on Friday"],
 	"automergeStrategy": "squash"
 }
