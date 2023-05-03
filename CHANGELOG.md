@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.21.4
+
+_2023-05-03_
+
+### Bug Fixes
+
+- Resolve crash when shimming a missing export in an otherwise non-included module when preserving modules (#4971)
+
+### Pull Requests
+
+- [#4971](https://github.com/rollup/rollup/pull/4971): Handle shimming missing exports when preserving modules (@lukastaegert)
+- [#4972](https://github.com/rollup/rollup/pull/4972): Configure Renovate (@renovate[bot])
+
 ## 3.21.3
 
 _2023-05-02_
