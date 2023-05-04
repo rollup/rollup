@@ -1,4 +1,5 @@
 /* header retained */
+
  /* lead
 retained */ console.log(2); // trail retained
 console.log(2); // trail retained
