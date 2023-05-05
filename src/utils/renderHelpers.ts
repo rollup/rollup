@@ -70,7 +70,7 @@ export function findNonWhiteSpace(code: string, index: number): number {
 
 // This assumes "code" only contains white-space and comments
 // Returns position of line-comment if applicable
-function findFirstLineBreakOutsideComment(code: string): [number, number] {
+export function findFirstLineBreakOutsideComment(code: string): [number, number] {
 	let lineBreakPos,
 		charCodeAfterSlash,
 		start = 0;
