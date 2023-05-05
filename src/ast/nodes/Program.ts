@@ -3,7 +3,11 @@ import type MagicString from 'magic-string';
 import getCodeFrame from '../../utils/getCodeFrame';
 import { getOriginalLocation } from '../../utils/getOriginalLocation';
 import relativeId from '../../utils/relativeId';
-import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import {
+	findFirstLineBreakOutsideComment,
+	type RenderOptions,
+	renderStatementList
+} from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
 import type * as NodeType from './NodeType';
@@ -79,6 +83,16 @@ export default class Program extends NodeBase {
 			code.remove(0, start);
 		}
 		if (this.body.length > 0) {
+			// Keep all consecutive lines that start with a comment
+			while (code.original[start] === '/' && /[*/]/.test(code.original[start + 1])) {
+				const firstLineBreak = findFirstLineBreakOutsideComment(
+					code.original.slice(start, this.body[0].start)
+				);
+				if (firstLineBreak[0] === -1) {
+					break;
+				}
+				start += firstLineBreak[1];
+			}
 			renderStatementList(this.body, code, start, this.end, options);
 		} else {
 			super.render(code, options);
