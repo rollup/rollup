@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.21.5
+
+_2023-05-05_
+
+### Bug Fixes
+
+- Keep all consecutive lines at the top of each module that start with a comment (#4975)
+- Ensure that declarations inside switch cases do not use the same scope as the discriminator (#4979)
+
+### Pull Requests
+
+- [#4975](https://github.com/rollup/rollup/pull/4975): Keep leading comments on consecutive lines (@lukastaegert)
+- [#4979](https://github.com/rollup/rollup/pull/4979): Use correct scope in switch statements (@lukastaegert)
+
 ## 3.21.4
 
 _2023-05-03_
