@@ -6,10 +6,12 @@ import {
 	type InclusionContext
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
+import type ChildScope from '../scopes/ChildScope';
 import type Scope from '../scopes/Scope';
 import type * as NodeType from './NodeType';
 import type SwitchCase from './SwitchCase';
-import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
+import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
+import { StatementBase } from './shared/Node';
 
 export default class SwitchStatement extends StatementBase {
 	declare cases: readonly SwitchCase[];
@@ -17,8 +19,10 @@ export default class SwitchStatement extends StatementBase {
 	declare type: NodeType.tSwitchStatement;
 
 	private declare defaultCase: number | null;
+	private declare parentScope: ChildScope;
 
 	createScope(parentScope: Scope): void {
+		this.parentScope = parentScope as ChildScope;
 		this.scope = new BlockScope(parentScope);
 	}
 
@@ -87,6 +91,15 @@ export default class SwitchStatement extends StatementBase {
 			}
 		}
 		this.defaultCase = null;
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.discriminant = new (this.context.getNodeConstructor(esTreeNode.discriminant.type))(
+			esTreeNode.discriminant,
+			this,
+			this.parentScope
+		);
+		super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
