@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.21.6
+
+_2023-05-09_
+
+### Bug Fixes
+
+- Ensure Rollup CLI prints everything to stdout before exiting (#4980)
+
+### Pull Requests
+
+- [#4980](https://github.com/rollup/rollup/pull/4980): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#4983](https://github.com/rollup/rollup/pull/4983): Prevent exit before stdout is drained (@lukastaegert)
+
 ## 3.21.5
 
 _2023-05-05_
