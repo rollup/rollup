@@ -21,6 +21,8 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 	} catch {
 		// do nothing
 	}
-
-	run(command).then(() => process.exit(0));
+	run(command).then(() => {
+		process.stdout.on('finish', () => process.exit(0));
+		process.stdout.end();
+	});
 }
