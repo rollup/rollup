@@ -1,4 +1,4 @@
-System.register(['./generated-dep.js', 'external'], (function (exports) {
+System.register(['./main1.js', 'external'], (function (exports) {
 	'use strict';
 	return {
 		setters: [null, function (module) {

@@ -1,7 +1,7 @@
-define(['./generated-dep2'], (function (dep2) { 'use strict';
+define(['./main2'], (function (main2) { 'use strict';
 
 
 
-	return dep2.foo;
+	return main2.foo;
 
 }));

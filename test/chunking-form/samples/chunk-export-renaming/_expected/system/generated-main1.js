@@ -7,9 +7,9 @@ System.register([], (function (exports) {
         test() {
             return ONE_CONSTANT;
         }
-      } exports('O', One);
+      } exports('a', One);
 
-      const ONE_CONSTANT = exports('a', 'oneconstant');
+      const ONE_CONSTANT = exports('O', 'oneconstant');
 
     })
   };

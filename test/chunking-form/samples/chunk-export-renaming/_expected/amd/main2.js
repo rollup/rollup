@@ -1,8 +1,8 @@
-define(['exports', './generated-one'], (function (exports, one) { 'use strict';
+define(['exports', './generated-main1'], (function (exports, main1) { 'use strict';
 
     class Two {
         test() {
-            return one.ONE_CONSTANT;
+            return main1.ONE_CONSTANT;
         }
     }
 

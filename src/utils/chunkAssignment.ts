@@ -6,9 +6,6 @@ import { timeEnd, timeStart } from './timers';
 
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
-interface ChunksBySignature {
-	[chunkSignature: string]: ModulesWithDependentEntries;
-}
 interface ModulesWithDependentEntries {
 	dependentEntries: Set<number>;
 	modules: Module[];
@@ -148,10 +145,8 @@ export function getChunkAssignments(
 	} = analyzeModuleGraph(entries);
 
 	// Each chunk is identified by its position in this array
-	const initialChunks = Object.values(
-		getChunksBySignature(
-			getModulesWithDependentEntries(dependentEntriesByModule, modulesInManualChunks)
-		)
+	const initialChunks = getChunksFromDependentEntries(
+		getModulesWithDependentEntries(dependentEntriesByModule, modulesInManualChunks)
 	);
 
 	// This mutates initialChunks but also clears
@@ -164,13 +159,18 @@ export function getChunkAssignments(
 	);
 
 	chunkDefinitions.push(
-		...createChunks(allEntries, getChunksBySignature(initialChunks), minChunkSize)
+		...getOptimizedChunks(
+			getChunksFromDependentEntries(initialChunks),
+			allEntries.length,
+			minChunkSize
+		).map(({ modules }) => ({
+			alias: null,
+			modules
+		}))
 	);
 	return chunkDefinitions;
 }
 
-// TODO Lukas to prevent empty chunks, find chunks that contain only a single
-//  empty module and see if there is a valid merge target for them
 function getChunkDefinitionsFromManualChunks(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
@@ -316,10 +316,12 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 	return dynamicallyDependentEntriesByDynamicEntry;
 }
 
-function getChunksBySignature(
+function getChunksFromDependentEntries(
 	modulesWithDependentEntries: Iterable<ModulesWithDependentEntries>
-): ChunksBySignature {
-	const chunkModules: ChunksBySignature = Object.create(null);
+): ModulesWithDependentEntries[] {
+	const chunkModules: {
+		[signature: string]: ModulesWithDependentEntries;
+	} = Object.create(null);
 	for (const { dependentEntries, modules } of modulesWithDependentEntries) {
 		let chunkSignature = 0n;
 		for (const entryIndex of dependentEntries) {
@@ -330,7 +332,7 @@ function getChunksBySignature(
 			modules: []
 		}).modules.push(...modules);
 	}
-	return chunkModules;
+	return Object.values(chunkModules);
 }
 
 function* getModulesWithDependentEntries(
@@ -412,29 +414,12 @@ function removeUnnecessaryDependentEntries(
 	}
 }
 
-function createChunks(
-	allEntries: ReadonlyArray<Module>,
-	chunkModulesBySignature: ChunksBySignature,
-	minChunkSize: number
-): ChunkDefinitions {
-	return minChunkSize === 0
-		? Object.values(chunkModulesBySignature).map(({ modules }) => ({
-				alias: null,
-				modules
-		  }))
-		: getOptimizedChunks(chunkModulesBySignature, allEntries.length, minChunkSize).map(
-				({ modules }) => ({
-					alias: null,
-					modules
-				})
-		  );
-}
-
 interface ChunkDescription {
 	// The signatures of all side effects included in or loaded with this chunk.
 	// This is the intersection of all dependent entry side effects. As chunks are
 	// merged, these sets are intersected.
-	correlatedSideEffects: Set<string>;
+	// TODO Lukas use BigInt
+	correlatedSideEffects: Set<number>;
 	dependencies: Set<ChunkDescription>;
 	dependentChunks: Set<ChunkDescription>;
 	// The indices of the entries depending on this chunk
@@ -442,7 +427,8 @@ interface ChunkDescription {
 	modules: Module[];
 	pure: boolean;
 	// These are only the sideEffects contained in that chunk
-	sideEffects: Set<string>;
+	// TODO Lukas use BigInt
+	sideEffects: Set<number>;
 	size: number;
 }
 
@@ -492,85 +478,90 @@ type ChunkPartition = {
  * dependency side effects are AF.
  * For entry chunks, dependency and correlated side effects are the same.
  *
- * With these concepts, merging chunks is allowed if the correlated side effects
- * of each entry do not change. Thus, we are allowed to merge two chunks if
+ * With these concepts, merging chunks is allowed if the correlated side
+ * effects of each entry do not change. Thus, we are allowed to merge two
+ * chunks if
+ *
  * a) the dependency side effects of each chunk are a subset of the correlated
  *    side effects of the other chunk, so no additional side effects are
  *    triggered for any entry, or
- * b) The signature of chunk A is a subset of the signature of chunk B while the
- *    dependency side effects of A are a subset of the correlated side effects
- *    of B. Because in that scenario, whenever A is loaded, B is loaded as well.
- *    But there are cases when B is loaded where A is not loaded. So if we merge
- *    the chunks, all dependency side effects of A will be added to the
- *    correlated side effects of B, and as the latter is not allowed to change,
- *    the former need to be a subset of the latter.
+ * b) The dependent entry points of chunk A are a subset of the dependent entry
+ *    points of chunk B while the dependency side effects of A are a subset of
+ *    the correlated side effects of B. Because in that scenario, whenever A is
+ *    loaded, B is loaded as well. But there are cases when B is loaded where A
+ *    is not loaded. So if we merge the chunks, all dependency side effects of
+ *    A will be added to the correlated side effects of B, and as the latter is
+ *    not allowed to change, the former need to be a subset of the latter.
  *
- * Another consideration when merging small chunks into other chunks is to avoid
+ * Another consideration when merging small chunks into other chunks is to
+ * avoid
  * that too much additional code is loaded. This is achieved when the dependent
- * entries of the small chunk are a subset of the dependent entries of the other
+ * entries of the small chunk are a subset of the dependent entries of the
+ * other
  * chunk. Because then when the small chunk is loaded, the other chunk was
  * loaded/in memory anyway, so at most when the other chunk is loaded, the
  * additional size of the small chunk is loaded unnecessarily.
  *
  * So the algorithm performs merges in two passes:
+ *
  * 1. First we try to merge small chunks A only into other chunks B if the
  *    dependent entries of A are a subset of the dependent entries of B and the
  *    dependency side effects of A are a subset of the correlated side effects
  *    of B.
  * 2. Only then for all remaining small chunks, we look for arbitrary merges
- *    following the above rules (a) and (b), starting with the smallest chunks
- *    to look for possible merge targets.
+ *    following the rule (a), starting with the smallest chunks to look for
+ *    possible merge targets.
  */
 // TODO instead of picking the "closest" chunk, we could actually use a
 //  technique similar to what we do for side effects to compare the size of the
 //  static dependencies that are not part of the correlated dependencies
 function getOptimizedChunks(
-	chunkModulesBySignature: ChunksBySignature,
+	chunkModules: ModulesWithDependentEntries[],
 	numberOfEntries: number,
 	minChunkSize: number
-) {
+): { modules: Module[] }[] {
 	timeStart('optimize chunks', 3);
-	const chunkPartition = getPartitionedChunks(
-		chunkModulesBySignature,
-		numberOfEntries,
-		minChunkSize
-	);
-	console.log(
-		'Before eliminating small chunks, there were\n',
-		Object.keys(chunkModulesBySignature).length,
-		'chunks, of which\n',
-		chunkPartition.small.size,
-		'were below minChunkSize.'
-	);
+	const chunkPartition = getPartitionedChunks(chunkModules, numberOfEntries, minChunkSize);
+	if (!chunkPartition) {
+		timeEnd('optimize chunks', 3);
+		return chunkModules; // the actual modules
+	}
+	minChunkSize &&
+		console.log(
+			'Before eliminating small chunks, there were\n',
+			chunkModules.length,
+			'chunks, of which\n',
+			chunkPartition.small.size,
+			'were below minChunkSize.'
+		);
 	if (chunkPartition.small.size > 0) {
 		mergeChunks(chunkPartition, minChunkSize);
 	}
-	console.log(
-		'After merging chunks,\n',
-		chunkPartition.small.size + chunkPartition.big.size,
-		'chunks remain, of which\n',
-		chunkPartition.small.size,
-		'are below minChunkSize.'
-	);
+	minChunkSize &&
+		console.log(
+			'After merging chunks,\n',
+			chunkPartition.small.size + chunkPartition.big.size,
+			'chunks remain, of which\n',
+			chunkPartition.small.size,
+			'are below minChunkSize.'
+		);
 	timeEnd('optimize chunks', 3);
 	return [...chunkPartition.small, ...chunkPartition.big];
 }
 
 function getPartitionedChunks(
-	chunkModulesBySignature: ChunksBySignature,
+	chunkModules: ModulesWithDependentEntries[],
 	numberOfEntries: number,
 	minChunkSize: number
-): ChunkPartition {
+): ChunkPartition | null {
 	const smallChunks: ChunkDescription[] = [];
 	const bigChunks: ChunkDescription[] = [];
 	const chunkByModule = new Map<Module, ChunkDescription>();
-	const sideEffectsByEntry: Set<string>[] = [];
+	const sideEffectsByEntry: Set<number>[] = [];
 	for (let index = 0; index < numberOfEntries; index++) {
 		sideEffectsByEntry.push(new Set());
 	}
-	for (const [signature, { dependentEntries, modules }] of Object.entries(
-		chunkModulesBySignature
-	)) {
+	for (const [index, { dependentEntries, modules }] of chunkModules.entries()) {
 		const chunkDescription: ChunkDescription = {
 			correlatedSideEffects: new Set(),
 			dependencies: new Set(),
@@ -585,22 +576,28 @@ function getPartitionedChunks(
 		let pure = true;
 		for (const module of modules) {
 			chunkByModule.set(module, chunkDescription);
-			pure &&= !module.hasEffects();
 			// Unfortunately, we cannot take tree-shaking into account here because
-			// rendering did not happen yet
-			size += module.originalCode.length;
+			// rendering did not happen yet, but we can detect empty modules
+			if (module.isIncluded()) {
+				pure &&= !module.hasEffects();
+				size += module.originalCode.length;
+			}
 		}
 		chunkDescription.pure = pure;
 		chunkDescription.size = size;
 		if (!pure) {
 			for (const entryIndex of dependentEntries) {
-				sideEffectsByEntry[entryIndex].add(signature);
+				sideEffectsByEntry[entryIndex].add(index);
 			}
 			// In the beginning, each chunk is only its own side effect. After
 			// merging, additional side effects can accumulate.
-			chunkDescription.sideEffects.add(signature);
+			chunkDescription.sideEffects.add(index);
 		}
-		(size < minChunkSize ? smallChunks : bigChunks).push(chunkDescription);
+		(size <= minChunkSize ? smallChunks : bigChunks).push(chunkDescription);
+	}
+	// If there are no small chunks, we will not optimize
+	if (smallChunks.length === 0) {
+		return null;
 	}
 	sortChunksAndAddDependenciesAndEffects(
 		[bigChunks, smallChunks],
@@ -616,7 +613,7 @@ function getPartitionedChunks(
 function sortChunksAndAddDependenciesAndEffects(
 	chunkLists: ChunkDescription[][],
 	chunkByModule: Map<Module, ChunkDescription>,
-	sideEffectsByEntry: Set<string>[]
+	sideEffectsByEntry: Set<number>[]
 ) {
 	for (const chunks of chunkLists) {
 		chunks.sort(compareChunkSize);
@@ -660,7 +657,7 @@ function compareChunkSize(
 }
 
 function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
-	for (const allowArbitraryMerges of [false, true]) {
+	for (const allowArbitraryMerges of minChunkSize > 0 ? [false, true] : [false]) {
 		for (const mergedChunk of chunkPartition.small) {
 			let closestChunk: ChunkDescription | null = null;
 			let closestChunkDistance = Infinity;
@@ -670,6 +667,7 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 				// If both chunks are small, we also allow for unrelated merges during
 				// the first pass
 				const onlySubsetMerge = !allowArbitraryMerges && targetChunk.size >= minChunkSize;
+				// TODO Lukas this could be the load size increase instead, take it if there is no increase (non-included are taken as 0)
 				const distance = getChunkEntryDistance(mergedChunk, targetChunk, onlySubsetMerge);
 				if (
 					distance < closestChunkDistance &&

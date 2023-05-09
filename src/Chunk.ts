@@ -309,7 +309,12 @@ export default class Chunk {
 		}
 		for (const exposedVariable of exposedVariables) {
 			if (
-				!(moduleExportNamesByVariable.has(exposedVariable) || exposedVariable.module === module)
+				!(
+					exposedVariable.module === module ||
+					moduleExportNamesByVariable.has(exposedVariable) ||
+					(exposedVariable instanceof SyntheticNamedExportVariable &&
+						moduleExportNamesByVariable.has(exposedVariable.getBaseVariable()))
+				)
 			) {
 				return false;
 			}

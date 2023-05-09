@@ -1,3 +1,3 @@
-import { s as sharedValue } from './chunks/shared.js';
+import { sharedValue } from './other.js';
 
 assert.equal(sharedValue, 'shared');

@@ -1,7 +1,7 @@
 'use strict';
 
-var lib = require('./generated-lib.js');
+var main1 = require('./main1.js');
 
 
 
-exports.foo = lib.lib.foo;
+exports.foo = main1.lib.foo;

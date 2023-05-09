@@ -1,5 +1,5 @@
-import { x, y } from './generated-shared2.js';
-import './generated-dep1.js';
-import './generated-dep2.js';
+import { x, y } from './main2.js';
+import './main3.js';
+import './main4.js';
 
 console.log(x + y);

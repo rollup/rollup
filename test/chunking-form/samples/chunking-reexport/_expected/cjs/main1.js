@@ -1,9 +1,8 @@
 'use strict';
 
-require('./generated-dep.js');
 var external = require('external');
 
-
+console.log('dep');
 
 Object.defineProperty(exports, 'dep', {
 	enumerable: true,

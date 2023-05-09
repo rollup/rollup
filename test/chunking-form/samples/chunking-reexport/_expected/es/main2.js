@@ -1,2 +1,2 @@
-import './generated-dep.js';
+import './main1.js';
 export { asdf as dep } from 'external';

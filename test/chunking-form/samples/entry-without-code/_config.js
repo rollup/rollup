@@ -1,5 +1,4 @@
 module.exports = defineTest({
-	solo: true,
 	description:
 		'optimizes chunks when an entry point without own code is imported from another entry',
 	options: {

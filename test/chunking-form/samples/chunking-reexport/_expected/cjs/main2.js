@@ -1,6 +1,6 @@
 'use strict';
 
-require('./generated-dep.js');
+require('./main1.js');
 var external = require('external');
 
 

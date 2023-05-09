@@ -1,4 +1,4 @@
-import { f as foo } from './generated-dep2.js';
+import { f as foo } from './main2.js';
 
 
 
