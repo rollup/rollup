@@ -418,8 +418,7 @@ interface ChunkDescription {
 	// The signatures of all side effects included in or loaded with this chunk.
 	// This is the intersection of all dependent entry side effects. As chunks are
 	// merged, these sets are intersected.
-	// TODO Lukas use BigInt
-	correlatedSideEffects: Set<number>;
+	correlatedSideEffects: bigint;
 	dependencies: Set<ChunkDescription>;
 	dependentChunks: Set<ChunkDescription>;
 	// The indices of the entries depending on this chunk
@@ -427,8 +426,7 @@ interface ChunkDescription {
 	modules: Module[];
 	pure: boolean;
 	// These are only the sideEffects contained in that chunk
-	// TODO Lukas use BigInt
-	sideEffects: Set<number>;
+	sideEffects: bigint;
 	size: number;
 }
 
@@ -557,19 +555,19 @@ function getPartitionedChunks(
 	const smallChunks: ChunkDescription[] = [];
 	const bigChunks: ChunkDescription[] = [];
 	const chunkByModule = new Map<Module, ChunkDescription>();
-	const sideEffectsByEntry: Set<number>[] = [];
+	const sideEffectsByEntry: bigint[] = [];
 	for (let index = 0; index < numberOfEntries; index++) {
-		sideEffectsByEntry.push(new Set());
+		sideEffectsByEntry.push(0n);
 	}
 	for (const [index, { dependentEntries, modules }] of chunkModules.entries()) {
 		const chunkDescription: ChunkDescription = {
-			correlatedSideEffects: new Set(),
+			correlatedSideEffects: 0n,
 			dependencies: new Set(),
 			dependentChunks: new Set(),
 			dependentEntries,
 			modules,
 			pure: true,
-			sideEffects: new Set(),
+			sideEffects: 0n,
 			size: 0
 		};
 		let size = 0;
@@ -586,12 +584,13 @@ function getPartitionedChunks(
 		chunkDescription.pure = pure;
 		chunkDescription.size = size;
 		if (!pure) {
+			const sideEffect = 1n << BigInt(index);
 			for (const entryIndex of dependentEntries) {
-				sideEffectsByEntry[entryIndex].add(index);
+				sideEffectsByEntry[entryIndex] |= sideEffect;
 			}
 			// In the beginning, each chunk is only its own side effect. After
 			// merging, additional side effects can accumulate.
-			chunkDescription.sideEffects.add(index);
+			chunkDescription.sideEffects = sideEffect;
 		}
 		(size <= minChunkSize ? smallChunks : bigChunks).push(chunkDescription);
 	}
@@ -613,12 +612,12 @@ function getPartitionedChunks(
 function sortChunksAndAddDependenciesAndEffects(
 	chunkLists: ChunkDescription[][],
 	chunkByModule: Map<Module, ChunkDescription>,
-	sideEffectsByEntry: Set<number>[]
+	sideEffectsByEntry: bigint[]
 ) {
 	for (const chunks of chunkLists) {
 		chunks.sort(compareChunkSize);
 		for (const chunk of chunks) {
-			const { dependencies, modules, correlatedSideEffects, dependentEntries } = chunk;
+			const { dependencies, modules, dependentEntries } = chunk;
 			for (const module of modules) {
 				for (const dependency of module.getDependenciesToBeIncluded()) {
 					const dependencyChunk = chunkByModule.get(dependency as Module);
@@ -628,22 +627,10 @@ function sortChunksAndAddDependenciesAndEffects(
 					}
 				}
 			}
-			let firstEntry = true;
-			// Correlated side effects is the intersection of all entry side effects
+			// Correlated side effects are the intersection of all entry side effects
+			chunk.correlatedSideEffects = -1n;
 			for (const entryIndex of dependentEntries) {
-				const entryEffects = sideEffectsByEntry[entryIndex];
-				if (firstEntry) {
-					for (const sideEffect of entryEffects) {
-						correlatedSideEffects.add(sideEffect);
-					}
-					firstEntry = false;
-				} else {
-					for (const sideEffect of correlatedSideEffects) {
-						if (!entryEffects.has(sideEffect)) {
-							correlatedSideEffects.delete(sideEffect);
-						}
-					}
-				}
+				chunk.correlatedSideEffects &= sideEffectsByEntry[entryIndex];
 			}
 		}
 	}
@@ -661,18 +648,18 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 		for (const mergedChunk of chunkPartition.small) {
 			let closestChunk: ChunkDescription | null = null;
 			let closestChunkDistance = Infinity;
-			const { modules, pure, size } = mergedChunk;
+			const { correlatedSideEffects, modules, pure, sideEffects, size } = mergedChunk;
 			for (const targetChunk of concatLazy([chunkPartition.small, chunkPartition.big])) {
 				if (mergedChunk === targetChunk) continue;
 				// If both chunks are small, we also allow for unrelated merges during
 				// the first pass
-				const onlySubsetMerge = !allowArbitraryMerges && targetChunk.size >= minChunkSize;
 				// TODO Lukas this could be the load size increase instead, take it if there is no increase (non-included are taken as 0)
-				const distance = getChunkEntryDistance(mergedChunk, targetChunk, onlySubsetMerge);
-				if (
-					distance < closestChunkDistance &&
-					isValidMerge(mergedChunk, targetChunk, onlySubsetMerge)
-				) {
+				const distance = getChunkEntryDistance(
+					mergedChunk,
+					targetChunk,
+					!allowArbitraryMerges && targetChunk.size >= minChunkSize
+				);
+				if (distance < closestChunkDistance && isValidMerge(mergedChunk, targetChunk)) {
 					closestChunk = targetChunk;
 					closestChunkDistance = distance;
 				}
@@ -683,23 +670,11 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 				closestChunk.modules.push(...modules);
 				closestChunk.size += size;
 				closestChunk.pure &&= pure;
-				const {
-					correlatedSideEffects,
-					dependencies,
-					dependentChunks,
-					dependentEntries,
-					sideEffects
-				} = closestChunk;
-				for (const sideEffect of correlatedSideEffects) {
-					if (!mergedChunk.correlatedSideEffects.has(sideEffect)) {
-						correlatedSideEffects.delete(sideEffect);
-					}
-				}
+				const { dependencies, dependentChunks, dependentEntries } = closestChunk;
+				closestChunk.correlatedSideEffects &= correlatedSideEffects;
+				closestChunk.sideEffects |= sideEffects;
 				for (const entry of mergedChunk.dependentEntries) {
 					dependentEntries.add(entry);
-				}
-				for (const sideEffect of mergedChunk.sideEffects) {
-					sideEffects.add(sideEffect);
 				}
 				for (const dependency of mergedChunk.dependencies) {
 					dependencies.add(dependency);
@@ -721,29 +696,20 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 
 // Merging will not produce cycles if none of the direct non-merged dependencies
 // of a chunk have the other chunk as a transitive dependency
-function isValidMerge(
-	mergedChunk: ChunkDescription,
-	targetChunk: ChunkDescription,
-	onlySubsetMerge: boolean
-) {
+function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
 	return !(
-		hasTransitiveDependencyOrNonCorrelatedSideEffect(mergedChunk, targetChunk, true) ||
-		hasTransitiveDependencyOrNonCorrelatedSideEffect(targetChunk, mergedChunk, !onlySubsetMerge)
+		hasTransitiveDependencyOrNonCorrelatedSideEffect(mergedChunk, targetChunk) ||
+		hasTransitiveDependencyOrNonCorrelatedSideEffect(targetChunk, mergedChunk)
 	);
 }
 
 function hasTransitiveDependencyOrNonCorrelatedSideEffect(
 	dependentChunk: ChunkDescription,
-	dependencyChunk: ChunkDescription,
-	checkSideEffects: boolean
+	dependencyChunk: ChunkDescription
 ) {
 	const { correlatedSideEffects } = dependencyChunk;
-	if (checkSideEffects) {
-		for (const sideEffect of dependentChunk.sideEffects) {
-			if (!correlatedSideEffects.has(sideEffect)) {
-				return true;
-			}
-		}
+	if ((correlatedSideEffects & dependentChunk.sideEffects) !== dependentChunk.sideEffects) {
+		return true;
 	}
 	const chunksToCheck = new Set(dependentChunk.dependencies);
 	for (const { dependencies, sideEffects } of chunksToCheck) {
@@ -753,12 +719,8 @@ function hasTransitiveDependencyOrNonCorrelatedSideEffect(
 			}
 			chunksToCheck.add(dependency);
 		}
-		if (checkSideEffects) {
-			for (const sideEffect of sideEffects) {
-				if (!correlatedSideEffects.has(sideEffect)) {
-					return true;
-				}
-			}
+		if ((correlatedSideEffects & sideEffects) !== sideEffects) {
+			return true;
 		}
 	}
 	return false;
