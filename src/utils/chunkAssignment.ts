@@ -514,20 +514,20 @@ type ChunkPartition = {
 //  technique similar to what we do for side effects to compare the size of the
 //  static dependencies that are not part of the correlated dependencies
 function getOptimizedChunks(
-	chunkModules: ModulesWithDependentEntries[],
+	initialChunks: ModulesWithDependentEntries[],
 	numberOfEntries: number,
 	minChunkSize: number
 ): { modules: Module[] }[] {
 	timeStart('optimize chunks', 3);
-	const chunkPartition = getPartitionedChunks(chunkModules, numberOfEntries, minChunkSize);
+	const chunkPartition = getPartitionedChunks(initialChunks, numberOfEntries, minChunkSize);
 	if (!chunkPartition) {
 		timeEnd('optimize chunks', 3);
-		return chunkModules; // the actual modules
+		return initialChunks; // the actual modules
 	}
 	minChunkSize &&
 		console.log(
 			'Before eliminating small chunks, there were\n',
-			chunkModules.length,
+			initialChunks.length,
 			'chunks, of which\n',
 			chunkPartition.small.size,
 			'were below minChunkSize.'
@@ -548,7 +548,7 @@ function getOptimizedChunks(
 }
 
 function getPartitionedChunks(
-	chunkModules: ModulesWithDependentEntries[],
+	initialChunks: ModulesWithDependentEntries[],
 	numberOfEntries: number,
 	minChunkSize: number
 ): ChunkPartition | null {
@@ -559,7 +559,7 @@ function getPartitionedChunks(
 	for (let index = 0; index < numberOfEntries; index++) {
 		sideEffectsByEntry.push(0n);
 	}
-	for (const [index, { dependentEntries, modules }] of chunkModules.entries()) {
+	for (const [index, { dependentEntries, modules }] of initialChunks.entries()) {
 		const chunkDescription: ChunkDescription = {
 			correlatedSideEffects: 0n,
 			dependencies: new Set(),
