@@ -196,6 +196,10 @@ export interface TestConfigFunction extends TestConfigBase {
 	 */
 	generateError?: RollupError;
 	/**
+	 * Rollup options for bundling.
+	 */
+	options?: RollupOptions;
+	/**
 	 * Make assertions against an expected runtime error.
 	 */
 	runtimeError?: (error: Error) => void;
