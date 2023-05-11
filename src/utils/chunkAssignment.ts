@@ -415,24 +415,32 @@ function removeUnnecessaryDependentEntries(
 }
 
 interface ChunkDescription {
-	// The signatures of all side effects included in or loaded with this chunk.
-	// This is the intersection of all dependent entry side effects. As chunks are
-	// merged, these sets are intersected.
-	correlatedSideEffects: bigint;
+	/**
+	 * These are the atoms (=initial chunks) that are contained in this chunk
+	 */
+	containedAtoms: bigint;
+	/**
+	 * The signatures of all atoms that are included in or loaded with this
+	 * chunk. This is the intersection of all dependent entry modules. As chunks
+	 * are merged, these sets are intersected.
+	 */
+	correlatedAtoms: bigint;
 	dependencies: Set<ChunkDescription>;
 	dependentChunks: Set<ChunkDescription>;
-	// The indices of the entries depending on this chunk
+	/**
+	 * The indices of the entries depending on this chunk
+	 */
 	dependentEntries: Set<number>;
 	modules: Module[];
 	pure: boolean;
-	// These are only the sideEffects contained in that chunk
-	sideEffects: bigint;
 	size: number;
 }
 
-type ChunkPartition = {
-	[key in 'small' | 'big']: Set<ChunkDescription>;
-};
+interface ChunkPartition {
+	big: Set<ChunkDescription>;
+	sideEffectAtoms: bigint;
+	small: Set<ChunkDescription>;
+}
 
 /**
  * This function tries to get rid of small chunks by merging them with other
@@ -510,9 +518,6 @@ type ChunkPartition = {
  *    following the rule (a), starting with the smallest chunks to look for
  *    possible merge targets.
  */
-// TODO instead of picking the "closest" chunk, we could actually use a
-//  technique similar to what we do for side effects to compare the size of the
-//  static dependencies that are not part of the correlated dependencies
 function getOptimizedChunks(
 	initialChunks: ModulesWithDependentEntries[],
 	numberOfEntries: number,
@@ -555,19 +560,21 @@ function getPartitionedChunks(
 	const smallChunks: ChunkDescription[] = [];
 	const bigChunks: ChunkDescription[] = [];
 	const chunkByModule = new Map<Module, ChunkDescription>();
-	const sideEffectsByEntry: bigint[] = [];
+	const atomsByEntry: bigint[] = [];
 	for (let index = 0; index < numberOfEntries; index++) {
-		sideEffectsByEntry.push(0n);
+		atomsByEntry.push(0n);
 	}
-	for (const [index, { dependentEntries, modules }] of initialChunks.entries()) {
+	let sideEffectAtoms = 0n;
+	let containedAtoms = 1n;
+	for (const { dependentEntries, modules } of initialChunks) {
 		const chunkDescription: ChunkDescription = {
-			correlatedSideEffects: 0n,
+			containedAtoms,
+			correlatedAtoms: 0n,
 			dependencies: new Set(),
 			dependentChunks: new Set(),
 			dependentEntries,
 			modules,
 			pure: true,
-			sideEffects: 0n,
 			size: 0
 		};
 		let size = 0;
@@ -584,35 +591,30 @@ function getPartitionedChunks(
 		chunkDescription.pure = pure;
 		chunkDescription.size = size;
 		if (!pure) {
-			const sideEffect = 1n << BigInt(index);
-			for (const entryIndex of dependentEntries) {
-				sideEffectsByEntry[entryIndex] |= sideEffect;
-			}
-			// In the beginning, each chunk is only its own side effect. After
-			// merging, additional side effects can accumulate.
-			chunkDescription.sideEffects = sideEffect;
+			sideEffectAtoms |= containedAtoms;
+		}
+		for (const entryIndex of dependentEntries) {
+			atomsByEntry[entryIndex] |= containedAtoms;
 		}
 		(size <= minChunkSize ? smallChunks : bigChunks).push(chunkDescription);
+		containedAtoms <<= 1n;
 	}
 	// If there are no small chunks, we will not optimize
 	if (smallChunks.length === 0) {
 		return null;
 	}
-	sortChunksAndAddDependenciesAndEffects(
-		[bigChunks, smallChunks],
-		chunkByModule,
-		sideEffectsByEntry
-	);
+	sortChunksAndAddDependenciesAndAtoms([bigChunks, smallChunks], chunkByModule, atomsByEntry);
 	return {
 		big: new Set(bigChunks),
+		sideEffectAtoms,
 		small: new Set(smallChunks)
 	};
 }
 
-function sortChunksAndAddDependenciesAndEffects(
+function sortChunksAndAddDependenciesAndAtoms(
 	chunkLists: ChunkDescription[][],
 	chunkByModule: Map<Module, ChunkDescription>,
-	sideEffectsByEntry: bigint[]
+	atomsByEntry: bigint[]
 ) {
 	for (const chunks of chunkLists) {
 		chunks.sort(compareChunkSize);
@@ -627,10 +629,10 @@ function sortChunksAndAddDependenciesAndEffects(
 					}
 				}
 			}
-			// Correlated side effects are the intersection of all entry side effects
-			chunk.correlatedSideEffects = -1n;
+			// Correlated atoms are the intersection of all entry atoms
+			chunk.correlatedAtoms = -1n;
 			for (const entryIndex of dependentEntries) {
-				chunk.correlatedSideEffects &= sideEffectsByEntry[entryIndex];
+				chunk.correlatedAtoms &= atomsByEntry[entryIndex];
 			}
 		}
 	}
@@ -644,12 +646,13 @@ function compareChunkSize(
 }
 
 function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
+	const { big, sideEffectAtoms, small } = chunkPartition;
 	for (const allowArbitraryMerges of minChunkSize > 0 ? [false, true] : [false]) {
-		for (const mergedChunk of chunkPartition.small) {
+		for (const mergedChunk of small) {
 			let closestChunk: ChunkDescription | null = null;
 			let closestChunkDistance = Infinity;
-			const { correlatedSideEffects, modules, pure, sideEffects, size } = mergedChunk;
-			for (const targetChunk of concatLazy([chunkPartition.small, chunkPartition.big])) {
+			const { containedAtoms, correlatedAtoms, modules, pure, size } = mergedChunk;
+			for (const targetChunk of concatLazy([small, big])) {
 				if (mergedChunk === targetChunk) continue;
 				// If both chunks are small, we also allow for unrelated merges during
 				// the first pass
@@ -659,20 +662,23 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 					targetChunk,
 					!allowArbitraryMerges && targetChunk.size >= minChunkSize
 				);
-				if (distance < closestChunkDistance && isValidMerge(mergedChunk, targetChunk)) {
+				if (
+					distance < closestChunkDistance &&
+					isValidMerge(mergedChunk, targetChunk, sideEffectAtoms)
+				) {
 					closestChunk = targetChunk;
 					closestChunkDistance = distance;
 				}
 			}
 			if (closestChunk) {
-				chunkPartition.small.delete(mergedChunk);
+				small.delete(mergedChunk);
 				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
 				closestChunk.modules.push(...modules);
 				closestChunk.size += size;
 				closestChunk.pure &&= pure;
 				const { dependencies, dependentChunks, dependentEntries } = closestChunk;
-				closestChunk.correlatedSideEffects &= correlatedSideEffects;
-				closestChunk.sideEffects |= sideEffects;
+				closestChunk.correlatedAtoms &= correlatedAtoms;
+				closestChunk.containedAtoms |= containedAtoms;
 				for (const entry of mergedChunk.dependentEntries) {
 					dependentEntries.add(entry);
 				}
@@ -694,33 +700,46 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 	}
 }
 
+// function getUnnecessaryLoadIfMergeable(
+// 	mergedChunk: ChunkDescription,
+// 	targetChunk: ChunkDescription,
+// 	maxUnnecessaryLoad: number
+// ): number | false {}
+
 // Merging will not produce cycles if none of the direct non-merged dependencies
 // of a chunk have the other chunk as a transitive dependency
-function isValidMerge(mergedChunk: ChunkDescription, targetChunk: ChunkDescription) {
+function isValidMerge(
+	mergedChunk: ChunkDescription,
+	targetChunk: ChunkDescription,
+	sideEffectAtoms: bigint
+) {
 	return !(
-		hasTransitiveDependencyOrNonCorrelatedSideEffect(mergedChunk, targetChunk) ||
-		hasTransitiveDependencyOrNonCorrelatedSideEffect(targetChunk, mergedChunk)
+		hasTransitiveDependencyOrNonCorrelatedSideEffect(mergedChunk, targetChunk, sideEffectAtoms) ||
+		hasTransitiveDependencyOrNonCorrelatedSideEffect(targetChunk, mergedChunk, sideEffectAtoms)
 	);
 }
 
 function hasTransitiveDependencyOrNonCorrelatedSideEffect(
 	dependentChunk: ChunkDescription,
-	dependencyChunk: ChunkDescription
+	dependencyChunk: ChunkDescription,
+	sideEffectAtoms: bigint
 ) {
-	const { correlatedSideEffects } = dependencyChunk;
-	if ((correlatedSideEffects & dependentChunk.sideEffects) !== dependentChunk.sideEffects) {
+	const { correlatedAtoms } = dependencyChunk;
+	const dependentContainedSideEffects = dependentChunk.containedAtoms & sideEffectAtoms;
+	if ((correlatedAtoms & dependentContainedSideEffects) !== dependentContainedSideEffects) {
 		return true;
 	}
 	const chunksToCheck = new Set(dependentChunk.dependencies);
-	for (const { dependencies, sideEffects } of chunksToCheck) {
+	for (const { dependencies, containedAtoms } of chunksToCheck) {
+		const containedSideEffects = containedAtoms & sideEffectAtoms;
+		if ((correlatedAtoms & containedSideEffects) !== containedSideEffects) {
+			return true;
+		}
 		for (const dependency of dependencies) {
 			if (dependency === dependencyChunk) {
 				return true;
 			}
 			chunksToCheck.add(dependency);
-		}
-		if ((correlatedSideEffects & sideEffects) !== sideEffects) {
-			return true;
 		}
 	}
 	return false;
