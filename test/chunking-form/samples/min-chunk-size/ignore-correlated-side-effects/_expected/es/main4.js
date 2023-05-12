@@ -1,4 +1,4 @@
-import './generated-effect.js';
-import './generated-other-effect.js';
+import './generated-small1.js';
+import './generated-small2.js';
 
 console.log('main 4');

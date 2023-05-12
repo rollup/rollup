@@ -1,7 +1,6 @@
 'use strict';
 
-require('./generated-effect.js');
-require('./generated-other-effect.js');
+var small1 = require('./generated-small1.js');
 var small2 = require('./generated-small2.js');
 
-console.log(small2.small1, small2.small2);
+console.log(small1.small1, small2.small2);

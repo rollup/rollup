@@ -1,5 +1,5 @@
-define(['./generated-effect', './generated-small2'], (function (effect, small2) { 'use strict';
+define(['./generated-small1'], (function (small1) { 'use strict';
 
-	console.log(small2.small1);
+	console.log(small1.small1);
 
 }));

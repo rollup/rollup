@@ -1,6 +1,6 @@
 'use strict';
 
-require('./generated-effect.js');
-require('./generated-other-effect.js');
+require('./generated-small1.js');
+require('./generated-small2.js');
 
 console.log('main 4');

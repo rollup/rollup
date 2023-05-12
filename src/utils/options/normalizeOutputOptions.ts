@@ -71,7 +71,7 @@ export async function normalizeOutputOptions(
 			config,
 			inputOptions
 		),
-		experimentalMinChunkSize: config.experimentalMinChunkSize || 0,
+		experimentalMinChunkSize: config.experimentalMinChunkSize ?? 1,
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
 		externalImportAssertions: config.externalImportAssertions ?? true,
