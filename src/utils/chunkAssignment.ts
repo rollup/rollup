@@ -439,6 +439,7 @@ interface ChunkDescription {
 interface ChunkPartition {
 	big: Set<ChunkDescription>;
 	sideEffectAtoms: bigint;
+	sizeByAtom: number[];
 	small: Set<ChunkDescription>;
 }
 
@@ -561,6 +562,7 @@ function getPartitionedChunks(
 	const bigChunks: ChunkDescription[] = [];
 	const chunkByModule = new Map<Module, ChunkDescription>();
 	const atomsByEntry: bigint[] = [];
+	const sizeByAtom: number[] = [];
 	for (let index = 0; index < numberOfEntries; index++) {
 		atomsByEntry.push(0n);
 	}
@@ -590,6 +592,7 @@ function getPartitionedChunks(
 		}
 		chunkDescription.pure = pure;
 		chunkDescription.size = size;
+		sizeByAtom.push(size);
 		if (!pure) {
 			sideEffectAtoms |= containedAtoms;
 		}
@@ -607,6 +610,7 @@ function getPartitionedChunks(
 	return {
 		big: new Set(bigChunks),
 		sideEffectAtoms,
+		sizeByAtom,
 		small: new Set(smallChunks)
 	};
 }
@@ -620,6 +624,7 @@ function sortChunksAndAddDependenciesAndAtoms(
 		chunks.sort(compareChunkSize);
 		for (const chunk of chunks) {
 			const { dependencies, modules, dependentEntries } = chunk;
+			// TODO Lukas can we handle external dependencies here?
 			for (const module of modules) {
 				for (const dependency of module.getDependenciesToBeIncluded()) {
 					const dependencyChunk = chunkByModule.get(dependency as Module);
@@ -646,103 +651,122 @@ function compareChunkSize(
 }
 
 function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
-	const { big, sideEffectAtoms, small } = chunkPartition;
-	for (const allowArbitraryMerges of minChunkSize > 0 ? [false, true] : [false]) {
-		for (const mergedChunk of small) {
-			let closestChunk: ChunkDescription | null = null;
-			let closestChunkDistance = Infinity;
-			const { containedAtoms, correlatedAtoms, modules, pure, size } = mergedChunk;
-			for (const targetChunk of concatLazy([small, big])) {
-				if (mergedChunk === targetChunk) continue;
-				// If both chunks are small, we also allow for unrelated merges during
-				// the first pass
-				// TODO Lukas this could be the load size increase instead, take it if there is no increase (non-included are taken as 0)
-				const distance = getChunkEntryDistance(
-					mergedChunk,
-					targetChunk,
-					!allowArbitraryMerges && targetChunk.size >= minChunkSize
-				);
-				if (
-					distance < closestChunkDistance &&
-					isValidMerge(mergedChunk, targetChunk, sideEffectAtoms)
-				) {
-					closestChunk = targetChunk;
-					closestChunkDistance = distance;
-				}
+	const { big, sideEffectAtoms, sizeByAtom, small } = chunkPartition;
+	for (const mergedChunk of small) {
+		let bestTargetChunk: ChunkDescription | null = null;
+		let smallestAdditionalSize = Infinity;
+		const { containedAtoms, correlatedAtoms, modules, pure, size } = mergedChunk;
+		for (const targetChunk of concatLazy([small, big])) {
+			if (mergedChunk === targetChunk) continue;
+			const additionalSizeAfterMerge = getAdditionalSizeAfterMerge(
+				mergedChunk,
+				targetChunk,
+				smallestAdditionalSize - 1,
+				sideEffectAtoms,
+				sizeByAtom
+			);
+			if (additionalSizeAfterMerge < smallestAdditionalSize) {
+				bestTargetChunk = targetChunk;
+				smallestAdditionalSize = additionalSizeAfterMerge;
 			}
-			if (closestChunk) {
-				small.delete(mergedChunk);
-				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).delete(closestChunk);
-				closestChunk.modules.push(...modules);
-				closestChunk.size += size;
-				closestChunk.pure &&= pure;
-				const { dependencies, dependentChunks, dependentEntries } = closestChunk;
-				closestChunk.correlatedAtoms &= correlatedAtoms;
-				closestChunk.containedAtoms |= containedAtoms;
-				for (const entry of mergedChunk.dependentEntries) {
-					dependentEntries.add(entry);
-				}
-				for (const dependency of mergedChunk.dependencies) {
-					dependencies.add(dependency);
-					dependency.dependentChunks.delete(mergedChunk);
-					dependency.dependentChunks.add(closestChunk);
-				}
-				for (const dependentChunk of mergedChunk.dependentChunks) {
-					dependentChunks.add(dependentChunk);
-					dependentChunk.dependencies.delete(mergedChunk);
-					dependentChunk.dependencies.add(closestChunk);
-				}
-				dependencies.delete(closestChunk);
-				dependentChunks.delete(closestChunk);
-				getChunksInPartition(closestChunk, minChunkSize, chunkPartition).add(closestChunk);
+		}
+		if (bestTargetChunk) {
+			small.delete(mergedChunk);
+			getChunksInPartition(bestTargetChunk, minChunkSize, chunkPartition).delete(bestTargetChunk);
+			bestTargetChunk.modules.push(...modules);
+			bestTargetChunk.size += size;
+			bestTargetChunk.pure &&= pure;
+			const { dependencies, dependentChunks, dependentEntries } = bestTargetChunk;
+			bestTargetChunk.correlatedAtoms &= correlatedAtoms;
+			bestTargetChunk.containedAtoms |= containedAtoms;
+			for (const entry of mergedChunk.dependentEntries) {
+				dependentEntries.add(entry);
 			}
+			for (const dependency of mergedChunk.dependencies) {
+				dependencies.add(dependency);
+				dependency.dependentChunks.delete(mergedChunk);
+				dependency.dependentChunks.add(bestTargetChunk);
+			}
+			for (const dependentChunk of mergedChunk.dependentChunks) {
+				dependentChunks.add(dependentChunk);
+				dependentChunk.dependencies.delete(mergedChunk);
+				dependentChunk.dependencies.add(bestTargetChunk);
+			}
+			dependencies.delete(bestTargetChunk);
+			dependentChunks.delete(bestTargetChunk);
+			getChunksInPartition(bestTargetChunk, minChunkSize, chunkPartition).add(bestTargetChunk);
 		}
 	}
 }
-
-// function getUnnecessaryLoadIfMergeable(
-// 	mergedChunk: ChunkDescription,
-// 	targetChunk: ChunkDescription,
-// 	maxUnnecessaryLoad: number
-// ): number | false {}
 
 // Merging will not produce cycles if none of the direct non-merged dependencies
 // of a chunk have the other chunk as a transitive dependency
-function isValidMerge(
+/**
+ * Determine the additional unused code size that would be added by merging the
+ * two chunks. This is not an exact measurement but rather an upper bound. If
+ * the merge produces cycles or adds non-correlated side effects, `Infinity`
+ * is returned.
+ * Merging will not produce cycles if none of the direct non-merged dependencies
+ * of a chunk have the other chunk as a transitive dependency.
+ * @param maxAdditionalSize The maximum additional unused code size allowed to
+ *   be added by the merge, taking dependencies into account
+ */
+function getAdditionalSizeAfterMerge(
 	mergedChunk: ChunkDescription,
 	targetChunk: ChunkDescription,
-	sideEffectAtoms: bigint
-) {
-	return !(
-		hasTransitiveDependencyOrNonCorrelatedSideEffect(mergedChunk, targetChunk, sideEffectAtoms) ||
-		hasTransitiveDependencyOrNonCorrelatedSideEffect(targetChunk, mergedChunk, sideEffectAtoms)
+	maxAdditionalSize: number,
+	sideEffectAtoms: bigint,
+	sizeByAtom: number[]
+): number {
+	const firstSize = getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
+		mergedChunk,
+		targetChunk,
+		maxAdditionalSize,
+		sideEffectAtoms,
+		sizeByAtom
 	);
+	// That way, it is okay if they are equal unless both firstSize and
+	// maxAdditionalSize are infinite
+	return firstSize < maxAdditionalSize + 1
+		? firstSize +
+				getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
+					targetChunk,
+					mergedChunk,
+					maxAdditionalSize,
+					sideEffectAtoms,
+					sizeByAtom
+				)
+		: Infinity;
 }
 
-function hasTransitiveDependencyOrNonCorrelatedSideEffect(
+function getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
 	dependentChunk: ChunkDescription,
 	dependencyChunk: ChunkDescription,
-	sideEffectAtoms: bigint
-) {
+	maxUnnecessaryLoad: number,
+	sideEffectAtoms: bigint,
+	sizeByAtom: number[]
+): number {
 	const { correlatedAtoms } = dependencyChunk;
-	const dependentContainedSideEffects = dependentChunk.containedAtoms & sideEffectAtoms;
+	let dependencyAtoms = dependentChunk.containedAtoms;
+	const dependentContainedSideEffects = dependencyAtoms & sideEffectAtoms;
 	if ((correlatedAtoms & dependentContainedSideEffects) !== dependentContainedSideEffects) {
-		return true;
+		return Infinity;
 	}
 	const chunksToCheck = new Set(dependentChunk.dependencies);
 	for (const { dependencies, containedAtoms } of chunksToCheck) {
+		dependencyAtoms |= containedAtoms;
 		const containedSideEffects = containedAtoms & sideEffectAtoms;
 		if ((correlatedAtoms & containedSideEffects) !== containedSideEffects) {
-			return true;
+			return Infinity;
 		}
 		for (const dependency of dependencies) {
 			if (dependency === dependencyChunk) {
-				return true;
+				return Infinity;
 			}
 			chunksToCheck.add(dependency);
 		}
 	}
-	return false;
+	return getAtomsSizeIfBelowLimit(dependencyAtoms, maxUnnecessaryLoad, sizeByAtom);
 }
 
 function getChunksInPartition(
@@ -750,27 +774,26 @@ function getChunksInPartition(
 	minChunkSize: number,
 	chunkPartition: ChunkPartition
 ): Set<ChunkDescription> {
-	return chunk.size < minChunkSize ? chunkPartition.small : chunkPartition.big;
+	return chunk.size <= minChunkSize ? chunkPartition.small : chunkPartition.big;
 }
 
-function getChunkEntryDistance(
-	{ dependentEntries: sourceEntries }: ChunkDescription,
-	{ dependentEntries: targetEntries }: ChunkDescription,
-	enforceSubest: boolean
+function getAtomsSizeIfBelowLimit(
+	atoms: bigint,
+	maxUnnecessaryLoad: number,
+	sizeByAtom: number[]
 ): number {
-	let distance = 0;
-	for (const entryIndex of targetEntries) {
-		if (!sourceEntries.has(entryIndex)) {
-			distance++;
+	let size = 0;
+	let atomIndex = 0;
+	let atomSignature = 1n;
+	const { length } = sizeByAtom;
+	for (; atomIndex < length; atomIndex++) {
+		if ((atoms & atomSignature) === atomSignature) {
+			size += sizeByAtom[atomIndex];
+		}
+		atomSignature <<= 1n;
+		if (size > maxUnnecessaryLoad) {
+			return Infinity;
 		}
 	}
-	for (const entryIndex of sourceEntries) {
-		if (!targetEntries.has(entryIndex)) {
-			if (enforceSubest) {
-				return Infinity;
-			}
-			distance++;
-		}
-	}
-	return distance;
+	return size;
 }

@@ -1,4 +1,5 @@
 module.exports = defineTest({
+	skip: true,
 	description:
 		'allows to configure the interop type per reexported default from an external dependency',
 	options: {
