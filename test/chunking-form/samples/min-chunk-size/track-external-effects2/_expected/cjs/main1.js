@@ -1,9 +1,9 @@
 'use strict';
 
 var external1 = require('external1');
-require('./generated-shared.js');
+require('external2');
 
-
+console.log('shared');
 
 Object.defineProperty(exports, 'foo', {
 	enumerable: true,

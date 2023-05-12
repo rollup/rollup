@@ -1,13 +1,12 @@
-System.register(['./generated-chunk.js', './generated-effect.js'], (function () {
+System.register(['external2', './generated-shared.js'], (function (exports) {
 	'use strict';
-	var big;
 	return {
 		setters: [function (module) {
-			big = module.b;
+			exports('foo', module.foo);
 		}, null],
 		execute: (function () {
 
-			console.log(big);
+
 
 		})
 	};

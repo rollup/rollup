@@ -599,7 +599,12 @@ function getPartitionedChunks(
 	if (smallChunks.length === 0) {
 		return null;
 	}
-	sortChunksAndAddDependenciesAndAtoms([bigChunks, smallChunks], chunkByModule, numberOfEntries);
+	sideEffectAtoms |= addChunkDependenciesAndAtomsAndGetSideEffectAtoms(
+		[bigChunks, smallChunks],
+		chunkByModule,
+		numberOfEntries,
+		containedAtoms
+	);
 	return {
 		big: new Set(bigChunks),
 		sideEffectAtoms,
@@ -608,37 +613,55 @@ function getPartitionedChunks(
 	};
 }
 
-function sortChunksAndAddDependenciesAndAtoms(
+// TODO Lukas change default for minChunkSize to 1
+// TODO Lukas improve size calculation
+function addChunkDependenciesAndAtomsAndGetSideEffectAtoms(
 	chunkLists: ChunkDescription[][],
 	chunkByModule: Map<Module, ChunkDescription>,
-	numberOfEntries: number
-) {
+	numberOfEntries: number,
+	nextAtomSignature: bigint
+): bigint {
+	const signatureByExternalModule = new Map<ExternalModule, bigint>();
+	let sideEffectAtoms = 0n;
 	const atomsByEntry: bigint[] = [];
 	for (let index = 0; index < numberOfEntries; index++) {
 		atomsByEntry.push(0n);
 	}
 	for (const chunks of chunkLists) {
 		chunks.sort(compareChunkSize);
-		for (const { containedAtoms, dependentEntries } of chunks) {
+		for (const chunk of chunks) {
+			const { dependencies, dependentEntries, modules } = chunk;
+			for (const module of modules) {
+				for (const dependency of module.getDependenciesToBeIncluded()) {
+					if (dependency instanceof ExternalModule) {
+						if (dependency.info.moduleSideEffects) {
+							chunk.containedAtoms |= getOrCreate(signatureByExternalModule, dependency, () => {
+								const signature = nextAtomSignature;
+								nextAtomSignature <<= 1n;
+								sideEffectAtoms |= signature;
+								return signature;
+							});
+						}
+					} else {
+						const dependencyChunk = chunkByModule.get(dependency);
+						if (dependencyChunk && dependencyChunk !== chunk) {
+							dependencies.add(dependencyChunk);
+							dependencyChunk.dependentChunks.add(chunk);
+						}
+					}
+				}
+			}
+			const { containedAtoms } = chunk;
 			for (const entryIndex of dependentEntries) {
+				// containedAtoms is mutated after destructuring
+				// eslint-disable-next-line unicorn/consistent-destructuring
 				atomsByEntry[entryIndex] |= containedAtoms;
 			}
 		}
 	}
 	for (const chunks of chunkLists) {
 		for (const chunk of chunks) {
-			const { dependencies, modules, dependentEntries } = chunk;
-			// TODO Lukas can we handle external dependencies here?
-			//  we need to add side effects to containedAtoms and atomsByEntry before getting correlatedAtoms
-			for (const module of modules) {
-				for (const dependency of module.getDependenciesToBeIncluded()) {
-					const dependencyChunk = chunkByModule.get(dependency as Module);
-					if (dependencyChunk && dependencyChunk !== chunk) {
-						dependencies.add(dependencyChunk);
-						dependencyChunk.dependentChunks.add(chunk);
-					}
-				}
-			}
+			const { dependentEntries } = chunk;
 			// Correlated atoms are the intersection of all entry atoms
 			chunk.correlatedAtoms = -1n;
 			for (const entryIndex of dependentEntries) {
@@ -646,6 +669,7 @@ function sortChunksAndAddDependenciesAndAtoms(
 			}
 		}
 	}
+	return sideEffectAtoms;
 }
 
 function compareChunkSize(

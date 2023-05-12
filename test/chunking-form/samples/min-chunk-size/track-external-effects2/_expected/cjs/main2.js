@@ -1,7 +1,8 @@
 'use strict';
 
 var external2 = require('external2');
-require('./generated-shared.js');
+require('./main1.js');
+require('external1');
 
 
 

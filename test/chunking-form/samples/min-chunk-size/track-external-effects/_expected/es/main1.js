@@ -1,3 +1,2 @@
-import { s as small } from './generated-small.js';
-
-console.log(small);
+export { foo } from 'external1';
+import './generated-shared.js';

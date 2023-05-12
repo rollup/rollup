@@ -1,4 +1,2 @@
-import { b as big } from './generated-chunk.js';
-import './generated-effect.js';
-
-console.log(big);
+export { foo } from 'external2';
+import './generated-shared.js';

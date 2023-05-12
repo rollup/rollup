@@ -1,4 +1,4 @@
-System.register(['external1', './generated-shared.js'], (function (exports) {
+System.register(['external1', 'external2'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
@@ -6,7 +6,7 @@ System.register(['external1', './generated-shared.js'], (function (exports) {
 		}, null],
 		execute: (function () {
 
-
+			console.log('shared');
 
 		})
 	};
