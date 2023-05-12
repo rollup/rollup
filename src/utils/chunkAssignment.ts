@@ -561,11 +561,7 @@ function getPartitionedChunks(
 	const smallChunks: ChunkDescription[] = [];
 	const bigChunks: ChunkDescription[] = [];
 	const chunkByModule = new Map<Module, ChunkDescription>();
-	const atomsByEntry: bigint[] = [];
 	const sizeByAtom: number[] = [];
-	for (let index = 0; index < numberOfEntries; index++) {
-		atomsByEntry.push(0n);
-	}
 	let sideEffectAtoms = 0n;
 	let containedAtoms = 1n;
 	for (const { dependentEntries, modules } of initialChunks) {
@@ -596,9 +592,6 @@ function getPartitionedChunks(
 		if (!pure) {
 			sideEffectAtoms |= containedAtoms;
 		}
-		for (const entryIndex of dependentEntries) {
-			atomsByEntry[entryIndex] |= containedAtoms;
-		}
 		(size <= minChunkSize ? smallChunks : bigChunks).push(chunkDescription);
 		containedAtoms <<= 1n;
 	}
@@ -606,7 +599,7 @@ function getPartitionedChunks(
 	if (smallChunks.length === 0) {
 		return null;
 	}
-	sortChunksAndAddDependenciesAndAtoms([bigChunks, smallChunks], chunkByModule, atomsByEntry);
+	sortChunksAndAddDependenciesAndAtoms([bigChunks, smallChunks], chunkByModule, numberOfEntries);
 	return {
 		big: new Set(bigChunks),
 		sideEffectAtoms,
@@ -618,13 +611,25 @@ function getPartitionedChunks(
 function sortChunksAndAddDependenciesAndAtoms(
 	chunkLists: ChunkDescription[][],
 	chunkByModule: Map<Module, ChunkDescription>,
-	atomsByEntry: bigint[]
+	numberOfEntries: number
 ) {
+	const atomsByEntry: bigint[] = [];
+	for (let index = 0; index < numberOfEntries; index++) {
+		atomsByEntry.push(0n);
+	}
 	for (const chunks of chunkLists) {
 		chunks.sort(compareChunkSize);
+		for (const { containedAtoms, dependentEntries } of chunks) {
+			for (const entryIndex of dependentEntries) {
+				atomsByEntry[entryIndex] |= containedAtoms;
+			}
+		}
+	}
+	for (const chunks of chunkLists) {
 		for (const chunk of chunks) {
 			const { dependencies, modules, dependentEntries } = chunk;
 			// TODO Lukas can we handle external dependencies here?
+			//  we need to add side effects to containedAtoms and atomsByEntry before getting correlatedAtoms
 			for (const module of modules) {
 				for (const dependency of module.getDependenciesToBeIncluded()) {
 					const dependencyChunk = chunkByModule.get(dependency as Module);
