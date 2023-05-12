@@ -583,7 +583,9 @@ function getPartitionedChunks(
 			// rendering did not happen yet, but we can detect empty modules
 			if (module.isIncluded()) {
 				pure &&= !module.hasEffects();
-				size += module.originalCode.length;
+				// we use a trivial size for the default minChunkSize to improve
+				// performance
+				size += minChunkSize > 1 ? module.estimateSize() : 1;
 			}
 		}
 		chunkDescription.pure = pure;
@@ -613,7 +615,6 @@ function getPartitionedChunks(
 	};
 }
 
-// TODO Lukas improve size calculation
 function addChunkDependenciesAndAtomsAndGetSideEffectAtoms(
 	chunkLists: ChunkDescription[][],
 	chunkByModule: Map<Module, ChunkDescription>,
@@ -652,8 +653,6 @@ function addChunkDependenciesAndAtomsAndGetSideEffectAtoms(
 			}
 			const { containedAtoms } = chunk;
 			for (const entryIndex of dependentEntries) {
-				// containedAtoms is mutated after destructuring
-				// eslint-disable-next-line unicorn/consistent-destructuring
 				atomsByEntry[entryIndex] |= containedAtoms;
 			}
 		}

@@ -28,7 +28,7 @@ module.exports = defineTest({
 					entryFileNames: '[name].js',
 					esModule: 'if-default-prop',
 					experimentalDeepDynamicChunkOptimization: false,
-					experimentalMinChunkSize: 0,
+					experimentalMinChunkSize: 1,
 					exports: 'auto',
 					extend: false,
 					externalImportAssertions: true,
