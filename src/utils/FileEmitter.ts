@@ -3,8 +3,10 @@ import type Graph from '../Graph';
 import type Module from '../Module';
 import type {
 	EmittedChunk,
+	EmittedPrebuiltChunk,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
+	OutputChunk,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -79,6 +81,10 @@ interface ConsumedChunk {
 	type: 'chunk';
 }
 
+type ConsumedPrebuiltChunk = EmittedPrebuiltChunk & {
+	referenceId: string;
+};
+
 interface ConsumedAsset {
 	fileName: string | undefined;
 	name: string | undefined;
@@ -92,25 +98,26 @@ interface EmittedFile {
 	[key: string]: unknown;
 	fileName?: string;
 	name?: string;
-	needsCodeReference?: boolean;
-	type: 'chunk' | 'asset';
+	type: 'chunk' | 'asset' | 'prebuilt-chunk';
 }
 
-type ConsumedFile = ConsumedChunk | ConsumedAsset;
+type ConsumedFile = ConsumedChunk | ConsumedAsset | ConsumedPrebuiltChunk;
 
-function hasValidType(
-	emittedFile: unknown
-): emittedFile is { [key: string]: unknown; type: 'asset' | 'chunk' } {
+function hasValidType(emittedFile: unknown): emittedFile is {
+	[key: string]: unknown;
+	type: 'asset' | 'chunk' | 'prebuilt-chunk';
+} {
 	return Boolean(
 		emittedFile &&
 			((emittedFile as { [key: string]: unknown }).type === 'asset' ||
-				(emittedFile as { [key: string]: unknown }).type === 'chunk')
+				(emittedFile as { [key: string]: unknown }).type === 'chunk' ||
+				(emittedFile as { [key: string]: unknown }).type === 'prebuilt-chunk')
 	);
 }
 
 function hasValidName(emittedFile: {
 	[key: string]: unknown;
-	type: 'asset' | 'chunk';
+	type: 'asset' | 'chunk' | 'prebuilt-chunk';
 }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
 	return !validatedName || (typeof validatedName === 'string' && !isPathFragment(validatedName));
@@ -188,6 +195,9 @@ export class FileEmitter {
 				)
 			);
 		}
+		if (emittedFile.type === 'prebuilt-chunk') {
+			return this.emitPrebuiltChunk(emittedFile);
+		}
 		if (!hasValidName(emittedFile)) {
 			return error(
 				errorFailedValidation(
@@ -215,6 +225,9 @@ export class FileEmitter {
 		if (!emittedFile) return error(errorFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
 			return getChunkFileName(emittedFile, this.facadeChunkByModule);
+		}
+		if (emittedFile.type === 'prebuilt-chunk') {
+			return emittedFile.fileName;
 		}
 		return getAssetFileName(emittedFile, fileReferenceId);
 	};
@@ -270,6 +283,8 @@ export class FileEmitter {
 					const sourceHash = getSourceHash(consumedFile.source);
 					getOrCreate(consumedAssetsByHash, sourceHash, () => []).push(consumedFile);
 				}
+			} else if (consumedFile.type === 'prebuilt-chunk') {
+				this.output.bundle[consumedFile.fileName] = this.createPrebuiltChunk(consumedFile);
 			}
 		}
 		for (const [sourceHash, consumedFiles] of consumedAssetsByHash) {
@@ -296,6 +311,28 @@ export class FileEmitter {
 			filesByReferenceId.set(referenceId, file);
 		}
 		return referenceId;
+	}
+
+	private createPrebuiltChunk(prebuiltChunk: ConsumedPrebuiltChunk): OutputChunk {
+		return {
+			code: prebuiltChunk.code,
+			dynamicImports: [],
+			exports: prebuiltChunk.exports || [],
+			facadeModuleId: null,
+			fileName: prebuiltChunk.fileName,
+			implicitlyLoadedBefore: [],
+			importedBindings: {},
+			imports: [],
+			isDynamicEntry: false,
+			isEntry: false,
+			isImplicitEntry: false,
+			map: prebuiltChunk.map || null,
+			moduleIds: [],
+			modules: {},
+			name: prebuiltChunk.fileName,
+			referencedFiles: [],
+			type: 'chunk'
+		};
 	}
 
 	private emitAsset(emittedAsset: EmittedFile): string {
@@ -365,6 +402,49 @@ export class FileEmitter {
 			});
 
 		return this.assignReferenceId(consumedChunk, emittedChunk.id);
+	}
+
+	private emitPrebuiltChunk(
+		emitPrebuiltChunk: Omit<EmittedFile, 'fileName' | 'name'> &
+			Pick<EmittedPrebuiltChunk, 'exports' | 'map'>
+	): string {
+		if (typeof emitPrebuiltChunk.code !== 'string') {
+			return error(
+				errorFailedValidation(
+					`Emitted prebuilt chunks need to have a valid string code, received "${emitPrebuiltChunk.code}"`
+				)
+			);
+		}
+		if (
+			typeof emitPrebuiltChunk.fileName !== 'string' ||
+			!(
+				typeof emitPrebuiltChunk.fileName === 'string' &&
+				!isPathFragment(emitPrebuiltChunk.fileName)
+			)
+		) {
+			return error(
+				errorFailedValidation(
+					`Emitted prebuilt chunks need to have a valid string fileName and that is neither absolute nor relative paths, received "${emitPrebuiltChunk.fileName}"`
+				)
+			);
+		}
+		const consumedPrebuiltChunk: ConsumedPrebuiltChunk = {
+			code: emitPrebuiltChunk.code,
+			exports: emitPrebuiltChunk.exports,
+			fileName: emitPrebuiltChunk.fileName,
+			map: emitPrebuiltChunk.map,
+			referenceId: '',
+			type: 'prebuilt-chunk'
+		};
+		const referenceId = this.assignReferenceId(
+			consumedPrebuiltChunk,
+			consumedPrebuiltChunk.fileName
+		);
+		if (this.output) {
+			this.output.bundle[consumedPrebuiltChunk.fileName] =
+				this.createPrebuiltChunk(consumedPrebuiltChunk);
+		}
+		return referenceId;
 	}
 
 	private finalizeAdditionalAsset(
