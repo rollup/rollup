@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.21.7
+
+_2023-05-13_
+
+### Bug Fixes
+
+- Show correct error on uncaught exceptions in watch mode (#4987)
+
+### Pull Requests
+
+- [#4987](https://github.com/rollup/rollup/pull/4987): Properly quit on uncaught exceptions (@lukastaegert)
+- [#4988](https://github.com/rollup/rollup/pull/4988): test: add options type for function tests (@TrickyPi)
+
 ## 3.21.6
 
 _2023-05-09_
