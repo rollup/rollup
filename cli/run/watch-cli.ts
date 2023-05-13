@@ -29,7 +29,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	const runWatchHook = createWatchHooks(command);
 
 	onExit(close);
-	process.on('uncaughtException', close);
+	process.on('uncaughtException', closeWithError);
 	if (!process.stdin.isTTY) {
 		process.stdin.on('end', close);
 		process.stdin.resume();
@@ -147,7 +147,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	}
 
 	async function close(code: number | null | undefined): Promise<void> {
-		process.removeListener('uncaughtException', close);
+		process.removeListener('uncaughtException', closeWithError);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);
 
@@ -159,4 +159,9 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 	// return a promise that never resolves to keep the process running
 	return new Promise(() => {});
+}
+
+function closeWithError(error: Error): void {
+	error.name = `Uncaught ${error.name}`;
+	handleError(error);
 }
