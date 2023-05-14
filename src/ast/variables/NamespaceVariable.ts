@@ -135,15 +135,15 @@ export default class NamespaceVariable extends Variable {
 		const memberVariables = this.getMemberVariables();
 		const members: [key: string | null, value: string][] = Object.entries(memberVariables)
 			.filter(([_, variable]) => variable.included)
-			.map(([name, original]) => {
-				if (this.referencedEarly || original.isReassigned) {
+			.map(([name, variable]) => {
+				if (this.referencedEarly || variable.isReassigned || variable === this) {
 					return [
 						null,
-						`get ${name}${_}()${_}{${_}return ${original.getName(getPropertyAccess)}${s}${_}}`
+						`get ${name}${_}()${_}{${_}return ${variable.getName(getPropertyAccess)}${s}${_}}`
 					];
 				}
 
-				return [name, original.getName(getPropertyAccess)];
+				return [name, variable.getName(getPropertyAccess)];
 			});
 		members.unshift([null, `__proto__:${_}null`]);
 
