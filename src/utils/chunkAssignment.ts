@@ -538,9 +538,7 @@ function getOptimizedChunks(
 			chunkPartition.small.size,
 			'were below minChunkSize.'
 		);
-	if (chunkPartition.small.size > 0) {
-		mergeChunks(chunkPartition, minChunkSize);
-	}
+	mergeChunks(chunkPartition, minChunkSize);
 	minChunkSize > 1 &&
 		console.log(
 			'After merging chunks,\n',
