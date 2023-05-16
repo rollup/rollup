@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.21.8
+
+_2023-05-16_
+
+### Bug Fixes
+
+- Allow a namespace to properly contain itself as a named export (#4991)
+
+### Pull Requests
+
+- [#4991](https://github.com/rollup/rollup/pull/4991): Handle self-referencing namespaces (@lukastaegert)
+
 ## 3.21.7
 
 _2023-05-13_
