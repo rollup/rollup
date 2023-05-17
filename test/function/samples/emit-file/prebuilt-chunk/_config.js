@@ -1,18 +1,28 @@
 const assert = require('node:assert');
 
-const prebuiltChunkConsumedProperties = {
+const prebuiltChunk1ConsumedProperties = {
 	fileName: 'my-chunk.js',
 	code: 'exports.foo = "foo"',
 	exports: ['foo']
 };
 
+const prebuiltChunk2ConsumedProperties = {
+	fileName: 'my-chunk2.js',
+	code: 'console.log("bar")'
+};
+
 module.exports = defineTest({
-	description: 'get a right prebuilt chunk',
+	description: 'get right prebuilt chunks',
 	options: {
 		plugins: [
 			{
 				resolveId(id) {
-					if (id === 'my-chunk.js') {
+					if (
+						[
+							prebuiltChunk1ConsumedProperties.fileName,
+							prebuiltChunk2ConsumedProperties.fileName
+						].includes(id)
+					) {
 						return {
 							id,
 							external: true
@@ -20,10 +30,14 @@ module.exports = defineTest({
 					}
 				},
 				buildStart() {
-					this.emitFile({
+					const referenceId = this.emitFile({
 						type: 'prebuilt-chunk',
-						...prebuiltChunkConsumedProperties
+						...prebuiltChunk1ConsumedProperties
 					});
+					assert.strictEqual(
+						this.getFileName(referenceId),
+						prebuiltChunk1ConsumedProperties.fileName
+					);
 				},
 				generateBundle(_, bundle) {
 					const defaultProps = {
@@ -40,11 +54,23 @@ module.exports = defineTest({
 						referencedFiles: [],
 						type: 'chunk'
 					};
-					const { fileName } = prebuiltChunkConsumedProperties;
+					const { fileName } = prebuiltChunk1ConsumedProperties;
 					assert.deepStrictEqual(bundle[fileName], {
 						...defaultProps,
-						...prebuiltChunkConsumedProperties,
+						...prebuiltChunk1ConsumedProperties,
 						name: fileName,
+						map: null
+					});
+					this.emitFile({
+						type: 'prebuilt-chunk',
+						...prebuiltChunk2ConsumedProperties
+					});
+					const { fileName: fileName2 } = prebuiltChunk2ConsumedProperties;
+					assert.deepStrictEqual(bundle[fileName2], {
+						...defaultProps,
+						...prebuiltChunk2ConsumedProperties,
+						name: fileName2,
+						exports: [],
 						map: null
 					});
 				}

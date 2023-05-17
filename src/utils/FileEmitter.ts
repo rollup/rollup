@@ -410,7 +410,7 @@ export class FileEmitter {
 		if (typeof emitPrebuiltChunk.code !== 'string') {
 			return error(
 				errorFailedValidation(
-					`Emitted prebuilt chunks need to have a valid string code, received "${emitPrebuiltChunk.code}"`
+					`Emitted prebuilt chunks need to have a valid string code, received "${emitPrebuiltChunk.code}".`
 				)
 			);
 		}
@@ -420,7 +420,7 @@ export class FileEmitter {
 		) {
 			return error(
 				errorFailedValidation(
-					`Emitted prebuilt chunks need to have a valid string fileName and that is neither absolute nor relative paths, received "${emitPrebuiltChunk.fileName}"`
+					`The "fileName" property of emitted files must be strings that are neither absolute nor relative paths, received "${emitPrebuiltChunk.fileName}".`
 				)
 			);
 		}
