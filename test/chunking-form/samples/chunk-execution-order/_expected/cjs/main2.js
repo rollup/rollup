@@ -1,6 +1,6 @@
 'use strict';
 
-require('./generated-dep11.js');
-require('./generated-dep111.js');
-require('./generated-dep112.js');
+require('./main3.js');
+require('./main4.js');
 
+console.log('11');

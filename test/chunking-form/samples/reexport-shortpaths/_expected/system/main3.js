@@ -1,4 +1,4 @@
-System.register(['./generated-dep2.js'], (function () {
+System.register(['./main2.js'], (function () {
 	'use strict';
 	return {
 		setters: [null],

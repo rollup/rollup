@@ -1,7 +1,7 @@
-define(['exports', './chunks/shared'], (function (exports, shared) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
+	const sharedValue = 'shared';
 
-
-	exports.sharedValue = shared.sharedValue;
+	exports.sharedValue = sharedValue;
 
 }));

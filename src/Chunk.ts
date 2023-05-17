@@ -302,14 +302,21 @@ export default class Chunk {
 
 	canModuleBeFacade(module: Module, exposedVariables: ReadonlySet<Variable>): boolean {
 		const moduleExportNamesByVariable = module.getExportNamesByVariable();
+		// All exports of this chunk need to be exposed by the candidate module
 		for (const exposedVariable of this.exports) {
 			if (!moduleExportNamesByVariable.has(exposedVariable)) {
 				return false;
 			}
 		}
+		// Additionally, we need to expose namespaces of dynamic entries that are not the facade module and exports from other entry modules
 		for (const exposedVariable of exposedVariables) {
 			if (
-				!(moduleExportNamesByVariable.has(exposedVariable) || exposedVariable.module === module)
+				!(
+					exposedVariable.module === module ||
+					moduleExportNamesByVariable.has(exposedVariable) ||
+					(exposedVariable instanceof SyntheticNamedExportVariable &&
+						moduleExportNamesByVariable.has(exposedVariable.getBaseVariable()))
+				)
 			) {
 				return false;
 			}
@@ -382,7 +389,10 @@ export default class Chunk {
 		for (const module of entryModules) {
 			if (module.preserveSignature) {
 				for (const exportedVariable of module.getExportNamesByVariable().keys()) {
-					exposedVariables.add(exportedVariable);
+					// We need to expose all entry exports from this chunk
+					if (this.chunkByModule.get(exportedVariable.module as Module) === this) {
+						exposedVariables.add(exportedVariable);
+					}
 				}
 			}
 		}

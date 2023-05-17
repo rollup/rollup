@@ -1,4 +1,4 @@
-System.register(['./generated-shared2.js', './generated-dep1.js', './generated-dep2.js'], (function () {
+System.register(['./main2.js', './main3.js', './main4.js'], (function () {
 	'use strict';
 	var x, y;
 	return {

@@ -1,7 +1,7 @@
 'use strict';
 
-var shared2 = require('./generated-shared2.js');
-require('./generated-dep1.js');
-require('./generated-dep2.js');
+var main2 = require('./main2.js');
+require('./main3.js');
+require('./main4.js');
 
-console.log(shared2.x + shared2.y);
+console.log(main2.x + main2.y);

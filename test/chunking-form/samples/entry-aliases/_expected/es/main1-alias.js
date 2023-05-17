@@ -1,1 +1,1 @@
-export { n as name } from './generated-dep.js';
+export { name } from './main1.js';

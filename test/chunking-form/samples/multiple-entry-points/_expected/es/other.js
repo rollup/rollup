@@ -1,1 +1,3 @@
-export { s as sharedValue } from './chunks/shared.js';
+const sharedValue = 'shared';
+
+export { sharedValue };

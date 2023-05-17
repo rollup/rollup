@@ -1,8 +1,8 @@
-System.register(['./generated-effect.js', './generated-small2.js'], (function () {
+System.register(['./generated-small1.js'], (function () {
 	'use strict';
 	var small1;
 	return {
-		setters: [null, function (module) {
+		setters: [function (module) {
 			small1 = module.s;
 		}],
 		execute: (function () {

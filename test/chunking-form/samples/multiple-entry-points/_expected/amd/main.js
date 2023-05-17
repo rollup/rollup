@@ -1,5 +1,5 @@
-define(['./chunks/shared'], (function (shared) { 'use strict';
+define(['./other'], (function (other) { 'use strict';
 
-	assert.equal(shared.sharedValue, 'shared');
+	assert.equal(other.sharedValue, 'shared');
 
 }));

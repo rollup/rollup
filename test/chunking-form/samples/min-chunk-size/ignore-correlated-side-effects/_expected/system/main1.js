@@ -1,10 +1,11 @@
-System.register(['./generated-effect.js', './generated-other-effect.js', './generated-small2.js'], (function () {
+System.register(['./generated-small1.js', './generated-small2.js'], (function () {
 	'use strict';
 	var small1, small2;
 	return {
-		setters: [null, null, function (module) {
+		setters: [function (module) {
 			small1 = module.s;
-			small2 = module.a;
+		}, function (module) {
+			small2 = module.s;
 		}],
 		execute: (function () {
 

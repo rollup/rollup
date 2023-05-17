@@ -1,9 +1,9 @@
-System.register(['./generated-dep.js'], (function () {
+System.register(['./main1.js'], (function () {
 	'use strict';
 	var name;
 	return {
 		setters: [function (module) {
-			name = module.n;
+			name = module.name;
 		}],
 		execute: (function () {
 

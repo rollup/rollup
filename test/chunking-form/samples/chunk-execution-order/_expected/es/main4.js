@@ -1,1 +1,4 @@
-import './generated-dep112.js';
+const x = 0;
+console.log('112');
+
+export { x };

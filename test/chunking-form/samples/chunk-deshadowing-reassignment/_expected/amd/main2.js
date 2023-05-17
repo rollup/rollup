@@ -1,5 +1,12 @@
-define(['./generated-shared2', './generated-dep1', './generated-dep2'], (function (shared2, dep1, dep2) { 'use strict';
+define(['exports', './main3', './main4'], (function (exports, main3, main4) { 'use strict';
 
+	var x = main3.x + 1;
+	console.log('shared1');
 
+	var y = main4.x + 1;
+	console.log('shared2');
+
+	exports.x = x;
+	exports.y = y;
 
 }));

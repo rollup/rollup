@@ -1,6 +1,6 @@
-import './generated-dep11.js';
-import { x } from './generated-dep112.js';
-import './generated-dep111.js';
+import './main2.js';
+import { x } from './main4.js';
+import './main3.js';
 
 console.log('1');
 

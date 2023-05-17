@@ -1,4 +1,3 @@
 'use strict';
 
-require('./generated-dep111.js');
-
+console.log('111');

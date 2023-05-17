@@ -1,9 +1,9 @@
-System.register(['./generated-small3.js'], (function () {
+System.register(['./generated-small4.js'], (function () {
 	'use strict';
 	var small3;
 	return {
 		setters: [function (module) {
-			small3 = module.a;
+			small3 = module.s;
 		}],
 		execute: (function () {
 

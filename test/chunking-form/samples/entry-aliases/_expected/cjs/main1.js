@@ -1,7 +1,5 @@
 'use strict';
 
-var dep = require('./generated-dep.js');
+var name = 'name';
 
-
-
-exports.name = dep.name;
+exports.name = name;

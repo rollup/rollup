@@ -1,14 +1,9 @@
-System.register(['./generated-lib.js'], (function (exports) {
+System.register([], (function (exports) {
 	'use strict';
-	var lib;
 	return {
-		setters: [function (module) {
-			lib = module.l;
-			exports('lib', module.l);
-		}],
 		execute: (function () {
 
-
+			var lib = exports('lib', { foo: true, bar: true, baz: true });
 
 			exports('foo', lib.foo);
 

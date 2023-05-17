@@ -1,7 +1,7 @@
 'use strict';
 
-var one = require('./generated-one.js');
+var main1 = require('./generated-main1.js');
 
 
 
-exports.ItemOne = one.One;
+exports.ItemOne = main1.One;

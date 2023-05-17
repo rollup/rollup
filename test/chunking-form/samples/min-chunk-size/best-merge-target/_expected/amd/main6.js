@@ -1,5 +1,5 @@
-define(['./generated-small3'], (function (small3) { 'use strict';
+define(['./generated-small2'], (function (small2) { 'use strict';
 
-	console.log(small3.small1);
+	console.log(small2.small1);
 
 }));
