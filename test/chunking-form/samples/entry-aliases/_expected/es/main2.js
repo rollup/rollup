@@ -1,3 +1,3 @@
-import { n as name } from './generated-dep.js';
+import { name } from './main1.js';
 
 console.log(name);

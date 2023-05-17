@@ -401,6 +401,17 @@ export default class Module {
 		return error(properties);
 	}
 
+	// sum up the length of all ast nodes that are included
+	estimateSize(): number {
+		let size = 0;
+		for (const node of this.ast!.body) {
+			if (node.included) {
+				size += node.end - node.start;
+			}
+		}
+		return size;
+	}
+
 	getAllExportNames(): Set<string> {
 		if (this.allExportNames) {
 			return this.allExportNames;

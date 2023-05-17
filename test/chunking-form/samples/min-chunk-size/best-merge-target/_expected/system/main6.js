@@ -1,4 +1,4 @@
-System.register(['./generated-small3.js'], (function () {
+System.register(['./generated-small2.js'], (function () {
 	'use strict';
 	var small1;
 	return {

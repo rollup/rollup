@@ -1,7 +1,7 @@
-define(['./generated-dep11', './generated-dep112', './generated-dep111'], (function (dep11, dep112, dep111) { 'use strict';
+define(['./main2', './main4', './main3'], (function (main2, main4, main3) { 'use strict';
 
 	console.log('1');
 
-	console.log(dep112.x);
+	console.log(main4.x);
 
 }));

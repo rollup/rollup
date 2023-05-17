@@ -1,7 +1,7 @@
-define(['exports', './generated-one'], (function (exports, one) { 'use strict';
+define(['exports', './generated-main1'], (function (exports, main1) { 'use strict';
 
 
 
-	exports.ItemOne = one.One;
+	exports.ItemOne = main1.One;
 
 }));

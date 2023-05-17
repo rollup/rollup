@@ -1,4 +1,6 @@
 'use strict';
 
-require('./generated-dep2.js');
+function foo() {}
+console.log('dep2');
 
+exports.foo = foo;

@@ -1,6 +1,6 @@
-define(['exports', './generated-dep', 'external'], (function (exports, dep, external) { 'use strict';
+define(['exports', 'external'], (function (exports, external) { 'use strict';
 
-
+	console.log('dep');
 
 	Object.defineProperty(exports, 'dep', {
 		enumerable: true,

@@ -1,12 +1,9 @@
-System.register(['./chunks/shared.js'], (function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			exports('sharedValue', module.s);
-		}],
 		execute: (function () {
 
-
+			const sharedValue = exports('sharedValue', 'shared');
 
 		})
 	};

@@ -1,7 +1,5 @@
 'use strict';
 
-var shared = require('./chunks/shared.js');
+const sharedValue = 'shared';
 
-
-
-exports.sharedValue = shared.sharedValue;
+exports.sharedValue = sharedValue;

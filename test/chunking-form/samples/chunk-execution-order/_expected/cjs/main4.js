@@ -1,4 +1,6 @@
 'use strict';
 
-require('./generated-dep112.js');
+const x = 0;
+console.log('112');
 
+exports.x = x;

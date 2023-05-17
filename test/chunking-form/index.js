@@ -1,8 +1,8 @@
 const { basename, resolve } = require('node:path');
-const { chdir } = require('node:process');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
+// @ts-expect-error not included in types
 const { rollup } = require('../../dist/rollup');
 const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
@@ -23,7 +23,7 @@ runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (directo
 
 			for (const format of FORMATS) {
 				it('generates ' + format, async () => {
-					chdir(directory);
+					process.chdir(directory);
 					bundle =
 						bundle ||
 						(await rollup({

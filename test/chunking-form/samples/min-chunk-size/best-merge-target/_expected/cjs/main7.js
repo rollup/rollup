@@ -1,5 +1,5 @@
 'use strict';
 
-var small4 = require('./generated-small4.js');
+var small2 = require('./generated-small2.js');
 
-console.log(small4.small2);
+console.log(small2.small2);

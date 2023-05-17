@@ -1,4 +1,4 @@
-import { l as lib } from './generated-lib.js';
+import { lib } from './main1.js';
 
 
 

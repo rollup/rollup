@@ -1,4 +1,4 @@
 'use strict';
 
-require('./generated-dep2.js');
+require('./main2.js');
 

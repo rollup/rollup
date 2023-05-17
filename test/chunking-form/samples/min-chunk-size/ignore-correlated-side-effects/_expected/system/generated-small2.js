@@ -3,9 +3,9 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const small1 = exports('s', '1');
+			console.log('other effect 1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890');
 
-			const small2 = exports('a', '2');
+			const small2 = exports('s', '2');
 
 		})
 	};

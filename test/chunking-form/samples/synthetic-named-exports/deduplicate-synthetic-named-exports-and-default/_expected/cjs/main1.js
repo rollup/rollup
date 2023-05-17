@@ -1,8 +1,6 @@
 'use strict';
 
-var lib = require('./generated-lib.js');
+var lib = { foo: true, bar: true, baz: true };
 
-
-
-exports.lib = lib.lib;
-exports.foo = lib.lib.foo;
+exports.foo = lib.foo;
+exports.lib = lib;

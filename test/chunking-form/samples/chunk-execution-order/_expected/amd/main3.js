@@ -1,5 +1,5 @@
-define(['./generated-dep111'], (function (dep111) { 'use strict';
+define((function () { 'use strict';
 
-
+	console.log('111');
 
 }));

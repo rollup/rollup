@@ -1,12 +1,12 @@
-System.register(['./generated-small3.js', './generated-small4.js'], (function () {
+System.register(['./generated-small2.js', './generated-small4.js'], (function () {
 	'use strict';
-	var small1, small3, small2, small4;
+	var small1, small2, small3, small4;
 	return {
 		setters: [function (module) {
 			small1 = module.s;
-			small3 = module.a;
+			small2 = module.a;
 		}, function (module) {
-			small2 = module.s;
+			small3 = module.s;
 			small4 = module.a;
 		}],
 		execute: (function () {

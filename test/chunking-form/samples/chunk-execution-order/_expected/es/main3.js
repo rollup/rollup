@@ -1,1 +1,1 @@
-import './generated-dep111.js';
+console.log('111');

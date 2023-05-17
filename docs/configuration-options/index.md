@@ -2339,13 +2339,13 @@ This option will only log top-level statements, though. Sometimes, e.g. in case 
 | -------: | :---------------------------------- |
 |    Type: | `number`                            |
 |     CLI: | `--experimentalMinChunkSize <size>` |
-| Default: | `0`                                 |
+| Default: | `1`                                 |
 
-Set a minimal chunk size target in Byte for code-splitting setups. When this value is greater than `0`, Rollup will try to merge any chunk that does not have side effects when executed, i.e. any chunk that only contains function definitions etc., and is below this size limit into another chunk that is likely to be loaded under similar conditions.
+Set a minimal chunk size target in Byte for code-splitting setups. When this value is set to the default of `1`, Rollup will try to merge chunks that do not contain code except imports and reexports into other chunks. A merge will only be performed if it does not change what side effects are executed when any entry is loaded. For the value of `1`, only merges are permitted that do no increase the amount of code loaded for any entry.
 
-This will mean that the generated bundle will possibly load code that is not required yet in order to reduce the number of chunks. The condition for the merged chunks to be side effect free ensures that this does not change behaviour.
+Larger values will try to merge any chunk below the limit into other chunks. In that case, it is accepted that entries may load some unnecessary code. The algorithm always tries to merge in a way that minimizes the amount of unnecessary code, though.
 
-Unfortunately, due to the way chunking works, chunk size is measured before any chunk rendering plugins like minifiers ran, which means you should use a high enough limit to take this into account.
+Unfortunately, due to the way chunking works, chunk size is measured before any chunk rendering plugins like minifiers ran, which means you should use a high enough limit to take this into account. When calculating the size, it will take tree-shaking of top-level statements into account, though.
 
 ### perf
 
