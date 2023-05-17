@@ -15,7 +15,7 @@ module.exports = defineTest({
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
 		message:
-			'The "fileName" property of emitted files must be strings that are neither absolute nor relative paths, received "undefined".',
+			'The "fileName" property of emitted prebuilt chunks must be strings that are neither absolute nor relative paths, received "undefined".',
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}

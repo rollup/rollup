@@ -200,7 +200,7 @@ export class FileEmitter {
 		if (!hasValidName(emittedFile)) {
 			return error(
 				errorFailedValidation(
-					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${
+					`The "fileName" or "name" properties of emitted chunks and assets must be strings that are neither absolute nor relative paths, received "${
 						emittedFile.fileName || emittedFile.name
 					}".`
 				)
@@ -420,7 +420,7 @@ export class FileEmitter {
 		) {
 			return error(
 				errorFailedValidation(
-					`The "fileName" property of emitted files must be strings that are neither absolute nor relative paths, received "${emitPrebuiltChunk.fileName}".`
+					`The "fileName" property of emitted prebuilt chunks must be strings that are neither absolute nor relative paths, received "${emitPrebuiltChunk.fileName}".`
 				)
 			);
 		}
