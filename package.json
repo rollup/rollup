@@ -9,10 +9,10 @@
     "rollup": "dist/bin/rollup"
   },
   "scripts": {
-    "build": "rollup --config rollup.config.ts --configPlugin typescript",
+    "build": "concurrently --kill-others --success first \"rollup --config rollup.config.ts --configPlugin typescript\" \"node scripts/kill-timeout.js\"",
     "dev": "vitepress dev docs",
-    "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
-    "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript",
+    "build:cjs": "concurrently --kill-others --success first \"rollup --config rollup.config.ts --configPlugin typescript --configTest\" \"node scripts/kill-timeout.js\"",
+    "build:bootstrap": "concurrently --kill-others --success first \"node dist/bin/rollup --config rollup.config.ts --configPlugin typescript\" \"node scripts/kill-timeout.js\"",
     "build:docs": "vitepress build docs",
     "preview:docs": "vitepress preview docs",
     "ci:lint": "concurrently 'npm:lint:js:nofix' 'npm:lint:markdown:nofix'",
