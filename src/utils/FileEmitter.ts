@@ -2,6 +2,7 @@ import type Chunk from '../Chunk';
 import type Graph from '../Graph';
 import type Module from '../Module';
 import type {
+	EmittedAsset,
 	EmittedChunk,
 	EmittedPrebuiltChunk,
 	NormalizedInputOptions,
@@ -73,51 +74,49 @@ function reserveFileNameInBundle(
 	}
 }
 
-interface ConsumedChunk {
-	fileName: string | undefined;
+type ConsumedChunk = Pick<EmittedChunk, 'fileName' | 'type'> & {
 	module: null | Module;
 	name: string;
 	referenceId: string;
-	type: 'chunk';
-}
+};
 
 type ConsumedPrebuiltChunk = EmittedPrebuiltChunk & {
 	referenceId: string;
 };
 
-interface ConsumedAsset {
-	fileName: string | undefined;
-	name: string | undefined;
+type ConsumedAsset = EmittedAsset & {
 	needsCodeReference: boolean;
 	referenceId: string;
-	source: string | Uint8Array | undefined;
-	type: 'asset';
-}
+};
+
+type ConsumedFile = ConsumedChunk | ConsumedAsset | ConsumedPrebuiltChunk;
+
+type EmittedFileType = ConsumedFile['type'];
 
 interface EmittedFile {
 	[key: string]: unknown;
 	fileName?: string;
 	name?: string;
-	type: 'chunk' | 'asset' | 'prebuilt-chunk';
+	type: EmittedFileType;
 }
 
-type ConsumedFile = ConsumedChunk | ConsumedAsset | ConsumedPrebuiltChunk;
+const emittedFileType = ['chunk', 'asset', 'prebuilt-chunk'] as const;
 
 function hasValidType(emittedFile: unknown): emittedFile is {
 	[key: string]: unknown;
-	type: 'asset' | 'chunk' | 'prebuilt-chunk';
+	type: EmittedFileType;
 } {
 	return Boolean(
 		emittedFile &&
-			((emittedFile as { [key: string]: unknown }).type === 'asset' ||
-				(emittedFile as { [key: string]: unknown }).type === 'chunk' ||
-				(emittedFile as { [key: string]: unknown }).type === 'prebuilt-chunk')
+			emittedFileType.includes(
+				(emittedFile as { [key: string]: unknown; type: EmittedFileType }).type
+			)
 	);
 }
 
 function hasValidName(emittedFile: {
 	[key: string]: unknown;
-	type: 'asset' | 'chunk' | 'prebuilt-chunk';
+	type: EmittedFileType;
 }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
 	return !validatedName || (typeof validatedName === 'string' && !isPathFragment(validatedName));
@@ -189,7 +188,7 @@ export class FileEmitter {
 		if (!hasValidType(emittedFile)) {
 			return error(
 				errorFailedValidation(
-					`Emitted files must be of type "asset" or "chunk", received "${
+					`Emitted files must be of type "asset", "chunk" or "prebuilt-chunk", received "${
 						emittedFile && (emittedFile as any).type
 					}".`
 				)
@@ -417,10 +416,7 @@ export class FileEmitter {
 		}
 		if (
 			typeof emitPrebuiltChunk.fileName !== 'string' ||
-			!(
-				typeof emitPrebuiltChunk.fileName === 'string' &&
-				!isPathFragment(emitPrebuiltChunk.fileName)
-			)
+			isPathFragment(emitPrebuiltChunk.fileName)
 		) {
 			return error(
 				errorFailedValidation(
