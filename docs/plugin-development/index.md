@@ -1137,9 +1137,9 @@ In general, it is recommended to use `this.addWatchFile` from within the hook th
 
 ### this.emitFile
 
-|       |                                                         |
-| ----: | :------------------------------------------------------ |
-| Type: | `(emittedFile: EmittedChunk \| EmittedAsset) => string` |
+|  |  |
+| --: | :-- |
+| Type: | `(emittedFile: EmittedChunk \| EmittedPrebuiltChunk \| EmittedAsset) => string` |
 
 ```typescript
 interface EmittedChunk {
@@ -1150,6 +1150,14 @@ interface EmittedChunk {
 	implicitlyLoadedAfterOneOf?: string[];
 	importer?: string;
 	preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false;
+}
+
+interface EmittedPrebuiltChunk {
+	type: 'prebuilt-chunk';
+	fileName: string;
+	code: string;
+	exports?: string[];
+	map?: SourceMap;
 }
 
 interface EmittedAsset {
@@ -1163,7 +1171,7 @@ interface EmittedAsset {
 
 Emits a new file that is included in the build output and returns a `referenceId` that can be used in various places to reference the emitted file. You can emit either chunks or assets.
 
-In both cases, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise, if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
+In both `EmittedChunk` and `EmittedAsset`, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise, if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
 
 You can reference the URL of an emitted file in any code returned by a [`load`](#load) or [`transform`](#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId`. See [File URLs](#file-urls) for more details and an example.
 
@@ -1237,6 +1245,36 @@ export default {
 If there are no dynamic imports, this will create exactly three chunks where the first chunk contains all dependencies of `src/entry1`, the second chunk contains only the dependencies of `src/entry2` that are not contained in the first chunk, importing those from the first chunk, and again the same for the third chunk.
 
 Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
+
+If the `type` is `prebuilt-chunk`, it takes structure is quite different from others. `fileName` and `code` are required parameters, `fileName` is used as the file name of the prebuilt chunk, and `code` is the content of the prebuilt chunk, if it exports some variables, we could list these to `exports`, although it is optional. The `map` also is optional, if it is provided, its value should be right sourcemap for the `code`.
+
+To emit a prebuilt chunk, we should mark the "module" as external in the [`load`](#load) hook, then via `this.emitFile` in the subsequence build hook (like buildStart).
+
+```js
+function emitPrebuiltChunkPlugin() {
+	return {
+		name: 'emit-prebuilt-chunk',
+		load(id) {
+			if (id === 'my-prebuilt-chunk.js') {
+				return {
+					id,
+					external: true
+				};
+			}
+		},
+		buildStart() {
+			this.emitFile({
+				type: 'prebuilt-chunk',
+				fileName: 'my-prebuilt-chunk.js',
+				code: 'export const foo = "foo"',
+				exports: ['foo']
+			});
+		}
+	};
+}
+```
+
+Currently, emitting a prebuilt chunk is a basic feature. Looking forward to users feefback.
 
 If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](#this-setassetsource) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If an asset without a `fileName` is not deduplicated, the [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) name pattern will be used. If `needsCodeReference` is set to `true` and this asset is not referenced by any code in the output via `import.meta.ROLLUP_FILE_URL_referenceId`, then Rollup will not emit it. This also respects references removed via tree-shaking, i.e. if the corresponding `import.meta.ROLLUP_FILE_URL_referenceId` is part of the source code but is not actually used and the reference is removed by tree-shaking, then the asset is not emitted.
 
