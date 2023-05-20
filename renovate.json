@@ -20,7 +20,6 @@
 		{
 			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance"],
 			"automerge": true,
-			"autoApprove": true,
 			"automergeSchedule": ["after 10am on Friday"],
 			"groupName": "minor/patch updates"
 		}
