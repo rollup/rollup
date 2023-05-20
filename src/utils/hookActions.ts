@@ -28,6 +28,7 @@ function formatAction([pluginName, hookName, parameters]: HookAction): string {
 // We do not directly listen on process to avoid max listeners warnings for
 // complicated build processes
 const beforeExitEvent = 'beforeExit';
+// eslint-disable-next-line unicorn/prefer-event-target
 const beforeExitEmitter = new EventEmitter();
 beforeExitEmitter.setMaxListeners(0);
 process.on(beforeExitEvent, () => beforeExitEmitter.emit(beforeExitEvent));
