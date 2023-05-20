@@ -139,9 +139,11 @@ module.exports = {
 		'unicorn/no-null': 'off',
 		'unicorn/no-this-assignment': 'off',
 		'unicorn/no-useless-undefined': 'off',
+		'unicorn/prefer-at': 'off',
 		'unicorn/prefer-code-point': 'off',
 		'unicorn/prefer-math-trunc': 'off',
 		'unicorn/prefer-number-properties': 'off',
+		'unicorn/prefer-string-replace-all': 'off',
 		'unicorn/prefer-top-level-await': 'off'
 	}
 };
