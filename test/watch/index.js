@@ -10,7 +10,7 @@ const { copy } = require('fs-extra');
 const rollup = require('../../dist/rollup');
 const { atomicWriteFileSync, wait } = require('../utils');
 
-describe.only('rollup.watch', () => {
+describe('rollup.watch', () => {
 	let watcher;
 
 	beforeEach(() => {
