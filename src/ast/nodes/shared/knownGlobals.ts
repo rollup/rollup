@@ -10,6 +10,7 @@ import {
 	UNKNOWN_NON_ACCESSOR_PATH,
 	UNKNOWN_PATH
 } from '../../utils/PathTracker';
+import ArrayExpression from '../ArrayExpression';
 import type { LiteralValueOrUnknown } from './Expression';
 import { UnknownTruthyValue } from './Expression';
 
@@ -41,6 +42,14 @@ const IMPURE: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
 	getLiteralValue: getTruthyLiteralValue,
 	hasEffectsWhenCalled: returnTrue
+};
+
+const PURE_WITH_ARRAY: ValueDescription = {
+	deoptimizeArgumentsOnCall: doNothing,
+	getLiteralValue: getTruthyLiteralValue,
+	hasEffectsWhenCalled({ args }) {
+		return args.length > 1 && !(args[1] instanceof ArrayExpression);
+	}
 };
 
 // We use shortened variables to reduce file size here
@@ -88,6 +97,12 @@ const C: GlobalDescription = {
 const PC: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE,
+	prototype: O
+};
+
+const PC_WITH_ARRAY = {
+	__proto__: null,
+	[ValueProperties]: PURE_WITH_ARRAY,
 	prototype: O
 };
 
@@ -164,7 +179,7 @@ const knownGlobals: GlobalDescription = {
 	isNaN: PF,
 	isPrototypeOf: O,
 	JSON: O,
-	Map: C,
+	Map: PC_WITH_ARRAY,
 	Math: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
@@ -260,7 +275,7 @@ const knownGlobals: GlobalDescription = {
 	ReferenceError: PC,
 	Reflect: O,
 	RegExp: PC,
-	Set: C,
+	Set: PC_WITH_ARRAY,
 	SharedArrayBuffer: C,
 	String: {
 		__proto__: null,
@@ -300,8 +315,8 @@ const knownGlobals: GlobalDescription = {
 	unescape: PF,
 	URIError: PC,
 	valueOf: O,
-	WeakMap: C,
-	WeakSet: C,
+	WeakMap: PC_WITH_ARRAY,
+	WeakSet: PC_WITH_ARRAY,
 
 	// Additional globals shared by Node and Browser that are not strictly part of the language
 	clearInterval: C,
