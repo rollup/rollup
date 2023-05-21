@@ -19,7 +19,7 @@ const MAIN_PACKAGE = 'package.json';
 const MAIN_LOCKFILE = 'package-lock.json';
 const BROWSER_PACKAGE = 'browser/package.json';
 const CHANGELOG = 'CHANGELOG.md';
-// const DOCUMENTATION_BRANCH = 'documentation-published';
+const DOCUMENTATION_BRANCH = 'documentation-published';
 
 const [gh, currentBranch] = await Promise.all([
 	getGithubApi(),
@@ -293,8 +293,8 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 	]);
 	await runWithEcho('git', ['commit', '-m', newVersion]);
 	await Promise.all([
-		runWithEcho('git', ['tag', gitTag])
-		// isMainBranch && runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag])
+		runWithEcho('git', ['tag', gitTag]),
+		isMainBranch && runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag])
 	]);
 }
 
@@ -317,8 +317,8 @@ function releasePackages(newVersion) {
 function pushChanges(gitTag) {
 	return Promise.all([
 		runWithEcho('git', ['push', 'origin', 'HEAD']),
-		runWithEcho('git', ['push', 'origin', gitTag])
-		// isMainBranch && runWithEcho('git', ['push', '--force', 'origin', DOCUMENTATION_BRANCH])
+		runWithEcho('git', ['push', 'origin', gitTag]),
+		isMainBranch && runWithEcho('git', ['push', '--force', 'origin', DOCUMENTATION_BRANCH])
 	]);
 }
 
