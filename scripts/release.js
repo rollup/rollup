@@ -292,10 +292,8 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 		...(isMainBranch ? [CHANGELOG] : [])
 	]);
 	await runWithEcho('git', ['commit', '-m', newVersion]);
-	await Promise.all([
-		runWithEcho('git', ['tag', gitTag]),
-		isMainBranch && runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag])
-	]);
+	await runWithEcho('git', ['tag', gitTag]);
+	isMainBranch && (await runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag]));
 }
 
 function releasePackages(newVersion) {
