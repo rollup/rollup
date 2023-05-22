@@ -100,7 +100,7 @@ interface EmittedFile {
 	type: EmittedFileType;
 }
 
-const emittedFileType = ['chunk', 'asset', 'prebuilt-chunk'] as const;
+const emittedFileTypes: Set<EmittedFileType> = new Set(['chunk', 'asset', 'prebuilt-chunk']);
 
 function hasValidType(emittedFile: unknown): emittedFile is {
 	[key: string]: unknown;
@@ -108,9 +108,7 @@ function hasValidType(emittedFile: unknown): emittedFile is {
 } {
 	return Boolean(
 		emittedFile &&
-			emittedFileType.includes(
-				(emittedFile as { [key: string]: unknown; type: EmittedFileType }).type
-			)
+			emittedFileTypes.has((emittedFile as { [key: string]: unknown; type: EmittedFileType }).type)
 	);
 }
 
