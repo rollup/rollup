@@ -384,7 +384,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(lastEvent, 'create');
 			}
 		]);
-	}).timeout(20_000);
+	});
 
 	it('calls closeWatcher plugin hook', async () => {
 		let calls = 0;
@@ -1741,7 +1741,7 @@ describe('rollup.watch', () => {
 			]);
 		});
 	});
-}).timeout(20_000);
+});
 
 function run(file) {
 	const resolved = require.resolve(file);
@@ -1749,14 +1749,17 @@ function run(file) {
 	return require(resolved);
 }
 
-async function sequence(watcher, events, timeout = 300) {
-	await new Promise((fulfil, reject) => {
+function sequence(watcher, events, timeout = 300) {
+	const handledEvents = [];
+	const sequencePromise = new Promise((fulfil, reject) => {
 		function go(event) {
 			const next = events.shift();
 			if (!next) {
+				handledEvents.push('DONE');
 				watcher.close();
 				fulfil();
 			} else if (typeof next === 'string') {
+				handledEvents.push(next);
 				const [eventCode, eventMessage] = next.split(':');
 				watcher.once('event', event => {
 					if (event.code !== eventCode) {
@@ -1778,6 +1781,7 @@ async function sequence(watcher, events, timeout = 300) {
 			} else {
 				wait(timeout) // gah, this appears to be necessary to fix random errors
 					.then(() => {
+						handledEvents.push(`fn: ${JSON.stringify(event)}`);
 						next(event);
 						go();
 					})
@@ -1790,7 +1794,13 @@ async function sequence(watcher, events, timeout = 300) {
 
 		go();
 	});
-	return wait(100);
+
+	return Promise.race([
+		sequencePromise.then(() => wait(100)),
+		wait(20_000).then(() => {
+			throw new Error(`Test timed out\n${handledEvents.join('\n')}`);
+		})
+	]);
 }
 
 function getTimeDiffInMs(previous) {
