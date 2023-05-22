@@ -1171,7 +1171,7 @@ interface EmittedAsset {
 
 Emits a new file that is included in the build output and returns a `referenceId` that can be used in various places to reference the emitted file. You can emit chunks, prebuilt chunks or assets.
 
-Emitting chunks or assets, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise, if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
+When emitting chunks or assets, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise, if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](../configuration-options/index.md#output-chunkfilenames) or [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used. Prebuilt chunks must always have a `fileName`.
 
 You can reference the URL of an emitted file in any code returned by a [`load`](#load) or [`transform`](#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId`. See [File URLs](#file-urls) for more details and an example.
 
@@ -1246,16 +1246,16 @@ If there are no dynamic imports, this will create exactly three chunks where the
 
 Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
 
-If the `type` is `prebuilt-chunk`, it takes structure is quite different from others. `fileName` and `code` are required parameters, `fileName` is used as the file name of the prebuilt chunk, and `code` is the content of the prebuilt chunk, if it exports some variables, we could list these to `exports` that is optional. The `map` also is optional, if it is provided, its value should be right sourcemap for the `code`.
+If the `type` is `prebuilt-chunk`, it emits a chunk with fixed contents provided by the `code` parameter. At the moment, `fileName` is also required to provide the name of the chunk. If it exports some variables, we should list these via the optional `exports`. Via `map` we can provide a sourcemap that corresponds to `code`.
 
-To emit a prebuilt chunk, we should mark the "module" as external in the [`load`](#load) hook, then via `this.emitFile` in the subsequence build hook (like buildStart).
+To reference a prebuilt chunk in imports, we need to mark the "module" as external in the [`resolveId`](#resolveid) hook as prebuilt chunks are not part of the module graph. Instead, they behave like assets with chunk meta-data:
 
 ```js
 function emitPrebuiltChunkPlugin() {
 	return {
 		name: 'emit-prebuilt-chunk',
 		load(id) {
-			if (id === 'my-prebuilt-chunk.js') {
+			if (id === '/my-prebuilt-chunk.js') {
 				return {
 					id,
 					external: true
@@ -1272,6 +1272,12 @@ function emitPrebuiltChunkPlugin() {
 		}
 	};
 }
+```
+
+Then you can reference the prebuilt chunk in your code:
+
+```js
+import { foo } from '/my-prebuilt-chunk.js';
 ```
 
 Currently, emitting a prebuilt chunk is a basic feature. Looking forward to your feedback.
