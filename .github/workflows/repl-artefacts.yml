@@ -23,8 +23,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 14
-          cache: 'npm'
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts
         run: npm run build:cjs && npm run build:bootstrap
