@@ -2,9 +2,12 @@ import type Chunk from '../Chunk';
 import type Graph from '../Graph';
 import type Module from '../Module';
 import type {
+	EmittedAsset,
 	EmittedChunk,
+	EmittedPrebuiltChunk,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
+	OutputChunk,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -71,46 +74,47 @@ function reserveFileNameInBundle(
 	}
 }
 
-interface ConsumedChunk {
-	fileName: string | undefined;
+type ConsumedChunk = Pick<EmittedChunk, 'fileName' | 'type'> & {
 	module: null | Module;
 	name: string;
 	referenceId: string;
-	type: 'chunk';
-}
+};
 
-interface ConsumedAsset {
-	fileName: string | undefined;
-	name: string | undefined;
+type ConsumedPrebuiltChunk = EmittedPrebuiltChunk & {
+	referenceId: string;
+};
+
+type ConsumedAsset = EmittedAsset & {
 	needsCodeReference: boolean;
 	referenceId: string;
-	source: string | Uint8Array | undefined;
-	type: 'asset';
-}
+};
+
+type ConsumedFile = ConsumedChunk | ConsumedAsset | ConsumedPrebuiltChunk;
+
+type EmittedFileType = ConsumedFile['type'];
 
 interface EmittedFile {
 	[key: string]: unknown;
 	fileName?: string;
 	name?: string;
-	needsCodeReference?: boolean;
-	type: 'chunk' | 'asset';
+	type: EmittedFileType;
 }
 
-type ConsumedFile = ConsumedChunk | ConsumedAsset;
+const emittedFileTypes: Set<EmittedFileType> = new Set(['chunk', 'asset', 'prebuilt-chunk']);
 
-function hasValidType(
-	emittedFile: unknown
-): emittedFile is { [key: string]: unknown; type: 'asset' | 'chunk' } {
+function hasValidType(emittedFile: unknown): emittedFile is {
+	[key: string]: unknown;
+	type: EmittedFileType;
+} {
 	return Boolean(
 		emittedFile &&
-			((emittedFile as { [key: string]: unknown }).type === 'asset' ||
-				(emittedFile as { [key: string]: unknown }).type === 'chunk')
+			emittedFileTypes.has((emittedFile as { [key: string]: unknown; type: EmittedFileType }).type)
 	);
 }
 
 function hasValidName(emittedFile: {
 	[key: string]: unknown;
-	type: 'asset' | 'chunk';
+	type: EmittedFileType;
 }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
 	return !validatedName || (typeof validatedName === 'string' && !isPathFragment(validatedName));
@@ -182,16 +186,19 @@ export class FileEmitter {
 		if (!hasValidType(emittedFile)) {
 			return error(
 				errorFailedValidation(
-					`Emitted files must be of type "asset" or "chunk", received "${
+					`Emitted files must be of type "asset", "chunk" or "prebuilt-chunk", received "${
 						emittedFile && (emittedFile as any).type
 					}".`
 				)
 			);
 		}
+		if (emittedFile.type === 'prebuilt-chunk') {
+			return this.emitPrebuiltChunk(emittedFile);
+		}
 		if (!hasValidName(emittedFile)) {
 			return error(
 				errorFailedValidation(
-					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${
+					`The "fileName" or "name" properties of emitted chunks and assets must be strings that are neither absolute nor relative paths, received "${
 						emittedFile.fileName || emittedFile.name
 					}".`
 				)
@@ -215,6 +222,9 @@ export class FileEmitter {
 		if (!emittedFile) return error(errorFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
 			return getChunkFileName(emittedFile, this.facadeChunkByModule);
+		}
+		if (emittedFile.type === 'prebuilt-chunk') {
+			return emittedFile.fileName;
 		}
 		return getAssetFileName(emittedFile, fileReferenceId);
 	};
@@ -270,6 +280,8 @@ export class FileEmitter {
 					const sourceHash = getSourceHash(consumedFile.source);
 					getOrCreate(consumedAssetsByHash, sourceHash, () => []).push(consumedFile);
 				}
+			} else if (consumedFile.type === 'prebuilt-chunk') {
+				this.output.bundle[consumedFile.fileName] = this.createPrebuiltChunk(consumedFile);
 			}
 		}
 		for (const [sourceHash, consumedFiles] of consumedAssetsByHash) {
@@ -296,6 +308,28 @@ export class FileEmitter {
 			filesByReferenceId.set(referenceId, file);
 		}
 		return referenceId;
+	}
+
+	private createPrebuiltChunk(prebuiltChunk: ConsumedPrebuiltChunk): OutputChunk {
+		return {
+			code: prebuiltChunk.code,
+			dynamicImports: [],
+			exports: prebuiltChunk.exports || [],
+			facadeModuleId: null,
+			fileName: prebuiltChunk.fileName,
+			implicitlyLoadedBefore: [],
+			importedBindings: {},
+			imports: [],
+			isDynamicEntry: false,
+			isEntry: false,
+			isImplicitEntry: false,
+			map: prebuiltChunk.map || null,
+			moduleIds: [],
+			modules: {},
+			name: prebuiltChunk.fileName,
+			referencedFiles: [],
+			type: 'chunk'
+		};
 	}
 
 	private emitAsset(emittedAsset: EmittedFile): string {
@@ -365,6 +399,46 @@ export class FileEmitter {
 			});
 
 		return this.assignReferenceId(consumedChunk, emittedChunk.id);
+	}
+
+	private emitPrebuiltChunk(
+		emitPrebuiltChunk: Omit<EmittedFile, 'fileName' | 'name'> &
+			Pick<EmittedPrebuiltChunk, 'exports' | 'map'>
+	): string {
+		if (typeof emitPrebuiltChunk.code !== 'string') {
+			return error(
+				errorFailedValidation(
+					`Emitted prebuilt chunks need to have a valid string code, received "${emitPrebuiltChunk.code}".`
+				)
+			);
+		}
+		if (
+			typeof emitPrebuiltChunk.fileName !== 'string' ||
+			isPathFragment(emitPrebuiltChunk.fileName)
+		) {
+			return error(
+				errorFailedValidation(
+					`The "fileName" property of emitted prebuilt chunks must be strings that are neither absolute nor relative paths, received "${emitPrebuiltChunk.fileName}".`
+				)
+			);
+		}
+		const consumedPrebuiltChunk: ConsumedPrebuiltChunk = {
+			code: emitPrebuiltChunk.code,
+			exports: emitPrebuiltChunk.exports,
+			fileName: emitPrebuiltChunk.fileName,
+			map: emitPrebuiltChunk.map,
+			referenceId: '',
+			type: 'prebuilt-chunk'
+		};
+		const referenceId = this.assignReferenceId(
+			consumedPrebuiltChunk,
+			consumedPrebuiltChunk.fileName
+		);
+		if (this.output) {
+			this.output.bundle[consumedPrebuiltChunk.fileName] =
+				this.createPrebuiltChunk(consumedPrebuiltChunk);
+		}
+		return referenceId;
 	}
 
 	private finalizeAdditionalAsset(
