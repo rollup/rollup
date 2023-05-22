@@ -150,7 +150,15 @@ export interface EmittedChunk {
 	type: 'chunk';
 }
 
-export type EmittedFile = EmittedAsset | EmittedChunk;
+export interface EmittedPrebuiltChunk {
+	code: string;
+	exports?: string[];
+	fileName: string;
+	map?: SourceMap;
+	type: 'prebuilt-chunk';
+}
+
+export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
