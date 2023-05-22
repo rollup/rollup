@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 3.23.0
+
+_2023-05-22_
+
+### Features
+
+- Support emitting "prebuilt chunks" from plugins (#4990)
+
+### Bug Fixes
+
+- Mark Sets and Maps as pure when they receive an array literal as argument (#5005)
+
+### Pull Requests
+
+- [#4990](https://github.com/rollup/rollup/pull/4990): feat: this.emitFile support prebuilt-chunk type (@TrickyPi)
+- [#5005](https://github.com/rollup/rollup/pull/5005): feat: mark Set, Map, WeakSet and WeakMap with array arguments as pure (@TrickyPi)
+
 ## 3.22.1
 
 _2023-05-21_
