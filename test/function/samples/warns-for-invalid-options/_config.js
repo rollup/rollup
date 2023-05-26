@@ -9,12 +9,14 @@ module.exports = defineTest({
 	warnings: [
 		{
 			code: 'UNKNOWN_OPTION',
+			level: 'warn',
 			message:
 				'Unknown input options: myInvalidInputOption. Allowed options: ' +
 				require('../../../misc/optionList').input
 		},
 		{
 			code: 'UNKNOWN_OPTION',
+			level: 'warn',
 			message:
 				'Unknown output options: myInvalidOutputOption. Allowed options: ' +
 				require('../../../misc/optionList').output

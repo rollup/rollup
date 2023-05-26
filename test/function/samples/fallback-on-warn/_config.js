@@ -14,7 +14,7 @@ module.exports = defineTest({
 	after() {
 		console.warn = oldConsoleWarn;
 		assert.deepStrictEqual(warnings, [
-			'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.'
+			'main.js (1:17) Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.'
 		]);
 	}
 });

@@ -2,9 +2,11 @@ import { locate } from 'locate-character';
 import type Module from '../Module';
 import type {
 	InternalModuleFormat,
+	LogHandler,
+	LogLevel,
 	NormalizedInputOptions,
 	RollupLog,
-	WarningHandler
+	RollupLogWithLevel
 } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import { extname } from './path';
@@ -950,7 +952,7 @@ export function warnDeprecation(
 		deprecation,
 		urlSnippet,
 		activeDeprecation,
-		options.onwarn,
+		options.onLog,
 		options.strictDeprecations,
 		plugin
 	);
@@ -960,7 +962,7 @@ export function warnDeprecationWithOptions(
 	deprecation: string,
 	urlSnippet: string,
 	activeDeprecation: boolean,
-	warn: WarningHandler,
+	onLog: LogHandler,
 	strictDeprecations: boolean,
 	plugin?: string
 ): void {
@@ -969,6 +971,10 @@ export function warnDeprecationWithOptions(
 		if (strictDeprecations) {
 			return error(warning);
 		}
-		warn(warning);
+		onLog(addLogLevel('warn', warning));
 	}
+}
+
+export function addLogLevel(level: LogLevel, log: RollupLog): RollupLogWithLevel {
+	return Object.assign(log, { level });
 }

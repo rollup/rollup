@@ -15,6 +15,7 @@ import {
 	generatedCodePresets,
 	type GenericConfigObject,
 	normalizePluginOption,
+	normalizeWarning,
 	objectifyOption,
 	objectifyOptionWithPresets,
 	treeshakePresets,
@@ -116,6 +117,7 @@ async function mergeInputOptions(
 	defaultOnWarnHandler: WarningHandler
 ): Promise<InputOptions> {
 	const getOption = (name: keyof InputOptions): any => overrides[name] ?? config[name];
+	const onwarn = getOnWarn(config, defaultOnWarnHandler);
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
 		acornInjectPlugins: config.acornInjectPlugins as
@@ -134,7 +136,8 @@ async function mergeInputOptions(
 		maxParallelFileOps: getOption('maxParallelFileOps'),
 		maxParallelFileReads: getOption('maxParallelFileReads'),
 		moduleContext: getOption('moduleContext'),
-		onwarn: getOnWarn(config, defaultOnWarnHandler),
+		onLog: onwarn,
+		onwarn,
 		perf: getOption('perf'),
 		plugins: await normalizePluginOption(config.plugins),
 		preserveEntrySignatures: getOption('preserveEntrySignatures'),
@@ -169,8 +172,15 @@ const getExternal = (config: InputOptions, overrides: CommandConfigObject): Exte
 		: [...ensureArray(configExternal), ...overrides.external];
 };
 
-const getOnWarn = (config: InputOptions, defaultOnWarnHandler: WarningHandler): WarningHandler =>
-	config.onwarn ? warning => config.onwarn!(warning, defaultOnWarnHandler) : defaultOnWarnHandler;
+const getOnWarn = (
+	{ onwarn }: InputOptions,
+	defaultOnWarnHandler: WarningHandler
+): WarningHandler =>
+	onwarn
+		? // TODO Lukas test normalization
+		  warning =>
+				onwarn(warning, handledWarning => defaultOnWarnHandler(normalizeWarning(handledWarning)))
+		: defaultOnWarnHandler;
 
 const getObjectOption = <T extends object>(
 	config: T,

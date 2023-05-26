@@ -1,6 +1,7 @@
 import type {
 	InputOptions,
 	InputPluginOption,
+	LogHandler,
 	NormalizedGeneratedCodeOptions,
 	NormalizedOutputOptions,
 	NormalizedTreeshakingOptions,
@@ -8,24 +9,67 @@ import type {
 	OutputPlugin,
 	OutputPluginOption,
 	Plugin,
+	RollupLog,
+	RollupLogWithLevel,
+	RollupLogWithOptionalLevel,
 	WarningHandler
 } from '../../rollup/types';
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
-import { error, errorInvalidOption, errorUnknownOption } from '../error';
+import { addLogLevel, error, errorInvalidOption, errorUnknownOption } from '../error';
 import { printQuotedStringList } from '../printStringList';
+import relativeId from '../relativeId';
 
 export interface GenericConfigObject {
 	[key: string]: unknown;
 }
 
-export const defaultOnWarn: WarningHandler = warning => console.warn(warning.message || warning);
+export const normalizeWarning = (warning: string | RollupLog): RollupLog =>
+	typeof warning === 'string' ? { message: warning } : warning;
+
+export const normalizeLog = (log: string | RollupLogWithOptionalLevel): RollupLogWithLevel =>
+	typeof log === 'string'
+		? { level: 'info', message: log }
+		: typeof log.level === 'string'
+		? (log as RollupLogWithLevel)
+		: { level: 'info' as const, ...log };
+
+// TODO Lukas this should print the augmented warning
+export const defaultOnWarn: WarningHandler = warning => console.warn(warning.message);
+
+export const getExtendedLogMessage = (log: RollupLog): string => {
+	let prefix = '';
+
+	if (log.plugin) {
+		prefix += `(${log.plugin} plugin) `;
+	}
+	if (log.loc) {
+		prefix += `${relativeId(log.loc.file!)} (${log.loc.line}:${log.loc.column}) `;
+	}
+
+	return prefix + log.message;
+};
+
+export const defaultPrintLog: LogHandler = log => {
+	const message = getExtendedLogMessage(log);
+	switch (log.level) {
+		case 'warn': {
+			return console.warn(message);
+		}
+		case 'debug': {
+			return console.debug(message);
+		}
+		default: {
+			return console.info(message);
+		}
+	}
+};
 
 export function warnUnknownOptions(
 	passedOptions: object,
 	validOptions: readonly string[],
 	optionType: string,
-	warn: WarningHandler,
+	log: LogHandler,
 	ignoredKeys = /$./
 ): void {
 	const validOptionSet = new Set(validOptions);
@@ -33,7 +77,12 @@ export function warnUnknownOptions(
 		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
 	);
 	if (unknownOptions.length > 0) {
-		warn(errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
+		log(
+			addLogLevel(
+				'warn',
+				errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort())
+			)
+		);
 	}
 }
 

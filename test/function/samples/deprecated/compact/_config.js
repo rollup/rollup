@@ -19,6 +19,7 @@ module.exports = defineTest({
 		},
 		{
 			code: 'DEPRECATED_FEATURE',
+			level: 'warn',
 			message:
 				'The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.',
 			url: 'https://rollupjs.org/configuration-options/#output-generatedcode-symbols'

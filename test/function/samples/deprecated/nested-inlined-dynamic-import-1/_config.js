@@ -13,6 +13,7 @@ module.exports = defineTest({
 	warnings: [
 		{
 			code: 'DEPRECATED_FEATURE',
+			level: 'warn',
 			message:
 				'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
 			url: 'https://rollupjs.org/configuration-options/#output-inlinedynamicimports'

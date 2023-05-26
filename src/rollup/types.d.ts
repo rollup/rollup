@@ -41,6 +41,16 @@ export interface RollupLog {
 	url?: string;
 }
 
+export interface RollupLogWithLevel extends RollupLogWithOptionalLevel {
+	level: LogLevel;
+}
+
+export interface RollupLogWithOptionalLevel extends RollupLog {
+	level?: LogLevel;
+}
+
+export type LogLevel = 'warn' | 'info' | 'debug';
+
 export type SourceMapSegment =
 	| [number]
 	| [number, number, number, number]
@@ -508,16 +518,31 @@ export type ExternalOption =
 	| string
 	| RegExp
 	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | NullValue);
-export type PureModulesOption = boolean | string[] | IsPureModule;
+
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
+
 export type InputOption = string | string[] | { [entryAlias: string]: string };
+
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
+
+export type LogHandlerWithDefault = (
+	log: RollupLogWithLevel,
+	defaultHandler: LogOrStringHandler
+) => void;
+
+export type LogOrStringHandler = (log: RollupLog | string) => void;
+
+export type LogHandler = (log: RollupLogWithLevel) => void;
+
 export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
+
 export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension' | 'exports-only';
+
 export type SourcemapPathTransformOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string
 ) => string;
+
 export type SourcemapIgnoreListOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string
@@ -543,6 +568,7 @@ export interface InputOptions {
 	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads?: number;
 	moduleContext?: ((id: string) => string | NullValue) | { [id: string]: string };
+	onLog?: LogHandlerWithDefault;
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: InputPluginOption;
@@ -578,6 +604,7 @@ export interface NormalizedInputOptions {
 	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads: number;
 	moduleContext: (id: string) => string;
+	onLog: LogHandler;
 	onwarn: WarningHandler;
 	perf: boolean;
 	plugins: Plugin[];
@@ -765,8 +792,11 @@ export interface NormalizedOutputOptions {
 
 export type WarningHandlerWithDefault = (
 	warning: RollupWarning,
-	defaultHandler: WarningHandler
+	defaultHandler: WarningOrStringHandler
 ) => void;
+
+export type WarningOrStringHandler = (warning: RollupWarning | string) => void;
+
 export type WarningHandler = (warning: RollupWarning) => void;
 
 export interface SerializedTimings {
