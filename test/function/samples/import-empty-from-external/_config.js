@@ -4,6 +4,7 @@ module.exports = defineTest({
 		// override require here, making "foo" appear as a global module
 		require(name) {
 			if (name === 'foo') {
+				// @ts-expect-error test file
 				return require('./foo');
 			}
 			return require(name);
