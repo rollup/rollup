@@ -27,13 +27,17 @@ module.exports = defineTest({
 			['onwarn', { level: 'warn', message: 'warnLog-' }],
 			['onwarn', { level: 'warn', message: 'warnLog+-' }],
 			['warn', 'log was replaced'],
+			['onwarn', { level: 'warn', message: 'warnLog*-' }],
+			['warn', 'log was replaced with string'],
 			['info', 'infoLog'],
 			['debug', 'debugLog'],
 			['onwarn', { message: 'warnWarn' }],
 			['warn', 'warnWarn'],
 			['onwarn', { message: 'warnWarn-' }],
 			['onwarn', { message: 'warnWarn+-' }],
-			['warn', 'log was replaced']
+			['warn', 'log was replaced'],
+			['onwarn', { message: 'warnWarn*-' }],
+			['warn', 'log was replaced with string']
 		]);
 		assert.strictEqual(logs[0][1].toString(), 'warnLog');
 		assert.strictEqual(logs[2][1].toString(), '(fooPlugin plugin) fooFile (1:2) warnLog');
@@ -45,6 +49,8 @@ module.exports = defineTest({
 				handler(warning);
 			} else if (warning.message.endsWith('+-')) {
 				handler({ message: 'log was replaced' });
+			} else if (warning.message.endsWith('*-')) {
+				handler('log was replaced with string');
 			}
 		},
 		onLog: null,
@@ -61,11 +67,13 @@ module.exports = defineTest({
 					});
 					options.onLog({ level: 'warn', message: 'warnLog-' });
 					options.onLog({ level: 'warn', message: 'warnLog+-' });
+					options.onLog({ level: 'warn', message: 'warnLog*-' });
 					options.onLog({ level: 'info', message: 'infoLog' });
 					options.onLog({ level: 'debug', message: 'debugLog' });
 					options.onwarn({ message: 'warnWarn' });
 					options.onwarn({ message: 'warnWarn-' });
 					options.onwarn({ message: 'warnWarn+-' });
+					options.onwarn({ message: 'warnWarn*-' });
 				}
 			}
 		]
