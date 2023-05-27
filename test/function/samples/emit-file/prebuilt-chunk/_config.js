@@ -8,7 +8,7 @@ const prebuiltChunk1ConsumedProperties = {
 
 const prebuiltChunk2ConsumedProperties = {
 	fileName: 'my-chunk2.js',
-	code: 'console.log("bar")'
+	code: 'assert.ok(true)'
 };
 
 module.exports = defineTest({
