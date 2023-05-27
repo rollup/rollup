@@ -5,6 +5,7 @@ import type {
 	Plugin,
 	PluginCache,
 	PluginContext,
+	RollupLogWithLevel,
 	SerializablePluginCache
 } from '../rollup/types';
 import type { FileEmitter } from './FileEmitter';
@@ -71,6 +72,14 @@ export function getPluginContext(
 		getWatchFiles: () => Object.keys(graph.watchFiles),
 		load(resolvedId) {
 			return graph.moduleLoader.preloadModule(resolvedId);
+		},
+		log(log) {
+			if (typeof log === 'string') log = { message: log };
+			if (log.code) log.pluginCode = log.code;
+			log.code = 'PLUGIN_WARNING';
+			log.plugin = plugin.name;
+			if (!log.level) log.level = 'info';
+			options.onLog(log as RollupLogWithLevel);
 		},
 		meta: {
 			rollupVersion,

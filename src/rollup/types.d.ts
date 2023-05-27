@@ -212,6 +212,11 @@ export interface PluginContext extends MinimalPluginContext {
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
+	log: (
+		log: RollupLogWithOptionalLevel | string,
+		// TODO Lukas test/refine position logging. Is this only supported in module-based hooks?
+		options?: { pos?: number | { column: number; line: number } }
+	) => void;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options?: any) => AcornNode;
