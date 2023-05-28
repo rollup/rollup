@@ -1,8 +1,8 @@
 module.exports = defineTest({
 	description: 'handles validate failure',
 	options: {
-		onwarn(warning) {
-			throw warning;
+		onLog(log) {
+			throw log;
 		},
 		output: {
 			outro: '/*',
@@ -11,6 +11,7 @@ module.exports = defineTest({
 	},
 	generateError: {
 		code: 'CHUNK_INVALID',
+		level: 'warn',
 		message: 'Chunk "main.js" is not valid JavaScript: Unterminated comment (5:0).',
 		frame: `
 3: throw new Error('Not executed');

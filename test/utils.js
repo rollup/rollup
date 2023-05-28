@@ -1,6 +1,6 @@
 /**
  * @typedef {import('../src/rollup/types').RollupError} RollupError
- * @typedef {import('../src/rollup/types').RollupWarning} RollupWarning
+ * @typedef {import('../src/rollup/types').RollupLogWithOptionalLevel} RollupLogWithOptionalLevel
  * @typedef {import('../src/rollup/types').Plugin} Plugin
  * @typedef {import('./types').TestConfigBase} TestConfigBase
  */
@@ -64,28 +64,34 @@ exports.compareError = function compareError(actual, expected) {
 };
 
 /**
- * @param {RollupWarning[]} actual
- * @param {RollupWarning[]} expected
+ * @param {RollupLogWithOptionalLevel[]} actual
+ * @param {RollupLogWithOptionalLevel[]} expected
  */
-exports.compareWarnings = function compareWarnings(actual, expected) {
-	assert.deepEqual(
-		actual.map(normaliseError).sort(sortWarnings),
-		expected
-			.map(warning => {
-				if (warning.frame) {
-					warning.frame = deindent(warning.frame);
-				}
-				return warning;
-			})
-			.sort(sortWarnings)
-	);
+exports.compareLogs = function compareLogs(actual, expected) {
+	const normalizedActual = actual.map(normaliseError).sort(sortLogs);
+	try {
+		assert.deepEqual(
+			normalizedActual,
+			expected
+				.map(warning => {
+					if (warning.frame) {
+						warning.frame = deindent(warning.frame);
+					}
+					return warning;
+				})
+				.sort(sortLogs)
+		);
+	} catch (error) {
+		console.log('Actual logs:', JSON.stringify(normalizedActual));
+		throw error;
+	}
 };
 
 /**
- * @param {RollupWarning} a
- * @param {RollupWarning} b
+ * @param {RollupLogWithOptionalLevel} a
+ * @param {RollupLogWithOptionalLevel} b
  */
-function sortWarnings(a, b) {
+function sortLogs(a, b) {
 	return a.message === b.message ? 0 : a.message < b.message ? -1 : 1;
 }
 

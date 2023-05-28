@@ -13,7 +13,9 @@ import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './Plu
 import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
 import {
+	addLogLevel,
 	error,
+	errorInvalidLogPosition,
 	errorInvalidRollupPhaseForAddWatchFile,
 	errorPluginError,
 	warnDeprecation
@@ -73,10 +75,13 @@ export function getPluginContext(
 		load(resolvedId) {
 			return graph.moduleLoader.preloadModule(resolvedId);
 		},
-		log(log) {
+		log(log, logOptions) {
+			if (logOptions?.pos != null) {
+				options.onLog(addLogLevel('warn', errorInvalidLogPosition(plugin.name)));
+			}
 			if (typeof log === 'string') log = { message: log };
 			if (log.code) log.pluginCode = log.code;
-			log.code = 'PLUGIN_WARNING';
+			log.code = 'PLUGIN_LOG';
 			log.plugin = plugin.name;
 			if (!log.level) log.level = 'info';
 			options.onLog(log as RollupLogWithLevel);

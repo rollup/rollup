@@ -136,6 +136,14 @@ export default async function transform(
 							sourcesContent: combinedMap.sourcesContent!
 						});
 					},
+					log(log, options?) {
+						if (typeof log === 'string') log = { message: log };
+						const pos = options?.pos;
+						if (pos) augmentCodeLocation(log, pos, currentSource, id);
+						log.id = id;
+						log.hook = 'transform';
+						pluginContext.log(log);
+					},
 					setAssetSource() {
 						return this.error(errorInvalidSetAssetSourceCall());
 					},

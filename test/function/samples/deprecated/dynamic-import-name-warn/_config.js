@@ -30,7 +30,6 @@ module.exports = defineTest({
 	warnings: [
 		{
 			code: 'DEPRECATED_FEATURE',
-			level: 'warn',
 			message:
 				'The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.',
 			url: 'https://rollupjs.org/plugin-development/#renderdynamicimport'

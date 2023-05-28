@@ -33,7 +33,6 @@ module.exports = defineTest({
 	warnings: [
 		{
 			code: 'DEPRECATED_FEATURE',
-			level: 'warn',
 			message:
 				'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
 			url: 'https://rollupjs.org/configuration-options/#output-preservemodules'

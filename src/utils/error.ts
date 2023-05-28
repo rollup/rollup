@@ -94,6 +94,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	INVALID_CONFIG_MODULE_FORMAT = 'INVALID_CONFIG_MODULE_FORMAT',
 	INVALID_EXPORT_OPTION = 'INVALID_EXPORT_OPTION',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
+	INVALID_LOG_POSITION = 'INVALID_LOG_POSITION',
 	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
@@ -475,6 +476,13 @@ export function errorInternalIdCannotBeExternal(source: string, importer: string
 		message: `"${source}" is imported as an external by "${relativeId(
 			importer
 		)}", but is already an existing non-external module id.`
+	};
+}
+
+export function errorInvalidLogPosition(plugin: string): RollupLog {
+	return {
+		code: INVALID_LOG_POSITION,
+		message: `Plugin "${plugin}" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.`
 	};
 }
 

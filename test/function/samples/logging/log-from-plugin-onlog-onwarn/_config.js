@@ -3,6 +3,7 @@ const { debug, info, warn } = console;
 const logs = [];
 
 module.exports = defineTest({
+	// solo: true,
 	description: 'passes logs from plugins to onLog and onwarn',
 	before() {
 		console.debug = (...log) => logs.push(['debug', ...log]);
@@ -17,14 +18,14 @@ module.exports = defineTest({
 				{
 					level: 'warn',
 					message: 'warnLog',
-					code: 'PLUGIN_WARNING',
+					code: 'PLUGIN_LOG',
 					pluginCode: 'EXTRA_CODE',
 					plugin: 'test'
 				}
 			],
-			['onLog', { level: 'info', message: 'infoLog', code: 'PLUGIN_WARNING', plugin: 'test' }],
-			['onLog', { level: 'debug', message: 'debugLog', code: 'PLUGIN_WARNING', plugin: 'test' }],
-			['onLog', { message: 'stringLog', code: 'PLUGIN_WARNING', plugin: 'test', level: 'info' }],
+			['onLog', { level: 'info', message: 'infoLog', code: 'PLUGIN_LOG', plugin: 'test' }],
+			['onLog', { level: 'debug', message: 'debugLog', code: 'PLUGIN_LOG', plugin: 'test' }],
+			['onLog', { message: 'stringLog', code: 'PLUGIN_LOG', plugin: 'test', level: 'info' }],
 			[
 				'onLog',
 				{

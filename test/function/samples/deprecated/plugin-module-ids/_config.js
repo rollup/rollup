@@ -25,7 +25,6 @@ module.exports = defineTest({
 	warnings: [
 		{
 			code: 'DEPRECATED_FEATURE',
-			level: 'warn',
 			message:
 				'Accessing "this.moduleIds" on the plugin context by plugin at position 1 is deprecated. The "this.getModuleIds" plugin context function should be used instead.',
 			plugin: 'at position 1',

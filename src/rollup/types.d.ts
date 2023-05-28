@@ -214,7 +214,6 @@ export interface PluginContext extends MinimalPluginContext {
 	) => Promise<ModuleInfo>;
 	log: (
 		log: RollupLogWithOptionalLevel | string,
-		// TODO Lukas test/refine position logging. Is this only supported in module-based hooks?
 		options?: { pos?: number | { column: number; line: number } }
 	) => void;
 	/** @deprecated Use `this.getModuleIds` instead */
