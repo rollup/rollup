@@ -13,66 +13,61 @@ module.exports = defineTest({
 	after() {
 		Object.assign(console, { debug, info, warn });
 		assert.deepStrictEqual(logs, [
-			['onLog', { level: 'warn', message: 'warnLog' }],
+			['onLog', 'warn', { message: 'warnLog' }],
 			['warn', 'warnLog'],
 			[
 				'onLog',
-				{
-					level: 'warn',
-					message: 'warnLog',
-					plugin: 'fooPlugin',
-					loc: { file: 'fooFile', line: 1, column: 2 }
-				}
+				'warn',
+				{ message: 'warnLog', plugin: 'fooPlugin', loc: { file: 'fooFile', line: 1, column: 2 } }
 			],
 			['warn', '(fooPlugin plugin) fooFile (1:2) warnLog'],
-			['onLog', { level: 'warn', message: 'warnLog-' }],
-			['onLog', { level: 'warn', message: 'warnLog+-' }],
+			['onLog', 'warn', { message: 'warnLog-' }],
+			['onLog', 'warn', { message: 'warnLog+-' }],
 			['debug', 'log was replaced'],
-			['onLog', { level: 'warn', message: 'warnLog*-' }],
+			['onLog', 'warn', { message: 'warnLog*-' }],
 			['info', 'log was replaced with string'],
-			['onLog', { level: 'info', message: 'infoLog' }],
+			['onLog', 'info', { message: 'infoLog' }],
 			['info', 'infoLog'],
-			['onLog', { level: 'debug', message: 'debugLog' }],
+			['onLog', 'debug', { message: 'debugLog' }],
 			['debug', 'debugLog'],
-			['onLog', { message: 'warnWarn', level: 'warn' }],
-			['warn', 'warnWarn'],
-			['onLog', { message: 'warnWarn-', level: 'warn' }],
-			['onLog', { message: 'warnWarn+-', level: 'warn' }],
-			['debug', 'log was replaced'],
-			['onLog', { message: 'warnWarn*-', level: 'warn' }],
-			['info', 'log was replaced with string']
+			['onLog', 'warn', { message: 'warnWarn' }],
+			['warn', 'warn'],
+			['onLog', 'warn', { message: 'warnWarn-' }],
+			['onLog', 'warn', { message: 'warnWarn+-' }],
+			['warn', 'debug'],
+			['onLog', 'warn', { message: 'warnWarn*-' }],
+			['warn', 'info']
 		]);
-		assert.strictEqual(logs[0][1].toString(), 'warnLog');
-		assert.strictEqual(logs[2][1].toString(), '(fooPlugin plugin) fooFile (1:2) warnLog');
+		assert.strictEqual(logs[0][2].toString(), 'warnLog');
+		assert.strictEqual(logs[2][2].toString(), '(fooPlugin plugin) fooFile (1:2) warnLog');
 	},
 	options: {
 		onwarn: null,
-		onLog(log, handler) {
-			logs.push(['onLog', log]);
+		onLog(level, log, handler) {
+			logs.push(['onLog', level, log]);
 			if (!log.message.endsWith('-')) {
-				handler(log);
+				handler(level, log);
 			} else if (log.message.endsWith('+-')) {
-				handler({ level: 'debug', message: 'log was replaced' });
+				handler('debug', { message: 'log was replaced' });
 			} else if (log.message.endsWith('*-')) {
-				handler('log was replaced with string');
+				handler('info', 'log was replaced with string');
 			}
 		},
 		plugins: [
 			{
 				name: 'test',
 				buildStart(options) {
-					options.onLog({ level: 'warn', message: 'warnLog' });
-					options.onLog({
-						level: 'warn',
+					options.onLog('warn', { message: 'warnLog' });
+					options.onLog('warn', {
 						message: 'warnLog',
 						plugin: 'fooPlugin',
 						loc: { file: 'fooFile', line: 1, column: 2 }
 					});
-					options.onLog({ level: 'warn', message: 'warnLog-' });
-					options.onLog({ level: 'warn', message: 'warnLog+-' });
-					options.onLog({ level: 'warn', message: 'warnLog*-' });
-					options.onLog({ level: 'info', message: 'infoLog' });
-					options.onLog({ level: 'debug', message: 'debugLog' });
+					options.onLog('warn', { message: 'warnLog-' });
+					options.onLog('warn', { message: 'warnLog+-' });
+					options.onLog('warn', { message: 'warnLog*-' });
+					options.onLog('info', { message: 'infoLog' });
+					options.onLog('debug', { message: 'debugLog' });
 					options.onwarn({ message: 'warnWarn' });
 					options.onwarn({ message: 'warnWarn-' });
 					options.onwarn({ message: 'warnWarn+-' });

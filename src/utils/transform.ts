@@ -7,7 +7,6 @@ import type {
 	Plugin,
 	PluginContext,
 	RollupError,
-	RollupWarning,
 	SourceDescription,
 	TransformModuleJSON,
 	TransformPluginContext,
@@ -25,6 +24,7 @@ import {
 	errorNoTransformMapOrAstWithoutCode,
 	errorPluginError
 } from './error';
+import { normalizeLog } from './options/options';
 
 export default async function transform(
 	source: SourceDescription,
@@ -82,6 +82,16 @@ export default async function transform(
 		return code;
 	}
 
+	const getLogHandler =
+		(handler: PluginContext['warn']): PluginContext['warn'] =>
+		(log, pos) => {
+			log = normalizeLog(log);
+			if (pos) augmentCodeLocation(log, pos, currentSource, id);
+			log.id = id;
+			log.hook = 'transform';
+			handler(log);
+		};
+
 	let code: string;
 
 	try {
@@ -100,6 +110,7 @@ export default async function transform(
 					cache: customTransformCache
 						? pluginContext.cache
 						: getTrackedPluginCache(pluginContext.cache, useCustomTransformCache),
+					debug: getLogHandler(pluginContext.warn),
 					emitFile(emittedFile: EmittedFile) {
 						emittedFiles.push(emittedFile);
 						return pluginDriver.emitFile(emittedFile);
@@ -136,24 +147,11 @@ export default async function transform(
 							sourcesContent: combinedMap.sourcesContent!
 						});
 					},
-					log(log, options?) {
-						if (typeof log === 'string') log = { message: log };
-						const pos = options?.pos;
-						if (pos) augmentCodeLocation(log, pos, currentSource, id);
-						log.id = id;
-						log.hook = 'transform';
-						pluginContext.log(log);
-					},
+					info: getLogHandler(pluginContext.warn),
 					setAssetSource() {
 						return this.error(errorInvalidSetAssetSourceCall());
 					},
-					warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
-						if (typeof warning === 'string') warning = { message: warning };
-						if (pos) augmentCodeLocation(warning, pos, currentSource, id);
-						warning.id = id;
-						warning.hook = 'transform';
-						pluginContext.warn(warning);
-					}
+					warn: getLogHandler(pluginContext.warn)
 				};
 			}
 		);

@@ -3,10 +3,8 @@ import type Module from '../Module';
 import type {
 	InternalModuleFormat,
 	LogHandler,
-	LogLevel,
 	NormalizedInputOptions,
-	RollupLog,
-	RollupLogWithLevel
+	RollupLog
 } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import { extname } from './path';
@@ -979,10 +977,6 @@ export function warnDeprecationWithOptions(
 		if (strictDeprecations) {
 			return error(warning);
 		}
-		onLog(addLogLevel('warn', warning));
+		onLog('warn', warning);
 	}
-}
-
-export function addLogLevel(level: LogLevel, log: RollupLog): RollupLogWithLevel {
-	return Object.assign(log, { level });
 }

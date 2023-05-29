@@ -1,28 +1,64 @@
 module.exports = defineTest({
 	// solo: true,
-	description: 'does not support passing a position to this.log outside the transform hook',
+	description:
+		'does not support passing a position to this.warn/info/debug outside the transform hook',
 	options: {
 		plugins: [
 			{
 				name: 'test',
 				buildStart() {
-					this.log('log-message1', { pos: 20 });
+					this.warn('log-message1', 20);
+					this.warn('log-message1', { line: 2, column: 1 });
+					this.info('log-message1', 20);
+					this.info('log-message1', { line: 2, column: 1 });
+					this.debug('log-message1', 20);
+					this.debug('log-message1', { line: 2, column: 1 });
 				}
 			}
 		]
 	},
 	logs: [
 		{
+			level: 'warn',
 			code: 'INVALID_LOG_POSITION',
 			message:
-				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.',
-			level: 'warn'
+				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.'
 		},
 		{
-			message: 'log-message1',
-			code: 'PLUGIN_LOG',
-			plugin: 'test',
-			level: 'info'
-		}
+			level: 'warn',
+			code: 'INVALID_LOG_POSITION',
+			message:
+				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.'
+		},
+		{
+			level: 'warn',
+			code: 'INVALID_LOG_POSITION',
+			message:
+				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.'
+		},
+		{
+			level: 'warn',
+			code: 'INVALID_LOG_POSITION',
+			message:
+				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.'
+		},
+		{
+			level: 'warn',
+			code: 'INVALID_LOG_POSITION',
+			message:
+				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.'
+		},
+		{
+			level: 'warn',
+			code: 'INVALID_LOG_POSITION',
+			message:
+				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.'
+		},
+		{ level: 'warn', message: 'log-message1', code: 'PLUGIN_WARNING', plugin: 'test' },
+		{ level: 'warn', message: 'log-message1', code: 'PLUGIN_WARNING', plugin: 'test' },
+		{ level: 'info', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
+		{ level: 'info', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
+		{ level: 'debug', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
+		{ level: 'debug', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' }
 	]
 });

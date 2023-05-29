@@ -15,45 +15,91 @@ module.exports = defineTest({
 		assert.deepStrictEqual(logs, [
 			[
 				'onLog',
+				'warn',
 				{
-					level: 'warn',
 					message: 'warnLog',
-					code: 'PLUGIN_LOG',
+					code: 'PLUGIN_WARNING',
+					binding: 'foo',
 					pluginCode: 'EXTRA_CODE',
 					plugin: 'test'
 				}
 			],
-			['onLog', { level: 'info', message: 'infoLog', code: 'PLUGIN_LOG', plugin: 'test' }],
-			['onLog', { level: 'debug', message: 'debugLog', code: 'PLUGIN_LOG', plugin: 'test' }],
-			['onLog', { message: 'stringLog', code: 'PLUGIN_LOG', plugin: 'test', level: 'info' }],
 			[
 				'onLog',
+				'warn',
 				{
-					message: 'warnWarn',
+					message: 'warnLog',
 					code: 'PLUGIN_WARNING',
-					pluginCode: 'EXTRA_CODE',
-					plugin: 'test',
-					level: 'warn'
+					plugin: 'test'
 				}
 			],
-			['onLog', { message: 'stringWarn', code: 'PLUGIN_WARNING', plugin: 'test', level: 'warn' }]
+			[
+				'onLog',
+				'warn',
+				{
+					message: 'warnString',
+					code: 'PLUGIN_WARNING',
+					plugin: 'test'
+				}
+			],
+			[
+				'onLog',
+				'info',
+				{
+					message: 'infoLog',
+					code: 'PLUGIN_LOG',
+					binding: 'foo',
+					pluginCode: 'EXTRA_CODE',
+					plugin: 'test'
+				}
+			],
+			[
+				'onLog',
+				'info',
+				{
+					message: 'infoString',
+					code: 'PLUGIN_LOG',
+					plugin: 'test'
+				}
+			],
+			[
+				'onLog',
+				'debug',
+				{
+					message: 'debugLog',
+					code: 'PLUGIN_LOG',
+					binding: 'foo',
+					pluginCode: 'EXTRA_CODE',
+					plugin: 'test'
+				}
+			],
+			[
+				'onLog',
+				'debug',
+				{
+					message: 'debugString',
+					code: 'PLUGIN_LOG',
+					plugin: 'test'
+				}
+			]
 		]);
 	},
 	options: {
 		onwarn: null,
-		onLog(log) {
-			logs.push(['onLog', log]);
+		onLog(level, log) {
+			logs.push(['onLog', level, log]);
 		},
 		plugins: [
 			{
 				name: 'test',
 				buildStart() {
-					this.log({ level: 'warn', message: 'warnLog', code: 'EXTRA_CODE' });
-					this.log({ level: 'info', message: 'infoLog' });
-					this.log({ level: 'debug', message: 'debugLog' });
-					this.log('stringLog');
-					this.warn({ message: 'warnWarn', code: 'EXTRA_CODE' });
-					this.warn('stringWarn');
+					this.warn({ message: 'warnLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.warn({ message: 'warnLog' });
+					this.warn('warnString');
+					this.info({ message: 'infoLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.info('infoString');
+					this.debug({ message: 'debugLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.debug('debugString');
 				}
 			}
 		]

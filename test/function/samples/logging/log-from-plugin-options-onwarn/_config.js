@@ -13,22 +13,17 @@ module.exports = defineTest({
 	after() {
 		Object.assign(console, { debug, info, warn });
 		assert.deepStrictEqual(logs, [
-			['onwarn', { level: 'warn', message: 'warnLog' }],
+			['onwarn', { message: 'warnLog' }],
 			['warn', 'warnLog'],
 			[
 				'onwarn',
-				{
-					level: 'warn',
-					message: 'warnLog',
-					plugin: 'fooPlugin',
-					loc: { file: 'fooFile', line: 1, column: 2 }
-				}
+				{ message: 'warnLog', plugin: 'fooPlugin', loc: { file: 'fooFile', line: 1, column: 2 } }
 			],
 			['warn', '(fooPlugin plugin) fooFile (1:2) warnLog'],
-			['onwarn', { level: 'warn', message: 'warnLog-' }],
-			['onwarn', { level: 'warn', message: 'warnLog+-' }],
+			['onwarn', { message: 'warnLog-' }],
+			['onwarn', { message: 'warnLog+-' }],
 			['warn', 'log was replaced'],
-			['onwarn', { level: 'warn', message: 'warnLog*-' }],
+			['onwarn', { message: 'warnLog*-' }],
 			['warn', 'log was replaced with string'],
 			['info', 'infoLog'],
 			['debug', 'debugLog'],
@@ -59,18 +54,17 @@ module.exports = defineTest({
 			{
 				name: 'test',
 				buildStart(options) {
-					options.onLog({ level: 'warn', message: 'warnLog' });
-					options.onLog({
-						level: 'warn',
+					options.onLog('warn', { message: 'warnLog' });
+					options.onLog('warn', {
 						message: 'warnLog',
 						plugin: 'fooPlugin',
 						loc: { file: 'fooFile', line: 1, column: 2 }
 					});
-					options.onLog({ level: 'warn', message: 'warnLog-' });
-					options.onLog({ level: 'warn', message: 'warnLog+-' });
-					options.onLog({ level: 'warn', message: 'warnLog*-' });
-					options.onLog({ level: 'info', message: 'infoLog' });
-					options.onLog({ level: 'debug', message: 'debugLog' });
+					options.onLog('warn', { message: 'warnLog-' });
+					options.onLog('warn', { message: 'warnLog+-' });
+					options.onLog('warn', { message: 'warnLog*-' });
+					options.onLog('info', { message: 'infoLog' });
+					options.onLog('debug', { message: 'debugLog' });
 					options.onwarn({ message: 'warnWarn' });
 					options.onwarn({ message: 'warnWarn-' });
 					options.onwarn({ message: 'warnWarn+-' });

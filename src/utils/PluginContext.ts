@@ -1,11 +1,11 @@
 import { version as rollupVersion } from 'package.json';
 import type Graph from '../Graph';
 import type {
+	LogLevel,
 	NormalizedInputOptions,
 	Plugin,
 	PluginCache,
 	PluginContext,
-	RollupLogWithLevel,
 	SerializablePluginCache
 } from '../rollup/types';
 import type { FileEmitter } from './FileEmitter';
@@ -13,13 +13,13 @@ import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './Plu
 import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
 import {
-	addLogLevel,
 	error,
 	errorInvalidLogPosition,
 	errorInvalidRollupPhaseForAddWatchFile,
 	errorPluginError,
 	warnDeprecation
 } from './error';
+import { normalizeLog } from './options/options';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 import { URL_THIS_GETMODULEIDS } from './urls';
 
@@ -56,6 +56,19 @@ export function getPluginContext(
 		cacheInstance = getCacheForUncacheablePlugin(plugin.name);
 	}
 
+	const getLogHandler =
+		(level: LogLevel, code: string): PluginContext['warn'] =>
+		(log, pos) => {
+			if (pos != null) {
+				options.onLog('warn', errorInvalidLogPosition(plugin.name));
+			}
+			log = normalizeLog(log);
+			if (log.code) log.pluginCode = log.code;
+			log.code = code;
+			log.plugin = plugin.name;
+			options.onLog(level, log);
+		};
+
 	return {
 		addWatchFile(id) {
 			if (graph.phase >= BuildPhase.GENERATE) {
@@ -64,6 +77,7 @@ export function getPluginContext(
 			graph.watchFiles[id] = true;
 		},
 		cache: cacheInstance,
+		debug: getLogHandler('debug', 'PLUGIN_LOG'),
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(error_): never {
 			return error(errorPluginError(error_, plugin.name));
@@ -72,19 +86,9 @@ export function getPluginContext(
 		getModuleIds: () => graph.modulesById.keys(),
 		getModuleInfo: graph.getModuleInfo,
 		getWatchFiles: () => Object.keys(graph.watchFiles),
+		info: getLogHandler('info', 'PLUGIN_LOG'),
 		load(resolvedId) {
 			return graph.moduleLoader.preloadModule(resolvedId);
-		},
-		log(log, logOptions) {
-			if (logOptions?.pos != null) {
-				options.onLog(addLogLevel('warn', errorInvalidLogPosition(plugin.name)));
-			}
-			if (typeof log === 'string') log = { message: log };
-			if (log.code) log.pluginCode = log.code;
-			log.code = 'PLUGIN_LOG';
-			log.plugin = plugin.name;
-			if (!log.level) log.level = 'info';
-			options.onLog(log as RollupLogWithLevel);
 		},
 		meta: {
 			rollupVersion,
@@ -118,12 +122,6 @@ export function getPluginContext(
 			);
 		},
 		setAssetSource: fileEmitter.setAssetSource,
-		warn(warning) {
-			if (typeof warning === 'string') warning = { message: warning };
-			if (warning.code) warning.pluginCode = warning.code;
-			warning.code = 'PLUGIN_WARNING';
-			warning.plugin = plugin.name;
-			options.onwarn(warning);
-		}
+		warn: getLogHandler('warn', 'PLUGIN_WARNING')
 	};
 }

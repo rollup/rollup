@@ -10,13 +10,11 @@ import type {
 	OutputPluginOption,
 	Plugin,
 	RollupLog,
-	RollupLogWithLevel,
-	RollupLogWithOptionalLevel,
 	WarningHandler
 } from '../../rollup/types';
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
-import { addLogLevel, error, errorInvalidOption, errorUnknownOption } from '../error';
+import { error, errorInvalidOption, errorUnknownOption } from '../error';
 import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
 
@@ -24,15 +22,8 @@ export interface GenericConfigObject {
 	[key: string]: unknown;
 }
 
-export const normalizeWarning = (warning: string | RollupLog): RollupLog =>
-	typeof warning === 'string' ? { message: warning } : warning;
-
-export const normalizeLog = (log: string | RollupLogWithOptionalLevel): RollupLogWithLevel =>
-	typeof log === 'string'
-		? { level: 'info', message: log }
-		: typeof log.level === 'string'
-		? (log as RollupLogWithLevel)
-		: { level: 'info' as const, ...log };
+export const normalizeLog = (log: string | RollupLog): RollupLog =>
+	typeof log === 'string' ? { message: log } : log;
 
 // TODO Lukas this should print the augmented warning
 export const defaultOnWarn: WarningHandler = warning => console.warn(warning.message);
@@ -50,9 +41,9 @@ export const getExtendedLogMessage = (log: RollupLog): string => {
 	return prefix + log.message;
 };
 
-export const defaultPrintLog: LogHandler = log => {
+export const defaultPrintLog: LogHandler = (level, log) => {
 	const message = getExtendedLogMessage(log);
-	switch (log.level) {
+	switch (level) {
 		case 'warn': {
 			return console.warn(message);
 		}
@@ -77,12 +68,7 @@ export function warnUnknownOptions(
 		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
 	);
 	if (unknownOptions.length > 0) {
-		log(
-			addLogLevel(
-				'warn',
-				errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort())
-			)
-		);
+		log('warn', errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
 	}
 }
 

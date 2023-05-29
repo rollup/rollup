@@ -3,28 +3,29 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
 	// solo: true,
-	description: 'allows passing a position to this.log in the transform hook',
+	description: 'allows passing a position to this.warn/info/debug in the transform hook',
 	options: {
 		plugins: [
 			{
 				name: 'test',
 				transform() {
-					this.log('log-message1', { pos: 20 });
-					this.log('log-message2', { pos: { line: 2, column: 1 } });
-					this.log(
-						{ message: 'log-message3', pos: { line: 2, column: 2 }, level: 'debug' },
-						{ pos: 20 }
-					);
 					this.warn('warn-message1', 20);
 					this.warn('warn-message2', { line: 2, column: 1 });
 					this.warn({ message: 'warn-message3', pos: { line: 2, column: 2 } }, 20);
+					this.info('info-message1', 20);
+					this.info('info-message2', { line: 2, column: 1 });
+					this.info({ message: 'info-message3', pos: { line: 2, column: 2 } }, 20);
+					this.debug('debug-message1', 20);
+					this.debug('debug-message2', { line: 2, column: 1 });
+					this.debug({ message: 'debug-message3', pos: { line: 2, column: 2 } }, 20);
 				}
 			}
 		]
 	},
 	logs: [
 		{
-			message: 'log-message1',
+			level: 'warn',
+			message: 'warn-message1',
 			pos: 20,
 			loc: {
 				column: 3,
@@ -38,32 +39,13 @@ module.exports = defineTest({
 				3: assert.ok(true);`,
 			id: ID_MAIN,
 			hook: 'transform',
-			code: 'PLUGIN_LOG',
-			plugin: 'test',
-			level: 'info'
+			code: 'PLUGIN_WARNING',
+			plugin: 'test'
 		},
 		{
-			message: 'log-message2',
-			loc: {
-				column: 1,
-				file: ID_MAIN,
-				line: 2
-			},
-			frame: `
-				1: assert.ok(true);
-				2: assert.ok(true);
-				    ^
-				3: assert.ok(true);`,
-			id: ID_MAIN,
-			hook: 'transform',
-			code: 'PLUGIN_LOG',
-			plugin: 'test',
-			level: 'info'
-		},
-		{
-			message: 'log-message3',
+			level: 'info',
+			message: 'info-message1',
 			pos: 20,
-			level: 'debug',
 			loc: {
 				column: 3,
 				file: ID_MAIN,
@@ -80,7 +62,8 @@ module.exports = defineTest({
 			plugin: 'test'
 		},
 		{
-			message: 'warn-message1',
+			level: 'debug',
+			message: 'debug-message1',
 			pos: 20,
 			loc: {
 				column: 3,
@@ -94,11 +77,11 @@ module.exports = defineTest({
 				3: assert.ok(true);`,
 			id: ID_MAIN,
 			hook: 'transform',
-			code: 'PLUGIN_WARNING',
-			plugin: 'test',
-			level: 'warn'
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
 		},
 		{
+			level: 'warn',
 			message: 'warn-message2',
 			loc: {
 				column: 1,
@@ -113,10 +96,46 @@ module.exports = defineTest({
 			id: ID_MAIN,
 			hook: 'transform',
 			code: 'PLUGIN_WARNING',
-			plugin: 'test',
-			level: 'warn'
+			plugin: 'test'
 		},
 		{
+			level: 'info',
+			message: 'info-message2',
+			loc: {
+				column: 1,
+				file: ID_MAIN,
+				line: 2
+			},
+			frame: `
+				1: assert.ok(true);
+				2: assert.ok(true);
+				    ^
+				3: assert.ok(true);`,
+			id: ID_MAIN,
+			hook: 'transform',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
+		},
+		{
+			level: 'debug',
+			message: 'debug-message2',
+			loc: {
+				column: 1,
+				file: ID_MAIN,
+				line: 2
+			},
+			frame: `
+				1: assert.ok(true);
+				2: assert.ok(true);
+				    ^
+				3: assert.ok(true);`,
+			id: ID_MAIN,
+			hook: 'transform',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
+		},
+		{
+			level: 'warn',
 			message: 'warn-message3',
 			pos: 20,
 			loc: {
@@ -132,8 +151,45 @@ module.exports = defineTest({
 			id: ID_MAIN,
 			hook: 'transform',
 			code: 'PLUGIN_WARNING',
-			plugin: 'test',
-			level: 'warn'
+			plugin: 'test'
+		},
+		{
+			level: 'info',
+			message: 'info-message3',
+			pos: 20,
+			loc: {
+				column: 3,
+				file: ID_MAIN,
+				line: 2
+			},
+			frame: `
+				1: assert.ok(true);
+				2: assert.ok(true);
+				      ^
+				3: assert.ok(true);`,
+			id: ID_MAIN,
+			hook: 'transform',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
+		},
+		{
+			level: 'debug',
+			message: 'debug-message3',
+			pos: 20,
+			loc: {
+				column: 3,
+				file: ID_MAIN,
+				line: 2
+			},
+			frame: `
+				1: assert.ok(true);
+				2: assert.ok(true);
+				      ^
+				3: assert.ok(true);`,
+			id: ID_MAIN,
+			hook: 'transform',
+			code: 'PLUGIN_LOG',
+			plugin: 'test'
 		}
 	]
 });

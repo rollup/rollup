@@ -41,14 +41,6 @@ export interface RollupLog {
 	url?: string;
 }
 
-export interface RollupLogWithLevel extends RollupLogWithOptionalLevel {
-	level: LogLevel;
-}
-
-export interface RollupLogWithOptionalLevel extends RollupLog {
-	level?: LogLevel;
-}
-
 export type LogLevel = 'warn' | 'info' | 'debug';
 
 export type SourceMapSegment =
@@ -203,19 +195,17 @@ export interface CustomPluginOptions {
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
+	debug: (log: RollupLog | string, pos?: number | { column: number; line: number }) => void;
 	emitFile: EmitFile;
 	error: (error: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	getWatchFiles: () => string[];
+	info: (log: RollupLog | string, pos?: number | { column: number; line: number }) => void;
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
-	log: (
-		log: RollupLogWithOptionalLevel | string,
-		options?: { pos?: number | { column: number; line: number } }
-	) => void;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options?: any) => AcornNode;
@@ -230,7 +220,7 @@ export interface PluginContext extends MinimalPluginContext {
 		}
 	) => Promise<ResolvedId | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
-	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
+	warn: (log: RollupLog | string, pos?: number | { column: number; line: number }) => void;
 }
 
 export interface PluginContextMeta {
@@ -530,13 +520,15 @@ export type InputOption = string | string[] | { [entryAlias: string]: string };
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
 
 export type LogHandlerWithDefault = (
-	log: RollupLogWithLevel,
+	level: LogLevel,
+	log: RollupLog,
+	// TODO Lukas this should support an additional 'error' level
 	defaultHandler: LogOrStringHandler
 ) => void;
 
-export type LogOrStringHandler = (log: RollupLog | string) => void;
+export type LogOrStringHandler = (level: LogLevel, log: RollupLog | string) => void;
 
-export type LogHandler = (log: RollupLogWithLevel) => void;
+export type LogHandler = (level: LogLevel, log: RollupLog) => void;
 
 export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
 

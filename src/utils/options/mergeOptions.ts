@@ -1,6 +1,7 @@
 import type {
 	ExternalOption,
 	InputOptions,
+	LogHandler,
 	MergedRollupOptions,
 	OutputOptions,
 	RollupCache,
@@ -14,8 +15,8 @@ import {
 	defaultOnWarn,
 	generatedCodePresets,
 	type GenericConfigObject,
+	normalizeLog,
 	normalizePluginOption,
-	normalizeWarning,
 	objectifyOption,
 	objectifyOptionWithPresets,
 	treeshakePresets,
@@ -47,7 +48,8 @@ export async function mergeOptions(
 ): Promise<MergedRollupOptions> {
 	const command = getCommandOptions(rawCommandOptions);
 	const inputOptions = await mergeInputOptions(config, command, defaultOnWarnHandler);
-	const warn = inputOptions.onwarn as WarningHandler;
+	// TODO Lukas this is nonsense, add proper implementation
+	const warn: LogHandler = (_level, log) => (inputOptions.onwarn as WarningHandler)(log);
 	if (command.output) {
 		Object.assign(command, command.output);
 	}
@@ -136,7 +138,8 @@ async function mergeInputOptions(
 		maxParallelFileOps: getOption('maxParallelFileOps'),
 		maxParallelFileReads: getOption('maxParallelFileReads'),
 		moduleContext: getOption('moduleContext'),
-		onLog: onwarn,
+		// TODO Lukas fix
+		onLog: (_level, log) => onwarn(log),
 		onwarn,
 		perf: getOption('perf'),
 		plugins: await normalizePluginOption(config.plugins),
@@ -158,7 +161,7 @@ async function mergeInputOptions(
 		config,
 		Object.keys(inputOptions),
 		'input options',
-		inputOptions.onwarn as WarningHandler,
+		(_level, log) => (inputOptions.onwarn as WarningHandler)(log),
 		/^output$/
 	);
 	return inputOptions;
@@ -179,7 +182,7 @@ const getOnWarn = (
 	onwarn
 		? // TODO Lukas test normalization
 		  warning =>
-				onwarn(warning, handledWarning => defaultOnWarnHandler(normalizeWarning(handledWarning)))
+				onwarn(warning, handledWarning => defaultOnWarnHandler(normalizeLog(handledWarning)))
 		: defaultOnWarnHandler;
 
 const getObjectOption = <T extends object>(
@@ -232,7 +235,7 @@ type CompleteOutputOptions<U extends keyof OutputOptions> = {
 async function mergeOutputOptions(
 	config: OutputOptions,
 	overrides: OutputOptions,
-	warn: WarningHandler
+	warn: LogHandler
 ): Promise<OutputOptions> {
 	const getOption = (name: keyof OutputOptions): any => overrides[name] ?? config[name];
 	const outputOptions: CompleteOutputOptions<keyof OutputOptions> = {

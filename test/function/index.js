@@ -71,9 +71,9 @@ runTestSuiteWithSamples(
 				return rollup
 					.rollup({
 						input: path.join(directory, 'main.js'),
-						onLog: log => {
-							logs.push(log);
-							if (log.level === 'warn') {
+						onLog: (level, log) => {
+							logs.push({ level, ...log });
+							if (level === 'warn') {
 								warnings.push(log);
 							}
 						},
@@ -174,12 +174,7 @@ runTestSuiteWithSamples(
 											compareLogs(logs, config.logs);
 										} else if (config.warnings) {
 											if (Array.isArray(config.warnings)) {
-												compareLogs(
-													warnings.map(({ level, ...properties }) => ({
-														...properties
-													})),
-													config.warnings
-												);
+												compareLogs(warnings, config.warnings);
 											} else {
 												config.warnings(warnings);
 											}

@@ -26,9 +26,9 @@ module.exports = defineTest({
 			{
 				name: 'test',
 				buildStart(options) {
-					options.onLog({ level: 'warn', message: 'warnLog' });
-					options.onLog({ level: 'info', message: 'infoLog' });
-					options.onLog({ level: 'debug', message: 'debugLog' });
+					options.onLog('warn', { message: 'warnLog' });
+					options.onLog('info', { message: 'infoLog' });
+					options.onLog('debug', { message: 'debugLog' });
 					options.onwarn({ message: 'warnWarn' });
 				}
 			}

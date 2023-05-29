@@ -7,8 +7,7 @@ import type {
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
 	RollupBuild,
-	RollupLogWithLevel,
-	RollupLogWithOptionalLevel,
+	RollupLog,
 	WarningHandler
 } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../blank';
@@ -29,7 +28,6 @@ import {
 	getOptionWithPreset,
 	normalizeLog,
 	normalizePluginOption,
-	normalizeWarning,
 	treeshakePresets,
 	warnUnknownOptions
 } from './options';
@@ -90,7 +88,7 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 	return { options, unsetOptions };
 }
 
-const addLogToString = <T extends RollupLogWithOptionalLevel | RollupLogWithLevel>(log: T): T => {
+const addLogToString = (log: RollupLog): RollupLog => {
 	Object.defineProperty(log, 'toString', {
 		value: () => getExtendedLogMessage(log),
 		writable: true
@@ -98,34 +96,28 @@ const addLogToString = <T extends RollupLogWithOptionalLevel | RollupLogWithLeve
 	return log;
 };
 
-const printWarning: WarningHandler = warning => defaultPrintLog({ ...warning, level: 'warn' });
+const printWarning: WarningHandler = warning => defaultPrintLog('warn', warning);
 
 const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
 	const { onwarn, onLog } = config;
 	if (onLog) {
 		const defaultOnLog: LogHandler = onwarn
-			? log => {
-					if (log.level === 'warn') {
+			? (level, log) => {
+					if (level === 'warn') {
 						addLogToString(log);
-						onwarn(log, warning => printWarning(normalizeWarning(warning)));
+						onwarn(log, warning => printWarning(normalizeLog(warning)));
 					} else {
-						defaultPrintLog(log);
+						defaultPrintLog(level, log);
 					}
 			  }
 			: defaultPrintLog;
 		return warning =>
-			onLog(
-				addLogToString({
-					...warning,
-					level: 'warn'
-				}),
-				log => defaultOnLog(normalizeLog(log))
-			);
+			onLog('warn', addLogToString(warning), log => defaultOnLog('warn', normalizeLog(log)));
 	}
 	return onwarn
 		? warning => {
 				addLogToString(warning);
-				onwarn(warning, handledWarning => printWarning(normalizeWarning(handledWarning)));
+				onwarn(warning, handledWarning => printWarning(normalizeLog(handledWarning)));
 		  }
 		: printWarning;
 };
@@ -133,16 +125,19 @@ const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
 const getOnLog = (config: InputOptions): NormalizedInputOptions['onLog'] => {
 	const { onwarn, onLog } = config;
 	const defaultOnLog: LogHandler = onwarn
-		? log => {
-				if (log.level === 'warn') {
-					onwarn(addLogToString(log), warning => printWarning(normalizeWarning(warning)));
+		? (level, log) => {
+				if (level === 'warn') {
+					onwarn(addLogToString(log), warning => printWarning(normalizeLog(warning)));
 				} else {
-					defaultPrintLog(log);
+					defaultPrintLog(level, log);
 				}
 		  }
 		: defaultPrintLog;
 	if (onLog) {
-		return log => onLog(addLogToString(log), handledLog => defaultOnLog(normalizeLog(handledLog)));
+		return (level, log) =>
+			onLog(level, addLogToString(log), (level, handledLog) =>
+				defaultOnLog(level, normalizeLog(handledLog))
+			);
 	}
 	return defaultOnLog;
 };

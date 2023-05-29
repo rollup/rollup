@@ -122,7 +122,7 @@ export async function normalizeOutputOptions(
 		validate: config.validate || false
 	};
 
-	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onwarn);
+	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onLog);
 	return { options: outputOptions, unsetOptions };
 }
 
