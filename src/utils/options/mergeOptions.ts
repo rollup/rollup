@@ -12,10 +12,10 @@ import { ensureArray } from '../ensureArray';
 import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
 import type { CommandConfigObject } from './normalizeInputOptions';
 import {
-	defaultOnWarn,
 	generatedCodePresets,
 	type GenericConfigObject,
-	normalizeLog,
+	getOnLog,
+	getOnwarn,
 	normalizePluginOption,
 	objectifyOption,
 	objectifyOptionWithPresets,
@@ -44,12 +44,11 @@ const EMPTY_COMMAND_OPTIONS = { external: [], globals: undefined };
 export async function mergeOptions(
 	config: RollupOptions,
 	rawCommandOptions: GenericConfigObject = EMPTY_COMMAND_OPTIONS,
-	defaultOnWarnHandler: WarningHandler = defaultOnWarn
+	printLog?: LogHandler
 ): Promise<MergedRollupOptions> {
 	const command = getCommandOptions(rawCommandOptions);
-	const inputOptions = await mergeInputOptions(config, command, defaultOnWarnHandler);
-	// TODO Lukas this is nonsense, add proper implementation
-	const warn: LogHandler = (_level, log) => (inputOptions.onwarn as WarningHandler)(log);
+	const inputOptions = await mergeInputOptions(config, command, printLog);
+	const log: LogHandler = inputOptions.onLog as LogHandler;
 	if (command.output) {
 		Object.assign(command, command.output);
 	}
@@ -57,7 +56,7 @@ export async function mergeOptions(
 	if (outputOptionsArray.length === 0) outputOptionsArray.push({});
 	const outputOptions = await Promise.all(
 		outputOptionsArray.map(singleOutputOptions =>
-			mergeOutputOptions(singleOutputOptions, command, warn)
+			mergeOutputOptions(singleOutputOptions, command, log)
 		)
 	);
 
@@ -80,7 +79,7 @@ export async function mergeOptions(
 			'configPlugin'
 		],
 		'CLI flags',
-		warn,
+		log,
 		/^_$|output$|config/
 	);
 	(inputOptions as MergedRollupOptions).output = outputOptions;
@@ -116,10 +115,11 @@ type CompleteInputOptions<U extends keyof InputOptions> = {
 async function mergeInputOptions(
 	config: InputOptions,
 	overrides: CommandConfigObject,
-	defaultOnWarnHandler: WarningHandler
+	printLog?: LogHandler
 ): Promise<InputOptions> {
 	const getOption = (name: keyof InputOptions): any => overrides[name] ?? config[name];
-	const onwarn = getOnWarn(config, defaultOnWarnHandler);
+	const onLog = getOnLog(config, printLog);
+	const onwarn = getOnwarn(config, printLog);
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
 		acornInjectPlugins: config.acornInjectPlugins as
@@ -138,8 +138,7 @@ async function mergeInputOptions(
 		maxParallelFileOps: getOption('maxParallelFileOps'),
 		maxParallelFileReads: getOption('maxParallelFileReads'),
 		moduleContext: getOption('moduleContext'),
-		// TODO Lukas fix
-		onLog: (_level, log) => onwarn(log),
+		onLog,
 		onwarn,
 		perf: getOption('perf'),
 		plugins: await normalizePluginOption(config.plugins),
@@ -174,16 +173,6 @@ const getExternal = (config: InputOptions, overrides: CommandConfigObject): Exte
 				configExternal(source, importer, isResolved) || overrides.external.includes(source)
 		: [...ensureArray(configExternal), ...overrides.external];
 };
-
-const getOnWarn = (
-	{ onwarn }: InputOptions,
-	defaultOnWarnHandler: WarningHandler
-): WarningHandler =>
-	onwarn
-		? // TODO Lukas test normalization
-		  warning =>
-				onwarn(warning, handledWarning => defaultOnWarnHandler(normalizeLog(handledWarning)))
-		: defaultOnWarnHandler;
 
 const getObjectOption = <T extends object>(
 	config: T,
@@ -235,7 +224,7 @@ type CompleteOutputOptions<U extends keyof OutputOptions> = {
 async function mergeOutputOptions(
 	config: OutputOptions,
 	overrides: OutputOptions,
-	warn: LogHandler
+	log: LogHandler
 ): Promise<OutputOptions> {
 	const getOption = (name: keyof OutputOptions): any => overrides[name] ?? config[name];
 	const outputOptions: CompleteOutputOptions<keyof OutputOptions> = {
@@ -299,6 +288,6 @@ async function mergeOutputOptions(
 		validate: getOption('validate')
 	};
 
-	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', warn);
+	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', log);
 	return outputOptions;
 }

@@ -6,9 +6,7 @@ import type {
 	LogHandler,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
-	RollupBuild,
-	RollupLog,
-	WarningHandler
+	RollupBuild
 } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
@@ -23,10 +21,9 @@ import {
 	URL_TREESHAKE_MODULESIDEEFFECTS
 } from '../urls';
 import {
-	defaultPrintLog,
-	getExtendedLogMessage,
+	getOnLog,
+	getOnwarn,
 	getOptionWithPreset,
-	normalizeLog,
 	normalizePluginOption,
 	treeshakePresets,
 	warnUnknownOptions
@@ -47,8 +44,8 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 	const unsetOptions = new Set<string>();
 
 	const context = config.context ?? 'undefined';
-	const onwarn = getOnwarn(config);
 	const onLog = getOnLog(config);
+	const onwarn = getOnwarn(config);
 	const strictDeprecations = config.strictDeprecations || false;
 	const maxParallelFileOps = getMaxParallelFileOps(config, onLog, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
@@ -87,60 +84,6 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 	);
 	return { options, unsetOptions };
 }
-
-const addLogToString = (log: RollupLog): RollupLog => {
-	Object.defineProperty(log, 'toString', {
-		value: () => getExtendedLogMessage(log),
-		writable: true
-	});
-	return log;
-};
-
-const printWarning: WarningHandler = warning => defaultPrintLog('warn', warning);
-
-const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
-	const { onwarn, onLog } = config;
-	if (onLog) {
-		const defaultOnLog: LogHandler = onwarn
-			? (level, log) => {
-					if (level === 'warn') {
-						addLogToString(log);
-						onwarn(log, warning => printWarning(normalizeLog(warning)));
-					} else {
-						defaultPrintLog(level, log);
-					}
-			  }
-			: defaultPrintLog;
-		return warning =>
-			onLog('warn', addLogToString(warning), log => defaultOnLog('warn', normalizeLog(log)));
-	}
-	return onwarn
-		? warning => {
-				addLogToString(warning);
-				onwarn(warning, handledWarning => printWarning(normalizeLog(handledWarning)));
-		  }
-		: printWarning;
-};
-
-const getOnLog = (config: InputOptions): NormalizedInputOptions['onLog'] => {
-	const { onwarn, onLog } = config;
-	const defaultOnLog: LogHandler = onwarn
-		? (level, log) => {
-				if (level === 'warn') {
-					onwarn(addLogToString(log), warning => printWarning(normalizeLog(warning)));
-				} else {
-					defaultPrintLog(level, log);
-				}
-		  }
-		: defaultPrintLog;
-	if (onLog) {
-		return (level, log) =>
-			onLog(level, addLogToString(log), (level, handledLog) =>
-				defaultOnLog(level, normalizeLog(handledLog))
-			);
-	}
-	return defaultOnLog;
-};
 
 const getAcorn = (config: InputOptions): acorn.Options => ({
 	ecmaVersion: 'latest',

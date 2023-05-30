@@ -15,6 +15,7 @@ export interface RollupError extends RollupLog {
 	watchFiles?: string[];
 }
 
+// TODO Lukas replace RollupWarning with RollupLog
 export type RollupWarning = RollupLog;
 
 export interface RollupLog {

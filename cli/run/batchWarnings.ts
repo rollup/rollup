@@ -1,3 +1,5 @@
+import { blue, cyan } from 'colorette';
+import type { RollupLog } from 'rollup';
 import type { RollupWarning } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
 import { getNewArray, getOrCreate } from '../../src/utils/getOrCreate';
@@ -21,32 +23,22 @@ export default function batchWarnings(): BatchWarnings {
 	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
 	let warningOccurred = false;
 
+	const add = (warning: RollupWarning) => {
+		count += 1;
+		warningOccurred = true;
+
+		if (warning.code! in deferredHandlers) {
+			getOrCreate(deferredWarnings, warning.code!, getNewArray).push(warning);
+		} else if (warning.code! in immediateHandlers) {
+			immediateHandlers[warning.code!](warning);
+		} else {
+			title(warning.message);
+			defaultBody(warning);
+		}
+	};
+
 	return {
-		add(warning: RollupWarning) {
-			count += 1;
-			warningOccurred = true;
-
-			if (warning.code! in deferredHandlers) {
-				getOrCreate(deferredWarnings, warning.code!, getNewArray).push(warning);
-			} else if (warning.code! in immediateHandlers) {
-				immediateHandlers[warning.code!](warning);
-			} else {
-				title(warning.message);
-
-				if (warning.url) info(warning.url);
-
-				const id = warning.loc?.file || warning.id;
-				if (id) {
-					const loc = warning.loc
-						? `${relativeId(id)} (${warning.loc.line}:${warning.loc.column})`
-						: relativeId(id);
-
-					stderr(bold(relativeId(loc)));
-				}
-
-				if (warning.frame) info(warning.frame);
-			}
-		},
+		add,
 
 		get count() {
 			return count;
@@ -65,6 +57,22 @@ export default function batchWarnings(): BatchWarnings {
 
 			deferredWarnings.clear();
 			count = 0;
+		},
+
+		log(level, log) {
+			switch (level) {
+				case 'warn': {
+					return add(log);
+				}
+				case 'debug': {
+					stderr(bold(blue(log.message)));
+					return defaultBody(log);
+				}
+				default: {
+					stderr(bold(cyan(log.message)));
+					return defaultBody(log);
+				}
+			}
 		},
 
 		get warningOccurred() {
@@ -248,6 +256,21 @@ const deferredHandlers: {
 		}
 	}
 };
+
+function defaultBody(log: RollupLog): void {
+	if (log.url) {
+		info(getRollupUrl(log.url));
+	}
+
+	const id = log.loc?.file || log.id;
+	if (id) {
+		const loc = log.loc ? `${relativeId(id)} (${log.loc.line}:${log.loc.column})` : relativeId(id);
+
+		stderr(bold(relativeId(loc)));
+	}
+
+	if (log.frame) info(log.frame);
+}
 
 function title(string_: string): void {
 	stderr(bold(yellow(`(!) ${string_}`)));

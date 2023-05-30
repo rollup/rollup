@@ -3,14 +3,14 @@ import type {
 	InputPluginOption,
 	LogHandler,
 	NormalizedGeneratedCodeOptions,
+	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	NormalizedTreeshakingOptions,
 	OutputOptions,
 	OutputPlugin,
 	OutputPluginOption,
 	Plugin,
-	RollupLog,
-	WarningHandler
+	RollupLog
 } from '../../rollup/types';
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
@@ -22,13 +22,69 @@ export interface GenericConfigObject {
 	[key: string]: unknown;
 }
 
+export const getOnLog = (
+	config: InputOptions,
+	printLog = defaultPrintLog
+): NormalizedInputOptions['onLog'] => {
+	const { onwarn, onLog } = config;
+	const defaultOnLog: LogHandler = onwarn
+		? (level, log) => {
+				if (level === 'warn') {
+					onwarn(addLogToString(log), warning => printLog('warn', normalizeLog(warning)));
+				} else {
+					printLog(level, log);
+				}
+		  }
+		: printLog;
+	if (onLog) {
+		return (level, log) =>
+			onLog(level, addLogToString(log), (level, handledLog) =>
+				defaultOnLog(level, normalizeLog(handledLog))
+			);
+	}
+	return defaultOnLog;
+};
+
+// TODO Lukas check if onLog and onwarn can be merged in some way or share code
+export const getOnwarn = (
+	config: InputOptions,
+	printLog = defaultPrintLog
+): NormalizedInputOptions['onwarn'] => {
+	const { onwarn, onLog } = config;
+	if (onLog) {
+		const defaultOnLog: LogHandler = onwarn
+			? (level, log) => {
+					if (level === 'warn') {
+						addLogToString(log);
+						onwarn(log, warning => printLog('warn', normalizeLog(warning)));
+					} else {
+						printLog(level, log);
+					}
+			  }
+			: printLog;
+		return warning =>
+			onLog('warn', addLogToString(warning), log => defaultOnLog('warn', normalizeLog(log)));
+	}
+	return onwarn
+		? warning => {
+				addLogToString(warning);
+				onwarn(warning, handledWarning => printLog('warn', normalizeLog(handledWarning)));
+		  }
+		: log => printLog('warn', log);
+};
+
+const addLogToString = (log: RollupLog): RollupLog => {
+	Object.defineProperty(log, 'toString', {
+		value: () => getExtendedLogMessage(log),
+		writable: true
+	});
+	return log;
+};
+
 export const normalizeLog = (log: string | RollupLog): RollupLog =>
 	typeof log === 'string' ? { message: log } : log;
 
-// TODO Lukas this should print the augmented warning
-export const defaultOnWarn: WarningHandler = warning => console.warn(warning.message);
-
-export const getExtendedLogMessage = (log: RollupLog): string => {
+const getExtendedLogMessage = (log: RollupLog): string => {
 	let prefix = '';
 
 	if (log.plugin) {
@@ -41,7 +97,7 @@ export const getExtendedLogMessage = (log: RollupLog): string => {
 	return prefix + log.message;
 };
 
-export const defaultPrintLog: LogHandler = (level, log) => {
+const defaultPrintLog: LogHandler = (level, log) => {
 	const message = getExtendedLogMessage(log);
 	switch (level) {
 		case 'warn': {

@@ -110,7 +110,7 @@ export default async function transform(
 					cache: customTransformCache
 						? pluginContext.cache
 						: getTrackedPluginCache(pluginContext.cache, useCustomTransformCache),
-					debug: getLogHandler(pluginContext.warn),
+					debug: getLogHandler(pluginContext.debug),
 					emitFile(emittedFile: EmittedFile) {
 						emittedFiles.push(emittedFile);
 						return pluginDriver.emitFile(emittedFile);
@@ -147,7 +147,7 @@ export default async function transform(
 							sourcesContent: combinedMap.sourcesContent!
 						});
 					},
-					info: getLogHandler(pluginContext.warn),
+					info: getLogHandler(pluginContext.info),
 					setAssetSource() {
 						return this.error(errorInvalidSetAssetSourceCall());
 					},
