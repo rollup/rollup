@@ -16,7 +16,7 @@ import type {
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
 import { error, errorInvalidOption, errorUnknownOption } from '../error';
-import { LOGLEVEL_DEBUG, LOGLEVEL_WARN } from '../logging';
+import { LOGLEVEL_DEBUG, LOGLEVEL_ERROR, LOGLEVEL_WARN } from '../logging';
 import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
 
@@ -32,9 +32,12 @@ export const getOnLog = (
 	const defaultOnLog = getDefaultOnLog(printLog, onwarn);
 	if (onLog) {
 		return (level, log) =>
-			onLog(level, addLogToString(log), (level, handledLog) =>
-				defaultOnLog(level, normalizeLog(handledLog))
-			);
+			onLog(level, addLogToString(log), (level, handledLog) => {
+				if (level === LOGLEVEL_ERROR) {
+					return error(normalizeLog(handledLog));
+				}
+				defaultOnLog(level, normalizeLog(handledLog));
+			});
 	}
 	return defaultOnLog;
 };

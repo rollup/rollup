@@ -522,11 +522,10 @@ export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualC
 export type LogHandlerWithDefault = (
 	level: LogLevel,
 	log: RollupLog,
-	// TODO Lukas this should support an additional 'error' level
 	defaultHandler: LogOrStringHandler
 ) => void;
 
-export type LogOrStringHandler = (level: LogLevel, log: RollupLog | string) => void;
+export type LogOrStringHandler = (level: LogLevel | 'error', log: RollupLog | string) => void;
 
 export type LogHandler = (level: LogLevel, log: RollupLog) => void;
 
