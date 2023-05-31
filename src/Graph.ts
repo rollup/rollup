@@ -250,7 +250,8 @@ export default class Graph {
 					importDescription.name !== '*' &&
 					!importDescription.module.getVariableForExportName(importDescription.name)[0]
 				) {
-					module.warn(
+					module.log(
+						LOGLEVEL_WARN,
 						errorMissingExport(importDescription.name, module.id, importDescription.module.id),
 						importDescription.start
 					);

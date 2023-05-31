@@ -33,6 +33,7 @@ import type {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingDecodedSourceMap,
+	LogLevel,
 	ModuleInfo,
 	ModuleJSON,
 	ModuleOptions,
@@ -118,6 +119,7 @@ export interface AstContext {
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariableInModule: (variable: Variable) => void;
+	log: (level: LogLevel, properties: RollupLog, pos: number) => void;
 	magicString: MagicString;
 	manualPureFunctions: PureFunctions;
 	module: Module; // not to be used for tree-shaking
@@ -127,7 +129,6 @@ export interface AstContext {
 	traceExport: (name: string) => Variable | null;
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
-	warn: (warning: RollupLog, pos: number) => void;
 }
 
 export interface DynamicImport {
@@ -781,6 +782,11 @@ export default class Module {
 		this.exportAllModules.push(...externalExportAllModules);
 	}
 
+	log(level: LogLevel, properties: RollupLog, pos: number): void {
+		this.addLocationToLogProps(properties, pos);
+		this.options.onLog(level, properties);
+	}
+
 	render(options: RenderOptions): { source: MagicString; usesTopLevelAwait: boolean } {
 		const source = this.magicString.clone();
 		this.ast!.render(source, options);
@@ -853,6 +859,7 @@ export default class Module {
 			includeAllExports: () => this.includeAllExports(true),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariableInModule: this.includeVariableInModule.bind(this),
+			log: this.log.bind(this),
 			magicString: this.magicString,
 			manualPureFunctions: this.graph.pureFunctions,
 			module: this,
@@ -861,8 +868,7 @@ export default class Module {
 			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
 			traceExport: (name: string) => this.getVariableForExportName(name)[0],
 			traceVariable: this.traceVariable.bind(this),
-			usesTopLevelAwait: false,
-			warn: this.warn.bind(this)
+			usesTopLevelAwait: false
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
@@ -972,11 +978,6 @@ export default class Module {
 		if (meta != null) {
 			Object.assign(this.info.meta, meta);
 		}
-	}
-
-	warn(properties: RollupLog, pos: number): void {
-		this.addLocationToLogProps(properties, pos);
-		this.options.onLog(LOGLEVEL_WARN, properties);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -1158,7 +1159,8 @@ export default class Module {
 		const existingAssertions = this.sourcesWithAssertions.get(source);
 		if (existingAssertions) {
 			if (doAssertionsDiffer(existingAssertions, parsedAssertions)) {
-				this.warn(
+				this.log(
+					LOGLEVEL_WARN,
 					errorInconsistentImportAssertions(existingAssertions, parsedAssertions, source, this.id),
 					declaration.start
 				);

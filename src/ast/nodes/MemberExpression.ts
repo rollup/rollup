@@ -3,6 +3,7 @@ import type { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import { errorIllegalImportReassignment, errorMissingExport } from '../../utils/error';
+import { LOGLEVEL_WARN } from '../../utils/logging';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -391,7 +392,8 @@ export default class MemberExpression
 				if (this.variable) {
 					this.context.includeVariableInModule(this.variable);
 				}
-				this.context.warn(
+				this.context.log(
+					LOGLEVEL_WARN,
 					errorIllegalImportReassignment(this.object.name, this.context.module.id),
 					this.start
 				);
@@ -455,7 +457,11 @@ function resolveNamespaceVariables(
 	if (!variable) {
 		if (path.length === 1) {
 			const fileName = (baseVariable as NamespaceVariable).context.fileName;
-			astContext.warn(errorMissingExport(exportName, astContext.module.id, fileName), path[0].pos);
+			astContext.log(
+				LOGLEVEL_WARN,
+				errorMissingExport(exportName, astContext.module.id, fileName),
+				path[0].pos
+			);
 			return 'undefined';
 		}
 		return null;
