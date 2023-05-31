@@ -8,6 +8,7 @@ import type {
 	RollupOptions
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
+import { LOGLEVEL_WARN } from '../logging';
 import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
 import type { CommandConfigObject } from './normalizeInputOptions';
 import {
@@ -136,7 +137,7 @@ async function mergeInputOptions(
 		maxParallelFileReads: getOption('maxParallelFileReads'),
 		moduleContext: getOption('moduleContext'),
 		onLog,
-		onwarn: warning => onLog('warn', warning),
+		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
 		perf: getOption('perf'),
 		plugins: await normalizePluginOption(config.plugins),
 		preserveEntrySignatures: getOption('preserveEntrySignatures'),

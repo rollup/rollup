@@ -16,6 +16,7 @@ import type {
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
 import { error, errorInvalidOption, errorUnknownOption } from '../error';
+import { LOGLEVEL_DEBUG, LOGLEVEL_WARN } from '../logging';
 import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
 
@@ -41,8 +42,8 @@ export const getOnLog = (
 const getDefaultOnLog = (printLog: LogHandler, onwarn?: WarningHandlerWithDefault): LogHandler =>
 	onwarn
 		? (level, log) => {
-				if (level === 'warn') {
-					onwarn(addLogToString(log), warning => printLog('warn', normalizeLog(warning)));
+				if (level === LOGLEVEL_WARN) {
+					onwarn(addLogToString(log), warning => printLog(LOGLEVEL_WARN, normalizeLog(warning)));
 				} else {
 					printLog(level, log);
 				}
@@ -76,10 +77,10 @@ const getExtendedLogMessage = (log: RollupLog): string => {
 const defaultPrintLog: LogHandler = (level, log) => {
 	const message = getExtendedLogMessage(log);
 	switch (level) {
-		case 'warn': {
+		case LOGLEVEL_WARN: {
 			return console.warn(message);
 		}
-		case 'debug': {
+		case LOGLEVEL_DEBUG: {
 			return console.debug(message);
 		}
 		default: {
@@ -100,7 +101,7 @@ export function warnUnknownOptions(
 		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
 	);
 	if (unknownOptions.length > 0) {
-		log('warn', errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
+		log(LOGLEVEL_WARN, errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
 	}
 }
 

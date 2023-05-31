@@ -11,6 +11,7 @@ import type {
 import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
+import { LOGLEVEL_WARN } from '../logging';
 import { resolve } from '../path';
 import {
 	URL_MAXPARALLELFILEOPS,
@@ -62,7 +63,7 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 		maxParallelFileReads: maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),
 		onLog,
-		onwarn: warning => onLog('warn', warning),
+		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
 		perf: config.perf || false,
 		plugins: await normalizePluginOption(config.plugins),
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',

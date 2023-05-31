@@ -52,6 +52,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
+import { LOGLEVEL_WARN } from './utils/logging';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { FILE_PLACEHOLDER } from './utils/outputBundle';
 import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
@@ -151,7 +152,7 @@ function getGlobalName(
 	}
 
 	if (hasExports) {
-		log('warn', errorMissingGlobalName(chunk.id, chunk.variableName));
+		log(LOGLEVEL_WARN, errorMissingGlobalName(chunk.id, chunk.variableName));
 		return chunk.variableName;
 	}
 }
@@ -719,7 +720,7 @@ export default class Chunk {
 					const exportingChunk = this.chunkByModule.get(alternativeReexportModule);
 					if (exportingChunk !== exportChunk) {
 						this.inputOptions.onLog(
-							'warn',
+							LOGLEVEL_WARN,
 							errorCyclicCrossChunkReexport(
 								// Namespaces do not have an export name
 								variableModule.getExportNamesByVariable().get(variable)?.[0] || '*',
@@ -1037,7 +1038,7 @@ export default class Chunk {
 			if (exportName[0] === '*') {
 				const id = exportName.slice(1);
 				if (interop(id) === 'defaultOnly') {
-					this.inputOptions.onLog('warn', errorUnexpectedNamespaceReexport(id));
+					this.inputOptions.onLog(LOGLEVEL_WARN, errorUnexpectedNamespaceReexport(id));
 				}
 				needsLiveBinding = externalLiveBindings;
 				dependency = this.externalChunkByModule.get(this.modulesById.get(id) as ExternalModule)!;
@@ -1222,7 +1223,7 @@ export default class Chunk {
 		const renderedSource = compact ? magicString : magicString.trim();
 
 		if (isEmpty && this.getExportNames().length === 0 && dependencies.size === 0) {
-			onLog('warn', errorEmptyChunk(this.getChunkName()));
+			onLog(LOGLEVEL_WARN, errorEmptyChunk(this.getChunkName()));
 		}
 		return { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait };
 	}

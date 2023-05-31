@@ -24,6 +24,7 @@ import {
 	errorNoTransformMapOrAstWithoutCode,
 	errorPluginError
 } from './error';
+import { LOGLEVEL_WARN } from './logging';
 import { normalizeLog } from './options/options';
 
 export default async function transform(
@@ -59,7 +60,7 @@ export default async function transform(
 			module.updateOptions(result);
 			if (result.code == null) {
 				if (result.map || result.ast) {
-					log('warn', errorNoTransformMapOrAstWithoutCode(plugin.name));
+					log(LOGLEVEL_WARN, errorNoTransformMapOrAstWithoutCode(plugin.name));
 				}
 				return previousCode;
 			}

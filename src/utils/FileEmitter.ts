@@ -26,6 +26,7 @@ import {
 } from './error';
 import { getOrCreate } from './getOrCreate';
 import { defaultHashSize } from './hashPlaceholders';
+import { LOGLEVEL_WARN } from './logging';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { extname } from './path';
@@ -64,7 +65,7 @@ function generateAssetFileName(
 
 function reserveFileNameInBundle(fileName: string, { bundle }: FileEmitterOutput, log: LogHandler) {
 	if (bundle[lowercaseBundleKeys].has(fileName.toLowerCase())) {
-		log('warn', errorFileNameConflict(fileName));
+		log(LOGLEVEL_WARN, errorFileNameConflict(fileName));
 	} else {
 		bundle[fileName] = FILE_PLACEHOLDER;
 	}

@@ -2,6 +2,7 @@ import builtinModules from 'builtin-modules/static';
 import type { ChunkDependency } from '../../Chunk';
 import type { LogHandler } from '../../rollup/types';
 import { errorMissingNodeBuiltins } from '../../utils/error';
+import { LOGLEVEL_WARN } from '../../utils/logging';
 
 const nodeBuiltins: ReadonlySet<string> = new Set([
 	...builtinModules,
@@ -30,5 +31,5 @@ export default function warnOnBuiltins(
 
 	if (externalBuiltins.length === 0) return;
 
-	log('warn', errorMissingNodeBuiltins(externalBuiltins));
+	log(LOGLEVEL_WARN, errorMissingNodeBuiltins(externalBuiltins));
 }

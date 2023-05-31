@@ -12,6 +12,7 @@ import {
 	errorInvalidOption,
 	warnDeprecation
 } from '../error';
+import { LOGLEVEL_WARN } from '../logging';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { addTrailingSlashIfMissed, isValidUrl } from '../url';
@@ -356,7 +357,7 @@ const getDynamicImportFunction = (
 		);
 		if (format !== 'es') {
 			inputOptions.onLog(
-				'warn',
+				LOGLEVEL_WARN,
 				errorInvalidOption(
 					'output.dynamicImportFunction',
 					URL_OUTPUT_DYNAMICIMPORTFUNCTION,

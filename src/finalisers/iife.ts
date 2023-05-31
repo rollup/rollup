@@ -6,6 +6,7 @@ import {
 	errorMissingNameOptionForIifeExport
 } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
+import { LOGLEVEL_WARN } from '../utils/logging';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
@@ -57,7 +58,7 @@ export default function iife(
 	const parameters = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		log('warn', errorMissingNameOptionForIifeExport());
+		log(LOGLEVEL_WARN, errorMissingNameOptionForIifeExport());
 	}
 
 	if (namedExportsMode && hasExports) {

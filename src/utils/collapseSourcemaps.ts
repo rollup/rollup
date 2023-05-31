@@ -7,6 +7,7 @@ import type {
 	SourceMapSegment
 } from '../rollup/types';
 import { error, errorConflictingSourcemapSources, errorSourcemapBroken } from './error';
+import { LOGLEVEL_WARN } from './logging';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
@@ -153,7 +154,7 @@ function getLinkMap(log: LogHandler) {
 			return new Link(map, [source]);
 		}
 
-		log('warn', errorSourcemapBroken(map.plugin));
+		log(LOGLEVEL_WARN, errorSourcemapBroken(map.plugin));
 
 		return new Link(
 			{

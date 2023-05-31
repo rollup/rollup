@@ -25,6 +25,7 @@ import {
 	errorMissingExport
 } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
+import { LOGLEVEL_WARN } from './utils/logging';
 import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';
@@ -233,7 +234,7 @@ export default class Graph {
 	private sortModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
-			this.options.onLog('warn', errorCircularDependency(cyclePath));
+			this.options.onLog(LOGLEVEL_WARN, errorCircularDependency(cyclePath));
 		}
 		this.modules = orderedModules;
 		for (const module of this.modules) {

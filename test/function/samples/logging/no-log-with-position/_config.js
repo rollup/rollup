@@ -1,5 +1,4 @@
 module.exports = defineTest({
-	solo: true,
 	description:
 		'does not support passing a position to this.warn/info/debug outside the transform hook',
 	options: {

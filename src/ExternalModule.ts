@@ -3,6 +3,7 @@ import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './
 import { EMPTY_ARRAY } from './utils/blank';
 import { errorUnusedExternalImports, warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
+import { LOGLEVEL_WARN } from './utils/logging';
 import { URL_THIS_GETMODULEINFO } from './utils/urls';
 
 export default class ExternalModule {
@@ -109,6 +110,6 @@ export default class ExternalModule {
 			}
 		}
 		const importersArray = [...importersSet];
-		this.options.onLog('warn', errorUnusedExternalImports(this.id, unused, importersArray));
+		this.options.onLog(LOGLEVEL_WARN, errorUnusedExternalImports(this.id, unused, importersArray));
 	}
 }

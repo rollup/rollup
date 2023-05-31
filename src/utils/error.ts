@@ -7,6 +7,7 @@ import type {
 	RollupLog
 } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
+import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
 import { printQuotedStringList } from './printStringList';
 import relativeId from './relativeId';
@@ -977,6 +978,6 @@ export function warnDeprecationWithOptions(
 		if (strictDeprecations) {
 			return error(warning);
 		}
-		log('warn', warning);
+		log(LOGLEVEL_WARN, warning);
 	}
 }

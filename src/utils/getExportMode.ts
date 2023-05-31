@@ -1,6 +1,7 @@
 import type Chunk from '../Chunk';
 import type { LogHandler, NormalizedOutputOptions } from '../rollup/types';
 import { error, errorIncompatibleExportOptionValue, errorMixedExport } from './error';
+import { LOGLEVEL_WARN } from './logging';
 
 export default function getExportMode(
 	chunk: Chunk,
@@ -25,7 +26,7 @@ export default function getExportMode(
 			exportMode = 'default';
 		} else {
 			if (format !== 'es' && format !== 'system' && exportKeys.includes('default')) {
-				log('warn', errorMixedExport(facadeModuleId, name));
+				log(LOGLEVEL_WARN, errorMixedExport(facadeModuleId, name));
 			}
 			exportMode = 'named';
 		}

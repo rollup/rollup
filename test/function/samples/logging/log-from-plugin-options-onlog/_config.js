@@ -3,7 +3,6 @@ const { debug, info, warn } = console;
 const logs = [];
 
 module.exports = defineTest({
-	solo: true,
 	description: 'passes logs from plugins to onLog',
 	before() {
 		console.debug = (...log) => logs.push(['debug', ...log]);

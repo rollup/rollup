@@ -3,6 +3,7 @@ import type { RollupLog } from 'rollup';
 import type { RollupWarning } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
 import { getNewArray, getOrCreate } from '../../src/utils/getOrCreate';
+import { LOGLEVEL_DEBUG, LOGLEVEL_WARN } from '../../src/utils/logging';
 import { printQuotedStringList } from '../../src/utils/printStringList';
 import relativeId from '../../src/utils/relativeId';
 import { getRollupUrl } from '../../src/utils/url';
@@ -61,10 +62,10 @@ export default function batchWarnings(): BatchWarnings {
 
 		log(level, log) {
 			switch (level) {
-				case 'warn': {
+				case LOGLEVEL_WARN: {
 					return add(log);
 				}
-				case 'debug': {
+				case LOGLEVEL_DEBUG: {
 					stderr(bold(blue(log.message)));
 					return defaultBody(log);
 				}

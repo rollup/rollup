@@ -23,6 +23,7 @@ import { sortByExecutionOrder } from './utils/executionOrder';
 import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
+import { LOGLEVEL_WARN } from './utils/logging';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
 import { isAbsolute } from './utils/path';
@@ -153,7 +154,7 @@ export default class Bundle {
 							ecmaVersion: 'latest'
 						});
 					} catch (error_: any) {
-						this.inputOptions.onLog('warn', errorChunkInvalid(file, error_));
+						this.inputOptions.onLog(LOGLEVEL_WARN, errorChunkInvalid(file, error_));
 					}
 				}
 			}
@@ -252,7 +253,7 @@ function validateOptionsForMultiChunkOutput(
 		);
 	if (!outputOptions.amd.autoId && outputOptions.amd.id)
 		log(
-			'warn',
+			LOGLEVEL_WARN,
 			errorInvalidOption(
 				'output.amd.id',
 				URL_OUTPUT_AMD_ID,

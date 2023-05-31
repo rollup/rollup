@@ -28,6 +28,7 @@ import {
 	errorPluginError
 } from './error';
 import { getOrCreate } from './getOrCreate';
+import { LOGLEVEL_WARN } from './logging';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 
 /**
@@ -111,7 +112,7 @@ export class PluginDriver {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {
 					if (hook in plugin) {
-						options.onLog('warn', errorInputHookInOutputPlugin(plugin.name, hook));
+						options.onLog(LOGLEVEL_WARN, errorInputHookInOutputPlugin(plugin.name, hook));
 					}
 				}
 			}

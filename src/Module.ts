@@ -67,6 +67,7 @@ import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
+import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	doAssertionsDiffer,
 	getAssertionsFromImportExportDeclaration
@@ -976,7 +977,7 @@ export default class Module {
 
 	warn(properties: RollupWarning, pos: number): void {
 		this.addLocationToLogProps(properties, pos);
-		this.options.onLog('warn', properties);
+		this.options.onLog(LOGLEVEL_WARN, properties);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -1099,7 +1100,7 @@ export default class Module {
 				code = this.originalCode;
 			} catch (error_: any) {
 				this.options.onLog(
-					'warn',
+					LOGLEVEL_WARN,
 					errorInvalidSourcemapForError(error_, this.id, column, line, pos)
 				);
 			}
@@ -1208,7 +1209,7 @@ export default class Module {
 				return [usedDeclaration];
 			}
 			this.options.onLog(
-				'warn',
+				LOGLEVEL_WARN,
 				errorNamespaceConflict(
 					name,
 					this.id,
@@ -1223,7 +1224,7 @@ export default class Module {
 			const usedDeclaration = foundDeclarationList[0];
 			if (foundDeclarationList.length > 1) {
 				this.options.onLog(
-					'warn',
+					LOGLEVEL_WARN,
 					errorAmbiguousExternalNamespaces(
 						name,
 						this.id,
@@ -1315,7 +1316,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.options.onLog('warn', errorShimmedExport(this.id, name));
+		this.options.onLog(LOGLEVEL_WARN, errorShimmedExport(this.id, name));
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 

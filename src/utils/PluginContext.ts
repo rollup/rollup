@@ -19,6 +19,7 @@ import {
 	errorPluginError,
 	warnDeprecation
 } from './error';
+import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { normalizeLog } from './options/options';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 import { URL_THIS_GETMODULEIDS } from './urls';
@@ -60,7 +61,7 @@ export function getPluginContext(
 		(level: LogLevel, code: string): PluginContext['warn'] =>
 		(log, pos) => {
 			if (pos != null) {
-				options.onLog('warn', errorInvalidLogPosition(plugin.name));
+				options.onLog(LOGLEVEL_WARN, errorInvalidLogPosition(plugin.name));
 			}
 			log = normalizeLog(log);
 			if (log.code) log.pluginCode = log.code;
@@ -77,7 +78,7 @@ export function getPluginContext(
 			graph.watchFiles[id] = true;
 		},
 		cache: cacheInstance,
-		debug: getLogHandler('debug', 'PLUGIN_LOG'),
+		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG'),
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(error_): never {
 			return error(errorPluginError(error_, plugin.name));
@@ -86,7 +87,7 @@ export function getPluginContext(
 		getModuleIds: () => graph.modulesById.keys(),
 		getModuleInfo: graph.getModuleInfo,
 		getWatchFiles: () => Object.keys(graph.watchFiles),
-		info: getLogHandler('info', 'PLUGIN_LOG'),
+		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG'),
 		load(resolvedId) {
 			return graph.moduleLoader.preloadModule(resolvedId);
 		},
@@ -122,6 +123,6 @@ export function getPluginContext(
 			);
 		},
 		setAssetSource: fileEmitter.setAssetSource,
-		warn: getLogHandler('warn', 'PLUGIN_WARNING')
+		warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING')
 	};
 }
