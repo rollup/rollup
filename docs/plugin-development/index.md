@@ -1611,7 +1611,7 @@ Set the deferred source of an asset. Note that you can also pass a Node `Buffer`
 
 |  |  |
 | --: | :-- |
-| Type: | `(warning: string \| RollupWarning, position?: number \| { column: number; line: number }) => void` |
+| Type: | `(warning: string \| RollupLog, position?: number \| { column: number; line: number }) => void` |
 
 Using this method will queue warnings for a build. These warnings will be printed by the CLI just like internally generated warnings (except with the plugin name), or captured by custom `onwarn` handlers.
 

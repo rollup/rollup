@@ -426,7 +426,7 @@ Limits the number of files rollup will open in parallel when reading modules or 
 
 |  |  |
 | --: | :-- |
-| Type: | `(warning: RollupWarning, defaultHandler: (warning: string \| RollupWarning) => void) => void;` |
+| Type: | `(warning: RollupLog, defaultHandler: (warning: string \| RollupLog) => void) => void;` |
 
 A function that will intercept warning messages. If not supplied, warnings will be deduplicated and printed to the console. When using the [`--silent`](../command-line-interface/index.md#silent) CLI option, this handler is the only way to get notified about warnings.
 

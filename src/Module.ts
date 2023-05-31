@@ -43,7 +43,6 @@ import type {
 	ResolvedIdMap,
 	RollupError,
 	RollupLog,
-	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
@@ -128,7 +127,7 @@ export interface AstContext {
 	traceExport: (name: string) => Variable | null;
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
-	warn: (warning: RollupWarning, pos: number) => void;
+	warn: (warning: RollupLog, pos: number) => void;
 }
 
 export interface DynamicImport {
@@ -975,7 +974,7 @@ export default class Module {
 		}
 	}
 
-	warn(properties: RollupWarning, pos: number): void {
+	warn(properties: RollupLog, pos: number): void {
 		this.addLocationToLogProps(properties, pos);
 		this.options.onLog(LOGLEVEL_WARN, properties);
 	}

@@ -3,9 +3,9 @@ import { ref, watch } from 'vue';
 import type {
 	OutputOptions,
 	RollupError,
+	RollupLog,
 	RollupOptions,
-	RollupOutput,
-	RollupWarning
+	RollupOutput
 } from '../../../src/rollup/types';
 import type { Module } from '../../types';
 import { getFileNameFromMessage } from '../helpers/messages';
@@ -19,7 +19,7 @@ interface GeneratedRollupOutput {
 	error: RollupError | null;
 	externalImports: string[];
 	output: RollupOutput['output'] | never[];
-	warnings: RollupWarning[];
+	warnings: RollupLog[];
 }
 
 interface BundleRequest {
@@ -29,7 +29,7 @@ interface BundleRequest {
 	setOutput(output: GeneratedRollupOutput): void;
 }
 
-function logWarning(message: RollupWarning) {
+function logWarning(message: RollupLog) {
 	console.group(getFileNameFromMessage(message) || 'general error');
 	console.warn(message.stack || message.message, { ...message });
 	console.groupEnd();
@@ -55,7 +55,7 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		modulesById.set(module.name, module);
 	}
 
-	const warnings: RollupWarning[] = [];
+	const warnings: RollupLog[] = [];
 	const externalImports = new Set<string>();
 
 	const rollupOptions: RollupOptions = {

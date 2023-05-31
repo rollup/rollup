@@ -1,7 +1,7 @@
-import type { LogHandler, MergedRollupOptions, RollupWarning } from '../../src/rollup/types';
+import type { LogHandler, MergedRollupOptions, RollupLog } from '../../src/rollup/types';
 
 export interface BatchWarnings {
-	add: (warning: RollupWarning) => void;
+	add: (warning: RollupLog) => void;
 	readonly count: number;
 	flush: () => void;
 	log: LogHandler;

@@ -1,6 +1,5 @@
 import { blue, cyan } from 'colorette';
-import type { RollupLog } from 'rollup';
-import type { RollupWarning } from '../../src/rollup/types';
+import type { RollupLog } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
 import { getNewArray, getOrCreate } from '../../src/utils/getOrCreate';
 import { LOGLEVEL_DEBUG, LOGLEVEL_WARN } from '../../src/utils/logging';
@@ -21,10 +20,10 @@ import type { BatchWarnings } from './loadConfigFileType';
 
 export default function batchWarnings(): BatchWarnings {
 	let count = 0;
-	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
+	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupLog[]>();
 	let warningOccurred = false;
 
-	const add = (warning: RollupWarning) => {
+	const add = (warning: RollupLog) => {
 		count += 1;
 		warningOccurred = true;
 
@@ -83,7 +82,7 @@ export default function batchWarnings(): BatchWarnings {
 }
 
 const immediateHandlers: {
-	[code: string]: (warning: RollupWarning) => void;
+	[code: string]: (warning: RollupLog) => void;
 } = {
 	MISSING_NODE_BUILTINS(warning) {
 		title(`Missing shims for Node.js built-ins`);
@@ -102,7 +101,7 @@ const immediateHandlers: {
 };
 
 const deferredHandlers: {
-	[code: string]: (warnings: RollupWarning[]) => void;
+	[code: string]: (warnings: RollupLog[]) => void;
 } = {
 	CIRCULAR_DEPENDENCY(warnings) {
 		title(`Circular dependenc${warnings.length > 1 ? 'ies' : 'y'}`);
@@ -305,7 +304,7 @@ function nest<T extends Record<string, any>>(array: readonly T[], property: stri
 	return nested;
 }
 
-function showTruncatedWarnings(warnings: readonly RollupWarning[]): void {
+function showTruncatedWarnings(warnings: readonly RollupLog[]): void {
 	const nestedByModule = nest(warnings, 'id');
 
 	const displayedByModule = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;

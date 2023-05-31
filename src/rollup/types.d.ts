@@ -15,7 +15,6 @@ export interface RollupError extends RollupLog {
 	watchFiles?: string[];
 }
 
-// TODO Lukas replace RollupWarning with RollupLog
 export type RollupWarning = RollupLog;
 
 export interface RollupLog {
@@ -788,13 +787,13 @@ export interface NormalizedOutputOptions {
 }
 
 export type WarningHandlerWithDefault = (
-	warning: RollupWarning,
+	warning: RollupLog,
 	defaultHandler: WarningOrStringHandler
 ) => void;
 
-export type WarningOrStringHandler = (warning: RollupWarning | string) => void;
+export type WarningOrStringHandler = (warning: RollupLog | string) => void;
 
-export type WarningHandler = (warning: RollupWarning) => void;
+export type WarningHandler = (warning: RollupLog) => void;
 
 export interface SerializedTimings {
 	[label: string]: [number, number, number];
