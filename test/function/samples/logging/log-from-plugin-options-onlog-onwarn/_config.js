@@ -3,7 +3,7 @@ const { debug, info, warn } = console;
 const logs = [];
 
 module.exports = defineTest({
-	// solo: true,
+	solo: true,
 	description: 'passes logs from plugins to onLog and onwarn',
 	before() {
 		console.debug = (...log) => logs.push(['debug', ...log]);
@@ -39,18 +39,16 @@ module.exports = defineTest({
 			['onLog', 'debug', { message: 'debugLog' }],
 			['debug', 'debugLog'],
 			['onLog', 'warn', { message: 'warnWarn' }],
-			['onwarn', { message: 'warn' }],
-			['warn', 'warn'],
+			['onwarn', { message: 'warnWarn' }],
+			['warn', 'warnWarn'],
 			['onLog', 'warn', { message: 'warnWarn=' }],
-			['onwarn', { message: 'warn' }],
-			['warn', 'warn'],
+			['onwarn', { message: 'warnWarn=' }],
 			['onLog', 'warn', { message: 'warnWarn+=' }],
-			['onwarn', { message: 'warn' }],
-			['warn', 'warn'],
+			['onwarn', { message: 'warnWarn+=' }],
+			['warn', 'log was replaced'],
 			['onLog', 'warn', { message: 'warnWarn-' }],
 			['onLog', 'warn', { message: 'warnWarn+-' }],
-			['onwarn', { message: 'info' }],
-			['warn', 'info']
+			['info', 'log was replaced']
 		]);
 		assert.strictEqual(logs[0][2].toString(), 'warnLog');
 		assert.strictEqual(logs[1][1].toString(), 'warnLog');

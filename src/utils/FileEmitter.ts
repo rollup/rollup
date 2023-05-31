@@ -5,10 +5,10 @@ import type {
 	EmittedAsset,
 	EmittedChunk,
 	EmittedPrebuiltChunk,
+	LogHandler,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputChunk,
-	WarningHandler
+	OutputChunk
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import { createHash } from './crypto';
@@ -62,13 +62,9 @@ function generateAssetFileName(
 	);
 }
 
-function reserveFileNameInBundle(
-	fileName: string,
-	{ bundle }: FileEmitterOutput,
-	warn: WarningHandler
-) {
+function reserveFileNameInBundle(fileName: string, { bundle }: FileEmitterOutput, log: LogHandler) {
 	if (bundle[lowercaseBundleKeys].has(fileName.toLowerCase())) {
-		warn(errorFileNameConflict(fileName));
+		log('warn', errorFileNameConflict(fileName));
 	} else {
 		bundle[fileName] = FILE_PLACEHOLDER;
 	}
@@ -268,7 +264,7 @@ export class FileEmitter {
 		});
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, output, this.options.onwarn);
+				reserveFileNameInBundle(emittedFile.fileName, output, this.options.onLog);
 			}
 		}
 		const consumedAssetsByHash = new Map<string, ConsumedAsset[]>();
@@ -365,7 +361,7 @@ export class FileEmitter {
 	) {
 		const { fileName, source } = consumedAsset;
 		if (fileName) {
-			reserveFileNameInBundle(fileName, output, this.options.onwarn);
+			reserveFileNameInBundle(fileName, output, this.options.onLog);
 		}
 		if (source !== undefined) {
 			this.finalizeAdditionalAsset(consumedAsset, source, output);

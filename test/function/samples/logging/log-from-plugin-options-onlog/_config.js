@@ -3,7 +3,7 @@ const { debug, info, warn } = console;
 const logs = [];
 
 module.exports = defineTest({
-	// solo: true,
+	solo: true,
 	description: 'passes logs from plugins to onLog',
 	before() {
 		console.debug = (...log) => logs.push(['debug', ...log]);
@@ -31,12 +31,12 @@ module.exports = defineTest({
 			['onLog', 'debug', { message: 'debugLog' }],
 			['debug', 'debugLog'],
 			['onLog', 'warn', { message: 'warnWarn' }],
-			['warn', 'warn'],
+			['warn', 'warnWarn'],
 			['onLog', 'warn', { message: 'warnWarn-' }],
 			['onLog', 'warn', { message: 'warnWarn+-' }],
-			['warn', 'debug'],
+			['debug', 'log was replaced'],
 			['onLog', 'warn', { message: 'warnWarn*-' }],
-			['warn', 'info']
+			['info', 'log was replaced with string']
 		]);
 		assert.strictEqual(logs[0][2].toString(), 'warnLog');
 		assert.strictEqual(logs[2][2].toString(), '(fooPlugin plugin) fooFile (1:2) warnLog');

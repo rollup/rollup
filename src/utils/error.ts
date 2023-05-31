@@ -968,7 +968,7 @@ export function warnDeprecationWithOptions(
 	deprecation: string,
 	urlSnippet: string,
 	activeDeprecation: boolean,
-	onLog: LogHandler,
+	log: LogHandler,
 	strictDeprecations: boolean,
 	plugin?: string
 ): void {
@@ -977,6 +977,6 @@ export function warnDeprecationWithOptions(
 		if (strictDeprecations) {
 			return error(warning);
 		}
-		onLog('warn', warning);
+		log('warn', warning);
 	}
 }

@@ -5,8 +5,7 @@ import type {
 	MergedRollupOptions,
 	OutputOptions,
 	RollupCache,
-	RollupOptions,
-	WarningHandler
+	RollupOptions
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
@@ -15,7 +14,6 @@ import {
 	generatedCodePresets,
 	type GenericConfigObject,
 	getOnLog,
-	getOnwarn,
 	normalizePluginOption,
 	objectifyOption,
 	objectifyOptionWithPresets,
@@ -119,7 +117,6 @@ async function mergeInputOptions(
 ): Promise<InputOptions> {
 	const getOption = (name: keyof InputOptions): any => overrides[name] ?? config[name];
 	const onLog = getOnLog(config, printLog);
-	const onwarn = getOnwarn(config, printLog);
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
 		acornInjectPlugins: config.acornInjectPlugins as
@@ -139,7 +136,7 @@ async function mergeInputOptions(
 		maxParallelFileReads: getOption('maxParallelFileReads'),
 		moduleContext: getOption('moduleContext'),
 		onLog,
-		onwarn,
+		onwarn: warning => onLog('warn', warning),
 		perf: getOption('perf'),
 		plugins: await normalizePluginOption(config.plugins),
 		preserveEntrySignatures: getOption('preserveEntrySignatures'),
@@ -156,13 +153,7 @@ async function mergeInputOptions(
 		watch: getWatch(config, overrides)
 	};
 
-	warnUnknownOptions(
-		config,
-		Object.keys(inputOptions),
-		'input options',
-		(_level, log) => (inputOptions.onwarn as WarningHandler)(log),
-		/^output$/
-	);
+	warnUnknownOptions(config, Object.keys(inputOptions), 'input options', onLog, /^output$/);
 	return inputOptions;
 }
 

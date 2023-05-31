@@ -300,7 +300,7 @@ export class ModuleLoader {
 		} else {
 			module.updateOptions(sourceDescription);
 			module.setSource(
-				await transform(sourceDescription, module, this.pluginDriver, this.options.onwarn)
+				await transform(sourceDescription, module, this.pluginDriver, this.options.onLog)
 			);
 		}
 	}
@@ -366,7 +366,8 @@ export class ModuleLoader {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
 			if (importer && doAssertionsDiffer(assertions, existingModule.info.assertions)) {
-				this.options.onwarn(
+				this.options.onLog(
+					'warn',
 					errorInconsistentImportAssertions(
 						existingModule.info.assertions,
 						assertions,
@@ -452,7 +453,8 @@ export class ModuleLoader {
 			} else if (!(externalModule instanceof ExternalModule)) {
 				return error(errorInternalIdCannotBeExternal(source, importer));
 			} else if (doAssertionsDiffer(externalModule.info.assertions, assertions)) {
-				this.options.onwarn(
+				this.options.onLog(
+					'warn',
 					errorInconsistentImportAssertions(
 						externalModule.info.assertions,
 						assertions,
@@ -620,7 +622,7 @@ export class ModuleLoader {
 			if (isRelative(source)) {
 				return error(errorUnresolvedImport(source, importer));
 			}
-			this.options.onwarn(errorUnresolvedImportTreatedAsExternal(source, importer));
+			this.options.onLog('warn', errorUnresolvedImportTreatedAsExternal(source, importer));
 			return {
 				assertions,
 				external: true,
@@ -631,7 +633,7 @@ export class ModuleLoader {
 				syntheticNamedExports: false
 			};
 		} else if (resolvedId.external && resolvedId.syntheticNamedExports) {
-			this.options.onwarn(errorExternalSyntheticExports(source, importer));
+			this.options.onLog('warn', errorExternalSyntheticExports(source, importer));
 		}
 		return resolvedId;
 	}
@@ -710,7 +712,8 @@ export class ModuleLoader {
 			const existingResolution = module.resolvedIds[specifier];
 			if (existingResolution) {
 				if (doAssertionsDiffer(existingResolution.assertions, assertions)) {
-					this.options.onwarn(
+					this.options.onLog(
+						'warn',
 						errorInconsistentImportAssertions(
 							existingResolution.assertions,
 							assertions,

@@ -111,7 +111,7 @@ export class PluginDriver {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {
 					if (hook in plugin) {
-						options.onwarn(errorInputHookInOutputPlugin(plugin.name, hook));
+						options.onLog('warn', errorInputHookInOutputPlugin(plugin.name, hook));
 					}
 				}
 			}
@@ -291,7 +291,8 @@ export class PluginDriver {
 
 	/**
 	 * Run an async plugin hook and return the result.
-	 * @param hookName Name of the plugin hook. Must be either in `PluginHooks` or `OutputPluginValueHooks`.
+	 * @param hookName Name of the plugin hook. Must be either in `PluginHooks`
+	 *   or `OutputPluginValueHooks`.
 	 * @param args Arguments passed to the plugin hook.
 	 * @param plugin The actual pluginObject to run.
 	 * @param replaceContext When passed, the plugin context can be overridden.

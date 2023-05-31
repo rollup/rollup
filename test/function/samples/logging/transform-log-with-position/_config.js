@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	// solo: true,
+	solo: true,
 	description: 'allows passing a position to this.warn/info/debug in the transform hook',
 	options: {
 		plugins: [

@@ -4,14 +4,14 @@ import type {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingRawSourceMap,
+	LogHandler,
 	Plugin,
 	PluginContext,
 	RollupError,
 	SourceDescription,
 	TransformModuleJSON,
 	TransformPluginContext,
-	TransformResult,
-	WarningHandler
+	TransformResult
 } from '../rollup/types';
 import { getTrackedPluginCache } from './PluginCache';
 import type { PluginDriver } from './PluginDriver';
@@ -30,7 +30,7 @@ export default async function transform(
 	source: SourceDescription,
 	module: Module,
 	pluginDriver: PluginDriver,
-	warn: WarningHandler
+	log: LogHandler
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -59,7 +59,7 @@ export default async function transform(
 			module.updateOptions(result);
 			if (result.code == null) {
 				if (result.map || result.ast) {
-					warn(errorNoTransformMapOrAstWithoutCode(plugin.name));
+					log('warn', errorNoTransformMapOrAstWithoutCode(plugin.name));
 				}
 				return previousCode;
 			}
@@ -131,7 +131,7 @@ export default async function transform(
 							originalCode,
 							originalSourcemap,
 							sourcemapChain,
-							warn
+							log
 						);
 						if (!combinedMap) {
 							const magicString = new MagicString(originalCode);

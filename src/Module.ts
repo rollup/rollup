@@ -976,7 +976,7 @@ export default class Module {
 
 	warn(properties: RollupWarning, pos: number): void {
 		this.addLocationToLogProps(properties, pos);
-		this.options.onwarn(properties);
+		this.options.onLog('warn', properties);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -1098,7 +1098,10 @@ export default class Module {
 				({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
 				code = this.originalCode;
 			} catch (error_: any) {
-				this.options.onwarn(errorInvalidSourcemapForError(error_, this.id, column, line, pos));
+				this.options.onLog(
+					'warn',
+					errorInvalidSourcemapForError(error_, this.id, column, line, pos)
+				);
 			}
 			augmentCodeLocation(properties, { column, line }, code!, this.id);
 		}
@@ -1204,7 +1207,8 @@ export default class Module {
 			if (foundDeclarationList.length === 1) {
 				return [usedDeclaration];
 			}
-			this.options.onwarn(
+			this.options.onLog(
+				'warn',
 				errorNamespaceConflict(
 					name,
 					this.id,
@@ -1218,7 +1222,8 @@ export default class Module {
 			const foundDeclarationList = [...foundExternalDeclarations];
 			const usedDeclaration = foundDeclarationList[0];
 			if (foundDeclarationList.length > 1) {
-				this.options.onwarn(
+				this.options.onLog(
+					'warn',
 					errorAmbiguousExternalNamespaces(
 						name,
 						this.id,
@@ -1310,7 +1315,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.options.onwarn(errorShimmedExport(this.id, name));
+		this.options.onLog('warn', errorShimmedExport(this.id, name));
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 

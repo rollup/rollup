@@ -109,6 +109,6 @@ export default class ExternalModule {
 			}
 		}
 		const importersArray = [...importersSet];
-		this.options.onwarn(errorUnusedExternalImports(this.id, unused, importersArray));
+		this.options.onLog('warn', errorUnusedExternalImports(this.id, unused, importersArray));
 	}
 }

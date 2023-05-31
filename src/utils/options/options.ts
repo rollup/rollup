@@ -10,7 +10,8 @@ import type {
 	OutputPlugin,
 	OutputPluginOption,
 	Plugin,
-	RollupLog
+	RollupLog,
+	WarningHandlerWithDefault
 } from '../../rollup/types';
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
@@ -27,15 +28,7 @@ export const getOnLog = (
 	printLog = defaultPrintLog
 ): NormalizedInputOptions['onLog'] => {
 	const { onwarn, onLog } = config;
-	const defaultOnLog: LogHandler = onwarn
-		? (level, log) => {
-				if (level === 'warn') {
-					onwarn(addLogToString(log), warning => printLog('warn', normalizeLog(warning)));
-				} else {
-					printLog(level, log);
-				}
-		  }
-		: printLog;
+	const defaultOnLog = getDefaultOnLog(printLog, onwarn);
 	if (onLog) {
 		return (level, log) =>
 			onLog(level, addLogToString(log), (level, handledLog) =>
@@ -45,33 +38,16 @@ export const getOnLog = (
 	return defaultOnLog;
 };
 
-// TODO Lukas check if onLog and onwarn can be merged in some way or share code
-export const getOnwarn = (
-	config: InputOptions,
-	printLog = defaultPrintLog
-): NormalizedInputOptions['onwarn'] => {
-	const { onwarn, onLog } = config;
-	if (onLog) {
-		const defaultOnLog: LogHandler = onwarn
-			? (level, log) => {
-					if (level === 'warn') {
-						addLogToString(log);
-						onwarn(log, warning => printLog('warn', normalizeLog(warning)));
-					} else {
-						printLog(level, log);
-					}
-			  }
-			: printLog;
-		return warning =>
-			onLog('warn', addLogToString(warning), log => defaultOnLog('warn', normalizeLog(log)));
-	}
-	return onwarn
-		? warning => {
-				addLogToString(warning);
-				onwarn(warning, handledWarning => printLog('warn', normalizeLog(handledWarning)));
+const getDefaultOnLog = (printLog: LogHandler, onwarn?: WarningHandlerWithDefault): LogHandler =>
+	onwarn
+		? (level, log) => {
+				if (level === 'warn') {
+					onwarn(addLogToString(log), warning => printLog('warn', normalizeLog(warning)));
+				} else {
+					printLog(level, log);
+				}
 		  }
-		: log => printLog('warn', log);
-};
+		: printLog;
 
 const addLogToString = (log: RollupLog): RollupLog => {
 	Object.defineProperty(log, 'toString', {

@@ -355,7 +355,8 @@ const getDynamicImportFunction = (
 			inputOptions
 		);
 		if (format !== 'es') {
-			inputOptions.onwarn(
+			inputOptions.onLog(
+				'warn',
 				errorInvalidOption(
 					'output.dynamicImportFunction',
 					URL_OUTPUT_DYNAMICIMPORTFUNCTION,

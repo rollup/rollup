@@ -1,12 +1,12 @@
 import type Chunk from '../Chunk';
-import type { NormalizedOutputOptions, WarningHandler } from '../rollup/types';
+import type { LogHandler, NormalizedOutputOptions } from '../rollup/types';
 import { error, errorIncompatibleExportOptionValue, errorMixedExport } from './error';
 
 export default function getExportMode(
 	chunk: Chunk,
 	{ exports: exportMode, name, format }: NormalizedOutputOptions,
 	facadeModuleId: string,
-	warn: WarningHandler
+	log: LogHandler
 ): 'default' | 'named' | 'none' {
 	const exportKeys = chunk.getExportNames();
 
@@ -25,7 +25,7 @@ export default function getExportMode(
 			exportMode = 'default';
 		} else {
 			if (format !== 'es' && format !== 'system' && exportKeys.includes('default')) {
-				warn(errorMixedExport(facadeModuleId, name));
+				log('warn', errorMixedExport(facadeModuleId, name));
 			}
 			exportMode = 'named';
 		}

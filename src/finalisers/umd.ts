@@ -45,9 +45,9 @@ export default function umd(
 		indent: t,
 		intro,
 		namedExportsMode,
+		log,
 		outro,
-		snippets,
-		onwarn
+		snippets
 	}: FinaliserOptions,
 	{
 		amd,
@@ -72,7 +72,7 @@ export default function umd(
 		return error(errorMissingNameOptionForUmdExport());
 	}
 
-	warnOnBuiltins(onwarn, dependencies);
+	warnOnBuiltins(log, dependencies);
 
 	const amdDeps = dependencies.map(
 		m => `'${updateExtensionForRelativeAmdId(m.importPath, amd.forceJsExtensionForImports)}'`

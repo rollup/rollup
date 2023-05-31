@@ -22,7 +22,6 @@ import {
 } from '../urls';
 import {
 	getOnLog,
-	getOnwarn,
 	getOptionWithPreset,
 	normalizePluginOption,
 	treeshakePresets,
@@ -45,7 +44,6 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 
 	const context = config.context ?? 'undefined';
 	const onLog = getOnLog(config);
-	const onwarn = getOnwarn(config);
 	const strictDeprecations = config.strictDeprecations || false;
 	const maxParallelFileOps = getMaxParallelFileOps(config, onLog, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
@@ -64,7 +62,7 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 		maxParallelFileReads: maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),
 		onLog,
-		onwarn,
+		onwarn: warning => onLog('warn', warning),
 		perf: config.perf || false,
 		plugins: await normalizePluginOption(config.plugins),
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',

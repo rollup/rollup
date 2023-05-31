@@ -25,8 +25,8 @@ import {
 	errorMissingExport
 } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
-import { getPureFunctions } from './utils/pureFunctions';
 import type { PureFunctions } from './utils/pureFunctions';
+import { getPureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
@@ -233,7 +233,7 @@ export default class Graph {
 	private sortModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
-			this.options.onwarn(errorCircularDependency(cyclePath));
+			this.options.onLog('warn', errorCircularDependency(cyclePath));
 		}
 		this.modules = orderedModules;
 		for (const module of this.modules) {

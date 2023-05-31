@@ -17,13 +17,13 @@ import type {
 	GetInterop,
 	GlobalsOption,
 	InternalModuleFormat,
+	LogHandler,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputChunk,
 	PreRenderedChunk,
 	RenderedChunk,
-	RenderedModule,
-	WarningHandler
+	RenderedModule
 } from './rollup/types';
 import type { PluginDriver } from './utils/PluginDriver';
 import { createAddons } from './utils/addons';
@@ -143,7 +143,7 @@ function getGlobalName(
 	chunk: ExternalChunk,
 	globals: GlobalsOption,
 	hasExports: boolean,
-	warn: WarningHandler
+	log: LogHandler
 ): string | undefined {
 	const globalName = typeof globals === 'function' ? globals(chunk.id) : globals[chunk.id];
 	if (globalName) {
@@ -151,7 +151,7 @@ function getGlobalName(
 	}
 
 	if (hasExports) {
-		warn(errorMissingGlobalName(chunk.id, chunk.variableName));
+		log('warn', errorMissingGlobalName(chunk.id, chunk.variableName));
 		return chunk.variableName;
 	}
 }
@@ -376,7 +376,7 @@ export default class Chunk {
 				this,
 				this.outputOptions,
 				this.facadeModule!.id,
-				this.inputOptions.onwarn
+				this.inputOptions.onLog
 			);
 	}
 
@@ -587,7 +587,7 @@ export default class Chunk {
 			dependencies,
 			exportMode,
 			facadeModule,
-			inputOptions: { onwarn },
+			inputOptions: { onLog },
 			outputOptions,
 			pluginDriver,
 			snippets
@@ -652,8 +652,8 @@ export default class Chunk {
 				intro,
 				isEntryFacade: preserveModules || (facadeModule !== null && facadeModule.info.isEntry),
 				isModuleFacade: facadeModule !== null,
+				log: onLog,
 				namedExportsMode: exportMode !== 'default',
-				onwarn,
 				outro,
 				snippets,
 				usesTopLevelAwait
@@ -718,7 +718,8 @@ export default class Chunk {
 				if (alternativeReexportModule) {
 					const exportingChunk = this.chunkByModule.get(alternativeReexportModule);
 					if (exportingChunk !== exportChunk) {
-						this.inputOptions.onwarn(
+						this.inputOptions.onLog(
+							'warn',
 							errorCyclicCrossChunkReexport(
 								// Namespaces do not have an export name
 								variableModule.getExportNamesByVariable().get(variable)?.[0] || '*',
@@ -1036,7 +1037,7 @@ export default class Chunk {
 			if (exportName[0] === '*') {
 				const id = exportName.slice(1);
 				if (interop(id) === 'defaultOnly') {
-					this.inputOptions.onwarn(errorUnexpectedNamespaceReexport(id));
+					this.inputOptions.onLog('warn', errorUnexpectedNamespaceReexport(id));
 				}
 				needsLiveBinding = externalLiveBindings;
 				dependency = this.externalChunkByModule.get(this.modulesById.get(id) as ExternalModule)!;
@@ -1107,7 +1108,7 @@ export default class Chunk {
 						dep,
 						this.outputOptions.globals,
 						(imports || reexports) !== null,
-						this.inputOptions.onwarn
+						this.inputOptions.onLog
 					),
 				importPath,
 				imports,
@@ -1139,7 +1140,7 @@ export default class Chunk {
 			dependencies,
 			exportNamesByVariable,
 			includedNamespaces,
-			inputOptions: { onwarn },
+			inputOptions: { onLog },
 			isEmpty,
 			orderedModules,
 			outputOptions,
@@ -1221,7 +1222,7 @@ export default class Chunk {
 		const renderedSource = compact ? magicString : magicString.trim();
 
 		if (isEmpty && this.getExportNames().length === 0 && dependencies.size === 0) {
-			onwarn(errorEmptyChunk(this.getChunkName()));
+			onLog('warn', errorEmptyChunk(this.getChunkName()));
 		}
 		return { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait };
 	}

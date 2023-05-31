@@ -25,9 +25,9 @@ export default function iife(
 		indent: t,
 		intro,
 		namedExportsMode,
+		log,
 		outro,
-		snippets,
-		onwarn
+		snippets
 	}: FinaliserOptions,
 	{
 		compact,
@@ -50,14 +50,14 @@ export default function iife(
 		return error(errorIllegalIdentifierAsName(name));
 	}
 
-	warnOnBuiltins(onwarn, dependencies);
+	warnOnBuiltins(log, dependencies);
 
 	const external = trimEmptyImports(dependencies);
 	const deps = external.map(dep => dep.globalName || 'null');
 	const parameters = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		onwarn(errorMissingNameOptionForIifeExport());
+		log('warn', errorMissingNameOptionForIifeExport());
 	}
 
 	if (namedExportsMode && hasExports) {

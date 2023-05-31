@@ -5,10 +5,10 @@ import type Graph from './Graph';
 import Module from './Module';
 import type {
 	GetManualChunk,
+	LogHandler,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputBundle,
-	WarningHandler
+	OutputBundle
 } from './rollup/types';
 import type { PluginDriver } from './utils/PluginDriver';
 import { getChunkAssignments } from './utils/chunkAssignment';
@@ -64,7 +64,7 @@ export default class Bundle {
 			const getHashPlaceholder = getHashPlaceholderGenerator();
 			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
-				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
+				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onLog);
 			}
 			this.pluginDriver.setChunkInformation(this.facadeChunkByModule);
 			for (const chunk of chunks) {
@@ -78,7 +78,7 @@ export default class Bundle {
 				outputBundle,
 				this.pluginDriver,
 				this.outputOptions,
-				this.inputOptions.onwarn
+				this.inputOptions.onLog
 			);
 		} catch (error_: any) {
 			await this.pluginDriver.hookParallel('renderError', [error_]);
@@ -153,7 +153,7 @@ export default class Bundle {
 							ecmaVersion: 'latest'
 						});
 					} catch (error_: any) {
-						this.inputOptions.onwarn(errorChunkInvalid(file, error_));
+						this.inputOptions.onLog('warn', errorChunkInvalid(file, error_));
 					}
 				}
 			}
@@ -223,7 +223,7 @@ export default class Bundle {
 
 function validateOptionsForMultiChunkOutput(
 	outputOptions: NormalizedOutputOptions,
-	onWarn: WarningHandler
+	log: LogHandler
 ) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
 		return error(
@@ -251,7 +251,8 @@ function validateOptionsForMultiChunkOutput(
 			)
 		);
 	if (!outputOptions.amd.autoId && outputOptions.amd.id)
-		onWarn(
+		log(
+			'warn',
 			errorInvalidOption(
 				'output.amd.id',
 				URL_OUTPUT_AMD_ID,

@@ -3,9 +3,9 @@ import type { default as Chunk, ChunkRenderResult } from '../Chunk';
 import type Module from '../Module';
 import type {
 	DecodedSourceMapOrMissing,
+	LogHandler,
 	NormalizedOutputOptions,
-	RenderedChunk,
-	WarningHandler
+	RenderedChunk
 } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
@@ -40,7 +40,7 @@ export async function renderChunks(
 	bundle: OutputBundleWithPlaceholders,
 	pluginDriver: PluginDriver,
 	outputOptions: NormalizedOutputOptions,
-	onwarn: WarningHandler
+	log: LogHandler
 ) {
 	timeStart('render chunks', 2);
 
@@ -60,7 +60,7 @@ export async function renderChunks(
 		chunkGraph,
 		outputOptions,
 		pluginDriver,
-		onwarn
+		log
 	);
 	const hashesByPlaceholder = generateFinalHashes(
 		renderedChunksByPlaceholder,
@@ -104,7 +104,7 @@ async function transformChunk(
 	chunkGraph: Record<string, RenderedChunk>,
 	options: NormalizedOutputOptions,
 	outputPluginDriver: PluginDriver,
-	onwarn: WarningHandler
+	log: LogHandler
 ) {
 	let map: SourceMap | null = null;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -156,7 +156,7 @@ async function transformChunk(
 			usedModules,
 			sourcemapChain,
 			sourcemapExcludeSources,
-			onwarn
+			log
 		);
 		for (let sourcesIndex = 0; sourcesIndex < map.sources.length; ++sourcesIndex) {
 			let sourcePath = map.sources[sourcesIndex];
@@ -195,7 +195,7 @@ async function transformChunksAndGenerateContentHashes(
 	chunkGraph: Record<string, RenderedChunk>,
 	outputOptions: NormalizedOutputOptions,
 	pluginDriver: PluginDriver,
-	onwarn: WarningHandler
+	log: LogHandler
 ) {
 	const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
 	const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
@@ -224,7 +224,7 @@ async function transformChunksAndGenerateContentHashes(
 						chunkGraph,
 						outputOptions,
 						pluginDriver,
-						onwarn
+						log
 					))
 				};
 				const { code } = transformedChunk;
