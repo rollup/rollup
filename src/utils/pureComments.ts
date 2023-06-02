@@ -13,8 +13,7 @@ import {
 	LogicalExpression,
 	NewExpression,
 	SequenceExpression,
-	VariableDeclaration,
-	VariableDeclarator
+	VariableDeclaration
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
@@ -108,11 +107,7 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					// case: /*#__PURE__*/ const foo = () => {}
 					const declaration = node as any;
 					if (declaration.declarations.length === 1 && declaration.kind === 'const') {
-						const init =
-							declaration.declarations[0].type === VariableDeclarator
-								? declaration.declarations[0].init
-								: declaration.declarations[0].type;
-
+						const init = declaration.declarations[0].init;
 						if (init.type === ArrowFunctionExpression || init.type === FunctionDeclaration) {
 							node = init;
 							continue;
