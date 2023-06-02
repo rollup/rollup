@@ -1,14 +1,18 @@
 import type * as acorn from 'acorn';
 import { base as basicWalker } from 'acorn-walk';
 import {
+	ArrowFunctionExpression,
 	BinaryExpression,
 	CallExpression,
 	ChainExpression,
 	ConditionalExpression,
+	ExportNamedDeclaration,
 	ExpressionStatement,
+	FunctionDeclaration,
 	LogicalExpression,
 	NewExpression,
-	SequenceExpression
+	SequenceExpression,
+	VariableDeclaration
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
@@ -93,11 +97,33 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					invalidAnnotation = true;
 					break;
 				}
+				case ExportNamedDeclaration: {
+					node = (node as any).declaration;
+					continue;
+				}
+				case VariableDeclaration: {
+					// case: /*#__PURE__*/ const foo = () => {}
+					const declaration = node as any;
+					if (
+						declaration.declarations.length === 1 &&
+						declaration.kind === 'const' &&
+						(declaration.declarations[0].type === ArrowFunctionExpression ||
+							declaration.declarations[0].type === FunctionDeclaration)
+					) {
+						node = declaration.declarations[0];
+						continue;
+					}
+					invalidAnnotation = true;
+					break;
+				}
+				case FunctionDeclaration:
+				case ArrowFunctionExpression:
 				case CallExpression:
 				case NewExpression: {
 					break;
 				}
 				default: {
+					console.log({ node });
 					invalidAnnotation = true;
 				}
 			}

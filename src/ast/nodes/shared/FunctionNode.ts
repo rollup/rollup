@@ -1,3 +1,4 @@
+import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
@@ -45,6 +46,14 @@ export default class FunctionNode extends FunctionBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+
+		if (
+			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
+			this.annotations
+		) {
+			return false;
+		}
+
 		return !!this.id?.hasEffects(context);
 	}
 
@@ -54,6 +63,14 @@ export default class FunctionNode extends FunctionBase {
 		context: HasEffectsContext
 	): boolean {
 		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+
+		if (
+			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
+			this.annotations
+		) {
+			return false;
+		}
+
 		if (interaction.type === INTERACTION_CALLED) {
 			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 			context.replacedVariableInits.set(
