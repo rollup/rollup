@@ -33,6 +33,6 @@ module.exports = defineTest({
 		hook: 'buildStart',
 		message: 'info becomes error',
 		plugin: 'test',
-		pluginCode: 'PLUGIN_LOG'
+		pluginCode: 'EXTRA_CODE'
 	}
 });

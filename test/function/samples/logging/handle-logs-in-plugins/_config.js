@@ -4,8 +4,6 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 const logs = [];
 
-// TODO Lukas test promote log to error in onLog
-// TODO Lukas test logging in options hook
 module.exports = defineTest({
 	description: 'allows plugins to read and filter logs',
 	options: {

@@ -396,7 +396,6 @@ export class PluginDriver {
 	}
 }
 
-// TODO Lukas currently we are sorting and validating for every hook while we could cache that per hook
 export function getSortedValidatedPlugins(
 	hookName: keyof FunctionPluginHooks | AddonHooks,
 	plugins: readonly Plugin[],

@@ -757,7 +757,7 @@ export function errorPluginError(
 	{ hook, id }: { hook?: string; id?: string } = {}
 ): RollupLog {
 	if (typeof error === 'string') error = { message: error };
-	if (error.code && error.code !== PLUGIN_ERROR) {
+	if (error.code && !error.code.startsWith('PLUGIN_')) {
 		error.pluginCode = error.code;
 	}
 	error.code = PLUGIN_ERROR;

@@ -122,7 +122,6 @@ async function getInputOptions(
 	return { options, unsetOptions };
 }
 
-// TODO Lukas test logging
 async function getProcessedInputOptions(
 	inputOptions: InputOptions,
 	watchMode: boolean
