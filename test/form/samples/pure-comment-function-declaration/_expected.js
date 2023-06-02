@@ -4,4 +4,3 @@ function fnEffects(args) {
 }
 
 fnEffects(2);
-fnE(5);

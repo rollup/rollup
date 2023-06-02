@@ -40,5 +40,12 @@ export const fnE = (args) => {
   return args
 }
 
+/*#__PURE__*/ 
+export default function fnDefault(args) {
+  console.log(args)
+  return args
+}
 
+export * from './sub-functions'
 
+export const fnAlias = fnA

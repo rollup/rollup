@@ -6,6 +6,7 @@ import {
 	CallExpression,
 	ChainExpression,
 	ConditionalExpression,
+	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
 	ExpressionStatement,
 	FunctionDeclaration,
@@ -98,7 +99,8 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					invalidAnnotation = true;
 					break;
 				}
-				case ExportNamedDeclaration: {
+				case ExportNamedDeclaration:
+				case ExportDefaultDeclaration: {
 					node = (node as any).declaration;
 					continue;
 				}
