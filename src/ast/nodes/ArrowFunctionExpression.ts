@@ -1,3 +1,4 @@
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
@@ -38,6 +39,13 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	): boolean {
 		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
 		if (interaction.type === INTERACTION_CALLED) {
+			if (
+				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
+				this.annotations
+			) {
+				return false;
+			}
+
 			const { ignore, brokenFlow } = context;
 			context.ignore = {
 				breaks: false,
