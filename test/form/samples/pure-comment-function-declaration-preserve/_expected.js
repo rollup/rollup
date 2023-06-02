@@ -43,6 +43,17 @@ const fnE = (args) => {
   return args
 };
 
+/**
+ * This is a jsdoc comment, with pure annotation
+ * 
+ * @param {any} args
+ * @__PURE__
+ */ 
+const fnF = (args) => {
+  console.log(args);
+  return args
+};
+
 const fnAlias = fnA;
 
-export { fnA, fnAlias, fnB, fnC, fnD, fnE, fnEffects, fnFromSub, fnPure };
+export { fnA, fnAlias, fnB, fnC, fnD, fnE, fnEffects, fnF, fnFromSub, fnPure };

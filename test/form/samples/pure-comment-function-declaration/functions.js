@@ -40,6 +40,17 @@ export const fnE = (args) => {
   return args
 }
 
+/**
+ * This is a jsdoc comment, with pure annotation
+ * 
+ * @param {any} args
+ * @__PURE__
+ */ 
+export const fnF = (args) => {
+  console.log(args)
+  return args
+}
+
 /*#__PURE__*/ 
 export default function fnDefault(args) {
   console.log(args)
