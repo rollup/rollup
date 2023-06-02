@@ -11,6 +11,7 @@ import type {
 import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
+import { getLogger } from '../logger';
 import { LOGLEVEL_WARN } from '../logging';
 import { resolve } from '../path';
 import {
@@ -35,7 +36,10 @@ export interface CommandConfigObject {
 	globals: { [id: string]: string } | undefined;
 }
 
-export async function normalizeInputOptions(config: InputOptions): Promise<{
+export async function normalizeInputOptions(
+	config: InputOptions,
+	watchMode: boolean
+): Promise<{
 	options: NormalizedInputOptions;
 	unsetOptions: Set<string>;
 }> {
@@ -44,7 +48,8 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 	const unsetOptions = new Set<string>();
 
 	const context = config.context ?? 'undefined';
-	const onLog = getOnLog(config);
+	const plugins = await normalizePluginOption(config.plugins);
+	const onLog = getLogger(plugins, getOnLog(config), watchMode);
 	const strictDeprecations = config.strictDeprecations || false;
 	const maxParallelFileOps = getMaxParallelFileOps(config, onLog, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
@@ -65,7 +70,7 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 		onLog,
 		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
 		perf: config.perf || false,
-		plugins: await normalizePluginOption(config.plugins),
+		plugins,
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
 		preserveModules: getPreserveModules(config, onLog, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,

@@ -12,7 +12,8 @@ export type LoadConfigFile = typeof loadConfigFile;
 
 export function loadConfigFile(
 	fileName: string,
-	commandOptions: any
+	commandOptions: any,
+	watchMode?: boolean
 ): Promise<{
 	options: MergedRollupOptions[];
 	warnings: BatchWarnings;

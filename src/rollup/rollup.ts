@@ -8,13 +8,17 @@ import {
 	errorAlreadyClosed,
 	errorCannotEmitFromOptionsHook,
 	// eslint-disable-next-line unicorn/prevent-abbreviations
-	errorMissingFileOrDirOption
+	errorMissingFileOrDirOption,
+	errorPluginError
 } from '../utils/error';
 import { mkdir, writeFile } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
+import { getLogHandler } from '../utils/logHandler';
+import { getLogger } from '../utils/logger';
+import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from '../utils/logging';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
-import { normalizePluginOption } from '../utils/options/options';
+import { getOnLog, normalizePluginOption } from '../utils/options/options';
 import { dirname, resolve } from '../utils/path';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
@@ -106,31 +110,50 @@ export async function rollupInternal(
 }
 
 async function getInputOptions(
-	rawInputOptions: InputOptions,
+	initialInputOptions: InputOptions,
 	watchMode: boolean
 ): Promise<{ options: NormalizedInputOptions; unsetOptions: Set<string> }> {
-	if (!rawInputOptions) {
+	if (!initialInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	const rawPlugins = getSortedValidatedPlugins(
-		'options',
-		await normalizePluginOption(rawInputOptions.plugins)
-	);
-	const { options, unsetOptions } = await normalizeInputOptions(
-		await rawPlugins.reduce(applyOptionHook(watchMode), Promise.resolve(rawInputOptions))
-	);
+	const processedInputOptions = await getProcessedInputOptions(initialInputOptions, watchMode);
+	const { options, unsetOptions } = await normalizeInputOptions(processedInputOptions, watchMode);
 	normalizePlugins(options.plugins, ANONYMOUS_PLUGIN_PREFIX);
 	return { options, unsetOptions };
 }
 
-function applyOptionHook(watchMode: boolean) {
-	return async (inputOptions: Promise<RollupOptions>, plugin: Plugin): Promise<InputOptions> => {
-		const handler = 'handler' in plugin.options! ? plugin.options.handler : plugin.options!;
-		return (
-			(await handler.call({ meta: { rollupVersion, watchMode } }, await inputOptions)) ||
-			inputOptions
-		);
-	};
+// TODO Lukas test logging
+async function getProcessedInputOptions(
+	inputOptions: InputOptions,
+	watchMode: boolean
+): Promise<InputOptions> {
+	const plugins = getSortedValidatedPlugins(
+		'options',
+		await normalizePluginOption(inputOptions.plugins)
+	);
+	const logger = getLogger(plugins, getOnLog(inputOptions), watchMode);
+
+	for (const plugin of plugins) {
+		const { name, options } = plugin;
+
+		if (options) {
+			const handler = 'handler' in options ? options.handler : options;
+			const processedOptions = await handler.call(
+				{
+					debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', logger, name),
+					error: (error_): never => error(errorPluginError(error_, name, { hook: 'onLog' })),
+					info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', logger, name),
+					meta: { rollupVersion, watchMode },
+					warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', logger, name)
+				},
+				inputOptions
+			);
+			if (processedOptions) {
+				inputOptions = processedOptions;
+			}
+		}
+	}
+	return inputOptions;
 }
 
 function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): void {
@@ -275,7 +298,8 @@ async function writeOutputFile(
 
 /**
  * Auxiliary function for defining rollup configuration
- * Mainly to facilitate IDE code prompts, after all, export default does not prompt, even if you add @type annotations, it is not accurate
+ * Mainly to facilitate IDE code prompts, after all, export default does not
+ * prompt, even if you add @type annotations, it is not accurate
  * @param options
  */
 export function defineConfig<T extends RollupOptions | RollupOptions[] | RollupOptionsFunction>(

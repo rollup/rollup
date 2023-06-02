@@ -20,16 +20,20 @@ import batchWarnings from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 import type { LoadConfigFile } from './loadConfigFileType';
 
-export const loadConfigFile: LoadConfigFile = async (fileName, commandOptions = {}) => {
+export const loadConfigFile: LoadConfigFile = async (
+	fileName,
+	commandOptions = {},
+	watchMode = false
+) => {
 	const configs = await getConfigList(
-		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions)),
+		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions, watchMode)),
 		commandOptions
 	);
 	const warnings = batchWarnings();
 	try {
 		const normalizedConfigs: MergedRollupOptions[] = [];
 		for (const config of configs) {
-			const options = await mergeOptions(config, commandOptions, warnings.log);
+			const options = await mergeOptions(config, watchMode, commandOptions, warnings.log);
 			await addCommandPluginsToInputOptions(options, commandOptions);
 			normalizedConfigs.push(options);
 		}
@@ -40,7 +44,11 @@ export const loadConfigFile: LoadConfigFile = async (fileName, commandOptions = 
 	}
 };
 
-async function getConfigFileExport(fileName: string, commandOptions: Record<string, unknown>) {
+async function getConfigFileExport(
+	fileName: string,
+	commandOptions: Record<string, unknown>,
+	watchMode: boolean
+) {
 	if (commandOptions.configPlugin || commandOptions.bundleConfigAsCjs) {
 		try {
 			return await loadTranspiledConfigFile(fileName, commandOptions);
@@ -60,7 +68,7 @@ async function getConfigFileExport(fileName: string, commandOptions: Record<stri
 	process.on('warning', handleWarning);
 	try {
 		const fileUrl = pathToFileURL(fileName);
-		if (process.env.ROLLUP_WATCH) {
+		if (watchMode) {
 			// We are adding the current date to allow reloads in watch mode
 			fileUrl.search = `?${Date.now()}`;
 		}

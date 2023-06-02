@@ -52,6 +52,7 @@ const inputHookNames: {
 	closeWatcher: 1,
 	load: 1,
 	moduleParsed: 1,
+	onLog: 1,
 	options: 1,
 	resolveDynamicImport: 1,
 	resolveId: 1,
@@ -395,6 +396,7 @@ export class PluginDriver {
 	}
 }
 
+// TODO Lukas currently we are sorting and validating for every hook while we could cache that per hook
 export function getSortedValidatedPlugins(
 	hookName: keyof FunctionPluginHooks | AddonHooks,
 	plugins: readonly Plugin[],

@@ -18,7 +18,9 @@ export default function watch(configs: RollupOptions[] | RollupOptions): RollupW
 }
 
 async function watchInternal(configs: MaybeArray<RollupOptions>, emitter: RollupWatcher) {
-	const optionsList = await Promise.all(ensureArray(configs).map(config => mergeOptions(config)));
+	const optionsList = await Promise.all(
+		ensureArray(configs).map(config => mergeOptions(config, true))
+	);
 	const watchOptionsList = optionsList.filter(config => config.watch !== false);
 	if (watchOptionsList.length === 0) {
 		return error(

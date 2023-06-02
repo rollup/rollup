@@ -82,8 +82,8 @@ async function getConfigs(
 ): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
 	if (command.config) {
 		const configFile = await getConfigPath(command.config);
-		const { options, warnings } = await loadConfigFile(configFile, command);
+		const { options, warnings } = await loadConfigFile(configFile, command, false);
 		return { options, warnings };
 	}
-	return await loadConfigFromCommand(command);
+	return await loadConfigFromCommand(command, false);
 }

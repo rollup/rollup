@@ -1,0 +1,2 @@
+import 'external';
+eval(this);

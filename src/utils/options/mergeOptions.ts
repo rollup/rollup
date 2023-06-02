@@ -4,10 +4,12 @@ import type {
 	LogHandler,
 	MergedRollupOptions,
 	OutputOptions,
+	Plugin,
 	RollupCache,
 	RollupOptions
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
+import { getLogger } from '../logger';
 import { LOGLEVEL_WARN } from '../logging';
 import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
 import type { CommandConfigObject } from './normalizeInputOptions';
@@ -42,12 +44,15 @@ const EMPTY_COMMAND_OPTIONS = { external: [], globals: undefined };
 
 export async function mergeOptions(
 	config: RollupOptions,
+	watchMode: boolean,
 	rawCommandOptions: GenericConfigObject = EMPTY_COMMAND_OPTIONS,
 	printLog?: LogHandler
 ): Promise<MergedRollupOptions> {
 	const command = getCommandOptions(rawCommandOptions);
-	const inputOptions = await mergeInputOptions(config, command, printLog);
-	const log: LogHandler = inputOptions.onLog as LogHandler;
+	const plugins = await normalizePluginOption(config.plugins);
+	const onLog = getOnLog(config, printLog);
+	const log = getLogger(plugins, onLog, watchMode);
+	const inputOptions = await mergeInputOptions(config, command, plugins, log, onLog);
 	if (command.output) {
 		Object.assign(command, command.output);
 	}
@@ -111,13 +116,14 @@ type CompleteInputOptions<U extends keyof InputOptions> = {
 	[K in U]: InputOptions[K];
 };
 
-async function mergeInputOptions(
+function mergeInputOptions(
 	config: InputOptions,
 	overrides: CommandConfigObject,
-	printLog?: LogHandler
-): Promise<InputOptions> {
+	plugins: Plugin[],
+	log: LogHandler,
+	onLog: LogHandler
+): InputOptions {
 	const getOption = (name: keyof InputOptions): any => overrides[name] ?? config[name];
-	const onLog = getOnLog(config, printLog);
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
 		acornInjectPlugins: config.acornInjectPlugins as
@@ -139,7 +145,7 @@ async function mergeInputOptions(
 		onLog,
 		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
 		perf: getOption('perf'),
-		plugins: await normalizePluginOption(config.plugins),
+		plugins,
 		preserveEntrySignatures: getOption('preserveEntrySignatures'),
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
@@ -154,7 +160,7 @@ async function mergeInputOptions(
 		watch: getWatch(config, overrides)
 	};
 
-	warnUnknownOptions(config, Object.keys(inputOptions), 'input options', onLog, /^output$/);
+	warnUnknownOptions(config, Object.keys(inputOptions), 'input options', log, /^output$/);
 	return inputOptions;
 }
 

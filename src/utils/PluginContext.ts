@@ -1,7 +1,6 @@
 import { version as rollupVersion } from 'package.json';
 import type Graph from '../Graph';
 import type {
-	LogLevel,
 	NormalizedInputOptions,
 	Plugin,
 	PluginCache,
@@ -14,13 +13,12 @@ import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
 import {
 	error,
-	errorInvalidLogPosition,
 	errorInvalidRollupPhaseForAddWatchFile,
 	errorPluginError,
 	warnDeprecation
 } from './error';
+import { getLogHandler } from './logHandler';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
-import { normalizeLog } from './options/options';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 import { URL_THIS_GETMODULEIDS } from './urls';
 
@@ -57,19 +55,6 @@ export function getPluginContext(
 		cacheInstance = getCacheForUncacheablePlugin(plugin.name);
 	}
 
-	const getLogHandler =
-		(level: LogLevel, code: string): PluginContext['warn'] =>
-		(log, pos) => {
-			if (pos != null) {
-				options.onLog(LOGLEVEL_WARN, errorInvalidLogPosition(plugin.name));
-			}
-			log = normalizeLog(log);
-			if (log.code) log.pluginCode = log.code;
-			log.code = code;
-			log.plugin = plugin.name;
-			options.onLog(level, log);
-		};
-
 	return {
 		addWatchFile(id) {
 			if (graph.phase >= BuildPhase.GENERATE) {
@@ -78,7 +63,7 @@ export function getPluginContext(
 			graph.watchFiles[id] = true;
 		},
 		cache: cacheInstance,
-		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG'),
+		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', options.onLog, plugin.name),
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(error_): never {
 			return error(errorPluginError(error_, plugin.name));
@@ -87,7 +72,7 @@ export function getPluginContext(
 		getModuleIds: () => graph.modulesById.keys(),
 		getModuleInfo: graph.getModuleInfo,
 		getWatchFiles: () => Object.keys(graph.watchFiles),
-		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG'),
+		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', options.onLog, plugin.name),
 		load(resolvedId) {
 			return graph.moduleLoader.preloadModule(resolvedId);
 		},
@@ -123,6 +108,6 @@ export function getPluginContext(
 			);
 		},
 		setAssetSource: fileEmitter.setAssetSource,
-		warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING')
+		warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', options.onLog, plugin.name)
 	};
 }
