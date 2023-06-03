@@ -4,6 +4,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'allows passing a position to this.warn/info/debug in the transform hook',
 	options: {
+		logLevel: 'debug',
 		plugins: [
 			{
 				name: 'test',

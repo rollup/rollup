@@ -38,6 +38,7 @@ module.exports = defineTest({
 		assert.strictEqual(logs[2][1].toString(), '(fooPlugin plugin) fooFile (1:2) warnLog');
 	},
 	options: {
+		logLevel: 'debug',
 		onwarn(warning, handler) {
 			logs.push(['onwarn', warning]);
 			if (!warning.message.endsWith('-')) {

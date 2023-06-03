@@ -1,5 +1,6 @@
 export default {
 	input: 'main.js',
+	logLevel: 'debug',
 	plugins: [
 		{
 			name: 'test',

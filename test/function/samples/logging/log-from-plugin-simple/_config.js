@@ -22,6 +22,7 @@ module.exports = defineTest({
 		]);
 	},
 	options: {
+		logLevel: 'debug',
 		onwarn: null,
 		onLog: null,
 		plugins: [

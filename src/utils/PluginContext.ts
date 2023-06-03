@@ -30,6 +30,7 @@ export function getPluginContext(
 	fileEmitter: FileEmitter,
 	existingPluginNames: Set<string>
 ): PluginContext {
+	const { logLevel, onLog } = options;
 	let cacheable = true;
 	if (typeof plugin.cacheKey !== 'string') {
 		if (
@@ -63,7 +64,7 @@ export function getPluginContext(
 			graph.watchFiles[id] = true;
 		},
 		cache: cacheInstance,
-		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', options.onLog, plugin.name),
+		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(error_): never {
 			return error(errorPluginError(error_, plugin.name));
@@ -72,7 +73,7 @@ export function getPluginContext(
 		getModuleIds: () => graph.modulesById.keys(),
 		getModuleInfo: graph.getModuleInfo,
 		getWatchFiles: () => Object.keys(graph.watchFiles),
-		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', options.onLog, plugin.name),
+		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		load(resolvedId) {
 			return graph.moduleLoader.preloadModule(resolvedId);
 		},
@@ -108,6 +109,6 @@ export function getPluginContext(
 			);
 		},
 		setAssetSource: fileEmitter.setAssetSource,
-		warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', options.onLog, plugin.name)
+		warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', onLog, plugin.name, logLevel)
 	};
 }

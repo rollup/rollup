@@ -2,6 +2,7 @@ import type {
 	InputOptions,
 	InputPluginOption,
 	LogHandler,
+	LogLevelOption,
 	NormalizedGeneratedCodeOptions,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -16,7 +17,7 @@ import type {
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
 import { error, errorInvalidOption, errorUnknownOption } from '../error';
-import { LOGLEVEL_DEBUG, LOGLEVEL_ERROR, LOGLEVEL_WARN } from '../logging';
+import { LOGLEVEL_DEBUG, LOGLEVEL_ERROR, LOGLEVEL_WARN, logLevelPriority } from '../logging';
 import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
 
@@ -26,17 +27,21 @@ export interface GenericConfigObject {
 
 export const getOnLog = (
 	config: InputOptions,
+	logLevel: LogLevelOption,
 	printLog = defaultPrintLog
 ): NormalizedInputOptions['onLog'] => {
 	const { onwarn, onLog } = config;
 	const defaultOnLog = getDefaultOnLog(printLog, onwarn);
 	if (onLog) {
+		const minimalPriority = logLevelPriority[logLevel];
 		return (level, log) =>
 			onLog(level, addLogToString(log), (level, handledLog) => {
 				if (level === LOGLEVEL_ERROR) {
 					return error(normalizeLog(handledLog));
 				}
-				defaultOnLog(level, normalizeLog(handledLog));
+				if (logLevelPriority[level] >= minimalPriority) {
+					defaultOnLog(level, normalizeLog(handledLog));
+				}
 			});
 	}
 	return defaultOnLog;

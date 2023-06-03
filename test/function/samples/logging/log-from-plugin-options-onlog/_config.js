@@ -41,6 +41,7 @@ module.exports = defineTest({
 		assert.strictEqual(logs[2][2].toString(), '(fooPlugin plugin) fooFile (1:2) warnLog');
 	},
 	options: {
+		logLevel: 'debug',
 		onwarn: null,
 		onLog(level, log, handler) {
 			logs.push(['onLog', level, log]);

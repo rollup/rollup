@@ -7,6 +7,7 @@ const logs = [];
 module.exports = defineTest({
 	description: 'allows plugins to read and filter logs',
 	options: {
+		logLevel: 'debug',
 		plugins: [
 			{
 				name: 'first',

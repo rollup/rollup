@@ -10,7 +10,7 @@ import type {
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { getLogger } from '../logger';
-import { LOGLEVEL_WARN } from '../logging';
+import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../logging';
 import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
 import type { CommandConfigObject } from './normalizeInputOptions';
 import {
@@ -50,8 +50,9 @@ export async function mergeOptions(
 ): Promise<MergedRollupOptions> {
 	const command = getCommandOptions(rawCommandOptions);
 	const plugins = await normalizePluginOption(config.plugins);
-	const onLog = getOnLog(config, printLog);
-	const log = getLogger(plugins, onLog, watchMode);
+	const logLevel = config.logLevel || LOGLEVEL_INFO;
+	const onLog = getOnLog(config, logLevel, printLog);
+	const log = getLogger(plugins, onLog, watchMode, logLevel);
 	const inputOptions = await mergeInputOptions(config, command, plugins, log, onLog);
 	if (command.output) {
 		Object.assign(command, command.output);
@@ -137,6 +138,7 @@ function mergeInputOptions(
 		external: getExternal(config, overrides),
 		inlineDynamicImports: getOption('inlineDynamicImports'),
 		input: getOption('input') || [],
+		logLevel: getOption('logLevel'),
 		makeAbsoluteExternalsRelative: getOption('makeAbsoluteExternalsRelative'),
 		manualChunks: getOption('manualChunks'),
 		maxParallelFileOps: getOption('maxParallelFileOps'),

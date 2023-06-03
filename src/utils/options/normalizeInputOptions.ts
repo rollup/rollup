@@ -12,7 +12,7 @@ import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
 import { getLogger } from '../logger';
-import { LOGLEVEL_WARN } from '../logging';
+import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../logging';
 import { resolve } from '../path';
 import {
 	URL_MAXPARALLELFILEOPS,
@@ -49,7 +49,8 @@ export async function normalizeInputOptions(
 
 	const context = config.context ?? 'undefined';
 	const plugins = await normalizePluginOption(config.plugins);
-	const onLog = getLogger(plugins, getOnLog(config), watchMode);
+	const logLevel = config.logLevel || LOGLEVEL_INFO;
+	const onLog = getLogger(plugins, getOnLog(config, logLevel), watchMode, logLevel);
 	const strictDeprecations = config.strictDeprecations || false;
 	const maxParallelFileOps = getMaxParallelFileOps(config, onLog, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
@@ -62,6 +63,7 @@ export async function normalizeInputOptions(
 		external: getIdMatcher(config.external),
 		inlineDynamicImports: getInlineDynamicImports(config, onLog, strictDeprecations),
 		input: getInput(config),
+		logLevel,
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
 		manualChunks: getManualChunks(config, onLog, strictDeprecations),
 		maxParallelFileOps,

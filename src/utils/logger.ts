@@ -1,23 +1,43 @@
 import { version as rollupVersion } from 'package.json';
-import type { LoggingFunction, LogHandler, LogLevel, Plugin, RollupLog } from '../rollup/types';
+import type {
+	LoggingFunction,
+	LogHandler,
+	LogLevel,
+	LogLevelOption,
+	Plugin,
+	RollupLog
+} from '../rollup/types';
 import { getSortedValidatedPlugins } from './PluginDriver';
 import { EMPTY_SET } from './blank';
+import { doNothing } from './doNothing';
 import { error, errorPluginError } from './error';
-import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
+import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN, logLevelPriority } from './logging';
 import { normalizeLog } from './options/options';
 
-export function getLogger(plugins: Plugin[], onLog: LogHandler, watchMode: boolean): LogHandler {
+export function getLogger(
+	plugins: Plugin[],
+	onLog: LogHandler,
+	watchMode: boolean,
+	logLevel: LogLevelOption
+): LogHandler {
 	plugins = getSortedValidatedPlugins('onLog', plugins);
+	const minimalPriority = logLevelPriority[logLevel];
 	const logger = (level: LogLevel, log: RollupLog, skipped: ReadonlySet<Plugin> = EMPTY_SET) => {
+		const logPriority = logLevelPriority[level];
+		if (logPriority < minimalPriority) {
+			return;
+		}
 		for (const plugin of plugins) {
 			if (skipped.has(plugin)) continue;
 
 			const { name, onLog: pluginOnLog } = plugin;
 
-			const getLogHandler =
-				(level: LogLevel): LoggingFunction =>
-				log =>
-					logger(level, normalizeLog(log), new Set(skipped).add(plugin));
+			const getLogHandler = (level: LogLevel): LoggingFunction => {
+				if (logLevelPriority[level] < minimalPriority) {
+					return doNothing;
+				}
+				return log => logger(level, normalizeLog(log), new Set(skipped).add(plugin));
+			};
 
 			const handler = 'handler' in pluginOnLog! ? pluginOnLog.handler : pluginOnLog!;
 			if (

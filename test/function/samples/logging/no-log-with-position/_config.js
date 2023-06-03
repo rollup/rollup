@@ -2,6 +2,7 @@ module.exports = defineTest({
 	description:
 		'does not support passing a position to this.warn/info/debug outside the transform hook',
 	options: {
+		logLevel: 'debug',
 		plugins: [
 			{
 				name: 'test',

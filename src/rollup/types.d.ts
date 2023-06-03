@@ -42,6 +42,7 @@ export interface RollupLog {
 }
 
 export type LogLevel = 'warn' | 'info' | 'debug';
+export type LogLevelOption = LogLevel | 'silent';
 
 export type SourceMapSegment =
 	| [number]
@@ -570,6 +571,7 @@ export interface InputOptions {
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
+	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
@@ -606,6 +608,7 @@ export interface NormalizedInputOptions {
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports: boolean | undefined;
 	input: string[] | { [entryAlias: string]: string };
+	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks: ManualChunksOption | undefined;

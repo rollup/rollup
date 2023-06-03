@@ -84,6 +84,7 @@ module.exports = defineTest({
 		]);
 	},
 	options: {
+		logLevel: 'debug',
 		onwarn(warning) {
 			logs.push(['onwarn', warning]);
 		},

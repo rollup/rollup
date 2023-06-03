@@ -1,6 +1,7 @@
 /**
  * @typedef {import('../src/rollup/types').RollupError} RollupError
- * @typedef {import('../src/rollup/types').RollupLogWithOptionalLevel} RollupLogWithOptionalLevel
+ * @typedef {import('../src/rollup/types').RollupLog} RollupLog
+ * @typedef {import('../src/rollup/types').LogLevel} LogLevel
  * @typedef {import('../src/rollup/types').Plugin} Plugin
  * @typedef {import('./types').TestConfigBase} TestConfigBase
  */
@@ -64,14 +65,15 @@ exports.compareError = function compareError(actual, expected) {
 };
 
 /**
- * @param {RollupLogWithOptionalLevel[]} actual
- * @param {RollupLogWithOptionalLevel[]} expected
+ * @param {(RollupLog & {level: LogLevel})[]} actual
+ * @param {(RollupLog & {level: LogLevel})[]} expected
  */
 exports.compareLogs = function compareLogs(actual, expected) {
-	const normalizedActual = actual.map(normaliseError).sort(sortLogs);
+	const normalizedActual = actual.map(normaliseError);
+	const sortedActual = normalizedActual.sort(sortLogs);
 	try {
 		assert.deepEqual(
-			normalizedActual,
+			sortedActual,
 			expected
 				.map(warning => {
 					if (warning.frame) {
@@ -88,8 +90,8 @@ exports.compareLogs = function compareLogs(actual, expected) {
 };
 
 /**
- * @param {RollupLogWithOptionalLevel} a
- * @param {RollupLogWithOptionalLevel} b
+ * @param {RollupLog} a
+ * @param {RollupLog} b
  */
 function sortLogs(a, b) {
 	return a.message === b.message ? 0 : a.message < b.message ? -1 : 1;

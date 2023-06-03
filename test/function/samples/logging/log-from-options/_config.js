@@ -1,6 +1,7 @@
 module.exports = defineTest({
 	description: 'can log from the options hook',
 	options: {
+		logLevel: 'debug',
 		plugins: [
 			{
 				name: 'test',

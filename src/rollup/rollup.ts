@@ -130,7 +130,8 @@ async function getProcessedInputOptions(
 		'options',
 		await normalizePluginOption(inputOptions.plugins)
 	);
-	const logger = getLogger(plugins, getOnLog(inputOptions), watchMode);
+	const logLevel = inputOptions.logLevel || LOGLEVEL_INFO;
+	const logger = getLogger(plugins, getOnLog(inputOptions, logLevel), watchMode, logLevel);
 
 	for (const plugin of plugins) {
 		const { name, options } = plugin;
@@ -139,11 +140,11 @@ async function getProcessedInputOptions(
 			const handler = 'handler' in options ? options.handler : options;
 			const processedOptions = await handler.call(
 				{
-					debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', logger, name),
+					debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', logger, name, logLevel),
 					error: (error_): never => error(errorPluginError(error_, name, { hook: 'onLog' })),
-					info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', logger, name),
+					info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', logger, name, logLevel),
 					meta: { rollupVersion, watchMode },
-					warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', logger, name)
+					warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', logger, name, logLevel)
 				},
 				inputOptions
 			);
