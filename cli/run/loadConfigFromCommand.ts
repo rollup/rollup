@@ -13,7 +13,7 @@ export default async function loadConfigFromCommand(
 	options: MergedRollupOptions[];
 	warnings: BatchWarnings;
 }> {
-	const warnings = batchWarnings();
+	const warnings = batchWarnings(!!command.silent);
 	if (!command.input && (command.stdin || !process.stdin.isTTY)) {
 		command.input = stdinName;
 	}

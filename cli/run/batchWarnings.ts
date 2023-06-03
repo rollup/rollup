@@ -18,7 +18,7 @@ import {
 import { stderr } from '../logging';
 import type { BatchWarnings } from './loadConfigFileType';
 
-export default function batchWarnings(): BatchWarnings {
+export default function batchWarnings(silent: boolean): BatchWarnings {
 	let count = 0;
 	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupLog[]>();
 	let warningOccurred = false;
@@ -27,6 +27,7 @@ export default function batchWarnings(): BatchWarnings {
 		count += 1;
 		warningOccurred = true;
 
+		if (silent) return;
 		if (warning.code! in deferredHandlers) {
 			getOrCreate(deferredWarnings, warning.code!, getNewArray).push(warning);
 		} else if (warning.code! in immediateHandlers) {
@@ -45,7 +46,7 @@ export default function batchWarnings(): BatchWarnings {
 		},
 
 		flush() {
-			if (count === 0) return;
+			if (count === 0 || silent) return;
 
 			const codes = [...deferredWarnings.keys()].sort(
 				(a, b) => deferredWarnings.get(b)!.length - deferredWarnings.get(a)!.length
@@ -65,12 +66,17 @@ export default function batchWarnings(): BatchWarnings {
 					return add(log);
 				}
 				case LOGLEVEL_DEBUG: {
-					stderr(bold(blue(log.message)));
-					return defaultBody(log);
+					if (!silent) {
+						stderr(bold(blue(log.message)));
+						defaultBody(log);
+					}
+					return;
 				}
 				default: {
-					stderr(bold(cyan(log.message)));
-					return defaultBody(log);
+					if (!silent) {
+						stderr(bold(cyan(log.message)));
+						defaultBody(log);
+					}
 				}
 			}
 		},
