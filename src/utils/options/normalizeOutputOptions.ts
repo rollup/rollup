@@ -14,7 +14,7 @@ import {
 } from '../error';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
-import { isValidUrl } from '../url';
+import { addTrailingSlashIfMissed, isValidUrl } from '../url';
 import {
 	URL_OUTPUT_AMD_BASEPATH,
 	URL_OUTPUT_AMD_ID,
@@ -537,7 +537,7 @@ const getSourcemapBaseUrl = (
 	const { sourcemapBaseUrl } = config;
 	if (sourcemapBaseUrl) {
 		if (isValidUrl(sourcemapBaseUrl)) {
-			return sourcemapBaseUrl;
+			return addTrailingSlashIfMissed(sourcemapBaseUrl);
 		}
 		return error(
 			errorInvalidOption(

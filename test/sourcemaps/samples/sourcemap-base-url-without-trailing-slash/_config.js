@@ -1,16 +1,15 @@
 const assert = require('node:assert');
 
 module.exports = defineTest({
-	description: 'adds a sourcemap base url',
+	description: 'add a trailing slash automatically if it is missing',
 	options: {
 		output: {
-			sourcemapBaseUrl: 'https://example.com/a/'
+			sourcemapBaseUrl: 'https://example.com/a'
 		}
 	},
 	test: (code, map, { format }) => {
-		assert.equal(map.file, `bundle.${format}.js`);
 		const sourceMappingURL = code.split('\n').slice(-2)[0];
-		assert.equal(
+		assert.strictEqual(
 			sourceMappingURL,
 			`//# sourceMappingURL=https://example.com/a/bundle.${format}.js.map`
 		);
