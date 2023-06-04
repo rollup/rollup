@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 3.23.1
+
+_2023-06-04_
+
+### Bug Fixes
+
+- Ensure the last segment of sourcemapBaseUrl is never omitted (#5022)
+
+### Pull Requests
+
+- [#5006](https://github.com/rollup/rollup/pull/5006): Better workflow caching (@lukastaegert)
+- [#5012](https://github.com/rollup/rollup/pull/5012): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5022](https://github.com/rollup/rollup/pull/5022): fix: add a trailing slash automatically for sourcemapBaseUrl (@TrickyPi)
+- [#5023](https://github.com/rollup/rollup/pull/5023): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 3.23.0
 
 _2023-05-22_
