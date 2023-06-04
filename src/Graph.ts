@@ -17,6 +17,7 @@ import type {
 import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
+import { addAnnotations } from './utils/commentAnnotations';
 import {
 	error,
 	errorCircularDependency,
@@ -24,7 +25,6 @@ import {
 	errorMissingExport
 } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
-import { addAnnotations } from './utils/pureComments';
 import { getPureFunctions } from './utils/pureFunctions';
 import type { PureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';

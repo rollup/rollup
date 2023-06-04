@@ -41,7 +41,7 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		if (interaction.type === INTERACTION_CALLED) {
 			if (
 				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-				this.annotations
+				this.annotationNoSideEffects
 			) {
 				return false;
 			}

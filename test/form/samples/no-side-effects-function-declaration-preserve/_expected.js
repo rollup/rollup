@@ -1,4 +1,4 @@
-/*#__PURE__*/
+/*#__NO_SIDE_EFFECTS__*/
 function fnFromSub (args) {
   console.log(args);
   return args
@@ -13,31 +13,31 @@ function fnEffects(args) {
   return args
 }
 
-/*#__PURE__*/
+/*#__NO_SIDE_EFFECTS__*/
 function fnA (args) {
   console.log(args);
   return args
 }
 
-/*#__PURE__*/
+/*#__NO_SIDE_EFFECTS__*/
 function fnB (args) {
   console.log(args);
   return args
 }
 
-const fnC = /*#__PURE__*/ (args) => {
+const fnC = /*#__NO_SIDE_EFFECTS__*/ (args) => {
   console.log(args);
   return args
 };
 
 
-/*#__PURE__*/ 
+/*#__NO_SIDE_EFFECTS__*/ 
 const fnD = (args) => {
   console.log(args);
   return args
 };
 
-/*#__PURE__*/ 
+/*#__NO_SIDE_EFFECTS__*/ 
 const fnE = (args) => {
   console.log(args);
   return args
@@ -47,7 +47,7 @@ const fnE = (args) => {
  * This is a jsdoc comment, with pure annotation
  * 
  * @param {any} args
- * @__PURE__
+ * @__NO_SIDE_EFFECTS__
  */ 
 const fnF = (args) => {
   console.log(args);

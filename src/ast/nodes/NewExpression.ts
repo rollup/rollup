@@ -23,7 +23,7 @@ export default class NewExpression extends NodeBase {
 			}
 			if (
 				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-				this.annotations
+				this.annotationPure
 			) {
 				return false;
 			}

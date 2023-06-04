@@ -17,9 +17,15 @@ import {
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
+export type AnnotationType = 'noSideEffects' | 'pure';
+
+export interface RollupAnnotation extends acorn.Comment {
+	annotationType: AnnotationType;
+}
+
 interface CommentState {
 	annotationIndex: number;
-	annotations: acorn.Comment[];
+	annotations: RollupAnnotation[];
 	code: string;
 }
 
@@ -159,25 +165,32 @@ function doesNotMatchOutsideComment(code: string, forbiddenChars: RegExp): boole
 	return true;
 }
 
-const pureCommentRegex = /[#@]__PURE__/;
+const annotationsRegexes: [AnnotationType, RegExp][] = [
+	['pure', /[#@]__PURE__/],
+	['noSideEffects', /[#@]__NO_SIDE_EFFECTS__/]
+];
 
 export function addAnnotations(
 	comments: readonly acorn.Comment[],
 	esTreeAst: acorn.Node,
 	code: string
 ): void {
-	const annotations: acorn.Comment[] = [];
+	const annotations: RollupAnnotation[] = [];
 	const sourceMappingComments: acorn.Comment[] = [];
 	for (const comment of comments) {
-		if (pureCommentRegex.test(comment.value)) {
-			annotations.push(comment);
-		} else if (SOURCEMAPPING_URL_RE.test(comment.value)) {
+		for (const [annotationType, regex] of annotationsRegexes) {
+			if (regex.test(comment.value)) {
+				annotations.push({ ...comment, annotationType });
+			}
+		}
+		if (SOURCEMAPPING_URL_RE.test(comment.value)) {
 			sourceMappingComments.push(comment);
 		}
 	}
 	for (const comment of sourceMappingComments) {
 		annotateNode(esTreeAst, comment, false);
 	}
+
 	handlePureAnnotationsOfNode(esTreeAst, {
 		annotationIndex: 0,
 		annotations,

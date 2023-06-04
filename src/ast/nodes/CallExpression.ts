@@ -59,7 +59,7 @@ export default class CallExpression
 			}
 			if (
 				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-				this.annotations
+				this.annotationPure
 			)
 				return false;
 			return (

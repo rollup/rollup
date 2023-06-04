@@ -49,7 +49,7 @@ export default class FunctionNode extends FunctionBase {
 
 		if (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-			this.annotations
+			this.annotationNoSideEffects
 		) {
 			return false;
 		}
@@ -66,7 +66,7 @@ export default class FunctionNode extends FunctionBase {
 
 		if (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-			this.annotations
+			this.annotationNoSideEffects
 		) {
 			return false;
 		}
