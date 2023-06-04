@@ -44,7 +44,7 @@ const fnE = (args) => {
 };
 
 /**
- * This is a jsdoc comment, with pure annotation
+ * This is a jsdoc comment, with no side effects annotation
  * 
  * @param {any} args
  * @__NO_SIDE_EFFECTS__
@@ -56,4 +56,15 @@ const fnF = (args) => {
 
 const fnAlias = fnA;
 
-export { fnA, fnAlias, fnB, fnC, fnD, fnE, fnEffects, fnF, fnFromSub, fnPure };
+/**
+ * Have both annotations
+ * 
+ * @__PURE__
+ * @__NO_SIDE_EFFECTS__
+ */
+const fnBothAnnotations = (args) => {
+  console.log(args);
+  return args
+};
+
+export { fnA, fnAlias, fnB, fnBothAnnotations, fnC, fnD, fnE, fnEffects, fnF, fnFromSub, fnPure };

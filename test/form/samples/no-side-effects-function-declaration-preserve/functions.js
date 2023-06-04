@@ -41,7 +41,7 @@ export const fnE = (args) => {
 }
 
 /**
- * This is a jsdoc comment, with pure annotation
+ * This is a jsdoc comment, with no side effects annotation
  * 
  * @param {any} args
  * @__NO_SIDE_EFFECTS__
@@ -60,3 +60,14 @@ export default function fnDefault(args) {
 export * from './sub-functions'
 
 export const fnAlias = fnA
+
+/**
+ * Have both annotations
+ * 
+ * @__PURE__
+ * @__NO_SIDE_EFFECTS__
+ */
+export const fnBothAnnotations = (args) => {
+  console.log(args)
+  return args
+}

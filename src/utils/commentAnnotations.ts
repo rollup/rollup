@@ -13,7 +13,8 @@ import {
 	LogicalExpression,
 	NewExpression,
 	SequenceExpression,
-	VariableDeclaration
+	VariableDeclaration,
+	VariableDeclarator
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
@@ -112,15 +113,17 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 				case VariableDeclaration: {
 					// case: /*#__PURE__*/ const foo = () => {}
 					const declaration = node as any;
-					if (declaration.declarations.length === 1 && declaration.kind === 'const') {
-						const init = declaration.declarations[0].init;
-						if (init.type === ArrowFunctionExpression || init.type === FunctionDeclaration) {
-							node = init;
-							continue;
-						}
+					if (declaration.kind === 'const') {
+						// jsdoc only applies to the first declaration
+						node = declaration.declarations[0].init;
+						continue;
 					}
 					invalidAnnotation = true;
 					break;
+				}
+				case VariableDeclarator: {
+					node = (node as any).init;
+					continue;
 				}
 				case FunctionDeclaration:
 				case ArrowFunctionExpression:
@@ -129,6 +132,7 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					break;
 				}
 				default: {
+					console.log({ node });
 					invalidAnnotation = true;
 				}
 			}
