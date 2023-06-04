@@ -64,21 +64,19 @@ const _amdOutputOptions: rollup.OutputOptions['amd'][] = [
 		autoId: false
 	},
 	{
-		// @ts-expect-error for "basePath", "autoId" needs to be true
 		autoId: false,
+		// @ts-expect-error for "basePath", "autoId" needs to be true
 		basePath: '',
-		// @ts-expect-error cannot combine "id" and "basePath"
 		id: 'a'
 	},
 	{
-		// @ts-expect-error cannot combine "id" and "autoId"
 		autoId: true,
 		// @ts-expect-error cannot combine "id" and "autoId"
 		id: 'a'
 	},
 	{
-		basePath: '',
 		// @ts-expect-error cannot combine "id" and "basePath"
+		basePath: '',
 		id: 'a'
 	},
 	// @ts-expect-error needs "autoId" for "basePath"
