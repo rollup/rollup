@@ -2021,7 +2021,11 @@ If you discover a bug caused by the tree-shaking algorithm, please file an issue
 |     CLI: | `--treeshake.annotations`/`--no-treeshake.annotations` |
 | Default: | `true`                                                 |
 
-If `false`, ignore hints from pure annotations, i.e. comments containing `@__PURE__` or `#__PURE__`, when determining side effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely removed unless this option is set to `false`, in which case it will remain unchanged.
+If `false`, ignore hints from annotation in comments:
+
+##### `@__PURE__`
+
+For comments containing `@__PURE__` or `#__PURE__`, when determining side effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely treeshaken unless this option is set to `false`, in which case it will remain unchanged.
 
 ```javascript
 /*@__PURE__*/ console.log('side-effect');
@@ -2033,6 +2037,25 @@ class Impure {
 }
 
 /*@__PURE__*/ new Impure();
+```
+
+##### `@__NO_SIDE_EFFECTS__`
+
+For comments containing `@__NO_SIDE_EFFECTS__` or `#__NO_SIDE_EFFECTS__`, when determining side effects of function declaration. When a function been marked as no side effects, all calls to that function will be considered as no side effects. The following code will be completely treeshaken unless this option is set to `false`, in which case it will remain unchanged.
+
+```javascript
+/*@__NO_SIDE_EFFECTS__*/
+function impure() {
+	console.log('side-effect');
+}
+
+/*@__NO_SIDE_EFFECTS__*/
+const impureArrowFn = () => {
+	console.log('side-effect');
+};
+
+impure(); // <-- call will be considered as no side effects
+impureArrowFn(); // <-- call will be considered as no side effects
 ```
 
 #### treeshake.correctVarValueBeforeDeclaration
