@@ -67,4 +67,11 @@ const fnBothAnnotations = (args) => {
   return args
 };
 
-export { fnA, fnAlias, fnB, fnBothAnnotations, fnC, fnD, fnE, fnEffects, fnF, fnFromSub, fnPure };
+// This annonation get ignored
+
+let fnLet = (args) => {
+  console.log(args);
+  return args
+};
+
+export { fnA, fnAlias, fnB, fnBothAnnotations, fnC, fnD, fnE, fnEffects, fnF, fnFromSub, fnLet, fnPure };

@@ -2,6 +2,7 @@ import type * as acorn from 'acorn';
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
+import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import type { RollupAnnotation } from '../../../utils/commentAnnotations';
 import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/commentAnnotations';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
@@ -268,13 +269,14 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (this.hasOwnProperty(key)) continue;
 			if (key.charCodeAt(0) === 95 /* _ */) {
 				if (key === ANNOTATION_KEY) {
-					this.annotations = value;
-					this.annotationNoSideEffects = this.annotations!.some(
-						comment => comment.annotationType === 'noSideEffects'
-					);
-					this.annotationPure = this.annotations!.some(
-						comment => comment.annotationType === 'pure'
-					);
+					const annotations = value as RollupAnnotation[];
+					this.annotations = annotations;
+					if ((this.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
+						this.annotationNoSideEffects = annotations.some(
+							comment => comment.annotationType === 'noSideEffects'
+						);
+						this.annotationPure = annotations.some(comment => comment.annotationType === 'pure');
+					}
 				} else if (key === INVALID_COMMENT_KEY) {
 					for (const { start, end } of value as acorn.Comment[])
 						this.context.magicString.remove(start, end);

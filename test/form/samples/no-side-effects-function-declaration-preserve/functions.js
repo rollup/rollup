@@ -71,3 +71,10 @@ export const fnBothAnnotations = (args) => {
   console.log(args)
   return args
 }
+
+// This annonation get ignored
+/** @__NO_SIDE_EFFECTS__ */
+export let fnLet = (args) => {
+  console.log(args)
+  return args
+}

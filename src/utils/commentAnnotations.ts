@@ -132,7 +132,6 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					break;
 				}
 				default: {
-					console.log({ node });
 					invalidAnnotation = true;
 				}
 			}
