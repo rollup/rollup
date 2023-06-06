@@ -18,14 +18,14 @@ import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
 import { addAnnotations } from './utils/commentAnnotations';
-import {
-	error,
-	errorCircularDependency,
-	errorImplicitDependantIsNotIncluded,
-	errorMissingExport
-} from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { LOGLEVEL_WARN } from './utils/logging';
+import {
+	error,
+	logCircularDependency,
+	logImplicitDependantIsNotIncluded,
+	logMissingExport
+} from './utils/logs';
 import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';
@@ -225,7 +225,7 @@ export default class Graph {
 		for (const module of this.implicitEntryModules) {
 			for (const dependant of module.implicitlyLoadedAfter) {
 				if (!(dependant.info.isEntry || dependant.isIncluded())) {
-					error(errorImplicitDependantIsNotIncluded(dependant));
+					error(logImplicitDependantIsNotIncluded(dependant));
 				}
 			}
 		}
@@ -234,7 +234,7 @@ export default class Graph {
 	private sortModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
-			this.options.onLog(LOGLEVEL_WARN, errorCircularDependency(cyclePath));
+			this.options.onLog(LOGLEVEL_WARN, logCircularDependency(cyclePath));
 		}
 		this.modules = orderedModules;
 		for (const module of this.modules) {
@@ -252,7 +252,7 @@ export default class Graph {
 				) {
 					module.log(
 						LOGLEVEL_WARN,
-						errorMissingExport(importDescription.name, module.id, importDescription.module.id),
+						logMissingExport(importDescription.name, module.id, importDescription.module.id),
 						importDescription.start
 					);
 				}

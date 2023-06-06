@@ -1,6 +1,6 @@
 import { env } from 'node:process';
 import type { MergedRollupOptions } from '../../src/rollup/types';
-import { errorDuplicateImportOptions, errorFailAfterWarnings } from '../../src/utils/error';
+import { logDuplicateImportOptions, logFailAfterWarnings } from '../../src/utils/logs';
 import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { loadFsEvents } from '../../src/watch/fsevents-importer';
@@ -15,7 +15,7 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 	let inputSource;
 	if (command._.length > 0) {
 		if (command.input) {
-			handleError(errorDuplicateImportOptions());
+			handleError(logDuplicateImportOptions());
 		}
 		inputSource = command._;
 	} else if (typeof command.input === 'string') {
@@ -65,7 +65,7 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 				}
 				if (command.failAfterWarnings && warnings.warningOccurred) {
 					warnings.flush();
-					handleError(errorFailAfterWarnings());
+					handleError(logFailAfterWarnings());
 				}
 			} catch (error: any) {
 				warnings.flush();

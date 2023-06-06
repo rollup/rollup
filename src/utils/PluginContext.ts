@@ -11,14 +11,14 @@ import type { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
-import {
-	error,
-	errorInvalidRollupPhaseForAddWatchFile,
-	errorPluginError,
-	warnDeprecation
-} from './error';
 import { getLogHandler } from './logHandler';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
+import {
+	error,
+	logInvalidRollupPhaseForAddWatchFile,
+	logPluginError,
+	warnDeprecation
+} from './logs';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 import { URL_THIS_GETMODULEIDS } from './urls';
 
@@ -59,7 +59,7 @@ export function getPluginContext(
 	return {
 		addWatchFile(id) {
 			if (graph.phase >= BuildPhase.GENERATE) {
-				return this.error(errorInvalidRollupPhaseForAddWatchFile());
+				return this.error(logInvalidRollupPhaseForAddWatchFile());
 			}
 			graph.watchFiles[id] = true;
 		},
@@ -67,7 +67,7 @@ export function getPluginContext(
 		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(error_): never {
-			return error(errorPluginError(error_, plugin.name));
+			return error(logPluginError(error_, plugin.name));
 		},
 		getFileName: fileEmitter.getFileName,
 		getModuleIds: () => graph.modulesById.keys(),

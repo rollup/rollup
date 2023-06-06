@@ -1,4 +1,4 @@
-import { error, errorFailedValidation } from './error';
+import { error, logFailedValidation } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { lowercaseBundleKeys } from './outputBundle';
 import { extname } from './path';
@@ -11,7 +11,7 @@ export function renderNamePattern(
 ): string {
 	if (isPathFragment(pattern))
 		return error(
-			errorFailedValidation(
+			logFailedValidation(
 				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths. If you want your files to be stored in a subdirectory, write its name without a leading slash like this: subdirectory/pattern.`
 			)
 		);
@@ -20,7 +20,7 @@ export function renderNamePattern(
 		(_match, type: string, size: `:${string}` | undefined) => {
 			if (!replacements.hasOwnProperty(type) || (size && type !== 'hash')) {
 				return error(
-					errorFailedValidation(
+					logFailedValidation(
 						`"[${type}${size || ''}]" is not a valid placeholder in the "${patternName}" pattern.`
 					)
 				);
@@ -28,7 +28,7 @@ export function renderNamePattern(
 			const replacement = replacements[type](size && Number.parseInt(size.slice(1)));
 			if (isPathFragment(replacement))
 				return error(
-					errorFailedValidation(
+					logFailedValidation(
 						`Invalid substitution "${replacement}" for placeholder "[${type}]" in "${patternName}" pattern, can be neither absolute nor relative path.`
 					)
 				);

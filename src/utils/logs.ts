@@ -127,7 +127,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	UNUSED_EXTERNAL_IMPORT = 'UNUSED_EXTERNAL_IMPORT',
 	VALIDATION_ERROR = 'VALIDATION_ERROR';
 
-export function errorAddonNotGenerated(message: string, hook: string, plugin: string): RollupLog {
+export function logAddonNotGenerated(message: string, hook: string, plugin: string): RollupLog {
 	return {
 		code: ADDON_ERROR,
 		message: `Could not retrieve "${hook}". Check configuration of plugin "${plugin}".
@@ -135,14 +135,14 @@ export function errorAddonNotGenerated(message: string, hook: string, plugin: st
 	};
 }
 
-export function errorAlreadyClosed(): RollupLog {
+export function logAlreadyClosed(): RollupLog {
 	return {
 		code: ALREADY_CLOSED,
 		message: 'Bundle is already closed, no more calls to "generate" or "write" are allowed.'
 	};
 }
 
-export function errorAmbiguousExternalNamespaces(
+export function logAmbiguousExternalNamespaces(
 	binding: string,
 	reexportingModule: string,
 	usedModule: string,
@@ -161,7 +161,7 @@ export function errorAmbiguousExternalNamespaces(
 	};
 }
 
-export function errorAnonymousPluginCache(): RollupLog {
+export function logAnonymousPluginCache(): RollupLog {
 	return {
 		code: ANONYMOUS_PLUGIN_CACHE,
 		message:
@@ -169,35 +169,35 @@ export function errorAnonymousPluginCache(): RollupLog {
 	};
 }
 
-export function errorAssetNotFinalisedForFileName(name: string): RollupLog {
+export function logAssetNotFinalisedForFileName(name: string): RollupLog {
 	return {
 		code: ASSET_NOT_FINALISED,
 		message: `Plugin error - Unable to get file name for asset "${name}". Ensure that the source is set and that generate is called first. If you reference assets via import.meta.ROLLUP_FILE_URL_<referenceId>, you need to either have set their source after "renderStart" or need to provide an explicit "fileName" when emitting them.`
 	};
 }
 
-export function errorAssetReferenceIdNotFoundForSetSource(assetReferenceId: string): RollupLog {
+export function logAssetReferenceIdNotFoundForSetSource(assetReferenceId: string): RollupLog {
 	return {
 		code: ASSET_NOT_FOUND,
 		message: `Plugin error - Unable to set the source for unknown asset "${assetReferenceId}".`
 	};
 }
 
-export function errorAssetSourceAlreadySet(name: string): RollupLog {
+export function logAssetSourceAlreadySet(name: string): RollupLog {
 	return {
 		code: ASSET_SOURCE_ALREADY_SET,
 		message: `Unable to set the source for asset "${name}", source already set.`
 	};
 }
 
-export function errorNoAssetSourceSet(assetName: string): RollupLog {
+export function logNoAssetSourceSet(assetName: string): RollupLog {
 	return {
 		code: ASSET_SOURCE_MISSING,
 		message: `Plugin error creating asset "${assetName}" - no asset source set.`
 	};
 }
 
-export function errorBadLoader(id: string): RollupLog {
+export function logBadLoader(id: string): RollupLog {
 	return {
 		code: BAD_LOADER,
 		message: `Error loading "${relativeId(
@@ -206,28 +206,28 @@ export function errorBadLoader(id: string): RollupLog {
 	};
 }
 
-export function errorCannotCallNamespace(name: string): RollupLog {
+export function logCannotCallNamespace(name: string): RollupLog {
 	return {
 		code: CANNOT_CALL_NAMESPACE,
 		message: `Cannot call a namespace ("${name}").`
 	};
 }
 
-export function errorCannotEmitFromOptionsHook(): RollupLog {
+export function logCannotEmitFromOptionsHook(): RollupLog {
 	return {
 		code: CANNOT_EMIT_FROM_OPTIONS_HOOK,
 		message: `Cannot emit files or set asset sources in the "outputOptions" hook, use the "renderStart" hook instead.`
 	};
 }
 
-export function errorChunkNotGeneratedForFileName(name: string): RollupLog {
+export function logChunkNotGeneratedForFileName(name: string): RollupLog {
 	return {
 		code: CHUNK_NOT_GENERATED,
 		message: `Plugin error - Unable to get file name for emitted chunk "${name}". You can only get file names once chunks have been generated after the "renderStart" hook.`
 	};
 }
 
-export function errorChunkInvalid(
+export function logChunkInvalid(
 	{ fileName, code }: { code: string; fileName: string },
 	exception: { loc: { column: number; line: number }; message: string }
 ): RollupLog {
@@ -239,7 +239,7 @@ export function errorChunkInvalid(
 	return errorProperties;
 }
 
-export function errorCircularDependency(cyclePath: string[]): RollupLog {
+export function logCircularDependency(cyclePath: string[]): RollupLog {
 	return {
 		code: CIRCULAR_DEPENDENCY,
 		ids: cyclePath,
@@ -247,7 +247,7 @@ export function errorCircularDependency(cyclePath: string[]): RollupLog {
 	};
 }
 
-export function errorCircularReexport(exportName: string, exporter: string): RollupLog {
+export function logCircularReexport(exportName: string, exporter: string): RollupLog {
 	return {
 		code: CIRCULAR_REEXPORT,
 		exporter,
@@ -257,7 +257,7 @@ export function errorCircularReexport(exportName: string, exporter: string): Rol
 	};
 }
 
-export function errorCyclicCrossChunkReexport(
+export function logCyclicCrossChunkReexport(
 	exportName: string,
 	exporter: string,
 	reexporter: string,
@@ -281,7 +281,7 @@ export function errorCyclicCrossChunkReexport(
 	};
 }
 
-export function errorDeprecation(
+export function logDeprecation(
 	deprecation: string,
 	urlSnippet: string,
 	plugin?: string
@@ -294,21 +294,21 @@ export function errorDeprecation(
 	};
 }
 
-export function errorDuplicateImportOptions(): RollupLog {
+export function logDuplicateImportOptions(): RollupLog {
 	return {
 		code: DUPLICATE_IMPORT_OPTIONS,
 		message: 'Either use --input, or pass input path as argument'
 	};
 }
 
-export function errorDuplicatePluginName(plugin: string): RollupLog {
+export function logDuplicatePluginName(plugin: string): RollupLog {
 	return {
 		code: DUPLICATE_PLUGIN_NAME,
 		message: `The plugin name ${plugin} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
 	};
 }
 
-export function errorEmptyChunk(chunkName: string): RollupLog {
+export function logEmptyChunk(chunkName: string): RollupLog {
 	return {
 		code: EMPTY_BUNDLE,
 		message: `Generated an empty chunk: "${chunkName}".`,
@@ -316,7 +316,7 @@ export function errorEmptyChunk(chunkName: string): RollupLog {
 	};
 }
 
-export function errorEval(id: string): RollupLog {
+export function logEval(id: string): RollupLog {
 	return {
 		code: EVAL,
 		id,
@@ -327,7 +327,7 @@ export function errorEval(id: string): RollupLog {
 	};
 }
 
-export function errorExternalSyntheticExports(id: string, importer: string): RollupLog {
+export function logExternalSyntheticExports(id: string, importer: string): RollupLog {
 	return {
 		code: EXTERNAL_SYNTHETIC_EXPORTS,
 		exporter: id,
@@ -337,28 +337,28 @@ export function errorExternalSyntheticExports(id: string, importer: string): Rol
 	};
 }
 
-export function errorFailAfterWarnings(): RollupLog {
+export function logFailAfterWarnings(): RollupLog {
 	return {
 		code: FAIL_AFTER_WARNINGS,
 		message: 'Warnings occurred and --failAfterWarnings flag present.'
 	};
 }
 
-export function errorFileNameConflict(fileName: string): RollupLog {
+export function logFileNameConflict(fileName: string): RollupLog {
 	return {
 		code: FILE_NAME_CONFLICT,
 		message: `The emitted file "${fileName}" overwrites a previously emitted file of the same name.`
 	};
 }
 
-export function errorFileReferenceIdNotFoundForFilename(assetReferenceId: string): RollupLog {
+export function logFileReferenceIdNotFoundForFilename(assetReferenceId: string): RollupLog {
 	return {
 		code: FILE_NOT_FOUND,
 		message: `Plugin error - Unable to get file name for unknown file "${assetReferenceId}".`
 	};
 }
 
-export function errorIllegalIdentifierAsName(name: string): RollupLog {
+export function logIllegalIdentifierAsName(name: string): RollupLog {
 	return {
 		code: ILLEGAL_IDENTIFIER_AS_NAME,
 		message: `Given name "${name}" is not a legal JS identifier. If you need this, you can try "output.extend: true".`,
@@ -366,14 +366,14 @@ export function errorIllegalIdentifierAsName(name: string): RollupLog {
 	};
 }
 
-export function errorIllegalImportReassignment(name: string, importingId: string): RollupLog {
+export function logIllegalImportReassignment(name: string, importingId: string): RollupLog {
 	return {
 		code: ILLEGAL_REASSIGNMENT,
 		message: `Illegal reassignment of import "${name}" in "${relativeId(importingId)}".`
 	};
 }
 
-export function errorInconsistentImportAssertions(
+export function logInconsistentImportAssertions(
 	existingAssertions: Record<string, string>,
 	newAssertions: Record<string, string>,
 	source: string,
@@ -397,14 +397,14 @@ const formatAssertions = (assertions: Record<string, string>): string => {
 	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
 };
 
-export function errorInputHookInOutputPlugin(pluginName: string, hookName: string): RollupLog {
+export function logInputHookInOutputPlugin(pluginName: string, hookName: string): RollupLog {
 	return {
 		code: INPUT_HOOK_IN_OUTPUT_PLUGIN,
 		message: `The "${hookName}" hook used by the output plugin ${pluginName} is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.`
 	};
 }
 
-export function errorCannotAssignModuleToChunk(
+export function logCannotAssignModuleToChunk(
 	moduleId: string,
 	assignToAlias: string,
 	currentAlias: string
@@ -417,7 +417,7 @@ export function errorCannotAssignModuleToChunk(
 	};
 }
 
-export function errorCannotBundleConfigAsEsm(originalError: Error): RollupLog {
+export function logCannotBundleConfigAsEsm(originalError: Error): RollupLog {
 	return {
 		cause: originalError,
 		code: INVALID_CONFIG_MODULE_FORMAT,
@@ -427,7 +427,7 @@ export function errorCannotBundleConfigAsEsm(originalError: Error): RollupLog {
 	};
 }
 
-export function errorCannotLoadConfigAsCjs(originalError: Error): RollupLog {
+export function logCannotLoadConfigAsCjs(originalError: Error): RollupLog {
 	return {
 		cause: originalError,
 		code: INVALID_CONFIG_MODULE_FORMAT,
@@ -437,7 +437,7 @@ export function errorCannotLoadConfigAsCjs(originalError: Error): RollupLog {
 	};
 }
 
-export function errorCannotLoadConfigAsEsm(originalError: Error): RollupLog {
+export function logCannotLoadConfigAsEsm(originalError: Error): RollupLog {
 	return {
 		cause: originalError,
 		code: INVALID_CONFIG_MODULE_FORMAT,
@@ -447,7 +447,7 @@ export function errorCannotLoadConfigAsEsm(originalError: Error): RollupLog {
 	};
 }
 
-export function errorInvalidExportOptionValue(optionValue: string): RollupLog {
+export function logInvalidExportOptionValue(optionValue: string): RollupLog {
 	return {
 		code: INVALID_EXPORT_OPTION,
 		message: `"output.exports" must be "default", "named", "none", "auto", or left unspecified (defaults to "auto"), received "${optionValue}".`,
@@ -455,7 +455,7 @@ export function errorInvalidExportOptionValue(optionValue: string): RollupLog {
 	};
 }
 
-export function errorIncompatibleExportOptionValue(
+export function logIncompatibleExportOptionValue(
 	optionValue: string,
 	keys: readonly string[],
 	entryModule: string
@@ -469,7 +469,7 @@ export function errorIncompatibleExportOptionValue(
 	};
 }
 
-export function errorInternalIdCannotBeExternal(source: string, importer: string): RollupLog {
+export function logInternalIdCannotBeExternal(source: string, importer: string): RollupLog {
 	return {
 		code: INVALID_EXTERNAL_ID,
 		message: `"${source}" is imported as an external by "${relativeId(
@@ -478,14 +478,14 @@ export function errorInternalIdCannotBeExternal(source: string, importer: string
 	};
 }
 
-export function errorInvalidLogPosition(plugin: string): RollupLog {
+export function logInvalidLogPosition(plugin: string): RollupLog {
 	return {
 		code: INVALID_LOG_POSITION,
 		message: `Plugin "${plugin}" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.`
 	};
 }
 
-export function errorInvalidOption(
+export function logInvalidOption(
 	option: string,
 	urlSnippet: string,
 	explanation: string,
@@ -500,7 +500,7 @@ export function errorInvalidOption(
 	};
 }
 
-export function errorInvalidAddonPluginHook(hook: string, plugin: string): RollupLog {
+export function logInvalidAddonPluginHook(hook: string, plugin: string): RollupLog {
 	return {
 		code: INVALID_PLUGIN_HOOK,
 		hook,
@@ -509,7 +509,7 @@ export function errorInvalidAddonPluginHook(hook: string, plugin: string): Rollu
 	};
 }
 
-export function errorInvalidFunctionPluginHook(hook: string, plugin: string): RollupLog {
+export function logInvalidFunctionPluginHook(hook: string, plugin: string): RollupLog {
 	return {
 		code: INVALID_PLUGIN_HOOK,
 		hook,
@@ -518,28 +518,28 @@ export function errorInvalidFunctionPluginHook(hook: string, plugin: string): Ro
 	};
 }
 
-export function errorInvalidRollupPhaseForAddWatchFile(): RollupLog {
+export function logInvalidRollupPhaseForAddWatchFile(): RollupLog {
 	return {
 		code: INVALID_ROLLUP_PHASE,
 		message: `Cannot call "addWatchFile" after the build has finished.`
 	};
 }
 
-export function errorInvalidRollupPhaseForChunkEmission(): RollupLog {
+export function logInvalidRollupPhaseForChunkEmission(): RollupLog {
 	return {
 		code: INVALID_ROLLUP_PHASE,
 		message: `Cannot emit chunks after module loading has finished.`
 	};
 }
 
-export function errorInvalidSetAssetSourceCall(): RollupLog {
+export function logInvalidSetAssetSourceCall(): RollupLog {
 	return {
 		code: INVALID_SETASSETSOURCE,
 		message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
 	};
 }
 
-export function errorInvalidFormatForTopLevelAwait(
+export function logInvalidFormatForTopLevelAwait(
 	id: string,
 	format: InternalModuleFormat
 ): RollupLog {
@@ -550,7 +550,7 @@ export function errorInvalidFormatForTopLevelAwait(
 	};
 }
 
-export function errorMissingConfig(): RollupLog {
+export function logMissingConfig(): RollupLog {
 	return {
 		code: MISSING_CONFIG,
 		message: 'Config file must export an options object, or an array of options objects',
@@ -558,7 +558,7 @@ export function errorMissingConfig(): RollupLog {
 	};
 }
 
-export function errorMissingExport(
+export function logMissingExport(
 	binding: string,
 	importingModule: string,
 	exporter: string
@@ -576,14 +576,14 @@ export function errorMissingExport(
 	};
 }
 
-export function errorMissingExternalConfig(file: string): RollupLog {
+export function logMissingExternalConfig(file: string): RollupLog {
 	return {
 		code: MISSING_EXTERNAL_CONFIG,
 		message: `Could not resolve config file "${file}"`
 	};
 }
 
-export function errorMissingGlobalName(externalId: string, guess: string): RollupLog {
+export function logMissingGlobalName(externalId: string, guess: string): RollupLog {
 	return {
 		code: MISSING_GLOBAL_NAME,
 		id: externalId,
@@ -593,7 +593,7 @@ export function errorMissingGlobalName(externalId: string, guess: string): Rollu
 	};
 }
 
-export function errorImplicitDependantCannotBeExternal(
+export function logImplicitDependantCannotBeExternal(
 	unresolvedId: string,
 	implicitlyLoadedBefore: string
 ): RollupLog {
@@ -607,7 +607,7 @@ export function errorImplicitDependantCannotBeExternal(
 	};
 }
 
-export function errorUnresolvedImplicitDependant(
+export function logUnresolvedImplicitDependant(
 	unresolvedId: string,
 	implicitlyLoadedBefore: string
 ): RollupLog {
@@ -621,7 +621,7 @@ export function errorUnresolvedImplicitDependant(
 	};
 }
 
-export function errorImplicitDependantIsNotIncluded(module: Module): RollupLog {
+export function logImplicitDependantIsNotIncluded(module: Module): RollupLog {
 	const implicitDependencies = [...module.implicitlyLoadedBefore]
 		.map(dependency => relativeId(dependency.id))
 		.sort();
@@ -635,7 +635,7 @@ export function errorImplicitDependantIsNotIncluded(module: Module): RollupLog {
 	};
 }
 
-export function errorMissingNameOptionForIifeExport(): RollupLog {
+export function logMissingNameOptionForIifeExport(): RollupLog {
 	return {
 		code: MISSING_NAME_OPTION_FOR_IIFE_EXPORT,
 		message: `If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.`,
@@ -643,7 +643,7 @@ export function errorMissingNameOptionForIifeExport(): RollupLog {
 	};
 }
 
-export function errorMissingNameOptionForUmdExport(): RollupLog {
+export function logMissingNameOptionForUmdExport(): RollupLog {
 	return {
 		code: MISSING_NAME_OPTION_FOR_IIFE_EXPORT,
 		message:
@@ -652,7 +652,7 @@ export function errorMissingNameOptionForUmdExport(): RollupLog {
 	};
 }
 
-export function errorMissingNodeBuiltins(externalBuiltins: string[]): RollupLog {
+export function logMissingNodeBuiltins(externalBuiltins: string[]): RollupLog {
 	return {
 		code: MISSING_NODE_BUILTINS,
 		ids: externalBuiltins,
@@ -663,7 +663,7 @@ export function errorMissingNodeBuiltins(externalBuiltins: string[]): RollupLog 
 }
 
 // eslint-disable-next-line unicorn/prevent-abbreviations
-export function errorMissingFileOrDirOption(): RollupLog {
+export function logMissingFileOrDirOption(): RollupLog {
 	return {
 		code: MISSING_OPTION,
 		message: 'You must specify "output.file" or "output.dir" for the build.',
@@ -671,7 +671,7 @@ export function errorMissingFileOrDirOption(): RollupLog {
 	};
 }
 
-export function errorMixedExport(facadeModuleId: string, name?: string): RollupLog {
+export function logMixedExport(facadeModuleId: string, name?: string): RollupLog {
 	return {
 		code: MIXED_EXPORTS,
 		id: facadeModuleId,
@@ -684,7 +684,7 @@ export function errorMixedExport(facadeModuleId: string, name?: string): RollupL
 	};
 }
 
-export function errorModuleLevelDirective(directive: string, id: string): RollupLog {
+export function logModuleLevelDirective(directive: string, id: string): RollupLog {
 	return {
 		code: MODULE_LEVEL_DIRECTIVE,
 		id,
@@ -694,7 +694,7 @@ export function errorModuleLevelDirective(directive: string, id: string): Rollup
 	};
 }
 
-export function errorNamespaceConflict(
+export function logNamespaceConflict(
 	binding: string,
 	reexportingModuleId: string,
 	sources: string[]
@@ -712,7 +712,7 @@ export function errorNamespaceConflict(
 	};
 }
 
-export function errorNoFileSystemInBrowser(method: string): RollupLog {
+export function logNoFileSystemInBrowser(method: string): RollupLog {
 	return {
 		code: NO_FS_IN_BROWSER,
 		message: `Cannot access the file system (via "${method}") when using the browser build of Rollup. Make sure you supply a plugin with custom resolveId and load hooks to Rollup.`,
@@ -720,7 +720,7 @@ export function errorNoFileSystemInBrowser(method: string): RollupLog {
 	};
 }
 
-export function errorNoTransformMapOrAstWithoutCode(pluginName: string): RollupLog {
+export function logNoTransformMapOrAstWithoutCode(pluginName: string): RollupLog {
 	return {
 		code: NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE,
 		message:
@@ -729,14 +729,14 @@ export function errorNoTransformMapOrAstWithoutCode(pluginName: string): RollupL
 	};
 }
 
-export function errorOnlyInlineSourcemapsForStdout(): RollupLog {
+export function logOnlyInlineSourcemapsForStdout(): RollupLog {
 	return {
 		code: ONLY_INLINE_SOURCEMAPS,
 		message: 'Only inline sourcemaps are supported when bundling to stdout.'
 	};
 }
 
-export function errorParseError(error: Error, moduleId: string): RollupLog {
+export function logParseError(error: Error, moduleId: string): RollupLog {
 	let message = error.message.replace(/ \(\d+:\d+\)$/, '');
 	if (moduleId.endsWith('.json')) {
 		message += ' (Note that you need @rollup/plugin-json to import JSON files)';
@@ -751,7 +751,7 @@ export function errorParseError(error: Error, moduleId: string): RollupLog {
 	};
 }
 
-export function errorPluginError(
+export function logPluginError(
 	error: string | RollupLog,
 	plugin: string,
 	{ hook, id }: { hook?: string; id?: string } = {}
@@ -771,7 +771,7 @@ export function errorPluginError(
 	return error;
 }
 
-export function errorShimmedExport(id: string, binding: string): RollupLog {
+export function logShimmedExport(id: string, binding: string): RollupLog {
 	return {
 		binding,
 		code: SHIMMED_EXPORT,
@@ -780,7 +780,7 @@ export function errorShimmedExport(id: string, binding: string): RollupLog {
 	};
 }
 
-export function errorSourcemapBroken(plugin: string): RollupLog {
+export function logSourcemapBroken(plugin: string): RollupLog {
 	return {
 		code: SOURCEMAP_BROKEN,
 		message: `Sourcemap is likely to be incorrect: a plugin (${plugin}) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
@@ -789,14 +789,14 @@ export function errorSourcemapBroken(plugin: string): RollupLog {
 	};
 }
 
-export function errorConflictingSourcemapSources(filename: string): RollupLog {
+export function logConflictingSourcemapSources(filename: string): RollupLog {
 	return {
 		code: SOURCEMAP_BROKEN,
 		message: `Multiple conflicting contents for sourcemap source ${filename}`
 	};
 }
 
-export function errorInvalidSourcemapForError(
+export function logInvalidSourcemapForError(
 	error: Error,
 	id: string,
 	column: number,
@@ -817,7 +817,7 @@ export function errorInvalidSourcemapForError(
 	};
 }
 
-export function errorSyntheticNamedExportsNeedNamespaceExport(
+export function logSyntheticNamedExportsNeedNamespaceExport(
 	id: string,
 	syntheticNamedExportsOption: boolean | string
 ): RollupLog {
@@ -836,7 +836,7 @@ export function errorSyntheticNamedExportsNeedNamespaceExport(
 	};
 }
 
-export function errorThisIsUndefined(): RollupLog {
+export function logThisIsUndefined(): RollupLog {
 	return {
 		code: THIS_IS_UNDEFINED,
 		message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
@@ -844,7 +844,7 @@ export function errorThisIsUndefined(): RollupLog {
 	};
 }
 
-export function errorUnexpectedNamedImport(
+export function logUnexpectedNamedImport(
 	id: string,
 	imported: string,
 	isReexport: boolean
@@ -860,7 +860,7 @@ export function errorUnexpectedNamedImport(
 	};
 }
 
-export function errorUnexpectedNamespaceReexport(id: string): RollupLog {
+export function logUnexpectedNamespaceReexport(id: string): RollupLog {
 	return {
 		code: UNEXPECTED_NAMED_IMPORT,
 		exporter: id,
@@ -871,7 +871,7 @@ export function errorUnexpectedNamespaceReexport(id: string): RollupLog {
 	};
 }
 
-export function errorUnknownOption(
+export function logUnknownOption(
 	optionType: string,
 	unknownOptions: string[],
 	validOptions: string[]
@@ -884,21 +884,21 @@ export function errorUnknownOption(
 	};
 }
 
-export function errorEntryCannotBeExternal(unresolvedId: string): RollupLog {
+export function logEntryCannotBeExternal(unresolvedId: string): RollupLog {
 	return {
 		code: UNRESOLVED_ENTRY,
 		message: `Entry module "${relativeId(unresolvedId)}" cannot be external.`
 	};
 }
 
-export function errorUnresolvedEntry(unresolvedId: string): RollupLog {
+export function logUnresolvedEntry(unresolvedId: string): RollupLog {
 	return {
 		code: UNRESOLVED_ENTRY,
 		message: `Could not resolve entry module "${relativeId(unresolvedId)}".`
 	};
 }
 
-export function errorUnresolvedImport(source: string, importer: string): RollupLog {
+export function logUnresolvedImport(source: string, importer: string): RollupLog {
 	return {
 		code: UNRESOLVED_IMPORT,
 		exporter: source,
@@ -907,10 +907,7 @@ export function errorUnresolvedImport(source: string, importer: string): RollupL
 	};
 }
 
-export function errorUnresolvedImportTreatedAsExternal(
-	source: string,
-	importer: string
-): RollupLog {
+export function logUnresolvedImportTreatedAsExternal(source: string, importer: string): RollupLog {
 	return {
 		code: UNRESOLVED_IMPORT,
 		exporter: source,
@@ -922,7 +919,7 @@ export function errorUnresolvedImportTreatedAsExternal(
 	};
 }
 
-export function errorUnusedExternalImports(
+export function logUnusedExternalImports(
 	externalId: string,
 	names: string[],
 	importers: string[]
@@ -941,7 +938,7 @@ export function errorUnusedExternalImports(
 	};
 }
 
-export function errorFailedValidation(message: string): RollupLog {
+export function logFailedValidation(message: string): RollupLog {
 	return {
 		code: VALIDATION_ERROR,
 		message
@@ -974,7 +971,7 @@ export function warnDeprecationWithOptions(
 	plugin?: string
 ): void {
 	if (activeDeprecation || strictDeprecations) {
-		const warning = errorDeprecation(deprecation, urlSnippet, plugin);
+		const warning = logDeprecation(deprecation, urlSnippet, plugin);
 		if (strictDeprecations) {
 			return error(warning);
 		}

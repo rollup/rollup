@@ -18,14 +18,14 @@ import { getTrackedPluginCache } from './PluginCache';
 import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
+import { LOGLEVEL_WARN } from './logging';
 import {
 	augmentCodeLocation,
 	error,
-	errorInvalidSetAssetSourceCall,
-	errorNoTransformMapOrAstWithoutCode,
-	errorPluginError
-} from './error';
-import { LOGLEVEL_WARN } from './logging';
+	logInvalidSetAssetSourceCall,
+	logNoTransformMapOrAstWithoutCode,
+	logPluginError
+} from './logs';
 import { normalizeLog } from './options/options';
 
 export default async function transform(
@@ -61,7 +61,7 @@ export default async function transform(
 			module.updateOptions(result);
 			if (result.code == null) {
 				if (result.map || result.ast) {
-					log(LOGLEVEL_WARN, errorNoTransformMapOrAstWithoutCode(plugin.name));
+					log(LOGLEVEL_WARN, logNoTransformMapOrAstWithoutCode(plugin.name));
 				}
 				return previousCode;
 			}
@@ -151,14 +151,14 @@ export default async function transform(
 					},
 					info: getLogHandler(pluginContext.info),
 					setAssetSource() {
-						return this.error(errorInvalidSetAssetSourceCall());
+						return this.error(logInvalidSetAssetSourceCall());
 					},
 					warn: getLogHandler(pluginContext.warn)
 				};
 			}
 		);
 	} catch (error_: any) {
-		return error(errorPluginError(error_, pluginName, { hook: 'transform', id }));
+		return error(logPluginError(error_, pluginName, { hook: 'transform', id }));
 	}
 
 	if (

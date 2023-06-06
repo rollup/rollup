@@ -6,8 +6,8 @@ import type {
 	LogHandler,
 	SourceMapSegment
 } from '../rollup/types';
-import { error, errorConflictingSourcemapSources, errorSourcemapBroken } from './error';
 import { LOGLEVEL_WARN } from './logging';
+import { error, logConflictingSourcemapSources, logSourcemapBroken } from './logs';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
@@ -85,7 +85,7 @@ class Link {
 					} else if (sourcesContent[sourceIndex] == null) {
 						sourcesContent[sourceIndex] = content;
 					} else if (content != null && sourcesContent[sourceIndex] !== content) {
-						return error(errorConflictingSourcemapSources(filename));
+						return error(logConflictingSourcemapSources(filename));
 					}
 
 					const tracedSegment: SourceMapSegment = [segment[0], sourceIndex, line, column];
@@ -154,7 +154,7 @@ function getLinkMap(log: LogHandler) {
 			return new Link(map, [source]);
 		}
 
-		log(LOGLEVEL_WARN, errorSourcemapBroken(map.plugin));
+		log(LOGLEVEL_WARN, logSourcemapBroken(map.plugin));
 
 		return new Link(
 			{

@@ -3,7 +3,7 @@ import ms from 'pretty-ms';
 import { rollup } from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold, cyan, green } from '../../src/utils/colors';
-import { errorOnlyInlineSourcemapsForStdout } from '../../src/utils/error';
+import { logOnlyInlineSourcemapsForStdout } from '../../src/utils/logs';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import type { BatchWarnings } from './loadConfigFileType';
@@ -34,7 +34,7 @@ export default async function build(
 	if (useStdout) {
 		const output = outputOptions[0];
 		if (output.sourcemap && output.sourcemap !== 'inline') {
-			handleError(errorOnlyInlineSourcemapsForStdout());
+			handleError(logOnlyInlineSourcemapsForStdout());
 		}
 		const { output: outputs } = await bundle.generate(output);
 		for (const file of outputs) {

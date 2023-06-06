@@ -6,13 +6,8 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import {
-	error,
-	errorInvalidExportOptionValue,
-	errorInvalidOption,
-	warnDeprecation
-} from '../error';
 import { LOGLEVEL_WARN } from '../logging';
+import { error, logInvalidExportOptionValue, logInvalidOption, warnDeprecation } from '../logs';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { addTrailingSlashIfMissed, isValidUrl } from '../url';
@@ -136,7 +131,7 @@ const getFile = (
 	if (typeof file === 'string') {
 		if (preserveModules) {
 			return error(
-				errorInvalidOption(
+				logInvalidOption(
 					'output.file',
 					URL_OUTPUT_DIR,
 					'you must set "output.dir" instead of "output.file" when using the "output.preserveModules" option'
@@ -145,7 +140,7 @@ const getFile = (
 		}
 		if (!Array.isArray(inputOptions.input))
 			return error(
-				errorInvalidOption(
+				logInvalidOption(
 					'output.file',
 					URL_OUTPUT_DIR,
 					'you must set "output.dir" instead of "output.file" when providing named inputs'
@@ -179,7 +174,7 @@ const getFormat = (config: OutputOptions): NormalizedOutputOptions['format'] => 
 		}
 		default: {
 			return error(
-				errorInvalidOption(
+				logInvalidOption(
 					'output.format',
 					URL_OUTPUT_FORMAT,
 					`Valid values are "amd", "cjs", "system", "es", "iife" or "umd"`,
@@ -199,7 +194,7 @@ const getInlineDynamicImports = (
 	const { input } = inputOptions;
 	if (inlineDynamicImports && (Array.isArray(input) ? input : Object.keys(input)).length > 1) {
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.inlineDynamicImports',
 				URL_OUTPUT_INLINEDYNAMICIMPORTS,
 				'multiple inputs are not supported when "output.inlineDynamicImports" is true'
@@ -218,7 +213,7 @@ const getPreserveModules = (
 	if (preserveModules) {
 		if (inlineDynamicImports) {
 			return error(
-				errorInvalidOption(
+				logInvalidOption(
 					'output.inlineDynamicImports',
 					URL_OUTPUT_INLINEDYNAMICIMPORTS,
 					`this option is not supported for "output.preserveModules"`
@@ -227,7 +222,7 @@ const getPreserveModules = (
 		}
 		if (inputOptions.preserveEntrySignatures === false) {
 			return error(
-				errorInvalidOption(
+				logInvalidOption(
 					'preserveEntrySignatures',
 					URL_PRESERVEENTRYSIGNATURES,
 					'setting this option to false is not supported for "output.preserveModules"'
@@ -281,7 +276,7 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 
 	if ((mergedOption.autoId || mergedOption.basePath) && mergedOption.id) {
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.amd.id',
 				URL_OUTPUT_AMD_ID,
 				'this option cannot be used together with "output.amd.autoId"/"output.amd.basePath"'
@@ -290,7 +285,7 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 	}
 	if (mergedOption.basePath && !mergedOption.autoId) {
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.amd.basePath',
 				URL_OUTPUT_AMD_BASEPATH,
 				'this option only works with "output.amd.autoId"'
@@ -332,7 +327,7 @@ const getDir = (
 	const { dir } = config;
 	if (typeof dir === 'string' && typeof file === 'string') {
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.dir',
 				URL_OUTPUT_DIR,
 				'you must set either "output.file" for a single-file build or "output.dir" when generating multiple chunks'
@@ -358,7 +353,7 @@ const getDynamicImportFunction = (
 		if (format !== 'es') {
 			inputOptions.onLog(
 				LOGLEVEL_WARN,
-				errorInvalidOption(
+				logInvalidOption(
 					'output.dynamicImportFunction',
 					URL_OUTPUT_DYNAMICIMPORTFUNCTION,
 					'this option is ignored for formats other than "es"'
@@ -405,7 +400,7 @@ function getExports(
 	if (configExports == null) {
 		unsetOptions.add('exports');
 	} else if (!['default', 'named', 'none', 'auto'].includes(configExports)) {
-		return error(errorInvalidExportOptionValue(configExports));
+		return error(logInvalidExportOptionValue(configExports));
 	}
 	return configExports || 'auto';
 }
@@ -464,7 +459,7 @@ const getInterop = (config: OutputOptions): NormalizedOutputOptions['interop'] =
 const validateInterop = (interop: InteropType): InteropType => {
 	if (!ALLOWED_INTEROP_TYPES.has(interop)) {
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.interop',
 				URL_OUTPUT_INTEROP,
 				// eslint-disable-next-line unicorn/prefer-spread
@@ -488,7 +483,7 @@ const getManualChunks = (
 	if (configManualChunks) {
 		if (inlineDynamicImports) {
 			return error(
-				errorInvalidOption(
+				logInvalidOption(
 					'output.manualChunks',
 					URL_OUTPUT_MANUALCHUNKS,
 					'this option is not supported for "output.inlineDynamicImports"'
@@ -497,7 +492,7 @@ const getManualChunks = (
 		}
 		if (preserveModules) {
 			return error(
-				errorInvalidOption(
+				logInvalidOption(
 					'output.manualChunks',
 					URL_OUTPUT_MANUALCHUNKS,
 					'this option is not supported for "output.preserveModules"'
@@ -542,7 +537,7 @@ const getSourcemapBaseUrl = (
 			return addTrailingSlashIfMissed(sourcemapBaseUrl);
 		}
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.sourcemapBaseUrl',
 				URL_OUTPUT_SOURCEMAPBASEURL,
 				`must be a valid URL, received ${JSON.stringify(sourcemapBaseUrl)}`

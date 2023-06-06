@@ -1,12 +1,12 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
-import {
-	error,
-	errorIllegalIdentifierAsName,
-	errorMissingNameOptionForIifeExport
-} from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { LOGLEVEL_WARN } from '../utils/logging';
+import {
+	error,
+	logIllegalIdentifierAsName,
+	logMissingNameOptionForIifeExport
+} from '../utils/logs';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
@@ -48,7 +48,7 @@ export default function iife(
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {
-		return error(errorIllegalIdentifierAsName(name));
+		return error(logIllegalIdentifierAsName(name));
 	}
 
 	warnOnBuiltins(log, dependencies);
@@ -58,7 +58,7 @@ export default function iife(
 	const parameters = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		log(LOGLEVEL_WARN, errorMissingNameOptionForIifeExport());
+		log(LOGLEVEL_WARN, logMissingNameOptionForIifeExport());
 	}
 
 	if (namedExportsMode && hasExports) {

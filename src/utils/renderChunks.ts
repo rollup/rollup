@@ -11,12 +11,12 @@ import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
 import { createHash } from './crypto';
 import { decodedSourcemap } from './decodedSourcemap';
-import { error, errorFailedValidation } from './error';
 import {
 	replacePlaceholders,
 	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
 	replaceSinglePlaceholder
 } from './hashPlaceholders';
+import { error, logFailedValidation } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { basename, normalize, resolve } from './path';
@@ -163,7 +163,7 @@ async function transformChunk(
 			const sourcemapPath = `${resultingFile}.map`;
 			const ignoreList = sourcemapIgnoreList(sourcePath, sourcemapPath);
 			if (typeof ignoreList !== 'boolean') {
-				error(errorFailedValidation('sourcemapIgnoreList function must return a boolean.'));
+				error(logFailedValidation('sourcemapIgnoreList function must return a boolean.'));
 			}
 			if (ignoreList) {
 				if (map.x_google_ignoreList === undefined) {
@@ -176,7 +176,7 @@ async function transformChunk(
 			if (sourcemapPathTransform) {
 				sourcePath = sourcemapPathTransform(sourcePath, sourcemapPath);
 				if (typeof sourcePath !== 'string') {
-					error(errorFailedValidation(`sourcemapPathTransform function must return a string.`));
+					error(logFailedValidation(`sourcemapPathTransform function must return a string.`));
 				}
 			}
 			map.sources[sourcesIndex] = normalize(sourcePath);

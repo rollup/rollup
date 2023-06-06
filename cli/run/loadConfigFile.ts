@@ -7,11 +7,11 @@ import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import {
 	error,
-	errorCannotBundleConfigAsEsm,
-	errorCannotLoadConfigAsCjs,
-	errorCannotLoadConfigAsEsm,
-	errorMissingConfig
-} from '../../src/utils/error';
+	logCannotBundleConfigAsEsm,
+	logCannotLoadConfigAsCjs,
+	logCannotLoadConfigAsEsm,
+	logMissingConfig
+} from '../../src/utils/logs';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import type { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
@@ -54,7 +54,7 @@ async function getConfigFileExport(
 			return await loadTranspiledConfigFile(fileName, commandOptions);
 		} catch (error_: any) {
 			if (error_.message.includes('not defined in ES module scope')) {
-				return error(errorCannotBundleConfigAsEsm(error_));
+				return error(logCannotBundleConfigAsEsm(error_));
 			}
 			throw error_;
 		}
@@ -75,10 +75,10 @@ async function getConfigFileExport(
 		return (await import(fileUrl.href)).default;
 	} catch (error_: any) {
 		if (cannotLoadEsm) {
-			return error(errorCannotLoadConfigAsCjs(error_));
+			return error(logCannotLoadConfigAsCjs(error_));
 		}
 		if (error_.message.includes('not defined in ES module scope')) {
-			return error(errorCannotLoadConfigAsEsm(error_));
+			return error(logCannotLoadConfigAsEsm(error_));
 		}
 		throw error_;
 	} finally {
@@ -152,7 +152,7 @@ async function getConfigList(configFileExport: any, commandOptions: any): Promis
 		? configFileExport(commandOptions)
 		: configFileExport);
 	if (Object.keys(config).length === 0) {
-		return error(errorMissingConfig());
+		return error(logMissingConfig());
 	}
 	return Array.isArray(config) ? config : [config];
 }

@@ -48,26 +48,26 @@ import type {
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
-import {
-	augmentCodeLocation,
-	error,
-	errorAmbiguousExternalNamespaces,
-	errorCircularReexport,
-	errorInconsistentImportAssertions,
-	errorInvalidFormatForTopLevelAwait,
-	errorInvalidSourcemapForError,
-	errorMissingExport,
-	errorNamespaceConflict,
-	errorParseError,
-	errorShimmedExport,
-	errorSyntheticNamedExportsNeedNamespaceExport,
-	warnDeprecation
-} from './utils/error';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { LOGLEVEL_WARN } from './utils/logging';
+import {
+	augmentCodeLocation,
+	error,
+	logAmbiguousExternalNamespaces,
+	logCircularReexport,
+	logInconsistentImportAssertions,
+	logInvalidFormatForTopLevelAwait,
+	logInvalidSourcemapForError,
+	logMissingExport,
+	logNamespaceConflict,
+	logParseError,
+	logShimmedExport,
+	logSyntheticNamedExportsNeedNamespaceExport,
+	warnDeprecation
+} from './utils/logs';
 import {
 	doAssertionsDiffer,
 	getAssertionsFromImportExportDeclaration
@@ -153,7 +153,7 @@ function getVariableForExportNameRecursive(
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
 		if (searchedModules.has(target)) {
-			return isExportAllSearch ? [null] : error(errorCircularReexport(name, target.id));
+			return isExportAllSearch ? [null] : error(logCircularReexport(name, target.id));
 		}
 		searchedModules.add(target);
 	} else {
@@ -562,7 +562,7 @@ export default class Module {
 		}
 		if (!this.syntheticNamespace) {
 			return error(
-				errorSyntheticNamedExportsNeedNamespaceExport(this.id, this.info.syntheticNamedExports)
+				logSyntheticNamedExportsNeedNamespaceExport(this.id, this.info.syntheticNamedExports)
 			);
 		}
 		return this.syntheticNamespace;
@@ -604,7 +604,7 @@ export default class Module {
 			);
 			if (!variable) {
 				return this.error(
-					errorMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
+					logMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
 					reexportDeclaration.start
 				);
 			}
@@ -793,7 +793,7 @@ export default class Module {
 		source.trim();
 		const { usesTopLevelAwait } = this.astContext;
 		if (usesTopLevelAwait && options.format !== 'es' && options.format !== 'system') {
-			return error(errorInvalidFormatForTopLevelAwait(this.id, options.format));
+			return error(logInvalidFormatForTopLevelAwait(this.id, options.format));
 		}
 		return { source, usesTopLevelAwait };
 	}
@@ -953,7 +953,7 @@ export default class Module {
 
 			if (!declaration) {
 				return this.error(
-					errorMissingExport(importDescription.name, this.id, otherModule.id),
+					logMissingExport(importDescription.name, this.id, otherModule.id),
 					importDescription.start
 				);
 			}
@@ -1101,7 +1101,7 @@ export default class Module {
 			} catch (error_: any) {
 				this.options.onLog(
 					LOGLEVEL_WARN,
-					errorInvalidSourcemapForError(error_, this.id, column, line, pos)
+					logInvalidSourcemapForError(error_, this.id, column, line, pos)
 				);
 			}
 			augmentCodeLocation(properties, { column, line }, code!, this.id);
@@ -1161,7 +1161,7 @@ export default class Module {
 			if (doAssertionsDiffer(existingAssertions, parsedAssertions)) {
 				this.log(
 					LOGLEVEL_WARN,
-					errorInconsistentImportAssertions(existingAssertions, parsedAssertions, source, this.id),
+					logInconsistentImportAssertions(existingAssertions, parsedAssertions, source, this.id),
 					declaration.start
 				);
 			}
@@ -1211,7 +1211,7 @@ export default class Module {
 			}
 			this.options.onLog(
 				LOGLEVEL_WARN,
-				errorNamespaceConflict(
+				logNamespaceConflict(
 					name,
 					this.id,
 					foundDeclarationList.map(([, module]) => module.id)
@@ -1226,7 +1226,7 @@ export default class Module {
 			if (foundDeclarationList.length > 1) {
 				this.options.onLog(
 					LOGLEVEL_WARN,
-					errorAmbiguousExternalNamespaces(
+					logAmbiguousExternalNamespaces(
 						name,
 						this.id,
 						usedDeclaration.module.id,
@@ -1317,7 +1317,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.options.onLog(LOGLEVEL_WARN, errorShimmedExport(this.id, name));
+		this.options.onLog(LOGLEVEL_WARN, logShimmedExport(this.id, name));
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
@@ -1325,7 +1325,7 @@ export default class Module {
 		try {
 			return this.graph.contextParse(this.info.code!);
 		} catch (error_: any) {
-			return this.error(errorParseError(error_, this.id), error_.pos);
+			return this.error(logParseError(error_, this.id), error_.pos);
 		}
 	}
 }

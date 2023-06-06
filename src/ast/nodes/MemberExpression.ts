@@ -2,8 +2,8 @@ import type MagicString from 'magic-string';
 import type { AstContext } from '../../Module';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
-import { errorIllegalImportReassignment, errorMissingExport } from '../../utils/error';
 import { LOGLEVEL_WARN } from '../../utils/logging';
+import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -394,7 +394,7 @@ export default class MemberExpression
 				}
 				this.context.log(
 					LOGLEVEL_WARN,
-					errorIllegalImportReassignment(this.object.name, this.context.module.id),
+					logIllegalImportReassignment(this.object.name, this.context.module.id),
 					this.start
 				);
 			}
@@ -459,7 +459,7 @@ function resolveNamespaceVariables(
 			const fileName = (baseVariable as NamespaceVariable).context.fileName;
 			astContext.log(
 				LOGLEVEL_WARN,
-				errorMissingExport(exportName, astContext.module.id, fileName),
+				logMissingExport(exportName, astContext.module.id, fileName),
 				path[0].pos
 			);
 			return 'undefined';

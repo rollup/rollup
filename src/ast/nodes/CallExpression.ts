@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { errorCannotCallNamespace, errorEval } from '../../utils/error';
 import { LOGLEVEL_WARN } from '../../utils/logging';
+import { logCannotCallNamespace, logEval } from '../../utils/logs';
 import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -33,11 +33,11 @@ export default class CallExpression
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.context.log(LOGLEVEL_WARN, errorCannotCallNamespace(this.callee.name), this.start);
+				this.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
 			}
 
 			if (this.callee.name === 'eval') {
-				this.context.log(LOGLEVEL_WARN, errorEval(this.context.module.id), this.start);
+				this.context.log(LOGLEVEL_WARN, logEval(this.context.module.id), this.start);
 			}
 		}
 		this.interaction = {

@@ -16,8 +16,8 @@ import type {
 } from '../../rollup/types';
 import { asyncFlatten } from '../asyncFlatten';
 import { EMPTY_ARRAY } from '../blank';
-import { error, errorInvalidOption, errorUnknownOption } from '../error';
 import { LOGLEVEL_DEBUG, LOGLEVEL_ERROR, LOGLEVEL_WARN, logLevelPriority } from '../logging';
+import { error, logInvalidOption, logUnknownOption } from '../logs';
 import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
 
@@ -109,7 +109,7 @@ export function warnUnknownOptions(
 		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
 	);
 	if (unknownOptions.length > 0) {
-		log(LOGLEVEL_WARN, errorUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
+		log(LOGLEVEL_WARN, logUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
 	}
 }
 
@@ -191,7 +191,7 @@ export const objectifyOptionWithPresets =
 				return preset;
 			}
 			error(
-				errorInvalidOption(
+				logInvalidOption(
 					optionName,
 					urlSnippet,
 					`valid values are ${additionalValues}${printQuotedStringList(
@@ -218,7 +218,7 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 			return { ...preset, ...(value as Record<string, unknown>) };
 		} else {
 			error(
-				errorInvalidOption(
+				logInvalidOption(
 					`${optionName}.preset`,
 					urlSnippet,
 					`valid values are ${printQuotedStringList(Object.keys(presets))}`,

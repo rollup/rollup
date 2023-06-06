@@ -3,19 +3,18 @@ import Bundle from '../Bundle';
 import Graph from '../Graph';
 import type { PluginDriver } from '../utils/PluginDriver';
 import { getSortedValidatedPlugins } from '../utils/PluginDriver';
-import {
-	error,
-	errorAlreadyClosed,
-	errorCannotEmitFromOptionsHook,
-	// eslint-disable-next-line unicorn/prevent-abbreviations
-	errorMissingFileOrDirOption,
-	errorPluginError
-} from '../utils/error';
 import { mkdir, writeFile } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
 import { getLogHandler } from '../utils/logHandler';
 import { getLogger } from '../utils/logger';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from '../utils/logging';
+import {
+	error,
+	logAlreadyClosed,
+	logCannotEmitFromOptionsHook,
+	logMissingFileOrDirOption,
+	logPluginError
+} from '../utils/logs';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
 import { getOnLog, normalizePluginOption } from '../utils/options/options';
@@ -94,13 +93,13 @@ export async function rollupInternal(
 		},
 		closed: false,
 		async generate(rawOutputOptions: OutputOptions) {
-			if (result.closed) return error(errorAlreadyClosed());
+			if (result.closed) return error(logAlreadyClosed());
 
 			return handleGenerateWrite(false, inputOptions, unsetInputOptions, rawOutputOptions, graph);
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
-			if (result.closed) return error(errorAlreadyClosed());
+			if (result.closed) return error(logAlreadyClosed());
 
 			return handleGenerateWrite(true, inputOptions, unsetInputOptions, rawOutputOptions, graph);
 		}
@@ -141,7 +140,7 @@ async function getProcessedInputOptions(
 			const processedOptions = await handler.call(
 				{
 					debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', logger, name, logLevel),
-					error: (error_): never => error(errorPluginError(error_, name, { hook: 'onLog' })),
+					error: (error_): never => error(logPluginError(error_, name, { hook: 'onLog' })),
 					info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', logger, name, logLevel),
 					meta: { rollupVersion, watchMode },
 					warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', logger, name, logLevel)
@@ -187,7 +186,7 @@ async function handleGenerateWrite(
 		if (isWrite) {
 			timeStart('WRITE', 1);
 			if (!outputOptions.dir && !outputOptions.file) {
-				return error(errorMissingFileOrDirOption());
+				return error(logMissingFileOrDirOption());
 			}
 			await Promise.all(
 				Object.values(generated).map(chunk =>
@@ -241,7 +240,7 @@ function getOutputOptions(
 			[rawOutputOptions],
 			(outputOptions, result) => result || outputOptions,
 			pluginContext => {
-				const emitError = () => pluginContext.error(errorCannotEmitFromOptionsHook());
+				const emitError = () => pluginContext.error(logCannotEmitFromOptionsHook());
 				return {
 					...pluginContext,
 					emitFile: emitError,

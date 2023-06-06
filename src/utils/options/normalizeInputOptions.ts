@@ -10,9 +10,9 @@ import type {
 } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
-import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
 import { getLogger } from '../logger';
 import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../logging';
+import { error, logInvalidOption, warnDeprecationWithOptions } from '../logs';
 import { resolve } from '../path';
 import {
 	URL_MAXPARALLELFILEOPS,
@@ -289,7 +289,7 @@ const getHasModuleSideEffects = (
 	}
 	if (moduleSideEffectsOption) {
 		error(
-			errorInvalidOption(
+			logInvalidOption(
 				'treeshake.moduleSideEffects',
 				URL_TREESHAKE_MODULESIDEEFFECTS,
 				'please use one of false, "no-external", a function or an array'

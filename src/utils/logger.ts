@@ -10,8 +10,8 @@ import type {
 import { getSortedValidatedPlugins } from './PluginDriver';
 import { EMPTY_SET } from './blank';
 import { doNothing } from './doNothing';
-import { error } from './error';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN, logLevelPriority } from './logging';
+import { error } from './logs';
 import { normalizeLog } from './options/options';
 
 export function getLogger(

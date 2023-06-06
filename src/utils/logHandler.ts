@@ -5,8 +5,8 @@ import type {
 	LogLevelOption
 } from '../rollup/types';
 import { doNothing } from './doNothing';
-import { errorInvalidLogPosition } from './error';
 import { LOGLEVEL_WARN, logLevelPriority } from './logging';
+import { logInvalidLogPosition } from './logs';
 import { normalizeLog } from './options/options';
 
 export function getLogHandler(
@@ -21,7 +21,7 @@ export function getLogHandler(
 	}
 	return (log, pos) => {
 		if (pos != null) {
-			logger(LOGLEVEL_WARN, errorInvalidLogPosition(pluginName));
+			logger(LOGLEVEL_WARN, logInvalidLogPosition(pluginName));
 		}
 		log = normalizeLog(log);
 		if (log.code) {

@@ -1,7 +1,7 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { NormalizedOutputOptions } from '../rollup/types';
-import { error, errorMissingNameOptionForUmdExport } from '../utils/error';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import { error, logMissingNameOptionForUmdExport } from '../utils/logs';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
@@ -69,7 +69,7 @@ export default function umd(
 	const globalVariable = compact ? 'g' : 'global';
 
 	if (hasExports && !name) {
-		return error(errorMissingNameOptionForUmdExport());
+		return error(logMissingNameOptionForUmdExport());
 	}
 
 	warnOnBuiltins(log, dependencies);

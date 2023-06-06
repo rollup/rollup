@@ -479,7 +479,7 @@ interface RollupLog {
 
 A function that intercepts log messages. If not supplied, logs are printed to the console. To reduce noise, Rollup CLI aggregates certain `warn` logs and prints consolidated warnings after the build. This handler is also triggered when using the [`--silent`](../command-line-interface/index.md#silent) CLI option.
 
-The function receives three arguments: the log level, the log object and the default handler. Log objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of logs are handled. Other properties are added depending on the type of log. See [`utils/error.ts`](https://github.com/rollup/rollup/blob/master/src/utils/error.ts) for a complete list of errors and logs together with their codes and properties.
+The function receives three arguments: the log level, the log object and the default handler. Log objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of logs are handled. Other properties are added depending on the type of log. See [`utils/logs.ts`](https://github.com/rollup/rollup/blob/master/src/utils/logs.ts) for a complete list of errors and logs together with their codes and properties.
 
 If the default handler is not invoked, the log will not be printed to the console. Moreover, you can change the log level by invoking the default handler with a different level. Using the additional level `error` will turn the log into a thrown error that has all properties of the log attached.
 
