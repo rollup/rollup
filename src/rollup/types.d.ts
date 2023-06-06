@@ -32,6 +32,7 @@ export interface RollupLog {
 		line: number;
 	};
 	message: string;
+	meta?: Record<string, unknown>;
 	names?: string[];
 	plugin?: string;
 	pluginCode?: string;
@@ -207,14 +208,14 @@ type LoggingFunctionWithPosition = (
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
-	debug: LoggingFunctionWithPosition;
+	debug: LoggingFunction;
 	emitFile: EmitFile;
-	error: (error: RollupError | string, pos?: number | { column: number; line: number }) => never;
+	error: (error: RollupError | string) => never;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	getWatchFiles: () => string[];
-	info: LoggingFunctionWithPosition;
+	info: LoggingFunction;
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
@@ -232,7 +233,7 @@ export interface PluginContext extends MinimalPluginContext {
 		}
 	) => Promise<ResolvedId | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
-	warn: LoggingFunctionWithPosition;
+	warn: LoggingFunction;
 }
 
 export interface PluginContextMeta {
@@ -295,7 +296,11 @@ export type LoadResult = SourceDescription | string | NullValue;
 export type LoadHook = (this: PluginContext, id: string) => LoadResult;
 
 export interface TransformPluginContext extends PluginContext {
+	debug: LoggingFunctionWithPosition;
+	error: (error: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getCombinedSourcemap: () => SourceMap;
+	info: LoggingFunctionWithPosition;
+	warn: LoggingFunctionWithPosition;
 }
 
 export type TransformResult = string | NullValue | Partial<SourceDescription>;

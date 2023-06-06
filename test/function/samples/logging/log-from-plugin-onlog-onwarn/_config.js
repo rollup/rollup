@@ -19,6 +19,7 @@ module.exports = defineTest({
 					message: 'warnLog',
 					code: 'PLUGIN_WARNING',
 					binding: 'foo',
+					meta: { test: 'foo' },
 					pluginCode: 'EXTRA_CODE',
 					plugin: 'test'
 				}
@@ -95,7 +96,12 @@ module.exports = defineTest({
 			{
 				name: 'test',
 				buildStart() {
-					this.warn({ message: 'warnLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.warn({
+						message: 'warnLog',
+						code: 'EXTRA_CODE',
+						binding: 'foo',
+						meta: { test: 'foo' }
+					});
 					this.warn({ message: 'warnLog' });
 					this.warn('warnString');
 					this.info({ message: 'infoLog', code: 'EXTRA_CODE', binding: 'foo' });

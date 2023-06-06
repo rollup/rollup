@@ -10,7 +10,7 @@ import type {
 import { getSortedValidatedPlugins } from './PluginDriver';
 import { EMPTY_SET } from './blank';
 import { doNothing } from './doNothing';
-import { error, errorPluginError } from './error';
+import { error } from './error';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN, logLevelPriority } from './logging';
 import { normalizeLog } from './options/options';
 
@@ -30,7 +30,7 @@ export function getLogger(
 		for (const plugin of plugins) {
 			if (skipped.has(plugin)) continue;
 
-			const { name, onLog: pluginOnLog } = plugin;
+			const { onLog: pluginOnLog } = plugin;
 
 			const getLogHandler = (level: LogLevel): LoggingFunction => {
 				if (logLevelPriority[level] < minimalPriority) {
@@ -44,7 +44,7 @@ export function getLogger(
 				handler.call(
 					{
 						debug: getLogHandler(LOGLEVEL_DEBUG),
-						error: (error_): never => error(errorPluginError(error_, name, { hook: 'onLog' })),
+						error: (log): never => error(normalizeLog(log)),
 						info: getLogHandler(LOGLEVEL_INFO),
 						meta: { rollupVersion, watchMode },
 						warn: getLogHandler(LOGLEVEL_WARN)

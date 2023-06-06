@@ -4,6 +4,7 @@ import type {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingRawSourceMap,
+	LoggingFunctionWithPosition,
 	LogHandler,
 	Plugin,
 	PluginContext,
@@ -84,7 +85,7 @@ export default async function transform(
 	}
 
 	const getLogHandler =
-		(handler: PluginContext['warn']): PluginContext['warn'] =>
+		(handler: LoggingFunctionWithPosition): LoggingFunctionWithPosition =>
 		(log, pos) => {
 			log = normalizeLog(log);
 			if (pos) augmentCodeLocation(log, pos, currentSource, id);
