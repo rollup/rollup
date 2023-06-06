@@ -1716,7 +1716,7 @@ this.warn('hmm...');
 this.warn({ message: 'hmm...' });
 ```
 
-In all hooks except the [`onLog`](#onlog) hook, the log objet will be augmented with `code: 'PLUGIN_WARNING` and `plugin: plugin.name` properties. If a `code` property is provided and the code does not start with `PLUGIN_`, it will be renamed to `pluginCode`.
+In all hooks except the [`onLog`](#onlog) hook, the log objet will be augmented with `code: 'PLUGIN_WARNING` and `plugin: plugin.name` properties. If a `code` property is provided and the code does not start with `PLUGIN_`, it will be renamed to `pluginCode`. To prevent this behavior, plugins can instead use the normalized `onLog` option passed to the [`buildStart`](#buildstart) hook. Calling this option from a plugin will not change properties and pass the log to all plugin `onLog` handlers as well as any `onLog` or `onwarn` handler provided by the user.
 
 When used in the `transform` hook, the `id` of the current module will also be added and a `position` can be supplied. This is a character index or file location which will be used to augment the log with `pos`, `loc` (a standard `{ file, line, column }` object) and `frame` (a snippet of code showing the location).
 
