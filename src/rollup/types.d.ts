@@ -32,7 +32,7 @@ export interface RollupLog {
 		line: number;
 	};
 	message: string;
-	meta?: Record<string, unknown>;
+	meta?: Record<string, any>;
 	names?: string[];
 	plugin?: string;
 	pluginCode?: string;

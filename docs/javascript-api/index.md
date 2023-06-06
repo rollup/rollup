@@ -117,6 +117,10 @@ const inputOptions = {
 
 	// advanced input options
 	cache,
+	logLevel,
+	makeAbsoluteExternalsRelative,
+	maxParallelFileOps,
+	onLog,
 	onwarn,
 	preserveEntrySignatures,
 	strictDeprecations,
@@ -132,6 +136,7 @@ const inputOptions = {
 
 	// experimental
 	experimentalCacheExpiry,
+	experimentalLogSideEffects,
 	perf
 };
 ```
@@ -145,7 +150,7 @@ const outputOptions = {
 	// core output options
 	dir,
 	file,
-	format, // required
+	format,
 	globals,
 	name,
 	plugins,
@@ -155,10 +160,12 @@ const outputOptions = {
 	banner,
 	chunkFileNames,
 	compact,
+	dynamicImportInCjs,
 	entryFileNames,
 	extend,
-	externalLiveBindings,
+	externalImportAssertions,
 	footer,
+	generatedCode,
 	hoistTransitiveImports,
 	inlineDynamicImports,
 	interop,
@@ -170,8 +177,10 @@ const outputOptions = {
 	preserveModules,
 	preserveModulesRoot,
 	sourcemap,
+	sourcemapBaseUrl,
 	sourcemapExcludeSources,
 	sourcemapFile,
+	sourcemapIgnoreList,
 	sourcemapPathTransform,
 	validate,
 
@@ -179,14 +188,16 @@ const outputOptions = {
 	amd,
 	esModule,
 	exports,
+	externalLiveBindings,
 	freeze,
 	indent,
-	namespaceToStringTag,
 	noConflict,
-	preferConst,
 	sanitizeFileName,
 	strict,
-	systemNullSetters
+	systemNullSetters,
+
+	// experimental
+	experimentalMinChunkSize
 };
 ```
 
