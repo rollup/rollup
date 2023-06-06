@@ -2025,7 +2025,7 @@ If `false`, ignore hints from annotation in comments:
 
 ##### `@__PURE__`
 
-For comments containing `@__PURE__` or `#__PURE__`, when determining side effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely treeshaken unless this option is set to `false`, in which case it will remain unchanged.
+Comments containing `@__PURE__` or `#__PURE__` mark a specific function call or constructor invocation as side effect free. That means that Rollup will tree-shake i.e. remove the call unless the return value is used in some code that is not tree-shaken. These annotations need to immediately precede the call invocation to take effect. The following code will be completely tree-shaken unless this option is set to `false`, in which case it will remain unchanged.
 
 ```javascript
 /*@__PURE__*/ console.log('side-effect');
@@ -2041,7 +2041,7 @@ class Impure {
 
 ##### `@__NO_SIDE_EFFECTS__`
 
-For comments containing `@__NO_SIDE_EFFECTS__` or `#__NO_SIDE_EFFECTS__`, when determining side effects of function declaration. When a function been marked as no side effects, all calls to that function will be considered as no side effects. The following code will be completely treeshaken unless this option is set to `false`, in which case it will remain unchanged.
+Comments containing `@__NO_SIDE_EFFECTS__` or `#__NO_SIDE_EFFECTS__` mark a function declaration itself as side effect free. When a function has been marked as having no side effects, all calls to that function will be considered to be side effect free. The following code will be completely tree-shaken unless this option is set to `false`, in which case it will remain unchanged.
 
 ```javascript
 /*@__NO_SIDE_EFFECTS__*/
@@ -2054,8 +2054,8 @@ const impureArrowFn = () => {
 	console.log('side-effect');
 };
 
-impure(); // <-- call will be considered as no side effects
-impureArrowFn(); // <-- call will be considered as no side effects
+impure(); // <-- call will be considered as side effect free
+impureArrowFn(); // <-- call will be considered as side effect free
 ```
 
 #### treeshake.correctVarValueBeforeDeclaration
