@@ -10,7 +10,7 @@ import type {
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { getLogger } from '../logger';
-import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../logging';
+import { LOGLEVEL_INFO } from '../logging';
 import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
 import type { CommandConfigObject } from './normalizeInputOptions';
 import {
@@ -145,7 +145,7 @@ function mergeInputOptions(
 		maxParallelFileReads: getOption('maxParallelFileReads'),
 		moduleContext: getOption('moduleContext'),
 		onLog,
-		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
+		onwarn: undefined,
 		perf: getOption('perf'),
 		plugins,
 		preserveEntrySignatures: getOption('preserveEntrySignatures'),

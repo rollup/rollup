@@ -9,6 +9,7 @@ module.exports = defineTest({
 					this.debug('debug');
 					this.info('info');
 					this.warn('warn');
+					this.error('error');
 				}
 			}
 		]
@@ -17,5 +18,11 @@ module.exports = defineTest({
 		{ level: 'debug', message: 'debug', code: 'PLUGIN_LOG', plugin: 'test' },
 		{ level: 'info', message: 'info', code: 'PLUGIN_LOG', plugin: 'test' },
 		{ level: 'warn', message: 'warn', code: 'PLUGIN_WARNING', plugin: 'test' }
-	]
+	],
+	error: {
+		code: 'PLUGIN_ERROR',
+		hook: 'onLog',
+		message: 'error',
+		plugin: 'test'
+	}
 });

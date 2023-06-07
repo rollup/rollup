@@ -134,22 +134,19 @@ async function getProcessedInputOptions(
 
 	for (const plugin of plugins) {
 		const { name, options } = plugin;
-
-		if (options) {
-			const handler = 'handler' in options ? options.handler : options;
-			const processedOptions = await handler.call(
-				{
-					debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', logger, name, logLevel),
-					error: (error_): never => error(logPluginError(error_, name, { hook: 'onLog' })),
-					info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', logger, name, logLevel),
-					meta: { rollupVersion, watchMode },
-					warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', logger, name, logLevel)
-				},
-				inputOptions
-			);
-			if (processedOptions) {
-				inputOptions = processedOptions;
-			}
+		const handler = 'handler' in options! ? options.handler : options!;
+		const processedOptions = await handler.call(
+			{
+				debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', logger, name, logLevel),
+				error: (error_): never => error(logPluginError(error_, name, { hook: 'onLog' })),
+				info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', logger, name, logLevel),
+				meta: { rollupVersion, watchMode },
+				warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', logger, name, logLevel)
+			},
+			inputOptions
+		);
+		if (processedOptions) {
+			inputOptions = processedOptions;
 		}
 	}
 	return inputOptions;

@@ -105,10 +105,6 @@ async function loadTranspiledConfigFile(
 	};
 	await addPluginsFromCommandOption(configPlugin, inputOptions);
 	const bundle = await rollup.rollup(inputOptions);
-	if (!silent && warnings.count > 0) {
-		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
-		warnings.flush();
-	}
 	const {
 		output: [{ code }]
 	} = await bundle.generate({
@@ -128,6 +124,10 @@ async function loadTranspiledConfigFile(
 			}
 		]
 	});
+	if (!silent && warnings.count > 0) {
+		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
+		warnings.flush();
+	}
 	return loadConfigFromWrittenFile(
 		join(dirname(fileName), `rollup.config-${Date.now()}.${bundleConfigAsCjs ? 'cjs' : 'mjs'}`),
 		code
