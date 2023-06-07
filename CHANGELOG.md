@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.24.0
+
+_2023-06-07_
+
+### Features
+
+- Add new annotation `/* #__NO_SIDE_EFFECTS__ */` to mark function declarations as side effect free (#5024)
+
+### Pull Requests
+
+- [#5024](https://github.com/rollup/rollup/pull/5024): feat: support `#__NO_SIDE_EFFECTS__` annotation for function declaration (@antfu)
+
 ## 3.23.1
 
 _2023-06-04_
