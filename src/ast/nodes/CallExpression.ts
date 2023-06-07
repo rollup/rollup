@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { errorCannotCallNamespace, errorEval } from '../../utils/error';
 import { renderCallArguments } from '../../utils/renderCallArguments';
@@ -57,11 +56,9 @@ export default class CallExpression
 			for (const argument of this.arguments) {
 				if (argument.hasEffects(context)) return true;
 			}
-			if (
-				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-				this.annotations
-			)
+			if (this.annotationPure) {
 				return false;
+			}
 			return (
 				this.callee.hasEffects(context) ||
 				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)

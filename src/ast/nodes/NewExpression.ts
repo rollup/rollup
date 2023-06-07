@@ -1,5 +1,4 @@
 import type MagicString from 'magic-string';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { renderCallArguments } from '../../utils/renderCallArguments';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -21,10 +20,7 @@ export default class NewExpression extends NodeBase {
 			for (const argument of this.arguments) {
 				if (argument.hasEffects(context)) return true;
 			}
-			if (
-				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-				this.annotations
-			) {
+			if (this.annotationPure) {
 				return false;
 			}
 			return (

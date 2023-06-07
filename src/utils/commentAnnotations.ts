@@ -1,20 +1,32 @@
 import type * as acorn from 'acorn';
 import { base as basicWalker } from 'acorn-walk';
 import {
+	ArrowFunctionExpression,
 	BinaryExpression,
 	CallExpression,
 	ChainExpression,
 	ConditionalExpression,
+	ExportDefaultDeclaration,
+	ExportNamedDeclaration,
 	ExpressionStatement,
+	FunctionDeclaration,
 	LogicalExpression,
 	NewExpression,
-	SequenceExpression
+	SequenceExpression,
+	VariableDeclaration,
+	VariableDeclarator
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
+export type AnnotationType = 'noSideEffects' | 'pure';
+
+export interface RollupAnnotation extends acorn.Comment {
+	annotationType: AnnotationType;
+}
+
 interface CommentState {
 	annotationIndex: number;
-	annotations: acorn.Comment[];
+	annotations: RollupAnnotation[];
 	code: string;
 }
 
@@ -93,6 +105,28 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					invalidAnnotation = true;
 					break;
 				}
+				case ExportNamedDeclaration:
+				case ExportDefaultDeclaration: {
+					node = (node as any).declaration;
+					continue;
+				}
+				case VariableDeclaration: {
+					// case: /*#__PURE__*/ const foo = () => {}
+					const declaration = node as any;
+					if (declaration.kind === 'const') {
+						// jsdoc only applies to the first declaration
+						node = declaration.declarations[0].init;
+						continue;
+					}
+					invalidAnnotation = true;
+					break;
+				}
+				case VariableDeclarator: {
+					node = (node as any).init;
+					continue;
+				}
+				case FunctionDeclaration:
+				case ArrowFunctionExpression:
 				case CallExpression:
 				case NewExpression: {
 					break;
@@ -134,25 +168,32 @@ function doesNotMatchOutsideComment(code: string, forbiddenChars: RegExp): boole
 	return true;
 }
 
-const pureCommentRegex = /[#@]__PURE__/;
+const annotationsRegexes: [AnnotationType, RegExp][] = [
+	['pure', /[#@]__PURE__/],
+	['noSideEffects', /[#@]__NO_SIDE_EFFECTS__/]
+];
 
 export function addAnnotations(
 	comments: readonly acorn.Comment[],
 	esTreeAst: acorn.Node,
 	code: string
 ): void {
-	const annotations: acorn.Comment[] = [];
+	const annotations: RollupAnnotation[] = [];
 	const sourceMappingComments: acorn.Comment[] = [];
 	for (const comment of comments) {
-		if (pureCommentRegex.test(comment.value)) {
-			annotations.push(comment);
-		} else if (SOURCEMAPPING_URL_RE.test(comment.value)) {
+		for (const [annotationType, regex] of annotationsRegexes) {
+			if (regex.test(comment.value)) {
+				annotations.push({ ...comment, annotationType });
+			}
+		}
+		if (SOURCEMAPPING_URL_RE.test(comment.value)) {
 			sourceMappingComments.push(comment);
 		}
 	}
 	for (const comment of sourceMappingComments) {
 		annotateNode(esTreeAst, comment, false);
 	}
+
 	handlePureAnnotationsOfNode(esTreeAst, {
 		annotationIndex: 0,
 		annotations,
