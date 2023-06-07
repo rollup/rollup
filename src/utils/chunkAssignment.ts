@@ -531,6 +531,7 @@ function getOptimizedChunks(
 		return initialChunks; // the actual modules
 	}
 	minChunkSize > 1 &&
+		// TODO Lukas fix
 		console.log(
 			'Before eliminating small chunks, there were\n',
 			initialChunks.length,
@@ -540,6 +541,7 @@ function getOptimizedChunks(
 		);
 	mergeChunks(chunkPartition, minChunkSize);
 	minChunkSize > 1 &&
+		// TODO Lukas fix
 		console.log(
 			'After merging chunks,\n',
 			chunkPartition.small.size + chunkPartition.big.size,

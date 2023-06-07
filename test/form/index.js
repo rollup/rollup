@@ -6,7 +6,7 @@ const { basename, resolve } = require('node:path');
  */
 // @ts-expect-error not included in types
 const { rollup } = require('../../dist/rollup');
-const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
+const { compareLogs, normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
@@ -24,6 +24,7 @@ runTestSuiteWithSamples(
 			() => {
 				let bundle;
 				const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
+					const logs = [];
 					const warnings = [];
 					if (config.before) {
 						await config.before();
@@ -34,11 +35,10 @@ runTestSuiteWithSamples(
 							bundle ||
 							(await rollup({
 								input: directory + '/main.js',
-								onwarn: warning => {
-									if (
-										!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))
-									) {
-										warnings.push(warning);
+								onLog: (level, log) => {
+									logs.push({ level, ...log });
+									if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
+										warnings.push(log);
 									}
 								},
 								strictDeprecations: true,
@@ -71,6 +71,8 @@ runTestSuiteWithSamples(
 								.map(({ message }) => `${message}\n\n`)
 								.join('')}` + 'If you expect warnings, list their codes in config.expectedWarnings'
 						);
+					} else if (config.logs) {
+						compareLogs(logs, config.logs);
 					}
 				};
 

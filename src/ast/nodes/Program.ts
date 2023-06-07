@@ -1,7 +1,7 @@
 import { locate } from 'locate-character';
 import type MagicString from 'magic-string';
 import getCodeFrame from '../../utils/getCodeFrame';
-import { getOriginalLocation } from '../../utils/getOriginalLocation';
+import { LOGLEVEL_INFO } from '../../utils/logging';
 import relativeId from '../../utils/relativeId';
 import {
 	findFirstLineBreakOutsideComment,
@@ -37,29 +37,16 @@ export default class Program extends NodeBase {
 					this.hasLoggedEffect = true;
 					const { code, module } = this.context;
 					const { line, column } = locate(code, node.start, { offsetLine: 1 });
-					console.log(
-						`First side effect in ${relativeId(
-							module.id
-						)} is at (${line}:${column})\n${getCodeFrame(code, line, column)}`
+					this.context.log(
+						LOGLEVEL_INFO,
+						{
+							code: 'FIRST_SIDE_EFFECT',
+							message: `First side effect in ${relativeId(
+								module.id
+							)} is at (${line}:${column})\n${getCodeFrame(code, line, column)}`
+						},
+						node.start
 					);
-					try {
-						const { column: originalColumn, line: originalLine } = getOriginalLocation(
-							module.sourcemapChain,
-							{ column, line }
-						);
-						if (originalLine !== line) {
-							console.log(
-								`Original location is at (${originalLine}:${originalColumn})\n${getCodeFrame(
-									module.originalCode,
-									originalLine,
-									originalColumn
-								)}\n`
-							);
-						}
-					} catch {
-						/* ignored */
-					}
-					console.log();
 				}
 				return (this.hasCachedEffect = true);
 			}
