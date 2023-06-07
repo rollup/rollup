@@ -400,11 +400,9 @@ buildWithCache()
 |     CLI: | `--logLevel <level>`   |
 | Default: | `"info"`               |
 
-TODO Lukas move to onLog
+Determine which logs to process. See [`onLog`](#onlog) for the available log levels. A `logLevel` of `info` means that info and warnings logs will be processed while debug logs will be swallowed, which means that they are neither passed to plugin [`onLog`](../plugin-development/index.md#onlog) hooks nor the `onLog` option or printed to the console.
 
-```typescript
-type LogLevel = 'warn' | 'info' | 'debug';
-```
+When using the CLI, errors will still be printed to the console as they are not processed via the logging system. See the [`--silent`](../command-line-interface/index.md#silent) flag for how to suppress error logs.
 
 ### makeAbsoluteExternalsRelative
 

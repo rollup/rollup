@@ -23,8 +23,9 @@ runTestSuiteWithSamples(
 			basename(directory) + ': ' + config.description,
 			() => {
 				let bundle;
+				const logs = [];
+
 				const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
-					const logs = [];
 					const warnings = [];
 					if (config.before) {
 						await config.before();
@@ -71,16 +72,18 @@ runTestSuiteWithSamples(
 								.map(({ message }) => `${message}\n\n`)
 								.join('')}` + 'If you expect warnings, list their codes in config.expectedWarnings'
 						);
-					} else if (config.logs) {
-						compareLogs(logs, config.logs);
 					}
 				};
 
 				if (isSingleFormatTest) {
-					return runRollupTest(directory + '/_actual.js', directory + '/_expected.js', 'es');
+					return runRollupTest(directory + '/_actual.js', directory + '/_expected.js', 'es').then(
+						() => config.logs && compareLogs(logs, config.logs)
+					);
 				}
 
-				for (const format of config.formats || FORMATS)
+				for (const format of config.formats || FORMATS) {
+					after(() => config.logs && compareLogs(logs, config.logs));
+
 					it('generates ' + format, () =>
 						runRollupTest(
 							directory + '/_actual/' + format + '.js',
@@ -88,6 +91,7 @@ runTestSuiteWithSamples(
 							format
 						)
 					);
+				}
 			}
 		);
 	}

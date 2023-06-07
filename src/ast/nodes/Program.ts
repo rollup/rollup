@@ -1,8 +1,7 @@
 import { locate } from 'locate-character';
 import type MagicString from 'magic-string';
-import getCodeFrame from '../../utils/getCodeFrame';
 import { LOGLEVEL_INFO } from '../../utils/logging';
-import relativeId from '../../utils/relativeId';
+import { logFirstSideEffect } from '../../utils/logs';
 import {
 	findFirstLineBreakOutsideComment,
 	type RenderOptions,
@@ -35,16 +34,10 @@ export default class Program extends NodeBase {
 			if (node.hasEffects(context)) {
 				if (this.context.options.experimentalLogSideEffects && !this.hasLoggedEffect) {
 					this.hasLoggedEffect = true;
-					const { code, module } = this.context;
-					const { line, column } = locate(code, node.start, { offsetLine: 1 });
-					this.context.log(
+					const { code, log, module } = this.context;
+					log(
 						LOGLEVEL_INFO,
-						{
-							code: 'FIRST_SIDE_EFFECT',
-							message: `First side effect in ${relativeId(
-								module.id
-							)} is at (${line}:${column})\n${getCodeFrame(code, line, column)}`
-						},
+						logFirstSideEffect(code, module.id, locate(code, node.start, { offsetLine: 1 })),
 						node.start
 					);
 				}

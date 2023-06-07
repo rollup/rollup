@@ -189,7 +189,8 @@ export default class Bundle {
 			: getChunkAssignments(
 					this.graph.entryModules,
 					manualChunkAliasByEntry,
-					experimentalMinChunkSize
+					experimentalMinChunkSize,
+					this.inputOptions.onLog
 			  )) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(

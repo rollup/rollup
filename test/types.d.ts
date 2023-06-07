@@ -65,6 +65,10 @@ export interface TestConfigChunkingForm extends TestConfigBase {
 	 */
 	expectedWarnings?: string[];
 	/**
+	 * Assert the expected logs.
+	 */
+	logs?: RollupLog[];
+	/**
 	 * The directory to bundle the code in.
 	 */
 	nestedDir?: string;

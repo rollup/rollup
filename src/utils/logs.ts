@@ -85,6 +85,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	FAIL_AFTER_WARNINGS = 'FAIL_AFTER_WARNINGS',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
 	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
+	FIRST_SIDE_EFFECT = 'FIRST_SIDE_EFFECT',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
 	INCONSISTENT_IMPORT_ASSERTIONS = 'INCONSISTENT_IMPORT_ASSERTIONS',
@@ -113,6 +114,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	NO_FS_IN_BROWSER = 'NO_FS_IN_BROWSER',
 	NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE = 'NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE',
 	ONLY_INLINE_SOURCEMAPS = 'ONLY_INLINE_SOURCEMAPS',
+	OPTIMIZE_CHUNK_STATUS = 'OPTIMIZE_CHUNK_STATUS',
 	PARSE_ERROR = 'PARSE_ERROR',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
 	SHIMMED_EXPORT = 'SHIMMED_EXPORT',
@@ -355,6 +357,21 @@ export function logFileReferenceIdNotFoundForFilename(assetReferenceId: string):
 	return {
 		code: FILE_NOT_FOUND,
 		message: `Plugin error - Unable to get file name for unknown file "${assetReferenceId}".`
+	};
+}
+
+export function logFirstSideEffect(
+	source: string,
+	id: string,
+	{ line, column }: { column: number; line: number }
+): RollupLog {
+	return {
+		code: FIRST_SIDE_EFFECT,
+		message: `First side effect in ${relativeId(id)} is at (${line}:${column})\n${getCodeFrame(
+			source,
+			line,
+			column
+		)}`
 	};
 }
 
@@ -733,6 +750,20 @@ export function logOnlyInlineSourcemapsForStdout(): RollupLog {
 	return {
 		code: ONLY_INLINE_SOURCEMAPS,
 		message: 'Only inline sourcemaps are supported when bundling to stdout.'
+	};
+}
+
+export function logOptimizeChunkStatus(
+	chunks: number,
+	smallChunks: number,
+	pointInTime: string
+): RollupLog {
+	return {
+		code: OPTIMIZE_CHUNK_STATUS,
+		message:
+			`${pointInTime}, there are\n` +
+			`${chunks} chunks, of which\n` +
+			`${smallChunks} are below minChunkSize.`
 	};
 }
 
