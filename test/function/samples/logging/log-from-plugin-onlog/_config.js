@@ -17,70 +17,37 @@ module.exports = defineTest({
 				'warn',
 				{
 					message: 'warnLog',
-					code: 'PLUGIN_WARNING',
+					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
-					pluginCode: 'EXTRA_CODE',
-					plugin: 'test'
-				}
-			],
-			[
-				'onLog',
-				'warn',
-				{
-					message: 'warnLog',
 					code: 'PLUGIN_WARNING',
 					plugin: 'test'
 				}
 			],
-			[
-				'onLog',
-				'warn',
-				{
-					message: 'warnString',
-					code: 'PLUGIN_WARNING',
-					plugin: 'test'
-				}
-			],
+			['onLog', 'warn', { message: 'warnString', code: 'PLUGIN_WARNING', plugin: 'test' }],
 			[
 				'onLog',
 				'info',
 				{
 					message: 'infoLog',
-					code: 'PLUGIN_LOG',
+					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
-					pluginCode: 'EXTRA_CODE',
-					plugin: 'test'
-				}
-			],
-			[
-				'onLog',
-				'info',
-				{
-					message: 'infoString',
 					code: 'PLUGIN_LOG',
 					plugin: 'test'
 				}
 			],
+			['onLog', 'info', { message: 'infoString', code: 'PLUGIN_LOG', plugin: 'test' }],
 			[
 				'onLog',
 				'debug',
 				{
 					message: 'debugLog',
-					code: 'PLUGIN_LOG',
+					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
-					pluginCode: 'EXTRA_CODE',
+					code: 'PLUGIN_LOG',
 					plugin: 'test'
 				}
 			],
-			[
-				'onLog',
-				'debug',
-				{
-					message: 'debugString',
-					code: 'PLUGIN_LOG',
-					plugin: 'test'
-				}
-			]
+			['onLog', 'debug', { message: 'debugString', code: 'PLUGIN_LOG', plugin: 'test' }]
 		]);
 	},
 	options: {
@@ -93,12 +60,11 @@ module.exports = defineTest({
 			{
 				name: 'test',
 				buildStart() {
-					this.warn({ message: 'warnLog', code: 'EXTRA_CODE', binding: 'foo' });
-					this.warn({ message: 'warnLog' });
+					this.warn({ message: 'warnLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.warn('warnString');
-					this.info({ message: 'infoLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.info({ message: 'infoLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.info('infoString');
-					this.debug({ message: 'debugLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.debug({ message: 'debugLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.debug('debugString');
 				}
 			}

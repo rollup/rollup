@@ -32,7 +32,7 @@ export interface RollupLog {
 		line: number;
 	};
 	message: string;
-	meta?: Record<string, any>;
+	meta?: any;
 	names?: string[];
 	plugin?: string;
 	pluginCode?: string;
@@ -132,7 +132,7 @@ export interface PluginCache {
 	set<T = any>(id: string, value: T): void;
 }
 
-export type LoggingFunction = (log: RollupLog | string) => void;
+export type LoggingFunction = (log: RollupLog | string | (() => RollupLog | string)) => void;
 
 export interface MinimalPluginContext {
 	debug: LoggingFunction;
@@ -201,7 +201,7 @@ export interface CustomPluginOptions {
 }
 
 type LoggingFunctionWithPosition = (
-	log: RollupLog | string,
+	log: RollupLog | string | (() => RollupLog | string),
 	pos?: number | { column: number; line: number }
 ) => void;
 

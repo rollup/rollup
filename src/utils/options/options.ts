@@ -66,8 +66,12 @@ const addLogToString = (log: RollupLog): RollupLog => {
 	return log;
 };
 
-export const normalizeLog = (log: string | RollupLog): RollupLog =>
-	typeof log === 'string' ? { message: log } : log;
+export const normalizeLog = (log: RollupLog | string | (() => RollupLog | string)): RollupLog =>
+	typeof log === 'string'
+		? { message: log }
+		: typeof log === 'function'
+		? normalizeLog(log())
+		: log;
 
 const getExtendedLogMessage = (log: RollupLog): string => {
 	let prefix = '';

@@ -13,7 +13,6 @@ module.exports = defineTest({
 		Object.assign(console, { debug, info, warn });
 		assert.deepStrictEqual(logs, [
 			['warn', '(test plugin) warnLog'],
-			['warn', '(test plugin) warnLog'],
 			['warn', '(test plugin) warnString'],
 			['info', '(test plugin) infoLog'],
 			['info', '(test plugin) infoString'],
@@ -29,12 +28,11 @@ module.exports = defineTest({
 			{
 				name: 'test',
 				buildStart() {
-					this.warn({ message: 'warnLog', code: 'EXTRA_CODE', binding: 'foo' });
-					this.warn({ message: 'warnLog' });
+					this.warn({ message: 'warnLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.warn('warnString');
-					this.info({ message: 'infoLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.info({ message: 'infoLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.info('infoString');
-					this.debug({ message: 'debugLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.debug({ message: 'debugLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.debug('debugString');
 				}
 			}

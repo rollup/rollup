@@ -19,6 +19,7 @@ import {
 	logPluginError,
 	warnDeprecation
 } from './logs';
+import { normalizeLog } from './options/options';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 import { URL_THIS_GETMODULEIDS } from './urls';
 
@@ -67,7 +68,7 @@ export function getPluginContext(
 		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(error_): never {
-			return error(logPluginError(error_, plugin.name));
+			return error(logPluginError(normalizeLog(error_), plugin.name));
 		},
 		getFileName: fileEmitter.getFileName,
 		getModuleIds: () => graph.modulesById.keys(),

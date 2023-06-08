@@ -783,12 +783,11 @@ export function logParseError(error: Error, moduleId: string): RollupLog {
 }
 
 export function logPluginError(
-	error: string | RollupLog,
+	error: RollupLog,
 	plugin: string,
 	{ hook, id }: { hook?: string; id?: string } = {}
 ): RollupLog {
-	if (typeof error === 'string') error = { message: error };
-	if (error.code && !error.code.startsWith('PLUGIN_')) {
+	if (error.code && !error.code.startsWith('PLUGIN_') && !error.pluginCode) {
 		error.pluginCode = error.code;
 	}
 	error.code = PLUGIN_ERROR;

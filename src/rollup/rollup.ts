@@ -17,7 +17,7 @@ import {
 } from '../utils/logs';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
-import { getOnLog, normalizePluginOption } from '../utils/options/options';
+import { getOnLog, normalizeLog, normalizePluginOption } from '../utils/options/options';
 import { dirname, resolve } from '../utils/path';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
@@ -138,7 +138,8 @@ async function getProcessedInputOptions(
 		const processedOptions = await handler.call(
 			{
 				debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', logger, name, logLevel),
-				error: (error_): never => error(logPluginError(error_, name, { hook: 'onLog' })),
+				error: (error_): never =>
+					error(logPluginError(normalizeLog(error_), name, { hook: 'onLog' })),
 				info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', logger, name, logLevel),
 				meta: { rollupVersion, watchMode },
 				warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', logger, name, logLevel)

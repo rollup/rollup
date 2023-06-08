@@ -16,28 +16,13 @@ module.exports = defineTest({
 				'onwarn',
 				{
 					message: 'warnLog',
-					code: 'PLUGIN_WARNING',
+					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
-					pluginCode: 'EXTRA_CODE',
-					plugin: 'test'
-				}
-			],
-			[
-				'onwarn',
-				{
-					message: 'warnLog',
 					code: 'PLUGIN_WARNING',
 					plugin: 'test'
 				}
 			],
-			[
-				'onwarn',
-				{
-					message: 'warnString',
-					code: 'PLUGIN_WARNING',
-					plugin: 'test'
-				}
-			],
+			['onwarn', { message: 'warnString', code: 'PLUGIN_WARNING', plugin: 'test' }],
 			['info', '(test plugin) infoLog'],
 			['info', '(test plugin) infoString'],
 			['debug', '(test plugin) debugLog'],
@@ -54,12 +39,11 @@ module.exports = defineTest({
 			{
 				name: 'test',
 				buildStart() {
-					this.warn({ message: 'warnLog', code: 'EXTRA_CODE', binding: 'foo' });
-					this.warn({ message: 'warnLog' });
+					this.warn({ message: 'warnLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.warn('warnString');
-					this.info({ message: 'infoLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.info({ message: 'infoLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.info('infoString');
-					this.debug({ message: 'debugLog', code: 'EXTRA_CODE', binding: 'foo' });
+					this.debug({ message: 'debugLog', pluginCode: 'PLUGIN_CODE', binding: 'foo' });
 					this.debug('debugString');
 				}
 			}

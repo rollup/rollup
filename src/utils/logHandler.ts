@@ -24,7 +24,7 @@ export function getLogHandler(
 			logger(LOGLEVEL_WARN, logInvalidLogPosition(pluginName));
 		}
 		log = normalizeLog(log);
-		if (log.code) {
+		if (log.code && !log.pluginCode) {
 			log.pluginCode = log.code;
 		}
 		log.code = code;

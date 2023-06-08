@@ -1189,11 +1189,11 @@ In general, it is recommended to use `this.addWatchFile` from within the hook th
 
 |  |  |
 | --: | :-- |
-| Type: | `(log: string \| RollupLog, position?: number \| { column: number; line: number }) => void` |
+| Type: | `(log: string \| RollupLog \| (() => RollupLog \| string), position?: number \| { column: number; line: number }) => void` |
 
-Generate a `debug` log. See [`this.warn`](#this-warn) for details.
+Generate a `debug` log. See [`this.warn`](#this-warn) for details. Debug logs always receive the `code` `PLUGIN_LOG`.
 
-These logs are only processed if the [`logLevel`](../configuration-options/index.md#loglevel) option is explicitly set to `debug`, otherwise it does nothing. Therefore, it is encouraged to add helpful debug logs to plugins as that can help spot issues while they will be efficiently muted by default.
+These logs are only processed if the [`logLevel`](../configuration-options/index.md#loglevel) option is explicitly set to `debug`, otherwise it does nothing. Therefore, it is encouraged to add helpful debug logs to plugins as that can help spot issues while they will be efficiently muted by default. Make sure to add a distinctive `pluginCode` to those logs for easy filtering.
 
 ### this.emitFile
 
@@ -1474,9 +1474,9 @@ Get ids of the files which has been watched previously. Include both files added
 
 |  |  |
 | --: | :-- |
-| Type: | `(log: string \| RollupLog, position?: number \| { column: number; line: number }) => void` |
+| Type: | `(log: string \| RollupLog \| (() => RollupLog \| string), position?: number \| { column: number; line: number }) => void` |
 
-Generate an `info` log. See [`this.warn`](#this-warn) for details.
+Generate an `info` log. See [`this.warn`](#this-warn) for details. Info logs always receive the `code` `PLUGIN_LOG`.
 
 If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to `warn` or `silent`, this method will do nothing.
 
@@ -1702,7 +1702,7 @@ Set the deferred source of an asset. Note that you can also pass a Node `Buffer`
 
 |  |  |
 | --: | :-- |
-| Type: | `(log: string \| RollupLog, position?: number \| { column: number; line: number }) => void` |
+| Type: | `(log: string \| RollupLog \| (() => RollupLog \| string), position?: number \| { column: number; line: number }) => void` |
 
 Using this method will generate warnings for a build, which are logs with log level `warn`. See the [`onLog`](../configuration-options/index.md#onlog) option for information about the `RollupLog` type. To generate other logs, see also [`this.info`](#this-info) and [`this.debug`](#this-debug). To generate errors, see [`this.error`](#this-error).
 
@@ -1713,10 +1713,17 @@ The `warning` argument can be a `string` or an object with (at minimum) a `messa
 ```js
 this.warn('hmm...');
 // is equivalent to
-this.warn({ message: 'hmm...' });
+this.warn({ message: 'hmm...', pluginCode: 'CODE_TO_IDENTIFY_LOG' });
 ```
 
-In all hooks except the [`onLog`](#onlog) hook, the log objet will be augmented with `code: 'PLUGIN_WARNING` and `plugin: plugin.name` properties. If a `code` property is provided and the code does not start with `PLUGIN_`, it will be renamed to `pluginCode`. To prevent this behavior, plugins can instead use the normalized `onLog` option passed to the [`buildStart`](#buildstart) hook. Calling this option from a plugin will not change properties and pass the log to all plugin `onLog` handlers as well as any `onLog` or `onwarn` handler provided by the user.
+We encourage you to use objects with a `pluginCode` property as that will allow users to easily filter for those logs in an `onLog` handler. If the log contains a `code` and does not yet have a `pluginCode` property, it will be renamed to `pluginCode` as plugin warnings always have a `code` of `PLUGIN_WARNING`. To prevent this behavior, plugins can instead use the normalized `onLog` option passed to the [`buildStart`](#buildstart) hook. Calling this option from a plugin will not change properties when passing the log to plugin `onLog` handlers and `onLog` or `onwarn` handlers.
+
+If you need to do expensive computations to generate a log, you can also pass a function returning either a `string` or a `RollupLog` object. This function will only be called if the log is not filtered by the [`logLevel`](../configuration-options/index.md#loglevel) option.
+
+```js
+// This will only run if the logLevel is set to "debug"
+this.debug(() => generateExpensiveDebugLog());
+```
 
 When used in the `transform` hook, the `id` of the current module will also be added and a `position` can be supplied. This is a character index or file location which will be used to augment the log with `pos`, `loc` (a standard `{ file, line, column }` object) and `frame` (a snippet of code showing the location).
 

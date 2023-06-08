@@ -81,9 +81,20 @@ module.exports = defineTest({
 			{
 				name: 'test',
 				buildStart(options) {
-					this.debug('buildStart-debug');
-					this.info('buildStart-info');
-					this.warn('buildStart-warn');
+					let triggered = '';
+					this.debug(() => {
+						triggered += 'debug';
+						return 'buildStart-debug';
+					});
+					this.info(() => {
+						triggered += 'info';
+						return 'buildStart-info';
+					});
+					this.warn(() => {
+						triggered += 'warn';
+						return 'buildStart-warn';
+					});
+					assert.strictEqual(triggered, 'infowarn');
 					options.onLog('debug', { message: 'buildStart-options-debug' });
 					options.onLog('info', { message: 'buildStart-options-info' });
 					options.onLog('warn', { message: 'buildStart-options-warn' });
