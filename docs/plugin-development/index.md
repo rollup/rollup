@@ -1196,9 +1196,24 @@ In general, it is recommended to use `this.addWatchFile` from within the hook th
 | --: | :-- |
 | Type: | `(log: string \| RollupLog \| (() => RollupLog \| string), position?: number \| { column: number; line: number }) => void` |
 
-Generate a `"debug"` log. See [`this.warn`](#this-warn) for details. Debug logs always get `code: "PLUGIN_LOG"` added by Rollup.
+Generate a `"debug"` log. See [`this.warn`](#this-warn) for details. Debug logs always get `code: "PLUGIN_LOG"` added by Rollup. Make sure to add a distinctive `pluginCode` to those logs for easy filtering.
 
-These logs are only processed if the [`logLevel`](../configuration-options/index.md#loglevel) option is explicitly set to `"debug"`, otherwise it does nothing. Therefore, it is encouraged to add helpful debug logs to plugins as that can help spot issues while they will be efficiently muted by default. Make sure to add a distinctive `pluginCode` to those logs for easy filtering.
+These logs are only processed if the [`logLevel`](../configuration-options/index.md#loglevel) option is explicitly set to `"debug"`, otherwise it does nothing. Therefore, it is encouraged to add helpful debug logs to plugins as that can help spot issues while they will be efficiently muted by default. If you need to do expensive computations to generate the log, make sure to use the function form so that these computations are only performed if the log is actually processed.
+
+```js
+function plugin() {
+	return {
+		name: 'test',
+		transform(code, id) {
+			this.debug(
+				() =>
+					`transforming ${id},\n` +
+					`module contains, ${code.split('\n').length} lines`
+			);
+		}
+	};
+}
+```
 
 ### this.emitFile
 
@@ -1481,7 +1496,7 @@ Get ids of the files which has been watched previously. Include both files added
 | --: | :-- |
 | Type: | `(log: string \| RollupLog \| (() => RollupLog \| string), position?: number \| { column: number; line: number }) => void` |
 
-Generate an `"info"` log. See [`this.warn`](#this-warn) for details. Info logs always get `code: "PLUGIN_LOG"` added by Rollup.
+Generate an `"info"` log. See [`this.warn`](#this-warn) for details. Info logs always get `code: "PLUGIN_LOG"` added by Rollup. As these logs are displayed by default, use them for information that is not a warning but makes sense to display to all users on every build.
 
 If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to `"warn"` or `"silent"`, this method will do nothing.
 
