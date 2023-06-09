@@ -17,6 +17,5 @@ module.exports = defineTest({
 				}
 			}
 		]
-	},
-	solo: true
+	}
 });
