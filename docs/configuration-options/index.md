@@ -400,7 +400,7 @@ buildWithCache()
 |     CLI: | `--logLevel <level>`   |
 | Default: | `"info"`               |
 
-Determine which logs to process. See [`onLog`](#onlog) for the available log levels. A `logLevel` of `info` means that info and warnings logs will be processed while debug logs will be swallowed, which means that they are neither passed to plugin [`onLog`](../plugin-development/index.md#onlog) hooks nor the `onLog` option or printed to the console.
+Determine which logs to process. See [`onLog`](#onlog) for the available log levels. The default `logLevel` of `"info"` means that info and warnings logs will be processed while debug logs will be swallowed, which means that they are neither passed to plugin [`onLog`](../plugin-development/index.md#onlog) hooks nor the `onLog` option or printed to the console.
 
 When using the CLI, errors will still be printed to the console as they are not processed via the logging system. See the [`--silent`](../command-line-interface/index.md#silent) flag for how to suppress error logs.
 
@@ -464,7 +464,7 @@ interface RollupLog {
 		line: number;
 	}; // always printed by the CLI if id is present
 	message: string; // the actual message, always printed by the CLI
-	meta?: Record<string, any>; // add custom plugin properties to logs
+	meta?: any; // add custom plugin properties to logs
 	names?: string[];
 	plugin?: string; // added by Rollup for plugin logs, only printed for warnings
 	pluginCode?: string; // added by Rollup for plugin logs that contain a code
@@ -475,11 +475,11 @@ interface RollupLog {
 }
 ```
 
-A function that intercepts log messages. If not supplied, logs are printed to the console. To reduce noise, Rollup CLI aggregates certain `warn` logs and prints consolidated warnings after the build. This handler is also triggered when using the [`--silent`](../command-line-interface/index.md#silent) CLI option.
+A function that intercepts log messages. If not supplied, logs are printed to the console, whereby Rollup CLI aggregates certain `"warn"` logs and prints consolidated warnings after the build to reduce noise. This handler is also triggered when using the [`--silent`](../command-line-interface/index.md#silent) CLI option.
 
-The function receives three arguments: the log level, the log object and the default handler. Log objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of logs are handled. Other properties are added depending on the type of log. See [`utils/logs.ts`](https://github.com/rollup/rollup/blob/master/src/utils/logs.ts) for a complete list of errors and logs together with their codes and properties.
+The function receives three arguments: the log level, the log object and the default handler. Log objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of logs are handled. Other properties are added depending on the type of log. See [`utils/logs.ts`](https://github.com/rollup/rollup/blob/master/src/utils/logs.ts) for a complete list of built-in errors and logs together with their codes and properties.
 
-If the default handler is not invoked, the log will not be printed to the console. Moreover, you can change the log level by invoking the default handler with a different level. Using the additional level `error` will turn the log into a thrown error that has all properties of the log attached.
+If the default handler is not invoked, the log will not be printed to the console. Moreover, you can change the log level by invoking the default handler with a different level. Using the additional level `"error"` will turn the log into a thrown error that has all properties of the log attached.
 
 ```js
 // rollup.config.js
@@ -498,7 +498,7 @@ export default {
 };
 ```
 
-This handler will not be invoked if logs are filtered out by the [`logLevel`](#loglevel) option. I.e. by default, `debug` logs will be swallowed.
+This handler will not be invoked if logs are filtered out by the [`logLevel`](#loglevel) option. I.e. by default, `"debug"` logs will be swallowed.
 
 Some logs also have a `loc` property and a `frame` allowing you to locate the source of the log:
 
