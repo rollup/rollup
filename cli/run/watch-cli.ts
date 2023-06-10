@@ -153,8 +153,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 		if (watcher) await watcher.close();
 		if (configWatcher) configWatcher.close();
-
-		process.exit(code || 0);
+		if (code) process.exit(code);
 	}
 
 	// return a promise that never resolves to keep the process running
