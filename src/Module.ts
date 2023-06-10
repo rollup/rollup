@@ -1277,10 +1277,14 @@ export default class Module {
 	}
 
 	private includeVariable(variable: Variable): void {
-		if (!variable.included) {
+		const variableModule = variable.module;
+		if (variable.included) {
+			if (variableModule instanceof Module && variableModule !== this) {
+				getAndExtendSideEffectModules(variable, this);
+			}
+		} else {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
-			const variableModule = variable.module;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
 					markModuleAndImpureDependenciesAsExecuted(variableModule);
