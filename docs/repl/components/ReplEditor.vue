@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { EditorView } from '@codemirror/view';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import type { RollupWarning } from '../../../src/rollup/types';
+import type { RollupLog } from '../../../src/rollup/types';
 import type { AddWarnings } from '../helpers/editor';
 import { getFileNameFromMessage } from '../helpers/messages';
 import { useRollupOutput } from '../stores/rollupOutput';
@@ -51,9 +51,9 @@ onMounted(async () => {
 	);
 
 	if (properties.moduleName && !properties.readonly) {
-		const addMarkers = (messages: RollupWarning[], type: 'warning' | 'error') => {
+		const addMarkers = (messages: RollupLog[], type: 'warning' | 'error') => {
 			const relevantMessages = messages.filter(
-				(message): message is RollupWarning & { pos: number } =>
+				(message): message is RollupLog & { pos: number } =>
 					typeof message.pos === 'number' &&
 					getFileNameFromMessage(message) === properties.moduleName
 			);

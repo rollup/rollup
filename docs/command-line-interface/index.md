@@ -48,6 +48,10 @@ export default {
 
 	// advanced input options
 	cache,
+	logLevel,
+	makeAbsoluteExternalsRelative,
+	maxParallelFileOps,
+	onLog,
 	onwarn,
 	preserveEntrySignatures,
 	strictDeprecations,
@@ -64,6 +68,7 @@ export default {
 	// experimental
 	experimentalCacheExpiry,
 	experimentalLogSideEffects,
+	experimentalMinChunkSize,
 	perf,
 
 	// required (can be an array, for multiple outputs)
@@ -81,9 +86,12 @@ export default {
 		banner,
 		chunkFileNames,
 		compact,
+		dynamicImportInCjs,
 		entryFileNames,
 		extend,
+		externalImportAssertions,
 		footer,
+		generatedCode,
 		hoistTransitiveImports,
 		inlineDynamicImports,
 		interop,
@@ -109,9 +117,7 @@ export default {
 		externalLiveBindings,
 		freeze,
 		indent,
-		namespaceToStringTag,
 		noConflict,
-		preferConst,
 		sanitizeFileName,
 		strict,
 		systemNullSetters,
@@ -124,9 +130,9 @@ export default {
 		buildDelay,
 		chokidar,
 		clearScreen,
-		skipWrite,
 		exclude,
-		include
+		include,
+		skipWrite
 	}
 };
 ```
@@ -396,6 +402,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --no-interop                Do not include interop block
 --intro <text>              Code to insert at top of bundle (inside wrapper)
+--logLevel <level>          Which kind of logs to display
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports
 --maxParallelFileOps <value> How many files to read in parallel
 --minifyInternalExports     Force or disable minification of internal exports
@@ -523,7 +530,7 @@ _Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set 
 
 ### `--silent`
 
-Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](#configuration-files).
+Don't print warnings to the console. If your configuration file contains an `onLog` or `onwarn` handler, this handler will still be called. The same goes for plugins with an `onLog` hook. To prevent that, additionally use the [`logLevel`](../configuration-options/index.md#loglevel) option or pass `--logLevel silent`.
 
 ### `--failAfterWarnings`
 

@@ -3,20 +3,20 @@ import type { default as Chunk, ChunkRenderResult } from '../Chunk';
 import type Module from '../Module';
 import type {
 	DecodedSourceMapOrMissing,
+	LogHandler,
 	NormalizedOutputOptions,
-	RenderedChunk,
-	WarningHandler
+	RenderedChunk
 } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
 import { createHash } from './crypto';
 import { decodedSourcemap } from './decodedSourcemap';
-import { error, errorFailedValidation } from './error';
 import {
 	replacePlaceholders,
 	replacePlaceholdersWithDefaultAndGetContainedPlaceholders,
 	replaceSinglePlaceholder
 } from './hashPlaceholders';
+import { error, logFailedValidation } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { basename, normalize, resolve } from './path';
@@ -40,7 +40,7 @@ export async function renderChunks(
 	bundle: OutputBundleWithPlaceholders,
 	pluginDriver: PluginDriver,
 	outputOptions: NormalizedOutputOptions,
-	onwarn: WarningHandler
+	log: LogHandler
 ) {
 	timeStart('render chunks', 2);
 
@@ -60,7 +60,7 @@ export async function renderChunks(
 		chunkGraph,
 		outputOptions,
 		pluginDriver,
-		onwarn
+		log
 	);
 	const hashesByPlaceholder = generateFinalHashes(
 		renderedChunksByPlaceholder,
@@ -104,7 +104,7 @@ async function transformChunk(
 	chunkGraph: Record<string, RenderedChunk>,
 	options: NormalizedOutputOptions,
 	outputPluginDriver: PluginDriver,
-	onwarn: WarningHandler
+	log: LogHandler
 ) {
 	let map: SourceMap | null = null;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -156,14 +156,14 @@ async function transformChunk(
 			usedModules,
 			sourcemapChain,
 			sourcemapExcludeSources,
-			onwarn
+			log
 		);
 		for (let sourcesIndex = 0; sourcesIndex < map.sources.length; ++sourcesIndex) {
 			let sourcePath = map.sources[sourcesIndex];
 			const sourcemapPath = `${resultingFile}.map`;
 			const ignoreList = sourcemapIgnoreList(sourcePath, sourcemapPath);
 			if (typeof ignoreList !== 'boolean') {
-				error(errorFailedValidation('sourcemapIgnoreList function must return a boolean.'));
+				error(logFailedValidation('sourcemapIgnoreList function must return a boolean.'));
 			}
 			if (ignoreList) {
 				if (map.x_google_ignoreList === undefined) {
@@ -176,7 +176,7 @@ async function transformChunk(
 			if (sourcemapPathTransform) {
 				sourcePath = sourcemapPathTransform(sourcePath, sourcemapPath);
 				if (typeof sourcePath !== 'string') {
-					error(errorFailedValidation(`sourcemapPathTransform function must return a string.`));
+					error(logFailedValidation(`sourcemapPathTransform function must return a string.`));
 				}
 			}
 			map.sources[sourcesIndex] = normalize(sourcePath);
@@ -195,7 +195,7 @@ async function transformChunksAndGenerateContentHashes(
 	chunkGraph: Record<string, RenderedChunk>,
 	outputOptions: NormalizedOutputOptions,
 	pluginDriver: PluginDriver,
-	onwarn: WarningHandler
+	log: LogHandler
 ) {
 	const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
 	const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
@@ -224,7 +224,7 @@ async function transformChunksAndGenerateContentHashes(
 						chunkGraph,
 						outputOptions,
 						pluginDriver,
-						onwarn
+						log
 					))
 				};
 				const { code } = transformedChunk;

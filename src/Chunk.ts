@@ -17,25 +17,17 @@ import type {
 	GetInterop,
 	GlobalsOption,
 	InternalModuleFormat,
+	LogHandler,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputChunk,
 	PreRenderedChunk,
 	RenderedChunk,
-	RenderedModule,
-	WarningHandler
+	RenderedModule
 } from './rollup/types';
 import type { PluginDriver } from './utils/PluginDriver';
 import { createAddons } from './utils/addons';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
-import {
-	error,
-	errorCyclicCrossChunkReexport,
-	errorEmptyChunk,
-	errorMissingGlobalName,
-	errorUnexpectedNamedImport,
-	errorUnexpectedNamespaceReexport
-} from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import type { GenerateCodeSnippets } from './utils/generateCodeSnippets';
@@ -52,6 +44,15 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
+import { LOGLEVEL_WARN } from './utils/logging';
+import {
+	error,
+	logCyclicCrossChunkReexport,
+	logEmptyChunk,
+	logMissingGlobalName,
+	logUnexpectedNamedImport,
+	logUnexpectedNamespaceReexport
+} from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { FILE_PLACEHOLDER } from './utils/outputBundle';
 import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
@@ -143,7 +144,7 @@ function getGlobalName(
 	chunk: ExternalChunk,
 	globals: GlobalsOption,
 	hasExports: boolean,
-	warn: WarningHandler
+	log: LogHandler
 ): string | undefined {
 	const globalName = typeof globals === 'function' ? globals(chunk.id) : globals[chunk.id];
 	if (globalName) {
@@ -151,7 +152,7 @@ function getGlobalName(
 	}
 
 	if (hasExports) {
-		warn(errorMissingGlobalName(chunk.id, chunk.variableName));
+		log(LOGLEVEL_WARN, logMissingGlobalName(chunk.id, chunk.variableName));
 		return chunk.variableName;
 	}
 }
@@ -376,7 +377,7 @@ export default class Chunk {
 				this,
 				this.outputOptions,
 				this.facadeModule!.id,
-				this.inputOptions.onwarn
+				this.inputOptions.onLog
 			);
 	}
 
@@ -587,7 +588,7 @@ export default class Chunk {
 			dependencies,
 			exportMode,
 			facadeModule,
-			inputOptions: { onwarn },
+			inputOptions: { onLog },
 			outputOptions,
 			pluginDriver,
 			snippets
@@ -652,8 +653,8 @@ export default class Chunk {
 				intro,
 				isEntryFacade: preserveModules || (facadeModule !== null && facadeModule.info.isEntry),
 				isModuleFacade: facadeModule !== null,
+				log: onLog,
 				namedExportsMode: exportMode !== 'default',
-				onwarn,
 				outro,
 				snippets,
 				usesTopLevelAwait
@@ -718,8 +719,9 @@ export default class Chunk {
 				if (alternativeReexportModule) {
 					const exportingChunk = this.chunkByModule.get(alternativeReexportModule);
 					if (exportingChunk !== exportChunk) {
-						this.inputOptions.onwarn(
-							errorCyclicCrossChunkReexport(
+						this.inputOptions.onLog(
+							LOGLEVEL_WARN,
+							logCyclicCrossChunkReexport(
 								// Namespaces do not have an export name
 								variableModule.getExportNamesByVariable().get(variable)?.[0] || '*',
 								variableModule.id,
@@ -943,7 +945,7 @@ export default class Chunk {
 				dependency = this.externalChunkByModule.get(module)!;
 				imported = variable.name;
 				if (imported !== 'default' && imported !== '*' && interop(module.id) === 'defaultOnly') {
-					return error(errorUnexpectedNamedImport(module.id, imported, false));
+					return error(logUnexpectedNamedImport(module.id, imported, false));
 				}
 			} else {
 				dependency = this.chunkByModule.get(module)!;
@@ -1036,7 +1038,7 @@ export default class Chunk {
 			if (exportName[0] === '*') {
 				const id = exportName.slice(1);
 				if (interop(id) === 'defaultOnly') {
-					this.inputOptions.onwarn(errorUnexpectedNamespaceReexport(id));
+					this.inputOptions.onLog(LOGLEVEL_WARN, logUnexpectedNamespaceReexport(id));
 				}
 				needsLiveBinding = externalLiveBindings;
 				dependency = this.externalChunkByModule.get(this.modulesById.get(id) as ExternalModule)!;
@@ -1054,7 +1056,7 @@ export default class Chunk {
 					dependency = this.externalChunkByModule.get(module)!;
 					imported = variable.name;
 					if (imported !== 'default' && imported !== '*' && interop(module.id) === 'defaultOnly') {
-						return error(errorUnexpectedNamedImport(module.id, imported, true));
+						return error(logUnexpectedNamedImport(module.id, imported, true));
 					}
 					needsLiveBinding =
 						externalLiveBindings &&
@@ -1107,7 +1109,7 @@ export default class Chunk {
 						dep,
 						this.outputOptions.globals,
 						(imports || reexports) !== null,
-						this.inputOptions.onwarn
+						this.inputOptions.onLog
 					),
 				importPath,
 				imports,
@@ -1139,7 +1141,7 @@ export default class Chunk {
 			dependencies,
 			exportNamesByVariable,
 			includedNamespaces,
-			inputOptions: { onwarn },
+			inputOptions: { onLog },
 			isEmpty,
 			orderedModules,
 			outputOptions,
@@ -1221,7 +1223,7 @@ export default class Chunk {
 		const renderedSource = compact ? magicString : magicString.trim();
 
 		if (isEmpty && this.getExportNames().length === 0 && dependencies.size === 0) {
-			onwarn(errorEmptyChunk(this.getChunkName()));
+			onLog(LOGLEVEL_WARN, logEmptyChunk(this.getChunkName()));
 		}
 		return { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait };
 	}

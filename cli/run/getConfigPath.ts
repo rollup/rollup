@@ -1,7 +1,7 @@
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
-import { errorMissingExternalConfig } from '../../src/utils/error';
+import { logMissingExternalConfig } from '../../src/utils/logs';
 import { handleError } from '../logging';
 
 const DEFAULT_CONFIG_BASE = 'rollup.config';
@@ -21,7 +21,7 @@ export async function getConfigPath(commandConfig: string | true): Promise<strin
 				return require.resolve(packageName, { paths: [cwd()] });
 			} catch (error: any) {
 				if (error.code === 'MODULE_NOT_FOUND') {
-					handleError(errorMissingExternalConfig(commandConfig));
+					handleError(logMissingExternalConfig(commandConfig));
 				}
 				throw error;
 			}

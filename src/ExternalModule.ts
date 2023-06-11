@@ -1,8 +1,9 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
-import { errorUnusedExternalImports, warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
+import { LOGLEVEL_WARN } from './utils/logging';
+import { logUnusedExternalImports, warnDeprecation } from './utils/logs';
 import { URL_THIS_GETMODULEINFO } from './utils/urls';
 
 export default class ExternalModule {
@@ -109,6 +110,6 @@ export default class ExternalModule {
 			}
 		}
 		const importersArray = [...importersSet];
-		this.options.onwarn(errorUnusedExternalImports(this.id, unused, importersArray));
+		this.options.onLog(LOGLEVEL_WARN, logUnusedExternalImports(this.id, unused, importersArray));
 	}
 }

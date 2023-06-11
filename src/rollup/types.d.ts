@@ -32,6 +32,7 @@ export interface RollupLog {
 		line: number;
 	};
 	message: string;
+	meta?: any;
 	names?: string[];
 	plugin?: string;
 	pluginCode?: string;
@@ -40,6 +41,9 @@ export interface RollupLog {
 	stack?: string;
 	url?: string;
 }
+
+export type LogLevel = 'warn' | 'info' | 'debug';
+export type LogLevelOption = LogLevel | 'silent';
 
 export type SourceMapSegment =
 	| [number]
@@ -128,8 +132,14 @@ export interface PluginCache {
 	set<T = any>(id: string, value: T): void;
 }
 
+export type LoggingFunction = (log: RollupLog | string | (() => RollupLog | string)) => void;
+
 export interface MinimalPluginContext {
+	debug: LoggingFunction;
+	error: (error: RollupError | string) => never;
+	info: LoggingFunction;
 	meta: PluginContextMeta;
+	warn: LoggingFunction;
 }
 
 export interface EmittedAsset {
@@ -190,15 +200,22 @@ export interface CustomPluginOptions {
 	[plugin: string]: any;
 }
 
+type LoggingFunctionWithPosition = (
+	log: RollupLog | string | (() => RollupLog | string),
+	pos?: number | { column: number; line: number }
+) => void;
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
+	debug: LoggingFunction;
 	emitFile: EmitFile;
-	error: (error: RollupError | string, pos?: number | { column: number; line: number }) => never;
+	error: (error: RollupError | string) => never;
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	getWatchFiles: () => string[];
+	info: LoggingFunction;
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
@@ -216,7 +233,7 @@ export interface PluginContext extends MinimalPluginContext {
 		}
 	) => Promise<ResolvedId | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
-	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
+	warn: LoggingFunction;
 }
 
 export interface PluginContextMeta {
@@ -279,7 +296,11 @@ export type LoadResult = SourceDescription | string | NullValue;
 export type LoadHook = (this: PluginContext, id: string) => LoadResult;
 
 export interface TransformPluginContext extends PluginContext {
+	debug: LoggingFunctionWithPosition;
+	error: (error: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getCombinedSourcemap: () => SourceMap;
+	info: LoggingFunctionWithPosition;
+	warn: LoggingFunctionWithPosition;
 }
 
 export type TransformResult = string | NullValue | Partial<SourceDescription>;
@@ -369,6 +390,7 @@ export interface FunctionPluginHooks {
 	) => void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
+	onLog: (this: MinimalPluginContext, level: LogLevel, log: RollupLog) => boolean | NullValue;
 	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | NullValue;
 	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | NullValue;
 	renderChunk: RenderChunkHook;
@@ -417,6 +439,7 @@ export type InputPluginHooks = Exclude<keyof FunctionPluginHooks, OutputPluginHo
 
 export type SyncPluginHooks =
 	| 'augmentChunkHash'
+	| 'onLog'
 	| 'outputOptions'
 	| 'renderDynamicImport'
 	| 'resolveFileUrl'
@@ -436,6 +459,7 @@ export type FirstPluginHooks =
 export type SequentialPluginHooks =
 	| 'augmentChunkHash'
 	| 'generateBundle'
+	| 'onLog'
 	| 'options'
 	| 'outputOptions'
 	| 'renderChunk'
@@ -508,16 +532,32 @@ export type ExternalOption =
 	| string
 	| RegExp
 	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | NullValue);
-export type PureModulesOption = boolean | string[] | IsPureModule;
+
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
+
 export type InputOption = string | string[] | { [entryAlias: string]: string };
+
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
+
+export type LogHandlerWithDefault = (
+	level: LogLevel,
+	log: RollupLog,
+	defaultHandler: LogOrStringHandler
+) => void;
+
+export type LogOrStringHandler = (level: LogLevel | 'error', log: RollupLog | string) => void;
+
+export type LogHandler = (level: LogLevel, log: RollupLog) => void;
+
 export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
+
 export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension' | 'exports-only';
+
 export type SourcemapPathTransformOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string
 ) => string;
+
 export type SourcemapIgnoreListOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string
@@ -536,6 +576,7 @@ export interface InputOptions {
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
+	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
@@ -543,6 +584,7 @@ export interface InputOptions {
 	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads?: number;
 	moduleContext?: ((id: string) => string | NullValue) | { [id: string]: string };
+	onLog?: LogHandlerWithDefault;
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: InputPluginOption;
@@ -571,6 +613,7 @@ export interface NormalizedInputOptions {
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports: boolean | undefined;
 	input: string[] | { [entryAlias: string]: string };
+	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks: ManualChunksOption | undefined;
@@ -578,7 +621,8 @@ export interface NormalizedInputOptions {
 	/** @deprecated Use the "maxParallelFileOps" option instead. */
 	maxParallelFileReads: number;
 	moduleContext: (id: string) => string;
-	onwarn: WarningHandler;
+	onLog: LogHandler;
+	onwarn: (warning: RollupLog) => void;
 	perf: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures: PreserveEntrySignaturesOption;
@@ -764,10 +808,9 @@ export interface NormalizedOutputOptions {
 }
 
 export type WarningHandlerWithDefault = (
-	warning: RollupWarning,
-	defaultHandler: WarningHandler
+	warning: RollupLog,
+	defaultHandler: LoggingFunction
 ) => void;
-export type WarningHandler = (warning: RollupWarning) => void;
 
 export interface SerializedTimings {
 	[label: string]: [number, number, number];

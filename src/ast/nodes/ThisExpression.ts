@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
-import { errorThisIsUndefined } from '../../utils/error';
+import { LOGLEVEL_WARN } from '../../utils/logging';
+import { logThisIsUndefined } from '../../utils/logs';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
@@ -52,7 +53,7 @@ export default class ThisExpression extends NodeBase {
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {
-			this.context.warn(errorThisIsUndefined(), this.start);
+			this.context.log(LOGLEVEL_WARN, logThisIsUndefined(), this.start);
 		}
 	}
 

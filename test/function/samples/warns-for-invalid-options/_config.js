@@ -11,6 +11,7 @@ module.exports = defineTest({
 			code: 'UNKNOWN_OPTION',
 			message:
 				'Unknown input options: myInvalidInputOption. Allowed options: ' +
+				// @ts-expect-error file outside root
 				require('../../../misc/optionList').input
 		},
 		{

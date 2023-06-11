@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
-import { errorModuleLevelDirective } from '../../utils/error';
+import { LOGLEVEL_WARN } from '../../utils/logging';
+import { logModuleLevelDirective } from '../../utils/logs';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
@@ -15,9 +16,10 @@ export default class ExpressionStatement extends StatementBase {
 			this.directive !== 'use strict' &&
 			this.parent.type === NodeType.Program
 		) {
-			this.context.warn(
+			this.context.log(
+				LOGLEVEL_WARN,
 				// This is necessary, because either way (deleting or not) can lead to errors.
-				errorModuleLevelDirective(this.directive, this.context.module.id),
+				logModuleLevelDirective(this.directive, this.context.module.id),
 				this.start
 			);
 		}

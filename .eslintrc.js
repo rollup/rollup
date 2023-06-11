@@ -144,6 +144,7 @@ module.exports = {
 		'unicorn/prefer-math-trunc': 'off',
 		'unicorn/prefer-number-properties': 'off',
 		'unicorn/prefer-string-replace-all': 'off',
-		'unicorn/prefer-top-level-await': 'off'
+		'unicorn/prefer-top-level-await': 'off',
+		'unicorn/prevent-abbreviations': ['error', { replacements: { dir: false } }]
 	}
 };

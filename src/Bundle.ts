@@ -5,24 +5,25 @@ import type Graph from './Graph';
 import Module from './Module';
 import type {
 	GetManualChunk,
+	LogHandler,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
-	OutputBundle,
-	WarningHandler
+	OutputBundle
 } from './rollup/types';
 import type { PluginDriver } from './utils/PluginDriver';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
-import {
-	error,
-	errorCannotAssignModuleToChunk,
-	errorChunkInvalid,
-	errorInvalidOption
-} from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
 import { getHashPlaceholderGenerator } from './utils/hashPlaceholders';
+import { LOGLEVEL_WARN } from './utils/logging';
+import {
+	error,
+	logCannotAssignModuleToChunk,
+	logChunkInvalid,
+	logInvalidOption
+} from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
 import { isAbsolute } from './utils/path';
@@ -64,7 +65,7 @@ export default class Bundle {
 			const getHashPlaceholder = getHashPlaceholderGenerator();
 			const chunks = await this.generateChunks(outputBundle, getHashPlaceholder);
 			if (chunks.length > 1) {
-				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
+				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onLog);
 			}
 			this.pluginDriver.setChunkInformation(this.facadeChunkByModule);
 			for (const chunk of chunks) {
@@ -78,7 +79,7 @@ export default class Bundle {
 				outputBundle,
 				this.pluginDriver,
 				this.outputOptions,
-				this.inputOptions.onwarn
+				this.inputOptions.onLog
 			);
 		} catch (error_: any) {
 			await this.pluginDriver.hookParallel('renderError', [error_]);
@@ -153,7 +154,7 @@ export default class Bundle {
 							ecmaVersion: 'latest'
 						});
 					} catch (error_: any) {
-						this.inputOptions.onwarn(errorChunkInvalid(file, error_));
+						this.inputOptions.onLog(LOGLEVEL_WARN, logChunkInvalid(file, error_));
 					}
 				}
 			}
@@ -188,7 +189,8 @@ export default class Bundle {
 			: getChunkAssignments(
 					this.graph.entryModules,
 					manualChunkAliasByEntry,
-					experimentalMinChunkSize
+					experimentalMinChunkSize,
+					this.inputOptions.onLog
 			  )) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
@@ -223,11 +225,11 @@ export default class Bundle {
 
 function validateOptionsForMultiChunkOutput(
 	outputOptions: NormalizedOutputOptions,
-	onWarn: WarningHandler
+	log: LogHandler
 ) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.format',
 				URL_OUTPUT_FORMAT,
 				'UMD and IIFE output formats are not supported for code-splitting builds',
@@ -236,7 +238,7 @@ function validateOptionsForMultiChunkOutput(
 		);
 	if (typeof outputOptions.file === 'string')
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.file',
 				URL_OUTPUT_DIR,
 				'when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option'
@@ -244,15 +246,16 @@ function validateOptionsForMultiChunkOutput(
 		);
 	if (outputOptions.sourcemapFile)
 		return error(
-			errorInvalidOption(
+			logInvalidOption(
 				'output.sourcemapFile',
 				URL_OUTPUT_SOURCEMAPFILE,
 				'"output.sourcemapFile" is only supported for single-file builds'
 			)
 		);
 	if (!outputOptions.amd.autoId && outputOptions.amd.id)
-		onWarn(
-			errorInvalidOption(
+		log(
+			LOGLEVEL_WARN,
+			logInvalidOption(
 				'output.amd.id',
 				URL_OUTPUT_AMD_ID,
 				'this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead'
@@ -307,7 +310,7 @@ function addModuleToManualChunk(
 ): void {
 	const existingAlias = manualChunkAliasByEntry.get(module);
 	if (typeof existingAlias === 'string' && existingAlias !== alias) {
-		return error(errorCannotAssignModuleToChunk(module.id, alias, existingAlias));
+		return error(logCannotAssignModuleToChunk(module.id, alias, existingAlias));
 	}
 	manualChunkAliasByEntry.set(module, alias);
 }

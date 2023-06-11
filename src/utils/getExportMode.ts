@@ -1,21 +1,22 @@
 import type Chunk from '../Chunk';
-import type { NormalizedOutputOptions, WarningHandler } from '../rollup/types';
-import { error, errorIncompatibleExportOptionValue, errorMixedExport } from './error';
+import type { LogHandler, NormalizedOutputOptions } from '../rollup/types';
+import { LOGLEVEL_WARN } from './logging';
+import { error, logIncompatibleExportOptionValue, logMixedExport } from './logs';
 
 export default function getExportMode(
 	chunk: Chunk,
 	{ exports: exportMode, name, format }: NormalizedOutputOptions,
 	facadeModuleId: string,
-	warn: WarningHandler
+	log: LogHandler
 ): 'default' | 'named' | 'none' {
 	const exportKeys = chunk.getExportNames();
 
 	if (exportMode === 'default') {
 		if (exportKeys.length !== 1 || exportKeys[0] !== 'default') {
-			return error(errorIncompatibleExportOptionValue('default', exportKeys, facadeModuleId));
+			return error(logIncompatibleExportOptionValue('default', exportKeys, facadeModuleId));
 		}
 	} else if (exportMode === 'none' && exportKeys.length > 0) {
-		return error(errorIncompatibleExportOptionValue('none', exportKeys, facadeModuleId));
+		return error(logIncompatibleExportOptionValue('none', exportKeys, facadeModuleId));
 	}
 
 	if (exportMode === 'auto') {
@@ -25,7 +26,7 @@ export default function getExportMode(
 			exportMode = 'default';
 		} else {
 			if (format !== 'es' && format !== 'system' && exportKeys.includes('default')) {
-				warn(errorMixedExport(facadeModuleId, name));
+				log(LOGLEVEL_WARN, logMixedExport(facadeModuleId, name));
 			}
 			exportMode = 'named';
 		}

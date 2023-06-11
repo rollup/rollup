@@ -7,11 +7,11 @@ import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import {
 	error,
-	errorCannotBundleConfigAsEsm,
-	errorCannotLoadConfigAsCjs,
-	errorCannotLoadConfigAsEsm,
-	errorMissingConfig
-} from '../../src/utils/error';
+	logCannotBundleConfigAsEsm,
+	logCannotLoadConfigAsCjs,
+	logCannotLoadConfigAsEsm,
+	logMissingConfig
+} from '../../src/utils/logs';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import type { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
@@ -20,16 +20,20 @@ import batchWarnings from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 import type { LoadConfigFile } from './loadConfigFileType';
 
-export const loadConfigFile: LoadConfigFile = async (fileName, commandOptions = {}) => {
+export const loadConfigFile: LoadConfigFile = async (
+	fileName,
+	commandOptions = {},
+	watchMode = false
+) => {
 	const configs = await getConfigList(
-		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions)),
+		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions, watchMode)),
 		commandOptions
 	);
-	const warnings = batchWarnings();
+	const warnings = batchWarnings(commandOptions.silent);
 	try {
 		const normalizedConfigs: MergedRollupOptions[] = [];
 		for (const config of configs) {
-			const options = await mergeOptions(config, commandOptions, warnings.add);
+			const options = await mergeOptions(config, watchMode, commandOptions, warnings.log);
 			await addCommandPluginsToInputOptions(options, commandOptions);
 			normalizedConfigs.push(options);
 		}
@@ -40,13 +44,17 @@ export const loadConfigFile: LoadConfigFile = async (fileName, commandOptions = 
 	}
 };
 
-async function getConfigFileExport(fileName: string, commandOptions: Record<string, unknown>) {
+async function getConfigFileExport(
+	fileName: string,
+	commandOptions: Record<string, unknown>,
+	watchMode: boolean
+) {
 	if (commandOptions.configPlugin || commandOptions.bundleConfigAsCjs) {
 		try {
 			return await loadTranspiledConfigFile(fileName, commandOptions);
 		} catch (error_: any) {
 			if (error_.message.includes('not defined in ES module scope')) {
-				return error(errorCannotBundleConfigAsEsm(error_));
+				return error(logCannotBundleConfigAsEsm(error_));
 			}
 			throw error_;
 		}
@@ -60,17 +68,17 @@ async function getConfigFileExport(fileName: string, commandOptions: Record<stri
 	process.on('warning', handleWarning);
 	try {
 		const fileUrl = pathToFileURL(fileName);
-		if (process.env.ROLLUP_WATCH) {
+		if (watchMode) {
 			// We are adding the current date to allow reloads in watch mode
 			fileUrl.search = `?${Date.now()}`;
 		}
 		return (await import(fileUrl.href)).default;
 	} catch (error_: any) {
 		if (cannotLoadEsm) {
-			return error(errorCannotLoadConfigAsCjs(error_));
+			return error(logCannotLoadConfigAsCjs(error_));
 		}
 		if (error_.message.includes('not defined in ES module scope')) {
-			return error(errorCannotLoadConfigAsEsm(error_));
+			return error(logCannotLoadConfigAsEsm(error_));
 		}
 		throw error_;
 	} finally {
@@ -86,7 +94,7 @@ async function loadTranspiledConfigFile(
 	fileName: string,
 	{ bundleConfigAsCjs, configPlugin, silent }: Record<string, unknown>
 ): Promise<unknown> {
-	const warnings = batchWarnings();
+	const warnings = batchWarnings(!!silent);
 	const inputOptions = {
 		external: (id: string) =>
 			(id[0] !== '.' && !isAbsolute(id)) || id.slice(-5, id.length) === '.json',
@@ -97,10 +105,6 @@ async function loadTranspiledConfigFile(
 	};
 	await addPluginsFromCommandOption(configPlugin, inputOptions);
 	const bundle = await rollup.rollup(inputOptions);
-	if (!silent && warnings.count > 0) {
-		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
-		warnings.flush();
-	}
 	const {
 		output: [{ code }]
 	} = await bundle.generate({
@@ -120,6 +124,10 @@ async function loadTranspiledConfigFile(
 			}
 		]
 	});
+	if (!silent && warnings.count > 0) {
+		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
+		warnings.flush();
+	}
 	return loadConfigFromWrittenFile(
 		join(dirname(fileName), `rollup.config-${Date.now()}.${bundleConfigAsCjs ? 'cjs' : 'mjs'}`),
 		code
@@ -144,7 +152,7 @@ async function getConfigList(configFileExport: any, commandOptions: any): Promis
 		? configFileExport(commandOptions)
 		: configFileExport);
 	if (Object.keys(config).length === 0) {
-		return error(errorMissingConfig());
+		return error(logMissingConfig());
 	}
 	return Array.isArray(config) ? config : [config];
 }

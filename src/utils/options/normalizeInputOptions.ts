@@ -3,16 +3,17 @@ import { importAssertions } from 'acorn-import-assertions';
 import type {
 	HasModuleSideEffects,
 	InputOptions,
+	LogHandler,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
-	RollupBuild,
-	WarningHandler
+	RollupBuild
 } from '../../rollup/types';
 import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
-import { error, errorInvalidOption, warnDeprecationWithOptions } from '../error';
+import { getLogger } from '../logger';
+import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../logging';
+import { error, logInvalidOption, warnDeprecationWithOptions } from '../logs';
 import { resolve } from '../path';
-import relativeId from '../relativeId';
 import {
 	URL_MAXPARALLELFILEOPS,
 	URL_OUTPUT_INLINEDYNAMICIMPORTS,
@@ -22,7 +23,7 @@ import {
 	URL_TREESHAKE_MODULESIDEEFFECTS
 } from '../urls';
 import {
-	defaultOnWarn,
+	getOnLog,
 	getOptionWithPreset,
 	normalizePluginOption,
 	treeshakePresets,
@@ -35,7 +36,10 @@ export interface CommandConfigObject {
 	globals: { [id: string]: string } | undefined;
 }
 
-export async function normalizeInputOptions(config: InputOptions): Promise<{
+export async function normalizeInputOptions(
+	config: InputOptions,
+	watchMode: boolean
+): Promise<{
 	options: NormalizedInputOptions;
 	unsetOptions: Set<string>;
 }> {
@@ -44,9 +48,11 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 	const unsetOptions = new Set<string>();
 
 	const context = config.context ?? 'undefined';
-	const onwarn = getOnwarn(config);
+	const plugins = await normalizePluginOption(config.plugins);
+	const logLevel = config.logLevel || LOGLEVEL_INFO;
+	const onLog = getLogger(plugins, getOnLog(config, logLevel), watchMode, logLevel);
 	const strictDeprecations = config.strictDeprecations || false;
-	const maxParallelFileOps = getmaxParallelFileOps(config, onwarn, strictDeprecations);
+	const maxParallelFileOps = getMaxParallelFileOps(config, onLog, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
 		acorn: getAcorn(config) as unknown as NormalizedInputOptions['acorn'],
 		acornInjectPlugins: getAcornInjectPlugins(config),
@@ -55,18 +61,20 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
-		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
+		inlineDynamicImports: getInlineDynamicImports(config, onLog, strictDeprecations),
 		input: getInput(config),
+		logLevel,
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
-		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
+		manualChunks: getManualChunks(config, onLog, strictDeprecations),
 		maxParallelFileOps,
 		maxParallelFileReads: maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),
-		onwarn,
+		onLog,
+		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
 		perf: config.perf || false,
-		plugins: await normalizePluginOption(config.plugins),
+		plugins,
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
-		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
+		preserveModules: getPreserveModules(config, onLog, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,
 		shimMissingExports: config.shimMissingExports || false,
 		strictDeprecations,
@@ -77,32 +85,11 @@ export async function normalizeInputOptions(config: InputOptions): Promise<{
 		config,
 		[...Object.keys(options), 'watch'],
 		'input options',
-		options.onwarn,
+		onLog,
 		/^(output)$/
 	);
 	return { options, unsetOptions };
 }
-
-const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
-	const { onwarn } = config;
-	return onwarn
-		? warning => {
-				warning.toString = () => {
-					let warningString = '';
-
-					if (warning.plugin) warningString += `(${warning.plugin} plugin) `;
-					if (warning.loc)
-						warningString += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${
-							warning.loc.column
-						}) `;
-					warningString += warning.message;
-
-					return warningString;
-				};
-				onwarn(warning, defaultOnWarn);
-		  }
-		: defaultOnWarn;
-};
 
 const getAcorn = (config: InputOptions): acorn.Options => ({
 	ecmaVersion: 'latest',
@@ -154,7 +141,7 @@ const getIdMatcher = <T extends Array<any>>(
 
 const getInlineDynamicImports = (
 	config: InputOptions,
-	warn: WarningHandler,
+	log: LogHandler,
 	strictDeprecations: boolean
 ): NormalizedInputOptions['inlineDynamicImports'] => {
 	const configInlineDynamicImports = config.inlineDynamicImports;
@@ -163,7 +150,7 @@ const getInlineDynamicImports = (
 			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
 			URL_OUTPUT_INLINEDYNAMICIMPORTS,
 			true,
-			warn,
+			log,
 			strictDeprecations
 		);
 	}
@@ -177,7 +164,7 @@ const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {
 
 const getManualChunks = (
 	config: InputOptions,
-	warn: WarningHandler,
+	log: LogHandler,
 	strictDeprecations: boolean
 ): NormalizedInputOptions['manualChunks'] => {
 	const configManualChunks = config.manualChunks;
@@ -186,16 +173,16 @@ const getManualChunks = (
 			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
 			URL_OUTPUT_MANUALCHUNKS,
 			true,
-			warn,
+			log,
 			strictDeprecations
 		);
 	}
 	return configManualChunks;
 };
 
-const getmaxParallelFileOps = (
+const getMaxParallelFileOps = (
 	config: InputOptions,
-	warn: WarningHandler,
+	log: LogHandler,
 	strictDeprecations: boolean
 ): NormalizedInputOptions['maxParallelFileOps'] => {
 	const maxParallelFileReads = config.maxParallelFileReads;
@@ -204,7 +191,7 @@ const getmaxParallelFileOps = (
 			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
 			URL_MAXPARALLELFILEOPS,
 			true,
-			warn,
+			log,
 			strictDeprecations
 		);
 	}
@@ -238,7 +225,7 @@ const getModuleContext = (
 
 const getPreserveModules = (
 	config: InputOptions,
-	warn: WarningHandler,
+	log: LogHandler,
 	strictDeprecations: boolean
 ): NormalizedInputOptions['preserveModules'] => {
 	const configPreserveModules = config.preserveModules;
@@ -247,7 +234,7 @@ const getPreserveModules = (
 			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
 			URL_OUTPUT_PRESERVEMODULES,
 			true,
-			warn,
+			log,
 			strictDeprecations
 		);
 	}
@@ -302,7 +289,7 @@ const getHasModuleSideEffects = (
 	}
 	if (moduleSideEffectsOption) {
 		error(
-			errorInvalidOption(
+			logInvalidOption(
 				'treeshake.moduleSideEffects',
 				URL_TREESHAKE_MODULESIDEEFFECTS,
 				'please use one of false, "no-external", a function or an array'

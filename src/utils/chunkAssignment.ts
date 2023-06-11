@@ -1,7 +1,9 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
+import type { LogHandler } from '../rollup/types';
 import { getNewSet, getOrCreate } from './getOrCreate';
 import { concatLazy } from './iterators';
+import { logOptimizeChunkStatus } from './logs';
 import { timeEnd, timeStart } from './timers';
 
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
@@ -133,7 +135,8 @@ interface ModulesWithDependentEntries {
 export function getChunkAssignments(
 	entries: ReadonlyArray<Module>,
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
-	minChunkSize: number
+	minChunkSize: number,
+	log: LogHandler
 ): ChunkDefinitions {
 	const { chunkDefinitions, modulesInManualChunks } =
 		getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry);
@@ -162,7 +165,8 @@ export function getChunkAssignments(
 		...getOptimizedChunks(
 			getChunksFromDependentEntries(initialChunks),
 			allEntries.length,
-			minChunkSize
+			minChunkSize,
+			log
 		).map(({ modules }) => ({
 			alias: null,
 			modules
@@ -522,7 +526,8 @@ interface ChunkPartition {
 function getOptimizedChunks(
 	initialChunks: ModulesWithDependentEntries[],
 	numberOfEntries: number,
-	minChunkSize: number
+	minChunkSize: number,
+	log: LogHandler
 ): { modules: Module[] }[] {
 	timeStart('optimize chunks', 3);
 	const chunkPartition = getPartitionedChunks(initialChunks, numberOfEntries, minChunkSize);
@@ -531,21 +536,19 @@ function getOptimizedChunks(
 		return initialChunks; // the actual modules
 	}
 	minChunkSize > 1 &&
-		console.log(
-			'Before eliminating small chunks, there were\n',
-			initialChunks.length,
-			'chunks, of which\n',
-			chunkPartition.small.size,
-			'were below minChunkSize.'
+		log(
+			'info',
+			logOptimizeChunkStatus(initialChunks.length, chunkPartition.small.size, 'Initially')
 		);
 	mergeChunks(chunkPartition, minChunkSize);
 	minChunkSize > 1 &&
-		console.log(
-			'After merging chunks,\n',
-			chunkPartition.small.size + chunkPartition.big.size,
-			'chunks remain, of which\n',
-			chunkPartition.small.size,
-			'are below minChunkSize.'
+		log(
+			'info',
+			logOptimizeChunkStatus(
+				chunkPartition.small.size + chunkPartition.big.size,
+				chunkPartition.small.size,
+				'After merging chunks'
+			)
 		);
 	timeEnd('optimize chunks', 3);
 	return [...chunkPartition.small, ...chunkPartition.big];

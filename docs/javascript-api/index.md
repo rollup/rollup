@@ -16,7 +16,7 @@ On a `bundle` object, you can call `bundle.generate` multiple times with differe
 
 Once you're finished with the `bundle` object, you should call `bundle.close()`, which will let plugins clean up their external processes or services via the [`closeBundle`](../plugin-development/index.md#closebundle) hook.
 
-If an error occurs at either stage, it will return a Promise rejected with an Error, which you can identify via their `code` property. Besides `code` and `message`, many errors have additional properties you can use for custom reporting, see [`utils/error.ts`](https://github.com/rollup/rollup/blob/master/src/utils/error.ts) for a complete list of errors and warnings together with their codes and properties.
+If an error occurs at either stage, it will return a Promise rejected with an Error, which you can identify via their `code` property. Besides `code` and `message`, many errors have additional properties you can use for custom reporting, see [`utils/logs.ts`](https://github.com/rollup/rollup/blob/master/src/utils/logs.ts) for a complete list of errors and logs together with their codes and properties.
 
 ```javascript
 import { rollup } from 'rollup';
@@ -117,6 +117,10 @@ const inputOptions = {
 
 	// advanced input options
 	cache,
+	logLevel,
+	makeAbsoluteExternalsRelative,
+	maxParallelFileOps,
+	onLog,
 	onwarn,
 	preserveEntrySignatures,
 	strictDeprecations,
@@ -132,6 +136,7 @@ const inputOptions = {
 
 	// experimental
 	experimentalCacheExpiry,
+	experimentalLogSideEffects,
 	perf
 };
 ```
@@ -145,7 +150,7 @@ const outputOptions = {
 	// core output options
 	dir,
 	file,
-	format, // required
+	format,
 	globals,
 	name,
 	plugins,
@@ -155,10 +160,12 @@ const outputOptions = {
 	banner,
 	chunkFileNames,
 	compact,
+	dynamicImportInCjs,
 	entryFileNames,
 	extend,
-	externalLiveBindings,
+	externalImportAssertions,
 	footer,
+	generatedCode,
 	hoistTransitiveImports,
 	inlineDynamicImports,
 	interop,
@@ -170,8 +177,10 @@ const outputOptions = {
 	preserveModules,
 	preserveModulesRoot,
 	sourcemap,
+	sourcemapBaseUrl,
 	sourcemapExcludeSources,
 	sourcemapFile,
+	sourcemapIgnoreList,
 	sourcemapPathTransform,
 	validate,
 
@@ -179,14 +188,16 @@ const outputOptions = {
 	amd,
 	esModule,
 	exports,
+	externalLiveBindings,
 	freeze,
 	indent,
-	namespaceToStringTag,
 	noConflict,
-	preferConst,
 	sanitizeFileName,
 	strict,
-	systemNullSetters
+	systemNullSetters,
+
+	// experimental
+	experimentalMinChunkSize
 };
 ```
 

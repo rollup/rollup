@@ -1,7 +1,8 @@
 import { toBase64 } from './base64';
-import { error, errorFailedValidation } from './error';
+import { error, logFailedValidation } from './logs';
 
-// Four random characters from the private use area to minimize risk of conflicts
+// Four random characters from the private use area to minimize risk of
+// conflicts
 const hashPlaceholderLeft = '!~{';
 const hashPlaceholderRight = '}~';
 const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRight.length;
@@ -17,7 +18,7 @@ export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
 	return (optionName: string, hashSize: number = defaultHashSize) => {
 		if (hashSize > maxHashSize) {
 			return error(
-				errorFailedValidation(
+				logFailedValidation(
 					`Hashes cannot be longer than ${maxHashSize} characters, received ${hashSize}. Check the "${optionName}" option.`
 				)
 			);
@@ -28,7 +29,7 @@ export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
 		)}${hashPlaceholderRight}`;
 		if (placeholder.length > hashSize) {
 			return error(
-				errorFailedValidation(
+				logFailedValidation(
 					`To generate hashes for this number of chunks (currently ${nextIndex}), you need a minimum hash size of ${placeholder.length}, received ${hashSize}. Check the "${optionName}" option.`
 				)
 			);
