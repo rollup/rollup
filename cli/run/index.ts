@@ -54,6 +54,7 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 
 	if (isWatchEnabled(command.watch)) {
 		await loadFsEvents();
+		// TODO Lukas filter in watch mode
 		const { watch } = await import('./watch-cli');
 		await watch(command);
 	} else {

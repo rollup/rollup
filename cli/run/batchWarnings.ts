@@ -1,6 +1,8 @@
 import { blue, cyan } from 'colorette';
 import type { RollupLog } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
+import { ensureArray } from '../../src/utils/ensureArray';
+import { getLogFilter } from '../../src/utils/getLogFilter';
 import { getNewArray, getOrCreate } from '../../src/utils/getOrCreate';
 import { LOGLEVEL_DEBUG, LOGLEVEL_WARN } from '../../src/utils/logging';
 import { printQuotedStringList } from '../../src/utils/printStringList';
@@ -18,7 +20,9 @@ import {
 import { stderr } from '../logging';
 import type { BatchWarnings } from './loadConfigFileType';
 
-export default function batchWarnings(silent: boolean): BatchWarnings {
+export default function batchWarnings(command: Record<string, any>): BatchWarnings {
+	const silent = !!command.silent;
+	const logFilter = generateLogFilter(command);
 	let count = 0;
 	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupLog[]>();
 	let warningOccurred = false;
@@ -61,6 +65,7 @@ export default function batchWarnings(silent: boolean): BatchWarnings {
 		},
 
 		log(level, log) {
+			if (!logFilter(log)) return;
 			switch (level) {
 				case LOGLEVEL_WARN: {
 					return add(log);
@@ -326,4 +331,12 @@ function showTruncatedWarnings(warnings: readonly RollupLog[]): void {
 	if (nestedByModule.length > displayedByModule.length) {
 		stderr(`\n...and ${nestedByModule.length - displayedByModule.length} other files`);
 	}
+}
+
+function generateLogFilter(command: Record<string, any>) {
+	const filters = ensureArray(command.filterLogs).flatMap(filter => String(filter).split(','));
+	if (process.env.ROLLUP_FILTER_LOGS) {
+		filters.push(...process.env.ROLLUP_FILTER_LOGS.split(','));
+	}
+	return getLogFilter(filters);
 }
