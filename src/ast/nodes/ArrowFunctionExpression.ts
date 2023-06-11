@@ -36,12 +36,15 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
-		if (interaction.type === INTERACTION_CALLED) {
-			if (this.annotationNoSideEffects) {
-				return false;
-			}
+		if (this.annotationNoSideEffects) {
+			return false;
+		}
 
+		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) {
+			return true;
+		}
+
+		if (interaction.type === INTERACTION_CALLED) {
 			const { ignore, brokenFlow } = context;
 			context.ignore = {
 				breaks: false,
