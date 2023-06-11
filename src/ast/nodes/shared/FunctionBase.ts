@@ -121,6 +121,9 @@ export default abstract class FunctionBase extends NodeBase {
 			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		if (this.async) {
+			if (this.annotationNoSideEffects) {
+				return false;
+			}
 			const { propertyReadSideEffects } = this.context.options
 				.treeshake as NormalizedTreeshakingOptions;
 			const returnExpression = this.scope.getReturnExpression();

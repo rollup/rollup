@@ -58,11 +58,11 @@ export default class FunctionNode extends FunctionBase {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+
 		if (this.annotationNoSideEffects) {
 			return false;
 		}
-
-		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
 
 		if (interaction.type === INTERACTION_CALLED) {
 			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
