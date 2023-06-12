@@ -29,7 +29,8 @@ const testFilter = (log: RollupLog, key: string, parts: string[]): boolean => {
 	if (!(key in log)) {
 		return false;
 	}
-	let value = String(log[key as keyof RollupLog]);
+	const rawValue = log[key as keyof RollupLog];
+	let value = typeof rawValue === 'object' ? JSON.stringify(rawValue) : String(rawValue);
 	if (!value.startsWith(parts[0])) {
 		return false;
 	}

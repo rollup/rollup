@@ -1,50 +1,71 @@
-const assert = require('node:assert/strict');
+const assert = require('node:assert');
 const { getLogFilter } = require('../../dist/getLogFilter');
 
-describe.only('getLogFilter', () => {
+describe('getLogFilter', () => {
 	it('does not filter when there are no filters', () => {
 		const filter = getLogFilter([]);
-		assert.equal(filter({ code: 'FIRST' }), true);
+		assert.strictEqual(filter({ code: 'FIRST' }), true);
 	});
 
 	it('filters for string matches', () => {
 		const filter = getLogFilter(['code:FIRST']);
-		assert.equal(filter({ code: 'FIRST' }), true);
-		assert.equal(filter({ code: 'SECOND' }), false);
-		assert.equal(filter({ message: 'no code' }), false);
+		assert.strictEqual(filter({ code: 'FIRST' }), true);
+		assert.strictEqual(filter({ code: 'SECOND' }), false);
+		assert.strictEqual(filter({ message: 'no code' }), false);
 	});
 
 	it('combines multiple filters with "or"', () => {
 		const filter = getLogFilter(['code:FIRST', 'message:second']);
-		assert.equal(filter({ code: 'FIRST', message: 'first' }), true);
-		assert.equal(filter({ code: 'SECOND', message: 'first' }), false);
-		assert.equal(filter({ code: 'FIRST', message: 'second' }), true);
-		assert.equal(filter({ code: 'SECOND', message: 'second' }), true);
+		assert.strictEqual(filter({ code: 'FIRST', message: 'first' }), true);
+		assert.strictEqual(filter({ code: 'SECOND', message: 'first' }), false);
+		assert.strictEqual(filter({ code: 'FIRST', message: 'second' }), true);
+		assert.strictEqual(filter({ code: 'SECOND', message: 'second' }), true);
 	});
 
 	it('supports placeholders', () => {
 		const filter = getLogFilter(['code:*A', 'code:B*', 'code:*C*', 'code:D*E*F']);
-		assert.equal(filter({ code: 'xxA' }), true, 'xxA');
-		assert.equal(filter({ code: 'xxB' }), false, 'xxB');
-		assert.equal(filter({ code: 'Axx' }), false, 'Axx');
-		assert.equal(filter({ code: 'Bxx' }), true, 'Bxx');
-		assert.equal(filter({ code: 'C' }), true, 'C');
-		assert.equal(filter({ code: 'xxCxx' }), true, 'xxCxx');
-		assert.equal(filter({ code: 'DxxExxF' }), true, 'DxxExxF');
+		assert.strictEqual(filter({ code: 'xxA' }), true, 'xxA');
+		assert.strictEqual(filter({ code: 'xxB' }), false, 'xxB');
+		assert.strictEqual(filter({ code: 'Axx' }), false, 'Axx');
+		assert.strictEqual(filter({ code: 'Bxx' }), true, 'Bxx');
+		assert.strictEqual(filter({ code: 'C' }), true, 'C');
+		assert.strictEqual(filter({ code: 'xxCxx' }), true, 'xxCxx');
+		assert.strictEqual(filter({ code: 'DxxExxF' }), true, 'DxxExxF');
 	});
 
 	it('supports inverted filters', () => {
 		const filter = getLogFilter(['!code:FIRST']);
-		assert.equal(filter({ code: 'FIRST' }), false);
-		assert.equal(filter({ code: 'SECOND' }), true);
+		assert.strictEqual(filter({ code: 'FIRST' }), false);
+		assert.strictEqual(filter({ code: 'SECOND' }), true);
 	});
 
 	it('supports AND conditions', () => {
 		const filter = getLogFilter(['code:FIRST&plugin:my-plugin']);
-		assert.equal(filter({ code: 'FIRST', plugin: 'my-plugin' }), true);
-		assert.equal(filter({ code: 'FIRST', plugin: 'other-plugin' }), false);
-		assert.equal(filter({ code: 'SECOND', plugin: 'my-plugin' }), false);
+		assert.strictEqual(filter({ code: 'FIRST', plugin: 'my-plugin' }), true);
+		assert.strictEqual(filter({ code: 'FIRST', plugin: 'other-plugin' }), false);
+		assert.strictEqual(filter({ code: 'SECOND', plugin: 'my-plugin' }), false);
 	});
 
-	// TODO Lukas handle edge cases: non-string-values (number, object), empty string, no colon, extra colon on right side, unexpected &
+	it('handles numbers and objects', () => {
+		const filter = getLogFilter(['foo:1', 'bar:*2*', 'baz:{"a":1}', 'baz:{"b":1,*}']);
+		assert.strictEqual(filter({ foo: 1 }), true, 'foo:1');
+		assert.strictEqual(filter({ foo: 10 }), false, 'foo:10');
+		assert.strictEqual(filter({ bar: 123 }), true, 'bar:123');
+		assert.strictEqual(filter({ bar: 13 }), false, 'bar:13');
+		assert.strictEqual(filter({ baz: { a: 1 } }), true, 'baz:{"a":1}');
+		assert.strictEqual(filter({ baz: { a: 1, b: 2 } }), false, 'baz:{"a":1,"b":2}');
+		assert.strictEqual(filter({ baz: { b: 1, c: 2 } }), true, 'baz:{"b":1,"c":2}');
+	});
+
+	// it('handles edge case filters', () => {
+	// 	const filter = getLogFilter([
+	// 		':A', // property is "empty string"
+	// 		'a:', // value is "empty string"
+	// 		'', // property and value are "empty string"
+	// 		'code:A&', // property and value are "empty string",
+	// 		'foo:bar:baz' // second colon is treated literally
+	// 	]);
+	// });
+
+	// TODO Lukas filter in watch mode, nested properties, handle edge cases: empty string, no colon, extra colon on right side, unexpected &
 });
