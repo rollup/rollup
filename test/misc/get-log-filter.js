@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { getLogFilter } = require('../../dist/getLogFilter');
 
-describe('getLogFilter', () => {
+describe.only('getLogFilter', () => {
 	it('does not filter when there are no filters', () => {
 		const filter = getLogFilter([]);
 		assert.equal(filter({ code: 'FIRST' }), true);
@@ -33,5 +33,18 @@ describe('getLogFilter', () => {
 		assert.equal(filter({ code: 'DxxExxF' }), true, 'DxxExxF');
 	});
 
-	// TODO Lukas handle edge cases: non-string-values (number, object), empty string, no colon, extra colon on right side, & condition
+	it('supports inverted filters', () => {
+		const filter = getLogFilter(['!code:FIRST']);
+		assert.equal(filter({ code: 'FIRST' }), false);
+		assert.equal(filter({ code: 'SECOND' }), true);
+	});
+
+	it('supports AND conditions', () => {
+		const filter = getLogFilter(['code:FIRST&plugin:my-plugin']);
+		assert.equal(filter({ code: 'FIRST', plugin: 'my-plugin' }), true);
+		assert.equal(filter({ code: 'FIRST', plugin: 'other-plugin' }), false);
+		assert.equal(filter({ code: 'SECOND', plugin: 'my-plugin' }), false);
+	});
+
+	// TODO Lukas handle edge cases: non-string-values (number, object), empty string, no colon, extra colon on right side, unexpected &
 });
