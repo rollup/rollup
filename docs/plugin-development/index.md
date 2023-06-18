@@ -1816,7 +1816,7 @@ if (COMPILER_FLAG) {
 }
 ```
 
-If a plugin replaces `COMPLIER_FLAG` with `false`, then we will get an unexpected result: The unreferenced asset is still emitted but unused. We can resolve this problem by setting `needsCodeReference` to true when calling [`this.emitFile`](#this-emitfile), like in the following code:
+If a plugin replaces `COMPILER_FLAG` with `false`, then we will get an unexpected result: The unreferenced asset is still emitted but unused. We can resolve this problem by setting `needsCodeReference` to true when calling [`this.emitFile`](#this-emitfile), like in the following code:
 
 ```js
 function svgResolverPlugin() {
