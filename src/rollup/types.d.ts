@@ -35,7 +35,7 @@ export interface RollupLog {
 	meta?: any;
 	names?: string[];
 	plugin?: string;
-	pluginCode?: string;
+	pluginCode?: unknown;
 	pos?: number;
 	reexporter?: string;
 	stack?: string;

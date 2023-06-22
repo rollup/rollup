@@ -783,12 +783,17 @@ export function logParseError(error: Error, moduleId: string): RollupLog {
 }
 
 export function logPluginError(
-	error: RollupLog,
+	error: Omit<RollupLog, 'code'> & { code?: unknown },
 	plugin: string,
 	{ hook, id }: { hook?: string; id?: string } = {}
-): RollupLog {
-	if (error.code && !error.code.startsWith('PLUGIN_') && !error.pluginCode) {
-		error.pluginCode = error.code;
+) {
+	const code = error.code;
+	if (
+		!error.pluginCode &&
+		code != null &&
+		(typeof code !== 'string' || (typeof code === 'string' && !code.startsWith('PLUGIN_')))
+	) {
+		error.pluginCode = code;
 	}
 	error.code = PLUGIN_ERROR;
 	error.plugin = plugin;
@@ -798,7 +803,7 @@ export function logPluginError(
 	if (id) {
 		error.id = id;
 	}
-	return error;
+	return error as RollupLog;
 }
 
 export function logShimmedExport(id: string, binding: string): RollupLog {
