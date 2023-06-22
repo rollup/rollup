@@ -25,7 +25,7 @@ module.exports = defineTest({
 		hook: 'transform',
 		id: path.join(__dirname, 'main.js'),
 		watchFiles: [path.join(__dirname, 'main.js')],
-        frame: "1: export const foo = 'foo'bar\n                             ^",
+        frame: "11: export const foo = 'foo'bar\n                             ^",
         loc: {
             column: 26,
             file: path.join(__dirname, 'main.js'),
