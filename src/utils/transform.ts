@@ -45,7 +45,7 @@ export default async function transform(
 	let customTransformCache = false;
 	const useCustomTransformCache = () => (customTransformCache = true);
 	let pluginName = '';
-	const currentSource: string = source.code;
+	let currentSource = source.code;
 
 	function transformReducer(
 		this: PluginContext,
@@ -80,6 +80,8 @@ export default async function transform(
 				}
 			);
 		}
+
+		currentSource = code;
 
 		return code;
 	}
