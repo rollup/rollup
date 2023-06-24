@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 3.25.2
+
+_2023-06-24_
+
+### Bug Fixes
+
+- Handle plugin errors where `code` is not a string (#5042)
+- Use current transformed source when generating code frames with positions in transform hooks (#5045)
+
+### Pull Requests
+
+- [#5038](https://github.com/rollup/rollup/pull/5038): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5040](https://github.com/rollup/rollup/pull/5040): Fix typo in index.md (@vHeemstra)
+- [#5042](https://github.com/rollup/rollup/pull/5042): fix: a plugin error can contains numeric code (@TrickyPi)
+- [#5045](https://github.com/rollup/rollup/pull/5045): Fix `this.error` with `pos` in `transform` hook (@sapphi-red)
+- [#5046](https://github.com/rollup/rollup/pull/5046): chore(deps): update dependency locate-character to v3 (@renovate[bot])
+
 ## 3.25.1
 
 _2023-06-12_
