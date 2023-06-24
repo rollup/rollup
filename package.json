@@ -116,7 +116,7 @@
     "inquirer": "^9.2.7",
     "is-reference": "^3.0.1",
     "lint-staged": "^13.2.2",
-    "locate-character": "^2.0.5",
+    "locate-character": "^3.0.0",
     "magic-string": "^0.30.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",

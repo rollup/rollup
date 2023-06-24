@@ -37,7 +37,7 @@ export default class Program extends NodeBase {
 					const { code, log, module } = this.context;
 					log(
 						LOGLEVEL_INFO,
-						logFirstSideEffect(code, module.id, locate(code, node.start, { offsetLine: 1 })),
+						logFirstSideEffect(code, module.id, locate(code, node.start, { offsetLine: 1 })!),
 						node.start
 					);
 				}
