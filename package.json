@@ -143,6 +143,9 @@
     "weak-napi": "^2.0.2",
     "yargs-parser": "^21.1.1"
   },
+  "overrides": {
+    "semver": "^7.5.2"
+  },
   "files": [
     "dist/**/*.js",
     "dist/*.d.ts",
