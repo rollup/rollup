@@ -1,4 +1,5 @@
 const path = require('node:path');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
 	description: '`this.error(...)` accepts number as second parameter (#5044)',
@@ -23,12 +24,14 @@ module.exports = defineTest({
 		message: 'error',
 		plugin: 'plugin2',
 		hook: 'transform',
-		id: path.join(__dirname, 'main.js'),
-		watchFiles: [path.join(__dirname, 'main.js')],
-		frame: "11: export const foo = 'foo'bar\n                             ^",
+		id: ID_MAIN,
+		watchFiles: [ID_MAIN],
+		frame: `
+			1: export const foo = 'foo'bar
+			                             ^`,
 		loc: {
 			column: 26,
-			file: path.join(__dirname, 'main.js'),
+			file: ID_MAIN,
 			line: 1
 		},
 		pos: 26
