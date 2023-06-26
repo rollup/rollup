@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.25.3
+
+_2023-06-26_
+
+### Bug Fixes
+
+- Fix error when inlining dynamic imports that contain unused reexported variables (#5047)
+
+### Pull Requests
+
+- [#5047](https://github.com/rollup/rollup/pull/5047): Do not add tree-shaken variables to namespaces when inlining dynamic imports (@lukastaegert)
+
 ## 3.25.2
 
 _2023-06-24_
