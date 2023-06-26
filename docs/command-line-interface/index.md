@@ -389,6 +389,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-externalImportAssertions Omit import assertions in "es" output
 --no-externalLiveBindings   Do not generate code to support live bindings
 --failAfterWarnings         Exit with an error if the build produced warnings
+--filterLogs <filter>       Filter log messages
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
 --generatedCode <preset>    Which code features to use (es5/es2015)
@@ -448,6 +449,60 @@ Many options have command line equivalents. In those cases, any arguments passed
 
 The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](../configuration-options/index.md) for details.
 
+### `--bundleConfigAsCjs`
+
+This option will force your configuration to be transpiled to CommonJS.
+
+This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
+
+### `--configPlugin <plugin>`
+
+Allows specifying Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
+
+```shell
+rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
+```
+
+Note for Typescript: make sure you have the Rollup config file in your `tsconfig.json`'s `include` paths. For example:
+
+```
+"include": ["src/**/*", "rollup.config.ts"],
+```
+
+This option supports the same syntax as the [`--plugin`](#p-plugin-plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+
+Using this option will make Rollup transpile your configuration file to an ES module first before executing it. To transpile to CommonJS instead, also pass the [`--bundleConfigAsCjs`](#bundleconfigascjs) option.
+
+### `--environment <values>`
+
+Pass additional settings to the config file via `process.ENV`.
+
+```sh
+rollup -c --environment INCLUDE_DEPS,BUILD:production
+```
+
+will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'production'`. You can use this option several times. In that case, subsequently set variables will overwrite previous definitions. This enables you for instance to overwrite environment variables in `package.json` scripts:
+
+```json
+{
+	"scripts": {
+		"build": "rollup -c --environment INCLUDE_DEPS,BUILD:production"
+	}
+}
+```
+
+If you call this script via:
+
+```shell
+npm run build -- --environment BUILD:development
+```
+
+then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'development'`.
+
+### `--failAfterWarnings`
+
+Exit the build with an error if any warnings occurred, once the build is complete.
+
 ### `-h`/`--help`
 
 Print the help document.
@@ -494,77 +549,9 @@ By default, plugin functions will be called with no argument to create the plugi
 rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
 ```
 
-### `--configPlugin <plugin>`
-
-Allows specifying Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
-
-```shell
-rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
-```
-
-Note for Typescript: make sure you have the Rollup config file in your `tsconfig.json`'s `include` paths. For example:
-
-```
-"include": ["src/**/*", "rollup.config.ts"],
-```
-
-This option supports the same syntax as the [`--plugin`](#p-plugin-plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
-
-Using this option will make Rollup transpile your configuration file to an ES module first before executing it. To transpile to CommonJS instead, also pass the [`--bundleConfigAsCjs`](#bundleconfigascjs) option.
-
-### `--bundleConfigAsCjs`
-
-This option will force your configuration to be transpiled to CommonJS.
-
-This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
-
-### `-v`/`--version`
-
-Print the installed version number.
-
-### `-w`/`--watch`
-
-Rebuild the bundle when its source files change on disk.
-
-_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](../plugin-development/index.md#this-meta), which is independent of the command line interface._
-
 ### `--silent`
 
 Don't print warnings to the console. If your configuration file contains an `onLog` or `onwarn` handler, this handler will still be called. The same goes for plugins with an `onLog` hook. To prevent that, additionally use the [`logLevel`](../configuration-options/index.md#loglevel) option or pass `--logLevel silent`.
-
-### `--failAfterWarnings`
-
-Exit the build with an error if any warnings occurred, once the build is complete.
-
-### `--environment <values>`
-
-Pass additional settings to the config file via `process.ENV`.
-
-```sh
-rollup -c --environment INCLUDE_DEPS,BUILD:production
-```
-
-will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'production'`. You can use this option several times. In that case, subsequently set variables will overwrite previous definitions. This enables you for instance to overwrite environment variables in `package.json` scripts:
-
-```json
-{
-	"scripts": {
-		"build": "rollup -c --environment INCLUDE_DEPS,BUILD:production"
-	}
-}
-```
-
-If you call this script via:
-
-```shell
-npm run build -- --environment BUILD:development
-```
-
-then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'development'`.
-
-### `--waitForBundleInput`
-
-This will not throw an error if one of the entry point files is not available. Instead, it will wait until all files are present before starting the build. This is useful, especially in watch mode, when Rollup is consuming the output of another process.
 
 ### `--stdin=ext`
 
@@ -573,6 +560,20 @@ Specify a virtual file extension when reading content from stdin. By default, Ro
 ### `--no-stdin`
 
 Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` and `-.[ext]` as a regular file names instead of interpreting these as the name of `stdin`. See also [Reading a file from stdin](#reading-a-file-from-stdin).
+
+### `-v`/`--version`
+
+Print the installed version number.
+
+### `--waitForBundleInput`
+
+This will not throw an error if one of the entry point files is not available. Instead, it will wait until all files are present before starting the build. This is useful, especially in watch mode, when Rollup is consuming the output of another process.
+
+### `-w`/`--watch`
+
+Rebuild the bundle when its source files change on disk.
+
+_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](../plugin-development/index.md#this-meta), which is independent of the command line interface._
 
 ### `--watch.onStart <cmd>`, `--watch.onBundleStart <cmd>`, `--watch.onBundleEnd <cmd>`, `--watch.onEnd <cmd>`, `--watch.onError <cmd>`
 
