@@ -167,6 +167,11 @@
       "require": "./dist/loadConfigFile.js",
       "default": "./dist/loadConfigFile.js"
     },
+    "./getLogFilter": {
+      "types": "./dist/getLogFilter.d.ts",
+      "require": "./dist/getLogFilter.js",
+      "default": "./dist/getLogFilter.js"
+    },
     "./dist/*": "./dist/*"
   }
 }
