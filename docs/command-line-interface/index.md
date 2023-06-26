@@ -477,7 +477,7 @@ Using this option will make Rollup transpile your configuration file to an ES mo
 
 Pass additional settings to the config file via `process.ENV`.
 
-```sh
+```shell
 rollup -c --environment INCLUDE_DEPS,BUILD:production
 ```
 
@@ -503,6 +503,59 @@ then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `pro
 
 Exit the build with an error if any warnings occurred, once the build is complete.
 
+### `--filterLogs <filter>`
+
+Only display certain log messages based on custom filters. In its most basic form, a filter is a `key:value` pair where the key is a property of the log object and the value is an allowed value. For instance
+
+```shell
+rollup -c --filterLogs code:EVAL
+```
+
+will only display log messages where `log.code === 'EVAL'`. You can specify multiple filters by separating them with a comma or using the option multiple times:
+
+```shell
+rollup -c --filterLogs "code:FOO,message:This is the message" --filterLogs code:BAR
+```
+
+This will display all logs where the `code` is either `"FOO"` or `"BAR"` or where the `message` is `"This is the message"`.
+
+For situations where you cannot easily add additional command line parameters, you can also use the `ROLLUP_FILTER_LOGS` environment variable. The value of this variable will be handled the same way as if you specified `--filterLogs` on the command line and supports a comma-separated list of filters.
+
+There is also some advanced syntax available for more complex filters.
+
+- `!` will negate a filter:
+
+  ```shell
+  rollup -c --filterLogs "!code:CIRCULAR_DEPENDENCY"
+  ```
+
+  will display all logs except circular dependency warnings.
+
+- `*` matches any sub-string when used in a filter value:
+
+  ```shell
+  rollup -c --filterLogs "code:*_ERROR,message:*error*"
+  ```
+
+  will only display logs where either the `code` ends with `_ERROR` or the message contains the string `error`.
+
+- `&` intersects several filters:
+
+  ```shell
+  rollup -c --filterLogs "code:CIRCULAR_DEPENDENCY&ids:*/main.js*"
+  ```
+
+  will only display logs where both the `code` is `"CIRCULAR_DEPENDENCY"` and the `ids` contain `/main.js`. This makes use of another feature:
+
+- if the value is an object, it will be converted to a string via `JSON.stringify` before applying the filter. Other non-string values will be directly cast to string.
+- nested properties are supported as well:
+
+  ```shell
+  rollup -c --filterLogs "foo.bar:value"
+  ```
+
+  will only display logs where the property `log.foo.bar` has the value `"value"`.
+
 ### `-h`/`--help`
 
 Print the help document.
@@ -513,29 +566,37 @@ Use the specified plugin. There are several ways to specify plugins here:
 
 - Via a relative path:
 
-  ```
-  rollup -i input.js -f es -p ./my-plugin.js
-  ```
+```
 
-  The file should export a function returning a plugin object.
+rollup -i input.js -f es -p ./my-plugin.js
+
+```
+
+The file should export a function returning a plugin object.
 
 - Via the name of a plugin that is installed in a local or global `node_modules` folder:
 
-  ```
-  rollup -i input.js -f es -p @rollup/plugin-node-resolve
-  ```
+```
 
-  If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
+rollup -i input.js -f es -p @rollup/plugin-node-resolve
 
-  ```
-  rollup -i input.js -f es -p node-resolve
-  ```
+```
+
+If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
+
+```
+
+rollup -i input.js -f es -p node-resolve
+
+```
 
 - Via an inline implementation:
 
-  ```
-  rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
-  ```
+```
+
+rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
+
+```
 
 If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
 
@@ -579,7 +640,7 @@ _Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set 
 
 When in watch mode, run a shell command `<cmd>` for a watch event code. See also [rollup.watch](../javascript-api/index.md#rollup-watch).
 
-```sh
+```shell
 rollup -c --watch --watch.onEnd="node ./afterBuildScript.js"
 ```
 
