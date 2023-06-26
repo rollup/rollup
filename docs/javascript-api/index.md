@@ -318,7 +318,7 @@ loadConfigFile(path.resolve(__dirname, 'rollup.config.js'), {
 
 ## Applying advanced log filters
 
-While the command line interface provides a powerful way to filter logs via the [`--filterLogs`](../command-line-interface/#filterlogs-filter) flag, this functionality is not directly available when using the JavaScript API. However, Rollup exposes a helper `getLogFilter` to generate filters using the same syntax as the CLI. This is useful when specifying a custom `onLog` handler and for third party systems that want to provide a similar filtering experience as Rollup CLI. This function accepts an array of strings. Note that it does not split up comma-separated lists of filters like the CLI does.
+While the command line interface provides a powerful way to filter logs via the [`--filterLogs`](../command-line-interface/index.md#filterlogs-filter) flag, this functionality is not directly available when using the JavaScript API. However, Rollup exposes a helper `getLogFilter` to generate filters using the same syntax as the CLI. This is useful when specifying a custom `onLog` handler and for third party systems that want to provide a similar filtering experience as Rollup CLI. This function accepts an array of strings. Note that it does not split up comma-separated lists of filters like the CLI does.
 
 ```js
 // rollup.config.mjs
