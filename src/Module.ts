@@ -452,7 +452,7 @@ export default class Module {
 		) {
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				const [exportedVariable] = this.getVariableForExportName(exportName);
-				if (exportedVariable) {
+				if (exportedVariable?.included) {
 					dependencyVariables.add(exportedVariable);
 				}
 			}
