@@ -8,7 +8,7 @@ export const getLogFilter: GetLogFilter = filters => {
 			const inverted = subFilter.startsWith('!');
 			if (inverted) subFilter = subFilter.slice(1);
 			const [key, ...value] = subFilter.split(':');
-			return { inverted, key, parts: value.join(':').split('*') };
+			return { inverted, key: key.split('.'), parts: value.join(':').split('*') };
 		})
 	);
 	return (log: RollupLog): boolean => {
@@ -25,16 +25,27 @@ export const getLogFilter: GetLogFilter = filters => {
 	};
 };
 
-const testFilter = (log: RollupLog, key: string, parts: string[]): boolean => {
-	if (!(key in log)) {
-		return false;
+const testFilter = (log: RollupLog, key: string[], parts: string[]): boolean => {
+	let rawValue: any = log;
+	for (let index = 0; index < key.length; index++) {
+		if (!rawValue) {
+			return false;
+		}
+		const part = key[index];
+		if (!(part in rawValue)) {
+			return false;
+		}
+		rawValue = rawValue[part];
 	}
-	const rawValue = log[key as keyof RollupLog];
 	let value = typeof rawValue === 'object' ? JSON.stringify(rawValue) : String(rawValue);
+	if (parts.length === 1) {
+		return value === parts[0];
+	}
 	if (!value.startsWith(parts[0])) {
 		return false;
 	}
-	for (let index = 1; index < parts.length - 1; index++) {
+	const lastPartIndex = parts.length - 1;
+	for (let index = 1; index < lastPartIndex; index++) {
 		const part = parts[index];
 		const position = value.indexOf(part);
 		if (position === -1) {
@@ -42,8 +53,5 @@ const testFilter = (log: RollupLog, key: string, parts: string[]): boolean => {
 		}
 		value = value.slice(position + part.length);
 	}
-	if (!value.endsWith(parts[parts.length - 1])) {
-		return false;
-	}
-	return true;
+	return value.endsWith(parts[lastPartIndex]);
 };

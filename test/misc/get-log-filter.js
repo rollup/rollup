@@ -57,15 +57,29 @@ describe('getLogFilter', () => {
 		assert.strictEqual(filter({ baz: { b: 1, c: 2 } }), true, 'baz:{"b":1,"c":2}');
 	});
 
-	// it('handles edge case filters', () => {
-	// 	const filter = getLogFilter([
-	// 		':A', // property is "empty string"
-	// 		'a:', // value is "empty string"
-	// 		'', // property and value are "empty string"
-	// 		'code:A&', // property and value are "empty string",
-	// 		'foo:bar:baz' // second colon is treated literally
-	// 	]);
-	// });
+	it('handles edge case filters', () => {
+		const filter = getLogFilter([
+			':A', // property is "empty string"
+			'a:', // value is "empty string"
+			'', // property and value are "empty string"
+			'code:A&', // property and value are "empty string",
+			'foo:bar:baz' // second colon is treated literally
+		]);
+		assert.strictEqual(filter({ '': 'A' }), true, ':A');
+		assert.strictEqual(filter({ foo: 'A' }), false, 'foo:A');
+		assert.strictEqual(filter({ a: '' }), true, 'a:');
+		assert.strictEqual(filter({ a: 'foo' }), false, 'a:foo');
+		assert.strictEqual(filter({ '': '' }), true, '');
+		assert.strictEqual(filter({ code: 'A' }), false, 'code:A');
+		assert.strictEqual(filter({ code: 'A', '': '' }), true, 'code:A&');
+		assert.strictEqual(filter({ foo: 'bar:baz' }), true, 'foo:bar:baz');
+	});
 
-	// TODO Lukas filter in watch mode, nested properties, handle edge cases: empty string, no colon, extra colon on right side, unexpected &
+	it('handles nested properties', () => {
+		const filter = getLogFilter(['foo.bar:baz']);
+		assert.strictEqual(filter({ foo: null }), false, 'foo:bar');
+		assert.strictEqual(filter({ foo: { bar: 'baz' } }), true, 'foo.bar:baz');
+		assert.strictEqual(filter({ foo: { bar: 'qux' } }), false, 'foo.bar:qux');
+		assert.strictEqual(filter({ foo: { bar: { baz: 'qux' } } }), false, 'foo.bar.baz:qux');
+	});
 });
