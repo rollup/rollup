@@ -566,37 +566,29 @@ Use the specified plugin. There are several ways to specify plugins here:
 
 - Via a relative path:
 
-```
+  ```shell
+  rollup -i input.js -f es -p ./my-plugin.js
+  ```
 
-rollup -i input.js -f es -p ./my-plugin.js
-
-```
-
-The file should export a function returning a plugin object.
+  The file should export a function returning a plugin object.
 
 - Via the name of a plugin that is installed in a local or global `node_modules` folder:
 
-```
+  ```shell
+  rollup -i input.js -f es -p @rollup/plugin-node-resolve
+  ```
 
-rollup -i input.js -f es -p @rollup/plugin-node-resolve
+  If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
 
-```
-
-If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
-
-```
-
-rollup -i input.js -f es -p node-resolve
-
-```
+  ```shell
+  rollup -i input.js -f es -p node-resolve
+  ```
 
 - Via an inline implementation:
 
-```
-
-rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
-
-```
+  ```shell
+  rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
+  ```
 
 If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
 
