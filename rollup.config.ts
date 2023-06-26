@@ -95,7 +95,10 @@ export default async function (
 
 	const esmBuild: RollupOptions = {
 		...commonJSBuild,
-		input: { 'rollup.js': 'src/node-entry.ts' },
+		input: {
+			'getLogFilter.js': 'src/utils/getLogFilter.ts',
+			'rollup.js': 'src/node-entry.ts'
+		},
 		output: {
 			...commonJSBuild.output,
 			dir: 'dist/es',

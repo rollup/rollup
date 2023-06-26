@@ -170,7 +170,7 @@
     "./getLogFilter": {
       "types": "./dist/getLogFilter.d.ts",
       "require": "./dist/getLogFilter.js",
-      "default": "./dist/getLogFilter.js"
+      "import": "./dist/es/getLogFilter.js"
     },
     "./dist/*": "./dist/*"
   }
