@@ -14,6 +14,6 @@
 		"target": "ES2020",
 		"useDefineForClassFields": false
 	},
-	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts"],
+	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts", "native"],
 	"exclude": ["dist", "node_modules", "test/typescript", "browser/dist"]
 }

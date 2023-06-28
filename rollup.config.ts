@@ -11,6 +11,7 @@ import { string } from 'rollup-plugin-string';
 import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
+import { copyNativeFiles } from './build-plugins/copy-native-files';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
@@ -35,6 +36,7 @@ const treeshake = {
 	tryCatchDeoptimization: false
 };
 
+console.log(fileURLToPath(new URL('native/lib.js', import.meta.url)));
 const nodePlugins: readonly Plugin[] = [
 	replace(fsEventsReplacement),
 	alias(moduleAliases),
@@ -46,7 +48,8 @@ const nodePlugins: readonly Plugin[] = [
 		include: 'node_modules/**'
 	}),
 	typescript(),
-	cleanBeforeWrite('dist')
+	cleanBeforeWrite('dist'),
+	copyNativeFiles()
 ];
 
 export default async function (
@@ -58,7 +61,7 @@ export default async function (
 
 	const commonJSBuild: RollupOptions = {
 		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
-		external: ['fsevents'],
+		external: ['fsevents', fileURLToPath(new URL('../native/lib.js', import.meta.url))],
 		input: {
 			'getLogFilter.js': 'src/utils/getLogFilter.ts',
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',

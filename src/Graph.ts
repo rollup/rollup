@@ -1,5 +1,6 @@
 import * as acorn from 'acorn';
 import flru from 'flru';
+import native from '../native/lib';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
@@ -30,6 +31,8 @@ import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
+
+console.log(native);
 
 function normalizeEntryModules(
 	entryModules: readonly string[] | Record<string, string>

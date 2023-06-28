@@ -19,3 +19,8 @@ perf/
 .temp
 docs/.vitepress/graphs
 *.tsbuildinfo
+/target
+Cargo.lock
+*.node
+/native/*
+!/native/lib.js
