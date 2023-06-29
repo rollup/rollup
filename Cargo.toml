@@ -7,9 +7,12 @@ version = "0.0.0"
 crate-type = ["cdylib"]
 
 [dependencies]
+anyhow = "1.0.71"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.12.2", default-features = false, features = ["napi4"] }
 napi-derive = "2.12.2"
+swc = "0.263.26"
+swc_common = "0.31.16"
 
 [build-dependencies]
 napi-build = "2.0.1"

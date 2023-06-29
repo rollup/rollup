@@ -32,7 +32,7 @@ import { getPureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
-console.log(native);
+console.log(native.parse('1;').toString());
 
 function normalizeEntryModules(
 	entryModules: readonly string[] | Record<string, string>
