@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 3.26.0
+
+_2023-06-30_
+
+### Features
+
+- Add `--filterLogs` CLI flag and `ROLLUP_FILTER_LOGS` environment variable for log filtering (#5035)
+
+### Pull Requests
+
+- [#5035](https://github.com/rollup/rollup/pull/5035): Add ability to filter logs via CLI option or environment variable (@lukastaegert)
+- [#5049](https://github.com/rollup/rollup/pull/5049): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 3.25.3
 
 _2023-06-26_
