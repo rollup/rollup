@@ -1,6 +1,6 @@
 require('./acorn-plugins');
 require('./bundle-information');
-require('./deprecations');
+require('./get-log-filter');
 require('./iife');
 require('./in-memory-sourcemaps');
 require('./misc');

@@ -29,7 +29,7 @@ export const loadConfigFile: LoadConfigFile = async (
 		getDefaultFromCjs(await getConfigFileExport(fileName, commandOptions, watchMode)),
 		commandOptions
 	);
-	const warnings = batchWarnings(commandOptions.silent);
+	const warnings = batchWarnings(commandOptions);
 	try {
 		const normalizedConfigs: MergedRollupOptions[] = [];
 		for (const config of configs) {
@@ -92,9 +92,10 @@ function getDefaultFromCjs(namespace: GenericConfigObject): unknown {
 
 async function loadTranspiledConfigFile(
 	fileName: string,
-	{ bundleConfigAsCjs, configPlugin, silent }: Record<string, unknown>
+	commandOptions: Record<string, unknown>
 ): Promise<unknown> {
-	const warnings = batchWarnings(!!silent);
+	const { bundleConfigAsCjs, configPlugin, silent } = commandOptions;
+	const warnings = batchWarnings(commandOptions);
 	const inputOptions = {
 		external: (id: string) =>
 			(id[0] !== '.' && !isAbsolute(id)) || id.slice(-5, id.length) === '.json',

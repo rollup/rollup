@@ -76,6 +76,7 @@ export async function mergeOptions(
 			'bundleConfigAsCjs',
 			'config',
 			'environment',
+			'filterLogs',
 			'plugin',
 			'silent',
 			'failAfterWarnings',

@@ -280,7 +280,7 @@ const watchOptions = {
 
 See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](../configuration-options/index.md) for info on `chokidar`, `include` and `exclude`.
 
-### Programmatically loading a config file
+## Programmatically loading a config file
 
 In order to aid in generating such a config, rollup exposes the helper it uses to load config files in its command line interface via a separate entry-point. This helper receives a resolved `fileName` and optionally an object containing command line parameters:
 
@@ -314,4 +314,25 @@ loadConfigFile(path.resolve(__dirname, 'rollup.config.js'), {
 	// You can also pass this directly to "rollup.watch"
 	rollup.watch(options);
 });
+```
+
+## Applying advanced log filters
+
+While the command line interface provides a powerful way to filter logs via the [`--filterLogs`](../command-line-interface/index.md#filterlogs-filter) flag, this functionality is not directly available when using the JavaScript API. However, Rollup exposes a helper `getLogFilter` to generate filters using the same syntax as the CLI. This is useful when specifying a custom `onLog` handler and for third party systems that want to provide a similar filtering experience as Rollup CLI. This function accepts an array of strings. Note that it does not split up comma-separated lists of filters like the CLI does.
+
+```js
+// rollup.config.mjs
+import { getLogFilter } from 'rollup/getLogFilter';
+
+const logFilter = getLogFilter(['code:FOO', 'code:BAR']);
+
+export default {
+	input: 'main.js',
+	output: { format: 'es' },
+	onLog(level, log, handler) {
+		if (logFilter(log)) {
+			handler(level, log);
+		}
+	}
+};
 ```

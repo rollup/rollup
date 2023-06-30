@@ -138,7 +138,7 @@ The option can be omitted if some plugin emits at least one chunk (using [`this.
 
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
 
-```sh
+```shell
 rollup --format es --input src/entry1.js --input src/entry2.js
 # is equivalent to
 rollup src/entry1.js src/entry2.js --format es
@@ -146,13 +146,13 @@ rollup src/entry1.js src/entry2.js --format es
 
 Chunks can be named by adding an `=` to the provided value:
 
-```sh
+```shell
 rollup main=src/entry1.js other=src/entry2.js --format es
 ```
 
 File names containing spaces can be specified by using quotes:
 
-```sh
+```shell
 rollup "main entry"="src/entry 1.js" "src/other entry.js" --format es
 ```
 
