@@ -109,7 +109,7 @@ export default class Bundle {
 		const chunkEntries = await Promise.all(
 			Object.entries(manualChunks).map(async ([alias, files]) => ({
 				alias,
-				entries: await this.graph.moduleLoader.addAdditionalModules(files)
+				entries: await this.graph.moduleLoader.addAdditionalModules(files, true)
 			}))
 		);
 		for (const { alias, entries } of chunkEntries) {

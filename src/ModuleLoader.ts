@@ -23,6 +23,7 @@ import {
 	error,
 	logBadLoader,
 	logEntryCannotBeExternal,
+	logExternalizedModulesCannotBeIncludedInManualChunks,
 	logExternalSyntheticExports,
 	logImplicitDependantCannotBeExternal,
 	logInconsistentImportAssertions,
@@ -95,9 +96,16 @@ export class ModuleLoader {
 			: () => true;
 	}
 
-	async addAdditionalModules(unresolvedModules: readonly string[]): Promise<Module[]> {
+	async addAdditionalModules(
+		unresolvedModules: readonly string[],
+		isAddForManualChunks = false
+	): Promise<Module[]> {
 		const result = this.extendLoadModulesPromise(
-			Promise.all(unresolvedModules.map(id => this.loadEntryModule(id, false, undefined, null)))
+			Promise.all(
+				unresolvedModules.map(id =>
+					this.loadEntryModule(id, false, undefined, null, isAddForManualChunks)
+				)
+			)
 		);
 		await this.awaitLoadModulesPromise();
 		return result;
@@ -638,7 +646,8 @@ export class ModuleLoader {
 		unresolvedId: string,
 		isEntry: boolean,
 		importer: string | undefined,
-		implicitlyLoadedBefore: string | null
+		implicitlyLoadedBefore: string | null,
+		isLoadForManualChunks = false
 	): Promise<Module> {
 		const resolveIdResult = await resolveId(
 			unresolvedId,
@@ -658,13 +667,13 @@ export class ModuleLoader {
 					: logUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
-		if (
-			resolveIdResult === false ||
-			(typeof resolveIdResult === 'object' && resolveIdResult.external)
-		) {
+		const isExternalizedModules = typeof resolveIdResult === 'object' && resolveIdResult.external;
+		if (resolveIdResult === false || isExternalizedModules) {
 			return error(
 				implicitlyLoadedBefore === null
-					? logEntryCannotBeExternal(unresolvedId)
+					? isExternalizedModules && isLoadForManualChunks
+						? logExternalizedModulesCannotBeIncludedInManualChunks(unresolvedId)
+						: logEntryCannotBeExternal(unresolvedId)
 					: logImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
