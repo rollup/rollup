@@ -1172,6 +1172,7 @@ dependencies = [
  "napi-derive",
  "swc",
  "swc_common",
+ "swc_ecma_ast",
 ]
 
 [[package]]

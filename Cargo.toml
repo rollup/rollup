@@ -13,6 +13,7 @@ napi = { version = "2.12.2", default-features = false, features = ["napi4"] }
 napi-derive = "2.12.2"
 swc = "0.263.26"
 swc_common = "0.31.16"
+swc_ecma_ast = "0.106.6"
 
 [build-dependencies]
 napi-build = "2.0.1"
