@@ -1,0 +1,1 @@
+export const hasOwnProperty = false;
