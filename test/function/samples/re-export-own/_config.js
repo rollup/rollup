@@ -2,7 +2,7 @@ module.exports = {
 	description: 'avoid using export.hasOwnProperty',
 	options: {
 		input: './main.js',
-		external: [ 'external' ],
+		external: ['external'],
 		output: {
 			paths: {
 				external: './external.js'
@@ -17,9 +17,6 @@ module.exports = {
 			typeof Object.getOwnPropertyDescriptor(exports, 'hasOwnProperty').get,
 			'function'
 		);
-		assert.strictEqual(
-			typeof Object.getOwnPropertyDescriptor(exports, 'name').get,
-			'function'
-		);
+		assert.strictEqual(typeof Object.getOwnPropertyDescriptor(exports, 'name').get, 'function');
 	}
 };
