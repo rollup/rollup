@@ -1,1 +1,2 @@
-exports.hasOwnProperty = false;
+exports.hasOwnProperty = null;
+exports.name = null;
