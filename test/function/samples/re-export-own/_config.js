@@ -5,7 +5,7 @@ module.exports = {
 		external: ['external'],
 		output: {
 			paths: {
-				external: './external.js'
+				external: `${__dirname}/external.js`
 			},
 			format: 'cjs'
 		}
