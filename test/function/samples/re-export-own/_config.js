@@ -2,6 +2,7 @@ module.exports = {
 	description: 'avoid using export.hasOwnProperty',
 	options: {
 		input: './main.js',
+		external: [ 'external' ],
 		output: {
 			paths: {
 				external: './external.js'
