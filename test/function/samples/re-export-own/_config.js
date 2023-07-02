@@ -1,3 +1,5 @@
+const assert = require('node:assert');
+
 module.exports = {
 	description: 'avoid using export.hasOwnProperty',
 	options: {
