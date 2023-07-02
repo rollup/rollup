@@ -38,7 +38,7 @@ define(['exports', 'external'], (function (exports, foo$1) { 'use strict';
 	exports.default = main;
 	exports.syntheticMissing = synthetic.syntheticMissing;
 	Object.keys(foo$1).forEach(k => {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: () => foo$1[k]
 		});
