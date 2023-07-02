@@ -10,9 +10,14 @@ module.exports = {
 		}
 	},
 	exports(exports) {
-		assert.strictEqual(exports.hasOwnProperty, false);
+		assert.strictEqual(exports.hasOwnProperty, null);
+		assert.strictEqual(exports.name, null);
 		assert.strictEqual(
 			typeof Object.getOwnPropertyDescriptor(exports, 'hasOwnProperty').get,
+			'function'
+		);
+		assert.strictEqual(
+			typeof Object.getOwnPropertyDescriptor(exports, 'name').get,
 			'function'
 		);
 	}
