@@ -8,5 +8,9 @@ module.exports = {
 			},
 			format: 'cjs'
 		}
+	},
+	exports (exports) {
+		assert.strictEqual(exports.hasOwnProperty, false);
+		assert.strictEqual(typeof Object.getOwnPropertyDescriptor(exports, 'hasOwnProperty').get, 'function');
 	}
 };
