@@ -21,9 +21,9 @@ export default function amd(
 		isEntryFacade,
 		isModuleFacade,
 		namedExportsMode,
+		log,
 		outro,
-		snippets,
-		onwarn
+		snippets
 	}: FinaliserOptions,
 	{
 		amd,
@@ -35,7 +35,7 @@ export default function amd(
 		strict
 	}: NormalizedOutputOptions
 ): void {
-	warnOnBuiltins(onwarn, dependencies);
+	warnOnBuiltins(log, dependencies);
 	const deps = dependencies.map(
 		m => `'${updateExtensionForRelativeAmdId(m.importPath, amd.forceJsExtensionForImports)}'`
 	);

@@ -2,7 +2,7 @@ import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { errorIllegalImportReassignment } from '../../utils/error';
+import { logIllegalImportReassignment } from '../../utils/logs';
 import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -281,7 +281,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	private disallowImportReassignment(): never {
 		return this.context.error(
-			errorIllegalImportReassignment(this.name, this.context.module.id),
+			logIllegalImportReassignment(this.name, this.context.module.id),
 			this.start
 		);
 	}

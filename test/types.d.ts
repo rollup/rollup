@@ -1,4 +1,5 @@
 import type { SourceMap } from 'magic-string';
+import type { RollupLog } from 'rollup';
 import type { RollupBuild, RollupError, RollupOptions } from '../src/rollup/types';
 
 export interface TestConfigBase {
@@ -63,6 +64,10 @@ export interface TestConfigChunkingForm extends TestConfigBase {
 	 * fail.
 	 */
 	expectedWarnings?: string[];
+	/**
+	 * Assert the expected logs.
+	 */
+	logs?: RollupLog[];
 	/**
 	 * The directory to bundle the code in.
 	 */
@@ -157,6 +162,10 @@ export interface TestConfigForm extends TestConfigBase {
 	 */
 	formats?: string[];
 	/**
+	 * Assert the expected logs.
+	 */
+	logs?: RollupLog[];
+	/**
 	 * Rollup options for bundling.
 	 */
 	options?: RollupOptions;
@@ -196,6 +205,10 @@ export interface TestConfigFunction extends TestConfigBase {
 	 */
 	generateError?: RollupError;
 	/**
+	 * Assert the expected logs.
+	 */
+	logs?: RollupLog[];
+	/**
 	 * Rollup options for bundling.
 	 */
 	options?: RollupOptions;
@@ -208,7 +221,7 @@ export interface TestConfigFunction extends TestConfigBase {
 	 */
 	show?: boolean;
 	/**
-	 * Test the expected warnings.
+	 * Make assertions on the expected warnings.
 	 */
 	warnings?: RollupError[] | ((warnings: RollupError[]) => boolean | void);
 }

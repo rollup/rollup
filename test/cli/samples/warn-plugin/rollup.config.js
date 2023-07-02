@@ -25,6 +25,7 @@ module.exports = {
 						loc: { line: 1, column: 2 },
 						frame: 'custom frame'
 					});
+					this.info({ message: 'Fifth', id: path.resolve(__dirname, 'other.js') });
 				}
 			}
 		]

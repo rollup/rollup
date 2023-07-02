@@ -1,6 +1,5 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { getLocator } = require('locate-character');
 const { SourceMapConsumer } = require('source-map');
 const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
@@ -19,7 +18,9 @@ describe('in-memory sourcemaps', () => {
 			sourcemapFile: path.resolve('bundle.js')
 		});
 		const smc = await new SourceMapConsumer(generated.map);
-		const locator = getLocator(generated.code, { offsetLine: 1 });
+		const locator = (await import('locate-character')).getLocator(generated.code, {
+			offsetLine: 1
+		});
 		const loc = smc.originalPositionFor(locator('42')); // 42
 		assert.equal(loc.source, 'main');
 		assert.equal(loc.line, 1);

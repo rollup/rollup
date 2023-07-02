@@ -1,5 +1,117 @@
 # rollup changelog
 
+## 3.26.0
+
+_2023-06-30_
+
+### Features
+
+- Add `--filterLogs` CLI flag and `ROLLUP_FILTER_LOGS` environment variable for log filtering (#5035)
+
+### Pull Requests
+
+- [#5035](https://github.com/rollup/rollup/pull/5035): Add ability to filter logs via CLI option or environment variable (@lukastaegert)
+- [#5049](https://github.com/rollup/rollup/pull/5049): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
+## 3.25.3
+
+_2023-06-26_
+
+### Bug Fixes
+
+- Fix error when inlining dynamic imports that contain unused reexported variables (#5047)
+
+### Pull Requests
+
+- [#5047](https://github.com/rollup/rollup/pull/5047): Do not add tree-shaken variables to namespaces when inlining dynamic imports (@lukastaegert)
+
+## 3.25.2
+
+_2023-06-24_
+
+### Bug Fixes
+
+- Handle plugin errors where `code` is not a string (#5042)
+- Use current transformed source when generating code frames with positions in transform hooks (#5045)
+
+### Pull Requests
+
+- [#5038](https://github.com/rollup/rollup/pull/5038): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5040](https://github.com/rollup/rollup/pull/5040): Fix typo in index.md (@vHeemstra)
+- [#5042](https://github.com/rollup/rollup/pull/5042): fix: a plugin error can contains numeric code (@TrickyPi)
+- [#5045](https://github.com/rollup/rollup/pull/5045): Fix `this.error` with `pos` in `transform` hook (@sapphi-red)
+- [#5046](https://github.com/rollup/rollup/pull/5046): chore(deps): update dependency locate-character to v3 (@renovate[bot])
+
+## 3.25.1
+
+_2023-06-12_
+
+### Bug Fixes
+
+- Respect `__NO_SIDE_EFFECTS__` for async functions (#5031)
+
+### Pull Requests
+
+- [#5031](https://github.com/rollup/rollup/pull/5031): fix: `__NO_SIDE_EFFECTS__` annotation for async function (@antfu)
+
+## 3.25.0
+
+_2023-06-11_
+
+### Features
+
+- Add `this.info` and `this.debug` plugin context logging functions (#5026)
+- Add `onLog` option to read, map and filter logs (#5026)
+- Add `logLevel` option to fully suppress logs by level (#5026)
+- Support function logs in `this.warn`, `this.info` and `this.debug` to avoid heavy computations based on log level (#5026)
+- Add `onLog` plugin hook to read, filter and map logs from plugins (#5026)
+
+### Pull Requests
+
+- [#5026](https://github.com/rollup/rollup/pull/5026): Add Logging API (@lukastaegert)
+
+## 3.24.1
+
+_2023-06-10_
+
+### Bug Fixes
+
+- Fix an issue where bundles with `@rollup/plugin-commonjs` were missing internal dependencies when code-splitting (#5029)
+- Do not use `process.exit(0)` in watch mode to avoid issues in embedded scenarios (#5027)
+
+### Pull Requests
+
+- [#5027](https://github.com/rollup/rollup/pull/5027): fix turborepo with rollup --watch (@plumber-dhaval)
+- [#5028](https://github.com/rollup/rollup/pull/5028): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5029](https://github.com/rollup/rollup/pull/5029): fix: get right sideEffectModules (@TrickyPi)
+
+## 3.24.0
+
+_2023-06-07_
+
+### Features
+
+- Add new annotation `/* #__NO_SIDE_EFFECTS__ */` to mark function declarations as side effect free (#5024)
+
+### Pull Requests
+
+- [#5024](https://github.com/rollup/rollup/pull/5024): feat: support `#__NO_SIDE_EFFECTS__` annotation for function declaration (@antfu)
+
+## 3.23.1
+
+_2023-06-04_
+
+### Bug Fixes
+
+- Ensure the last segment of sourcemapBaseUrl is never omitted (#5022)
+
+### Pull Requests
+
+- [#5006](https://github.com/rollup/rollup/pull/5006): Better workflow caching (@lukastaegert)
+- [#5012](https://github.com/rollup/rollup/pull/5012): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5022](https://github.com/rollup/rollup/pull/5022): fix: add a trailing slash automatically for sourcemapBaseUrl (@TrickyPi)
+- [#5023](https://github.com/rollup/rollup/pull/5023): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 3.23.0
 
 _2023-05-22_

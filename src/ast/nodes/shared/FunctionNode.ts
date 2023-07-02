@@ -45,6 +45,11 @@ export default class FunctionNode extends FunctionBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+
+		if (this.annotationNoSideEffects) {
+			return false;
+		}
+
 		return !!this.id?.hasEffects(context);
 	}
 
@@ -54,6 +59,11 @@ export default class FunctionNode extends FunctionBase {
 		context: HasEffectsContext
 	): boolean {
 		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+
+		if (this.annotationNoSideEffects) {
+			return false;
+		}
+
 		if (interaction.type === INTERACTION_CALLED) {
 			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 			context.replacedVariableInits.set(

@@ -2,7 +2,9 @@ import type * as acorn from 'acorn';
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
-import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
+import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
+import type { RollupAnnotation } from '../../../utils/commentAnnotations';
+import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/commentAnnotations';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -124,7 +126,12 @@ export interface ChainElement extends ExpressionNode {
 }
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	declare annotations?: acorn.Comment[];
+	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
+	declare annotationNoSideEffects?: boolean;
+	/** Marked with #__PURE__ annotation */
+	declare annotationPure?: boolean;
+	declare annotations?: RollupAnnotation[];
+
 	context: AstContext;
 	declare end: number;
 	esTreeNode: acorn.Node | null;
@@ -262,7 +269,14 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (this.hasOwnProperty(key)) continue;
 			if (key.charCodeAt(0) === 95 /* _ */) {
 				if (key === ANNOTATION_KEY) {
-					this.annotations = value;
+					const annotations = value as RollupAnnotation[];
+					this.annotations = annotations;
+					if ((this.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
+						this.annotationNoSideEffects = annotations.some(
+							comment => comment.annotationType === 'noSideEffects'
+						);
+						this.annotationPure = annotations.some(comment => comment.annotationType === 'pure');
+					}
 				} else if (key === INVALID_COMMENT_KEY) {
 					for (const { start, end } of value as acorn.Comment[])
 						this.context.magicString.remove(start, end);

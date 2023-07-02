@@ -138,7 +138,7 @@ The option can be omitted if some plugin emits at least one chunk (using [`this.
 
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
 
-```sh
+```shell
 rollup --format es --input src/entry1.js --input src/entry2.js
 # is equivalent to
 rollup src/entry1.js src/entry2.js --format es
@@ -146,13 +146,13 @@ rollup src/entry1.js src/entry2.js --format es
 
 Chunks can be named by adding an `=` to the provided value:
 
-```sh
+```shell
 rollup main=src/entry1.js other=src/entry2.js --format es
 ```
 
 File names containing spaces can be specified by using quotes:
 
-```sh
+```shell
 rollup "main entry"="src/entry 1.js" "src/other entry.js" --format es
 ```
 
@@ -392,6 +392,18 @@ buildWithCache()
 	});
 ```
 
+### logLevel
+
+|          |                        |
+| -------: | :--------------------- |
+|    Type: | `LogLevel \| "silent"` |
+|     CLI: | `--logLevel <level>`   |
+| Default: | `"info"`               |
+
+Determine which logs to process. See [`onLog`](#onlog) for the available log levels. The default `logLevel` of `"info"` means that info and warnings logs will be processed while debug logs will be swallowed, which means that they are neither passed to plugin [`onLog`](../plugin-development/index.md#onlog) hooks nor the `onLog` option or printed to the console.
+
+When using the CLI, errors will still be printed to the console as they are not processed via the logging system. See the [`--silent`](../command-line-interface/index.md#silent) flag for how to suppress error logs.
+
 ### makeAbsoluteExternalsRelative
 
 |  |  |
@@ -422,53 +434,98 @@ Note that when a relative path is directly marked as "external" using the [`exte
 
 Limits the number of files rollup will open in parallel when reading modules or writing chunks. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the operating system allows.
 
-### onwarn
+### onLog
 
 |  |  |
 | --: | :-- |
-| Type: | `(warning: RollupWarning, defaultHandler: (warning: string \| RollupWarning) => void) => void;` |
+| Type: | `(level: LogLevel, log: RollupLog, defaultHandler: LogOrStringHandler) => void;` |
 
-A function that will intercept warning messages. If not supplied, warnings will be deduplicated and printed to the console. When using the [`--silent`](../command-line-interface/index.md#silent) CLI option, this handler is the only way to get notified about warnings.
+```typescript
+type LogLevel = 'warn' | 'info' | 'debug';
 
-The function receives two arguments: the warning object and the default handler. Warnings objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of warnings are handled. Other properties are added depending on the type of warning. See [`utils/error.ts`](https://github.com/rollup/rollup/blob/master/src/utils/error.ts) for a complete list of errors and warnings together with their codes and properties.
+type LogOrStringHandler = (
+	level: LogLevel | 'error',
+	log: string | RollupLog
+) => void;
+
+// All possible properties, actual properties depend on log
+interface RollupLog {
+	binding?: string;
+	cause?: Error;
+	code?: string;
+	exporter?: string;
+	frame?: string; // always printed by the CLI
+	hook?: string;
+	id?: string; // always printed by the CLI
+	ids?: string[];
+	loc?: {
+		column: number;
+		file?: string;
+		line: number;
+	}; // always printed by the CLI if id is present
+	message: string; // the actual message, always printed by the CLI
+	meta?: any; // add custom plugin properties to logs
+	names?: string[];
+	plugin?: string; // added by Rollup for plugin logs, only printed for warnings
+	pluginCode?: string; // added by Rollup for plugin logs that contain a code
+	pos?: number;
+	reexporter?: string;
+	stack?: string; // url for additional information, always printed by the CLI
+	url?: string;
+}
+```
+
+A function that intercepts log messages. If not supplied, logs are printed to the console, whereby Rollup CLI aggregates certain `"warn"` logs and prints consolidated warnings after the build to reduce noise. This handler is also triggered when using the [`--silent`](../command-line-interface/index.md#silent) CLI option.
+
+The function receives three arguments: the log level, the log object and the default handler. Log objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of logs are handled. Other properties are added depending on the type of log. See [`utils/logs.ts`](https://github.com/rollup/rollup/blob/master/src/utils/logs.ts) for a complete list of built-in errors and logs together with their codes and properties.
+
+If the default handler is not invoked, the log will not be printed to the console. Moreover, you can change the log level by invoking the default handler with a different level. Using the additional level `"error"` will turn the log into a thrown error that has all properties of the log attached.
 
 ```js
 // rollup.config.js
 export default {
-	//...,
-	onwarn(warning, warn) {
-		// skip certain warnings
-		if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
-
-		// throw on others
-		// Using Object.assign over new Error(warning.message) will make
-		// the CLI print additional information such as warning location
-		// and help url.
-		if (warning.code === 'MISSING_EXPORT')
-			throw Object.assign(new Error(), warning);
-
-		// Use default for everything else
-		warn(warning);
+	//...
+	onLog(level, log, handler) {
+		if (log.code === 'CIRCULAR_DEPENDENCY') {
+			return; // Ignore circular dependency warnings
+		}
+		if (level === 'warn') {
+			handler('error', log); // turn other warnings into errors
+		} else {
+			handler(level, info); // otherwise, just print the log
+		}
 	}
 };
 ```
 
-Many warnings also have a `loc` property and a `frame` allowing you to locate the source of the warning:
+This handler will not be invoked if logs are filtered out by the [`logLevel`](#loglevel) option. I.e. by default, `"debug"` logs will be swallowed.
+
+Some logs also have a `loc` property and a `frame` allowing you to locate the source of the log:
 
 ```js
 // rollup.config.js
 export default {
-  ...,
-  onwarn ({ loc, frame, message }) {
-    if (loc) {
-      console.warn(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
-      if (frame) console.warn(frame);
-    } else {
-      console.warn(message);
-    }
-  }
+	//...
+	onLog(level, { loc, frame, message }) {
+		if (loc) {
+			console.warn(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
+			if (frame) console.warn(frame);
+		} else {
+			console.warn(message);
+		}
+	}
 };
 ```
+
+### onwarn
+
+|  |  |
+| --: | :-- |
+| Type: | `(warning: RollupLog, defaultHandler: (warning: string \| RollupLog) => void) => void;` |
+
+A function that will intercept warning messages. It is very similar to [`onLog`](#onlog) but only receives warnings. If the default handler is invoked, the log will be handled as a warning. If both an `onLog` and `onwarn` handler are provided, the `onwarn` handler will only be invoked if `onLog` calls its default handler with a `level` of `warn`.
+
+See [`onLog`](#onlog) for more information.
 
 ### output.assetFileNames
 
@@ -2021,7 +2078,11 @@ If you discover a bug caused by the tree-shaking algorithm, please file an issue
 |     CLI: | `--treeshake.annotations`/`--no-treeshake.annotations` |
 | Default: | `true`                                                 |
 
-If `false`, ignore hints from pure annotations, i.e. comments containing `@__PURE__` or `#__PURE__`, when determining side effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely removed unless this option is set to `false`, in which case it will remain unchanged.
+If `false`, ignore hints from annotation in comments:
+
+##### `@__PURE__`
+
+Comments containing `@__PURE__` or `#__PURE__` mark a specific function call or constructor invocation as side effect free. That means that Rollup will tree-shake i.e. remove the call unless the return value is used in some code that is not tree-shaken. These annotations need to immediately precede the call invocation to take effect. The following code will be completely tree-shaken unless this option is set to `false`, in which case it will remain unchanged.
 
 ```javascript
 /*@__PURE__*/ console.log('side-effect');
@@ -2033,6 +2094,25 @@ class Impure {
 }
 
 /*@__PURE__*/ new Impure();
+```
+
+##### `@__NO_SIDE_EFFECTS__`
+
+Comments containing `@__NO_SIDE_EFFECTS__` or `#__NO_SIDE_EFFECTS__` mark a function declaration itself as side effect free. When a function has been marked as having no side effects, all calls to that function will be considered to be side effect free. The following code will be completely tree-shaken unless this option is set to `false`, in which case it will remain unchanged.
+
+```javascript
+/*@__NO_SIDE_EFFECTS__*/
+function impure() {
+	console.log('side-effect');
+}
+
+/*@__NO_SIDE_EFFECTS__*/
+const impureArrowFn = () => {
+	console.log('side-effect');
+};
+
+impure(); // <-- call will be considered as side effect free
+impureArrowFn(); // <-- call will be considered as side effect free
 ```
 
 #### treeshake.correctVarValueBeforeDeclaration

@@ -6,15 +6,18 @@ import { addCommandPluginsToInputOptions } from './commandPlugins';
 import type { BatchWarnings } from './loadConfigFileType';
 import { stdinName } from './stdin';
 
-export default async function loadConfigFromCommand(command: Record<string, unknown>): Promise<{
+export default async function loadConfigFromCommand(
+	commandOptions: Record<string, unknown>,
+	watchMode: boolean
+): Promise<{
 	options: MergedRollupOptions[];
 	warnings: BatchWarnings;
 }> {
-	const warnings = batchWarnings();
-	if (!command.input && (command.stdin || !process.stdin.isTTY)) {
-		command.input = stdinName;
+	const warnings = batchWarnings(commandOptions);
+	if (!commandOptions.input && (commandOptions.stdin || !process.stdin.isTTY)) {
+		commandOptions.input = stdinName;
 	}
-	const options = await mergeOptions({ input: [] }, command, warnings.add);
-	await addCommandPluginsToInputOptions(options, command);
+	const options = await mergeOptions({ input: [] }, watchMode, commandOptions, warnings.log);
+	await addCommandPluginsToInputOptions(options, commandOptions);
 	return { options: [options], warnings };
 }

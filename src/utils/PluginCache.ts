@@ -1,5 +1,5 @@
 import type { PluginCache, SerializablePluginCache } from '../rollup/types';
-import { error, errorAnonymousPluginCache, errorDuplicatePluginName } from './error';
+import { error, logAnonymousPluginCache, logDuplicatePluginName } from './logs';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 
 export function createPluginCache(cache: SerializablePluginCache): PluginCache {
@@ -64,9 +64,9 @@ function uncacheablePluginError(pluginName: string): never {
 		pluginName.startsWith(ANONYMOUS_PLUGIN_PREFIX) ||
 		pluginName.startsWith(ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
 	) {
-		return error(errorAnonymousPluginCache());
+		return error(logAnonymousPluginCache());
 	}
-	return error(errorDuplicatePluginName(pluginName));
+	return error(logDuplicatePluginName(pluginName));
 }
 
 export function getCacheForUncacheablePlugin(pluginName: string): PluginCache {

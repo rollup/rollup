@@ -447,7 +447,7 @@ Repository: git+https://github.com/Rich-Harris/is-reference.git
 ## locate-character
 License: MIT
 By: Rich Harris
-Repository: Rich-Harris/locate-character
+Repository: git+https://gitlab.com/Rich-Harris/locate-character.git
 
 ---------------------------------------
 

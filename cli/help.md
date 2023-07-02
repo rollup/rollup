@@ -38,6 +38,7 @@ Basic options:
 --no-externalImportAssertions Omit import assertions in "es" output
 --no-externalLiveBindings   Do not generate code to support live bindings
 --failAfterWarnings         Exit with an error if the build produced warnings
+--filterLogs <filter>       Filter log messages
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
 --generatedCode <preset>    Which code features to use (es5/es2015)
@@ -51,6 +52,7 @@ Basic options:
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --no-interop                Do not include interop block
 --intro <text>              Code to insert at top of bundle (inside wrapper)
+--logLevel <level>          Which kind of logs to display
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports
 --maxParallelFileOps <value> How many files to read in parallel
 --minifyInternalExports     Force or disable minification of internal exports

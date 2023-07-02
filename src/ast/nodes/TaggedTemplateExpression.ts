@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
-import { errorCannotCallNamespace } from '../../utils/error';
+import { LOGLEVEL_WARN } from '../../utils/logging';
+import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
@@ -27,7 +28,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			const variable = this.scope.findVariable(name);
 
 			if (variable.isNamespace) {
-				this.context.warn(errorCannotCallNamespace(name), this.start);
+				this.context.log(LOGLEVEL_WARN, logCannotCallNamespace(name), this.start);
 			}
 		}
 	}

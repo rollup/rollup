@@ -4,6 +4,7 @@ const { basename, resolve } = require('node:path');
  */
 // @ts-expect-error not included in types
 const { rollup } = require('../../dist/rollup');
+const { compareLogs } = require('../utils');
 const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
@@ -20,20 +21,21 @@ runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (directo
 			if (config.after) {
 				after(config.after);
 			}
+			const logs = [];
+			after(() => config.logs && compareLogs(logs, config.logs));
 
 			for (const format of FORMATS) {
 				it('generates ' + format, async () => {
 					process.chdir(directory);
+					const warnings = [];
 					bundle =
 						bundle ||
 						(await rollup({
 							input: [directory + '/main.js'],
-							onwarn: warning => {
-								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
-									throw new Error(
-										`Unexpected warnings (${warning.code}): ${warning.message}\n` +
-											'If you expect warnings, list their codes in config.expectedWarnings'
-									);
+							onLog: (level, log) => {
+								logs.push({ level, ...log });
+								if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
+									warnings.push(log);
 								}
 							},
 							strictDeprecations: true,
@@ -52,6 +54,17 @@ runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (directo
 						`${directory}/_expected/${format}`,
 						config
 					);
+					if (warnings.length > 0) {
+						const codes = new Set();
+						for (const { code } of warnings) {
+							codes.add(code);
+						}
+						throw new Error(
+							`Unexpected warnings (${[...codes].join(', ')}): \n${warnings
+								.map(({ message }) => `${message}\n\n`)
+								.join('')}` + 'If you expect warnings, list their codes in config.expectedWarnings'
+						);
+					}
 				});
 			}
 		}

@@ -11,12 +11,15 @@ import type { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
+import { getLogHandler } from './logHandler';
+import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import {
 	error,
-	errorInvalidRollupPhaseForAddWatchFile,
-	errorPluginError,
+	logInvalidRollupPhaseForAddWatchFile,
+	logPluginError,
 	warnDeprecation
-} from './error';
+} from './logs';
+import { normalizeLog } from './options/options';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 import { URL_THIS_GETMODULEIDS } from './urls';
 
@@ -28,6 +31,7 @@ export function getPluginContext(
 	fileEmitter: FileEmitter,
 	existingPluginNames: Set<string>
 ): PluginContext {
+	const { logLevel, onLog } = options;
 	let cacheable = true;
 	if (typeof plugin.cacheKey !== 'string') {
 		if (
@@ -56,19 +60,21 @@ export function getPluginContext(
 	return {
 		addWatchFile(id) {
 			if (graph.phase >= BuildPhase.GENERATE) {
-				return this.error(errorInvalidRollupPhaseForAddWatchFile());
+				return this.error(logInvalidRollupPhaseForAddWatchFile());
 			}
 			graph.watchFiles[id] = true;
 		},
 		cache: cacheInstance,
+		debug: getLogHandler(LOGLEVEL_DEBUG, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(error_): never {
-			return error(errorPluginError(error_, plugin.name));
+			return error(logPluginError(normalizeLog(error_), plugin.name));
 		},
 		getFileName: fileEmitter.getFileName,
 		getModuleIds: () => graph.modulesById.keys(),
 		getModuleInfo: graph.getModuleInfo,
 		getWatchFiles: () => Object.keys(graph.watchFiles),
+		info: getLogHandler(LOGLEVEL_INFO, 'PLUGIN_LOG', onLog, plugin.name, logLevel),
 		load(resolvedId) {
 			return graph.moduleLoader.preloadModule(resolvedId);
 		},
@@ -104,12 +110,6 @@ export function getPluginContext(
 			);
 		},
 		setAssetSource: fileEmitter.setAssetSource,
-		warn(warning) {
-			if (typeof warning === 'string') warning = { message: warning };
-			if (warning.code) warning.pluginCode = warning.code;
-			warning.code = 'PLUGIN_WARNING';
-			warning.plugin = plugin.name;
-			options.onwarn(warning);
-		}
+		warn: getLogHandler(LOGLEVEL_WARN, 'PLUGIN_WARNING', onLog, plugin.name, logLevel)
 	};
 }

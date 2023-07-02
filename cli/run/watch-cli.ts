@@ -54,7 +54,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					stderr(`\nReloading updated config...`);
 				}
 				configFileData = newConfigFileData;
-				const { options, warnings } = await loadConfigFile(configFile, command);
+				const { options, warnings } = await loadConfigFile(configFile, command, true);
 				if (currentConfigFileRevision !== configFileRevision) {
 					return;
 				}
@@ -71,7 +71,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	if (configFile) {
 		await loadConfigFromFileAndTrack(configFile);
 	} else {
-		const { options, warnings } = await loadConfigFromCommand(command);
+		const { options, warnings } = await loadConfigFromCommand(command, true);
 		await start(options, warnings);
 	}
 
@@ -153,8 +153,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 		if (watcher) await watcher.close();
 		if (configWatcher) configWatcher.close();
-
-		process.exit(code || 0);
+		if (code) process.exit(code);
 	}
 
 	// return a promise that never resolves to keep the process running

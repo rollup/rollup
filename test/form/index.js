@@ -6,7 +6,7 @@ const { basename, resolve } = require('node:path');
  */
 // @ts-expect-error not included in types
 const { rollup } = require('../../dist/rollup');
-const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
+const { compareLogs, normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
@@ -23,6 +23,8 @@ runTestSuiteWithSamples(
 			basename(directory) + ': ' + config.description,
 			() => {
 				let bundle;
+				const logs = [];
+
 				const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
 					const warnings = [];
 					if (config.before) {
@@ -34,11 +36,10 @@ runTestSuiteWithSamples(
 							bundle ||
 							(await rollup({
 								input: directory + '/main.js',
-								onwarn: warning => {
-									if (
-										!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))
-									) {
-										warnings.push(warning);
+								onLog: (level, log) => {
+									logs.push({ level, ...log });
+									if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
+										warnings.push(log);
 									}
 								},
 								strictDeprecations: true,
@@ -75,10 +76,14 @@ runTestSuiteWithSamples(
 				};
 
 				if (isSingleFormatTest) {
-					return runRollupTest(directory + '/_actual.js', directory + '/_expected.js', 'es');
+					return runRollupTest(directory + '/_actual.js', directory + '/_expected.js', 'es').then(
+						() => config.logs && compareLogs(logs, config.logs)
+					);
 				}
 
-				for (const format of config.formats || FORMATS)
+				for (const format of config.formats || FORMATS) {
+					after(() => config.logs && compareLogs(logs, config.logs));
+
 					it('generates ' + format, () =>
 						runRollupTest(
 							directory + '/_actual/' + format + '.js',
@@ -86,6 +91,7 @@ runTestSuiteWithSamples(
 							format
 						)
 					);
+				}
 			}
 		);
 	}

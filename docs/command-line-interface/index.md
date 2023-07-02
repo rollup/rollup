@@ -48,6 +48,10 @@ export default {
 
 	// advanced input options
 	cache,
+	logLevel,
+	makeAbsoluteExternalsRelative,
+	maxParallelFileOps,
+	onLog,
 	onwarn,
 	preserveEntrySignatures,
 	strictDeprecations,
@@ -64,6 +68,7 @@ export default {
 	// experimental
 	experimentalCacheExpiry,
 	experimentalLogSideEffects,
+	experimentalMinChunkSize,
 	perf,
 
 	// required (can be an array, for multiple outputs)
@@ -81,9 +86,12 @@ export default {
 		banner,
 		chunkFileNames,
 		compact,
+		dynamicImportInCjs,
 		entryFileNames,
 		extend,
+		externalImportAssertions,
 		footer,
+		generatedCode,
 		hoistTransitiveImports,
 		inlineDynamicImports,
 		interop,
@@ -109,9 +117,7 @@ export default {
 		externalLiveBindings,
 		freeze,
 		indent,
-		namespaceToStringTag,
 		noConflict,
-		preferConst,
 		sanitizeFileName,
 		strict,
 		systemNullSetters,
@@ -124,9 +130,9 @@ export default {
 		buildDelay,
 		chokidar,
 		clearScreen,
-		skipWrite,
 		exclude,
-		include
+		include,
+		skipWrite
 	}
 };
 ```
@@ -383,6 +389,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-externalImportAssertions Omit import assertions in "es" output
 --no-externalLiveBindings   Do not generate code to support live bindings
 --failAfterWarnings         Exit with an error if the build produced warnings
+--filterLogs <filter>       Filter log messages
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
 --generatedCode <preset>    Which code features to use (es5/es2015)
@@ -396,6 +403,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --no-interop                Do not include interop block
 --intro <text>              Code to insert at top of bundle (inside wrapper)
+--logLevel <level>          Which kind of logs to display
 --no-makeAbsoluteExternalsRelative Prevent normalization of external imports
 --maxParallelFileOps <value> How many files to read in parallel
 --minifyInternalExports     Force or disable minification of internal exports
@@ -441,51 +449,11 @@ Many options have command line equivalents. In those cases, any arguments passed
 
 The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](../configuration-options/index.md) for details.
 
-### `-h`/`--help`
+### `--bundleConfigAsCjs`
 
-Print the help document.
+This option will force your configuration to be transpiled to CommonJS.
 
-### `-p <plugin>`, `--plugin <plugin>`
-
-Use the specified plugin. There are several ways to specify plugins here:
-
-- Via a relative path:
-
-  ```
-  rollup -i input.js -f es -p ./my-plugin.js
-  ```
-
-  The file should export a function returning a plugin object.
-
-- Via the name of a plugin that is installed in a local or global `node_modules` folder:
-
-  ```
-  rollup -i input.js -f es -p @rollup/plugin-node-resolve
-  ```
-
-  If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
-
-  ```
-  rollup -i input.js -f es -p node-resolve
-  ```
-
-- Via an inline implementation:
-
-  ```
-  rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
-  ```
-
-If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
-
-```shell
-rollup -i input.js -f es -p node-resolve -p commonjs,json
-```
-
-By default, plugin functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
-
-```shell
-rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
-```
+This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
 
 ### `--configPlugin <plugin>`
 
@@ -505,35 +473,11 @@ This option supports the same syntax as the [`--plugin`](#p-plugin-plugin-plugin
 
 Using this option will make Rollup transpile your configuration file to an ES module first before executing it. To transpile to CommonJS instead, also pass the [`--bundleConfigAsCjs`](#bundleconfigascjs) option.
 
-### `--bundleConfigAsCjs`
-
-This option will force your configuration to be transpiled to CommonJS.
-
-This allows you to use CommonJS idioms like `__dirname` or `require.resolve` in your configuration even if the configuration itself is written as an ES module.
-
-### `-v`/`--version`
-
-Print the installed version number.
-
-### `-w`/`--watch`
-
-Rebuild the bundle when its source files change on disk.
-
-_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](../plugin-development/index.md#this-meta), which is independent of the command line interface._
-
-### `--silent`
-
-Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](#configuration-files).
-
-### `--failAfterWarnings`
-
-Exit the build with an error if any warnings occurred, once the build is complete.
-
 ### `--environment <values>`
 
 Pass additional settings to the config file via `process.ENV`.
 
-```sh
+```shell
 rollup -c --environment INCLUDE_DEPS,BUILD:production
 ```
 
@@ -555,9 +499,112 @@ npm run build -- --environment BUILD:development
 
 then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'development'`.
 
-### `--waitForBundleInput`
+### `--failAfterWarnings`
 
-This will not throw an error if one of the entry point files is not available. Instead, it will wait until all files are present before starting the build. This is useful, especially in watch mode, when Rollup is consuming the output of another process.
+Exit the build with an error if any warnings occurred, once the build is complete.
+
+### `--filterLogs <filter>`
+
+Only display certain log messages based on custom filters. In its most basic form, a filter is a `key:value` pair where the key is a property of the log object and the value is an allowed value. For instance
+
+```shell
+rollup -c --filterLogs code:EVAL
+```
+
+will only display log messages where `log.code === 'EVAL'`. You can specify multiple filters by separating them with a comma or using the option multiple times:
+
+```shell
+rollup -c --filterLogs "code:FOO,message:This is the message" --filterLogs code:BAR
+```
+
+This will display all logs where the `code` is either `"FOO"` or `"BAR"` or where the `message` is `"This is the message"`.
+
+For situations where you cannot easily add additional command line parameters, you can also use the `ROLLUP_FILTER_LOGS` environment variable. The value of this variable will be handled the same way as if you specified `--filterLogs` on the command line and supports a comma-separated list of filters.
+
+There is also some advanced syntax available for more complex filters.
+
+- `!` will negate a filter:
+
+  ```shell
+  rollup -c --filterLogs "!code:CIRCULAR_DEPENDENCY"
+  ```
+
+  will display all logs except circular dependency warnings.
+
+- `*` matches any sub-string when used in a filter value:
+
+  ```shell
+  rollup -c --filterLogs "code:*_ERROR,message:*error*"
+  ```
+
+  will only display logs where either the `code` ends with `_ERROR` or the message contains the string `error`.
+
+- `&` intersects several filters:
+
+  ```shell
+  rollup -c --filterLogs "code:CIRCULAR_DEPENDENCY&ids:*/main.js*"
+  ```
+
+  will only display logs where both the `code` is `"CIRCULAR_DEPENDENCY"` and the `ids` contain `/main.js`. This makes use of another feature:
+
+- if the value is an object, it will be converted to a string via `JSON.stringify` before applying the filter. Other non-string values will be directly cast to string.
+- nested properties are supported as well:
+
+  ```shell
+  rollup -c --filterLogs "foo.bar:value"
+  ```
+
+  will only display logs where the property `log.foo.bar` has the value `"value"`.
+
+### `-h`/`--help`
+
+Print the help document.
+
+### `-p <plugin>`, `--plugin <plugin>`
+
+Use the specified plugin. There are several ways to specify plugins here:
+
+- Via a relative path:
+
+  ```shell
+  rollup -i input.js -f es -p ./my-plugin.js
+  ```
+
+  The file should export a function returning a plugin object.
+
+- Via the name of a plugin that is installed in a local or global `node_modules` folder:
+
+  ```shell
+  rollup -i input.js -f es -p @rollup/plugin-node-resolve
+  ```
+
+  If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
+
+  ```shell
+  rollup -i input.js -f es -p node-resolve
+  ```
+
+- Via an inline implementation:
+
+  ```shell
+  rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
+  ```
+
+If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
+
+```shell
+rollup -i input.js -f es -p node-resolve -p commonjs,json
+```
+
+By default, plugin functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
+
+```shell
+rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
+```
+
+### `--silent`
+
+Don't print warnings to the console. If your configuration file contains an `onLog` or `onwarn` handler, this handler will still be called. The same goes for plugins with an `onLog` hook. To prevent that, additionally use the [`logLevel`](../configuration-options/index.md#loglevel) option or pass `--logLevel silent`.
 
 ### `--stdin=ext`
 
@@ -567,11 +614,25 @@ Specify a virtual file extension when reading content from stdin. By default, Ro
 
 Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` and `-.[ext]` as a regular file names instead of interpreting these as the name of `stdin`. See also [Reading a file from stdin](#reading-a-file-from-stdin).
 
+### `-v`/`--version`
+
+Print the installed version number.
+
+### `--waitForBundleInput`
+
+This will not throw an error if one of the entry point files is not available. Instead, it will wait until all files are present before starting the build. This is useful, especially in watch mode, when Rollup is consuming the output of another process.
+
+### `-w`/`--watch`
+
+Rebuild the bundle when its source files change on disk.
+
+_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](../plugin-development/index.md#this-meta), which is independent of the command line interface._
+
 ### `--watch.onStart <cmd>`, `--watch.onBundleStart <cmd>`, `--watch.onBundleEnd <cmd>`, `--watch.onEnd <cmd>`, `--watch.onError <cmd>`
 
 When in watch mode, run a shell command `<cmd>` for a watch event code. See also [rollup.watch](../javascript-api/index.md#rollup-watch).
 
-```sh
+```shell
 rollup -c --watch --watch.onEnd="node ./afterBuildScript.js"
 ```
 

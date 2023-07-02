@@ -1,6 +1,6 @@
 import type { NormalizedOutputOptions, RenderedChunk } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
-import { error, errorAddonNotGenerated } from './error';
+import { error, logAddonNotGenerated } from './logs';
 
 export interface Addons {
 	banner: string;
@@ -36,6 +36,6 @@ export async function createAddons(
 
 		return { banner, footer, intro, outro };
 	} catch (error_: any) {
-		return error(errorAddonNotGenerated(error_.message, error_.hook, error_.plugin));
+		return error(logAddonNotGenerated(error_.message, error_.hook, error_.plugin));
 	}
 }

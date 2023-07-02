@@ -1,6 +1,6 @@
 import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { ChunkDependency, ChunkExports } from '../Chunk';
-import type { NormalizedOutputOptions, RollupWarning } from '../rollup/types';
+import type { LogHandler, NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import amd from './amd';
 import cjs from './cjs';
@@ -20,11 +20,11 @@ export interface FinaliserOptions {
 	intro: string;
 	isEntryFacade: boolean;
 	isModuleFacade: boolean;
+	log: LogHandler;
 	namedExportsMode: boolean;
 	outro: string;
 	snippets: GenerateCodeSnippets;
 	usesTopLevelAwait: boolean;
-	onwarn(warning: RollupWarning): void;
 }
 
 export type Finaliser = (

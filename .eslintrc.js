@@ -112,7 +112,15 @@ module.exports = {
 			'error',
 			{
 				// 'fsevents' is only available on macOS, and not installed on linux/windows
-				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types', 'examples.json']
+				ignore: [
+					'fsevents',
+					'help.md',
+					'is-reference',
+					'package.json',
+					'types',
+					'examples.json',
+					'locate-character'
+				]
 			}
 		],
 		'import/order': ['error', { alphabetize: { order: 'asc' } }],
@@ -144,6 +152,7 @@ module.exports = {
 		'unicorn/prefer-math-trunc': 'off',
 		'unicorn/prefer-number-properties': 'off',
 		'unicorn/prefer-string-replace-all': 'off',
-		'unicorn/prefer-top-level-await': 'off'
+		'unicorn/prefer-top-level-await': 'off',
+		'unicorn/prevent-abbreviations': ['error', { replacements: { dir: false } }]
 	}
 };

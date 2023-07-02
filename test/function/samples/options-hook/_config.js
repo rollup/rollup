@@ -18,6 +18,7 @@ module.exports = defineTest({
 					experimentalCacheExpiry: 10,
 					experimentalLogSideEffects: false,
 					input: ['used'],
+					logLevel: 'info',
 					makeAbsoluteExternalsRelative: 'ifRelativeSource',
 					maxParallelFileOps: 20,
 					maxParallelFileReads: 20,

@@ -3,10 +3,11 @@ import type Module from '../Module';
 import type {
 	DecodedSourceMapOrMissing,
 	ExistingDecodedSourceMap,
-	SourceMapSegment,
-	WarningHandler
+	LogHandler,
+	SourceMapSegment
 } from '../rollup/types';
-import { error, errorConflictingSourcemapSources, errorSourcemapBroken } from './error';
+import { LOGLEVEL_WARN } from './logging';
+import { error, logConflictingSourcemapSources, logSourcemapBroken } from './logs';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
@@ -84,7 +85,7 @@ class Link {
 					} else if (sourcesContent[sourceIndex] == null) {
 						sourcesContent[sourceIndex] = content;
 					} else if (content != null && sourcesContent[sourceIndex] !== content) {
-						return error(errorConflictingSourcemapSources(filename));
+						return error(logConflictingSourcemapSources(filename));
 					}
 
 					const tracedSegment: SourceMapSegment = [segment[0], sourceIndex, line, column];
@@ -147,13 +148,13 @@ class Link {
 	}
 }
 
-function getLinkMap(warn: WarningHandler) {
+function getLinkMap(log: LogHandler) {
 	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing): Link {
 		if (map.mappings) {
 			return new Link(map, [source]);
 		}
 
-		warn(errorSourcemapBroken(map.plugin));
+		log(LOGLEVEL_WARN, logSourcemapBroken(map.plugin));
 
 		return new Link(
 			{
@@ -196,9 +197,9 @@ export function collapseSourcemaps(
 	modules: readonly Module[],
 	bundleSourcemapChain: readonly DecodedSourceMapOrMissing[],
 	excludeContent: boolean | undefined,
-	warn: WarningHandler
+	log: LogHandler
 ): SourceMap {
-	const linkMap = getLinkMap(warn);
+	const linkMap = getLinkMap(log);
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
 		.map(module =>
@@ -231,7 +232,7 @@ export function collapseSourcemap(
 	originalCode: string,
 	originalSourcemap: ExistingDecodedSourceMap | null,
 	sourcemapChain: readonly DecodedSourceMapOrMissing[],
-	warn: WarningHandler
+	log: LogHandler
 ): ExistingDecodedSourceMap | null {
 	if (sourcemapChain.length === 0) {
 		return originalSourcemap;
@@ -242,7 +243,7 @@ export function collapseSourcemap(
 		originalCode,
 		originalSourcemap,
 		sourcemapChain,
-		getLinkMap(warn)
+		getLinkMap(log)
 	) as Link;
 	const map = source.traceMappings();
 	return { version: 3, ...map };

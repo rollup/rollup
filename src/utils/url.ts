@@ -10,3 +10,10 @@ export function isValidUrl(url: string): boolean {
 export function getRollupUrl(snippet: string) {
 	return `https://rollupjs.org/${snippet}`;
 }
+
+export function addTrailingSlashIfMissed(url: string) {
+	if (!url.endsWith('/')) {
+		return url + '/';
+	}
+	return url;
+}

@@ -60,6 +60,7 @@ export default async function (
 		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
 		external: ['fsevents'],
 		input: {
+			'getLogFilter.js': 'src/utils/getLogFilter.ts',
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
 			'rollup.js': 'src/node-entry.ts'
 		},
@@ -94,7 +95,10 @@ export default async function (
 
 	const esmBuild: RollupOptions = {
 		...commonJSBuild,
-		input: { 'rollup.js': 'src/node-entry.ts' },
+		input: {
+			'getLogFilter.js': 'src/utils/getLogFilter.ts',
+			'rollup.js': 'src/node-entry.ts'
+		},
 		output: {
 			...commonJSBuild.output,
 			dir: 'dist/es',

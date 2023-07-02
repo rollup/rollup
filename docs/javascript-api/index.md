@@ -16,7 +16,7 @@ On a `bundle` object, you can call `bundle.generate` multiple times with differe
 
 Once you're finished with the `bundle` object, you should call `bundle.close()`, which will let plugins clean up their external processes or services via the [`closeBundle`](../plugin-development/index.md#closebundle) hook.
 
-If an error occurs at either stage, it will return a Promise rejected with an Error, which you can identify via their `code` property. Besides `code` and `message`, many errors have additional properties you can use for custom reporting, see [`utils/error.ts`](https://github.com/rollup/rollup/blob/master/src/utils/error.ts) for a complete list of errors and warnings together with their codes and properties.
+If an error occurs at either stage, it will return a Promise rejected with an Error, which you can identify via their `code` property. Besides `code` and `message`, many errors have additional properties you can use for custom reporting, see [`utils/logs.ts`](https://github.com/rollup/rollup/blob/master/src/utils/logs.ts) for a complete list of errors and logs together with their codes and properties.
 
 ```javascript
 import { rollup } from 'rollup';
@@ -117,6 +117,10 @@ const inputOptions = {
 
 	// advanced input options
 	cache,
+	logLevel,
+	makeAbsoluteExternalsRelative,
+	maxParallelFileOps,
+	onLog,
 	onwarn,
 	preserveEntrySignatures,
 	strictDeprecations,
@@ -132,6 +136,7 @@ const inputOptions = {
 
 	// experimental
 	experimentalCacheExpiry,
+	experimentalLogSideEffects,
 	perf
 };
 ```
@@ -145,7 +150,7 @@ const outputOptions = {
 	// core output options
 	dir,
 	file,
-	format, // required
+	format,
 	globals,
 	name,
 	plugins,
@@ -155,10 +160,12 @@ const outputOptions = {
 	banner,
 	chunkFileNames,
 	compact,
+	dynamicImportInCjs,
 	entryFileNames,
 	extend,
-	externalLiveBindings,
+	externalImportAssertions,
 	footer,
+	generatedCode,
 	hoistTransitiveImports,
 	inlineDynamicImports,
 	interop,
@@ -170,8 +177,10 @@ const outputOptions = {
 	preserveModules,
 	preserveModulesRoot,
 	sourcemap,
+	sourcemapBaseUrl,
 	sourcemapExcludeSources,
 	sourcemapFile,
+	sourcemapIgnoreList,
 	sourcemapPathTransform,
 	validate,
 
@@ -179,14 +188,16 @@ const outputOptions = {
 	amd,
 	esModule,
 	exports,
+	externalLiveBindings,
 	freeze,
 	indent,
-	namespaceToStringTag,
 	noConflict,
-	preferConst,
 	sanitizeFileName,
 	strict,
-	systemNullSetters
+	systemNullSetters,
+
+	// experimental
+	experimentalMinChunkSize
 };
 ```
 
@@ -269,7 +280,7 @@ const watchOptions = {
 
 See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](../configuration-options/index.md) for info on `chokidar`, `include` and `exclude`.
 
-### Programmatically loading a config file
+## Programmatically loading a config file
 
 In order to aid in generating such a config, rollup exposes the helper it uses to load config files in its command line interface via a separate entry-point. This helper receives a resolved `fileName` and optionally an object containing command line parameters:
 
@@ -303,4 +314,25 @@ loadConfigFile(path.resolve(__dirname, 'rollup.config.js'), {
 	// You can also pass this directly to "rollup.watch"
 	rollup.watch(options);
 });
+```
+
+## Applying advanced log filters
+
+While the command line interface provides a powerful way to filter logs via the [`--filterLogs`](../command-line-interface/index.md#filterlogs-filter) flag, this functionality is not directly available when using the JavaScript API. However, Rollup exposes a helper `getLogFilter` to generate filters using the same syntax as the CLI. This is useful when specifying a custom `onLog` handler and for third party systems that want to provide a similar filtering experience as Rollup CLI. This function accepts an array of strings. Note that it does not split up comma-separated lists of filters like the CLI does.
+
+```js
+// rollup.config.mjs
+import { getLogFilter } from 'rollup/getLogFilter';
+
+const logFilter = getLogFilter(['code:FOO', 'code:BAR']);
+
+export default {
+	input: 'main.js',
+	output: { format: 'es' },
+	onLog(level, log, handler) {
+		if (logFilter(log)) {
+			handler(level, log);
+		}
+	}
+};
 ```

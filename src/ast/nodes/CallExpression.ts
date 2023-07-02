@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { errorCannotCallNamespace, errorEval } from '../../utils/error';
+import { LOGLEVEL_WARN } from '../../utils/logging';
+import { logCannotCallNamespace, logEval } from '../../utils/logs';
 import { renderCallArguments } from '../../utils/renderCallArguments';
 import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -33,11 +33,11 @@ export default class CallExpression
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.context.warn(errorCannotCallNamespace(this.callee.name), this.start);
+				this.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
 			}
 
 			if (this.callee.name === 'eval') {
-				this.context.warn(errorEval(this.context.module.id), this.start);
+				this.context.log(LOGLEVEL_WARN, logEval(this.context.module.id), this.start);
 			}
 		}
 		this.interaction = {
@@ -57,11 +57,9 @@ export default class CallExpression
 			for (const argument of this.arguments) {
 				if (argument.hasEffects(context)) return true;
 			}
-			if (
-				(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-				this.annotations
-			)
+			if (this.annotationPure) {
 				return false;
+			}
 			return (
 				this.callee.hasEffects(context) ||
 				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
