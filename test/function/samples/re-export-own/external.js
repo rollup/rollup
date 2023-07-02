@@ -1,1 +1,1 @@
-export const hasOwnProperty = false;
+exports.hasOwnProperty = false;
