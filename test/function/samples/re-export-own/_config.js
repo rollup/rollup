@@ -3,6 +3,9 @@ module.exports = {
 	options: {
 		input: './main.js',
 		output: {
+			paths: {
+				external: './external.js'
+			},
 			format: 'cjs'
 		}
 	}
