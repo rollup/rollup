@@ -6,6 +6,7 @@ import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
+import { convertProgram } from './convert_ast/converter';
 import type {
 	ModuleInfo,
 	ModuleJSON,
@@ -31,8 +32,6 @@ import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
-
-console.log(native.parse('1;'));
 
 function normalizeEntryModules(
 	entryModules: readonly string[] | Record<string, string>
@@ -138,10 +137,13 @@ export default class Graph {
 				  }
 				: comments;
 
-		const ast = this.acornParser.parse(code, {
+		const acornAst = this.acornParser.parse(code, {
 			...(this.options.acorn as unknown as acorn.Options),
 			...options
 		});
+		console.log('acorn', JSON.stringify(code), JSON.stringify(acornAst, null, 2));
+		const ast = convertProgram(native.parse(code).buffer);
+		console.log('swc', JSON.stringify(code), JSON.stringify(ast, null, 2));
 
 		if (typeof onCommentOrig == 'object') {
 			onCommentOrig.push(...comments);
