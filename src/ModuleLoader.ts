@@ -23,7 +23,8 @@ import {
 	error,
 	logBadLoader,
 	logEntryCannotBeExternal,
-	logExternalizedModulesCannotBeIncludedInManualChunks,
+	logExternalModulesCannotBeIncludedInManualChunks,
+	logExternalModulesCannotBeTransformedToModules,
 	logExternalSyntheticExports,
 	logImplicitDependantCannotBeExternal,
 	logInconsistentImportAssertions,
@@ -384,6 +385,10 @@ export class ModuleLoader {
 			return existingModule;
 		}
 
+		if (existingModule instanceof ExternalModule) {
+			return error(logExternalModulesCannotBeTransformedToModules(existingModule.id));
+		}
+
 		const module = new Module(
 			this.graph,
 			id,
@@ -667,12 +672,12 @@ export class ModuleLoader {
 					: logUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
-		const isExternalizedModules = typeof resolveIdResult === 'object' && resolveIdResult.external;
-		if (resolveIdResult === false || isExternalizedModules) {
+		const isExternalModules = typeof resolveIdResult === 'object' && resolveIdResult.external;
+		if (resolveIdResult === false || isExternalModules) {
 			return error(
 				implicitlyLoadedBefore === null
-					? isExternalizedModules && isLoadForManualChunks
-						? logExternalizedModulesCannotBeIncludedInManualChunks(unresolvedId)
+					? isExternalModules && isLoadForManualChunks
+						? logExternalModulesCannotBeIncludedInManualChunks(unresolvedId)
 						: logEntryCannotBeExternal(unresolvedId)
 					: logImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
