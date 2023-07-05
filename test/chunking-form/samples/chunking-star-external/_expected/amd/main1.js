@@ -9,7 +9,7 @@ define(['exports', 'starexternal1', 'external1', './generated-dep', 'starexterna
 	exports.dep = dep.dep;
 	exports.main = main;
 	Object.keys(starexternal1).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () { return starexternal1[k]; }
 		});

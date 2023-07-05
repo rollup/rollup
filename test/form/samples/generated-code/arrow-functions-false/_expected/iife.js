@@ -68,7 +68,7 @@ var bundle = (function (exports, externalNoImport, defaultCompat, externalAuto, 
 		get: function () { return defaultCompat.foo; }
 	});
 	Object.keys(defaultCompat).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () { return defaultCompat[k]; }
 		});

@@ -7,7 +7,7 @@ var exposedInternals = (function (exports, external) {
 
 	exports.internalFn = internalFn;
 	Object.keys(external).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () { return external[k]; }
 		});

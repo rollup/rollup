@@ -76,7 +76,7 @@
 		get: () => defaultCompat.foo
 	});
 	Object.keys(defaultCompat).forEach(k => {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: () => defaultCompat[k]
 		});

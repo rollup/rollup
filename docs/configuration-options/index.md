@@ -729,7 +729,7 @@ export * from 'external';
 var external = require('external');
 
 Object.keys(external).forEach(function (k) {
-	if (k !== 'default' && !exports.hasOwnProperty(k))
+	if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k))
 		Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
@@ -742,7 +742,7 @@ Object.keys(external).forEach(function (k) {
 const external = require('external');
 
 for (const k in external) {
-	if (k !== 'default' && !exports.hasOwnProperty(k))
+	if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k))
 		Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: () => external[k]
