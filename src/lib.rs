@@ -12,13 +12,9 @@ use convert_ast::converter::AstConverter;
 
 mod convert_ast;
 
-static COMPILER: Lazy<Arc<Compiler>> = Lazy::new(|| {
+fn get_compiler() -> Arc<Compiler> {
     let cm = Arc::new(SourceMap::new(FilePathMapping::empty()));
     Arc::new(Compiler::new(cm))
-});
-
-fn get_compiler() -> Arc<Compiler> {
-    COMPILER.clone()
 }
 
 struct TestEmitter {}
