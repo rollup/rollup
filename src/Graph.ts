@@ -142,7 +142,10 @@ export default class Graph {
 			...options
 		});
 		console.log('acorn', JSON.stringify(code), JSON.stringify(acornAst, null, 2));
-		const ast = convertProgram(native.parse(code).buffer);
+		const astBuffer = native.parse(code);
+		const ast = convertProgram(astBuffer.buffer, (start, length) =>
+			astBuffer.toString('utf8', start, start + length)
+		);
 		console.log('swc', JSON.stringify(code), JSON.stringify(ast, null, 2));
 
 		if (typeof onCommentOrig == 'object') {
