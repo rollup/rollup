@@ -27,7 +27,7 @@ var bundle = (function (exports, a, b, c, d$1) {
 		get: function () { return c.c; }
 	});
 	Object.keys(d$1).forEach(function (k) {
-		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () { return d$1[k]; }
 		});
