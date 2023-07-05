@@ -933,7 +933,7 @@ export function logEntryCannotBeExternal(unresolvedId: string): RollupLog {
 export function logExternalModulesCannotBeIncludedInManualChunks(source: string): RollupLog {
 	return {
 		code: EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS,
-		message: `"${source}" cannot be included in manualChunks, because it is resolved as an external module by the "external" option or plugins.`
+		message: `"${source}" cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
 	};
 }
 
