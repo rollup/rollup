@@ -940,7 +940,7 @@ export function logExternalModulesCannotBeIncludedInManualChunks(source: string)
 export function logExternalModulesCannotBeTransformedToModules(source: string): RollupLog {
 	return {
 		code: EXTERNAL_MODULES_CANNOT_BE_TRANSFORMED_TO_MODULES,
-		message: `${source} is resolved as an module now, but it was an external module before. Please check whether there are conflicts in your Rollup options "external" and "manualChunks", manualChunks cannot include external modules.`
+		message: `${source} is resolved as a module now, but it was an external module before. Please check whether there are conflicts in your Rollup options "external" and "manualChunks", manualChunks cannot include external modules.`
 	};
 }
 
