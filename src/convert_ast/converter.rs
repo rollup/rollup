@@ -31,15 +31,15 @@ impl AstConverter {
         }
     }
 
-    pub fn convert_ast_to_buffer(mut self, node: &Program) -> Buffer {
-        self.convert_program(node);
+    pub fn convert_ast_to_buffer(mut self, node: &Program, length: u32) -> Buffer {
+        self.convert_program(node, length);
         self.buffer.into()
     }
 
     // === enums
-    fn convert_program(&mut self, node: &Program) {
+    fn convert_program(&mut self, node: &Program, length: u32) {
         match node {
-            Program::Module(module) => self.convert_module_program(module),
+            Program::Module(module) => self.convert_module_program(module, length),
             _ => {
                 dbg!(node);
                 unimplemented!("Cannot convert AST");
@@ -144,8 +144,11 @@ impl AstConverter {
     }
 
     // === nodes
-    fn convert_module_program(&mut self, module: &Module) {
+    fn convert_module_program(&mut self, module: &Module, length: u32) {
         self.add_type_and_positions(&TYPE_MODULE, &module.span);
+        // acorn uses the file length instead of the end of the last statement
+        let reference_position = self.buffer.len() - 4;
+        self.buffer[reference_position..reference_position + 4].copy_from_slice(&length.to_ne_bytes());
         // body
         self.convert_item_list(&module.body, |ast_converter, module_item| ast_converter.convert_module_item(module_item));
     }
@@ -184,13 +187,32 @@ impl AstConverter {
 
     fn convert_literal_number(&mut self, literal: &Number) {
         self.add_type_and_positions(&TYPE_NUMBER, &literal.span);
+        // reserve for raw
+        let reference_position = self.buffer.len();
+        self.buffer.resize(reference_position + 4, 0);
         // value, needs to be little endian as we are reading via a DataView
         self.buffer.extend_from_slice(&literal.value.to_le_bytes());
+        // raw
+        literal.raw.as_ref().map(|raw| {
+            let insert_position = (self.buffer.len() as u32) >> 2;
+            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            self.convert_string(&*raw);
+        });
     }
 
     fn convert_literal_string(&mut self, literal: &Str) {
         self.add_type_and_positions(&TYPE_STRING, &literal.span);
+        // reserve for raw
+        let reference_position = self.buffer.len();
+        self.buffer.resize(reference_position + 4, 0);
+        // value
         self.convert_string(&literal.value);
+        // raw
+        literal.raw.as_ref().map(|raw| {
+            let insert_position = (self.buffer.len() as u32) >> 2;
+            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            self.convert_string(&*raw);
+        });
     }
 
     fn convert_variable_declaration(&mut self, variable_declaration: &VarDecl) {
@@ -252,7 +274,7 @@ impl AstConverter {
         // end
         self.buffer.extend_from_slice(&(span.hi.0 - 1).to_ne_bytes());
     }
-    
+
     fn convert_item_list<T, F>(&mut self, item_list: &Vec<T>, convert_item: F)
         where F: Fn(&mut AstConverter, &T)
     {
@@ -268,7 +290,7 @@ impl AstConverter {
             convert_item(self, item);
         }
     }
-    
+
     // TODO Lukas deduplicate strings and see if we can easily compare atoms
     fn convert_string(&mut self, string: &str) {
         let length = string.len();

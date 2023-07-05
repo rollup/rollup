@@ -1,1 +1,1 @@
-42;
+export const x = "Hello world";

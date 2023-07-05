@@ -46,12 +46,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// Number -> Literal
-	(position, buffer): estree.Literal & AcornNode => {
+	(position, buffer, readString): estree.Literal & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const rawPosition = buffer[position++];
+		const raw = rawPosition ? convertString(rawPosition, buffer, readString) : undefined;
 		const value = new DataView(buffer.buffer).getFloat64(position << 2, true);
 		return {
 			end,
+			raw,
 			start,
 			type: 'Literal',
 			value
@@ -136,9 +139,12 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.Literal & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const rawPosition = buffer[position++];
+		const raw = rawPosition ? convertString(rawPosition, buffer, readString) : undefined;
 		const value = convertString(position, buffer, readString);
 		return {
 			end,
+			raw,
 			start,
 			type: 'Literal',
 			value

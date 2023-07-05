@@ -48,7 +48,11 @@ export function augmentCodeLocation(
 		properties.loc = { column, file: id, line };
 	} else {
 		properties.pos = pos;
-		const { line, column } = locate(source, pos, { offsetLine: 1 })!;
+		const location = locate(source, pos, { offsetLine: 1 });
+		if (!location) {
+			return;
+		}
+		const { line, column } = location;
 		properties.loc = { column, file: id, line };
 	}
 

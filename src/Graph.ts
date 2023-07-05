@@ -1,3 +1,4 @@
+import assert from 'node:assert';
 import * as acorn from 'acorn';
 import flru from 'flru';
 import native from '../native/lib';
@@ -147,6 +148,7 @@ export default class Graph {
 			astBuffer.toString('utf8', start, start + length)
 		);
 		console.log('swc', JSON.stringify(code), JSON.stringify(ast, null, 2));
+		assert.deepStrictEqual(ast, JSON.parse(JSON.stringify(acornAst)));
 
 		if (typeof onCommentOrig == 'object') {
 			onCommentOrig.push(...comments);

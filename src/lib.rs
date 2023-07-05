@@ -38,10 +38,11 @@ pub fn parse(code: String) -> Buffer {
     let handler = Handler::with_emitter(true, false, Box::new(emitter));
     GLOBALS.set(&Globals::default(), || {
         compiler.run(|| {
-            let fm = compiler.cm.new_source_file(filename, code);
+            let code_length = code.len() as u32;
+            let file = compiler.cm.new_source_file(filename, code);
             let comments = None;
             let program = compiler.parse_js(
-                fm,
+                file,
                 &handler,
                 compiler_options.target,
                 compiler_options.syntax,
@@ -52,7 +53,7 @@ pub fn parse(code: String) -> Buffer {
                 Err(anyhow!("failed to parse"))
             } else {
                 let converter = AstConverter::new();
-                let buffer = converter.convert_ast_to_buffer(&program);
+                let buffer = converter.convert_ast_to_buffer(&program, code_length);
                 Ok(buffer)
             }
         }).expect("failed to parse")
