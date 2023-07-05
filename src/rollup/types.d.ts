@@ -727,7 +727,7 @@ export interface OutputOptions {
 	inlineDynamicImports?: boolean;
 	interop?: InteropType | GetInterop;
 	intro?: string | AddonFunction;
-	manualChunks?: ManualChunksOption;
+	manualChunks?: ManualChunksOption | false;
 	minifyInternalExports?: boolean;
 	name?: string;
 	/** @deprecated Use "generatedCode.symbols" instead. */
