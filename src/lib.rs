@@ -48,8 +48,8 @@ pub fn parse(code: String) -> Buffer {
             if handler.has_errors() {
                 Err(anyhow!("failed to parse"))
             } else {
-                let converter = AstConverter::new();
-                let buffer = converter.convert_ast_to_buffer(&program, code_length);
+                let converter = AstConverter::new(code_length);
+                let buffer = converter.convert_ast_to_buffer(&program);
                 Ok(buffer)
             }
         }).expect("failed to parse")

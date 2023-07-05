@@ -19,27 +19,28 @@ const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
 const DECLARATION_KIND_LET: [u8; 4] = 1u32.to_ne_bytes();
 const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();
 
-// TODO Lukas instead of this struct, we could directly work on a buffer parameter
 pub struct AstConverter {
     buffer: Vec<u8>,
+    code_length: u32,
 }
 
 impl AstConverter {
-    pub fn new() -> Self {
+    pub fn new(code_length: u32) -> Self {
         Self {
             buffer: Vec::new(),
+            code_length,
         }
     }
 
-    pub fn convert_ast_to_buffer(mut self, node: &Program, length: u32) -> Buffer {
-        self.convert_program(node, length);
+    pub fn convert_ast_to_buffer(mut self, node: &Program) -> Buffer {
+        self.convert_program(node);
         self.buffer.into()
     }
 
     // === enums
-    fn convert_program(&mut self, node: &Program, length: u32) {
+    fn convert_program(&mut self, node: &Program) {
         match node {
-            Program::Module(module) => self.convert_module_program(module, length),
+            Program::Module(module) => self.convert_module_program(module),
             _ => {
                 dbg!(node);
                 unimplemented!("Cannot convert AST");
@@ -144,11 +145,11 @@ impl AstConverter {
     }
 
     // === nodes
-    fn convert_module_program(&mut self, module: &Module, length: u32) {
+    fn convert_module_program(&mut self, module: &Module) {
         self.add_type_and_positions(&TYPE_MODULE, &module.span);
         // acorn uses the file length instead of the end of the last statement
         let reference_position = self.buffer.len() - 4;
-        self.buffer[reference_position..reference_position + 4].copy_from_slice(&length.to_ne_bytes());
+        self.buffer[reference_position..reference_position + 4].copy_from_slice(&self.code_length.to_ne_bytes());
         // body
         self.convert_item_list(&module.body, |ast_converter, module_item| ast_converter.convert_module_item(module_item));
     }
