@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.26.1
+
+_2023-07-05_
+
+### Bug Fixes
+
+- Support `hasOwnProperty` as exported name in CommonJS (#5010)
+- Properly reference browser types in package file (#5051)
+
+### Pull Requests
+
+- [#5010](https://github.com/rollup/rollup/pull/5010): safe hasOwnProperty call (@LongTengDao)
+- [#5051](https://github.com/rollup/rollup/pull/5051): @rollup/browser: fix types export map entry (@developit)
+
 ## 3.26.0
 
 _2023-06-30_
