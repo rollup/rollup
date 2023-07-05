@@ -26,6 +26,6 @@ module.exports = defineTest({
 	},
 	generateError: {
 		code: 'EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS',
-		message: `"${externalModule}" cannot be included in manualChunks, because it is resolved as an external module by the "external" option or plugins.`
+		message: `"${externalModule}" cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
 	}
 });

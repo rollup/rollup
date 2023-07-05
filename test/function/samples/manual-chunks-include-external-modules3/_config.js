@@ -19,6 +19,6 @@ module.exports = defineTest({
 	},
 	generateError: {
 		code: 'EXTERNAL_MODULES_CANNOT_BE_TRANSFORMED_TO_MODULES',
-		message: `${externalModule} is resolved as an module now, but it was an external module before. Please check whether there are conflicts in your Rollup options "external" and "manualChunks", manualChunks cannot include external modules.`
+		message: `${externalModule} is resolved as a module now, but it was an external module before. Please check whether there are conflicts in your Rollup options "external" and "manualChunks", manualChunks cannot include external modules.`
 	}
 });

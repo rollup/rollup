@@ -22,6 +22,6 @@ module.exports = defineTest({
 		message: `"${path.join(
 			__dirname,
 			'external.js'
-		)}" cannot be included in manualChunks, because it is resolved as an external module by the "external" option or plugins.`
+		)}" cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
 	}
 });
