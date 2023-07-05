@@ -99,7 +99,7 @@ export class ModuleLoader {
 
 	async addAdditionalModules(
 		unresolvedModules: readonly string[],
-		isAddForManualChunks = false
+		isAddForManualChunks: boolean
 	): Promise<Module[]> {
 		const result = this.extendLoadModulesPromise(
 			Promise.all(
