@@ -6,7 +6,7 @@ use anyhow::anyhow;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use swc::{Compiler, config::ParseOptions};
-use swc_common::{errors::{DiagnosticBuilder, Emitter, Handler}, FileName, FilePathMapping, GLOBALS, Globals, SourceMap, sync::Lazy};
+use swc_common::{errors::{DiagnosticBuilder, Emitter, Handler}, FileName, FilePathMapping, GLOBALS, Globals, SourceMap};
 
 use convert_ast::converter::AstConverter;
 

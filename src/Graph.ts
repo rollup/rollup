@@ -138,14 +138,20 @@ export default class Graph {
 				  }
 				: comments;
 
+		console.time('acorn');
 		const acornAst = this.acornParser.parse(code, {
 			...(this.options.acorn as unknown as acorn.Options),
 			...options
 		});
+		console.timeEnd('acorn');
+		console.time('swc');
 		const astBuffer = native.parse(code);
+		console.timeEnd('swc');
+		console.time('convert');
 		const ast = convertProgram(astBuffer.buffer, (start, length) =>
 			astBuffer.toString('utf8', start, start + length)
 		);
+		console.timeEnd('convert');
 		console.log(JSON.stringify(code));
 		console.log(JSON.stringify(ast, null, 2));
 		assert.deepStrictEqual(ast, JSON.parse(JSON.stringify(acornAst)));
