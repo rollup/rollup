@@ -23,6 +23,8 @@ import {
 	error,
 	logBadLoader,
 	logEntryCannotBeExternal,
+	logExternalModulesCannotBeIncludedInManualChunks,
+	logExternalModulesCannotBeTransformedToModules,
 	logExternalSyntheticExports,
 	logImplicitDependantCannotBeExternal,
 	logInconsistentImportAssertions,
@@ -95,9 +97,16 @@ export class ModuleLoader {
 			: () => true;
 	}
 
-	async addAdditionalModules(unresolvedModules: readonly string[]): Promise<Module[]> {
+	async addAdditionalModules(
+		unresolvedModules: readonly string[],
+		isAddForManualChunks: boolean
+	): Promise<Module[]> {
 		const result = this.extendLoadModulesPromise(
-			Promise.all(unresolvedModules.map(id => this.loadEntryModule(id, false, undefined, null)))
+			Promise.all(
+				unresolvedModules.map(id =>
+					this.loadEntryModule(id, false, undefined, null, isAddForManualChunks)
+				)
+			)
 		);
 		await this.awaitLoadModulesPromise();
 		return result;
@@ -376,6 +385,10 @@ export class ModuleLoader {
 			return existingModule;
 		}
 
+		if (existingModule instanceof ExternalModule) {
+			return error(logExternalModulesCannotBeTransformedToModules(existingModule.id));
+		}
+
 		const module = new Module(
 			this.graph,
 			id,
@@ -638,7 +651,8 @@ export class ModuleLoader {
 		unresolvedId: string,
 		isEntry: boolean,
 		importer: string | undefined,
-		implicitlyLoadedBefore: string | null
+		implicitlyLoadedBefore: string | null,
+		isLoadForManualChunks = false
 	): Promise<Module> {
 		const resolveIdResult = await resolveId(
 			unresolvedId,
@@ -658,13 +672,13 @@ export class ModuleLoader {
 					: logUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
-		if (
-			resolveIdResult === false ||
-			(typeof resolveIdResult === 'object' && resolveIdResult.external)
-		) {
+		const isExternalModules = typeof resolveIdResult === 'object' && resolveIdResult.external;
+		if (resolveIdResult === false || isExternalModules) {
 			return error(
 				implicitlyLoadedBefore === null
-					? logEntryCannotBeExternal(unresolvedId)
+					? isExternalModules && isLoadForManualChunks
+						? logExternalModulesCannotBeIncludedInManualChunks(unresolvedId)
+						: logEntryCannotBeExternal(unresolvedId)
 					: logImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
 		}

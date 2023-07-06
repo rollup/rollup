@@ -81,6 +81,10 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	DUPLICATE_PLUGIN_NAME = 'DUPLICATE_PLUGIN_NAME',
 	EMPTY_BUNDLE = 'EMPTY_BUNDLE',
 	EVAL = 'EVAL',
+	EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS =
+		'EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS',
+	EXTERNAL_MODULES_CANNOT_BE_TRANSFORMED_TO_MODULES =
+		'EXTERNAL_MODULES_CANNOT_BE_TRANSFORMED_TO_MODULES',
 	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
 	FAIL_AFTER_WARNINGS = 'FAIL_AFTER_WARNINGS',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
@@ -923,6 +927,20 @@ export function logEntryCannotBeExternal(unresolvedId: string): RollupLog {
 	return {
 		code: UNRESOLVED_ENTRY,
 		message: `Entry module "${relativeId(unresolvedId)}" cannot be external.`
+	};
+}
+
+export function logExternalModulesCannotBeIncludedInManualChunks(source: string): RollupLog {
+	return {
+		code: EXTERNAL_MODULES_CANNOT_BE_INCLUDED_IN_MANUAL_CHUNKS,
+		message: `"${source}" cannot be included in manualChunks because it is resolved as an external module by the "external" option or plugins.`
+	};
+}
+
+export function logExternalModulesCannotBeTransformedToModules(source: string): RollupLog {
+	return {
+		code: EXTERNAL_MODULES_CANNOT_BE_TRANSFORMED_TO_MODULES,
+		message: `${source} is resolved as a module now, but it was an external module before. Please check whether there are conflicts in your Rollup options "external" and "manualChunks", manualChunks cannot include external modules.`
 	};
 }
 
