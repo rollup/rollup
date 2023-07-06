@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{BindingIdent, Decl, ExportDecl, ExportNamedSpecifier, ExportSpecifier, Expr, ExprStmt, Ident, Lit, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Pat, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Callee, CallExpr, Decl, ExportDecl, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind};
 
 // These need to reflect the order in the JavaScript decoder
 const TYPE_MODULE: [u8; 4] = 0u32.to_ne_bytes();
@@ -13,6 +13,14 @@ const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 6u32.to_ne_bytes();
 const TYPE_IDENTIFIER: [u8; 4] = 7u32.to_ne_bytes();
 const TYPE_STRING: [u8; 4] = 8u32.to_ne_bytes();
 const TYPE_EXPORT_NAMED_SPECIFIER: [u8; 4] = 9u32.to_ne_bytes();
+const TYPE_IMPORT_DECLARATION: [u8; 4] = 10u32.to_ne_bytes();
+const TYPE_IMPORT_NAMED_SPECIFIER: [u8; 4] = 11u32.to_ne_bytes();
+const TYPE_CALL_EXPRESSION: [u8; 4] = 12u32.to_ne_bytes();
+const TYPE_ARROW_EXPRESSION: [u8; 4] = 13u32.to_ne_bytes();
+const TYPE_BLOCK_STATEMENT: [u8; 4] = 14u32.to_ne_bytes();
+const TYPE_SPREAD: [u8; 4] = 15u32.to_ne_bytes();
+const TYPE_MEMBER_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
+const TYPE_PRIVATE_NAME: [u8; 4] = 17u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
@@ -71,6 +79,10 @@ impl AstConverter {
     fn convert_expression(&mut self, expression: &Expr) {
         match expression {
             Expr::Lit(literal) => self.convert_literal(literal),
+            Expr::Call(call_expression) => self.convert_call_expression(call_expression),
+            Expr::Ident(identifier) => self.convert_identifier(identifier),
+            Expr::Arrow(arrow_expression) => self.convert_arrow_expression(arrow_expression),
+            Expr::Member(member_expression) => self.convert_member_expression(member_expression),
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -93,6 +105,7 @@ impl AstConverter {
         match module_declaration {
             ModuleDecl::ExportDecl(export_declaration) => self.convert_export_declaration(export_declaration),
             ModuleDecl::ExportNamed(export_named) => self.convert_export_named_declaration(export_named),
+            ModuleDecl::Import(import_declaration) => self.convert_import_declaration(import_declaration),
             _ => {
                 dbg!(module_declaration);
                 todo!("Cannot convert ModuleDeclaration");
@@ -140,6 +153,26 @@ impl AstConverter {
             _ => {
                 dbg!(module_export_name);
                 todo!("Cannot convert ModuleExportName");
+            }
+        }
+    }
+
+    fn convert_import_specifier(&mut self, import_specifier: &ImportSpecifier) {
+        match import_specifier {
+            ImportSpecifier::Named(import_named_specifier) => self.convert_import_named_specifier(import_named_specifier),
+            _ => {
+                dbg!(import_specifier);
+                todo!("Cannot convert ImportSpecifier");
+            }
+        }
+    }
+
+    fn convert_callee(&mut self, callee: &Callee) {
+        match callee {
+            Callee::Expr(expr) => self.convert_expression(expr),
+            _ => {
+                dbg!(callee);
+                todo!("Cannot convert Callee");
             }
         }
     }
@@ -247,6 +280,124 @@ impl AstConverter {
         });
     }
 
+    fn convert_import_declaration(&mut self, import_declaration: &ImportDecl) {
+        self.add_type_and_positions(&TYPE_IMPORT_DECLARATION, &import_declaration.span);
+        // reserve for src
+        let reference_position = self.reserve_reference_positions(1);
+        // specifiers
+        self.convert_item_list(&import_declaration.specifiers, |ast_converter, import_specifier| ast_converter.convert_import_specifier(import_specifier));
+        // src
+        self.update_reference_position(reference_position);
+        self.convert_literal_string(&*import_declaration.src);
+    }
+
+    fn convert_call_expression(&mut self, call_expression: &CallExpr) {
+        self.add_type_and_positions(&TYPE_CALL_EXPRESSION, &call_expression.span);
+        // reserve for callee
+        let reference_position = self.reserve_reference_positions(1);
+        // arguments
+        self.convert_item_list(&call_expression.args, |ast_converter, argument| ast_converter.convert_expression_or_spread(argument));
+        // callee
+        self.update_reference_position(reference_position);
+        self.convert_callee(&call_expression.callee);
+    }
+
+    fn convert_import_named_specifier(&mut self, import_named_specifier: &ImportNamedSpecifier) {
+        self.add_type_and_positions(&TYPE_IMPORT_NAMED_SPECIFIER, &import_named_specifier.span);
+        // reserve for imported
+        let reference_position = self.reserve_reference_positions(1);
+        // local
+        self.convert_identifier(&import_named_specifier.local);
+        // imported
+        import_named_specifier.imported.as_ref().map(|imported| {
+            self.update_reference_position(reference_position);
+            self.convert_module_export_name(&imported);
+        });
+    }
+
+    fn convert_arrow_expression(&mut self, arrow_expression: &ArrowExpr) {
+        self.add_type_and_positions(&TYPE_ARROW_EXPRESSION, &arrow_expression.span);
+        // async
+        self.convert_boolean(arrow_expression.is_async);
+        // generator
+        self.convert_boolean(arrow_expression.is_generator);
+        // reserve for params
+        let reference_position = self.reserve_reference_positions(1);
+        match &*arrow_expression.body {
+            BlockStmtOrExpr::BlockStmt(block_statement) => {
+                // expression
+                self.convert_boolean(false);
+                // body
+                self.convert_block_statement(block_statement)
+            },
+            BlockStmtOrExpr::Expr(expression) => {
+                // expression
+                self.convert_boolean(true);
+                // body
+                self.convert_expression(expression)
+            },
+        }
+        // params
+        self.update_reference_position(reference_position);
+        self.convert_item_list(&arrow_expression.params, |ast_converter, param| ast_converter.convert_pattern(param));
+    }
+
+    fn convert_block_statement(&mut self, block_statement: &BlockStmt) {
+        self.add_type_and_positions(&TYPE_BLOCK_STATEMENT, &block_statement.span);
+        // body
+        self.convert_item_list(&block_statement.stmts, |ast_converter, statement| ast_converter.convert_statement(statement));
+    }
+
+
+    fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
+        match expression_or_spread.spread {
+            Some(spread_span) => {
+                self.add_type_and_positions(&TYPE_SPREAD, &spread_span);
+                // we need to set the end position to that of the expression
+                let reference_position = self.buffer.len();
+                self.convert_expression(&expression_or_spread.expr);
+                let expression_end: [u8; 4] = self.buffer[reference_position + 4..reference_position + 8].try_into().unwrap();
+                self.buffer[reference_position - 4..reference_position].copy_from_slice(&expression_end);
+            }
+            None => self.convert_expression(&expression_or_spread.expr),
+        }
+    }
+
+    fn convert_member_expression(&mut self, member_expression: &MemberExpr) {
+        self.add_type_and_positions(&TYPE_MEMBER_EXPRESSION, &member_expression.span);
+        // reserve object
+        let reference_position = self.reserve_reference_positions(1);
+        match &member_expression.prop {
+            MemberProp::Ident(ident) => {
+                // computed
+                self.convert_boolean(false);
+                // property
+                self.convert_identifier(&ident)
+            }
+            MemberProp::Computed(computed) => {
+                // computed
+                self.convert_boolean(true);
+                // property
+                self.convert_expression(&computed.expr)
+            }
+            MemberProp::PrivateName(private_name) => {
+                // computed
+                self.convert_boolean(false);
+                // property
+                self.convert_private_name(&private_name)
+            }
+        }
+        // object
+        self.update_reference_position(reference_position);
+        self.convert_expression(&member_expression.obj);
+    }
+
+    fn convert_private_name(&mut self, private_name: &&PrivateName) {
+        self.add_type_and_positions(&TYPE_PRIVATE_NAME, &private_name.span);
+        // id
+        self.convert_identifier(&private_name.id);
+    }
+
     // === helpers
     fn add_type_and_positions(&mut self, node_type: &[u8; 4], span: &Span) {
         // type
@@ -282,6 +433,9 @@ impl AstConverter {
         self.buffer.resize(self.buffer.len() + additional_length, 0);
     }
 
+    fn convert_boolean(&mut self, boolean: bool) {
+        self.buffer.extend_from_slice(&(if boolean { 1u32 } else { 0u32 }).to_ne_bytes());
+    }
 
     fn reserve_reference_positions(&mut self, item_count: usize) -> usize {
         let reference_position = self.buffer.len();
@@ -289,7 +443,7 @@ impl AstConverter {
         reference_position
     }
 
-    fn update_reference_position(&mut self, reference_position: usize) ->usize {
+    fn update_reference_position(&mut self, reference_position: usize) -> usize {
         let insert_position = (self.buffer.len() as u32) >> 2;
         self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
         reference_position + 4

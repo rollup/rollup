@@ -1,6 +1,7 @@
 const path = require('node:path');
 
 module.exports = defineTest({
+	solo: true,
 	description: 'normalizes absolute ids',
 	options: {
 		plugins: [

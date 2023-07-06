@@ -10,6 +10,7 @@ const convertNode = (position: number, buffer: Uint32Array, readString: ReadStri
 	const nodeType = buffer[position];
 	const converter = nodeConverters[nodeType];
 	if (!converter) {
+		console.trace();
 		throw new Error(`Unknown node type: ${nodeType}`);
 	}
 	return converter(position + 1, buffer, readString);
@@ -163,6 +164,138 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			local,
 			start,
 			type: 'ExportSpecifier'
+		};
+	},
+	// ImportDeclaration
+	(position, buffer, readString): estree.ImportDeclaration & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const source = convertNode(buffer[position++], buffer, readString);
+		const specifiersLength = buffer[position++];
+		const specifiers: estree.ImportSpecifier[] = [];
+		for (let specifierIndex = 0; specifierIndex < specifiersLength; specifierIndex++) {
+			specifiers.push(convertNode(buffer[position++], buffer, readString));
+		}
+		return {
+			end,
+			source,
+			specifiers,
+			start,
+			type: 'ImportDeclaration'
+		};
+	},
+	// ImportNamedSpecifier -> ImportSpecifier
+	(position, buffer, readString): estree.ImportSpecifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const importedPosition = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		const imported = importedPosition ? convertNode(importedPosition, buffer, readString) : local;
+		return {
+			end,
+			imported,
+			local,
+			start,
+			type: 'ImportSpecifier'
+		};
+	},
+	// CallExpression
+	(position, buffer, readString): estree.CallExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const callee = convertNode(buffer[position++], buffer, readString);
+		const argumentsLength = buffer[position++];
+		const argumentsList: estree.Expression[] = [];
+		for (let argumentIndex = 0; argumentIndex < argumentsLength; argumentIndex++) {
+			argumentsList.push(convertNode(buffer[position++], buffer, readString));
+		}
+		return {
+			arguments: argumentsList,
+			callee,
+			end,
+			optional: false,
+			start,
+			type: 'CallExpression'
+		};
+	},
+	// ArrowExpression -> ArrowFunctionExpression
+	(position, buffer, readString): estree.ArrowFunctionExpression & AcornNode & { id: null } => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const async = !!buffer[position++];
+		const generator = !!buffer[position++];
+		let parametersPosition = buffer[position++];
+		const parameters: estree.Pattern[] = [];
+		const parametersLength = buffer[parametersPosition++];
+		for (let parameterIndex = 0; parameterIndex < parametersLength; parameterIndex++) {
+			parameters.push(convertNode(parametersPosition++, buffer, readString));
+		}
+		const expression = !!buffer[position++];
+		const body = convertNode(position, buffer, readString);
+		return {
+			async,
+			body,
+			end,
+			expression,
+			generator,
+			// acorn adds this for weird reasons
+			id: null,
+			params: parameters,
+			start,
+			type: 'ArrowFunctionExpression'
+		};
+	},
+	// BlockStatement
+	(position, buffer, readString): estree.BlockStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			body,
+			end,
+			start,
+			type: 'BlockStatement'
+		};
+	},
+	// SpreadElement
+	(position, buffer, readString): estree.SpreadElement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(buffer[position++], buffer, readString);
+		return {
+			argument,
+			end,
+			start,
+			type: 'SpreadElement'
+		};
+	},
+	// MemberExpression
+	(position, buffer, readString): estree.MemberExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const object = convertNode(buffer[position++], buffer, readString);
+		const computed = !!buffer[position++];
+		const property = convertNode(position, buffer, readString);
+		return {
+			computed,
+			end,
+			object,
+			optional: false,
+			property,
+			start,
+			type: 'MemberExpression'
+		};
+	},
+	// PrivateName -> PrivateIdentifier
+	(position, buffer, readString): estree.PrivateIdentifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const name = convertNode(position, buffer, readString);
+		return {
+			end,
+			name,
+			start,
+			type: 'PrivateIdentifier'
 		};
 	}
 ];
