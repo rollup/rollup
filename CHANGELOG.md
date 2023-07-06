@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.26.2
+
+_2023-07-06_
+
+### Bug Fixes
+
+- Improve error handling when manual chunks would contain external modules (#5050)
+
+### Pull Requests
+
+- [#5050](https://github.com/rollup/rollup/pull/5050): fix: improve error for manualChunks' modules that are resolved as an external module (@TrickyPi)
+
 ## 3.26.1
 
 _2023-07-05_
