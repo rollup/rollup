@@ -157,31 +157,24 @@ impl AstConverter {
     fn convert_expression_statement(&mut self, expression_statement: &ExprStmt) {
         self.add_type_and_positions(&TYPE_EXPRESSION_STATEMENT, &expression_statement.span);
         // expression
-        // TODO Lukas if there is only a single child node, we do not need to use a reference
-        let insert_position = ((self.buffer.len() as u32) >> 2) + 1;
-        self.buffer.extend_from_slice(&insert_position.to_ne_bytes());
         self.convert_expression(&expression_statement.expr);
     }
 
     fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
         self.add_type_and_positions(&TYPE_EXPORT_DECLARATION, &export_declaration.span);
         // declaration
-        let insert_position = ((self.buffer.len() as u32) >> 2) + 1;
-        self.buffer.extend_from_slice(&insert_position.to_ne_bytes());
         self.convert_declaration(&export_declaration.decl);
     }
 
     fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
         self.add_type_and_positions(&TYPE_NAMED_EXPORT, &export_named_declaration.span);
         // reserve for src
-        let reference_position = self.buffer.len();
-        self.buffer.resize(reference_position + 4, 0);
+        let reference_position = self.reserve_reference_positions(1);
         // specifiers
         self.convert_item_list(&export_named_declaration.specifiers, |ast_converter, specifier| ast_converter.convert_export_specifier(specifier));
         // src
         export_named_declaration.src.as_ref().map(|src| {
-            let insert_position = (self.buffer.len() as u32) >> 2;
-            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            self.update_reference_position(reference_position);
             self.convert_literal_string(&*src);
         });
     }
@@ -189,14 +182,12 @@ impl AstConverter {
     fn convert_literal_number(&mut self, literal: &Number) {
         self.add_type_and_positions(&TYPE_NUMBER, &literal.span);
         // reserve for raw
-        let reference_position = self.buffer.len();
-        self.buffer.resize(reference_position + 4, 0);
+        let reference_position = self.reserve_reference_positions(1);
         // value, needs to be little endian as we are reading via a DataView
         self.buffer.extend_from_slice(&literal.value.to_le_bytes());
         // raw
         literal.raw.as_ref().map(|raw| {
-            let insert_position = (self.buffer.len() as u32) >> 2;
-            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            self.update_reference_position(reference_position);
             self.convert_string(&*raw);
         });
     }
@@ -204,14 +195,12 @@ impl AstConverter {
     fn convert_literal_string(&mut self, literal: &Str) {
         self.add_type_and_positions(&TYPE_STRING, &literal.span);
         // reserve for raw
-        let reference_position = self.buffer.len();
-        self.buffer.resize(reference_position + 4, 0);
+        let reference_position = self.reserve_reference_positions(1);
         // value
         self.convert_string(&literal.value);
         // raw
         literal.raw.as_ref().map(|raw| {
-            let insert_position = (self.buffer.len() as u32) >> 2;
-            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            self.update_reference_position(reference_position);
             self.convert_string(&*raw);
         });
     }
@@ -226,20 +215,15 @@ impl AstConverter {
         self.convert_item_list(&variable_declaration.decls, |ast_converter, variable_declarator| ast_converter.convert_variable_declarator(variable_declarator));
     }
 
-    // TODO Lukas use helper functions to declaratively reserve space etc
     fn convert_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
         self.add_type_and_positions(&TYPE_VARIABLE_DECLARATOR, &variable_declarator.span);
-        let mut reference_position = self.buffer.len();
-        self.buffer.resize(self.buffer.len() + 2 * 4, 0);
+        // reserve for init
+        let reference_position = self.reserve_reference_positions(1);
         // id
-        let insert_position = (self.buffer.len() as u32) >> 2;
-        self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
-        reference_position += 4;
         self.convert_pattern(&variable_declarator.name);
         // init
         variable_declarator.init.as_ref().map(|init| {
-            let insert_position = (self.buffer.len() as u32) >> 2;
-            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            self.update_reference_position(reference_position);
             self.convert_expression(&init);
         });
     }
@@ -252,16 +236,13 @@ impl AstConverter {
 
     fn convert_export_named_specifier(&mut self, export_named_specifier: &ExportNamedSpecifier) {
         self.add_type_and_positions(&TYPE_EXPORT_NAMED_SPECIFIER, &export_named_specifier.span);
-        // reserve space for exported, initialize with the local position for the case when they are the same
-        let reference_position = self.buffer.len();
-        let local_position = ((self.buffer.len() as u32) >> 2) + 1;
-        self.buffer.extend_from_slice(&local_position.to_ne_bytes());
+        // reserve for exported
+        let reference_position = self.reserve_reference_positions(1);
         // local
         self.convert_module_export_name(&export_named_specifier.orig);
         // exported
         export_named_specifier.exported.as_ref().map(|exported| {
-            let insert_position = (self.buffer.len() as u32) >> 2;
-            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            self.update_reference_position(reference_position);
             self.convert_module_export_name(&exported);
         });
     }
@@ -299,5 +280,18 @@ impl AstConverter {
         self.buffer.extend_from_slice(&(length as u32).to_ne_bytes());
         self.buffer.extend_from_slice(string.as_bytes());
         self.buffer.resize(self.buffer.len() + additional_length, 0);
+    }
+
+
+    fn reserve_reference_positions(&mut self, item_count: usize) -> usize {
+        let reference_position = self.buffer.len();
+        self.buffer.resize(reference_position + (item_count << 2), 0);
+        reference_position
+    }
+
+    fn update_reference_position(&mut self, reference_position: usize) ->usize {
+        let insert_position = (self.buffer.len() as u32) >> 2;
+        self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+        reference_position + 4
     }
 }

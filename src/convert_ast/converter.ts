@@ -37,7 +37,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.ExpressionStatement & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const expression = convertNode(buffer[position], buffer, readString);
+		const expression = convertNode(position, buffer, readString);
 		return {
 			end,
 			expression,
@@ -64,7 +64,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.ExportNamedDeclaration & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const declaration = convertNode(buffer[position], buffer, readString);
+		const declaration = convertNode(position, buffer, readString);
 		return {
 			declaration,
 			end,
@@ -112,9 +112,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.VariableDeclarator & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const id = convertNode(buffer[position++], buffer, readString);
-		const init_position = buffer[position];
+		const init_position = buffer[position++];
 		const init = init_position ? convertNode(init_position, buffer, readString) : null;
+		const id = convertNode(position, buffer, readString);
 		return {
 			end,
 			id,
@@ -154,9 +154,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.ExportSpecifier & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const exportPosition = buffer[position++];
-		const exported = convertNode(exportPosition, buffer, readString);
+		const exportedPosition = buffer[position++];
 		const local = convertNode(position, buffer, readString);
+		const exported = exportedPosition ? convertNode(exportedPosition, buffer, readString) : local;
 		return {
 			end,
 			exported,

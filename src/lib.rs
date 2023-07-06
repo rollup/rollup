@@ -7,6 +7,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use swc::{Compiler, config::ParseOptions};
 use swc_common::{errors::{DiagnosticBuilder, Emitter, Handler}, FileName, FilePathMapping, GLOBALS, Globals, SourceMap};
+use std::time::{Instant};
 
 use convert_ast::converter::AstConverter;
 
@@ -34,6 +35,7 @@ pub fn parse(code: String) -> Buffer {
     let handler = Handler::with_emitter(true, false, Box::new(emitter));
     GLOBALS.set(&Globals::default(), || {
         compiler.run(|| {
+            let swc_start = Instant::now();
             let code_length = code.len() as u32;
             let file = compiler.cm.new_source_file(filename, code);
             let comments = None;
@@ -45,11 +47,14 @@ pub fn parse(code: String) -> Buffer {
                 compiler_options.is_module,
                 comments,
             )?;
+            println!("swc parse took {:?}", swc_start.elapsed());
             if handler.has_errors() {
                 Err(anyhow!("failed to parse"))
             } else {
+                let converter_start = Instant::now();
                 let converter = AstConverter::new(code_length);
                 let buffer = converter.convert_ast_to_buffer(&program);
+                println!("converter took {:?}", converter_start.elapsed());
                 Ok(buffer)
             }
         }).expect("failed to parse")
