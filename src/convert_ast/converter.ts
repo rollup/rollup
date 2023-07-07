@@ -21,11 +21,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.Program & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const bodyLength = buffer[position++];
-		const body: estree.Statement[] = [];
-		for (let bodyIndex = 0; bodyIndex < bodyLength; bodyIndex++) {
-			body.push(convertNode(buffer[position++], buffer, readString));
-		}
+		const body = convertNodeList(position, buffer, readString);
 		return {
 			body,
 			end,
@@ -81,11 +77,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const sourcePosition = buffer[position++];
 		const source = sourcePosition ? convertNode(sourcePosition, buffer, readString) : null;
-		const specifiersLength = buffer[position++];
-		const specifiers: estree.ExportSpecifier[] = [];
-		for (let specifierIndex = 0; specifierIndex < specifiersLength; specifierIndex++) {
-			specifiers.push(convertNode(buffer[position++], buffer, readString));
-		}
+		const specifiers = convertNodeList(position, buffer, readString);
 		return {
 			declaration: null,
 			end,
@@ -171,11 +163,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const source = convertNode(buffer[position++], buffer, readString);
-		const specifiersLength = buffer[position++];
-		const specifiers: estree.ImportSpecifier[] = [];
-		for (let specifierIndex = 0; specifierIndex < specifiersLength; specifierIndex++) {
-			specifiers.push(convertNode(buffer[position++], buffer, readString));
-		}
+		const specifiers = convertNodeList(position, buffer, readString);
 		return {
 			end,
 			source,
@@ -204,11 +192,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const callee = convertNode(buffer[position++], buffer, readString);
-		const argumentsLength = buffer[position++];
-		const argumentsList: estree.Expression[] = [];
-		for (let argumentIndex = 0; argumentIndex < argumentsLength; argumentIndex++) {
-			argumentsList.push(convertNode(buffer[position++], buffer, readString));
-		}
+		const argumentsList = convertNodeList(position, buffer, readString);
 		return {
 			arguments: argumentsList,
 			callee,
@@ -224,12 +208,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const async = !!buffer[position++];
 		const generator = !!buffer[position++];
-		let parametersPosition = buffer[position++];
-		const parameters: estree.Pattern[] = [];
-		const parametersLength = buffer[parametersPosition++];
-		for (let parameterIndex = 0; parameterIndex < parametersLength; parameterIndex++) {
-			parameters.push(convertNode(parametersPosition++, buffer, readString));
-		}
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const expression = !!buffer[position++];
 		const body = convertNode(position, buffer, readString);
 		return {
@@ -345,6 +324,35 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'Literal',
 			value: null
+		};
+	},
+	// ImportNamespaceSpecifier
+	(position, buffer, readString): estree.ImportNamespaceSpecifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		return {
+			end,
+			local,
+			start,
+			type: 'ImportNamespaceSpecifier'
+		};
+	},
+	// ExportAll -> ExportAllDeclaration
+	(
+		position,
+		buffer,
+		readString
+	): estree.ExportAllDeclaration & AcornNode & { source: AcornNode & estree.Literal } => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const source = convertNode(position, buffer, readString);
+		return {
+			end,
+			exported: null,
+			source,
+			start,
+			type: 'ExportAllDeclaration'
 		};
 	}
 ];

@@ -33,6 +33,7 @@ pub fn parse(code: String) -> Buffer {
     let filename = FileName::Anon;
     let emitter = TestEmitter {};
     let handler = Handler::with_emitter(true, false, Box::new(emitter));
+    dbg!(&code);
     GLOBALS.set(&Globals::default(), || {
         compiler.run(|| {
             let swc_start = Instant::now();

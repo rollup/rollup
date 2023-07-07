@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll};
 
 // These need to reflect the order in the JavaScript decoder
 const TYPE_MODULE: [u8; 4] = 0u32.to_ne_bytes();
@@ -25,6 +25,8 @@ const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 18u32.to_ne_bytes();
 const TYPE_BOOLEAN: [u8; 4] = 19u32.to_ne_bytes();
 const TYPE_EXPORT_DEFAULT_EXPRESSION: [u8; 4] = 20u32.to_ne_bytes();
 const TYPE_NULL: [u8; 4] = 21u32.to_ne_bytes();
+const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 22u32.to_ne_bytes();
+const TYPE_EXPORT_ALL: [u8; 4] = 23u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
@@ -114,7 +116,8 @@ impl AstConverter {
             ModuleDecl::Import(import_declaration) => self.convert_import_declaration(import_declaration),
             ModuleDecl::ExportDefaultExpr(export_default_expression) => {
                 self.convert_export_default_expression(export_default_expression)
-            }
+            },
+            ModuleDecl::ExportAll(export_all) => self.convert_export_all(export_all),
             _ => {
                 dbg!(module_declaration);
                 todo!("Cannot convert ModuleDeclaration");
@@ -170,10 +173,7 @@ impl AstConverter {
         match import_specifier {
             ImportSpecifier::Named(import_named_specifier) => self.convert_import_named_specifier(import_named_specifier),
             ImportSpecifier::Default(import_default_specifier) => self.convert_import_default_specifier(import_default_specifier),
-            _ => {
-                dbg!(import_specifier);
-                todo!("Cannot convert ImportSpecifier");
-            }
+            ImportSpecifier::Namespace(import_namespace_specifier) => self.convert_import_namespace_specifier(import_namespace_specifier),
         }
     }
 
@@ -426,6 +426,16 @@ impl AstConverter {
         self.convert_expression(&export_default_expression.expr);
     }
 
+    fn convert_literal_null(&mut self, literal: &Null) {
+        self.add_type_and_positions(&TYPE_NULL, &literal.span);
+    }
+
+    fn convert_import_namespace_specifier(&mut self, import_namespace_specifier: &ImportStarAsSpecifier) {
+        self.add_type_and_positions(&TYPE_IMPORT_NAMESPACE_SPECIFIER, &import_namespace_specifier.span);
+        // local
+        self.convert_identifier(&import_namespace_specifier.local);
+    }
+
     // === helpers
     fn add_type_and_positions(&mut self, node_type: &[u8; 4], span: &Span) {
         // type
@@ -452,6 +462,12 @@ impl AstConverter {
         }
     }
 
+    fn convert_export_all(&mut self, export_all: &ExportAll) {
+        self.add_type_and_positions(&TYPE_EXPORT_ALL, &export_all.span);
+        // source
+        self.convert_literal_string(&export_all.src);
+    }
+
     // TODO Lukas deduplicate strings and see if we can easily compare atoms
     fn convert_string(&mut self, string: &str) {
         let length = string.len();
@@ -475,8 +491,5 @@ impl AstConverter {
         let insert_position = (self.buffer.len() as u32) >> 2;
         self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
         reference_position + 4
-    }
-    fn convert_literal_null(&mut self, literal: &Null) {
-        self.add_type_and_positions(&TYPE_NULL, &literal.span);
     }
 }
