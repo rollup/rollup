@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Callee, CallExpr, Decl, ExportDecl, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind};
 
 // These need to reflect the order in the JavaScript decoder
 const TYPE_MODULE: [u8; 4] = 0u32.to_ne_bytes();
@@ -21,6 +21,10 @@ const TYPE_BLOCK_STATEMENT: [u8; 4] = 14u32.to_ne_bytes();
 const TYPE_SPREAD: [u8; 4] = 15u32.to_ne_bytes();
 const TYPE_MEMBER_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
 const TYPE_PRIVATE_NAME: [u8; 4] = 17u32.to_ne_bytes();
+const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 18u32.to_ne_bytes();
+const TYPE_BOOLEAN: [u8; 4] = 19u32.to_ne_bytes();
+const TYPE_EXPORT_DEFAULT_EXPRESSION: [u8; 4] = 20u32.to_ne_bytes();
+const TYPE_NULL: [u8; 4] = 21u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
@@ -94,6 +98,8 @@ impl AstConverter {
         match literal {
             Lit::Num(number_literal) => self.convert_literal_number(number_literal),
             Lit::Str(string_literal) => self.convert_literal_string(string_literal),
+            Lit::Bool(boolean_literal) => self.convert_literal_boolean(boolean_literal),
+            Lit::Null(null_literal) => self.convert_literal_null(null_literal),
             _ => {
                 dbg!(literal);
                 todo!("Cannot convert Literal");
@@ -106,6 +112,9 @@ impl AstConverter {
             ModuleDecl::ExportDecl(export_declaration) => self.convert_export_declaration(export_declaration),
             ModuleDecl::ExportNamed(export_named) => self.convert_export_named_declaration(export_named),
             ModuleDecl::Import(import_declaration) => self.convert_import_declaration(import_declaration),
+            ModuleDecl::ExportDefaultExpr(export_default_expression) => {
+                self.convert_export_default_expression(export_default_expression)
+            }
             _ => {
                 dbg!(module_declaration);
                 todo!("Cannot convert ModuleDeclaration");
@@ -160,6 +169,7 @@ impl AstConverter {
     fn convert_import_specifier(&mut self, import_specifier: &ImportSpecifier) {
         match import_specifier {
             ImportSpecifier::Named(import_named_specifier) => self.convert_import_named_specifier(import_named_specifier),
+            ImportSpecifier::Default(import_default_specifier) => self.convert_import_default_specifier(import_default_specifier),
             _ => {
                 dbg!(import_specifier);
                 todo!("Cannot convert ImportSpecifier");
@@ -398,6 +408,24 @@ impl AstConverter {
         self.convert_identifier(&private_name.id);
     }
 
+    fn convert_import_default_specifier(&mut self, import_default_specifier: &ImportDefaultSpecifier) {
+        self.add_type_and_positions(&TYPE_IMPORT_DEFAULT_SPECIFIER, &import_default_specifier.span);
+        // local
+        self.convert_identifier(&import_default_specifier.local);
+    }
+
+    fn convert_literal_boolean(&mut self, literal: &Bool) {
+        self.add_type_and_positions(&TYPE_BOOLEAN, &literal.span);
+        // value^
+        self.convert_boolean(literal.value);
+    }
+
+    fn convert_export_default_expression(&mut self, export_default_expression: &ExportDefaultExpr) {
+        self.add_type_and_positions(&TYPE_EXPORT_DEFAULT_EXPRESSION, &export_default_expression.span);
+        // expression
+        self.convert_expression(&export_default_expression.expr);
+    }
+
     // === helpers
     fn add_type_and_positions(&mut self, node_type: &[u8; 4], span: &Span) {
         // type
@@ -447,5 +475,8 @@ impl AstConverter {
         let insert_position = (self.buffer.len() as u32) >> 2;
         self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
         reference_position + 4
+    }
+    fn convert_literal_null(&mut self, literal: &Null) {
+        self.add_type_and_positions(&TYPE_NULL, &literal.span);
     }
 }

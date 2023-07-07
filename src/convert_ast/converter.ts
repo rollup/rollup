@@ -297,6 +297,55 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'PrivateIdentifier'
 		};
+	},
+	// ImportDefaultSpecifier
+	(position, buffer, readString): estree.ImportDefaultSpecifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		return {
+			end,
+			local,
+			start,
+			type: 'ImportDefaultSpecifier'
+		};
+	},
+	// Boolean -> Literal
+	(position, buffer): estree.Literal & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const value = !!buffer[position++];
+		return {
+			end,
+			raw: value ? 'true' : 'false',
+			start,
+			type: 'Literal',
+			value
+		};
+	},
+	// ExportDefaultExpression -> ExportDefaultDeclaration
+	(position, buffer, readString): estree.ExportDefaultDeclaration & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const declaration = convertNode(position, buffer, readString);
+		return {
+			declaration,
+			end,
+			start,
+			type: 'ExportDefaultDeclaration'
+		};
+	},
+	// Null -> Literal
+	(position, buffer): estree.Literal & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			end,
+			raw: 'null',
+			start,
+			type: 'Literal',
+			value: null
+		};
 	}
 ];
 
