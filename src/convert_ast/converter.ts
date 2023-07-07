@@ -437,6 +437,22 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'ImportExpression'
 		};
+	},
+	// ConditionalExpression
+	(position, buffer, readString): estree.ConditionalExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const test = convertNode(buffer[position++], buffer, readString);
+		const consequent = convertNode(buffer[position++], buffer, readString);
+		const alternate = convertNode(position, buffer, readString);
+		return {
+			alternate,
+			consequent,
+			end,
+			start,
+			test,
+			type: 'ConditionalExpression'
+		};
 	}
 ];
 

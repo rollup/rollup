@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, Import};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr};
 
 
 pub struct AstConverter {
@@ -113,6 +113,7 @@ impl AstConverter {
             Expr::Member(member_expression) => self.convert_member_expression(member_expression),
             Expr::Bin(binary_expression) => self.convert_binary_expression(binary_expression),
             Expr::Array(array_literal) => self.convert_array_literal(array_literal),
+            Expr::Cond(conditional_expression) => self.convert_conditional_expression(conditional_expression),
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -206,7 +207,6 @@ impl AstConverter {
     fn convert_callee(&mut self, callee: &Callee) {
         match callee {
             Callee::Expr(expr) => self.convert_expression(expr),
-            Callee::Import(import) => self.convert_import(import),
             _ => {
                 dbg!(callee);
                 todo!("Cannot convert Callee");
@@ -226,10 +226,13 @@ impl AstConverter {
 
     // === nodes
     fn convert_module_program(&mut self, module: &Module) {
-        self.add_type_and_positions(&TYPE_MODULE, &module.span);
-        // acorn uses the file length instead of the end of the last statement
-        let reference_position = self.buffer.len() - 4;
-        self.buffer[reference_position..reference_position + 4].copy_from_slice(&self.code_length.to_ne_bytes());
+        // type
+        self.buffer.extend_from_slice(&TYPE_MODULE);
+        // we are not using the helper but code start/end by hand as acorn does this differently
+        // start
+        self.buffer.extend_from_slice(&0u32.to_ne_bytes());
+        // end
+        self.buffer.extend_from_slice(&self.code_length.to_ne_bytes());
         // body
         self.convert_item_list(&module.body, |ast_converter, module_item| ast_converter.convert_module_item(module_item));
     }
@@ -564,6 +567,20 @@ impl AstConverter {
             None => ast_converter.convert_boolean(false),
         });
     }
+
+    fn convert_conditional_expression(&mut self, conditional_expression: &CondExpr) {
+        self.add_type_and_positions(&TYPE_CONDITIONAL_EXPRESSION, &conditional_expression.span);
+        // reserve test, consequent
+        let mut reference_position = self.reserve_reference_positions(2);
+        // alternate
+        self.convert_expression(&conditional_expression.alt);
+        // test
+        reference_position = self.update_reference_position(reference_position);
+        self.convert_expression(&conditional_expression.test);
+        // consequent
+        self.update_reference_position(reference_position);
+        self.convert_expression(&conditional_expression.cons);
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -597,6 +614,7 @@ const TYPE_OBJECT_PATTERN: [u8; 4] = 26u32.to_ne_bytes();
 const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 27u32.to_ne_bytes();
 const TYPE_ARRAY_LITERAL: [u8; 4] = 28u32.to_ne_bytes();
 const TYPE_IMPORT_EXPRESSION: [u8; 4] = 29u32.to_ne_bytes();
+const TYPE_CONDITIONAL_EXPRESSION: [u8; 4] = 30u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
