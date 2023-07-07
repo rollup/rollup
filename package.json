@@ -138,6 +138,7 @@
     "terser": "^5.18.2",
     "tslib": "^2.6.0",
     "typescript": "^5.1.6",
+    "vite": "^4.4.2",
     "vitepress": "^1.0.0-beta.5",
     "vue": "^3.3.4",
     "weak-napi": "^2.0.2",
