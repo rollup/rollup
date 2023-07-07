@@ -354,6 +354,89 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'ExportAllDeclaration'
 		};
+	},
+	// BinaryExpression
+	(position, buffer, readString): estree.BinaryExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const operator = convertString(position, buffer, readString) as estree.BinaryOperator;
+		return {
+			end,
+			left,
+			operator,
+			right,
+			start,
+			type: 'BinaryExpression'
+		};
+	},
+	// ArrayPattern
+	(position, buffer, readString): estree.ArrayPattern & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const elements = convertNodeList(position, buffer, readString);
+		return {
+			elements,
+			end,
+			start,
+			type: 'ArrayPattern'
+		};
+	},
+	// ObjectPattern
+	(position, buffer, readString): estree.ObjectPattern & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const properties = convertNodeList(position, buffer, readString);
+		return {
+			end,
+			properties,
+			start,
+			type: 'ObjectPattern'
+		};
+	},
+	// AssignmentPatternProperty -> Property
+	(position, buffer, readString): estree.Property & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const valuePosition = buffer[position++];
+		const key = convertNode(position, buffer, readString);
+		const value = valuePosition ? convertNode(valuePosition, buffer, readString) : key;
+		return {
+			computed: false,
+			end,
+			key,
+			kind: 'init',
+			method: false,
+			shorthand: !valuePosition,
+			start,
+			type: 'Property',
+			value
+		};
+	},
+	// ArrayLiteral -> ArrayExpression
+	(position, buffer, readString): estree.ArrayExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const elements = convertNodeList(position, buffer, readString);
+		return {
+			elements,
+			end,
+			start,
+			type: 'ArrayExpression'
+		};
+	},
+	// ImportExpression
+	(position, buffer, readString): estree.ImportExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const source = convertNode(position, buffer, readString);
+		return {
+			end,
+			source,
+			start,
+			type: 'ImportExpression'
+		};
 	}
 ];
 
@@ -363,7 +446,8 @@ const convertNodeList = (position: number, buffer: Uint32Array, readString: Read
 	const length = buffer[position++];
 	const list: any[] = [];
 	for (let index = 0; index < length; index++) {
-		list.push(convertNode(buffer[position++], buffer, readString));
+		const nodePosition = buffer[position++];
+		list.push(nodePosition ? convertNode(nodePosition, buffer, readString) : null);
 	}
 	return list;
 };

@@ -1,37 +1,7 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, Import};
 
-// These need to reflect the order in the JavaScript decoder
-const TYPE_MODULE: [u8; 4] = 0u32.to_ne_bytes();
-const TYPE_EXPRESSION_STATEMENT: [u8; 4] = 1u32.to_ne_bytes();
-const TYPE_NUMBER: [u8; 4] = 2u32.to_ne_bytes();
-const TYPE_EXPORT_DECLARATION: [u8; 4] = 3u32.to_ne_bytes();
-const TYPE_NAMED_EXPORT: [u8; 4] = 4u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 5u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 6u32.to_ne_bytes();
-const TYPE_IDENTIFIER: [u8; 4] = 7u32.to_ne_bytes();
-const TYPE_STRING: [u8; 4] = 8u32.to_ne_bytes();
-const TYPE_EXPORT_NAMED_SPECIFIER: [u8; 4] = 9u32.to_ne_bytes();
-const TYPE_IMPORT_DECLARATION: [u8; 4] = 10u32.to_ne_bytes();
-const TYPE_IMPORT_NAMED_SPECIFIER: [u8; 4] = 11u32.to_ne_bytes();
-const TYPE_CALL_EXPRESSION: [u8; 4] = 12u32.to_ne_bytes();
-const TYPE_ARROW_EXPRESSION: [u8; 4] = 13u32.to_ne_bytes();
-const TYPE_BLOCK_STATEMENT: [u8; 4] = 14u32.to_ne_bytes();
-const TYPE_SPREAD: [u8; 4] = 15u32.to_ne_bytes();
-const TYPE_MEMBER_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
-const TYPE_PRIVATE_NAME: [u8; 4] = 17u32.to_ne_bytes();
-const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 18u32.to_ne_bytes();
-const TYPE_BOOLEAN: [u8; 4] = 19u32.to_ne_bytes();
-const TYPE_EXPORT_DEFAULT_EXPRESSION: [u8; 4] = 20u32.to_ne_bytes();
-const TYPE_NULL: [u8; 4] = 21u32.to_ne_bytes();
-const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 22u32.to_ne_bytes();
-const TYPE_EXPORT_ALL: [u8; 4] = 23u32.to_ne_bytes();
-
-// other constants
-const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
-const DECLARATION_KIND_LET: [u8; 4] = 1u32.to_ne_bytes();
-const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();
 
 pub struct AstConverter {
     buffer: Vec<u8>,
@@ -49,6 +19,58 @@ impl AstConverter {
     pub fn convert_ast_to_buffer(mut self, node: &Program) -> Buffer {
         self.convert_program(node);
         self.buffer.into()
+    }
+
+
+    // === helpers
+    fn add_type_and_positions(&mut self, node_type: &[u8; 4], span: &Span) {
+        // type
+        self.buffer.extend_from_slice(node_type);
+        // start
+        self.buffer.extend_from_slice(&(span.lo.0 - 1).to_ne_bytes());
+        // end
+        self.buffer.extend_from_slice(&(span.hi.0 - 1).to_ne_bytes());
+    }
+
+    fn convert_item_list<T, F>(&mut self, item_list: &Vec<T>, convert_item: F)
+        where F: Fn(&mut AstConverter, &T)
+    {
+        // store number of items in first position
+        self.buffer.extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
+        let mut reference_position = self.buffer.len();
+        // make room for the reference positions of the items
+        self.buffer.resize(self.buffer.len() + item_list.len() * 4, 0);
+        for item in item_list {
+            let insert_position = (self.buffer.len() as u32) >> 2;
+            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+            reference_position += 4;
+            convert_item(self, item);
+        }
+    }
+
+    // TODO Lukas deduplicate strings and see if we can easily compare atoms
+    fn convert_string(&mut self, string: &str) {
+        let length = string.len();
+        let additional_length = ((length + 3) & !3) - length;
+        self.buffer.extend_from_slice(&(length as u32).to_ne_bytes());
+        self.buffer.extend_from_slice(string.as_bytes());
+        self.buffer.resize(self.buffer.len() + additional_length, 0);
+    }
+
+    fn convert_boolean(&mut self, boolean: bool) {
+        self.buffer.extend_from_slice(&(if boolean { 1u32 } else { 0u32 }).to_ne_bytes());
+    }
+
+    fn reserve_reference_positions(&mut self, item_count: usize) -> usize {
+        let reference_position = self.buffer.len();
+        self.buffer.resize(reference_position + (item_count << 2), 0);
+        reference_position
+    }
+
+    fn update_reference_position(&mut self, reference_position: usize) -> usize {
+        let insert_position = (self.buffer.len() as u32) >> 2;
+        self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
+        reference_position + 4
     }
 
     // === enums
@@ -89,6 +111,8 @@ impl AstConverter {
             Expr::Ident(identifier) => self.convert_identifier(identifier),
             Expr::Arrow(arrow_expression) => self.convert_arrow_expression(arrow_expression),
             Expr::Member(member_expression) => self.convert_member_expression(member_expression),
+            Expr::Bin(binary_expression) => self.convert_binary_expression(binary_expression),
+            Expr::Array(array_literal) => self.convert_array_literal(array_literal),
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -116,7 +140,7 @@ impl AstConverter {
             ModuleDecl::Import(import_declaration) => self.convert_import_declaration(import_declaration),
             ModuleDecl::ExportDefaultExpr(export_default_expression) => {
                 self.convert_export_default_expression(export_default_expression)
-            },
+            }
             ModuleDecl::ExportAll(export_all) => self.convert_export_all(export_all),
             _ => {
                 dbg!(module_declaration);
@@ -138,6 +162,8 @@ impl AstConverter {
     fn convert_pattern(&mut self, pattern: &Pat) {
         match pattern {
             Pat::Ident(binding_identifier) => self.convert_binding_identifier(binding_identifier),
+            Pat::Array(array_pattern) => self.convert_array_pattern(array_pattern),
+            Pat::Object(object) => self.convert_object_pattern(object),
             _ => {
                 dbg!(pattern);
                 todo!("Cannot convert Pattern");
@@ -180,9 +206,20 @@ impl AstConverter {
     fn convert_callee(&mut self, callee: &Callee) {
         match callee {
             Callee::Expr(expr) => self.convert_expression(expr),
+            Callee::Import(import) => self.convert_import(import),
             _ => {
                 dbg!(callee);
                 todo!("Cannot convert Callee");
+            }
+        }
+    }
+
+    fn convert_object_pattern_property(&mut self, object_pattern_property: &ObjectPatProp) {
+        match object_pattern_property {
+            ObjectPatProp::Assign(assignment_pattern_property) => self.convert_assignment_pattern_property(assignment_pattern_property),
+            _ => {
+                dbg!(object_pattern_property);
+                todo!("Cannot convert ObjectPatternProperty");
             }
         }
     }
@@ -302,14 +339,23 @@ impl AstConverter {
     }
 
     fn convert_call_expression(&mut self, call_expression: &CallExpr) {
-        self.add_type_and_positions(&TYPE_CALL_EXPRESSION, &call_expression.span);
-        // reserve for callee
-        let reference_position = self.reserve_reference_positions(1);
-        // arguments
-        self.convert_item_list(&call_expression.args, |ast_converter, argument| ast_converter.convert_expression_or_spread(argument));
-        // callee
-        self.update_reference_position(reference_position);
-        self.convert_callee(&call_expression.callee);
+        match call_expression.callee{
+            Callee::Import(_) => {
+                self.add_type_and_positions(&TYPE_IMPORT_EXPRESSION, &call_expression.span);
+                // source
+                self.convert_expression(call_expression.args.first().unwrap().expr.as_ref());
+            },
+            _ => {
+                self.add_type_and_positions(&TYPE_CALL_EXPRESSION, &call_expression.span);
+                // reserve for callee
+                let reference_position = self.reserve_reference_positions(1);
+                // arguments
+                self.convert_item_list(&call_expression.args, |ast_converter, argument| ast_converter.convert_expression_or_spread(argument));
+                // callee
+                self.update_reference_position(reference_position);
+                self.convert_callee(&call_expression.callee);
+            }
+        }
     }
 
     fn convert_import_named_specifier(&mut self, import_named_specifier: &ImportNamedSpecifier) {
@@ -339,13 +385,13 @@ impl AstConverter {
                 self.convert_boolean(false);
                 // body
                 self.convert_block_statement(block_statement)
-            },
+            }
             BlockStmtOrExpr::Expr(expression) => {
                 // expression
                 self.convert_boolean(true);
                 // body
                 self.convert_expression(expression)
-            },
+            }
         }
         // params
         self.update_reference_position(reference_position);
@@ -436,60 +482,123 @@ impl AstConverter {
         self.convert_identifier(&import_namespace_specifier.local);
     }
 
-    // === helpers
-    fn add_type_and_positions(&mut self, node_type: &[u8; 4], span: &Span) {
-        // type
-        self.buffer.extend_from_slice(node_type);
-        // start
-        self.buffer.extend_from_slice(&(span.lo.0 - 1).to_ne_bytes());
-        // end
-        self.buffer.extend_from_slice(&(span.hi.0 - 1).to_ne_bytes());
-    }
-
-    fn convert_item_list<T, F>(&mut self, item_list: &Vec<T>, convert_item: F)
-        where F: Fn(&mut AstConverter, &T)
-    {
-        // store number of items in first position
-        self.buffer.extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
-        let mut reference_position = self.buffer.len();
-        // make room for the reference positions of the items
-        self.buffer.resize(self.buffer.len() + item_list.len() * 4, 0);
-        for item in item_list {
-            let insert_position = (self.buffer.len() as u32) >> 2;
-            self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
-            reference_position += 4;
-            convert_item(self, item);
-        }
-    }
-
     fn convert_export_all(&mut self, export_all: &ExportAll) {
         self.add_type_and_positions(&TYPE_EXPORT_ALL, &export_all.span);
         // source
         self.convert_literal_string(&export_all.src);
     }
 
-    // TODO Lukas deduplicate strings and see if we can easily compare atoms
-    fn convert_string(&mut self, string: &str) {
-        let length = string.len();
-        let additional_length = ((length + 3) & !3) - length;
-        self.buffer.extend_from_slice(&(length as u32).to_ne_bytes());
-        self.buffer.extend_from_slice(string.as_bytes());
-        self.buffer.resize(self.buffer.len() + additional_length, 0);
+    fn convert_binary_expression(&mut self, binary_expression: &BinExpr) {
+        self.add_type_and_positions(&TYPE_BINARY_EXPRESSION, &binary_expression.span);
+        // reserve left, right
+        let mut reference_position = self.reserve_reference_positions(2);
+        // operator
+        self.convert_string(match binary_expression.op {
+            BinaryOp::EqEq => "==",
+            BinaryOp::NotEq => "!=",
+            BinaryOp::EqEqEq => "===",
+            BinaryOp::NotEqEq => "!==",
+            BinaryOp::Lt => "<",
+            BinaryOp::LtEq => "<=",
+            BinaryOp::Gt => ">",
+            BinaryOp::GtEq => ">=",
+            BinaryOp::LShift => "<<",
+            BinaryOp::RShift => ">>",
+            BinaryOp::ZeroFillRShift => "<<<",
+            BinaryOp::Add => "+",
+            BinaryOp::Sub => "-",
+            BinaryOp::Mul => "*",
+            BinaryOp::Div => "/",
+            BinaryOp::Mod => "%",
+            BinaryOp::BitOr => "|",
+            BinaryOp::BitXor => "^",
+            BinaryOp::BitAnd => "&",
+            BinaryOp::LogicalOr => "||",
+            BinaryOp::LogicalAnd => "&&",
+            BinaryOp::In => "in",
+            BinaryOp::InstanceOf => "instanceof",
+            BinaryOp::Exp => "**",
+            BinaryOp::NullishCoalescing => "??",
+        });
+        // left
+        reference_position = self.update_reference_position(reference_position);
+        self.convert_expression(&binary_expression.left);
+        // right
+        self.update_reference_position(reference_position);
+        self.convert_expression(&binary_expression.right);
     }
 
-    fn convert_boolean(&mut self, boolean: bool) {
-        self.buffer.extend_from_slice(&(if boolean { 1u32 } else { 0u32 }).to_ne_bytes());
+    fn convert_array_pattern(&mut self, array_pattern: &ArrayPat) {
+        self.add_type_and_positions(&TYPE_ARRAY_PATTERN, &array_pattern.span);
+        // elements
+        self.convert_item_list(&array_pattern.elems, |ast_converter, element| match element {
+            Some(element) => ast_converter.convert_pattern(element),
+            None => ast_converter.convert_boolean(false),
+        });
     }
 
-    fn reserve_reference_positions(&mut self, item_count: usize) -> usize {
-        let reference_position = self.buffer.len();
-        self.buffer.resize(reference_position + (item_count << 2), 0);
-        reference_position
+    fn convert_object_pattern(&mut self, object_pattern: &ObjectPat) {
+        self.add_type_and_positions(&TYPE_OBJECT_PATTERN, &object_pattern.span);
+        // properties
+        self.convert_item_list(&object_pattern.props, |ast_converter, object_pattern_property| ast_converter.convert_object_pattern_property(object_pattern_property));
     }
 
-    fn update_reference_position(&mut self, reference_position: usize) -> usize {
-        let insert_position = (self.buffer.len() as u32) >> 2;
-        self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
-        reference_position + 4
+    fn convert_assignment_pattern_property(&mut self, assignment_pattern_property: &AssignPatProp) {
+        self.add_type_and_positions(&TYPE_ASSIGNMENT_PATTERN_PROPERTY, &assignment_pattern_property.span);
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        self.convert_identifier(&assignment_pattern_property.key);
+        // value
+        assignment_pattern_property.value.as_ref().map(|value| {
+            self.update_reference_position(reference_position);
+            self.convert_expression(&*value);
+        });
+    }
+
+    fn convert_array_literal(&mut self, array_literal: &ArrayLit) {
+        self.add_type_and_positions(&TYPE_ARRAY_LITERAL, &array_literal.span);
+        // elements
+        self.convert_item_list(&array_literal.elems, |ast_converter, element| match element {
+            Some(element) => ast_converter.convert_expression_or_spread(element),
+            None => ast_converter.convert_boolean(false),
+        });
     }
 }
+
+// These need to reflect the order in the JavaScript decoder
+const TYPE_MODULE: [u8; 4] = 0u32.to_ne_bytes();
+const TYPE_EXPRESSION_STATEMENT: [u8; 4] = 1u32.to_ne_bytes();
+const TYPE_NUMBER: [u8; 4] = 2u32.to_ne_bytes();
+const TYPE_EXPORT_DECLARATION: [u8; 4] = 3u32.to_ne_bytes();
+const TYPE_NAMED_EXPORT: [u8; 4] = 4u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATION: [u8; 4] = 5u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 6u32.to_ne_bytes();
+const TYPE_IDENTIFIER: [u8; 4] = 7u32.to_ne_bytes();
+const TYPE_STRING: [u8; 4] = 8u32.to_ne_bytes();
+const TYPE_EXPORT_NAMED_SPECIFIER: [u8; 4] = 9u32.to_ne_bytes();
+const TYPE_IMPORT_DECLARATION: [u8; 4] = 10u32.to_ne_bytes();
+const TYPE_IMPORT_NAMED_SPECIFIER: [u8; 4] = 11u32.to_ne_bytes();
+const TYPE_CALL_EXPRESSION: [u8; 4] = 12u32.to_ne_bytes();
+const TYPE_ARROW_EXPRESSION: [u8; 4] = 13u32.to_ne_bytes();
+const TYPE_BLOCK_STATEMENT: [u8; 4] = 14u32.to_ne_bytes();
+const TYPE_SPREAD: [u8; 4] = 15u32.to_ne_bytes();
+const TYPE_MEMBER_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
+const TYPE_PRIVATE_NAME: [u8; 4] = 17u32.to_ne_bytes();
+const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 18u32.to_ne_bytes();
+const TYPE_BOOLEAN: [u8; 4] = 19u32.to_ne_bytes();
+const TYPE_EXPORT_DEFAULT_EXPRESSION: [u8; 4] = 20u32.to_ne_bytes();
+const TYPE_NULL: [u8; 4] = 21u32.to_ne_bytes();
+const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 22u32.to_ne_bytes();
+const TYPE_EXPORT_ALL: [u8; 4] = 23u32.to_ne_bytes();
+const TYPE_BINARY_EXPRESSION: [u8; 4] = 24u32.to_ne_bytes();
+const TYPE_ARRAY_PATTERN: [u8; 4] = 25u32.to_ne_bytes();
+const TYPE_OBJECT_PATTERN: [u8; 4] = 26u32.to_ne_bytes();
+const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 27u32.to_ne_bytes();
+const TYPE_ARRAY_LITERAL: [u8; 4] = 28u32.to_ne_bytes();
+const TYPE_IMPORT_EXPRESSION: [u8; 4] = 29u32.to_ne_bytes();
+
+// other constants
+const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
+const DECLARATION_KIND_LET: [u8; 4] = 1u32.to_ne_bytes();
+const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();
