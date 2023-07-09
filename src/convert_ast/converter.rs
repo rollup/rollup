@@ -1,17 +1,17 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
 
 pub struct AstConverter<'a> {
     buffer: Vec<u8>,
-    code: &'a[u8],
+    code: &'a [u8],
 }
 
 impl<'a> AstConverter<'a> {
-    pub fn new(code: &'a[u8]) -> Self {
+    pub fn new(code: &'a [u8]) -> Self {
         Self {
             buffer: Vec::new(),
             code,
@@ -69,6 +69,7 @@ impl<'a> AstConverter<'a> {
         reference_position
     }
 
+    // TODO Lukas instead of returning the updated value, maybe we just add in place everywhere
     fn update_reference_position(&mut self, reference_position: usize) -> usize {
         let insert_position = (self.buffer.len() as u32) >> 2;
         self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
@@ -117,6 +118,7 @@ impl<'a> AstConverter<'a> {
             Expr::Bin(binary_expression) => self.convert_binary_expression(binary_expression),
             Expr::Array(array_literal) => self.convert_array_literal(array_literal),
             Expr::Cond(conditional_expression) => self.convert_conditional_expression(conditional_expression),
+            Expr::Object(object_literal) => self.convert_object_literal(object_literal),
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -235,6 +237,26 @@ impl<'a> AstConverter<'a> {
             _ => {
                 dbg!(class_member);
                 todo!("Cannot convert ClassMember");
+            }
+        }
+    }
+
+    fn convert_property_or_spread(&mut self, property_or_spread: &PropOrSpread) {
+        match property_or_spread {
+            PropOrSpread::Prop(property) => self.convert_property(&**property),
+            _ => {
+                dbg!(property_or_spread);
+                todo!("Cannot convert PropertyOrSpread");
+            }
+        }
+    }
+
+    fn convert_property(&mut self, property: &Prop) {
+        match property {
+            Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
+            _ => {
+                dbg!(property);
+                todo!("Cannot convert property")
             }
         }
     }
@@ -667,6 +689,42 @@ impl<'a> AstConverter<'a> {
             self.convert_expression(argument)
         });
     }
+
+    fn convert_object_literal(&mut self, object_literal: &ObjectLit) {
+        self.add_type_and_positions(&TYPE_OBJECT_LITERAL, &object_literal.span);
+        // properties
+        self.convert_item_list(&object_literal.props, |ast_converter, property_or_spread| ast_converter.convert_property_or_spread(property_or_spread));
+    }
+
+    fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
+        // type
+        self.buffer.extend_from_slice(&TYPE_KEY_VALUE_PROPERTY);
+        // reserve start, end, key
+        let reference_position = self.reserve_reference_positions(3);
+        // value
+        let value_position = self.buffer.len();
+        self.convert_expression(&key_value_property.value);
+        // key
+        let key_position = self.buffer.len();
+        self.update_reference_position(reference_position + 8);
+        self.convert_property_name(&key_value_property.key);
+        // start
+        let key_start: [u8; 4] = self.buffer[key_position + 4..key_position + 8].try_into().unwrap();
+        self.buffer[reference_position..reference_position + 4].copy_from_slice(&key_start);
+        // end
+        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12].try_into().unwrap();
+        self.buffer[reference_position + 4..reference_position + 8].copy_from_slice(&value_end);
+    }
+
+    fn convert_property_name(&mut self, property_name: &PropName) {
+        match property_name {
+            PropName::Ident(ident) => self.convert_identifier(ident),
+            _ => {
+                dbg!(property_name);
+                todo!("Cannot convert PropertyName");
+            }
+        }
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -705,6 +763,8 @@ const TYPE_FUNCTION_DECLARATION: [u8; 4] = 31u32.to_ne_bytes();
 const TYPE_CLASS_DECLARATION: [u8; 4] = 32u32.to_ne_bytes();
 const TYPE_CLASS_BODY: [u8; 4] = 33u32.to_ne_bytes();
 const TYPE_RETURN_STATEMENT: [u8; 4] = 34u32.to_ne_bytes();
+const TYPE_OBJECT_LITERAL: [u8; 4] = 35u32.to_ne_bytes();
+const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 36u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();

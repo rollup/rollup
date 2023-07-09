@@ -516,6 +516,36 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'ReturnStatement'
 		};
+	},
+	// ObjectLiteral -> ObjectExpression
+	(position, buffer, readString): estree.ObjectExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const properties = convertNodeList(position, buffer, readString);
+		return {
+			end,
+			properties,
+			start,
+			type: 'ObjectExpression'
+		};
+	},
+	// KeyValueProperty -> Property
+	(position, buffer, readString): estree.Property & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const keyPosition = buffer[position++];
+		const value = convertNode(position, buffer, readString);
+		return {
+			computed: false,
+			end,
+			key: convertNode(keyPosition, buffer, readString),
+			kind: 'init',
+			method: false,
+			shorthand: false,
+			start,
+			type: 'Property',
+			value
+		};
 	}
 ];
 
