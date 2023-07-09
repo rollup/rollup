@@ -148,12 +148,12 @@ export default class Graph {
 		const astBuffer = native.parse(code);
 		console.timeEnd('swc');
 		console.time('convert');
+		console.log('Size acorn:', JSON.stringify(acornAst).length, ', swc:', astBuffer.length);
 		const ast = convertProgram(astBuffer.buffer, (start, length) =>
 			astBuffer.toString('utf8', start, start + length)
 		);
 		console.timeEnd('convert');
 		console.log(JSON.stringify(code));
-		console.log(JSON.stringify(ast, null, 2));
 		assert.deepStrictEqual(ast, JSON.parse(JSON.stringify(acornAst)));
 
 		if (typeof onCommentOrig == 'object') {

@@ -1,18 +1,20 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt};
+use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
+mod analyze_code;
 
-pub struct AstConverter {
+pub struct AstConverter<'a> {
     buffer: Vec<u8>,
-    code_length: u32,
+    code: &'a[u8],
 }
 
-impl AstConverter {
-    pub fn new(code_length: u32) -> Self {
+impl<'a> AstConverter<'a> {
+    pub fn new(code: &'a[u8]) -> Self {
         Self {
             buffer: Vec::new(),
-            code_length,
+            code,
         }
     }
 
@@ -97,6 +99,7 @@ impl AstConverter {
         match statement {
             Stmt::Expr(expression_statement) => self.convert_expression_statement(expression_statement),
             Stmt::Decl(declaration) => self.convert_declaration(declaration),
+            Stmt::Return(return_statement) => self.convert_return_statement(return_statement),
             _ => {
                 dbg!(statement);
                 todo!("Cannot convert Statement");
@@ -153,6 +156,8 @@ impl AstConverter {
     fn convert_declaration(&mut self, declaration: &Decl) {
         match declaration {
             Decl::Var(variable_declaration) => self.convert_variable_declaration(variable_declaration),
+            Decl::Fn(function_declaration) => self.convert_function_declaration(function_declaration),
+            Decl::Class(class_declaration) => self.convert_class_declaration(class_declaration),
             _ => {
                 dbg!(declaration);
                 todo!("Cannot convert Declaration");
@@ -204,6 +209,7 @@ impl AstConverter {
         }
     }
 
+    // TODO Lukas find out when memory is reserved for the buffer
     fn convert_callee(&mut self, callee: &Callee) {
         match callee {
             Callee::Expr(expr) => self.convert_expression(expr),
@@ -224,6 +230,15 @@ impl AstConverter {
         }
     }
 
+    fn convert_class_member(&self, class_member: &ClassMember) {
+        match class_member {
+            _ => {
+                dbg!(class_member);
+                todo!("Cannot convert ClassMember");
+            }
+        }
+    }
+
     // === nodes
     fn convert_module_program(&mut self, module: &Module) {
         // type
@@ -232,7 +247,7 @@ impl AstConverter {
         // start
         self.buffer.extend_from_slice(&0u32.to_ne_bytes());
         // end
-        self.buffer.extend_from_slice(&self.code_length.to_ne_bytes());
+        self.buffer.extend_from_slice(&(self.code.len() as u32).to_ne_bytes());
         // body
         self.convert_item_list(&module.body, |ast_converter, module_item| ast_converter.convert_module_item(module_item));
     }
@@ -342,12 +357,12 @@ impl AstConverter {
     }
 
     fn convert_call_expression(&mut self, call_expression: &CallExpr) {
-        match call_expression.callee{
+        match call_expression.callee {
             Callee::Import(_) => {
                 self.add_type_and_positions(&TYPE_IMPORT_EXPRESSION, &call_expression.span);
                 // source
                 self.convert_expression(call_expression.args.first().unwrap().expr.as_ref());
-            },
+            }
             _ => {
                 self.add_type_and_positions(&TYPE_CALL_EXPRESSION, &call_expression.span);
                 // reserve for callee
@@ -581,6 +596,77 @@ impl AstConverter {
         self.update_reference_position(reference_position);
         self.convert_expression(&conditional_expression.cons);
     }
+
+    fn convert_function_declaration(&mut self, function_declaration: &FnDecl) {
+        let function = &function_declaration.function;
+        self.add_type_and_positions(&TYPE_FUNCTION_DECLARATION, &function.span);
+        // async
+        self.convert_boolean(function.is_async);
+        // generator
+        self.convert_boolean(function.is_generator);
+        // reserve id, params
+        let mut reference_position = self.reserve_reference_positions(2);
+        // body
+        self.convert_block_statement(function.body.as_ref().unwrap());
+        // id
+        reference_position = self.update_reference_position(reference_position);
+        self.convert_identifier(&function_declaration.ident);
+        // params
+        self.update_reference_position(reference_position);
+        self.convert_item_list(&function.params, |ast_converter, param| ast_converter.convert_pattern(&param.pat));
+    }
+
+    fn convert_class_declaration(&mut self, class_declaration: &ClassDecl) {
+        let class = &class_declaration.class;
+        self.add_type_and_positions(&TYPE_CLASS_DECLARATION, &class.span);
+        // reserve body, super_class
+        let mut reference_position = self.reserve_reference_positions(2);
+        // id
+        let id_position = self.buffer.len();
+        self.convert_identifier(&class_declaration.ident);
+        let body_start: [u8; 4];
+        // super_class
+        match class.super_class.as_ref() {
+            Some(super_class) => {
+                reference_position = self.update_reference_position(reference_position);
+                let super_class_position = self.buffer.len();
+                self.convert_expression(super_class);
+                // set the end to the end of the super class if it exists
+                body_start = self.buffer[super_class_position + 8..super_class_position + 12].try_into().unwrap();
+            }
+            None => {
+                reference_position += 4;
+                // set the end to the end of the id if no super class exists
+                body_start = self.buffer[id_position + 8..id_position + 12].try_into().unwrap();
+            }
+        }
+        // body
+        self.update_reference_position(reference_position);
+        let class_body_start = find_first_occurrence_outside_comment(self.code, b'{', u32::from_ne_bytes(body_start) + 1);
+        self.convert_class_body(&class.body, class_body_start, class.span.hi.0 - 1);
+    }
+
+    fn convert_class_body(&mut self, class_members: &Vec<ClassMember>, start: u32, end: u32) {
+        // type
+        self.buffer.extend_from_slice(&TYPE_CLASS_BODY);
+        // start
+        self.buffer.extend_from_slice(&start.to_ne_bytes());
+        // end
+        self.buffer.extend_from_slice(&end.to_ne_bytes());
+        // body
+        self.convert_item_list(class_members, |ast_converter, class_member| ast_converter.convert_class_member(class_member));
+    }
+
+    fn convert_return_statement(&mut self, return_statement: &ReturnStmt) {
+        self.add_type_and_positions(&TYPE_RETURN_STATEMENT, &return_statement.span);
+        // reserve argument
+        let reference_position = self.reserve_reference_positions(1);
+        // argument
+        return_statement.arg.as_ref().map(|argument| {
+            self.update_reference_position(reference_position);
+            self.convert_expression(argument)
+        });
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -615,6 +701,10 @@ const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 27u32.to_ne_bytes();
 const TYPE_ARRAY_LITERAL: [u8; 4] = 28u32.to_ne_bytes();
 const TYPE_IMPORT_EXPRESSION: [u8; 4] = 29u32.to_ne_bytes();
 const TYPE_CONDITIONAL_EXPRESSION: [u8; 4] = 30u32.to_ne_bytes();
+const TYPE_FUNCTION_DECLARATION: [u8; 4] = 31u32.to_ne_bytes();
+const TYPE_CLASS_DECLARATION: [u8; 4] = 32u32.to_ne_bytes();
+const TYPE_CLASS_BODY: [u8; 4] = 33u32.to_ne_bytes();
+const TYPE_RETURN_STATEMENT: [u8; 4] = 34u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();

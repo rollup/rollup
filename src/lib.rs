@@ -8,6 +8,7 @@ use napi_derive::napi;
 use swc::{Compiler, config::ParseOptions};
 use swc_common::{errors::{DiagnosticBuilder, Emitter, Handler}, FileName, FilePathMapping, GLOBALS, Globals, SourceMap};
 use std::time::{Instant};
+use swc_common::sync::Lrc;
 
 use convert_ast::converter::AstConverter;
 
@@ -37,8 +38,8 @@ pub fn parse(code: String) -> Buffer {
     GLOBALS.set(&Globals::default(), || {
         compiler.run(|| {
             let swc_start = Instant::now();
-            let code_length = code.len() as u32;
             let file = compiler.cm.new_source_file(filename, code);
+            let code_reference = Lrc::clone(&file.src);
             let comments = None;
             let program = compiler.parse_js(
                 file,
@@ -53,7 +54,7 @@ pub fn parse(code: String) -> Buffer {
                 Err(anyhow!("failed to parse"))
             } else {
                 let converter_start = Instant::now();
-                let converter = AstConverter::new(code_length);
+                let converter = AstConverter::new(code_reference.as_bytes());
                 let buffer = converter.convert_ast_to_buffer(&program);
                 println!("converter took {:?}", converter_start.elapsed());
                 Ok(buffer)

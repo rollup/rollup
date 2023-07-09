@@ -76,12 +76,11 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const sourcePosition = buffer[position++];
-		const source = sourcePosition ? convertNode(sourcePosition, buffer, readString) : null;
 		const specifiers = convertNodeList(position, buffer, readString);
 		return {
 			declaration: null,
 			end,
-			source,
+			source: sourcePosition ? convertNode(sourcePosition, buffer, readString) : null,
 			specifiers,
 			start,
 			type: 'ExportNamedDeclaration'
@@ -106,12 +105,11 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const init_position = buffer[position++];
-		const init = init_position ? convertNode(init_position, buffer, readString) : null;
 		const id = convertNode(position, buffer, readString);
 		return {
 			end,
 			id,
-			init,
+			init: init_position ? convertNode(init_position, buffer, readString) : null,
 			start,
 			type: 'VariableDeclarator'
 		};
@@ -452,6 +450,71 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			test,
 			type: 'ConditionalExpression'
+		};
+	},
+	// FunctionDeclaration
+	(
+		position,
+		buffer,
+		readString
+	): estree.FunctionDeclaration & AcornNode & { expression: false } => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const async = !!buffer[position++];
+		const generator = !!buffer[position++];
+		const id = convertNode(buffer[position++], buffer, readString);
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const body = convertNode(position, buffer, readString);
+		return {
+			async,
+			body,
+			end,
+			expression: false,
+			generator,
+			id,
+			params: parameters,
+			start,
+			type: 'FunctionDeclaration'
+		};
+	},
+	// ClassDeclaration
+	(position, buffer, readString): estree.ClassDeclaration & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const superClassPosition = buffer[position++];
+		const body = convertNode(buffer[position++], buffer, readString);
+		const id = convertNode(position, buffer, readString);
+		return {
+			body,
+			end,
+			id,
+			start,
+			superClass: superClassPosition ? convertNode(superClassPosition, buffer, readString) : null,
+			type: 'ClassDeclaration'
+		};
+	},
+	// ClassBody
+	(position, buffer, readString): estree.ClassBody & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			body,
+			end,
+			start,
+			type: 'ClassBody'
+		};
+	},
+	// ReturnStatement
+	(position, buffer, readString): estree.ReturnStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argumentPosition = buffer[position];
+		return {
+			argument: argumentPosition ? convertNode(argumentPosition, buffer, readString) : null,
+			end,
+			start,
+			type: 'ReturnStatement'
 		};
 	}
 ];
