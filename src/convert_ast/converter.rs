@@ -254,9 +254,10 @@ impl<'a> AstConverter<'a> {
     fn convert_property(&mut self, property: &Prop) {
         match property {
             Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
+            Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
             _ => {
                 dbg!(property);
-                todo!("Cannot convert property")
+                todo!("Cannot convert Property")
             }
         }
     }
@@ -725,6 +726,12 @@ impl<'a> AstConverter<'a> {
             }
         }
     }
+
+    fn convert_shorthand_property(&mut self, identifier: &Ident) {
+        self.add_type_and_positions(&TYPE_SHORTHAND_PROPERTY, &identifier.span);
+        // key/value
+        self.convert_identifier(identifier);
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -765,6 +772,7 @@ const TYPE_CLASS_BODY: [u8; 4] = 33u32.to_ne_bytes();
 const TYPE_RETURN_STATEMENT: [u8; 4] = 34u32.to_ne_bytes();
 const TYPE_OBJECT_LITERAL: [u8; 4] = 35u32.to_ne_bytes();
 const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 36u32.to_ne_bytes();
+const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 37u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();

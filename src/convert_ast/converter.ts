@@ -546,6 +546,24 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'Property',
 			value
 		};
+	},
+	// ShorthandProperty -> Property
+	(position, buffer, readString): estree.Property & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const key = convertNode(position, buffer, readString);
+		const value = key;
+		return {
+			computed: false,
+			end,
+			key,
+			kind: 'init',
+			method: false,
+			shorthand: true,
+			start,
+			type: 'Property',
+			value
+		};
 	}
 ];
 
