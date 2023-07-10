@@ -300,7 +300,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			value
 		};
 	},
-	// ExportDefaultExpression -> ExportDefaultDeclaration
+	// ExportDefaultDeclaration
 	(position, buffer, readString): estree.ExportDefaultDeclaration & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -462,7 +462,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const async = !!buffer[position++];
 		const generator = !!buffer[position++];
-		const id = convertNode(buffer[position++], buffer, readString);
+		const idPosition = buffer[position++];
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const body = convertNode(position, buffer, readString);
 		return {
@@ -471,7 +471,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			expression: false,
 			generator,
-			id,
+			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
 			params: parameters,
 			start,
 			type: 'FunctionDeclaration'

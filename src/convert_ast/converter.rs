@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -124,7 +124,7 @@ impl<'a> AstConverter<'a> {
             Expr::Object(object_literal) => self.convert_object_literal(object_literal),
             Expr::Assign(assignment_expression) => self.convert_assignment_expression(assignment_expression),
             Expr::New(new_expression) => self.convert_new_expression(new_expression),
-            Expr::Fn(function_expression) => self.convert_function_expression(function_expression),
+            Expr::Fn(function_expression) => self.convert_function_expression(function_expression, &TYPE_FUNCTION_EXPRESSION),
             Expr::Paren(parenthesized_expression) => self.convert_parenthesized_expression(parenthesized_expression),
             _ => {
                 dbg!(expression);
@@ -155,6 +155,9 @@ impl<'a> AstConverter<'a> {
                 self.convert_export_default_expression(export_default_expression)
             }
             ModuleDecl::ExportAll(export_all) => self.convert_export_all(export_all),
+            ModuleDecl::ExportDefaultDecl(export_default_declaration) => {
+                self.convert_export_default_declaration(export_default_declaration)
+            },
             _ => {
                 dbg!(module_declaration);
                 todo!("Cannot convert ModuleDeclaration");
@@ -528,7 +531,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_export_default_expression(&mut self, export_default_expression: &ExportDefaultExpr) {
-        self.add_type_and_positions(&TYPE_EXPORT_DEFAULT_EXPRESSION, &export_default_expression.span);
+        self.add_type_and_positions(&TYPE_EXPORT_DEFAULT_DECLARATION, &export_default_expression.span);
         // expression
         self.convert_expression(&export_default_expression.expr);
     }
@@ -642,21 +645,15 @@ impl<'a> AstConverter<'a> {
 
     fn convert_function_declaration(&mut self, function_declaration: &FnDecl) {
         let function = &function_declaration.function;
-        self.add_type_and_positions(&TYPE_FUNCTION_DECLARATION, &function.span);
-        // async
-        self.convert_boolean(function.is_async);
-        // generator
-        self.convert_boolean(function.is_generator);
-        // reserve id, params
-        let mut reference_position = self.reserve_reference_positions(2);
-        // body
-        self.convert_block_statement(function.body.as_ref().unwrap());
-        // id
-        reference_position = self.update_reference_position(reference_position);
-        self.convert_identifier(&function_declaration.ident);
-        // params
-        self.update_reference_position(reference_position);
-        self.convert_item_list(&function.params, |ast_converter, param| ast_converter.convert_pattern(&param.pat));
+        self.store_function_node(
+            &TYPE_FUNCTION_DECLARATION,
+            function.span.lo.0,
+            function.span.hi.0, function.is_async,
+            function.is_generator,
+            Some(&function_declaration.ident),
+            &function.params,
+            function.body.as_ref().unwrap(),
+        );
     }
 
     fn convert_class_declaration(&mut self, class_declaration: &ClassDecl) {
@@ -766,7 +763,8 @@ impl<'a> AstConverter<'a> {
             Some(block_statement) => {
                 self.update_reference_position(reference_position);
                 let key_end = u32::from_ne_bytes(self.buffer[key_position + 8..key_position + 12].try_into().unwrap());
-                self.store_function_expression(
+                self.store_function_node(
+                    &TYPE_FUNCTION_EXPRESSION,
                     find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1,
                     block_statement.span.hi.0,
                     false,
@@ -829,9 +827,10 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_function_expression(&mut self, function_expression: &FnExpr) {
+    fn convert_function_expression(&mut self, function_expression: &FnExpr, node_type: &[u8; 4]) {
         let function = &function_expression.function;
-        self.store_function_expression(
+        self.store_function_node(
+            node_type,
             function.span.lo.0,
             function.span.hi.0, function.is_async,
             function.is_generator,
@@ -841,9 +840,9 @@ impl<'a> AstConverter<'a> {
         );
     }
 
-    fn store_function_expression(&mut self, start: u32, end: u32, is_async: bool, is_generator: bool, identifier: Option<&Ident>, parameters: &Vec<Param>, body: &BlockStmt) {
+    fn store_function_node(&mut self, node_type: &[u8; 4], start: u32, end: u32, is_async: bool, is_generator: bool, identifier: Option<&Ident>, parameters: &Vec<Param>, body: &BlockStmt) {
         // type
-        self.buffer.extend_from_slice(&TYPE_FUNCTION_EXPRESSION);
+        self.buffer.extend_from_slice(node_type);
         // start
         self.buffer.extend_from_slice(&(start - 1).to_ne_bytes());
         // end
@@ -871,6 +870,20 @@ impl<'a> AstConverter<'a> {
         // argument
         self.convert_expression(&throw_statement.arg);
     }
+
+    fn convert_export_default_declaration(&mut self, export_default_declaration: &ExportDefaultDecl) {
+        self.add_type_and_positions(&TYPE_EXPORT_DEFAULT_DECLARATION, &export_default_declaration.span);
+        // declaration
+        match &export_default_declaration.decl {
+            DefaultDecl::Fn(function_expression) => {
+                self.convert_function_expression(&function_expression, &TYPE_FUNCTION_DECLARATION);
+            }
+            _ => {
+                dbg!(&export_default_declaration.decl);
+                todo!("Cannot convert ExportDefaultDeclaration");
+            }
+        }
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -894,7 +907,7 @@ const TYPE_MEMBER_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
 const TYPE_PRIVATE_NAME: [u8; 4] = 17u32.to_ne_bytes();
 const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 18u32.to_ne_bytes();
 const TYPE_BOOLEAN: [u8; 4] = 19u32.to_ne_bytes();
-const TYPE_EXPORT_DEFAULT_EXPRESSION: [u8; 4] = 20u32.to_ne_bytes();
+const TYPE_EXPORT_DEFAULT_DECLARATION: [u8; 4] = 20u32.to_ne_bytes();
 const TYPE_NULL: [u8; 4] = 21u32.to_ne_bytes();
 const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 22u32.to_ne_bytes();
 const TYPE_EXPORT_ALL: [u8; 4] = 23u32.to_ne_bytes();
