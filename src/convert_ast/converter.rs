@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -103,6 +103,7 @@ impl<'a> AstConverter<'a> {
             Stmt::Expr(expression_statement) => self.convert_expression_statement(expression_statement),
             Stmt::Decl(declaration) => self.convert_declaration(declaration),
             Stmt::Return(return_statement) => self.convert_return_statement(return_statement),
+            Stmt::Throw(throw_statement) => self.convert_throw_statement(throw_statement),
             _ => {
                 dbg!(statement);
                 todo!("Cannot convert Statement");
@@ -864,6 +865,12 @@ impl<'a> AstConverter<'a> {
         self.update_reference_position(reference_position + 4);
         self.convert_item_list(parameters, |ast_converter, param| ast_converter.convert_pattern(&param.pat));
     }
+
+    fn convert_throw_statement(&mut self, throw_statement: &ThrowStmt) {
+        self.add_type_and_positions(&TYPE_THROW_STATEMENT, &throw_statement.span);
+        // argument
+        self.convert_expression(&throw_statement.arg);
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -909,6 +916,7 @@ const TYPE_GETTER_PROPERTY: [u8; 4] = 38u32.to_ne_bytes();
 const TYPE_ASSIGNMENT_EXPRESSION: [u8; 4] = 39u32.to_ne_bytes();
 const TYPE_NEW_EXPRESSION: [u8; 4] = 40u32.to_ne_bytes();
 const TYPE_FUNCTION_EXPRESSION: [u8; 4] = 41u32.to_ne_bytes();
+const TYPE_THROW_STATEMENT: [u8; 4] = 42u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();

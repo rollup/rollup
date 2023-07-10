@@ -633,6 +633,18 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'FunctionExpression'
 		};
+	},
+	// ThrowStatement
+	(position, buffer, readString): estree.ThrowStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(position, buffer, readString);
+		return {
+			argument,
+			end,
+			start,
+			type: 'ThrowStatement'
+		};
 	}
 ];
 
