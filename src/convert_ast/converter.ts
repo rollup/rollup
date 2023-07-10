@@ -564,6 +564,75 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'Property',
 			value
 		};
+	},
+	// GetterProperty -> Property
+	(position, buffer, readString): estree.Property & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const value = convertNode(buffer[position++], buffer, readString);
+		const key = convertNode(position, buffer, readString);
+		return {
+			computed: false,
+			end,
+			key,
+			kind: 'get',
+			method: false,
+			shorthand: false,
+			start,
+			type: 'Property',
+			value
+		};
+	},
+	// AssignmentExpression
+	(position, buffer, readString): estree.AssignmentExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const operator = convertString(position, buffer, readString) as estree.AssignmentOperator;
+		return {
+			end,
+			left,
+			operator,
+			right,
+			start,
+			type: 'AssignmentExpression'
+		};
+	},
+	// NewExpression
+	(position, buffer, readString): estree.NewExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argumentsPosition = buffer[position++];
+		const callee = convertNode(position, buffer, readString);
+		return {
+			arguments: argumentsPosition ? convertNodeList(argumentsPosition, buffer, readString) : [],
+			callee,
+			end,
+			start,
+			type: 'NewExpression'
+		};
+	},
+	// FunctionExpression
+	(position, buffer, readString): estree.FunctionExpression & AcornNode & { expression: false } => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const async = !!buffer[position++];
+		const generator = !!buffer[position++];
+		const idPosition = buffer[position++];
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const body = convertNode(position, buffer, readString);
+		return {
+			async,
+			body,
+			end,
+			expression: false,
+			generator,
+			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
+			params: parameters,
+			start,
+			type: 'FunctionExpression'
+		};
 	}
 ];
 

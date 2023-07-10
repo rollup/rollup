@@ -138,23 +138,34 @@ export default class Graph {
 				  }
 				: comments;
 
-		console.time('acorn');
+		// console.time('acorn');
 		const acornAst = this.acornParser.parse(code, {
 			...(this.options.acorn as unknown as acorn.Options),
 			...options
 		});
-		console.timeEnd('acorn');
-		console.time('swc');
-		const astBuffer = native.parse(code);
-		console.timeEnd('swc');
-		console.time('convert');
-		console.log('Size acorn:', JSON.stringify(acornAst).length, ', swc:', astBuffer.length);
-		const ast = convertProgram(astBuffer.buffer, (start, length) =>
-			astBuffer.toString('utf8', start, start + length)
-		);
-		console.timeEnd('convert');
-		console.log(JSON.stringify(code));
-		assert.deepStrictEqual(ast, JSON.parse(JSON.stringify(acornAst)));
+		// console.timeEnd('acorn');
+		let ast: acorn.Node;
+		let astBuffer: Buffer;
+		try {
+			// console.time('swc');
+			astBuffer = native.parse(code);
+			ast = convertProgram(astBuffer.buffer, (start, length) =>
+				astBuffer.toString('utf8', start, start + length)
+			);
+			// console.timeEnd('swc');
+			assert.deepStrictEqual(ast, JSON.parse(JSON.stringify(acornAst)));
+		} catch (error_) {
+			console.log(JSON.stringify(code));
+			console.log(
+				'Size acorn:',
+				JSON.stringify(acornAst).length,
+				', swc:',
+				astBuffer!.length,
+				'code:',
+				code.length
+			);
+			throw error_;
+		}
 
 		if (typeof onCommentOrig == 'object') {
 			onCommentOrig.push(...comments);
@@ -162,9 +173,9 @@ export default class Graph {
 
 		options.onComment = onCommentOrig;
 
-		addAnnotations(comments, ast, code);
+		addAnnotations(comments, ast!, code);
 
-		return ast;
+		return ast!;
 	}
 
 	getCache(): RollupCache {

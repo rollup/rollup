@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -13,13 +13,15 @@ pub struct AstConverter<'a> {
 impl<'a> AstConverter<'a> {
     pub fn new(code: &'a [u8]) -> Self {
         Self {
-            buffer: Vec::new(),
+            // TODO Lukas This is just a wild guess and should be refined with a large block of minified code
+            buffer: Vec::with_capacity(20 * code.len()),
             code,
         }
     }
 
     pub fn convert_ast_to_buffer(mut self, node: &Program) -> Buffer {
         self.convert_program(node);
+        self.buffer.shrink_to_fit();
         self.buffer.into()
     }
 
@@ -34,7 +36,7 @@ impl<'a> AstConverter<'a> {
         self.buffer.extend_from_slice(&(span.hi.0 - 1).to_ne_bytes());
     }
 
-    fn convert_item_list<T, F>(&mut self, item_list: &Vec<T>, convert_item: F)
+    fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
         where F: Fn(&mut AstConverter, &T)
     {
         // store number of items in first position
@@ -119,6 +121,10 @@ impl<'a> AstConverter<'a> {
             Expr::Array(array_literal) => self.convert_array_literal(array_literal),
             Expr::Cond(conditional_expression) => self.convert_conditional_expression(conditional_expression),
             Expr::Object(object_literal) => self.convert_object_literal(object_literal),
+            Expr::Assign(assignment_expression) => self.convert_assignment_expression(assignment_expression),
+            Expr::New(new_expression) => self.convert_new_expression(new_expression),
+            Expr::Fn(function_expression) => self.convert_function_expression(function_expression),
+            Expr::Paren(parenthesized_expression) => self.convert_parenthesized_expression(parenthesized_expression),
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -172,6 +178,7 @@ impl<'a> AstConverter<'a> {
             Pat::Ident(binding_identifier) => self.convert_binding_identifier(binding_identifier),
             Pat::Array(array_pattern) => self.convert_array_pattern(array_pattern),
             Pat::Object(object) => self.convert_object_pattern(object),
+            Pat::Expr(expression) => self.convert_expression(expression),
             _ => {
                 dbg!(pattern);
                 todo!("Cannot convert Pattern");
@@ -255,11 +262,23 @@ impl<'a> AstConverter<'a> {
         match property {
             Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
             Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
+            Prop::Getter(getter_property) => self.convert_getter_property(getter_property),
             _ => {
                 dbg!(property);
                 todo!("Cannot convert Property")
             }
         }
+    }
+
+    fn convert_pattern_or_expression(&mut self, pattern_or_expression: &PatOrExpr) {
+        match pattern_or_expression {
+            PatOrExpr::Pat(pattern) => self.convert_pattern(pattern),
+            PatOrExpr::Expr(expression) => self.convert_expression(expression)
+        }
+    }
+
+    fn convert_parenthesized_expression(&mut self, parenthesized_expression: &ParenExpr) {
+        self.convert_expression(&parenthesized_expression.expr);
     }
 
     // === nodes
@@ -665,7 +684,7 @@ impl<'a> AstConverter<'a> {
         }
         // body
         self.update_reference_position(reference_position);
-        let class_body_start = find_first_occurrence_outside_comment(self.code, b'{', u32::from_ne_bytes(body_start) + 1);
+        let class_body_start = find_first_occurrence_outside_comment(self.code, b'{', u32::from_ne_bytes(body_start));
         self.convert_class_body(&class.body, class_body_start, class.span.hi.0 - 1);
     }
 
@@ -720,6 +739,7 @@ impl<'a> AstConverter<'a> {
     fn convert_property_name(&mut self, property_name: &PropName) {
         match property_name {
             PropName::Ident(ident) => self.convert_identifier(ident),
+            PropName::Computed(computed_property_name) => self.convert_expression(computed_property_name.expr.as_ref()),
             _ => {
                 dbg!(property_name);
                 todo!("Cannot convert PropertyName");
@@ -731,6 +751,118 @@ impl<'a> AstConverter<'a> {
         self.add_type_and_positions(&TYPE_SHORTHAND_PROPERTY, &identifier.span);
         // key/value
         self.convert_identifier(identifier);
+    }
+
+    fn convert_getter_property(&mut self, getter_property: &GetterProp) {
+        self.add_type_and_positions(&TYPE_GETTER_PROPERTY, &getter_property.span);
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        let key_position = self.buffer.len();
+        self.convert_property_name(&getter_property.key);
+        // value
+        match &getter_property.body {
+            Some(block_statement) => {
+                self.update_reference_position(reference_position);
+                let key_end = u32::from_ne_bytes(self.buffer[key_position + 8..key_position + 12].try_into().unwrap());
+                self.store_function_expression(
+                    find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1,
+                    block_statement.span.hi.0,
+                    false,
+                    false,
+                    None,
+                    &vec![],
+                    block_statement,
+                );
+            }
+            None => {
+                panic!("Getter property without body");
+            }
+        }
+    }
+
+    fn convert_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
+        self.add_type_and_positions(&TYPE_ASSIGNMENT_EXPRESSION, &assignment_expression.span);
+        // reserve left, right
+        let reference_position = self.reserve_reference_positions(2);
+        // operator
+        self.convert_string(match assignment_expression.op {
+            AssignOp::Assign => "=",
+            AssignOp::AddAssign => "+=",
+            AssignOp::SubAssign => "-=",
+            AssignOp::MulAssign => "*=",
+            AssignOp::DivAssign => "/=",
+            AssignOp::ModAssign => "%=",
+            AssignOp::LShiftAssign => "<<=",
+            AssignOp::RShiftAssign => ">>=",
+            AssignOp::ZeroFillRShiftAssign => ">>>=",
+            AssignOp::BitOrAssign => "|=",
+            AssignOp::BitXorAssign => "^=",
+            AssignOp::BitAndAssign => "&=",
+            AssignOp::ExpAssign => "**=",
+            AssignOp::AndAssign => "&&=",
+            AssignOp::OrAssign => "||=",
+            AssignOp::NullishAssign => "??="
+        });
+        // left
+        self.update_reference_position(reference_position);
+        self.convert_pattern_or_expression(&assignment_expression.left);
+        // right
+        self.update_reference_position(reference_position + 4);
+        self.convert_expression(&assignment_expression.right);
+    }
+
+    fn convert_new_expression(&mut self, new_expression: &NewExpr) {
+        self.add_type_and_positions(&TYPE_NEW_EXPRESSION, &new_expression.span);
+        // reserve args
+        let reference_position = self.reserve_reference_positions(1);
+        // callee
+        self.convert_expression(&new_expression.callee);
+        // args
+        match &new_expression.args {
+            Some(expressions_or_spread) => {
+                self.update_reference_position(reference_position);
+                self.convert_item_list(&expressions_or_spread, |ast_converter, expression_or_spread| ast_converter.convert_expression_or_spread(expression_or_spread));
+            }
+            None => {}
+        }
+    }
+
+    fn convert_function_expression(&mut self, function_expression: &FnExpr) {
+        let function = &function_expression.function;
+        self.store_function_expression(
+            function.span.lo.0,
+            function.span.hi.0, function.is_async,
+            function.is_generator,
+            function_expression.ident.as_ref(),
+            &function.params,
+            function.body.as_ref().unwrap(),
+        );
+    }
+
+    fn store_function_expression(&mut self, start: u32, end: u32, is_async: bool, is_generator: bool, identifier: Option<&Ident>, parameters: &Vec<Param>, body: &BlockStmt) {
+        // type
+        self.buffer.extend_from_slice(&TYPE_FUNCTION_EXPRESSION);
+        // start
+        self.buffer.extend_from_slice(&(start - 1).to_ne_bytes());
+        // end
+        self.buffer.extend_from_slice(&(end - 1).to_ne_bytes());
+        // async
+        self.convert_boolean(is_async);
+        // generator
+        self.convert_boolean(is_generator);
+        // reserve id, params
+        let reference_position = self.reserve_reference_positions(2);
+        // body
+        self.convert_block_statement(body);
+        // id
+        identifier.map(|ident| {
+            self.update_reference_position(reference_position);
+            self.convert_identifier(ident);
+        });
+        // params
+        self.update_reference_position(reference_position + 4);
+        self.convert_item_list(parameters, |ast_converter, param| ast_converter.convert_pattern(&param.pat));
     }
 }
 
@@ -773,6 +905,10 @@ const TYPE_RETURN_STATEMENT: [u8; 4] = 34u32.to_ne_bytes();
 const TYPE_OBJECT_LITERAL: [u8; 4] = 35u32.to_ne_bytes();
 const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 36u32.to_ne_bytes();
 const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 37u32.to_ne_bytes();
+const TYPE_GETTER_PROPERTY: [u8; 4] = 38u32.to_ne_bytes();
+const TYPE_ASSIGNMENT_EXPRESSION: [u8; 4] = 39u32.to_ne_bytes();
+const TYPE_NEW_EXPRESSION: [u8; 4] = 40u32.to_ne_bytes();
+const TYPE_FUNCTION_EXPRESSION: [u8; 4] = 41u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
