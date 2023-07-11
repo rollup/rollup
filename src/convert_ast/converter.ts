@@ -17,6 +17,134 @@ const convertNode = (position: number, buffer: Uint32Array, readString: ReadStri
 };
 
 const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadString) => any)[] = [
+	// ArrayExpression
+	(position, buffer, readString): estree.ArrayExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const elements = convertNodeList(position, buffer, readString);
+		return {
+			elements,
+			end,
+			start,
+			type: 'ArrayExpression'
+		};
+	},
+	// ArrayPattern
+	(position, buffer, readString): estree.ArrayPattern & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const elements = convertNodeList(position, buffer, readString);
+		return {
+			elements,
+			end,
+			start,
+			type: 'ArrayPattern'
+		};
+	},
+	// ArrowFunctionExpression
+	(position, buffer, readString): estree.ArrowFunctionExpression & AcornNode & { id: null } => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const async = !!buffer[position++];
+		const generator = !!buffer[position++];
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const expression = !!buffer[position++];
+		const body = convertNode(position, buffer, readString);
+		return {
+			async,
+			body,
+			end,
+			expression,
+			generator,
+			// acorn adds this for weird reasons
+			id: null,
+			params: parameters,
+			start,
+			type: 'ArrowFunctionExpression'
+		};
+	},
+	// AssignmentExpression
+	(position, buffer, readString): estree.AssignmentExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const operator = convertString(position, buffer, readString) as estree.AssignmentOperator;
+		return {
+			end,
+			left,
+			operator,
+			right,
+			start,
+			type: 'AssignmentExpression'
+		};
+	},
+	// AssignmentPattern
+	(position, buffer, readString): estree.AssignmentPattern & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(position, buffer, readString);
+		return {
+			end,
+			left,
+			right,
+			start,
+			type: 'AssignmentPattern'
+		};
+	},
+	// AwaitExpression
+	(position, buffer, readString): estree.AwaitExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(position, buffer, readString);
+		return {
+			argument,
+			end,
+			start,
+			type: 'AwaitExpression'
+		};
+	},
+	// BinaryExpression
+	(position, buffer, readString): estree.BinaryExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const operator = convertString(position, buffer, readString) as estree.BinaryOperator;
+		return {
+			end,
+			left,
+			operator,
+			right,
+			start,
+			type: 'BinaryExpression'
+		};
+	},
+	// BlockStatement
+	(position, buffer, readString): estree.BlockStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			body,
+			end,
+			start,
+			type: 'BlockStatement'
+		};
+	},
+	// BreakStatement
+	(position, buffer, readString): estree.BreakStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const labelPosition = buffer[position++];
+		return {
+			end,
+			label: labelPosition ? convertNode(labelPosition, buffer, readString) : null,
+			start,
+			type: 'BreakStatement'
+		};
+	},
 	// Module -> Program
 	(position, buffer, readString): estree.Program & AcornNode => {
 		const start = buffer[position++];
@@ -200,40 +328,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'CallExpression'
 		};
 	},
-	// ArrowExpression -> ArrowFunctionExpression
-	(position, buffer, readString): estree.ArrowFunctionExpression & AcornNode & { id: null } => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const async = !!buffer[position++];
-		const generator = !!buffer[position++];
-		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const expression = !!buffer[position++];
-		const body = convertNode(position, buffer, readString);
-		return {
-			async,
-			body,
-			end,
-			expression,
-			generator,
-			// acorn adds this for weird reasons
-			id: null,
-			params: parameters,
-			start,
-			type: 'ArrowFunctionExpression'
-		};
-	},
-	// BlockStatement
-	(position, buffer, readString): estree.BlockStatement & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const body = convertNodeList(position, buffer, readString);
-		return {
-			body,
-			end,
-			start,
-			type: 'BlockStatement'
-		};
-	},
 	// SpreadElement
 	(position, buffer, readString): estree.SpreadElement & AcornNode => {
 		const start = buffer[position++];
@@ -353,34 +447,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'ExportAllDeclaration'
 		};
 	},
-	// BinaryExpression
-	(position, buffer, readString): estree.BinaryExpression & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
-		const right = convertNode(buffer[position++], buffer, readString);
-		const operator = convertString(position, buffer, readString) as estree.BinaryOperator;
-		return {
-			end,
-			left,
-			operator,
-			right,
-			start,
-			type: 'BinaryExpression'
-		};
-	},
-	// ArrayPattern
-	(position, buffer, readString): estree.ArrayPattern & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const elements = convertNodeList(position, buffer, readString);
-		return {
-			elements,
-			end,
-			start,
-			type: 'ArrayPattern'
-		};
-	},
 	// ObjectPattern
 	(position, buffer, readString): estree.ObjectPattern & AcornNode => {
 		const start = buffer[position++];
@@ -410,18 +476,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'Property',
 			value
-		};
-	},
-	// ArrayLiteral -> ArrayExpression
-	(position, buffer, readString): estree.ArrayExpression & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const elements = convertNodeList(position, buffer, readString);
-		return {
-			elements,
-			end,
-			start,
-			type: 'ArrayExpression'
 		};
 	},
 	// ImportExpression
@@ -583,22 +637,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			value
 		};
 	},
-	// AssignmentExpression
-	(position, buffer, readString): estree.AssignmentExpression & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
-		const right = convertNode(buffer[position++], buffer, readString);
-		const operator = convertString(position, buffer, readString) as estree.AssignmentOperator;
-		return {
-			end,
-			left,
-			operator,
-			right,
-			start,
-			type: 'AssignmentExpression'
-		};
-	},
 	// NewExpression
 	(position, buffer, readString): estree.NewExpression & AcornNode => {
 		const start = buffer[position++];
@@ -644,6 +682,20 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			start,
 			type: 'ThrowStatement'
+		};
+	},
+	// LabeledStatement
+	(position, buffer, readString): estree.LabeledStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNode(buffer[position++], buffer, readString);
+		const label = convertNode(position, buffer, readString);
+		return {
+			body,
+			end,
+			label,
+			start,
+			type: 'LabeledStatement'
 		};
 	}
 ];

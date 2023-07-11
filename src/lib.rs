@@ -9,6 +9,7 @@ use swc::{Compiler, config::ParseOptions};
 use swc_common::{errors::{DiagnosticBuilder, Emitter, Handler}, FileName, FilePathMapping, GLOBALS, Globals, SourceMap};
 // use std::time::{Instant};
 use swc_common::sync::Lrc;
+use swc_ecma_ast::EsVersion;
 
 use convert_ast::converter::AstConverter;
 
@@ -30,7 +31,8 @@ impl Emitter for TestEmitter {
 #[napi]
 pub fn parse(code: String) -> Buffer {
     let compiler = get_compiler();
-    let compiler_options = ParseOptions::default();
+    let mut compiler_options = ParseOptions::default();
+    compiler_options.target = EsVersion::EsNext;
     let filename = FileName::Anon;
     let emitter = TestEmitter {};
     let handler = Handler::with_emitter(true, false, Box::new(emitter));
