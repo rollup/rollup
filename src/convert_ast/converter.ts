@@ -42,14 +42,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// ArrowFunctionExpression
-	(
-		position,
-		buffer,
-		readString
-	): estree.ArrowFunctionExpression &
-		AcornNode & {
-			id: null;
-		} => {
+	(position, buffer, readString): estree.ArrowFunctionExpression & AcornNode & { id: null } => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const async = !!buffer[position++];
@@ -63,7 +56,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			expression,
 			generator,
-			// acorn adds this for weird reasons
 			id: null,
 			params: parameters,
 			start,
@@ -426,6 +418,80 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			update: updatePosition ? convertNode(updatePosition, buffer, readString) : null
 		};
 	},
+	// FunctionDeclaration
+	(
+		position,
+		buffer,
+		readString
+	): estree.FunctionDeclaration & AcornNode & { expression: false } => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const async = !!buffer[position++];
+		const generator = !!buffer[position++];
+		const idPosition = buffer[position++];
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const body = convertNode(position, buffer, readString);
+		return {
+			async,
+			body,
+			end,
+			expression: false,
+			generator,
+			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
+			params: parameters,
+			start,
+			type: 'FunctionDeclaration'
+		};
+	},
+	// FunctionExpression
+	(position, buffer, readString): estree.FunctionExpression & AcornNode & { expression: false } => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const async = !!buffer[position++];
+		const generator = !!buffer[position++];
+		const idPosition = buffer[position++];
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const body = convertNode(position, buffer, readString);
+		return {
+			async,
+			body,
+			end,
+			expression: false,
+			generator,
+			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
+			params: parameters,
+			start,
+			type: 'FunctionExpression'
+		};
+	},
+	// Identifier
+	(position, buffer, readString): estree.Identifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const name = convertString(position, buffer, readString);
+		return {
+			end,
+			name,
+			start,
+			type: 'Identifier'
+		};
+	},
+	// IfStatement
+	(position, buffer, readString): estree.IfStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const consequent = convertNode(buffer[position++], buffer, readString);
+		const alternatePosition = buffer[position++];
+		const test = convertNode(position, buffer, readString);
+		return {
+			alternate: alternatePosition ? convertNode(alternatePosition, buffer, readString) : null,
+			consequent,
+			end,
+			start,
+			test,
+			type: 'IfStatement'
+		};
+	},
 	// Module -> Program
 	(position, buffer, readString): estree.Program & AcornNode => {
 		const start = buffer[position++];
@@ -480,18 +546,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			init: init_position ? convertNode(init_position, buffer, readString) : null,
 			start,
 			type: 'VariableDeclarator'
-		};
-	},
-	// Identifier
-	(position, buffer, readString): estree.Identifier & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const name = convertString(position, buffer, readString);
-		return {
-			end,
-			name,
-			start,
-			type: 'Identifier'
 		};
 	},
 	// String -> Literal
@@ -672,31 +726,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'ImportExpression'
 		};
 	},
-	// FunctionDeclaration
-	(
-		position,
-		buffer,
-		readString
-	): estree.FunctionDeclaration & AcornNode & { expression: false } => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const async = !!buffer[position++];
-		const generator = !!buffer[position++];
-		const idPosition = buffer[position++];
-		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
-		return {
-			async,
-			body,
-			end,
-			expression: false,
-			generator,
-			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
-			params: parameters,
-			start,
-			type: 'FunctionDeclaration'
-		};
-	},
 	// ReturnStatement
 	(position, buffer, readString): estree.ReturnStatement & AcornNode => {
 		const start = buffer[position++];
@@ -787,34 +816,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			start,
 			type: 'NewExpression'
-		};
-	},
-	// FunctionExpression
-	(
-		position,
-		buffer,
-		readString
-	): estree.FunctionExpression &
-		AcornNode & {
-			expression: false;
-		} => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const async = !!buffer[position++];
-		const generator = !!buffer[position++];
-		const idPosition = buffer[position++];
-		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
-		return {
-			async,
-			body,
-			end,
-			expression: false,
-			generator,
-			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
-			params: parameters,
-			start,
-			type: 'FunctionExpression'
 		};
 	},
 	// ThrowStatement
