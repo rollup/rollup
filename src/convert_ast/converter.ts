@@ -329,17 +329,37 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'ExportDefaultDeclaration'
 		};
 	},
-	// Module -> Program
-	(position, buffer, readString): estree.Program & AcornNode => {
+	// ExportNamedDeclaration
+	(position, buffer, readString): estree.ExportNamedDeclaration & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const body = convertNodeList(position, buffer, readString);
+		const declarationPosition = buffer[position++];
+		const sourcePosition = buffer[position++];
+		const specifiers = convertNodeList(position, buffer, readString);
 		return {
-			body,
+			declaration: declarationPosition
+				? convertNode(declarationPosition, buffer, readString)
+				: null,
 			end,
-			sourceType: 'module',
+			source: sourcePosition ? convertNode(sourcePosition, buffer, readString) : null,
+			specifiers,
 			start,
-			type: 'Program'
+			type: 'ExportNamedDeclaration'
+		};
+	},
+	// ExportSpecifier
+	(position, buffer, readString): estree.ExportSpecifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const exportedPosition = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		const exported = exportedPosition ? convertNode(exportedPosition, buffer, readString) : local;
+		return {
+			end,
+			exported,
+			local,
+			start,
+			type: 'ExportSpecifier'
 		};
 	},
 	// ExpressionStatement
@@ -352,6 +372,71 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			expression,
 			start,
 			type: 'ExpressionStatement'
+		};
+	},
+	// ForInStatement
+	(position, buffer, readString): estree.ForInStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const body = convertNode(position, buffer, readString);
+		return {
+			body,
+			end,
+			left,
+			right,
+			start,
+			type: 'ForInStatement'
+		};
+	},
+	// ForOfStatement
+	(position, buffer, readString): estree.ForOfStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const awaited = !!buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const body = convertNode(position, buffer, readString);
+		return {
+			await: awaited,
+			body,
+			end,
+			left,
+			right,
+			start,
+			type: 'ForOfStatement'
+		};
+	},
+	// ForStatement
+	(position, buffer, readString): estree.ForStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const initPosition = buffer[position++];
+		const testPosition = buffer[position++];
+		const updatePosition = buffer[position++];
+		const body = convertNode(position, buffer, readString);
+		return {
+			body,
+			end,
+			init: initPosition ? convertNode(initPosition, buffer, readString) : null,
+			start,
+			test: testPosition ? convertNode(testPosition, buffer, readString) : null,
+			type: 'ForStatement',
+			update: updatePosition ? convertNode(updatePosition, buffer, readString) : null
+		};
+	},
+	// Module -> Program
+	(position, buffer, readString): estree.Program & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			body,
+			end,
+			sourceType: 'module',
+			start,
+			type: 'Program'
 		};
 	},
 	// Number -> Literal
@@ -367,35 +452,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'Literal',
 			value
-		};
-	},
-	// ExportDeclaration -> ExportNamedDeclaration
-	(position, buffer, readString): estree.ExportNamedDeclaration & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const declaration = convertNode(position, buffer, readString);
-		return {
-			declaration,
-			end,
-			source: null,
-			specifiers: [],
-			start,
-			type: 'ExportNamedDeclaration'
-		};
-	},
-	// NamedExport -> ExportNamedDeclaration
-	(position, buffer, readString): estree.ExportNamedDeclaration & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const sourcePosition = buffer[position++];
-		const specifiers = convertNodeList(position, buffer, readString);
-		return {
-			declaration: null,
-			end,
-			source: sourcePosition ? convertNode(sourcePosition, buffer, readString) : null,
-			specifiers,
-			start,
-			type: 'ExportNamedDeclaration'
 		};
 	},
 	// VariableDeclaration
@@ -451,21 +507,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'Literal',
 			value
-		};
-	},
-	// ExportNamedSpecifier -> ExportSpecifier
-	(position, buffer, readString): estree.ExportSpecifier & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const exportedPosition = buffer[position++];
-		const local = convertNode(position, buffer, readString);
-		const exported = exportedPosition ? convertNode(exportedPosition, buffer, readString) : local;
-		return {
-			end,
-			exported,
-			local,
-			start,
-			type: 'ExportSpecifier'
 		};
 	},
 	// ImportDeclaration

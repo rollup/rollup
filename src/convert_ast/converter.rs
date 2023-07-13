@@ -1,7 +1,6 @@
 use napi::bindgen_prelude::*;
-use swc_common::pass::Optional;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -79,11 +78,9 @@ impl<'a> AstConverter<'a> {
         reference_position
     }
 
-    // TODO Lukas instead of returning the updated value, maybe we just add in place everywhere
-    fn update_reference_position(&mut self, reference_position: usize) -> usize {
+    fn update_reference_position(&mut self, reference_position: usize) {
         let insert_position = (self.buffer.len() as u32) >> 2;
         self.buffer[reference_position..reference_position + 4].copy_from_slice(&insert_position.to_ne_bytes());
-        reference_position + 4
     }
 
     // === enums
@@ -116,6 +113,9 @@ impl<'a> AstConverter<'a> {
             Stmt::DoWhile(do_while_statement) => self.convert_do_while_statement(do_while_statement),
             Stmt::Empty(empty_statement) => self.convert_empty_statement(empty_statement),
             Stmt::Expr(expression_statement) => self.convert_expression_statement(expression_statement),
+            Stmt::For(for_statement) => self.convert_for_statement(for_statement),
+            Stmt::ForIn(for_in_statement) => self.convert_for_in_statement(for_in_statement),
+            Stmt::ForOf(for_of_statement) => self.convert_for_of_statement(for_of_statement),
             Stmt::Labeled(labeled_statement) => self.convert_labeled_statement(labeled_statement),
             Stmt::Return(return_statement) => self.convert_return_statement(return_statement),
             Stmt::Throw(throw_statement) => self.convert_throw_statement(throw_statement),
@@ -243,16 +243,6 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_stored_callee(&mut self, stored_callee: &StoredCallee) {
-        match stored_callee {
-            StoredCallee::Expression(expr) => self.convert_expression(expr),
-            _ => {
-                dbg!(stored_callee);
-                todo!("Cannot convert Callee");
-            }
-        }
-    }
-
     fn convert_object_pattern_property(&mut self, object_pattern_property: &ObjectPatProp) {
         match object_pattern_property {
             ObjectPatProp::Assign(assignment_pattern_property) => self.convert_assignment_pattern_property(assignment_pattern_property),
@@ -324,6 +314,36 @@ impl<'a> AstConverter<'a> {
         self.store_call_expression(&optional_call.span, is_optional, &StoredCallee::Expression(&optional_call.callee), &optional_call.args);
     }
 
+    fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
+        self.store_export_named_declaration(&export_declaration.span, &vec![], None, Some(&export_declaration.decl));
+    }
+
+    fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
+        self.store_export_named_declaration(&export_named_declaration.span, &export_named_declaration.specifiers, export_named_declaration.src.as_ref().map(|source| &**source), None);
+    }
+
+    fn convert_for_head(&mut self, for_head: &ForHead) {
+        match for_head {
+            ForHead::VarDecl(variable_declaration) => self.convert_variable_declaration(variable_declaration),
+            ForHead::Pat(pattern) => self.convert_pattern(pattern),
+            _ => {
+                dbg!(for_head);
+                todo!("Cannot convert ForHead")
+            }
+        }
+    }
+
+    fn convert_variable_declaration_or_expression(&mut self, variable_declaration_or_expression: &VarDeclOrExpr) {
+        match variable_declaration_or_expression {
+            VarDeclOrExpr::VarDecl(variable_declaration) => {
+                self.convert_variable_declaration(variable_declaration);
+            }
+            VarDeclOrExpr::Expr(expression) => {
+                self.convert_expression(expression);
+            }
+        }
+    }
+
     // === nodes
     fn convert_module_program(&mut self, module: &Module) {
         // type
@@ -343,22 +363,21 @@ impl<'a> AstConverter<'a> {
         self.convert_expression(&expression_statement.expr);
     }
 
-    fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
-        self.add_type_and_positions(&TYPE_EXPORT_DECLARATION, &export_declaration.span);
-        // declaration
-        self.convert_declaration(&export_declaration.decl);
-    }
-
-    fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
-        self.add_type_and_positions(&TYPE_NAMED_EXPORT, &export_named_declaration.span);
-        // reserve for src
-        let reference_position = self.reserve_reference_positions(1);
+    fn store_export_named_declaration(&mut self, span: &Span, specifiers: &Vec<ExportSpecifier>, src: Option<&Str>, declaration: Option<&Decl>) {
+        self.add_type_and_positions(&TYPE_EXPORT_NAMED_DECLARATION, span);
+        // reserve for declaration, src
+        let reference_position = self.reserve_reference_positions(2);
         // specifiers
-        self.convert_item_list(&export_named_declaration.specifiers, |ast_converter, specifier| ast_converter.convert_export_specifier(specifier));
-        // src
-        export_named_declaration.src.as_ref().map(|src| {
+        self.convert_item_list(specifiers, |ast_converter, specifier| ast_converter.convert_export_specifier(specifier));
+        // declaration
+        declaration.map(|declaration| {
             self.update_reference_position(reference_position);
-            self.convert_literal_string(&*src);
+            self.convert_declaration(declaration)
+        });
+        // src
+        src.map(|src| {
+            self.update_reference_position(reference_position + 4);
+            self.convert_literal_string(src)
         });
     }
 
@@ -418,7 +437,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_export_named_specifier(&mut self, export_named_specifier: &ExportNamedSpecifier) {
-        self.add_type_and_positions(&TYPE_EXPORT_NAMED_SPECIFIER, &export_named_specifier.span);
+        self.add_type_and_positions(&TYPE_EXPORT_SPECIFIER, &export_named_specifier.span);
         // reserve for exported
         let reference_position = self.reserve_reference_positions(1);
         // local
@@ -617,7 +636,7 @@ impl<'a> AstConverter<'a> {
     fn convert_binary_expression(&mut self, binary_expression: &BinExpr) {
         self.add_type_and_positions(&TYPE_BINARY_EXPRESSION, &binary_expression.span);
         // reserve left, right
-        let mut reference_position = self.reserve_reference_positions(2);
+        let reference_position = self.reserve_reference_positions(2);
         // operator
         self.convert_string(match binary_expression.op {
             BinaryOp::EqEq => "==",
@@ -647,10 +666,10 @@ impl<'a> AstConverter<'a> {
             BinaryOp::NullishCoalescing => "??",
         });
         // left
-        reference_position = self.update_reference_position(reference_position);
+        self.update_reference_position(reference_position);
         self.convert_expression(&binary_expression.left);
         // right
-        self.update_reference_position(reference_position);
+        self.update_reference_position(reference_position + 4);
         self.convert_expression(&binary_expression.right);
     }
 
@@ -694,14 +713,14 @@ impl<'a> AstConverter<'a> {
     fn convert_conditional_expression(&mut self, conditional_expression: &CondExpr) {
         self.add_type_and_positions(&TYPE_CONDITIONAL_EXPRESSION, &conditional_expression.span);
         // reserve test, consequent
-        let mut reference_position = self.reserve_reference_positions(2);
+        let reference_position = self.reserve_reference_positions(2);
         // alternate
         self.convert_expression(&conditional_expression.alt);
         // test
-        reference_position = self.update_reference_position(reference_position);
+        self.update_reference_position(reference_position);
         self.convert_expression(&conditional_expression.test);
         // consequent
-        self.update_reference_position(reference_position);
+        self.update_reference_position(reference_position + 4);
         self.convert_expression(&conditional_expression.cons);
     }
 
@@ -1006,6 +1025,7 @@ impl<'a> AstConverter<'a> {
         });
     }
 
+    // TODO Lukas there is a bug in the logic as nested chain expression may not be handled correctly
     fn convert_optional_chain_expression(&mut self, optional_chain_expression: &OptChainExpr) {
         match self.chain_state {
             ChainState::None => {
@@ -1061,6 +1081,59 @@ impl<'a> AstConverter<'a> {
     fn convert_empty_statement(&mut self, emtpy_statement: &EmptyStmt) {
         self.add_type_and_positions(&TYPE_EMPTY_STATEMENT, &emtpy_statement.span);
     }
+
+    fn convert_for_in_statement(&mut self, for_in_statement: &ForInStmt) {
+        self.add_type_and_positions(&TYPE_FOR_IN_STATEMENT, &for_in_statement.span);
+        // reserve left, right
+        let reference_position = self.reserve_reference_positions(2);
+        // body
+        self.convert_statement(&for_in_statement.body);
+        // left
+        self.update_reference_position(reference_position);
+        self.convert_for_head(&for_in_statement.left);
+        // right
+        self.update_reference_position(reference_position + 4);
+        self.convert_expression(&for_in_statement.right);
+    }
+
+    fn convert_for_of_statement(&mut self, for_of_statement: &ForOfStmt) {
+        self.add_type_and_positions(&TYPE_FOR_OF_STATEMENT, &for_of_statement.span);
+        // await
+        self.convert_boolean(for_of_statement.is_await);
+        // reserve left, right
+        let reference_position = self.reserve_reference_positions(2);
+        // body
+        self.convert_statement(&for_of_statement.body);
+        // left
+        self.update_reference_position(reference_position);
+        self.convert_for_head(&for_of_statement.left);
+        // right
+        self.update_reference_position(reference_position + 4);
+        self.convert_expression(&for_of_statement.right);
+    }
+
+    fn convert_for_statement(&mut self, for_statement: &ForStmt) {
+        self.add_type_and_positions(&TYPE_FOR_STATEMENT, &for_statement.span);
+        // reserve init, test, update
+        let reference_position = self.reserve_reference_positions(3);
+        // body
+        self.convert_statement(&for_statement.body);
+        // init
+        for_statement.init.as_ref().map(|init| {
+            self.update_reference_position(reference_position);
+            self.convert_variable_declaration_or_expression(init);
+        });
+        // test
+        for_statement.test.as_ref().map(|test| {
+            self.update_reference_position(reference_position + 4);
+            self.convert_expression(test);
+        });
+        // update
+        for_statement.update.as_ref().map(|update| {
+            self.update_reference_position(reference_position + 8);
+            self.convert_expression(update);
+        });
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -1086,41 +1159,43 @@ const TYPE_DO_WHILE_STATEMENT: [u8; 4] = 18u32.to_ne_bytes();
 const TYPE_EMPTY_STATEMENT: [u8; 4] = 19u32.to_ne_bytes();
 const TYPE_EXPORT_ALL_DECLARATION: [u8; 4] = 20u32.to_ne_bytes();
 const TYPE_EXPORT_DEFAULT_DECLARATION: [u8; 4] = 21u32.to_ne_bytes();
+const TYPE_EXPORT_NAMED_DECLARATION: [u8; 4] = 22u32.to_ne_bytes();
+const TYPE_EXPORT_SPECIFIER: [u8; 4] = 23u32.to_ne_bytes();
+const TYPE_EXPRESSION_STATEMENT: [u8; 4] = 24u32.to_ne_bytes();
+const TYPE_FOR_IN_STATEMENT: [u8; 4] = 25u32.to_ne_bytes();
+const TYPE_FOR_OF_STATEMENT: [u8; 4] = 26u32.to_ne_bytes();
+const TYPE_FOR_STATEMENT: [u8; 4] = 27u32.to_ne_bytes();
 
-const TYPE_MODULE: [u8; 4] = 22u32.to_ne_bytes();
-const TYPE_EXPRESSION_STATEMENT: [u8; 4] = 23u32.to_ne_bytes();
-const TYPE_NUMBER: [u8; 4] = 24u32.to_ne_bytes();
-const TYPE_EXPORT_DECLARATION: [u8; 4] = 25u32.to_ne_bytes();
-const TYPE_NAMED_EXPORT: [u8; 4] = 26u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 27u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 28u32.to_ne_bytes();
-const TYPE_IDENTIFIER: [u8; 4] = 29u32.to_ne_bytes();
-const TYPE_STRING: [u8; 4] = 30u32.to_ne_bytes();
-const TYPE_EXPORT_NAMED_SPECIFIER: [u8; 4] = 31u32.to_ne_bytes();
-const TYPE_IMPORT_DECLARATION: [u8; 4] = 32u32.to_ne_bytes();
-const TYPE_IMPORT_NAMED_SPECIFIER: [u8; 4] = 33u32.to_ne_bytes();
-const TYPE_SPREAD: [u8; 4] = 34u32.to_ne_bytes();
-const TYPE_MEMBER_EXPRESSION: [u8; 4] = 35u32.to_ne_bytes();
-const TYPE_PRIVATE_NAME: [u8; 4] = 36u32.to_ne_bytes();
-const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 37u32.to_ne_bytes();
-const TYPE_BOOLEAN: [u8; 4] = 38u32.to_ne_bytes();
-const TYPE_NULL: [u8; 4] = 39u32.to_ne_bytes();
-const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 40u32.to_ne_bytes();
-const TYPE_OBJECT_PATTERN: [u8; 4] = 41u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 42u32.to_ne_bytes();
-const TYPE_IMPORT_EXPRESSION: [u8; 4] = 43u32.to_ne_bytes();
-const TYPE_FUNCTION_DECLARATION: [u8; 4] = 44u32.to_ne_bytes();
-const TYPE_RETURN_STATEMENT: [u8; 4] = 45u32.to_ne_bytes();
-const TYPE_OBJECT_LITERAL: [u8; 4] = 46u32.to_ne_bytes();
-const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 47u32.to_ne_bytes();
-const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 48u32.to_ne_bytes();
-const TYPE_GETTER_PROPERTY: [u8; 4] = 49u32.to_ne_bytes();
-const TYPE_NEW_EXPRESSION: [u8; 4] = 50u32.to_ne_bytes();
-const TYPE_FUNCTION_EXPRESSION: [u8; 4] = 51u32.to_ne_bytes();
-const TYPE_THROW_STATEMENT: [u8; 4] = 52u32.to_ne_bytes();
-const TYPE_LABELED_STATEMENT: [u8; 4] = 53u32.to_ne_bytes();
-const TYPE_TRY_STATEMENT: [u8; 4] = 54u32.to_ne_bytes();
-const TYPE_WHILE_STATEMENT: [u8; 4] = 55u32.to_ne_bytes();
+const TYPE_MODULE: [u8; 4] = 28u32.to_ne_bytes();
+const TYPE_NUMBER: [u8; 4] = 29u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATION: [u8; 4] = 30u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 31u32.to_ne_bytes();
+const TYPE_IDENTIFIER: [u8; 4] = 32u32.to_ne_bytes();
+const TYPE_STRING: [u8; 4] = 33u32.to_ne_bytes();
+const TYPE_IMPORT_DECLARATION: [u8; 4] = 34u32.to_ne_bytes();
+const TYPE_IMPORT_NAMED_SPECIFIER: [u8; 4] = 35u32.to_ne_bytes();
+const TYPE_SPREAD: [u8; 4] = 36u32.to_ne_bytes();
+const TYPE_MEMBER_EXPRESSION: [u8; 4] = 37u32.to_ne_bytes();
+const TYPE_PRIVATE_NAME: [u8; 4] = 38u32.to_ne_bytes();
+const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 39u32.to_ne_bytes();
+const TYPE_BOOLEAN: [u8; 4] = 40u32.to_ne_bytes();
+const TYPE_NULL: [u8; 4] = 41u32.to_ne_bytes();
+const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 42u32.to_ne_bytes();
+const TYPE_OBJECT_PATTERN: [u8; 4] = 43u32.to_ne_bytes();
+const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 44u32.to_ne_bytes();
+const TYPE_IMPORT_EXPRESSION: [u8; 4] = 45u32.to_ne_bytes();
+const TYPE_FUNCTION_DECLARATION: [u8; 4] = 46u32.to_ne_bytes();
+const TYPE_RETURN_STATEMENT: [u8; 4] = 47u32.to_ne_bytes();
+const TYPE_OBJECT_LITERAL: [u8; 4] = 48u32.to_ne_bytes();
+const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 49u32.to_ne_bytes();
+const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 50u32.to_ne_bytes();
+const TYPE_GETTER_PROPERTY: [u8; 4] = 51u32.to_ne_bytes();
+const TYPE_NEW_EXPRESSION: [u8; 4] = 52u32.to_ne_bytes();
+const TYPE_FUNCTION_EXPRESSION: [u8; 4] = 53u32.to_ne_bytes();
+const TYPE_THROW_STATEMENT: [u8; 4] = 54u32.to_ne_bytes();
+const TYPE_LABELED_STATEMENT: [u8; 4] = 55u32.to_ne_bytes();
+const TYPE_TRY_STATEMENT: [u8; 4] = 56u32.to_ne_bytes();
+const TYPE_WHILE_STATEMENT: [u8; 4] = 57u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
