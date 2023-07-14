@@ -143,6 +143,7 @@ export default class Graph {
 			...(this.options.acorn as unknown as acorn.Options),
 			...options
 		});
+		// console.log(JSON.stringify(acornAst, null, 2));
 		// console.timeEnd('acorn');
 		let ast: acorn.Node;
 		let astBuffer: Buffer;

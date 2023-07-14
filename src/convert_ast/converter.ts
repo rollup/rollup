@@ -293,17 +293,16 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// ExportAllDeclaration
-	(
-		position,
-		buffer,
-		readString
-	): estree.ExportAllDeclaration & AcornNode & { source: AcornNode & estree.Literal } => {
+	(position, buffer, readString): ExportAllDeclaration & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const assertions = convertNodeList(buffer[position++], buffer, readString);
+		const exportedPosition = buffer[position++];
 		const source = convertNode(position, buffer, readString);
 		return {
+			assertions,
 			end,
-			exported: null,
+			exported: exportedPosition ? convertNode(exportedPosition, buffer, readString) : null,
 			source,
 			start,
 			type: 'ExportAllDeclaration'
@@ -322,13 +321,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// ExportNamedDeclaration
-	(position, buffer, readString): estree.ExportNamedDeclaration & AcornNode => {
+	(position, buffer, readString): ExportNamedDeclaration & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const declarationPosition = buffer[position++];
 		const sourcePosition = buffer[position++];
+		const assertions = convertNodeList(buffer[position++], buffer, readString);
 		const specifiers = convertNodeList(position, buffer, readString);
 		return {
+			assertions,
 			declaration: declarationPosition
 				? convertNode(declarationPosition, buffer, readString)
 				: null,
@@ -492,6 +493,89 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'IfStatement'
 		};
 	},
+	// ImportAttribute
+	(position, buffer, readString): ImportAttribute & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const key = convertNode(buffer[position++], buffer, readString);
+		const value = convertNode(position, buffer, readString);
+		return {
+			end,
+			key,
+			start,
+			type: 'ImportAttribute',
+			value
+		};
+	},
+	// ImportDeclaration
+	(position, buffer, readString): ImportDeclaration & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const source = convertNode(buffer[position++], buffer, readString);
+		const assertions = convertNodeList(buffer[position++], buffer, readString);
+		const specifiers = convertNodeList(position, buffer, readString);
+		return {
+			assertions,
+			end,
+			source,
+			specifiers,
+			start,
+			type: 'ImportDeclaration'
+		};
+	},
+	// ImportDefaultSpecifier
+	(position, buffer, readString): estree.ImportDefaultSpecifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		return {
+			end,
+			local,
+			start,
+			type: 'ImportDefaultSpecifier'
+		};
+	},
+	// ImportExpression
+	(position, buffer, readString): ImportExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const arguments_ = convertNodeList(buffer[position++], buffer, readString);
+		const source = convertNode(position, buffer, readString);
+		return {
+			arguments: arguments_,
+			end,
+			source,
+			start,
+			type: 'ImportExpression'
+		};
+	},
+	// ImportNamespaceSpecifier
+	(position, buffer, readString): estree.ImportNamespaceSpecifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		return {
+			end,
+			local,
+			start,
+			type: 'ImportNamespaceSpecifier'
+		};
+	},
+	// ImportSpecifier
+	(position, buffer, readString): estree.ImportSpecifier & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const importedPosition = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		const imported = importedPosition ? convertNode(importedPosition, buffer, readString) : local;
+		return {
+			end,
+			imported,
+			local,
+			start,
+			type: 'ImportSpecifier'
+		};
+	},
 	// Module -> Program
 	(position, buffer, readString): estree.Program & AcornNode => {
 		const start = buffer[position++];
@@ -563,35 +647,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			value
 		};
 	},
-	// ImportDeclaration
-	(position, buffer, readString): estree.ImportDeclaration & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const source = convertNode(buffer[position++], buffer, readString);
-		const specifiers = convertNodeList(position, buffer, readString);
-		return {
-			end,
-			source,
-			specifiers,
-			start,
-			type: 'ImportDeclaration'
-		};
-	},
-	// ImportNamedSpecifier -> ImportSpecifier
-	(position, buffer, readString): estree.ImportSpecifier & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const importedPosition = buffer[position++];
-		const local = convertNode(position, buffer, readString);
-		const imported = importedPosition ? convertNode(importedPosition, buffer, readString) : local;
-		return {
-			end,
-			imported,
-			local,
-			start,
-			type: 'ImportSpecifier'
-		};
-	},
 	// SpreadElement
 	(position, buffer, readString): estree.SpreadElement & AcornNode => {
 		const start = buffer[position++];
@@ -634,18 +689,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'PrivateIdentifier'
 		};
 	},
-	// ImportDefaultSpecifier
-	(position, buffer, readString): estree.ImportDefaultSpecifier & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const local = convertNode(position, buffer, readString);
-		return {
-			end,
-			local,
-			start,
-			type: 'ImportDefaultSpecifier'
-		};
-	},
 	// Boolean -> Literal
 	(position, buffer): estree.Literal & AcornNode => {
 		const start = buffer[position++];
@@ -669,18 +712,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'Literal',
 			value: null
-		};
-	},
-	// ImportNamespaceSpecifier
-	(position, buffer, readString): estree.ImportNamespaceSpecifier & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const local = convertNode(position, buffer, readString);
-		return {
-			end,
-			local,
-			start,
-			type: 'ImportNamespaceSpecifier'
 		};
 	},
 	// ObjectPattern
@@ -712,18 +743,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'Property',
 			value
-		};
-	},
-	// ImportExpression
-	(position, buffer, readString): estree.ImportExpression & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const source = convertNode(position, buffer, readString);
-		return {
-			end,
-			source,
-			start,
-			type: 'ImportExpression'
 		};
 	},
 	// ReturnStatement
@@ -893,3 +912,25 @@ const convertString = (position: number, buffer: Uint32Array, readString: ReadSt
 	const bytePosition = position << 2;
 	return readString(bytePosition, length);
 };
+
+interface ImportAttribute {
+	key: estree.Identifier | estree.Literal;
+	type: 'ImportAttribute';
+	value: estree.Literal;
+}
+
+interface ImportDeclaration extends estree.ImportDeclaration {
+	assertions: ImportAttribute[];
+}
+
+interface ExportNamedDeclaration extends estree.ExportNamedDeclaration {
+	assertions: ImportAttribute[];
+}
+
+interface ExportAllDeclaration extends estree.ExportAllDeclaration {
+	assertions: ImportAttribute[];
+}
+
+interface ImportExpression extends estree.ImportExpression {
+	arguments: estree.ObjectExpression[];
+}

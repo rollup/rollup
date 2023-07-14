@@ -275,7 +275,7 @@ impl<'a> AstConverter<'a> {
 
     fn convert_property(&mut self, property: &Prop) {
         match property {
-            Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
+            Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property, &TYPE_KEY_VALUE_PROPERTY),
             Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
             Prop::Getter(getter_property) => self.convert_getter_property(getter_property),
             _ => {
@@ -305,7 +305,7 @@ impl<'a> AstConverter<'a> {
 
     fn convert_call_expression(&mut self, call_expression: &CallExpr, is_optional: bool) {
         match &call_expression.callee {
-            Callee::Import(_) => self.store_import_expression(&call_expression.span, call_expression.args.first().unwrap().expr.as_ref()),
+            Callee::Import(_) => self.store_import_expression(&call_expression.span, &call_expression.args),
             Callee::Expr(callee_expression) => self.store_call_expression(&call_expression.span, is_optional, &StoredCallee::Expression(&callee_expression), &call_expression.args),
             Callee::Super(callee_super) => self.store_call_expression(&call_expression.span, is_optional, &StoredCallee::Super(&callee_super), &call_expression.args),
         }
@@ -316,11 +316,15 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
-        self.store_export_named_declaration(&export_declaration.span, &vec![], None, Some(&export_declaration.decl));
+        self.store_export_named_declaration(&export_declaration.span, &vec![], None, Some(&export_declaration.decl), &None);
     }
 
     fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
-        self.store_export_named_declaration(&export_named_declaration.span, &export_named_declaration.specifiers, export_named_declaration.src.as_ref().map(|source| &**source), None);
+        match export_named_declaration.specifiers.first().unwrap() {
+            ExportSpecifier::Namespace(export_namespace_specifier) => self.store_export_all_declaration(&export_named_declaration.span, export_named_declaration.src.as_ref().unwrap(),  &export_named_declaration.asserts, Some(&export_namespace_specifier.name)),
+            ExportSpecifier::Named(_) => self.store_export_named_declaration(&export_named_declaration.span, &export_named_declaration.specifiers, export_named_declaration.src.as_ref().map(|source| &**source), None, &export_named_declaration.asserts),
+            ExportSpecifier::Default(_) => panic!("Unexpected default export specifier"),
+        }
     }
 
     fn convert_for_head(&mut self, for_head: &ForHead) {
@@ -345,6 +349,10 @@ impl<'a> AstConverter<'a> {
         }
     }
 
+    fn convert_export_all(&mut self, export_all: &ExportAll) {
+        self.store_export_all_declaration(&export_all.span, &export_all.src, &export_all.asserts, None);
+    }
+
     // === nodes
     fn convert_module_program(&mut self, module: &Module) {
         // type
@@ -364,10 +372,10 @@ impl<'a> AstConverter<'a> {
         self.convert_expression(&expression_statement.expr);
     }
 
-    fn store_export_named_declaration(&mut self, span: &Span, specifiers: &Vec<ExportSpecifier>, src: Option<&Str>, declaration: Option<&Decl>) {
+    fn store_export_named_declaration(&mut self, span: &Span, specifiers: &Vec<ExportSpecifier>, src: Option<&Str>, declaration: Option<&Decl>, asserts: &Option<Box<ObjectLit>>) {
         self.add_type_and_positions(&TYPE_EXPORT_NAMED_DECLARATION, span);
-        // reserve for declaration, src
-        let reference_position = self.reserve_reference_positions(2);
+        // reserve for declaration, src, attributes
+        let reference_position = self.reserve_reference_positions(3);
         // specifiers
         self.convert_item_list(specifiers, |ast_converter, specifier| ast_converter.convert_export_specifier(specifier));
         // declaration
@@ -380,6 +388,9 @@ impl<'a> AstConverter<'a> {
             self.update_reference_position(reference_position + 4);
             self.convert_literal_string(src)
         });
+        // attributes
+        self.update_reference_position(reference_position + 8);
+        self.store_import_attributes(asserts);
     }
 
     fn convert_literal_number(&mut self, literal: &Number) {
@@ -452,19 +463,46 @@ impl<'a> AstConverter<'a> {
 
     fn convert_import_declaration(&mut self, import_declaration: &ImportDecl) {
         self.add_type_and_positions(&TYPE_IMPORT_DECLARATION, &import_declaration.span);
-        // reserve for src
-        let reference_position = self.reserve_reference_positions(1);
+        // reserve for src, attributes
+        let reference_position = self.reserve_reference_positions(2);
         // specifiers
         self.convert_item_list(&import_declaration.specifiers, |ast_converter, import_specifier| ast_converter.convert_import_specifier(import_specifier));
         // src
         self.update_reference_position(reference_position);
         self.convert_literal_string(&*import_declaration.src);
+        // attributes
+        self.update_reference_position(reference_position + 4);
+        self.store_import_attributes(&import_declaration.asserts);
     }
 
-    fn store_import_expression(&mut self, span: &Span, source: &Expr) {
+    fn store_import_attributes(&mut self, asserts: &Option<Box<ObjectLit>>) {
+        match asserts {
+            Some(ref asserts) => {
+                self.convert_item_list(&asserts.props, |ast_converter, prop| {
+                    match prop {
+                        PropOrSpread::Prop(prop) => {
+                            match &**prop {
+                                Prop::KeyValue(key_value_property) => ast_converter.convert_key_value_property(key_value_property, &TYPE_IMPORT_ATTRIBUTE),
+                                _ => panic!("Non key-value property in import declaration attributes")
+                            }
+                        }
+                        PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes")
+                    }
+                });
+            }
+            None => self.buffer.resize(self.buffer.len() + 4, 0)
+        }
+    }
+
+    fn store_import_expression(&mut self, span: &Span, arguments: &Vec<ExprOrSpread>) {
         self.add_type_and_positions(&TYPE_IMPORT_EXPRESSION, span);
+        // reserve for attributes
+        let reference_position = self.reserve_reference_positions(1);
         // source
-        self.convert_expression(source);
+        self.convert_expression(&*arguments.first().unwrap().expr);
+        // attributes
+        self.update_reference_position(reference_position);
+        self.convert_item_list(&arguments[1..], |ast_converter, argument| ast_converter.convert_expression_or_spread(argument));
     }
 
     fn store_call_expression(&mut self, span: &Span, is_optional: bool, callee: &StoredCallee, arguments: &[ExprOrSpread]) {
@@ -487,7 +525,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_import_named_specifier(&mut self, import_named_specifier: &ImportNamedSpecifier) {
-        self.add_type_and_positions(&TYPE_IMPORT_NAMED_SPECIFIER, &import_named_specifier.span);
+        self.add_type_and_positions(&TYPE_IMPORT_SPECIFIER, &import_named_specifier.span);
         // reserve for imported
         let reference_position = self.reserve_reference_positions(1);
         // local
@@ -628,10 +666,20 @@ impl<'a> AstConverter<'a> {
         self.convert_identifier(&import_namespace_specifier.local);
     }
 
-    fn convert_export_all(&mut self, export_all: &ExportAll) {
-        self.add_type_and_positions(&TYPE_EXPORT_ALL_DECLARATION, &export_all.span);
+    fn store_export_all_declaration(&mut self, span: &Span, source: &Str, attributes: &Option<Box<ObjectLit>>, exported: Option<&ModuleExportName>) {
+        self.add_type_and_positions(&TYPE_EXPORT_ALL_DECLARATION, span);
+        // reserve attributes, exported
+        let reference_position = self.reserve_reference_positions(2);
         // source
-        self.convert_literal_string(&export_all.src);
+        self.convert_literal_string(source);
+        // attributes
+        self.update_reference_position(reference_position);
+        self.store_import_attributes(attributes);
+        // exported
+        exported.map(|exported| {
+            self.update_reference_position(reference_position + 4);
+            self.convert_module_export_name(exported);
+        });
     }
 
     fn convert_binary_expression(&mut self, binary_expression: &BinExpr) {
@@ -799,9 +847,9 @@ impl<'a> AstConverter<'a> {
         self.convert_item_list(&object_literal.props, |ast_converter, property_or_spread| ast_converter.convert_property_or_spread(property_or_spread));
     }
 
-    fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
+    fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp, node_type: &[u8; 4]) {
         // type
-        self.buffer.extend_from_slice(&TYPE_KEY_VALUE_PROPERTY);
+        self.buffer.extend_from_slice(node_type);
         // reserve start, end, key
         let reference_position = self.reserve_reference_positions(3);
         // value
@@ -1135,6 +1183,7 @@ impl<'a> AstConverter<'a> {
             self.convert_expression(update);
         });
     }
+
     fn convert_if_statement(&mut self, if_statement: &IfStmt) {
         self.add_type_and_positions(&TYPE_IF_STATEMENT, &if_statement.span);
         // reserve consequent, alternate
@@ -1185,34 +1234,35 @@ const TYPE_FUNCTION_DECLARATION: [u8; 4] = 28u32.to_ne_bytes();
 const TYPE_FUNCTION_EXPRESSION: [u8; 4] = 29u32.to_ne_bytes();
 const TYPE_IDENTIFIER: [u8; 4] = 30u32.to_ne_bytes();
 const TYPE_IF_STATEMENT: [u8; 4] = 31u32.to_ne_bytes();
+const TYPE_IMPORT_ATTRIBUTE: [u8; 4] = 32u32.to_ne_bytes();
+const TYPE_IMPORT_DECLARATION: [u8; 4] = 33u32.to_ne_bytes();
+const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 34u32.to_ne_bytes();
+const TYPE_IMPORT_EXPRESSION: [u8; 4] = 35u32.to_ne_bytes();
+const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 36u32.to_ne_bytes();
+const TYPE_IMPORT_SPECIFIER: [u8; 4] = 37u32.to_ne_bytes();
 
-const TYPE_MODULE: [u8; 4] = 32u32.to_ne_bytes();
-const TYPE_NUMBER: [u8; 4] = 33u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 34u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 35u32.to_ne_bytes();
-const TYPE_STRING: [u8; 4] = 36u32.to_ne_bytes();
-const TYPE_IMPORT_DECLARATION: [u8; 4] = 37u32.to_ne_bytes();
-const TYPE_IMPORT_NAMED_SPECIFIER: [u8; 4] = 38u32.to_ne_bytes();
-const TYPE_SPREAD: [u8; 4] = 39u32.to_ne_bytes();
-const TYPE_MEMBER_EXPRESSION: [u8; 4] = 40u32.to_ne_bytes();
-const TYPE_PRIVATE_NAME: [u8; 4] = 41u32.to_ne_bytes();
-const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 42u32.to_ne_bytes();
-const TYPE_BOOLEAN: [u8; 4] = 43u32.to_ne_bytes();
-const TYPE_NULL: [u8; 4] = 44u32.to_ne_bytes();
-const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 45u32.to_ne_bytes();
-const TYPE_OBJECT_PATTERN: [u8; 4] = 46u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 47u32.to_ne_bytes();
-const TYPE_IMPORT_EXPRESSION: [u8; 4] = 48u32.to_ne_bytes();
-const TYPE_RETURN_STATEMENT: [u8; 4] = 49u32.to_ne_bytes();
-const TYPE_OBJECT_LITERAL: [u8; 4] = 50u32.to_ne_bytes();
-const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 51u32.to_ne_bytes();
-const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 52u32.to_ne_bytes();
-const TYPE_GETTER_PROPERTY: [u8; 4] = 53u32.to_ne_bytes();
-const TYPE_NEW_EXPRESSION: [u8; 4] = 54u32.to_ne_bytes();
-const TYPE_THROW_STATEMENT: [u8; 4] = 55u32.to_ne_bytes();
-const TYPE_LABELED_STATEMENT: [u8; 4] = 56u32.to_ne_bytes();
-const TYPE_TRY_STATEMENT: [u8; 4] = 57u32.to_ne_bytes();
-const TYPE_WHILE_STATEMENT: [u8; 4] = 58u32.to_ne_bytes();
+const TYPE_MODULE: [u8; 4] = 38u32.to_ne_bytes();
+const TYPE_NUMBER: [u8; 4] = 39u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATION: [u8; 4] = 40u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 41u32.to_ne_bytes();
+const TYPE_STRING: [u8; 4] = 42u32.to_ne_bytes();
+const TYPE_SPREAD: [u8; 4] = 43u32.to_ne_bytes();
+const TYPE_MEMBER_EXPRESSION: [u8; 4] = 44u32.to_ne_bytes();
+const TYPE_PRIVATE_NAME: [u8; 4] = 45u32.to_ne_bytes();
+const TYPE_BOOLEAN: [u8; 4] = 46u32.to_ne_bytes();
+const TYPE_NULL: [u8; 4] = 47u32.to_ne_bytes();
+const TYPE_OBJECT_PATTERN: [u8; 4] = 48u32.to_ne_bytes();
+const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 49u32.to_ne_bytes();
+const TYPE_RETURN_STATEMENT: [u8; 4] = 50u32.to_ne_bytes();
+const TYPE_OBJECT_LITERAL: [u8; 4] = 51u32.to_ne_bytes();
+const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 52u32.to_ne_bytes();
+const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 53u32.to_ne_bytes();
+const TYPE_GETTER_PROPERTY: [u8; 4] = 54u32.to_ne_bytes();
+const TYPE_NEW_EXPRESSION: [u8; 4] = 55u32.to_ne_bytes();
+const TYPE_THROW_STATEMENT: [u8; 4] = 56u32.to_ne_bytes();
+const TYPE_LABELED_STATEMENT: [u8; 4] = 57u32.to_ne_bytes();
+const TYPE_TRY_STATEMENT: [u8; 4] = 58u32.to_ne_bytes();
+const TYPE_WHILE_STATEMENT: [u8; 4] = 59u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
