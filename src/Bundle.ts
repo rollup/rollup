@@ -22,7 +22,6 @@ import {
 	error,
 	logCannotAssignModuleToChunk,
 	logChunkInvalid,
-	logExternalModulesCannotBeIncludedInManualChunks,
 	logInvalidOption
 } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
@@ -129,12 +128,10 @@ export default class Bundle {
 			getModuleInfo: this.graph.getModuleInfo
 		};
 		for (const module of this.graph.modulesById.values()) {
-			const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
-			if (typeof manualChunkAlias === 'string') {
-				if (module instanceof Module) {
+			if (module instanceof Module) {
+				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
+				if (typeof manualChunkAlias === 'string') {
 					manualChunkAliasesWithEntry.push([manualChunkAlias, module]);
-				} else {
-					return error(logExternalModulesCannotBeIncludedInManualChunks(module.id));
 				}
 			}
 		}
