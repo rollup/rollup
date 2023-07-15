@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -143,6 +143,7 @@ impl<'a> AstConverter<'a> {
             Expr::Ident(identifier) => self.convert_identifier(identifier),
             Expr::Lit(literal) => self.convert_literal(literal),
             Expr::Member(member_expression) => self.convert_member_expression(member_expression, false),
+            Expr::MetaProp(meta_property) => self.convert_meta_property(meta_property),
             Expr::New(new_expression) => self.convert_new_expression(new_expression),
             Expr::Object(object_literal) => self.convert_object_literal(object_literal),
             Expr::OptChain(optional_chain_expression) => self.convert_optional_chain_expression(optional_chain_expression),
@@ -355,6 +356,10 @@ impl<'a> AstConverter<'a> {
         self.store_export_all_declaration(&export_all.span, &export_all.src, &export_all.asserts, None);
     }
 
+    fn convert_identifier(&mut self, identifier: &Ident) {
+        self.store_identifier(identifier.span.lo.0, identifier.span.hi.0, &identifier.sym);
+    }
+
     // === nodes
     fn convert_module_program(&mut self, module: &Module) {
         // type
@@ -444,10 +449,15 @@ impl<'a> AstConverter<'a> {
         });
     }
 
-    fn convert_identifier(&mut self, identifier: &Ident) {
-        self.add_type_and_positions(&TYPE_IDENTIFIER, &identifier.span);
+    fn store_identifier(&mut self, start: u32, end: u32, name: &str) {
+        // type
+        self.buffer.extend_from_slice(&TYPE_IDENTIFIER);
+        // start
+        self.buffer.extend_from_slice(&(start - 1).to_ne_bytes());
+        // end
+        self.buffer.extend_from_slice(&(end - 1).to_ne_bytes());
         // name
-        self.convert_string(&identifier.sym);
+        self.convert_string(name);
     }
 
     fn convert_export_named_specifier(&mut self, export_named_specifier: &ExportNamedSpecifier) {
@@ -1226,6 +1236,28 @@ impl<'a> AstConverter<'a> {
         self.update_reference_position(reference_position);
         self.convert_string(&bigint.value.to_str_radix(10));
     }
+
+    fn convert_meta_property(&mut self, meta_property_expression: &MetaPropExpr) {
+        self.add_type_and_positions(&TYPE_META_PROPERTY, &meta_property_expression.span);
+        // reserve meta
+        let reference_position = self.reserve_reference_positions(1);
+        match meta_property_expression.kind {
+            MetaPropKind::ImportMeta => {
+                // property
+                self.store_identifier(meta_property_expression.span.hi.0 - 4, meta_property_expression.span.hi.0, "meta");
+                // meta
+                self.update_reference_position(reference_position);
+                self.store_identifier(meta_property_expression.span.lo.0, meta_property_expression.span.lo.0 + 6, "import");
+            },
+            MetaPropKind::NewTarget => {
+                // property
+                self.store_identifier(meta_property_expression.span.hi.0 - 6, meta_property_expression.span.hi.0, "target");
+                // meta
+                self.update_reference_position(reference_position);
+                self.store_identifier(meta_property_expression.span.lo.0, meta_property_expression.span.lo.0 + 3, "new");
+            }
+        }
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -1276,23 +1308,25 @@ const TYPE_LITERAL_REGEXP: [u8; 4] = 43u32.to_ne_bytes();
 const TYPE_LITERAL_BIGINT: [u8; 4] = 44u32.to_ne_bytes();
 const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 45u32.to_ne_bytes();
 const TYPE_MEMBER_EXPRESSION: [u8; 4] = 46u32.to_ne_bytes();
+const TYPE_META_PROPERTY: [u8; 4] = 47u32.to_ne_bytes();
+const TYPE_METHOD_DEFINITION: [u8; 4] = 48u32.to_ne_bytes();
 
-const TYPE_MODULE: [u8; 4] = 47u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 48u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 49u32.to_ne_bytes();
-const TYPE_SPREAD: [u8; 4] = 50u32.to_ne_bytes();
-const TYPE_PRIVATE_NAME: [u8; 4] = 51u32.to_ne_bytes();
-const TYPE_OBJECT_PATTERN: [u8; 4] = 52u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 53u32.to_ne_bytes();
-const TYPE_RETURN_STATEMENT: [u8; 4] = 54u32.to_ne_bytes();
-const TYPE_OBJECT_LITERAL: [u8; 4] = 55u32.to_ne_bytes();
-const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 56u32.to_ne_bytes();
-const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 57u32.to_ne_bytes();
-const TYPE_GETTER_PROPERTY: [u8; 4] = 58u32.to_ne_bytes();
-const TYPE_NEW_EXPRESSION: [u8; 4] = 59u32.to_ne_bytes();
-const TYPE_THROW_STATEMENT: [u8; 4] = 60u32.to_ne_bytes();
-const TYPE_TRY_STATEMENT: [u8; 4] = 61u32.to_ne_bytes();
-const TYPE_WHILE_STATEMENT: [u8; 4] = 62u32.to_ne_bytes();
+const TYPE_MODULE: [u8; 4] = 49u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATION: [u8; 4] = 50u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 51u32.to_ne_bytes();
+const TYPE_SPREAD: [u8; 4] = 52u32.to_ne_bytes();
+const TYPE_PRIVATE_NAME: [u8; 4] = 53u32.to_ne_bytes();
+const TYPE_OBJECT_PATTERN: [u8; 4] = 54u32.to_ne_bytes();
+const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 55u32.to_ne_bytes();
+const TYPE_RETURN_STATEMENT: [u8; 4] = 56u32.to_ne_bytes();
+const TYPE_OBJECT_LITERAL: [u8; 4] = 57u32.to_ne_bytes();
+const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 58u32.to_ne_bytes();
+const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 59u32.to_ne_bytes();
+const TYPE_GETTER_PROPERTY: [u8; 4] = 60u32.to_ne_bytes();
+const TYPE_NEW_EXPRESSION: [u8; 4] = 61u32.to_ne_bytes();
+const TYPE_THROW_STATEMENT: [u8; 4] = 62u32.to_ne_bytes();
+const TYPE_TRY_STATEMENT: [u8; 4] = 63u32.to_ne_bytes();
+const TYPE_WHILE_STATEMENT: [u8; 4] = 64u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();

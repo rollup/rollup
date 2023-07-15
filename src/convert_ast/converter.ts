@@ -712,6 +712,22 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'MemberExpression'
 		};
 	},
+	// MetaProperty
+	(position, buffer, readString): estree.MetaProperty & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const meta = convertNode(buffer[position++], buffer, readString);
+		const property = convertNode(position, buffer, readString);
+		return {
+			end,
+			meta,
+			property,
+			start,
+			type: 'MetaProperty'
+		};
+	},
+	// MethodDefinition
+	null as any,
 
 	// TODO Lukas Module -> Program
 	(position, buffer, readString): estree.Program & AcornNode => {
