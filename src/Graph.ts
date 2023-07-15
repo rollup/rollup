@@ -154,17 +154,26 @@ export default class Graph {
 				astBuffer.toString('utf8', start, start + length)
 			);
 			// console.timeEnd('swc');
-			assert.deepStrictEqual(ast, JSON.parse(JSON.stringify(acornAst)));
+			assert.deepStrictEqual(
+				ast,
+				JSON.parse(
+					JSON.stringify(acornAst, (_, value) =>
+						typeof value == 'bigint' ? `BigInt${value.toString()}` : value
+					),
+					(_, value) =>
+						typeof value === 'string' && value.startsWith('BigInt') ? BigInt(value.slice(6)) : value
+				)
+			);
 		} catch (error_) {
 			console.log(JSON.stringify(code));
-			console.log(
-				'Size acorn:',
-				JSON.stringify(acornAst).length,
-				', swc:',
-				astBuffer!.length,
-				'code:',
-				code.length
-			);
+			// console.log(
+			// 	'Size acorn:',
+			// 	JSON.stringify(acornAst).length,
+			// 	', swc:',
+			// 	astBuffer!.length,
+			// 	'code:',
+			// 	code.length
+			// );
 			throw error_;
 		}
 

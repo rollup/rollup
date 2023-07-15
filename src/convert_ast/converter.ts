@@ -576,21 +576,50 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'ImportSpecifier'
 		};
 	},
-	// Module -> Program
-	(position, buffer, readString): estree.Program & AcornNode => {
+	// LabeledStatement
+	(position, buffer, readString): estree.LabeledStatement & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const body = convertNodeList(position, buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const label = convertNode(position, buffer, readString);
 		return {
 			body,
 			end,
-			sourceType: 'module',
+			label,
 			start,
-			type: 'Program'
+			type: 'LabeledStatement'
 		};
 	},
-	// Number -> Literal
-	(position, buffer, readString): estree.Literal & AcornNode => {
+	// Literal<string>
+	(position, buffer, readString): estree.SimpleLiteral & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const rawPosition = buffer[position++];
+		const raw = rawPosition ? convertString(rawPosition, buffer, readString) : undefined;
+		const value = convertString(position, buffer, readString);
+		return {
+			end,
+			raw,
+			start,
+			type: 'Literal',
+			value
+		};
+	},
+	// Literal<boolean>
+	(position, buffer): estree.SimpleLiteral & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const value = !!buffer[position++];
+		return {
+			end,
+			raw: value ? 'true' : 'false',
+			start,
+			type: 'Literal',
+			value
+		};
+	},
+	// Literal<number>
+	(position, buffer, readString): estree.SimpleLiteral & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const rawPosition = buffer[position++];
@@ -602,6 +631,65 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'Literal',
 			value
+		};
+	},
+	// Literal<null>
+	(position, buffer): estree.SimpleLiteral & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			end,
+			raw: 'null',
+			start,
+			type: 'Literal',
+			value: null
+		};
+	},
+	// Literal<RegExp>
+	(position, buffer, readString): estree.RegExpLiteral & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const pattern = convertString(buffer[position++], buffer, readString);
+		const flags = convertString(position, buffer, readString);
+		return {
+			end,
+			raw: `/${pattern}/${flags}`,
+			regex: {
+				flags,
+				pattern
+			},
+			start,
+			type: 'Literal',
+			value: new RegExp(pattern, flags)
+		};
+	},
+	// Literal<bigint>
+	(position, buffer, readString): estree.BigIntLiteral & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const bigint = convertString(buffer[position++], buffer, readString);
+		const raw = convertString(position, buffer, readString);
+		return {
+			bigint,
+			end,
+			raw,
+			start,
+			type: 'Literal',
+			value: BigInt(bigint)
+		};
+	},
+
+	// Module -> Program
+	(position, buffer, readString): estree.Program & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			body,
+			end,
+			sourceType: 'module',
+			start,
+			type: 'Program'
 		};
 	},
 	// VariableDeclaration
@@ -630,21 +718,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			init: init_position ? convertNode(init_position, buffer, readString) : null,
 			start,
 			type: 'VariableDeclarator'
-		};
-	},
-	// String -> Literal
-	(position, buffer, readString): estree.Literal & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const rawPosition = buffer[position++];
-		const raw = rawPosition ? convertString(rawPosition, buffer, readString) : undefined;
-		const value = convertString(position, buffer, readString);
-		return {
-			end,
-			raw,
-			start,
-			type: 'Literal',
-			value
 		};
 	},
 	// SpreadElement
@@ -687,31 +760,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			name,
 			start,
 			type: 'PrivateIdentifier'
-		};
-	},
-	// Boolean -> Literal
-	(position, buffer): estree.Literal & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const value = !!buffer[position++];
-		return {
-			end,
-			raw: value ? 'true' : 'false',
-			start,
-			type: 'Literal',
-			value
-		};
-	},
-	// Null -> Literal
-	(position, buffer): estree.Literal & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		return {
-			end,
-			raw: 'null',
-			start,
-			type: 'Literal',
-			value: null
 		};
 	},
 	// ObjectPattern
@@ -847,20 +895,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			start,
 			type: 'ThrowStatement'
-		};
-	},
-	// LabeledStatement
-	(position, buffer, readString): estree.LabeledStatement & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const body = convertNode(buffer[position++], buffer, readString);
-		const label = convertNode(position, buffer, readString);
-		return {
-			body,
-			end,
-			label,
-			start,
-			type: 'LabeledStatement'
 		};
 	},
 	// TryStatement

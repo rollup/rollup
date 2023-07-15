@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -156,10 +156,12 @@ impl<'a> AstConverter<'a> {
 
     fn convert_literal(&mut self, literal: &Lit) {
         match literal {
-            Lit::Num(number_literal) => self.convert_literal_number(number_literal),
-            Lit::Str(string_literal) => self.convert_literal_string(string_literal),
+            Lit::BigInt(bigint_literal) => self.convert_literal_bigint(bigint_literal),
             Lit::Bool(boolean_literal) => self.convert_literal_boolean(boolean_literal),
             Lit::Null(null_literal) => self.convert_literal_null(null_literal),
+            Lit::Num(number_literal) => self.convert_literal_number(number_literal),
+            Lit::Regex(regex_literal) => self.convert_literal_regex(regex_literal),
+            Lit::Str(string_literal) => self.convert_literal_string(string_literal),
             _ => {
                 dbg!(literal);
                 todo!("Cannot convert Literal");
@@ -394,7 +396,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_literal_number(&mut self, literal: &Number) {
-        self.add_type_and_positions(&TYPE_NUMBER, &literal.span);
+        self.add_type_and_positions(&TYPE_LITERAL_NUMBER, &literal.span);
         // reserve for raw
         let reference_position = self.reserve_reference_positions(1);
         // value, needs to be little endian as we are reading via a DataView
@@ -407,7 +409,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_literal_string(&mut self, literal: &Str) {
-        self.add_type_and_positions(&TYPE_STRING, &literal.span);
+        self.add_type_and_positions(&TYPE_LITERAL_STRING, &literal.span);
         // reserve for raw
         let reference_position = self.reserve_reference_positions(1);
         // value
@@ -629,7 +631,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_literal_boolean(&mut self, literal: &Bool) {
-        self.add_type_and_positions(&TYPE_BOOLEAN, &literal.span);
+        self.add_type_and_positions(&TYPE_LITERAL_BOOLEAN, &literal.span);
         // value^
         self.convert_boolean(literal.value);
     }
@@ -657,7 +659,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_literal_null(&mut self, literal: &Null) {
-        self.add_type_and_positions(&TYPE_NULL, &literal.span);
+        self.add_type_and_positions(&TYPE_LITERAL_NULL, &literal.span);
     }
 
     fn convert_import_namespace_specifier(&mut self, import_namespace_specifier: &ImportStarAsSpecifier) {
@@ -1199,6 +1201,28 @@ impl<'a> AstConverter<'a> {
             self.convert_statement(alt);
         });
     }
+
+    fn convert_literal_regex(&mut self, regex: &Regex) {
+        self.add_type_and_positions(&TYPE_LITERAL_REGEXP, &regex.span);
+        // reserve pattern
+        let reference_position = self.reserve_reference_positions(1);
+        // flags
+        self.convert_string(&regex.flags);
+        // pattern
+        self.update_reference_position(reference_position);
+        self.convert_string(&regex.exp);
+    }
+
+    fn convert_literal_bigint(&mut self, bigint: &BigInt) {
+        self.add_type_and_positions(&TYPE_LITERAL_BIGINT, &bigint.span);
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // raw
+        self.convert_string(bigint.raw.as_ref().unwrap());
+        // value
+        self.update_reference_position(reference_position);
+        self.convert_string(&bigint.value.to_str_radix(10));
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -1240,29 +1264,31 @@ const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 34u32.to_ne_bytes();
 const TYPE_IMPORT_EXPRESSION: [u8; 4] = 35u32.to_ne_bytes();
 const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 36u32.to_ne_bytes();
 const TYPE_IMPORT_SPECIFIER: [u8; 4] = 37u32.to_ne_bytes();
+const TYPE_LABELED_STATEMENT: [u8; 4] = 38u32.to_ne_bytes();
+const TYPE_LITERAL_STRING: [u8; 4] = 39u32.to_ne_bytes();
+const TYPE_LITERAL_BOOLEAN: [u8; 4] = 40u32.to_ne_bytes();
+const TYPE_LITERAL_NUMBER: [u8; 4] = 41u32.to_ne_bytes();
+const TYPE_LITERAL_NULL: [u8; 4] = 42u32.to_ne_bytes();
+const TYPE_LITERAL_REGEXP: [u8; 4] = 43u32.to_ne_bytes();
+const TYPE_LITERAL_BIGINT: [u8; 4] = 44u32.to_ne_bytes();
 
-const TYPE_MODULE: [u8; 4] = 38u32.to_ne_bytes();
-const TYPE_NUMBER: [u8; 4] = 39u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 40u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 41u32.to_ne_bytes();
-const TYPE_STRING: [u8; 4] = 42u32.to_ne_bytes();
-const TYPE_SPREAD: [u8; 4] = 43u32.to_ne_bytes();
-const TYPE_MEMBER_EXPRESSION: [u8; 4] = 44u32.to_ne_bytes();
-const TYPE_PRIVATE_NAME: [u8; 4] = 45u32.to_ne_bytes();
-const TYPE_BOOLEAN: [u8; 4] = 46u32.to_ne_bytes();
-const TYPE_NULL: [u8; 4] = 47u32.to_ne_bytes();
-const TYPE_OBJECT_PATTERN: [u8; 4] = 48u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 49u32.to_ne_bytes();
-const TYPE_RETURN_STATEMENT: [u8; 4] = 50u32.to_ne_bytes();
-const TYPE_OBJECT_LITERAL: [u8; 4] = 51u32.to_ne_bytes();
-const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 52u32.to_ne_bytes();
-const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 53u32.to_ne_bytes();
-const TYPE_GETTER_PROPERTY: [u8; 4] = 54u32.to_ne_bytes();
-const TYPE_NEW_EXPRESSION: [u8; 4] = 55u32.to_ne_bytes();
-const TYPE_THROW_STATEMENT: [u8; 4] = 56u32.to_ne_bytes();
-const TYPE_LABELED_STATEMENT: [u8; 4] = 57u32.to_ne_bytes();
-const TYPE_TRY_STATEMENT: [u8; 4] = 58u32.to_ne_bytes();
-const TYPE_WHILE_STATEMENT: [u8; 4] = 59u32.to_ne_bytes();
+const TYPE_MODULE: [u8; 4] = 45u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATION: [u8; 4] = 46u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 47u32.to_ne_bytes();
+const TYPE_SPREAD: [u8; 4] = 48u32.to_ne_bytes();
+const TYPE_MEMBER_EXPRESSION: [u8; 4] = 49u32.to_ne_bytes();
+const TYPE_PRIVATE_NAME: [u8; 4] = 50u32.to_ne_bytes();
+const TYPE_OBJECT_PATTERN: [u8; 4] = 51u32.to_ne_bytes();
+const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 52u32.to_ne_bytes();
+const TYPE_RETURN_STATEMENT: [u8; 4] = 53u32.to_ne_bytes();
+const TYPE_OBJECT_LITERAL: [u8; 4] = 54u32.to_ne_bytes();
+const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 55u32.to_ne_bytes();
+const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 56u32.to_ne_bytes();
+const TYPE_GETTER_PROPERTY: [u8; 4] = 57u32.to_ne_bytes();
+const TYPE_NEW_EXPRESSION: [u8; 4] = 58u32.to_ne_bytes();
+const TYPE_THROW_STATEMENT: [u8; 4] = 59u32.to_ne_bytes();
+const TYPE_TRY_STATEMENT: [u8; 4] = 60u32.to_ne_bytes();
+const TYPE_WHILE_STATEMENT: [u8; 4] = 61u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
