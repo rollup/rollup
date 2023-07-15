@@ -685,7 +685,10 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_binary_expression(&mut self, binary_expression: &BinExpr) {
-        self.add_type_and_positions(&TYPE_BINARY_EXPRESSION, &binary_expression.span);
+        self.add_type_and_positions(match binary_expression.op {
+            BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => &TYPE_LOGICAL_EXPRESSION,
+            _ => &TYPE_BINARY_EXPRESSION,
+        }, &binary_expression.span);
         // reserve left, right
         let reference_position = self.reserve_reference_positions(2);
         // operator
@@ -1271,24 +1274,25 @@ const TYPE_LITERAL_NUMBER: [u8; 4] = 41u32.to_ne_bytes();
 const TYPE_LITERAL_NULL: [u8; 4] = 42u32.to_ne_bytes();
 const TYPE_LITERAL_REGEXP: [u8; 4] = 43u32.to_ne_bytes();
 const TYPE_LITERAL_BIGINT: [u8; 4] = 44u32.to_ne_bytes();
+const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 45u32.to_ne_bytes();
+const TYPE_MEMBER_EXPRESSION: [u8; 4] = 46u32.to_ne_bytes();
 
-const TYPE_MODULE: [u8; 4] = 45u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 46u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 47u32.to_ne_bytes();
-const TYPE_SPREAD: [u8; 4] = 48u32.to_ne_bytes();
-const TYPE_MEMBER_EXPRESSION: [u8; 4] = 49u32.to_ne_bytes();
-const TYPE_PRIVATE_NAME: [u8; 4] = 50u32.to_ne_bytes();
-const TYPE_OBJECT_PATTERN: [u8; 4] = 51u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 52u32.to_ne_bytes();
-const TYPE_RETURN_STATEMENT: [u8; 4] = 53u32.to_ne_bytes();
-const TYPE_OBJECT_LITERAL: [u8; 4] = 54u32.to_ne_bytes();
-const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 55u32.to_ne_bytes();
-const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 56u32.to_ne_bytes();
-const TYPE_GETTER_PROPERTY: [u8; 4] = 57u32.to_ne_bytes();
-const TYPE_NEW_EXPRESSION: [u8; 4] = 58u32.to_ne_bytes();
-const TYPE_THROW_STATEMENT: [u8; 4] = 59u32.to_ne_bytes();
-const TYPE_TRY_STATEMENT: [u8; 4] = 60u32.to_ne_bytes();
-const TYPE_WHILE_STATEMENT: [u8; 4] = 61u32.to_ne_bytes();
+const TYPE_MODULE: [u8; 4] = 47u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATION: [u8; 4] = 48u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 49u32.to_ne_bytes();
+const TYPE_SPREAD: [u8; 4] = 50u32.to_ne_bytes();
+const TYPE_PRIVATE_NAME: [u8; 4] = 51u32.to_ne_bytes();
+const TYPE_OBJECT_PATTERN: [u8; 4] = 52u32.to_ne_bytes();
+const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 53u32.to_ne_bytes();
+const TYPE_RETURN_STATEMENT: [u8; 4] = 54u32.to_ne_bytes();
+const TYPE_OBJECT_LITERAL: [u8; 4] = 55u32.to_ne_bytes();
+const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 56u32.to_ne_bytes();
+const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 57u32.to_ne_bytes();
+const TYPE_GETTER_PROPERTY: [u8; 4] = 58u32.to_ne_bytes();
+const TYPE_NEW_EXPRESSION: [u8; 4] = 59u32.to_ne_bytes();
+const TYPE_THROW_STATEMENT: [u8; 4] = 60u32.to_ne_bytes();
+const TYPE_TRY_STATEMENT: [u8; 4] = 61u32.to_ne_bytes();
+const TYPE_WHILE_STATEMENT: [u8; 4] = 62u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();

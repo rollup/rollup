@@ -678,8 +678,42 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			value: BigInt(bigint)
 		};
 	},
+	// LogicalExpression
+	(position, buffer, readString): estree.LogicalExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const operator = convertString(position, buffer, readString) as estree.LogicalOperator;
+		return {
+			end,
+			left,
+			operator,
+			right,
+			start,
+			type: 'LogicalExpression'
+		};
+	},
+	// MemberExpression
+	(position, buffer, readString): estree.MemberExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const optional = !!buffer[position++];
+		const object = convertNode(buffer[position++], buffer, readString);
+		const computed = !!buffer[position++];
+		const property = convertNode(position, buffer, readString);
+		return {
+			computed,
+			end,
+			object,
+			optional,
+			property,
+			start,
+			type: 'MemberExpression'
+		};
+	},
 
-	// Module -> Program
+	// TODO Lukas Module -> Program
 	(position, buffer, readString): estree.Program & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -730,24 +764,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			start,
 			type: 'SpreadElement'
-		};
-	},
-	// MemberExpression
-	(position, buffer, readString): estree.MemberExpression & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const optional = !!buffer[position++];
-		const object = convertNode(buffer[position++], buffer, readString);
-		const computed = !!buffer[position++];
-		const property = convertNode(position, buffer, readString);
-		return {
-			computed,
-			end,
-			object,
-			optional,
-			property,
-			start,
-			type: 'MemberExpression'
 		};
 	},
 	// PrivateName -> PrivateIdentifier
