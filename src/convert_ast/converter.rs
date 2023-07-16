@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
-use swc_common::Span;
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind};
+use swc_common::{Span, Spanned};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -139,7 +139,7 @@ impl<'a> AstConverter<'a> {
             Expr::Call(call_expression) => self.convert_call_expression(call_expression, false),
             Expr::Class(class_expression) => self.convert_class_expression(class_expression, &TYPE_CLASS_EXPRESSION),
             Expr::Cond(conditional_expression) => self.convert_conditional_expression(conditional_expression),
-            Expr::Fn(function_expression) => self.convert_function_expression(function_expression, &TYPE_FUNCTION_EXPRESSION),
+            Expr::Fn(function_expression) => self.convert_function(&function_expression.function, &TYPE_FUNCTION_EXPRESSION, function_expression.ident.as_ref()),
             Expr::Ident(identifier) => self.convert_identifier(identifier),
             Expr::Lit(literal) => self.convert_literal(literal),
             Expr::Member(member_expression) => self.convert_member_expression(member_expression, false),
@@ -192,7 +192,7 @@ impl<'a> AstConverter<'a> {
     fn convert_declaration(&mut self, declaration: &Decl) {
         match declaration {
             Decl::Var(variable_declaration) => self.convert_variable_declaration(variable_declaration),
-            Decl::Fn(function_declaration) => self.convert_function_declaration(function_declaration),
+            Decl::Fn(function_declaration) => self.convert_function(&function_declaration.function, &TYPE_FUNCTION_DECLARATION, Some(&function_declaration.ident)),
             Decl::Class(class_declaration) => self.convert_class_declaration(class_declaration),
             _ => {
                 dbg!(declaration);
@@ -278,9 +278,11 @@ impl<'a> AstConverter<'a> {
 
     fn convert_property(&mut self, property: &Prop) {
         match property {
-            Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property, &TYPE_KEY_VALUE_PROPERTY),
-            Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
             Prop::Getter(getter_property) => self.convert_getter_property(getter_property),
+            Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
+            Prop::Setter(setter_property) => self.convert_setter_property(setter_property),
+            Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
+            Prop::Method(method_property) => self.convert_method_property(method_property),
             _ => {
                 dbg!(property);
                 todo!("Cannot convert Property")
@@ -324,7 +326,7 @@ impl<'a> AstConverter<'a> {
 
     fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
         match export_named_declaration.specifiers.first().unwrap() {
-            ExportSpecifier::Namespace(export_namespace_specifier) => self.store_export_all_declaration(&export_named_declaration.span, export_named_declaration.src.as_ref().unwrap(),  &export_named_declaration.asserts, Some(&export_namespace_specifier.name)),
+            ExportSpecifier::Namespace(export_namespace_specifier) => self.store_export_all_declaration(&export_named_declaration.span, export_named_declaration.src.as_ref().unwrap(), &export_named_declaration.asserts, Some(&export_namespace_specifier.name)),
             ExportSpecifier::Named(_) => self.store_export_named_declaration(&export_named_declaration.span, &export_named_declaration.specifiers, export_named_declaration.src.as_ref().map(|source| &**source), None, &export_named_declaration.asserts),
             ExportSpecifier::Default(_) => panic!("Unexpected default export specifier"),
         }
@@ -363,7 +365,7 @@ impl<'a> AstConverter<'a> {
     // === nodes
     fn convert_module_program(&mut self, module: &Module) {
         // type
-        self.buffer.extend_from_slice(&TYPE_MODULE);
+        self.buffer.extend_from_slice(&TYPE_PROGRAM);
         // we are not using the helper but code start/end by hand as acorn does this differently
         // start
         self.buffer.extend_from_slice(&0u32.to_ne_bytes());
@@ -494,7 +496,7 @@ impl<'a> AstConverter<'a> {
                     match prop {
                         PropOrSpread::Prop(prop) => {
                             match &**prop {
-                                Prop::KeyValue(key_value_property) => ast_converter.convert_key_value_property(key_value_property, &TYPE_IMPORT_ATTRIBUTE),
+                                Prop::KeyValue(key_value_property) => ast_converter.convert_import_attribute(key_value_property),
                                 _ => panic!("Non key-value property in import declaration attributes")
                             }
                         }
@@ -586,7 +588,7 @@ impl<'a> AstConverter<'a> {
     fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
         match expression_or_spread.spread {
             Some(spread_span) => {
-                self.add_type_and_positions(&TYPE_SPREAD, &spread_span);
+                self.add_type_and_positions(&TYPE_SPREAD_ELEMENT, &spread_span);
                 // we need to set the end position to that of the expression
                 let reference_position = self.buffer.len();
                 self.convert_expression(&expression_or_spread.expr);
@@ -629,7 +631,7 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_private_name(&mut self, private_name: &&PrivateName) {
-        self.add_type_and_positions(&TYPE_PRIVATE_NAME, &private_name.span);
+        self.add_type_and_positions(&TYPE_PRIVATE_IDENTIFIER, &private_name.span);
         // id
         self.convert_identifier(&private_name.id);
     }
@@ -664,7 +666,7 @@ impl<'a> AstConverter<'a> {
         match expression {
             StoredDefaultExportExpression::Expression(expression) => self.convert_expression(&expression),
             StoredDefaultExportExpression::Class(class_expression) => self.convert_class_expression(&class_expression, &TYPE_CLASS_DECLARATION),
-            StoredDefaultExportExpression::Function(function_expression) => self.convert_function_expression(&function_expression, &TYPE_FUNCTION_DECLARATION),
+            StoredDefaultExportExpression::Function(function_expression) => self.convert_function(&function_expression.function, &TYPE_FUNCTION_DECLARATION, function_expression.ident.as_ref()),
         }
     }
 
@@ -753,16 +755,17 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_assignment_pattern_property(&mut self, assignment_pattern_property: &AssignPatProp) {
-        self.add_type_and_positions(&TYPE_ASSIGNMENT_PATTERN_PROPERTY, &assignment_pattern_property.span);
-        // reserve value
-        let reference_position = self.reserve_reference_positions(1);
-        // key
-        self.convert_identifier(&assignment_pattern_property.key);
-        // value
-        assignment_pattern_property.value.as_ref().map(|value| {
-            self.update_reference_position(reference_position);
-            self.convert_expression(&*value);
-        });
+        todo!("Cannot convert AssignmentPatternProperty");
+        // self.add_type_and_positions(&TYPE_ASSIGNMENT_PATTERN_PROPERTY, &assignment_pattern_property.span);
+        // // reserve value
+        // let reference_position = self.reserve_reference_positions(1);
+        // // key
+        // self.convert_identifier(&assignment_pattern_property.key);
+        // // value
+        // assignment_pattern_property.value.as_ref().map(|value| {
+        //     self.update_reference_position(reference_position);
+        //     self.convert_expression(&*value);
+        // });
     }
 
     fn convert_array_literal(&mut self, array_literal: &ArrayLit) {
@@ -788,15 +791,15 @@ impl<'a> AstConverter<'a> {
         self.convert_expression(&conditional_expression.cons);
     }
 
-    fn convert_function_declaration(&mut self, function_declaration: &FnDecl) {
-        let function = &function_declaration.function;
+    fn convert_function(&mut self, function: &Function, node_type: &[u8; 4], identifier: Option<&Ident>) {
         self.store_function_node(
-            &TYPE_FUNCTION_DECLARATION,
+            node_type,
             function.span.lo.0,
-            function.span.hi.0, function.is_async,
+            function.span.hi.0,
+            function.is_async,
             function.is_generator,
-            Some(&function_declaration.ident),
-            &function.params,
+            identifier,
+            &function.params.iter().map(|param| &param.pat).collect(),
             function.body.as_ref().unwrap(),
         );
     }
@@ -856,15 +859,9 @@ impl<'a> AstConverter<'a> {
         });
     }
 
-    fn convert_object_literal(&mut self, object_literal: &ObjectLit) {
-        self.add_type_and_positions(&TYPE_OBJECT_LITERAL, &object_literal.span);
-        // properties
-        self.convert_item_list(&object_literal.props, |ast_converter, property_or_spread| ast_converter.convert_property_or_spread(property_or_spread));
-    }
-
-    fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp, node_type: &[u8; 4]) {
+    fn convert_import_attribute(&mut self, key_value_property: &KeyValueProp) {
         // type
-        self.buffer.extend_from_slice(node_type);
+        self.buffer.extend_from_slice(&TYPE_IMPORT_ATTRIBUTE);
         // reserve start, end, key
         let reference_position = self.reserve_reference_positions(3);
         // value
@@ -882,35 +879,108 @@ impl<'a> AstConverter<'a> {
         self.buffer[reference_position + 4..reference_position + 8].copy_from_slice(&value_end);
     }
 
+    fn convert_object_literal(&mut self, object_literal: &ObjectLit) {
+        self.add_type_and_positions(&TYPE_OBJECT_EXPRESSION, &object_literal.span);
+        // properties
+        self.convert_item_list(&object_literal.props, |ast_converter, property_or_spread| ast_converter.convert_property_or_spread(property_or_spread));
+    }
+
     fn convert_property_name(&mut self, property_name: &PropName) {
         match property_name {
-            PropName::Ident(ident) => self.convert_identifier(ident),
             PropName::Computed(computed_property_name) => self.convert_expression(computed_property_name.expr.as_ref()),
-            _ => {
-                dbg!(property_name);
-                todo!("Cannot convert PropertyName");
+            PropName::Ident(ident) => self.convert_identifier(ident),
+            PropName::Str(str) => self.convert_literal_string(&str),
+            PropName::Num(number) => self.convert_literal_number(&number),
+            PropName::BigInt(bigint) => self.convert_literal_bigint(&bigint),
+        }
+    }
+
+    // Unfortunately, there are four different functions that write PROPERTY AST
+    // nodes that need to be kept in sync. KeyValueProp and MethodProp required
+    // custom span calculation while MShorthand and Getter/Setter were wildly
+    // different.
+    fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
+        // type
+        self.buffer.extend_from_slice(&TYPE_PROPERTY);
+        // reserve start, end
+        let start_end_position = self.reserve_reference_positions(2);
+        // kind
+        self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+        // method
+        self.convert_boolean(false);
+        // computed
+        self.convert_boolean(match key_value_property.key {
+            PropName::Computed(_) => true,
+            _ => false,
+        });
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        let key_span = match &key_value_property.key {
+            PropName::Computed(computed_property_name) => computed_property_name.span,
+            PropName::Ident(identifier) => identifier.span,
+            PropName::Str(string) => string.span,
+            PropName::Num(number) => number.span,
+            PropName::BigInt(bigint) => bigint.span,
+        };
+        self.convert_property_name(&key_value_property.key);
+        // value
+        let value_position = self.buffer.len();
+        self.update_reference_position(reference_position);
+        self.convert_expression(&key_value_property.value);
+        // start
+        let key_start: [u8; 4] = (key_span.lo.0 - 1).to_ne_bytes();
+        self.buffer[start_end_position..start_end_position + 4].copy_from_slice(&key_start);
+        // end
+        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12].try_into().unwrap();
+        self.buffer[start_end_position + 4..start_end_position + 8].copy_from_slice(&value_end);
+    }
+
+    fn convert_shorthand_property(&mut self, identifier: &Ident) {
+        let span = &identifier.span;
+        let key = &StoredPropertyKey::Identifier(identifier);
+        self.add_type_and_positions(&TYPE_PROPERTY, span);
+        // kind
+        self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+        // method
+        self.convert_boolean(false);
+        // computed
+        self.convert_boolean(false);
+        // reserve value, which is None
+        self.reserve_reference_positions(1);
+        // key
+        match key {
+            StoredPropertyKey::Identifier(identifier) => {
+                self.convert_identifier(identifier);
             }
         }
     }
 
-    fn convert_shorthand_property(&mut self, identifier: &Ident) {
-        self.add_type_and_positions(&TYPE_SHORTHAND_PROPERTY, &identifier.span);
-        // key/value
-        self.convert_identifier(identifier);
-    }
-
-    fn convert_getter_property(&mut self, getter_property: &GetterProp) {
-        self.add_type_and_positions(&TYPE_GETTER_PROPERTY, &getter_property.span);
+    fn store_getter_setter_property(&mut self, span: &Span, kind: &[u8; 4], key: &PropName, body: &Option<BlockStmt>, param: Option<&Pat>) {
+        self.add_type_and_positions(&TYPE_PROPERTY, span);
+        // kind
+        self.buffer.extend_from_slice(kind);
+        // method
+        self.convert_boolean(false);
+        // computed
+        self.convert_boolean(match &key {
+            PropName::Computed(_) => true,
+            _ => false,
+        });
         // reserve value
         let reference_position = self.reserve_reference_positions(1);
         // key
         let key_position = self.buffer.len();
-        self.convert_property_name(&getter_property.key);
+        self.convert_property_name(key);
         // value
-        match &getter_property.body {
+        match body {
             Some(block_statement) => {
                 self.update_reference_position(reference_position);
                 let key_end = u32::from_ne_bytes(self.buffer[key_position + 8..key_position + 12].try_into().unwrap());
+                let parameters = match param {
+                    Some(pattern) => vec![pattern],
+                    None => vec![],
+                };
                 self.store_function_node(
                     &TYPE_FUNCTION_EXPRESSION,
                     find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1,
@@ -918,7 +988,7 @@ impl<'a> AstConverter<'a> {
                     false,
                     false,
                     None,
-                    &vec![],
+                    &parameters,
                     block_statement,
                 );
             }
@@ -926,6 +996,47 @@ impl<'a> AstConverter<'a> {
                 panic!("Getter property without body");
             }
         }
+    }
+
+    fn convert_getter_property(&mut self, getter_property: &GetterProp) {
+        self.store_getter_setter_property(&getter_property.span, &PROPERTY_KIND_GET, &getter_property.key, &getter_property.body, None);
+    }
+
+    fn convert_setter_property(&mut self, setter_property: &SetterProp) {
+        self.store_getter_setter_property(&setter_property.span, &PROPERTY_KIND_SET, &setter_property.key, &setter_property.body, Some(&*setter_property.param));
+    }
+
+    fn convert_method_property(&mut self, method_property: &MethodProp) {
+        self.add_type_and_positions(&TYPE_PROPERTY, &method_property.function.span);
+        // kind
+        self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+        // method
+        self.convert_boolean(true);
+        // computed
+        self.convert_boolean(match &method_property.key {
+            PropName::Computed(_) => true,
+            _ => false,
+        });
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        let key_position = self.buffer.len();
+        self.convert_property_name(&method_property.key);
+        let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12].try_into().unwrap();
+        let function_start = find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes)) + 1;
+        // value
+        self.update_reference_position(reference_position);
+        let function = &method_property.function;
+        self.store_function_node(
+            &TYPE_FUNCTION_EXPRESSION,
+            function_start,
+            function.span.hi.0,
+            function.is_async,
+            function.is_generator,
+            None,
+            &function.params.iter().map(|param| &param.pat).collect(),
+            function.body.as_ref().unwrap(),
+        );
     }
 
     fn convert_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
@@ -975,20 +1086,7 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_function_expression(&mut self, function_expression: &FnExpr, node_type: &[u8; 4]) {
-        let function = &function_expression.function;
-        self.store_function_node(
-            node_type,
-            function.span.lo.0,
-            function.span.hi.0, function.is_async,
-            function.is_generator,
-            function_expression.ident.as_ref(),
-            &function.params,
-            function.body.as_ref().unwrap(),
-        );
-    }
-
-    fn store_function_node(&mut self, node_type: &[u8; 4], start: u32, end: u32, is_async: bool, is_generator: bool, identifier: Option<&Ident>, parameters: &Vec<Param>, body: &BlockStmt) {
+    fn store_function_node(&mut self, node_type: &[u8; 4], start: u32, end: u32, is_async: bool, is_generator: bool, identifier: Option<&Ident>, parameters: &Vec<&Pat>, body: &BlockStmt) {
         // type
         self.buffer.extend_from_slice(node_type);
         // start
@@ -1010,7 +1108,7 @@ impl<'a> AstConverter<'a> {
         });
         // params
         self.update_reference_position(reference_position + 4);
-        self.convert_item_list(parameters, |ast_converter, param| ast_converter.convert_pattern(&param.pat));
+        self.convert_item_list(parameters, |ast_converter, param| ast_converter.convert_pattern(&param));
     }
 
     fn convert_throw_statement(&mut self, throw_statement: &ThrowStmt) {
@@ -1248,7 +1346,7 @@ impl<'a> AstConverter<'a> {
                 // meta
                 self.update_reference_position(reference_position);
                 self.store_identifier(meta_property_expression.span.lo.0, meta_property_expression.span.lo.0 + 6, "import");
-            },
+            }
             MetaPropKind::NewTarget => {
                 // property
                 self.store_identifier(meta_property_expression.span.hi.0 - 6, meta_property_expression.span.hi.0, "target");
@@ -1310,28 +1408,42 @@ const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 45u32.to_ne_bytes();
 const TYPE_MEMBER_EXPRESSION: [u8; 4] = 46u32.to_ne_bytes();
 const TYPE_META_PROPERTY: [u8; 4] = 47u32.to_ne_bytes();
 const TYPE_METHOD_DEFINITION: [u8; 4] = 48u32.to_ne_bytes();
-
-const TYPE_MODULE: [u8; 4] = 49u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 50u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 51u32.to_ne_bytes();
-const TYPE_SPREAD: [u8; 4] = 52u32.to_ne_bytes();
-const TYPE_PRIVATE_NAME: [u8; 4] = 53u32.to_ne_bytes();
-const TYPE_OBJECT_PATTERN: [u8; 4] = 54u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_PATTERN_PROPERTY: [u8; 4] = 55u32.to_ne_bytes();
-const TYPE_RETURN_STATEMENT: [u8; 4] = 56u32.to_ne_bytes();
-const TYPE_OBJECT_LITERAL: [u8; 4] = 57u32.to_ne_bytes();
-const TYPE_KEY_VALUE_PROPERTY: [u8; 4] = 58u32.to_ne_bytes();
-const TYPE_SHORTHAND_PROPERTY: [u8; 4] = 59u32.to_ne_bytes();
-const TYPE_GETTER_PROPERTY: [u8; 4] = 60u32.to_ne_bytes();
-const TYPE_NEW_EXPRESSION: [u8; 4] = 61u32.to_ne_bytes();
-const TYPE_THROW_STATEMENT: [u8; 4] = 62u32.to_ne_bytes();
-const TYPE_TRY_STATEMENT: [u8; 4] = 63u32.to_ne_bytes();
-const TYPE_WHILE_STATEMENT: [u8; 4] = 64u32.to_ne_bytes();
+const TYPE_NEW_EXPRESSION: [u8; 4] = 49u32.to_ne_bytes();
+const TYPE_OBJECT_EXPRESSION: [u8; 4] = 50u32.to_ne_bytes();
+const TYPE_OBJECT_PATTERN: [u8; 4] = 51u32.to_ne_bytes();
+const TYPE_PRIVATE_IDENTIFIER: [u8; 4] = 52u32.to_ne_bytes();
+const TYPE_PROGRAM: [u8; 4] = 53u32.to_ne_bytes();
+const TYPE_PROPERTY: [u8; 4] = 54u32.to_ne_bytes();
+const TYPE_PROPERTY_DEFINITION: [u8; 4] = 55u32.to_ne_bytes();
+const TYPE_REST_ELEMENT: [u8; 4] = 56u32.to_ne_bytes();
+const TYPE_RETURN_STATEMENT: [u8; 4] = 57u32.to_ne_bytes();
+const TYPE_SEQUENCE_EXPRESSION: [u8; 4] = 58u32.to_ne_bytes();
+const TYPE_SPREAD_ELEMENT: [u8; 4] = 59u32.to_ne_bytes();
+const TYPE_STATIC_BLOCK: [u8; 4] = 60u32.to_ne_bytes();
+const TYPE_SUPER: [u8; 4] = 61u32.to_ne_bytes();
+const TYPE_SWITCH_CASE: [u8; 4] = 62u32.to_ne_bytes();
+const TYPE_SWITCH_STATEMENT: [u8; 4] = 63u32.to_ne_bytes();
+const TYPE_TAGGED_TEMPLATE_EXPRESSION: [u8; 4] = 64u32.to_ne_bytes();
+const TYPE_TEMPLATE_ELEMENT: [u8; 4] = 65u32.to_ne_bytes();
+const TYPE_TEMPLATE_LITERAL: [u8; 4] = 66u32.to_ne_bytes();
+const TYPE_THIS_EXPRESSION: [u8; 4] = 67u32.to_ne_bytes();
+const TYPE_THROW_STATEMENT: [u8; 4] = 68u32.to_ne_bytes();
+const TYPE_TRY_STATEMENT: [u8; 4] = 69u32.to_ne_bytes();
+const TYPE_UNARY_EXPRESSION: [u8; 4] = 70u32.to_ne_bytes();
+const TYPE_UPDATE_EXPRESSION: [u8; 4] = 71u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATION: [u8; 4] = 72u32.to_ne_bytes();
+const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 73u32.to_ne_bytes();
+const TYPE_WHILE_STATEMENT: [u8; 4] = 74u32.to_ne_bytes();
+const TYPE_YIELD_EXPRESSION: [u8; 4] = 75u32.to_ne_bytes();
 
 // other constants
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
 const DECLARATION_KIND_LET: [u8; 4] = 1u32.to_ne_bytes();
 const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();
+
+const PROPERTY_KIND_INIT: [u8; 4] = 0u32.to_ne_bytes();
+const PROPERTY_KIND_GET: [u8; 4] = 1u32.to_ne_bytes();
+const PROPERTY_KIND_SET: [u8; 4] = 2u32.to_ne_bytes();
 
 #[derive(Debug)]
 enum StoredCallee<'a> {
@@ -1344,4 +1456,9 @@ enum StoredDefaultExportExpression<'a> {
     Expression(&'a Expr),
     Class(&'a ClassExpr),
     Function(&'a FnExpr),
+}
+
+#[derive(Debug)]
+enum StoredPropertyKey<'a> {
+    Identifier(&'a Ident),
 }
