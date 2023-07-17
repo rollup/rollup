@@ -16,6 +16,7 @@ const properties = defineProps<{
 	moduleName?: string;
 	readonly?: boolean;
 }>();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits<{ (event: 'update:code', code: string): void }>();
 let addWarningsEffect: AddWarnings;
 let editor: EditorView;
