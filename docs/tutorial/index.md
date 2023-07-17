@@ -400,7 +400,7 @@ rollup src/main.js src/main2.js -f es -d dist
 ```
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <script type="module">
 	import main2 from './dist/main2.js';
 	main2();
@@ -422,7 +422,7 @@ npm install --save-dev systemjs
 And then load either or both entry points in an HTML page as needed:
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <script src="node_modules/systemjs/dist/s.min.js"></script>
 <script>
 	System.import('./dist/main2.js').then(({ default: main }) => main());

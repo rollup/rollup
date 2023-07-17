@@ -74,7 +74,10 @@ export default class Graph {
 	private modules: Module[] = [];
 	private declare pluginCache?: Record<string, SerializablePluginCache>;
 
-	constructor(private readonly options: NormalizedInputOptions, watcher: RollupWatcher | null) {
+	constructor(
+		private readonly options: NormalizedInputOptions,
+		watcher: RollupWatcher | null
+	) {
 		if (options.cache !== false) {
 			if (options.cache?.modules) {
 				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);

@@ -75,7 +75,8 @@ input {
 @font-face {
 	font-family: 'fontello';
 	src: url('../font/fontello.eot?58001839');
-	src: url('../font/fontello.eot?58001839#iefix') format('embedded-opentype'),
+	src:
+		url('../font/fontello.eot?58001839#iefix') format('embedded-opentype'),
 		url('../font/fontello.woff?58001839') format('woff'),
 		url('../font/fontello.ttf?58001839') format('truetype'),
 		url('../font/fontello.svg?58001839#fontello') format('svg');
