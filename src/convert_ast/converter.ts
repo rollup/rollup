@@ -877,10 +877,28 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'SpreadElement'
 		};
 	},
-	// TODO StaticBlock
-	null as any,
-	// TODO Super
-	null as any,
+	// StaticBlock
+	(position, buffer, readString): estree.StaticBlock & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			body,
+			end,
+			start,
+			type: 'StaticBlock'
+		};
+	},
+	// Super
+	(position, buffer): estree.Super & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			end,
+			start,
+			type: 'Super'
+		};
+	},
 	// TODO SwitchCase
 	null as any,
 	// TODO SwitchStatement
@@ -992,60 +1010,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			kind: 'init',
 			method: false,
 			shorthand: !valuePosition,
-			start,
-			type: 'Property',
-			value
-		};
-	},
-	// KeyValueProperty -> Property
-	(position, buffer, readString): estree.Property & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const keyPosition = buffer[position++];
-		const value = convertNode(position, buffer, readString);
-		return {
-			computed: false,
-			end,
-			key: convertNode(keyPosition, buffer, readString),
-			kind: 'init',
-			method: false,
-			shorthand: false,
-			start,
-			type: 'Property',
-			value
-		};
-	},
-	// ShorthandProperty -> Property
-	(position, buffer, readString): estree.Property & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const key = convertNode(position, buffer, readString);
-		const value = key;
-		return {
-			computed: false,
-			end,
-			key,
-			kind: 'init',
-			method: false,
-			shorthand: true,
-			start,
-			type: 'Property',
-			value
-		};
-	},
-	// GetterProperty -> Property
-	(position, buffer, readString): estree.Property & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const value = convertNode(buffer[position++], buffer, readString);
-		const key = convertNode(position, buffer, readString);
-		return {
-			computed: false,
-			end,
-			key,
-			kind: 'get',
-			method: false,
-			shorthand: false,
 			start,
 			type: 'Property',
 			value

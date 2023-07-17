@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::{Span};
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp, StaticBlock, SuperPropExpr, SuperProp, ComputedPropName};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -148,6 +148,7 @@ impl<'a> AstConverter<'a> {
             Expr::Object(object_literal) => self.convert_object_literal(object_literal),
             Expr::OptChain(optional_chain_expression) => self.convert_optional_chain_expression(optional_chain_expression),
             Expr::Paren(parenthesized_expression) => self.convert_parenthesized_expression(parenthesized_expression),
+            Expr::SuperProp(super_property) => self.convert_super_property(super_property),
             Expr::This(this_expression) => self.convert_this_expression(this_expression),
             _ => {
                 dbg!(expression);
@@ -265,7 +266,7 @@ impl<'a> AstConverter<'a> {
             ClassMember::PrivateMethod(private_method) => self.convert_private_method(private_method),
             ClassMember::ClassProp(class_property) => self.convert_class_property(class_property),
             ClassMember::PrivateProp(private_property) => self.convert_private_property(private_property),
-            ClassMember::StaticBlock(_) => todo!("StaticBlock"),
+            ClassMember::StaticBlock(static_block) => self.convert_static_block(static_block),
             _ => {
                 dbg!(class_member);
                 unimplemented!("Cannot convert ClassMember");
@@ -606,26 +607,26 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_member_expression(&mut self, member_expression: &MemberExpr, is_optional: bool) {
-        self.add_type_and_positions(&TYPE_MEMBER_EXPRESSION, &member_expression.span);
+    fn store_member_expression(&mut self, span: &Span, is_optional: bool, object: &ExpressionOrSuper, property: MemberOrSuperProp) {
+        self.add_type_and_positions(&TYPE_MEMBER_EXPRESSION, span);
         // optional
         self.convert_boolean(is_optional);
         // reserve object
         let reference_position = self.reserve_reference_positions(1);
-        match &member_expression.prop {
-            MemberProp::Ident(ident) => {
+        match property {
+            MemberOrSuperProp::Identifier(ident) => {
                 // computed
                 self.convert_boolean(false);
                 // property
                 self.convert_identifier(&ident)
             }
-            MemberProp::Computed(computed) => {
+            MemberOrSuperProp::Computed(computed) => {
                 // computed
                 self.convert_boolean(true);
                 // property
                 self.convert_expression(&computed.expr)
             }
-            MemberProp::PrivateName(private_name) => {
+            MemberOrSuperProp::PrivateName(private_name) => {
                 // computed
                 self.convert_boolean(false);
                 // property
@@ -634,7 +635,18 @@ impl<'a> AstConverter<'a> {
         }
         // object
         self.update_reference_position(reference_position);
-        self.convert_expression(&member_expression.obj);
+        match object {
+            ExpressionOrSuper::Expression(expression) => self.convert_expression(expression),
+            ExpressionOrSuper::Super(super_token) => self.convert_super(&super_token),
+        }
+    }
+
+    fn convert_member_expression(&mut self, member_expression: &MemberExpr, is_optional: bool) {
+        self.store_member_expression(&member_expression.span, is_optional, &ExpressionOrSuper::Expression(&member_expression.obj), match &member_expression.prop {
+            MemberProp::Ident(identifier) => MemberOrSuperProp::Identifier(identifier),
+            MemberProp::PrivateName(private_name) => MemberOrSuperProp::PrivateName(private_name),
+            MemberProp::Computed(computed) => MemberOrSuperProp::Computed(computed),
+        });
     }
 
     fn convert_private_name(&mut self, private_name: &PrivateName) {
@@ -1406,10 +1418,10 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_private_method(&mut self, private_method: &PrivateMethod) {
-        self.store_method_definition(&private_method.span, &private_method.kind, private_method.is_static, PropOrPrivateName::PrivateName(&private_method.key), false,&private_method.function);
+        self.store_method_definition(&private_method.span, &private_method.kind, private_method.is_static, PropOrPrivateName::PrivateName(&private_method.key), false, &private_method.function);
     }
 
-    fn store_method_definition(&mut self, span: &Span, kind: &MethodKind,is_static: bool, key: PropOrPrivateName, is_computed: bool, function: &Function) {
+    fn store_method_definition(&mut self, span: &Span, kind: &MethodKind, is_static: bool, key: PropOrPrivateName, is_computed: bool, function: &Function) {
         self.add_type_and_positions(&TYPE_METHOD_DEFINITION, span);
         // kind
         self.buffer.extend_from_slice(match kind {
@@ -1478,6 +1490,23 @@ impl<'a> AstConverter<'a> {
 
     fn convert_this_expression(&mut self, this_expression: &ThisExpr) {
         self.add_type_and_positions(&TYPE_THIS_EXPRESSION, &this_expression.span);
+    }
+
+    fn convert_static_block(&mut self, static_block: &StaticBlock) {
+        self.add_type_and_positions(&TYPE_STATIC_BLOCK, &static_block.span);
+        // body
+        self.convert_item_list(&static_block.body.stmts, |ast_converter, statement| ast_converter.convert_statement(statement));
+    }
+
+    fn convert_super_property(&mut self, super_property: &SuperPropExpr) {
+        self.store_member_expression(&super_property.span, false, &ExpressionOrSuper::Super(&super_property.obj), match &super_property.prop {
+            SuperProp::Ident(identifier) => MemberOrSuperProp::Identifier(&identifier),
+            SuperProp::Computed(computed_property_name) => MemberOrSuperProp::Computed(&computed_property_name),
+        });
+    }
+
+    fn convert_super(&mut self, super_token: &Super) {
+        self.add_type_and_positions(&TYPE_SUPER, &super_token.span);
     }
 }
 
@@ -1590,4 +1619,15 @@ enum StoredDefaultExportExpression<'a> {
 enum PropOrPrivateName<'a> {
     PropName(&'a PropName),
     PrivateName(&'a PrivateName),
+}
+
+enum ExpressionOrSuper<'a> {
+    Expression(&'a Expr),
+    Super(&'a Super),
+}
+
+enum MemberOrSuperProp<'a> {
+    Identifier(&'a Ident),
+    PrivateName(&'a PrivateName),
+    Computed(&'a ComputedPropName),
 }
