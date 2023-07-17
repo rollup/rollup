@@ -121,7 +121,7 @@
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "pinia": "^2.1.4",
-    "prettier": "^2.8.8",
+    "prettier": "^3.0.0",
     "pretty-bytes": "^6.1.0",
     "pretty-ms": "^8.0.0",
     "requirejs": "^2.3.6",
