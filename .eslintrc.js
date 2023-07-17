@@ -93,8 +93,7 @@ module.exports = {
 			'error',
 			{
 				default: {
-					memberTypes: require('@typescript-eslint/eslint-plugin/dist/rules/member-ordering')
-						.defaultOrder,
+					memberTypes: [],
 					order: 'alphabetically'
 				}
 			}
@@ -142,6 +141,7 @@ module.exports = {
 		'unicorn/no-array-callback-reference': 'off',
 		'unicorn/no-array-reduce': 'off',
 		'unicorn/no-await-expression-member': 'off',
+		'unicorn/no-empty-file': 'off',
 		'unicorn/no-for-loop': 'off',
 		'unicorn/no-nested-ternary': 'off',
 		'unicorn/no-null': 'off',

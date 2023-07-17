@@ -34,6 +34,7 @@ defineProps<{
 	module: Module;
 	showHeader: boolean;
 }>();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits<{ (event: 'remove'): void }>();
 const input = ref<HTMLInputElement | null>(null);
 
