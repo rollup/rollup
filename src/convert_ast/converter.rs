@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::{Span};
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp, StaticBlock, SuperPropExpr, SuperProp, ComputedPropName};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp, StaticBlock, SuperPropExpr, SuperProp, ComputedPropName, RestPat, SeqExpr, SwitchStmt, SwitchCase};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -119,6 +119,7 @@ impl<'a> AstConverter<'a> {
             Stmt::If(if_statement) => self.convert_if_statement(if_statement),
             Stmt::Labeled(labeled_statement) => self.convert_labeled_statement(labeled_statement),
             Stmt::Return(return_statement) => self.convert_return_statement(return_statement),
+            Stmt::Switch(switch_statement) => self.convert_switch_statement(switch_statement),
             Stmt::Throw(throw_statement) => self.convert_throw_statement(throw_statement),
             Stmt::Try(try_statement) => self.convert_try_statement(try_statement),
             Stmt::While(while_statement) => self.convert_while_statement(while_statement),
@@ -148,6 +149,7 @@ impl<'a> AstConverter<'a> {
             Expr::Object(object_literal) => self.convert_object_literal(object_literal),
             Expr::OptChain(optional_chain_expression) => self.convert_optional_chain_expression(optional_chain_expression),
             Expr::Paren(parenthesized_expression) => self.convert_parenthesized_expression(parenthesized_expression),
+            Expr::Seq(sequence_expression) => self.convert_sequence_expression(sequence_expression),
             Expr::SuperProp(super_property) => self.convert_super_property(super_property),
             Expr::This(this_expression) => self.convert_this_expression(this_expression),
             _ => {
@@ -210,10 +212,8 @@ impl<'a> AstConverter<'a> {
             Pat::Expr(expression) => self.convert_expression(expression),
             Pat::Ident(binding_identifier) => self.convert_binding_identifier(binding_identifier),
             Pat::Object(object) => self.convert_object_pattern(object),
-            _ => {
-                dbg!(pattern);
-                todo!("Cannot convert Pattern");
-            }
+            Pat::Rest(rest_pattern) => self.convert_rest_pattern(rest_pattern),
+            Pat::Invalid(_) => unimplemented!("Cannot convert invalid pattern")
         }
     }
 
@@ -1507,6 +1507,42 @@ impl<'a> AstConverter<'a> {
 
     fn convert_super(&mut self, super_token: &Super) {
         self.add_type_and_positions(&TYPE_SUPER, &super_token.span);
+    }
+
+    fn convert_rest_pattern(&mut self, rest_pattern: &RestPat) {
+        self.add_type_and_positions(&TYPE_REST_ELEMENT, &rest_pattern.span);
+        // argument
+        self.convert_pattern(&rest_pattern.arg);
+    }
+
+    fn convert_sequence_expression(&mut self, sequence_expression: &SeqExpr) {
+        self.add_type_and_positions(&TYPE_SEQUENCE_EXPRESSION, &sequence_expression.span);
+        // expressions
+        self.convert_item_list(&sequence_expression.exprs, |ast_converter, expression| ast_converter.convert_expression(expression));
+    }
+
+    fn convert_switch_statement(&mut self, switch_statement: &SwitchStmt) {
+        self.add_type_and_positions(&TYPE_SWITCH_STATEMENT, &switch_statement.span);
+        // reserve discriminant
+        let reference_position = self.reserve_reference_positions(1);
+        // cases
+        self.convert_item_list(&switch_statement.cases, |ast_converter, switch_case| ast_converter.convert_switch_case(switch_case));
+        // discriminant
+        self.update_reference_position(reference_position);
+        self.convert_expression(&switch_statement.discriminant);
+    }
+
+    fn convert_switch_case(&mut self, switch_case: &SwitchCase) {
+        self.add_type_and_positions(&TYPE_SWITCH_CASE, &switch_case.span);
+        // reserve test
+        let reference_position = self.reserve_reference_positions(1);
+        // consequent
+        self.convert_item_list(&switch_case.cons, |ast_converter, statement| ast_converter.convert_statement(statement));
+        // test
+        switch_case.test.as_ref().map(|expression| {
+            self.update_reference_position(reference_position);
+            self.convert_expression(expression)
+        });
     }
 }
 

@@ -849,8 +849,18 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			value: valuePosition ? convertNode(valuePosition, buffer, readString) : null
 		};
 	},
-	// TODO RestElement
-	null as any,
+	// RestElement
+	(position, buffer, readString): estree.RestElement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(position, buffer, readString);
+		return {
+			argument,
+			end,
+			start,
+			type: 'RestElement'
+		};
+	},
 	// ReturnStatement
 	(position, buffer, readString): estree.ReturnStatement & AcornNode => {
 		const start = buffer[position++];
@@ -863,8 +873,18 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'ReturnStatement'
 		};
 	},
-	// TODO SequenceExpression
-	null as any,
+	// SequenceExpression
+	(position, buffer, readString): estree.SequenceExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const expressions = convertNodeList(position, buffer, readString);
+		return {
+			end,
+			expressions,
+			start,
+			type: 'SequenceExpression'
+		};
+	},
 	// SpreadElement
 	(position, buffer, readString): estree.SpreadElement & AcornNode => {
 		const start = buffer[position++];
@@ -899,10 +919,34 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'Super'
 		};
 	},
-	// TODO SwitchCase
-	null as any,
-	// TODO SwitchStatement
-	null as any,
+	// SwitchCase
+	(position, buffer, readString): estree.SwitchCase & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const testPosition = buffer[position++];
+		const consequent = convertNodeList(position, buffer, readString);
+		return {
+			consequent,
+			end,
+			start,
+			test: testPosition ? convertNode(testPosition, buffer, readString) : null,
+			type: 'SwitchCase'
+		};
+	},
+	// SwitchStatement
+	(position, buffer, readString): estree.SwitchStatement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const discriminant = convertNode(buffer[position++], buffer, readString);
+		const cases = convertNodeList(position, buffer, readString);
+		return {
+			cases,
+			discriminant,
+			end,
+			start,
+			type: 'SwitchStatement'
+		};
+	},
 	// TODO TaggedTemplateExpression
 	null as any,
 	// TODO TemplateElement
@@ -996,7 +1040,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	// TODO YieldExpression
 	null as any,
 
-	// AssignmentPatternProperty -> Property
+	// TODO Lukas remove? AssignmentPatternProperty -> Property
 	(position, buffer, readString): estree.Property & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
