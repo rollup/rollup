@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::{Span, Spanned};
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -257,11 +257,17 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_class_member(&self, class_member: &ClassMember) {
+    fn convert_class_member(&mut self, class_member: &ClassMember) {
         match class_member {
+            ClassMember::Constructor(constructor) => self.convert_constructor(constructor),
+            ClassMember::Method(method) => self.convert_method(method),
+            ClassMember::PrivateMethod(private_method) => self.convert_private_method(private_method),
+            ClassMember::ClassProp(class_property) => self.convert_class_property(class_property),
+            ClassMember::PrivateProp(_) => todo!("PrivateProp"),
+            ClassMember::StaticBlock(_) => todo!("StaticBlock"),
             _ => {
                 dbg!(class_member);
-                todo!("Cannot convert ClassMember");
+                unimplemented!("Cannot convert ClassMember");
             }
         }
     }
@@ -938,7 +944,6 @@ impl<'a> AstConverter<'a> {
 
     fn convert_shorthand_property(&mut self, identifier: &Ident) {
         let span = &identifier.span;
-        let key = &StoredPropertyKey::Identifier(identifier);
         self.add_type_and_positions(&TYPE_PROPERTY, span);
         // kind
         self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
@@ -946,14 +951,10 @@ impl<'a> AstConverter<'a> {
         self.convert_boolean(false);
         // computed
         self.convert_boolean(false);
-        // reserve value, which is None
+        // reserve value, which is null
         self.reserve_reference_positions(1);
         // key
-        match key {
-            StoredPropertyKey::Identifier(identifier) => {
-                self.convert_identifier(identifier);
-            }
-        }
+        self.convert_identifier(identifier);
     }
 
     fn store_getter_setter_property(&mut self, span: &Span, kind: &[u8; 4], key: &PropName, body: &Option<BlockStmt>, param: Option<&Pat>) {
@@ -1356,6 +1357,109 @@ impl<'a> AstConverter<'a> {
             }
         }
     }
+
+    fn convert_constructor(&mut self, constructor: &Constructor) {
+        self.add_type_and_positions(&TYPE_METHOD_DEFINITION, &constructor.span);
+        // kind
+        self.buffer.extend_from_slice(&METHOD_DEFINITION_KIND_CONSTRUCTOR);
+        // computed
+        self.convert_boolean(false);
+        // static
+        self.convert_boolean(false);
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        let key_position = self.buffer.len();
+        self.convert_property_name(&constructor.key);
+        // value
+        match &constructor.body {
+            Some(block_statement) => {
+                self.update_reference_position(reference_position);
+                let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12].try_into().unwrap();
+                let function_start = find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes)) + 1;
+                self.store_function_node(
+                    &TYPE_FUNCTION_EXPRESSION,
+                    function_start,
+                    block_statement.span.hi.0,
+                    false,
+                    false,
+                    None,
+                    &constructor.params.iter().map(|param| match param {
+                        ParamOrTsParamProp::Param(param) => &param.pat,
+                        ParamOrTsParamProp::TsParamProp(_) => panic!("TsParamProp in constructor"),
+                    }).collect(),
+                    block_statement,
+                );
+            }
+            None => {
+                panic!("Getter property without body");
+            }
+        }
+    }
+
+    fn convert_method(&mut self, method: &ClassMethod) {
+        self.store_method_definition(&method.span, &method.kind, method.is_static, &method.key, &method.function);
+    }
+
+    fn convert_private_method(&mut self, private_method: &PrivateMethod) {
+        self.store_method_definition(&private_method.span, &private_method.kind, private_method.is_static, &private_method.key, &private_method.function);
+    }
+
+    fn store_method_definition(&mut self, span: &Span, kind: &MethodKind,is_static: bool, key: &PropName, function: &Function) {
+        self.add_type_and_positions(&TYPE_METHOD_DEFINITION, span);
+        // kind
+        self.buffer.extend_from_slice(match kind {
+            MethodKind::Method => &METHOD_DEFINITION_KIND_METHOD,
+            MethodKind::Getter => &METHOD_DEFINITION_KIND_GET,
+            MethodKind::Setter => &METHOD_DEFINITION_KIND_SET,
+        });
+        // computed
+        self.convert_boolean(match &key {
+            PropName::Computed(_) => true,
+            _ => false,
+        });
+        // static
+        self.convert_boolean(is_static);
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        let key_position = self.buffer.len();
+        self.convert_property_name(&key);
+        let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12].try_into().unwrap();
+        let function_start = find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes)) + 1;
+        // value
+        self.update_reference_position(reference_position);
+        self.store_function_node(
+            &TYPE_FUNCTION_EXPRESSION,
+            function_start,
+            function.span.hi.0,
+            function.is_async,
+            function.is_generator,
+            None,
+            &function.params.iter().map(|param| &param.pat).collect(),
+            function.body.as_ref().unwrap(),
+        );
+    }
+
+    fn convert_class_property(&mut self, class_property: &ClassProp) {
+        self.add_type_and_positions(&TYPE_PROPERTY_DEFINITION, &class_property.span);
+        // computed
+        self.convert_boolean(match &class_property.key {
+            PropName::Computed(_) => true,
+            _ => false,
+        });
+        // static
+        self.convert_boolean(class_property.is_static);
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        self.convert_property_name(&class_property.key);
+        // value
+        class_property.value.as_ref().map(|expression| {
+            self.update_reference_position(reference_position);
+            self.convert_expression(expression);
+        });
+    }
 }
 
 // These need to reflect the order in the JavaScript decoder
@@ -1437,6 +1541,7 @@ const TYPE_WHILE_STATEMENT: [u8; 4] = 74u32.to_ne_bytes();
 const TYPE_YIELD_EXPRESSION: [u8; 4] = 75u32.to_ne_bytes();
 
 // other constants
+// TODO Lukas replace various explicit string constants with type numbers
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
 const DECLARATION_KIND_LET: [u8; 4] = 1u32.to_ne_bytes();
 const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();
@@ -1444,6 +1549,11 @@ const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();
 const PROPERTY_KIND_INIT: [u8; 4] = 0u32.to_ne_bytes();
 const PROPERTY_KIND_GET: [u8; 4] = 1u32.to_ne_bytes();
 const PROPERTY_KIND_SET: [u8; 4] = 2u32.to_ne_bytes();
+
+const METHOD_DEFINITION_KIND_CONSTRUCTOR: [u8; 4] = 0u32.to_ne_bytes();
+const METHOD_DEFINITION_KIND_METHOD: [u8; 4] = 1u32.to_ne_bytes();
+const METHOD_DEFINITION_KIND_GET: [u8; 4] = 2u32.to_ne_bytes();
+const METHOD_DEFINITION_KIND_SET: [u8; 4] = 3u32.to_ne_bytes();
 
 #[derive(Debug)]
 enum StoredCallee<'a> {
@@ -1456,9 +1566,4 @@ enum StoredDefaultExportExpression<'a> {
     Expression(&'a Expr),
     Class(&'a ClassExpr),
     Function(&'a FnExpr),
-}
-
-#[derive(Debug)]
-enum StoredPropertyKey<'a> {
-    Identifier(&'a Ident),
 }

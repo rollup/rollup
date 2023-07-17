@@ -726,8 +726,26 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'MetaProperty'
 		};
 	},
-	// TODO MethodDefinition
-	null as any,
+	// MethodDefinition
+	(position, buffer, readString): estree.MethodDefinition & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const kind = METHOD_DEFINITION_KINDS[buffer[position++]];
+		const computed = !!buffer[position++];
+		const isStatic = !!buffer[position++];
+		const value = convertNode(buffer[position++], buffer, readString);
+		const key = convertNode(position, buffer, readString);
+		return {
+			computed,
+			end,
+			key,
+			kind,
+			start,
+			static: isStatic,
+			type: 'MethodDefinition',
+			value
+		};
+	},
 	// NewExpression
 	(position, buffer, readString): estree.NewExpression & AcornNode => {
 		const start = buffer[position++];
@@ -813,8 +831,24 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			value: valuePosition ? convertNode(valuePosition, buffer, readString) : key
 		};
 	},
-	// TODO PropertyDefinition
-	null as any,
+	// PropertyDefinition
+	(position, buffer, readString): estree.PropertyDefinition & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const computed = !!buffer[position++];
+		const isStatic = !!buffer[position++];
+		const valuePosition = buffer[position++];
+		const key = convertNode(position, buffer, readString);
+		return {
+			computed,
+			end,
+			key,
+			start,
+			static: isStatic,
+			type: 'PropertyDefinition',
+			value: valuePosition ? convertNode(valuePosition, buffer, readString) : null
+		};
+	},
 	// TODO RestElement
 	null as any,
 	// ReturnStatement
@@ -1014,6 +1048,13 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 const DECLARATION_KINDS: ('var' | 'let' | 'const')[] = ['var', 'let', 'const'];
 
 const PROPERTY_KINDS: ('init' | 'get' | 'set')[] = ['init', 'get', 'set'];
+
+const METHOD_DEFINITION_KINDS: ('constructor' | 'method' | 'get' | 'set')[] = [
+	'constructor',
+	'method',
+	'get',
+	'set'
+];
 
 const convertNodeList = (position: number, buffer: Uint32Array, readString: ReadString): any[] => {
 	const length = buffer[position++];
