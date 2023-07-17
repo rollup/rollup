@@ -5,7 +5,10 @@ import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 
 export class ObjectMember extends ExpressionEntity {
-	constructor(private readonly object: ExpressionEntity, private readonly key: string) {
+	constructor(
+		private readonly object: ExpressionEntity,
+		private readonly key: string
+	) {
 		super();
 	}
 
