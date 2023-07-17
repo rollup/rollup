@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 3.26.3
+
+_2023-07-17_
+
+### Bug Fixes
+
+- Do not pass external modules to `manualChunks` to avoid breaking existing configs (#5056)
+
+### Pull Requests
+
+- [#5056](https://github.com/rollup/rollup/pull/5056): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5059](https://github.com/rollup/rollup/pull/5059): chore(config): migrate renovate config (@renovate[bot])
+- [#5064](https://github.com/rollup/rollup/pull/5064): chore(deps): update dependency prettier to v3 (@renovate[bot])
+- [#5065](https://github.com/rollup/rollup/pull/5065): chore(deps): update typescript-eslint monorepo to v6 (major) (@renovate[bot])
+- [#5068](https://github.com/rollup/rollup/pull/5068): fix: don't pass external modules to the manualChunks function (@TrickyPi)
+
 ## 3.26.2
 
 _2023-07-06_
