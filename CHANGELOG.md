@@ -6,7 +6,7 @@ _2023-07-17_
 
 ### Bug Fixes
 
-- Do not pass external modules to `manualChunks` to avoid breaking existing configs (#5056)
+- Do not pass external modules to `manualChunks` to avoid breaking existing configs (#5068)
 
 ### Pull Requests
 
