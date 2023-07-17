@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
-use swc_common::{Span, Spanned};
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod};
+use swc_common::{Span};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -148,6 +148,7 @@ impl<'a> AstConverter<'a> {
             Expr::Object(object_literal) => self.convert_object_literal(object_literal),
             Expr::OptChain(optional_chain_expression) => self.convert_optional_chain_expression(optional_chain_expression),
             Expr::Paren(parenthesized_expression) => self.convert_parenthesized_expression(parenthesized_expression),
+            Expr::This(this_expression) => self.convert_this_expression(this_expression),
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -263,7 +264,7 @@ impl<'a> AstConverter<'a> {
             ClassMember::Method(method) => self.convert_method(method),
             ClassMember::PrivateMethod(private_method) => self.convert_private_method(private_method),
             ClassMember::ClassProp(class_property) => self.convert_class_property(class_property),
-            ClassMember::PrivateProp(_) => todo!("PrivateProp"),
+            ClassMember::PrivateProp(private_property) => self.convert_private_property(private_property),
             ClassMember::StaticBlock(_) => todo!("StaticBlock"),
             _ => {
                 dbg!(class_member);
@@ -636,10 +637,10 @@ impl<'a> AstConverter<'a> {
         self.convert_expression(&member_expression.obj);
     }
 
-    fn convert_private_name(&mut self, private_name: &&PrivateName) {
+    fn convert_private_name(&mut self, private_name: &PrivateName) {
         self.add_type_and_positions(&TYPE_PRIVATE_IDENTIFIER, &private_name.span);
         // id
-        self.convert_identifier(&private_name.id);
+        self.convert_string(&private_name.id.sym);
     }
 
     fn convert_import_default_specifier(&mut self, import_default_specifier: &ImportDefaultSpecifier) {
@@ -1398,14 +1399,17 @@ impl<'a> AstConverter<'a> {
     }
 
     fn convert_method(&mut self, method: &ClassMethod) {
-        self.store_method_definition(&method.span, &method.kind, method.is_static, &method.key, &method.function);
+        self.store_method_definition(&method.span, &method.kind, method.is_static, PropOrPrivateName::PropName(&method.key), match method.key {
+            PropName::Computed(_) => true,
+            _ => false,
+        }, &method.function);
     }
 
     fn convert_private_method(&mut self, private_method: &PrivateMethod) {
-        self.store_method_definition(&private_method.span, &private_method.kind, private_method.is_static, &private_method.key, &private_method.function);
+        self.store_method_definition(&private_method.span, &private_method.kind, private_method.is_static, PropOrPrivateName::PrivateName(&private_method.key), false,&private_method.function);
     }
 
-    fn store_method_definition(&mut self, span: &Span, kind: &MethodKind,is_static: bool, key: &PropName, function: &Function) {
+    fn store_method_definition(&mut self, span: &Span, kind: &MethodKind,is_static: bool, key: PropOrPrivateName, is_computed: bool, function: &Function) {
         self.add_type_and_positions(&TYPE_METHOD_DEFINITION, span);
         // kind
         self.buffer.extend_from_slice(match kind {
@@ -1414,17 +1418,17 @@ impl<'a> AstConverter<'a> {
             MethodKind::Setter => &METHOD_DEFINITION_KIND_SET,
         });
         // computed
-        self.convert_boolean(match &key {
-            PropName::Computed(_) => true,
-            _ => false,
-        });
+        self.convert_boolean(is_computed);
         // static
         self.convert_boolean(is_static);
         // reserve value
         let reference_position = self.reserve_reference_positions(1);
         // key
         let key_position = self.buffer.len();
-        self.convert_property_name(&key);
+        match key {
+            PropOrPrivateName::PropName(prop_name) => self.convert_property_name(&prop_name),
+            PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(&private_name),
+        }
         let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12].try_into().unwrap();
         let function_start = find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes)) + 1;
         // value
@@ -1441,24 +1445,39 @@ impl<'a> AstConverter<'a> {
         );
     }
 
-    fn convert_class_property(&mut self, class_property: &ClassProp) {
-        self.add_type_and_positions(&TYPE_PROPERTY_DEFINITION, &class_property.span);
+    fn store_property_definition(&mut self, span: &Span, is_computed: bool, is_static: bool, key: PropOrPrivateName, value: &Option<&Expr>) {
+        self.add_type_and_positions(&TYPE_PROPERTY_DEFINITION, span);
         // computed
-        self.convert_boolean(match &class_property.key {
-            PropName::Computed(_) => true,
-            _ => false,
-        });
+        self.convert_boolean(is_computed);
         // static
-        self.convert_boolean(class_property.is_static);
+        self.convert_boolean(is_static);
         // reserve value
         let reference_position = self.reserve_reference_positions(1);
         // key
-        self.convert_property_name(&class_property.key);
+        match key {
+            PropOrPrivateName::PropName(prop_name) => self.convert_property_name(&prop_name),
+            PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(&private_name),
+        }
         // value
-        class_property.value.as_ref().map(|expression| {
+        value.map(|expression| {
             self.update_reference_position(reference_position);
             self.convert_expression(expression);
         });
+    }
+
+    fn convert_class_property(&mut self, class_property: &ClassProp) {
+        self.store_property_definition(&class_property.span, match &class_property.key {
+            PropName::Computed(_) => true,
+            _ => false,
+        }, class_property.is_static, PropOrPrivateName::PropName(&class_property.key), &class_property.value.as_ref().map(|expression| &**expression));
+    }
+
+    fn convert_private_property(&mut self, private_property: &PrivateProp) {
+        self.store_property_definition(&private_property.span, false, private_property.is_static, PropOrPrivateName::PrivateName(&private_property.key), &private_property.value.as_ref().map(|expression| &**expression));
+    }
+
+    fn convert_this_expression(&mut self, this_expression: &ThisExpr) {
+        self.add_type_and_positions(&TYPE_THIS_EXPRESSION, &this_expression.span);
     }
 }
 
@@ -1566,4 +1585,9 @@ enum StoredDefaultExportExpression<'a> {
     Expression(&'a Expr),
     Class(&'a ClassExpr),
     Function(&'a FnExpr),
+}
+
+enum PropOrPrivateName<'a> {
+    PropName(&'a PropName),
+    PrivateName(&'a PrivateName),
 }

@@ -788,7 +788,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.PrivateIdentifier & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const name = convertNode(position, buffer, readString);
+		const name = convertString(position, buffer, readString);
 		return {
 			end,
 			name,
@@ -891,8 +891,16 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	null as any,
 	// TODO TemplateLiteral
 	null as any,
-	// TODO ThisExpression
-	null as any,
+	// ThisExpression
+	(position, buffer): estree.ThisExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			end,
+			start,
+			type: 'ThisExpression'
+		};
+	},
 	// ThrowStatement
 	(position, buffer, readString): estree.ThrowStatement & AcornNode => {
 		const start = buffer[position++];
