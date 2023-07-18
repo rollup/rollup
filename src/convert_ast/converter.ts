@@ -947,12 +947,52 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'SwitchStatement'
 		};
 	},
-	// TODO TaggedTemplateExpression
-	null as any,
-	// TODO TemplateElement
-	null as any,
-	// TODO TemplateLiteral
-	null as any,
+	// TaggedTemplateExpression
+	(position, buffer, readString): estree.TaggedTemplateExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const tag = convertNode(buffer[position++], buffer, readString);
+		const quasi = convertNode(position, buffer, readString);
+		return {
+			end,
+			quasi,
+			start,
+			tag,
+			type: 'TaggedTemplateExpression'
+		};
+	},
+	// TemplateElement
+	(position, buffer, readString): estree.TemplateElement & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const tail = !!buffer[position++];
+		const cookedPosition = buffer[position++];
+		const raw = convertString(position, buffer, readString);
+		return {
+			end,
+			start,
+			tail,
+			type: 'TemplateElement',
+			value: {
+				cooked: cookedPosition ? convertString(cookedPosition, buffer, readString) : null,
+				raw
+			}
+		};
+	},
+	// TemplateLiteral
+	(position, buffer, readString): estree.TemplateLiteral & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const expressions = convertNodeList(buffer[position++], buffer, readString);
+		const quasis = convertNodeList(position, buffer, readString);
+		return {
+			end,
+			expressions,
+			quasis,
+			start,
+			type: 'TemplateLiteral'
+		};
+	},
 	// ThisExpression
 	(position, buffer): estree.ThisExpression & AcornNode => {
 		const start = buffer[position++];
@@ -991,10 +1031,37 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'TryStatement'
 		};
 	},
-	// TODO UnaryExpression
-	null as any,
-	// TODO UpdateExpression
-	null as any,
+	// UnaryExpression
+	(position, buffer, readString): estree.UnaryExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const operator = convertString(buffer[position++], buffer, readString) as estree.UnaryOperator;
+		const argument = convertNode(position, buffer, readString);
+		return {
+			argument,
+			end,
+			operator,
+			prefix: true,
+			start,
+			type: 'UnaryExpression'
+		};
+	},
+	// UpdateExpression
+	(position, buffer, readString): estree.UpdateExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const prefix = !!buffer[position++];
+		const operator = convertString(buffer[position++], buffer, readString) as estree.UpdateOperator;
+		const argument = convertNode(position, buffer, readString);
+		return {
+			argument,
+			end,
+			operator,
+			prefix,
+			start,
+			type: 'UpdateExpression'
+		};
+	},
 	// VariableDeclaration
 	(position, buffer, readString): estree.VariableDeclaration & AcornNode => {
 		const start = buffer[position++];
@@ -1037,8 +1104,20 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'WhileStatement'
 		};
 	},
-	// TODO YieldExpression
-	null as any,
+	// YieldExpression
+	(position, buffer, readString): estree.YieldExpression & AcornNode => {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const delegate = !!buffer[position++];
+		const argumentPosition = buffer[position];
+		return {
+			argument: argumentPosition ? convertNode(argumentPosition, buffer, readString) : null,
+			delegate,
+			end,
+			start,
+			type: 'YieldExpression'
+		};
+	},
 
 	// TODO Lukas remove? AssignmentPatternProperty -> Property
 	(position, buffer, readString): estree.Property & AcornNode => {

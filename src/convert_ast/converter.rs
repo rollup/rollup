@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::{Span};
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp, StaticBlock, SuperPropExpr, SuperProp, ComputedPropName, RestPat, SeqExpr, SwitchStmt, SwitchCase};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp, StaticBlock, SuperPropExpr, SuperProp, ComputedPropName, RestPat, SeqExpr, SwitchStmt, SwitchCase, TaggedTpl, Tpl, TplElement, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, YieldExpr};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -151,7 +151,12 @@ impl<'a> AstConverter<'a> {
             Expr::Paren(parenthesized_expression) => self.convert_parenthesized_expression(parenthesized_expression),
             Expr::Seq(sequence_expression) => self.convert_sequence_expression(sequence_expression),
             Expr::SuperProp(super_property) => self.convert_super_property(super_property),
+            Expr::TaggedTpl(tagged_template_expression) => self.convert_tagged_template_expression(tagged_template_expression),
             Expr::This(this_expression) => self.convert_this_expression(this_expression),
+            Expr::Tpl(template_literal) => self.convert_template_literal(template_literal),
+            Expr::Unary(unary_expression) => self.convert_unary_expression(unary_expression),
+            Expr::Update(update_expression) => self.convert_update_expression(update_expression),
+            Expr::Yield(yield_expression) => self.convert_yield_expression(yield_expression),
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -1540,6 +1545,91 @@ impl<'a> AstConverter<'a> {
         self.convert_item_list(&switch_case.cons, |ast_converter, statement| ast_converter.convert_statement(statement));
         // test
         switch_case.test.as_ref().map(|expression| {
+            self.update_reference_position(reference_position);
+            self.convert_expression(expression)
+        });
+    }
+
+    fn convert_tagged_template_expression(&mut self, tagged_template: &TaggedTpl) {
+        self.add_type_and_positions(&TYPE_TAGGED_TEMPLATE_EXPRESSION, &tagged_template.span);
+        // reserve tag
+        let reference_position = self.reserve_reference_positions(1);
+        // quasi
+        self.convert_template_literal(&tagged_template.tpl);
+        // tag
+        self.update_reference_position(reference_position);
+        self.convert_expression(&tagged_template.tag);
+    }
+
+    fn convert_template_literal(&mut self, template_literal: &Tpl) {
+        self.add_type_and_positions(&TYPE_TEMPLATE_LITERAL, &template_literal.span);
+        // reserve expressions
+        let reference_position = self.reserve_reference_positions(1);
+        // quasis
+        self.convert_item_list(&template_literal.quasis, |ast_converter, template_element| ast_converter.convert_template_element(template_element));
+        // expressions
+        self.update_reference_position(reference_position);
+        self.convert_item_list(&template_literal.exprs, |ast_converter, expression| ast_converter.convert_expression(expression));
+    }
+
+    fn convert_template_element(&mut self, template_element: &TplElement) {
+        self.add_type_and_positions(&TYPE_TEMPLATE_ELEMENT, &template_element.span);
+        // tail
+        self.convert_boolean(template_element.tail);
+        // reserve cooked
+        let reference_position = self.reserve_reference_positions(1);
+        // raw
+        self.convert_string(&template_element.raw);
+        // cooked
+        template_element.cooked.as_ref().map(|cooked| {
+            self.update_reference_position(reference_position);
+            self.convert_string(cooked)
+        });
+    }
+
+    fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {
+        self.add_type_and_positions(&TYPE_UNARY_EXPRESSION, &unary_expression.span);
+        // reserve operator
+        let reference_position = self.reserve_reference_positions(1);
+        // argument
+        self.convert_expression(&unary_expression.arg);
+        // operator
+        self.update_reference_position(reference_position);
+        self.convert_string(match unary_expression.op {
+            UnaryOp::Minus => "-",
+            UnaryOp::Plus => "+",
+            UnaryOp::Bang => "!",
+            UnaryOp::Tilde => "~",
+            UnaryOp::TypeOf => "typeof",
+            UnaryOp::Void => "void",
+            UnaryOp::Delete => "delete",
+        });
+    }
+
+    fn convert_update_expression(&mut self, update_expression: &UpdateExpr) {
+        self.add_type_and_positions(&TYPE_UPDATE_EXPRESSION, &update_expression.span);
+        // prefix
+        self.convert_boolean(update_expression.prefix);
+        // reserve operator
+        let reference_position = self.reserve_reference_positions(1);
+        // argument
+        self.convert_expression(&update_expression.arg);
+        // operator
+        self.update_reference_position(reference_position);
+        self.convert_string(match update_expression.op {
+            UpdateOp::PlusPlus => "++",
+            UpdateOp::MinusMinus => "--",
+        });
+    }
+
+    fn convert_yield_expression(&mut self, yield_expression: &YieldExpr) {
+        self.add_type_and_positions(&TYPE_YIELD_EXPRESSION, &yield_expression.span);
+        // delegate
+        self.convert_boolean(yield_expression.delegate);
+        // reserve argument
+        let reference_position = self.reserve_reference_positions(1);
+        // argument
+        yield_expression.arg.as_ref().map(|expression| {
             self.update_reference_position(reference_position);
             self.convert_expression(expression)
         });
