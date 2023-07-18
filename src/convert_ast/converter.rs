@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use swc_common::{Span};
-use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp, StaticBlock, SuperPropExpr, SuperProp, ComputedPropName, RestPat, SeqExpr, SwitchStmt, SwitchCase, TaggedTpl, Tpl, TplElement, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, YieldExpr};
+use swc_ecma_ast::{ArrowExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, Callee, CallExpr, Decl, ExportDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, Ident, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, Lit, MemberExpr, MemberProp, Module, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, Number, Null, Pat, PrivateName, Program, Stmt, Str, VarDecl, VarDeclarator, VarDeclKind, ImportStarAsSpecifier, ExportAll, BinExpr, BinaryOp, ArrayPat, ObjectPat, ObjectPatProp, AssignPatProp, ArrayLit, CondExpr, FnDecl, ClassDecl, ClassMember, ReturnStmt, ObjectLit, PropOrSpread, Prop, KeyValueProp, PropName, GetterProp, AssignExpr, AssignOp, PatOrExpr, NewExpr, FnExpr, ParenExpr, Param, ThrowStmt, ExportDefaultDecl, DefaultDecl, AssignPat, AwaitExpr, LabeledStmt, BreakStmt, TryStmt, CatchClause, OptChainExpr, OptChainBase, OptCall, Super, ClassExpr, Class, WhileStmt, ContinueStmt, DoWhileStmt, DebuggerStmt, EmptyStmt, ForInStmt, ForHead, ForOfStmt, ForStmt, VarDeclOrExpr, IfStmt, Regex, BigInt, MetaPropExpr, MetaPropKind, SetterProp, MethodProp, Function, Constructor, ParamOrTsParamProp, ClassMethod, MethodKind, ClassProp, PrivateMethod, ThisExpr, PrivateProp, StaticBlock, SuperPropExpr, SuperProp, ComputedPropName, RestPat, SeqExpr, SwitchStmt, SwitchCase, TaggedTpl, Tpl, TplElement, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, YieldExpr, KeyValuePatProp};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 
 mod analyze_code;
@@ -257,10 +257,8 @@ impl<'a> AstConverter<'a> {
     fn convert_object_pattern_property(&mut self, object_pattern_property: &ObjectPatProp) {
         match object_pattern_property {
             ObjectPatProp::Assign(assignment_pattern_property) => self.convert_assignment_pattern_property(assignment_pattern_property),
-            _ => {
-                dbg!(object_pattern_property);
-                todo!("Cannot convert ObjectPatternProperty");
-            }
+            ObjectPatProp::KeyValue(key_value_pattern_property) => self.convert_key_value_pattern_property(key_value_pattern_property),
+            ObjectPatProp::Rest(rest_pattern) => self.convert_rest_pattern(rest_pattern),
         }
     }
 
@@ -778,20 +776,6 @@ impl<'a> AstConverter<'a> {
         self.convert_item_list(&object_pattern.props, |ast_converter, object_pattern_property| ast_converter.convert_object_pattern_property(object_pattern_property));
     }
 
-    fn convert_assignment_pattern_property(&mut self, assignment_pattern_property: &AssignPatProp) {
-        todo!("Cannot convert AssignmentPatternProperty");
-        // self.add_type_and_positions(&TYPE_ASSIGNMENT_PATTERN_PROPERTY, &assignment_pattern_property.span);
-        // // reserve value
-        // let reference_position = self.reserve_reference_positions(1);
-        // // key
-        // self.convert_identifier(&assignment_pattern_property.key);
-        // // value
-        // assignment_pattern_property.value.as_ref().map(|value| {
-        //     self.update_reference_position(reference_position);
-        //     self.convert_expression(&*value);
-        // });
-    }
-
     fn convert_array_literal(&mut self, array_literal: &ArrayLit) {
         self.add_type_and_positions(&TYPE_ARRAY_EXPRESSION, &array_literal.span);
         // elements
@@ -919,10 +903,7 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    // Unfortunately, there are four different functions that write PROPERTY AST
-    // nodes that need to be kept in sync. KeyValueProp and MethodProp required
-    // custom span calculation while MShorthand and Getter/Setter were wildly
-    // different.
+    // TODO Lukas property has many different formats that should be merged if possible
     fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
         // type
         self.buffer.extend_from_slice(&TYPE_PROPERTY);
@@ -975,6 +956,7 @@ impl<'a> AstConverter<'a> {
         self.convert_identifier(identifier);
     }
 
+    // TODO Lukas merge with method
     fn store_getter_setter_property(&mut self, span: &Span, kind: &[u8; 4], key: &PropName, body: &Option<BlockStmt>, param: Option<&Pat>) {
         self.add_type_and_positions(&TYPE_PROPERTY, span);
         // kind
@@ -990,31 +972,25 @@ impl<'a> AstConverter<'a> {
         let reference_position = self.reserve_reference_positions(1);
         // key
         let key_position = self.buffer.len();
+        let key_end = u32::from_ne_bytes(self.buffer[key_position + 8..key_position + 12].try_into().unwrap());
         self.convert_property_name(key);
         // value
-        match body {
-            Some(block_statement) => {
-                self.update_reference_position(reference_position);
-                let key_end = u32::from_ne_bytes(self.buffer[key_position + 8..key_position + 12].try_into().unwrap());
-                let parameters = match param {
-                    Some(pattern) => vec![pattern],
-                    None => vec![],
-                };
-                self.store_function_node(
-                    &TYPE_FUNCTION_EXPRESSION,
-                    find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1,
-                    block_statement.span.hi.0,
-                    false,
-                    false,
-                    None,
-                    &parameters,
-                    block_statement,
-                );
-            }
-            None => {
-                panic!("Getter property without body");
-            }
-        }
+        let block_statement = body.as_ref().expect("Getter/setter property without body");
+        self.update_reference_position(reference_position);
+        let parameters = match param {
+            Some(pattern) => vec![pattern],
+            None => vec![],
+        };
+        self.store_function_node(
+            &TYPE_FUNCTION_EXPRESSION,
+            find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1,
+            block_statement.span.hi.0,
+            false,
+            false,
+            None,
+            &parameters,
+            block_statement,
+        );
     }
 
     fn convert_getter_property(&mut self, getter_property: &GetterProp) {
@@ -1040,9 +1016,9 @@ impl<'a> AstConverter<'a> {
         let reference_position = self.reserve_reference_positions(1);
         // key
         let key_position = self.buffer.len();
+        let key_end = u32::from_ne_bytes(self.buffer[key_position + 8..key_position + 12].try_into().unwrap());
         self.convert_property_name(&method_property.key);
-        let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12].try_into().unwrap();
-        let function_start = find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes)) + 1;
+        let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1;
         // value
         self.update_reference_position(reference_position);
         let function = &method_property.function;
@@ -1056,6 +1032,60 @@ impl<'a> AstConverter<'a> {
             &function.params.iter().map(|param| &param.pat).collect(),
             function.body.as_ref().unwrap(),
         );
+    }
+
+    // TODO Lukas merge with shorthand
+    fn convert_assignment_pattern_property(&mut self, assignment_pattern_property: &AssignPatProp) {
+        let span = &assignment_pattern_property.span;
+        self.add_type_and_positions(&TYPE_PROPERTY, span);
+        // kind
+        self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+        // method
+        self.convert_boolean(false);
+        // computed
+        self.convert_boolean(false);
+        // reserve value, which is null
+        self.reserve_reference_positions(1);
+        // key
+        self.convert_identifier(&assignment_pattern_property.key);
+    }
+
+    // TODO Lukas merge with key-value property
+    fn convert_key_value_pattern_property(&mut self, key_value_pattern_property: &KeyValuePatProp) {
+        // type
+        self.buffer.extend_from_slice(&TYPE_PROPERTY);
+        // reserve start, end
+        let start_end_position = self.reserve_reference_positions(2);
+        // kind
+        self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+        // method
+        self.convert_boolean(false);
+        // computed
+        self.convert_boolean(match key_value_pattern_property.key {
+            PropName::Computed(_) => true,
+            _ => false,
+        });
+        // reserve value
+        let reference_position = self.reserve_reference_positions(1);
+        // key
+        let key_span = match &key_value_pattern_property.key {
+            PropName::Computed(computed_property_name) => computed_property_name.span,
+            PropName::Ident(identifier) => identifier.span,
+            PropName::Str(string) => string.span,
+            PropName::Num(number) => number.span,
+            PropName::BigInt(bigint) => bigint.span,
+        };
+        self.convert_property_name(&key_value_pattern_property.key);
+        // value
+        let value_position = self.buffer.len();
+        self.update_reference_position(reference_position);
+        self.convert_pattern(&key_value_pattern_property.value);
+        // start
+        let key_start: [u8; 4] = (key_span.lo.0 - 1).to_ne_bytes();
+        self.buffer[start_end_position..start_end_position + 4].copy_from_slice(&key_start);
+        // end
+        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12].try_into().unwrap();
+        self.buffer[start_end_position + 4..start_end_position + 8].copy_from_slice(&value_end);
     }
 
     fn convert_assignment_expression(&mut self, assignment_expression: &AssignExpr) {

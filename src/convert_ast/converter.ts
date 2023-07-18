@@ -1117,26 +1117,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			type: 'YieldExpression'
 		};
-	},
-
-	// TODO Lukas remove? AssignmentPatternProperty -> Property
-	(position, buffer, readString): estree.Property & AcornNode => {
-		const start = buffer[position++];
-		const end = buffer[position++];
-		const valuePosition = buffer[position++];
-		const key = convertNode(position, buffer, readString);
-		const value = valuePosition ? convertNode(valuePosition, buffer, readString) : key;
-		return {
-			computed: false,
-			end,
-			key,
-			kind: 'init',
-			method: false,
-			shorthand: !valuePosition,
-			start,
-			type: 'Property',
-			value
-		};
 	}
 ];
 
