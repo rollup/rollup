@@ -300,7 +300,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const exportedPosition = buffer[position++];
 		const source = convertNode(position, buffer, readString);
 		return {
-			assertions,
+			...(assertions.length > 0 ? { assertions } : {}),
 			end,
 			exported: exportedPosition ? convertNode(exportedPosition, buffer, readString) : null,
 			source,
@@ -329,7 +329,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const assertions = convertNodeList(buffer[position++], buffer, readString);
 		const specifiers = convertNodeList(position, buffer, readString);
 		return {
-			assertions,
+			...(assertions.length > 0 ? { assertions } : {}),
 			declaration: declarationPosition
 				? convertNode(declarationPosition, buffer, readString)
 				: null,
@@ -515,7 +515,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const assertions = convertNodeList(buffer[position++], buffer, readString);
 		const specifiers = convertNodeList(position, buffer, readString);
 		return {
-			assertions,
+			...(assertions.length > 0 ? { assertions } : {}),
 			end,
 			source,
 			specifiers,
@@ -542,7 +542,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const arguments_ = convertNodeList(buffer[position++], buffer, readString);
 		const source = convertNode(position, buffer, readString);
 		return {
-			arguments: arguments_,
+			...(arguments_.length > 0 ? { arguments: arguments_ } : {}),
 			end,
 			source,
 			start,
@@ -816,8 +816,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const kind = PROPERTY_KINDS[buffer[position++]];
 		const method = !!buffer[position++];
 		const computed = !!buffer[position++];
+		const shorthand = !!buffer[position++];
 		const valuePosition = buffer[position++];
-		const shorthand = !valuePosition;
 		const key = convertNode(position, buffer, readString);
 		return {
 			computed,
@@ -889,7 +889,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.SpreadElement & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const argument = convertNode(buffer[position++], buffer, readString);
+		const argument = convertNode(position, buffer, readString);
 		return {
 			argument,
 			end,
@@ -1154,17 +1154,17 @@ interface ImportAttribute {
 }
 
 interface ImportDeclaration extends estree.ImportDeclaration {
-	assertions: ImportAttribute[];
+	assertions?: ImportAttribute[];
 }
 
 interface ExportNamedDeclaration extends estree.ExportNamedDeclaration {
-	assertions: ImportAttribute[];
+	assertions?: ImportAttribute[];
 }
 
 interface ExportAllDeclaration extends estree.ExportAllDeclaration {
-	assertions: ImportAttribute[];
+	assertions?: ImportAttribute[];
 }
 
 interface ImportExpression extends estree.ImportExpression {
-	arguments: estree.ObjectExpression[];
+	arguments?: estree.ObjectExpression[];
 }

@@ -143,8 +143,8 @@ export default class Graph {
 			...(this.options.acorn as unknown as acorn.Options),
 			...options
 		});
-		// console.log(JSON.stringify(acornAst, null, 2));
 		// console.timeEnd('acorn');
+		// console.log(JSON.stringify(acornAst, null, 2));
 		let ast: acorn.Node;
 		let astBuffer: Buffer;
 		try {
@@ -154,14 +154,25 @@ export default class Graph {
 				astBuffer.toString('utf8', start, start + length)
 			);
 			// console.timeEnd('swc');
+			// console.log(JSON.stringify(ast, null, 2));
 			assert.deepStrictEqual(
 				ast,
 				JSON.parse(
 					JSON.stringify(acornAst, (_, value) =>
-						typeof value == 'bigint' ? `BigInt${value.toString()}` : value
+						typeof value == 'bigint'
+							? `BigInt${value.toString()}`
+							: value instanceof RegExp
+							? `RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
+							: value
 					),
 					(_, value) =>
-						typeof value === 'string' && value.startsWith('BigInt') ? BigInt(value.slice(6)) : value
+						typeof value === 'string'
+							? value.startsWith('BigInt')
+								? BigInt(value.slice(6))
+								: value.startsWith('RegExp')
+								? new RegExp(JSON.parse(value.slice(6)).source, JSON.parse(value.slice(6)).flags)
+								: value
+							: value
 				)
 			);
 		} catch (error_) {
