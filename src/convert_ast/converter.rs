@@ -131,33 +131,108 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_expression(&mut self, expression: &Expr) {
+    // TODO Lukas check usages to simplify
+    fn convert_expression(&mut self, expression: &Expr) -> Span {
         match expression {
-            Expr::Array(array_literal) => self.convert_array_literal(array_literal),
-            Expr::Arrow(arrow_expression) => self.convert_arrow_expression(arrow_expression),
-            Expr::Assign(assignment_expression) => self.convert_assignment_expression(assignment_expression),
-            Expr::Await(await_expression) => self.convert_await_expression(await_expression),
-            Expr::Bin(binary_expression) => self.convert_binary_expression(binary_expression),
-            Expr::Call(call_expression) => self.convert_call_expression(call_expression, false),
-            Expr::Class(class_expression) => self.convert_class_expression(class_expression, &TYPE_CLASS_EXPRESSION),
-            Expr::Cond(conditional_expression) => self.convert_conditional_expression(conditional_expression),
-            Expr::Fn(function_expression) => self.convert_function(&function_expression.function, &TYPE_FUNCTION_EXPRESSION, function_expression.ident.as_ref()),
-            Expr::Ident(identifier) => self.convert_identifier(identifier),
-            Expr::Lit(literal) => self.convert_literal(literal),
-            Expr::Member(member_expression) => self.convert_member_expression(member_expression, false),
-            Expr::MetaProp(meta_property) => self.convert_meta_property(meta_property),
-            Expr::New(new_expression) => self.convert_new_expression(new_expression),
-            Expr::Object(object_literal) => self.convert_object_literal(object_literal),
-            Expr::OptChain(optional_chain_expression) => self.convert_optional_chain_expression(optional_chain_expression),
-            Expr::Paren(parenthesized_expression) => self.convert_parenthesized_expression(parenthesized_expression),
-            Expr::Seq(sequence_expression) => self.convert_sequence_expression(sequence_expression),
-            Expr::SuperProp(super_property) => self.convert_super_property(super_property),
-            Expr::TaggedTpl(tagged_template_expression) => self.convert_tagged_template_expression(tagged_template_expression),
-            Expr::This(this_expression) => self.convert_this_expression(this_expression),
-            Expr::Tpl(template_literal) => self.convert_template_literal(template_literal),
-            Expr::Unary(unary_expression) => self.convert_unary_expression(unary_expression),
-            Expr::Update(update_expression) => self.convert_update_expression(update_expression),
-            Expr::Yield(yield_expression) => self.convert_yield_expression(yield_expression),
+            Expr::Array(array_literal) => {
+                self.convert_array_literal(array_literal);
+                array_literal.span
+            }
+            Expr::Arrow(arrow_expression) => {
+                self.convert_arrow_expression(arrow_expression);
+                arrow_expression.span
+            }
+            Expr::Assign(assignment_expression) => {
+                self.convert_assignment_expression(assignment_expression);
+                assignment_expression.span
+            }
+            Expr::Await(await_expression) => {
+                self.convert_await_expression(await_expression);
+                await_expression.span
+            }
+            Expr::Bin(binary_expression) => {
+                self.convert_binary_expression(binary_expression);
+                binary_expression.span
+            }
+            Expr::Call(call_expression) => {
+                self.convert_call_expression(call_expression, false);
+                call_expression.span
+            }
+            Expr::Class(class_expression) => {
+                self.convert_class_expression(class_expression, &TYPE_CLASS_EXPRESSION);
+                class_expression.class.span
+            }
+            Expr::Cond(conditional_expression) => {
+                self.convert_conditional_expression(conditional_expression);
+                conditional_expression.span
+            }
+            Expr::Fn(function_expression) => {
+                self.convert_function(&function_expression.function, &TYPE_FUNCTION_EXPRESSION, function_expression.ident.as_ref());
+                function_expression.function.span
+            }
+            Expr::Ident(identifier) => {
+                self.convert_identifier(identifier);
+                identifier.span
+            }
+            Expr::Lit(literal) => {
+                self.convert_literal(literal)
+            }
+            Expr::Member(member_expression) => {
+                self.convert_member_expression(member_expression, false);
+                member_expression.span
+            }
+            Expr::MetaProp(meta_property) => {
+                self.convert_meta_property(meta_property);
+                meta_property.span
+            }
+            Expr::New(new_expression) => {
+                self.convert_new_expression(new_expression);
+                new_expression.span
+            }
+            Expr::Object(object_literal) => {
+                self.convert_object_literal(object_literal);
+                object_literal.span
+            }
+            Expr::OptChain(optional_chain_expression) => {
+                self.convert_optional_chain_expression(optional_chain_expression);
+                optional_chain_expression.span
+            }
+            Expr::Paren(parenthesized_expression) => {
+                self.convert_parenthesized_expression(parenthesized_expression);
+                parenthesized_expression.span
+            }
+            Expr::Seq(sequence_expression) => {
+                self.convert_sequence_expression(sequence_expression);
+                sequence_expression.span
+            }
+            Expr::SuperProp(super_property) => {
+                self.convert_super_property(super_property);
+                super_property.span
+            }
+            Expr::TaggedTpl(tagged_template_expression) => {
+                self.convert_tagged_template_expression(tagged_template_expression);
+                tagged_template_expression.span
+            }
+            Expr::This(this_expression) => {
+                self.convert_this_expression(this_expression);
+                this_expression.span
+            }
+            Expr::Tpl(template_literal) => {
+                self.convert_template_literal(template_literal);
+                template_literal.span
+            }
+            Expr::Unary(unary_expression) => {
+                self.convert_unary_expression(unary_expression);
+                unary_expression.span
+            }
+            Expr::Update(update_expression) => {
+                self.convert_update_expression(update_expression);
+                update_expression.span
+            }
+            Expr::Yield(yield_expression) => {
+                self.convert_yield_expression(yield_expression);
+                yield_expression.span
+            }
             _ => {
                 dbg!(expression);
                 todo!("Cannot convert Expression");
@@ -165,18 +240,33 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_literal(&mut self, literal: &Lit) {
+    fn convert_literal(&mut self, literal: &Lit) -> Span {
         match literal {
-            Lit::BigInt(bigint_literal) => self.convert_literal_bigint(bigint_literal),
-            Lit::Bool(boolean_literal) => self.convert_literal_boolean(boolean_literal),
-            Lit::Null(null_literal) => self.convert_literal_null(null_literal),
-            Lit::Num(number_literal) => self.convert_literal_number(number_literal),
-            Lit::Regex(regex_literal) => self.convert_literal_regex(regex_literal),
-            Lit::Str(string_literal) => self.convert_literal_string(string_literal),
-            _ => {
-                dbg!(literal);
-                todo!("Cannot convert Literal");
+            Lit::BigInt(bigint_literal) => {
+                self.convert_literal_bigint(bigint_literal);
+                bigint_literal.span
             }
+            Lit::Bool(boolean_literal) => {
+                self.convert_literal_boolean(boolean_literal);
+                boolean_literal.span
+            }
+            Lit::Null(null_literal) => {
+                self.convert_literal_null(null_literal);
+                null_literal.span
+            }
+            Lit::Num(number_literal) => {
+                self.convert_literal_number(number_literal);
+                number_literal.span
+            }
+            Lit::Regex(regex_literal) => {
+                self.convert_literal_regex(regex_literal);
+                regex_literal.span
+            }
+            Lit::Str(string_literal) => {
+                self.convert_literal_string(string_literal);
+                string_literal.span
+            }
+            Lit::JSXText(_) => unimplemented!("Lit::JSXText"),
         }
     }
 
@@ -211,14 +301,29 @@ impl<'a> AstConverter<'a> {
         }
     }
 
-    fn convert_pattern(&mut self, pattern: &Pat) {
+    fn convert_pattern(&mut self, pattern: &Pat) -> Span {
         match pattern {
-            Pat::Array(array_pattern) => self.convert_array_pattern(array_pattern),
-            Pat::Assign(assignment_pattern) => self.convert_assignment_pattern(assignment_pattern),
+            Pat::Array(array_pattern) => {
+                self.convert_array_pattern(array_pattern);
+                array_pattern.span
+            }
+            Pat::Assign(assignment_pattern) => {
+                self.convert_assignment_pattern(assignment_pattern);
+                assignment_pattern.span
+            }
             Pat::Expr(expression) => self.convert_expression(expression),
-            Pat::Ident(binding_identifier) => self.convert_binding_identifier(binding_identifier),
-            Pat::Object(object) => self.convert_object_pattern(object),
-            Pat::Rest(rest_pattern) => self.convert_rest_pattern(rest_pattern),
+            Pat::Ident(binding_identifier) => {
+                self.convert_binding_identifier(binding_identifier);
+                binding_identifier.span
+            }
+            Pat::Object(object) => {
+                self.convert_object_pattern(object);
+                object.span
+            }
+            Pat::Rest(rest_pattern) => {
+                self.convert_rest_pattern(rest_pattern);
+                rest_pattern.span
+            }
             Pat::Invalid(_) => unimplemented!("Cannot convert invalid pattern")
         }
     }
@@ -296,10 +401,15 @@ impl<'a> AstConverter<'a> {
         }
     }
 
+    // TODO Lukas return span
     fn convert_pattern_or_expression(&mut self, pattern_or_expression: &PatOrExpr) {
         match pattern_or_expression {
-            PatOrExpr::Pat(pattern) => self.convert_pattern(pattern),
-            PatOrExpr::Expr(expression) => self.convert_expression(expression)
+            PatOrExpr::Pat(pattern) => {
+                self.convert_pattern(pattern);
+            },
+            PatOrExpr::Expr(expression) => {
+                self.convert_expression(expression);
+            }
         }
     }
 
@@ -341,7 +451,9 @@ impl<'a> AstConverter<'a> {
     fn convert_for_head(&mut self, for_head: &ForHead) {
         match for_head {
             ForHead::VarDecl(variable_declaration) => self.convert_variable_declaration(variable_declaration),
-            ForHead::Pat(pattern) => self.convert_pattern(pattern),
+            ForHead::Pat(pattern) => {
+                self.convert_pattern(pattern);
+            },
             _ => {
                 dbg!(for_head);
                 todo!("Cannot convert ForHead")
@@ -517,7 +629,7 @@ impl<'a> AstConverter<'a> {
                                 Prop::KeyValue(key_value_property) => {
                                     ast_converter.convert_import_attribute(key_value_property);
                                     true
-                                },
+                                }
                                 _ => panic!("Non key-value property in import declaration attributes")
                             }
                         }
@@ -557,7 +669,9 @@ impl<'a> AstConverter<'a> {
         // callee
         self.update_reference_position(reference_position);
         match callee {
-            StoredCallee::Expression(callee_expression) => self.convert_expression(callee_expression),
+            StoredCallee::Expression(callee_expression) => {
+                self.convert_expression(callee_expression);
+            }
             StoredCallee::Super(callee_super) => self.convert_super(callee_super),
         }
     }
@@ -588,13 +702,13 @@ impl<'a> AstConverter<'a> {
                 // expression
                 self.convert_boolean(false);
                 // body
-                self.convert_block_statement(block_statement)
+                self.convert_block_statement(block_statement);
             }
             BlockStmtOrExpr::Expr(expression) => {
                 // expression
                 self.convert_boolean(true);
                 // body
-                self.convert_expression(expression)
+                self.convert_expression(expression);
             }
         }
         // params
@@ -618,7 +732,9 @@ impl<'a> AstConverter<'a> {
     fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
         match expression_or_spread.spread {
             Some(spread_span) => self.store_spread_element(&spread_span, &expression_or_spread.expr),
-            None => self.convert_expression(&expression_or_spread.expr),
+            None => {
+                self.convert_expression(&expression_or_spread.expr);
+            }
         }
     }
 
@@ -653,7 +769,7 @@ impl<'a> AstConverter<'a> {
                 // computed
                 self.convert_boolean(true);
                 // property
-                self.convert_expression(&computed.expr)
+                self.convert_expression(&computed.expr);
             }
             MemberOrSuperProp::PrivateName(private_name) => {
                 // computed
@@ -665,7 +781,9 @@ impl<'a> AstConverter<'a> {
         // object
         self.update_reference_position(reference_position);
         match object {
-            ExpressionOrSuper::Expression(expression) => self.convert_expression(expression),
+            ExpressionOrSuper::Expression(expression) => {
+                self.convert_expression(expression);
+            }
             ExpressionOrSuper::Super(super_token) => self.convert_super(&super_token),
         }
     }
@@ -712,7 +830,9 @@ impl<'a> AstConverter<'a> {
         self.add_type_and_positions(&TYPE_EXPORT_DEFAULT_DECLARATION, span);
         // expression
         match expression {
-            StoredDefaultExportExpression::Expression(expression) => self.convert_expression(&expression),
+            StoredDefaultExportExpression::Expression(expression) => {
+                self.convert_expression(&expression);
+            }
             StoredDefaultExportExpression::Class(class_expression) => self.convert_class_expression(&class_expression, &TYPE_CLASS_DECLARATION),
             StoredDefaultExportExpression::Function(function_expression) => self.convert_function(&function_expression.function, &TYPE_FUNCTION_DECLARATION, function_expression.ident.as_ref()),
         }
@@ -794,7 +914,7 @@ impl<'a> AstConverter<'a> {
             Some(element) => {
                 ast_converter.convert_pattern(element);
                 true
-            },
+            }
             None => false,
         });
     }
@@ -815,7 +935,7 @@ impl<'a> AstConverter<'a> {
             Some(element) => {
                 ast_converter.convert_expression_or_spread(element);
                 true
-            },
+            }
             None => false,
         });
     }
@@ -936,7 +1056,9 @@ impl<'a> AstConverter<'a> {
 
     fn convert_property_name(&mut self, property_name: &PropName) {
         match property_name {
-            PropName::Computed(computed_property_name) => self.convert_expression(computed_property_name.expr.as_ref()),
+            PropName::Computed(computed_property_name) => {
+                self.convert_expression(computed_property_name.expr.as_ref());
+            }
             PropName::Ident(ident) => self.convert_identifier(ident),
             PropName::Str(str) => self.convert_literal_string(&str),
             PropName::Num(number) => self.convert_literal_number(&number),
@@ -973,18 +1095,15 @@ impl<'a> AstConverter<'a> {
         };
         self.convert_property_name(property_name);
         // value
-        let value_position = self.buffer.len();
         self.update_reference_position(reference_position);
-        match value {
+        let value_span = match value {
             PatternOrExpression::Pattern(pattern) => self.convert_pattern(pattern),
             PatternOrExpression::Expression(expression) => self.convert_expression(expression),
-        }
+        };
         // start
-        let key_start: [u8; 4] = (key_span.lo.0 - 1).to_ne_bytes();
-        self.buffer[start_end_position..start_end_position + 4].copy_from_slice(&key_start);
+        self.buffer[start_end_position..start_end_position + 4].copy_from_slice(&(key_span.lo.0 - 1).to_ne_bytes());
         // end
-        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12].try_into().unwrap();
-        self.buffer[start_end_position + 4..start_end_position + 8].copy_from_slice(&value_end);
+        self.buffer[start_end_position + 4..start_end_position + 8].copy_from_slice(&(value_span.hi.0 - 1).to_ne_bytes());
     }
 
     fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
@@ -1203,7 +1322,9 @@ impl<'a> AstConverter<'a> {
         // left
         self.update_reference_position(reference_position);
         match left {
-            PatternOrIdentifier::Pattern(pattern) => self.convert_pattern(&pattern),
+            PatternOrIdentifier::Pattern(pattern) => {
+                self.convert_pattern(&pattern);
+            },
             PatternOrIdentifier::Identifier(identifier) => self.convert_identifier(&identifier)
         }
     }
