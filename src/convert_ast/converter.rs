@@ -1137,7 +1137,7 @@ impl<'a> AstConverter<'a> {
       BinaryOp::GtEq => ">=",
       BinaryOp::LShift => "<<",
       BinaryOp::RShift => ">>",
-      BinaryOp::ZeroFillRShift => "<<<",
+      BinaryOp::ZeroFillRShift => ">>>",
       BinaryOp::Add => "+",
       BinaryOp::Sub => "-",
       BinaryOp::Mul => "*",
@@ -2137,7 +2137,16 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_rest_pattern(&mut self, rest_pattern: &RestPat) {
-    self.add_type_and_positions(&TYPE_REST_ELEMENT, &rest_pattern.span);
+    // type
+    self.buffer.extend_from_slice(&TYPE_REST_ELEMENT);
+    // start
+    self
+      .buffer
+      .extend_from_slice(&(rest_pattern.dot3_token.lo.0 - 1).to_ne_bytes());
+    // end
+    self
+      .buffer
+      .extend_from_slice(&(rest_pattern.span.hi.0 - 1).to_ne_bytes());
     // argument
     self.convert_pattern(&rest_pattern.arg);
   }

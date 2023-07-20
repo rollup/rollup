@@ -160,17 +160,17 @@ export default class Graph {
 				JSON.parse(
 					JSON.stringify(acornAst, (_, value) =>
 						typeof value == 'bigint'
-							? `BigInt${value.toString()}`
+							? `~BigInt${value.toString()}`
 							: value instanceof RegExp
-							? `RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
+							? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
 							: value
 					),
 					(_, value) =>
 						typeof value === 'string'
-							? value.startsWith('BigInt')
-								? BigInt(value.slice(6))
-								: value.startsWith('RegExp')
-								? new RegExp(JSON.parse(value.slice(6)).source, JSON.parse(value.slice(6)).flags)
+							? value.startsWith('~BigInt')
+								? BigInt(value.slice(7))
+								: value.startsWith('~RegExp')
+								? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
 								: value
 							: value
 				)
