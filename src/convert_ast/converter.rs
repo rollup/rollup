@@ -1,5 +1,6 @@
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use napi::bindgen_prelude::*;
+use swc::atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AwaitExpr, BigInt,
@@ -86,6 +87,33 @@ impl<'a> AstConverter<'a> {
     }
   }
 
+  fn convert_item_list_with_state<T, F>(
+    &mut self,
+    item_list: &[T],
+    state: &mut bool,
+    convert_item: F,
+  ) where
+    F: Fn(&mut AstConverter, &T, &mut bool) -> bool,
+  {
+    // store number of items in first position
+    self
+      .buffer
+      .extend_from_slice(&(item_list.len() as u32).to_ne_bytes());
+    let mut reference_position = self.buffer.len();
+    // make room for the reference positions of the items
+    self
+      .buffer
+      .resize(self.buffer.len() + item_list.len() * 4, 0);
+    for item in item_list {
+      let insert_position = (self.buffer.len() as u32) >> 2;
+      if convert_item(self, item, state) {
+        self.buffer[reference_position..reference_position + 4]
+          .copy_from_slice(&insert_position.to_ne_bytes());
+      }
+      reference_position += 4;
+    }
+  }
+
   // TODO Lukas deduplicate strings and see if we can easily compare atoms
   fn convert_string(&mut self, string: &str) {
     let length = string.len();
@@ -140,13 +168,15 @@ impl<'a> AstConverter<'a> {
   fn convert_statement(&mut self, statement: &Stmt) {
     match statement {
       Stmt::Break(break_statement) => self.convert_break_statement(break_statement),
-      Stmt::Block(block_statement) => self.convert_block_statement(block_statement),
+      Stmt::Block(block_statement) => self.convert_block_statement(block_statement, false),
       Stmt::Continue(continue_statement) => self.convert_continue_statement(continue_statement),
       Stmt::Decl(declaration) => self.convert_declaration(declaration),
       Stmt::Debugger(debugger_statement) => self.convert_debugger_statement(debugger_statement),
       Stmt::DoWhile(do_while_statement) => self.convert_do_while_statement(do_while_statement),
       Stmt::Empty(empty_statement) => self.convert_empty_statement(empty_statement),
-      Stmt::Expr(expression_statement) => self.convert_expression_statement(expression_statement),
+      Stmt::Expr(expression_statement) => {
+        self.convert_expression_statement(expression_statement, None)
+      }
       Stmt::For(for_statement) => self.convert_for_statement(for_statement),
       Stmt::ForIn(for_in_statement) => self.convert_for_in_statement(for_in_statement),
       Stmt::ForOf(for_of_statement) => self.convert_for_of_statement(for_of_statement),
@@ -420,10 +450,10 @@ impl<'a> AstConverter<'a> {
 
   fn convert_class_member(&mut self, class_member: &ClassMember) {
     match class_member {
+      ClassMember::ClassProp(class_property) => self.convert_class_property(class_property),
       ClassMember::Constructor(constructor) => self.convert_constructor(constructor),
       ClassMember::Method(method) => self.convert_method(method),
       ClassMember::PrivateMethod(private_method) => self.convert_private_method(private_method),
-      ClassMember::ClassProp(class_property) => self.convert_class_property(class_property),
       ClassMember::PrivateProp(private_property) => self.convert_private_property(private_property),
       ClassMember::StaticBlock(static_block) => self.convert_static_block(static_block),
       _ => {
@@ -444,9 +474,9 @@ impl<'a> AstConverter<'a> {
     match property {
       Prop::Getter(getter_property) => self.convert_getter_property(getter_property),
       Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
+      Prop::Method(method_property) => self.convert_method_property(method_property),
       Prop::Setter(setter_property) => self.convert_setter_property(setter_property),
       Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
-      Prop::Method(method_property) => self.convert_method_property(method_property),
       _ => {
         dbg!(property);
         todo!("Cannot convert Property")
@@ -454,7 +484,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO Lukas return span
+  // TODO Lukas replace all explicit position copying with returning a span
   fn convert_pattern_or_expression(&mut self, pattern_or_expression: &PatOrExpr) {
     match pattern_or_expression {
       PatOrExpr::Pat(pattern) => {
@@ -589,16 +619,47 @@ impl<'a> AstConverter<'a> {
       .buffer
       .extend_from_slice(&(self.code.len() as u32).to_ne_bytes());
     // body
-    self.convert_item_list(&module.body, |ast_converter, module_item| {
-      ast_converter.convert_module_item(module_item);
-      true
-    });
+    let mut keep_checking_directives = true;
+    self.convert_item_list_with_state(
+      &module.body,
+      &mut keep_checking_directives,
+      |ast_converter, module_item, state| {
+        if *state {
+          match &*module_item {
+            ModuleItem::Stmt(Stmt::Expr(expression)) => {
+              match &*expression.expr {
+                Expr::Lit(Lit::Str(string)) => {
+                  ast_converter.convert_expression_statement(expression, Some(&string.value));
+                  return true;
+                }
+                _ => {}
+              };
+            }
+            _ => {}
+          };
+        }
+        *state = false;
+        ast_converter.convert_module_item(module_item);
+        true
+      },
+    );
   }
 
-  fn convert_expression_statement(&mut self, expression_statement: &ExprStmt) {
+  fn convert_expression_statement(
+    &mut self,
+    expression_statement: &ExprStmt,
+    directive: Option<&JsWord>,
+  ) {
     self.add_type_and_positions(&TYPE_EXPRESSION_STATEMENT, &expression_statement.span);
+    // reserve directive
+    let reference_position = self.reserve_reference_positions(1);
     // expression
     self.convert_expression(&expression_statement.expr);
+    // directive
+    directive.map(|directive| {
+      self.update_reference_position(reference_position);
+      self.convert_string(directive);
+    });
   }
 
   fn store_export_named_declaration(
@@ -818,7 +879,7 @@ impl<'a> AstConverter<'a> {
         // expression
         self.convert_boolean(false);
         // body
-        self.convert_block_statement(block_statement);
+        self.convert_block_statement(block_statement, true);
       }
       BlockStmtOrExpr::Expr(expression) => {
         // expression
@@ -835,13 +896,33 @@ impl<'a> AstConverter<'a> {
     });
   }
 
-  fn convert_block_statement(&mut self, block_statement: &BlockStmt) {
+  fn convert_block_statement(&mut self, block_statement: &BlockStmt, check_directive: bool) {
     self.add_type_and_positions(&TYPE_BLOCK_STATEMENT, &block_statement.span);
     // body
-    self.convert_item_list(&block_statement.stmts, |ast_converter, statement| {
-      ast_converter.convert_statement(statement);
-      true
-    });
+    let mut keep_checking_directives = check_directive;
+    self.convert_item_list_with_state(
+      &block_statement.stmts,
+      &mut keep_checking_directives,
+      |ast_converter, statement, state| {
+        if *state {
+          match &*statement {
+            Stmt::Expr(expression) => {
+              match &*expression.expr {
+                Expr::Lit(Lit::Str(string)) => {
+                  ast_converter.convert_expression_statement(expression, Some(&string.value));
+                  return true;
+                }
+                _ => {}
+              };
+            }
+            _ => {}
+          };
+        }
+        *state = false;
+        ast_converter.convert_statement(statement);
+        true
+      },
+    );
   }
 
   fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
@@ -1552,7 +1633,7 @@ impl<'a> AstConverter<'a> {
     // reserve id, params
     let reference_position = self.reserve_reference_positions(2);
     // body
-    self.convert_block_statement(body);
+    self.convert_block_statement(body, true);
     // id
     identifier.map(|ident| {
       self.update_reference_position(reference_position);
@@ -1629,7 +1710,7 @@ impl<'a> AstConverter<'a> {
     // reserve handler, finalizer
     let reference_position = self.reserve_reference_positions(2);
     // block
-    self.convert_block_statement(&try_statement.block);
+    self.convert_block_statement(&try_statement.block, false);
     // handler
     try_statement.handler.as_ref().map(|catch_clause| {
       self.update_reference_position(reference_position);
@@ -1638,7 +1719,7 @@ impl<'a> AstConverter<'a> {
     // finalizer
     try_statement.finalizer.as_ref().map(|block_statement| {
       self.update_reference_position(reference_position + 4);
-      self.convert_block_statement(block_statement);
+      self.convert_block_statement(block_statement, false);
     });
   }
 
@@ -1647,7 +1728,7 @@ impl<'a> AstConverter<'a> {
     // reserve param
     let reference_position = self.reserve_reference_positions(1);
     // body
-    self.convert_block_statement(&catch_clause.body);
+    self.convert_block_statement(&catch_clause.body, false);
     // param
     catch_clause.param.as_ref().map(|pattern| {
       self.update_reference_position(reference_position);
