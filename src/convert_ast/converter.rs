@@ -1,4 +1,5 @@
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
+use crate::convert_ast::converter::utf16_positions::Utf8ToUtf16ByteIndexConverter;
 use napi::bindgen_prelude::*;
 use swc::atoms::JsWord;
 use swc_common::Span;
@@ -22,11 +23,13 @@ use swc_ecma_ast::{
 };
 
 mod analyze_code;
+mod utf16_positions;
 
 pub struct AstConverter<'a> {
   buffer: Vec<u8>,
   code: &'a [u8],
   chain_state: ChainState,
+  index_converter: Utf8ToUtf16ByteIndexConverter,
 }
 
 enum ChainState {
@@ -35,12 +38,13 @@ enum ChainState {
 }
 
 impl<'a> AstConverter<'a> {
-  pub fn new(code: &'a [u8]) -> Self {
+  pub fn new(code: &'a str) -> Self {
     Self {
       // TODO Lukas This is just a wild guess and should be refined with a large block of minified code
       buffer: Vec::with_capacity(20 * code.len()),
-      code,
+      code: code.as_bytes(),
       chain_state: ChainState::None,
+      index_converter: Utf8ToUtf16ByteIndexConverter::new(code),
     }
   }
 
@@ -52,16 +56,28 @@ impl<'a> AstConverter<'a> {
 
   // === helpers
   fn add_type_and_positions(&mut self, node_type: &[u8; 4], span: &Span) {
+    self.add_type_and_explicit_positions(node_type, span.lo.0 - 1, span.hi.0 - 1);
+  }
+
+  // TODO Lukas never code positions without helper
+  fn add_type_and_explicit_positions(&mut self, node_type: &[u8; 4], start: u32, end: u32) {
     // type
     self.buffer.extend_from_slice(node_type);
     // start
     self
       .buffer
-      .extend_from_slice(&(span.lo.0 - 1).to_ne_bytes());
+      .extend_from_slice(&(self.index_converter.convert(start)).to_ne_bytes());
     // end
     self
       .buffer
-      .extend_from_slice(&(span.hi.0 - 1).to_ne_bytes());
+      .extend_from_slice(&(self.index_converter.convert(end)).to_ne_bytes());
+  }
+
+  fn add_positions(&mut self, positions_index: usize, start: u32, end: u32) {
+    self.buffer[positions_index..positions_index + 4]
+      .copy_from_slice(&(self.index_converter.convert(start)).to_ne_bytes());
+    self.buffer[positions_index + 4..positions_index + 8]
+      .copy_from_slice(&(self.index_converter.convert(end)).to_ne_bytes());
   }
 
   fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
@@ -604,20 +620,16 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_identifier(&mut self, identifier: &Ident) {
-    self.store_identifier(identifier.span.lo.0, identifier.span.hi.0, &identifier.sym);
+    self.store_identifier(
+      identifier.span.lo.0 - 1,
+      identifier.span.hi.0 - 1,
+      &identifier.sym,
+    );
   }
 
   // === nodes
   fn convert_module_program(&mut self, module: &Module) {
-    // type
-    self.buffer.extend_from_slice(&TYPE_PROGRAM);
-    // we are not using the helper but code start/end by hand as acorn does this differently
-    // start
-    self.buffer.extend_from_slice(&0u32.to_ne_bytes());
-    // end
-    self
-      .buffer
-      .extend_from_slice(&(self.code.len() as u32).to_ne_bytes());
+    self.add_type_and_explicit_positions(&TYPE_PROGRAM, 0u32, self.code.len() as u32);
     // body
     let mut keep_checking_directives = true;
     self.convert_item_list_with_state(
@@ -751,12 +763,7 @@ impl<'a> AstConverter<'a> {
   }
 
   fn store_identifier(&mut self, start: u32, end: u32, name: &str) {
-    // type
-    self.buffer.extend_from_slice(&TYPE_IDENTIFIER);
-    // start
-    self.buffer.extend_from_slice(&(start - 1).to_ne_bytes());
-    // end
-    self.buffer.extend_from_slice(&(end - 1).to_ne_bytes());
+    self.add_type_and_explicit_positions(&TYPE_IDENTIFIER, start, end);
     // name
     self.convert_string(name);
   }
@@ -1225,8 +1232,8 @@ impl<'a> AstConverter<'a> {
   ) {
     self.store_function_node(
       node_type,
-      function.span.lo.0,
-      function.span.hi.0,
+      function.span.lo.0 - 1,
+      function.span.hi.0 - 1,
       function.is_async,
       function.is_generator,
       identifier,
@@ -1281,12 +1288,7 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_class_body(&mut self, class_members: &Vec<ClassMember>, start: u32, end: u32) {
-    // type
-    self.buffer.extend_from_slice(&TYPE_CLASS_BODY);
-    // start
-    self.buffer.extend_from_slice(&start.to_ne_bytes());
-    // end
-    self.buffer.extend_from_slice(&end.to_ne_bytes());
+    self.add_type_and_explicit_positions(&TYPE_CLASS_BODY, start, end);
     // body
     self.convert_item_list(class_members, |ast_converter, class_member| {
       ast_converter.convert_class_member(class_member);
@@ -1311,22 +1313,12 @@ impl<'a> AstConverter<'a> {
     // reserve start, end, key
     let reference_position = self.reserve_reference_positions(3);
     // value
-    let value_position = self.buffer.len();
-    self.convert_expression(&key_value_property.value);
+    let value_span = self.convert_expression(&key_value_property.value);
     // key
-    let key_position = self.buffer.len();
     self.update_reference_position(reference_position + 8);
-    self.convert_property_name(&key_value_property.key);
-    // start
-    let key_start: [u8; 4] = self.buffer[key_position + 4..key_position + 8]
-      .try_into()
-      .unwrap();
-    self.buffer[reference_position..reference_position + 4].copy_from_slice(&key_start);
-    // end
-    let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12]
-      .try_into()
-      .unwrap();
-    self.buffer[reference_position + 4..reference_position + 8].copy_from_slice(&value_end);
+    let key_span = self.convert_property_name(&key_value_property.key);
+    // start, end
+    self.add_positions(reference_position, key_span.lo.0 - 1, value_span.hi.0 - 1);
   }
 
   fn convert_object_literal(&mut self, object_literal: &ObjectLit) {
@@ -1341,15 +1333,27 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  fn convert_property_name(&mut self, property_name: &PropName) {
+  fn convert_property_name(&mut self, property_name: &PropName) -> Span {
     match property_name {
       PropName::Computed(computed_property_name) => {
-        self.convert_expression(computed_property_name.expr.as_ref());
+        self.convert_expression(computed_property_name.expr.as_ref())
       }
-      PropName::Ident(ident) => self.convert_identifier(ident),
-      PropName::Str(str) => self.convert_literal_string(&str),
-      PropName::Num(number) => self.convert_literal_number(&number),
-      PropName::BigInt(bigint) => self.convert_literal_bigint(&bigint),
+      PropName::Ident(ident) => {
+        self.convert_identifier(ident);
+        ident.span
+      }
+      PropName::Str(string) => {
+        self.convert_literal_string(&string);
+        string.span
+      }
+      PropName::Num(number) => {
+        self.convert_literal_number(&number);
+        number.span
+      }
+      PropName::BigInt(bigint) => {
+        self.convert_literal_bigint(&bigint);
+        bigint.span
+      }
     }
   }
 
@@ -1387,12 +1391,8 @@ impl<'a> AstConverter<'a> {
       PatternOrExpression::Pattern(pattern) => self.convert_pattern(pattern),
       PatternOrExpression::Expression(expression) => self.convert_expression(expression),
     };
-    // start
-    self.buffer[start_end_position..start_end_position + 4]
-      .copy_from_slice(&(key_span.lo.0 - 1).to_ne_bytes());
-    // end
-    self.buffer[start_end_position + 4..start_end_position + 8]
-      .copy_from_slice(&(value_span.hi.0 - 1).to_ne_bytes());
+    // start, end
+    self.add_positions(start_end_position, key_span.lo.0 - 1, value_span.hi.0 - 1);
   }
 
   fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
@@ -1449,8 +1449,8 @@ impl<'a> AstConverter<'a> {
     };
     self.store_function_node(
       &TYPE_FUNCTION_EXPRESSION,
-      find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1,
-      block_statement.span.hi.0,
+      find_first_occurrence_outside_comment(self.code, b'(', key_end),
+      block_statement.span.hi.0 - 1,
       false,
       false,
       None,
@@ -1502,14 +1502,14 @@ impl<'a> AstConverter<'a> {
         .try_into()
         .unwrap(),
     );
-    let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end) + 1;
+    let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     // value
     self.update_reference_position(reference_position);
     let function = &method_property.function;
     self.store_function_node(
       &TYPE_FUNCTION_EXPRESSION,
       function_start,
-      function.span.hi.0,
+      function.span.hi.0 - 1,
       function.is_async,
       function.is_generator,
       None,
@@ -1620,12 +1620,7 @@ impl<'a> AstConverter<'a> {
     parameters: &Vec<&Pat>,
     body: &BlockStmt,
   ) {
-    // type
-    self.buffer.extend_from_slice(node_type);
-    // start
-    self.buffer.extend_from_slice(&(start - 1).to_ne_bytes());
-    // end
-    self.buffer.extend_from_slice(&(end - 1).to_ne_bytes());
+    self.add_type_and_explicit_positions(node_type, start, end);
     // async
     self.convert_boolean(is_async);
     // generator
@@ -1898,30 +1893,30 @@ impl<'a> AstConverter<'a> {
       MetaPropKind::ImportMeta => {
         // property
         self.store_identifier(
-          meta_property_expression.span.hi.0 - 4,
-          meta_property_expression.span.hi.0,
+          meta_property_expression.span.hi.0 - 5,
+          meta_property_expression.span.hi.0 - 1,
           "meta",
         );
         // meta
         self.update_reference_position(reference_position);
         self.store_identifier(
-          meta_property_expression.span.lo.0,
-          meta_property_expression.span.lo.0 + 6,
+          meta_property_expression.span.lo.0 - 1,
+          meta_property_expression.span.lo.0 + 5,
           "import",
         );
       }
       MetaPropKind::NewTarget => {
         // property
         self.store_identifier(
-          meta_property_expression.span.hi.0 - 6,
-          meta_property_expression.span.hi.0,
+          meta_property_expression.span.hi.0 - 7,
+          meta_property_expression.span.hi.0 - 1,
           "target",
         );
         // meta
         self.update_reference_position(reference_position);
         self.store_identifier(
-          meta_property_expression.span.lo.0,
-          meta_property_expression.span.lo.0 + 3,
+          meta_property_expression.span.lo.0 - 1,
+          meta_property_expression.span.lo.0 + 2,
           "new",
         );
       }
@@ -1951,12 +1946,11 @@ impl<'a> AstConverter<'a> {
           .try_into()
           .unwrap();
         let function_start =
-          find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes))
-            + 1;
+          find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes));
         self.store_function_node(
           &TYPE_FUNCTION_EXPRESSION,
           function_start,
-          block_statement.span.hi.0,
+          block_statement.span.hi.0 - 1,
           false,
           false,
           None,
@@ -2027,20 +2021,22 @@ impl<'a> AstConverter<'a> {
     // key
     let key_position = self.buffer.len();
     match key {
-      PropOrPrivateName::PropName(prop_name) => self.convert_property_name(&prop_name),
+      PropOrPrivateName::PropName(prop_name) => {
+        self.convert_property_name(&prop_name);
+      }
       PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(&private_name),
     }
     let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12]
       .try_into()
       .unwrap();
     let function_start =
-      find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes)) + 1;
+      find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes));
     // value
     self.update_reference_position(reference_position);
     self.store_function_node(
       &TYPE_FUNCTION_EXPRESSION,
       function_start,
-      function.span.hi.0,
+      function.span.hi.0 - 1,
       function.is_async,
       function.is_generator,
       None,
@@ -2066,7 +2062,9 @@ impl<'a> AstConverter<'a> {
     let reference_position = self.reserve_reference_positions(1);
     // key
     match key {
-      PropOrPrivateName::PropName(prop_name) => self.convert_property_name(&prop_name),
+      PropOrPrivateName::PropName(prop_name) => {
+        self.convert_property_name(&prop_name);
+      }
       PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(&private_name),
     }
     // value
@@ -2137,16 +2135,11 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_rest_pattern(&mut self, rest_pattern: &RestPat) {
-    // type
-    self.buffer.extend_from_slice(&TYPE_REST_ELEMENT);
-    // start
-    self
-      .buffer
-      .extend_from_slice(&(rest_pattern.dot3_token.lo.0 - 1).to_ne_bytes());
-    // end
-    self
-      .buffer
-      .extend_from_slice(&(rest_pattern.span.hi.0 - 1).to_ne_bytes());
+    self.add_type_and_explicit_positions(
+      &TYPE_REST_ELEMENT,
+      rest_pattern.dot3_token.lo.0 - 1,
+      rest_pattern.span.hi.0 - 1,
+    );
     // argument
     self.convert_pattern(&rest_pattern.arg);
   }
