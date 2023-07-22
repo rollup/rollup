@@ -28,22 +28,16 @@ mod utf16_positions;
 pub struct AstConverter<'a> {
   buffer: Vec<u8>,
   code: &'a [u8],
-  chain_state: ChainState,
   index_converter: Utf8ToUtf16ByteIndexConverter,
-}
-
-enum ChainState {
-  Chained,
-  None,
 }
 
 impl<'a> AstConverter<'a> {
   pub fn new(code: &'a str) -> Self {
     Self {
-      // TODO Lukas This is just a wild guess and should be refined with a large block of minified code
+      // TODO Lukas This is just a wild guess and should be refined with a large
+      // block of minified code
       buffer: Vec::with_capacity(20 * code.len()),
       code: code.as_bytes(),
-      chain_state: ChainState::None,
       index_converter: Utf8ToUtf16ByteIndexConverter::new(code),
     }
   }
@@ -59,7 +53,6 @@ impl<'a> AstConverter<'a> {
     self.add_type_and_explicit_positions(node_type, span.lo.0 - 1, span.hi.0 - 1);
   }
 
-  // TODO Lukas never code positions without helper
   fn add_type_and_explicit_positions(&mut self, node_type: &[u8; 4], start: u32, end: u32) {
     // type
     self.buffer.extend_from_slice(node_type);
@@ -210,7 +203,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO Lukas check usages to simplify
   fn convert_expression(&mut self, expression: &Expr) -> Span {
     match expression {
       Expr::Array(array_literal) => {
@@ -234,7 +226,7 @@ impl<'a> AstConverter<'a> {
         binary_expression.span
       }
       Expr::Call(call_expression) => {
-        self.convert_call_expression(call_expression, false);
+        self.convert_call_expression(call_expression, false, false);
         call_expression.span
       }
       Expr::Class(class_expression) => {
@@ -259,7 +251,7 @@ impl<'a> AstConverter<'a> {
       }
       Expr::Lit(literal) => self.convert_literal(literal),
       Expr::Member(member_expression) => {
-        self.convert_member_expression(member_expression, false);
+        self.convert_member_expression(member_expression, false, false);
         member_expression.span
       }
       Expr::MetaProp(meta_property) => {
@@ -275,7 +267,7 @@ impl<'a> AstConverter<'a> {
         object_literal.span
       }
       Expr::OptChain(optional_chain_expression) => {
-        self.convert_optional_chain_expression(optional_chain_expression);
+        self.convert_optional_chain_expression(optional_chain_expression, false);
         optional_chain_expression.span
       }
       Expr::Paren(parenthesized_expression) => {
@@ -519,13 +511,20 @@ impl<'a> AstConverter<'a> {
   fn convert_optional_chain_base(&mut self, optional_chain_base: &OptChainBase, is_optional: bool) {
     match optional_chain_base {
       OptChainBase::Member(member_expression) => {
-        self.convert_member_expression(&member_expression, is_optional)
+        self.convert_member_expression(&member_expression, is_optional, true)
       }
-      OptChainBase::Call(optional_call) => self.convert_optional_call(optional_call, is_optional),
+      OptChainBase::Call(optional_call) => {
+        self.convert_optional_call(optional_call, is_optional, true)
+      }
     }
   }
 
-  fn convert_call_expression(&mut self, call_expression: &CallExpr, is_optional: bool) {
+  fn convert_call_expression(
+    &mut self,
+    call_expression: &CallExpr,
+    is_optional: bool,
+    is_chained: bool,
+  ) {
     match &call_expression.callee {
       Callee::Import(_) => {
         self.store_import_expression(&call_expression.span, &call_expression.args)
@@ -535,22 +534,30 @@ impl<'a> AstConverter<'a> {
         is_optional,
         &StoredCallee::Expression(&callee_expression),
         &call_expression.args,
+        is_chained,
       ),
       Callee::Super(callee_super) => self.store_call_expression(
         &call_expression.span,
         is_optional,
         &StoredCallee::Super(&callee_super),
         &call_expression.args,
+        is_chained,
       ),
     }
   }
 
-  fn convert_optional_call(&mut self, optional_call: &OptCall, is_optional: bool) {
+  fn convert_optional_call(
+    &mut self,
+    optional_call: &OptCall,
+    is_optional: bool,
+    is_chained: bool,
+  ) {
     self.store_call_expression(
       &optional_call.span,
       is_optional,
       &StoredCallee::Expression(&optional_call.callee),
       &optional_call.args,
+      is_chained,
     );
   }
 
@@ -839,6 +846,7 @@ impl<'a> AstConverter<'a> {
     is_optional: bool,
     callee: &StoredCallee,
     arguments: &[ExprOrSpread],
+    is_chained: bool,
   ) {
     self.add_type_and_positions(&TYPE_CALL_EXPRESSION, span);
     // optional
@@ -853,6 +861,15 @@ impl<'a> AstConverter<'a> {
     // callee
     self.update_reference_position(reference_position);
     match callee {
+      StoredCallee::Expression(Expr::OptChain(optional_chain_expression)) => {
+        self.convert_optional_chain_expression(optional_chain_expression, is_chained);
+      }
+      StoredCallee::Expression(Expr::Call(call_expression)) => {
+        self.convert_call_expression(call_expression, false, is_chained);
+      }
+      StoredCallee::Expression(Expr::Member(member_expression)) => {
+        self.convert_member_expression(member_expression, false, is_chained);
+      }
       StoredCallee::Expression(callee_expression) => {
         self.convert_expression(callee_expression);
       }
@@ -963,6 +980,7 @@ impl<'a> AstConverter<'a> {
     is_optional: bool,
     object: &ExpressionOrSuper,
     property: MemberOrSuperProp,
+    is_chained: bool,
   ) {
     self.add_type_and_positions(&TYPE_MEMBER_EXPRESSION, span);
     // optional
@@ -992,6 +1010,15 @@ impl<'a> AstConverter<'a> {
     // object
     self.update_reference_position(reference_position);
     match object {
+      ExpressionOrSuper::Expression(Expr::OptChain(optional_chain_expression)) => {
+        self.convert_optional_chain_expression(optional_chain_expression, is_chained);
+      }
+      ExpressionOrSuper::Expression(Expr::Call(call_expression)) => {
+        self.convert_call_expression(call_expression, false, is_chained);
+      }
+      ExpressionOrSuper::Expression(Expr::Member(member_expression)) => {
+        self.convert_member_expression(member_expression, false, is_chained);
+      }
       ExpressionOrSuper::Expression(expression) => {
         self.convert_expression(expression);
       }
@@ -999,7 +1026,12 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_member_expression(&mut self, member_expression: &MemberExpr, is_optional: bool) {
+  fn convert_member_expression(
+    &mut self,
+    member_expression: &MemberExpr,
+    is_optional: bool,
+    is_chained: bool,
+  ) {
     self.store_member_expression(
       &member_expression.span,
       is_optional,
@@ -1009,6 +1041,7 @@ impl<'a> AstConverter<'a> {
         MemberProp::PrivateName(private_name) => MemberOrSuperProp::PrivateName(private_name),
         MemberProp::Computed(computed) => MemberOrSuperProp::Computed(computed),
       },
+      is_chained,
     );
   }
 
@@ -1731,26 +1764,24 @@ impl<'a> AstConverter<'a> {
     });
   }
 
-  // TODO Lukas there is a bug in the logic as nested chain expression may not be handled correctly
-  fn convert_optional_chain_expression(&mut self, optional_chain_expression: &OptChainExpr) {
-    match self.chain_state {
-      ChainState::None => {
-        self.chain_state = ChainState::Chained;
-        self.add_type_and_positions(&TYPE_CHAIN_EXPRESSION, &optional_chain_expression.span);
-        // expression
-        self.convert_optional_chain_base(
-          &optional_chain_expression.base,
-          optional_chain_expression.optional,
-        );
-        self.chain_state = ChainState::None;
-      }
-      ChainState::Chained => {
-        self.convert_optional_chain_base(
-          &optional_chain_expression.base,
-          optional_chain_expression.optional,
-        );
-      }
-    };
+  fn convert_optional_chain_expression(
+    &mut self,
+    optional_chain_expression: &OptChainExpr,
+    is_chained: bool,
+  ) {
+    if is_chained {
+      self.convert_optional_chain_base(
+        &optional_chain_expression.base,
+        optional_chain_expression.optional,
+      );
+    } else {
+      self.add_type_and_positions(&TYPE_CHAIN_EXPRESSION, &optional_chain_expression.span);
+      // expression
+      self.convert_optional_chain_base(
+        &optional_chain_expression.base,
+        optional_chain_expression.optional,
+      );
+    }
   }
 
   fn convert_while_statement(&mut self, while_statement: &WhileStmt) {
@@ -2127,6 +2158,7 @@ impl<'a> AstConverter<'a> {
           MemberOrSuperProp::Computed(&computed_property_name)
         }
       },
+      false,
     );
   }
 

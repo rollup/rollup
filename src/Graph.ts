@@ -144,7 +144,7 @@ export default class Graph {
 			...options
 		});
 		// console.timeEnd('acorn');
-		// console.log(JSON.stringify(acornAst, null, 2));
+		// console.log('acorn', JSON.stringify(acornAst, null, 2));
 		let ast: acorn.Node;
 		let astBuffer: Buffer;
 		try {
@@ -154,7 +154,7 @@ export default class Graph {
 				astBuffer.toString('utf8', start, start + length)
 			);
 			// console.timeEnd('swc');
-			// console.log(JSON.stringify(ast, null, 2));
+			// console.log('swc', JSON.stringify(ast, null, 2));
 			assert.deepStrictEqual(
 				ast,
 				JSON.parse(
