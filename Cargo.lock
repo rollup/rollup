@@ -1182,7 +1182,6 @@ dependencies = [
  "napi",
  "napi-build",
  "napi-derive",
- "regex",
  "swc",
  "swc_common",
  "swc_ecma_ast",
