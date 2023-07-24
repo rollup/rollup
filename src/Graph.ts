@@ -19,7 +19,6 @@ import type {
 import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
-import { addAnnotations } from './utils/commentAnnotations';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
@@ -193,7 +192,8 @@ export default class Graph {
 
 		options.onComment = onCommentOrig;
 
-		addAnnotations(comments, ast!, code);
+		// TODO Lukas do this in Rust
+		// addAnnotations(comments, ast!, code);
 
 		return ast!;
 	}
