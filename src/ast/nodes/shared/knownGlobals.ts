@@ -254,6 +254,7 @@ const knownGlobals: GlobalDescription = {
 		keys: PF,
 		fromEntries: O,
 		entries: PF,
+		values: PF,
 		prototype: O
 	},
 	parseFloat: PF,
@@ -350,16 +351,24 @@ const knownGlobals: GlobalDescription = {
 		[ValueProperties]: IMPURE,
 		Collator: INTL_MEMBER,
 		DateTimeFormat: INTL_MEMBER,
+		DisplayNames: INTL_MEMBER,
 		ListFormat: INTL_MEMBER,
+		Locale: INTL_MEMBER,
 		NumberFormat: INTL_MEMBER,
 		PluralRules: INTL_MEMBER,
-		RelativeTimeFormat: INTL_MEMBER
+		RelativeTimeFormat: INTL_MEMBER,
+		Segmenter: INTL_MEMBER
 	},
 	setInterval: C,
 	setTimeout: C,
 	TextDecoder: C,
 	TextEncoder: C,
-	URL: C,
+	URL: {
+		__proto__: null,
+		[ValueProperties]: IMPURE,
+		prototype: O,
+		canParse: PF
+	},
 	URLSearchParams: C,
 
 	// Browser specific globals
