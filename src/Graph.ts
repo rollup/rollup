@@ -1,4 +1,3 @@
-import assert from 'node:assert';
 import * as acorn from 'acorn';
 import flru from 'flru';
 import native from '../native/lib';
@@ -139,54 +138,54 @@ export default class Graph {
 				: comments;
 
 		// console.time('acorn');
-		const acornAst = this.acornParser.parse(code, {
-			...(this.options.acorn as unknown as acorn.Options),
-			...options
-		});
+		// const acornAst = this.acornParser.parse(code, {
+		// 	...(this.options.acorn as unknown as acorn.Options),
+		// 	...options
+		// });
 		// console.timeEnd('acorn');
 		// console.log('acorn', JSON.stringify(acornAst, null, 2));
-		let ast: acorn.Node;
-		let astBuffer: Buffer;
-		try {
-			// console.time('swc');
-			astBuffer = native.parse(code);
-			ast = convertProgram(astBuffer.buffer, (start, length) =>
-				astBuffer.toString('utf8', start, start + length)
-			);
-			// console.timeEnd('swc');
-			// console.log('swc', JSON.stringify(ast, null, 2));
-			assert.deepStrictEqual(
-				ast,
-				JSON.parse(
-					JSON.stringify(acornAst, (_, value) =>
-						typeof value == 'bigint'
-							? `~BigInt${value.toString()}`
-							: value instanceof RegExp
-							? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
-							: value
-					),
-					(_, value) =>
-						typeof value === 'string'
-							? value.startsWith('~BigInt')
-								? BigInt(value.slice(7))
-								: value.startsWith('~RegExp')
-								? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
-								: value
-							: value
-				)
-			);
-		} catch (error_) {
-			console.log(JSON.stringify(code));
-			// console.log(
-			// 	'Size acorn:',
-			// 	JSON.stringify(acornAst).length,
-			// 	', swc:',
-			// 	astBuffer!.length,
-			// 	'code:',
-			// 	code.length
-			// );
-			throw error_;
-		}
+		// let ast: acorn.Node;
+		// let astBuffer: Buffer;
+		// try {
+		// console.time('swc');
+		const astBuffer = native.parse(code);
+		const ast = convertProgram(astBuffer.buffer, (start, length) =>
+			astBuffer.toString('utf8', start, start + length)
+		);
+		// console.timeEnd('swc');
+		// console.log('swc', JSON.stringify(ast, null, 2));
+		// assert.deepStrictEqual(
+		// 	ast,
+		// 	JSON.parse(
+		// 		JSON.stringify(acornAst, (_, value) =>
+		// 			typeof value == 'bigint'
+		// 				? `~BigInt${value.toString()}`
+		// 				: value instanceof RegExp
+		// 				? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
+		// 				: value
+		// 		),
+		// 		(_, value) =>
+		// 			typeof value === 'string'
+		// 				? value.startsWith('~BigInt')
+		// 					? BigInt(value.slice(7))
+		// 					: value.startsWith('~RegExp')
+		// 					? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
+		// 					: value
+		// 				: value
+		// 	)
+		// );
+		// } catch (error_) {
+		// console.log(JSON.stringify(code));
+		// console.log(
+		// 	'Size acorn:',
+		// 	JSON.stringify(acornAst).length,
+		// 	', swc:',
+		// 	astBuffer!.length,
+		// 	'code:',
+		// 	code.length
+		// );
+		// throw error_;
+		// }
 
 		if (typeof onCommentOrig == 'object') {
 			onCommentOrig.push(...comments);
