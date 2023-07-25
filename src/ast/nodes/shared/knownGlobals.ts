@@ -253,8 +253,8 @@ const knownGlobals: GlobalDescription = {
 		isSealed: PF,
 		keys: PF,
 		fromEntries: O,
-		entries: PF,
-		values: PF,
+		entries: O,
+		values: O,
 		prototype: O
 	},
 	parseFloat: PF,
