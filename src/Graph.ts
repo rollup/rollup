@@ -6,7 +6,6 @@ import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
-import { convertProgram } from './convert_ast/converter';
 import type {
 	ModuleInfo,
 	ModuleJSON,
@@ -19,6 +18,7 @@ import type {
 import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
+import { convertProgram } from './utils/convert-ast';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {

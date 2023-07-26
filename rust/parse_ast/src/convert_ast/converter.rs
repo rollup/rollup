@@ -1,6 +1,5 @@
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::utf16_positions::Utf8ToUtf16ByteIndexConverter;
-use napi::bindgen_prelude::*;
 use swc::atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
@@ -42,10 +41,10 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_ast_to_buffer(mut self, node: &Program) -> Buffer {
+  pub fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
     self.buffer.shrink_to_fit();
-    self.buffer.into()
+    self.buffer
   }
 
   // === helpers

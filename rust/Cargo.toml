@@ -5,4 +5,5 @@ lto = true
 resolver = "2"
 members = [
     "bindings_napi",
+    "parse_ast",
 ]

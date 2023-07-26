@@ -20,7 +20,7 @@
   "scripts": {
     "build": "concurrently 'npm:build:rs' 'npm:build:ts'",
     "build:quick": "concurrently 'npm:build:rs' 'npm:build:cjs'",
-    "build:rs": "napi build --dts native/lib.d.ts --cargo-cwd rust -p rollup_napi_bindings --cargo-name rollup_napi_bindings",
+    "build:rs": "napi build --dts native/lib.d.ts --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
     "build:ts": "rollup --config rollup.config.ts --configPlugin typescript",
     "dev": "vitepress dev docs",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
