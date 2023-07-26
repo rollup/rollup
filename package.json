@@ -9,25 +9,25 @@
     "rollup": "dist/bin/rollup"
   },
   "napi": {
-    "name": "native/rollup",
+    "name": "rollup",
     "package": {
       "name": "@rollup/rollup"
     }
   },
-  "script-comments": {
-    "build:rs": "TODO add production build, platform specific builds, and publish to npm"
-  },
   "scripts": {
-    "build": "concurrently 'npm:build:rs' 'npm:build:ts'",
-    "build:quick": "concurrently 'npm:build:rs' 'npm:build:cjs'",
-    "build:rs": "napi build --dts native/lib.d.ts --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
-    "build:ts": "rollup --config rollup.config.ts --configPlugin typescript",
+    "build": "concurrently -c green,blue 'npm run build:napi -- --release' 'npm:build:js' && npm run build:copy-native",
+    "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
+    "build:napi": "napi build --platform --dts native/lib.d.ts --js native/lib.js --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
+    "update:napi": "npm run build:napi && npm run build:copy-native",
+    "build:js": "rollup --config rollup.config.ts --configPlugin typescript",
+    "update:js": "npm run build:js && npm run build:copy-native",
+    "build:copy-native": "shx mkdir -p dist/native && shx cp native/lib.js dist/native/ && shx cp native/rollup.*.node dist/native/",
     "dev": "vitepress dev docs",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
     "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript",
     "build:docs": "vitepress build docs",
     "preview:docs": "vitepress preview docs",
-    "ci:lint": "concurrently 'npm:lint:js:nofix' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
+    "ci:lint": "concurrently -c red,green,blue 'npm:lint:js:nofix' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",
     "ci:coverage": "npm run build:cjs && npm run build:bootstrap && nyc --reporter lcovonly mocha",

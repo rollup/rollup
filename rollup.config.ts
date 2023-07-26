@@ -14,10 +14,10 @@ import cleanBeforeWrite from './build-plugins/clean-before-write';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
+import { externalNativeImport } from './build-plugins/external-native-import';
 import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
-import { linkNativeFiles } from './build-plugins/link-native-files';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 
 const onwarn: WarningHandlerWithDefault = warning => {
@@ -48,7 +48,7 @@ const nodePlugins: readonly Plugin[] = [
 	}),
 	typescript(),
 	cleanBeforeWrite('dist'),
-	linkNativeFiles()
+	externalNativeImport()
 ];
 
 export default async function (
