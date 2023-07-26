@@ -1,10 +1,13 @@
 [package]
-edition = "2021"
-name = "rollup"
+name = "rollup_napi_bindings"
 version = "0.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib"]
+name = "rollup_napi_bindings"
 
 [dependencies]
 anyhow = "1.0.71"
@@ -18,6 +21,3 @@ swc_ecma_parser = "0.136.8"
 
 [build-dependencies]
 napi-build = "2.0.1"
-
-[profile.release]
-lto = true
