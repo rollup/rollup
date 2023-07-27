@@ -1,13 +1,15 @@
+import { resolve } from 'node:path';
 import type { Plugin } from 'rollup';
 
 export function externalNativeImport(): Plugin {
 	return {
 		name: 'copy-native-files',
 		async resolveId(id, importer) {
-			if (id.endsWith('/native/lib.js')) {
+			if (id.includes('/native/lib')) {
+				const resolved = await this.resolve(id, importer!, { skipSelf: true });
 				return {
-					...(await this.resolve(id, importer, { skipSelf: true }))!,
-					external: 'relative'
+					external: 'relative',
+					id: resolve(resolved!.id, '..', '..', 'lib.js')
 				};
 			}
 		}

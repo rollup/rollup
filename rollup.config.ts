@@ -60,7 +60,7 @@ export default async function (
 
 	const commonJSBuild: RollupOptions = {
 		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
-		external: ['fsevents', fileURLToPath(new URL('../native/lib.js', import.meta.url))],
+		external: ['fsevents'],
 		input: {
 			'getLogFilter.js': 'src/utils/getLogFilter.ts',
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
