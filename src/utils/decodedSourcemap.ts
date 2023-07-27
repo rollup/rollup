@@ -22,7 +22,23 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 		};
 	}
 
-	const mappings = typeof map.mappings === 'string' ? decode(map.mappings) : map.mappings;
-
-	return { ...(map as ExistingRawSourceMap | ExistingDecodedSourceMap), mappings };
+	const originalMappings = map.mappings;
+	let memoizedMappings: ExistingDecodedSourceMap['mappings'] | undefined;
+	return {
+		...(map as ExistingRawSourceMap | ExistingDecodedSourceMap),
+		// By moving mappings behind an accessor, we can avoid unneeded computation for cases
+		// where the mappings field is never actually accessed. This appears to greatly reduce
+		// the overhead of sourcemap decoding in terms of both compute time and memory usage.
+		get mappings() {
+			if (memoizedMappings) {
+				return memoizedMappings;
+			}
+			memoizedMappings =
+				typeof originalMappings === 'string' ? decode(originalMappings) : originalMappings;
+			return memoizedMappings;
+		},
+		set mappings(value) {
+			memoizedMappings = value;
+		}
+	};
 }
