@@ -5,7 +5,7 @@ export function getOriginalLocation(
 	location: { column: number; line: number }
 ): { column: number; line: number } {
 	const filteredSourcemapChain = sourcemapChain.filter(
-		(sourcemap): sourcemap is ExistingDecodedSourceMap => !!sourcemap.mappings
+		(sourcemap): sourcemap is ExistingDecodedSourceMap => !sourcemap.missing
 	);
 	traceSourcemap: while (filteredSourcemapChain.length > 0) {
 		const sourcemap = filteredSourcemapChain.pop()!;
