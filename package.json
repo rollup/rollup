@@ -62,13 +62,16 @@
   "optionalDependencies": {
     "fsevents": "~2.3.2"
   },
+  "dependencyComments": {
+    "@codemirror/view": "do not update this at the moment as versions above 6.14.1 break installation on node 14.18.0"
+  },
   "devDependencies": {
     "@codemirror/commands": "^6.2.4",
     "@codemirror/lang-javascript": "^6.1.9",
     "@codemirror/language": "^6.8.0",
     "@codemirror/search": "^6.5.0",
     "@codemirror/state": "^6.2.1",
-    "@codemirror/view": "~6.15.3",
+    "@codemirror/view": "~6.14.1",
     "@jridgewell/sourcemap-codec": "^1.4.15",
     "@mermaid-js/mermaid-cli": "^10.2.4",
     "@rollup/plugin-alias": "^5.0.0",
