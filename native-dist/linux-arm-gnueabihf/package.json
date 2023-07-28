@@ -1,0 +1,33 @@
+{
+  "name": "@rollup/rollup-linux-arm-gnueabihf",
+  "version": "3.27.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm"
+  ],
+  "main": "native/rollup.linux-arm-gnueabihf.node",
+  "files": [
+    "native/rollup.linux-arm-gnueabihf.node"
+  ],
+  "description": "Next-generation ES module bundler",
+  "keywords": [
+    "modules",
+    "bundler",
+    "bundling",
+    "es6",
+    "optimizer"
+  ],
+  "author": "Rich Harris",
+  "homepage": "https://rollupjs.org/",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.18.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": "rollup/rollup",
+  "bugs": {
+    "url": "https://github.com/rollup/rollup/issues"
+  }
+}
