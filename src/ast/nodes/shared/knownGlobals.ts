@@ -3,7 +3,10 @@
 import { doNothing } from '../../../utils/doNothing';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteractionCalled } from '../../NodeInteractions';
-import { NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../../NodeInteractions';
+import {
+	NODE_INTERACTION_UNKNOWN_ACCESS,
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
+} from '../../NodeInteractions';
 import type { ObjectPath } from '../../utils/PathTracker';
 import {
 	SymbolToStringTag,
@@ -12,7 +15,7 @@ import {
 } from '../../utils/PathTracker';
 import ArrayExpression from '../ArrayExpression';
 import type { LiteralValueOrUnknown } from './Expression';
-import { UnknownTruthyValue } from './Expression';
+import { ExpressionEntity, UnknownTruthyValue } from './Expression';
 
 const ValueProperties = Symbol('Value Properties');
 
@@ -52,6 +55,22 @@ const PURE_WITH_ARRAY: ValueDescription = {
 	}
 };
 
+const GETTER_ACCESS: ValueDescription = {
+	deoptimizeArgumentsOnCall: doNothing,
+	getLiteralValue: getTruthyLiteralValue,
+	hasEffectsWhenCalled({ args }, context) {
+		const [_thisArgument, firstArgument] = args;
+		return (
+			!(firstArgument instanceof ExpressionEntity) ||
+			firstArgument.hasEffectsOnInteractionAtPath(
+				UNKNOWN_PATH,
+				NODE_INTERACTION_UNKNOWN_ACCESS,
+				context
+			)
+		);
+	}
+};
+
 // We use shortened variables to reduce file size here
 /* OBJECT */
 const O: GlobalDescription = {
@@ -63,6 +82,12 @@ const O: GlobalDescription = {
 const PF: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE
+};
+
+/* PURE FUNCTION IF FIRST ARG DOES NOT CONTAIN A GETTER */
+const PF_NO_GETTER: GlobalDescription = {
+	__proto__: null,
+	[ValueProperties]: GETTER_ACCESS
 };
 
 /* FUNCTION THAT MUTATES FIRST ARG WITHOUT TRIGGERING ACCESSORS */
@@ -253,7 +278,8 @@ const knownGlobals: GlobalDescription = {
 		isSealed: PF,
 		keys: PF,
 		fromEntries: O,
-		entries: PF,
+		entries: PF_NO_GETTER,
+		values: PF_NO_GETTER,
 		prototype: O
 	},
 	parseFloat: PF,
@@ -350,16 +376,24 @@ const knownGlobals: GlobalDescription = {
 		[ValueProperties]: IMPURE,
 		Collator: INTL_MEMBER,
 		DateTimeFormat: INTL_MEMBER,
+		DisplayNames: INTL_MEMBER,
 		ListFormat: INTL_MEMBER,
+		Locale: INTL_MEMBER,
 		NumberFormat: INTL_MEMBER,
 		PluralRules: INTL_MEMBER,
-		RelativeTimeFormat: INTL_MEMBER
+		RelativeTimeFormat: INTL_MEMBER,
+		Segmenter: INTL_MEMBER
 	},
 	setInterval: C,
 	setTimeout: C,
 	TextDecoder: C,
 	TextEncoder: C,
-	URL: C,
+	URL: {
+		__proto__: null,
+		[ValueProperties]: IMPURE,
+		prototype: O,
+		canParse: PF
+	},
 	URLSearchParams: C,
 
 	// Browser specific globals
