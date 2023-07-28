@@ -12,6 +12,8 @@ use swc_common::{
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsConfig, Syntax};
 
+use wasm_bindgen::prelude::*;
+
 use convert_ast::converter::AstConverter;
 
 mod convert_ast;
@@ -29,6 +31,7 @@ impl Emitter for TestEmitter {
   }
 }
 
+#[wasm_bindgen]
 pub fn parse_ast(code: String) -> Vec<u8> {
   let compiler = get_compiler();
   let compiler_options = ParseOptions {

@@ -15,6 +15,7 @@ import {
 	logMissingFileOrDirOption,
 	logPluginError
 } from '../utils/logs';
+/** WASM_IMPORT_PLACEHOLDER */
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
 import { getOnLog, normalizeLog, normalizePluginOption } from '../utils/options/options';
@@ -50,6 +51,8 @@ export async function rollupInternal(
 		watcher !== null
 	);
 	initialiseTimers(inputOptions);
+
+	/** WASM_INIT_PLACEHOLDER */
 
 	const graph = new Graph(inputOptions, watcher);
 

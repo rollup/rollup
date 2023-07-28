@@ -1,10 +1,11 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { RollupReplaceOptions } from '@rollup/plugin-replace';
 import type { Plugin } from 'vite';
 
 const resolve = (path: string) => fileURLToPath(new URL(`../${path}`, import.meta.url));
 
-const REPLACED_MODULES = [
+const JS_REPLACED_MODULES = [
 	'crypto',
 	'fs',
 	'hookActions',
@@ -14,16 +15,20 @@ const REPLACED_MODULES = [
 	'resolveId'
 ];
 
-const resolutions: ReadonlyMap<string, string> = new Map(
-	REPLACED_MODULES.flatMap(module => {
-		const originalId = resolve(`src/utils/${module}`);
-		const replacementId = resolve(`browser/src/${module}.ts`);
-		return [
-			[originalId, replacementId],
-			[`${originalId}.ts`, replacementId]
-		];
-	})
-);
+type ModulesMap = [string, string][];
+
+const jsModulesMap: ModulesMap = JS_REPLACED_MODULES.flatMap(module => {
+	const originalId = resolve(`src/utils/${module}`);
+	const replacementId = resolve(`browser/src/${module}.ts`);
+	return [
+		[originalId, replacementId],
+		[`${originalId}.ts`, replacementId]
+	];
+});
+
+const wasmModulesMap: ModulesMap = [[resolve('native/lib'), resolve('browser/src/native.ts')]];
+
+const resolutions: ReadonlyMap<string, string> = new Map([...jsModulesMap, ...wasmModulesMap]);
 
 export default function replaceBrowserModules(): Plugin {
 	return {
@@ -42,3 +47,25 @@ export default function replaceBrowserModules(): Plugin {
 		}
 	};
 }
+
+const WASM_IMPORT_PLACEHOLDER = '/** WASM_IMPORT_PLACEHOLDER */';
+const WASM_INIT_PLACEHOLDER = '/** WASM_INIT_PLACEHOLDER */';
+
+const WASM_IMPORT = `
+import init from '../../browser/wasm/parse_ast';
+import wasm from '../../browser/wasm/parse_ast_bg.wasm';
+`;
+
+const WASM_INIT = `
+await init(await wasm())
+`;
+
+export const wasmReplacement: RollupReplaceOptions = {
+	delimiters: ['', ''],
+	include: ['src/rollup/rollup.ts'],
+	preventAssignment: true,
+	values: {
+		[WASM_IMPORT_PLACEHOLDER]: WASM_IMPORT,
+		[WASM_INIT_PLACEHOLDER]: WASM_INIT
+	}
+};
