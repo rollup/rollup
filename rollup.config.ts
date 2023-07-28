@@ -4,21 +4,19 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
-import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
+import { copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
 import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
-import replaceBrowserModules from './build-plugins/replace-browser-modules';
 
 const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
@@ -111,52 +109,53 @@ export default async function (
 		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
 	};
 
-	const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
-		getLicenseHandler(fileURLToPath(new URL('browser', import.meta.url)));
+	// TODO SWC reenable browser build
+	// const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
+	// 	getLicenseHandler(fileURLToPath(new URL('browser', import.meta.url)));
+	//
+	// const browserBuilds: RollupOptions = {
+	// 	input: 'src/browser-entry.ts',
+	// 	onwarn,
+	// 	output: [
+	// 		{
+	// 			banner: getBanner,
+	// 			file: 'browser/dist/rollup.browser.js',
+	// 			format: 'umd',
+	// 			name: 'rollup',
+	// 			plugins: [copyBrowserTypes()],
+	// 			sourcemap: true
+	// 		},
+	// 		{
+	// 			banner: getBanner,
+	// 			file: 'browser/dist/es/rollup.browser.js',
+	// 			format: 'es',
+	// 			plugins: [emitModulePackageFile()]
+	// 		}
+	// 	],
+	// 	plugins: [
+	// 		replaceBrowserModules(),
+	// 		alias(moduleAliases),
+	// 		nodeResolve({ browser: true }),
+	// 		json(),
+	// 		commonjs(),
+	// 		typescript(),
+	// 		terser({ module: true, output: { comments: 'some' } }),
+	// 		collectLicensesBrowser(),
+	// 		writeLicenseBrowser(),
+	// 		cleanBeforeWrite('browser/dist'),
+	// 		{
+	// 			closeBundle() {
+	// 				// On CI, macOS runs sometimes do not close properly. This is a hack
+	// 				// to fix this until the problem is understood.
+	// 				console.log('Force quit.');
+	// 				setTimeout(() => process.exit(0));
+	// 			},
+	// 			name: 'force-close'
+	// 		}
+	// 	],
+	// 	strictDeprecations: true,
+	// 	treeshake
+	// };
 
-	const browserBuilds: RollupOptions = {
-		input: 'src/browser-entry.ts',
-		onwarn,
-		output: [
-			{
-				banner: getBanner,
-				file: 'browser/dist/rollup.browser.js',
-				format: 'umd',
-				name: 'rollup',
-				plugins: [copyBrowserTypes()],
-				sourcemap: true
-			},
-			{
-				banner: getBanner,
-				file: 'browser/dist/es/rollup.browser.js',
-				format: 'es',
-				plugins: [emitModulePackageFile()]
-			}
-		],
-		plugins: [
-			replaceBrowserModules(),
-			alias(moduleAliases),
-			nodeResolve({ browser: true }),
-			json(),
-			commonjs(),
-			typescript(),
-			terser({ module: true, output: { comments: 'some' } }),
-			collectLicensesBrowser(),
-			writeLicenseBrowser(),
-			cleanBeforeWrite('browser/dist'),
-			{
-				closeBundle() {
-					// On CI, macOS runs sometimes do not close properly. This is a hack
-					// to fix this until the problem is understood.
-					console.log('Force quit.');
-					setTimeout(() => process.exit(0));
-				},
-				name: 'force-close'
-			}
-		],
-		strictDeprecations: true,
-		treeshake
-	};
-
-	return [commonJSBuild, esmBuild, browserBuilds];
+	return [commonJSBuild, esmBuild /* , browserBuilds */];
 }
