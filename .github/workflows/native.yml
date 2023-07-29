@@ -3,6 +3,7 @@ env:
   DEBUG: napi:*
   APP_NAME: rollup
   MACOSX_DEPLOYMENT_TARGET: '10.13'
+
 on:
   push:
     branches:
@@ -368,7 +369,6 @@ jobs:
     name: Publish
     runs-on: ubuntu-latest
     needs:
-      - build-freebsd
       - test-macOS-windows-binding
       - test-linux-x64-gnu-binding
       - test-linux-x64-musl-binding
