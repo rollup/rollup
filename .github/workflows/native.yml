@@ -7,9 +7,10 @@ env:
 on:
   push:
     branches:
-      - rollup-swc
+      - master
   pull_request:
     types: [synchronize, opened, reopened]
+  merge_group:
 
 permissions:
   contents: read

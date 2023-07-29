@@ -1,156 +1,156 @@
-name: Tests
-
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    types: [synchronize, opened, reopened]
-  merge_group:
-
-permissions:
-  contents: read
-
-jobs:
-  linux18:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    name: Node 18 + Coverage (Linux)
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Run tests with coverage
-        run: npm run ci:coverage
-        env:
-          CI: true
-      - uses: codecov/codecov-action@v3
-        with:
-          commit_parent: ${{ github.event.pull_request.head.sha }}
-
-  linux16:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    name: Node 16 + Extra Tests (Linux)
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Lint
-        run: npm run ci:lint
-      - name: Vulnerabilities
-        run: npm audit
-      - name: Run all tests
-        run: npm run ci:test
-        env:
-          CI: true
-
-  linux:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      matrix:
-        node: ['14.18.0']
-    name: Node ${{ matrix.node }} (Linux)
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Run tests
-        run: npm run ci:test:only
-        env:
-          CI: true
-
-  macos:
-    runs-on: macos-latest
-    timeout-minutes: 15
-    strategy:
-      matrix:
-        node: ['14.18.0', '18']
-    name: Node ${{ matrix.node }} (macOS)
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Run tests
-        run: npm run ci:test:only
-        env:
-          CI: true
-
-  windows:
-    runs-on: windows-latest
-    timeout-minutes: 15
-    strategy:
-      matrix:
-        node: ['14.18.0', '18']
-    name: Node ${{ matrix.node }} (Windows)
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Run tests
-        run: npm run ci:test:only
-        env:
-          CI: true
+#name: Tests
+#
+#on:
+#  push:
+#    branches:
+#      - master
+#  pull_request:
+#    types: [synchronize, opened, reopened]
+#  merge_group:
+#
+#permissions:
+#  contents: read
+#
+#jobs:
+#  linux18:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#    name: Node 18 + Coverage (Linux)
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v3
+#        with:
+#          ref: ${{ github.event.pull_request.head.sha }}
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: '18'
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v3
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Run tests with coverage
+#        run: npm run ci:coverage
+#        env:
+#          CI: true
+#      - uses: codecov/codecov-action@v3
+#        with:
+#          commit_parent: ${{ github.event.pull_request.head.sha }}
+#
+#  linux16:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#    name: Node 16 + Extra Tests (Linux)
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v3
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: '16'
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v3
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Lint
+#        run: npm run ci:lint
+#      - name: Vulnerabilities
+#        run: npm audit
+#      - name: Run all tests
+#        run: npm run ci:test
+#        env:
+#          CI: true
+#
+#  linux:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#    strategy:
+#      matrix:
+#        node: ['14.18.0']
+#    name: Node ${{ matrix.node }} (Linux)
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v3
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ matrix.node }}
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v3
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Run tests
+#        run: npm run ci:test:only
+#        env:
+#          CI: true
+#
+#  macos:
+#    runs-on: macos-latest
+#    timeout-minutes: 15
+#    strategy:
+#      matrix:
+#        node: ['14.18.0', '18']
+#    name: Node ${{ matrix.node }} (macOS)
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v3
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ matrix.node }}
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v3
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Run tests
+#        run: npm run ci:test:only
+#        env:
+#          CI: true
+#
+#  windows:
+#    runs-on: windows-latest
+#    timeout-minutes: 15
+#    strategy:
+#      matrix:
+#        node: ['14.18.0', '18']
+#    name: Node ${{ matrix.node }} (Windows)
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v3
+#      - name: Setup Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ matrix.node }}
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v3
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Run tests
+#        run: npm run ci:test:only
+#        env:
+#          CI: true
