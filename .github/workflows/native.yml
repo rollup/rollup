@@ -55,10 +55,7 @@ jobs:
               strip -x *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            docker: |-
-              set -e &&
-              rustup default nightly &&
-              ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
               set -e &&
               npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
@@ -122,7 +119,7 @@ jobs:
             target/
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@v2
-        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' ||  matrix.settings.target == 'aarch64-unknown-linux-musl' }}
         with:
           version: 0.10.1
       - name: Setup toolchain
