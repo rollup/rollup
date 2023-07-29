@@ -21,7 +21,7 @@ module.exports = {
 		'coverage',
 		'_tmp',
 		'cache',
-		'/native',
+		'native*.*',
 		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',
 		'!/test/*/samples/**/rollup.config.js',

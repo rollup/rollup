@@ -32,10 +32,10 @@ switch (platform) {
   case 'android':
     switch (arch) {
       case 'arm64':
-        localFileExisted = existsSync(join(__dirname, 'native/rollup.android-arm64.node'))
+        localFileExisted = existsSync(join(__dirname, 'rollup.android-arm64.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.android-arm64.node')
+            nativeBinding = require('./rollup.android-arm64.node')
           } else {
             nativeBinding = require('@rollup/rollup-android-arm64')
           }
@@ -44,10 +44,10 @@ switch (platform) {
         }
         break
       case 'arm':
-        localFileExisted = existsSync(join(__dirname, 'native/rollup.android-arm-eabi.node'))
+        localFileExisted = existsSync(join(__dirname, 'rollup.android-arm-eabi.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.android-arm-eabi.node')
+            nativeBinding = require('./rollup.android-arm-eabi.node')
           } else {
             nativeBinding = require('@rollup/rollup-android-arm-eabi')
           }
@@ -63,11 +63,11 @@ switch (platform) {
     switch (arch) {
       case 'x64':
         localFileExisted = existsSync(
-          join(__dirname, 'native/rollup.win32-x64-msvc.node')
+          join(__dirname, 'rollup.win32-x64-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.win32-x64-msvc.node')
+            nativeBinding = require('./rollup.win32-x64-msvc.node')
           } else {
             nativeBinding = require('@rollup/rollup-win32-x64-msvc')
           }
@@ -77,11 +77,11 @@ switch (platform) {
         break
       case 'ia32':
         localFileExisted = existsSync(
-          join(__dirname, 'native/rollup.win32-ia32-msvc.node')
+          join(__dirname, 'rollup.win32-ia32-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.win32-ia32-msvc.node')
+            nativeBinding = require('./rollup.win32-ia32-msvc.node')
           } else {
             nativeBinding = require('@rollup/rollup-win32-ia32-msvc')
           }
@@ -91,11 +91,11 @@ switch (platform) {
         break
       case 'arm64':
         localFileExisted = existsSync(
-          join(__dirname, 'native/rollup.win32-arm64-msvc.node')
+          join(__dirname, 'rollup.win32-arm64-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.win32-arm64-msvc.node')
+            nativeBinding = require('./rollup.win32-arm64-msvc.node')
           } else {
             nativeBinding = require('@rollup/rollup-win32-arm64-msvc')
           }
@@ -108,10 +108,10 @@ switch (platform) {
     }
     break
   case 'darwin':
-    localFileExisted = existsSync(join(__dirname, 'native/rollup.darwin-universal.node'))
+    localFileExisted = existsSync(join(__dirname, 'rollup.darwin-universal.node'))
     try {
       if (localFileExisted) {
-        nativeBinding = require('./native/rollup.darwin-universal.node')
+        nativeBinding = require('./rollup.darwin-universal.node')
       } else {
         nativeBinding = require('@rollup/rollup-darwin-universal')
       }
@@ -119,10 +119,10 @@ switch (platform) {
     } catch {}
     switch (arch) {
       case 'x64':
-        localFileExisted = existsSync(join(__dirname, 'native/rollup.darwin-x64.node'))
+        localFileExisted = existsSync(join(__dirname, 'rollup.darwin-x64.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.darwin-x64.node')
+            nativeBinding = require('./rollup.darwin-x64.node')
           } else {
             nativeBinding = require('@rollup/rollup-darwin-x64')
           }
@@ -132,11 +132,11 @@ switch (platform) {
         break
       case 'arm64':
         localFileExisted = existsSync(
-          join(__dirname, 'native/rollup.darwin-arm64.node')
+          join(__dirname, 'rollup.darwin-arm64.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.darwin-arm64.node')
+            nativeBinding = require('./rollup.darwin-arm64.node')
           } else {
             nativeBinding = require('@rollup/rollup-darwin-arm64')
           }
@@ -152,10 +152,10 @@ switch (platform) {
     if (arch !== 'x64') {
       throw new Error(`Unsupported architecture on FreeBSD: ${arch}`)
     }
-    localFileExisted = existsSync(join(__dirname, 'native/rollup.freebsd-x64.node'))
+    localFileExisted = existsSync(join(__dirname, 'rollup.freebsd-x64.node'))
     try {
       if (localFileExisted) {
-        nativeBinding = require('./native/rollup.freebsd-x64.node')
+        nativeBinding = require('./rollup.freebsd-x64.node')
       } else {
         nativeBinding = require('@rollup/rollup-freebsd-x64')
       }
@@ -168,11 +168,11 @@ switch (platform) {
       case 'x64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'native/rollup.linux-x64-musl.node')
+            join(__dirname, 'rollup.linux-x64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./native/rollup.linux-x64-musl.node')
+              nativeBinding = require('./rollup.linux-x64-musl.node')
             } else {
               nativeBinding = require('@rollup/rollup-linux-x64-musl')
             }
@@ -181,11 +181,11 @@ switch (platform) {
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'native/rollup.linux-x64-gnu.node')
+            join(__dirname, 'rollup.linux-x64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./native/rollup.linux-x64-gnu.node')
+              nativeBinding = require('./rollup.linux-x64-gnu.node')
             } else {
               nativeBinding = require('@rollup/rollup-linux-x64-gnu')
             }
@@ -197,11 +197,11 @@ switch (platform) {
       case 'arm64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'native/rollup.linux-arm64-musl.node')
+            join(__dirname, 'rollup.linux-arm64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./native/rollup.linux-arm64-musl.node')
+              nativeBinding = require('./rollup.linux-arm64-musl.node')
             } else {
               nativeBinding = require('@rollup/rollup-linux-arm64-musl')
             }
@@ -210,11 +210,11 @@ switch (platform) {
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'native/rollup.linux-arm64-gnu.node')
+            join(__dirname, 'rollup.linux-arm64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./native/rollup.linux-arm64-gnu.node')
+              nativeBinding = require('./rollup.linux-arm64-gnu.node')
             } else {
               nativeBinding = require('@rollup/rollup-linux-arm64-gnu')
             }
@@ -225,11 +225,11 @@ switch (platform) {
         break
       case 'arm':
         localFileExisted = existsSync(
-          join(__dirname, 'native/rollup.linux-arm-gnueabihf.node')
+          join(__dirname, 'rollup.linux-arm-gnueabihf.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./native/rollup.linux-arm-gnueabihf.node')
+            nativeBinding = require('./rollup.linux-arm-gnueabihf.node')
           } else {
             nativeBinding = require('@rollup/rollup-linux-arm-gnueabihf')
           }

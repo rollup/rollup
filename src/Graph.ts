@@ -1,6 +1,6 @@
 import * as acorn from 'acorn';
 import flru from 'flru';
-import native from '../native/lib';
+import native from '../native';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';

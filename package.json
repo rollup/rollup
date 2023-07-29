@@ -9,7 +9,7 @@
     "rollup": "dist/bin/rollup"
   },
   "napi": {
-    "name": "native/rollup",
+    "name": "rollup",
     "package": {
       "name": "@rollup/rollup"
     },
@@ -33,11 +33,11 @@
   "scripts": {
     "build": "concurrently -c green,blue 'npm run build:napi -- --release' 'npm:build:js' && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
-    "build:napi": "napi build --platform --dts native/lib.d.ts --js native/lib.js --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
+    "build:napi": "napi build --platform --dts native.d.ts --js native.js --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
     "update:napi": "npm run build:napi && npm run build:copy-native",
     "build:js": "rollup --config rollup.config.ts --configPlugin typescript",
     "update:js": "npm run build:js && npm run build:copy-native",
-    "build:copy-native": "shx mkdir -p dist/native && shx cp native/lib.js dist/ && shx cp native/rollup.*.node dist/native/",
+    "build:copy-native": "shx mkdir -p dist && shx cp native.js dist/ && shx cp rollup.*.node dist/",
     "dev": "vitepress dev docs",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
     "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript",

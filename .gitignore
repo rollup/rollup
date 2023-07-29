@@ -21,6 +21,3 @@ docs/.vitepress/graphs
 *.tsbuildinfo
 target
 *.node
-/native/*
-!/native/lib.js
-!/native/lib.d.ts
