@@ -23,37 +23,44 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build:napi --release
+              npm run build:napi -- --release
               strip -x *.node
           - host: windows-latest
-            build: yarn build:napi --release
+            build: npm run build:napi -- --release
             target: x86_64-pc-windows-msvc
           - host: windows-latest
             build: |
-              yarn build:napi --release --target i686-pc-windows-msvc
+              npm run build:napi -- --release --target i686-pc-windows-msvc
             target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
-              yarn build:napi --release --target x86_64-unknown-linux-gnu &&
+              rustup default nightly &&
+              npm run build:napi -- --release --target x86_64-unknown-linux-gnu &&
               strip *.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: set -e && yarn build:napi --release && strip *.node
+            build: |-
+              set -e &&
+              rustup default nightly &&
+              npm run build:napi -- --release && strip *.node
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
-              yarn build:napi --release --target aarch64-apple-darwin
+              npm run build:napi -- --release --target aarch64-apple-darwin
               strip -x *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            docker: |-
+              set -e &&
+              rustup default nightly &&
+              ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
               set -e &&
-              yarn build:napi --release --target aarch64-unknown-linux-gnu &&
+              npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
@@ -61,30 +68,31 @@ jobs:
               sudo apt-get update
               sudo apt-get install gcc-arm-linux-gnueabihf -y
             build: |
-              yarn build:napi --release --target armv7-unknown-linux-gnueabihf
+              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf
               arm-linux-gnueabihf-strip *.node
           - host: ubuntu-latest
             target: aarch64-linux-android
             build: |
-              yarn build:napi --release --target aarch64-linux-android
+              npm run build:napi -- --release --target aarch64-linux-android
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             build: |
-              yarn build:napi --release --target armv7-linux-androideabi
+              npm run build:napi -- --release --target armv7-linux-androideabi
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               set -e &&
+              rustup default nightly &&
               rustup target add aarch64-unknown-linux-musl &&
-              yarn build:napi --release --target aarch64-unknown-linux-musl &&
+              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
-            build: yarn build:napi --release --target aarch64-pc-windows-msvc
-    name: stable - ${{ matrix.settings.target }} - node@18
+            build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
+    name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
@@ -94,7 +102,8 @@ jobs:
         with:
           node-version: 18
           check-latest: true
-          cache: yarn
+#          TODO SWC improve caching like it is done in other workflows
+          cache: npm
       - name: Install
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
@@ -119,19 +128,20 @@ jobs:
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
         shell: bash
-      - name: Setup node x86
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: yarn config set supportedArchitectures.cpu "ia32"
-        shell: bash
+#      - name: Setup node x86
+#        if: matrix.settings.target == 'i686-pc-windows-msvc'
+#        run: yarn config set supportedArchitectures.cpu "ia32"
+#        shell: bash
+      # TODO SWC we may need to pass e.g. an arch here
       - name: Install dependencies
-        run: yarn install
+        run: npm ci --ignore-scripts
       - name: Setup node x86
         uses: actions/setup-node@v3
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         with:
           node-version: 18
           check-latest: true
-          cache: yarn
+          cache: npm
           architecture: x86
       - name: Build in docker
         uses: addnab/docker-run-action@v3
@@ -172,9 +182,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-          cache: yarn
+          cache: npm
       - name: Install dependencies
-        run: yarn install
+        run: npm ci --ignore-scripts
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -204,9 +214,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-          cache: yarn
+          cache: npm
       - name: Install dependencies
-        run: yarn install
+        run: npm ci --ignore-scripts
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -236,11 +246,12 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-          cache: yarn
+          cache: npm
       - name: Install dependencies
-        run: |
-          yarn config set supportedArchitectures.libc "musl"
-          yarn install
+        run: npm ci --ignore-scripts
+#        run: |
+#          yarn config set supportedArchitectures.libc "musl"
+#          yarn install
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -274,10 +285,11 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Install dependencies
-        run: |
-          yarn config set supportedArchitectures.cpu "arm64"
-          yarn config set supportedArchitectures.libc "glibc"
-          yarn install
+        run: npm ci --ignore-scripts
+#        run: |
+#          yarn config set supportedArchitectures.cpu "arm64"
+#          yarn config set supportedArchitectures.libc "glibc"
+#          yarn install
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -308,10 +320,11 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Install dependencies
-        run: |
-          yarn config set supportedArchitectures.cpu "arm64"
-          yarn config set supportedArchitectures.libc "musl"
-          yarn install
+        run: npm ci --ignore-scripts
+#        run: |
+#          yarn config set supportedArchitectures.cpu "arm64"
+#          yarn config set supportedArchitectures.libc "musl"
+#          yarn install
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -348,9 +361,10 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Install dependencies
-        run: |
-          yarn config set supportedArchitectures.cpu "arm"
-          yarn install
+        run: npm ci --ignore-scripts
+#        run: |
+#          yarn config set supportedArchitectures.cpu "arm"
+#          yarn install
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -382,15 +396,15 @@ jobs:
         with:
           node-version: 18
           check-latest: true
-          cache: yarn
+          cache: npm
       - name: Install dependencies
-        run: yarn install
+        run: npm ci --ignore-scripts
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: Move artifacts
-        run: yarn artifacts
+        run: npm run artifacts
       - name: List packages
         run: ls -R ./npm
         shell: bash
