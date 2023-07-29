@@ -74,11 +74,10 @@ export interface ExistingRawSourceMap {
 
 export type DecodedSourceMapOrMissing =
 	| {
-			mappings?: never;
 			missing: true;
 			plugin: string;
 	  }
-	| ExistingDecodedSourceMap;
+	| (ExistingDecodedSourceMap & { missing?: false });
 
 export interface SourceMap {
 	file: string;
