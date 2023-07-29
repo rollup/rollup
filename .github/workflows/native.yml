@@ -99,7 +99,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: stable
+          toolchain: nightly
           targets: ${{ matrix.settings.target }}
       - name: Cache cargo
         uses: actions/cache@v3
