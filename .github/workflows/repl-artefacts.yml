@@ -2,7 +2,14 @@ name: Upload REPL artefacts
 
 on:
   pull_request_target:
-    types: [synchronize, opened, reopened, labeled]
+    types:
+      - synchronize
+      - opened
+      - reopened
+      - labeled
+    branches-ignore:
+#      TODO SWC Exclude until the branch is working
+      - rollup-swc
 
 permissions:
   contents: read
