@@ -118,15 +118,12 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             zig: true
-            build: npm run build:napi -- --release --zig --target aarch64-unknown-linux-musl
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            build: |-
-              set -e &&
-              rustup default nightly &&
-              rustup target add aarch64-unknown-linux-musl &&
-              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
-              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+            setup: |
+              sudo apt-get update
+              sudo apt-get install aarch64-linux-musl-gcc -y
+            build: |
+              npm run build:napi -- --release --zig --target aarch64-unknown-linux-musl
+              aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
