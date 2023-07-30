@@ -1,4 +1,4 @@
-name: Native Packages
+name: CI
 env:
   DEBUG: napi:*
   APP_NAME: rollup
@@ -153,14 +153,16 @@ jobs:
           path: ${{ env.APP_NAME }}.*.node
           if-no-files-found: error
 
-  test-MacOS-Windows-binding:
-    name:  Node ${{ matrix.node }} (${{ matrix.settings.target }})
+  test:
+    name:  Test Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
     strategy:
       fail-fast: false
       matrix:
         settings:
+          - host: ubuntu-latest
+            target: x86_64-pc-windows-msvc
           - host: windows-latest
             target: x86_64-pc-windows-msvc
           - host: macos-latest
