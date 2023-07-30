@@ -88,6 +88,7 @@ jobs:
               aarch64-unknown-linux-gnu-strip *.node
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
+            zig: true
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-arm-linux-gnueabihf -y
@@ -114,6 +115,18 @@ jobs:
 #              rustup target add aarch64-unknown-linux-musl &&
 #              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
 #              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            zig: true
+            build: npm run build:napi -- --release --zig --target aarch64-unknown-linux-musl
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            build: |-
+              set -e &&
+              rustup default nightly &&
+              rustup target add aarch64-unknown-linux-musl &&
+              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
@@ -143,11 +156,10 @@ jobs:
             .cargo-cache
             rust/target/
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
-# TODO SWC needed?
-#      - uses: goto-bus-stop/setup-zig@v2
-#        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
-#        with:
-#          version: 0.10.1
+      - uses: goto-bus-stop/setup-zig@v2
+        if: ${{ matrix.settings.zig }}
+        with:
+          version: 0.10.1
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
