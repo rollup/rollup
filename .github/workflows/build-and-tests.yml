@@ -16,6 +16,30 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    name: Lint and Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+      - name: Lint
+        run: npm run ci:lint
+      - name: Vulnerabilities
+        run: npm audit
+
   build:
     strategy:
       fail-fast: false
@@ -96,13 +120,14 @@ jobs:
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Setup Node
         uses: actions/setup-node@v3
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: 20
-      - name: Install toolchain
+      - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
         with:
@@ -118,10 +143,11 @@ jobs:
             .cargo-cache
             rust/target/
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
-      - uses: goto-bus-stop/setup-zig@v2
-        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
-        with:
-          version: 0.10.1
+# TODO SWC needed?
+#      - uses: goto-bus-stop/setup-zig@v2
+#        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+#        with:
+#          version: 0.10.1
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
@@ -131,7 +157,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: node_modules
-          key: node-modules-${{ matrix.settings.host }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
@@ -154,7 +180,7 @@ jobs:
           if-no-files-found: error
 
   test:
-    name:  Test Node ${{ matrix.node }} (${{ matrix.settings.target }})
+    name:  Test${{ matrix.coverage && ' Coverage' || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
     strategy:
@@ -162,7 +188,7 @@ jobs:
       matrix:
         settings:
           - host: ubuntu-latest
-            target: x86_64-pc-windows-msvc
+            target: x86_64-unknown-linux-gnu
           - host: windows-latest
             target: x86_64-pc-windows-msvc
           - host: macos-latest
@@ -170,10 +196,17 @@ jobs:
         node:
           - '18.0.0'
           - '20'
+        include:
+          - settings:
+              host: ubuntu-latest
+              target: x86_64-unknown-linux-gnu
+            node: '20'
+            coverage: true
     runs-on: ${{ matrix.settings.host }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
@@ -183,7 +216,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: node_modules
-          key: node-modules-${{ matrix.settings.host }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
@@ -193,178 +226,9 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: .
       - name: Build and test Rollup
-        run: npm run ci:test:only
+        run: npm run ${{ matrix.coverage && 'ci:coverage' || 'ci:test:only' }}
         env:
           CI: true
-#  test-linux-x64-gnu-binding:
-#    name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
-#    needs:
-#      - build
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        node:
-#          - '14'
-#          - '16'
-#          - '18'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Setup node
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: ${{ matrix.node }}
-#          check-latest: true
-#          cache: npm
-#      - name: Install dependencies
-#        run: npm ci --ignore-scripts
-#      - name: Download artifacts
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: bindings-x86_64-unknown-linux-gnu
-#          path: .
-#      - name: Test bindings
-#        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim yarn test
-#  test-linux-x64-musl-binding:
-#    name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
-#    needs:
-#      - build
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        node:
-#          - '14'
-#          - '16'
-#          - '18'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Setup node
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: ${{ matrix.node }}
-#          check-latest: true
-#          cache: npm
-#      - name: Install dependencies
-#        run: npm ci --ignore-scripts
-#        run: |
-#          yarn config set supportedArchitectures.libc "musl"
-#          yarn install
-#      - name: Download artifacts
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: bindings-x86_64-unknown-linux-musl
-#          path: .
-#      - name: Test bindings
-#        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-alpine yarn test
-#  test-linux-aarch64-gnu-binding:
-#    name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
-#    needs:
-#      - build
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        node:
-#          - '14'
-#          - '16'
-#          - '18'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Download artifacts
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: bindings-aarch64-unknown-linux-gnu
-#          path: .
-#      - name: Install dependencies
-#        run: npm ci --ignore-scripts
-#        run: |
-#          yarn config set supportedArchitectures.cpu "arm64"
-#          yarn config set supportedArchitectures.libc "glibc"
-#          yarn install
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v2
-#        with:
-#          platforms: arm64
-#      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-#      - name: Setup and run tests
-#        uses: addnab/docker-run-action@v3
-#        with:
-#          image: node:${{ matrix.node }}-slim
-#          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build'
-#          run: |
-#            set -e
-#            yarn test
-#            ls -la
-#  test-linux-aarch64-musl-binding:
-#    name: Test bindings on aarch64-unknown-linux-musl - node@${{ matrix.node }}
-#    needs:
-#      - build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Download artifacts
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: bindings-aarch64-unknown-linux-musl
-#          path: .
-#      - name: Install dependencies
-#        run: npm ci --ignore-scripts
-#        run: |
-#          yarn config set supportedArchitectures.cpu "arm64"
-#          yarn config set supportedArchitectures.libc "musl"
-#          yarn install
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v2
-#        with:
-#          platforms: arm64
-#      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-#      - name: Setup and run tests
-#        uses: addnab/docker-run-action@v3
-#        with:
-#          image: node:lts-alpine
-#          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build'
-#          run: |
-#            set -e
-#            yarn test
-#  test-linux-arm-gnueabihf-binding:
-#    name: Test bindings on armv7-unknown-linux-gnueabihf - node@${{ matrix.node }}
-#    needs:
-#      - build
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        node:
-#          - '14'
-#          - '16'
-#          - '18'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Download artifacts
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: bindings-armv7-unknown-linux-gnueabihf
-#          path: .
-#      - name: Install dependencies
-#        run: npm ci --ignore-scripts
-#        run: |
-#          yarn config set supportedArchitectures.cpu "arm"
-#          yarn install
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v2
-#        with:
-#          platforms: arm
-#      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-#      - name: Setup and run tests
-#        uses: addnab/docker-run-action@v3
-#        with:
-#          image: node:${{ matrix.node }}-bullseye-slim
-#          options: '--platform linux/arm/v7 -v ${{ github.workspace }}:/build -w /build'
-#          run: |
-#            set -e
-#            yarn test
-#            ls -la
 #  publish:
 #    name: Publish
 #    runs-on: ubuntu-latest

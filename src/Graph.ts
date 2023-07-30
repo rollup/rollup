@@ -192,7 +192,7 @@ export default class Graph {
 
 		options.onComment = onCommentOrig;
 
-		// TODO Lukas do this in Rust
+		// TODO SWC do this in Rust
 		// addAnnotations(comments, ast!, code);
 
 		return ast!;

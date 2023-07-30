@@ -20,7 +20,7 @@ impl<'a> Utf8ToUtf16ByteIndexConverter {
     Self { byte_to_utf16 }
   }
 
-  // TODO Lukas We can avoid searching and storing indices if we can guarantee
+  // TODO SWC We can avoid searching and storing indices if we can guarantee
   // that indices are queries in a non-descending order. In that case, we can
   // iterate lazily.
   pub fn convert(&self, utf8_index: u32) -> u32 {

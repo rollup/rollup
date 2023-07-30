@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	// TODO Lukas remove acorn options
+	// TODO SWC remove acorn options
 	skip: true,
 	description: 'does not tree-shake unknown tokens',
 	options: {

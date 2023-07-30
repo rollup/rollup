@@ -33,7 +33,7 @@ pub struct AstConverter<'a> {
 impl<'a> AstConverter<'a> {
   pub fn new(code: &'a str) -> Self {
     Self {
-      // TODO Lukas This is just a wild guess and should be refined with a large
+      // TODO SWC This is just a wild guess and should be refined with a large
       // block of minified code
       buffer: Vec::with_capacity(20 * code.len()),
       code: code.as_bytes(),
@@ -122,7 +122,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO Lukas deduplicate strings and see if we can easily compare atoms
+  // TODO SWC deduplicate strings and see if we can easily compare atoms
   fn convert_string(&mut self, string: &str) {
     let length = string.len();
     let additional_length = ((length + 3) & !3) - length;
@@ -491,7 +491,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO Lukas replace all explicit position copying with returning a span
+  // TODO SWC replace all explicit position copying with returning a span
   fn convert_pattern_or_expression(&mut self, pattern_or_expression: &PatOrExpr) {
     match pattern_or_expression {
       PatOrExpr::Pat(pattern) => {
@@ -1389,7 +1389,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO Lukas property has many different formats that should be merged if possible
+  // TODO SWC property has many different formats that should be merged if possible
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
     // type
     self.buffer.extend_from_slice(&TYPE_PROPERTY);
@@ -1441,7 +1441,7 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  // TODO Lukas merge with method
+  // TODO SWC merge with method
   fn store_getter_setter_property(
     &mut self,
     span: &Span,
@@ -2388,7 +2388,7 @@ const TYPE_WHILE_STATEMENT: [u8; 4] = 74u32.to_ne_bytes();
 const TYPE_YIELD_EXPRESSION: [u8; 4] = 75u32.to_ne_bytes();
 
 // other constants
-// TODO Lukas replace various explicit string constants with type numbers
+// TODO SWC replace various explicit string constants with type numbers
 const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
 const DECLARATION_KIND_LET: [u8; 4] = 1u32.to_ne_bytes();
 const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();

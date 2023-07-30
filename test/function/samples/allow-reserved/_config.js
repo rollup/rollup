@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	// TODO Lukas remove acorn options
+	// TODO SWC remove acorn options
 	skip: true,
 	description: 'allow reserved identifiers via custom acorn options',
 	options: {
