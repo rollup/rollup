@@ -40,7 +40,7 @@
     "build:copy-native": "shx mkdir -p dist && shx cp rollup.*.node dist/",
     "dev": "vitepress dev docs",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest",
-    "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript && npm run build:copy-native",
+    "build:bootstrap": "shx mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript && npm run build:copy-native && shx rm -rf dist-build",
     "build:docs": "vitepress build docs",
     "preview:docs": "vitepress preview docs",
     "ci:lint": "concurrently -c red,green,blue 'npm:lint:js:nofix' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",

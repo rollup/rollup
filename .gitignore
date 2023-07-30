@@ -3,6 +3,7 @@
 .gobble*
 cache
 dist
+dist-build
 _actual
 _actual.js
 coverage

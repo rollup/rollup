@@ -163,7 +163,7 @@ jobs:
           if-no-files-found: error
 
   test-MacOS-Windows-binding:
-    name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
+    name:  Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
     strategy:
@@ -201,6 +201,8 @@ jobs:
           path: .
       - name: Build and test Rollup
         run: npm run ci:test:only
+        env:
+          CI: true
 #  test-linux-x64-gnu-binding:
 #    name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
 #    needs:
@@ -409,6 +411,6 @@ jobs:
 #          else
 #            echo "Not a release, skipping publish"
 #          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
