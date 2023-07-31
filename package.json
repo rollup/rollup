@@ -34,7 +34,7 @@
     "build": "concurrently -c green,blue 'npm run build:napi -- --release' 'npm:build:js' && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
     "build:napi": "napi build --platform --dts native.d.ts --js native.js --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
-    "build:wasm": "wasm-pack build rust/parse_ast --out-dir ${PWD}/browser/wasm --target web --no-pack",
+    "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ${PWD}/browser/wasm --target web --no-pack",
     "update:napi": "npm run build:napi && npm run build:copy-native",
     "build:js": "rollup --config rollup.config.ts --configPlugin typescript",
     "update:js": "npm run build:js && npm run build:copy-native",

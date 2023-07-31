@@ -11,7 +11,3 @@ swc = "0.263.26"
 swc_common = "0.31.16"
 swc_ecma_ast = "0.106.6"
 swc_ecma_parser = "0.136.8"
-wasm-bindgen = "0.2.87"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
