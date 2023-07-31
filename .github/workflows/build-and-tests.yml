@@ -230,11 +230,10 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: actions/upload-artifact@v3
+        uses: codecov/codecov-action@v3
         if: matrix.coverage
         with:
           commit_parent: ${{ github.event.pull_request.head.sha }}
-          if-no-files-found: error
   publish:
     name: Publish
     runs-on: ubuntu-latest
