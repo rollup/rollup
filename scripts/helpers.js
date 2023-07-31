@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { blue, bold, cyan, green, magenta, red, yellow } from './colors.js';
 
 const colors = [cyan, yellow, blue, red, green, magenta];
@@ -44,4 +45,9 @@ export function runAndGetStdout(command, parameters) {
 
 function formatCommand(command, parameters) {
 	return [command, ...parameters].join(' ');
+}
+
+export async function readJson(file) {
+	const content = await readFile(file, 'utf8');
+	return JSON.parse(content);
 }

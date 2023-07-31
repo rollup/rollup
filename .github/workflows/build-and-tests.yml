@@ -8,6 +8,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*.*.**'
   pull_request:
     types: [synchronize, opened, reopened]
   merge_group:
@@ -19,6 +21,7 @@ jobs:
   lint:
     name: Lint and Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -105,7 +108,7 @@ jobs:
             build: |
               npm run build:napi -- --release --target armv7-linux-androideabi
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
-# TODO SWC this does not work yet
+# TODO SWC this does not work yet, also add back in package.json
 #          - host: ubuntu-latest
 #            target: aarch64-unknown-linux-musl
 #            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -120,6 +123,7 @@ jobs:
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
+    timeout-minutes: 15
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -203,6 +207,7 @@ jobs:
             node: '20'
             coverage: true
     runs-on: ${{ matrix.settings.host }}
+    timeout-minutes: 15
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -237,9 +242,11 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs:
       - test
       - lint
+    if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -267,16 +274,18 @@ jobs:
         run: |
           if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
+            echo "Publishing regular release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --access public --dry-run
-          elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+";
+            npm publish --access public
+          elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$";
           then
+            echo "Publishing beta release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --tag beta --access public --dry-run
+            npm publish --tag beta --access public
           else
             echo "Not a release, skipping publish"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          ROLLUP_RELEASE: releasing
+          ROLLUP_RELEASE: 'releasing'

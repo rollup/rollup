@@ -9,17 +9,18 @@ import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';
 import { cyan } from './colors.js';
-import { runAndGetStdout, runWithEcho } from './helpers.js';
+import { readJson, runAndGetStdout, runWithEcho } from './helpers.js';
+import {
+	BROWSER_PACKAGE,
+	CHANGELOG,
+	DOCUMENTATION_BRANCH,
+	MAIN_BRANCH,
+	MAIN_LOCKFILE,
+	MAIN_PACKAGE
+} from './release-constants.js';
 
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
-
-const MAIN_BRANCH = 'master';
-const MAIN_PACKAGE = 'package.json';
-const MAIN_LOCKFILE = 'package-lock.json';
-const BROWSER_PACKAGE = 'browser/package.json';
-const CHANGELOG = 'CHANGELOG.md';
-const DOCUMENTATION_BRANCH = 'documentation-published';
 
 const [gh, currentBranch] = await Promise.all([
 	getGithubApi(),
@@ -81,11 +82,6 @@ async function getGithubApi() {
 			throw error;
 		}
 	}
-}
-
-async function readJson(file) {
-	const content = await readFile(file, 'utf8');
-	return JSON.parse(content);
 }
 
 async function getNewVersion(mainPackage, isMainBranch) {

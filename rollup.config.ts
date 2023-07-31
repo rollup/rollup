@@ -106,7 +106,22 @@ export default async function (
 			minifyInternalExports: false,
 			sourcemap: false
 		},
-		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
+		plugins: [
+			...nodePlugins,
+			emitModulePackageFile(),
+			collectLicenses(),
+			writeLicense(),
+			{
+				closeBundle() {
+					// TODO SWC remove once browser build is enabled again
+					// On CI, macOS runs sometimes do not close properly. This is a hack
+					// to fix this until the problem is understood.
+					console.log('Force quit.');
+					setTimeout(() => process.exit(0));
+				},
+				name: 'force-close'
+			}
+		]
 	};
 
 	// TODO SWC reenable browser build
