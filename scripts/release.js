@@ -46,17 +46,16 @@ try {
 		await addStubChangelogEntry(newVersion, repo, changelog, includedPRs);
 	}
 	await updatePackages(mainPackage, mainLockFile, browserPackage, newVersion);
-	await installDependenciesBuildAndTest();
+	await installDependenciesAndLint();
 	changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
 	gitTag = `v${newVersion}`;
 	await commitChanges(newVersion, gitTag, isMainBranch);
 } catch (error) {
 	console.error(`Error during release, rolling back changes: ${error.message}`);
-	await runWithEcho('git', ['reset', '--hard']);
+	console.error('Run `git reset --hard` to roll back changes.');
 	throw error;
 }
 
-await releasePackages(newVersion);
 await pushChanges(gitTag);
 if (changelogEntry) {
 	await createReleaseNotes(changelogEntry, gitTag);
@@ -230,13 +229,9 @@ function getDummyLogSection(headline, pr) {
 `;
 }
 
-async function installDependenciesBuildAndTest() {
+async function installDependenciesAndLint() {
 	await Promise.all([runWithEcho('npm', ['ci']), runWithEcho('npm', ['audit'])]);
-	await Promise.all([
-		runWithEcho('npm', ['run', 'ci:lint']),
-		runWithEcho('npm', ['run', 'build:bootstrap'])
-	]);
-	await runWithEcho('npm', ['run', 'test:all']);
+	await runWithEcho('npm', ['run', 'ci:lint']);
 }
 
 async function waitForChangelogUpdate(version) {
@@ -296,22 +291,6 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 	isMainBranch && (await runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag]));
 }
 
-function releasePackages(newVersion) {
-	const releaseEnvironment = { ...process.env, ROLLUP_RELEASE: 'releasing' };
-	const releaseTag = semverPreRelease(newVersion) ? ['--tag', 'beta'] : [];
-	const parameters = ['publish', '--access', 'public', ...releaseTag];
-	return Promise.all([
-		runWithEcho('npm', parameters, {
-			cwd: new URL('..', import.meta.url),
-			env: releaseEnvironment
-		}),
-		runWithEcho('npm', parameters, {
-			cwd: new URL('../browser', import.meta.url),
-			env: releaseEnvironment
-		})
-	]);
-}
-
 function pushChanges(gitTag) {
 	return Promise.all([
 		runWithEcho('git', ['push', 'origin', 'HEAD']),
@@ -331,15 +310,15 @@ function createReleaseNotes(changelog, tag) {
 function postReleaseComments(includedPRs, issues, version) {
 	const isPreRelease = semverPreRelease(newVersion);
 	const installNote = isPreRelease
-		? `Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${newVersion}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
-		: 'You can test it via `npm install rollup`.';
+		? `The release will take a few minutes. Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${newVersion}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
+		: 'You can test it in a few minutes via `npm install rollup`.';
 	return Promise.all(
 		includedPRs.map(({ pr, closed }) =>
 			Promise.all([
 				issues
 					.createIssueComment(
 						pr,
-						`This PR has been released as part of rollup@${version}. ${installNote}`
+						`This PR is currently being released as part of rollup@${version}. ${installNote}`
 					)
 					.then(() => console.log(cyan(`Added release comment to #${pr}.`))),
 				...closed.map(closedPr =>

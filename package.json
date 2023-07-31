@@ -57,7 +57,7 @@
     "perf": "npm run build:cjs && node --expose-gc scripts/perf.js",
     "perf:init": "node scripts/perf-init.js",
     "prepare": "husky install && node scripts/check-release.js || npm run build",
-    "prepublishOnly": "node scripts/check-release.js",
+    "prepublishOnly": "node scripts/check-release.js && napi prepublish -t npm",
     "release": "node scripts/release.js",
     "release:docs": "git fetch --update-head-ok origin master:master && git branch --force documentation-published master && git push origin documentation-published",
     "test": "npm run build && npm run test:all",
