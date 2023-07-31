@@ -1,5 +1,5 @@
-import { parse_ast } from '../wasm/parse_ast.js';
+import { parse } from '../wasm/bindings_wasm.js';
 
 export default {
-	parse: parse_ast
+	parse
 };

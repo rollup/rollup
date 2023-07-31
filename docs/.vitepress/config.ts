@@ -1,12 +1,8 @@
 import alias from '@rollup/plugin-alias';
-import replace from '@rollup/plugin-replace';
 import { wasm } from '@rollup/plugin-wasm';
 import { defineConfig } from 'vitepress';
 import { moduleAliases } from '../../build-plugins/aliases';
-import { getEnvironmentReplacement } from '../../build-plugins/environment-replacement';
-import replaceBrowserModules, {
-	wasmReplacement
-} from '../../build-plugins/replace-browser-modules';
+import replaceBrowserModules from '../../build-plugins/replace-browser-modules';
 import '../declarations.d';
 import { examplesPlugin } from './create-examples';
 import { renderMermaidGraphsPlugin } from './mermaid';
@@ -155,15 +151,7 @@ export default defineConfig({
 			alias(moduleAliases),
 			wasm({
 				targetEnv: 'auto-inline'
-			}),
-			{
-				...replace(wasmReplacement),
-				enforce: 'pre'
-			},
-			{
-				...replace(getEnvironmentReplacement(true)),
-				enforce: 'pre'
-			}
+			})
 		]
 	}
 });

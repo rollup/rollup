@@ -29,6 +29,7 @@ import {
 } from './utils/logs';
 import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
+import readString from './utils/readString';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
@@ -148,17 +149,9 @@ export default class Graph {
 		// try {
 		// console.time('swc');
 		const astBuffer = native.parse(code);
-
-		let bufferToString: (start: number, length: number) => string;
-		if (process.env.IS_BROWSER_BUILD) {
-			const textDecoder = new TextDecoder();
-			bufferToString = (start, length) =>
-				textDecoder.decode(astBuffer.slice(start, start + length));
-		} else {
-			bufferToString = (start, length) => astBuffer.toString('utf8', start, start + length);
-		}
-
-		const ast = convertProgram(astBuffer.buffer, (start, length) => bufferToString(start, length));
+		const ast = convertProgram(astBuffer.buffer, (start, length) =>
+			readString(astBuffer, start, length)
+		);
 		// console.timeEnd('swc');
 		// console.log('swc', JSON.stringify(ast, null, 2));
 		// assert.deepStrictEqual(

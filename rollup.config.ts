@@ -4,9 +4,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
+import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import { wasm } from '@rollup/plugin-wasm';
-import terser from '@rollup/plugin-terser';
 import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import addCliEntry from './build-plugins/add-cli-entry';
@@ -14,13 +14,12 @@ import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import { copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
-import { getEnvironmentReplacement } from './build-plugins/environment-replacement';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
 import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
-import replaceBrowserModules, { wasmReplacement } from './build-plugins/replace-browser-modules';
+import replaceBrowserModules from './build-plugins/replace-browser-modules';
 
 const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
@@ -40,7 +39,6 @@ const treeshake = {
 
 const nodePlugins: readonly Plugin[] = [
 	replace(fsEventsReplacement),
-	replace(getEnvironmentReplacement(false)),
 	alias(moduleAliases),
 	nodeResolve(),
 	json(),
@@ -138,8 +136,6 @@ export default async function (
 		],
 		plugins: [
 			replaceBrowserModules(),
-			replace(wasmReplacement),
-			replace(getEnvironmentReplacement(true)),
 			alias(moduleAliases),
 			nodeResolve({ browser: true }),
 			json(),
