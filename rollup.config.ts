@@ -140,7 +140,9 @@ export default async function (
 			nodeResolve({ browser: true }),
 			json(),
 			commonjs(),
-			wasm(),
+			wasm({
+				targetEnv: 'browser'
+			}),
 			typescript(),
 			terser({ module: true, output: { comments: 'some' } }),
 			collectLicensesBrowser(),
