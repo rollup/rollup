@@ -262,7 +262,7 @@ jobs:
         with:
           path: artifacts
       - name: Move artifacts
-        run: npm run artifacts
+        run: npm run ci:artifacts
       - name: Publish
         run: |
           if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
