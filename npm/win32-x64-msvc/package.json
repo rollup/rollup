@@ -1,6 +1,6 @@
 {
   "name": "@rollup/rollup-win32-x64-msvc",
-  "version": "3.27.0",
+  "version": "0.0.0",
   "os": [
     "win32"
   ],

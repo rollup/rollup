@@ -1,6 +1,6 @@
 {
   "name": "@rollup/rollup-linux-x64-gnu",
-  "version": "3.27.0",
+  "version": "0.0.0",
   "os": [
     "linux"
   ],
