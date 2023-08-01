@@ -280,6 +280,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts
+      - name: Build JavaScript
+        run: npm run build:cjs && cp artifacts/*.node dist/ && npm run build:bootstrap
       - name: Move artifacts
         run: npm run ci:artifacts
       - name: Publish
