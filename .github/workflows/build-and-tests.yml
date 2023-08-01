@@ -42,6 +42,10 @@ jobs:
         run: npm run ci:lint
       - name: Vulnerabilities
         run: npm audit
+      - name: Optional Dependencies
+        run: npm run test:package
+      - name: CLI Docs
+        run: npm run test:options
 
   build:
     strategy:
@@ -184,7 +188,7 @@ jobs:
           if-no-files-found: error
 
   test:
-    name:  Test${{ matrix.coverage && ' Coverage' || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
+    name:  Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
     strategy:
@@ -205,7 +209,14 @@ jobs:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
             node: '20'
-            coverage: true
+            command: 'ci:coverage'
+            additionalName: ' with Coverage'
+          - settings:
+              host: ubuntu-latest
+              target: x86_64-unknown-linux-gnu
+            node: '18.0.0'
+            command: 'ci:test:all'
+            additionalName: ' with Additional Tests'
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 15
     steps:
@@ -231,7 +242,7 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: .
       - name: Build and test Rollup
-        run: npm run ${{ matrix.coverage && 'ci:coverage' || 'ci:test:only' }}
+        run: npm run ${{ matrix.command || 'ci:test:only' }}
         env:
           CI: true
       - name: Upload coverage
@@ -239,6 +250,7 @@ jobs:
         if: matrix.coverage
         with:
           commit_parent: ${{ github.event.pull_request.head.sha }}
+
   publish:
     name: Publish
     runs-on: ubuntu-latest
