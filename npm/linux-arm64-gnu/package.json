@@ -7,29 +7,19 @@
   "cpu": [
     "arm64"
   ],
-  "main": "native/rollup.linux-arm64-gnu.node",
+  "main": "rollup.linux-arm64-gnu.node",
   "files": [
-    "native/rollup.linux-arm64-gnu.node"
+    "rollup.linux-arm64-gnu.node"
   ],
-  "description": "Next-generation ES module bundler",
-  "keywords": [
-    "modules",
-    "bundler",
-    "bundling",
-    "es6",
-    "optimizer"
-  ],
-  "author": "Rich Harris",
+  "description": "Native bindings for Rollup",
+  "author": "Lukas Taegert-Atkinson",
   "homepage": "https://rollupjs.org/",
   "license": "MIT",
   "engines": {
-    "node": ">=14.18.0",
+    "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
   "repository": "rollup/rollup",
-  "bugs": {
-    "url": "https://github.com/rollup/rollup/issues"
-  },
   "libc": [
     "glibc"
   ]
