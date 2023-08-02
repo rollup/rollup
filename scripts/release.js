@@ -9,17 +9,18 @@ import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';
 import { cyan } from './colors.js';
-import { runAndGetStdout, runWithEcho } from './helpers.js';
+import { readJson, runAndGetStdout, runWithEcho } from './helpers.js';
+import {
+	BROWSER_PACKAGE,
+	CHANGELOG,
+	DOCUMENTATION_BRANCH,
+	MAIN_BRANCH,
+	MAIN_LOCKFILE,
+	MAIN_PACKAGE
+} from './release-constants.js';
 
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
-
-const MAIN_BRANCH = 'master';
-const MAIN_PACKAGE = 'package.json';
-const MAIN_LOCKFILE = 'package-lock.json';
-const BROWSER_PACKAGE = 'browser/package.json';
-const CHANGELOG = 'CHANGELOG.md';
-const DOCUMENTATION_BRANCH = 'documentation-published';
 
 const [gh, currentBranch] = await Promise.all([
 	getGithubApi(),
@@ -34,6 +35,8 @@ const [mainPackage, mainLockFile, browserPackage, repo, issues, changelog] = awa
 	gh.getIssues('rollup', 'rollup'),
 	readFile(CHANGELOG, 'utf8')
 ]);
+// TODO SWC remove this
+console.log(issues);
 const isMainBranch = currentBranch === MAIN_BRANCH;
 const [newVersion, includedPRs] = await Promise.all([
 	getNewVersion(mainPackage, isMainBranch),
@@ -60,7 +63,8 @@ await pushChanges(gitTag);
 if (changelogEntry) {
 	await createReleaseNotes(changelogEntry, gitTag);
 }
-await postReleaseComments(includedPRs, issues, newVersion);
+// TODO SWC re-enable this
+// await postReleaseComments(includedPRs, issues, newVersion);
 
 async function getGithubApi() {
 	const GITHUB_TOKEN = '.github_token';
@@ -78,11 +82,6 @@ async function getGithubApi() {
 			throw error;
 		}
 	}
-}
-
-async function readJson(file) {
-	const content = await readFile(file, 'utf8');
-	return JSON.parse(content);
 }
 
 async function getNewVersion(mainPackage, isMainBranch) {
@@ -230,7 +229,10 @@ function getDummyLogSection(headline, pr) {
 }
 
 async function installDependenciesAndLint() {
-	await Promise.all([runWithEcho('npm', ['ci']), runWithEcho('npm', ['audit'])]);
+	await Promise.all([
+		runWithEcho('npm', ['ci', '--ignore-scripts']),
+		runWithEcho('npm', ['audit'])
+	]);
 	await runWithEcho('npm', ['run', 'ci:lint']);
 }
 
@@ -307,29 +309,30 @@ function createReleaseNotes(changelog, tag) {
 	});
 }
 
-function postReleaseComments(includedPRs, issues, version) {
-	const isPreRelease = semverPreRelease(newVersion);
-	const installNote = isPreRelease
-		? `The release will take a few minutes. Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${newVersion}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
-		: 'You can test it in a few minutes via `npm install rollup`.';
-	return Promise.all(
-		includedPRs.map(({ pr, closed }) =>
-			Promise.all([
-				issues
-					.createIssueComment(
-						pr,
-						`This PR is currently being released as part of rollup@${version}. ${installNote}`
-					)
-					.then(() => console.log(cyan(`Added release comment to #${pr}.`))),
-				...closed.map(closedPr =>
-					issues
-						.createIssueComment(
-							closedPr,
-							`This issue has been resolved via #${pr} as part of rollup@${version}. ${installNote}`
-						)
-						.then(() => console.log(cyan(`Added fix comment to #${closedPr} via #${pr}.`)))
-				)
-			])
-		)
-	);
-}
+// TODO SWC re-enable
+// function postReleaseComments(includedPRs, issues, version) {
+// 	const isPreRelease = semverPreRelease(newVersion);
+// 	const installNote = isPreRelease
+// 		? `The release will take a few minutes. Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${newVersion}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
+// 		: 'You can test it in a few minutes via `npm install rollup`.';
+// 	return Promise.all(
+// 		includedPRs.map(({ pr, closed }) =>
+// 			Promise.all([
+// 				issues
+// 					.createIssueComment(
+// 						pr,
+// 						`This PR is currently being released as part of rollup@${version}. ${installNote}`
+// 					)
+// 					.then(() => console.log(cyan(`Added release comment to #${pr}.`))),
+// 				...closed.map(closedPr =>
+// 					issues
+// 						.createIssueComment(
+// 							closedPr,
+// 							`This issue has been resolved via #${pr} as part of rollup@${version}. ${installNote}`
+// 						)
+// 						.then(() => console.log(cyan(`Added fix comment to #${closedPr} via #${pr}.`)))
+// 				)
+// 			])
+// 		)
+// 	);
+// }

@@ -8,6 +8,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*.*.**'
   pull_request:
     types: [synchronize, opened, reopened]
   merge_group:
@@ -19,6 +21,7 @@ jobs:
   lint:
     name: Lint and Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -39,6 +42,10 @@ jobs:
         run: npm run ci:lint
       - name: Vulnerabilities
         run: npm audit
+      - name: Optional Dependencies
+        run: npm run test:package
+      - name: CLI Docs
+        run: npm run test:options
 
   build:
     strategy:
@@ -105,7 +112,7 @@ jobs:
             build: |
               npm run build:napi -- --release --target armv7-linux-androideabi
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
-# TODO SWC this does not work yet
+# TODO SWC this does not work yet, also add back in package.json
 #          - host: ubuntu-latest
 #            target: aarch64-unknown-linux-musl
 #            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -120,6 +127,7 @@ jobs:
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
+    timeout-minutes: 15
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -180,7 +188,7 @@ jobs:
           if-no-files-found: error
 
   test:
-    name:  Test${{ matrix.coverage && ' Coverage' || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
+    name:  Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
     strategy:
@@ -201,8 +209,16 @@ jobs:
               host: ubuntu-latest
               target: x86_64-unknown-linux-gnu
             node: '20'
-            coverage: true
+            command: 'ci:coverage'
+            additionalName: ' with Coverage'
+          - settings:
+              host: ubuntu-latest
+              target: x86_64-unknown-linux-gnu
+            node: '18.0.0'
+            command: 'ci:test:all'
+            additionalName: ' with Additional Tests'
     runs-on: ${{ matrix.settings.host }}
+    timeout-minutes: 15
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -226,7 +242,7 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: .
       - name: Build and test Rollup
-        run: npm run ${{ matrix.coverage && 'ci:coverage' || 'ci:test:only' }}
+        run: npm run ${{ matrix.command || 'ci:test:only' }}
         env:
           CI: true
       - name: Upload coverage
@@ -234,12 +250,15 @@ jobs:
         if: matrix.coverage
         with:
           commit_parent: ${{ github.event.pull_request.head.sha }}
+
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs:
       - test
       - lint
+    if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
@@ -261,22 +280,26 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts
+      - name: Build JavaScript
+        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
       - name: Move artifacts
-        run: npm run artifacts
+        run: npm run ci:artifacts
       - name: Publish
         run: |
           if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
+            echo "Publishing regular release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --access public --dry-run
-          elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+";
+            npm publish --access public
+          elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$";
           then
+            echo "Publishing beta release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --tag beta --access public --dry-run
+            npm publish --tag beta --access public
           else
             echo "Not a release, skipping publish"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          ROLLUP_RELEASE: releasing
+          ROLLUP_RELEASE: 'releasing'
