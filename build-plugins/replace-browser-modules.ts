@@ -27,7 +27,7 @@ const jsModulesMap: ModulesMap = JS_REPLACED_MODULES.flatMap(module => {
 	];
 });
 
-const wasmModulesMap: ModulesMap = [[resolve('native'), resolve('browser/src/native.ts')]];
+const wasmModulesMap: ModulesMap = [[resolve('native'), resolve('browser/src/wasm.ts')]];
 
 const resolutions: ReadonlyMap<string, string> = new Map([...jsModulesMap, ...wasmModulesMap]);
 
