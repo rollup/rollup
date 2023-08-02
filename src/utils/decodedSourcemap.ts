@@ -90,10 +90,6 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 			cache.decodedMappings = decode(cache.encodedMappings!);
 			cache.encodedMappings = undefined;
 			return cache.decodedMappings;
-		},
-		set mappings(value) {
-			cache.decodedMappings = value;
-			cache.encodedMappings = undefined;
 		}
 	};
 
