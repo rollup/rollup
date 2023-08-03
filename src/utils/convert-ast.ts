@@ -48,9 +48,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const async = !!buffer[position++];
 		const generator = !!buffer[position++];
-		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const expression = !!buffer[position++];
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const parameters = convertNodeList(position, buffer, readString);
 		return {
 			type: 'ArrowFunctionExpression',
 			start,
@@ -83,8 +83,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.AssignmentPattern & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
-		const right = convertNode(position, buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'AssignmentPattern',
 			start,
@@ -150,8 +150,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const optional = !!buffer[position++];
-		const callee = convertNode(buffer[position++], buffer, readString);
-		const argumentsList = convertNodeList(position, buffer, readString);
+		const argumentsList = convertNodeList(buffer[position++], buffer, readString);
+		const callee = convertNode(position, buffer, readString);
 		return {
 			type: 'CallExpression',
 			start,
@@ -166,7 +166,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const parameterPosition = buffer[position++];
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'CatchClause',
 			start,
@@ -235,9 +235,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.ConditionalExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const test = convertNode(buffer[position++], buffer, readString);
 		const consequent = convertNode(buffer[position++], buffer, readString);
-		const alternate = convertNode(position, buffer, readString);
+		const alternate = convertNode(buffer[position++], buffer, readString);
+		const test = convertNode(position, buffer, readString);
 		return {
 			type: 'ConditionalExpression',
 			start,
@@ -297,9 +297,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): ExportAllDeclaration & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const assertions = convertNodeList(buffer[position++], buffer, readString);
 		const exportedPosition = buffer[position++];
-		const source = convertNode(position, buffer, readString);
+		const source = convertNode(buffer[position++], buffer, readString);
+		const assertions = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ExportAllDeclaration',
 			start,
@@ -376,9 +376,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.ForInStatement & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
 		const right = convertNode(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'ForInStatement',
 			start,
@@ -393,9 +393,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const awaited = !!buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
 		const right = convertNode(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'ForOfStatement',
 			start,
@@ -413,7 +413,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const initPosition = buffer[position++];
 		const testPosition = buffer[position++];
 		const updatePosition = buffer[position++];
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ForStatement',
 			start,
@@ -436,7 +436,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const generator = !!buffer[position++];
 		const idPosition = buffer[position++];
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'FunctionDeclaration',
 			start,
@@ -457,7 +457,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const generator = !!buffer[position++];
 		const idPosition = buffer[position++];
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'FunctionExpression',
 			start,
@@ -502,8 +502,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): ImportAttribute & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const key = convertNode(buffer[position++], buffer, readString);
-		const value = convertNode(position, buffer, readString);
+		const value = convertNode(buffer[position++], buffer, readString);
+		const key = convertNode(position, buffer, readString);
 		return {
 			type: 'ImportAttribute',
 			start,
@@ -571,7 +571,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const importedPosition = buffer[position++];
-		const local = convertNode(position, buffer, readString);
+		const local = convertNode(buffer[position], buffer, readString);
 		const imported = importedPosition ? convertNode(importedPosition, buffer, readString) : local;
 		return {
 			type: 'ImportSpecifier',
@@ -704,9 +704,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const optional = !!buffer[position++];
-		const object = convertNode(buffer[position++], buffer, readString);
 		const computed = !!buffer[position++];
-		const property = convertNode(position, buffer, readString);
+		const property = convertNode(buffer[position++], buffer, readString);
+		const object = convertNode(position, buffer, readString);
 		return {
 			type: 'MemberExpression',
 			start,
@@ -721,8 +721,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.MetaProperty & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const meta = convertNode(buffer[position++], buffer, readString);
-		const property = convertNode(position, buffer, readString);
+		const property = convertNode(buffer[position++], buffer, readString);
+		const meta = convertNode(position, buffer, readString);
 		return {
 			type: 'MetaProperty',
 			start,
@@ -822,8 +822,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const method = !!buffer[position++];
 		const computed = !!buffer[position++];
 		const shorthand = !!buffer[position++];
-		const valuePosition = buffer[position++];
-		const key = convertNode(position, buffer, readString);
+		const key = convertNode(buffer[position++], buffer, readString);
+		const valuePosition = buffer[position];
 		return {
 			type: 'Property',
 			start,
@@ -929,7 +929,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const testPosition = buffer[position++];
-		const consequent = convertNodeList(position, buffer, readString);
+		const consequent = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'SwitchCase',
 			start,
@@ -942,8 +942,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.SwitchStatement & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const discriminant = convertNode(buffer[position++], buffer, readString);
-		const cases = convertNodeList(position, buffer, readString);
+		const cases = convertNodeList(buffer[position++], buffer, readString);
+		const discriminant = convertNode(position, buffer, readString);
 		return {
 			type: 'SwitchStatement',
 			start,
@@ -956,8 +956,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.TaggedTemplateExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const tag = convertNode(buffer[position++], buffer, readString);
-		const quasi = convertNode(position, buffer, readString);
+		const quasi = convertNode(buffer[position++], buffer, readString);
+		const tag = convertNode(position, buffer, readString);
 		return {
 			type: 'TaggedTemplateExpression',
 			start,
@@ -1099,8 +1099,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.WhileStatement & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const test = convertNode(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const test = convertNode(position, buffer, readString);
 		return {
 			type: 'WhileStatement',
 			start,
