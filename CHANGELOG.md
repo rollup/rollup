@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 3.27.1
+
+_2023-08-03_
+
+### Bug Fixes
+
+- Improve performance when generating sourcemaps (#5075)
+
+### Pull Requests
+
+- [#5075](https://github.com/rollup/rollup/pull/5075): perf(sourcemap): lazy compute decoded mappings (@thebanjomatic)
+
 ## 3.27.0
 
 _2023-07-28_
