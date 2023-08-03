@@ -12,7 +12,7 @@ import { string } from 'rollup-plugin-string';
 import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
-import { copyNodeTypes } from './build-plugins/copy-types';
+import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
@@ -109,22 +109,7 @@ export default async function (
 			minifyInternalExports: false,
 			sourcemap: false
 		},
-		plugins: [
-			...nodePlugins,
-			emitModulePackageFile(),
-			collectLicenses(),
-			writeLicense(),
-			{
-				closeBundle() {
-					// TODO SWC remove once browser build is enabled again
-					// On CI, macOS runs sometimes do not close properly. This is a hack
-					// to fix this until the problem is understood.
-					console.log('Force quit.');
-					setTimeout(() => process.exit(0));
-				},
-				name: 'force-close'
-			}
-		]
+		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
 	};
 
 	const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
@@ -139,7 +124,7 @@ export default async function (
 				file: 'browser/dist/rollup.browser.js',
 				format: 'umd',
 				name: 'rollup',
-				// plugins: [copyBrowserTypes()],
+				plugins: [copyBrowserTypes()],
 				sourcemap: true
 			},
 			{
@@ -156,6 +141,7 @@ export default async function (
 			json(),
 			commonjs(),
 			wasm({
+				fileName: '[name][extname]',
 				targetEnv: 'browser'
 			}),
 			typescript(),
