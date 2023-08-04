@@ -6,7 +6,14 @@ import type {
 	SourceMapInput
 } from '../rollup/types';
 
-type Input = SourceMapInput | ExistingDecodedSourceMap | undefined;
+// While the types for SourceMapInput are what we expect to recieve from plugins, there are cases
+// in the wild where plugins return `{mappings: null}`, so we want this function to be a little more
+// permissive on the input end so that we can normalize the output when creating the decoded sourcemap.
+interface UnexpectedInput {
+	mappings: null | undefined;
+}
+
+type Input = SourceMapInput | UnexpectedInput | ExistingDecodedSourceMap | undefined;
 
 interface CachedSourcemapData {
 	encodedMappings: string | undefined;
@@ -58,7 +65,7 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	if (typeof map === 'string') {
 		map = JSON.parse(map) as ExistingRawSourceMap;
 	}
-	if (map.mappings === '') {
+	if (!map.mappings) {
 		return {
 			mappings: [],
 			names: [],
@@ -68,8 +75,8 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	}
 
 	const originalMappings = map.mappings;
-	const isAlreadyDecoded = typeof originalMappings !== 'string';
-	const cache = {
+	const isAlreadyDecoded = Array.isArray(originalMappings);
+	const cache: CachedSourcemapData = {
 		decodedMappings: isAlreadyDecoded ? originalMappings : undefined,
 		encodedMappings: isAlreadyDecoded ? undefined : originalMappings
 	};
@@ -87,7 +94,7 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 			// The only scenario where cache.encodedMappings should be undefined is if the map
 			// this was constructed from was already decoded, or if mappings was set to a new
 			// decoded string. In either case, this line shouldn't get hit.
-			cache.decodedMappings = decode(cache.encodedMappings!);
+			cache.decodedMappings = cache.encodedMappings ? decode(cache.encodedMappings) : [];
 			cache.encodedMappings = undefined;
 			return cache.decodedMappings;
 		}
