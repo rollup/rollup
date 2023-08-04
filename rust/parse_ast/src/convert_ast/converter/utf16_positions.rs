@@ -24,9 +24,6 @@ impl<'a> Utf8ToUtf16ByteIndexConverter<'a> {
       self.current_utf8_index += character.len_utf8() as u32;
       self.current_utf16_index += character.len_utf16() as u32;
     }
-    if self.current_utf8_index > utf8_index {
-      panic!("Cannot find exact index through iteration");
-    }
     self.current_utf16_index
   }
 }

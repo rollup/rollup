@@ -339,6 +339,45 @@ impl<'a> AstConverter<'a> {
     }
   }
 
+  fn get_expression_span(&mut self, expression: &Expr) -> Span {
+    match expression {
+      Expr::Array(array_literal) => array_literal.span,
+      Expr::Arrow(arrow_expression) => arrow_expression.span,
+      Expr::Assign(assignment_expression) => assignment_expression.span,
+      Expr::Await(await_expression) => await_expression.span,
+      Expr::Bin(binary_expression) => binary_expression.span,
+      Expr::Call(call_expression) => call_expression.span,
+      Expr::Class(class_expression) => class_expression.class.span,
+      Expr::Cond(conditional_expression) => conditional_expression.span,
+      Expr::Fn(function_expression) => function_expression.function.span,
+      Expr::Ident(identifier) => identifier.span,
+      Expr::Lit(Lit::Str(literal)) => literal.span,
+      Expr::Lit(Lit::Bool(literal)) => literal.span,
+      Expr::Lit(Lit::Null(literal)) => literal.span,
+      Expr::Lit(Lit::Num(literal)) => literal.span,
+      Expr::Lit(Lit::BigInt(literal)) => literal.span,
+      Expr::Lit(Lit::Regex(literal)) => literal.span,
+      Expr::Member(member_expression) => member_expression.span,
+      Expr::MetaProp(meta_property) => meta_property.span,
+      Expr::New(new_expression) => new_expression.span,
+      Expr::Object(object_literal) => object_literal.span,
+      Expr::OptChain(optional_chain_expression) => optional_chain_expression.span,
+      Expr::Paren(parenthesized_expression) => parenthesized_expression.span,
+      Expr::Seq(sequence_expression) => sequence_expression.span,
+      Expr::SuperProp(super_property) => super_property.span,
+      Expr::TaggedTpl(tagged_template_expression) => tagged_template_expression.span,
+      Expr::This(this_expression) => this_expression.span,
+      Expr::Tpl(template_literal) => template_literal.span,
+      Expr::Unary(unary_expression) => unary_expression.span,
+      Expr::Update(update_expression) => update_expression.span,
+      Expr::Yield(yield_expression) => yield_expression.span,
+      _ => {
+        dbg!(expression);
+        todo!("Cannot convert Expression");
+      }
+    }
+  }
+
   fn convert_literal(&mut self, literal: &Lit) {
     match literal {
       Lit::BigInt(bigint_literal) => self.convert_literal_bigint(bigint_literal),
@@ -1381,13 +1420,8 @@ impl<'a> AstConverter<'a> {
     // super_class
     class.super_class.as_ref().map(|super_class| {
       self.update_reference_position(reference_position + 4);
-      let super_class_position = self.buffer.len();
       self.convert_expression(super_class);
-      let body_start_search_bytes: [u8; 4] = self.buffer
-        [super_class_position + 8..super_class_position + 12]
-        .try_into()
-        .unwrap();
-      body_start_search = u32::from_ne_bytes(body_start_search_bytes);
+      body_start_search = self.get_expression_span(super_class).hi.0 - 1;
     });
     // body
     self.update_reference_position(reference_position + 8);
@@ -1494,6 +1528,16 @@ impl<'a> AstConverter<'a> {
     }
   }
 
+  fn get_property_name_span(&self, property_name: &PropName) -> Span {
+    match property_name {
+      PropName::Computed(computed_property_name) => computed_property_name.span,
+      PropName::Ident(ident) => ident.span,
+      PropName::Str(string) => string.span,
+      PropName::Num(number) => number.span,
+      PropName::BigInt(bigint) => bigint.span,
+    }
+  }
+
   // TODO SWC property has many different formats that should be merged if possible
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
     // type
@@ -1579,13 +1623,8 @@ impl<'a> AstConverter<'a> {
     let reference_position = self.reserve_reference_positions(2);
     // key
     self.update_reference_position(reference_position);
-    let key_position = self.buffer.len();
     self.convert_property_name(key);
-    let key_end = u32::from_ne_bytes(
-      self.buffer[key_position + 8..key_position + 12]
-        .try_into()
-        .unwrap(),
-    );
+    let key_end = self.get_property_name_span(&key).hi.0 - 1;
     // value
     let block_statement = body.as_ref().expect("Getter/setter property without body");
     self.update_reference_position(reference_position + 4);
@@ -1644,13 +1683,8 @@ impl<'a> AstConverter<'a> {
     let reference_position = self.reserve_reference_positions(2);
     // key
     self.update_reference_position(reference_position);
-    let key_position = self.buffer.len();
     self.convert_property_name(&method_property.key);
-    let key_end = u32::from_ne_bytes(
-      self.buffer[key_position + 8..key_position + 12]
-        .try_into()
-        .unwrap(),
-    );
+    let key_end = self.get_property_name_span(&method_property.key).hi.0 - 1;
     let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     // value
     self.update_reference_position(reference_position + 4);
@@ -2150,17 +2184,13 @@ impl<'a> AstConverter<'a> {
     // reserve value
     let reference_position = self.reserve_reference_positions(1);
     // key
-    let key_position = self.buffer.len();
     self.convert_property_name(&constructor.key);
     // value
     match &constructor.body {
       Some(block_statement) => {
         self.update_reference_position(reference_position);
-        let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12]
-          .try_into()
-          .unwrap();
-        let function_start =
-          find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes));
+        let key_end = self.get_property_name_span(&constructor.key).hi.0 - 1;
+        let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
         self.store_function_node(
           &TYPE_FUNCTION_EXPRESSION,
           function_start,
@@ -2235,18 +2265,17 @@ impl<'a> AstConverter<'a> {
     // reserve value
     let reference_position = self.reserve_reference_positions(1);
     // key
-    let key_position = self.buffer.len();
-    match key {
+    let key_end = match key {
       PropOrPrivateName::PropName(prop_name) => {
         self.convert_property_name(&prop_name);
+        self.get_property_name_span(&prop_name).hi.0 - 1
       }
-      PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(&private_name),
-    }
-    let key_end_bytes: [u8; 4] = self.buffer[key_position + 8..key_position + 12]
-      .try_into()
-      .unwrap();
-    let function_start =
-      find_first_occurrence_outside_comment(self.code, b'(', u32::from_ne_bytes(key_end_bytes));
+      PropOrPrivateName::PrivateName(private_name) => {
+        self.convert_private_name(&private_name);
+        private_name.id.span.hi.0 - 1
+      }
+    };
+    let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     // value
     self.update_reference_position(reference_position);
     self.store_function_node(
