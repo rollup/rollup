@@ -332,11 +332,13 @@ export default class Chunk {
 	): OutputChunk {
 		const renderedChunkInfo = this.getRenderedChunkInfo();
 		const finalize = (code: string) => replacePlaceholders(code, hashesByPlaceholder);
-		const fileName = (this.fileName = finalize(renderedChunkInfo.fileName));
+		const preliminaryFileName = renderedChunkInfo.fileName;
+		const fileName = (this.fileName = finalize(preliminaryFileName));
 		return {
 			...renderedChunkInfo,
 			code,
 			dynamicImports: renderedChunkInfo.dynamicImports.map(finalize),
+			preliminaryFileName,
 			fileName,
 			implicitlyLoadedBefore: renderedChunkInfo.implicitlyLoadedBefore.map(finalize),
 			importedBindings: Object.fromEntries(
