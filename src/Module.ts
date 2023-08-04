@@ -48,7 +48,6 @@ import type {
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
-import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -818,18 +817,8 @@ export default class Module {
 
 		this.info.code = code;
 		this.originalCode = originalCode;
-
-		// We need to call decodedSourcemap on the input in case they were hydrated from json in the cache and don't
-		// have the lazy evaluation cache configured. Right now this isn't enforced by the type system because the
-		// RollupCache stores `ExistingDecodedSourcemap` instead of `ExistingRawSourcemap`
-		this.originalSourcemap = decodedSourcemap(originalSourcemap);
-		this.sourcemapChain = sourcemapChain.map(mapOrMissing =>
-			mapOrMissing.missing ? mapOrMissing : decodedSourcemap(mapOrMissing)
-		);
-
-		// If coming from cache and this value is already fully decoded, we want to re-encode here to save memory.
-		resetSourcemapCache(this.originalSourcemap, this.sourcemapChain);
-
+		this.originalSourcemap = originalSourcemap;
+		this.sourcemapChain = sourcemapChain;
 		if (transformFiles) {
 			this.transformFiles = transformFiles;
 		}

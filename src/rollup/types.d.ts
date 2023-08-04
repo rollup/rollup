@@ -52,7 +52,7 @@ export type SourceMapSegment =
 
 export interface ExistingDecodedSourceMap {
 	file?: string;
-	readonly mappings: SourceMapSegment[][];
+	mappings: SourceMapSegment[][];
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];
@@ -74,10 +74,11 @@ export interface ExistingRawSourceMap {
 
 export type DecodedSourceMapOrMissing =
 	| {
+			mappings?: never;
 			missing: true;
 			plugin: string;
 	  }
-	| (ExistingDecodedSourceMap & { missing?: false });
+	| ExistingDecodedSourceMap;
 
 export interface SourceMap {
 	file: string;

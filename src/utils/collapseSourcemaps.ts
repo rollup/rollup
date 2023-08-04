@@ -6,7 +6,6 @@ import type {
 	LogHandler,
 	SourceMapSegment
 } from '../rollup/types';
-import { decodedSourcemap, resetSourcemapCache } from './decodedSourcemap';
 import { LOGLEVEL_WARN } from './logging';
 import { error, logConflictingSourcemapSources, logSourcemapBroken } from './logs';
 import { basename, dirname, relative, resolve } from './path';
@@ -151,7 +150,7 @@ class Link {
 
 function getLinkMap(log: LogHandler) {
 	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing): Link {
-		if (!map.missing) {
+		if (map.mappings) {
 			return new Link(map, [source]);
 		}
 
@@ -225,10 +224,6 @@ export function collapseSourcemaps(
 
 	sourcesContent = (excludeContent ? null : sourcesContent) as string[];
 
-	for (const module of modules) {
-		resetSourcemapCache(module.originalSourcemap, module.sourcemapChain);
-	}
-
 	return new SourceMap({ file, mappings, names, sources, sourcesContent });
 }
 
@@ -251,5 +246,5 @@ export function collapseSourcemap(
 		getLinkMap(log)
 	) as Link;
 	const map = source.traceMappings();
-	return decodedSourcemap({ version: 3, ...map });
+	return { version: 3, ...map };
 }
