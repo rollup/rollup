@@ -52,6 +52,11 @@ jobs:
       fail-fast: false
       matrix:
         settings:
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: wasm
+            is-wasm-build: true
+            build: npm run build:wasm
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
@@ -125,7 +130,7 @@ jobs:
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
-    name: Build ${{ matrix.settings.target }}
+    name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 15
     steps:
@@ -151,7 +156,7 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+          key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@v2
         if: ${{ matrix.settings.zig }}
         with:
@@ -180,15 +185,25 @@ jobs:
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
-      - name: Upload artifact
+      - name: Upload wasm artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-wasm
+          path: |
+            wasm/
+            .empty
+          if-no-files-found: error
+        if: ${{ matrix.settings.is-wasm-build }}
+      - name: Upload napi artifact
         uses: actions/upload-artifact@v3
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
           if-no-files-found: error
+        if: ${{ !matrix.settings.is-wasm-build }}
 
   test:
-    name:  Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
+    name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
       - build
     strategy:
@@ -236,11 +251,15 @@ jobs:
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
-      - name: Download artifacts
+      - name: Download napi artifacts
         uses: actions/download-artifact@v3
         with:
           name: bindings-${{ matrix.settings.target }}
           path: .
+      - name: Download wasm artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-wasm
       - name: Build and test Rollup
         run: npm run ${{ matrix.command || 'ci:test:only' }}
         env:

@@ -25,7 +25,8 @@ module.exports = {
 		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',
 		'!/test/*/samples/**/rollup.config.js',
-		'!.vitepress'
+		'!.vitepress',
+		'/wasm/'
 	],
 	overrides: [
 		{

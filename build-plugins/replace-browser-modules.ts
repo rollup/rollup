@@ -4,26 +4,32 @@ import type { Plugin } from 'vite';
 
 const resolve = (path: string) => fileURLToPath(new URL(`../${path}`, import.meta.url));
 
-const REPLACED_MODULES = [
+const JS_REPLACED_MODULES = [
 	'crypto',
 	'fs',
 	'hookActions',
 	'path',
 	'performance',
 	'process',
-	'resolveId'
+	'resolveId',
+	'initWasm',
+	'readString'
 ];
 
-const resolutions: ReadonlyMap<string, string> = new Map(
-	REPLACED_MODULES.flatMap(module => {
-		const originalId = resolve(`src/utils/${module}`);
-		const replacementId = resolve(`browser/src/${module}.ts`);
-		return [
-			[originalId, replacementId],
-			[`${originalId}.ts`, replacementId]
-		];
-	})
-);
+type ModulesMap = [string, string][];
+
+const jsModulesMap: ModulesMap = JS_REPLACED_MODULES.flatMap(module => {
+	const originalId = resolve(`src/utils/${module}`);
+	const replacementId = resolve(`browser/src/${module}.ts`);
+	return [
+		[originalId, replacementId],
+		[`${originalId}.ts`, replacementId]
+	];
+});
+
+const wasmModulesMap: ModulesMap = [[resolve('native'), resolve('browser/src/wasm.ts')]];
+
+const resolutions: ReadonlyMap<string, string> = new Map([...jsModulesMap, ...wasmModulesMap]);
 
 export default function replaceBrowserModules(): Plugin {
 	return {
