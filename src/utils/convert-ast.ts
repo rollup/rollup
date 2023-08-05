@@ -68,9 +68,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.AssignmentExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.AssignmentOperator;
 		const right = convertNode(buffer[position++], buffer, readString);
-		const operator = convertString(position, buffer, readString) as estree.AssignmentOperator;
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'AssignmentExpression',
 			start,
@@ -110,9 +110,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.BinaryExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.BinaryOperator;
 		const right = convertNode(buffer[position++], buffer, readString);
-		const operator = convertString(position, buffer, readString) as estree.BinaryOperator;
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'BinaryExpression',
 			start,
@@ -688,9 +688,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.LogicalExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.LogicalOperator;
 		const right = convertNode(buffer[position++], buffer, readString);
-		const operator = convertString(position, buffer, readString) as estree.LogicalOperator;
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'LogicalExpression',
 			start,
@@ -1041,7 +1041,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.UnaryExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const operator = convertString(buffer[position++], buffer, readString) as estree.UnaryOperator;
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.UnaryOperator;
 		const argument = convertNode(position, buffer, readString);
 		return {
 			type: 'UnaryExpression',
@@ -1057,7 +1057,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const prefix = !!buffer[position++];
-		const operator = convertString(buffer[position++], buffer, readString) as estree.UpdateOperator;
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.UpdateOperator;
 		const argument = convertNode(position, buffer, readString);
 		return {
 			type: 'UpdateExpression',

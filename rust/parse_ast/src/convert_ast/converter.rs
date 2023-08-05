@@ -1271,41 +1271,40 @@ impl<'a> AstConverter<'a> {
       },
       &binary_expression.span,
     );
-    // reserve left, right
-    let reference_position = self.reserve_reference_positions(2);
     // operator
-    self.convert_string(match binary_expression.op {
-      BinaryOp::EqEq => "==",
-      BinaryOp::NotEq => "!=",
-      BinaryOp::EqEqEq => "===",
-      BinaryOp::NotEqEq => "!==",
-      BinaryOp::Lt => "<",
-      BinaryOp::LtEq => "<=",
-      BinaryOp::Gt => ">",
-      BinaryOp::GtEq => ">=",
-      BinaryOp::LShift => "<<",
-      BinaryOp::RShift => ">>",
-      BinaryOp::ZeroFillRShift => ">>>",
-      BinaryOp::Add => "+",
-      BinaryOp::Sub => "-",
-      BinaryOp::Mul => "*",
-      BinaryOp::Div => "/",
-      BinaryOp::Mod => "%",
-      BinaryOp::BitOr => "|",
-      BinaryOp::BitXor => "^",
-      BinaryOp::BitAnd => "&",
-      BinaryOp::LogicalOr => "||",
-      BinaryOp::LogicalAnd => "&&",
-      BinaryOp::In => "in",
-      BinaryOp::InstanceOf => "instanceof",
-      BinaryOp::Exp => "**",
-      BinaryOp::NullishCoalescing => "??",
+    self.buffer.extend_from_slice(match binary_expression.op {
+      BinaryOp::EqEq => &STRING_EQEQ,
+      BinaryOp::NotEq => &STRING_NOTEQ,
+      BinaryOp::EqEqEq => &STRING_EQEQEQ,
+      BinaryOp::NotEqEq => &STRING_NOTEQEQ,
+      BinaryOp::Lt => &STRING_LT,
+      BinaryOp::LtEq => &STRING_LTEQ,
+      BinaryOp::Gt => &STRING_GT,
+      BinaryOp::GtEq => &STRING_GTEQ,
+      BinaryOp::LShift => &STRING_LSHIFT,
+      BinaryOp::RShift => &STRING_RSHIFT,
+      BinaryOp::ZeroFillRShift => &STRING_ZEROFILLRSHIFT,
+      BinaryOp::Add => &STRING_ADD,
+      BinaryOp::Sub => &STRING_SUB,
+      BinaryOp::Mul => &STRING_MUL,
+      BinaryOp::Div => &STRING_DIV,
+      BinaryOp::Mod => &STRING_MOD,
+      BinaryOp::BitOr => &STRING_BITOR,
+      BinaryOp::BitXor => &STRING_BITXOR,
+      BinaryOp::BitAnd => &STRING_BITAND,
+      BinaryOp::LogicalOr => &STRING_LOGICALOR,
+      BinaryOp::LogicalAnd => &STRING_LOGICALAND,
+      BinaryOp::In => &STRING_IN,
+      BinaryOp::InstanceOf => &STRING_INSTANCEOF,
+      BinaryOp::Exp => &STRING_EXP,
+      BinaryOp::NullishCoalescing => &STRING_NULLISHCOALESCING,
     });
+    // reserve right
+    let reference_position = self.reserve_reference_positions(1);
     // left
-    self.update_reference_position(reference_position);
     self.convert_expression(&binary_expression.left);
     // right
-    self.update_reference_position(reference_position + 4);
+    self.update_reference_position(reference_position);
     self.convert_expression(&binary_expression.right);
     // end
     self.add_end(end_position, &binary_expression.span);
@@ -1763,32 +1762,33 @@ impl<'a> AstConverter<'a> {
   fn convert_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
     let end_position =
       self.add_type_and_start(&TYPE_ASSIGNMENT_EXPRESSION, &assignment_expression.span);
-    // reserve left, right
-    let reference_position = self.reserve_reference_positions(2);
     // operator
-    self.convert_string(match assignment_expression.op {
-      AssignOp::Assign => "=",
-      AssignOp::AddAssign => "+=",
-      AssignOp::SubAssign => "-=",
-      AssignOp::MulAssign => "*=",
-      AssignOp::DivAssign => "/=",
-      AssignOp::ModAssign => "%=",
-      AssignOp::LShiftAssign => "<<=",
-      AssignOp::RShiftAssign => ">>=",
-      AssignOp::ZeroFillRShiftAssign => ">>>=",
-      AssignOp::BitOrAssign => "|=",
-      AssignOp::BitXorAssign => "^=",
-      AssignOp::BitAndAssign => "&=",
-      AssignOp::ExpAssign => "**=",
-      AssignOp::AndAssign => "&&=",
-      AssignOp::OrAssign => "||=",
-      AssignOp::NullishAssign => "??=",
-    });
+    self
+      .buffer
+      .extend_from_slice(match assignment_expression.op {
+        AssignOp::Assign => &STRING_ASSIGN,
+        AssignOp::AddAssign => &STRING_ADDASSIGN,
+        AssignOp::SubAssign => &STRING_SUBASSIGN,
+        AssignOp::MulAssign => &STRING_MULASSIGN,
+        AssignOp::DivAssign => &STRING_DIVASSIGN,
+        AssignOp::ModAssign => &STRING_MODASSIGN,
+        AssignOp::LShiftAssign => &STRING_LSHIFTASSIGN,
+        AssignOp::RShiftAssign => &STRING_RSHIFTASSIGN,
+        AssignOp::ZeroFillRShiftAssign => &STRING_ZEROFILLRSHIFTASSIGN,
+        AssignOp::BitOrAssign => &STRING_BITORASSIGN,
+        AssignOp::BitXorAssign => &STRING_BITXORASSIGN,
+        AssignOp::BitAndAssign => &STRING_BITANDASSIGN,
+        AssignOp::ExpAssign => &STRING_EXPASSIGN,
+        AssignOp::AndAssign => &STRING_ANDASSIGN,
+        AssignOp::OrAssign => &STRING_ORASSIGN,
+        AssignOp::NullishAssign => &STRING_NULLISHASSIGN,
+      });
+    // reserve right
+    let reference_position = self.reserve_reference_positions(1);
     // left
-    self.update_reference_position(reference_position);
     self.convert_pattern_or_expression(&assignment_expression.left);
     // right
-    self.update_reference_position(reference_position + 4);
+    self.update_reference_position(reference_position);
     self.convert_expression(&assignment_expression.right);
     // end
     self.add_end(end_position, &assignment_expression.span);
@@ -2525,21 +2525,18 @@ impl<'a> AstConverter<'a> {
 
   fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {
     let end_position = self.add_type_and_start(&TYPE_UNARY_EXPRESSION, &unary_expression.span);
-    // reserve operator
-    let reference_position = self.reserve_reference_positions(1);
+    // operator
+    self.buffer.extend_from_slice(match unary_expression.op {
+      UnaryOp::Minus => &STRING_MINUS,
+      UnaryOp::Plus => &STRING_PLUS,
+      UnaryOp::Bang => &STRING_BANG,
+      UnaryOp::Tilde => &STRING_TILDE,
+      UnaryOp::TypeOf => &STRING_TYPEOF,
+      UnaryOp::Void => &STRING_VOID,
+      UnaryOp::Delete => &STRING_DELETE,
+    });
     // argument
     self.convert_expression(&unary_expression.arg);
-    // operator
-    self.update_reference_position(reference_position);
-    self.convert_string(match unary_expression.op {
-      UnaryOp::Minus => "-",
-      UnaryOp::Plus => "+",
-      UnaryOp::Bang => "!",
-      UnaryOp::Tilde => "~",
-      UnaryOp::TypeOf => "typeof",
-      UnaryOp::Void => "void",
-      UnaryOp::Delete => "delete",
-    });
     // end
     self.add_end(end_position, &unary_expression.span);
   }
@@ -2548,16 +2545,13 @@ impl<'a> AstConverter<'a> {
     let end_position = self.add_type_and_start(&TYPE_UPDATE_EXPRESSION, &update_expression.span);
     // prefix
     self.convert_boolean(update_expression.prefix);
-    // reserve operator
-    let reference_position = self.reserve_reference_positions(1);
+    // operator
+    self.buffer.extend_from_slice(match update_expression.op {
+      UpdateOp::PlusPlus => &STRING_PLUSPLUS,
+      UpdateOp::MinusMinus => &STRING_MINUSMINUS,
+    });
     // argument
     self.convert_expression(&update_expression.arg);
-    // operator
-    self.update_reference_position(reference_position);
-    self.convert_string(match update_expression.op {
-      UpdateOp::PlusPlus => "++",
-      UpdateOp::MinusMinus => "--",
-    });
     // end
     self.add_end(end_position, &update_expression.span);
   }
