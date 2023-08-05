@@ -132,7 +132,7 @@ jobs:
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v3
