@@ -553,7 +553,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO SWC replace all explicit position copying with returning a span
   fn convert_pattern_or_expression(&mut self, pattern_or_expression: &PatOrExpr) {
     match pattern_or_expression {
       PatOrExpr::Pat(pattern) => {
