@@ -186,10 +186,7 @@ impl<'a> AstConverter<'a> {
   fn convert_program(&mut self, node: &Program) {
     match node {
       Program::Module(module) => self.convert_module_program(module),
-      _ => {
-        dbg!(node);
-        unimplemented!("Cannot convert AST");
-      }
+      Program::Script(_) => unimplemented!("Cannot convert Program::Script"),
     }
   }
 
@@ -224,10 +221,7 @@ impl<'a> AstConverter<'a> {
       Stmt::Throw(throw_statement) => self.convert_throw_statement(throw_statement),
       Stmt::Try(try_statement) => self.convert_try_statement(try_statement),
       Stmt::While(while_statement) => self.convert_while_statement(while_statement),
-      _ => {
-        dbg!(statement);
-        todo!("Cannot convert Statement");
-      }
+      Stmt::With(_) => unimplemented!("Cannot convert Stmt::With"),
     }
   }
 
@@ -304,6 +298,10 @@ impl<'a> AstConverter<'a> {
       Expr::Paren(parenthesized_expression) => {
         Some(self.convert_parenthesized_expression(parenthesized_expression))
       }
+      Expr::PrivateName(private_name) => {
+        self.convert_private_name(&private_name);
+        None
+      }
       Expr::Seq(sequence_expression) => {
         self.convert_sequence_expression(sequence_expression);
         None
@@ -336,10 +334,18 @@ impl<'a> AstConverter<'a> {
         self.convert_yield_expression(yield_expression);
         None
       }
-      _ => {
-        dbg!(expression);
-        todo!("Cannot convert Expression");
-      }
+      Expr::JSXMember(_) => unimplemented!("Cannot convert Expr::JSXMember"),
+      Expr::JSXNamespacedName(_) => unimplemented!("Cannot convert Expr::JSXNamespacedName"),
+      Expr::JSXEmpty(_) => unimplemented!("Cannot convert Expr::JSXEmpty"),
+      Expr::JSXElement(_) => unimplemented!("Cannot convert Expr::JSXElement"),
+      Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
+      Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
+      Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
+      Expr::TsNonNull(_) => unimplemented!("Cannot convert Expr::TsNonNull"),
+      Expr::TsAs(_) => unimplemented!("Cannot convert Expr::TsAs"),
+      Expr::TsInstantiation(_) => unimplemented!("Cannot convert Expr::TsInstantiation"),
+      Expr::TsSatisfies(_) => unimplemented!("Cannot convert Expr::TsSatisfies"),
+      Expr::Invalid(_) => unimplemented!("Cannot convert Expr::Invalid"),
     }
   }
 
@@ -367,6 +373,7 @@ impl<'a> AstConverter<'a> {
       Expr::Object(object_literal) => object_literal.span,
       Expr::OptChain(optional_chain_expression) => optional_chain_expression.span,
       Expr::Paren(parenthesized_expression) => parenthesized_expression.span,
+      Expr::PrivateName(private_name) => private_name.span,
       Expr::Seq(sequence_expression) => sequence_expression.span,
       Expr::SuperProp(super_property) => super_property.span,
       Expr::TaggedTpl(tagged_template_expression) => tagged_template_expression.span,
@@ -375,10 +382,19 @@ impl<'a> AstConverter<'a> {
       Expr::Unary(unary_expression) => unary_expression.span,
       Expr::Update(update_expression) => update_expression.span,
       Expr::Yield(yield_expression) => yield_expression.span,
-      _ => {
-        dbg!(expression);
-        todo!("Cannot convert Expression");
-      }
+      Expr::JSXMember(_) => unimplemented!("Cannot convert Expr::JSXMember"),
+      Expr::JSXNamespacedName(_) => unimplemented!("Cannot convert Expr::JSXNamespacedName"),
+      Expr::JSXEmpty(_) => unimplemented!("Cannot convert Expr::JSXEmpty"),
+      Expr::JSXElement(_) => unimplemented!("Cannot convert Expr::JSXElement"),
+      Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
+      Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
+      Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
+      Expr::TsNonNull(_) => unimplemented!("Cannot convert Expr::TsNonNull"),
+      Expr::TsAs(_) => unimplemented!("Cannot convert Expr::TsAs"),
+      Expr::TsInstantiation(_) => unimplemented!("Cannot convert Expr::TsInstantiation"),
+      Expr::TsSatisfies(_) => unimplemented!("Cannot convert Expr::TsSatisfies"),
+      Expr::Invalid(_) => unimplemented!("Cannot convert Expr::Invalid"),
+      Expr::Lit(Lit::JSXText(_)) => unimplemented!("Cannot convert Lit::JSXText"),
     }
   }
 
@@ -418,9 +434,12 @@ impl<'a> AstConverter<'a> {
       ModuleDecl::ExportDefaultDecl(export_default_declaration) => {
         self.convert_export_default_declaration(export_default_declaration)
       }
-      _ => {
-        dbg!(module_declaration);
-        todo!("Cannot convert ModuleDeclaration");
+      ModuleDecl::TsImportEquals(_) => unimplemented!("Cannot convert ModuleDecl::TsImportEquals"),
+      ModuleDecl::TsExportAssignment(_) => {
+        unimplemented!("Cannot convert ModuleDecl::TsExportAssignment")
+      }
+      ModuleDecl::TsNamespaceExport(_) => {
+        unimplemented!("Cannot convert ModuleDecl::TsNamespaceExport")
       }
     }
   }
@@ -434,10 +453,11 @@ impl<'a> AstConverter<'a> {
         Some(&function_declaration.ident),
       ),
       Decl::Class(class_declaration) => self.convert_class_declaration(class_declaration),
-      _ => {
-        dbg!(declaration);
-        todo!("Cannot convert Declaration");
-      }
+      Decl::Using(_) => unimplemented!("Cannot convet Decl::Using"),
+      Decl::TsInterface(_) => unimplemented!("Cannot convet Decl::TsInterface"),
+      Decl::TsTypeAlias(_) => unimplemented!("Cannot convet Decl::TsTypeAlias"),
+      Decl::TsEnum(_) => unimplemented!("Cannot convet Decl::TsEnum"),
+      Decl::TsModule(_) => unimplemented!("Cannot convet Decl::TsModule"),
     }
   }
 
@@ -477,10 +497,8 @@ impl<'a> AstConverter<'a> {
       ExportSpecifier::Named(export_named_specifier) => {
         self.convert_export_named_specifier(export_named_specifier)
       }
-      _ => {
-        dbg!(export_specifier);
-        todo!("Cannot convert ExportSpecifier");
-      }
+      ExportSpecifier::Namespace(_) => unimplemented!("Cannot convert ExportSpecifier::Namespace"),
+      ExportSpecifier::Default(_) => unimplemented!("Cannot convert ExportSpecifier::Default"),
     }
   }
 
@@ -525,10 +543,11 @@ impl<'a> AstConverter<'a> {
       ClassMember::PrivateMethod(private_method) => self.convert_private_method(private_method),
       ClassMember::PrivateProp(private_property) => self.convert_private_property(private_property),
       ClassMember::StaticBlock(static_block) => self.convert_static_block(static_block),
-      _ => {
-        dbg!(class_member);
-        unimplemented!("Cannot convert ClassMember");
+      ClassMember::TsIndexSignature(_) => {
+        unimplemented!("Cannot convert ClassMember::TsIndexSignature")
       }
+      ClassMember::Empty(_) => unimplemented!("Cannot convert ClassMember::Empty"),
+      ClassMember::AutoAccessor(_) => unimplemented!("Cannot convert ClassMember::AutoAccessor"),
     }
   }
 
@@ -546,10 +565,7 @@ impl<'a> AstConverter<'a> {
       Prop::Method(method_property) => self.convert_method_property(method_property),
       Prop::Setter(setter_property) => self.convert_setter_property(setter_property),
       Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
-      _ => {
-        dbg!(property);
-        todo!("Cannot convert Property")
-      }
+      Prop::Assign(_) => unimplemented!("Cannot convert Prop::Assign"),
     }
   }
 
@@ -671,10 +687,7 @@ impl<'a> AstConverter<'a> {
       ForHead::Pat(pattern) => {
         self.convert_pattern(pattern);
       }
-      _ => {
-        dbg!(for_head);
-        todo!("Cannot convert ForHead")
-      }
+      ForHead::UsingDecl(_) => unimplemented!("Cannot convert ForHead::UsingDecl"),
     }
   }
 
