@@ -1,5 +1,6 @@
 import type * as estree from 'estree';
 import type { AcornNode } from '../rollup/types';
+import { FIXED_STRINGS } from './convert-ast-strings';
 
 type ReadString = (start: number, length: number) => string;
 
@@ -735,7 +736,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.MethodDefinition & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const kind = METHOD_DEFINITION_KINDS[buffer[position++]];
+		const kind = FIXED_STRINGS[buffer[position++]] as estree.MethodDefinition['kind'];
 		const computed = !!buffer[position++];
 		const isStatic = !!buffer[position++];
 		const value = convertNode(buffer[position++], buffer, readString);
@@ -818,7 +819,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.Property & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const kind = PROPERTY_KINDS[buffer[position++]];
+		const kind = FIXED_STRINGS[buffer[position++]] as estree.Property['kind'];
 		const method = !!buffer[position++];
 		const computed = !!buffer[position++];
 		const shorthand = !!buffer[position++];
@@ -1071,7 +1072,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): estree.VariableDeclaration & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const kind = DECLARATION_KINDS[buffer[position++]];
+		const kind = FIXED_STRINGS[buffer[position++]] as estree.VariableDeclaration['kind'];
 		const declarations = convertNodeList(position, buffer, readString);
 		return {
 			type: 'VariableDeclaration',
@@ -1123,17 +1124,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			delegate
 		};
 	}
-];
-
-const DECLARATION_KINDS: ('var' | 'let' | 'const')[] = ['var', 'let', 'const'];
-
-const PROPERTY_KINDS: ('init' | 'get' | 'set')[] = ['init', 'get', 'set'];
-
-const METHOD_DEFINITION_KINDS: ('constructor' | 'method' | 'get' | 'set')[] = [
-	'constructor',
-	'method',
-	'get',
-	'set'
 ];
 
 const convertNodeList = (position: number, buffer: Uint32Array, readString: ReadString): any[] => {

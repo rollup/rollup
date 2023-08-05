@@ -1,4 +1,6 @@
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
+use crate::convert_ast::converter::node_types::*;
+use crate::convert_ast::converter::string_constants::*;
 use crate::convert_ast::converter::utf16_positions::Utf8ToUtf16ByteIndexConverter;
 use swc::atoms::JsWord;
 use swc_common::Span;
@@ -22,6 +24,8 @@ use swc_ecma_ast::{
 };
 
 mod analyze_code;
+mod node_types;
+mod string_constants;
 mod utf16_positions;
 
 pub struct AstConverter<'a> {
@@ -818,9 +822,9 @@ impl<'a> AstConverter<'a> {
     self
       .buffer
       .extend_from_slice(match variable_declaration.kind {
-        VarDeclKind::Var => &DECLARATION_KIND_VAR,
-        VarDeclKind::Let => &DECLARATION_KIND_LET,
-        VarDeclKind::Const => &DECLARATION_KIND_CONST,
+        VarDeclKind::Var => &STRING_VAR,
+        VarDeclKind::Let => &STRING_LET,
+        VarDeclKind::Const => &STRING_CONST,
       });
     self.convert_item_list(
       &variable_declaration.decls,
@@ -1545,7 +1549,7 @@ impl<'a> AstConverter<'a> {
     // reserve start, end
     let start_end_position = self.reserve_reference_positions(2);
     // kind
-    self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+    self.buffer.extend_from_slice(&STRING_INIT);
     // method
     self.convert_boolean(false);
     // computed
@@ -1649,7 +1653,7 @@ impl<'a> AstConverter<'a> {
   fn convert_getter_property(&mut self, getter_property: &GetterProp) {
     self.store_getter_setter_property(
       &getter_property.span,
-      &PROPERTY_KIND_GET,
+      &STRING_GET,
       &getter_property.key,
       &getter_property.body,
       None,
@@ -1659,7 +1663,7 @@ impl<'a> AstConverter<'a> {
   fn convert_setter_property(&mut self, setter_property: &SetterProp) {
     self.store_getter_setter_property(
       &setter_property.span,
-      &PROPERTY_KIND_SET,
+      &STRING_SET,
       &setter_property.key,
       &setter_property.body,
       Some(&*setter_property.param),
@@ -1669,7 +1673,7 @@ impl<'a> AstConverter<'a> {
   fn convert_method_property(&mut self, method_property: &MethodProp) {
     let end_position = self.add_type_and_start(&TYPE_PROPERTY, &method_property.function.span);
     // kind
-    self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+    self.buffer.extend_from_slice(&STRING_INIT);
     // method
     self.convert_boolean(true);
     // computed
@@ -1711,7 +1715,7 @@ impl<'a> AstConverter<'a> {
   ) {
     let end_position = self.add_type_and_start(&TYPE_PROPERTY, span);
     // kind
-    self.buffer.extend_from_slice(&PROPERTY_KIND_INIT);
+    self.buffer.extend_from_slice(&STRING_INIT);
     // method
     self.convert_boolean(false);
     // computed
@@ -2174,9 +2178,7 @@ impl<'a> AstConverter<'a> {
   fn convert_constructor(&mut self, constructor: &Constructor) {
     let end_position = self.add_type_and_start(&TYPE_METHOD_DEFINITION, &constructor.span);
     // kind
-    self
-      .buffer
-      .extend_from_slice(&METHOD_DEFINITION_KIND_CONSTRUCTOR);
+    self.buffer.extend_from_slice(&STRING_CONSTRUCTOR);
     // computed
     self.convert_boolean(false);
     // static
@@ -2254,9 +2256,9 @@ impl<'a> AstConverter<'a> {
     let end_position = self.add_type_and_start(&TYPE_METHOD_DEFINITION, span);
     // kind
     self.buffer.extend_from_slice(match kind {
-      MethodKind::Method => &METHOD_DEFINITION_KIND_METHOD,
-      MethodKind::Getter => &METHOD_DEFINITION_KIND_GET,
-      MethodKind::Setter => &METHOD_DEFINITION_KIND_SET,
+      MethodKind::Method => &STRING_METHOD,
+      MethodKind::Getter => &STRING_GET,
+      MethodKind::Setter => &STRING_SET,
     });
     // computed
     self.convert_boolean(is_computed);
@@ -2576,106 +2578,11 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-// These need to reflect the order in the JavaScript decoder
-const TYPE_ARRAY_EXPRESSION: [u8; 4] = 0u32.to_ne_bytes();
-const TYPE_ARRAY_PATTERN: [u8; 4] = 1u32.to_ne_bytes();
-const TYPE_ARROW_FUNCTION_EXPRESSION: [u8; 4] = 2u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_EXPRESSION: [u8; 4] = 3u32.to_ne_bytes();
-const TYPE_ASSIGNMENT_PATTERN: [u8; 4] = 4u32.to_ne_bytes();
-const TYPE_AWAIT_EXPRESSION: [u8; 4] = 5u32.to_ne_bytes();
-const TYPE_BINARY_EXPRESSION: [u8; 4] = 6u32.to_ne_bytes();
-const TYPE_BLOCK_STATEMENT: [u8; 4] = 7u32.to_ne_bytes();
-const TYPE_BREAK_STATEMENT: [u8; 4] = 8u32.to_ne_bytes();
-const TYPE_CALL_EXPRESSION: [u8; 4] = 9u32.to_ne_bytes();
-const TYPE_CATCH_CLAUSE: [u8; 4] = 10u32.to_ne_bytes();
-const TYPE_CHAIN_EXPRESSION: [u8; 4] = 11u32.to_ne_bytes();
-const TYPE_CLASS_BODY: [u8; 4] = 12u32.to_ne_bytes();
-const TYPE_CLASS_DECLARATION: [u8; 4] = 13u32.to_ne_bytes();
-const TYPE_CLASS_EXPRESSION: [u8; 4] = 14u32.to_ne_bytes();
-const TYPE_CONDITIONAL_EXPRESSION: [u8; 4] = 15u32.to_ne_bytes();
-const TYPE_CONTINUE_STATEMENT: [u8; 4] = 16u32.to_ne_bytes();
-const TYPE_DEBUGGER_STATEMENT: [u8; 4] = 17u32.to_ne_bytes();
-const TYPE_DO_WHILE_STATEMENT: [u8; 4] = 18u32.to_ne_bytes();
-const TYPE_EMPTY_STATEMENT: [u8; 4] = 19u32.to_ne_bytes();
-const TYPE_EXPORT_ALL_DECLARATION: [u8; 4] = 20u32.to_ne_bytes();
-const TYPE_EXPORT_DEFAULT_DECLARATION: [u8; 4] = 21u32.to_ne_bytes();
-const TYPE_EXPORT_NAMED_DECLARATION: [u8; 4] = 22u32.to_ne_bytes();
-const TYPE_EXPORT_SPECIFIER: [u8; 4] = 23u32.to_ne_bytes();
-const TYPE_EXPRESSION_STATEMENT: [u8; 4] = 24u32.to_ne_bytes();
-const TYPE_FOR_IN_STATEMENT: [u8; 4] = 25u32.to_ne_bytes();
-const TYPE_FOR_OF_STATEMENT: [u8; 4] = 26u32.to_ne_bytes();
-const TYPE_FOR_STATEMENT: [u8; 4] = 27u32.to_ne_bytes();
-const TYPE_FUNCTION_DECLARATION: [u8; 4] = 28u32.to_ne_bytes();
-const TYPE_FUNCTION_EXPRESSION: [u8; 4] = 29u32.to_ne_bytes();
-const TYPE_IDENTIFIER: [u8; 4] = 30u32.to_ne_bytes();
-const TYPE_IF_STATEMENT: [u8; 4] = 31u32.to_ne_bytes();
-const TYPE_IMPORT_ATTRIBUTE: [u8; 4] = 32u32.to_ne_bytes();
-const TYPE_IMPORT_DECLARATION: [u8; 4] = 33u32.to_ne_bytes();
-const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 34u32.to_ne_bytes();
-const TYPE_IMPORT_EXPRESSION: [u8; 4] = 35u32.to_ne_bytes();
-const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 36u32.to_ne_bytes();
-const TYPE_IMPORT_SPECIFIER: [u8; 4] = 37u32.to_ne_bytes();
-const TYPE_LABELED_STATEMENT: [u8; 4] = 38u32.to_ne_bytes();
-const TYPE_LITERAL_STRING: [u8; 4] = 39u32.to_ne_bytes();
-const TYPE_LITERAL_BOOLEAN: [u8; 4] = 40u32.to_ne_bytes();
-const TYPE_LITERAL_NUMBER: [u8; 4] = 41u32.to_ne_bytes();
-const TYPE_LITERAL_NULL: [u8; 4] = 42u32.to_ne_bytes();
-const TYPE_LITERAL_REGEXP: [u8; 4] = 43u32.to_ne_bytes();
-const TYPE_LITERAL_BIGINT: [u8; 4] = 44u32.to_ne_bytes();
-const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 45u32.to_ne_bytes();
-const TYPE_MEMBER_EXPRESSION: [u8; 4] = 46u32.to_ne_bytes();
-const TYPE_META_PROPERTY: [u8; 4] = 47u32.to_ne_bytes();
-const TYPE_METHOD_DEFINITION: [u8; 4] = 48u32.to_ne_bytes();
-const TYPE_NEW_EXPRESSION: [u8; 4] = 49u32.to_ne_bytes();
-const TYPE_OBJECT_EXPRESSION: [u8; 4] = 50u32.to_ne_bytes();
-const TYPE_OBJECT_PATTERN: [u8; 4] = 51u32.to_ne_bytes();
-const TYPE_PRIVATE_IDENTIFIER: [u8; 4] = 52u32.to_ne_bytes();
-const TYPE_PROGRAM: [u8; 4] = 53u32.to_ne_bytes();
-const TYPE_PROPERTY: [u8; 4] = 54u32.to_ne_bytes();
-const TYPE_PROPERTY_DEFINITION: [u8; 4] = 55u32.to_ne_bytes();
-const TYPE_REST_ELEMENT: [u8; 4] = 56u32.to_ne_bytes();
-const TYPE_RETURN_STATEMENT: [u8; 4] = 57u32.to_ne_bytes();
-const TYPE_SEQUENCE_EXPRESSION: [u8; 4] = 58u32.to_ne_bytes();
-const TYPE_SPREAD_ELEMENT: [u8; 4] = 59u32.to_ne_bytes();
-const TYPE_STATIC_BLOCK: [u8; 4] = 60u32.to_ne_bytes();
-const TYPE_SUPER: [u8; 4] = 61u32.to_ne_bytes();
-const TYPE_SWITCH_CASE: [u8; 4] = 62u32.to_ne_bytes();
-const TYPE_SWITCH_STATEMENT: [u8; 4] = 63u32.to_ne_bytes();
-const TYPE_TAGGED_TEMPLATE_EXPRESSION: [u8; 4] = 64u32.to_ne_bytes();
-const TYPE_TEMPLATE_ELEMENT: [u8; 4] = 65u32.to_ne_bytes();
-const TYPE_TEMPLATE_LITERAL: [u8; 4] = 66u32.to_ne_bytes();
-const TYPE_THIS_EXPRESSION: [u8; 4] = 67u32.to_ne_bytes();
-const TYPE_THROW_STATEMENT: [u8; 4] = 68u32.to_ne_bytes();
-const TYPE_TRY_STATEMENT: [u8; 4] = 69u32.to_ne_bytes();
-const TYPE_UNARY_EXPRESSION: [u8; 4] = 70u32.to_ne_bytes();
-const TYPE_UPDATE_EXPRESSION: [u8; 4] = 71u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATION: [u8; 4] = 72u32.to_ne_bytes();
-const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 73u32.to_ne_bytes();
-const TYPE_WHILE_STATEMENT: [u8; 4] = 74u32.to_ne_bytes();
-const TYPE_YIELD_EXPRESSION: [u8; 4] = 75u32.to_ne_bytes();
-
-// other constants
-// TODO SWC replace various explicit string constants with type numbers
-const DECLARATION_KIND_VAR: [u8; 4] = 0u32.to_ne_bytes();
-const DECLARATION_KIND_LET: [u8; 4] = 1u32.to_ne_bytes();
-const DECLARATION_KIND_CONST: [u8; 4] = 2u32.to_ne_bytes();
-
-const PROPERTY_KIND_INIT: [u8; 4] = 0u32.to_ne_bytes();
-const PROPERTY_KIND_GET: [u8; 4] = 1u32.to_ne_bytes();
-const PROPERTY_KIND_SET: [u8; 4] = 2u32.to_ne_bytes();
-
-const METHOD_DEFINITION_KIND_CONSTRUCTOR: [u8; 4] = 0u32.to_ne_bytes();
-const METHOD_DEFINITION_KIND_METHOD: [u8; 4] = 1u32.to_ne_bytes();
-const METHOD_DEFINITION_KIND_GET: [u8; 4] = 2u32.to_ne_bytes();
-const METHOD_DEFINITION_KIND_SET: [u8; 4] = 3u32.to_ne_bytes();
-
-#[derive(Debug)]
 enum StoredCallee<'a> {
   Expression(&'a Expr),
   Super(&'a Super),
 }
 
-#[derive(Debug)]
 enum StoredDefaultExportExpression<'a> {
   Expression(&'a Expr),
   Class(&'a ClassExpr),
