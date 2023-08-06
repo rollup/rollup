@@ -156,7 +156,8 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+          key: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: ${{ matrix.settings.name || matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@v2
         if: ${{ matrix.settings.zig }}
         with:
