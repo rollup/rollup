@@ -338,7 +338,6 @@ export default class Chunk {
 			...renderedChunkInfo,
 			code,
 			dynamicImports: renderedChunkInfo.dynamicImports.map(finalize),
-			preliminaryFileName,
 			fileName,
 			implicitlyLoadedBefore: renderedChunkInfo.implicitlyLoadedBefore.map(finalize),
 			importedBindings: Object.fromEntries(
@@ -349,6 +348,7 @@ export default class Chunk {
 			),
 			imports: renderedChunkInfo.imports.map(finalize),
 			map,
+			preliminaryFileName,
 			referencedFiles: renderedChunkInfo.referencedFiles.map(finalize)
 		};
 	}

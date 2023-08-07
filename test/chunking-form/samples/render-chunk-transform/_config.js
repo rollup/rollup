@@ -45,6 +45,7 @@ module.exports = defineTest({
 						implicitlyLoadedBefore: [],
 						importedBindings: {},
 						imports: [],
+						preliminaryFileName: 'entry-main1-!~{001}~.js',
 						referencedFiles: [],
 						map: null
 					},
@@ -62,6 +63,7 @@ module.exports = defineTest({
 						implicitlyLoadedBefore: [],
 						importedBindings: { 'entry-main1.js': ['added'] },
 						imports: ['entry-main1.js'],
+						preliminaryFileName: 'entry-main2-!~{002}~.js',
 						referencedFiles: [],
 						map: null
 					}
