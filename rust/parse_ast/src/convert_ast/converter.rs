@@ -727,17 +727,11 @@ impl<'a> AstConverter<'a> {
       &mut keep_checking_directives,
       |ast_converter, module_item, can_be_directive| {
         if *can_be_directive {
-          match &*module_item {
-            ModuleItem::Stmt(Stmt::Expr(expression)) => {
-              match &*expression.expr {
-                Expr::Lit(Lit::Str(string)) => {
-                  ast_converter.convert_expression_statement(expression, Some(&string.value));
-                  return true;
-                }
-                _ => {}
-              };
+          if let ModuleItem::Stmt(Stmt::Expr(expression)) = &*module_item {
+            if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
+              ast_converter.convert_expression_statement(expression, Some(&string.value));
+              return true;
             }
-            _ => {}
           };
         }
         *can_be_directive = false;
@@ -1043,18 +1037,12 @@ impl<'a> AstConverter<'a> {
       &mut keep_checking_directives,
       |ast_converter, statement, can_be_directive| {
         if *can_be_directive {
-          match &*statement {
-            Stmt::Expr(expression) => {
-              match &*expression.expr {
-                Expr::Lit(Lit::Str(string)) => {
-                  ast_converter.convert_expression_statement(expression, Some(&string.value));
-                  return true;
-                }
-                _ => {}
-              };
+          if let Stmt::Expr(expression) = &*statement {
+            if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
+              ast_converter.convert_expression_statement(expression, Some(&string.value));
+              return true;
             }
-            _ => {}
-          };
+          }
         }
         *can_be_directive = false;
         ast_converter.convert_statement(statement);
@@ -1813,18 +1801,15 @@ impl<'a> AstConverter<'a> {
     // callee
     self.convert_expression(&new_expression.callee);
     // args
-    match &new_expression.args {
-      Some(expressions_or_spread) => {
-        self.update_reference_position(reference_position);
-        self.convert_item_list(
-          &expressions_or_spread,
-          |ast_converter, expression_or_spread| {
-            ast_converter.convert_expression_or_spread(expression_or_spread);
-            true
-          },
-        );
-      }
-      None => {}
+    if let Some(expressions_or_spread) = &new_expression.args {
+      self.update_reference_position(reference_position);
+      self.convert_item_list(
+        &expressions_or_spread,
+        |ast_converter, expression_or_spread| {
+          ast_converter.convert_expression_or_spread(expression_or_spread);
+          true
+        },
+      );
     }
     // end
     self.add_end(end_position, &new_expression.span);
