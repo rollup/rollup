@@ -1,5 +1,45 @@
 # rollup changelog
 
+## 3.27.2
+
+_2023-08-04_
+
+### Bug Fixes
+
+- Revert sourcemap performance improvement for now as it causes issues with Vite (#5075)
+
+### Pull Requests
+
+- [#5075](https://github.com/rollup/rollup/pull/5075): Revert perf(sourcemap): lazy compute decoded mappings (@thebanjomatic)
+
+## 3.27.1
+
+_2023-08-03_
+
+### Bug Fixes
+
+- Improve performance when generating sourcemaps (#5075)
+
+### Pull Requests
+
+- [#5075](https://github.com/rollup/rollup/pull/5075): perf(sourcemap): lazy compute decoded mappings (@thebanjomatic)
+
+## 3.27.0
+
+_2023-07-28_
+
+### Features
+
+- Mark `Object.values` and `Object.entries` as pure if their argument does not contain getters (#5072)
+
+### Pull Requests
+
+- [#5070](https://github.com/rollup/rollup/pull/5070): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5071](https://github.com/rollup/rollup/pull/5071): docs(tutorial): change the .js extension to .mjs (@TrickyPi)
+- [#5072](https://github.com/rollup/rollup/pull/5072): Add known globals (@sapphi-red)
+- [#5078](https://github.com/rollup/rollup/pull/5078): chore(deps): update dependency @vue/eslint-config-prettier to v8 (@renovate[bot])
+- [#5079](https://github.com/rollup/rollup/pull/5079): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 3.26.3
 
 _2023-07-17_

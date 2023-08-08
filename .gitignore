@@ -3,6 +3,7 @@
 .gobble*
 cache
 dist
+dist-build
 _actual
 _actual.js
 coverage
@@ -19,3 +20,5 @@ perf/
 .temp
 docs/.vitepress/graphs
 *.tsbuildinfo
+target
+*.node
