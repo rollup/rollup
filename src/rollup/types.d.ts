@@ -828,7 +828,7 @@ export interface OutputAsset extends PreRenderedAsset {
 }
 
 export interface RenderedModule {
-	code: string | null;
+	readonly code: string | null;
 	originalLength: number;
 	removedExports: string[];
 	renderedExports: string[];
