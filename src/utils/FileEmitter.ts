@@ -324,6 +324,7 @@ export class FileEmitter {
 			moduleIds: [],
 			modules: {},
 			name: prebuiltChunk.fileName,
+			preliminaryFileName: prebuiltChunk.fileName,
 			referencedFiles: [],
 			type: 'chunk'
 		};

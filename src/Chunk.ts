@@ -332,7 +332,8 @@ export default class Chunk {
 	): OutputChunk {
 		const renderedChunkInfo = this.getRenderedChunkInfo();
 		const finalize = (code: string) => replacePlaceholders(code, hashesByPlaceholder);
-		const fileName = (this.fileName = finalize(renderedChunkInfo.fileName));
+		const preliminaryFileName = renderedChunkInfo.fileName;
+		const fileName = (this.fileName = finalize(preliminaryFileName));
 		return {
 			...renderedChunkInfo,
 			code,
@@ -347,6 +348,7 @@ export default class Chunk {
 			),
 			imports: renderedChunkInfo.imports.map(finalize),
 			map,
+			preliminaryFileName,
 			referencedFiles: renderedChunkInfo.referencedFiles.map(finalize)
 		};
 	}

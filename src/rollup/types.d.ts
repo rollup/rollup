@@ -862,6 +862,7 @@ export interface RenderedChunk extends PreRenderedChunk {
 export interface OutputChunk extends RenderedChunk {
 	code: string;
 	map: SourceMap | null;
+	preliminaryFileName: string;
 }
 
 export interface SerializablePluginCache {
