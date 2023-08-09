@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 3.28.0
+
+_2023-08-09_
+
+### Features
+
+- Add a new property `preliminaryFileName` to generated chunks containing the file name placeholder (#5086)
+- Improve performance of sourcemap generation by lazily decoding mappings (#5087)
+
+### Bug Fixes
+
+- Make the `code` property of rendered modules in the output readonly (#5091)
+
+### Pull Requests
+
+- [#5086](https://github.com/rollup/rollup/pull/5086): feat: add `preliminaryFileName` to `OutputChunk` (@lsdsjy)
+- [#5087](https://github.com/rollup/rollup/pull/5087): perf(sourcemaps): add back lazy sourcemap decode and handling nullish mappings (@thebanjomatic)
+- [#5091](https://github.com/rollup/rollup/pull/5091): fix: the type of RenderedModule.code is readonly (@TrickyPi)
+
 ## 3.27.2
 
 _2023-08-04_

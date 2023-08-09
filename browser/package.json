@@ -1,6 +1,6 @@
 {
   "name": "@rollup/browser",
-  "version": "3.27.2",
+  "version": "3.28.0",
   "description": "Next-generation ES module bundler browser build",
   "main": "dist/rollup.browser.js",
   "module": "dist/es/rollup.browser.js",
