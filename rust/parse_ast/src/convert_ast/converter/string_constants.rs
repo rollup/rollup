@@ -57,3 +57,5 @@ pub const STRING_EXPASSIGN: [u8; 4] = 54u32.to_ne_bytes(); // **=
 pub const STRING_ANDASSIGN: [u8; 4] = 55u32.to_ne_bytes(); // &&=
 pub const STRING_ORASSIGN: [u8; 4] = 56u32.to_ne_bytes(); // ||=
 pub const STRING_NULLISHASSIGN: [u8; 4] = 57u32.to_ne_bytes(); // ??=
+pub const STRING_PURE: [u8; 4] = 58u32.to_ne_bytes(); // pure
+pub const STRING_NOSIDEEFFECTS: [u8; 4] = 59u32.to_ne_bytes(); // noSideEffects

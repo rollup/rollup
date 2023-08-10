@@ -2619,10 +2619,14 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_annotation(&mut self, annotation: &ConvertedAnnotation) {
+    // start
     self
       .buffer
       .extend_from_slice(&annotation.start.to_ne_bytes());
+    // end
     self.buffer.extend_from_slice(&annotation.end.to_ne_bytes());
+    // kind
+    self.buffer.extend_from_slice(&STRING_PURE);
   }
 }
 

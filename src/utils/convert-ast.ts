@@ -154,7 +154,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const callee = convertNode(buffer[position++], buffer, readString);
 		const argumentsList = convertNodeList(buffer[position++], buffer, readString);
 		const annotations = convertAnnotationList(position, buffer);
-		console.log('JS CallExpression annotations', annotations);
 		return {
 			type: 'CallExpression',
 			start,
@@ -1140,7 +1139,7 @@ const convertNodeList = (position: number, buffer: Uint32Array, readString: Read
 };
 
 // TODO Lukas remove invalid annotations
-// TODO Lukas put annotation types into string table
+// TODO Lukas remove old annotation handling code
 const convertAnnotationList = (position: number, buffer: Uint32Array): any[] => {
 	const length = buffer[position++];
 	const list: any[] = [];
@@ -1152,8 +1151,9 @@ const convertAnnotationList = (position: number, buffer: Uint32Array): any[] => 
 
 const convertAnnotation = (position: number, buffer: Uint32Array): RollupAnnotation => {
 	const start = buffer[position++];
-	const end = buffer[position];
-	return { end, start, type: 'pure' };
+	const end = buffer[position++];
+	const type = FIXED_STRINGS[buffer[position]] as AnnotationType;
+	return { end, start, type };
 };
 
 const convertString = (position: number, buffer: Uint32Array, readString: ReadString): string => {
@@ -1186,7 +1186,7 @@ interface ImportExpression extends estree.ImportExpression {
 
 export const ANNOTATION_KEY = '_rollupAnnotations';
 
-type AnnotationType = 'noSideEffects' | 'pure';
+type AnnotationType = 'pure' | 'noSideEffects';
 
 export interface RollupAnnotation {
 	start: number;

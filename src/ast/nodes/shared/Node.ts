@@ -271,7 +271,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (key.charCodeAt(0) === 95 /* _ */) {
 				if (key === ANNOTATION_KEY) {
 					const annotations = value as RollupAnnotation[];
-					console.log('found annotations', annotations);
 					this.annotations = annotations;
 					if ((this.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
 						this.annotationNoSideEffects = annotations.some(
