@@ -23,8 +23,8 @@ use swc_ecma_ast::{
   VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
+pub mod node_types;
 mod analyze_code;
-mod node_types;
 mod string_constants;
 mod utf16_positions;
 

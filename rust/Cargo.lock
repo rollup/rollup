@@ -924,10 +924,12 @@ name = "parse_ast"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "parking_lot",
  "swc",
  "swc_common",
  "swc_ecma_ast",
  "swc_ecma_parser",
+ "swc_error_reporters",
 ]
 
 [[package]]
