@@ -147,19 +147,22 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// index:9; CallExpression
-	(position, buffer, readString): estree.CallExpression & AcornNode => {
+	(position, buffer, readString): CallExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const optional = !!buffer[position++];
+		const callee = convertNode(buffer[position++], buffer, readString);
 		const argumentsList = convertNodeList(buffer[position++], buffer, readString);
-		const callee = convertNode(position, buffer, readString);
+		const annotations = convertAnnotationList(position, buffer);
+		console.log('JS CallExpression annotations', annotations);
 		return {
 			type: 'CallExpression',
 			start,
 			end,
 			arguments: argumentsList,
 			callee,
-			optional
+			optional,
+			_rollupAnnotations: annotations
 		};
 	},
 	// index:10; CatchClause
@@ -1136,6 +1139,23 @@ const convertNodeList = (position: number, buffer: Uint32Array, readString: Read
 	return list;
 };
 
+// TODO Lukas remove invalid annotations
+// TODO Lukas put annotation types into string table
+const convertAnnotationList = (position: number, buffer: Uint32Array): any[] => {
+	const length = buffer[position++];
+	const list: any[] = [];
+	for (let index = 0; index < length; index++) {
+		list.push(convertAnnotation(buffer[position++], buffer));
+	}
+	return list;
+};
+
+const convertAnnotation = (position: number, buffer: Uint32Array): RollupAnnotation => {
+	const start = buffer[position++];
+	const end = buffer[position];
+	return { end, start, type: 'pure' };
+};
+
 const convertString = (position: number, buffer: Uint32Array, readString: ReadString): string => {
 	const length = buffer[position++];
 	const bytePosition = position << 2;
@@ -1162,4 +1182,18 @@ interface ExportAllDeclaration extends estree.ExportAllDeclaration {
 
 interface ImportExpression extends estree.ImportExpression {
 	arguments?: estree.ObjectExpression[];
+}
+
+export const ANNOTATION_KEY = '_rollupAnnotations';
+
+type AnnotationType = 'noSideEffects' | 'pure';
+
+export interface RollupAnnotation {
+	start: number;
+	end: number;
+	type: AnnotationType;
+}
+
+interface CallExpression extends estree.SimpleCallExpression {
+	[ANNOTATION_KEY]: RollupAnnotation[];
 }

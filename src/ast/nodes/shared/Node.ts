@@ -3,8 +3,9 @@ import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import type { RollupAnnotation } from '../../../utils/commentAnnotations';
-import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/commentAnnotations';
+import { INVALID_COMMENT_KEY } from '../../../utils/commentAnnotations';
+import type { RollupAnnotation } from '../../../utils/convert-ast';
+import { ANNOTATION_KEY } from '../../../utils/convert-ast';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -31,7 +32,7 @@ export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
-	annotations?: acorn.Comment[];
+	annotations?: RollupAnnotation[];
 	context: AstContext;
 	end: number;
 	esTreeNode: GenericEsTreeNode | null;
@@ -270,12 +271,13 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (key.charCodeAt(0) === 95 /* _ */) {
 				if (key === ANNOTATION_KEY) {
 					const annotations = value as RollupAnnotation[];
+					console.log('found annotations', annotations);
 					this.annotations = annotations;
 					if ((this.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
 						this.annotationNoSideEffects = annotations.some(
-							comment => comment.annotationType === 'noSideEffects'
+							comment => comment.type === 'noSideEffects'
 						);
-						this.annotationPure = annotations.some(comment => comment.annotationType === 'pure');
+						this.annotationPure = annotations.some(comment => comment.type === 'pure');
 					}
 				} else if (key === INVALID_COMMENT_KEY) {
 					for (const { start, end } of value as acorn.Comment[])

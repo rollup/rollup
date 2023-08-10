@@ -1,8 +1,11 @@
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::node_types::*;
 use crate::convert_ast::converter::string_constants::*;
-use crate::convert_ast::converter::utf16_positions::Utf8ToUtf16ByteIndexConverter;
+use crate::convert_ast::converter::utf16_positions::{
+  ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
+};
 use swc::atoms::JsWord;
+use swc_common::comments::Comment;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AwaitExpr, BigInt,
@@ -31,17 +34,17 @@ mod utf16_positions;
 pub struct AstConverter<'a> {
   buffer: Vec<u8>,
   code: &'a [u8],
-  index_converter: Utf8ToUtf16ByteIndexConverter<'a>,
+  index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
 }
 
 impl<'a> AstConverter<'a> {
-  pub fn new(code: &'a str) -> Self {
+  pub fn new(code: &'a str, annotations: &'a Vec<Comment>) -> Self {
     Self {
       // TODO SWC This is just a wild guess and should be refined with a large
       // block of minified code
       buffer: Vec::with_capacity(20 * code.len()),
       code: code.as_bytes(),
-      index_converter: Utf8ToUtf16ByteIndexConverter::new(code),
+      index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
     }
   }
 
@@ -99,6 +102,24 @@ impl<'a> AstConverter<'a> {
   fn add_end(&mut self, end_position: usize, span: &Span) {
     self.buffer[end_position..end_position + 4]
       .copy_from_slice(&(self.index_converter.convert(span.hi.0 - 1)).to_ne_bytes());
+  }
+
+  fn add_type_start_and_get_annotations(
+    &mut self,
+    node_type: &[u8; 4],
+    span: &Span,
+  ) -> (usize, Vec<ConvertedAnnotation>) {
+    // type
+    self.buffer.extend_from_slice(node_type);
+    // start
+    let (start, annotations) = self
+      .index_converter
+      .convert_and_get_annotations(span.lo.0 - 1);
+    self.buffer.extend_from_slice(&start.to_ne_bytes());
+    // end
+    let end_position = self.buffer.len();
+    self.buffer.resize(end_position + 4, 0);
+    (end_position, annotations)
   }
 
   fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
@@ -248,7 +269,7 @@ impl<'a> AstConverter<'a> {
         None
       }
       Expr::Call(call_expression) => {
-        self.convert_call_expression(call_expression, false, false);
+        self.convert_call_expression(call_expression, false, false, None);
         None
       }
       Expr::Class(class_expression) => {
@@ -453,11 +474,11 @@ impl<'a> AstConverter<'a> {
         Some(&function_declaration.ident),
       ),
       Decl::Class(class_declaration) => self.convert_class_declaration(class_declaration),
-      Decl::Using(_) => unimplemented!("Cannot convet Decl::Using"),
-      Decl::TsInterface(_) => unimplemented!("Cannot convet Decl::TsInterface"),
-      Decl::TsTypeAlias(_) => unimplemented!("Cannot convet Decl::TsTypeAlias"),
-      Decl::TsEnum(_) => unimplemented!("Cannot convet Decl::TsEnum"),
-      Decl::TsModule(_) => unimplemented!("Cannot convet Decl::TsModule"),
+      Decl::Using(_) => unimplemented!("Cannot convert Decl::Using"),
+      Decl::TsInterface(_) => unimplemented!("Cannot convert Decl::TsInterface"),
+      Decl::TsTypeAlias(_) => unimplemented!("Cannot convert Decl::TsTypeAlias"),
+      Decl::TsEnum(_) => unimplemented!("Cannot convert Decl::TsEnum"),
+      Decl::TsModule(_) => unimplemented!("Cannot convert Decl::TsModule"),
     }
   }
 
@@ -610,10 +631,12 @@ impl<'a> AstConverter<'a> {
     call_expression: &CallExpr,
     is_optional: bool,
     is_chained: bool,
+    annotations: Option<Vec<ConvertedAnnotation>>,
   ) {
     match &call_expression.callee {
       Callee::Import(_) => {
-        self.store_import_expression(&call_expression.span, &call_expression.args)
+        self.store_import_expression(&call_expression.span, &call_expression.args);
+        // TODO Lukas invalidate annotations
       }
       Callee::Expr(callee_expression) => self.store_call_expression(
         &call_expression.span,
@@ -621,6 +644,7 @@ impl<'a> AstConverter<'a> {
         &StoredCallee::Expression(&callee_expression),
         &call_expression.args,
         is_chained,
+        annotations,
       ),
       Callee::Super(callee_super) => self.store_call_expression(
         &call_expression.span,
@@ -628,10 +652,12 @@ impl<'a> AstConverter<'a> {
         &StoredCallee::Super(&callee_super),
         &call_expression.args,
         is_chained,
+        annotations,
       ),
     }
   }
 
+  // TODO Lukas test annotations for this case
   fn convert_optional_call(
     &mut self,
     optional_call: &OptCall,
@@ -644,6 +670,7 @@ impl<'a> AstConverter<'a> {
       &StoredCallee::Expression(&optional_call.callee),
       &optional_call.args,
       is_chained,
+      None,
     );
   }
 
@@ -748,12 +775,20 @@ impl<'a> AstConverter<'a> {
     expression_statement: &ExprStmt,
     directive: Option<&JsWord>,
   ) {
-    let end_position =
-      self.add_type_and_start(&TYPE_EXPRESSION_STATEMENT, &expression_statement.span);
+    // TODO Lukas discard annotations if we are not interested
+    let (end_position, annotations) = self
+      .add_type_start_and_get_annotations(&TYPE_EXPRESSION_STATEMENT, &expression_statement.span);
     // reserve directive
     let reference_position = self.reserve_reference_positions(1);
     // expression
-    self.convert_expression(&expression_statement.expr);
+    match &*expression_statement.expr {
+      Expr::Call(call_expression) => {
+        self.convert_call_expression(&call_expression, false, false, Some(annotations));
+      }
+      _ => {
+        self.convert_expression(&expression_statement.expr);
+      }
+    }
     // directive
     directive.map(|directive| {
       self.update_reference_position(reference_position);
@@ -946,19 +981,34 @@ impl<'a> AstConverter<'a> {
     callee: &StoredCallee,
     arguments: &[ExprOrSpread],
     is_chained: bool,
+    additional_annotations: Option<Vec<ConvertedAnnotation>>,
   ) {
-    let end_position = self.add_type_and_start(&TYPE_CALL_EXPRESSION, span);
+    let (end_position, annotations) =
+      self.add_type_start_and_get_annotations(&TYPE_CALL_EXPRESSION, span);
     // optional
     self.convert_boolean(is_optional);
-    // reserve for arguments
-    let reference_position = self.reserve_reference_positions(1);
+    // reserve for callee, arguments
+    let reference_position = self.reserve_reference_positions(2);
+    // annotations
+    let all_annotations = match additional_annotations {
+      Some(mut additional_annotation_list) if additional_annotation_list.len() > 0 => {
+        additional_annotation_list.extend(annotations);
+        additional_annotation_list
+      }
+      _ => annotations,
+    };
+    self.convert_item_list(&all_annotations, |ast_converter, annotation| {
+      ast_converter.convert_annotation(annotation);
+      true
+    });
     // callee
+    self.update_reference_position(reference_position);
     match callee {
       StoredCallee::Expression(Expr::OptChain(optional_chain_expression)) => {
         self.convert_optional_chain_expression(optional_chain_expression, is_chained);
       }
       StoredCallee::Expression(Expr::Call(call_expression)) => {
-        self.convert_call_expression(call_expression, false, is_chained);
+        self.convert_call_expression(call_expression, false, is_chained, None);
       }
       StoredCallee::Expression(Expr::Member(member_expression)) => {
         self.convert_member_expression(member_expression, false, is_chained);
@@ -969,7 +1019,7 @@ impl<'a> AstConverter<'a> {
       StoredCallee::Super(callee_super) => self.convert_super(callee_super),
     }
     // arguments
-    self.update_reference_position(reference_position);
+    self.update_reference_position(reference_position + 4);
     self.convert_item_list(arguments, |ast_converter, argument| {
       ast_converter.convert_expression_or_spread(argument);
       true
@@ -1102,7 +1152,7 @@ impl<'a> AstConverter<'a> {
         self.convert_optional_chain_expression(optional_chain_expression, is_chained);
       }
       ExpressionOrSuper::Expression(Expr::Call(call_expression)) => {
-        self.convert_call_expression(call_expression, false, is_chained);
+        self.convert_call_expression(call_expression, false, is_chained, None);
       }
       ExpressionOrSuper::Expression(Expr::Member(member_expression)) => {
         self.convert_member_expression(member_expression, false, is_chained);
@@ -2028,8 +2078,8 @@ impl<'a> AstConverter<'a> {
     self.add_type_and_positions(&TYPE_DEBUGGER_STATEMENT, &debugger_statement.span);
   }
 
-  fn convert_empty_statement(&mut self, emtpy_statement: &EmptyStmt) {
-    self.add_type_and_positions(&TYPE_EMPTY_STATEMENT, &emtpy_statement.span);
+  fn convert_empty_statement(&mut self, empty_statement: &EmptyStmt) {
+    self.add_type_and_positions(&TYPE_EMPTY_STATEMENT, &empty_statement.span);
   }
 
   fn convert_for_in_statement(&mut self, for_in_statement: &ForInStmt) {
@@ -2566,6 +2616,13 @@ impl<'a> AstConverter<'a> {
     });
     // end
     self.add_end(end_position, &yield_expression.span);
+  }
+
+  fn convert_annotation(&mut self, annotation: &ConvertedAnnotation) {
+    self
+      .buffer
+      .extend_from_slice(&annotation.start.to_ne_bytes());
+    self.buffer.extend_from_slice(&annotation.end.to_ne_bytes());
   }
 }
 

@@ -1,29 +1,92 @@
+use std::slice::Iter;
 use std::str::Chars;
 
-pub struct Utf8ToUtf16ByteIndexConverter<'a> {
+use swc_common::comments::Comment;
+
+#[derive(Debug)]
+pub struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   current_utf8_index: u32,
   current_utf16_index: u32,
   character_iterator: Chars<'a>,
+  next_annotation: Option<&'a Comment>,
+  annotation_iterator: Iter<'a, Comment>,
+  invalid_annotations: Vec<ConvertedAnnotation>,
 }
 
-impl<'a> Utf8ToUtf16ByteIndexConverter<'a> {
-  pub fn new(code: &'a str) -> Self {
+#[derive(Debug)]
+pub struct ConvertedAnnotation {
+  pub start: u32,
+  pub end: u32,
+}
+
+impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
+  pub fn new(code: &'a str, annotations: &'a Vec<Comment>) -> Self {
+    let mut annotation_iterator = annotations.iter();
+    let current_annotation = annotation_iterator.next();
     Self {
       current_utf8_index: 0,
       current_utf16_index: 0,
       character_iterator: code.chars(),
+      next_annotation: current_annotation,
+      annotation_iterator,
+      invalid_annotations: Vec::with_capacity(annotations.len()),
     }
   }
 
   pub fn convert(&mut self, utf8_index: u32) -> u32 {
+    self.convert_position(utf8_index, None);
+    self.current_utf16_index
+  }
+
+  pub fn convert_and_get_annotations(
+    &mut self,
+    utf8_index: u32,
+  ) -> (u32, Vec<ConvertedAnnotation>) {
+    let mut annotations = Vec::new();
+    self.convert_position(utf8_index, Some(&mut annotations));
+    (self.current_utf16_index, annotations)
+  }
+
+  #[inline(always)]
+  fn convert_position(
+    &mut self,
+    utf8_index: u32,
+    annotation_collection: Option<&mut Vec<ConvertedAnnotation>>,
+  ) {
     if self.current_utf8_index > utf8_index {
       panic!("Cannot convert positions backwards");
     }
+    let mut next_annotation_start = self
+      .next_annotation
+      .map(|a| a.span.lo.0 - 1)
+      .unwrap_or(u32::MAX);
+    let annotations = match annotation_collection {
+      None => &mut self.invalid_annotations,
+      Some(annotations) => annotations,
+    };
     while self.current_utf8_index < utf8_index {
-      let character = self.character_iterator.next().unwrap();
-      self.current_utf8_index += character.len_utf8() as u32;
-      self.current_utf16_index += character.len_utf16() as u32;
+      if self.current_utf8_index == next_annotation_start {
+        let start = self.current_utf16_index;
+        let next_annotation_end = self.next_annotation.map(|a| a.span.hi.0 - 1).unwrap();
+        while self.current_utf8_index < next_annotation_end {
+          let character = self.character_iterator.next().unwrap();
+          self.current_utf8_index += character.len_utf8() as u32;
+          self.current_utf16_index += character.len_utf16() as u32;
+        }
+        annotations.push(ConvertedAnnotation {
+          start,
+          end: self.current_utf16_index,
+        });
+        self.next_annotation = self.annotation_iterator.next();
+        next_annotation_start = self
+          .next_annotation
+          .map(|a| a.span.lo.0)
+          .unwrap_or(u32::MAX);
+      } else {
+        let character = self.character_iterator.next().unwrap();
+        self.current_utf8_index += character.len_utf8() as u32;
+        self.current_utf16_index += character.len_utf16() as u32;
+      }
     }
-    self.current_utf16_index
   }
 }

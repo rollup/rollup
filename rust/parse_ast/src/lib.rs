@@ -1,5 +1,3 @@
-#![deny(clippy::all)]
-
 use std::sync::Arc;
 
 use swc::{config::ParseOptions, Compiler};
@@ -9,6 +7,8 @@ use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsConfig, Syntax};
 
 use convert_ast::converter::AstConverter;
+
+use crate::convert_ast::annotations::SequentialComments;
 
 mod convert_ast;
 
@@ -34,6 +34,7 @@ pub fn parse_ast(code: String) -> Vec<u8> {
   let filename = FileName::Anon;
   let file = compiler.cm.new_source_file(filename, code);
   let code_reference = Lrc::clone(&file.src);
+  let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     compiler.run(|| {
       let result = try_with_handler(compiler.cm.clone(), |handler| {
@@ -43,13 +44,14 @@ pub fn parse_ast(code: String) -> Vec<u8> {
           compiler_options.target,
           compiler_options.syntax,
           compiler_options.is_module,
-          None,
+          Some(&comments),
         )
       });
       match result {
         Err(buffer) => buffer,
         Ok(program) => {
-          let converter = AstConverter::new(&code_reference);
+          let annotations = comments.take_annotations();
+          let converter = AstConverter::new(&code_reference, &annotations);
           let buffer = converter.convert_ast_to_buffer(&program);
           buffer
         }

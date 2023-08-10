@@ -18,9 +18,9 @@ import {
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
-export type AnnotationType = 'noSideEffects' | 'pure';
+type AnnotationType = 'noSideEffects' | 'pure';
 
-export interface RollupAnnotation extends acorn.Comment {
+interface RollupAnnotation extends acorn.Comment {
 	annotationType: AnnotationType;
 }
 
@@ -30,7 +30,7 @@ interface CommentState {
 	code: string;
 }
 
-export const ANNOTATION_KEY = '_rollupAnnotations';
+const ANNOTATION_KEY = '_rollupAnnotations';
 export const INVALID_COMMENT_KEY = '_rollupRemoved';
 
 interface NodeWithComments extends acorn.Node {
