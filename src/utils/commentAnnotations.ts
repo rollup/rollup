@@ -31,7 +31,7 @@ interface CommentState {
 }
 
 const ANNOTATION_KEY = '_rollupAnnotations';
-export const INVALID_COMMENT_KEY = '_rollupRemoved';
+const INVALID_COMMENT_KEY = '_rollupRemoved';
 
 interface NodeWithComments extends acorn.Node {
 	[ANNOTATION_KEY]?: acorn.Comment[];

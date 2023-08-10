@@ -636,7 +636,9 @@ impl<'a> AstConverter<'a> {
     match &call_expression.callee {
       Callee::Import(_) => {
         self.store_import_expression(&call_expression.span, &call_expression.args);
-        // TODO Lukas invalidate annotations
+        if let Some(annotations) = annotations {
+          self.index_converter.invalidate_annotations(annotations);
+        }
       }
       Callee::Expr(callee_expression) => self.store_call_expression(
         &call_expression.span,
@@ -657,7 +659,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO Lukas test annotations for this case
   fn convert_optional_call(
     &mut self,
     optional_call: &OptCall,
@@ -747,6 +748,8 @@ impl<'a> AstConverter<'a> {
   // === nodes
   fn convert_module_program(&mut self, module: &Module) {
     let end_position = self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32);
+    // reserve annotations
+    let reference_position = self.reserve_reference_positions(1);
     // body
     let mut keep_checking_directives = true;
     self.convert_item_list_with_state(
@@ -768,6 +771,13 @@ impl<'a> AstConverter<'a> {
     );
     // end
     self.add_explicit_end(end_position, self.code.len() as u32);
+    // annotations
+    self.update_reference_position(reference_position);
+    let invalid_annotations = self.index_converter.take_invalid_annotations();
+    self.convert_item_list(&invalid_annotations, |ast_converter, annotation| {
+      ast_converter.convert_annotation(annotation);
+      true
+    });
   }
 
   fn convert_expression_statement(
@@ -775,7 +785,6 @@ impl<'a> AstConverter<'a> {
     expression_statement: &ExprStmt,
     directive: Option<&JsWord>,
   ) {
-    // TODO Lukas discard annotations if we are not interested
     let (end_position, annotations) = self
       .add_type_start_and_get_annotations(&TYPE_EXPRESSION_STATEMENT, &expression_statement.span);
     // reserve directive
@@ -787,6 +796,7 @@ impl<'a> AstConverter<'a> {
       }
       _ => {
         self.convert_expression(&expression_statement.expr);
+        self.index_converter.invalidate_annotations(annotations);
       }
     }
     // directive

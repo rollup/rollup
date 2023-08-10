@@ -1,3 +1,4 @@
+use std::mem;
 use std::slice::Iter;
 use std::str::Chars;
 
@@ -47,6 +48,15 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     (self.current_utf16_index, annotations)
   }
 
+  pub fn invalidate_annotations(&mut self, annotations: Vec<ConvertedAnnotation>) {
+    self.invalid_annotations.extend(annotations);
+  }
+
+  pub fn take_invalid_annotations(&mut self) -> Vec<ConvertedAnnotation> {
+    let invalid_annotations = mem::replace(&mut self.invalid_annotations, Vec::new());
+    invalid_annotations
+  }
+
   #[inline(always)]
   fn convert_position(
     &mut self,
@@ -80,7 +90,7 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
         self.next_annotation = self.annotation_iterator.next();
         next_annotation_start = self
           .next_annotation
-          .map(|a| a.span.lo.0)
+          .map(|a| a.span.lo.0 - 1)
           .unwrap_or(u32::MAX);
       } else {
         let character = self.character_iterator.next().unwrap();

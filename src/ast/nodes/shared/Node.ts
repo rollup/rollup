@@ -3,9 +3,8 @@ import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
 import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { INVALID_COMMENT_KEY } from '../../../utils/commentAnnotations';
 import type { RollupAnnotation } from '../../../utils/convert-ast';
-import { ANNOTATION_KEY } from '../../../utils/convert-ast';
+import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/convert-ast';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -278,7 +277,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 						);
 						this.annotationPure = annotations.some(comment => comment.type === 'pure');
 					}
-				} else if (key === INVALID_COMMENT_KEY) {
+				} else if (key === INVALID_ANNOTATION_KEY) {
 					for (const { start, end } of value as acorn.Comment[])
 						this.context.magicString.remove(start, end);
 				}

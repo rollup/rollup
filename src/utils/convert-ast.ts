@@ -805,16 +805,18 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// index:53; Program
-	(position, buffer, readString): estree.Program & AcornNode => {
+	(position, buffer, readString): Program & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const annotations = convertAnnotationList(buffer[position++], buffer);
 		const body = convertNodeList(position, buffer, readString);
 		return {
 			type: 'Program',
 			start,
 			end,
 			body,
-			sourceType: 'module'
+			sourceType: 'module',
+			_rollupRemoved: annotations
 		};
 	},
 	// index:54; Property
@@ -1138,7 +1140,6 @@ const convertNodeList = (position: number, buffer: Uint32Array, readString: Read
 	return list;
 };
 
-// TODO Lukas remove invalid annotations
 // TODO Lukas remove old annotation handling code
 const convertAnnotationList = (position: number, buffer: Uint32Array): any[] => {
 	const length = buffer[position++];
@@ -1185,6 +1186,7 @@ interface ImportExpression extends estree.ImportExpression {
 }
 
 export const ANNOTATION_KEY = '_rollupAnnotations';
+export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
 
 type AnnotationType = 'pure' | 'noSideEffects';
 
@@ -1196,4 +1198,8 @@ export interface RollupAnnotation {
 
 interface CallExpression extends estree.SimpleCallExpression {
 	[ANNOTATION_KEY]: RollupAnnotation[];
+}
+
+interface Program extends estree.Program {
+	[INVALID_ANNOTATION_KEY]: RollupAnnotation[];
 }
