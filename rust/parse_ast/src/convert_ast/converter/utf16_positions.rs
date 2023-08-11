@@ -11,6 +11,7 @@ pub struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   character_iterator: Chars<'a>,
   next_annotation: Option<&'a Comment>,
   annotation_iterator: Iter<'a, Comment>,
+  collected_annotations: Vec<ConvertedAnnotation>,
   invalid_annotations: Vec<ConvertedAnnotation>,
 }
 
@@ -30,12 +31,16 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
       character_iterator: code.chars(),
       next_annotation: current_annotation,
       annotation_iterator,
+      collected_annotations: Vec::new(),
       invalid_annotations: Vec::with_capacity(annotations.len()),
     }
   }
 
   pub fn convert(&mut self, utf8_index: u32) -> u32 {
-    self.convert_position(utf8_index, None);
+    self
+      .invalid_annotations
+      .extend(self.collected_annotations.drain(..));
+    self.convert_position_and_handle_annotations(utf8_index, None);
     self.current_utf16_index
   }
 
@@ -43,13 +48,16 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     &mut self,
     utf8_index: u32,
   ) -> (u32, Vec<ConvertedAnnotation>) {
-    let mut annotations = Vec::new();
-    self.convert_position(utf8_index, Some(&mut annotations));
+    let mut annotations = mem::replace(&mut self.collected_annotations, Vec::new());
+    self.convert_position_and_handle_annotations(utf8_index, Some(&mut annotations));
     (self.current_utf16_index, annotations)
   }
 
-  pub fn invalidate_annotations(&mut self, annotations: Vec<ConvertedAnnotation>) {
-    self.invalid_annotations.extend(annotations);
+  pub fn convert_and_leave_annotations(&mut self, utf8_index: u32) -> u32 {
+    let mut annotations = Vec::new();
+    self.convert_position_and_handle_annotations(utf8_index, Some(&mut annotations));
+    self.collected_annotations.extend(annotations);
+    self.current_utf16_index
   }
 
   pub fn take_invalid_annotations(&mut self) -> Vec<ConvertedAnnotation> {
@@ -58,13 +66,16 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   }
 
   #[inline(always)]
-  fn convert_position(
+  fn convert_position_and_handle_annotations(
     &mut self,
     utf8_index: u32,
     annotation_collection: Option<&mut Vec<ConvertedAnnotation>>,
   ) {
     if self.current_utf8_index > utf8_index {
-      panic!("Cannot convert positions backwards");
+      panic!(
+        "Cannot convert positions backwards: {} < {}",
+        utf8_index, self.current_utf8_index
+      );
     }
     let mut next_annotation_start = self
       .next_annotation

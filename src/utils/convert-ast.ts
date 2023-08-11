@@ -755,17 +755,19 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// index:49; NewExpression
-	(position, buffer, readString): estree.NewExpression & AcornNode => {
+	(position, buffer, readString): NewExpression & AcornNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const callee = convertNode(buffer[position++], buffer, readString);
 		const argumentsPosition = buffer[position++];
-		const callee = convertNode(position, buffer, readString);
+		const annotations = convertAnnotationList(position, buffer);
 		return {
 			type: 'NewExpression',
 			start,
 			end,
 			arguments: argumentsPosition ? convertNodeList(argumentsPosition, buffer, readString) : [],
-			callee
+			callee,
+			_rollupAnnotations: annotations
 		};
 	},
 	// index:50; ObjectExpression
@@ -1197,6 +1199,10 @@ export interface RollupAnnotation {
 }
 
 interface CallExpression extends estree.SimpleCallExpression {
+	[ANNOTATION_KEY]: RollupAnnotation[];
+}
+
+interface NewExpression extends estree.NewExpression {
 	[ANNOTATION_KEY]: RollupAnnotation[];
 }
 

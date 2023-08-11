@@ -15,15 +15,14 @@ pub fn find_first_occurrence_outside_comment(code: &[u8], search_byte: u8, start
         }
       }
       CommentType::None => {
-        if code[search_pos] == search_byte {
-          return search_pos as u32;
-        }
         if code[search_pos] == b'/' && code[search_pos + 1] == b'/' {
           comment_type = CommentType::SingleLine;
           search_pos += 1;
         } else if code[search_pos] == b'/' && code[search_pos + 1] == b'*' {
           comment_type = CommentType::MultiLine;
           search_pos += 1;
+        } else if code[search_pos] == search_byte {
+          return search_pos as u32;
         }
       }
     }
