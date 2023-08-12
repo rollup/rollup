@@ -25,6 +25,12 @@ export default class ExpressionStatement extends StatementBase {
 		}
 	}
 
+	// TODO Lukas check if trailing annotations can always be marked as invalid
+	// TODO Lukas check if assignment expressions need their operator to be marked
+	removeAnnotations(code: MagicString) {
+		this.expression.removeAnnotations(code);
+	}
+
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
 		if (this.included) this.insertSemicolon(code);

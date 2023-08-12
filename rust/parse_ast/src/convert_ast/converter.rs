@@ -99,6 +99,12 @@ impl<'a> AstConverter<'a> {
     end_position
   }
 
+  // This collects annotations to be associated with the next position that is
+  // converted. This is useful if an annotation should be associated with the
+  // first child of a node.
+  // If we use this, we need to add a special handler "removeAnnotations" on
+  // the JavaScript side to ensure if the Node is removed, the annotations are
+  // removed as well, cf. ExpressionStatement.
   fn add_type_start_and_leave_annotations(&mut self, node_type: &[u8; 4], span: &Span) -> usize {
     // type
     self.buffer.extend_from_slice(node_type);
@@ -2066,8 +2072,10 @@ impl<'a> AstConverter<'a> {
         optional_chain_expression.optional,
       );
     } else {
-      let end_position =
-        self.add_type_and_start(&TYPE_CHAIN_EXPRESSION, &optional_chain_expression.span);
+      let end_position = self.add_type_start_and_leave_annotations(
+        &TYPE_CHAIN_EXPRESSION,
+        &optional_chain_expression.span,
+      );
       // expression
       self.convert_optional_chain_base(
         &optional_chain_expression.base,

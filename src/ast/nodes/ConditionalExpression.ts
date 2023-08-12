@@ -156,6 +156,10 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.test.removeAnnotations(code);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,

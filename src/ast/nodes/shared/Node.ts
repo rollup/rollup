@@ -95,6 +95,8 @@ export interface Node extends Entity {
 		deoptimizeAccess: boolean
 	): void;
 
+	removeAnnotations(code: MagicString): void;
+
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -304,6 +306,14 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					this.scope,
 					keepEsTreeNodeKeys?.includes(key)
 				);
+			}
+		}
+	}
+
+	removeAnnotations(code: MagicString): void {
+		if (this.annotations) {
+			for (const annotation of this.annotations) {
+				code.remove(annotation.start, annotation.end);
 			}
 		}
 	}

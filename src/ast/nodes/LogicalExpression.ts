@@ -160,6 +160,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.left.removeAnnotations(code);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,
