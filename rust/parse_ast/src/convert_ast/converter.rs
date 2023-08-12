@@ -90,51 +90,12 @@ impl<'a> AstConverter<'a> {
     // type
     self.buffer.extend_from_slice(node_type);
     // start
-    self
-      .buffer
-      .extend_from_slice(&(self.index_converter.convert(span.lo.0 - 1)).to_ne_bytes());
-    // end
-    let end_position = self.buffer.len();
-    self.buffer.resize(end_position + 4, 0);
-    end_position
-  }
-
-  // This collects annotations to be associated with the next position that is
-  // converted. This is useful if an annotation should be associated with the
-  // first child of a node.
-  // If we use this, we need to add a special handler "removeAnnotations" on
-  // the JavaScript side to ensure if the Node is removed, the annotations are
-  // removed as well, cf. ExpressionStatement.
-  fn add_type_start_and_leave_annotations(&mut self, node_type: &[u8; 4], span: &Span) -> usize {
-    // type
-    self.buffer.extend_from_slice(node_type);
-    // start
-    let start = self
-      .index_converter
-      .convert_and_leave_annotations(span.lo.0 - 1);
+    let start = self.index_converter.convert(span.lo.0 - 1);
     self.buffer.extend_from_slice(&start.to_ne_bytes());
     // end
     let end_position = self.buffer.len();
     self.buffer.resize(end_position + 4, 0);
     end_position
-  }
-
-  fn add_type_start_and_get_annotations(
-    &mut self,
-    node_type: &[u8; 4],
-    span: &Span,
-  ) -> (usize, Vec<ConvertedAnnotation>) {
-    // type
-    self.buffer.extend_from_slice(node_type);
-    // start
-    let (start, annotations) = self
-      .index_converter
-      .convert_and_get_annotations(span.lo.0 - 1);
-    self.buffer.extend_from_slice(&start.to_ne_bytes());
-    // end
-    let end_position = self.buffer.len();
-    self.buffer.resize(end_position + 4, 0);
-    (end_position, annotations)
   }
 
   fn add_end(&mut self, end_position: usize, span: &Span) {
@@ -625,13 +586,13 @@ impl<'a> AstConverter<'a> {
     &mut self,
     parenthesized_expression: &ParenExpr,
   ) -> (u32, u32) {
-    let start = match &*parenthesized_expression.expr {
-      Expr::Call(_) | Expr::New(_) => self
-        .index_converter
-        .convert_and_leave_annotations(parenthesized_expression.span.lo.0 - 1),
-      _ => self
-        .index_converter
-        .convert(parenthesized_expression.span.lo.0 - 1),
+    let start = self
+      .index_converter
+      .convert(parenthesized_expression.span.lo.0 - 1);
+    // TODO Lukas think of others, nested parenthesized expressions?
+    match &*parenthesized_expression.expr {
+      Expr::Call(_) | Expr::New(_) => {}
+      _ => self.index_converter.invalidate_collected_annotations(),
     };
     self.convert_expression(&parenthesized_expression.expr);
     let end = self
@@ -803,8 +764,8 @@ impl<'a> AstConverter<'a> {
     expression_statement: &ExprStmt,
     directive: Option<&JsWord>,
   ) {
-    let end_position = self
-      .add_type_start_and_leave_annotations(&TYPE_EXPRESSION_STATEMENT, &expression_statement.span);
+    let end_position =
+      self.add_type_and_start(&TYPE_EXPRESSION_STATEMENT, &expression_statement.span);
     // reserve directive
     let reference_position = self.reserve_reference_positions(1);
     // expression
@@ -1002,8 +963,8 @@ impl<'a> AstConverter<'a> {
     arguments: &[ExprOrSpread],
     is_chained: bool,
   ) {
-    let (end_position, annotations) =
-      self.add_type_start_and_get_annotations(&TYPE_CALL_EXPRESSION, span);
+    let end_position = self.add_type_and_start(&TYPE_CALL_EXPRESSION, span);
+    let annotations = self.index_converter.take_collected_annotations();
     // optional
     self.convert_boolean(is_optional);
     // reserve for callee, arguments
@@ -1324,7 +1285,7 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_binary_expression(&mut self, binary_expression: &BinExpr) {
-    let end_position = self.add_type_start_and_leave_annotations(
+    let end_position = self.add_type_and_start(
       match binary_expression.op {
         BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => {
           &TYPE_LOGICAL_EXPRESSION
@@ -1334,47 +1295,37 @@ impl<'a> AstConverter<'a> {
       &binary_expression.span,
     );
     // operator
-    let (operator, search_byte) = match binary_expression.op {
-      BinaryOp::EqEq => (&STRING_EQEQ, b'='),
-      BinaryOp::NotEq => (&STRING_NOTEQ, b'!'),
-      BinaryOp::EqEqEq => (&STRING_EQEQEQ, b'='),
-      BinaryOp::NotEqEq => (&STRING_NOTEQEQ, b'!'),
-      BinaryOp::Lt => (&STRING_LT, b'<'),
-      BinaryOp::LtEq => (&STRING_LTEQ, b'<'),
-      BinaryOp::Gt => (&STRING_GT, b'>'),
-      BinaryOp::GtEq => (&STRING_GTEQ, b'>'),
-      BinaryOp::LShift => (&STRING_LSHIFT, b'<'),
-      BinaryOp::RShift => (&STRING_RSHIFT, b'>'),
-      BinaryOp::ZeroFillRShift => (&STRING_ZEROFILLRSHIFT, b'>'),
-      BinaryOp::Add => (&STRING_ADD, b'+'),
-      BinaryOp::Sub => (&STRING_SUB, b'-'),
-      BinaryOp::Mul => (&STRING_MUL, b'*'),
-      BinaryOp::Div => (&STRING_DIV, b'/'),
-      BinaryOp::Mod => (&STRING_MOD, b'%'),
-      BinaryOp::BitOr => (&STRING_BITOR, b'|'),
-      BinaryOp::BitXor => (&STRING_BITXOR, b'^'),
-      BinaryOp::BitAnd => (&STRING_BITAND, b'&'),
-      BinaryOp::LogicalOr => (&STRING_LOGICALOR, b'|'),
-      BinaryOp::LogicalAnd => (&STRING_LOGICALAND, b'&'),
-      BinaryOp::In => (&STRING_IN, b'i'),
-      BinaryOp::InstanceOf => (&STRING_INSTANCEOF, b'i'),
-      BinaryOp::Exp => (&STRING_EXP, b'*'),
-      BinaryOp::NullishCoalescing => (&STRING_NULLISHCOALESCING, b'?'),
-    };
-    self.buffer.extend_from_slice(operator);
+    self.buffer.extend_from_slice(match binary_expression.op {
+      BinaryOp::EqEq => &STRING_EQEQ,
+      BinaryOp::NotEq => &STRING_NOTEQ,
+      BinaryOp::EqEqEq => &STRING_EQEQEQ,
+      BinaryOp::NotEqEq => &STRING_NOTEQEQ,
+      BinaryOp::Lt => &STRING_LT,
+      BinaryOp::LtEq => &STRING_LTEQ,
+      BinaryOp::Gt => &STRING_GT,
+      BinaryOp::GtEq => &STRING_GTEQ,
+      BinaryOp::LShift => &STRING_LSHIFT,
+      BinaryOp::RShift => &STRING_RSHIFT,
+      BinaryOp::ZeroFillRShift => &STRING_ZEROFILLRSHIFT,
+      BinaryOp::Add => &STRING_ADD,
+      BinaryOp::Sub => &STRING_SUB,
+      BinaryOp::Mul => &STRING_MUL,
+      BinaryOp::Div => &STRING_DIV,
+      BinaryOp::Mod => &STRING_MOD,
+      BinaryOp::BitOr => &STRING_BITOR,
+      BinaryOp::BitXor => &STRING_BITXOR,
+      BinaryOp::BitAnd => &STRING_BITAND,
+      BinaryOp::LogicalOr => &STRING_LOGICALOR,
+      BinaryOp::LogicalAnd => &STRING_LOGICALAND,
+      BinaryOp::In => &STRING_IN,
+      BinaryOp::InstanceOf => &STRING_INSTANCEOF,
+      BinaryOp::Exp => &STRING_EXP,
+      BinaryOp::NullishCoalescing => &STRING_NULLISHCOALESCING,
+    });
     // reserve right
     let reference_position = self.reserve_reference_positions(1);
     // left
     self.convert_expression(&binary_expression.left);
-    // invalidate annotations before operator
-    let operator_start = self.get_expression_span(&binary_expression.left).hi.0 - 1;
-    self
-      .index_converter
-      .convert(find_first_occurrence_outside_comment(
-        self.code,
-        search_byte,
-        operator_start,
-      ));
     // right
     self.update_reference_position(reference_position);
     self.convert_expression(&binary_expression.right);
@@ -1431,35 +1382,15 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_conditional_expression(&mut self, conditional_expression: &CondExpr) {
-    let end_position = self.add_type_start_and_leave_annotations(
-      &TYPE_CONDITIONAL_EXPRESSION,
-      &conditional_expression.span,
-    );
+    let end_position =
+      self.add_type_and_start(&TYPE_CONDITIONAL_EXPRESSION, &conditional_expression.span);
     // reserve consequent, alternate
     let reference_position = self.reserve_reference_positions(2);
     // test
     self.convert_expression(&conditional_expression.test);
-    // invalidate annotations before question mark
-    let question_mark_start = self.get_expression_span(&conditional_expression.test).hi.0 - 1;
-    self
-      .index_converter
-      .convert(find_first_occurrence_outside_comment(
-        self.code,
-        b'?',
-        question_mark_start,
-      ));
     // consequent
     self.update_reference_position(reference_position);
     self.convert_expression(&conditional_expression.cons);
-    // invalidate annotations before colon
-    let colon_search_start = self.get_expression_span(&conditional_expression.cons).hi.0 - 1;
-    self
-      .index_converter
-      .convert(find_first_occurrence_outside_comment(
-        self.code,
-        b':',
-        colon_search_start,
-      ));
     // alternate
     self.update_reference_position(reference_position + 4);
     self.convert_expression(&conditional_expression.alt);
@@ -1887,8 +1818,8 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_new_expression(&mut self, new_expression: &NewExpr) {
-    let (end_position, annotations) =
-      self.add_type_start_and_get_annotations(&TYPE_NEW_EXPRESSION, &new_expression.span);
+    let end_position = self.add_type_and_start(&TYPE_NEW_EXPRESSION, &new_expression.span);
+    let annotations = self.index_converter.take_collected_annotations();
     // reserve for callee, args
     let reference_position = self.reserve_reference_positions(2);
     // annotations
@@ -2072,10 +2003,8 @@ impl<'a> AstConverter<'a> {
         optional_chain_expression.optional,
       );
     } else {
-      let end_position = self.add_type_start_and_leave_annotations(
-        &TYPE_CHAIN_EXPRESSION,
-        &optional_chain_expression.span,
-      );
+      let end_position =
+        self.add_type_and_start(&TYPE_CHAIN_EXPRESSION, &optional_chain_expression.span);
       // expression
       self.convert_optional_chain_base(
         &optional_chain_expression.base,
@@ -2496,8 +2425,8 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_sequence_expression(&mut self, sequence_expression: &SeqExpr) {
-    let end_position = self
-      .add_type_start_and_leave_annotations(&TYPE_SEQUENCE_EXPRESSION, &sequence_expression.span);
+    let end_position =
+      self.add_type_and_start(&TYPE_SEQUENCE_EXPRESSION, &sequence_expression.span);
     // expressions
     self.convert_item_list(&sequence_expression.exprs, |ast_converter, expression| {
       ast_converter.convert_expression(expression);

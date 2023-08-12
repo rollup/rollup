@@ -43,15 +43,15 @@ console.log('code15');//@__PURE__
 
 /*@__PURE__*/true && console.log('code17');
 
-/*@__PURE__*/true ? console.log('code18') : console.log('code19');
+/*@__PURE__*/true ? console.log('code18') : console.log('removed');
 
-console.log('code20');//@__PURE__
+console.log('code19');//@__PURE__
 import code from './dep.js';
-console.log('code21', code);
+console.log('code20', code);
 
 /*@__PURE__*/
 if (true) {
-	console.log('code22');
+	console.log('code21');
 }
 
 /*@__PURE__*/ drop1();

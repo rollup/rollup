@@ -161,7 +161,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			arguments: argumentsList,
 			callee,
 			optional,
-			_rollupAnnotations: annotations
+			...(annotations.length > 0 ? { _rollupAnnotations: annotations } : {})
 		};
 	},
 	// index:10; CatchClause
@@ -767,7 +767,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			arguments: argumentsPosition ? convertNodeList(argumentsPosition, buffer, readString) : [],
 			callee,
-			_rollupAnnotations: annotations
+			...(annotations.length > 0 ? { _rollupAnnotations: annotations } : {})
 		};
 	},
 	// index:50; ObjectExpression
@@ -818,7 +818,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			body,
 			sourceType: 'module',
-			_rollupRemoved: annotations
+			...(annotations.length > 0 ? { _rollupRemoved: annotations } : {})
 		};
 	},
 	// index:54; Property
@@ -1199,13 +1199,13 @@ export interface RollupAnnotation {
 }
 
 interface CallExpression extends estree.SimpleCallExpression {
-	[ANNOTATION_KEY]: RollupAnnotation[];
+	[ANNOTATION_KEY]?: RollupAnnotation[];
 }
 
 interface NewExpression extends estree.NewExpression {
-	[ANNOTATION_KEY]: RollupAnnotation[];
+	[ANNOTATION_KEY]?: RollupAnnotation[];
 }
 
 interface Program extends estree.Program {
-	[INVALID_ANNOTATION_KEY]: RollupAnnotation[];
+	[INVALID_ANNOTATION_KEY]?: RollupAnnotation[];
 }
