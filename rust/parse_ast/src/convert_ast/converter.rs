@@ -589,9 +589,8 @@ impl<'a> AstConverter<'a> {
     let start = self
       .index_converter
       .convert(parenthesized_expression.span.lo.0 - 1);
-    // TODO Lukas think of others, nested parenthesized expressions?
     match &*parenthesized_expression.expr {
-      Expr::Call(_) | Expr::New(_) => {}
+      Expr::Call(_) | Expr::New(_) | Expr::Paren(_) => {}
       _ => self.index_converter.invalidate_collected_annotations(),
     };
     self.convert_expression(&parenthesized_expression.expr);
