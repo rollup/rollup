@@ -94,7 +94,7 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm i -g npm@8 && npm ci --ignore-scripts
       - name: Run tests
         run: npm run ci:test:only
         env:
@@ -120,6 +120,9 @@ jobs:
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Update npm
+        if: (matrix.node == '14.18.0') && (steps.cache-node-modules.outputs.cache-hit != 'true')
+        run: npm i -g npm@8
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
@@ -148,6 +151,9 @@ jobs:
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Update npm
+        if: (matrix.node == '14.18.0') && (steps.cache-node-modules.outputs.cache-hit != 'true')
+        run: npm i -g npm@8
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
