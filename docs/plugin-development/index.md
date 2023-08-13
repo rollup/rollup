@@ -916,6 +916,7 @@ interface ChunkInfo {
 	};
 	moduleIds: string[];
 	name: string;
+	preliminaryFileName: string;
 	referencedFiles: string[];
 	type: 'chunk';
 }

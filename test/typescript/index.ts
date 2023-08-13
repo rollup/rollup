@@ -33,6 +33,12 @@ const _pluginHooks: rollup.Plugin = {
 		await this.resolve('rollup');
 	},
 	name: 'test',
+	renderChunk(_code, { modules }) {
+		for (const id in modules) {
+			// @ts-expect-error Cannot assign to 'code' because it is a read-only property
+			modules[id].code += '\n';
+		}
+	},
 	resolveId: {
 		async handler(source, _importer, _options) {
 			await this.resolve('rollup');

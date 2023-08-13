@@ -94,6 +94,7 @@ async function generateOutputs(bundle) {
         //     };
         //   },
         //   name: string                   // the name of this chunk as used in naming patterns
+        //   preliminaryFileName: string    // the preliminary file name of this chunk with hash placeholders
         //   referencedFiles: string[]      // files referenced via import.meta.ROLLUP_FILE_URL_<id>
         //   type: 'chunk',                 // signifies that this is a chunk
         // }
