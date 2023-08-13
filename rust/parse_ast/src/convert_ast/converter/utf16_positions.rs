@@ -2,28 +2,27 @@ use std::mem;
 use std::slice::Iter;
 use std::str::Chars;
 
-use swc_common::comments::Comment;
+use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 
-#[derive(Debug)]
 pub struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   current_utf8_index: u32,
   current_utf16_index: u32,
   character_iterator: Chars<'a>,
-  next_annotation: Option<&'a Comment>,
+  next_annotation: Option<&'a AnnotationWithType>,
   next_annotation_start: u32,
-  annotation_iterator: Iter<'a, Comment>,
+  annotation_iterator: Iter<'a, AnnotationWithType>,
   collected_annotations: Vec<ConvertedAnnotation>,
   invalid_annotations: Vec<ConvertedAnnotation>,
 }
 
-#[derive(Debug)]
 pub struct ConvertedAnnotation {
   pub start: u32,
   pub end: u32,
+  pub kind: AnnotationKind,
 }
 
 impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
-  pub fn new(code: &'a str, annotations: &'a Vec<Comment>) -> Self {
+  pub fn new(code: &'a str, annotations: &'a Vec<AnnotationWithType>) -> Self {
     let mut annotation_iterator = annotations.iter();
     let current_annotation = annotation_iterator.next();
     Self {
@@ -66,7 +65,10 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     while self.current_utf8_index < utf8_index {
       if self.current_utf8_index == self.next_annotation_start {
         let start = self.current_utf16_index;
-        let next_annotation_end = self.next_annotation.map(|a| a.span.hi.0 - 1).unwrap();
+        let (next_annotation_end, next_annotation_kind) = self
+          .next_annotation
+          .map(|a| (a.comment.span.hi.0 - 1, a.kind.clone()))
+          .unwrap();
         while self.current_utf8_index < next_annotation_end {
           let character = self.character_iterator.next().unwrap();
           self.current_utf8_index += character.len_utf8() as u32;
@@ -75,6 +77,7 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
         self.collected_annotations.push(ConvertedAnnotation {
           start,
           end: self.current_utf16_index,
+          kind: next_annotation_kind,
         });
         self.next_annotation = self.annotation_iterator.next();
         self.next_annotation_start = get_annotation_start(self.next_annotation);
@@ -95,8 +98,16 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     self.current_utf16_index
   }
 
-  pub fn take_collected_annotations(&mut self) -> Vec<ConvertedAnnotation> {
-    mem::replace(&mut self.collected_annotations, Vec::new())
+  pub fn take_collected_annotations(&mut self, kind: AnnotationKind) -> Vec<ConvertedAnnotation> {
+    let mut relevant_annotations = Vec::new();
+    for annotation in self.collected_annotations.drain(..) {
+      if annotation.kind == kind {
+        relevant_annotations.push(annotation);
+      } else {
+        self.invalid_annotations.push(annotation);
+      }
+    }
+    relevant_annotations
   }
 
   pub fn invalidate_collected_annotations(&mut self) {
@@ -111,6 +122,8 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   }
 }
 
-fn get_annotation_start(annotation: Option<&Comment>) -> u32 {
-  annotation.map(|a| a.span.lo.0 - 1).unwrap_or(u32::MAX)
+fn get_annotation_start(annotation: Option<&AnnotationWithType>) -> u32 {
+  annotation
+    .map(|a| a.comment.span.lo.0 - 1)
+    .unwrap_or(u32::MAX)
 }

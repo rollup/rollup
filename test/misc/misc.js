@@ -182,8 +182,7 @@ describe('misc', () => {
 			);
 	});
 
-	// TODO SWC requires comment handling
-	it.skip('consistently handles comments when using the cache', async () => {
+	it('consistently handles comments when using the cache', async () => {
 		const FILES = {
 			main: `import value from "other";
 console.log(value);

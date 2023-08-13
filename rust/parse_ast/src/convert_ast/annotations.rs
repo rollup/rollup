@@ -1,36 +1,52 @@
 use std::cell::RefCell;
+
 use swc_common::comments::{Comment, Comments};
 use swc_common::BytePos;
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct SequentialComments {
-  annotations: RefCell<Vec<Comment>>,
+  annotations: RefCell<Vec<AnnotationWithType>>,
 }
-
-const PURE_COMMENT: &str = "__PURE__";
 
 impl SequentialComments {
   pub fn add_comment(&self, comment: Comment) {
-    if let Some(position) = comment.text.find(PURE_COMMENT) {
-      if let Some(first_character) = comment.text.bytes().nth(position - 1) {
-        if first_character == b'@' || first_character == b'#' {
-          // TODO SWC remove this again if we are sure everything is always in order
-          let current_position: u32 = self
-            .annotations
-            .borrow()
-            .last()
-            .map(|c| c.span.hi.0)
-            .unwrap_or(0);
-          if current_position > comment.span.lo.0 {
-            panic!("Comment {:?} is not in order", comment);
+    if comment.text.starts_with('#') && comment.text.contains("sourceMappingURL=") {
+      self.annotations.borrow_mut().push(AnnotationWithType {
+        comment,
+        kind: AnnotationKind::SourceMappingUrl,
+      });
+      return;
+    }
+    // TODO Lukas verify if it is ok if the search_position is past the end of the string
+    let mut search_position = 1;
+    while let Some(Some(match_position)) = comment.text.get(search_position..).map(|s| s.find("__"))
+    {
+      search_position += match_position;
+      match &comment.text[search_position - 1..search_position] {
+        "@" | "#" => {
+          let annotation_slice = &comment.text[search_position..];
+          if annotation_slice.starts_with("__PURE__") {
+            self.annotations.borrow_mut().push(AnnotationWithType {
+              comment,
+              kind: AnnotationKind::Pure,
+            });
+            return;
           }
-          self.annotations.borrow_mut().push(comment);
+          if annotation_slice.starts_with("__NO_SIDE_EFFECTS__") {
+            self.annotations.borrow_mut().push(AnnotationWithType {
+              comment,
+              kind: AnnotationKind::NoSideEffects,
+            });
+            return;
+          }
         }
+        _ => {}
       }
+      search_position += 3;
     }
   }
 
-  pub fn take_annotations(self) -> Vec<Comment> {
+  pub fn take_annotations(self) -> Vec<AnnotationWithType> {
     self.annotations.take()
   }
 }
@@ -99,4 +115,16 @@ impl Comments for SequentialComments {
   fn add_pure_comment(&self, _: BytePos) {
     panic!("add_pure_comment");
   }
+}
+
+pub struct AnnotationWithType {
+  pub comment: Comment,
+  pub kind: AnnotationKind,
+}
+
+#[derive(Clone, PartialEq)]
+pub enum AnnotationKind {
+  Pure,
+  NoSideEffects,
+  SourceMappingUrl,
 }

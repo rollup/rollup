@@ -1,11 +1,4 @@
-use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
-use crate::convert_ast::converter::node_types::*;
-use crate::convert_ast::converter::string_constants::*;
-use crate::convert_ast::converter::utf16_positions::{
-  ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
-};
 use swc::atoms::JsWord;
-use swc_common::comments::Comment;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AwaitExpr, BigInt,
@@ -26,6 +19,14 @@ use swc_ecma_ast::{
   VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
+use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
+use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
+use crate::convert_ast::converter::node_types::*;
+use crate::convert_ast::converter::string_constants::*;
+use crate::convert_ast::converter::utf16_positions::{
+  ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
+};
+
 mod analyze_code;
 pub mod node_types;
 mod string_constants;
@@ -38,7 +39,7 @@ pub struct AstConverter<'a> {
 }
 
 impl<'a> AstConverter<'a> {
-  pub fn new(code: &'a str, annotations: &'a Vec<Comment>) -> Self {
+  pub fn new(code: &'a str, annotations: &'a Vec<AnnotationWithType>) -> Self {
     Self {
       // TODO SWC This is just a wild guess and should be refined with a large
       // block of minified code
@@ -751,6 +752,7 @@ impl<'a> AstConverter<'a> {
     self.add_explicit_end(end_position, self.code.len() as u32);
     // annotations
     self.update_reference_position(reference_position);
+    self.index_converter.invalidate_collected_annotations();
     let invalid_annotations = self.index_converter.take_invalid_annotations();
     self.convert_item_list(&invalid_annotations, |ast_converter, annotation| {
       ast_converter.convert_annotation(annotation);
@@ -963,7 +965,9 @@ impl<'a> AstConverter<'a> {
     is_chained: bool,
   ) {
     let end_position = self.add_type_and_start(&TYPE_CALL_EXPRESSION, span);
-    let annotations = self.index_converter.take_collected_annotations();
+    let annotations = self
+      .index_converter
+      .take_collected_annotations(AnnotationKind::Pure);
     // optional
     self.convert_boolean(is_optional);
     // reserve for callee, arguments
@@ -1818,7 +1822,9 @@ impl<'a> AstConverter<'a> {
 
   fn convert_new_expression(&mut self, new_expression: &NewExpr) {
     let end_position = self.add_type_and_start(&TYPE_NEW_EXPRESSION, &new_expression.span);
-    let annotations = self.index_converter.take_collected_annotations();
+    let annotations = self
+      .index_converter
+      .take_collected_annotations(AnnotationKind::Pure);
     // reserve for callee, args
     let reference_position = self.reserve_reference_positions(2);
     // annotations
