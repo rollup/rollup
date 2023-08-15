@@ -13,8 +13,10 @@ pub struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   annotation_iterator: Iter<'a, AnnotationWithType>,
   collected_annotations: Vec<ConvertedAnnotation>,
   invalid_annotations: Vec<ConvertedAnnotation>,
+  keep_annotations: bool,
 }
 
+#[derive(Debug)]
 pub struct ConvertedAnnotation {
   pub start: u32,
   pub end: u32,
@@ -34,6 +36,7 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
       annotation_iterator,
       collected_annotations: Vec::new(),
       invalid_annotations: Vec::with_capacity(annotations.len()),
+      keep_annotations: false,
     }
   }
 
@@ -46,8 +49,8 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   /// The logic for those comments is as follows:
   /// - If the current index is at the start of an annotation, the annotation
   ///   is collected and the index is advanced to the end of the annotation.
-  /// - Otherwise, we check if the next character is either a white-space
-  ///   character or a `(`. Otherwise, we invalidate all collected annotations.
+  /// - Otherwise, we check if the next character is a white-space character.
+  ///   If not, we invalidate all collected annotations.
   ///   This is to ensure that we only collect annotations that directly precede
   ///   an expression and are not e.g. separated by a comma.
   /// - If annotations are relevant for an expression, it can "take" the
@@ -55,7 +58,11 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   ///   clears the internal buffer and returns the collected annotations.
   /// - Invalidated annotations are attached to the Program node so that they
   ///   can all be removed from the source code later.
-  pub fn convert(&mut self, utf8_index: u32) -> u32 {
+  /// - If an annotation can influence a child that is separated by some
+  ///   non-whitespace from the annotation, `keep_annotations_for_next` will
+  ///   prevent annotations from being invalidated when the next position is
+  ///   converted.
+  pub fn convert(&mut self, utf8_index: u32, keep_annotations_for_next: bool) -> u32 {
     if self.current_utf8_index > utf8_index {
       panic!(
         "Cannot convert positions backwards: {} < {}",
@@ -83,9 +90,9 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
         self.next_annotation_start = get_annotation_start(self.next_annotation);
       } else {
         let character = self.character_iterator.next().unwrap();
-        if !self.collected_annotations.is_empty() {
+        if !(self.keep_annotations || self.collected_annotations.is_empty()) {
           match character {
-            ' ' | '\t' | '\r' | '\n' | '(' => {}
+            ' ' | '\t' | '\r' | '\n' => {}
             _ => {
               self.invalidate_collected_annotations();
             }
@@ -95,6 +102,7 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
         self.current_utf16_index += character.len_utf16() as u32;
       }
     }
+    self.keep_annotations = keep_annotations_for_next;
     self.current_utf16_index
   }
 
@@ -108,6 +116,11 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
       }
     }
     relevant_annotations
+  }
+
+  pub fn add_collected_annotations(&mut self, annotations: Vec<ConvertedAnnotation>) {
+    self.collected_annotations.extend(annotations);
+    self.keep_annotations = true;
   }
 
   pub fn invalidate_collected_annotations(&mut self) {

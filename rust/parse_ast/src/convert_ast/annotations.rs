@@ -17,7 +17,6 @@ impl SequentialComments {
       });
       return;
     }
-    // TODO Lukas verify if it is ok if the search_position is past the end of the string
     let mut search_position = 1;
     while let Some(Some(match_position)) = comment.text.get(search_position..).map(|s| s.find("__"))
     {
@@ -122,7 +121,7 @@ pub struct AnnotationWithType {
   pub kind: AnnotationKind,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum AnnotationKind {
   Pure,
   NoSideEffects,

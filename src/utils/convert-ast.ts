@@ -44,14 +44,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// index:2; ArrowFunctionExpression
-	(position, buffer, readString): estree.ArrowFunctionExpression & AcornNode & { id: null } => {
+	(position, buffer, readString): ArrowFunctionExpression & AcornNode & { id: null } => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const async = !!buffer[position++];
 		const generator = !!buffer[position++];
 		const expression = !!buffer[position++];
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const body = convertNode(buffer[position++], buffer, readString);
-		const parameters = convertNodeList(position, buffer, readString);
+		const annotations = convertAnnotationList(position, buffer);
 		return {
 			type: 'ArrowFunctionExpression',
 			start,
@@ -61,7 +62,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			expression,
 			generator,
 			id: null,
-			params: parameters
+			params: parameters,
+			_rollupAnnotations: annotations
 		};
 	},
 	// index:3; AssignmentExpression
@@ -428,18 +430,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// index:28; FunctionDeclaration
-	(
-		position,
-		buffer,
-		readString
-	): estree.FunctionDeclaration & AcornNode & { expression: false } => {
+	(position, buffer, readString): FunctionDeclaration & AcornNode & { expression: false } => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const async = !!buffer[position++];
 		const generator = !!buffer[position++];
 		const idPosition = buffer[position++];
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position], buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const annotations = convertAnnotationList(position, buffer);
 		return {
 			type: 'FunctionDeclaration',
 			start,
@@ -449,18 +448,20 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			expression: false,
 			generator,
 			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
-			params: parameters
+			params: parameters,
+			_rollupAnnotations: annotations
 		};
 	},
 	// index:29; FunctionExpression
-	(position, buffer, readString): estree.FunctionExpression & AcornNode & { expression: false } => {
+	(position, buffer, readString): FunctionExpression & AcornNode & { expression: false } => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const async = !!buffer[position++];
 		const generator = !!buffer[position++];
 		const idPosition = buffer[position++];
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position], buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const annotations = convertAnnotationList(position, buffer);
 		return {
 			type: 'FunctionExpression',
 			start,
@@ -470,7 +471,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			expression: false,
 			generator,
 			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
-			params: parameters
+			params: parameters,
+			_rollupAnnotations: annotations
 		};
 	},
 	// index:30; Identifier
@@ -1203,6 +1205,18 @@ interface CallExpression extends estree.SimpleCallExpression {
 }
 
 interface NewExpression extends estree.NewExpression {
+	[ANNOTATION_KEY]?: RollupAnnotation[];
+}
+
+interface FunctionExpression extends estree.FunctionExpression {
+	[ANNOTATION_KEY]?: RollupAnnotation[];
+}
+
+interface FunctionDeclaration extends estree.FunctionDeclaration {
+	[ANNOTATION_KEY]?: RollupAnnotation[];
+}
+
+interface ArrowFunctionExpression extends estree.ArrowFunctionExpression {
 	[ANNOTATION_KEY]?: RollupAnnotation[];
 }
 

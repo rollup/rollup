@@ -62,11 +62,11 @@ impl<'a> AstConverter<'a> {
     // start
     self
       .buffer
-      .extend_from_slice(&(self.index_converter.convert(span.lo.0 - 1)).to_ne_bytes());
+      .extend_from_slice(&(self.index_converter.convert(span.lo.0 - 1, false)).to_ne_bytes());
     // end
     self
       .buffer
-      .extend_from_slice(&(self.index_converter.convert(span.hi.0 - 1)).to_ne_bytes());
+      .extend_from_slice(&(self.index_converter.convert(span.hi.0 - 1, false)).to_ne_bytes());
   }
 
   fn add_type_and_explicit_start(&mut self, node_type: &[u8; 4], start: u32) -> usize {
@@ -75,7 +75,7 @@ impl<'a> AstConverter<'a> {
     // start
     self
       .buffer
-      .extend_from_slice(&(self.index_converter.convert(start)).to_ne_bytes());
+      .extend_from_slice(&(self.index_converter.convert(start, false)).to_ne_bytes());
     // end
     let end_position = self.buffer.len();
     self.buffer.resize(end_position + 4, 0);
@@ -84,14 +84,25 @@ impl<'a> AstConverter<'a> {
 
   fn add_explicit_end(&mut self, end_position: usize, end: u32) {
     self.buffer[end_position..end_position + 4]
-      .copy_from_slice(&(self.index_converter.convert(end)).to_ne_bytes());
+      .copy_from_slice(&(self.index_converter.convert(end, false)).to_ne_bytes());
   }
 
   fn add_type_and_start(&mut self, node_type: &[u8; 4], span: &Span) -> usize {
+    self.add_type_and_start_and_handle_annotations(node_type, span, false)
+  }
+
+  fn add_type_and_start_and_handle_annotations(
+    &mut self,
+    node_type: &[u8; 4],
+    span: &Span,
+    keep_annotations: bool,
+  ) -> usize {
     // type
     self.buffer.extend_from_slice(node_type);
     // start
-    let start = self.index_converter.convert(span.lo.0 - 1);
+    let start = self
+      .index_converter
+      .convert(span.lo.0 - 1, keep_annotations);
     self.buffer.extend_from_slice(&start.to_ne_bytes());
     // end
     let end_position = self.buffer.len();
@@ -101,7 +112,7 @@ impl<'a> AstConverter<'a> {
 
   fn add_end(&mut self, end_position: usize, span: &Span) {
     self.buffer[end_position..end_position + 4]
-      .copy_from_slice(&(self.index_converter.convert(span.hi.0 - 1)).to_ne_bytes());
+      .copy_from_slice(&(self.index_converter.convert(span.hi.0 - 1, false)).to_ne_bytes());
   }
 
   fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
@@ -587,17 +598,17 @@ impl<'a> AstConverter<'a> {
     &mut self,
     parenthesized_expression: &ParenExpr,
   ) -> (u32, u32) {
-    let start = self
-      .index_converter
-      .convert(parenthesized_expression.span.lo.0 - 1);
-    match &*parenthesized_expression.expr {
-      Expr::Call(_) | Expr::New(_) | Expr::Paren(_) => {}
-      _ => self.index_converter.invalidate_collected_annotations(),
-    };
+    let start = self.index_converter.convert(
+      parenthesized_expression.span.lo.0 - 1,
+      match &*parenthesized_expression.expr {
+        Expr::Call(_) | Expr::New(_) | Expr::Paren(_) => true,
+        _ => false,
+      },
+    );
     self.convert_expression(&parenthesized_expression.expr);
     let end = self
       .index_converter
-      .convert(parenthesized_expression.span.hi.0 - 1);
+      .convert(parenthesized_expression.span.hi.0 - 1, false);
     (start, end)
   }
 
@@ -788,7 +799,15 @@ impl<'a> AstConverter<'a> {
     declaration: Option<&Decl>,
     asserts: &Option<Box<ObjectLit>>,
   ) {
-    let end_position = self.add_type_and_start(&TYPE_EXPORT_NAMED_DECLARATION, span);
+    let end_position = self.add_type_and_start_and_handle_annotations(
+      &TYPE_EXPORT_NAMED_DECLARATION,
+      span,
+      match declaration {
+        Some(Decl::Fn(_)) => true,
+        Some(Decl::Var(variable_declaration)) => variable_declaration.kind == VarDeclKind::Const,
+        _ => false,
+      },
+    );
     // reserve for declaration, src, attributes
     let reference_position = self.reserve_reference_positions(3);
     // specifiers
@@ -840,8 +859,14 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_variable_declaration(&mut self, variable_declaration: &VarDecl) {
-    let end_position =
-      self.add_type_and_start(&TYPE_VARIABLE_DECLARATION, &variable_declaration.span);
+    let end_position = self.add_type_and_start_and_handle_annotations(
+      &TYPE_VARIABLE_DECLARATION,
+      &variable_declaration.span,
+      match variable_declaration.kind {
+        VarDeclKind::Const => true,
+        _ => false,
+      },
+    );
     self
       .buffer
       .extend_from_slice(match variable_declaration.kind {
@@ -863,11 +888,26 @@ impl<'a> AstConverter<'a> {
   fn convert_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
     let end_position =
       self.add_type_and_start(&TYPE_VARIABLE_DECLARATOR, &variable_declarator.span);
+    let forwarded_annotations = match &variable_declarator.init {
+      Some(expression) => match &**expression {
+        Expr::Arrow(_) => {
+          let annotations = self
+            .index_converter
+            .take_collected_annotations(AnnotationKind::NoSideEffects);
+          Some(annotations)
+        }
+        _ => None,
+      },
+      None => None,
+    };
     // reserve for init
     let reference_position = self.reserve_reference_positions(1);
     // id
     self.convert_pattern(&variable_declarator.name);
     // init
+    forwarded_annotations.map(|annotations| {
+      self.index_converter.add_collected_annotations(annotations);
+    });
     variable_declarator.init.as_ref().map(|init| {
       self.update_reference_position(reference_position);
       self.convert_expression(&init);
@@ -1024,6 +1064,9 @@ impl<'a> AstConverter<'a> {
   fn convert_arrow_expression(&mut self, arrow_expression: &ArrowExpr) {
     let end_position =
       self.add_type_and_start(&TYPE_ARROW_FUNCTION_EXPRESSION, &arrow_expression.span);
+    let annotations = self
+      .index_converter
+      .take_collected_annotations(AnnotationKind::NoSideEffects);
     // async
     self.convert_boolean(arrow_expression.is_async);
     // generator
@@ -1033,15 +1076,21 @@ impl<'a> AstConverter<'a> {
       BlockStmtOrExpr::BlockStmt(_) => false,
       BlockStmtOrExpr::Expr(_) => true,
     });
-    // reserve for body
-    let reference_position = self.reserve_reference_positions(1);
+    // reserve for params, body
+    let reference_position = self.reserve_reference_positions(2);
+    // annotations
+    self.convert_item_list(&annotations, |ast_converter, annotation| {
+      ast_converter.convert_annotation(annotation);
+      true
+    });
     // params
+    self.update_reference_position(reference_position);
     self.convert_item_list(&arrow_expression.params, |ast_converter, param| {
       ast_converter.convert_pattern(param);
       true
     });
     // body
-    self.update_reference_position(reference_position);
+    self.update_reference_position(reference_position + 4);
     match &*arrow_expression.body {
       BlockStmtOrExpr::BlockStmt(block_statement) => {
         self.convert_block_statement(block_statement, true)
@@ -1225,7 +1274,15 @@ impl<'a> AstConverter<'a> {
     span: &Span,
     expression: StoredDefaultExportExpression,
   ) {
-    let end_position = self.add_type_and_start(&TYPE_EXPORT_DEFAULT_DECLARATION, span);
+    let end_position = self.add_type_and_start_and_handle_annotations(
+      &TYPE_EXPORT_DEFAULT_DECLARATION,
+      span,
+      match expression {
+        StoredDefaultExportExpression::Expression(Expr::Fn(_) | Expr::Arrow(_))
+        | StoredDefaultExportExpression::Function(_) => true,
+        _ => false,
+      },
+    );
     // expression
     match expression {
       StoredDefaultExportExpression::Expression(expression) => {
@@ -1416,6 +1473,7 @@ impl<'a> AstConverter<'a> {
       identifier,
       &function.params.iter().map(|param| &param.pat).collect(),
       function.body.as_ref().unwrap(),
+      true,
     );
   }
 
@@ -1670,6 +1728,7 @@ impl<'a> AstConverter<'a> {
       None,
       &parameters,
       block_statement,
+      false,
     );
     // end
     self.add_end(end_position, span);
@@ -1727,6 +1786,7 @@ impl<'a> AstConverter<'a> {
       None,
       &function.params.iter().map(|param| &param.pat).collect(),
       function.body.as_ref().unwrap(),
+      false,
     );
     // end
     self.add_end(end_position, &method_property.function.span);
@@ -1860,6 +1920,7 @@ impl<'a> AstConverter<'a> {
     identifier: Option<&Ident>,
     parameters: &Vec<&Pat>,
     body: &BlockStmt,
+    observe_annotations: bool,
   ) {
     let end_position = self.add_type_and_explicit_start(node_type, start);
     // async
@@ -1868,6 +1929,18 @@ impl<'a> AstConverter<'a> {
     self.convert_boolean(is_generator);
     // reserve id, params, body
     let reference_position = self.reserve_reference_positions(3);
+    // annotations
+    if observe_annotations {
+      let annotations = self
+        .index_converter
+        .take_collected_annotations(AnnotationKind::NoSideEffects);
+      self.convert_item_list(&annotations, |ast_converter, annotation| {
+        ast_converter.convert_annotation(annotation);
+        true
+      });
+    } else {
+      self.buffer.extend_from_slice(&0u32.to_ne_bytes());
+    }
     // id
     identifier.map(|ident| {
       self.update_reference_position(reference_position);
@@ -2241,6 +2314,7 @@ impl<'a> AstConverter<'a> {
             })
             .collect(),
           block_statement,
+          false,
         );
       }
       None => {
@@ -2321,6 +2395,7 @@ impl<'a> AstConverter<'a> {
       None,
       &function.params.iter().map(|param| &param.pat).collect(),
       function.body.as_ref().unwrap(),
+      false,
     );
     // end
     self.add_end(end_position, span);
@@ -2611,7 +2686,11 @@ impl<'a> AstConverter<'a> {
     // end
     self.buffer.extend_from_slice(&annotation.end.to_ne_bytes());
     // kind
-    self.buffer.extend_from_slice(&STRING_PURE);
+    self.buffer.extend_from_slice(match annotation.kind {
+      AnnotationKind::Pure => &STRING_PURE,
+      AnnotationKind::NoSideEffects => &STRING_NOSIDEEFFECTS,
+      AnnotationKind::SourceMappingUrl => &STRING_SOURCEMAP,
+    });
   }
 }
 

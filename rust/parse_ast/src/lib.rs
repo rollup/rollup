@@ -1,3 +1,4 @@
+#![feature(ptr_internals)]
 use std::sync::Arc;
 
 use swc::{config::ParseOptions, Compiler};

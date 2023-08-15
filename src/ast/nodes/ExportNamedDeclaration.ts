@@ -31,6 +31,10 @@ export default class ExportNamedDeclaration extends NodeBase {
 		this.context.addExport(this);
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.declaration?.removeAnnotations(code);
+	}
+
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		const { start, end } = nodeRenderOptions as { end: number; start: number };
 		if (this.declaration === null) {
