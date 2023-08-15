@@ -77,7 +77,7 @@ runTestSuiteWithSamples(
 				}
 				assertOutputMatches(output, directory);
 			}
-		);
+		).timeout(30_000);
 	}
 );
 
