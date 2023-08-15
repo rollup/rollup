@@ -220,6 +220,7 @@ export interface PluginContext extends MinimalPluginContext {
 	) => Promise<ModuleInfo>;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
+	// TODO SWC remove acorn options from this.parse
 	parse: (input: string, options?: any) => AcornNode;
 	resolve: (
 		source: string,
