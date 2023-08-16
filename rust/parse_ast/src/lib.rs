@@ -38,7 +38,7 @@ pub fn parse_ast(code: String) -> Vec<u8> {
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
     compiler.run(|| {
-      let result = try_with_handler(compiler.cm.clone(), |handler| {
+      let result = try_with_handler(&code_reference, |handler| {
         compiler.parse_js(
           file,
           handler,

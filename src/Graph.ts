@@ -149,7 +149,6 @@ export default class Graph {
 		// try {
 		// console.time('swc');
 		const astBuffer = native.parse(code);
-		// TODO XiaoPi: handle the buffer of syntax error
 		const ast = convertProgram(astBuffer.buffer, (start, length) =>
 			readString(astBuffer, start, length)
 		);

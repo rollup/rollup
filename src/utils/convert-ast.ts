@@ -1,6 +1,7 @@
 import type * as estree from 'estree';
 import type { AcornNode } from '../rollup/types';
 import { FIXED_STRINGS } from './convert-ast-strings';
+import { error } from './logs';
 
 type ReadString = (start: number, length: number) => string;
 
@@ -1131,6 +1132,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			argument: argumentPosition ? convertNode(argumentPosition, buffer, readString) : null,
 			delegate
 		};
+	},
+	// index:76; Syntax Error
+	(position, buffer, readString): never => {
+		const pos = buffer[position++];
+		const message = convertString(position, buffer, readString);
+		error({
+			pos,
+			message
+		});
 	}
 ];
 

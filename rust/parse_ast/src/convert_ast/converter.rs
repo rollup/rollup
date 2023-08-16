@@ -167,13 +167,7 @@ impl<'a> AstConverter<'a> {
 
   // TODO SWC deduplicate strings and see if we can easily compare atoms
   fn convert_string(&mut self, string: &str) {
-    let length = string.len();
-    let additional_length = ((length + 3) & !3) - length;
-    self
-      .buffer
-      .extend_from_slice(&(length as u32).to_ne_bytes());
-    self.buffer.extend_from_slice(string.as_bytes());
-    self.buffer.resize(self.buffer.len() + additional_length, 0);
+    convert_string(&mut self.buffer, string);
   }
 
   fn convert_boolean(&mut self, boolean: bool) {
@@ -2692,6 +2686,14 @@ impl<'a> AstConverter<'a> {
       AnnotationKind::SourceMappingUrl => &STRING_SOURCEMAP,
     });
   }
+}
+
+pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
+  let length = string.len();
+  let additional_length = ((length + 3) & !3) - length;
+  buffer.extend_from_slice(&(length as u32).to_ne_bytes());
+  buffer.extend_from_slice(string.as_bytes());
+  buffer.resize(buffer.len() + additional_length, 0);
 }
 
 enum StoredCallee<'a> {

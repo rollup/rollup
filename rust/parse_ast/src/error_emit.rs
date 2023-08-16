@@ -1,18 +1,15 @@
-// some code copied from swc_error_reporters/src/handler.rs
-
-use std::{fmt, io::Write, mem::take, sync::Arc};
+use std::{io::Write, mem::take, sync::Arc};
 
 use anyhow::Error;
 use parking_lot::Mutex;
-use swc_common::{errors::Handler, sync::Lrc, SourceMap};
-use swc_error_reporters::PrettyEmitter;
+use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level};
 
-use crate::convert_ast::converter::node_types::TYPE_PARSE_ERROR;
+use crate::convert_ast::converter::{convert_string, node_types::TYPE_PARSE_ERROR};
 
 #[derive(Clone, Default)]
-struct LockedWriter(Arc<Mutex<Vec<u8>>>);
+struct Writer(Arc<Mutex<Vec<u8>>>);
 
-impl Write for LockedWriter {
+impl Write for Writer {
   fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
     let mut lock = self.0.lock();
 
@@ -20,27 +17,38 @@ impl Write for LockedWriter {
 
     Ok(buf.len())
   }
-
   fn flush(&mut self) -> std::io::Result<()> {
     Ok(())
   }
 }
 
-impl fmt::Write for LockedWriter {
-  fn write_str(&mut self, s: &str) -> fmt::Result {
-    self.write(s.as_bytes()).map_err(|_| fmt::Error)?;
+pub struct ErrorEmitter {
+  wr: Box<Writer>,
+}
 
-    Ok(())
+impl Emitter for ErrorEmitter {
+  fn emit(&mut self, db: &DiagnosticBuilder<'_>) {
+    if db.level == Level::Error {
+      let mut buffer = Vec::new();
+      let mut pos: u32 = 0;
+      if let Some(span) = db.span.primary_span() {
+        pos = span.lo.0 - 1;
+      };
+      let message = &db.message[0].0;
+      buffer.extend_from_slice(&(pos as u32).to_ne_bytes());
+      convert_string(&mut buffer, message);
+      let _ = self.wr.write(&buffer);
+    }
   }
 }
 
-pub fn try_with_handler<F, Ret>(cm: Lrc<SourceMap>, op: F) -> Result<Ret, Vec<u8>>
+pub fn try_with_handler<F, Ret>(code: &str, op: F) -> Result<Ret, Vec<u8>>
 where
   F: FnOnce(&Handler) -> Result<Ret, Error>,
 {
-  let wr = Box::<LockedWriter>::default();
+  let wr = Box::<Writer>::default();
 
-  let emitter = PrettyEmitter::new(cm, wr.clone(), Default::default(), Default::default());
+  let emitter = ErrorEmitter { wr: wr.clone() };
 
   let handler = Handler::with_emitter(true, false, Box::new(emitter));
 
@@ -48,13 +56,23 @@ where
 
   match result {
     Ok(r) => Ok(r),
-    Err(err) => {
+    Err(_) => {
       let mut buffer = TYPE_PARSE_ERROR.to_vec();
       if handler.has_errors() {
         let mut lock = wr.0.lock();
-        buffer.extend_from_slice(&take(&mut *lock));
+        let mut error_buffer = take(&mut *lock);
+        let pos = u32::from_ne_bytes(error_buffer[0..4].try_into().unwrap());
+        let mut utf_16_pos: u32 = 0;
+        for (utf_8_pos, char) in code.char_indices() {
+          if (utf_8_pos as u32) == pos {
+            break;
+          }
+          utf_16_pos += char.len_utf16() as u32;
+        }
+        error_buffer[0..4].copy_from_slice(&utf_16_pos.to_ne_bytes());
+        buffer.extend_from_slice(&error_buffer);
       } else {
-        buffer.extend_from_slice(&err.to_string().as_bytes().to_vec());
+        panic!("Unexpected error in parse")
       }
       Err(buffer)
     }
