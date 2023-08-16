@@ -14,6 +14,7 @@ import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
+import { emitNativeEntry } from './build-plugins/emit-native-entry';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
 import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
@@ -38,14 +39,6 @@ const treeshake = {
 };
 
 const nodePlugins: readonly Plugin[] = [
-	replace({
-		delimiters: ['', ''],
-		include: 'src/Graph.ts',
-		preventAssignment: true,
-		values: {
-			'/native': '/native.cjs'
-		}
-	}),
 	replace(fsEventsReplacement),
 	alias(moduleAliases),
 	nodeResolve(),
@@ -91,6 +84,7 @@ export default async function (
 		},
 		plugins: [
 			...nodePlugins,
+			emitNativeEntry(),
 			addCliEntry(),
 			esmDynamicImport(),
 			!command.configTest && collectLicenses(),

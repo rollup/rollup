@@ -2,8 +2,6 @@ const path = require('node:path');
 const commonjs = require('@rollup/plugin-commonjs');
 
 module.exports = defineTest({
-	// TODO SWC fix
-	skip: true,
 	description: 'the content of c.js is complete',
 	options: {
 		plugins: [
