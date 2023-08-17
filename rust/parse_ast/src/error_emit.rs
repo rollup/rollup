@@ -2,7 +2,14 @@ use std::{io::Write, mem::take, sync::Arc};
 
 use anyhow::Error;
 use parking_lot::Mutex;
-use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level};
+use swc_common::{
+  errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER},
+  Mark, SourceMap, SyntaxContext,
+};
+use swc_ecma_ast::{EsVersion, Program};
+use swc_ecma_lints::{rule::Rule, rules, rules::LintParams};
+use swc_ecma_transforms_base::resolver;
+use swc_ecma_visit::VisitMutWith;
 
 use crate::convert_ast::converter::{convert_string, node_types::TYPE_PARSE_ERROR};
 
@@ -42,9 +49,14 @@ impl Emitter for ErrorEmitter {
   }
 }
 
-pub fn try_with_handler<F, Ret>(code: &str, op: F) -> Result<Ret, Vec<u8>>
+pub fn try_with_handler<F>(
+  code: &str,
+  cm: &Arc<SourceMap>,
+  es_version: EsVersion,
+  op: F,
+) -> Result<Program, Vec<u8>>
 where
-  F: FnOnce(&Handler) -> Result<Ret, Error>,
+  F: FnOnce(&Handler) -> Result<Program, Error>,
 {
   let wr = Box::<Writer>::default();
 
@@ -52,29 +64,66 @@ where
 
   let handler = Handler::with_emitter(true, false, Box::new(emitter));
 
-  let result = op(&handler);
+  let result = HANDLER.set(&handler, || op(&handler));
 
   match result {
-    Ok(r) => Ok(r),
-    Err(_) => {
-      let mut buffer = TYPE_PARSE_ERROR.to_vec();
-      if handler.has_errors() {
-        let mut lock = wr.0.lock();
-        let mut error_buffer = take(&mut *lock);
-        let pos = u32::from_ne_bytes(error_buffer[0..4].try_into().unwrap());
-        let mut utf_16_pos: u32 = 0;
-        for (utf_8_pos, char) in code.char_indices() {
-          if (utf_8_pos as u32) == pos {
-            break;
-          }
-          utf_16_pos += char.len_utf16() as u32;
+    Ok(mut program) => {
+      let unresolved_mark = Mark::new();
+      let top_level_mark = Mark::new();
+      let unresolved_ctxt = SyntaxContext::empty().apply_mark(unresolved_mark);
+      let top_level_ctxt = SyntaxContext::empty().apply_mark(top_level_mark);
+
+      program.visit_mut_with(&mut resolver(unresolved_mark, top_level_mark, false));
+
+      let mut rules = rules::all(LintParams {
+        program: &program,
+        lint_config: &Default::default(),
+        unresolved_ctxt,
+        top_level_ctxt,
+        es_version,
+        source_map: cm.clone(),
+      });
+
+      HANDLER.set(&handler, || match &program {
+        Program::Module(m) => {
+          rules.lint_module(m);
         }
-        error_buffer[0..4].copy_from_slice(&utf_16_pos.to_ne_bytes());
-        buffer.extend_from_slice(&error_buffer);
+        Program::Script(s) => {
+          rules.lint_script(s);
+        }
+      });
+
+      if handler.has_errors() {
+        let buffer = create_error_buffer(&wr, code);
+        Err(buffer)
+      } else {
+        Ok(program)
+      }
+    }
+    Err(_) => {
+      if handler.has_errors() {
+        let buffer = create_error_buffer(&wr, code);
+        Err(buffer)
       } else {
         panic!("Unexpected error in parse")
       }
-      Err(buffer)
     }
   }
+}
+
+fn create_error_buffer(wr: &Box<Writer>, code: &str) -> Vec<u8> {
+  let mut buffer = TYPE_PARSE_ERROR.to_vec();
+  let mut lock = wr.0.lock();
+  let mut error_buffer = take(&mut *lock);
+  let pos = u32::from_ne_bytes(error_buffer[0..4].try_into().unwrap());
+  let mut utf_16_pos: u32 = 0;
+  for (utf_8_pos, char) in code.char_indices() {
+    if (utf_8_pos as u32) == pos {
+      break;
+    }
+    utf_16_pos += char.len_utf16() as u32;
+  }
+  error_buffer[0..4].copy_from_slice(&utf_16_pos.to_ne_bytes());
+  buffer.extend_from_slice(&error_buffer);
+  buffer
 }
