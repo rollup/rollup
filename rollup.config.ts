@@ -38,6 +38,14 @@ const treeshake = {
 };
 
 const nodePlugins: readonly Plugin[] = [
+	replace({
+		delimiters: ['', ''],
+		include: 'src/Graph.ts',
+		preventAssignment: true,
+		values: {
+			'/native': '/native.cjs'
+		}
+	}),
 	replace(fsEventsReplacement),
 	alias(moduleAliases),
 	nodeResolve(),
@@ -109,18 +117,7 @@ export default async function (
 			minifyInternalExports: false,
 			sourcemap: false
 		},
-		plugins: [
-			...nodePlugins,
-			emitModulePackageFile(),
-			collectLicenses(),
-			writeLicense(),
-			{
-				name: 'add-cjs-extension-for-native-importee',
-				renderChunk(code) {
-					return code.replace('/native', '/native.cjs');
-				}
-			}
-		]
+		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
 	};
 
 	const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
