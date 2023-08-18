@@ -109,7 +109,18 @@ export default async function (
 			minifyInternalExports: false,
 			sourcemap: false
 		},
-		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
+		plugins: [
+			...nodePlugins,
+			emitModulePackageFile(),
+			collectLicenses(),
+			writeLicense(),
+			{
+				name: 'add-cjs-extension-for-native-importee',
+				renderChunk(code) {
+					return code.replace('/native', '/native.cjs');
+				}
+			}
+		]
 	};
 
 	const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
