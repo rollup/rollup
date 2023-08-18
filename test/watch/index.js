@@ -503,8 +503,7 @@ describe('rollup.watch', () => {
 		]);
 	});
 
-	// TODO SWC ensure all parse errors are thrown
-	it.skip('recovers from an error', async () => {
+	it('recovers from an error', async () => {
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -525,7 +524,7 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			"ERROR:Expected '{', got 'nope'",
 			'END',
 			() => {
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
@@ -540,8 +539,7 @@ describe('rollup.watch', () => {
 		]);
 	});
 
-	// TODO SWC ensure all parse errors are thrown
-	it.skip('recovers from an error on initial build', async () => {
+	it('recovers from an error on initial build', async () => {
 		await copy('test/watch/samples/error', 'test/_tmp/input');
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -554,7 +552,7 @@ describe('rollup.watch', () => {
 		return sequence(watcher, [
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			'ERROR:Expression expected',
 			'END',
 			() => {
 				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
@@ -651,8 +649,7 @@ describe('rollup.watch', () => {
 		]);
 	});
 
-	// TODO SWC ensure all parse errors are thrown
-	it.skip('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
+	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -674,7 +671,7 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			"ERROR:Expected '{', got 'nope'",
 			'END',
 			() => {
 				unlinkSync('test/_tmp/input/main.js');
@@ -690,8 +687,7 @@ describe('rollup.watch', () => {
 		]);
 	});
 
-	// TODO SWC ensure all parse errors are thrown
-	it.skip('recovers from an error even when erroring dependency was "renamed" (#38)', async () => {
+	it('recovers from an error even when erroring dependency was "renamed" (#38)', async () => {
 		await copy('test/watch/samples/dependency', 'test/_tmp/input');
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -713,7 +709,7 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			"ERROR:Expected '{', got 'nope'",
 			'END',
 			() => {
 				unlinkSync('test/_tmp/input/dep.js');

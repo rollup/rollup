@@ -239,13 +239,13 @@ export function logChunkNotGeneratedForFileName(name: string): RollupLog {
 
 export function logChunkInvalid(
 	{ fileName, code }: { code: string; fileName: string },
-	exception: { loc: { column: number; line: number }; message: string }
+	{ pos, message }: { pos: number; message: string }
 ): RollupLog {
 	const errorProperties = {
 		code: CHUNK_INVALID,
-		message: `Chunk "${fileName}" is not valid JavaScript: ${exception.message}.`
+		message: `Chunk "${fileName}" is not valid JavaScript: ${message}.`
 	};
-	augmentCodeLocation(errorProperties, exception.loc, code, fileName);
+	augmentCodeLocation(errorProperties, pos, code, fileName);
 	return errorProperties;
 }
 

@@ -3,21 +3,14 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = defineTest({
-	// TODO SWC ensure all parse errors are thrown
-	skip: true,
 	description: 'throws on duplicate named exports',
 	error: {
 		cause: {
-			loc: {
-				column: 9,
-				line: 3
-			},
-			message: "Duplicate export 'foo' (3:9)",
-			pos: 38,
-			raisedAt: 43
+			message: 'the name `foo` is exported multiple times',
+			pos: 38
 		},
 		code: 'PARSE_ERROR',
-		message: `Duplicate export 'foo'`,
+		message: 'the name `foo` is exported multiple times',
 		id: ID_FOO,
 		pos: 38,
 		watchFiles: [ID_FOO, ID_MAIN],
