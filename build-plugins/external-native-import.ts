@@ -5,7 +5,7 @@ export function externalNativeImport(): Plugin {
 	return {
 		async generateBundle() {
 			this.emitFile({
-				fileName: 'native.js',
+				fileName: 'native.cjs',
 				source: await readFile(new URL('../native.js', import.meta.url)),
 				type: 'asset'
 			});
