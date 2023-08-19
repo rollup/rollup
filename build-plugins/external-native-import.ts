@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import type { Plugin } from 'rollup';
 
 export function externalNativeImport(): Plugin {
@@ -11,12 +12,11 @@ export function externalNativeImport(): Plugin {
 			});
 		},
 		name: 'copy-native-files',
-		async resolveId(id, importer) {
+		async resolveId(id) {
 			if (id.includes('/native')) {
-				const resolved = await this.resolve(id, importer!, { skipSelf: true });
 				return {
 					external: 'relative',
-					id: resolved!.id
+					id: resolve('native.cjs')
 				};
 			}
 		}
