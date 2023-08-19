@@ -57,6 +57,17 @@ jobs:
             name: wasm
             is-wasm-build: true
             build: npm run build:wasm
+            path: |
+              wasm/
+              .empty
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: wasm-node
+            is-wasm-build: true
+            build: npm run build:wasm:node
+            path: |
+              wasm-node/
+              .empty
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
@@ -117,16 +128,16 @@ jobs:
             build: |
               npm run build:napi -- --release --target armv7-linux-androideabi
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
-# TODO SWC this does not work yet, also add back in package.json
-#          - host: ubuntu-latest
-#            target: aarch64-unknown-linux-musl
-#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-#            build: |-
-#              set -e &&
-#              rustup default nightly &&
-#              rustup target add aarch64-unknown-linux-musl &&
-#              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
-#              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+          # TODO SWC this does not work yet, also add back in package.json
+          #          - host: ubuntu-latest
+          #            target: aarch64-unknown-linux-musl
+          #            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+          #            build: |-
+          #              set -e &&
+          #              rustup default nightly &&
+          #              rustup target add aarch64-unknown-linux-musl &&
+          #              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
+          #              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
@@ -189,10 +200,8 @@ jobs:
       - name: Upload wasm artifact
         uses: actions/upload-artifact@v3
         with:
-          name: bindings-wasm
-          path: |
-            wasm/
-            .empty
+          name: bindings-${{ matrix.settings.name }}
+          path: ${{ matrix.settings.path }}
           if-no-files-found: error
         if: ${{ matrix.settings.is-wasm-build }}
       - name: Upload napi artifact

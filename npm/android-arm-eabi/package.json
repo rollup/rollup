@@ -7,9 +7,9 @@
   "cpu": [
     "arm"
   ],
-  "main": "rollup.android-arm-eabi.node",
   "files": [
-    "rollup.android-arm-eabi.node"
+    "rollup.android-arm-eabi.node",
+    "wasm-node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -19,5 +19,11 @@
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "repository": "rollup/rollup"
+  "repository": "rollup/rollup",
+  "exports": {
+    ".": {
+      "node-addons": "./rollup.android-arm-eabi.node",
+      "default": "./wasm-node/bindings_wasm.js"
+    }
+  }
 }
