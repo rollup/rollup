@@ -1,6 +1,5 @@
 import * as acorn from 'acorn';
 import flru from 'flru';
-// eslint-disable-next-line import/no-unresolved
 import native from '../native';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
