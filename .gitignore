@@ -22,3 +22,5 @@ docs/.vitepress/graphs
 *.tsbuildinfo
 target
 *.node
+/wasm/*
+!/wasm/*.d.ts
