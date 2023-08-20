@@ -12,8 +12,7 @@ const JS_REPLACED_MODULES = [
 	'performance',
 	'process',
 	'resolveId',
-	'initWasm',
-	'readString'
+	'initWasm'
 ];
 
 type ModulesMap = [string, string][];

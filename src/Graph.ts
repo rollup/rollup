@@ -21,6 +21,7 @@ import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
 import { convertProgram } from './utils/convert-ast';
 import { analyseModuleExecution } from './utils/executionOrder';
+import getReadStringFunction from './utils/getReadStringFunction';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -30,7 +31,6 @@ import {
 } from './utils/logs';
 import type { PureFunctions } from './utils/pureFunctions';
 import { getPureFunctions } from './utils/pureFunctions';
-import readString from './utils/readString';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
@@ -150,9 +150,8 @@ export default class Graph {
 		// try {
 		// console.time('swc');
 		const astBuffer = native.parse(code);
-		const ast = convertProgram(astBuffer.buffer, (start, length) =>
-			readString(astBuffer, start, length)
-		);
+		const readString = getReadStringFunction(astBuffer);
+		const ast = convertProgram(astBuffer.buffer, (start, length) => readString(start, length));
 		// console.timeEnd('swc');
 		// console.log('swc', JSON.stringify(ast, null, 2));
 		// assert.deepStrictEqual(
