@@ -311,6 +311,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts
+      - name: Copy wasm files
+        run: cp -R artifacts/bindings-wasm/wasm .
       - name: Build JavaScript
         run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
       - name: Move artifacts

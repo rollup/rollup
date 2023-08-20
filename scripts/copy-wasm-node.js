@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const WASM_NODE_DIR_NAME = 'artifacts/wasm-node';
+const WASM_NODE_DIR_NAME = 'artifacts/bindings-wasm-node/wasm-node';
 const NATIVES_DIR_NAME = 'npm';
 
 async function copy() {
