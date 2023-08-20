@@ -186,6 +186,7 @@
     "semver": "^7.5.4"
   },
   "files": [
+    "dist/**/*.cjs",
     "dist/**/*.js",
     "dist/*.d.ts",
     "dist/bin/rollup",
