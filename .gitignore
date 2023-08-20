@@ -24,3 +24,4 @@ target
 *.node
 /wasm/*
 !/wasm/*.d.ts
+/wasm-node/
