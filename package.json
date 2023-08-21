@@ -193,7 +193,7 @@
     "dist/es/package.json"
   ],
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=14.18.0",
     "npm": ">=8.0.0"
   },
   "exports": {

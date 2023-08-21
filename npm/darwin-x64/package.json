@@ -16,7 +16,7 @@
   "homepage": "https://rollupjs.org/",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=14.18.0",
     "npm": ">=8.0.0"
   },
   "repository": "rollup/rollup",
