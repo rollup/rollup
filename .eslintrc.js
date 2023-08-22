@@ -157,12 +157,5 @@ module.exports = {
 		'unicorn/prefer-string-replace-all': 'off',
 		'unicorn/prefer-top-level-await': 'off',
 		'unicorn/prevent-abbreviations': ['error', { replacements: { dir: false } }]
-	},
-	settings: {
-		'import/resolver': {
-			node: {
-				extensions: ['.ts', '.cjs']
-			}
-		}
 	}
 };
