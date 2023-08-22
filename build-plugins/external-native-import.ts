@@ -8,7 +8,7 @@ export function externalNativeImport(): Plugin {
 				const resolved = await this.resolve(id, importer!, { skipSelf: true });
 				return {
 					external: 'relative',
-					id: resolved!.id
+					id: `${resolved!.id}.js`
 				};
 			}
 		}
