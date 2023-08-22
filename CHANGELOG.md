@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 3.28.1
+
+_2023-08-22_
+
+### Bug Fixes
+
+- Ensure external files with relative import paths outside the target are rendered correctly (#5099)
+
+### Pull Requests
+
+- [#5093](https://github.com/rollup/rollup/pull/5093): chore(deps): update dependency eslint-config-prettier to v9 (@renovate[bot])
+- [#5094](https://github.com/rollup/rollup/pull/5094): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5099](https://github.com/rollup/rollup/pull/5099): Fix resolution of relative external files outside target directory (@lukastaegert)
+- [#5101](https://github.com/rollup/rollup/pull/5101): chore(deps): update dependency lint-staged to v14 (@renovate[bot])
+- [#5102](https://github.com/rollup/rollup/pull/5102): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 3.28.0
 
 _2023-08-09_
