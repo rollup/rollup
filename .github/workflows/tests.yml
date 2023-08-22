@@ -40,7 +40,8 @@ jobs:
           CI: true
       - uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+#          It appears that with the token, the comment is not created
+#          token: ${{ secrets.CODECOV_TOKEN }}
           commit_parent: ${{ github.event.pull_request.head.sha }}
 
   linux16:
