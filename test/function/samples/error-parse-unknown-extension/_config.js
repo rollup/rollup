@@ -3,8 +3,6 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_CSS = path.join(__dirname, 'file.css');
 
 module.exports = defineTest({
-	// TODO SWC ensure all parse errors are thrown
-	skip: true,
 	description:
 		'throws with an extended error message when failing to parse a file without .(m)js extension',
 	error: {
