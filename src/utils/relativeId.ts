@@ -26,6 +26,10 @@ export function getImportPath(
 	stripJsExtension: boolean,
 	ensureFileName: boolean
 ): string {
+	while (targetPath.startsWith('../')) {
+		targetPath = targetPath.slice(3);
+		importerId = '_/' + importerId;
+	}
 	let relativePath = normalize(relative(dirname(importerId), targetPath));
 	if (stripJsExtension && relativePath.endsWith('.js')) {
 		relativePath = relativePath.slice(0, -3);
