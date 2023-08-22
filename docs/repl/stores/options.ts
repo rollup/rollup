@@ -314,6 +314,11 @@ export const useOptions = defineStore('options2', () => {
 	const optionOutputSourcemap = getBoolean({
 		name: 'output.sourcemap'
 	});
+	const optionOutputSourcemapFileNames = getString({
+		available: alwaysTrue,
+		defaultValue: undefined,
+		name: 'output.sourcemapFileNames'
+	});
 	const optionOutputSanitizeFileName = getBoolean({
 		available: alwaysTrue,
 		defaultValue: true,
@@ -436,6 +441,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputPreserveModules,
 		optionOutputPreserveModulesRoot,
 		optionOutputSourcemap,
+		optionOutputSourcemapFileNames,
 		optionOutputSanitizeFileName,
 		optionOutputSourcemapBaseUrl,
 		optionOutputSourcemapExcludeSources,

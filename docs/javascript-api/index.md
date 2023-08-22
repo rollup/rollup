@@ -181,6 +181,7 @@ const outputOptions = {
 	sourcemapBaseUrl,
 	sourcemapExcludeSources,
 	sourcemapFile,
+	sourcemapFileNames,
 	sourcemapIgnoreList,
 	sourcemapPathTransform,
 	validate,

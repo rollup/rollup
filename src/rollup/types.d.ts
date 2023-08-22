@@ -164,6 +164,7 @@ export interface EmittedPrebuiltChunk {
 	exports?: string[];
 	fileName: string;
 	map?: SourceMap;
+	sourcemapFileName?: string;
 	type: 'prebuilt-chunk';
 }
 
@@ -744,6 +745,7 @@ export interface OutputOptions {
 	sourcemapBaseUrl?: string;
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
+	sourcemapFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	sourcemapIgnoreList?: boolean | SourcemapIgnoreListOption;
 	sourcemapPathTransform?: SourcemapPathTransformOption;
 	strict?: boolean;
@@ -799,6 +801,7 @@ export interface NormalizedOutputOptions {
 	sourcemapBaseUrl: string | undefined;
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
+	sourcemapFileNames: string | ((chunkInfo: PreRenderedChunk) => string) | undefined;
 	sourcemapIgnoreList: SourcemapIgnoreListOption;
 	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
 	strict: boolean;
@@ -862,6 +865,7 @@ export interface RenderedChunk extends PreRenderedChunk {
 export interface OutputChunk extends RenderedChunk {
 	code: string;
 	map: SourceMap | null;
+	sourcemapFileName: string | null;
 	preliminaryFileName: string;
 }
 

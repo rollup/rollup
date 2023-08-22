@@ -59,8 +59,9 @@ async function generateAndTestBundle(bundle, outputOptions, config, format, warn
 	} else if (warnings.length > 0) {
 		throw new Error(`Unexpected warnings`);
 	}
+
 	const {
-		output: [{ code, map, fileName }]
+		output: [{ code, map, fileName, sourcemapFileName }]
 	} = await bundle.write(outputOptions);
-	await config.test(code, map, { fileName, format });
+	await config.test(code, map, { fileName, sourcemapFileName, format });
 }
