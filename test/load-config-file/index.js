@@ -41,8 +41,7 @@ describe('loadConfigFile', () => {
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), defaultConfigs);
 	});
 
-	// TODO SWC fix esm build
-	it.skip('loads an ESM config file exporting a config as a function with defineConfig()', async () => {
+	it('loads an ESM config file exporting a config as a function with defineConfig()', async () => {
 		const { options, warnings } = await loadConfigFile(
 			path.resolve(__dirname, 'samples/esm-defineconfig-as-fn/rollup.config.mjs')
 		);

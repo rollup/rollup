@@ -2,8 +2,6 @@ const assert = require('node:assert');
 const { assertIncludes, assertDoesNotInclude } = require('../../../utils.js');
 
 module.exports = defineTest({
-	// TODO SWC fix ESM build
-	skip: true,
 	description: 'does not show unfulfilled hook actions if there are errors',
 	command: 'node build.mjs',
 	after(error) {
