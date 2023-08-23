@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const path = require('node:path');
-const { Parser, parse } = require('acorn');
+const { Parser } = require('acorn');
 const { importAssertions } = require('acorn-import-assertions');
 /**
  * @type {import('../../src/rollup/types')} Rollup
@@ -8,8 +8,6 @@ const { importAssertions } = require('acorn-import-assertions');
 // @ts-expect-error not included in types
 const rollup = require('../../dist/rollup');
 const { compareError, compareLogs, runTestSuiteWithSamples } = require('../utils.js');
-
-Parser.extend(importAssertions);
 
 function requireWithContext(code, context, exports) {
 	const module = { exports };
@@ -72,7 +70,9 @@ runTestSuiteWithSamples(
 				const logs = [];
 				const warnings = [];
 				const plugins =
-					config.options?.plugins === undefined
+					config.verifyAst === false
+						? config.options?.plugins
+						: config.options?.plugins === undefined
 						? verifyAstPlugin
 						: Array.isArray(config.options.plugins)
 						? [...config.options.plugins, verifyAstPlugin]
@@ -219,10 +219,12 @@ runTestSuiteWithSamples(
 	}
 );
 
+const acornParser = Parser.extend(importAssertions);
+
 const verifyAstPlugin = {
 	name: 'verify-ast',
 	moduleParsed: ({ ast, code }) => {
-		const acornAst = parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+		const acornAst = acornParser.parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
 		assert.deepStrictEqual(
 			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
 			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)

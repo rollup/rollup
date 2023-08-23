@@ -1621,10 +1621,10 @@ impl<'a> AstConverter<'a> {
 
   // TODO SWC property has many different formats that should be merged if possible
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
-    // type
-    self.buffer.extend_from_slice(&TYPE_PROPERTY);
-    // reserve start, end
-    let start_end_position = self.reserve_reference_positions(2);
+    let end_position = self.add_type_and_explicit_start(
+      &TYPE_PROPERTY,
+      self.get_property_name_span(property_name).lo.0 - 1,
+    );
     // kind
     self.buffer.extend_from_slice(&STRING_INIT);
     // method
@@ -1640,12 +1640,7 @@ impl<'a> AstConverter<'a> {
     let reference_position = self.reserve_reference_positions(2);
     // key
     self.update_reference_position(reference_position);
-    let key_position = self.buffer.len();
     self.convert_property_name(property_name);
-    let start_bytes: [u8; 4] = self.buffer[key_position + 4..key_position + 8]
-      .try_into()
-      .unwrap();
-    self.buffer[start_end_position..start_end_position + 4].copy_from_slice(&start_bytes);
     // value
     self.update_reference_position(reference_position + 4);
     let value_position = self.buffer.len();
@@ -1653,6 +1648,7 @@ impl<'a> AstConverter<'a> {
       PatternOrExpression::Pattern(pattern) => self.convert_pattern(pattern),
       PatternOrExpression::Expression(expression) => self.convert_expression(expression),
     };
+    // end
     let end_bytes: [u8; 4] = match value_boundaries {
       Some((_, end)) => end.to_ne_bytes(),
       None => {
@@ -1662,7 +1658,8 @@ impl<'a> AstConverter<'a> {
         value_end
       }
     };
-    self.buffer[start_end_position + 4..start_end_position + 8].copy_from_slice(&end_bytes);
+    // TODO SWC avoid copying positions around but use span getters instead
+    self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
   }
 
   fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {

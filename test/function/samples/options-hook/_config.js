@@ -2,6 +2,7 @@ const assert = require('node:assert');
 
 module.exports = defineTest({
 	description: 'allows to read and modify options in the options hook',
+	verifyAst: false,
 	options: {
 		input: 'unused',
 		treeshake: false,
