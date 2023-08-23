@@ -1,14 +1,16 @@
 module.exports = defineTest({
 	description: 'throws when setting the asset source twice',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildEnd() {
-				const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
-				this.setAssetSource(assetId, 'hello world');
-				this.setAssetSource(assetId, 'another');
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildEnd() {
+					const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
+					this.setAssetSource(assetId, 'hello world');
+					this.setAssetSource(assetId, 'another');
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

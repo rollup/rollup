@@ -6,17 +6,19 @@ module.exports = defineTest({
 	description: 'supports namespaces with external star reexports',
 	options: {
 		external: ['fs', 'path'],
-		plugins: {
-			transform(code, id) {
-				if (id.endsWith('override.js')) {
-					return {
-						code,
-						syntheticNamedExports: true
-					};
+		plugins: [
+			{
+				transform(code, id) {
+					if (id.endsWith('override.js')) {
+						return {
+							code,
+							syntheticNamedExports: true
+						};
+					}
+					return null;
 				}
-				return null;
 			}
-		}
+		]
 	},
 	exports(exports) {
 		assert.strictEqual(exports.fs.readFile, fs.readFile);

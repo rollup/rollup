@@ -4,15 +4,17 @@ module.exports = defineTest({
 	description: 'Throws when accessing the filename before it has been generated in buildEnd',
 	options: {
 		input: 'main.js',
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				chunkId = this.emitFile({ type: 'chunk', id: 'chunk.js' });
-			},
-			buildEnd() {
-				this.getFileName(chunkId);
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					chunkId = this.emitFile({ type: 'chunk', id: 'chunk.js' });
+				},
+				buildEnd() {
+					this.getFileName(chunkId);
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

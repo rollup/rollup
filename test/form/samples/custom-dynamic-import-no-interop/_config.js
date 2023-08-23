@@ -5,11 +5,13 @@ module.exports = defineTest({
 		output: {
 			interop: 'auto'
 		},
-		plugins: {
-			name: 'test',
-			renderDynamicImport() {
-				return { left: 'getIt(', right: ')' };
+		plugins: [
+			{
+				name: 'test',
+				renderDynamicImport() {
+					return { left: 'getIt(', right: ')' };
+				}
 			}
-		}
+		]
 	}
 });

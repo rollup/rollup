@@ -8,13 +8,15 @@ module.exports = defineTest({
 		output: {
 			chunkFileNames: '[name]-[hash].js'
 		},
-		plugins: {
-			buildStart() {
-				referenceId = this.emitFile({ type: 'chunk', id: 'emitted' });
-			},
-			generateBundle() {
-				assert.strictEqual(this.getFileName(referenceId), 'emitted-38bdd9b2.js');
+		plugins: [
+			{
+				buildStart() {
+					referenceId = this.emitFile({ type: 'chunk', id: 'emitted' });
+				},
+				generateBundle() {
+					assert.strictEqual(this.getFileName(referenceId), 'emitted-38bdd9b2.js');
+				}
 			}
-		}
+		]
 	}
 });

@@ -11,18 +11,20 @@ module.exports = defineTest({
 				return false;
 			}
 		},
-		plugins: {
-			name: 'test-plugin',
-			resolveId(id) {
-				if (id === 'virtual') {
-					return VIRTUAL_ID;
-				}
-			},
-			load(id) {
-				if (id === VIRTUAL_ID) {
-					return "console.log('effect')";
+		plugins: [
+			{
+				name: 'test-plugin',
+				resolveId(id) {
+					if (id === 'virtual') {
+						return VIRTUAL_ID;
+					}
+				},
+				load(id) {
+					if (id === VIRTUAL_ID) {
+						return "console.log('effect')";
+					}
 				}
 			}
-		}
+		]
 	}
 });

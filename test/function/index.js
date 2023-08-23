@@ -71,7 +71,6 @@ runTestSuiteWithSamples(
 				process.chdir(directory);
 				const logs = [];
 				const warnings = [];
-				// TODO SWC ensure we use arrays everywhere
 				const plugins =
 					config.options?.plugins === undefined
 						? verifyAstPlugin

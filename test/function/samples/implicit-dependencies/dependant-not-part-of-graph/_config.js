@@ -4,26 +4,28 @@ module.exports = defineTest({
 	description:
 		'throws when a module that is loaded before an emitted chunk is not part of the module graph',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({
-					type: 'chunk',
-					id: 'dep1.js',
-					implicitlyLoadedAfterOneOf: ['dependant']
-				});
-				this.emitFile({
-					type: 'chunk',
-					id: 'dep2.js',
-					implicitlyLoadedAfterOneOf: ['dependant']
-				});
-				this.emitFile({
-					type: 'chunk',
-					id: 'dep3.js',
-					implicitlyLoadedAfterOneOf: ['dependant']
-				});
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({
+						type: 'chunk',
+						id: 'dep1.js',
+						implicitlyLoadedAfterOneOf: ['dependant']
+					});
+					this.emitFile({
+						type: 'chunk',
+						id: 'dep2.js',
+						implicitlyLoadedAfterOneOf: ['dependant']
+					});
+					this.emitFile({
+						type: 'chunk',
+						id: 'dep3.js',
+						implicitlyLoadedAfterOneOf: ['dependant']
+					});
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'MISSING_IMPLICIT_DEPENDANT',
