@@ -20,6 +20,8 @@ const {
 } = require('node:fs');
 const { basename, join } = require('node:path');
 const { platform, version } = require('node:process');
+const { Parser } = require('acorn');
+const { importAssertions } = require('acorn-import-assertions');
 const fixturify = require('fixturify');
 
 if (!globalThis.defineTest) {
@@ -418,3 +420,34 @@ exports.replaceDirectoryInStringifiedObject = function replaceDirectoryInStringi
 		'**/'
 	);
 };
+
+const acornParser = Parser.extend(importAssertions);
+
+exports.verifyAstPlugin = {
+	name: 'verify-ast',
+	moduleParsed: ({ ast, code }) => {
+		const acornAst = acornParser.parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+		assert.deepStrictEqual(
+			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
+			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
+		);
+	}
+};
+
+const replaceStringifyValues = (key, value) =>
+	key.startsWith('_')
+		? undefined
+		: typeof value == 'bigint'
+		? `~BigInt${value.toString()}`
+		: value instanceof RegExp
+		? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
+		: value;
+
+const reviveStringifyValues = (_, value) =>
+	typeof value === 'string'
+		? value.startsWith('~BigInt')
+			? BigInt(value.slice(7))
+			: value.startsWith('~RegExp')
+			? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
+			: value
+		: value;
