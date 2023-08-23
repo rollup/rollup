@@ -16,7 +16,7 @@ const { parse } = require('./wasm-node/bindings_wasm.js');
 exports.parse = parse
 `;
 
-function getFilePath(...arguments_) {
+function getPath(...arguments_) {
 	return resolve(packageDir, ...arguments_);
 }
 
@@ -28,9 +28,9 @@ export default async function publishWasmNodePackage() {
 	delete mainPackage.napi;
 
 	await Promise.all([
-		...copiedFilesOrDirectories.map(file => fs.cp(file, getFilePath(file), { recursive: true })),
+		...copiedFilesOrDirectories.map(file => fs.cp(file, getPath(file), { recursive: true })),
 		fs.writeFile(
-			getFilePath('package.json'),
+			getPath('package.json'),
 			JSON.stringify(
 				{
 					...mainPackage,
@@ -43,11 +43,11 @@ export default async function publishWasmNodePackage() {
 	]);
 
 	await Promise.all([
-		fs.writeFile(getFilePath('dist', 'native.js'), nativeJsContent.trimStart()),
-		fs.cp('artifacts/bindings-wasm-node/wasm-node', getFilePath('dist', 'wasm-node'), {
+		fs.writeFile(getPath('dist', 'native.js'), nativeJsContent.trimStart()),
+		fs.cp('artifacts/bindings-wasm-node/wasm-node', getPath('dist', 'wasm-node'), {
 			recursive: true
 		})
 	]);
 
-	await runWithEcho('npm', ['publish', packageDir]);
+	await runWithEcho('npm', ['publish'], { cwd: resolve(packageDir) });
 }
