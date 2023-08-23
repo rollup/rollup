@@ -63,7 +63,7 @@ await pushChanges(gitTag);
 if (changelogEntry) {
 	await createReleaseNotes(changelogEntry, gitTag);
 }
-// TODO SWC re-enable this
+// TODO SWC re-enable this from CI after successful publish
 // await postReleaseComments(includedPRs, issues, newVersion);
 
 async function getGithubApi() {

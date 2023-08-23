@@ -1,11 +1,15 @@
 const assert = require('node:assert');
 const path = require('node:path');
+const { Parser, parse } = require('acorn');
+const { importAssertions } = require('acorn-import-assertions');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
 // @ts-expect-error not included in types
 const rollup = require('../../dist/rollup');
 const { compareError, compareLogs, runTestSuiteWithSamples } = require('../utils.js');
+
+Parser.extend(importAssertions);
 
 function requireWithContext(code, context, exports) {
 	const module = { exports };
@@ -67,6 +71,13 @@ runTestSuiteWithSamples(
 				process.chdir(directory);
 				const logs = [];
 				const warnings = [];
+				// TODO SWC ensure we use arrays everywhere
+				const plugins =
+					config.options?.plugins === undefined
+						? verifyAstPlugin
+						: Array.isArray(config.options.plugins)
+						? [...config.options.plugins, verifyAstPlugin]
+						: config.options.plugins;
 
 				return rollup
 					.rollup({
@@ -78,7 +89,8 @@ runTestSuiteWithSamples(
 							}
 						},
 						strictDeprecations: true,
-						...config.options
+						...config.options,
+						plugins
 					})
 					.then(bundle => {
 						let unintendedError;
@@ -207,3 +219,32 @@ runTestSuiteWithSamples(
 		);
 	}
 );
+
+const verifyAstPlugin = {
+	name: 'verify-ast',
+	moduleParsed: ({ ast, code }) => {
+		const acornAst = parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+		assert.deepStrictEqual(
+			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
+			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
+		);
+	}
+};
+
+const replaceStringifyValues = (key, value) =>
+	key.startsWith('_')
+		? undefined
+		: typeof value == 'bigint'
+		? `~BigInt${value.toString()}`
+		: value instanceof RegExp
+		? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
+		: value;
+
+const reviveStringifyValues = (_, value) =>
+	typeof value === 'string'
+		? value.startsWith('~BigInt')
+			? BigInt(value.slice(7))
+			: value.startsWith('~RegExp')
+			? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
+			: value
+		: value;
