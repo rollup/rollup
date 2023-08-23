@@ -8,7 +8,7 @@ const WASM_NODE_PACKAGE_INFO = {
 	description: 'Next-generation ES module bundler with Node wasm',
 	name: '@rollup/wasm-node'
 };
-const copiedFilesOrDirectories = ['LICENSE.md', 'README.md', 'dist'];
+const copiedFilesOrDirectories = ['LICENSE.md', 'dist'];
 const packageDir = 'wasm-node-package';
 const nativeJsContent = `
 const { parse } = require('./wasm-node/bindings_wasm.js');
@@ -26,6 +26,7 @@ export default async function publishWasmNodePackage() {
 	const mainPackage = await readJson(MAIN_PACKAGE);
 	mainPackage.files.unshift('dist/wasm-node/*.wasm');
 	delete mainPackage.napi;
+	delete mainPackage.scripts;
 
 	await Promise.all([
 		...copiedFilesOrDirectories.map(file => fs.cp(file, getPath(file), { recursive: true })),
