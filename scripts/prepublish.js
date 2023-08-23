@@ -6,11 +6,14 @@ import { readJson, runWithEcho } from './helpers.js';
 import publishWasmNodePackage from './publish-wasm-node-package.js';
 import { MAIN_PACKAGE } from './release-constants.js';
 
-await runWithEcho('npm', ['run', 'prepublish:napi']);
+await runWithEcho('npm', ['publish'], { cwd: resolve('browser') });
+
 await publishWasmNodePackage();
-await runWithEcho('npm', ['publish', '--tag', 'beta'], { cwd: resolve('browser') });
 
 const { optionalDependencies } = await readJson(MAIN_PACKAGE);
+
+await runWithEcho('npm', ['run', 'prepublish:napi']);
+
 const mainPackage = await readJson(MAIN_PACKAGE);
 await writeFile(
 	MAIN_PACKAGE,
