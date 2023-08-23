@@ -8,8 +8,7 @@
     "x64"
   ],
   "files": [
-    "rollup.darwin-x64.node",
-    "wasm-node"
+    "rollup.darwin-x64.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -20,10 +19,5 @@
     "npm": ">=8.0.0"
   },
   "repository": "rollup/rollup",
-  "exports": {
-    ".": {
-      "node-addons": "./rollup.darwin-x64.node",
-      "default": "./wasm-node/bindings_wasm.js"
-    }
-  }
+  "main": "./rollup.darwin-x64.node"
 }

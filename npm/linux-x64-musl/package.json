@@ -8,8 +8,7 @@
     "x64"
   ],
   "files": [
-    "rollup.linux-x64-musl.node",
-    "wasm-node"
+    "rollup.linux-x64-musl.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -23,10 +22,5 @@
   "libc": [
     "musl"
   ],
-  "exports": {
-    ".": {
-      "node-addons": "./rollup.linux-x64-musl.node",
-      "default": "./wasm-node/bindings_wasm.js"
-    }
-  }
+  "main": "./rollup.linux-x64-musl.node"
 }

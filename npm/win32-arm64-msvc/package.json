@@ -8,8 +8,7 @@
     "arm64"
   ],
   "files": [
-    "rollup.win32-arm64-msvc.node",
-    "wasm-node"
+    "rollup.win32-arm64-msvc.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -20,10 +19,5 @@
     "npm": ">=8.0.0"
   },
   "repository": "rollup/rollup",
-  "exports": {
-    ".": {
-      "node-addons": "./rollup.win32-arm64-msvc.node",
-      "default": "./wasm-node/bindings_wasm.js"
-    }
-  }
+  "main": "./rollup.win32-arm64-msvc.node"
 }

@@ -8,8 +8,7 @@
     "arm64"
   ],
   "files": [
-    "rollup.linux-arm64-gnu.node",
-    "wasm-node"
+    "rollup.linux-arm64-gnu.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -23,10 +22,5 @@
   "libc": [
     "glibc"
   ],
-  "exports": {
-    ".": {
-      "node-addons": "./rollup.linux-arm64-gnu.node",
-      "default": "./wasm-node/bindings_wasm.js"
-    }
-  }
+  "main": "./rollup.linux-arm64-gnu.node"
 }

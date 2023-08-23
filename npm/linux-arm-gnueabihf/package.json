@@ -8,8 +8,7 @@
     "arm"
   ],
   "files": [
-    "rollup.linux-arm-gnueabihf.node",
-    "wasm-node"
+    "rollup.linux-arm-gnueabihf.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -20,10 +19,5 @@
     "npm": ">=8.0.0"
   },
   "repository": "rollup/rollup",
-  "exports": {
-    ".": {
-      "node-addons": "./rollup.linux-arm-gnueabihf.node",
-      "default": "./wasm-node/bindings_wasm.js"
-    }
-  }
+  "main": "./rollup.linux-arm-gnueabihf.node"
 }
