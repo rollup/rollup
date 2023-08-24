@@ -30,7 +30,7 @@ function updateLegacySlugsFile() {
 	if (originalSlugsFileText !== slugsFileText) {
 		writeFileSync(slugsFile, slugsFileText);
 		throw new Error(
-			`The content of the legacy anchor mapping file has changed. You should run "npm run build" locally and commit the updated file.`
+			`The content of the legacy anchor mapping file has changed. You should run "npm run build:docs" locally and commit the updated file.`
 		);
 	}
 }

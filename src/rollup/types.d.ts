@@ -100,13 +100,13 @@ interface ModuleOptions {
 }
 
 export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
-	ast?: AcornNode;
+	ast?: AstNode;
 	code: string;
 	map?: SourceMapInput;
 }
 
 export interface TransformModuleJSON {
-	ast?: AcornNode;
+	ast?: AstNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -117,7 +117,7 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
-	ast: AcornNode;
+	ast: AstNode;
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;
@@ -172,7 +172,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 interface ModuleInfo extends ModuleOptions {
-	ast: AcornNode | null;
+	ast: AstNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
@@ -220,8 +220,7 @@ export interface PluginContext extends MinimalPluginContext {
 	) => Promise<ModuleInfo>;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
-	// TODO SWC remove acorn options from this.parse
-	parse: (input: string, options?: any) => AcornNode;
+	parse: (input: string) => AstNode;
 	resolve: (
 		source: string,
 		importer?: string,
@@ -271,7 +270,7 @@ export type ResolveIdHook = (
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
 	options: {
-		ast: AcornNode;
+		ast: AstNode;
 		code: string;
 		id: string;
 		meta: CustomPluginOptions;
@@ -323,7 +322,7 @@ export type RenderChunkHook = (
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
-	specifier: string | AcornNode,
+	specifier: string | AstNode,
 	importer: string,
 	options: { assertions: Record<string, string> }
 ) => ResolveIdResult;
@@ -566,8 +565,6 @@ export type SourcemapIgnoreListOption = (
 export type InputPluginOption = MaybePromise<Plugin | NullValue | false | InputPluginOption[]>;
 
 export interface InputOptions {
-	acorn?: Record<string, unknown>;
-	acornInjectPlugins?: ((...arguments_: any[]) => unknown)[] | ((...arguments_: any[]) => unknown);
 	cache?: boolean | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;
@@ -603,8 +600,6 @@ export interface InputOptionsWithPlugins extends InputOptions {
 }
 
 export interface NormalizedInputOptions {
-	acorn: Record<string, unknown>;
-	acornInjectPlugins: (() => unknown)[];
 	cache: false | undefined | RollupCache;
 	context: string;
 	experimentalCacheExpiry: number;
@@ -994,7 +989,7 @@ export type RollupWatcher = AwaitingEventEmitter<{
 
 export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
 
-interface AcornNode {
+interface AstNode {
 	end: number;
 	start: number;
 	type: string;

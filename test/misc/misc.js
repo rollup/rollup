@@ -16,8 +16,6 @@ describe('misc', () => {
 						load: freeze(() => `export default 0;`)
 					}
 				]),
-				acornInjectPlugins: freeze([]),
-				acorn: freeze({}),
 				treeshake: freeze({})
 			})
 		);

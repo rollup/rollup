@@ -1,5 +1,4 @@
 import { extractAssignedNames } from '@rollup/pluginutils';
-import type * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import ExternalModule from './ExternalModule';
@@ -29,6 +28,7 @@ import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
 import type {
+	AstNode,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -1332,7 +1332,7 @@ export default class Module {
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
-	private tryParse(): acorn.Node {
+	private tryParse(): AstNode {
 		try {
 			return this.graph.contextParse(this.info.code!);
 		} catch (error_: any) {

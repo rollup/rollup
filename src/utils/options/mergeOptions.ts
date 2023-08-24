@@ -127,11 +127,6 @@ function mergeInputOptions(
 ): InputOptions {
 	const getOption = (name: keyof InputOptions): any => overrides[name] ?? config[name];
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
-		acorn: getOption('acorn'),
-		acornInjectPlugins: config.acornInjectPlugins as
-			| (() => unknown)[]
-			| (() => unknown)
-			| undefined,
 		cache: config.cache as false | RollupCache | undefined,
 		context: getOption('context'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry'),

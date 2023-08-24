@@ -1,8 +1,7 @@
-import type * as acorn from 'acorn';
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
-import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
+import type { AstNode, NormalizedTreeshakingOptions } from '../../../rollup/types';
 import type { RollupAnnotation } from '../../../utils/convert-ast';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/convert-ast';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
@@ -23,7 +22,7 @@ import type * as NodeType from '../NodeType';
 import type { InclusionOptions } from './Expression';
 import { ExpressionEntity } from './Expression';
 
-export interface GenericEsTreeNode extends acorn.Node {
+export interface GenericEsTreeNode extends AstNode {
 	[key: string]: any;
 }
 
@@ -136,7 +135,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	context: AstContext;
 	declare end: number;
-	esTreeNode: acorn.Node | null;
+	esTreeNode: AstNode | null;
 	keys: string[];
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
@@ -280,7 +279,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 						this.annotationPure = annotations.some(comment => comment.type === 'pure');
 					}
 				} else if (key === INVALID_ANNOTATION_KEY) {
-					for (const { start, end } of value as acorn.Comment[])
+					for (const { start, end } of value as RollupAnnotation[])
 						this.context.magicString.remove(start, end);
 				}
 			} else if (typeof value !== 'object' || value === null) {

@@ -1,8 +1,8 @@
-import type * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module, { type DynamicImport } from './Module';
 import type {
+	AstNode,
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
@@ -697,7 +697,7 @@ export class ModuleLoader {
 
 	private async resolveDynamicImport(
 		module: Module,
-		specifier: string | acorn.Node,
+		specifier: string | AstNode,
 		importer: string,
 		assertions: Record<string, string>
 	): Promise<ResolvedId | string | null> {

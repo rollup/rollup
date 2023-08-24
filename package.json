@@ -125,8 +125,6 @@
     "@vue/eslint-config-typescript": "^11.0.3",
     "acorn": "^8.10.0",
     "acorn-import-assertions": "^1.9.0",
-    "acorn-jsx": "^5.3.2",
-    "acorn-walk": "^8.2.0",
     "buble": "^0.20.0",
     "builtin-modules": "^3.3.0",
     "chokidar": "^3.5.3",

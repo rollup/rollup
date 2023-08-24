@@ -57,8 +57,6 @@ export default {
 	strictDeprecations,
 
 	// danger zone
-	acorn,
-	acornInjectPlugins,
 	context,
 	moduleContext,
 	preserveSymlinks,

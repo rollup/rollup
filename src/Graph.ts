@@ -1,4 +1,3 @@
-import * as acorn from 'acorn';
 import flru from 'flru';
 import native from '../native';
 import type ExternalModule from './ExternalModule';
@@ -7,6 +6,7 @@ import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
 import type {
+	AstNode,
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
@@ -55,8 +55,7 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	readonly acornParser: typeof acorn.Parser;
-	readonly astLru = flru<acorn.Node>(5);
+	readonly astLru = flru<AstNode>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
 	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
@@ -102,8 +101,6 @@ export default class Graph {
 			watcher.onCurrentRun('close', handleClose);
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
-		// TODO SWC remove
-		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any[]));
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 		this.fileOperationQueue = new Queue(options.maxParallelFileOps);
 		this.pureFunctions = getPureFunctions(options);
@@ -126,7 +123,7 @@ export default class Graph {
 		this.phase = BuildPhase.GENERATE;
 	}
 
-	contextParse(code: string, _options: Partial<acorn.Options> = {}): acorn.Node {
+	contextParse(code: string): AstNode {
 		const astBuffer = native.parse(code);
 		const readString = getReadStringFunction(astBuffer);
 		return convertProgram(astBuffer.buffer, readString);

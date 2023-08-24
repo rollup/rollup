@@ -11,11 +11,6 @@ module.exports = defineTest({
 				name: 'test-plugin',
 				buildStart(options) {
 					assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
-						acorn: {
-							ecmaVersion: 'latest',
-							sourceType: 'module'
-						},
-						acornInjectPlugins: [null],
 						context: 'undefined',
 						experimentalCacheExpiry: 10,
 						experimentalLogSideEffects: false,

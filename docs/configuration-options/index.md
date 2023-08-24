@@ -1637,33 +1637,6 @@ This flag is intended to be used by e.g. plugin authors to be able to adjust the
 
 You probably don't need to use these options unless you know what you are doing!
 
-### acorn
-
-|       |                |
-| ----: | :------------- |
-| Type: | `AcornOptions` |
-
-Any options that should be passed through to Acorn's `parse` function, such as `allowReserved: true`. Cf. the [Acorn documentation](https://github.com/acornjs/acorn/tree/master/acorn#interface) for more available options.
-
-### acornInjectPlugins
-
-|       |                                                |
-| ----: | :--------------------------------------------- |
-| Type: | `AcornPluginFunction \| AcornPluginFunction[]` |
-
-A single plugin or an array of plugins to be injected into Acorn. For instance to use JSX syntax, you can specify
-
-```javascript
-import jsx from 'acorn-jsx';
-
-export default {
-	// … other options …
-	acornInjectPlugins: [jsx()]
-};
-```
-
-in your rollup configuration. Note that this is different from using Babel in that the generated output will still contain JSX while Babel will replace it with valid JavaScript.
-
 ### context
 
 |          |                               |
