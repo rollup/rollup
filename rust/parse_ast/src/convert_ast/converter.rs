@@ -193,8 +193,12 @@ impl<'a> AstConverter<'a> {
   // === enums
   fn convert_program(&mut self, node: &Program) {
     match node {
-      Program::Module(module) => self.convert_module_program(module),
-      Program::Script(_) => unimplemented!("Cannot convert Program::Script"),
+      Program::Module(module) => {
+        self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body))
+      }
+      Program::Script(script) => {
+        self.store_program(ModuleItemsOrStatements::Statements(&script.body))
+      }
     }
   }
 
@@ -730,29 +734,52 @@ impl<'a> AstConverter<'a> {
   }
 
   // === nodes
-  fn convert_module_program(&mut self, module: &Module) {
+  fn store_program(&mut self, body: ModuleItemsOrStatements) {
     let end_position = self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32);
     // reserve annotations
     let reference_position = self.reserve_reference_positions(1);
     // body
     let mut keep_checking_directives = true;
-    self.convert_item_list_with_state(
-      &module.body,
-      &mut keep_checking_directives,
-      |ast_converter, module_item, can_be_directive| {
-        if *can_be_directive {
-          if let ModuleItem::Stmt(Stmt::Expr(expression)) = &*module_item {
-            if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
-              ast_converter.convert_expression_statement(expression, Some(&string.value));
-              return true;
+    match body {
+      ModuleItemsOrStatements::ModuleItems(module_items) => {
+        self.convert_item_list_with_state(
+          module_items,
+          &mut keep_checking_directives,
+          |ast_converter, module_item, can_be_directive| {
+            if *can_be_directive {
+              if let ModuleItem::Stmt(Stmt::Expr(expression)) = &*module_item {
+                if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
+                  ast_converter.convert_expression_statement(expression, Some(&string.value));
+                  return true;
+                }
+              };
             }
-          };
-        }
-        *can_be_directive = false;
-        ast_converter.convert_module_item(module_item);
-        true
-      },
-    );
+            *can_be_directive = false;
+            ast_converter.convert_module_item(module_item);
+            true
+          },
+        );
+      }
+      ModuleItemsOrStatements::Statements(statements) => {
+        self.convert_item_list_with_state(
+          statements,
+          &mut keep_checking_directives,
+          |ast_converter, statement, can_be_directive| {
+            if *can_be_directive {
+              if let Stmt::Expr(expression) = &*statement {
+                if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
+                  ast_converter.convert_expression_statement(expression, Some(&string.value));
+                  return true;
+                }
+              };
+            }
+            *can_be_directive = false;
+            ast_converter.convert_statement(statement);
+            true
+          },
+        );
+      }
+    }
     // end
     self.add_explicit_end(end_position, self.code.len() as u32);
     // annotations
@@ -2728,4 +2755,9 @@ enum PatternOrIdentifier<'a> {
 enum PatternOrExpression<'a> {
   Pattern(&'a Pat),
   Expression(&'a Expr),
+}
+
+enum ModuleItemsOrStatements<'a> {
+  ModuleItems(&'a Vec<ModuleItem>),
+  Statements(&'a Vec<Stmt>),
 }

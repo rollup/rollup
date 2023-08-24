@@ -126,77 +126,10 @@ export default class Graph {
 		this.phase = BuildPhase.GENERATE;
 	}
 
-	contextParse(code: string, options: Partial<acorn.Options> = {}): acorn.Node {
-		const onCommentOrig = options.onComment;
-		const comments: acorn.Comment[] = [];
-
-		options.onComment =
-			onCommentOrig && typeof onCommentOrig == 'function'
-				? (block, text, start, end, ...parameters) => {
-						comments.push({ end, start, type: block ? 'Block' : 'Line', value: text });
-						return onCommentOrig.call(options, block, text, start, end, ...parameters);
-				  }
-				: comments;
-
-		// console.time('acorn');
-		// const acornAst = this.acornParser.parse(code, {
-		// 	...(this.options.acorn as unknown as acorn.Options),
-		// 	...options
-		// });
-		// console.timeEnd('acorn');
-		// console.log('acorn', JSON.stringify(acornAst, null, 2));
-		// let ast: acorn.Node;
-		// let astBuffer: Buffer;
-		// try {
-		// console.time('swc');
+	contextParse(code: string, _options: Partial<acorn.Options> = {}): acorn.Node {
 		const astBuffer = native.parse(code);
 		const readString = getReadStringFunction(astBuffer);
-		const ast = convertProgram(astBuffer.buffer, (start, length) => readString(start, length));
-		// console.timeEnd('swc');
-		// console.log('swc', JSON.stringify(ast, null, 2));
-		// assert.deepStrictEqual(
-		// 	ast,
-		// 	JSON.parse(
-		// 		JSON.stringify(acornAst, (_, value) =>
-		// 			typeof value == 'bigint'
-		// 				? `~BigInt${value.toString()}`
-		// 				: value instanceof RegExp
-		// 				? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
-		// 				: value
-		// 		),
-		// 		(_, value) =>
-		// 			typeof value === 'string'
-		// 				? value.startsWith('~BigInt')
-		// 					? BigInt(value.slice(7))
-		// 					: value.startsWith('~RegExp')
-		// 					? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
-		// 					: value
-		// 				: value
-		// 	)
-		// );
-		// } catch (error_) {
-		// console.log(JSON.stringify(code));
-		// console.log(
-		// 	'Size acorn:',
-		// 	JSON.stringify(acornAst).length,
-		// 	', swc:',
-		// 	astBuffer!.length,
-		// 	'code:',
-		// 	code.length
-		// );
-		// throw error_;
-		// }
-
-		if (typeof onCommentOrig == 'object') {
-			onCommentOrig.push(...comments);
-		}
-
-		options.onComment = onCommentOrig;
-
-		// TODO SWC do this in Rust
-		// addAnnotations(comments, ast!, code);
-
-		return ast!;
+		return convertProgram(astBuffer.buffer, readString);
 	}
 
 	getCache(): RollupCache {

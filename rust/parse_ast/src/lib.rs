@@ -1,6 +1,7 @@
 #![feature(ptr_internals)]
 use std::sync::Arc;
 
+use swc::config::IsModule::Unknown;
 use swc::{config::ParseOptions, Compiler};
 use swc_common::sync::Lrc;
 use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
@@ -30,7 +31,8 @@ pub fn parse_ast(code: String) -> Vec<u8> {
       ..Default::default()
     }),
     target: EsVersion::EsNext,
-    ..Default::default()
+    is_module: Unknown,
+    comments: false,
   };
   let filename = FileName::Anon;
   let file = compiler.cm.new_source_file(filename, code);
