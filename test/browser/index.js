@@ -6,7 +6,7 @@ const { basename, resolve } = require('node:path');
 
 global.performance = require('node:perf_hooks').performance;
 
-global.fetch = file => readFile(resolve('browser/dist/', file));
+global.fetch = url => readFile(url.href.replace('file://', ''));
 
 global.WebAssembly.compileStreaming = async source => {
 	const response = await source;
