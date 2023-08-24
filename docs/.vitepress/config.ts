@@ -1,5 +1,4 @@
 import alias from '@rollup/plugin-alias';
-import { wasm } from '@rollup/plugin-wasm';
 import { defineConfig } from 'vitepress';
 import { moduleAliases } from '../../build-plugins/aliases';
 import replaceBrowserModules from '../../build-plugins/replace-browser-modules';
@@ -148,10 +147,7 @@ export default defineConfig({
 				}
 			},
 			examplesPlugin(),
-			alias(moduleAliases),
-			wasm({
-				targetEnv: 'auto-inline'
-			})
+			alias(moduleAliases)
 		]
 	}
 });

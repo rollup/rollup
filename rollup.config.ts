@@ -6,7 +6,6 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
-import { wasm } from '@rollup/plugin-wasm';
 import type { Plugin, RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import addCliEntry from './build-plugins/add-cli-entry';
@@ -15,11 +14,13 @@ import cleanBeforeWrite from './build-plugins/clean-before-write';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import { emitNativeEntry } from './build-plugins/emit-native-entry';
+import emitWasmFile from './build-plugins/emit-wasm-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import { externalNativeImport } from './build-plugins/external-native-import';
 import { fsEventsReplacement } from './build-plugins/fs-events-replacement';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import getBanner from './build-plugins/get-banner';
+import handleImportMetaUrl from './build-plugins/handle-import-meta-url';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 
 const onwarn: WarningHandlerWithDefault = warning => {
@@ -142,15 +143,13 @@ export default async function (
 			nodeResolve({ browser: true }),
 			json(),
 			commonjs(),
-			wasm({
-				fileName: '[name][extname]',
-				targetEnv: 'browser'
-			}),
 			typescript(),
 			terser({ module: true, output: { comments: 'some' } }),
 			collectLicensesBrowser(),
 			writeLicenseBrowser(),
 			cleanBeforeWrite('browser/dist'),
+			emitWasmFile(),
+			handleImportMetaUrl(),
 			{
 				closeBundle() {
 					// On CI, macOS runs sometimes do not close properly. This is a hack
