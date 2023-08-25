@@ -8,11 +8,6 @@ global.performance = require('node:perf_hooks').performance;
 
 global.fetch = url => readFile(url.href.replace('file://', ''));
 
-global.WebAssembly.compileStreaming = async source => {
-	const response = await source;
-	return WebAssembly.compile(response);
-};
-
 const fixturify = require('fixturify');
 
 /**
