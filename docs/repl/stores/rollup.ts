@@ -8,6 +8,9 @@ function getRollupUrl({ type, version }: RollupRequest) {
 	if (type === 'pr') {
 		return `https://rollup-ci-artefacts.s3.amazonaws.com/${version}/rollup.browser.js`;
 	} else if (version) {
+		if (isRollupVersionAtLeast(version, 4, 0)) {
+			return `https://unpkg.com/@rollup/browser@${version}/dist/rollup.browser.js`;
+		}
 		if (isRollupVersionAtLeast(version, 3, 0)) {
 			return `https://unpkg.com/@rollup/browser@${version}`;
 		}
