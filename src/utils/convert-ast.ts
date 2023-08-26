@@ -305,14 +305,14 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const exportedPosition = buffer[position++];
 		const source = convertNode(buffer[position++], buffer, readString);
-		const assertions = convertNodeList(buffer[position], buffer, readString);
+		const attributes = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ExportAllDeclaration',
 			start,
 			end,
 			exported: exportedPosition ? convertNode(exportedPosition, buffer, readString) : null,
 			source,
-			...(assertions.length > 0 ? { assertions } : {})
+			attributes
 		};
 	},
 	// index:21; ExportDefaultDeclaration
@@ -333,7 +333,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const declarationPosition = buffer[position++];
 		const sourcePosition = buffer[position++];
-		const assertions = convertNodeList(buffer[position++], buffer, readString);
+		const attributes = convertNodeList(buffer[position++], buffer, readString);
 		const specifiers = convertNodeList(position, buffer, readString);
 		return {
 			type: 'ExportNamedDeclaration',
@@ -344,7 +344,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 				: null,
 			source: sourcePosition ? convertNode(sourcePosition, buffer, readString) : null,
 			specifiers,
-			...(assertions.length > 0 ? { assertions } : {})
+			attributes
 		};
 	},
 	// index:23; ExportSpecifier
@@ -523,7 +523,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const source = convertNode(buffer[position++], buffer, readString);
-		const assertions = convertNodeList(buffer[position++], buffer, readString);
+		const attributes = convertNodeList(buffer[position++], buffer, readString);
 		const specifiers = convertNodeList(position, buffer, readString);
 		return {
 			type: 'ImportDeclaration',
@@ -531,7 +531,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			source,
 			specifiers,
-			...(assertions.length > 0 ? { assertions } : {})
+			attributes
 		};
 	},
 	// index:34; ImportDefaultSpecifier
@@ -550,14 +550,14 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): ImportExpression & AstNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const arguments_ = convertNodeList(buffer[position++], buffer, readString);
+		const optionsPosition = buffer[position++];
 		const source = convertNode(position, buffer, readString);
 		return {
 			type: 'ImportExpression',
 			start,
 			end,
 			source,
-			...(arguments_.length > 0 ? { arguments: arguments_ } : {})
+			options: optionsPosition ? convertNode(optionsPosition, buffer, readString) : null
 		};
 	},
 	// index:36; ImportNamespaceSpecifier
@@ -1183,19 +1183,19 @@ interface ImportAttribute {
 }
 
 interface ImportDeclaration extends estree.ImportDeclaration {
-	assertions?: ImportAttribute[];
+	attributes: ImportAttribute[];
 }
 
 interface ExportNamedDeclaration extends estree.ExportNamedDeclaration {
-	assertions?: ImportAttribute[];
+	attributes: ImportAttribute[];
 }
 
 interface ExportAllDeclaration extends estree.ExportAllDeclaration {
-	assertions?: ImportAttribute[];
+	attributes: ImportAttribute[];
 }
 
 interface ImportExpression extends estree.ImportExpression {
-	arguments?: estree.ObjectExpression[];
+	options: estree.Expression | null;
 }
 
 export const ANNOTATION_KEY = '_rollupAnnotations';

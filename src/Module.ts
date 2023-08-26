@@ -72,7 +72,7 @@ import {
 import {
 	doAssertionsDiffer,
 	getAssertionsFromImportExportDeclaration
-} from './utils/parseAssertions';
+} from './utils/parseImportAttributes';
 import { basename, extname } from './utils/path';
 import type { PureFunctions } from './utils/pureFunctions';
 import type { RenderOptions } from './utils/renderHelpers';
@@ -1166,7 +1166,7 @@ export default class Module {
 		source: string,
 		declaration: ImportDeclaration | ExportNamedDeclaration | ExportAllDeclaration
 	) {
-		const parsedAssertions = getAssertionsFromImportExportDeclaration(declaration.assertions);
+		const parsedAssertions = getAssertionsFromImportExportDeclaration(declaration.attributes);
 		const existingAssertions = this.sourcesWithAssertions.get(source);
 		if (existingAssertions) {
 			if (doAssertionsDiffer(existingAssertions, parsedAssertions)) {

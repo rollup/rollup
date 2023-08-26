@@ -102,6 +102,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	INVALID_CONFIG_MODULE_FORMAT = 'INVALID_CONFIG_MODULE_FORMAT',
 	INVALID_EXPORT_OPTION = 'INVALID_EXPORT_OPTION',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
+	INVALID_IMPORT_ATTRIBUTE = 'INVALID_IMPORT_ATTRIBUTE',
 	INVALID_LOG_POSITION = 'INVALID_LOG_POSITION',
 	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
@@ -500,6 +501,24 @@ export function logInternalIdCannotBeExternal(source: string, importer: string):
 		message: `"${source}" is imported as an external by "${relativeId(
 			importer
 		)}", but is already an existing non-external module id.`
+	};
+}
+
+export function logImportOptionsAreInvalid(importer: string): RollupLog {
+	return {
+		code: INVALID_IMPORT_ATTRIBUTE,
+		message: `Rollup could not statically analyze the options argument of a dynamic import in "${relativeId(
+			importer
+		)}". Dynamic import options need to be an object with a nested attributes object.`
+	};
+}
+
+export function logImportAttributeIsInvalid(importer: string): RollupLog {
+	return {
+		code: INVALID_IMPORT_ATTRIBUTE,
+		message: `Rollup could not statically analyze an import attribute of a dynamic import in "${relativeId(
+			importer
+		)}". Import attributes need to have string keys and values. The attribute will be removed.`
 	};
 }
 

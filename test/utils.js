@@ -434,14 +434,37 @@ exports.verifyAstPlugin = {
 	}
 };
 
-const replaceStringifyValues = (key, value) =>
-	key.startsWith('_')
+const replaceStringifyValues = (key, value) => {
+	switch (value?.type) {
+		case 'ImportDeclaration':
+		case 'ExportNamedDeclaration':
+		case 'ExportAllDeclaration': {
+			const { attributes } = value;
+			if (attributes) {
+				delete value.attributes;
+				if (attributes.length > 0) {
+					value.assertions = attributes;
+				}
+			}
+			break;
+		}
+		case 'ImportExpression': {
+			const { options } = value;
+			delete value.options;
+			if (options) {
+				value.arguments = [options];
+			}
+		}
+	}
+
+	return key.startsWith('_')
 		? undefined
 		: typeof value == 'bigint'
 		? `~BigInt${value.toString()}`
 		: value instanceof RegExp
 		? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
 		: value;
+};
 
 const reviveStringifyValues = (_, value) =>
 	typeof value === 'string'

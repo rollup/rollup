@@ -34,7 +34,10 @@ import {
 	logUnresolvedImport,
 	logUnresolvedImportTreatedAsExternal
 } from './utils/logs';
-import { doAssertionsDiffer, getAssertionsFromImportExpression } from './utils/parseAssertions';
+import {
+	doAssertionsDiffer,
+	getAttributesFromImportExpression
+} from './utils/parseImportAttributes';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
@@ -555,7 +558,7 @@ export class ModuleLoader {
 					? dynamicImport.argument
 					: dynamicImport.argument.esTreeNode!,
 				module.id,
-				getAssertionsFromImportExpression(dynamicImport.node)
+				getAttributesFromImportExpression(dynamicImport.node)
 			);
 			if (resolvedId && typeof resolvedId === 'object') {
 				dynamicImport.id = resolvedId.id;

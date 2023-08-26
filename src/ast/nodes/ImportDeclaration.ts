@@ -9,7 +9,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
-	declare assertions?: ImportAttribute[];
+	declare attributes: ImportAttribute[];
 	declare needsBoundaries: true;
 	declare source: Literal<string>;
 	declare specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];

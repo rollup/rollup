@@ -1,18 +1,33 @@
 import type Identifier from '../ast/nodes/Identifier';
 import type ImportAttribute from '../ast/nodes/ImportAttribute';
 import type ImportExpression from '../ast/nodes/ImportExpression';
-import type { LiteralValue } from '../ast/nodes/Literal';
-import type Literal from '../ast/nodes/Literal';
-import type ObjectExpression from '../ast/nodes/ObjectExpression';
+import type { default as Literal, LiteralValue } from '../ast/nodes/Literal';
+import ObjectExpression from '../ast/nodes/ObjectExpression';
 import type Property from '../ast/nodes/Property';
 import type SpreadElement from '../ast/nodes/SpreadElement';
 import { EMPTY_OBJECT } from './blank';
+import { LOGLEVEL_WARN } from './logging';
+import { logImportAttributeIsInvalid, logImportOptionsAreInvalid } from './logs';
 
-export function getAssertionsFromImportExpression(node: ImportExpression): Record<string, string> {
-	const assertProperty = node.arguments?.[0]?.properties.find(
-		(property): property is Property => getPropertyKey(property) === 'assert'
+const ATTRIBUTE_KEYWORDS = new Set(['assert', 'with']);
+
+// TODO Lukas warn all unexpected cases
+export function getAttributesFromImportExpression(node: ImportExpression): Record<string, string> {
+	const { context, options, start } = node;
+	if (!(options instanceof ObjectExpression)) {
+		if (options) {
+			context.module.log(LOGLEVEL_WARN, logImportAttributeIsInvalid(context.module.id), start);
+		}
+		return EMPTY_OBJECT;
+	}
+	const assertProperty = options.properties.find((property): property is Property =>
+		ATTRIBUTE_KEYWORDS.has(getPropertyKey(property) as string)
 	)?.value;
 	if (!assertProperty) {
+		return EMPTY_OBJECT;
+	}
+	if (!(assertProperty instanceof ObjectExpression)) {
+		context.module.log(LOGLEVEL_WARN, logImportOptionsAreInvalid(context.module.id), start);
 		return EMPTY_OBJECT;
 	}
 	const assertFields = (assertProperty as ObjectExpression).properties
@@ -24,6 +39,11 @@ export function getAssertionsFromImportExpression(node: ImportExpression): Recor
 			) {
 				return [key, ((property as Property).value as Literal).value] as [string, string];
 			}
+			context.module.log(
+				LOGLEVEL_WARN,
+				logImportAttributeIsInvalid(context.module.id),
+				property.start
+			);
 			return null;
 		})
 		.filter((property): property is [string, string] => !!property);
@@ -37,12 +57,12 @@ const getPropertyKey = (
 	property: Property | SpreadElement | ImportAttribute
 ): LiteralValue | undefined => {
 	const key = (property as Property | ImportAttribute).key;
-	return key && ((key as Identifier).name || (key as Literal).value);
+	return (
+		key && !(property as Property).computed && ((key as Identifier).name || (key as Literal).value)
+	);
 };
 
-export function getAssertionsFromImportExportDeclaration(
-	assertions: ImportAttribute[] | undefined
-) {
+export function getAssertionsFromImportExportDeclaration(assertions: ImportAttribute[]) {
 	return assertions?.length
 		? Object.fromEntries(
 				assertions.map(assertion => [getPropertyKey(assertion), assertion.value.value])

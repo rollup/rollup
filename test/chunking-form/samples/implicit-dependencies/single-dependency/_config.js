@@ -31,6 +31,7 @@ module.exports = defineTest({
 								type: 'ImportDeclaration',
 								start: 0,
 								end: 30,
+								source: { type: 'Literal', start: 22, end: 29, raw: "'./lib'", value: './lib' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -40,7 +41,7 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 9, end: 14, name: 'value' }
 									}
 								],
-								source: { type: 'Literal', start: 22, end: 29, value: './lib', raw: "'./lib'" }
+								attributes: []
 							},
 							{
 								type: 'ExpressionStatement',
@@ -50,16 +51,16 @@ module.exports = defineTest({
 									type: 'CallExpression',
 									start: 31,
 									end: 49,
+									arguments: [{ type: 'Identifier', start: 43, end: 48, name: 'value' }],
 									callee: {
 										type: 'MemberExpression',
 										start: 31,
 										end: 42,
-										object: { type: 'Identifier', start: 31, end: 38, name: 'console' },
-										property: { type: 'Identifier', start: 39, end: 42, name: 'log' },
 										computed: false,
-										optional: false
+										object: { type: 'Identifier', start: 31, end: 38, name: 'console' },
+										optional: false,
+										property: { type: 'Identifier', start: 39, end: 42, name: 'log' }
 									},
-									arguments: [{ type: 'Identifier', start: 43, end: 48, name: 'value' }],
 									optional: false
 								}
 							}
@@ -109,6 +110,7 @@ module.exports = defineTest({
 								type: 'ImportDeclaration',
 								start: 0,
 								end: 30,
+								source: { type: 'Literal', start: 22, end: 29, raw: "'./lib'", value: './lib' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -118,7 +120,7 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 9, end: 14, name: 'value' }
 									}
 								],
-								source: { type: 'Literal', start: 22, end: 29, value: './lib', raw: "'./lib'" }
+								attributes: []
 							},
 							{
 								type: 'ExpressionStatement',
@@ -128,16 +130,16 @@ module.exports = defineTest({
 									type: 'CallExpression',
 									start: 31,
 									end: 49,
+									arguments: [{ type: 'Identifier', start: 43, end: 48, name: 'value' }],
 									callee: {
 										type: 'MemberExpression',
 										start: 31,
 										end: 42,
-										object: { type: 'Identifier', start: 31, end: 38, name: 'console' },
-										property: { type: 'Identifier', start: 39, end: 42, name: 'log' },
 										computed: false,
-										optional: false
+										object: { type: 'Identifier', start: 31, end: 38, name: 'console' },
+										optional: false,
+										property: { type: 'Identifier', start: 39, end: 42, name: 'log' }
 									},
-									arguments: [{ type: 'Identifier', start: 43, end: 48, name: 'value' }],
 									optional: false
 								}
 							}

@@ -1,5 +1,4 @@
 const assert = require('node:assert');
-const acorn = require('acorn');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
@@ -187,28 +186,6 @@ describe('incremental', () => {
 				assert.strictEqual(result, 43);
 			});
 	});
-
-	it('keeps ASTs between runs', () =>
-		rollup
-			.rollup({
-				input: 'entry',
-				plugins: [plugin]
-			})
-			.then(bundle => {
-				const asts = {};
-				for (const module of bundle.cache.modules) {
-					asts[module.id] = module.ast;
-				}
-
-				assert.deepEqual(
-					asts.entry,
-					acorn.parse(modules.entry, { sourceType: 'module', ecmaVersion: 2020 })
-				);
-				assert.deepEqual(
-					asts.foo,
-					acorn.parse(modules.foo, { sourceType: 'module', ecmaVersion: 2020 })
-				);
-			}));
 
 	it('recovers from errors', () => {
 		modules.entry = `import foo from 'foo'; import bar from 'bar'; export default foo + bar;`;

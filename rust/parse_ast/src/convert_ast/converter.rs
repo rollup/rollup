@@ -1003,15 +1003,14 @@ impl<'a> AstConverter<'a> {
 
   fn store_import_expression(&mut self, span: &Span, arguments: &Vec<ExprOrSpread>) {
     let end_position = self.add_type_and_start(&TYPE_IMPORT_EXPRESSION, span);
-    // reserve for attributes
+    // reserve for options
     let reference_position = self.reserve_reference_positions(1);
     // source
     self.convert_expression(&*arguments.first().unwrap().expr);
-    // attributes
-    self.update_reference_position(reference_position);
-    self.convert_item_list(&arguments[1..], |ast_converter, argument| {
-      ast_converter.convert_expression_or_spread(argument);
-      true
+    // options
+    arguments.get(1).map(|argument| {
+      self.update_reference_position(reference_position);
+      self.convert_expression_or_spread(argument);
     });
     // end
     self.add_end(end_position, span);

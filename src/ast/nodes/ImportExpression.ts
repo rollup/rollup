@@ -21,7 +21,6 @@ import FunctionExpression from './FunctionExpression';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
-import type ObjectExpression from './ObjectExpression';
 import ObjectPattern from './ObjectPattern';
 import VariableDeclarator from './VariableDeclarator';
 import {
@@ -36,10 +35,8 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-// TODO once ImportExpression follows official ESTree specs with "null" as
-//  default, keys.ts should be updated
 export default class ImportExpression extends NodeBase {
-	declare arguments: ObjectExpression[] | undefined;
+	declare options: ExpressionNode | null;
 	inlineNamespace: NamespaceVariable | null = null;
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
@@ -210,7 +207,7 @@ export default class ImportExpression extends NodeBase {
 			this.source.render(code, options);
 		}
 		if (this.assertions !== true) {
-			if (this.arguments) {
+			if (this.options) {
 				code.overwrite(this.source.end, this.end - 1, '', { contentOnly: true });
 			}
 			if (this.assertions) {
