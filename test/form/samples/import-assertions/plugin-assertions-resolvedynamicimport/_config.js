@@ -1,13 +1,13 @@
 module.exports = defineTest({
-	description: 'allows plugins to read and write import assertions in resolveDynamicImport',
+	description: 'allows plugins to read and write import attributes in resolveDynamicImport',
 	options: {
 		plugins: [
 			{
 				name: 'test',
-				resolveDynamicImport(specifier, importer, { assertions }) {
+				resolveDynamicImport(specifier, importer, { attributes }) {
 					const resolutionOptions = {
 						external: true,
-						assertions: Object.fromEntries(Object.keys(assertions).map(key => [key, 'changed']))
+						attributes: Object.fromEntries(Object.keys(attributes).map(key => [key, 'changed']))
 					};
 					if (typeof specifier === 'object') {
 						if (specifier.type === 'TemplateLiteral') {

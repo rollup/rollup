@@ -11,7 +11,6 @@ import { logImportAttributeIsInvalid, logImportOptionsAreInvalid } from './logs'
 
 const ATTRIBUTE_KEYWORDS = new Set(['assert', 'with']);
 
-// TODO Lukas warn all unexpected cases
 export function getAttributesFromImportExpression(node: ImportExpression): Record<string, string> {
 	const { context, options, start } = node;
 	if (!(options instanceof ObjectExpression)) {
@@ -62,15 +61,15 @@ const getPropertyKey = (
 	);
 };
 
-export function getAssertionsFromImportExportDeclaration(assertions: ImportAttribute[]) {
-	return assertions?.length
+export function getAttributesFromImportExportDeclaration(attributes: ImportAttribute[]) {
+	return attributes?.length
 		? Object.fromEntries(
-				assertions.map(assertion => [getPropertyKey(assertion), assertion.value.value])
+				attributes.map(assertion => [getPropertyKey(assertion), assertion.value.value])
 		  )
 		: EMPTY_OBJECT;
 }
 
-export function doAssertionsDiffer(
+export function doAttributesDiffer(
 	assertionA: Record<string, string>,
 	assertionB: Record<string, string>
 ): boolean {

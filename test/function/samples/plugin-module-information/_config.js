@@ -17,7 +17,7 @@ module.exports = defineTest({
 			{
 				load(id) {
 					assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(id))), {
-						assertions: {},
+						attributes: {},
 						ast: null,
 						code: null,
 						dynamicImporters: [],
@@ -54,7 +54,7 @@ module.exports = defineTest({
 						{
 							[ID_FOO]: {
 								id: ID_FOO,
-								assertions: {},
+								attributes: {},
 								ast: {
 									type: 'Program',
 									start: 0,
@@ -133,7 +133,7 @@ module.exports = defineTest({
 								implicitlyLoadedBefore: [],
 								importedIdResolutions: [
 									{
-										assertions: {},
+										attributes: {},
 										external: true,
 										id: ID_PATH,
 										meta: {},
@@ -152,7 +152,7 @@ module.exports = defineTest({
 							},
 							[ID_MAIN]: {
 								id: ID_MAIN,
-								assertions: {},
+								attributes: {},
 								ast: {
 									type: 'Program',
 									start: 0,
@@ -279,7 +279,7 @@ module.exports = defineTest({
 								code: "export { foo } from './foo.js';\nexport const nested = import('./nested/nested');\nexport const path = import('path');\nexport const pathAgain = import(thePath);\n",
 								dynamicallyImportedIdResolutions: [
 									{
-										assertions: {},
+										attributes: {},
 										external: false,
 										id: ID_NESTED,
 										meta: {},
@@ -288,7 +288,7 @@ module.exports = defineTest({
 										syntheticNamedExports: false
 									},
 									{
-										assertions: {},
+										attributes: {},
 										external: true,
 										id: ID_PATH,
 										meta: {},
@@ -310,7 +310,7 @@ module.exports = defineTest({
 								implicitlyLoadedBefore: [],
 								importedIdResolutions: [
 									{
-										assertions: {},
+										attributes: {},
 										external: false,
 										id: ID_FOO,
 										meta: {},
@@ -329,7 +329,7 @@ module.exports = defineTest({
 							},
 							[ID_NESTED]: {
 								id: ID_NESTED,
-								assertions: {},
+								attributes: {},
 								ast: {
 									type: 'Program',
 									start: 0,
@@ -406,7 +406,7 @@ module.exports = defineTest({
 								implicitlyLoadedBefore: [],
 								importedIdResolutions: [
 									{
-										assertions: {},
+										attributes: {},
 										external: false,
 										id: ID_FOO,
 										meta: {},
@@ -425,7 +425,7 @@ module.exports = defineTest({
 							},
 							[ID_PATH]: {
 								id: ID_PATH,
-								assertions: {},
+								attributes: {},
 								ast: null,
 								code: null,
 								dynamicallyImportedIdResolutions: [],

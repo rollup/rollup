@@ -1,15 +1,15 @@
 module.exports = defineTest({
-	description: 'allows plugins to read and write import assertions in resolveId',
+	description: 'allows plugins to read and write import attributes in resolveId',
 	options: {
 		output: { name: 'bundle' },
 		plugins: [
 			{
 				name: 'test',
-				resolveId(source, importer, { assertions, isEntry }) {
+				resolveId(source, importer, { attributes, isEntry }) {
 					return {
 						id: source,
 						external: !isEntry,
-						assertions: Object.fromEntries(Object.keys(assertions).map(key => [key, 'changed']))
+						attributes: Object.fromEntries(Object.keys(attributes).map(key => [key, 'changed']))
 					};
 				}
 			}

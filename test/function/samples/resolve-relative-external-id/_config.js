@@ -9,7 +9,7 @@ module.exports = defineTest({
 			{
 				async buildStart() {
 					assert.deepStrictEqual(await this.resolve('./external.js'), {
-						assertions: {},
+						attributes: {},
 						external: true,
 						id: path.join(__dirname, 'external.js'),
 						meta: {},
@@ -20,7 +20,7 @@ module.exports = defineTest({
 					assert.deepStrictEqual(
 						await this.resolve('./external.js', path.join(__dirname, 'nested', 'some-file.js')),
 						{
-							assertions: {},
+							attributes: {},
 							external: true,
 							id: path.join(__dirname, 'nested', 'external.js'),
 							meta: {},

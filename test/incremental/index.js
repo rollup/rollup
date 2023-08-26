@@ -241,7 +241,7 @@ describe('incremental', () => {
 				assert.deepEqual(bundle.cache.modules[1].resolvedIds, {
 					foo: {
 						id: 'foo',
-						assertions: {},
+						attributes: {},
 						external: false,
 						meta: {},
 						moduleSideEffects: true,
@@ -250,7 +250,7 @@ describe('incremental', () => {
 					},
 					external: {
 						id: 'external',
-						assertions: {},
+						attributes: {},
 						external: true,
 						meta: {},
 						moduleSideEffects: true,
@@ -338,7 +338,7 @@ describe('incremental', () => {
 						assert.deepStrictEqual(resolvedSources, {
 							__proto__: null,
 							bar: {
-								assertions: {},
+								attributes: {},
 								external: false,
 								id: 'bar',
 								meta: {},
@@ -360,7 +360,7 @@ describe('incremental', () => {
 						assert.deepStrictEqual(resolvedSources, {
 							__proto__: null,
 							foo: {
-								assertions: {},
+								attributes: {},
 								external: false,
 								id: 'foo',
 								meta: {},

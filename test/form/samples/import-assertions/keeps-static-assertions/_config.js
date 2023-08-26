@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	description: 'keeps any import assertions on input',
+	description: 'keeps any import attributes on input',
 	expectedWarnings: ['UNRESOLVED_IMPORT'],
 	options: {
 		external: id => {

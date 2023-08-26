@@ -96,7 +96,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	FIRST_SIDE_EFFECT = 'FIRST_SIDE_EFFECT',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
-	INCONSISTENT_IMPORT_ASSERTIONS = 'INCONSISTENT_IMPORT_ASSERTIONS',
+	INCONSISTENT_IMPORT_ATTRIBUTES = 'INCONSISTENT_IMPORT_ATTRIBUTES',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_CONFIG_MODULE_FORMAT = 'INVALID_CONFIG_MODULE_FORMAT',
@@ -399,26 +399,26 @@ export function logIllegalImportReassignment(name: string, importingId: string):
 	};
 }
 
-export function logInconsistentImportAssertions(
-	existingAssertions: Record<string, string>,
-	newAssertions: Record<string, string>,
+export function logInconsistentImportAttributes(
+	existingAttributes: Record<string, string>,
+	newAttributes: Record<string, string>,
 	source: string,
 	importer: string
 ): RollupLog {
 	return {
-		code: INCONSISTENT_IMPORT_ASSERTIONS,
+		code: INCONSISTENT_IMPORT_ATTRIBUTES,
 		message: `Module "${relativeId(importer)}" tried to import "${relativeId(
 			source
-		)}" with ${formatAssertions(
-			newAssertions
-		)} assertions, but it was already imported elsewhere with ${formatAssertions(
-			existingAssertions
-		)} assertions. Please ensure that import assertions for the same module are always consistent.`
+		)}" with ${formatAttributes(
+			newAttributes
+		)} attributes, but it was already imported elsewhere with ${formatAttributes(
+			existingAttributes
+		)} attributes. Please ensure that import attributes for the same module are always consistent.`
 	};
 }
 
-const formatAssertions = (assertions: Record<string, string>): string => {
-	const entries = Object.entries(assertions);
+const formatAttributes = (attributes: Record<string, string>): string => {
+	const entries = Object.entries(attributes);
 	if (entries.length === 0) return 'no';
 	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
 };

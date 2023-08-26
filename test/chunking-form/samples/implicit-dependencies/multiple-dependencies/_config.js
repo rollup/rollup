@@ -35,7 +35,7 @@ module.exports = defineTest({
 			buildEnd() {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN1))), {
 					id: ID_MAIN1,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -132,7 +132,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [ID_DEP],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -141,7 +141,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1B,
 							meta: {},
@@ -150,7 +150,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB2,
 							meta: {},
@@ -169,7 +169,7 @@ module.exports = defineTest({
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN2))), {
 					id: ID_MAIN2,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -266,7 +266,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [ID_DEP],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -275,7 +275,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1B,
 							meta: {},
@@ -284,7 +284,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB3,
 							meta: {},
@@ -303,7 +303,7 @@ module.exports = defineTest({
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
 					id: ID_DEP,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -399,7 +399,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -408,7 +408,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB2,
 							meta: {},
@@ -417,7 +417,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB3,
 							meta: {},

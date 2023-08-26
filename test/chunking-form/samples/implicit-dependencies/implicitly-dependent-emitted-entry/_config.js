@@ -26,7 +26,7 @@ module.exports = defineTest({
 			buildEnd() {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN))), {
 					id: ID_MAIN,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -86,7 +86,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB,
 							meta: {},
@@ -105,7 +105,7 @@ module.exports = defineTest({
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
 					id: ID_DEP,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -165,7 +165,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB,
 							meta: {},

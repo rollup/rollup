@@ -93,7 +93,7 @@ export interface SourceMap {
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
 interface ModuleOptions {
-	assertions: Record<string, string>;
+	attributes: Record<string, string>;
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;
@@ -225,7 +225,7 @@ export interface PluginContext extends MinimalPluginContext {
 		source: string,
 		importer?: string,
 		options?: {
-			assertions?: Record<string, string>;
+			attributes?: Record<string, string>;
 			custom?: CustomPluginOptions;
 			isEntry?: boolean;
 			skipSelf?: boolean;
@@ -264,7 +264,7 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
 	importer: string | undefined,
-	options: { assertions: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
+	options: { attributes: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
 ) => ResolveIdResult;
 
 export type ShouldTransformCachedModuleHook = (
@@ -324,7 +324,7 @@ export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | AstNode,
 	importer: string,
-	options: { assertions: Record<string, string> }
+	options: { attributes: Record<string, string> }
 ) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (
@@ -708,6 +708,7 @@ export interface OutputOptions {
 	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
+	// TODO Lukas deprecate in favor of "externalImportAttributes"
 	externalImportAssertions?: boolean;
 	externalLiveBindings?: boolean;
 	// only required for bundle.write

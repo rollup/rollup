@@ -14,7 +14,7 @@ export async function resolveId(
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
-	assertions: Record<string, string>
+	attributes: Record<string, string>
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -24,7 +24,7 @@ export async function resolveId(
 		skip,
 		customOptions,
 		isEntry,
-		assertions
+		attributes
 	);
 
 	if (pluginResult != null) {

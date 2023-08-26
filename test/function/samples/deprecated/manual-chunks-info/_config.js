@@ -20,7 +20,7 @@ module.exports = defineTest({
 					{
 						[getId('dynamic')]: {
 							id: getId('dynamic'),
-							assertions: {},
+							attributes: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -81,7 +81,7 @@ module.exports = defineTest({
 							code: "export const promise = import('external');\nexport { default as internal } from './lib';\n",
 							dynamicallyImportedIdResolutions: [
 								{
-									assertions: {},
+									attributes: {},
 									external: true,
 									id: 'external',
 									meta: {},
@@ -100,7 +100,7 @@ module.exports = defineTest({
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [
 								{
-									assertions: {},
+									attributes: {},
 									external: false,
 									id: getId('lib'),
 									meta: {},
@@ -119,7 +119,7 @@ module.exports = defineTest({
 						},
 						[getId('lib')]: {
 							id: getId('lib'),
-							assertions: {},
+							attributes: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -155,7 +155,7 @@ module.exports = defineTest({
 						},
 						[getId('main')]: {
 							id: getId('main'),
-							assertions: {},
+							attributes: {},
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -238,7 +238,7 @@ module.exports = defineTest({
 							code: "export const promise = import('./dynamic');\nexport { default as value } from './lib';\nexport { external } from 'external';\n",
 							dynamicallyImportedIdResolutions: [
 								{
-									assertions: {},
+									attributes: {},
 									external: false,
 									id: getId('dynamic'),
 									meta: {},
@@ -257,7 +257,7 @@ module.exports = defineTest({
 							implicitlyLoadedBefore: [],
 							importedIdResolutions: [
 								{
-									assertions: {},
+									attributes: {},
 									external: false,
 									id: getId('lib'),
 									meta: {},
@@ -266,7 +266,7 @@ module.exports = defineTest({
 									syntheticNamedExports: false
 								},
 								{
-									assertions: {},
+									attributes: {},
 									external: true,
 									id: 'external',
 									meta: {},
@@ -285,7 +285,7 @@ module.exports = defineTest({
 						},
 						external: {
 							id: 'external',
-							assertions: {},
+							attributes: {},
 							ast: null,
 							code: null,
 							dynamicallyImportedIdResolutions: [],
