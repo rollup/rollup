@@ -191,10 +191,10 @@ export const useOptions = defineStore('options2', () => {
 		defaultValue: true,
 		name: 'output.externalLiveBindings'
 	});
-	const optionOutputExternalImportAssertions = getBoolean({
+	const optionOutputExternalImportAttributes = getBoolean({
 		available: () => optionOutputFormat.value.value === 'es',
 		defaultValue: true,
-		name: 'output.externalImportAssertions'
+		name: 'output.externalImportAttributes'
 	});
 	const optionOutputFreeze = getBoolean({
 		defaultValue: true,
@@ -412,7 +412,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputExports,
 		optionOutputExtend,
 		optionOutputExternalLiveBindings,
-		optionOutputExternalImportAssertions,
+		optionOutputExternalImportAttributes,
 		optionOutputFreeze,
 		optionOutputFooter,
 		optionOutputFormat,

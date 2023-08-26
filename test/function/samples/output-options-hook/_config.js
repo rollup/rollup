@@ -33,6 +33,7 @@ module.exports = defineTest({
 						exports: 'auto',
 						extend: false,
 						externalImportAssertions: true,
+						externalImportAttributes: true,
 						externalLiveBindings: true,
 						format: 'cjs',
 						freeze: true,

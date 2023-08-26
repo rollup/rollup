@@ -239,6 +239,7 @@ async function mergeOutputOptions(
 		exports: getOption('exports'),
 		extend: getOption('extend'),
 		externalImportAssertions: getOption('externalImportAssertions'),
+		externalImportAttributes: getOption('externalImportAttributes'),
 		externalLiveBindings: getOption('externalLiveBindings'),
 		file: getOption('file'),
 		footer: getOption('footer'),

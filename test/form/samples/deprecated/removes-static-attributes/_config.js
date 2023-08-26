@@ -1,7 +1,8 @@
 module.exports = defineTest({
-	description: 'keeps any import attributes on input',
-	expectedWarnings: ['UNRESOLVED_IMPORT'],
+	description: 'keeps any import assertions on input',
+	expectedWarnings: ['UNRESOLVED_IMPORT', 'DEPRECATED_FEATURE'],
 	options: {
+		strictDeprecations: false,
 		external: id => {
 			if (id === 'unresolved') return null;
 			return true;

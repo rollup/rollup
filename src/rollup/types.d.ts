@@ -708,8 +708,9 @@ export interface OutputOptions {
 	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
-	// TODO Lukas deprecate in favor of "externalImportAttributes"
+	/** @deprecated Use "externalImportAttributes" instead. */
 	externalImportAssertions?: boolean;
+	externalImportAttributes?: boolean;
 	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
@@ -765,7 +766,9 @@ export interface NormalizedOutputOptions {
 	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
+	/** @deprecated Use "externalImportAttributes" instead. */
 	externalImportAssertions: boolean;
+	externalImportAttributes: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
 	footer: AddonFunction;

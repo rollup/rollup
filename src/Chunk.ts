@@ -919,7 +919,7 @@ export default class Chunk {
 		}
 		return [
 			resolution || '',
-			(this.outputOptions.format === 'es' && this.outputOptions.externalImportAssertions) || null
+			(this.outputOptions.format === 'es' && this.outputOptions.externalImportAttributes) || null
 		];
 	}
 

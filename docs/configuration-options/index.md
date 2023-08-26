@@ -678,15 +678,15 @@ This pattern will also be used for every file when setting the [`output.preserve
 
 Whether to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
-### output.externalImportAssertions
+### output.externalImportAttributes
 
 |          |                                                              |
 | -------: | :----------------------------------------------------------- |
 |    Type: | `boolean`                                                    |
-|     CLI: | `--externalImportAssertions`/`--no-externalImportAssertions` |
+|     CLI: | `--externalImportAttributes`/`--no-externalImportAttributes` |
 | Default: | `true`                                                       |
 
-Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
+Whether to add import attributes to external imports in the output if the output format is `es`. By default, attributes are taken from the input files, but plugins can add or remove attributes later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent attributes, otherwise a warning is emitted.
 
 ### output.generatedCode
 
@@ -2583,6 +2583,18 @@ _This option is no longer needed._
 | Default: | `false` |
 
 This option was used to prevent performance issues with the full chunk optimization algorithm. As the algorithm is much faster now, this option is now ignored by Rollup and should no longer be used.
+
+### output.externalImportAssertions
+
+_Use the [`output.externalImportAttributes`](#output-externalimportattributes) option instead._
+
+|          |                                                              |
+| -------: | :----------------------------------------------------------- |
+|    Type: | `boolean`                                                    |
+|     CLI: | `--externalImportAssertions`/`--no-externalImportAssertions` |
+| Default: | `true`                                                       |
+
+Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
 
 ### output.preferConst
 

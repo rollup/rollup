@@ -162,7 +162,7 @@ const outputOptions = {
 	dynamicImportInCjs,
 	entryFileNames,
 	extend,
-	externalImportAssertions,
+	externalImportAttributes,
 	footer,
 	generatedCode,
 	hoistTransitiveImports,

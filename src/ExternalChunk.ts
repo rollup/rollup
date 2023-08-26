@@ -41,7 +41,7 @@ export default class ExternalChunk {
 	getImportAttributes(snippets: GenerateCodeSnippets): string | null {
 		return (this.importAttributes ||= formatAttributes(
 			this.options.format === 'es' &&
-				this.options.externalImportAssertions &&
+				this.options.externalImportAttributes &&
 				this.moduleInfo.attributes,
 			snippets
 		));

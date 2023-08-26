@@ -24,6 +24,6 @@ module.exports = defineTest({
 				}
 			}
 		],
-		output: { externalImportAssertions: false }
+		output: { externalImportAttributes: false }
 	}
 });
