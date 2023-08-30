@@ -132,12 +132,18 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 	return plugin;
 }
 
+let isWithTimers = false;
+
 export function initialiseTimers(inputOptions: NormalizedInputOptions): void {
 	if (inputOptions.perf) {
 		timers = new Map();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
+		if (isWithTimers) {
+			return;
+		}
 		inputOptions.plugins = inputOptions.plugins!.map(getPluginWithTimers);
+		isWithTimers = true;
 	} else {
 		timeStart = doNothing;
 		timeEnd = doNothing;
