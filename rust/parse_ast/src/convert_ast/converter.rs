@@ -678,7 +678,7 @@ impl<'a> AstConverter<'a> {
       ExportSpecifier::Namespace(export_namespace_specifier) => self.store_export_all_declaration(
         &export_named_declaration.span,
         export_named_declaration.src.as_ref().unwrap(),
-        &export_named_declaration.asserts,
+        &export_named_declaration.with,
         Some(&export_namespace_specifier.name),
       ),
       ExportSpecifier::Named(_) => self.store_export_named_declaration(
@@ -689,7 +689,7 @@ impl<'a> AstConverter<'a> {
           .as_ref()
           .map(|source| &**source),
         None,
-        &export_named_declaration.asserts,
+        &export_named_declaration.with,
       ),
       ExportSpecifier::Default(_) => panic!("Unexpected default export specifier"),
     }
@@ -722,7 +722,7 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_export_all(&mut self, export_all: &ExportAll) {
-    self.store_export_all_declaration(&export_all.span, &export_all.src, &export_all.asserts, None);
+    self.store_export_all_declaration(&export_all.span, &export_all.src, &export_all.with, None);
   }
 
   fn convert_identifier(&mut self, identifier: &Ident) {
@@ -818,7 +818,7 @@ impl<'a> AstConverter<'a> {
     specifiers: &Vec<ExportSpecifier>,
     src: Option<&Str>,
     declaration: Option<&Decl>,
-    asserts: &Option<Box<ObjectLit>>,
+    with: &Option<Box<ObjectLit>>,
   ) {
     let end_position = self.add_type_and_start_and_handle_annotations(
       &TYPE_EXPORT_NAMED_DECLARATION,
@@ -848,7 +848,7 @@ impl<'a> AstConverter<'a> {
     });
     // attributes
     self.update_reference_position(reference_position + 8);
-    self.store_import_attributes(asserts);
+    self.store_import_attributes(with);
     // end
     self.add_end(end_position, span);
   }
@@ -978,15 +978,15 @@ impl<'a> AstConverter<'a> {
     self.convert_literal_string(&*import_declaration.src);
     // attributes
     self.update_reference_position(reference_position + 4);
-    self.store_import_attributes(&import_declaration.asserts);
+    self.store_import_attributes(&import_declaration.with);
     // end
     self.add_end(end_position, &import_declaration.span);
   }
 
-  fn store_import_attributes(&mut self, asserts: &Option<Box<ObjectLit>>) {
-    match asserts {
-      Some(ref asserts) => {
-        self.convert_item_list(&asserts.props, |ast_converter, prop| match prop {
+  fn store_import_attributes(&mut self, with: &Option<Box<ObjectLit>>) {
+    match with {
+      Some(ref with) => {
+        self.convert_item_list(&with.props, |ast_converter, prop| match prop {
           PropOrSpread::Prop(prop) => match &**prop {
             Prop::KeyValue(key_value_property) => {
               ast_converter.convert_import_attribute(key_value_property);

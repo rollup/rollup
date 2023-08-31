@@ -27,7 +27,7 @@ pub fn parse_ast(code: String) -> Vec<u8> {
   let compiler = get_compiler();
   let compiler_options = ParseOptions {
     syntax: Syntax::Es(EsConfig {
-      import_assertions: true,
+      import_attributes: true,
       ..Default::default()
     }),
     target: EsVersion::EsNext,
