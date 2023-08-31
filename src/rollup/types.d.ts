@@ -369,7 +369,7 @@ export type WatchChangeHook = (
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
+export type PluginImpl<O extends object = object, A = any> = (options?: O) => Plugin<A>;
 
 export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
@@ -497,9 +497,9 @@ export interface OutputPlugin
 	version?: string;
 }
 
-export interface Plugin extends OutputPlugin, Partial<PluginHooks> {
+export interface Plugin<A = any> extends OutputPlugin, Partial<PluginHooks> {
 	// for inter-plugin communication
-	api?: any;
+	api?: A;
 }
 
 type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
