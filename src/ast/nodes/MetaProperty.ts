@@ -3,6 +3,7 @@ import type { InternalModuleFormat } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
 import { escapeId } from '../../utils/escapeId';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import { DOCUMENT_CURRENT_SCRIPT } from '../../utils/interopHelpers';
 import { dirname, normalize, relative } from '../../utils/path';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -64,9 +65,7 @@ export default class MetaProperty extends NodeBase {
 
 	render(code: MagicString, { format, pluginDriver, snippets }: RenderOptions): void {
 		const {
-			context: {
-				module: { id: moduleId }
-			},
+			context: { module },
 			meta: { name },
 			metaProperty,
 			parent,
@@ -75,6 +74,8 @@ export default class MetaProperty extends NodeBase {
 			start,
 			end
 		} = this;
+		const { id: moduleId } = module;
+
 		if (name !== IMPORT) return;
 		const chunkId = preliminaryChunkId!;
 
@@ -95,11 +96,15 @@ export default class MetaProperty extends NodeBase {
 			return;
 		}
 
-		const replacement =
-			pluginDriver.hookFirstSync('resolveImportMeta', [
-				metaProperty,
-				{ chunkId, format, moduleId }
-			]) || importMetaMechanisms[format]?.(metaProperty, { chunkId, snippets });
+		let replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
+			metaProperty,
+			{ chunkId, format, moduleId }
+		]);
+		if (!replacement) {
+			replacement = importMetaMechanisms[format]?.(metaProperty, { chunkId, snippets });
+			module.accessedDocumentCurrentScript =
+				formatsMaybeAccessDocumentCurrentScript.includes(format) && replacement !== 'undefined';
+		}
 		if (typeof replacement === 'string') {
 			if (parent instanceof MemberExpression) {
 				code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
@@ -124,13 +129,15 @@ export default class MetaProperty extends NodeBase {
 	}
 }
 
+export const formatsMaybeAccessDocumentCurrentScript = ['cjs', 'iife', 'umd'];
+
 const accessedMetaUrlGlobals = {
 	amd: ['document', 'module', 'URL'],
-	cjs: ['document', 'require', 'URL'],
+	cjs: ['document', 'require', 'URL', DOCUMENT_CURRENT_SCRIPT],
 	es: [],
-	iife: ['document', 'URL'],
+	iife: ['document', 'URL', DOCUMENT_CURRENT_SCRIPT],
 	system: ['module'],
-	umd: ['document', 'require', 'URL']
+	umd: ['document', 'require', 'URL', DOCUMENT_CURRENT_SCRIPT]
 };
 
 const accessedFileUrlGlobals = {
@@ -170,7 +177,7 @@ const getFileUrlFromRelativePath = (path: string) =>
 const getUrlFromDocument = (chunkId: string, umd = false) =>
 	`${
 		umd ? `typeof document === 'undefined' ? location.href : ` : ''
-	}(document.currentScript && document.currentScript.src || new URL('${escapeId(
+	}(${DOCUMENT_CURRENT_SCRIPT} && ${DOCUMENT_CURRENT_SCRIPT}.src || new URL('${escapeId(
 		chunkId
 	)}', document.baseURI).href)`;
 

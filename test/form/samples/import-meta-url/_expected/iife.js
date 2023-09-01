@@ -1,6 +1,7 @@
 (function () {
 	'use strict';
 
+	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 	function log(url) {
 		if (typeof document === 'undefined') {
 			console.log(url);
@@ -9,6 +10,6 @@
 		}
 	}
 
-	log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
+	log((_documentCurrentScript && _documentCurrentScript.src || new URL('iife.js', document.baseURI).href));
 
 })();

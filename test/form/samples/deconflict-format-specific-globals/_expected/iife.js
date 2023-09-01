@@ -3,6 +3,7 @@ var bundle = (function (external) {
 
 	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
+	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 	var external__default = /*#__PURE__*/_interopDefault(external);
 
 	console.log(external__default.default);
@@ -18,7 +19,7 @@ var bundle = (function (external) {
 
 	import('external').then(console.log);
 	exports.default = 0;
-	console.log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
+	console.log((_documentCurrentScript && _documentCurrentScript.src || new URL('iife.js', document.baseURI).href));
 
 	function nested1() {
 		const _interopDefault = 1;
@@ -32,7 +33,7 @@ var bundle = (function (external) {
 
 		import('external').then(console.log);
 		exports.default = 1;
-		console.log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
+		console.log((_documentCurrentScript && _documentCurrentScript.src || new URL('iife.js', document.baseURI).href));
 	}
 
 	nested1();
