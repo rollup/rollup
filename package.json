@@ -60,7 +60,7 @@
   },
   "homepage": "https://rollupjs.org/",
   "optionalDependencies": {
-    "fsevents": "~2.3.3"
+    "fsevents": "~2.3.2"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.2.5",
