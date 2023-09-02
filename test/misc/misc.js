@@ -247,33 +247,6 @@ console.log(x);
 		assert.ok(subsubfeature.code.startsWith("import { fn } from '../../../main'"));
 	});
 
-	// TODO SWC this is currently segfaulting in converter.rs, not sure why
-	it.skip('throws the proper error on max call stack exception', async () => {
-		const count = 10_000;
-		let source = '';
-		for (let index = 0; index < count; index++) {
-			source += `if (foo) {`;
-		}
-		for (let index = 0; index < count; index++) {
-			source += '}';
-		}
-		try {
-			await rollup.rollup({
-				input: {
-					input: 'input'
-				},
-				plugins: [
-					loader({
-						input: source
-					})
-				]
-			});
-		} catch (error) {
-			assert.notDeepStrictEqual(error.message, 'Maximum call stack size exceeded');
-			assert.strictEqual(error.name, 'RollupError');
-		}
-	});
-
 	it('supports rendering es after rendering iife with inlined dynamic imports', async () => {
 		const bundle = await rollup.rollup({
 			input: 'main.js',
