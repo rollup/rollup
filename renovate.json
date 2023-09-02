@@ -6,7 +6,7 @@
 	"rangeStrategy": "bump",
 	"packageRules": [
 		{
-			"matchPackageNames": ["node", "npm"],
+			"matchPackageNames": ["node", "npm", "fsevents", "@rollup/plugin-typescript"],
 			"enabled": false
 		},
 		{
