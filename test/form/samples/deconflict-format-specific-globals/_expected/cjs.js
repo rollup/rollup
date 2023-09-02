@@ -2,6 +2,7 @@
 
 var external = require('external');
 
+var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 function _interopNamespace(e) {
@@ -22,7 +23,6 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 var external__default = /*#__PURE__*/_interopDefault(external);
 
 console.log(external__default.default);
