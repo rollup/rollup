@@ -31,7 +31,9 @@ export default class ExpressionStatement extends StatementBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
-		if (this.included) this.insertSemicolon(code);
+		if (code.original[this.end - 1] !== ';') {
+			code.appendLeft(this.end, ';');
+		}
 	}
 
 	shouldBeIncluded(context: InclusionContext): boolean {

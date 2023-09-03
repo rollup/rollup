@@ -258,12 +258,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 */
 	initialise(): void {}
 
-	insertSemicolon(code: MagicString): void {
-		if (code.original[this.end - 1] !== ';') {
-			code.appendLeft(this.end, ';');
-		}
-	}
-
 	parseNode(esTreeNode: GenericEsTreeNode, keepEsTreeNodeKeys?: string[]): void {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode

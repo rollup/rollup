@@ -11,6 +11,7 @@ export const convertProgram = (buffer: ArrayBuffer, readString: ReadString): any
 const convertNode = (position: number, buffer: Uint32Array, readString: ReadString): any => {
 	const nodeType = buffer[position];
 	const converter = nodeConverters[nodeType];
+	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
 	if (!converter) {
 		console.trace();
 		throw new Error(`Unknown node type: ${nodeType}`);
