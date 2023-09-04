@@ -6,7 +6,7 @@ module.exports = defineTest({
 	options: {
 		output: {
 			entryFileNames: '[hash].js',
-			sourcemapFileNames: '[hash].js',
+			sourcemapFileNames: '[chunkhash]-[hash].js',
 			file: null,
 			dir: '_actual'
 		}

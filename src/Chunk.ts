@@ -561,6 +561,7 @@ export default class Chunk {
 				typeof pattern === 'function' ? pattern(this.getPreRenderedChunkInfo()) : pattern,
 				patternName,
 				{
+					chunkhash: () => this.getPreliminaryFileName().hashPlaceholder || '',
 					format: () => format,
 					hash: size =>
 						hashPlaceholder || (hashPlaceholder = this.getPlaceholder(patternName, size)),

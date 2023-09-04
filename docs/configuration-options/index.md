@@ -1481,6 +1481,7 @@ The pattern to use for sourcemaps, or a function that is called per sourcemap to
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
 - `[hash]`: A hash based only on the content of the final generated sourcemap. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[chunkhash]`: The same hash as the one used for the corresponding generated chunk (if any).
 - `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.chunkFileNames`](#output-chunkfilenames).
