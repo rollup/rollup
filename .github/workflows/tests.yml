@@ -19,12 +19,10 @@ jobs:
         node: ['16', '18', '20']
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
-    name: Tests with Node ${{ matrix.node }} on ${{ matrix.os }}
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
-        # with:
-        #   ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -44,11 +42,6 @@ jobs:
       - name: Vulnerabilities
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
         run: npm audit
-      - name: Run all tests
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
-        run: npm run ci:test
-        env:
-          CI: true
       - name: Run tests
         if: ${{ matrix.os != 'ubuntu-latest' || matrix.node != '18' }}
         run: npm run ci:test:only
@@ -63,3 +56,8 @@ jobs:
         if: ${{ github.repository == 'rollup/rollup' && matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
         with:
           commit_parent: ${{ github.event.pull_request.head.sha }}
+      - name: Run all tests
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
+        run: npm run ci:test
+        env:
+          CI: true
