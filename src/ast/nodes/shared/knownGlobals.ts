@@ -478,7 +478,17 @@ const knownGlobals: GlobalDescription = {
 	CSSSupportsRule: C,
 	CustomElementRegistry: C,
 	customElements: O,
-	CustomEvent: C,
+	CustomEvent: {
+		__proto__: null,
+		[ValueProperties]: {
+			deoptimizeArgumentsOnCall({ args }: NodeInteractionCalled) {
+				args[2]?.deoptimizePath(['detail']);
+			},
+			getLiteralValue: getTruthyLiteralValue,
+			hasEffectsWhenCalled: returnFalse
+		},
+		prototype: O
+	},
 	DataTransfer: C,
 	DataTransferItem: C,
 	DataTransferItemList: C,
