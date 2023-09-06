@@ -341,7 +341,7 @@ function addChunksToBundle(
 		if (map) {
 			finalSourcemapFileName = sourcemapFileName
 				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
-				: finalFileName;
+				: `${finalFileName}.map`;
 			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
 			updatedCode += emitSourceMapAndGetComment(finalSourcemapFileName, map, pluginDriver, options);
 		}
@@ -355,12 +355,11 @@ function addChunksToBundle(
 	for (const { chunk, code, fileName, sourcemapFileName, map } of nonHashedChunksWithPlaceholders) {
 		let updatedCode =
 			hashesByPlaceholder.size > 0 ? replacePlaceholders(code, hashesByPlaceholder) : code;
-
 		let finalSourcemapFileName = null;
 		if (map) {
 			finalSourcemapFileName = sourcemapFileName
 				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
-				: fileName;
+				: `${fileName}.map`;
 			updatedCode += emitSourceMapAndGetComment(finalSourcemapFileName, map, pluginDriver, options);
 		}
 		bundle[fileName] = chunk.finalizeChunk(
@@ -382,11 +381,11 @@ function emitSourceMapAndGetComment(
 	if (sourcemap === 'inline') {
 		url = map.toUrl();
 	} else {
-		const sourcemapFileName = `${basename(fileName)}.map`;
+		const sourcemapFileName = basename(fileName);
 		url = sourcemapBaseUrl
 			? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
 			: sourcemapFileName;
-		pluginDriver.emitFile({ fileName: `${fileName}.map`, source: map.toString(), type: 'asset' });
+		pluginDriver.emitFile({ fileName, source: map.toString(), type: 'asset' });
 	}
 	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
 }
