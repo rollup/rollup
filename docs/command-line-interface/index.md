@@ -106,6 +106,7 @@ export default {
 		sourcemapBaseUrl,
 		sourcemapExcludeSources,
 		sourcemapFile,
+		sourcemapFileNames,
 		sourcemapIgnoreList,
 		sourcemapPathTransform,
 		validate,
@@ -420,6 +421,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --sourcemapBaseUrl <url>    Emit absolute sourcemap URLs with given base
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
+--sourcemapFileNames <pattern> Name pattern for emitted sourcemaps
 --stdin=ext                 Specify file extension used for stdin input
 --no-stdin                  Do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
