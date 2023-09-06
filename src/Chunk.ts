@@ -74,6 +74,7 @@ export interface ChunkRenderResult {
 	chunk: Chunk;
 	magicString: MagicStringBundle;
 	preliminaryFileName: PreliminaryFileName;
+	preliminarySourcemapFileName: PreliminaryFileName | null;
 	usedModules: Module[];
 }
 
@@ -189,6 +190,7 @@ export default class Chunk {
 	private needsExportsShim = false;
 	private preRenderedChunkInfo: PreRenderedChunk | null = null;
 	private preliminaryFileName: PreliminaryFileName | null = null;
+	private preliminarySourcemapFileName: PreliminaryFileName | null = null;
 	private renderedChunkInfo: RenderedChunk | null = null;
 	private renderedDependencies: Map<Chunk | ExternalChunk, ChunkDependency> | null = null;
 	private readonly renderedModules: {
@@ -330,6 +332,7 @@ export default class Chunk {
 	finalizeChunk(
 		code: string,
 		map: SourceMap | null,
+		sourcemapFileName: string | null,
 		hashesByPlaceholder: Map<string, string>
 	): OutputChunk {
 		const renderedChunkInfo = this.getRenderedChunkInfo();
@@ -351,7 +354,8 @@ export default class Chunk {
 			imports: renderedChunkInfo.imports.map(finalize),
 			map,
 			preliminaryFileName,
-			referencedFiles: renderedChunkInfo.referencedFiles.map(finalize)
+			referencedFiles: renderedChunkInfo.referencedFiles.map(finalize),
+			sourcemapFileName
 		};
 	}
 
@@ -546,6 +550,36 @@ export default class Chunk {
 		return (this.preliminaryFileName = { fileName, hashPlaceholder });
 	}
 
+	getPreliminarySourcemapFileName(): PreliminaryFileName | null {
+		if (this.preliminarySourcemapFileName) {
+			return this.preliminarySourcemapFileName;
+		}
+		let sourcemapFileName: string | null = null;
+		let hashPlaceholder: string | null = null;
+		const { sourcemapFileNames, format } = this.outputOptions;
+		if (sourcemapFileNames) {
+			const [pattern, patternName] = [sourcemapFileNames, 'output.sourcemapFileNames'];
+			sourcemapFileName = renderNamePattern(
+				typeof pattern === 'function' ? pattern(this.getPreRenderedChunkInfo()) : pattern,
+				patternName,
+				{
+					chunkhash: () => this.getPreliminaryFileName().hashPlaceholder || '',
+					format: () => format,
+					hash: size =>
+						hashPlaceholder || (hashPlaceholder = this.getPlaceholder(patternName, size)),
+					name: () => this.getChunkName()
+				}
+			);
+			if (!hashPlaceholder) {
+				sourcemapFileName = makeUnique(sourcemapFileName, this.bundle);
+			}
+		} else {
+			return null;
+		}
+
+		return (this.preliminarySourcemapFileName = { fileName: sourcemapFileName, hashPlaceholder });
+	}
+
 	public getRenderedChunkInfo(): RenderedChunk {
 		if (this.renderedChunkInfo) {
 			return this.renderedChunkInfo;
@@ -608,6 +642,7 @@ export default class Chunk {
 		}
 
 		const preliminaryFileName = this.getPreliminaryFileName();
+		const preliminarySourcemapFileName = this.getPreliminarySourcemapFileName();
 		const { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait } =
 			this.renderModules(preliminaryFileName.fileName);
 
@@ -672,6 +707,7 @@ export default class Chunk {
 			chunk: this,
 			magicString,
 			preliminaryFileName,
+			preliminarySourcemapFileName,
 			usedModules
 		};
 	}
