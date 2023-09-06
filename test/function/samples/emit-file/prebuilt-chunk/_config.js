@@ -60,6 +60,7 @@ module.exports = defineTest({
 						...prebuiltChunk1ConsumedProperties,
 						name: fileName,
 						map: null,
+						sourcemapFileName: null,
 						preliminaryFileName: 'my-chunk.js'
 					});
 					this.emitFile({
@@ -73,6 +74,7 @@ module.exports = defineTest({
 						name: fileName2,
 						exports: [],
 						map: null,
+						sourcemapFileName: null,
 						preliminaryFileName: 'my-chunk2.js'
 					});
 				}

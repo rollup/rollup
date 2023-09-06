@@ -326,6 +326,7 @@ export class FileEmitter {
 			name: prebuiltChunk.fileName,
 			preliminaryFileName: prebuiltChunk.fileName,
 			referencedFiles: [],
+			sourcemapFileName: prebuiltChunk.sourcemapFileName || null,
 			type: 'chunk'
 		};
 	}

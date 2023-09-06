@@ -104,6 +104,7 @@ export async function normalizeOutputOptions(
 		sourcemapBaseUrl: getSourcemapBaseUrl(config),
 		sourcemapExcludeSources: config.sourcemapExcludeSources || false,
 		sourcemapFile: config.sourcemapFile,
+		sourcemapFileNames: getSourcemapFileNames(config, unsetOptions),
 		sourcemapIgnoreList:
 			typeof config.sourcemapIgnoreList === 'function'
 				? config.sourcemapIgnoreList
@@ -526,6 +527,17 @@ const getNamespaceToStringTag = (
 		return configNamespaceToStringTag;
 	}
 	return generatedCode.symbols || false;
+};
+
+const getSourcemapFileNames = (
+	config: OutputOptions,
+	unsetOptions: Set<string>
+): NormalizedOutputOptions['sourcemapFileNames'] => {
+	const configSourcemapFileNames = config.sourcemapFileNames;
+	if (configSourcemapFileNames == null) {
+		unsetOptions.add('sourcemapFileNames');
+	}
+	return configSourcemapFileNames;
 };
 
 const getSourcemapBaseUrl = (
