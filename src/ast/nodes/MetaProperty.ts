@@ -63,7 +63,8 @@ export default class MetaProperty extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, { format, pluginDriver, snippets }: RenderOptions): void {
+	render(code: MagicString, renderOptions: RenderOptions): void {
+		const { format, pluginDriver, snippets } = renderOptions;
 		const {
 			context: { module },
 			meta: { name },
@@ -102,7 +103,7 @@ export default class MetaProperty extends NodeBase {
 		]);
 		if (!replacement) {
 			replacement = importMetaMechanisms[format]?.(metaProperty, { chunkId, snippets });
-			module.accessedDocumentCurrentScript =
+			renderOptions.accessedDocumentCurrentScript ||=
 				formatsMaybeAccessDocumentCurrentScript.includes(format) && replacement !== 'undefined';
 		}
 		if (typeof replacement === 'string') {

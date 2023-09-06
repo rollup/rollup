@@ -213,7 +213,6 @@ export default class Module {
 	readonly dynamicImporters: string[] = [];
 	readonly dynamicImports: DynamicImport[] = [];
 	excludeFromSourcemap: boolean;
-	accessedDocumentCurrentScript = false;
 	execIndex = Infinity;
 	readonly implicitlyLoadedAfter = new Set<Module>();
 	readonly implicitlyLoadedBefore = new Set<Module>();

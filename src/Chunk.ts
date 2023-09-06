@@ -1167,6 +1167,7 @@ export default class Chunk {
 		const renderedModuleSources = new Map<Module, MagicString>();
 
 		const renderOptions: RenderOptions = {
+			accessedDocumentCurrentScript: false,
 			dynamicImportFunction,
 			exportNamesByVariable,
 			format,
@@ -1185,13 +1186,13 @@ export default class Chunk {
 			if (module.isIncluded() || includedNamespaces.has(module)) {
 				const rendered = module.render(renderOptions);
 				if (
-					!module.accessedDocumentCurrentScript &&
+					!renderOptions.accessedDocumentCurrentScript &&
 					formatsMaybeAccessDocumentCurrentScript.includes(format)
 				) {
 					// eslint-disable-next-line unicorn/consistent-destructuring
 					this.accessedGlobalsByScope.get(module.scope)?.delete(DOCUMENT_CURRENT_SCRIPT);
 				}
-				module.accessedDocumentCurrentScript = false;
+				renderOptions.accessedDocumentCurrentScript = false;
 				({ source } = rendered);
 				usesTopLevelAwait ||= rendered.usesTopLevelAwait;
 				renderedLength = source.length();
