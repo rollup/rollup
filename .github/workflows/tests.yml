@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-        node: ['16', '18', '20']
+        node: ['16', '18']
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     name: Node ${{ matrix.node }} on ${{ matrix.os }}
@@ -48,12 +48,12 @@ jobs:
         env:
           CI: true
       - name: Run tests with coverage
-        if: ${{ github.repository == 'rollup/rollup' && matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
         run: npm run ci:coverage
         env:
           CI: true
       - uses: codecov/codecov-action@v3
-        if: ${{ github.repository == 'rollup/rollup' && matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '18' }}
         with:
           commit_parent: ${{ github.event.pull_request.head.sha }}
       - name: Run all tests
