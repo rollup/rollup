@@ -333,10 +333,10 @@ var store$4 = sharedStore;
 (shared$b.exports = function (key, value) {
   return store$4[key] || (store$4[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.32.1',
+  version: '3.32.2',
   mode: 'global',
   copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.32.1/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.32.2/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -3139,7 +3139,9 @@ try {
 } catch (error) { /* empty */ }
 
 var checkCorrectnessOfIteration$4 = function (exec, SKIP_CLOSING) {
-  if (!SKIP_CLOSING && !SAFE_CLOSING) return false;
+  try {
+    if (!SKIP_CLOSING && !SAFE_CLOSING) return false;
+  } catch (error) { return false; } // workaround of old WebKit + `eval` bug
   var ITERATION_SUPPORT = false;
   try {
     var object = {};
@@ -3316,12 +3318,15 @@ var iteratorDefine = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
 
   var getIterationMethod = function (KIND) {
     if (KIND === DEFAULT && defaultIterator) return defaultIterator;
-    if (!BUGGY_SAFARI_ITERATORS && KIND in IterablePrototype) return IterablePrototype[KIND];
+    if (!BUGGY_SAFARI_ITERATORS && KIND && KIND in IterablePrototype) return IterablePrototype[KIND];
+
     switch (KIND) {
       case KEYS: return function keys() { return new IteratorConstructor(this, KIND); };
       case VALUES: return function values() { return new IteratorConstructor(this, KIND); };
       case ENTRIES: return function entries() { return new IteratorConstructor(this, KIND); };
-    } return function () { return new IteratorConstructor(this); };
+    }
+
+    return function () { return new IteratorConstructor(this); };
   };
 
   var TO_STRING_TAG = NAME + ' Iterator';
@@ -4347,7 +4352,7 @@ var pack = function (number, mantissaLength, bytes) {
       exponent = eMax;
     } else if (exponent + eBias >= 1) {
       mantissa = roundToEven((number * c - 1) * pow$5(2, mantissaLength));
-      exponent = exponent + eBias;
+      exponent += eBias;
     } else {
       mantissa = roundToEven(number * pow$5(2, eBias - 1) * pow$5(2, mantissaLength));
       exponent = 0;
@@ -4396,8 +4401,8 @@ var unpack = function (buffer, mantissaLength) {
   } else if (exponent === eMax) {
     return mantissa ? NaN : s ? -Infinity : Infinity;
   } else {
-    mantissa = mantissa + pow$5(2, mantissaLength);
-    exponent = exponent - eBias;
+    mantissa += pow$5(2, mantissaLength);
+    exponent -= eBias;
   } return (s ? -1 : 1) * mantissa * pow$5(2, exponent - mantissaLength);
 };
 
@@ -5920,6 +5925,7 @@ var exp$2 = Math.exp;
 // https://tc39.es/ecma262/#sec-math.expm1
 var mathExpm1 = (!$expm1
   // Old FF bug
+  // eslint-disable-next-line no-loss-of-precision -- required for old engines
   || $expm1(10) > 22025.465794806719 || $expm1(10) < 22025.4657948067165168
   // Tor Browser bug
   || $expm1(-2e-17) !== -2e-17
@@ -6240,9 +6246,20 @@ var toNumber = function (argument) {
       if (third === 88 || third === 120) return NaN; // Number('+0x1') should be NaN, old V8 fix
     } else if (first === 48) {
       switch (charCodeAt$6(it, 1)) {
-        case 66: case 98: radix = 2; maxCode = 49; break; // fast equal of /^0b[01]+$/i
-        case 79: case 111: radix = 8; maxCode = 55; break; // fast equal of /^0o[0-7]+$/i
-        default: return +it;
+        // fast equal of /^0b[01]+$/i
+        case 66:
+        case 98:
+          radix = 2;
+          maxCode = 49;
+          break;
+        // fast equal of /^0o[0-7]+$/i
+        case 79:
+        case 111:
+          radix = 8;
+          maxCode = 55;
+          break;
+        default:
+          return +it;
       }
       digits = stringSlice$h(it, 2);
       length = digits.length;
@@ -8674,7 +8691,7 @@ var handleNCG = function (string) {
   for (; index <= length; index++) {
     chr = charAt$h(string, index);
     if (chr === '\\') {
-      chr = chr + charAt$h(string, ++index);
+      chr += charAt$h(string, ++index);
     } else if (chr === ']') {
       brackets = false;
     } else if (!brackets) switch (true) {
@@ -9366,7 +9383,10 @@ var fixRegexpWellKnownSymbolLogic = function (KEY, exec, FORCED, SHAM) {
       re[SYMBOL] = /./[SYMBOL];
     }
 
-    re.exec = function () { execCalled = true; return null; };
+    re.exec = function () {
+      execCalled = true;
+      return null;
+    };
 
     re[SYMBOL]('');
     return !execCalled;
@@ -14653,7 +14673,7 @@ var push$c = uncurryThis$q([].push);
 
 var IS_DIGIT = /^\d$/;
 var IS_NON_ZERO_DIGIT = /^[1-9]$/;
-var IS_NUMBER_START = /^(-|\d)$/;
+var IS_NUMBER_START = /^(?:-|\d)$/;
 var IS_WHITESPACE$1 = /^[\t\n\r ]$/;
 
 var PRIMITIVE = 0;
@@ -18567,7 +18587,7 @@ var checkBasicSemantic = function (structuredCloneImplementation) {
     var set1 = new global$5.Set([7]);
     var set2 = structuredCloneImplementation(set1);
     var number = structuredCloneImplementation(Object$1(7));
-    return set2 === set1 || !set2.has(7) || typeof number != 'object' || number !== 7;
+    return set2 === set1 || !set2.has(7) || typeof number != 'object' || +number !== 7;
   }) && structuredCloneImplementation;
 };
 
@@ -19354,7 +19374,7 @@ var encode = function (input) {
         var q = delta;
         var k = base;
         while (true) {
-          var t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
+          var t = k <= bias ? tMin : k >= bias + tMax ? tMax : k - bias;
           if (q < t) break;
           var qMinusT = q - t;
           var baseMinusT = base - t;
