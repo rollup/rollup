@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 3.29.0
+
+_2023-09-06_
+
+### Features
+
+- Add output.sourcemapFileNames option (#5105)
+- Add generic type parameter for `api` to Plugin type (#5112)
+
+### Bug Fixes
+
+- Ensure mutations of CustomEvent details are tracked (#5123)
+
+### Pull Requests
+
+- [#5105](https://github.com/rollup/rollup/pull/5105): Added option to name sourcemap files, i.e. a output.sourcemapFileName… (@atti187)
+- [#5108](https://github.com/rollup/rollup/pull/5108): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5109](https://github.com/rollup/rollup/pull/5109): Docs: load full path of rollup.browser.js for Rollup V4 (@TrickyPi)
+- [#5112](https://github.com/rollup/rollup/pull/5112): feat(types): add generic type for plugin api (@sxzz)
+- [#5115](https://github.com/rollup/rollup/pull/5115): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5123](https://github.com/rollup/rollup/pull/5123): Deoptimize custom event detail (@lukastaegert)
+
 ## 3.28.1
 
 _2023-08-22_
