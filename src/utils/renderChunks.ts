@@ -32,6 +32,7 @@ interface RenderedChunkWithPlaceholders {
 	chunk: Chunk;
 	code: string;
 	fileName: string;
+	sourcemapFileName: string | null;
 	map: SourceMap | null;
 }
 
@@ -52,6 +53,7 @@ export async function renderChunks(
 
 	const chunkGraph = getChunkGraph(chunks);
 	const {
+		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
 		renderedChunksByPlaceholder,
 		hashDependenciesByPlaceholder
@@ -65,6 +67,7 @@ export async function renderChunks(
 	const hashesByPlaceholder = generateFinalHashes(
 		renderedChunksByPlaceholder,
 		hashDependenciesByPlaceholder,
+		initialHashesByPlaceholder,
 		bundle
 	);
 	addChunksToBundle(
@@ -200,6 +203,7 @@ async function transformChunksAndGenerateContentHashes(
 	const nonHashedChunksWithPlaceholders: RenderedChunkWithPlaceholders[] = [];
 	const renderedChunksByPlaceholder = new Map<string, RenderedChunkWithPlaceholders>();
 	const hashDependenciesByPlaceholder = new Map<string, HashResult>();
+	const initialHashesByPlaceholder = new Map<string, string>();
 	const placeholders = new Set<string>();
 	for (const {
 		preliminaryFileName: { hashPlaceholder }
@@ -211,12 +215,14 @@ async function transformChunksAndGenerateContentHashes(
 			async ({
 				chunk,
 				preliminaryFileName: { fileName, hashPlaceholder },
+				preliminarySourcemapFileName,
 				magicString,
 				usedModules
 			}) => {
-				const transformedChunk = {
+				const transformedChunk: RenderedChunkWithPlaceholders = {
 					chunk,
 					fileName,
+					sourcemapFileName: preliminarySourcemapFileName?.fileName ?? null,
 					...(await transformChunk(
 						magicString,
 						fileName,
@@ -227,7 +233,8 @@ async function transformChunksAndGenerateContentHashes(
 						log
 					))
 				};
-				const { code } = transformedChunk;
+				const { code, map } = transformedChunk;
+
 				if (hashPlaceholder) {
 					// To create a reproducible content-only hash, all placeholders are
 					// replaced with the same value before hashing
@@ -256,11 +263,23 @@ async function transformChunksAndGenerateContentHashes(
 				} else {
 					nonHashedChunksWithPlaceholders.push(transformedChunk);
 				}
+
+				const sourcemapHashPlaceholder = preliminarySourcemapFileName?.hashPlaceholder;
+				if (map && sourcemapHashPlaceholder) {
+					initialHashesByPlaceholder.set(
+						preliminarySourcemapFileName.hashPlaceholder,
+						createHash()
+							.update(map.toString())
+							.digest('hex')
+							.slice(0, preliminarySourcemapFileName.hashPlaceholder.length)
+					);
+				}
 			}
 		)
 	);
 	return {
 		hashDependenciesByPlaceholder,
+		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
 		renderedChunksByPlaceholder
 	};
@@ -269,9 +288,10 @@ async function transformChunksAndGenerateContentHashes(
 function generateFinalHashes(
 	renderedChunksByPlaceholder: Map<string, RenderedChunkWithPlaceholders>,
 	hashDependenciesByPlaceholder: Map<string, HashResult>,
+	initialHashesByPlaceholder: Map<string, string>,
 	bundle: OutputBundleWithPlaceholders
 ) {
-	const hashesByPlaceholder = new Map<string, string>();
+	const hashesByPlaceholder = new Map<string, string>(initialHashesByPlaceholder);
 	for (const [placeholder, { fileName }] of renderedChunksByPlaceholder) {
 		let hash = createHash();
 		const hashDependencyPlaceholders = new Set<string>([placeholder]);
@@ -308,22 +328,46 @@ function addChunksToBundle(
 	pluginDriver: PluginDriver,
 	options: NormalizedOutputOptions
 ) {
-	for (const { chunk, code, fileName, map } of renderedChunksByPlaceholder.values()) {
+	for (const {
+		chunk,
+		code,
+		fileName,
+		sourcemapFileName,
+		map
+	} of renderedChunksByPlaceholder.values()) {
 		let updatedCode = replacePlaceholders(code, hashesByPlaceholder);
 		const finalFileName = replacePlaceholders(fileName, hashesByPlaceholder);
+		let finalSourcemapFileName = null;
 		if (map) {
+			finalSourcemapFileName = sourcemapFileName
+				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
+				: `${finalFileName}.map`;
 			map.file = replacePlaceholders(map.file, hashesByPlaceholder);
-			updatedCode += emitSourceMapAndGetComment(finalFileName, map, pluginDriver, options);
+			updatedCode += emitSourceMapAndGetComment(finalSourcemapFileName, map, pluginDriver, options);
 		}
-		bundle[finalFileName] = chunk.finalizeChunk(updatedCode, map, hashesByPlaceholder);
+		bundle[finalFileName] = chunk.finalizeChunk(
+			updatedCode,
+			map,
+			finalSourcemapFileName,
+			hashesByPlaceholder
+		);
 	}
-	for (const { chunk, code, fileName, map } of nonHashedChunksWithPlaceholders) {
+	for (const { chunk, code, fileName, sourcemapFileName, map } of nonHashedChunksWithPlaceholders) {
 		let updatedCode =
 			hashesByPlaceholder.size > 0 ? replacePlaceholders(code, hashesByPlaceholder) : code;
+		let finalSourcemapFileName = null;
 		if (map) {
-			updatedCode += emitSourceMapAndGetComment(fileName, map, pluginDriver, options);
+			finalSourcemapFileName = sourcemapFileName
+				? replacePlaceholders(sourcemapFileName, hashesByPlaceholder)
+				: `${fileName}.map`;
+			updatedCode += emitSourceMapAndGetComment(finalSourcemapFileName, map, pluginDriver, options);
 		}
-		bundle[fileName] = chunk.finalizeChunk(updatedCode, map, hashesByPlaceholder);
+		bundle[fileName] = chunk.finalizeChunk(
+			updatedCode,
+			map,
+			finalSourcemapFileName,
+			hashesByPlaceholder
+		);
 	}
 }
 
@@ -337,11 +381,11 @@ function emitSourceMapAndGetComment(
 	if (sourcemap === 'inline') {
 		url = map.toUrl();
 	} else {
-		const sourcemapFileName = `${basename(fileName)}.map`;
+		const sourcemapFileName = basename(fileName);
 		url = sourcemapBaseUrl
 			? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
 			: sourcemapFileName;
-		pluginDriver.emitFile({ fileName: `${fileName}.map`, source: map.toString(), type: 'asset' });
+		pluginDriver.emitFile({ fileName, source: map.toString(), type: 'asset' });
 	}
 	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
 }
