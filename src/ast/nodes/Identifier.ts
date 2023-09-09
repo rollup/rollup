@@ -20,6 +20,7 @@ import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import type SpreadElement from './SpreadElement';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -42,7 +43,17 @@ export default class Identifier extends NodeBase implements PatternNode {
 	declare name: string;
 	declare type: NodeType.tIdentifier;
 	variable: Variable | null = null;
-	private isTDZAccess: boolean | null = null;
+
+	private get isTDZAccess(): boolean | null {
+		if (!isFlagSet(this.flags, Flag.tdzAccessDefined)) {
+			return null;
+		}
+		return isFlagSet(this.flags, Flag.tdzAccess);
+	}
+	private set isTDZAccess(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.tdzAccessDefined, true);
+		this.flags = setFlag(this.flags, Flag.tdzAccess, value);
+	}
 
 	addExportedVariables(
 		variables: Variable[],
@@ -198,7 +209,8 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	isPossibleTDZ(): boolean {
 		// return cached value to avoid issues with the next tree-shaking pass
-		if (this.isTDZAccess !== null) return this.isTDZAccess;
+		const cachedTdzAccess = this.isTDZAccess;
+		if (cachedTdzAccess !== null) return cachedTdzAccess;
 
 		if (
 			!(

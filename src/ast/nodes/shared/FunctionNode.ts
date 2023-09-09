@@ -14,7 +14,6 @@ import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import type { PatternNode } from './Pattern';
 
 export default class FunctionNode extends FunctionBase {
-	declare async: boolean;
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
 	declare params: readonly PatternNode[];

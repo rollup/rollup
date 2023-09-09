@@ -6,6 +6,7 @@ import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/Pat
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
 import type SpreadElement from '../SpreadElement';
+import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { IncludeChildren } from './Node';
 
 export const UnknownValue = Symbol('Unknown Value');
@@ -26,7 +27,14 @@ export interface InclusionOptions {
 }
 
 export class ExpressionEntity implements WritableEntity {
-	included = false;
+	protected flags: number = 0;
+
+	get included(): boolean {
+		return isFlagSet(this.flags, Flag.included);
+	}
+	set included(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.included, value);
+	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,

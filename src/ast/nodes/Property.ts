@@ -5,6 +5,7 @@ import type { HasEffectsContext } from '../ExecutionContext';
 import { UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type * as NodeType from './NodeType';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
 import type { ExpressionNode } from './shared/Node';
@@ -13,10 +14,24 @@ import type { PatternNode } from './shared/Pattern';
 export default class Property extends MethodBase implements PatternNode {
 	declare key: ExpressionNode;
 	declare kind: 'init' | 'get' | 'set';
-	declare method: boolean;
-	declare shorthand: boolean;
 	declare type: NodeType.tProperty;
 	private declarationInit: ExpressionEntity | null = null;
+
+	//declare method: boolean;
+	get method(): boolean {
+		return isFlagSet(this.flags, Flag.method);
+	}
+	set method(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.method, value);
+	}
+
+	//declare shorthand: boolean;
+	get shorthand(): boolean {
+		return isFlagSet(this.flags, Flag.shorthand);
+	}
+	set shorthand(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.shorthand, value);
+	}
 
 	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
 		this.declarationInit = init;

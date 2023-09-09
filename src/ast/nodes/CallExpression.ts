@@ -13,6 +13,7 @@ import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
@@ -24,8 +25,14 @@ export default class CallExpression
 {
 	declare arguments: (ExpressionNode | SpreadElement)[];
 	declare callee: ExpressionNode | Super;
-	declare optional: boolean;
 	declare type: NodeType.tCallExpression;
+
+	get optional(): boolean {
+		return isFlagSet(this.flags, Flag.optional);
+	}
+	set optional(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.optional, value);
+	}
 
 	bind(): void {
 		super.bind();

@@ -35,6 +35,7 @@ import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
@@ -95,19 +96,49 @@ export default class MemberExpression
 	extends NodeBase
 	implements DeoptimizableEntity, ChainElement
 {
-	declare computed: boolean;
 	declare object: ExpressionNode | Super;
-	declare optional: boolean;
 	declare property: ExpressionNode | PrivateIdentifier;
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
 	protected declare assignmentInteraction: NodeInteractionAssigned;
 	private declare accessInteraction: NodeInteractionAccessed;
-	private assignmentDeoptimized = false;
-	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private isUndefined = false;
+
+	get computed(): boolean {
+		return isFlagSet(this.flags, Flag.computed);
+	}
+	set computed(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.computed, value);
+	}
+
+	get optional(): boolean {
+		return isFlagSet(this.flags, Flag.optional);
+	}
+	set optional(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.optional, value);
+	}
+
+	private get assignmentDeoptimized(): boolean {
+		return isFlagSet(this.flags, Flag.assignmentDeoptimized);
+	}
+	private set assignmentDeoptimized(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.assignmentDeoptimized, value);
+	}
+
+	private get bound(): boolean {
+		return isFlagSet(this.flags, Flag.bound);
+	}
+	private set bound(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.bound, value);
+	}
+
+	private get isUndefined(): boolean {
+		return isFlagSet(this.flags, Flag.isUndefined);
+	}
+	private set isUndefined(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.isUndefined, value);
+	}
 
 	bind(): void {
 		this.bound = true;

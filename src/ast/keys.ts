@@ -7,9 +7,8 @@ export const keys: {
 	Program: ['body']
 };
 
-export function getAndCreateKeys(esTreeNode: GenericEsTreeNode): string[] {
-	keys[esTreeNode.type] = Object.keys(esTreeNode).filter(
+export function createKeysForNode(esTreeNode: GenericEsTreeNode): string[] {
+	return Object.keys(esTreeNode).filter(
 		key => typeof esTreeNode[key] === 'object' && key.charCodeAt(0) !== 95 /* _ */
 	);
-	return keys[esTreeNode.type];
 }

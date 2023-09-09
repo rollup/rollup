@@ -13,6 +13,7 @@ import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type SpreadElement from './SpreadElement';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
@@ -25,8 +26,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	declare test: ExpressionNode;
 	declare type: NodeType.tConditionalExpression;
 
+	get isBranchResolutionAnalysed(): boolean {
+		return isFlagSet(this.flags, Flag.isBranchResolutionAnalysed);
+	}
+	set isBranchResolutionAnalysed(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.isBranchResolutionAnalysed, value);
+	}
+
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private isBranchResolutionAnalysed = false;
 	private usedBranch: ExpressionNode | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(

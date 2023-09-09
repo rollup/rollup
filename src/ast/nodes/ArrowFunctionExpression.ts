@@ -14,7 +14,6 @@ import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import type { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends FunctionBase {
-	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
 	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;

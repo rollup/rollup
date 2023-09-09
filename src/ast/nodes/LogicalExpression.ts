@@ -18,6 +18,7 @@ import {
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -34,9 +35,16 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	declare right: ExpressionNode;
 	declare type: NodeType.tLogicalExpression;
 
+	//private isBranchResolutionAnalysed = false;
+	private get isBranchResolutionAnalysed(): boolean {
+		return isFlagSet(this.flags, Flag.isBranchResolutionAnalysed);
+	}
+	private set isBranchResolutionAnalysed(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.isBranchResolutionAnalysed, value);
+	}
+
 	// We collect deoptimization information if usedBranch !== null
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private isBranchResolutionAnalysed = false;
 	private usedBranch: ExpressionNode | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
