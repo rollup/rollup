@@ -104,6 +104,8 @@ const TIMED_PLUGIN_HOOKS: readonly (keyof PluginHooks)[] = [
 ];
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
+	if (plugin._hasTimer) return plugin;
+	plugin._hasTimer = true;
 	for (const hook of TIMED_PLUGIN_HOOKS) {
 		if (hook in plugin) {
 			let timerLabel = `plugin ${index}`;
@@ -132,18 +134,12 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 	return plugin;
 }
 
-let isWithTimers = false;
-
 export function initialiseTimers(inputOptions: NormalizedInputOptions): void {
 	if (inputOptions.perf) {
 		timers = new Map();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
-		if (isWithTimers) {
-			return;
-		}
 		inputOptions.plugins = inputOptions.plugins!.map(getPluginWithTimers);
-		isWithTimers = true;
 	} else {
 		timeStart = doNothing;
 		timeEnd = doNothing;
