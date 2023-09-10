@@ -104,6 +104,8 @@ const TIMED_PLUGIN_HOOKS: readonly (keyof PluginHooks)[] = [
 ];
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
+	if (plugin._hasTimer) return plugin;
+	plugin._hasTimer = true;
 	for (const hook of TIMED_PLUGIN_HOOKS) {
 		if (hook in plugin) {
 			let timerLabel = `plugin ${index}`;
