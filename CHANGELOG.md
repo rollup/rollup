@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 3.29.1
+
+_2023-09-10_
+
+### Bug Fixes
+
+- Fix time measurement of plugin hooks in watch mode (#5114)
+- Ensure accessing document.currentScript in import.meta.url returns correct results (#5118)
+
+### Pull Requests
+
+- [#5114](https://github.com/rollup/rollup/pull/5114): fix(perf): avoid superfluous timer wrappings in watch mode (@ZhengLiu2825)
+- [#5118](https://github.com/rollup/rollup/pull/5118): fix: access document.currentScript at the top level (@TrickyPi)
+- [#5125](https://github.com/rollup/rollup/pull/5125): chore(deps): update actions/checkout action to v4 (@renovate[bot])
+- [#5126](https://github.com/rollup/rollup/pull/5126): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5129](https://github.com/rollup/rollup/pull/5129): re-enbale repl-artefacts workflow for rollup-swc branch (@TrickyPi)
+
 ## 3.29.0
 
 _2023-09-06_
