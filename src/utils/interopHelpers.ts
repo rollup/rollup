@@ -8,6 +8,7 @@ const INTEROP_NAMESPACE_COMPAT_VARIABLE = '_interopNamespaceCompat';
 const INTEROP_NAMESPACE_DEFAULT_VARIABLE = '_interopNamespaceDefault';
 export const INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE = '_interopNamespaceDefaultOnly';
 export const MERGE_NAMESPACES_VARIABLE = '_mergeNamespaces';
+export const DOCUMENT_CURRENT_SCRIPT = '_documentCurrentScript';
 
 export const defaultInteropHelpersByInteropType: { [T in InteropType]: string | null } = {
 	auto: INTEROP_DEFAULT_VARIABLE,
@@ -76,6 +77,9 @@ const HELPER_GENERATORS: {
 		usedHelpers: ReadonlySet<string>
 	) => string;
 } = {
+	[DOCUMENT_CURRENT_SCRIPT](_t, { _, n }) {
+		return `var${_}${DOCUMENT_CURRENT_SCRIPT}${_}=${_}typeof${_}document${_}!==${_}'undefined'${_}?${_}document.currentScript${_}:${_}null;${n}`;
+	},
 	[INTEROP_DEFAULT_COMPAT_VARIABLE](_t, snippets, liveBindings) {
 		const { _, getDirectReturnFunction, n } = snippets;
 		const [left, right] = getDirectReturnFunction(['e'], {

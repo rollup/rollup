@@ -1,5 +1,6 @@
 'use strict';
 
+var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 function log(url) {
 	if (typeof document === 'undefined') {
 		console.log(url);
@@ -8,7 +9,7 @@ function log(url) {
 	}
 }
 
-log('main: ' + (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (document.currentScript && document.currentScript.src || new URL('main.js', document.baseURI).href)));
+log('main: ' + (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.src || new URL('main.js', document.baseURI).href)));
 Promise.resolve().then(function () { return require('./nested/chunk.js'); });
 
 exports.log = log;

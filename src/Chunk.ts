@@ -6,6 +6,7 @@ import Module from './Module';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import type ImportExpression from './ast/nodes/ImportExpression';
+import { formatsMaybeAccessDocumentCurrentScript } from './ast/nodes/MetaProperty';
 import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import LocalVariable from './ast/variables/LocalVariable';
@@ -40,6 +41,7 @@ import { replacePlaceholders } from './utils/hashPlaceholders';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
+	DOCUMENT_CURRENT_SCRIPT,
 	HELPER_NAMES,
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
@@ -1201,6 +1203,7 @@ export default class Chunk {
 		const renderedModuleSources = new Map<Module, MagicString>();
 
 		const renderOptions: RenderOptions = {
+			accessedDocumentCurrentScript: false,
 			dynamicImportFunction,
 			exportNamesByVariable,
 			format,
@@ -1218,6 +1221,14 @@ export default class Chunk {
 			let source: MagicString | undefined;
 			if (module.isIncluded() || includedNamespaces.has(module)) {
 				const rendered = module.render(renderOptions);
+				if (
+					!renderOptions.accessedDocumentCurrentScript &&
+					formatsMaybeAccessDocumentCurrentScript.includes(format)
+				) {
+					// eslint-disable-next-line unicorn/consistent-destructuring
+					this.accessedGlobalsByScope.get(module.scope)?.delete(DOCUMENT_CURRENT_SCRIPT);
+				}
+				renderOptions.accessedDocumentCurrentScript = false;
 				({ source } = rendered);
 				usesTopLevelAwait ||= rendered.usesTopLevelAwait;
 				renderedLength = source.length();
