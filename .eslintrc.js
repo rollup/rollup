@@ -21,6 +21,7 @@ module.exports = {
 		'coverage',
 		'_tmp',
 		'cache',
+		'wasm',
 		'/test/*/samples/**/*.*',
 		'!/test/*/samples/**/_config.js',
 		'!/test/*/samples/**/rollup.config.js',
