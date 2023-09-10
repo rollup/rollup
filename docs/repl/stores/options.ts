@@ -311,13 +311,13 @@ export const useOptions = defineStore('options2', () => {
 		available: optionOutputPreserveModules.value,
 		name: 'output.preserveModulesRoot'
 	});
-	const optionOutputSourcemap = getBoolean({
-		name: 'output.sourcemap'
-	});
 	const optionOutputSanitizeFileName = getBoolean({
 		available: alwaysTrue,
 		defaultValue: true,
 		name: 'output.sanitizeFileName'
+	});
+	const optionOutputSourcemap = getBoolean({
+		name: 'output.sourcemap'
 	});
 	const optionOutputSourcemapBaseUrl = getString({
 		available: optionOutputSourcemap.value,
@@ -327,11 +327,21 @@ export const useOptions = defineStore('options2', () => {
 		available: optionOutputSourcemap.value,
 		name: 'output.sourcemapExcludeSources'
 	});
+	const optionOutputSourcemapFileNames = getString({
+		available: alwaysTrue,
+		defaultValue: undefined,
+		name: 'output.sourcemapFileNames'
+	});
 	const optionOutputStrict = getBoolean({
 		available: () =>
 			optionOutputFormat.value.value !== undefined && optionOutputFormat.value.value !== 'es',
 		defaultValue: true,
 		name: 'output.strict'
+	});
+	const optionOutputSystemNullSetters = getBoolean({
+		available: () => optionOutputFormat.value.value === 'system',
+		defaultValue: true,
+		name: 'output.systemNullSetters'
 	});
 	const optionOutputValidate = getBoolean({
 		name: 'output.validate'
@@ -341,11 +351,6 @@ export const useOptions = defineStore('options2', () => {
 		defaultValue: 'exports-only',
 		name: 'preserveEntrySignatures',
 		options: () => ['strict', 'allow-extension', 'exports-only', false]
-	});
-	const optionOutputSystemNullSetters = getBoolean({
-		available: () => optionOutputFormat.value.value === 'system',
-		defaultValue: true,
-		name: 'output.systemNullSetters'
 	});
 	const optionShimMissingExports = getBoolean({
 		defaultValue: false,
@@ -436,6 +441,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputPreserveModules,
 		optionOutputPreserveModulesRoot,
 		optionOutputSourcemap,
+		optionOutputSourcemapFileNames,
 		optionOutputSanitizeFileName,
 		optionOutputSourcemapBaseUrl,
 		optionOutputSourcemapExcludeSources,

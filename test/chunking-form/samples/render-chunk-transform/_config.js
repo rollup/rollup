@@ -47,7 +47,8 @@ module.exports = defineTest({
 						imports: [],
 						preliminaryFileName: 'entry-main1-!~{001}~.js',
 						referencedFiles: [],
-						map: null
+						map: null,
+						sourcemapFileName: null
 					},
 					'entry-main2.js': {
 						exports: [],
@@ -65,7 +66,8 @@ module.exports = defineTest({
 						imports: ['entry-main1.js'],
 						preliminaryFileName: 'entry-main2-!~{002}~.js',
 						referencedFiles: [],
-						map: null
+						map: null,
+						sourcemapFileName: null
 					}
 				});
 			}

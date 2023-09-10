@@ -15,15 +15,34 @@ jobs:
   upload:
     permissions:
       pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
-    # TODO SWC re-enable for rollup-swc once it is working
-    if: ${{ (github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' )) && github.head_ref != 'rollup-swc' }}
+    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
     runs-on: ubuntu-latest
     name: Upload
     steps:
       - name: Checkout Commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.number }}/merge
+      - name: Install Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        #TODO: remove after or before merging rollup-swc
+        if: ${{github.head_ref == 'rollup-swc'}}
+        with:
+          toolchain: nightly
+          targets: x86_64-unknown-linux-gnu
+      - name: Cache cargo
+        uses: actions/cache@v3
+        #TODO: remove after or before merging rollup-swc
+        if: ${{github.head_ref == 'rollup-swc'}}
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: cargo-cache
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -38,6 +57,12 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts
+      #TODO: remove after or before merging rollup-swc
+        if: ${{ github.head_ref == 'rollup-swc' }}
+        run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
+      #TODO: remove after or before merging rollup-swc
+      - name: Build artefacts
+        if: ${{ github.head_ref != 'rollup-swc' }}
         run: npm run build:cjs && npm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
         uses: zdurham/s3-upload-github-action@master
@@ -59,6 +84,19 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           S3_KEY: ${{ github.event.number }}/rollup.browser.js.map
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Upload "${{ github.event.number }}/bindings_wasm_bg.wasm" to bucket
+        uses: zdurham/s3-upload-github-action@master
+        #TODO: remove after or before merging rollup-swc
+        if: ${{github.head_ref == 'rollup-swc'}}
+        with:
+          args: --cache-control max-age=300,public
+        env:
+          FILE: browser/dist/bindings_wasm_bg.wasm
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          S3_KEY: ${{ github.event.number }}/bindings_wasm_bg.wasm
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Find Comment
