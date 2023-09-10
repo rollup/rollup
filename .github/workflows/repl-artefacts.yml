@@ -1,9 +1,5 @@
 name: Upload REPL artefacts
 
-env:
-  HOST: ubuntu-latest
-  TARGET: x86_64-unknown-linux-musl
-
 on:
   pull_request_target:
     types:
@@ -20,24 +16,24 @@ jobs:
     permissions:
       pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
     if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
-    runs-on: ${{ env.HOST }}
+    runs-on: ubuntu-latest
     name: Upload
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.number }}/merge
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
+        #TODO: remove after or before merging rollup-swc
+        if: ${{github.head_ref == 'rollup-swc'}}
         with:
           toolchain: nightly
-          targets: ${{ env.TARGET }}
+          targets: x86_64-unknown-linux-gnu
       - name: Cache cargo
         uses: actions/cache@v3
+        #TODO: remove after or before merging rollup-swc
+        if: ${{github.head_ref == 'rollup-swc'}}
         with:
           path: |
             ~/.cargo/registry/index/
@@ -45,8 +41,12 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             rust/target/
-          key: ${{ env.TARGET }}-cargo-${{ env.HOST }}-${{ hashFiles('rust/Cargo.lock') }}
-          restore-keys: ${{ env.TARGET }}-cargo-${{ env.HOST }}
+          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: cargo-cache
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
       - name: Cache Node Modules
         id: cache-node-modules
         uses: actions/cache@v3
@@ -57,7 +57,13 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts
-        run: npm run build:quick && npm run build:wasm && npm run build:bootstrap
+      #TODO: remove after or before merging rollup-swc
+        if: ${{ github.head_ref == 'rollup-swc' }}
+        run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
+      #TODO: remove after or before merging rollup-swc
+      - name: Build artefacts
+        if: ${{ github.head_ref != 'rollup-swc' }}
+        run: npm run build:cjs && npm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
         uses: zdurham/s3-upload-github-action@master
         with:
@@ -82,6 +88,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Upload "${{ github.event.number }}/bindings_wasm_bg.wasm" to bucket
         uses: zdurham/s3-upload-github-action@master
+        #TODO: remove after or before merging rollup-swc
+        if: ${{github.head_ref == 'rollup-swc'}}
         with:
           args: --cache-control max-age=300,public
         env:

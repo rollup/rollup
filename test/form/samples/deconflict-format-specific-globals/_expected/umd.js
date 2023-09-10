@@ -4,6 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.bundle = factory(global.external));
 })(this, (function (external) { 'use strict';
 
+	var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 	var external__default = /*#__PURE__*/_interopDefault(external);
@@ -21,7 +22,7 @@
 
 	import('external').then(console.log);
 	exports.default = 0;
-	console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
+	console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.src || new URL('umd.js', document.baseURI).href)));
 
 	function nested1() {
 		const _interopDefault = 1;
@@ -35,7 +36,7 @@
 
 		import('external').then(console.log);
 		exports.default = 1;
-		console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
+		console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.src || new URL('umd.js', document.baseURI).href)));
 	}
 
 	nested1();
