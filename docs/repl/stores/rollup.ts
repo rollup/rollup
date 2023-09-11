@@ -4,6 +4,10 @@ import type { RollupBuild, RollupOptions } from '../../../src/rollup/types';
 import type * as Rollup from '../helpers/importRollup';
 import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
 
+function isLoadLocalRollup({ type }: RollupRequest) {
+	return import.meta.env.DEV && type === 'local';
+}
+
 function getRollupUrl({ type, version }: RollupRequest) {
 	if (type === 'pr') {
 		return `https://rollup-ci-artefacts.s3.amazonaws.com/${version}/rollup.browser.js`;
@@ -22,15 +26,26 @@ function getRollupUrl({ type, version }: RollupRequest) {
 	return 'https://unpkg.com/@rollup/browser';
 }
 
-function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
-	if (import.meta.env.DEV && rollupRequest.type === 'local') {
+function getWasmFile({ type, version }: RollupRequest) {
+	if (type === 'pr') {
+		return `https://rollup-ci-artefacts.s3.amazonaws.com/${version}/bindings_wasm_bg.wasm`;
+	} else if (type === 'version' && version && isRollupVersionAtLeast(version, 4, 0)) {
+		return `https://unpkg.com/@rollup/browser@${version}/dist/bindings_wasm_bg.wasm`;
+	}
+}
+
+async function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> {
+	if (isLoadLocalRollup(rollupRequest)) {
 		return import('../helpers/importRollup');
 	}
 	const url = getRollupUrl(rollupRequest);
+	const wasmFileUrl = getWasmFile(rollupRequest);
+	const preloadWasmFile = wasmFileUrl && fetch(wasmFileUrl).catch(() => {});
 	return new Promise((fulfil, reject) => {
 		const script = document.createElement('script');
 		script.src = url;
-		script.addEventListener('load', () => {
+		script.addEventListener('load', async () => {
+			preloadWasmFile && (await preloadWasmFile);
 			fulfil((window as any).rollup);
 		});
 		script.addEventListener('error', () => {
@@ -78,7 +93,7 @@ export const useRollup = defineStore('rollup', () => {
 		try {
 			request.value = rollupRequest;
 			const instance = await loadRollup(rollupRequest);
-			if (import.meta.env.DEV) {
+			if (isLoadLocalRollup(rollupRequest)) {
 				instance.onUpdate(newInstance => {
 					loaded.value = { error: false, instance: newInstance };
 				});
