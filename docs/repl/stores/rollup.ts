@@ -4,33 +4,41 @@ import type { RollupBuild, RollupOptions } from '../../../src/rollup/types';
 import type * as Rollup from '../helpers/importRollup';
 import { isRollupVersionAtLeast } from '../helpers/rollupVersion';
 
+const ROLLUP_JS_FILE = 'rollup.browser.js';
+const ROLLUP_WASM_FILE = 'bindings_wasm_bg.wasm';
+
 function isLoadLocalRollup({ type }: RollupRequest) {
 	return import.meta.env.DEV && type === 'local';
 }
 
-function getRollupUrl({ type, version }: RollupRequest) {
+function getFullUrlFromUnpkg(version: string | undefined, file: string) {
+	return `https://unpkg.com/@rollup/browser${version ? `@${version}` : ''}/dist/${file}`;
+}
+
+function getFullUrlFromAWS(version: string, file: string) {
+	return `https://rollup-ci-artefacts.s3.amazonaws.com/${version}/${file}`;
+}
+
+function getRollupJsUrl({ type, version }: RollupRequest) {
 	if (type === 'pr') {
-		return `https://rollup-ci-artefacts.s3.amazonaws.com/${version}/rollup.browser.js`;
+		return getFullUrlFromAWS(version, ROLLUP_JS_FILE);
 	} else if (version) {
-		if (isRollupVersionAtLeast(version, 4, 0)) {
-			return `https://unpkg.com/@rollup/browser@${version}/dist/rollup.browser.js`;
-		}
 		if (isRollupVersionAtLeast(version, 3, 0)) {
-			return `https://unpkg.com/@rollup/browser@${version}`;
+			return getFullUrlFromUnpkg(version, ROLLUP_JS_FILE);
 		}
 		if (isRollupVersionAtLeast(version, 1, 0)) {
 			return `https://unpkg.com/rollup@${version}/dist/rollup.browser.js`;
 		}
 		throw new Error('The REPL only supports Rollup versions >= 1.0.0.');
 	}
-	return 'https://unpkg.com/@rollup/browser';
+	return getFullUrlFromUnpkg(undefined, ROLLUP_JS_FILE);
 }
 
-function getWasmFile({ type, version }: RollupRequest) {
+function getRollupWasmFileUrl({ type, version }: RollupRequest) {
 	if (type === 'pr') {
-		return `https://rollup-ci-artefacts.s3.amazonaws.com/${version}/bindings_wasm_bg.wasm`;
+		return getFullUrlFromAWS(version, ROLLUP_WASM_FILE);
 	} else if (type === 'version' && version && isRollupVersionAtLeast(version, 4, 0)) {
-		return `https://unpkg.com/@rollup/browser@${version}/dist/bindings_wasm_bg.wasm`;
+		return getFullUrlFromUnpkg(version, ROLLUP_WASM_FILE);
 	}
 }
 
@@ -38,14 +46,14 @@ async function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> 
 	if (isLoadLocalRollup(rollupRequest)) {
 		return import('../helpers/importRollup');
 	}
-	const url = getRollupUrl(rollupRequest);
-	const wasmFileUrl = getWasmFile(rollupRequest);
-	const preloadWasmFile = wasmFileUrl && fetch(wasmFileUrl).catch(() => {});
+	const url = getRollupJsUrl(rollupRequest);
+	const rollupWasmFileUrl = getRollupWasmFileUrl(rollupRequest);
+	const preloadRollupWasmFile = rollupWasmFileUrl && fetch(rollupWasmFileUrl).catch(() => {});
 	return new Promise((fulfil, reject) => {
 		const script = document.createElement('script');
 		script.src = url;
 		script.addEventListener('load', async () => {
-			preloadWasmFile && (await preloadWasmFile);
+			preloadRollupWasmFile && (await preloadRollupWasmFile);
 			fulfil((window as any).rollup);
 		});
 		script.addEventListener('error', () => {
