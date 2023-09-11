@@ -503,7 +503,7 @@ export interface Plugin<A = any> extends OutputPlugin, Partial<PluginHooks> {
 	api?: A;
 }
 
-type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
+export type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 
 export interface NormalizedTreeshakingOptions {
 	annotations: boolean;
