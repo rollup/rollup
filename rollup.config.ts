@@ -114,6 +114,10 @@ export default async function (
 		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses(), writeLicense()]
 	};
 
+	if (command.configIsBuildNode) {
+		return [commonJSBuild, esmBuild];
+	}
+
 	const { collectLicenses: collectLicensesBrowser, writeLicense: writeLicenseBrowser } =
 		getLicenseHandler(fileURLToPath(new URL('browser', import.meta.url)));
 

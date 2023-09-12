@@ -38,6 +38,8 @@
     "build:wasm:node": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm-node --target nodejs --no-pack && shx rm wasm-node/.gitignore",
     "update:napi": "npm run build:napi && npm run build:copy-native",
     "build:js": "rollup --config rollup.config.ts --configPlugin typescript",
+    "build:js:node": "rollup --config rollup.config.ts --configPlugin typescript --configIsBuildNode",
+    "build:prepare": "concurrently -c green,blue 'npm run build:napi -- --release' 'npm:build:js:node' && npm run build:copy-native",
     "update:js": "npm run build:js && npm run build:copy-native",
     "build:copy-native": "shx mkdir -p dist && shx cp rollup.*.node dist/",
     "dev": "vitepress dev docs",
@@ -59,7 +61,7 @@
     "lint:rust:nofix": "cd rust && cargo fmt --check",
     "perf": "npm run build:cjs && node --expose-gc scripts/perf.js",
     "perf:init": "node scripts/perf-init.js",
-    "prepare": "husky install && node scripts/check-release.js || npm run build",
+    "prepare": "husky install && node scripts/check-release.js || npm run build:prepare",
     "prepublishOnly": "node scripts/check-release.js && node scripts/prepublish.js",
     "prepublish:napi": "napi prepublish --skip-gh-release",
     "release": "node scripts/release.js",
@@ -185,6 +187,7 @@
     "semver": "^7.5.4"
   },
   "files": [
+    "dist/*.node",
     "dist/**/*.js",
     "dist/*.d.ts",
     "dist/bin/rollup",
