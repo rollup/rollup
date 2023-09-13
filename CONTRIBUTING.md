@@ -16,6 +16,24 @@ We welcome any type of contribution, not only code. You can help with
 
 Working on your first Pull Request? You can learn how from this _free_ course, [How to Contribute to an Open Source Project on GitHub](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github).
 
+### Git configuration to enable symlinks
+
+The unit tests in this projects make use of symlinks in the git project. On Windows, this may not work as expected without extra configuration. To configure git to create symlinks on windows, you need to enable the Windows "Developer Mode" setting, and also set the `core.symlinks` git feature using either of the following commands:
+
+```bash
+# Global setting
+git config --global core.symlinks true
+
+# Local setting
+git config core.symlinks true
+```
+
+After applying this setting, you may need to reset your local branch to ensure the files get rewritten as symlinks. Note that this step is destructive and you will want to push any changes you have made prior to resetting your branch.
+
+```bash
+git reset --hard
+```
+
 ### How to run one test on your local machine
 
 With `npm run test` you can run all tests together.
