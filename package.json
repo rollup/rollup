@@ -64,7 +64,7 @@
     "prepare": "husky install && node scripts/check-release.js || npm run build:prepare",
     "prepublishOnly": "node scripts/check-release.js && node scripts/prepublish.js",
     "prepublish:napi": "napi prepublish --skip-gh-release",
-    "release": "node scripts/release.js",
+    "release": "node scripts/prepare-release.js",
     "release:docs": "git fetch --update-head-ok origin master:master && git branch --force documentation-published master && git push origin documentation-published",
     "test": "npm run build && npm run test:all",
     "test:update-snapshots": "node scripts/update-snapshots.js",

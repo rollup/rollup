@@ -3,7 +3,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { chdir, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import GitHub from 'github-api';
 import inquirer from 'inquirer';
 import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
@@ -18,6 +17,15 @@ import {
 	MAIN_LOCKFILE,
 	MAIN_PACKAGE
 } from './release-constants.js';
+import { getFirstChangelogEntry, getGithubApi, getIncludedPRs } from './release-helpers.js';
+
+console.log(
+	`-----------------------------------------------------------------------------
+This script will create a release tag for you and guide you through writing a
+CHANGELOG entry for non-beta releases. The actual release will be performed
+by GitHub Actions once this script completes successfully.
+-----------------------------------------------------------------------------`
+);
 
 // We execute everything from the main directory
 chdir(fileURLToPath(new URL('..', import.meta.url)));
@@ -27,30 +35,34 @@ const [gh, currentBranch] = await Promise.all([
 	runAndGetStdout('git', ['branch', '--show-current']),
 	runWithEcho('git', ['pull', '--ff-only'])
 ]);
-const [mainPackage, mainLockFile, browserPackage, repo, issues, changelog] = await Promise.all([
+const [mainPackage, mainLockFile, browserPackage, repo, changelog] = await Promise.all([
 	readJson(MAIN_PACKAGE),
 	readJson(MAIN_LOCKFILE),
 	readJson(BROWSER_PACKAGE),
 	gh.getRepo('rollup', 'rollup'),
-	gh.getIssues('rollup', 'rollup'),
 	readFile(CHANGELOG, 'utf8')
 ]);
-// TODO SWC remove this
-console.log(issues);
 const isMainBranch = currentBranch === MAIN_BRANCH;
 const [newVersion, includedPRs] = await Promise.all([
 	getNewVersion(mainPackage, isMainBranch),
-	getIncludedPRs(changelog, repo, currentBranch, isMainBranch)
+	getIncludedPRs(
+		getFirstChangelogEntry(changelog).currentVersion,
+		repo,
+		currentBranch,
+		isMainBranch
+	)
 ]);
 
-let changelogEntry, gitTag;
+let gitTag;
 try {
 	if (isMainBranch) {
 		await addStubChangelogEntry(newVersion, repo, changelog, includedPRs);
 	}
 	await updatePackages(mainPackage, mainLockFile, browserPackage, newVersion);
 	await installDependenciesAndLint();
-	changelogEntry = isMainBranch ? await waitForChangelogUpdate(newVersion) : '';
+	if (isMainBranch) {
+		await waitForChangelogUpdate(newVersion);
+	}
 	gitTag = `v${newVersion}`;
 	await commitChanges(newVersion, gitTag, isMainBranch);
 } catch (error) {
@@ -60,29 +72,6 @@ try {
 }
 
 await pushChanges(gitTag);
-if (changelogEntry) {
-	await createReleaseNotes(changelogEntry, gitTag);
-}
-// TODO SWC re-enable this from CI after successful publish
-// await postReleaseComments(includedPRs, issues, newVersion);
-
-async function getGithubApi() {
-	const GITHUB_TOKEN = '.github_token';
-	try {
-		const token = (await readFile(GITHUB_TOKEN, 'utf8')).trim();
-		return new GitHub({ token });
-	} catch (error) {
-		if (error.code === 'ENOENT') {
-			console.error(
-				`Could not find GitHub token file. Please create "${GITHUB_TOKEN}" containing a token with the following permissions:
-- public_repo`
-			);
-			exit(1);
-		} else {
-			throw error;
-		}
-	}
-}
 
 async function getNewVersion(mainPackage, isMainBranch) {
 	const { version } = mainPackage;
@@ -131,64 +120,6 @@ async function addStubChangelogEntry(version, repo, changelog, includedPRs) {
 		cyan(`A stub for the release notes was added to the beginning of "${CHANGELOG}".
 Please edit this file to add useful information about bug fixes, features and
 breaking changes in the release while the tests are running.`)
-	);
-}
-
-function getFirstChangelogEntry(changelog) {
-	const match = changelog.match(
-		/(?<text>## (?<currentVersion>\d+\.\d+\.\d+)[\S\s]*?)\n+## (?<previousVersion>\d+\.\d+\.\d+)/
-	);
-	if (!match) {
-		throw new Error('Could not detect any changelog entry.');
-	}
-	const {
-		groups: { text, currentVersion, previousVersion },
-		index
-	} = match;
-	return { currentVersion, index, previousVersion, text };
-}
-
-async function getIncludedPRs(changelog, repo, currentBranch, isMainBranch) {
-	const { currentVersion } = getFirstChangelogEntry(changelog);
-	const commits = await runAndGetStdout('git', [
-		'--no-pager',
-		'log',
-		`v${currentVersion}..HEAD`,
-		'--pretty=tformat:%s'
-	]);
-	const getPrRegExp = /^(.+)\s\(#(\d+)\)$/gm;
-	const prs = [];
-	let match;
-	while ((match = getPrRegExp.exec(commits))) {
-		prs.push({ pr: match[2], text: match[1].split('\n')[0] });
-	}
-
-	if (!isMainBranch) {
-		const { data: basePrs } = await repo.listPullRequests({
-			head: `rollup:${currentBranch}`,
-			state: 'open'
-		});
-		for (const { number, title } of basePrs) {
-			prs.push({ pr: number, text: title });
-		}
-	}
-	prs.sort((a, b) => (a.pr > b.pr ? 1 : -1));
-	return Promise.all(
-		prs.map(async ({ pr, text }) => {
-			const { data } = await repo.getPullRequest(pr);
-			const bodyWithoutComments = data.body.replace(/<!--[\S\s]*?-->/g, '');
-			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[ds]?) #(\d+)/g;
-			const closed = [];
-			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
-				closed.push(match[4]);
-			}
-			return {
-				author: data.user.login,
-				closed,
-				pr,
-				text
-			};
-		})
 	);
 }
 
@@ -257,8 +188,6 @@ async function waitForChangelogUpdate(version) {
 			}
 		]);
 	}
-
-	return changelogEntry;
 }
 
 function updatePackages(mainPackage, mainLockFile, browserPackage, newVersion) {
@@ -300,39 +229,3 @@ function pushChanges(gitTag) {
 		isMainBranch && runWithEcho('git', ['push', '--force', 'origin', DOCUMENTATION_BRANCH])
 	]);
 }
-
-function createReleaseNotes(changelog, tag) {
-	return repo.createRelease({
-		body: changelog,
-		name: tag,
-		tag_name: tag
-	});
-}
-
-// TODO SWC re-enable
-// function postReleaseComments(includedPRs, issues, version) {
-// 	const isPreRelease = semverPreRelease(newVersion);
-// 	const installNote = isPreRelease
-// 		? `The release will take a few minutes. Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${newVersion}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
-// 		: 'You can test it in a few minutes via `npm install rollup`.';
-// 	return Promise.all(
-// 		includedPRs.map(({ pr, closed }) =>
-// 			Promise.all([
-// 				issues
-// 					.createIssueComment(
-// 						pr,
-// 						`This PR is currently being released as part of rollup@${version}. ${installNote}`
-// 					)
-// 					.then(() => console.log(cyan(`Added release comment to #${pr}.`))),
-// 				...closed.map(closedPr =>
-// 					issues
-// 						.createIssueComment(
-// 							closedPr,
-// 							`This issue has been resolved via #${pr} as part of rollup@${version}. ${installNote}`
-// 						)
-// 						.then(() => console.log(cyan(`Added fix comment to #${closedPr} via #${pr}.`)))
-// 				)
-// 			])
-// 		)
-// 	);
-// }

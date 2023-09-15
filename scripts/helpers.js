@@ -25,6 +25,11 @@ export function runWithEcho(command, parameters, options) {
 	});
 }
 
+/**
+ * @param {string} command
+ * @param {string[]} parameters
+ * @return {Promise<string>}
+ */
 export function runAndGetStdout(command, parameters) {
 	return new Promise((resolve, reject) => {
 		const childProcess = spawn(command, parameters);
@@ -47,6 +52,10 @@ function formatCommand(command, parameters) {
 	return [command, ...parameters].join(' ');
 }
 
+/**
+ * @param {string} file
+ * @returns {Promise<Record<string, any>>}
+ */
 export async function readJson(file) {
 	const content = await readFile(file, 'utf8');
 	return JSON.parse(content);
