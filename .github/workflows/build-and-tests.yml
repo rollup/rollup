@@ -287,6 +287,8 @@ jobs:
           commit_parent: ${{ github.event.pull_request.head.sha }}
 
   publish:
+    permissions:
+      pull-requests: write # for writing comments
     name: Publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
