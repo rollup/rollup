@@ -17,7 +17,12 @@ import {
 	MAIN_LOCKFILE,
 	MAIN_PACKAGE
 } from './release-constants.js';
-import { getFirstChangelogEntry, getGithubApi, getIncludedPRs } from './release-helpers.js';
+import {
+	getFirstChangelogEntry,
+	getGithubApi,
+	getGitTag,
+	getIncludedPRs
+} from './release-helpers.js';
 
 console.log(
 	`-----------------------------------------------------------------------------
@@ -53,7 +58,7 @@ const [newVersion, includedPRs] = await Promise.all([
 	)
 ]);
 
-let gitTag;
+const gitTag = getGitTag(newVersion);
 try {
 	if (isMainBranch) {
 		await addStubChangelogEntry(newVersion, repo, changelog, includedPRs);
@@ -63,7 +68,6 @@ try {
 	if (isMainBranch) {
 		await waitForChangelogUpdate(newVersion);
 	}
-	gitTag = `v${newVersion}`;
 	await commitChanges(newVersion, gitTag, isMainBranch);
 } catch (error) {
 	console.error(`Error during release, rolling back changes: ${error.message}`);

@@ -88,3 +88,14 @@ export async function getGithubApi() {
 		}
 	}
 }
+
+export function getGitTag(version) {
+	return `v${version}`;
+}
+
+/**
+ * @return {Promise<string>}
+ */
+export function getCurrentCommitMessage() {
+	return runAndGetStdout('git', ['--no-pager', 'log', '-1', '--pretty=%B']);
+}

@@ -11,7 +11,10 @@ on:
     tags:
       - 'v*.*.**'
   pull_request:
-    types: [synchronize, opened, reopened]
+    types:
+      - synchronize
+      - opened
+      - reopened
   merge_group:
 
 permissions:
@@ -309,8 +312,6 @@ jobs:
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
-      - name: Verify changelog
-        run: node scripts/verify-changelog.js "${{ github.ref_name }}"
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
