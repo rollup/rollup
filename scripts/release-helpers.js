@@ -24,16 +24,14 @@ export function getFirstChangelogEntry(changelog) {
 /**
  * @param {string} fromVersion
  * @param repo
- * @param {string} currentBranch
- * @param {boolean} isMainBranch
+ * @param {string|null} currentBranch We only have a branch when locally prepare a release, otherwise we use the sha to find the PR
+ * @param {boolean} isPreRelease
  * @returns {Promise<{ author: string, closed: string[], pr: string, text: string }[]>}
  */
-export async function getIncludedPRs(fromVersion, repo, currentBranch, isMainBranch) {
-	const commits = await runAndGetStdout('git', [
-		'--no-pager',
-		'log',
-		`v${fromVersion}..HEAD`,
-		'--pretty=tformat:%s'
+export async function getIncludedPRs(fromVersion, repo, currentBranch, isPreRelease) {
+	const [commits, commitSha] = await Promise.all([
+		runAndGetStdout('git', ['--no-pager', 'log', `v${fromVersion}..HEAD`, '--pretty=tformat:%s']),
+		runAndGetStdout('git', ['rev-parse', 'HEAD'])
 	]);
 	const getPrRegExp = /^(.+)\s\(#(\d+)\)$/gm;
 	const prs = [];
@@ -42,13 +40,20 @@ export async function getIncludedPRs(fromVersion, repo, currentBranch, isMainBra
 		prs.push({ pr: Number(match[2]), text: match[1].split('\n')[0] });
 	}
 
-	if (!isMainBranch) {
+	if (isPreRelease) {
 		const { data: basePrs } = await repo.listPullRequests({
-			head: `rollup:${currentBranch}`,
-			state: 'open'
+			state: 'open',
+			...(currentBranch ? { head: `rollup:${currentBranch}` } : {})
 		});
-		for (const { number, title } of basePrs) {
-			prs.push({ pr: number, text: title });
+		for (const {
+			number,
+			title,
+			head: { sha }
+		} of basePrs) {
+			if (currentBranch || sha === commitSha) {
+				prs.push({ pr: number, text: title });
+				console.log('DEBUG: added PR', number, title);
+			}
 		}
 	}
 	prs.sort((a, b) => (a.pr > b.pr ? 1 : -1));

@@ -3,8 +3,7 @@ import { env } from 'node:process';
 import GitHub from 'github-api';
 import semverPreRelease from 'semver/functions/prerelease.js';
 import { cyan } from './colors.js';
-import { runAndGetStdout } from './helpers.js';
-import { CHANGELOG, MAIN_BRANCH } from './release-constants.js';
+import { CHANGELOG } from './release-constants.js';
 import {
 	getCurrentCommitMessage,
 	getFirstChangelogEntry,
@@ -24,26 +23,26 @@ if (!(env.CI && env.ROLLUP_RELEASE && env.GITHUB_TOKEN)) {
 }
 
 const gh = new GitHub({ token: env.GITHUB_TOKEN });
-const [currentBranch, newVersion, changelog, repo, issues] = await Promise.all([
-	runAndGetStdout('git', ['branch', '--show-current']),
+const [newVersion, changelog, repo, issues] = await Promise.all([
 	getCurrentCommitMessage(),
 	readFile(CHANGELOG, 'utf8'),
 	gh.getRepo('rollup', 'rollup'),
 	gh.getIssues('rollup', 'rollup')
 ]);
-if (!/^\d+\.\d+\.\d+(-\d+)?$/.test(newVersion)) {
+
+const matched = /^\d+\.\d+\.\d+(-\d+)?$/.exec(newVersion);
+if (!matched) {
 	throw new Error(`The last commit message "${newVersion}" does not contain a version.`);
 }
 
-const isMainBranch = currentBranch === MAIN_BRANCH;
-console.log('DEBUG: currentBranch', currentBranch, isMainBranch);
+const isPreRelease = !!matched[1];
 
 const firstEntry = getFirstChangelogEntry(changelog);
 const [previousVersion, changelogEntry] =
 	firstEntry.currentVersion === newVersion
 		? [firstEntry.previousVersion, firstEntry.text]
 		: [firstEntry.currentVersion, null];
-const includedPRs = await getIncludedPRs(previousVersion, repo, currentBranch, isMainBranch);
+const includedPRs = await getIncludedPRs(previousVersion, repo, null, isPreRelease);
 
 if (changelogEntry) {
 	await createReleaseNotes(changelogEntry, getGitTag(newVersion));

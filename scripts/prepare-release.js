@@ -54,7 +54,7 @@ const [newVersion, includedPRs] = await Promise.all([
 		getFirstChangelogEntry(changelog).currentVersion,
 		repo,
 		currentBranch,
-		isMainBranch
+		!isMainBranch
 	)
 ]);
 
