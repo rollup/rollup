@@ -8,7 +8,7 @@ import { CHANGELOG, MAIN_PACKAGE } from './release-constants.js';
 import { getCurrentCommitMessage, getFirstChangelogEntry } from './release-helpers.js';
 
 const version = await getCurrentCommitMessage();
-const matched = /^\d+\.\d+\.\d+(-\d)?$/.exec(version);
+const matched = /^\d+\.\d+\.\d+(-\d+)?$/.exec(version);
 
 if (!matched) {
 	throw new Error(
