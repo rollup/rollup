@@ -31,7 +31,7 @@ const [currentBranch, newVersion, changelog, repo, issues] = await Promise.all([
 	gh.getRepo('rollup', 'rollup'),
 	gh.getIssues('rollup', 'rollup')
 ]);
-if (!newVersion.test(/^\d+\.\d+\.\d+(-\d)?$/)) {
+if (!/^\d+\.\d+\.\d+(-\d+)?$/.test(newVersion)) {
 	throw new Error(`The last commit message "${newVersion}" does not contain a version.`);
 }
 
