@@ -51,7 +51,8 @@ const isMainBranch = currentBranch === MAIN_BRANCH;
 const [newVersion, includedPRs] = await Promise.all([
 	getNewVersion(mainPackage, isMainBranch),
 	getIncludedPRs(
-		getFirstChangelogEntry(changelog).currentVersion,
+		`v${getFirstChangelogEntry(changelog).currentVersion}`,
+		'HEAD',
 		repo,
 		currentBranch,
 		!isMainBranch

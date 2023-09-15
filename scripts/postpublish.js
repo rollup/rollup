@@ -42,7 +42,13 @@ const [previousVersion, changelogEntry] =
 	firstEntry.currentVersion === newVersion
 		? [firstEntry.previousVersion, firstEntry.text]
 		: [firstEntry.currentVersion, null];
-const includedPRs = await getIncludedPRs(previousVersion, repo, null, isPreRelease);
+const includedPRs = await getIncludedPRs(
+	`v${previousVersion}`,
+	`v${newVersion}`,
+	repo,
+	null,
+	isPreRelease
+);
 
 if (changelogEntry) {
 	await createReleaseNotes(changelogEntry, getGitTag(newVersion));

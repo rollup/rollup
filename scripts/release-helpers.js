@@ -23,15 +23,21 @@ export function getFirstChangelogEntry(changelog) {
 
 /**
  * @param {string} fromVersion
+ * @param {string} toVersion
  * @param repo
  * @param {string|null} currentBranch We only have a branch when locally prepare a release, otherwise we use the sha to find the PR
  * @param {boolean} isPreRelease
  * @returns {Promise<{ author: string, closed: string[], pr: string, text: string }[]>}
  */
-export async function getIncludedPRs(fromVersion, repo, currentBranch, isPreRelease) {
+export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch, isPreRelease) {
 	const [commits, commitSha] = await Promise.all([
-		runAndGetStdout('git', ['--no-pager', 'log', `v${fromVersion}..HEAD`, '--pretty=tformat:%s']),
-		runAndGetStdout('git', ['rev-parse', 'HEAD'])
+		runAndGetStdout('git', [
+			'--no-pager',
+			'log',
+			`${fromVersion}..${toVersion}`,
+			'--pretty=tformat:%s'
+		]),
+		runAndGetStdout('git', ['rev-parse', toVersion])
 	]);
 	const getPrRegExp = /^(.+)\s\(#(\d+)\)$/gm;
 	const prs = [];
@@ -52,7 +58,6 @@ export async function getIncludedPRs(fromVersion, repo, currentBranch, isPreRele
 		} of basePrs) {
 			if (currentBranch || sha === commitSha) {
 				prs.push({ pr: number, text: title });
-				console.log('DEBUG: added PR', number, title);
 			}
 		}
 	}
