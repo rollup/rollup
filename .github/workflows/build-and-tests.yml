@@ -298,6 +298,9 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
+        with:
+          # Necessary to find the commits included in the release
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
