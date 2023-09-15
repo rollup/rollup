@@ -2,10 +2,15 @@
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { chdir } from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { readJson, runWithEcho } from './helpers.js';
 import publishWasmNodePackage from './publish-wasm-node-package.js';
 import { CHANGELOG, MAIN_PACKAGE } from './release-constants.js';
 import { getCurrentCommitMessage, getFirstChangelogEntry } from './release-helpers.js';
+
+// We execute everything from the main directory
+chdir(fileURLToPath(new URL('..', import.meta.url)));
 
 const version = await getCurrentCommitMessage();
 const matched = /^\d+\.\d+\.\d+(-\d+)?$/.exec(version);
