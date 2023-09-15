@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 3.29.2
+
+_2023-09-15_
+
+### Bug Fixes
+
+- Export `TreeshakingPreset` type (#5131)
+
+### Pull Requests
+
+- [#5131](https://github.com/rollup/rollup/pull/5131): fix: exports `TreeshakingPreset` (@moltar)
+- [#5134](https://github.com/rollup/rollup/pull/5134): docs: steps to enable symlinks on windows (@thebanjomatic)
+- [#5137](https://github.com/rollup/rollup/pull/5137): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 3.29.1
 
 _2023-09-10_
