@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { env } from 'node:process';
 import GitHub from 'github-api';
 import semverPreRelease from 'semver/functions/prerelease.js';
 import { cyan } from './colors.js';
@@ -18,11 +19,11 @@ PRs and resolved issues. It is only run from CI.
 -------------------------------------------------------------------------------`
 );
 
-if (!(process.env.CI && process.env.ROLLUP_RELEASE && process.env.GITHUB_TOKEN)) {
+if (!(env.CI && env.ROLLUP_RELEASE && env.GITHUB_TOKEN)) {
 	throw new Error('This script is only intended to be run from CI.');
 }
 
-const gh = new GitHub({ token: process.env.GITHUB_TOKEN });
+const gh = new GitHub({ token: env.GITHUB_TOKEN });
 const [currentBranch, newVersion, changelog, repo, issues] = await Promise.all([
 	runAndGetStdout('git', ['branch', '--show-current']),
 	getCurrentCommitMessage(),
