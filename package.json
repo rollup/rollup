@@ -31,7 +31,7 @@
     }
   },
   "scripts": {
-    "build": "npm run build:wasm && concurrently -c green,blue 'npm run build:napi -- --release' 'npm:build:js' && npm run build:copy-native",
+    "build": "npm run build:wasm && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
     "build:napi": "napi build --platform --dts native.d.ts --js native.js --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
     "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && shx rm wasm/.gitignore",
@@ -39,7 +39,7 @@
     "update:napi": "npm run build:napi && npm run build:copy-native",
     "build:js": "rollup --config rollup.config.ts --configPlugin typescript",
     "build:js:node": "rollup --config rollup.config.ts --configPlugin typescript --configIsBuildNode",
-    "build:prepare": "concurrently -c green,blue 'npm run build:napi -- --release' 'npm:build:js:node' && npm run build:copy-native",
+    "build:prepare": "concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js:node\" && npm run build:copy-native",
     "update:js": "npm run build:js && npm run build:copy-native",
     "build:copy-native": "shx mkdir -p dist && shx cp rollup.*.node dist/",
     "dev": "vitepress dev docs",
