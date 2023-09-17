@@ -568,19 +568,13 @@ export interface InputOptions {
 	input?: InputOption;
 	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
-	/** @deprecated Use the "manualChunks" output option instead. */
-	manualChunks?: ManualChunksOption;
 	maxParallelFileOps?: number;
-	/** @deprecated Use the "maxParallelFileOps" option instead. */
-	maxParallelFileReads?: number;
 	moduleContext?: ((id: string) => string | NullValue) | { [id: string]: string };
 	onLog?: LogHandlerWithDefault;
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: InputPluginOption;
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
-	/** @deprecated Use the "preserveModules" output option instead. */
-	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
@@ -601,19 +595,13 @@ export interface NormalizedInputOptions {
 	input: string[] | { [entryAlias: string]: string };
 	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
-	/** @deprecated Use the "manualChunks" output option instead. */
-	manualChunks: ManualChunksOption | undefined;
 	maxParallelFileOps: number;
-	/** @deprecated Use the "maxParallelFileOps" option instead. */
-	maxParallelFileReads: number;
 	moduleContext: (id: string) => string;
 	onLog: LogHandler;
 	onwarn: (warning: RollupLog) => void;
 	perf: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures: PreserveEntrySignaturesOption;
-	/** @deprecated Use the "preserveModules" output option instead. */
-	preserveModules: boolean | undefined;
 	preserveSymlinks: boolean;
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;

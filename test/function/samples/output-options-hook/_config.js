@@ -29,9 +29,9 @@ module.exports = defineTest({
 						entryFileNames: '[name].js',
 						esModule: 'if-default-prop',
 						experimentalMinChunkSize: 1,
-					exports: 'auto',
-					extend: false,
-					externalImportAssertions: true,
+						exports: 'auto',
+						extend: false,
+						externalImportAssertions: true,
 						externalImportAttributes: true,
 						externalLiveBindings: true,
 						format: 'cjs',
@@ -50,29 +50,30 @@ module.exports = defineTest({
 						manualChunks: {},
 						minifyInternalExports: false,
 						noConflict: false,
-					paths: {},
-					plugins: [],
-					preserveModules: false,
-					sourcemap: false,
-					sourcemapExcludeSources: false,
-					strict: true,
-					systemNullSetters: true,
-					validate: false
-				});
-				assert.strictEqual(options.banner(), 'exports.bar = 43;');
-				assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
-				assert.strictEqual(this.meta.watchMode, false);
-			},
-			outputOptions(options) {
-				assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
-					banner: "throw new Error('unused')",
-					exports: 'auto',
-					format: 'cjs'
-				});
-				assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
-				assert.strictEqual(this.meta.watchMode, false);
-				return { ...options, banner: 'exports.bar = 43;' };
+						paths: {},
+						plugins: [],
+						preserveModules: false,
+						sourcemap: false,
+						sourcemapExcludeSources: false,
+						strict: true,
+						systemNullSetters: true,
+						validate: false
+					});
+					assert.strictEqual(options.banner(), 'exports.bar = 43;');
+					assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
+					assert.strictEqual(this.meta.watchMode, false);
+				},
+				outputOptions(options) {
+					assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
+						banner: "throw new Error('unused')",
+						exports: 'auto',
+						format: 'cjs'
+					});
+					assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
+					assert.strictEqual(this.meta.watchMode, false);
+					return { ...options, banner: 'exports.bar = 43;' };
+				}
 			}
-		}]
+		]
 	}
 });

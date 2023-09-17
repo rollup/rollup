@@ -2556,22 +2556,6 @@ Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 ☢️ These options have been deprecated and may be removed in a future Rollup version.
 
-### manualChunks
-
-_Use the [`output.manualChunks`](#output-manualchunks) output option instead, which has the same signature._
-
-### maxParallelFileReads
-
-_Use the [`maxParallelFileOps`](#maxparallelfileops) option instead._
-
-|          |                                   |
-| -------: | :-------------------------------- |
-|    Type: | `number`                          |
-|     CLI: | `--maxParallelFileReads <number>` |
-| Default: | 20                                |
-
-Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the os allows.
-
 ### output.externalImportAssertions
 
 _Use the [`output.externalImportAttributes`](#output-externalimportattributes) option instead._
@@ -2583,7 +2567,3 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 | Default: | `true`                                                       |
 
 Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
-
-### preserveModules
-
-_Use the [`output.preserveModules`](#output-preservemodules) output option instead, which has the same signature._

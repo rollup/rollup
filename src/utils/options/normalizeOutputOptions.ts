@@ -6,7 +6,7 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import { error, logInvalidExportOptionValue, logInvalidOption } from '../logs';
+import { error, logInvalidExportOptionValue, logInvalidOption, warnDeprecation } from '../logs';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { addTrailingSlashIfMissed, isValidUrl } from '../url';
@@ -74,7 +74,7 @@ export async function normalizeOutputOptions(
 		inlineDynamicImports,
 		interop: getInterop(config),
 		intro: getAddon(config, 'intro'),
-		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
+		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name,
 		noConflict: config.noConflict || false,
@@ -198,7 +198,7 @@ const getPreserveModules = (
 	inlineDynamicImports: boolean,
 	inputOptions: NormalizedInputOptions
 ): NormalizedOutputOptions['preserveModules'] => {
-	const preserveModules = (config.preserveModules ?? inputOptions.preserveModules) || false;
+	const preserveModules = config.preserveModules || false;
 	if (preserveModules) {
 		if (inlineDynamicImports) {
 			return error(
@@ -417,10 +417,9 @@ const validateInterop = (interop: InteropType): InteropType => {
 const getManualChunks = (
 	config: OutputOptions,
 	inlineDynamicImports: boolean,
-	preserveModules: boolean,
-	inputOptions: NormalizedInputOptions
+	preserveModules: boolean
 ): NormalizedOutputOptions['manualChunks'] => {
-	const configManualChunks = config.manualChunks || inputOptions.manualChunks;
+	const configManualChunks = config.manualChunks;
 	if (configManualChunks) {
 		if (inlineDynamicImports) {
 			return error(
