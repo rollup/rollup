@@ -6,12 +6,7 @@ module.exports = defineTest({
 	error: {
 		cause: {
 			pos: 19,
-			loc: {
-				line: 2,
-				column: 2
-			},
-			raisedAt: 25,
-			message: "'import' and 'export' may only appear at the top level (2:2)"
+			message: "'import', and 'export' cannot be used outside of module code"
 		},
 		code: 'PARSE_ERROR',
 		id: ID_MAIN,
@@ -28,6 +23,6 @@ module.exports = defineTest({
 			3: }
 		`,
 		watchFiles: [ID_MAIN],
-		message: "'import' and 'export' may only appear at the top level"
+		message: "'import', and 'export' cannot be used outside of module code"
 	}
 });

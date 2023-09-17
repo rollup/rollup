@@ -85,6 +85,10 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.declarations[0].removeAnnotations(code);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,

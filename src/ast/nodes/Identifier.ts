@@ -2,7 +2,6 @@ import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { logIllegalImportReassignment } from '../../utils/logs';
 import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -107,9 +106,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		if (path.length === 0 && !this.scope.contains(this.name)) {
-			this.disallowImportReassignment();
-		}
 		// We keep conditional chaining because an unknown Node could have an
 		// Identifier as property that might be deoptimized by default
 		this.variable?.deoptimizePath(path);
@@ -277,13 +273,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 			this.variable.consolidateInitializers();
 			this.context.requestTreeshakingPass();
 		}
-	}
-
-	private disallowImportReassignment(): never {
-		return this.context.error(
-			logIllegalImportReassignment(this.name, this.context.module.id),
-			this.start
-		);
 	}
 
 	private getVariableRespectingTDZ(): ExpressionEntity | null {

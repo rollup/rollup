@@ -12,11 +12,13 @@ module.exports = defineTest({
 	options: {
 		strictDeprecations: false,
 		input: 'main.js',
-		plugins: {
-			resolveDynamicImport() {
-				return false;
+		plugins: [
+			{
+				resolveDynamicImport() {
+					return false;
+				}
 			}
-		},
+		],
 		output: {
 			dynamicImportFunction: 'myImporter',
 			format: 'es'

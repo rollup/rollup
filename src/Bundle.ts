@@ -150,9 +150,7 @@ export default class Bundle {
 			for (const file of Object.values(bundle)) {
 				if ('code' in file) {
 					try {
-						this.graph.contextParse(file.code, {
-							ecmaVersion: 'latest'
-						});
+						this.graph.contextParse(file.code);
 					} catch (error_: any) {
 						this.inputOptions.onLog(LOGLEVEL_WARN, logChunkInvalid(file, error_));
 					}

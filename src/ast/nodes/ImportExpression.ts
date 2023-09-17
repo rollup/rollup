@@ -21,7 +21,6 @@ import FunctionExpression from './FunctionExpression';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
-import type ObjectExpression from './ObjectExpression';
 import ObjectPattern from './ObjectPattern';
 import VariableDeclarator from './VariableDeclarator';
 import {
@@ -36,21 +35,19 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-// TODO once ImportExpression follows official ESTree specs with "null" as
-//  default, keys.ts should be updated
 export default class ImportExpression extends NodeBase {
-	declare arguments: ObjectExpression[] | undefined;
+	declare options: ExpressionNode | null;
 	inlineNamespace: NamespaceVariable | null = null;
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
 
-	private assertions: string | null | true = null;
+	private attributes: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
 	private resolution: Module | ExternalModule | string | null = null;
 	private resolutionString: string | null = null;
 
-	// Do not bind assertions
+	// Do not bind attributes
 	bind(): void {
 		this.source.bind();
 	}
@@ -209,14 +206,14 @@ export default class ImportExpression extends NodeBase {
 		} else {
 			this.source.render(code, options);
 		}
-		if (this.assertions !== true) {
-			if (this.arguments) {
+		if (this.attributes !== true) {
+			if (this.options) {
 				code.overwrite(this.source.end, this.end - 1, '', { contentOnly: true });
 			}
-			if (this.assertions) {
+			if (this.attributes) {
 				code.appendLeft(
 					this.end - 1,
-					`,${_}${getObject([['assert', this.assertions]], {
+					`,${_}${getObject([['assert', this.attributes]], {
 						lineBreakIndent: null
 					})}`
 				);
@@ -233,14 +230,14 @@ export default class ImportExpression extends NodeBase {
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 		resolutionString: string,
 		namespaceExportName: string | false | undefined,
-		assertions: string | null | true
+		attributes: string | null | true
 	): void {
 		const { format } = options;
 		this.inlineNamespace = null;
 		this.resolution = resolution;
 		this.resolutionString = resolutionString;
 		this.namespaceExportName = namespaceExportName;
-		this.assertions = assertions;
+		this.attributes = attributes;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
 		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(

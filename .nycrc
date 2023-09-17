@@ -1,4 +1,4 @@
 {
-  "exclude": ["test"],
+  "exclude": ["test", "native.js"],
   "extension": [".ts", ""]
 }

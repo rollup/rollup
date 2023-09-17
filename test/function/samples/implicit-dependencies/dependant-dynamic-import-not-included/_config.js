@@ -4,21 +4,23 @@ module.exports = defineTest({
 	description:
 		'throws when a module that is loaded before an emitted chunk is only linked to the module graph via a tree-shaken dynamic import',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({
-					type: 'chunk',
-					id: 'dep1.js',
-					implicitlyLoadedAfterOneOf: ['dependant']
-				});
-				this.emitFile({
-					type: 'chunk',
-					id: 'dep2.js',
-					implicitlyLoadedAfterOneOf: ['dependant']
-				});
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({
+						type: 'chunk',
+						id: 'dep1.js',
+						implicitlyLoadedAfterOneOf: ['dependant']
+					});
+					this.emitFile({
+						type: 'chunk',
+						id: 'dep2.js',
+						implicitlyLoadedAfterOneOf: ['dependant']
+					});
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'MISSING_IMPLICIT_DEPENDANT',

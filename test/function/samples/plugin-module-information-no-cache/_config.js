@@ -32,7 +32,7 @@ module.exports = defineTest({
 						sourceType: 'module'
 					};
 					assert.deepStrictEqual(JSON.parse(JSON.stringify(info)), {
-						assertions: {},
+						attributes: {},
 						ast,
 						code: 'export default 42;\n',
 						dynamicallyImportedIdResolutions: [],

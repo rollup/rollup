@@ -4,14 +4,16 @@ module.exports = defineTest({
 	description: 'throws when trying to set file sources in  the outputOptions hook',
 	options: {
 		input: 'main',
-		plugins: {
-			buildStart() {
-				referenceId = this.emitFile({ type: 'asset' });
-			},
-			outputOptions() {
-				this.setAssetSource(referenceId, 'not allowed');
+		plugins: [
+			{
+				buildStart() {
+					referenceId = this.emitFile({ type: 'asset' });
+				},
+				outputOptions() {
+					this.setAssetSource(referenceId, 'not allowed');
+				}
 			}
-		}
+		]
 	},
 	generateError: {
 		code: 'PLUGIN_ERROR',

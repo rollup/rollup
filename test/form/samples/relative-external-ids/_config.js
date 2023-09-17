@@ -22,26 +22,28 @@ module.exports = defineTest({
 				}
 			}
 		},
-		plugins: {
-			resolveId(id) {
-				switch (id) {
-					case './hook.js': {
-						return false;
-					}
-					case './hookNested.js': {
-						return false;
-					}
-					case 'resolved': {
-						return { id: './resolved.js', external: true };
-					}
-					case 'resolvedNested': {
-						return { id: './resolvedNested.js', external: true };
-					}
-					default: {
-						return null;
+		plugins: [
+			{
+				resolveId(id) {
+					switch (id) {
+						case './hook.js': {
+							return false;
+						}
+						case './hookNested.js': {
+							return false;
+						}
+						case 'resolved': {
+							return { id: './resolved.js', external: true };
+						}
+						case 'resolvedNested': {
+							return { id: './resolvedNested.js', external: true };
+						}
+						default: {
+							return null;
+						}
 					}
 				}
 			}
-		}
+		]
 	}
 });

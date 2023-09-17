@@ -417,7 +417,7 @@ Like the [`onLog`](#onlog) hook, this hook does not have access to most [plugin 
 
 ```typescript
 type ResolveDynamicImportHook = (
-	specifier: string | AcornNode,
+	specifier: string | AstNode,
 	importer: string,
 	options: { assertions: Record<string, string> }
 ) => ResolveIdResult;
@@ -613,7 +613,7 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 
 ```typescript
 type ShouldTransformCachedModuleHook = (options: {
-	ast: AcornNode;
+	ast: AstNode;
 	code: string;
 	id: string;
 	meta: { [plugin: string]: any };
@@ -1666,11 +1666,11 @@ An object containing potentially useful Rollup metadata:
 
 ### this.parse
 
-|       |                                                                 |
-| ----: | :-------------------------------------------------------------- |
-| Type: | `(code: string, acornOptions?: AcornOptions) => ESTree.Program` |
+|       |                                    |
+| ----: | :--------------------------------- |
+| Type: | `(code: string) => ESTree.Program` |
 
-Use Rollup's internal acorn instance to parse code to an AST.
+Use Rollup's internal SWC-based parser to parse code to an AST.
 
 ### this.resolve
 

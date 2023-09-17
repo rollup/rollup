@@ -1,4 +1,4 @@
 module.exports = defineTest({
-	skip: process.platform === 'win32',
+	skipIfWindows: true,
 	description: 'follows symlinks'
 });

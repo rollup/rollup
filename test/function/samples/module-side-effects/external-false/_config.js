@@ -20,29 +20,31 @@ module.exports = defineTest({
 		treeshake: {
 			moduleSideEffects: 'no-external'
 		},
-		plugins: {
-			name: 'test-plugin',
-			resolveId(id) {
-				if (!path.isAbsolute(id)) {
-					if (id === 'internal') {
-						return id;
+		plugins: [
+			{
+				name: 'test-plugin',
+				resolveId(id) {
+					if (!path.isAbsolute(id)) {
+						if (id === 'internal') {
+							return id;
+						}
+						if (id === 'implicit-external') {
+							return null;
+						}
+						const moduleSideEffects = JSON.parse(id.split('-')[1]);
+						if (moduleSideEffects) {
+							return { id, moduleSideEffects, external: true };
+						}
+						return { id, external: true };
 					}
-					if (id === 'implicit-external') {
-						return null;
+				},
+				load(id) {
+					if (!path.isAbsolute(id)) {
+						return `export const value = '${id}'; sideEffects.push(value);`;
 					}
-					const moduleSideEffects = JSON.parse(id.split('-')[1]);
-					if (moduleSideEffects) {
-						return { id, moduleSideEffects, external: true };
-					}
-					return { id, external: true };
-				}
-			},
-			load(id) {
-				if (!path.isAbsolute(id)) {
-					return `export const value = '${id}'; sideEffects.push(value);`;
 				}
 			}
-		}
+		]
 	},
 	warnings: [
 		{
