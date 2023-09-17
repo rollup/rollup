@@ -217,8 +217,6 @@ export interface PluginContext extends MinimalPluginContext {
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
-	/** @deprecated Use `this.getModuleIds` instead */
-	moduleIds: IterableIterator<string>;
 	parse: (input: string) => AstNode;
 	resolve: (
 		source: string,
