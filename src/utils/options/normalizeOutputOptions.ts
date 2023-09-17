@@ -6,7 +6,6 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import { LOGLEVEL_WARN } from '../logging';
 import { error, logInvalidExportOptionValue, logInvalidOption, warnDeprecation } from '../logs';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
@@ -15,7 +14,6 @@ import {
 	URL_OUTPUT_AMD_BASEPATH,
 	URL_OUTPUT_AMD_ID,
 	URL_OUTPUT_DIR,
-	URL_OUTPUT_DYNAMICIMPORTFUNCTION,
 	URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION,
 	URL_OUTPUT_EXTERNALIMPORTATTRIBUTES,
 	URL_OUTPUT_FORMAT,
@@ -25,8 +23,7 @@ import {
 	URL_OUTPUT_INTEROP,
 	URL_OUTPUT_MANUALCHUNKS,
 	URL_OUTPUT_SOURCEMAPBASEURL,
-	URL_PRESERVEENTRYSIGNATURES,
-	URL_RENDERDYNAMICIMPORT
+	URL_PRESERVEENTRYSIGNATURES
 } from '../urls';
 import {
 	generatedCodePresets,
@@ -59,7 +56,6 @@ export async function normalizeOutputOptions(
 		chunkFileNames: config.chunkFileNames ?? '[name]-[hash].js',
 		compact,
 		dir: getDir(config, file),
-		dynamicImportFunction: getDynamicImportFunction(config, inputOptions, format),
 		dynamicImportInCjs: config.dynamicImportInCjs ?? true,
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: config.esModule ?? 'if-default-prop',
@@ -320,33 +316,6 @@ const getDir = (
 		);
 	}
 	return dir;
-};
-
-const getDynamicImportFunction = (
-	config: OutputOptions,
-	inputOptions: NormalizedInputOptions,
-	format: InternalModuleFormat
-): NormalizedOutputOptions['dynamicImportFunction'] => {
-	const configDynamicImportFunction = config.dynamicImportFunction;
-	if (configDynamicImportFunction) {
-		warnDeprecation(
-			`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
-			URL_RENDERDYNAMICIMPORT,
-			true,
-			inputOptions
-		);
-		if (format !== 'es') {
-			inputOptions.onLog(
-				LOGLEVEL_WARN,
-				logInvalidOption(
-					'output.dynamicImportFunction',
-					URL_OUTPUT_DYNAMICIMPORTFUNCTION,
-					'this option is ignored for formats other than "es"'
-				)
-			);
-		}
-	}
-	return configDynamicImportFunction;
 };
 
 const getEntryFileNames = (

@@ -12,8 +12,6 @@ export const URL_MAXPARALLELFILEOPS = 'configuration-options/#maxparallelfileops
 export const URL_OUTPUT_AMD_ID = 'configuration-options/#output-amd-id';
 export const URL_OUTPUT_AMD_BASEPATH = 'configuration-options/#output-amd-basepath';
 export const URL_OUTPUT_DIR = 'configuration-options/#output-dir';
-export const URL_OUTPUT_DYNAMICIMPORTFUNCTION =
-	'configuration-options/#output-dynamicimportfunction';
 export const URL_OUTPUT_EXPORTS = 'configuration-options/#output-exports';
 export const URL_OUTPUT_EXTEND = 'configuration-options/#output-extend';
 export const URL_OUTPUT_EXTERNALIMPORTATTRIBUTES =

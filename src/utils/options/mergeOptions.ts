@@ -230,7 +230,6 @@ async function mergeOutputOptions(
 		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact'),
 		dir: getOption('dir'),
-		dynamicImportFunction: getOption('dynamicImportFunction'),
 		dynamicImportInCjs: getOption('dynamicImportInCjs'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule'),

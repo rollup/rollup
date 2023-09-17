@@ -2576,18 +2576,6 @@ _Use the [`maxParallelFileOps`](#maxparallelfileops) option instead._
 
 Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the os allows.
 
-### output.dynamicImportFunction
-
-_Use the [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport) plugin hook instead._
-
-|          |                                  |
-| -------: | :------------------------------- |
-|    Type: | `string`                         |
-|     CLI: | `--dynamicImportFunction <name>` |
-| Default: | `import`                         |
-
-This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
-
 ### output.experimentalDeepDynamicChunkOptimization
 
 _This option is no longer needed._

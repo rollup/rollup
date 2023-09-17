@@ -266,7 +266,6 @@ export default class ImportExpression extends NodeBase {
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		{
 			compact,
-			dynamicImportFunction,
 			dynamicImportInCjs,
 			format,
 			generatedCode: { arrowFunctions },
@@ -361,17 +360,6 @@ export default class ImportExpression extends NodeBase {
 						right: ')'
 					}
 				};
-			}
-			case 'es': {
-				if (dynamicImportFunction) {
-					return {
-						helper: null,
-						mechanism: {
-							left: `${dynamicImportFunction}(`,
-							right: ')'
-						}
-					};
-				}
 			}
 		}
 		return { helper: null, mechanism: null };

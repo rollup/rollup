@@ -1189,7 +1189,7 @@ export default class Chunk {
 			renderedModules,
 			snippets
 		} = this;
-		const { compact, dynamicImportFunction, format, freeze, namespaceToStringTag } = outputOptions;
+		const { compact, format, freeze, namespaceToStringTag } = outputOptions;
 		const { _, cnst, n } = snippets;
 		this.setDynamicImportResolutions(fileName);
 		this.setImportMetaResolutions(fileName);
@@ -1204,7 +1204,6 @@ export default class Chunk {
 
 		const renderOptions: RenderOptions = {
 			accessedDocumentCurrentScript: false,
-			dynamicImportFunction,
 			exportNamesByVariable,
 			format,
 			freeze,

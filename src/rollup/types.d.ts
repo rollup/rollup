@@ -693,8 +693,6 @@ export interface OutputOptions {
 	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
-	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
-	dynamicImportFunction?: string;
 	dynamicImportInCjs?: boolean;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule?: boolean | 'if-default-prop';
@@ -750,8 +748,6 @@ export interface NormalizedOutputOptions {
 	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact: boolean;
 	dir: string | undefined;
-	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
-	dynamicImportFunction: string | undefined;
 	dynamicImportInCjs: boolean;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule: boolean | 'if-default-prop';
