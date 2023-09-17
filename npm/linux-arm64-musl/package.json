@@ -14,10 +14,6 @@
   "author": "Lukas Taegert-Atkinson",
   "homepage": "https://rollupjs.org/",
   "license": "MIT",
-  "engines": {
-    "node": ">=14.18.0",
-    "npm": ">=8.0.0"
-  },
   "repository": "rollup/rollup",
   "libc": [
     "musl"
