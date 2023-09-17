@@ -58,7 +58,7 @@ export default function umd(
 		freeze,
 		interop,
 		name,
-		namespaceToStringTag,
+		generatedCode: { symbols },
 		globals,
 		noConflict,
 		strict
@@ -188,7 +188,7 @@ export default function umd(
 			interop,
 			externalLiveBindings,
 			freeze,
-			namespaceToStringTag,
+			symbols,
 			accessedGlobals,
 			t,
 			snippets
@@ -207,7 +207,7 @@ export default function umd(
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
 		esModule === true || (esModule === 'if-default-prop' && hasDefaultExport),
-		namespaceToStringTag,
+		symbols,
 		snippets
 	);
 	if (namespaceMarkers) {

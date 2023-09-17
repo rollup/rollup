@@ -263,7 +263,6 @@ async function mergeOutputOptions(
 		manualChunks: getOption('manualChunks'),
 		minifyInternalExports: getOption('minifyInternalExports'),
 		name: getOption('name'),
-		namespaceToStringTag: getOption('namespaceToStringTag'),
 		noConflict: getOption('noConflict'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),

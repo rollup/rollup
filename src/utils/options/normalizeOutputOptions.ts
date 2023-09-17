@@ -6,7 +6,7 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import { error, logInvalidExportOptionValue, logInvalidOption, warnDeprecation } from '../logs';
+import { error, logInvalidExportOptionValue, logInvalidOption } from '../logs';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { addTrailingSlashIfMissed, isValidUrl } from '../url';
@@ -17,7 +17,6 @@ import {
 	URL_OUTPUT_EXTERNALIMPORTATTRIBUTES,
 	URL_OUTPUT_FORMAT,
 	URL_OUTPUT_GENERATEDCODE,
-	URL_OUTPUT_GENERATEDCODE_SYMBOLS,
 	URL_OUTPUT_INLINEDYNAMICIMPORTS,
 	URL_OUTPUT_INTEROP,
 	URL_OUTPUT_MANUALCHUNKS,
@@ -78,7 +77,6 @@ export async function normalizeOutputOptions(
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name,
-		namespaceToStringTag: getNamespaceToStringTag(config, generatedCode, inputOptions),
 		noConflict: config.noConflict || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
@@ -453,24 +451,6 @@ const getMinifyInternalExports = (
 	compact: boolean
 ): NormalizedOutputOptions['minifyInternalExports'] =>
 	config.minifyInternalExports ?? (compact || format === 'es' || format === 'system');
-
-const getNamespaceToStringTag = (
-	config: OutputOptions,
-	generatedCode: NormalizedOutputOptions['generatedCode'],
-	inputOptions: NormalizedInputOptions
-): NormalizedOutputOptions['namespaceToStringTag'] => {
-	const configNamespaceToStringTag = config.namespaceToStringTag;
-	if (configNamespaceToStringTag != null) {
-		warnDeprecation(
-			`The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.`,
-			URL_OUTPUT_GENERATEDCODE_SYMBOLS,
-			true,
-			inputOptions
-		);
-		return configNamespaceToStringTag;
-	}
-	return generatedCode.symbols || false;
-};
 
 const getSourcemapFileNames = (
 	config: OutputOptions,

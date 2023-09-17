@@ -718,8 +718,6 @@ export interface OutputOptions {
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
 	name?: string;
-	/** @deprecated Use "generatedCode.symbols" instead. */
-	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
 	outro?: string | AddonFunction;
 	paths?: OptionsPaths;
@@ -770,8 +768,6 @@ export interface NormalizedOutputOptions {
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
-	/** @deprecated Use "generatedCode.symbols" instead. */
-	namespaceToStringTag: boolean;
 	noConflict: boolean;
 	outro: AddonFunction;
 	paths: OptionsPaths;

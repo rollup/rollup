@@ -2588,25 +2588,6 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 
 Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
 
-### output.namespaceToStringTag
-
-_Use [`output.generatedCode.symbols`](#output-generatedcode-symbols) instead._
-
-|          |                                                      |
-| -------: | :--------------------------------------------------- |
-|    Type: | `boolean`                                            |
-|     CLI: | `--namespaceToStringTag`/`--no-namespaceToStringTag` |
-| Default: | `false`                                              |
-
-Whether to add spec compliant `.toString()` tags to namespace objects. If this option is set,
-
-```javascript
-import * as namespace from './file.js';
-console.log(String(namespace));
-```
-
-will always log `[object Module]`;
-
 ### preserveModules
 
 _Use the [`output.preserveModules`](#output-preservemodules) output option instead, which has the same signature._

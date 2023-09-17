@@ -23,7 +23,7 @@ export default function system(
 		externalLiveBindings,
 		freeze,
 		name,
-		namespaceToStringTag,
+		generatedCode: { symbols },
 		strict,
 		systemNullSetters
 	}: NormalizedOutputOptions
@@ -79,15 +79,7 @@ export default function system(
 	magicString
 		.prepend(
 			intro +
-				getHelpersBlock(
-					null,
-					accessedGlobals,
-					t,
-					snippets,
-					externalLiveBindings,
-					freeze,
-					namespaceToStringTag
-				) +
+				getHelpersBlock(null, accessedGlobals, t, snippets, externalLiveBindings, freeze, symbols) +
 				getHoistedExportsBlock(exports, t, snippets)
 		)
 		.append(
