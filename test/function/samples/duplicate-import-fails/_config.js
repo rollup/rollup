@@ -5,16 +5,11 @@ module.exports = defineTest({
 	description: 'disallows duplicate imports',
 	error: {
 		cause: {
-			loc: {
-				column: 9,
-				line: 2
-			},
-			message: "Identifier 'a' has already been declared (2:9)",
-			pos: 36,
-			raisedAt: 39
+			message: 'the name `a` is defined multiple times',
+			pos: 36
 		},
 		code: 'PARSE_ERROR',
-		message: `Identifier 'a' has already been declared`,
+		message: 'the name `a` is defined multiple times',
 		id: ID_MAIN,
 		pos: 36,
 		watchFiles: [ID_MAIN],

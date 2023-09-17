@@ -1,11 +1,13 @@
 module.exports = defineTest({
 	description: 'throws for anonymous plugins deleting from the cache',
 	options: {
-		plugins: {
-			buildStart() {
-				this.cache.delete('asdf');
+		plugins: [
+			{
+				buildStart() {
+					this.cache.delete('asdf');
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

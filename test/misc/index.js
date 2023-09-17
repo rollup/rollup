@@ -1,4 +1,3 @@
-require('./acorn-plugins');
 require('./bundle-information');
 require('./get-log-filter');
 require('./iife');

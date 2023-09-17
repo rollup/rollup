@@ -1,12 +1,14 @@
 module.exports = defineTest({
 	description: 'warns when returning a map but no code from a transform hook',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			transform() {
-				return { map: { mappings: '' } };
+		plugins: [
+			{
+				name: 'test-plugin',
+				transform() {
+					return { map: { mappings: '' } };
+				}
 			}
-		}
+		]
 	},
 	warnings: [
 		{

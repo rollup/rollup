@@ -3,14 +3,16 @@ const path = require('node:path');
 module.exports = defineTest({
 	description: 'throws when setting the asset source in the transform hook',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			transform(code) {
-				const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
-				this.setAssetSource(assetId, 'asdf');
-				return code;
+		plugins: [
+			{
+				name: 'test-plugin',
+				transform(code) {
+					const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
+					this.setAssetSource(assetId, 'asdf');
+					return code;
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

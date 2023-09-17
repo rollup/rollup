@@ -6,7 +6,6 @@ import {
 	findNonWhiteSpace,
 	removeLineBreaks
 } from '../../utils/renderHelpers';
-import { removeAnnotations } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
@@ -156,6 +155,10 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.test.removeAnnotations(code);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,
@@ -186,7 +189,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			if (this.consequent.included) {
 				code.remove(colonPos, this.end);
 			}
-			removeAnnotations(this, code);
+			this.test.removeAnnotations(code);
 			usedBranch!.render(code, options, {
 				isCalleeOfRenderedParent,
 				preventASI: true,

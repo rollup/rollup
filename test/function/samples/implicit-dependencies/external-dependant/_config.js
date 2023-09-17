@@ -3,16 +3,18 @@ const path = require('node:path');
 module.exports = defineTest({
 	description: 'throws when a module that is loaded before an emitted chunk does not exist',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({
-					type: 'chunk',
-					id: 'dep.js',
-					implicitlyLoadedAfterOneOf: ['does-not-exist']
-				});
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({
+						type: 'chunk',
+						id: 'dep.js',
+						implicitlyLoadedAfterOneOf: ['does-not-exist']
+					});
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'MISSING_IMPLICIT_DEPENDANT',

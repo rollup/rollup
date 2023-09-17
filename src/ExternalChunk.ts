@@ -13,7 +13,7 @@ export default class ExternalChunk {
 	variableName = '';
 
 	private fileName: string | null = null;
-	private importAssertions: string | null = null;
+	private importAttributes: string | null = null;
 	private moduleInfo: ModuleInfo;
 	private renormalizeRenderPath: boolean;
 
@@ -38,11 +38,11 @@ export default class ExternalChunk {
 			(this.renormalizeRenderPath ? normalize(relative(this.inputBase, this.id)) : this.id));
 	}
 
-	getImportAssertions(snippets: GenerateCodeSnippets): string | null {
-		return (this.importAssertions ||= formatAssertions(
+	getImportAttributes(snippets: GenerateCodeSnippets): string | null {
+		return (this.importAttributes ||= formatAttributes(
 			this.options.format === 'es' &&
-				this.options.externalImportAssertions &&
-				this.moduleInfo.assertions,
+				this.options.externalImportAttributes &&
+				this.moduleInfo.attributes,
 			snippets
 		));
 	}
@@ -56,14 +56,14 @@ export default class ExternalChunk {
 	}
 }
 
-function formatAssertions(
-	assertions: Record<string, string> | null | void | false,
+function formatAttributes(
+	attributes: Record<string, string> | null | void | false,
 	{ getObject }: GenerateCodeSnippets
 ): string | null {
-	if (!assertions) {
+	if (!attributes) {
 		return null;
 	}
-	const assertionEntries: [key: string, value: string][] = Object.entries(assertions).map(
+	const assertionEntries: [key: string, value: string][] = Object.entries(attributes).map(
 		([key, value]) => [key, `'${value}'`]
 	);
 	if (assertionEntries.length > 0) {

@@ -46,6 +46,10 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.init?.removeAnnotations(code);
+	}
+
 	render(code: MagicString, options: RenderOptions): void {
 		const {
 			exportNamesByVariable,
