@@ -14,7 +14,6 @@ import { error, logInvalidOption, warnDeprecationWithOptions } from '../logs';
 import { resolve } from '../path';
 import {
 	URL_MAXPARALLELFILEOPS,
-	URL_OUTPUT_INLINEDYNAMICIMPORTS,
 	URL_OUTPUT_MANUALCHUNKS,
 	URL_OUTPUT_PRESERVEMODULES,
 	URL_TREESHAKE,
@@ -57,7 +56,6 @@ export async function normalizeInputOptions(
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
-		inlineDynamicImports: getInlineDynamicImports(config, onLog, strictDeprecations),
 		input: getInput(config),
 		logLevel,
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
@@ -120,24 +118,6 @@ const getIdMatcher = <T extends Array<any>>(
 		return (id: string, ..._arguments) => ids.has(id) || matchers.some(matcher => matcher.test(id));
 	}
 	return () => false;
-};
-
-const getInlineDynamicImports = (
-	config: InputOptions,
-	log: LogHandler,
-	strictDeprecations: boolean
-): NormalizedInputOptions['inlineDynamicImports'] => {
-	const configInlineDynamicImports = config.inlineDynamicImports;
-	if (configInlineDynamicImports) {
-		warnDeprecationWithOptions(
-			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
-			URL_OUTPUT_INLINEDYNAMICIMPORTS,
-			true,
-			log,
-			strictDeprecations
-		);
-	}
-	return configInlineDynamicImports;
 };
 
 const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {

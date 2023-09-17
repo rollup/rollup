@@ -2556,10 +2556,6 @@ Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 ☢️ These options have been deprecated and may be removed in a future Rollup version.
 
-### inlineDynamicImports
-
-_Use the [`output.inlineDynamicImports`](#output-inlinedynamicimports) output option instead, which has the same signature._
-
 ### manualChunks
 
 _Use the [`output.manualChunks`](#output-manualchunks) output option instead, which has the same signature._

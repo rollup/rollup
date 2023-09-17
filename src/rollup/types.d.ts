@@ -565,8 +565,6 @@ export interface InputOptions {
 	experimentalCacheExpiry?: number;
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
-	/** @deprecated Use the "inlineDynamicImports" output option instead. */
-	inlineDynamicImports?: boolean;
 	input?: InputOption;
 	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
@@ -600,8 +598,6 @@ export interface NormalizedInputOptions {
 	experimentalCacheExpiry: number;
 	experimentalLogSideEffects: boolean;
 	external: IsExternal;
-	/** @deprecated Use the "inlineDynamicImports" output option instead. */
-	inlineDynamicImports: boolean | undefined;
 	input: string[] | { [entryAlias: string]: string };
 	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';

@@ -179,8 +179,7 @@ const getInlineDynamicImports = (
 	config: OutputOptions,
 	inputOptions: NormalizedInputOptions
 ): NormalizedOutputOptions['inlineDynamicImports'] => {
-	const inlineDynamicImports =
-		(config.inlineDynamicImports ?? inputOptions.inlineDynamicImports) || false;
+	const inlineDynamicImports = config.inlineDynamicImports || false;
 	const { input } = inputOptions;
 	if (inlineDynamicImports && (Array.isArray(input) ? input : Object.keys(input)).length > 1) {
 		return error(
