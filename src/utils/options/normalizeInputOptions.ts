@@ -1,5 +1,3 @@
-import type * as acorn from 'acorn';
-import { importAssertions } from 'acorn-import-assertions';
 import type {
 	HasModuleSideEffects,
 	InputOptions,
@@ -54,8 +52,6 @@ export async function normalizeInputOptions(
 	const strictDeprecations = config.strictDeprecations || false;
 	const maxParallelFileOps = getMaxParallelFileOps(config, onLog, strictDeprecations);
 	const options: NormalizedInputOptions & InputOptions = {
-		acorn: getAcorn(config) as unknown as NormalizedInputOptions['acorn'],
-		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: getCache(config),
 		context,
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
@@ -90,19 +86,6 @@ export async function normalizeInputOptions(
 	);
 	return { options, unsetOptions };
 }
-
-const getAcorn = (config: InputOptions): acorn.Options => ({
-	ecmaVersion: 'latest',
-	sourceType: 'module',
-	...config.acorn
-});
-
-const getAcornInjectPlugins = (
-	config: InputOptions
-): NormalizedInputOptions['acornInjectPlugins'] => [
-	importAssertions,
-	...ensureArray(config.acornInjectPlugins)
-];
 
 const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
 	config.cache === true // `true` is the default

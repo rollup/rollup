@@ -1,13 +1,15 @@
 module.exports = defineTest({
 	description: 'throws when setting an empty asset source',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
-				this.setAssetSource(assetId, null);
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
+					this.setAssetSource(assetId, null);
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

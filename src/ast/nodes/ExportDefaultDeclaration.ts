@@ -60,6 +60,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.context.addExport(this);
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.declaration.removeAnnotations(code);
+	}
+
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		const { start, end } = nodeRenderOptions as { end: number; start: number };
 		const declarationStart = getDeclarationStart(code.original, this.start);

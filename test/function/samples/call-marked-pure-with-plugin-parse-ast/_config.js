@@ -8,11 +8,7 @@ module.exports = defineTest({
 		plugins: [
 			{
 				transform(code) {
-					const comments = [];
-					const ast = this.parse(code, { onComment: comments });
-					if (comments.length != 5 || comments.some(({ value }) => !value.includes('PURE'))) {
-						throw new Error('failed to get comments');
-					}
+					const ast = this.parse(code);
 					return { ast, code, map: null };
 				}
 			}

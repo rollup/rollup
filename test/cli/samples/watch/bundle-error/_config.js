@@ -16,7 +16,7 @@ module.exports = defineTest({
 		setTimeout(() => unlinkSync(mainFile), 300);
 	},
 	abortOnStderr(data) {
-		if (data.includes('[!] RollupError: Unexpected token')) {
+		if (data.includes('[!] RollupError: Expression expected')) {
 			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 500);
 			return false;
 		}

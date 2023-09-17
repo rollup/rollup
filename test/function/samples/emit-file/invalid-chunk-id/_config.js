@@ -1,12 +1,14 @@
 module.exports = defineTest({
 	description: 'throws for invalid chunk ids',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({ type: 'chunk', id: null });
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({ type: 'chunk', id: null });
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

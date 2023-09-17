@@ -57,8 +57,6 @@ export default {
 	strictDeprecations,
 
 	// danger zone
-	acorn,
-	acornInjectPlugins,
 	context,
 	moduleContext,
 	preserveSymlinks,
@@ -89,7 +87,7 @@ export default {
 		dynamicImportInCjs,
 		entryFileNames,
 		extend,
-		externalImportAssertions,
+		externalImportAttributes,
 		footer,
 		generatedCode,
 		hoistTransitiveImports,
@@ -387,7 +385,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-esModule               Do not add __esModule property
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
---no-externalImportAssertions Omit import assertions in "es" output
+--no-externalImportAttributes Omit import attributes in "es" output
 --no-externalLiveBindings   Do not generate code to support live bindings
 --failAfterWarnings         Exit with an error if the build produced warnings
 --filterLogs <filter>       Filter log messages

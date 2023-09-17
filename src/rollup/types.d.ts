@@ -93,20 +93,20 @@ export interface SourceMap {
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
 interface ModuleOptions {
-	assertions: Record<string, string>;
+	attributes: Record<string, string>;
 	meta: CustomPluginOptions;
 	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean | string;
 }
 
 export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
-	ast?: AcornNode;
+	ast?: AstNode;
 	code: string;
 	map?: SourceMapInput;
 }
 
 export interface TransformModuleJSON {
-	ast?: AcornNode;
+	ast?: AstNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -117,7 +117,7 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
-	ast: AcornNode;
+	ast: AstNode;
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;
@@ -173,7 +173,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 interface ModuleInfo extends ModuleOptions {
-	ast: AcornNode | null;
+	ast: AstNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
@@ -221,12 +221,12 @@ export interface PluginContext extends MinimalPluginContext {
 	) => Promise<ModuleInfo>;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
-	parse: (input: string, options?: any) => AcornNode;
+	parse: (input: string) => AstNode;
 	resolve: (
 		source: string,
 		importer?: string,
 		options?: {
-			assertions?: Record<string, string>;
+			attributes?: Record<string, string>;
 			custom?: CustomPluginOptions;
 			isEntry?: boolean;
 			skipSelf?: boolean;
@@ -265,13 +265,13 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
 	importer: string | undefined,
-	options: { assertions: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
+	options: { attributes: Record<string, string>; custom?: CustomPluginOptions; isEntry: boolean }
 ) => ResolveIdResult;
 
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
 	options: {
-		ast: AcornNode;
+		ast: AstNode;
 		code: string;
 		id: string;
 		meta: CustomPluginOptions;
@@ -323,9 +323,9 @@ export type RenderChunkHook = (
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
-	specifier: string | AcornNode,
+	specifier: string | AstNode,
 	importer: string,
-	options: { assertions: Record<string, string> }
+	options: { attributes: Record<string, string> }
 ) => ResolveIdResult;
 
 export type ResolveImportMetaHook = (
@@ -566,8 +566,6 @@ export type SourcemapIgnoreListOption = (
 export type InputPluginOption = MaybePromise<Plugin | NullValue | false | InputPluginOption[]>;
 
 export interface InputOptions {
-	acorn?: Record<string, unknown>;
-	acornInjectPlugins?: ((...arguments_: any[]) => unknown)[] | ((...arguments_: any[]) => unknown);
 	cache?: boolean | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;
@@ -603,8 +601,6 @@ export interface InputOptionsWithPlugins extends InputOptions {
 }
 
 export interface NormalizedInputOptions {
-	acorn: Record<string, unknown>;
-	acornInjectPlugins: (() => unknown)[];
 	cache: false | undefined | RollupCache;
 	context: string;
 	experimentalCacheExpiry: number;
@@ -713,7 +709,9 @@ export interface OutputOptions {
 	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
+	/** @deprecated Use "externalImportAttributes" instead. */
 	externalImportAssertions?: boolean;
+	externalImportAttributes?: boolean;
 	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
@@ -770,7 +768,9 @@ export interface NormalizedOutputOptions {
 	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
+	/** @deprecated Use "externalImportAttributes" instead. */
 	externalImportAssertions: boolean;
+	externalImportAttributes: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;
 	footer: AddonFunction;
@@ -997,7 +997,7 @@ export type RollupWatcher = AwaitingEventEmitter<{
 
 export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
 
-interface AcornNode {
+interface AstNode {
 	end: number;
 	start: number;
 	type: string;

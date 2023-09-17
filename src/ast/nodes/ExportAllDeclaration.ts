@@ -7,7 +7,7 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ExportAllDeclaration extends NodeBase {
-	declare assertions: ImportAttribute[];
+	declare attributes: ImportAttribute[];
 	declare exported: Identifier | null;
 	declare needsBoundaries: true;
 	declare source: Literal<string>;

@@ -1,5 +1,4 @@
 const assert = require('node:assert');
-const acorn = require('acorn');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
@@ -188,28 +187,6 @@ describe('incremental', () => {
 			});
 	});
 
-	it('keeps ASTs between runs', () =>
-		rollup
-			.rollup({
-				input: 'entry',
-				plugins: [plugin]
-			})
-			.then(bundle => {
-				const asts = {};
-				for (const module of bundle.cache.modules) {
-					asts[module.id] = module.ast;
-				}
-
-				assert.deepEqual(
-					asts.entry,
-					acorn.parse(modules.entry, { sourceType: 'module', ecmaVersion: 2020 })
-				);
-				assert.deepEqual(
-					asts.foo,
-					acorn.parse(modules.foo, { sourceType: 'module', ecmaVersion: 2020 })
-				);
-			}));
-
 	it('recovers from errors', () => {
 		modules.entry = `import foo from 'foo'; import bar from 'bar'; export default foo + bar;`;
 
@@ -264,7 +241,7 @@ describe('incremental', () => {
 				assert.deepEqual(bundle.cache.modules[1].resolvedIds, {
 					foo: {
 						id: 'foo',
-						assertions: {},
+						attributes: {},
 						external: false,
 						meta: {},
 						moduleSideEffects: true,
@@ -273,7 +250,7 @@ describe('incremental', () => {
 					},
 					external: {
 						id: 'external',
-						assertions: {},
+						attributes: {},
 						external: true,
 						meta: {},
 						moduleSideEffects: true,
@@ -361,7 +338,7 @@ describe('incremental', () => {
 						assert.deepStrictEqual(resolvedSources, {
 							__proto__: null,
 							bar: {
-								assertions: {},
+								attributes: {},
 								external: false,
 								id: 'bar',
 								meta: {},
@@ -383,7 +360,7 @@ describe('incremental', () => {
 						assert.deepStrictEqual(resolvedSources, {
 							__proto__: null,
 							foo: {
-								assertions: {},
+								attributes: {},
 								external: false,
 								id: 'foo',
 								meta: {},

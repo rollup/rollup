@@ -1,3 +1,4 @@
+import type MagicString from 'magic-string';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
@@ -26,5 +27,9 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.expression.isSkippedAsOptional(this)) return false;
 		return this.expression.hasEffects(context);
+	}
+
+	removeAnnotations(code: MagicString) {
+		this.expression.removeAnnotations(code);
 	}
 }

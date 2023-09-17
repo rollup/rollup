@@ -95,7 +95,7 @@ export type ResolvedDynamicImport = (
 ) & { node: ImportExpression };
 
 export interface ChunkDependency {
-	assertions: string | null;
+	attributes: string | null;
 	defaultVariableName: string | undefined;
 	globalName: string | false | undefined;
 	importPath: string;
@@ -947,17 +947,17 @@ export default class Chunk {
 			);
 	}
 
-	private getDynamicImportStringAndAssertions(
+	private getDynamicImportStringAndAttributes(
 		resolution: ExternalModule | string | null,
 		fileName: string
-	): [importPath: string, assertions: string | null | true] {
+	): [importPath: string, attributes: string | null | true] {
 		if (resolution instanceof ExternalModule) {
 			const chunk = this.externalChunkByModule.get(resolution)!;
-			return [`'${chunk.getImportPath(fileName)}'`, chunk.getImportAssertions(this.snippets)];
+			return [`'${chunk.getImportPath(fileName)}'`, chunk.getImportAttributes(this.snippets)];
 		}
 		return [
 			resolution || '',
-			(this.outputOptions.format === 'es' && this.outputOptions.externalImportAssertions) || null
+			(this.outputOptions.format === 'es' && this.outputOptions.externalImportAttributes) || null
 		];
 	}
 
@@ -1140,7 +1140,7 @@ export default class Chunk {
 			const importPath = dep.getImportPath(fileName);
 
 			renderedDependencies.set(dep, {
-				assertions: dep instanceof ExternalChunk ? dep.getImportAssertions(this.snippets) : null,
+				attributes: dep instanceof ExternalChunk ? dep.getImportAttributes(this.snippets) : null,
 				defaultVariableName: dep.defaultVariableName,
 				globalName:
 					dep instanceof ExternalChunk &&
@@ -1299,7 +1299,7 @@ export default class Chunk {
 				}
 			} else {
 				const { node, resolution } = resolvedDynamicImport;
-				const [resolutionString, assertions] = this.getDynamicImportStringAndAssertions(
+				const [resolutionString, attributes] = this.getDynamicImportStringAndAttributes(
 					resolution,
 					fileName
 				);
@@ -1312,7 +1312,7 @@ export default class Chunk {
 					accessedGlobalsByScope,
 					resolutionString,
 					false,
-					assertions
+					attributes
 				);
 			}
 		}
