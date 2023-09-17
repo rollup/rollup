@@ -8,15 +8,17 @@ module.exports = defineTest({
 			manualChunks: { foo: ['manual.js'] },
 			assetFileNames: '[name]-[hash][extname]'
 		},
-		plugins: {
-			transform(code, id) {
-				if (id.endsWith('manual.js')) {
-					referenceId = this.emitFile({ type: 'asset', name: 'emitted.txt', source: 'emitted' });
+		plugins: [
+			{
+				transform(code, id) {
+					if (id.endsWith('manual.js')) {
+						referenceId = this.emitFile({ type: 'asset', name: 'emitted.txt', source: 'emitted' });
+					}
+				},
+				generateBundle() {
+					assert.strictEqual(this.getFileName(referenceId), 'emitted-f57bfbce.txt');
 				}
-			},
-			generateBundle() {
-				assert.strictEqual(this.getFileName(referenceId), 'emitted-f57bfbce.txt');
 			}
-		}
+		]
 	}
 });

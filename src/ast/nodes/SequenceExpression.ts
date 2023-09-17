@@ -80,6 +80,10 @@ export default class SequenceExpression extends NodeBase {
 		}
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.expressions[0].removeAnnotations(code);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,

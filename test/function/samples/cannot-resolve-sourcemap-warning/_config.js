@@ -4,12 +4,14 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'handles when a sourcemap cannot be resolved in a warning',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			transform() {
-				return { code: 'export default this', map: { mappings: '' } };
+		plugins: [
+			{
+				name: 'test-plugin',
+				transform() {
+					return { code: 'export default this', map: { mappings: '' } };
+				}
 			}
-		}
+		]
 	},
 	warnings: [
 		{

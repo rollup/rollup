@@ -1,15 +1,17 @@
 module.exports = defineTest({
 	description: 'throws when not setting the asset source and accessing the asset URL',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			load() {
-				return `export default import.meta.ROLLUP_FILE_URL_${this.emitFile({
-					type: 'asset',
-					name: 'test.ext'
-				})};`;
+		plugins: [
+			{
+				name: 'test-plugin',
+				load() {
+					return `export default import.meta.ROLLUP_FILE_URL_${this.emitFile({
+						type: 'asset',
+						name: 'test.ext'
+					})};`;
+				}
 			}
-		}
+		]
 	},
 	generateError: {
 		code: 'ASSET_NOT_FINALISED',

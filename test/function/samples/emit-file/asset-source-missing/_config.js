@@ -1,12 +1,14 @@
 module.exports = defineTest({
 	description: 'throws when not setting the asset source',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			load() {
-				this.emitFile({ type: 'asset', name: 'test.ext' });
+		plugins: [
+			{
+				name: 'test-plugin',
+				load() {
+					this.emitFile({ type: 'asset', name: 'test.ext' });
+				}
 			}
-		}
+		]
 	},
 	generateError: {
 		code: 'ASSET_SOURCE_MISSING',

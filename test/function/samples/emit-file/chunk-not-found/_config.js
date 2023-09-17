@@ -5,11 +5,13 @@ module.exports = defineTest({
 	description: 'Throws if an emitted entry chunk cannot be resolved',
 	options: {
 		input: 'main.js',
-		plugins: {
-			buildStart() {
-				this.emitFile({ type: 'chunk', id: 'not-found.js' });
+		plugins: [
+			{
+				buildStart() {
+					this.emitFile({ type: 'chunk', id: 'not-found.js' });
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'UNRESOLVED_ENTRY',

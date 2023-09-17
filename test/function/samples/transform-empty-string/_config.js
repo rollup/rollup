@@ -9,13 +9,15 @@ module.exports = defineTest({
 		assert.deepStrictEqual(sideEffects, ['this happens']);
 	},
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			transform(code, id) {
-				if (id.endsWith('transformed.js')) {
-					return '';
+		plugins: [
+			{
+				name: 'test-plugin',
+				transform(code, id) {
+					if (id.endsWith('transformed.js')) {
+						return '';
+					}
 				}
 			}
-		}
+		]
 	}
 });

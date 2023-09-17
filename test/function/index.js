@@ -5,7 +5,12 @@ const path = require('node:path');
  */
 // @ts-expect-error not included in types
 const rollup = require('../../dist/rollup');
-const { compareError, compareLogs, runTestSuiteWithSamples } = require('../utils.js');
+const {
+	compareError,
+	compareLogs,
+	runTestSuiteWithSamples,
+	verifyAstPlugin
+} = require('../utils.js');
 
 function requireWithContext(code, context, exports) {
 	const module = { exports };
@@ -67,6 +72,14 @@ runTestSuiteWithSamples(
 				process.chdir(directory);
 				const logs = [];
 				const warnings = [];
+				const plugins =
+					config.verifyAst === false
+						? config.options?.plugins
+						: config.options?.plugins === undefined
+						? verifyAstPlugin
+						: Array.isArray(config.options.plugins)
+						? [...config.options.plugins, verifyAstPlugin]
+						: config.options.plugins;
 
 				return rollup
 					.rollup({
@@ -78,7 +91,8 @@ runTestSuiteWithSamples(
 							}
 						},
 						strictDeprecations: true,
-						...config.options
+						...config.options,
+						plugins
 					})
 					.then(bundle => {
 						let unintendedError;

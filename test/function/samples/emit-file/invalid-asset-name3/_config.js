@@ -1,12 +1,14 @@
 module.exports = defineTest({
 	description: 'throws for invalid asset names with absolute path on Windows OS',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({ type: 'asset', name: 'F:\\test.ext', source: 'content' });
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({ type: 'asset', name: 'F:\\test.ext', source: 'content' });
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

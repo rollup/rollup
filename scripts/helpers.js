@@ -1,27 +1,35 @@
 import { spawn } from 'node:child_process';
-import { bold, cyan, green } from './colors.js';
+import { readFile } from 'node:fs/promises';
+import { blue, bold, cyan, green, magenta, red, yellow } from './colors.js';
+
+const colors = [cyan, yellow, blue, red, green, magenta];
+let nextColorIndex = 0;
 
 export function runWithEcho(command, parameters, options) {
+	const color = colors[nextColorIndex];
+	nextColorIndex = (nextColorIndex + 1) % colors.length;
 	return new Promise((resolve, reject) => {
 		const cmdString = formatCommand(command, parameters);
-		console.error(bold(`\n${cyan`Run>`} ${cmdString}`));
+		console.error(bold(`\n${color`Run>`} ${cmdString}`));
 
-		const childProcess = spawn(command, parameters, options);
-
-		childProcess.stdout.pipe(process.stdout);
-		childProcess.stderr.pipe(process.stderr);
+		const childProcess = spawn(command, parameters, { stdio: 'inherit', ...options });
 
 		childProcess.on('close', code => {
 			if (code) {
 				reject(new Error(`"${cmdString}" exited with code ${code}.`));
 			} else {
-				console.error(bold(`${green`Finished>`} ${cmdString}\n`));
+				console.error(bold(`${color`Finished>`} ${cmdString}\n`));
 				resolve();
 			}
 		});
 	});
 }
 
+/**
+ * @param {string} command
+ * @param {string[]} parameters
+ * @return {Promise<string>}
+ */
 export function runAndGetStdout(command, parameters) {
 	return new Promise((resolve, reject) => {
 		const childProcess = spawn(command, parameters);
@@ -42,4 +50,13 @@ export function runAndGetStdout(command, parameters) {
 
 function formatCommand(command, parameters) {
 	return [command, ...parameters].join(' ');
+}
+
+/**
+ * @param {string} file
+ * @returns {Promise<Record<string, any>>}
+ */
+export async function readJson(file) {
+	const content = await readFile(file, 'utf8');
+	return JSON.parse(content);
 }

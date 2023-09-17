@@ -1,9 +1,11 @@
 module.exports = defineTest({
 	description: 'throws when providing a value for a sync function hook',
 	options: {
-		plugins: {
-			outputOptions: 'value'
-		}
+		plugins: [
+			{
+				outputOptions: 'value'
+			}
+		]
 	},
 	generateError: {
 		code: 'INVALID_PLUGIN_HOOK',
