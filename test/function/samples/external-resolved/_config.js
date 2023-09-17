@@ -30,27 +30,29 @@ module.exports = defineTest({
 			testedIds.push(id);
 			return id.startsWith('resolved');
 		},
-		plugins: {
-			name: 'test-plugin',
-			resolveId(source) {
-				switch (source) {
-					case 'resolve-string': {
-						return 'resolved-string';
-					}
-					case 'resolve-external': {
-						return false;
-					}
-					case 'resolve-object': {
-						return { id: 'resolved-object', external: false };
-					}
-					case 'resolve-object-external': {
-						return { id: 'resolved-object-external', external: true };
-					}
-					default: {
-						return null;
+		plugins: [
+			{
+				name: 'test-plugin',
+				resolveId(source) {
+					switch (source) {
+						case 'resolve-string': {
+							return 'resolved-string';
+						}
+						case 'resolve-external': {
+							return false;
+						}
+						case 'resolve-object': {
+							return { id: 'resolved-object', external: false };
+						}
+						case 'resolve-object-external': {
+							return { id: 'resolved-object-external', external: true };
+						}
+						default: {
+							return null;
+						}
 					}
 				}
 			}
-		}
+		]
 	}
 });

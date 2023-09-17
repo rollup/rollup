@@ -1,13 +1,15 @@
 module.exports = defineTest({
 	description: 'throws when accessing the file name before the asset source is set',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
-				this.getFileName(assetId);
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					const assetId = this.emitFile({ type: 'asset', name: 'test.ext' });
+					this.getFileName(assetId);
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

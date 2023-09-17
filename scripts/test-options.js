@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { exit } from 'node:process';
 
 const [optionsText, helpText, commandReferenceText] = await Promise.all([
 	readFile(new URL('../docs/configuration-options/index.md', import.meta.url), 'utf8'),
@@ -48,7 +49,7 @@ for (const { long, short } of allCliOptions) {
 }
 
 if (failed) {
-	process.exit(1);
+	exit(1);
 }
 
 let current = null;
@@ -58,7 +59,7 @@ for (const [long, short] of cliOptionsInHelp) {
 			console.error(
 				`Options in help.md are not sorted properly. "${long}" should occur before "${current}".`
 			);
-			process.exit(1);
+			exit(1);
 		}
 		current = long;
 	}
@@ -68,7 +69,7 @@ const splitHelpText = helpText.split('\n');
 for (const line of splitHelpText) {
 	if (line.length > 80) {
 		console.error(`The following line in help.md exceeds the limit of 80 characters:\n${line}`);
-		process.exit(1);
+		exit(1);
 	}
 }
 
@@ -88,6 +89,6 @@ for (const [index, line] of helpOptionLines.entries()) {
 		console.error(
 			`The command lines in command-line-interface/index.md do not match help.md. Expected line:\n${line}\n\nReceived line:\n${optionListLine}`
 		);
-		process.exit(1);
+		exit(1);
 	}
 }

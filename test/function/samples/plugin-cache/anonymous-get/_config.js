@@ -1,11 +1,13 @@
 module.exports = defineTest({
 	description: 'throws for anonymous plugins reading the cache',
 	options: {
-		plugins: {
-			buildStart() {
-				this.cache.get('asdf');
+		plugins: [
+			{
+				buildStart() {
+					this.cache.get('asdf');
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

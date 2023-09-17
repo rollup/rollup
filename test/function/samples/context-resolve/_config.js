@@ -6,7 +6,7 @@ const tests = [
 		source: './existing',
 		expected: {
 			id: path.join(__dirname, 'existing.js'),
-			assertions: {},
+			attributes: {},
 			external: false,
 			meta: {},
 			resolvedBy: 'rollup',
@@ -26,7 +26,7 @@ const tests = [
 		source: './marked-directly-external-relative',
 		expected: {
 			id: path.join(__dirname, 'marked-directly-external-relative'),
-			assertions: {},
+			attributes: {},
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
@@ -38,7 +38,7 @@ const tests = [
 		source: './marked-external-relative',
 		expected: {
 			id: path.join(__dirname, 'marked-external-relative'),
-			assertions: {},
+			attributes: {},
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
@@ -50,7 +50,7 @@ const tests = [
 		source: 'marked-external-absolute',
 		expected: {
 			id: 'marked-external-absolute',
-			assertions: {},
+			attributes: {},
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
@@ -62,7 +62,7 @@ const tests = [
 		source: 'resolved-name',
 		expected: {
 			id: 'resolved:resolved-name',
-			assertions: {},
+			attributes: {},
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
@@ -74,7 +74,7 @@ const tests = [
 		source: 'resolved-false',
 		expected: {
 			id: 'resolved-false',
-			assertions: {},
+			attributes: {},
 			external: true,
 			meta: {},
 			resolvedBy: 'rollup',
@@ -86,7 +86,7 @@ const tests = [
 		source: 'resolved-object',
 		expected: {
 			id: 'resolved:resolved-object',
-			assertions: {},
+			attributes: {},
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
@@ -98,7 +98,7 @@ const tests = [
 		source: 'resolved-object-non-external',
 		expected: {
 			id: 'resolved:resolved-object-non-external',
-			assertions: {},
+			attributes: {},
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
@@ -110,7 +110,7 @@ const tests = [
 		source: 'resolved-object-external',
 		expected: {
 			id: 'resolved:resolved-object-external',
-			assertions: {},
+			attributes: {},
 			external: true,
 			meta: {},
 			moduleSideEffects: true,

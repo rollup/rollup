@@ -112,6 +112,10 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.left.removeAnnotations(code);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,

@@ -22,6 +22,7 @@ modules.foo.ast._ignoredProp = {};
 
 module.exports = defineTest({
 	description: 'uses supplied AST',
+	verifyAst: false,
 	options: {
 		plugins: [
 			{

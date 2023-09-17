@@ -3,6 +3,7 @@ const { promises: fs } = require('node:fs');
 
 module.exports = defineTest({
 	description: 'resolves promises between sequential options hooks',
+	verifyAst: false,
 	options: {
 		input: 'super-unused',
 		treeshake: false,

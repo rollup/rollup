@@ -2,12 +2,14 @@ module.exports = defineTest({
 	description: 'provides all module ids on the plugin context',
 	options: {
 		external: ['path'],
-		plugins: {
-			name: 'test',
-			renderStart() {
-				console.log([...this.moduleIds]);
+		plugins: [
+			{
+				name: 'test',
+				renderStart() {
+					console.log([...this.moduleIds]);
+				}
 			}
-		}
+		]
 	},
 	generateError: {
 		code: 'PLUGIN_ERROR',

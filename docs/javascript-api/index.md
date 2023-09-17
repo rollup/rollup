@@ -127,8 +127,6 @@ const inputOptions = {
 	strictDeprecations,
 
 	// danger zone
-	acorn,
-	acornInjectPlugins,
 	context,
 	moduleContext,
 	preserveSymlinks,
@@ -164,7 +162,7 @@ const outputOptions = {
 	dynamicImportInCjs,
 	entryFileNames,
 	extend,
-	externalImportAssertions,
+	externalImportAttributes,
 	footer,
 	generatedCode,
 	hoistTransitiveImports,

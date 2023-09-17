@@ -3,12 +3,14 @@ const path = require('node:path');
 module.exports = defineTest({
 	description: 'throws when adding watch files during generate',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			renderStart() {
-				this.addWatchFile(path.join(__dirname, 'watched.js'));
+		plugins: [
+			{
+				name: 'test-plugin',
+				renderStart() {
+					this.addWatchFile(path.join(__dirname, 'watched.js'));
+				}
 			}
-		}
+		]
 	},
 	generateError: {
 		code: 'PLUGIN_ERROR',

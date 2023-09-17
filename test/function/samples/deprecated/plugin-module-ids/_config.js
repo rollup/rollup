@@ -8,16 +8,18 @@ module.exports = defineTest({
 	options: {
 		strictDeprecations: false,
 		external: ['path'],
-		plugins: {
-			renderStart() {
-				rendered = true;
-				assert.deepStrictEqual([...this.moduleIds].sort(), [
-					path.join(__dirname, 'foo.js'),
-					path.join(__dirname, 'main.js'),
-					'path'
-				]);
+		plugins: [
+			{
+				renderStart() {
+					rendered = true;
+					assert.deepStrictEqual([...this.moduleIds].sort(), [
+						path.join(__dirname, 'foo.js'),
+						path.join(__dirname, 'main.js'),
+						'path'
+					]);
+				}
 			}
-		}
+		]
 	},
 	bundle() {
 		assert.ok(rendered);

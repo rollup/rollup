@@ -1,10 +1,9 @@
-import type * as acorn from 'acorn';
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
-import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import type { RollupAnnotation } from '../../../utils/commentAnnotations';
-import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/commentAnnotations';
+import type { AstNode, NormalizedTreeshakingOptions } from '../../../rollup/types';
+import type { RollupAnnotation } from '../../../utils/convert-ast';
+import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/convert-ast';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -23,7 +22,7 @@ import type * as NodeType from '../NodeType';
 import type { InclusionOptions } from './Expression';
 import { ExpressionEntity } from './Expression';
 
-export interface GenericEsTreeNode extends acorn.Node {
+export interface GenericEsTreeNode extends AstNode {
 	[key: string]: any;
 }
 
@@ -31,7 +30,7 @@ export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
-	annotations?: acorn.Comment[];
+	annotations?: RollupAnnotation[];
 	context: AstContext;
 	end: number;
 	esTreeNode: GenericEsTreeNode | null;
@@ -95,6 +94,8 @@ export interface Node extends Entity {
 		deoptimizeAccess: boolean
 	): void;
 
+	removeAnnotations(code: MagicString): void;
+
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -134,7 +135,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	context: AstContext;
 	declare end: number;
-	esTreeNode: acorn.Node | null;
+	esTreeNode: AstNode | null;
 	keys: string[];
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
@@ -257,12 +258,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 */
 	initialise(): void {}
 
-	insertSemicolon(code: MagicString): void {
-		if (code.original[this.end - 1] !== ';') {
-			code.appendLeft(this.end, ';');
-		}
-	}
-
 	parseNode(esTreeNode: GenericEsTreeNode, keepEsTreeNodeKeys?: string[]): void {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
@@ -273,12 +268,12 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					this.annotations = annotations;
 					if ((this.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
 						this.annotationNoSideEffects = annotations.some(
-							comment => comment.annotationType === 'noSideEffects'
+							comment => comment.type === 'noSideEffects'
 						);
-						this.annotationPure = annotations.some(comment => comment.annotationType === 'pure');
+						this.annotationPure = annotations.some(comment => comment.type === 'pure');
 					}
-				} else if (key === INVALID_COMMENT_KEY) {
-					for (const { start, end } of value as acorn.Comment[])
+				} else if (key === INVALID_ANNOTATION_KEY) {
+					for (const { start, end } of value as RollupAnnotation[])
 						this.context.magicString.remove(start, end);
 				}
 			} else if (typeof value !== 'object' || value === null) {
@@ -304,6 +299,14 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					this.scope,
 					keepEsTreeNodeKeys?.includes(key)
 				);
+			}
+		}
+	}
+
+	removeAnnotations(code: MagicString): void {
+		if (this.annotations) {
+			for (const annotation of this.annotations) {
+				code.remove(annotation.start, annotation.end);
 			}
 		}
 	}

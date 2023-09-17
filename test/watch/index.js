@@ -524,7 +524,7 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			"ERROR:Expected '{', got 'nope'",
 			'END',
 			() => {
 				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
@@ -552,7 +552,7 @@ describe('rollup.watch', () => {
 		return sequence(watcher, [
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			'ERROR:Expression expected',
 			'END',
 			() => {
 				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
@@ -671,7 +671,7 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			"ERROR:Expected '{', got 'nope'",
 			'END',
 			() => {
 				unlinkSync('test/_tmp/input/main.js');
@@ -709,7 +709,7 @@ describe('rollup.watch', () => {
 			},
 			'START',
 			'BUNDLE_START',
-			'ERROR:Unexpected token',
+			"ERROR:Expected '{', got 'nope'",
 			'END',
 			() => {
 				unlinkSync('test/_tmp/input/dep.js');
