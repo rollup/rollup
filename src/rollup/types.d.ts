@@ -181,8 +181,6 @@ interface ModuleInfo extends ModuleOptions {
 	exportedBindings: Record<string, string[]> | null;
 	exports: string[] | null;
 	hasDefaultExport: boolean | null;
-	/** @deprecated Use `moduleSideEffects` instead */
-	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
 	implicitlyLoadedBefore: readonly string[];
@@ -286,8 +284,6 @@ export type IsExternal = (
 	importer: string | undefined,
 	isResolved: boolean
 ) => boolean;
-
-export type IsPureModule = (id: string) => boolean | NullValue;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
