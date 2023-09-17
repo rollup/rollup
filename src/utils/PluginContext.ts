@@ -100,6 +100,7 @@ export function getPluginContext(
 		},
 		parse: graph.contextParse.bind(graph),
 		resolve(source, importer, { assertions, custom, isEntry, skipSelf } = BLANK) {
+			skipSelf ??= true;
 			return graph.moduleLoader.resolveId(
 				source,
 				importer,

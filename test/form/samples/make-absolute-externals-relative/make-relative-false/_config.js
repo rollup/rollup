@@ -23,7 +23,11 @@ module.exports = defineTest({
 			async buildStart() {
 				// eslint-disable-next-line unicorn/consistent-function-scoping
 				const testExternal = async (source, expected) =>
-					assert.deepStrictEqual((await this.resolve(source, ID_MAIN)).external, expected, source);
+					assert.deepStrictEqual(
+						(await this.resolve(source, ID_MAIN, { skipSelf: false })).external,
+						expected,
+						source
+					);
 
 				await testExternal('./relativeUnresolved.js', true);
 				await testExternal('/absolute.js', 'absolute');
