@@ -16,6 +16,12 @@ We welcome any type of contribution, not only code. You can help with
 
 Working on your first Pull Request? You can learn how from this _free_ course, [How to Contribute to an Open Source Project on GitHub](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github).
 
+### Setting up the Rust toolchain
+
+Rollup now includes some Rust code. To compile it, you need to set up Rust nightly. If you haven't installed it yet, please first see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust, then see https://rust-lang.github.io/rustup/concepts/channels.html to learn how to install Rust nightly. If everything is set up correctly, `npm run build` should complete successfully. The first build will be rather slow, but subsequent builds will be much faster.
+
+For local development and tests, it is even faster to run `npm run build:quick`, which does not perform a Rust production build, does not build WASM artefacts, and only builds the CommonJS version of Rollup. Note that with this build, a few tests will fail that rely on the other artefacts, see below.
+
 ### Git configuration to enable symlinks
 
 The unit tests in this projects make use of symlinks in the git project. On Windows, this may not work as expected without extra configuration. To configure git to create symlinks on windows, you need to enable the Windows "Developer Mode" setting, and also set the `core.symlinks` git feature using either of the following commands:
@@ -43,7 +49,7 @@ To save time for quick iterations, you can add `solo:true` to the `_config.js` f
 For those tests, it is enough to run
 
 ```shell
-npm run build:cjs
+npm run build:quick
 npm run test:quick
 
 ```

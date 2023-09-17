@@ -1,12 +1,14 @@
 module.exports = defineTest({
 	description: 'throws for invalid asset names',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({ type: 'asset', name: '/test.ext', source: 'content' });
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({ type: 'asset', name: '/test.ext', source: 'content' });
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

@@ -3,12 +3,14 @@ const assert = require('node:assert');
 module.exports = defineTest({
 	description: 'provides a string conversion for warnings',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			transform(code) {
-				this.warn('This might be removed', code.indexOf('removed'));
+		plugins: [
+			{
+				name: 'test-plugin',
+				transform(code) {
+					this.warn('This might be removed', code.indexOf('removed'));
+				}
 			}
-		}
+		]
 	},
 	warnings(warnings) {
 		assert.deepStrictEqual(warnings.map(String), [

@@ -35,22 +35,24 @@ module.exports = defineTest({
 				'pluginsideeffects-true-external-listed'
 			]
 		},
-		plugins: {
-			name: 'test-plugin',
-			resolveId(id) {
-				if (!path.isAbsolute(id)) {
-					const moduleSideEffects = JSON.parse(id.split('-')[1]);
-					if (moduleSideEffects) {
-						return { id, moduleSideEffects };
+		plugins: [
+			{
+				name: 'test-plugin',
+				resolveId(id) {
+					if (!path.isAbsolute(id)) {
+						const moduleSideEffects = JSON.parse(id.split('-')[1]);
+						if (moduleSideEffects) {
+							return { id, moduleSideEffects };
+						}
+						return id;
 					}
-					return id;
-				}
-			},
-			load(id) {
-				if (!path.isAbsolute(id)) {
-					return `export const value = '${id}'; sideEffects.push(value);`;
+				},
+				load(id) {
+					if (!path.isAbsolute(id)) {
+						return `export const value = '${id}'; sideEffects.push(value);`;
+					}
 				}
 			}
-		}
+		]
 	}
 });

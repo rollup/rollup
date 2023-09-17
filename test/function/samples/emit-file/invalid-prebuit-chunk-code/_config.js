@@ -1,15 +1,17 @@
 module.exports = defineTest({
 	description: 'throws for invalid prebuilt chunks code',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({
-					type: 'prebuilt-chunk',
-					fileName: 'my-chunk.js'
-				});
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({
+						type: 'prebuilt-chunk',
+						fileName: 'my-chunk.js'
+					});
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

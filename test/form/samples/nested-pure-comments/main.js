@@ -21,4 +21,6 @@ false /*@__PURE__*/ || keep();
 
 // Calls with parentheses
 /*@__PURE__*/(remove());
+/*@__PURE__*/(((remove())));
 /*@__PURE__*/(new Remove());
+/*@__PURE__*/(((new Remove())));

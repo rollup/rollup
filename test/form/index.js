@@ -6,7 +6,12 @@ const { basename, resolve } = require('node:path');
  */
 // @ts-expect-error not included in types
 const { rollup } = require('../../dist/rollup');
-const { compareLogs, normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
+const {
+	compareLogs,
+	normaliseOutput,
+	runTestSuiteWithSamples,
+	verifyAstPlugin
+} = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
@@ -43,7 +48,15 @@ runTestSuiteWithSamples(
 									}
 								},
 								strictDeprecations: true,
-								...config.options
+								...config.options,
+								plugins:
+									config.verifyAst === false
+										? config.options?.plugins
+										: config.options?.plugins === undefined
+										? verifyAstPlugin
+										: Array.isArray(config.options.plugins)
+										? [...config.options.plugins, verifyAstPlugin]
+										: config.options.plugins
 							}));
 						await generateAndTestBundle(
 							bundle,

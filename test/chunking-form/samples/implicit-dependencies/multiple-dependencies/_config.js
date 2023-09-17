@@ -35,7 +35,7 @@ module.exports = defineTest({
 			buildEnd() {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN1))), {
 					id: ID_MAIN1,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -45,6 +45,7 @@ module.exports = defineTest({
 								type: 'ImportDeclaration',
 								start: 0,
 								end: 30,
+								source: { type: 'Literal', start: 21, end: 29, raw: "'./lib1'", value: './lib1' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -54,12 +55,13 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 9, end: 13, name: 'lib1' }
 									}
 								],
-								source: { type: 'Literal', start: 21, end: 29, value: './lib1', raw: "'./lib1'" }
+								attributes: []
 							},
 							{
 								type: 'ImportDeclaration',
 								start: 31,
 								end: 63,
+								source: { type: 'Literal', start: 53, end: 62, raw: "'./lib1b'", value: './lib1b' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -69,12 +71,13 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 40, end: 45, name: 'lib1b' }
 									}
 								],
-								source: { type: 'Literal', start: 53, end: 62, value: './lib1b', raw: "'./lib1b'" }
+								attributes: []
 							},
 							{
 								type: 'ImportDeclaration',
 								start: 64,
 								end: 94,
+								source: { type: 'Literal', start: 85, end: 93, raw: "'./lib2'", value: './lib2' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -84,7 +87,7 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 73, end: 77, name: 'lib2' }
 									}
 								],
-								source: { type: 'Literal', start: 85, end: 93, value: './lib2', raw: "'./lib2'" }
+								attributes: []
 							},
 							{
 								type: 'ExpressionStatement',
@@ -94,21 +97,21 @@ module.exports = defineTest({
 									type: 'CallExpression',
 									start: 95,
 									end: 135,
-									callee: {
-										type: 'MemberExpression',
-										start: 95,
-										end: 106,
-										object: { type: 'Identifier', start: 95, end: 102, name: 'console' },
-										property: { type: 'Identifier', start: 103, end: 106, name: 'log' },
-										computed: false,
-										optional: false
-									},
 									arguments: [
-										{ type: 'Literal', start: 107, end: 114, value: 'main1', raw: "'main1'" },
+										{ type: 'Literal', start: 107, end: 114, raw: "'main1'", value: 'main1' },
 										{ type: 'Identifier', start: 116, end: 120, name: 'lib1' },
 										{ type: 'Identifier', start: 123, end: 128, name: 'lib1b' },
 										{ type: 'Identifier', start: 130, end: 134, name: 'lib2' }
 									],
+									callee: {
+										type: 'MemberExpression',
+										start: 95,
+										end: 106,
+										computed: false,
+										object: { type: 'Identifier', start: 95, end: 102, name: 'console' },
+										optional: false,
+										property: { type: 'Identifier', start: 103, end: 106, name: 'log' }
+									},
 									optional: false
 								}
 							}
@@ -129,7 +132,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [ID_DEP],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -138,7 +141,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1B,
 							meta: {},
@@ -147,7 +150,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB2,
 							meta: {},
@@ -166,7 +169,7 @@ module.exports = defineTest({
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN2))), {
 					id: ID_MAIN2,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -176,6 +179,7 @@ module.exports = defineTest({
 								type: 'ImportDeclaration',
 								start: 0,
 								end: 30,
+								source: { type: 'Literal', start: 21, end: 29, raw: "'./lib1'", value: './lib1' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -185,12 +189,13 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 9, end: 13, name: 'lib1' }
 									}
 								],
-								source: { type: 'Literal', start: 21, end: 29, value: './lib1', raw: "'./lib1'" }
+								attributes: []
 							},
 							{
 								type: 'ImportDeclaration',
 								start: 31,
 								end: 63,
+								source: { type: 'Literal', start: 53, end: 62, raw: "'./lib1b'", value: './lib1b' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -200,12 +205,13 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 40, end: 45, name: 'lib1b' }
 									}
 								],
-								source: { type: 'Literal', start: 53, end: 62, value: './lib1b', raw: "'./lib1b'" }
+								attributes: []
 							},
 							{
 								type: 'ImportDeclaration',
 								start: 64,
 								end: 94,
+								source: { type: 'Literal', start: 85, end: 93, raw: "'./lib3'", value: './lib3' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -215,7 +221,7 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 73, end: 77, name: 'lib3' }
 									}
 								],
-								source: { type: 'Literal', start: 85, end: 93, value: './lib3', raw: "'./lib3'" }
+								attributes: []
 							},
 							{
 								type: 'ExpressionStatement',
@@ -225,21 +231,21 @@ module.exports = defineTest({
 									type: 'CallExpression',
 									start: 95,
 									end: 134,
-									callee: {
-										type: 'MemberExpression',
-										start: 95,
-										end: 106,
-										object: { type: 'Identifier', start: 95, end: 102, name: 'console' },
-										property: { type: 'Identifier', start: 103, end: 106, name: 'log' },
-										computed: false,
-										optional: false
-									},
 									arguments: [
-										{ type: 'Literal', start: 107, end: 114, value: 'main2', raw: "'main2'" },
+										{ type: 'Literal', start: 107, end: 114, raw: "'main2'", value: 'main2' },
 										{ type: 'Identifier', start: 116, end: 120, name: 'lib1' },
 										{ type: 'Identifier', start: 122, end: 127, name: 'lib1b' },
 										{ type: 'Identifier', start: 129, end: 133, name: 'lib3' }
 									],
+									callee: {
+										type: 'MemberExpression',
+										start: 95,
+										end: 106,
+										computed: false,
+										object: { type: 'Identifier', start: 95, end: 102, name: 'console' },
+										optional: false,
+										property: { type: 'Identifier', start: 103, end: 106, name: 'log' }
+									},
 									optional: false
 								}
 							}
@@ -260,7 +266,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [ID_DEP],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -269,7 +275,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1B,
 							meta: {},
@@ -278,7 +284,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB3,
 							meta: {},
@@ -297,7 +303,7 @@ module.exports = defineTest({
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
 					id: ID_DEP,
-					assertions: {},
+					attributes: {},
 					ast: {
 						type: 'Program',
 						start: 0,
@@ -307,6 +313,7 @@ module.exports = defineTest({
 								type: 'ImportDeclaration',
 								start: 0,
 								end: 30,
+								source: { type: 'Literal', start: 21, end: 29, raw: "'./lib1'", value: './lib1' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -316,12 +323,13 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 9, end: 13, name: 'lib1' }
 									}
 								],
-								source: { type: 'Literal', start: 21, end: 29, value: './lib1', raw: "'./lib1'" }
+								attributes: []
 							},
 							{
 								type: 'ImportDeclaration',
 								start: 31,
 								end: 61,
+								source: { type: 'Literal', start: 52, end: 60, raw: "'./lib2'", value: './lib2' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -331,12 +339,13 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 40, end: 44, name: 'lib2' }
 									}
 								],
-								source: { type: 'Literal', start: 52, end: 60, value: './lib2', raw: "'./lib2'" }
+								attributes: []
 							},
 							{
 								type: 'ImportDeclaration',
 								start: 62,
 								end: 92,
+								source: { type: 'Literal', start: 83, end: 91, raw: "'./lib3'", value: './lib3' },
 								specifiers: [
 									{
 										type: 'ImportSpecifier',
@@ -346,7 +355,7 @@ module.exports = defineTest({
 										local: { type: 'Identifier', start: 71, end: 75, name: 'lib3' }
 									}
 								],
-								source: { type: 'Literal', start: 83, end: 91, value: './lib3', raw: "'./lib3'" }
+								attributes: []
 							},
 							{
 								type: 'ExpressionStatement',
@@ -356,20 +365,20 @@ module.exports = defineTest({
 									type: 'CallExpression',
 									start: 93,
 									end: 122,
-									callee: {
-										type: 'MemberExpression',
-										start: 93,
-										end: 104,
-										object: { type: 'Identifier', start: 93, end: 100, name: 'console' },
-										property: { type: 'Identifier', start: 101, end: 104, name: 'log' },
-										computed: false,
-										optional: false
-									},
 									arguments: [
 										{ type: 'Identifier', start: 105, end: 109, name: 'lib1' },
 										{ type: 'Identifier', start: 111, end: 115, name: 'lib2' },
 										{ type: 'Identifier', start: 117, end: 121, name: 'lib3' }
 									],
+									callee: {
+										type: 'MemberExpression',
+										start: 93,
+										end: 104,
+										computed: false,
+										object: { type: 'Identifier', start: 93, end: 100, name: 'console' },
+										optional: false,
+										property: { type: 'Identifier', start: 101, end: 104, name: 'log' }
+									},
 									optional: false
 								}
 							}
@@ -390,7 +399,7 @@ module.exports = defineTest({
 					implicitlyLoadedBefore: [],
 					importedIdResolutions: [
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB1,
 							meta: {},
@@ -399,7 +408,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB2,
 							meta: {},
@@ -408,7 +417,7 @@ module.exports = defineTest({
 							syntheticNamedExports: false
 						},
 						{
-							assertions: {},
+							attributes: {},
 							external: false,
 							id: ID_LIB3,
 							meta: {},

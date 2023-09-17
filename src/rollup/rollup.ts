@@ -5,6 +5,7 @@ import type { PluginDriver } from '../utils/PluginDriver';
 import { getSortedValidatedPlugins } from '../utils/PluginDriver';
 import { mkdir, writeFile } from '../utils/fs';
 import { catchUnfinishedHookActions } from '../utils/hookActions';
+import initWasm from '../utils/initWasm';
 import { getLogHandler } from '../utils/logHandler';
 import { getLogger } from '../utils/logger';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from '../utils/logging';
@@ -50,6 +51,8 @@ export async function rollupInternal(
 		watcher !== null
 	);
 	initialiseTimers(inputOptions);
+
+	await initWasm();
 
 	const graph = new Graph(inputOptions, watcher);
 

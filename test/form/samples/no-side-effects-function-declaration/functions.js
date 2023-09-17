@@ -26,7 +26,7 @@ export const fnC = /*#__NO_SIDE_EFFECTS__*/ (args) => {
 }
 
 
-/*#__NO_SIDE_EFFECTS__*/ 
+/*#__NO_SIDE_EFFECTS__*/
 const fnD = (args) => {
   console.log(args)
   return args
@@ -34,7 +34,7 @@ const fnD = (args) => {
 
 export { fnD }
 
-/*#__NO_SIDE_EFFECTS__*/ 
+/*#__NO_SIDE_EFFECTS__*/
 export const fnE = (args) => {
   console.log(args)
   return args
@@ -42,10 +42,10 @@ export const fnE = (args) => {
 
 /**
  * This is a jsdoc comment, with pure annotation
- * 
+ *
  * @param {any} args
  * @__NO_SIDE_EFFECTS__
- */ 
+ */
 export const fnF = (args) => {
   console.log(args)
   return args
@@ -59,7 +59,7 @@ export async function fnG(args) {
 
 /**
  * #__NO_SIDE_EFFECTS__
- */ 
+ */
 export const fnH = async (args) => {
   console.log(args)
   return args
@@ -73,7 +73,7 @@ export const fnI = /*#__NO_SIDE_EFFECTS__*/ async (args) => {
 
 /**
  * #__NO_SIDE_EFFECTS__
- */ 
+ */
 export function * fnJ(args) {
   console.log(args)
   return args
@@ -81,13 +81,13 @@ export function * fnJ(args) {
 
 /**
  * #__NO_SIDE_EFFECTS__
- */ 
+ */
 export async function * fnK(args) {
   console.log(args)
   return args
 }
 
-/*#__NO_SIDE_EFFECTS__*/ 
+/*#__NO_SIDE_EFFECTS__*/
 export default function fnDefault(args) {
   console.log(args)
   return args

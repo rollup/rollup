@@ -26,7 +26,7 @@ export const fnC = /*#__NO_SIDE_EFFECTS__*/ (args) => {
 }
 
 
-/*#__NO_SIDE_EFFECTS__*/ 
+/*#__NO_SIDE_EFFECTS__*/
 const fnD = (args) => {
   console.log(args)
   return args
@@ -34,7 +34,7 @@ const fnD = (args) => {
 
 export { fnD }
 
-/*#__NO_SIDE_EFFECTS__*/ 
+/*#__NO_SIDE_EFFECTS__*/
 export const fnE = (args) => {
   console.log(args)
   return args
@@ -42,16 +42,16 @@ export const fnE = (args) => {
 
 /**
  * This is a jsdoc comment, with no side effects annotation
- * 
+ *
  * @param {any} args
  * @__NO_SIDE_EFFECTS__
- */ 
+ */
 export const fnF = (args) => {
   console.log(args)
   return args
 }
 
-/*#__NO_SIDE_EFFECTS__*/ 
+/*#__NO_SIDE_EFFECTS__*/
 export default function fnDefault(args) {
   console.log(args)
   return args
@@ -60,17 +60,6 @@ export default function fnDefault(args) {
 export * from './sub-functions'
 
 export const fnAlias = fnA
-
-/**
- * Have both annotations
- * 
- * @__PURE__
- * @__NO_SIDE_EFFECTS__
- */
-export const fnBothAnnotations = (args) => {
-  console.log(args)
-  return args
-}
 
 // This annonation get ignored
 /** @__NO_SIDE_EFFECTS__ */

@@ -1,9 +1,7 @@
 module.exports = defineTest({
 	description: 'throws when providing a value for an async function hook',
 	options: {
-		plugins: {
-			resolveId: 'value'
-		}
+		plugins: [{ resolveId: 'value' }]
 	},
 	error: {
 		code: 'INVALID_PLUGIN_HOOK',

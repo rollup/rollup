@@ -23,22 +23,24 @@ module.exports = defineTest({
 				return JSON.parse(id.split('-')[1]);
 			}
 		},
-		plugins: {
-			name: 'test-plugin',
-			resolveId(id) {
-				if (!path.isAbsolute(id)) {
-					return id;
-				}
-			},
-			load(id) {
-				if (!path.isAbsolute(id)) {
-					const moduleSideEffects = JSON.parse(id.split('-')[3]);
-					return {
-						code: `export const value = '${id}'; sideEffects.push(value);`,
-						moduleSideEffects
-					};
+		plugins: [
+			{
+				name: 'test-plugin',
+				resolveId(id) {
+					if (!path.isAbsolute(id)) {
+						return id;
+					}
+				},
+				load(id) {
+					if (!path.isAbsolute(id)) {
+						const moduleSideEffects = JSON.parse(id.split('-')[3]);
+						return {
+							code: `export const value = '${id}'; sideEffects.push(value);`,
+							moduleSideEffects
+						};
+					}
 				}
 			}
-		}
+		]
 	}
 });

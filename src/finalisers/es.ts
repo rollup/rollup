@@ -37,8 +37,8 @@ function getImportBlock(
 	{ _ }: GenerateCodeSnippets
 ): string[] {
 	const importBlock: string[] = [];
-	for (const { importPath, reexports, imports, name, assertions } of dependencies) {
-		const assertion = assertions ? `${_}assert${_}${assertions}` : '';
+	for (const { importPath, reexports, imports, name, attributes } of dependencies) {
+		const assertion = attributes ? `${_}assert${_}${attributes}` : '';
 		const pathWithAssertion = `'${importPath}'${assertion};`;
 		if (!reexports && !imports) {
 			importBlock.push(`import${_}${pathWithAssertion}`);

@@ -16,6 +16,8 @@ export const URL_OUTPUT_DYNAMICIMPORTFUNCTION =
 	'configuration-options/#output-dynamicimportfunction';
 export const URL_OUTPUT_EXPORTS = 'configuration-options/#output-exports';
 export const URL_OUTPUT_EXTEND = 'configuration-options/#output-extend';
+export const URL_OUTPUT_EXTERNALIMPORTATTRIBUTES =
+	'configuration-options/#output-externalimportattributes';
 export const URL_OUTPUT_FORMAT = 'configuration-options/#output-format';
 export const URL_OUTPUT_GENERATEDCODE = 'configuration-options/#output-generatedcode';
 export const URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION =

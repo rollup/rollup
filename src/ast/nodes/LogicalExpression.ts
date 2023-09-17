@@ -7,7 +7,6 @@ import {
 	removeLineBreaks,
 	type RenderOptions
 } from '../../utils/renderHelpers';
-import { removeAnnotations } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
@@ -160,6 +159,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}
 	}
 
+	removeAnnotations(code: MagicString) {
+		this.left.removeAnnotations(code);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,
@@ -182,10 +185,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				if (preventASI) {
 					removeLineBreaks(code, removePos, this.right.start);
 				}
+				this.left.removeAnnotations(code);
 			} else {
 				code.remove(operatorPos, this.end);
 			}
-			removeAnnotations(this, code);
 			this.getUsedBranch()!.render(code, options, {
 				isCalleeOfRenderedParent,
 				preventASI,
