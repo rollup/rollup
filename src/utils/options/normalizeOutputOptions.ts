@@ -14,7 +14,6 @@ import {
 	URL_OUTPUT_AMD_BASEPATH,
 	URL_OUTPUT_AMD_ID,
 	URL_OUTPUT_DIR,
-	URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION,
 	URL_OUTPUT_EXTERNALIMPORTATTRIBUTES,
 	URL_OUTPUT_FORMAT,
 	URL_OUTPUT_GENERATEDCODE,
@@ -59,10 +58,6 @@ export async function normalizeOutputOptions(
 		dynamicImportInCjs: config.dynamicImportInCjs ?? true,
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: config.esModule ?? 'if-default-prop',
-		experimentalDeepDynamicChunkOptimization: getExperimentalDeepDynamicChunkOptimization(
-			config,
-			inputOptions
-		),
 		experimentalMinChunkSize: config.experimentalMinChunkSize ?? 1,
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
@@ -328,23 +323,6 @@ const getEntryFileNames = (
 	}
 	return configEntryFileNames ?? '[name].js';
 };
-
-function getExperimentalDeepDynamicChunkOptimization(
-	config: OutputOptions,
-	inputOptions: NormalizedInputOptions
-) {
-	const configExperimentalDeepDynamicChunkOptimization =
-		config.experimentalDeepDynamicChunkOptimization;
-	if (configExperimentalDeepDynamicChunkOptimization != null) {
-		warnDeprecation(
-			`The "output.experimentalDeepDynamicChunkOptimization" option is deprecated as Rollup always runs the full chunking algorithm now. The option should be removed.`,
-			URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION,
-			true,
-			inputOptions
-		);
-	}
-	return configExperimentalDeepDynamicChunkOptimization || false;
-}
 
 function getExports(
 	config: OutputOptions,

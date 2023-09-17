@@ -233,7 +233,6 @@ async function mergeOutputOptions(
 		dynamicImportInCjs: getOption('dynamicImportInCjs'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule'),
-		experimentalDeepDynamicChunkOptimization: getOption('experimentalDeepDynamicChunkOptimization'),
 		experimentalMinChunkSize: getOption('experimentalMinChunkSize'),
 		exports: getOption('exports'),
 		extend: getOption('extend'),

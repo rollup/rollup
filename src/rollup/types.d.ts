@@ -696,8 +696,6 @@ export interface OutputOptions {
 	dynamicImportInCjs?: boolean;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule?: boolean | 'if-default-prop';
-	/** @deprecated This option is no longer needed and ignored. */
-	experimentalDeepDynamicChunkOptimization?: boolean;
 	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
@@ -751,8 +749,6 @@ export interface NormalizedOutputOptions {
 	dynamicImportInCjs: boolean;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule: boolean | 'if-default-prop';
-	/** @deprecated This option is no longer needed and ignored. */
-	experimentalDeepDynamicChunkOptimization: boolean;
 	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;

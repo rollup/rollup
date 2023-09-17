@@ -2576,18 +2576,6 @@ _Use the [`maxParallelFileOps`](#maxparallelfileops) option instead._
 
 Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the os allows.
 
-### output.experimentalDeepDynamicChunkOptimization
-
-_This option is no longer needed._
-
-|  |  |
-| --: | :-- |
-| Type: | `boolean` |
-| CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
-| Default: | `false` |
-
-This option was used to prevent performance issues with the full chunk optimization algorithm. As the algorithm is much faster now, this option is now ignored by Rollup and should no longer be used.
-
 ### output.externalImportAssertions
 
 _Use the [`output.externalImportAttributes`](#output-externalimportattributes) option instead._

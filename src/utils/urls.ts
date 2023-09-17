@@ -18,10 +18,6 @@ export const URL_OUTPUT_EXTERNALIMPORTATTRIBUTES =
 	'configuration-options/#output-externalimportattributes';
 export const URL_OUTPUT_FORMAT = 'configuration-options/#output-format';
 export const URL_OUTPUT_GENERATEDCODE = 'configuration-options/#output-generatedcode';
-export const URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION =
-	'configuration-options/#output-experimentaldeepdynamicchunkoptimization';
-export const URL_OUTPUT_GENERATEDCODE_CONSTBINDINGS =
-	'configuration-options/#output-generatedcode-constbindings';
 export const URL_OUTPUT_GENERATEDCODE_SYMBOLS =
 	'configuration-options/#output-generatedcode-symbols';
 export const URL_OUTPUT_GLOBALS = 'configuration-options/#output-globals';
