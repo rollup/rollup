@@ -836,7 +836,9 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
+		console.time('ast parse');
 		const moduleAst = ast ?? this.tryParse();
+		console.timeEnd('ast parse');
 
 		timeEnd('generate ast', 3);
 		timeStart('analyze ast', 3);
