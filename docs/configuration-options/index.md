@@ -2612,18 +2612,6 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 
 Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
 
-### output.preferConst
-
-_Use the [`output.generatedCode.constBindings`](#output-generatedcode-constbindings) option instead._
-
-|          |                                    |
-| -------: | :--------------------------------- |
-|    Type: | `boolean`                          |
-|     CLI: | `--preferConst`/`--no-preferConst` |
-| Default: | `false`                            |
-
-Generate `const` declarations for exports rather than `var` declarations.
-
 ### output.namespaceToStringTag
 
 _Use [`output.generatedCode.symbols`](#output-generatedcode-symbols) instead._

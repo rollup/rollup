@@ -728,8 +728,6 @@ export interface OutputOptions {
 	outro?: string | AddonFunction;
 	paths?: OptionsPaths;
 	plugins?: OutputPluginOption;
-	/** @deprecated Use "generatedCode.constBindings" instead. */
-	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
 	sanitizeFileName?: boolean | ((fileName: string) => string);
@@ -786,8 +784,6 @@ export interface NormalizedOutputOptions {
 	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
-	/** @deprecated Use "generatedCode.constBindings" instead. */
-	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
 	sanitizeFileName: (fileName: string) => string;

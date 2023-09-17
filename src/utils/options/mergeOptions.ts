@@ -270,7 +270,6 @@ async function mergeOutputOptions(
 		outro: getOption('outro'),
 		paths: getOption('paths'),
 		plugins: await normalizePluginOption(config.plugins),
-		preferConst: getOption('preferConst'),
 		preserveModules: getOption('preserveModules'),
 		preserveModulesRoot: getOption('preserveModulesRoot'),
 		sanitizeFileName: getOption('sanitizeFileName'),
