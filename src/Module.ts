@@ -1,5 +1,4 @@
 import { extractAssignedNames } from '@rollup/pluginutils';
-import type * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import ExternalModule from './ExternalModule';
@@ -29,6 +28,7 @@ import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
 import type {
+	AstNode,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -59,7 +59,7 @@ import {
 	error,
 	logAmbiguousExternalNamespaces,
 	logCircularReexport,
-	logInconsistentImportAssertions,
+	logInconsistentImportAttributes,
 	logInvalidFormatForTopLevelAwait,
 	logInvalidSourcemapForError,
 	logMissingExport,
@@ -70,9 +70,9 @@ import {
 	warnDeprecation
 } from './utils/logs';
 import {
-	doAssertionsDiffer,
-	getAssertionsFromImportExportDeclaration
-} from './utils/parseAssertions';
+	doAttributesDiffer,
+	getAttributesFromImportExportDeclaration
+} from './utils/parseImportAttributes';
 import { basename, extname } from './utils/path';
 import type { PureFunctions } from './utils/pureFunctions';
 import type { RenderOptions } from './utils/renderHelpers';
@@ -235,7 +235,7 @@ export default class Module {
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
-	readonly sourcesWithAssertions = new Map<string, Record<string, string>>();
+	readonly sourcesWithAttributes = new Map<string, Record<string, string>>();
 	declare transformFiles?: EmittedFile[];
 
 	private allExportNames: Set<string> | null = null;
@@ -267,7 +267,7 @@ export default class Module {
 		moduleSideEffects: boolean | 'no-treeshake',
 		syntheticNamedExports: boolean | string,
 		meta: CustomPluginOptions,
-		assertions: Record<string, string>
+		attributes: Record<string, string>
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
@@ -284,12 +284,12 @@ export default class Module {
 			implicitlyLoadedBefore,
 			importers,
 			reexportDescriptions,
-			sourcesWithAssertions
+			sourcesWithAttributes
 		} = this;
 
 		this.info = {
-			assertions,
 			ast: null,
+			attributes,
 			code: null,
 			get dynamicallyImportedIdResolutions() {
 				return dynamicImports
@@ -352,7 +352,7 @@ export default class Module {
 			get importedIdResolutions() {
 				// eslint-disable-next-line unicorn/prefer-spread
 				return Array.from(
-					sourcesWithAssertions.keys(),
+					sourcesWithAttributes.keys(),
 					source => module.resolvedIds[source]
 				).filter(Boolean);
 			},
@@ -361,7 +361,7 @@ export default class Module {
 				// dependencies are populated
 				// eslint-disable-next-line unicorn/prefer-spread
 				return Array.from(
-					sourcesWithAssertions.keys(),
+					sourcesWithAttributes.keys(),
 					source => module.resolvedIds[source]?.id
 				).filter(Boolean);
 			},
@@ -910,8 +910,8 @@ export default class Module {
 
 	toJSON(): ModuleJSON {
 		return {
-			assertions: this.info.assertions,
 			ast: this.info.ast!,
+			attributes: this.info.attributes,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
 			// eslint-disable-next-line unicorn/prefer-spread
@@ -1166,18 +1166,18 @@ export default class Module {
 		source: string,
 		declaration: ImportDeclaration | ExportNamedDeclaration | ExportAllDeclaration
 	) {
-		const parsedAssertions = getAssertionsFromImportExportDeclaration(declaration.assertions);
-		const existingAssertions = this.sourcesWithAssertions.get(source);
-		if (existingAssertions) {
-			if (doAssertionsDiffer(existingAssertions, parsedAssertions)) {
+		const parsedAttributes = getAttributesFromImportExportDeclaration(declaration.attributes);
+		const existingAttributes = this.sourcesWithAttributes.get(source);
+		if (existingAttributes) {
+			if (doAttributesDiffer(existingAttributes, parsedAttributes)) {
 				this.log(
 					LOGLEVEL_WARN,
-					logInconsistentImportAssertions(existingAssertions, parsedAssertions, source, this.id),
+					logInconsistentImportAttributes(existingAttributes, parsedAttributes, source, this.id),
 					declaration.start
 				);
 			}
 		} else {
-			this.sourcesWithAssertions.set(source, parsedAssertions);
+			this.sourcesWithAttributes.set(source, parsedAttributes);
 		}
 	}
 
@@ -1332,7 +1332,7 @@ export default class Module {
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
-	private tryParse(): acorn.Node {
+	private tryParse(): AstNode {
 		try {
 			return this.graph.contextParse(this.info.code!);
 		} catch (error_: any) {

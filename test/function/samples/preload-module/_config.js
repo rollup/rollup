@@ -32,7 +32,7 @@ module.exports = defineTest({
 						});
 						assert.deepStrictEqual(moduleInfo, {
 							id: ID_MAIN,
-							assertions: {},
+							attributes: {},
 							code: "import './dep';\nassert.ok(true);\n",
 							dynamicImporters: [],
 							exportedBindings: {
@@ -75,7 +75,7 @@ module.exports = defineTest({
 					});
 					assert.deepStrictEqual(moduleInfo, {
 						id: ID_DEP,
-						assertions: {},
+						attributes: {},
 						code: 'assert.ok(true);\n',
 						dynamicImporters: [],
 						exportedBindings: {

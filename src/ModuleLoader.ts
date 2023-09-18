@@ -1,8 +1,8 @@
-import type * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import Module, { type DynamicImport } from './Module';
 import type {
+	AstNode,
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
@@ -27,14 +27,17 @@ import {
 	logExternalModulesCannotBeTransformedToModules,
 	logExternalSyntheticExports,
 	logImplicitDependantCannotBeExternal,
-	logInconsistentImportAssertions,
+	logInconsistentImportAttributes,
 	logInternalIdCannotBeExternal,
 	logUnresolvedEntry,
 	logUnresolvedImplicitDependant,
 	logUnresolvedImport,
 	logUnresolvedImportTreatedAsExternal
 } from './utils/logs';
-import { doAssertionsDiffer, getAssertionsFromImportExpression } from './utils/parseAssertions';
+import {
+	doAttributesDiffer,
+	getAttributesFromImportExpression
+} from './utils/parseImportAttributes';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
@@ -52,7 +55,7 @@ export type ModuleLoaderResolveId = (
 	importer: string | undefined,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean | undefined,
-	assertions: Record<string, string>,
+	attributes: Record<string, string>,
 	skip?: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 ) => Promise<ResolvedId | null>;
 
@@ -208,7 +211,7 @@ export class ModuleLoader {
 		importer,
 		customOptions,
 		isEntry,
-		assertions,
+		attributes,
 		skip = null
 	) =>
 		this.getResolvedIdWithDefaults(
@@ -224,12 +227,12 @@ export class ModuleLoader {
 							skip,
 							customOptions,
 							typeof isEntry === 'boolean' ? isEntry : !importer,
-							assertions
+							attributes
 					  ),
 				importer,
 				source
 			),
-			assertions
+			attributes
 		);
 
 	private addEntryWithImplicitDependants(
@@ -368,17 +371,17 @@ export class ModuleLoader {
 	// its dependencies to be loaded.
 	// Otherwise, it returns immediately.
 	private async fetchModule(
-		{ assertions, id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
+		{ attributes, id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
 		importer: string | undefined,
 		isEntry: boolean,
 		isPreload: PreloadType
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
-			if (importer && doAssertionsDiffer(assertions, existingModule.info.assertions)) {
+			if (importer && doAttributesDiffer(attributes, existingModule.info.attributes)) {
 				this.options.onLog(
 					LOGLEVEL_WARN,
-					logInconsistentImportAssertions(existingModule.info.assertions, assertions, id, importer)
+					logInconsistentImportAttributes(existingModule.info.attributes, attributes, id, importer)
 				);
 			}
 			await this.handleExistingModule(existingModule, isEntry, isPreload);
@@ -397,7 +400,7 @@ export class ModuleLoader {
 			moduleSideEffects,
 			syntheticNamedExports,
 			meta,
-			assertions
+			attributes
 		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
@@ -447,7 +450,7 @@ export class ModuleLoader {
 		resolvedId: ResolvedId
 	): Promise<Module | ExternalModule> {
 		if (resolvedId.external) {
-			const { assertions, external, id, moduleSideEffects, meta } = resolvedId;
+			const { attributes, external, id, moduleSideEffects, meta } = resolvedId;
 			let externalModule = this.modulesById.get(id);
 			if (!externalModule) {
 				externalModule = new ExternalModule(
@@ -456,17 +459,17 @@ export class ModuleLoader {
 					moduleSideEffects,
 					meta,
 					external !== 'absolute' && isAbsolute(id),
-					assertions
+					attributes
 				);
 				this.modulesById.set(id, externalModule);
 			} else if (!(externalModule instanceof ExternalModule)) {
 				return error(logInternalIdCannotBeExternal(source, importer));
-			} else if (doAssertionsDiffer(externalModule.info.assertions, assertions)) {
+			} else if (doAttributesDiffer(externalModule.info.attributes, attributes)) {
 				this.options.onLog(
 					LOGLEVEL_WARN,
-					logInconsistentImportAssertions(
-						externalModule.info.assertions,
-						assertions,
+					logInconsistentImportAttributes(
+						externalModule.info.attributes,
+						attributes,
 						source,
 						importer
 					)
@@ -555,7 +558,7 @@ export class ModuleLoader {
 					? dynamicImport.argument
 					: dynamicImport.argument.esTreeNode!,
 				module.id,
-				getAssertionsFromImportExpression(dynamicImport.node)
+				getAttributesFromImportExpression(dynamicImport.node)
 			);
 			if (resolvedId && typeof resolvedId === 'object') {
 				dynamicImport.id = resolvedId.id;
@@ -567,17 +570,17 @@ export class ModuleLoader {
 	private getResolveStaticDependencyPromises(module: Module): ResolveStaticDependencyPromise[] {
 		// eslint-disable-next-line unicorn/prefer-spread
 		return Array.from(
-			module.sourcesWithAssertions,
-			async ([source, assertions]) =>
+			module.sourcesWithAttributes,
+			async ([source, attributes]) =>
 				[
 					source,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
 						this.handleInvalidResolvedId(
-							await this.resolveId(source, module.id, EMPTY_OBJECT, false, assertions),
+							await this.resolveId(source, module.id, EMPTY_OBJECT, false, attributes),
 							source,
 							module.id,
-							assertions
+							attributes
 						))
 				] as const
 		);
@@ -585,14 +588,14 @@ export class ModuleLoader {
 
 	private getResolvedIdWithDefaults(
 		resolvedId: NormalizedResolveIdWithoutDefaults | null,
-		assertions: Record<string, string>
+		attributes: Record<string, string>
 	): ResolvedId | null {
 		if (!resolvedId) {
 			return null;
 		}
 		const external = resolvedId.external || false;
 		return {
-			assertions: resolvedId.assertions || assertions,
+			attributes: resolvedId.attributes || attributes,
 			external,
 			id: resolvedId.id,
 			meta: resolvedId.meta || {},
@@ -625,7 +628,7 @@ export class ModuleLoader {
 		resolvedId: ResolvedId | null,
 		source: string,
 		importer: string,
-		assertions: Record<string, string>
+		attributes: Record<string, string>
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
@@ -633,7 +636,7 @@ export class ModuleLoader {
 			}
 			this.options.onLog(LOGLEVEL_WARN, logUnresolvedImportTreatedAsExternal(source, importer));
 			return {
-				assertions,
+				attributes,
 				external: true,
 				id: source,
 				meta: {},
@@ -697,14 +700,14 @@ export class ModuleLoader {
 
 	private async resolveDynamicImport(
 		module: Module,
-		specifier: string | acorn.Node,
+		specifier: string | AstNode,
 		importer: string,
-		assertions: Record<string, string>
+		attributes: Record<string, string>
 	): Promise<ResolvedId | string | null> {
 		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
 			specifier,
 			importer,
-			{ assertions }
+			{ attributes }
 		]);
 		if (typeof specifier !== 'string') {
 			if (typeof resolution === 'string') {
@@ -715,18 +718,18 @@ export class ModuleLoader {
 			}
 			return this.getResolvedIdWithDefaults(
 				resolution as NormalizedResolveIdWithoutDefaults,
-				assertions
+				attributes
 			);
 		}
 		if (resolution == null) {
 			const existingResolution = module.resolvedIds[specifier];
 			if (existingResolution) {
-				if (doAssertionsDiffer(existingResolution.assertions, assertions)) {
+				if (doAttributesDiffer(existingResolution.attributes, attributes)) {
 					this.options.onLog(
 						LOGLEVEL_WARN,
-						logInconsistentImportAssertions(
-							existingResolution.assertions,
-							assertions,
+						logInconsistentImportAttributes(
+							existingResolution.attributes,
+							attributes,
 							specifier,
 							importer
 						)
@@ -735,20 +738,20 @@ export class ModuleLoader {
 				return existingResolution;
 			}
 			return (module.resolvedIds[specifier] = this.handleInvalidResolvedId(
-				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false, assertions),
+				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false, attributes),
 				specifier,
 				module.id,
-				assertions
+				attributes
 			));
 		}
 		return this.handleInvalidResolvedId(
 			this.getResolvedIdWithDefaults(
 				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier),
-				assertions
+				attributes
 			),
 			specifier,
 			importer,
-			assertions
+			attributes
 		);
 	}
 }

@@ -8,7 +8,7 @@ module.exports = defineTest({
 	stderr: stderr =>
 		assertIncludes(
 			stderr,
-			`(!) Chunk "out.js" is not valid JavaScript: Unterminated comment (3:20).
+			`(!) Chunk "out.js" is not valid JavaScript: Unterminated block comment.
 out.js (3:20)
 1: console.log(2 );
 2: 

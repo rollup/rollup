@@ -1,12 +1,14 @@
 module.exports = defineTest({
 	description: 'throws for invalid file types',
 	options: {
-		plugins: {
-			name: 'test-plugin',
-			buildStart() {
-				this.emitFile({ type: 'unknown' });
+		plugins: [
+			{
+				name: 'test-plugin',
+				buildStart() {
+					this.emitFile({ type: 'unknown' });
+				}
 			}
-		}
+		]
 	},
 	error: {
 		code: 'PLUGIN_ERROR',

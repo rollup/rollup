@@ -2,14 +2,16 @@ module.exports = defineTest({
 	description: 'throws when trying to emit files from the outputOptions hook',
 	options: {
 		input: 'main',
-		plugins: {
-			outputOptions() {
-				this.emitFile({
-					type: 'asset',
-					source: 'asset'
-				});
+		plugins: [
+			{
+				outputOptions() {
+					this.emitFile({
+						type: 'asset',
+						source: 'asset'
+					});
+				}
 			}
-		}
+		]
 	},
 	generateError: {
 		code: 'PLUGIN_ERROR',

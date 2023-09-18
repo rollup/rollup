@@ -57,7 +57,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts
-      #TODO: remove after or before merging rollup-swc
+        #TODO: remove after or before merging rollup-swc
         if: ${{ github.head_ref == 'rollup-swc' }}
         run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
       #TODO: remove after or before merging rollup-swc
@@ -122,6 +122,8 @@ jobs:
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
+            Notice: Ensure you have installed Rust nightly. If you haven't installed it yet, please first see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust, then see https://rust-lang.github.io/rustup/concepts/channels.html to learn how to install Rust nightly.
+
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.number }}
       - name: Find Vercel preview URL
@@ -144,6 +146,8 @@ jobs:
             ```bash
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
+
+            Notice: Ensure you have installed Rust nightly. If you haven't installed it yet, please first see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust, then see https://rust-lang.github.io/rustup/concepts/channels.html to learn how to install Rust nightly.
 
             or load it into the REPL:
             ${{ steps.waitForVercel.outputs.url }}/repl/?pr=${{ github.event.number }}

@@ -99,14 +99,14 @@ export function getPluginContext(
 			return wrappedModuleIds();
 		},
 		parse: graph.contextParse.bind(graph),
-		resolve(source, importer, { assertions, custom, isEntry, skipSelf } = BLANK) {
+		resolve(source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) {
 			skipSelf ??= true;
 			return graph.moduleLoader.resolveId(
 				source,
 				importer,
 				custom,
 				isEntry,
-				assertions || EMPTY_OBJECT,
+				attributes || EMPTY_OBJECT,
 				skipSelf ? [{ importer, plugin, source }] : null
 			);
 		},
