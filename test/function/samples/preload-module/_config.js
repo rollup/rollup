@@ -25,7 +25,7 @@ module.exports = defineTest({
 				},
 				async resolveId(source, importer, options) {
 					if (source.endsWith('main.js')) {
-						const resolvedId = await this.resolve(source, importer, { skipSelf: true, ...options });
+						const resolvedId = await this.resolve(source, importer, options);
 						const { ast, ...moduleInfo } = await this.load({
 							...resolvedId,
 							meta: { testPlugin: 'first' }

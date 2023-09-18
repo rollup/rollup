@@ -11,7 +11,7 @@ module.exports = defineTest({
 				name: 'convert-slashes',
 				// This simulates converted slashes as used by e.g. Vite
 				async resolveId(source, importer, options) {
-					const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+					const resolved = await this.resolve(source, importer, options);
 					return { ...resolved, id: resolved.id.replace(/\\/g, '/') };
 				}
 			},
