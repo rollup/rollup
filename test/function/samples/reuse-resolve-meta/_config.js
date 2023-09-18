@@ -10,7 +10,7 @@ module.exports = defineTest({
 		plugins: [
 			{
 				async resolveId(source, importer) {
-					const { id } = await this.resolve(source, importer, { skipSelf: true });
+					const { id } = await this.resolve(source, importer);
 					return { id, meta };
 				},
 				transform(code) {

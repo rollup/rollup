@@ -18,9 +18,8 @@ module.exports = defineTest({
 						return { id: POLYFILL_ID, moduleSideEffects: true };
 					}
 					if (options.isEntry) {
-						// Determine what the actual entry would have been. We need
-						// "skipSelf" to avoid an infinite loop.
-						const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
+						// Determine what the actual entry would have been.
+						const resolution = await this.resolve(source, importer, options);
 						// If it cannot be resolved or is external, just return it so that
 						// Rollup can display an error
 						if (!resolution || resolution.external) return resolution;
