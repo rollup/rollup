@@ -18,7 +18,7 @@ module.exports = defineTest({
 					if (!importer || importer.endsWith('?proxy')) {
 						return null;
 					}
-					const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
+					const resolution = await this.resolve(source, importer, options);
 					if (resolution && !resolution.external) {
 						const moduleInfo = await this.load(resolution);
 						if (moduleInfo.code.includes('/* use proxy */')) {
