@@ -10,7 +10,8 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ES2022"
+		"target": "ES2022",
+		"useDefineForClassFields": false
 	},
 	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts", "native", "wasm.d.ts"],
 	"exclude": ["dist", "node_modules", "test/typescript", "browser/dist"]
