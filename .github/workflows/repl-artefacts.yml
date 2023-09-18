@@ -60,7 +60,7 @@ jobs:
         #TODO: remove after or before merging release-4.0
         if: ${{ github.head_ref == 'release-4.0' || github.base_ref == 'release-4.0' }}
         run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
-      #TODO: remove after or before merging release-4.0
+        #TODO: remove after or before merging release-4.0
       - name: Build artefacts
         if: ${{ github.head_ref != 'release-4.0' && github.base_ref != 'release-4.0' }}
         run: npm run build:cjs && npm run build:bootstrap
