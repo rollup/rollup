@@ -9,7 +9,7 @@ module.exports = defineTest({
 				async resolveId() {
 					assert.deepStrictEqual(
 						await this.resolve('external', undefined, {
-							assertions: { a: 'c', b: 'd' }
+							attributes: { a: 'c', b: 'd' }
 						}),
 						{
 							attributes: { a: 'changed', b: 'changed' },
