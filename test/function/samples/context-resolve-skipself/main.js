@@ -2,8 +2,12 @@ import resolutions from 'resolutions';
 
 assert.deepStrictEqual(resolutions, [
 	{
-		id: 'own-resolution',
-		text: 'all'
+		id: 'bar-resolution',
+		text: 'bar'
+	},
+	{
+		id: 'foo-resolution',
+		text: 'foo'
 	},
 	{
 		id: 'own-resolution',

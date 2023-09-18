@@ -15,7 +15,7 @@ module.exports = defineTest({
 			{
 				name: 'first',
 				async resolveId(source, importer) {
-					const { id } = await this.resolve(source, importer, { skipSelf: true });
+					const { id } = await this.resolve(source, importer);
 					if (id === ID_OTHER_1) {
 						return ID_OTHER_4;
 					}
@@ -24,19 +24,13 @@ module.exports = defineTest({
 			{
 				name: 'second',
 				async resolveId(source, importer) {
-					const { id } = await this.resolve(source, importer, { skipSelf: true });
+					const { id } = await this.resolve(source, importer);
 					if (id === ID_OTHER_2) {
 						// To make this more interesting
 						// The first plugin should resolve everything to 4
-						assert.strictEqual(
-							(await this.resolve('./other1', importer, { skipSelf: true })).id,
-							ID_OTHER_4
-						);
+						assert.strictEqual((await this.resolve('./other1', importer)).id, ID_OTHER_4);
 						// The second file should however be resolved by core as this plugin is out of the loop
-						assert.strictEqual(
-							(await this.resolve(source, ID_OTHER_1, { skipSelf: true })).id,
-							ID_OTHER_2
-						);
+						assert.strictEqual((await this.resolve(source, ID_OTHER_1)).id, ID_OTHER_2);
 						return ID_OTHER_4;
 					}
 				}

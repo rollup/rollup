@@ -9,7 +9,6 @@ module.exports = defineTest({
 				async resolveId() {
 					assert.deepStrictEqual(
 						await this.resolve('external', undefined, {
-							skipSelf: true,
 							attributes: { a: 'c', b: 'd' }
 						}),
 						{
@@ -28,7 +27,7 @@ module.exports = defineTest({
 				name: 'second',
 				async resolveId(source, importer, { attributes }) {
 					if (source === 'external') {
-						return this.resolve(source, importer, { attributes, skipSelf: true });
+						return this.resolve(source, importer, { attributes });
 					}
 				}
 			},

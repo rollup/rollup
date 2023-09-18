@@ -508,12 +508,8 @@ function injectPolyfillPlugin() {
 				return { id: POLYFILL_ID, moduleSideEffects: true };
 			}
 			if (options.isEntry) {
-				// Determine what the actual entry would have been. We need
-				// "skipSelf" to avoid an infinite loop.
-				const resolution = await this.resolve(source, importer, {
-					skipSelf: true,
-					...options
-				});
+				// Determine what the actual entry would have been.
+				const resolution = await this.resolve(source, importer, options);
 				// If it cannot be resolved or is external, just return it
 				// so that Rollup can display an error
 				if (!resolution || resolution.external) return resolution;
@@ -1536,10 +1532,7 @@ export default function addProxyPlugin() {
 			}
 			// We make sure to pass on any resolveId options to
 			// this.resolve to get the module id
-			const resolution = await this.resolve(source, importer, {
-				skipSelf: true,
-				...options
-			});
+			const resolution = await this.resolve(source, importer, options);
 			// We can only pre-load existing and non-external ids
 			if (resolution && !resolution.external) {
 				// we pass on the entire resolution information
@@ -1699,7 +1692,7 @@ The return type **ResolvedId** of this hook is defined in [`this.getModuleInfo`]
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](../configuration-options/index.md#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
-If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the _exact same `source` and `importer`_ while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, do not use `skipSelf` but implement your own infinite loop prevention mechanism if necessary.
+The default of `skipSelf` is `true`, So the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the _exact same `source` and `importer`_ while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, set `skipSelf` to `false` and implement your own infinite loop prevention mechanism if necessary.
 
 You can also pass an object of plugin-specific options via the `custom` option, see [custom resolver options](#custom-resolver-options) for details.
 

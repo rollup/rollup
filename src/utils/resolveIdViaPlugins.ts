@@ -24,15 +24,17 @@ export function resolveIdViaPlugins(
 		}
 		replaceContext = (pluginContext, plugin): PluginContext => ({
 			...pluginContext,
-			resolve: (source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) =>
-				moduleLoaderResolveId(
+			resolve: (source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) => {
+				skipSelf ??= true;
+				return moduleLoaderResolveId(
 					source,
 					importer,
 					custom,
 					isEntry,
 					attributes || EMPTY_OBJECT,
 					skipSelf ? [...skip, { importer, plugin, source }] : skip
-				)
+				);
+			}
 		});
 	}
 	return pluginDriver.hookFirstAndGetPlugin(
