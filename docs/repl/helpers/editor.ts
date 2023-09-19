@@ -54,7 +54,7 @@ const theme = EditorView.baseTheme({
 		outline: 'none'
 	},
 	'.cm-content': {
-		caretColor: '#fff',
+		caretColor: 'var(--vp-c-neutral)',
 		color: '#A6ACCD',
 		fontFamily: 'var(--vp-font-family-mono)',
 		fontSize: '14px',
