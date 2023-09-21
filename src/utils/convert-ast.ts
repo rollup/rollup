@@ -55,18 +55,21 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const body = convertNode(buffer[position++], buffer, readString);
 		const annotations = convertAnnotationList(position, buffer);
-		return {
-			type: 'ArrowFunctionExpression',
-			start,
-			end,
-			async,
-			body,
-			expression,
-			generator,
-			id: null,
-			params: parameters,
-			_rollupAnnotations: annotations
-		};
+		return addAnnotationProperty(
+			{
+				type: 'ArrowFunctionExpression',
+				start,
+				end,
+				async,
+				body,
+				expression,
+				generator,
+				id: null,
+				params: parameters
+			},
+			annotations,
+			ANNOTATION_KEY
+		);
 	},
 	// index:3; AssignmentExpression
 	(position, buffer, readString): estree.AssignmentExpression & AstNode => {
@@ -158,15 +161,18 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const callee = convertNode(buffer[position++], buffer, readString);
 		const argumentsList = convertNodeList(buffer[position++], buffer, readString);
 		const annotations = convertAnnotationList(position, buffer);
-		return {
-			type: 'CallExpression',
-			start,
-			end,
-			arguments: argumentsList,
-			callee,
-			optional,
-			...(annotations.length > 0 ? { _rollupAnnotations: annotations } : {})
-		};
+		return addAnnotationProperty(
+			{
+				type: 'CallExpression',
+				start,
+				end,
+				arguments: argumentsList,
+				callee,
+				optional
+			},
+			annotations,
+			ANNOTATION_KEY
+		);
 	},
 	// index:10; CatchClause
 	(position, buffer, readString): estree.CatchClause & AstNode => {
@@ -441,18 +447,21 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const body = convertNode(buffer[position++], buffer, readString);
 		const annotations = convertAnnotationList(position, buffer);
-		return {
-			type: 'FunctionDeclaration',
-			start,
-			end,
-			async,
-			body,
-			expression: false,
-			generator,
-			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
-			params: parameters,
-			_rollupAnnotations: annotations
-		};
+		return addAnnotationProperty(
+			{
+				type: 'FunctionDeclaration',
+				start,
+				end,
+				async,
+				body,
+				expression: false,
+				generator,
+				id: idPosition ? convertNode(idPosition, buffer, readString) : null,
+				params: parameters
+			},
+			annotations,
+			ANNOTATION_KEY
+		);
 	},
 	// index:29; FunctionExpression
 	(position, buffer, readString): FunctionExpression & AstNode & { expression: false } => {
@@ -464,18 +473,21 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const body = convertNode(buffer[position++], buffer, readString);
 		const annotations = convertAnnotationList(position, buffer);
-		return {
-			type: 'FunctionExpression',
-			start,
-			end,
-			async,
-			body,
-			expression: false,
-			generator,
-			id: idPosition ? convertNode(idPosition, buffer, readString) : null,
-			params: parameters,
-			_rollupAnnotations: annotations
-		};
+		return addAnnotationProperty(
+			{
+				type: 'FunctionExpression',
+				start,
+				end,
+				async,
+				body,
+				expression: false,
+				generator,
+				id: idPosition ? convertNode(idPosition, buffer, readString) : null,
+				params: parameters
+			},
+			annotations,
+			ANNOTATION_KEY
+		);
 	},
 	// index:30; Identifier
 	(position, buffer, readString): estree.Identifier & AstNode => {
@@ -765,14 +777,17 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const callee = convertNode(buffer[position++], buffer, readString);
 		const argumentsPosition = buffer[position++];
 		const annotations = convertAnnotationList(position, buffer);
-		return {
-			type: 'NewExpression',
-			start,
-			end,
-			arguments: argumentsPosition ? convertNodeList(argumentsPosition, buffer, readString) : [],
-			callee,
-			...(annotations.length > 0 ? { _rollupAnnotations: annotations } : {})
-		};
+		return addAnnotationProperty(
+			{
+				type: 'NewExpression',
+				start,
+				end,
+				arguments: argumentsPosition ? convertNodeList(argumentsPosition, buffer, readString) : [],
+				callee
+			},
+			annotations,
+			ANNOTATION_KEY
+		);
 	},
 	// index:50; ObjectExpression
 	(position, buffer, readString): estree.ObjectExpression & AstNode => {
@@ -816,14 +831,17 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const annotations = convertAnnotationList(buffer[position++], buffer);
 		const body = convertNodeList(position, buffer, readString);
-		return {
-			type: 'Program',
-			start,
-			end,
-			body,
-			sourceType: 'module',
-			...(annotations.length > 0 ? { _rollupRemoved: annotations } : {})
-		};
+		return addAnnotationProperty(
+			{
+				type: 'Program',
+				start,
+				end,
+				body,
+				sourceType: 'module'
+			},
+			annotations,
+			INVALID_ANNOTATION_KEY
+		);
 	},
 	// index:54; Property
 	(position, buffer, readString): estree.Property & AstNode => {
@@ -1169,6 +1187,20 @@ const convertAnnotation = (position: number, buffer: Uint32Array): RollupAnnotat
 	const end = buffer[position++];
 	const type = FIXED_STRINGS[buffer[position]] as AnnotationType;
 	return { end, start, type };
+};
+
+const addAnnotationProperty = <T extends AstNode>(
+	node: T,
+	annotations: RollupAnnotation[],
+	key: typeof ANNOTATION_KEY | typeof INVALID_ANNOTATION_KEY
+): T => {
+	if (annotations.length > 0) {
+		return {
+			...node,
+			[key]: annotations
+		};
+	}
+	return node;
 };
 
 const convertString = (position: number, buffer: Uint32Array, readString: ReadString): string => {
