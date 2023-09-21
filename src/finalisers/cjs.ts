@@ -28,7 +28,7 @@ export default function cjs(
 		externalLiveBindings,
 		freeze,
 		interop,
-		namespaceToStringTag,
+		generatedCode: { symbols },
 		strict
 	}: NormalizedOutputOptions
 ): void {
@@ -38,7 +38,7 @@ export default function cjs(
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
 		isEntryFacade && (esModule === true || (esModule === 'if-default-prop' && hasDefaultExport)),
-		isModuleFacade && namespaceToStringTag,
+		isModuleFacade && symbols,
 		snippets
 	);
 	if (namespaceMarkers) {
@@ -50,7 +50,7 @@ export default function cjs(
 		interop,
 		externalLiveBindings,
 		freeze,
-		namespaceToStringTag,
+		symbols,
 		accessedGlobals,
 		t,
 		snippets

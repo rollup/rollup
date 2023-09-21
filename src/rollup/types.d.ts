@@ -181,8 +181,6 @@ interface ModuleInfo extends ModuleOptions {
 	exportedBindings: Record<string, string[]> | null;
 	exports: string[] | null;
 	hasDefaultExport: boolean | null;
-	/** @deprecated Use `moduleSideEffects` instead */
-	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
 	implicitlyLoadedBefore: readonly string[];
@@ -219,8 +217,6 @@ export interface PluginContext extends MinimalPluginContext {
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
-	/** @deprecated Use `this.getModuleIds` instead */
-	moduleIds: IterableIterator<string>;
 	parse: (input: string) => AstNode;
 	resolve: (
 		source: string,
@@ -286,8 +282,6 @@ export type IsExternal = (
 	importer: string | undefined,
 	isResolved: boolean
 ) => boolean;
-
-export type IsPureModule = (id: string) => boolean | NullValue;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
@@ -571,24 +565,16 @@ export interface InputOptions {
 	experimentalCacheExpiry?: number;
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
-	/** @deprecated Use the "inlineDynamicImports" output option instead. */
-	inlineDynamicImports?: boolean;
 	input?: InputOption;
 	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
-	/** @deprecated Use the "manualChunks" output option instead. */
-	manualChunks?: ManualChunksOption;
 	maxParallelFileOps?: number;
-	/** @deprecated Use the "maxParallelFileOps" option instead. */
-	maxParallelFileReads?: number;
 	moduleContext?: ((id: string) => string | NullValue) | { [id: string]: string };
 	onLog?: LogHandlerWithDefault;
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: InputPluginOption;
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
-	/** @deprecated Use the "preserveModules" output option instead. */
-	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
@@ -606,24 +592,16 @@ export interface NormalizedInputOptions {
 	experimentalCacheExpiry: number;
 	experimentalLogSideEffects: boolean;
 	external: IsExternal;
-	/** @deprecated Use the "inlineDynamicImports" output option instead. */
-	inlineDynamicImports: boolean | undefined;
 	input: string[] | { [entryAlias: string]: string };
 	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
-	/** @deprecated Use the "manualChunks" output option instead. */
-	manualChunks: ManualChunksOption | undefined;
 	maxParallelFileOps: number;
-	/** @deprecated Use the "maxParallelFileOps" option instead. */
-	maxParallelFileReads: number;
 	moduleContext: (id: string) => string;
 	onLog: LogHandler;
 	onwarn: (warning: RollupLog) => void;
 	perf: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures: PreserveEntrySignaturesOption;
-	/** @deprecated Use the "preserveModules" output option instead. */
-	preserveModules: boolean | undefined;
 	preserveSymlinks: boolean;
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;
@@ -699,13 +677,9 @@ export interface OutputOptions {
 	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
-	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
-	dynamicImportFunction?: string;
 	dynamicImportInCjs?: boolean;
 	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule?: boolean | 'if-default-prop';
-	/** @deprecated This option is no longer needed and ignored. */
-	experimentalDeepDynamicChunkOptimization?: boolean;
 	experimentalMinChunkSize?: number;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
@@ -728,14 +702,10 @@ export interface OutputOptions {
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
 	name?: string;
-	/** @deprecated Use "generatedCode.symbols" instead. */
-	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
 	outro?: string | AddonFunction;
 	paths?: OptionsPaths;
 	plugins?: OutputPluginOption;
-	/** @deprecated Use "generatedCode.constBindings" instead. */
-	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
 	sanitizeFileName?: boolean | ((fileName: string) => string);
@@ -758,13 +728,9 @@ export interface NormalizedOutputOptions {
 	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact: boolean;
 	dir: string | undefined;
-	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
-	dynamicImportFunction: string | undefined;
 	dynamicImportInCjs: boolean;
 	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule: boolean | 'if-default-prop';
-	/** @deprecated This option is no longer needed and ignored. */
-	experimentalDeepDynamicChunkOptimization: boolean;
 	experimentalMinChunkSize: number;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
@@ -786,14 +752,10 @@ export interface NormalizedOutputOptions {
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
-	/** @deprecated Use "generatedCode.symbols" instead. */
-	namespaceToStringTag: boolean;
 	noConflict: boolean;
 	outro: AddonFunction;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
-	/** @deprecated Use "generatedCode.constBindings" instead. */
-	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
 	sanitizeFileName: (fileName: string) => string;

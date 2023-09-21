@@ -13,7 +13,7 @@ export default function getInteropBlock(
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	freeze: boolean,
-	namespaceToStringTag: boolean,
+	symbols: boolean,
 	accessedGlobals: Set<string>,
 	indent: string,
 	snippets: GenerateCodeSnippets
@@ -93,6 +93,6 @@ export default function getInteropBlock(
 		snippets,
 		externalLiveBindings,
 		freeze,
-		namespaceToStringTag
+		symbols
 	)}${interopStatements.length > 0 ? `${interopStatements.join(n)}${n}${n}` : ''}`;
 }

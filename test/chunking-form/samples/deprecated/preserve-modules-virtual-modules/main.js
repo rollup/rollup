@@ -1,1 +1,0 @@
-assert.equal(virtual, 'Virtual!');

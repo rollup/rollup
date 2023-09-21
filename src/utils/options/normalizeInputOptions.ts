@@ -1,7 +1,6 @@
 import type {
 	HasModuleSideEffects,
 	InputOptions,
-	LogHandler,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
 	RollupBuild
@@ -10,16 +9,9 @@ import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { getLogger } from '../logger';
 import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../logging';
-import { error, logInvalidOption, warnDeprecationWithOptions } from '../logs';
+import { error, logInvalidOption } from '../logs';
 import { resolve } from '../path';
-import {
-	URL_MAXPARALLELFILEOPS,
-	URL_OUTPUT_INLINEDYNAMICIMPORTS,
-	URL_OUTPUT_MANUALCHUNKS,
-	URL_OUTPUT_PRESERVEMODULES,
-	URL_TREESHAKE,
-	URL_TREESHAKE_MODULESIDEEFFECTS
-} from '../urls';
+import { URL_TREESHAKE, URL_TREESHAKE_MODULESIDEEFFECTS } from '../urls';
 import {
 	getOnLog,
 	getOptionWithPreset,
@@ -50,27 +42,23 @@ export async function normalizeInputOptions(
 	const logLevel = config.logLevel || LOGLEVEL_INFO;
 	const onLog = getLogger(plugins, getOnLog(config, logLevel), watchMode, logLevel);
 	const strictDeprecations = config.strictDeprecations || false;
-	const maxParallelFileOps = getMaxParallelFileOps(config, onLog, strictDeprecations);
+	const maxParallelFileOps = getMaxParallelFileOps(config);
 	const options: NormalizedInputOptions & InputOptions = {
 		cache: getCache(config),
 		context,
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
-		inlineDynamicImports: getInlineDynamicImports(config, onLog, strictDeprecations),
 		input: getInput(config),
 		logLevel,
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
-		manualChunks: getManualChunks(config, onLog, strictDeprecations),
 		maxParallelFileOps,
-		maxParallelFileReads: maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),
 		onLog,
 		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
 		perf: config.perf || false,
 		plugins,
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
-		preserveModules: getPreserveModules(config, onLog, strictDeprecations),
 		preserveSymlinks: config.preserveSymlinks || false,
 		shimMissingExports: config.shimMissingExports || false,
 		strictDeprecations,
@@ -122,63 +110,15 @@ const getIdMatcher = <T extends Array<any>>(
 	return () => false;
 };
 
-const getInlineDynamicImports = (
-	config: InputOptions,
-	log: LogHandler,
-	strictDeprecations: boolean
-): NormalizedInputOptions['inlineDynamicImports'] => {
-	const configInlineDynamicImports = config.inlineDynamicImports;
-	if (configInlineDynamicImports) {
-		warnDeprecationWithOptions(
-			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
-			URL_OUTPUT_INLINEDYNAMICIMPORTS,
-			true,
-			log,
-			strictDeprecations
-		);
-	}
-	return configInlineDynamicImports;
-};
-
 const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {
 	const configInput = config.input;
 	return configInput == null ? [] : typeof configInput === 'string' ? [configInput] : configInput;
 };
 
-const getManualChunks = (
-	config: InputOptions,
-	log: LogHandler,
-	strictDeprecations: boolean
-): NormalizedInputOptions['manualChunks'] => {
-	const configManualChunks = config.manualChunks;
-	if (configManualChunks) {
-		warnDeprecationWithOptions(
-			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
-			URL_OUTPUT_MANUALCHUNKS,
-			true,
-			log,
-			strictDeprecations
-		);
-	}
-	return configManualChunks;
-};
-
 const getMaxParallelFileOps = (
-	config: InputOptions,
-	log: LogHandler,
-	strictDeprecations: boolean
+	config: InputOptions
 ): NormalizedInputOptions['maxParallelFileOps'] => {
-	const maxParallelFileReads = config.maxParallelFileReads;
-	if (typeof maxParallelFileReads === 'number') {
-		warnDeprecationWithOptions(
-			'The "maxParallelFileReads" option is deprecated. Use the "maxParallelFileOps" option instead.',
-			URL_MAXPARALLELFILEOPS,
-			true,
-			log,
-			strictDeprecations
-		);
-	}
-	const maxParallelFileOps = config.maxParallelFileOps ?? maxParallelFileReads;
+	const maxParallelFileOps = config.maxParallelFileOps;
 	if (typeof maxParallelFileOps === 'number') {
 		if (maxParallelFileOps <= 0) return Infinity;
 		return maxParallelFileOps;
@@ -204,24 +144,6 @@ const getModuleContext = (
 		return id => contextByModuleId[id] ?? context;
 	}
 	return () => context;
-};
-
-const getPreserveModules = (
-	config: InputOptions,
-	log: LogHandler,
-	strictDeprecations: boolean
-): NormalizedInputOptions['preserveModules'] => {
-	const configPreserveModules = config.preserveModules;
-	if (configPreserveModules) {
-		warnDeprecationWithOptions(
-			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
-			URL_OUTPUT_PRESERVEMODULES,
-			true,
-			log,
-			strictDeprecations
-		);
-	}
-	return configPreserveModules;
 };
 
 const getTreeshake = (config: InputOptions): NormalizedInputOptions['treeshake'] => {

@@ -39,7 +39,7 @@ export default function iife(
 		globals,
 		interop,
 		name,
-		namespaceToStringTag,
+		generatedCode: { symbols },
 		strict
 	}: NormalizedOutputOptions
 ): void {
@@ -82,7 +82,7 @@ export default function iife(
 		interop,
 		externalLiveBindings,
 		freeze,
-		namespaceToStringTag,
+		symbols,
 		accessedGlobals,
 		t,
 		snippets
@@ -121,7 +121,7 @@ export default function iife(
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
 		esModule === true || (esModule === 'if-default-prop' && hasDefaultExport),
-		namespaceToStringTag,
+		symbols,
 		snippets
 	);
 	if (namespaceMarkers) {

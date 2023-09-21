@@ -18,7 +18,6 @@ module.exports = defineTest({
 						logLevel: 'info',
 						makeAbsoluteExternalsRelative: 'ifRelativeSource',
 						maxParallelFileOps: 20,
-						maxParallelFileReads: 20,
 						perf: false,
 						plugins: [
 							{

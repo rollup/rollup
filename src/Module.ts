@@ -66,8 +66,7 @@ import {
 	logNamespaceConflict,
 	logParseError,
 	logShimmedExport,
-	logSyntheticNamedExportsNeedNamespaceExport,
-	warnDeprecation
+	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
 import {
 	doAttributesDiffer,
@@ -78,7 +77,6 @@ import type { PureFunctions } from './utils/pureFunctions';
 import type { RenderOptions } from './utils/renderHelpers';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
-import { URL_THIS_GETMODULEINFO } from './utils/urls';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 interface ImportDescription {
@@ -331,15 +329,6 @@ export default class Module {
 				}
 				return module.exports.has('default') || reexportDescriptions.has('default');
 			},
-			get hasModuleSideEffects() {
-				warnDeprecation(
-					'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
-					URL_THIS_GETMODULEINFO,
-					true,
-					options
-				);
-				return this.moduleSideEffects;
-			},
 			id,
 			get implicitlyLoadedAfterOneOf() {
 				// eslint-disable-next-line unicorn/prefer-spread
@@ -380,11 +369,6 @@ export default class Module {
 			moduleSideEffects,
 			syntheticNamedExports
 		};
-		// Hide the deprecated key so that it only warns when accessed explicitly
-		// eslint-disable-next-line unicorn/consistent-destructuring
-		Object.defineProperty(this.info, 'hasModuleSideEffects', {
-			enumerable: false
-		});
 	}
 
 	basename(): string {
