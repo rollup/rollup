@@ -60,7 +60,7 @@ const selectName = (event: FocusEvent) => {
 
 header {
 	width: 100%;
-	color: var(--vp-c-text-dark-1);
+	color: var(--vp-c-text-1);
 	position: relative;
 	font-weight: 600;
 }
@@ -96,13 +96,13 @@ input {
 }
 
 input:hover {
-	border-color: var(--vp-c-gray-dark-2);
-	background-color: var(--vp-c-gray-dark-3);
+	border-color: var(--vp-c-gray-2);
+	background-color: var(--vp-c-gray-3);
 }
 
 input:focus {
-	border-color: var(--vp-c-gray-dark-2);
-	background-color: var(--vp-c-gray-dark-2);
+	border-color: var(--vp-c-gray-2);
+	background-color: var(--vp-c-gray-2);
 }
 
 .entry-module input {
