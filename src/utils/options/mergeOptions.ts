@@ -53,7 +53,7 @@ export async function mergeOptions(
 	const logLevel = config.logLevel || LOGLEVEL_INFO;
 	const onLog = getOnLog(config, logLevel, printLog);
 	const log = getLogger(plugins, onLog, watchMode, logLevel);
-	const inputOptions = await mergeInputOptions(config, command, plugins, log, onLog);
+	const inputOptions = mergeInputOptions(config, command, plugins, log, onLog);
 	if (command.output) {
 		Object.assign(command, command.output);
 	}
@@ -75,14 +75,14 @@ export async function mergeOptions(
 			...Object.keys(commandAliases),
 			'bundleConfigAsCjs',
 			'config',
+			'configPlugin',
 			'environment',
+			'failAfterWarnings',
 			'filterLogs',
 			'plugin',
 			'silent',
-			'failAfterWarnings',
 			'stdin',
-			'waitForBundleInput',
-			'configPlugin'
+			'waitForBundleInput'
 		],
 		'CLI flags',
 		log,
