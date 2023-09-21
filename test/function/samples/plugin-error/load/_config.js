@@ -16,7 +16,6 @@ module.exports = defineTest({
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
 		message: `Could not load ${path.join(__dirname, 'main.js')}: nope`,
-		hook: 'load',
-		watchFiles: [path.join(__dirname, 'main.js')]
+		hook: 'load'
 	}
 });

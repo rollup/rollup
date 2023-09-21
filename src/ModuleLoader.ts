@@ -271,10 +271,12 @@ export class ModuleLoader {
 	): Promise<void> {
 		let source: LoadResult;
 		try {
-			source = await this.graph.fileOperationQueue.run(
-				async () =>
-					(await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id, 'utf8'))
-			);
+			source = await this.graph.fileOperationQueue.run(async () => {
+				const content = await this.pluginDriver.hookFirst('load', [id]);
+				if (content !== null) return content;
+				this.graph.watchFiles[id] = true;
+				return await readFile(id, 'utf8');
+			});
 		} catch (error_: any) {
 			let message = `Could not load ${id}`;
 			if (importer) message += ` (imported by ${relativeId(importer)})`;
@@ -403,7 +405,6 @@ export class ModuleLoader {
 			attributes
 		);
 		this.modulesById.set(id, module);
-		this.graph.watchFiles[id] = true;
 		const loadPromise: LoadModulePromise = this.addModuleSource(id, importer, module).then(() => [
 			this.getResolveStaticDependencyPromises(module),
 			this.getResolveDynamicImportPromises(module),

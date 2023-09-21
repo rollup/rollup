@@ -26,6 +26,6 @@ module.exports = defineTest({
 	},
 	error: {
 		message: `Could not load ${join(__dirname, 'dep.js')} (imported by main): broken`,
-		watchFiles: [join(__dirname, 'dep.js'), 'main']
+		watchFiles: [join(__dirname, 'dep.js')]
 	}
 });

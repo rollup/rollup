@@ -24,6 +24,6 @@ module.exports = defineTest({
 		hook: 'load',
 		message: `Could not load broken (imported by main.js): It's broken!`,
 		plugin: 'test',
-		watchFiles: [path.join(__dirname, 'main.js'), 'broken']
+		watchFiles: [path.join(__dirname, 'main.js')]
 	}
 });
