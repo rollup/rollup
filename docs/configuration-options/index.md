@@ -2556,50 +2556,6 @@ Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 ☢️ These options have been deprecated and may be removed in a future Rollup version.
 
-### inlineDynamicImports
-
-_Use the [`output.inlineDynamicImports`](#output-inlinedynamicimports) output option instead, which has the same signature._
-
-### manualChunks
-
-_Use the [`output.manualChunks`](#output-manualchunks) output option instead, which has the same signature._
-
-### maxParallelFileReads
-
-_Use the [`maxParallelFileOps`](#maxparallelfileops) option instead._
-
-|          |                                   |
-| -------: | :-------------------------------- |
-|    Type: | `number`                          |
-|     CLI: | `--maxParallelFileReads <number>` |
-| Default: | 20                                |
-
-Limits the number of files rollup will open in parallel when reading modules. Without a limit or with a high enough value, builds can fail with an "EMFILE: too many open files". This depends on how many open file handles the os allows.
-
-### output.dynamicImportFunction
-
-_Use the [`renderDynamicImport`](../plugin-development/index.md#renderdynamicimport) plugin hook instead._
-
-|          |                                  |
-| -------: | :------------------------------- |
-|    Type: | `string`                         |
-|     CLI: | `--dynamicImportFunction <name>` |
-| Default: | `import`                         |
-
-This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
-
-### output.experimentalDeepDynamicChunkOptimization
-
-_This option is no longer needed._
-
-|  |  |
-| --: | :-- |
-| Type: | `boolean` |
-| CLI: | `--experimentalDeepDynamicChunkOptimization`/`--no-experimentalDeepDynamicChunkOptimization` |
-| Default: | `false` |
-
-This option was used to prevent performance issues with the full chunk optimization algorithm. As the algorithm is much faster now, this option is now ignored by Rollup and should no longer be used.
-
 ### output.externalImportAssertions
 
 _Use the [`output.externalImportAttributes`](#output-externalimportattributes) option instead._
@@ -2611,38 +2567,3 @@ _Use the [`output.externalImportAttributes`](#output-externalimportattributes) o
 | Default: | `true`                                                       |
 
 Whether to add import assertions to external imports in the output if the output format is `es`. By default, assertions are taken from the input files, but plugins can add or remove assertions later. E.g. `import "foo" assert {type: "json"}` will cause the same import to appear in the output unless the option is set to `false`. Note that all imports of a module need to have consistent assertions, otherwise a warning is emitted.
-
-### output.preferConst
-
-_Use the [`output.generatedCode.constBindings`](#output-generatedcode-constbindings) option instead._
-
-|          |                                    |
-| -------: | :--------------------------------- |
-|    Type: | `boolean`                          |
-|     CLI: | `--preferConst`/`--no-preferConst` |
-| Default: | `false`                            |
-
-Generate `const` declarations for exports rather than `var` declarations.
-
-### output.namespaceToStringTag
-
-_Use [`output.generatedCode.symbols`](#output-generatedcode-symbols) instead._
-
-|          |                                                      |
-| -------: | :--------------------------------------------------- |
-|    Type: | `boolean`                                            |
-|     CLI: | `--namespaceToStringTag`/`--no-namespaceToStringTag` |
-| Default: | `false`                                              |
-
-Whether to add spec compliant `.toString()` tags to namespace objects. If this option is set,
-
-```javascript
-import * as namespace from './file.js';
-console.log(String(namespace));
-```
-
-will always log `[object Module]`;
-
-### preserveModules
-
-_Use the [`output.preserveModules`](#output-preservemodules) output option instead, which has the same signature._

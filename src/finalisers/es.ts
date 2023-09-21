@@ -8,7 +8,7 @@ import type { FinaliserOptions } from './index';
 export default function es(
 	magicString: MagicStringBundle,
 	{ accessedGlobals, indent: t, intro, outro, dependencies, exports, snippets }: FinaliserOptions,
-	{ externalLiveBindings, freeze, namespaceToStringTag }: NormalizedOutputOptions
+	{ externalLiveBindings, freeze, generatedCode: { symbols } }: NormalizedOutputOptions
 ): void {
 	const { n } = snippets;
 
@@ -21,7 +21,7 @@ export default function es(
 		snippets,
 		externalLiveBindings,
 		freeze,
-		namespaceToStringTag
+		symbols
 	);
 	if (intro) magicString.prepend(intro);
 

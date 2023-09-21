@@ -1189,7 +1189,12 @@ export default class Chunk {
 			renderedModules,
 			snippets
 		} = this;
-		const { compact, dynamicImportFunction, format, freeze, namespaceToStringTag } = outputOptions;
+		const {
+			compact,
+			format,
+			freeze,
+			generatedCode: { symbols }
+		} = outputOptions;
 		const { _, cnst, n } = snippets;
 		this.setDynamicImportResolutions(fileName);
 		this.setImportMetaResolutions(fileName);
@@ -1204,14 +1209,13 @@ export default class Chunk {
 
 		const renderOptions: RenderOptions = {
 			accessedDocumentCurrentScript: false,
-			dynamicImportFunction,
 			exportNamesByVariable,
 			format,
 			freeze,
 			indent,
-			namespaceToStringTag,
 			pluginDriver,
 			snippets,
+			symbols,
 			useOriginalName: null
 		};
 
@@ -1319,8 +1323,13 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions() {
-		const { format, interop, namespaceToStringTag, preserveModules, externalLiveBindings } =
-			this.outputOptions;
+		const {
+			format,
+			generatedCode: { symbols },
+			interop,
+			preserveModules,
+			externalLiveBindings
+		} = this.outputOptions;
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName.get(exportName)!;
@@ -1347,7 +1356,7 @@ export default class Chunk {
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
-		if (namespaceToStringTag) {
+		if (symbols) {
 			usedNames.add('Symbol');
 		}
 		switch (format) {
