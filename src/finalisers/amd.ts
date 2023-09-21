@@ -30,8 +30,8 @@ export default function amd(
 		esModule,
 		externalLiveBindings,
 		freeze,
+		generatedCode: { symbols },
 		interop,
-		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
 ): void {
@@ -69,7 +69,7 @@ export default function amd(
 			interop,
 			externalLiveBindings,
 			freeze,
-			namespaceToStringTag,
+			symbols,
 			accessedGlobals,
 			t,
 			snippets
@@ -88,7 +88,7 @@ export default function amd(
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
 		isEntryFacade && (esModule === true || (esModule === 'if-default-prop' && hasDefaultExport)),
-		isModuleFacade && namespaceToStringTag,
+		isModuleFacade && symbols,
 		snippets
 	);
 	if (namespaceMarkers) {

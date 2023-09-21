@@ -8,14 +8,13 @@ import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {
 	accessedDocumentCurrentScript: boolean;
-	dynamicImportFunction: string | undefined;
 	exportNamesByVariable: Map<Variable, string[]>;
 	format: InternalModuleFormat;
 	freeze: boolean;
 	indent: string;
-	namespaceToStringTag: boolean;
 	pluginDriver: PluginDriver;
 	snippets: GenerateCodeSnippets;
+	symbols: boolean;
 	useOriginalName: ((variable: Variable) => boolean) | null;
 }
 

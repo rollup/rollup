@@ -13,15 +13,9 @@ import { BLANK, EMPTY_OBJECT } from './blank';
 import { BuildPhase } from './buildPhase';
 import { getLogHandler } from './logHandler';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
-import {
-	error,
-	logInvalidRollupPhaseForAddWatchFile,
-	logPluginError,
-	warnDeprecation
-} from './logs';
+import { error, logInvalidRollupPhaseForAddWatchFile, logPluginError } from './logs';
 import { normalizeLog } from './options/options';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
-import { URL_THIS_GETMODULEIDS } from './urls';
 
 export function getPluginContext(
 	plugin: Plugin,
@@ -81,22 +75,6 @@ export function getPluginContext(
 		meta: {
 			rollupVersion,
 			watchMode: graph.watchMode
-		},
-		get moduleIds() {
-			function* wrappedModuleIds() {
-				// We are wrapping this in a generator to only show the message once we are actually iterating
-				warnDeprecation(
-					`Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
-					URL_THIS_GETMODULEIDS,
-					true,
-					options,
-					plugin.name
-				);
-				yield* moduleIds;
-			}
-
-			const moduleIds = graph.modulesById.keys();
-			return wrappedModuleIds();
 		},
 		parse: graph.contextParse.bind(graph),
 		resolve(source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) {

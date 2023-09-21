@@ -6,7 +6,6 @@ import type {
 	OutputOptions,
 	SourcemapPathTransformOption
 } from '../../rollup/types';
-import { LOGLEVEL_WARN } from '../logging';
 import { error, logInvalidExportOptionValue, logInvalidOption, warnDeprecation } from '../logs';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
@@ -15,19 +14,14 @@ import {
 	URL_OUTPUT_AMD_BASEPATH,
 	URL_OUTPUT_AMD_ID,
 	URL_OUTPUT_DIR,
-	URL_OUTPUT_DYNAMICIMPORTFUNCTION,
-	URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION,
 	URL_OUTPUT_EXTERNALIMPORTATTRIBUTES,
 	URL_OUTPUT_FORMAT,
 	URL_OUTPUT_GENERATEDCODE,
-	URL_OUTPUT_GENERATEDCODE_CONSTBINDINGS,
-	URL_OUTPUT_GENERATEDCODE_SYMBOLS,
 	URL_OUTPUT_INLINEDYNAMICIMPORTS,
 	URL_OUTPUT_INTEROP,
 	URL_OUTPUT_MANUALCHUNKS,
 	URL_OUTPUT_SOURCEMAPBASEURL,
-	URL_PRESERVEENTRYSIGNATURES,
-	URL_RENDERDYNAMICIMPORT
+	URL_PRESERVEENTRYSIGNATURES
 } from '../urls';
 import {
 	generatedCodePresets,
@@ -50,8 +44,7 @@ export async function normalizeOutputOptions(
 	const inlineDynamicImports = getInlineDynamicImports(config, inputOptions);
 	const preserveModules = getPreserveModules(config, inlineDynamicImports, inputOptions);
 	const file = getFile(config, preserveModules, inputOptions);
-	const preferConst = getPreferConst(config, inputOptions);
-	const generatedCode = getGeneratedCode(config, preferConst);
+	const generatedCode = getGeneratedCode(config);
 	const externalImportAttributes = getExternalImportAttributes(config, inputOptions);
 
 	const outputOptions: NormalizedOutputOptions & OutputOptions = {
@@ -61,14 +54,9 @@ export async function normalizeOutputOptions(
 		chunkFileNames: config.chunkFileNames ?? '[name]-[hash].js',
 		compact,
 		dir: getDir(config, file),
-		dynamicImportFunction: getDynamicImportFunction(config, inputOptions, format),
 		dynamicImportInCjs: config.dynamicImportInCjs ?? true,
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: config.esModule ?? 'if-default-prop',
-		experimentalDeepDynamicChunkOptimization: getExperimentalDeepDynamicChunkOptimization(
-			config,
-			inputOptions
-		),
 		experimentalMinChunkSize: config.experimentalMinChunkSize ?? 1,
 		exports: getExports(config, unsetOptions),
 		extend: config.extend || false,
@@ -86,15 +74,13 @@ export async function normalizeOutputOptions(
 		inlineDynamicImports,
 		interop: getInterop(config),
 		intro: getAddon(config, 'intro'),
-		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
+		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name,
-		namespaceToStringTag: getNamespaceToStringTag(config, generatedCode, inputOptions),
 		noConflict: config.noConflict || false,
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
 		plugins: await normalizePluginOption(config.plugins),
-		preferConst,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),
 		sanitizeFileName:
@@ -193,8 +179,7 @@ const getInlineDynamicImports = (
 	config: OutputOptions,
 	inputOptions: NormalizedInputOptions
 ): NormalizedOutputOptions['inlineDynamicImports'] => {
-	const inlineDynamicImports =
-		(config.inlineDynamicImports ?? inputOptions.inlineDynamicImports) || false;
+	const inlineDynamicImports = config.inlineDynamicImports || false;
 	const { input } = inputOptions;
 	if (inlineDynamicImports && (Array.isArray(input) ? input : Object.keys(input)).length > 1) {
 		return error(
@@ -213,7 +198,7 @@ const getPreserveModules = (
 	inlineDynamicImports: boolean,
 	inputOptions: NormalizedInputOptions
 ): NormalizedOutputOptions['preserveModules'] => {
-	const preserveModules = (config.preserveModules ?? inputOptions.preserveModules) || false;
+	const preserveModules = config.preserveModules || false;
 	if (preserveModules) {
 		if (inlineDynamicImports) {
 			return error(
@@ -235,22 +220,6 @@ const getPreserveModules = (
 		}
 	}
 	return preserveModules;
-};
-
-const getPreferConst = (
-	config: OutputOptions,
-	inputOptions: NormalizedInputOptions
-): NormalizedOutputOptions['preferConst'] => {
-	const configPreferConst = config.preferConst;
-	if (configPreferConst != null) {
-		warnDeprecation(
-			`The "output.preferConst" option is deprecated. Use the "output.generatedCode.constBindings" option instead.`,
-			URL_OUTPUT_GENERATEDCODE_CONSTBINDINGS,
-			true,
-			inputOptions
-		);
-	}
-	return !!configPreferConst;
 };
 
 const getPreserveModulesRoot = (
@@ -341,33 +310,6 @@ const getDir = (
 	return dir;
 };
 
-const getDynamicImportFunction = (
-	config: OutputOptions,
-	inputOptions: NormalizedInputOptions,
-	format: InternalModuleFormat
-): NormalizedOutputOptions['dynamicImportFunction'] => {
-	const configDynamicImportFunction = config.dynamicImportFunction;
-	if (configDynamicImportFunction) {
-		warnDeprecation(
-			`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
-			URL_RENDERDYNAMICIMPORT,
-			true,
-			inputOptions
-		);
-		if (format !== 'es') {
-			inputOptions.onLog(
-				LOGLEVEL_WARN,
-				logInvalidOption(
-					'output.dynamicImportFunction',
-					URL_OUTPUT_DYNAMICIMPORTFUNCTION,
-					'this option is ignored for formats other than "es"'
-				)
-			);
-		}
-	}
-	return configDynamicImportFunction;
-};
-
 const getEntryFileNames = (
 	config: OutputOptions,
 	unsetOptions: Set<string>
@@ -378,23 +320,6 @@ const getEntryFileNames = (
 	}
 	return configEntryFileNames ?? '[name].js';
 };
-
-function getExperimentalDeepDynamicChunkOptimization(
-	config: OutputOptions,
-	inputOptions: NormalizedInputOptions
-) {
-	const configExperimentalDeepDynamicChunkOptimization =
-		config.experimentalDeepDynamicChunkOptimization;
-	if (configExperimentalDeepDynamicChunkOptimization != null) {
-		warnDeprecation(
-			`The "output.experimentalDeepDynamicChunkOptimization" option is deprecated as Rollup always runs the full chunking algorithm now. The option should be removed.`,
-			URL_OUTPUT_EXPERIMENTALDEEPCHUNKOPTIMIZATION,
-			true,
-			inputOptions
-		);
-	}
-	return configExperimentalDeepDynamicChunkOptimization || false;
-}
 
 function getExports(
 	config: OutputOptions,
@@ -424,10 +349,7 @@ const getExternalImportAttributes = (
 	return config.externalImportAttributes ?? config.externalImportAssertions ?? true;
 };
 
-const getGeneratedCode = (
-	config: OutputOptions,
-	preferConst: boolean
-): NormalizedOutputOptions['generatedCode'] => {
+const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => {
 	const configWithPreset = getOptionWithPreset(
 		config.generatedCode,
 		generatedCodePresets,
@@ -437,7 +359,7 @@ const getGeneratedCode = (
 	);
 	return {
 		arrowFunctions: configWithPreset.arrowFunctions === true,
-		constBindings: configWithPreset.constBindings === true || preferConst,
+		constBindings: configWithPreset.constBindings === true,
 		objectShorthand: configWithPreset.objectShorthand === true,
 		reservedNamesAsProps: configWithPreset.reservedNamesAsProps !== false,
 		symbols: configWithPreset.symbols === true
@@ -495,10 +417,9 @@ const validateInterop = (interop: InteropType): InteropType => {
 const getManualChunks = (
 	config: OutputOptions,
 	inlineDynamicImports: boolean,
-	preserveModules: boolean,
-	inputOptions: NormalizedInputOptions
+	preserveModules: boolean
 ): NormalizedOutputOptions['manualChunks'] => {
-	const configManualChunks = config.manualChunks || inputOptions.manualChunks;
+	const configManualChunks = config.manualChunks;
 	if (configManualChunks) {
 		if (inlineDynamicImports) {
 			return error(
@@ -528,24 +449,6 @@ const getMinifyInternalExports = (
 	compact: boolean
 ): NormalizedOutputOptions['minifyInternalExports'] =>
 	config.minifyInternalExports ?? (compact || format === 'es' || format === 'system');
-
-const getNamespaceToStringTag = (
-	config: OutputOptions,
-	generatedCode: NormalizedOutputOptions['generatedCode'],
-	inputOptions: NormalizedInputOptions
-): NormalizedOutputOptions['namespaceToStringTag'] => {
-	const configNamespaceToStringTag = config.namespaceToStringTag;
-	if (configNamespaceToStringTag != null) {
-		warnDeprecation(
-			`The "output.namespaceToStringTag" option is deprecated. Use the "output.generatedCode.symbols" option instead.`,
-			URL_OUTPUT_GENERATEDCODE_SYMBOLS,
-			true,
-			inputOptions
-		);
-		return configNamespaceToStringTag;
-	}
-	return generatedCode.symbols || false;
-};
 
 const getSourcemapFileNames = (
 	config: OutputOptions,

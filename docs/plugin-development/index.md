@@ -1747,20 +1747,6 @@ When used in the `transform` hook, the `id` of the current module will also be a
 
 If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to `"silent"`, this method will do nothing.
 
-## Deprecated Context Functions
-
-☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.
-
-- `this.moduleIds: IterableIterator<string>` - _**Use [`this.getModuleIds`](#this-getmoduleids)**_ - An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
-
-  ```js
-  for (const moduleId of this.moduleIds) {
-  	/* ... */
-  }
-  ```
-
-  or converted into an Array via `Array.from(this.moduleIds)`.
-
 ## File URLs
 
 To reference a file URL reference from within JS code, use the `import.meta.ROLLUP_FILE_URL_referenceId` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.

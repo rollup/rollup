@@ -3,8 +3,7 @@ import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './
 import { EMPTY_ARRAY } from './utils/blank';
 import { makeLegal } from './utils/identifierHelpers';
 import { LOGLEVEL_WARN } from './utils/logging';
-import { logUnusedExternalImports, warnDeprecation } from './utils/logs';
-import { URL_THIS_GETMODULEINFO } from './utils/urls';
+import { logUnusedExternalImports } from './utils/logs';
 
 export default class ExternalModule {
 	readonly dynamicImporters: string[] = [];
@@ -31,7 +30,7 @@ export default class ExternalModule {
 		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
 
 		const { importers, dynamicImporters } = this;
-		const info: ModuleInfo = (this.info = {
+		this.info = {
 			ast: null,
 			attributes,
 			code: null,
@@ -43,15 +42,6 @@ export default class ExternalModule {
 			exportedBindings: null,
 			exports: null,
 			hasDefaultExport: null,
-			get hasModuleSideEffects() {
-				warnDeprecation(
-					'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
-					URL_THIS_GETMODULEINFO,
-					true,
-					options
-				);
-				return info.moduleSideEffects;
-			},
 			id,
 			implicitlyLoadedAfterOneOf: EMPTY_ARRAY,
 			implicitlyLoadedBefore: EMPTY_ARRAY,
@@ -66,11 +56,7 @@ export default class ExternalModule {
 			meta,
 			moduleSideEffects,
 			syntheticNamedExports: false
-		});
-		// Hide the deprecated key so that it only warns when accessed explicitly
-		Object.defineProperty(this.info, 'hasModuleSideEffects', {
-			enumerable: false
-		});
+		};
 	}
 
 	getVariableForExportName(name: string): [variable: ExternalVariable] {
