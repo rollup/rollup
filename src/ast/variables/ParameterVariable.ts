@@ -109,7 +109,7 @@ export default class ParameterVariable extends LocalVariable {
 		for (const entity of this.entitiesToBeDeoptimized) {
 			// We do not need a recursion tracker here as we already track whether
 			// this field is deoptimized
-			entity.deoptimizePath(path);
+			entity.deoptimizePath([key]);
 		}
 		if (key === UnknownKey) {
 			// save some memory
