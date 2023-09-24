@@ -15,8 +15,6 @@ export interface RollupError extends RollupLog {
 	watchFiles?: string[];
 }
 
-export type RollupWarning = RollupLog;
-
 export interface RollupLog {
 	binding?: string;
 	cause?: unknown;
@@ -598,7 +596,6 @@ export interface NormalizedInputOptions {
 	maxParallelFileOps: number;
 	moduleContext: (id: string) => string;
 	onLog: LogHandler;
-	onwarn: (warning: RollupLog) => void;
 	perf: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures: PreserveEntrySignaturesOption;

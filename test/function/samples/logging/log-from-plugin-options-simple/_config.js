@@ -15,14 +15,12 @@ module.exports = defineTest({
 		assert.deepStrictEqual(logs, [
 			['warn', 'warnLog'],
 			['info', 'infoLog'],
-			['debug', 'debugLog'],
-			['warn', 'warnWarn']
+			['debug', 'debugLog']
 		]);
 		assert.deepStrictEqual(pluginLogs, [
 			['warn', { message: 'warnLog' }],
 			['info', { message: 'infoLog' }],
-			['debug', { message: 'debugLog' }],
-			['warn', { message: 'warnWarn' }]
+			['debug', { message: 'debugLog' }]
 		]);
 	},
 	options: {
@@ -36,7 +34,6 @@ module.exports = defineTest({
 					options.onLog('warn', { message: 'warnLog' });
 					options.onLog('info', { message: 'infoLog' });
 					options.onLog('debug', { message: 'debugLog' });
-					options.onwarn({ message: 'warnWarn' });
 				},
 				onLog(level, log) {
 					pluginLogs.push([level, log]);
