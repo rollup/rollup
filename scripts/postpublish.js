@@ -63,29 +63,33 @@ function createReleaseNotes(changelog, tag) {
 	});
 }
 
-function postReleaseComments(includedPRs, issues, version) {
-	const isPreRelease = semverPreRelease(version);
-	const installNote = isPreRelease
+async function postReleaseComments(includedPRs, issues, version) {
+	const installNote = semverPreRelease(version)
 		? `Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${version}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
 		: 'You can test it via `npm install rollup`.';
-	return Promise.all(
-		includedPRs.map(({ pr, closed }) =>
-			Promise.all([
-				issues
-					.createIssueComment(
-						pr,
-						`This PR has been released as part of rollup@${version}. ${installNote}`
-					)
-					.then(() => console.log(cyan(`Added release comment to #${pr}.`))),
-				...closed.map(closedPr =>
-					issues
-						.createIssueComment(
-							closedPr,
-							`This issue has been resolved via #${pr} as part of rollup@${version}. ${installNote}`
-						)
-						.then(() => console.log(cyan(`Added fix comment to #${closedPr} via #${pr}.`)))
-				)
-			])
-		)
-	);
+
+	let caughtError = null;
+	const addComment = (issueNumber, comment) =>
+		// Add a small timeout to avoid rate limiting issues
+		new Promise(resolve => setTimeout(resolve, 500)).then(() =>
+			issues
+				.createIssueComment(issueNumber, `${comment} as part of rollup@${version}. ${installNote}`)
+				.catch(error => {
+					console.error(error);
+					caughtError ||= error;
+				})
+		);
+
+	for (const { pr, closed } of includedPRs) {
+		await addComment(pr, 'This PR has been released');
+		console.log(cyan(`Added release comment to #${pr}.`));
+
+		for (const closedIssue of closed) {
+			await addComment(closedIssue, `This issue has been resolved via #${pr}`);
+			console.log(cyan(`Added fix comment to #${closedIssue} via #${pr}.`));
+		}
+	}
+	if (caughtError) {
+		throw caughtError;
+	}
 }
