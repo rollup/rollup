@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 3.29.3
+
+_2023-09-24_
+
+### Bug Fixes
+
+- Fix a bug where code was wrongly tree-shaken after mutating function parameters (#5153)
+
+### Pull Requests
+
+- [#5145](https://github.com/rollup/rollup/pull/5145): docs: improve the docs repl appearance in the light mode (@TrickyPi)
+- [#5148](https://github.com/rollup/rollup/pull/5148): chore(deps): update dependency @vue/eslint-config-typescript to v12 (@renovate[bot])
+- [#5149](https://github.com/rollup/rollup/pull/5149): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5153](https://github.com/rollup/rollup/pull/5153): Fully deoptimize first level path when deoptimizing nested parameter paths (@lukastaegert)
+
 ## 3.29.2
 
 _2023-09-15_
