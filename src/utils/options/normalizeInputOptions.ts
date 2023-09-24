@@ -8,7 +8,7 @@ import type {
 import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { getLogger } from '../logger';
-import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../logging';
+import { LOGLEVEL_INFO } from '../logging';
 import { error, logInvalidOption } from '../logs';
 import { resolve } from '../path';
 import { URL_TREESHAKE, URL_TREESHAKE_MODULESIDEEFFECTS } from '../urls';
@@ -55,7 +55,6 @@ export async function normalizeInputOptions(
 		maxParallelFileOps,
 		moduleContext: getModuleContext(config, context),
 		onLog,
-		onwarn: warning => onLog(LOGLEVEL_WARN, warning),
 		perf: config.perf || false,
 		plugins,
 		preserveEntrySignatures: config.preserveEntrySignatures ?? 'exports-only',
@@ -67,7 +66,7 @@ export async function normalizeInputOptions(
 
 	warnUnknownOptions(
 		config,
-		[...Object.keys(options), 'watch'],
+		[...Object.keys(options), 'onwarn', 'watch'],
 		'input options',
 		onLog,
 		/^(output)$/
