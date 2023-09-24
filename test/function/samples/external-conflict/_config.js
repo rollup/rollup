@@ -18,7 +18,7 @@ module.exports = defineTest({
 	},
 	error: {
 		code: 'INVALID_EXTERNAL_ID',
-		watchFiles: [ID_MAIN, 'dep'],
+		watchFiles: [ID_MAIN],
 		message:
 			'"dep" is imported as an external by "dep", but is already an existing non-external module id.'
 	}
