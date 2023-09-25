@@ -215,7 +215,7 @@ export interface PluginContext extends MinimalPluginContext {
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
-	parse: (input: string) => AstNode;
+	parse: (input: string, options?: { allowReturnOutsideFunction?: boolean }) => AstNode;
 	resolve: (
 		source: string,
 		importer?: string,
