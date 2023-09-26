@@ -39,6 +39,9 @@ exports.wait = function wait(ms) {
 };
 
 function normaliseError(error) {
+	if (!error) {
+		throw new Error(`Expected an error but got ${JSON.stringify(error)}`);
+	}
 	const clone = { ...error, message: error.message };
 	delete clone.stack;
 	delete clone.toString;
