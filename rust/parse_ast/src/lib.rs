@@ -23,10 +23,11 @@ fn get_compiler() -> Arc<Compiler> {
   Arc::new(Compiler::new(cm))
 }
 
-pub fn parse_ast(code: String) -> Vec<u8> {
+pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
   let compiler = get_compiler();
   let compiler_options = ParseOptions {
     syntax: Syntax::Es(EsConfig {
+      allow_return_outside_function,
       import_attributes: true,
       ..Default::default()
     }),

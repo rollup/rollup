@@ -123,8 +123,11 @@ export default class Graph {
 		this.phase = BuildPhase.GENERATE;
 	}
 
-	contextParse(code: string): AstNode {
-		const astBuffer = native.parse(code);
+	contextParse(
+		code: string,
+		{ allowReturnOutsideFunction = false }: { allowReturnOutsideFunction?: boolean } = {}
+	): AstNode {
+		const astBuffer = native.parse(code, allowReturnOutsideFunction);
 		const readString = getReadStringFunction(astBuffer);
 		return convertProgram(astBuffer.buffer, readString);
 	}
