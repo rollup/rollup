@@ -674,14 +674,15 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
-    match export_named_declaration.specifiers.first().unwrap() {
-      ExportSpecifier::Namespace(export_namespace_specifier) => self.store_export_all_declaration(
-        &export_named_declaration.span,
-        export_named_declaration.src.as_ref().unwrap(),
-        &export_named_declaration.with,
-        Some(&export_namespace_specifier.name),
-      ),
-      ExportSpecifier::Named(_) => self.store_export_named_declaration(
+    match export_named_declaration.specifiers.first() {
+      Some(ExportSpecifier::Namespace(export_namespace_specifier)) => self
+        .store_export_all_declaration(
+          &export_named_declaration.span,
+          export_named_declaration.src.as_ref().unwrap(),
+          &export_named_declaration.with,
+          Some(&export_namespace_specifier.name),
+        ),
+      None | Some(ExportSpecifier::Named(_)) => self.store_export_named_declaration(
         &export_named_declaration.span,
         &export_named_declaration.specifiers,
         export_named_declaration
@@ -691,7 +692,7 @@ impl<'a> AstConverter<'a> {
         None,
         &export_named_declaration.with,
       ),
-      ExportSpecifier::Default(_) => panic!("Unexpected default export specifier"),
+      Some(ExportSpecifier::Default(_)) => panic!("Unexpected default export specifier"),
     }
   }
 
