@@ -74,8 +74,13 @@ export default abstract class FunctionBase extends NodeBase {
 		this.getObjectEntity().deoptimizePath(path);
 		if (path.length === 1 && path[0] === UnknownKey) {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
-			// which means the return expression needs to be reassigned
+			// which means the return expression and parameters need to be reassigned
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+			for (const parameterList of this.scope.parameters) {
+				for (const parameter of parameterList) {
+					parameter.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
 		}
 	}
 
