@@ -1,4 +1,16 @@
-# rollup changelog
+    # rollup changelog
+
+## 3.29.4
+
+_2023-09-28_
+
+### Bug Fixes
+
+- Fix static analysis when an exported function uses callbacks (#5158)
+
+### Pull Requests
+
+- [#5158](https://github.com/rollup/rollup/pull/5158): Deoptimize all parameters when losing track of a function (@lukastaegert)
 
 ## 3.29.3
 
