@@ -69,37 +69,37 @@ module.exports = defineTest({
 				return null;
 			},
 			generateBundle() {
-				assert.strictEqual(this.getFileName(string1Id), 'assets/string1-473287f8.txt', 'string1');
-				assert.strictEqual(this.getFileName(string2Id), 'assets/string1-473287f8.txt', 'string2');
+				assert.strictEqual(this.getFileName(string1Id), 'assets/string1-PAAt4eb8.txt', 'string1');
+				assert.strictEqual(this.getFileName(string2Id), 'assets/string1-PAAt4eb8.txt', 'string2');
 				assert.strictEqual(
 					this.getFileName(stringSameSourceId),
-					'assets/string1-473287f8.txt',
+					'assets/string1-PAAt4eb8.txt',
 					'stringSameSource'
 				);
 				assert.strictEqual(
 					this.getFileName(sameStringAsBufferId),
-					'assets/string1-473287f8.txt',
+					'assets/string1-PAAt4eb8.txt',
 					'sameStringAsBuffer'
 				);
 				assert.strictEqual(
 					this.getFileName(otherStringId),
-					'assets/otherString-e296c1ca.txt',
+					'assets/otherString-PiT4klzx.txt',
 					'otherString'
 				);
-				assert.strictEqual(this.getFileName(bufferId), 'assets/buffer-d0ca8c2a.txt', 'buffer');
+				assert.strictEqual(this.getFileName(bufferId), 'assets/buffer-fV9J_shM.txt', 'buffer');
 				assert.strictEqual(
 					this.getFileName(bufferSameSourceId),
-					'assets/buffer-d0ca8c2a.txt',
+					'assets/buffer-fV9J_shM.txt',
 					'bufferSameSource'
 				);
 				assert.strictEqual(
 					this.getFileName(sameBufferAsStringId),
-					'assets/buffer-d0ca8c2a.txt',
+					'assets/buffer-fV9J_shM.txt',
 					'sameBufferAsString'
 				);
 				assert.strictEqual(
 					this.getFileName(otherBufferId),
-					'assets/otherBuffer-e8d9b528.txt',
+					'assets/otherBuffer-Oh78Hjdg.txt',
 					'otherBuffer'
 				);
 			}

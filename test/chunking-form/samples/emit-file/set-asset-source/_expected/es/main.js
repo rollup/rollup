@@ -1,4 +1,4 @@
-const renderStart = new URL('assets/renderStart-981aa2ea.txt', import.meta.url).href;
+const renderStart = new URL('assets/renderStart-eFzm3QZM.txt', import.meta.url).href;
 const renderStartNamed = new URL('renderStart.txt', import.meta.url).href;
 const renderStartNamedImmediately = 'renderStart.txt';
 const bannerNamed = new URL('banner.txt', import.meta.url).href;

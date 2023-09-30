@@ -7,8 +7,8 @@ const hashPlaceholderLeft = '!~{';
 const hashPlaceholderRight = '}~';
 const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRight.length;
 
-// This is the size of a sha256
-export const maxHashSize = 64;
+// This is the size of a 128-bits xxhash with base64url encoding
+export const maxHashSize = 22;
 export const defaultHashSize = 8;
 
 export type HashPlaceholderGenerator = (optionName: string, hashSize?: number) => string;

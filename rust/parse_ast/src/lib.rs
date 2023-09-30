@@ -1,14 +1,13 @@
 #![feature(ptr_internals)]
 use std::sync::Arc;
 
+use convert_ast::converter::AstConverter;
 use swc::config::IsModule::Unknown;
 use swc::{config::ParseOptions, Compiler};
 use swc_common::sync::Lrc;
 use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsConfig, Syntax};
-
-use convert_ast::converter::AstConverter;
 
 use crate::convert_ast::annotations::SequentialComments;
 

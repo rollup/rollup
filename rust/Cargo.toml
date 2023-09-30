@@ -7,4 +7,5 @@ members = [
     "bindings_napi",
     "bindings_wasm",
     "parse_ast",
+    "xxhash"
 ]

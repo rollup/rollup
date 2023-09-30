@@ -1,6 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	var logo = new URL(require.toUrl('./assets/logo1-60bc15c4.svg'), document.baseURI).href;
+	var logo = new URL(require.toUrl('./assets/logo1-BarkEXVd.svg'), document.baseURI).href;
 
 	function showImage(url) {
 		console.log(url);

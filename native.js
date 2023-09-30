@@ -252,6 +252,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { parse } = nativeBinding
+const { parse, xxhashBase64Url } = nativeBinding
 
 module.exports.parse = parse
+module.exports.xxhashBase64Url = xxhashBase64Url

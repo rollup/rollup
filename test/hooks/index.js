@@ -173,9 +173,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('chunk-f0e7d366.js', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('chunk-6DeDEJ3U.js', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'chunk-f0e7d366.js');
+				assert.strictEqual(output[1].fileName, 'chunk-6DeDEJ3U.js');
 				assert.strictEqual(output[1].code, `console.log('chunk');\n`);
 
 				return rollup.rollup({
@@ -198,9 +198,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('chunk-f0e7d366.js', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('chunk-6DeDEJ3U.js', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'chunk-f0e7d366.js');
+				assert.strictEqual(output[1].fileName, 'chunk-6DeDEJ3U.js');
 				assert.strictEqual(output[1].code, `console.log('chunk');\n`);
 
 				return rollup.rollup({
@@ -220,9 +220,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('chunk-f0e7d366.js', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('chunk-6DeDEJ3U.js', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'chunk-f0e7d366.js');
+				assert.strictEqual(output[1].fileName, 'chunk-6DeDEJ3U.js');
 				assert.strictEqual(output[1].code, `console.log('chunk');\n`);
 			});
 	});
@@ -280,9 +280,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('assets/test-b94d27b9.ext', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('assets/test-x7YVzHWH.ext', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'assets/test-b94d27b9.ext');
+				assert.strictEqual(output[1].fileName, 'assets/test-x7YVzHWH.ext');
 				assert.strictEqual(output[1].source, 'hello world');
 
 				return rollup.rollup({
@@ -305,9 +305,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('assets/test-b94d27b9.ext', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('assets/test-x7YVzHWH.ext', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'assets/test-b94d27b9.ext');
+				assert.strictEqual(output[1].fileName, 'assets/test-x7YVzHWH.ext');
 				assert.strictEqual(output[1].source, 'hello world');
 
 				return rollup.rollup({
@@ -327,9 +327,9 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('assets/test-b94d27b9.ext', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('assets/test-x7YVzHWH.ext', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'assets/test-b94d27b9.ext');
+				assert.strictEqual(output[1].fileName, 'assets/test-x7YVzHWH.ext');
 				assert.strictEqual(output[1].source, 'hello world');
 			});
 	});
@@ -375,10 +375,10 @@ describe('hooks', () => {
 				assert.strictEqual(
 					output[0].code,
 					`console.log('imported');\n\n` +
-						`var input = new URL('assets/test-7d48a582.ext', import.meta.url).href;\n\n` +
+						`var input = new URL('assets/test--GjEfoLW.ext', import.meta.url).href;\n\n` +
 						`export { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'assets/test-7d48a582.ext');
+				assert.strictEqual(output[1].fileName, 'assets/test--GjEfoLW.ext');
 				assert.strictEqual(output[1].source, 'first run');
 
 				return rollup.rollup({
@@ -408,10 +408,10 @@ describe('hooks', () => {
 				assert.strictEqual(
 					output[0].code,
 					`console.log('imported');\n\n` +
-						`var input = new URL('assets/test-791d43e2.ext', import.meta.url).href;\n\n` +
+						`var input = new URL('assets/test--NJ9-A8g.ext', import.meta.url).href;\n\n` +
 						`export { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'assets/test-791d43e2.ext');
+				assert.strictEqual(output[1].fileName, 'assets/test--NJ9-A8g.ext');
 				assert.strictEqual(output[1].source, 'second run');
 			});
 	});
@@ -446,11 +446,11 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.strictEqual(
 					output[0].code,
-					`var input = new URL('assets/test-b94d27b9.ext', import.meta.url).href;\n\nexport { input as default };\n`
+					`var input = new URL('assets/test-x7YVzHWH.ext', import.meta.url).href;\n\nexport { input as default };\n`
 				);
-				assert.strictEqual(output[1].fileName, 'assets/test-b94d27b9.ext');
+				assert.strictEqual(output[1].fileName, 'assets/test-x7YVzHWH.ext');
 				assert.strictEqual(output[1].source, 'hello world');
-				assert.strictEqual(output[1].fileName, 'assets/test-b94d27b9.ext');
+				assert.strictEqual(output[1].fileName, 'assets/test-x7YVzHWH.ext');
 				assert.strictEqual(output[1].source, 'hello world');
 
 				return rollup.rollup({

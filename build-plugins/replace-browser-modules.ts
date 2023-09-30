@@ -5,7 +5,6 @@ import type { Plugin } from 'vite';
 const resolve = (path: string) => fileURLToPath(new URL(`../${path}`, import.meta.url));
 
 const JS_REPLACED_MODULES = [
-	'crypto',
 	'fs',
 	'hookActions',
 	'path',
