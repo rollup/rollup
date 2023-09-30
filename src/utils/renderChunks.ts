@@ -9,7 +9,7 @@ import type {
 } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
-import { createHash } from './crypto';
+import { getXxhash } from './crypto';
 import { decodedSourcemap } from './decodedSourcemap';
 import {
 	replacePlaceholders,
@@ -240,7 +240,7 @@ async function transformChunksAndGenerateContentHashes(
 					// replaced with the same value before hashing
 					const { containedPlaceholders, transformedCode } =
 						replacePlaceholdersWithDefaultAndGetContainedPlaceholders(code, placeholders);
-					const hash = createHash().update(transformedCode);
+					let contentToHash = transformedCode;
 					const hashAugmentation = pluginDriver.hookReduceValueSync(
 						'augmentChunkHash',
 						'',
@@ -253,12 +253,12 @@ async function transformChunksAndGenerateContentHashes(
 						}
 					);
 					if (hashAugmentation) {
-						hash.update(hashAugmentation);
+						contentToHash += hashAugmentation;
 					}
 					renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
 					hashDependenciesByPlaceholder.set(hashPlaceholder, {
 						containedPlaceholders,
-						contentHash: hash.digest('hex')
+						contentHash: getXxhash(contentToHash)
 					});
 				} else {
 					nonHashedChunksWithPlaceholders.push(transformedChunk);
@@ -268,10 +268,7 @@ async function transformChunksAndGenerateContentHashes(
 				if (map && sourcemapHashPlaceholder) {
 					initialHashesByPlaceholder.set(
 						preliminarySourcemapFileName.hashPlaceholder,
-						createHash()
-							.update(map.toString())
-							.digest('hex')
-							.slice(0, preliminarySourcemapFileName.hashPlaceholder.length)
+						getXxhash(map.toString()).slice(0, preliminarySourcemapFileName.hashPlaceholder.length)
 					);
 				}
 			}
@@ -293,12 +290,12 @@ function generateFinalHashes(
 ) {
 	const hashesByPlaceholder = new Map<string, string>(initialHashesByPlaceholder);
 	for (const [placeholder, { fileName }] of renderedChunksByPlaceholder) {
-		let hash = createHash();
+		let contentToHash = '';
 		const hashDependencyPlaceholders = new Set<string>([placeholder]);
 		for (const dependencyPlaceholder of hashDependencyPlaceholders) {
 			const { containedPlaceholders, contentHash } =
 				hashDependenciesByPlaceholder.get(dependencyPlaceholder)!;
-			hash.update(contentHash);
+			contentToHash += contentHash;
 			for (const containedPlaceholder of containedPlaceholders) {
 				// When looping over a map, setting an entry only causes a new iteration if the key is new
 				hashDependencyPlaceholders.add(containedPlaceholder);
@@ -309,9 +306,9 @@ function generateFinalHashes(
 		do {
 			// In case of a hash collision, create a hash of the hash
 			if (finalHash) {
-				hash = createHash().update(finalHash);
+				contentToHash = finalHash;
 			}
-			finalHash = hash.digest('hex').slice(0, placeholder.length);
+			finalHash = getXxhash(contentToHash).slice(0, placeholder.length);
 			finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash);
 		} while (bundle[lowercaseBundleKeys].has(finalFileName.toLowerCase()));
 		bundle[finalFileName] = FILE_PLACEHOLDER;

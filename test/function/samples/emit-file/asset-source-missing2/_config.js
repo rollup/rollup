@@ -12,6 +12,6 @@ module.exports = defineTest({
 	},
 	generateError: {
 		code: 'ASSET_SOURCE_MISSING',
-		message: 'Plugin error creating asset "6b86b273" - no asset source set.'
+		message: 'Plugin error creating asset "WPGYjwIl" - no asset source set.'
 	}
 });

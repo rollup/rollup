@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			const renderStart = exports('renderStart', new URL('assets/renderStart-981aa2ea.txt', module.meta.url).href);
+			const renderStart = exports('renderStart', new URL('assets/renderStart-eFzm3QZM.txt', module.meta.url).href);
 			const renderStartNamed = exports('renderStartNamed', new URL('renderStart.txt', module.meta.url).href);
 			const renderStartNamedImmediately = exports('renderStartNamedImmediately', 'renderStart.txt');
 			const bannerNamed = exports('bannerNamed', new URL('banner.txt', module.meta.url).href);

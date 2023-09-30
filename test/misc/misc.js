@@ -109,7 +109,7 @@ describe('misc', () => {
 				assert.equal(warnings.length, 0);
 				assert.deepEqual(
 					output.map(({ fileName }) => fileName),
-					['main1.js', 'main2.js', 'dep-9394ae8f.js', 'dyndep-d5d54b59.js']
+					['main1.js', 'main2.js', 'dep-OBdYcLqx.js', 'dyndep-t4Fvao3e.js']
 				);
 			});
 	});

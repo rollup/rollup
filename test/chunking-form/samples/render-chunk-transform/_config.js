@@ -21,7 +21,7 @@ module.exports = defineTest({
 			generateBundle(options, bundle) {
 				const sanitizedBundle = JSON.parse(
 					replaceDirectoryInStringifiedObject(bundle, __dirname).replace(
-						/(entry-\w+)-\w+\.js/g,
+						/(entry-\w+)-[\w|-]+\.js/g,
 						(match, name) => `${name}.js`
 					)
 				);

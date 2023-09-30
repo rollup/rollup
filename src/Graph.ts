@@ -1,5 +1,5 @@
 import flru from 'flru';
-import native from '../native';
+import { parse } from '../native';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
@@ -127,7 +127,7 @@ export default class Graph {
 		code: string,
 		{ allowReturnOutsideFunction = false }: { allowReturnOutsideFunction?: boolean } = {}
 	): AstNode {
-		const astBuffer = native.parse(code, allowReturnOutsideFunction);
+		const astBuffer = parse(code, allowReturnOutsideFunction);
 		const readString = getReadStringFunction(astBuffer);
 		return convertProgram(astBuffer.buffer, readString);
 	}

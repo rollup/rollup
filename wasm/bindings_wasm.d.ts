@@ -2,9 +2,15 @@
 /* eslint-disable */
 /**
 * @param {string} code
+* @param {boolean} allow_return_outside_function
 * @returns {Uint8Array}
 */
-export function parse(code: string): Uint8Array;
+export function parse(code: string, allow_return_outside_function: boolean): Uint8Array;
+/**
+* @param {Uint8Array} input
+* @returns {string}
+*/
+export function xxhash_base64_url(input: Uint8Array): string;
 /**
 * @param {string} query
 * @param {any} opts
@@ -16,7 +22,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly parse: (a: number, b: number, c: number) => void;
+  readonly parse: (a: number, b: number, c: number, d: number) => void;
+  readonly xxhash_base64_url: (a: number, b: number) => void;
   readonly browserslist: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

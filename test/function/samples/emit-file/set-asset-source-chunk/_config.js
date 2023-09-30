@@ -14,7 +14,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
-		message: 'Asset sources can only be set for emitted assets but "6c87f683" is an emitted chunk.',
+		message: 'Asset sources can only be set for emitted assets but "Vbibt3QL" is an emitted chunk.',
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}

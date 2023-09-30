@@ -16,7 +16,7 @@ module.exports = defineTest({
 					}
 				},
 				generateBundle() {
-					assert.strictEqual(this.getFileName(referenceId), 'emitted-f57bfbce.txt');
+					assert.strictEqual(this.getFileName(referenceId), 'emitted-umwR9Fta.txt');
 				}
 			}
 		]
