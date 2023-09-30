@@ -76,3 +76,4 @@ pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 73u32.to_ne_bytes();
 pub const TYPE_WHILE_STATEMENT: [u8; 4] = 74u32.to_ne_bytes();
 pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 75u32.to_ne_bytes();
 pub const TYPE_PARSE_ERROR: [u8; 4] = 76u32.to_ne_bytes();
+pub const TYPE_SHEBANG: [u8; 4] = 77u32.to_ne_bytes();

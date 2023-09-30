@@ -18,7 +18,7 @@ import type {
 import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
-import { convertProgram } from './utils/convert-ast';
+import { convertProgram, type ProgramAst } from './utils/convert-ast';
 import { analyseModuleExecution } from './utils/executionOrder';
 import getReadStringFunction from './utils/getReadStringFunction';
 import { LOGLEVEL_WARN } from './utils/logging';
@@ -126,7 +126,7 @@ export default class Graph {
 	contextParse(
 		code: string,
 		{ allowReturnOutsideFunction = false }: { allowReturnOutsideFunction?: boolean } = {}
-	): AstNode {
+	): ProgramAst {
 		const astBuffer = parse(code, allowReturnOutsideFunction);
 		const readString = getReadStringFunction(astBuffer);
 		return convertProgram(astBuffer.buffer, readString);

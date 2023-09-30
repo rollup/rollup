@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 import 'external';
 
 // comment dep 1/3
