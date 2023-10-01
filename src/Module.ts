@@ -798,6 +798,11 @@ export default class Module {
 		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): void {
+		/* eslint-disable-next-line unicorn/number-literal-case */
+		if (code.charCodeAt(0) === 0xfe_ff) {
+			code = code.slice(1);
+		}
+
 		timeStart('generate ast', 3);
 
 		this.info.code = code;
