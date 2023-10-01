@@ -1,4 +1,4 @@
-use swc::atoms::{Atom, JsWord};
+use swc::atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AwaitExpr, BigInt,
@@ -195,25 +195,11 @@ impl<'a> AstConverter<'a> {
   fn convert_program(&mut self, node: &Program) {
     match node {
       Program::Module(module) => {
-        self.convert_shebang(&module.shebang);
         self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body));
       }
       Program::Script(script) => {
-        self.convert_shebang(&script.shebang);
         self.store_program(ModuleItemsOrStatements::Statements(&script.body));
       }
-    }
-  }
-
-  fn convert_shebang(&mut self, node: &Option<Atom>) {
-    if let Some(shebang) = node {
-      self.buffer.extend_from_slice(&TYPE_SHEBANG);
-      let replace_position = self.buffer.len();
-      self.buffer.resize(self.buffer.len() + 4, 0);
-      self.convert_string(shebang);
-      let next_node_position = self.buffer.len() as u32 >> 2;
-      self.buffer[replace_position..replace_position + 4]
-        .copy_from_slice(&next_node_position.to_ne_bytes());
     }
   }
 

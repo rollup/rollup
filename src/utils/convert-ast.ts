@@ -1160,16 +1160,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			pos,
 			message
 		});
-	},
-	// index:77; Shebang
-	(position, buffer, readString): ProgramAst => {
-		const nextNodePosition = buffer[position++];
-		const shebang = convertString(position, buffer, readString);
-		const program = convertNode(nextNodePosition, buffer, readString);
-		return {
-			...program,
-			[SHEBANG_KEY]: shebang
-		};
 	}
 ];
 
@@ -1243,7 +1233,6 @@ interface ImportExpression extends estree.ImportExpression {
 
 export const ANNOTATION_KEY = '_rollupAnnotations';
 export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
-export const SHEBANG_KEY = '_shebang';
 
 type AnnotationType = 'pure' | 'noSideEffects';
 
@@ -1276,5 +1265,4 @@ interface ArrowFunctionExpression extends estree.ArrowFunctionExpression {
 export type ProgramAst = estree.Program &
 	AstNode & {
 		[INVALID_ANNOTATION_KEY]?: RollupAnnotation[];
-		[SHEBANG_KEY]?: string;
 	};

@@ -47,7 +47,7 @@ import type {
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
-import { type ProgramAst, SHEBANG_KEY } from './utils/convert-ast';
+import type { ProgramAst } from './utils/convert-ast';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
@@ -799,6 +799,11 @@ export default class Module {
 		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): void {
+		if (code.startsWith('#!')) {
+			const shebangEndPosition = code.indexOf('\n');
+			this.shebang = code.slice(2, shebangEndPosition);
+		}
+
 		timeStart('generate ast', 3);
 
 		this.info.code = code;
@@ -1319,9 +1324,7 @@ export default class Module {
 
 	private tryParse(): ProgramAst {
 		try {
-			const ast = this.graph.contextParse(this.info.code!);
-			this.shebang = ast[SHEBANG_KEY];
-			return ast;
+			return this.graph.contextParse(this.info.code!);
 		} catch (error_: any) {
 			return this.error(logParseError(error_, this.id), error_.pos);
 		}
