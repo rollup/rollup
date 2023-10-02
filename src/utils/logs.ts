@@ -6,6 +6,7 @@ import type {
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
+import type { AnnotationType } from './convert-ast';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -26,7 +27,9 @@ import {
 	URL_OUTPUT_NAME,
 	URL_SOURCEMAP_IS_LIKELY_TO_BE_INCORRECT,
 	URL_THIS_IS_UNDEFINED,
-	URL_TREATING_MODULE_AS_EXTERNAL_DEPENDENCY
+	URL_TREATING_MODULE_AS_EXTERNAL_DEPENDENCY,
+	URL_TREESHAKE_NOSIDEEFFECTS,
+	URL_TREESHAKE_PURE
 } from './urls';
 
 export function error(base: Error | RollupLog): never {
@@ -97,6 +100,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	ILLEGAL_IDENTIFIER_AS_NAME = 'ILLEGAL_IDENTIFIER_AS_NAME',
 	ILLEGAL_REASSIGNMENT = 'ILLEGAL_REASSIGNMENT',
 	INCONSISTENT_IMPORT_ATTRIBUTES = 'INCONSISTENT_IMPORT_ATTRIBUTES',
+	INVALID_ANNOTATION = 'INVALID_ANNOTATION',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_CONFIG_MODULE_FORMAT = 'INVALID_CONFIG_MODULE_FORMAT',
@@ -422,6 +426,17 @@ const formatAttributes = (attributes: Record<string, string>): string => {
 	if (entries.length === 0) return 'no';
 	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
 };
+
+export function logInvalidAnnotation(comment: string, id: string, type: AnnotationType): RollupLog {
+	return {
+		code: INVALID_ANNOTATION,
+		id,
+		message: `A comment\n\n"${comment}"\n\nin "${relativeId(
+			id
+		)}" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.`,
+		url: getRollupUrl(type === 'noSideEffects' ? URL_TREESHAKE_NOSIDEEFFECTS : URL_TREESHAKE_PURE)
+	};
+}
 
 export function logInputHookInOutputPlugin(pluginName: string, hookName: string): RollupLog {
 	return {

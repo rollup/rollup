@@ -1234,7 +1234,7 @@ interface ImportExpression extends estree.ImportExpression {
 export const ANNOTATION_KEY = '_rollupAnnotations';
 export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
 
-type AnnotationType = 'pure' | 'noSideEffects';
+export type AnnotationType = 'pure' | 'noSideEffects';
 
 export interface RollupAnnotation {
 	start: number;

@@ -4,6 +4,8 @@ import type { AstContext } from '../../../Module';
 import type { AstNode, NormalizedTreeshakingOptions } from '../../../rollup/types';
 import type { RollupAnnotation } from '../../../utils/convert-ast';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/convert-ast';
+import { LOGLEVEL_WARN } from '../../../utils/logging';
+import { logInvalidAnnotation } from '../../../utils/logs';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -273,8 +275,20 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 						this.annotationPure = annotations.some(comment => comment.type === 'pure');
 					}
 				} else if (key === INVALID_ANNOTATION_KEY) {
-					for (const { start, end } of value as RollupAnnotation[])
+					for (const { start, end, type } of value as RollupAnnotation[]) {
 						this.context.magicString.remove(start, end);
+						if (type === 'pure' || type === 'noSideEffects') {
+							this.context.log(
+								LOGLEVEL_WARN,
+								logInvalidAnnotation(
+									this.context.code.slice(start, end),
+									this.context.module.id,
+									type
+								),
+								start
+							);
+						}
+					}
 				}
 			} else if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
