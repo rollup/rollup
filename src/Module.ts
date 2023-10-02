@@ -802,6 +802,10 @@ export default class Module {
 		if (code.startsWith('#!')) {
 			const shebangEndPosition = code.indexOf('\n');
 			this.shebang = code.slice(2, shebangEndPosition);
+    }
+		/* eslint-disable-next-line unicorn/number-literal-case */
+		if (code.charCodeAt(0) === 0xfe_ff) {
+			code = code.slice(1);
 		}
 
 		timeStart('generate ast', 3);
