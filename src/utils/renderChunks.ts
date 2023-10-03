@@ -111,10 +111,6 @@ async function transformChunk(
 ) {
 	let map: SourceMap | null = null;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
-	const entryModule = usedModules.find(module => module.info.isEntry);
-	if (entryModule && entryModule.shebang !== undefined && ['cjs', 'es'].includes(options.format)) {
-		magicString.prepend(`#!${entryModule.shebang}\n`);
-	}
 	let code = await outputPluginDriver.hookReduceArg0(
 		'renderChunk',
 		[magicString.toString(), chunkGraph[fileName], options, { chunks: chunkGraph }],
