@@ -28,7 +28,6 @@ import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
 import type {
-	AstNode,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -48,6 +47,7 @@ import type {
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
+import type { ProgramAst } from './utils/convert-ast';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
@@ -217,6 +217,7 @@ export default class Module {
 	readonly importDescriptions = new Map<string, ImportDescription>();
 	readonly importMetas: MetaProperty[] = [];
 	importedFromNotTreeshaken = false;
+	shebang: undefined | string;
 	readonly importers: string[] = [];
 	readonly includedDynamicImporters: Module[] = [];
 	readonly includedImports = new Set<Variable>();
@@ -798,6 +799,10 @@ export default class Module {
 		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): void {
+		if (code.startsWith('#!')) {
+			const shebangEndPosition = code.indexOf('\n');
+			this.shebang = code.slice(2, shebangEndPosition);
+		}
 		/* eslint-disable-next-line unicorn/number-literal-case */
 		if (code.charCodeAt(0) === 0xfe_ff) {
 			code = code.slice(1);
@@ -1321,7 +1326,7 @@ export default class Module {
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
-	private tryParse(): AstNode {
+	private tryParse(): ProgramAst {
 		try {
 			return this.graph.contextParse(this.info.code!);
 		} catch (error_: any) {

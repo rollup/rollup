@@ -701,6 +701,10 @@ export default class Chunk {
 			outputOptions
 		);
 		if (banner) magicString.prepend(banner);
+		if (format === 'es' || format === 'cjs') {
+			const shebang = facadeModule !== null && facadeModule.info.isEntry && facadeModule.shebang;
+			shebang && magicString.prepend(`#!${shebang}\n`);
+		}
 		if (footer) magicString.append(footer);
 
 		return {

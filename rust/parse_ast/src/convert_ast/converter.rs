@@ -28,9 +28,10 @@ use crate::convert_ast::converter::utf16_positions::{
 };
 
 mod analyze_code;
-pub mod node_types;
 mod string_constants;
 mod utf16_positions;
+
+pub mod node_types;
 
 pub struct AstConverter<'a> {
   buffer: Vec<u8>,
@@ -194,10 +195,10 @@ impl<'a> AstConverter<'a> {
   fn convert_program(&mut self, node: &Program) {
     match node {
       Program::Module(module) => {
-        self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body))
+        self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body));
       }
       Program::Script(script) => {
-        self.store_program(ModuleItemsOrStatements::Statements(&script.body))
+        self.store_program(ModuleItemsOrStatements::Statements(&script.body));
       }
     }
   }
