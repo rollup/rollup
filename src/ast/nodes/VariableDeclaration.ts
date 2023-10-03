@@ -179,6 +179,7 @@ export default class VariableDeclaration extends NodeBase {
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included) {
 				code.remove(start, end);
+				node.removeAnnotations(code);
 				continue;
 			}
 			node.render(code, options);

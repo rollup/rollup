@@ -2082,8 +2082,12 @@ class Impure {
 	}
 }
 
-/*@__PURE__*/ new Impure();
+/*@__PURE__ There may be additional text in the comment */ new Impure();
 ```
+
+Such an annotation is considered _valid_ if it directly precedes a function call or constructor invocation and is only separated from the callee by white-space or comments. The only exception are parentheses that wrap a call or invocation.
+
+Invalid annotations are removed and Rollup emits a warning. Valid annotations remain in the code unless their function call or constructor invocation is removed as well.
 
 ##### `@__NO_SIDE_EFFECTS__`
 
@@ -2103,6 +2107,10 @@ const impureArrowFn = () => {
 impure(); // <-- call will be considered as side effect free
 impureArrowFn(); // <-- call will be considered as side effect free
 ```
+
+Such an annotation is considered _valid_ if it directly precedes a function declaration or a constant variable declaration where the first declared variable is a function and is only separated from the declaration by white-space or comments.
+
+Invalid annotations are removed and Rollup emits a warning. Valid annotations remain in the code unless their declaration is removed as well
 
 #### treeshake.correctVarValueBeforeDeclaration
 

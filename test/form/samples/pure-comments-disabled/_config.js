@@ -4,5 +4,6 @@ module.exports = defineTest({
 		treeshake: {
 			annotations: false
 		}
-	}
+	},
+	expectedWarnings: ['INVALID_ANNOTATION']
 });
