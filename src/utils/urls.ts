@@ -30,6 +30,8 @@ export const URL_OUTPUT_SOURCEMAPBASEURL = 'configuration-options/#output-source
 export const URL_OUTPUT_SOURCEMAPFILE = 'configuration-options/#output-sourcemapfile';
 export const URL_PRESERVEENTRYSIGNATURES = 'configuration-options/#preserveentrysignatures';
 export const URL_TREESHAKE = 'configuration-options/#treeshake';
+export const URL_TREESHAKE_PURE = 'configuration-options/#pure';
+export const URL_TREESHAKE_NOSIDEEFFECTS = 'configuration-options/#no-side-effects';
 export const URL_TREESHAKE_MODULESIDEEFFECTS = 'configuration-options/#treeshake-modulesideeffects';
 export const URL_WATCH = 'configuration-options/#watch';
 
