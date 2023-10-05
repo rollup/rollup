@@ -1,2 +1,2 @@
-import 'external' assert { type: 'quuz' };
-import './dep.js' assert { type: 'bar' };
+import 'external' with { type: 'quuz' };
+import './dep.js' with { type: 'bar' };
