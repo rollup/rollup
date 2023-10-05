@@ -6,6 +6,7 @@ module.exports = defineTest({
 	description: 'throws on duplicate named exports',
 	error: {
 		cause: {
+			code: 'PARSE_ERROR',
 			message: 'the name `foo` is exported multiple times',
 			pos: 38
 		},

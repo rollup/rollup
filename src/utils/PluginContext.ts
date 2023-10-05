@@ -15,6 +15,7 @@ import { getLogHandler } from './logHandler';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
 import { error, logInvalidRollupPhaseForAddWatchFile, logPluginError } from './logs';
 import { normalizeLog } from './options/options';
+import { parseAst } from './parseAst';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 
 export function getPluginContext(
@@ -76,7 +77,7 @@ export function getPluginContext(
 			rollupVersion,
 			watchMode: graph.watchMode
 		},
-		parse: graph.contextParse.bind(graph),
+		parse: parseAst,
 		resolve(source, importer, { attributes, custom, isEntry, skipSelf } = BLANK) {
 			skipSelf ??= true;
 			return graph.moduleLoader.resolveId(

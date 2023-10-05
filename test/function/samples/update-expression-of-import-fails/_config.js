@@ -6,6 +6,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PARSE_ERROR',
 		cause: {
+			code: 'PARSE_ERROR',
 			message: 'cannot reassign to an imported binding',
 			pos: 28
 		},

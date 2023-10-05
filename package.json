@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "4.0.0-24",
+  "version": "4.0.0-25",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -213,6 +213,11 @@
       "types": "./dist/getLogFilter.d.ts",
       "require": "./dist/getLogFilter.js",
       "import": "./dist/es/getLogFilter.js"
+    },
+    "./parseAst": {
+      "types": "./dist/parseAst.d.ts",
+      "require": "./dist/parseAst.js",
+      "import": "./dist/es/parseAst.js"
     },
     "./dist/*": "./dist/*"
   }

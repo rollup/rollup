@@ -1,5 +1,4 @@
 import flru from 'flru';
-import { parse } from '../native';
 import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
@@ -18,9 +17,7 @@ import type {
 import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
-import { convertProgram, type ProgramAst } from './utils/convert-ast';
 import { analyseModuleExecution } from './utils/executionOrder';
-import getReadStringFunction from './utils/getReadStringFunction';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -121,15 +118,6 @@ export default class Graph {
 		timeEnd('mark included statements', 2);
 
 		this.phase = BuildPhase.GENERATE;
-	}
-
-	contextParse(
-		code: string,
-		{ allowReturnOutsideFunction = false }: { allowReturnOutsideFunction?: boolean } = {}
-	): ProgramAst {
-		const astBuffer = parse(code, allowReturnOutsideFunction);
-		const readString = getReadStringFunction(astBuffer);
-		return convertProgram(astBuffer.buffer, readString);
 	}
 
 	getCache(): RollupCache {

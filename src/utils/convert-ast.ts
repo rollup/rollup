@@ -1,7 +1,7 @@
 import type * as estree from 'estree';
 import type { AstNode } from '../rollup/types';
 import { FIXED_STRINGS } from './convert-ast-strings';
-import { error } from './logs';
+import { error, logParseError } from './logs';
 
 type ReadString = (start: number, length: number) => string;
 
@@ -862,7 +862,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			kind,
 			method,
 			shorthand,
-			value: valuePosition ? convertNode(valuePosition, buffer, readString) : key
+			value: valuePosition ? convertNode(valuePosition, buffer, readString) : { ...key }
 		};
 	},
 	// index:55; PropertyDefinition
@@ -1156,10 +1156,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	(position, buffer, readString): never => {
 		const pos = buffer[position++];
 		const message = convertString(position, buffer, readString);
-		error({
-			pos,
-			message
-		});
+		error(logParseError(message, pos));
 	}
 ];
 

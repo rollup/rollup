@@ -36,6 +36,7 @@ module.exports = defineTest({
 						expectedError = error;
 					}
 					compareError(expectedError, {
+						code: 'PARSE_ERROR',
 						message: 'Return statement is not allowed here',
 						pos: 0
 					});
@@ -46,6 +47,7 @@ module.exports = defineTest({
 						expectedError = error;
 					}
 					compareError(expectedError, {
+						code: 'PARSE_ERROR',
 						message: 'Return statement is not allowed here',
 						pos: 0
 					});

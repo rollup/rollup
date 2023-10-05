@@ -809,7 +809,11 @@ export function logOptimizeChunkStatus(
 	};
 }
 
-export function logParseError(error: Error, moduleId: string): RollupLog {
+export function logParseError(message: string, pos: number): RollupLog {
+	return { code: PARSE_ERROR, message, pos };
+}
+
+export function logModuleParseError(error: Error, moduleId: string): RollupLog {
 	let message = error.message.replace(/ \(\d+:\d+\)$/, '');
 	if (moduleId.endsWith('.json')) {
 		message += ' (Note that you need @rollup/plugin-json to import JSON files)';

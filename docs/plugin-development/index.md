@@ -1669,7 +1669,7 @@ interface ParseOptions {
 }
 ```
 
-Use Rollup's internal SWC-based parser to parse code to an AST.
+Use Rollup's internal SWC-based parser to parse code to an [ESTree-compatible](https://github.com/estree/estree) AST.
 
 - `allowReturnOutsideFunction`: When `true` this allows return statements to be outside functions to e.g. support parsing CommonJS code.
 

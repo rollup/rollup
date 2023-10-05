@@ -6,6 +6,7 @@ module.exports = defineTest({
 	description: 'throws on double default exports',
 	error: {
 		cause: {
+			code: 'PARSE_ERROR',
 			message: 'the name `default` is exported multiple times',
 			pos: 18
 		},
