@@ -862,7 +862,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			kind,
 			method,
 			shorthand,
-			value: valuePosition ? convertNode(valuePosition, buffer, readString) : key
+			value: valuePosition ? convertNode(valuePosition, buffer, readString) : { ...key }
 		};
 	},
 	// index:55; PropertyDefinition
