@@ -66,6 +66,7 @@ export default async function (
 		input: {
 			'getLogFilter.js': 'src/utils/getLogFilter.ts',
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
+			'parseAst.js': 'src/utils/parseAst.ts',
 			'rollup.js': 'src/node-entry.ts'
 		},
 		onwarn,
@@ -112,6 +113,7 @@ export default async function (
 		...commonJSBuild,
 		input: {
 			'getLogFilter.js': 'src/utils/getLogFilter.ts',
+			'parseAst.js': 'src/utils/parseAst.ts',
 			'rollup.js': 'src/node-entry.ts'
 		},
 		output: {

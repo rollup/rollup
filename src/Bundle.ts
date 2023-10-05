@@ -26,6 +26,7 @@ import {
 } from './utils/logs';
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
+import { parseAst } from './utils/parseAst';
 import { isAbsolute } from './utils/path';
 import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';
@@ -150,7 +151,7 @@ export default class Bundle {
 			for (const file of Object.values(bundle)) {
 				if ('code' in file) {
 					try {
-						this.graph.contextParse(file.code);
+						parseAst(file.code);
 					} catch (error_: any) {
 						this.inputOptions.onLog(LOGLEVEL_WARN, logChunkInvalid(file, error_));
 					}

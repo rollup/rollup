@@ -63,11 +63,12 @@ import {
 	logInvalidFormatForTopLevelAwait,
 	logInvalidSourcemapForError,
 	logMissingExport,
+	logModuleParseError,
 	logNamespaceConflict,
-	logParseError,
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
+import { parseAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -1328,9 +1329,9 @@ export default class Module {
 
 	private tryParse(): ProgramAst {
 		try {
-			return this.graph.contextParse(this.info.code!);
+			return parseAst(this.info.code!) as ProgramAst;
 		} catch (error_: any) {
-			return this.error(logParseError(error_, this.id), error_.pos);
+			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
 	}
 }

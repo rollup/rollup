@@ -5,6 +5,7 @@ module.exports = defineTest({
 	description: 'disallows non-top-level imports',
 	error: {
 		cause: {
+			code: 'PARSE_ERROR',
 			pos: 19,
 			message: "'import', and 'export' cannot be used outside of module code"
 		},
