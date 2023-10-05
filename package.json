@@ -214,6 +214,11 @@
       "require": "./dist/getLogFilter.js",
       "import": "./dist/es/getLogFilter.js"
     },
+    "./parseAst": {
+      "types": "./dist/parseAst.d.ts",
+      "require": "./dist/parseAst.js",
+      "import": "./dist/es/parseAst.js"
+    },
     "./dist/*": "./dist/*"
   }
 }

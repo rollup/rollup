@@ -5,6 +5,7 @@ module.exports = defineTest({
 	description: 'disallows duplicate import specifiers',
 	error: {
 		cause: {
+			code: 'PARSE_ERROR',
 			message: 'the name `a` is defined multiple times',
 			pos: 12
 		},

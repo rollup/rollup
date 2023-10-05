@@ -201,6 +201,11 @@ type LoggingFunctionWithPosition = (
 	pos?: number | { column: number; line: number }
 ) => void;
 
+export type ParseAst = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean }
+) => AstNode;
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
@@ -215,7 +220,7 @@ export interface PluginContext extends MinimalPluginContext {
 	load: (
 		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
 	) => Promise<ModuleInfo>;
-	parse: (input: string, options?: { allowReturnOutsideFunction?: boolean }) => AstNode;
+	parse: ParseAst;
 	resolve: (
 		source: string,
 		importer?: string,

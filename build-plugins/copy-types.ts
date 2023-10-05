@@ -33,6 +33,7 @@ export function copyNodeTypes(): Plugin[] {
 			'cli/run/loadConfigFileType.d.ts',
 			'../../src/rollup/types'
 		),
-		copyRollupType('getLogFilter.d.ts', 'src/utils/getLogFilterType.d.ts', '../rollup/types')
+		copyRollupType('getLogFilter.d.ts', 'src/utils/getLogFilterType.d.ts', '../rollup/types'),
+		copyRollupType('parseAst.d.ts', 'src/utils/parseAstType.d.ts', '../rollup/types')
 	];
 }

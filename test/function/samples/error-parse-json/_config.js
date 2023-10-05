@@ -7,6 +7,7 @@ module.exports = defineTest({
 		'throws with an extended error message when failing to parse a file with ".json" extension',
 	error: {
 		cause: {
+			code: 'PARSE_ERROR',
 			pos: 10,
 			message: "Expected ';', '}' or <eof>"
 		},
