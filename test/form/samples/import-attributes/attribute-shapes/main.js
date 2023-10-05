@@ -1,4 +1,4 @@
-import('external-a', { 'assert': { 'type': 'json', foo: 1, ...{} } });
-import('external-b', { assert: {} });
+import('external-a', { 'with': { 'type': 'json', foo: 1, ...{} } });
+import('external-b', { with: {} });
 import('external-c', { ...{} });
 import('external-d', {});
