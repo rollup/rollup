@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.0.2
+
+_2023-10-06_
+
+### Bug Fixes
+
+- Fix annotation detection logic to not fail when a non-ASCII character precedes a double underscore (#5178)
+
+### Pull Requests
+
+- [#5178](https://github.com/rollup/rollup/pull/5178): Handle special characters before double underscores (@lukastaegert)
+
 ## 4.0.1
 
 _2023-10-06_
