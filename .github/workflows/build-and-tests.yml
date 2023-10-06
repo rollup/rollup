@@ -134,11 +134,12 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: |-
+            build: >-
               set -e &&
+              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
               rustup default nightly &&
               rustup target add aarch64-unknown-linux-musl &&
-              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
+              RUSTFLAGS='-C target-feature=+crt-static -C link-arg=-lgcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
 #          - host: windows-latest
 #            target: aarch64-pc-windows-msvc
