@@ -96,7 +96,7 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
-              rustup default nightly &&
+              rustup target add x86_64-unknown-linux-gnu &&
               npm run build:napi -- --release --target x86_64-unknown-linux-gnu &&
               strip *.node
           - host: ubuntu-latest
@@ -104,7 +104,6 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               set -e &&
-              rustup default nightly &&
               npm run build:napi -- --release && strip *.node
           - host: macos-latest
             target: aarch64-apple-darwin
@@ -118,7 +117,6 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
               set -e &&
-              rustup default nightly &&
               rustup target add aarch64-unknown-linux-gnu &&
               npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
@@ -169,7 +167,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: nightly
+          toolchain: nightly-2023-10-05
           targets: ${{ matrix.settings.target }}
       - name: Cache cargo
         uses: actions/cache@v3
