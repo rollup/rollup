@@ -103,15 +103,16 @@ jobs:
 #            build: |
 #              npm run build:napi -- --release --target aarch64-apple-darwin
 #              strip -x *.node
-#          - host: ubuntu-latest
-#            target: aarch64-unknown-linux-gnu
-#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-#            build: |-
-#              set -e &&
-#              rustup default nightly &&
-#              rustup target add aarch64-unknown-linux-gnu &&
-#              npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
-#              aarch64-unknown-linux-gnu-strip *.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            build: |-
+              set -e &&
+              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+              rustup default nightly &&
+              rustup target add aarch64-unknown-linux-gnu &&
+              npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
+              aarch64-unknown-linux-gnu-strip *.node
 #          - host: ubuntu-latest
 #            target: armv7-unknown-linux-gnueabihf
 #            zig: true
@@ -140,7 +141,7 @@ jobs:
               rustup default nightly &&
               rustup target add aarch64-unknown-linux-musl &&
               RUSTFLAGS='-C target-feature=+crt-static -C link-arg=-lgcc' cargo build --manifest-path ./rust/Cargo.toml --release --target aarch64-unknown-linux-musl -p bindings_napi &&
-              ls rust/target/release
+              ls rust/target/aarch64-unknown-linux-musl/release
 #                            /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip swc.linux-arm64-musl.node
 #              RUSTFLAGS='-C target-feature=+crt-static -C link-arg=-lgcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
 #              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
