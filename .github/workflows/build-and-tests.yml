@@ -109,7 +109,7 @@ jobs:
             build: |-
               set -e &&
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default nightly &&
+              rustup default nightly-2023-07-03 &&
               rustup target add aarch64-unknown-linux-gnu &&
               npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
               ls rust/target/aarch64-unknown-linux-gnu/release 
@@ -139,7 +139,7 @@ jobs:
             build: >-
               set -e &&
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default nightly &&
+              rustup default nightly-2023-07-03 &&
               rustup target add aarch64-unknown-linux-musl &&
               RUSTFLAGS='-C target-feature=-crt-static -C linker-flavor=gcc' cargo build --manifest-path ./rust/Cargo.toml --release --target aarch64-unknown-linux-musl -p bindings_napi &&
               ls rust/target/aarch64-unknown-linux-musl/release
