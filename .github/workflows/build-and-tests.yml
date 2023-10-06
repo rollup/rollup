@@ -164,7 +164,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: nightly
+          toolchain: nightly-2023-07-03
           targets: ${{ matrix.settings.target }}
       - name: Cache cargo
         uses: actions/cache@v3
