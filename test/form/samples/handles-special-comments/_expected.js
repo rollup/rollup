@@ -1,0 +1,2 @@
+// “__
+console.log('main');
