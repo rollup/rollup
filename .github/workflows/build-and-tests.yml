@@ -59,7 +59,7 @@ jobs:
             target: x86_64-pc-windows-msvc
             name: wasm
             is-wasm-build: true
-            build: |-
+            build: >-
               set -e &&
               rustup target add wasm32-unknown-unknown &&
               npm run build:wasm
@@ -70,7 +70,7 @@ jobs:
             target: x86_64-pc-windows-msvc
             name: wasm-node
             is-wasm-build: true
-            build: |-
+            build: >-
               set -e &&
               rustup target add wasm32-unknown-unknown &&
               npm run build:wasm:node
@@ -79,7 +79,7 @@ jobs:
               .empty
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: |
+            build: >-
               set -e &&
               npm run build:napi -- --release &&
               strip -x *.node
@@ -87,7 +87,7 @@ jobs:
             build: npm run build:napi -- --release
             target: x86_64-pc-windows-msvc
           - host: windows-latest
-            build: |
+            build: >-
               set -e &&
               rustup target add i686-pc-windows-msvc &&
               npm run build:napi -- --release --target i686-pc-windows-msvc
@@ -95,7 +95,7 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: |-
+            build: >-
               set -e &&
               rustup target add x86_64-unknown-linux-gnu &&
               npm run build:napi -- --release --target x86_64-unknown-linux-gnu &&
@@ -103,12 +103,12 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: |-
+            build: >-
               set -e &&
               npm run build:napi -- --release && strip *.node
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: |
+            build: >-
               set -e &&
               rustup target add aarch64-apple-darwin &&
               npm run build:napi -- --release --target aarch64-apple-darwin &&
@@ -116,7 +116,7 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: |-
+            build: >-
               set -e &&
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
               rustup target add aarch64-unknown-linux-gnu &&
@@ -128,19 +128,19 @@ jobs:
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-arm-linux-gnueabihf -y
-            build: |
+            build: >-
               set -e &&
               npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf &&
               arm-linux-gnueabihf-strip *.node
           - host: ubuntu-latest
             target: aarch64-linux-android
-            build: |
+            build: >-
               set -e &&
               npm run build:napi -- --release --target aarch64-linux-android &&
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
           - host: ubuntu-latest
             target: armv7-linux-androideabi
-            build: |
+            build: >-
               set -e &&
               npm run build:napi -- --release --target armv7-linux-androideabi &&
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
