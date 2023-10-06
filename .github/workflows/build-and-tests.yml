@@ -297,7 +297,7 @@ jobs:
     needs:
       - test
       - lint
-    # TODO SWC once v4 is live, this should be changed
+    # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
       - name: Checkout Commit

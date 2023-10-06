@@ -6,7 +6,6 @@ module.exports = defineTest({
 				throw new Error(warning.message);
 			}
 		},
-		// TODO notable exception: Promise.resolve(thenable) not yet retained
 		// check against tree-shake: false when updating the shim
 		treeshake: true,
 		plugins: [

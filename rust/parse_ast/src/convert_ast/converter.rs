@@ -42,8 +42,7 @@ pub struct AstConverter<'a> {
 impl<'a> AstConverter<'a> {
   pub fn new(code: &'a str, annotations: &'a Vec<AnnotationWithType>) -> Self {
     Self {
-      // TODO SWC This is just a wild guess and should be refined with a large
-      // block of minified code
+      // This is just a wild guess and should be revisited from time to time
       buffer: Vec::with_capacity(20 * code.len()),
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),

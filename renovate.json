@@ -16,7 +16,6 @@
 		},
 		{
 			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance"],
-			"automergeSchedule": ["after 10am on Friday"],
 			"groupName": "minor/patch updates"
 		}
 	],
