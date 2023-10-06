@@ -1,4 +1,3 @@
 module.exports = defineTest({
-	description: 'remove empty statement from class member',
-	verifyAst: false
+	description: 'Do not crash if class body has empty statements'
 });

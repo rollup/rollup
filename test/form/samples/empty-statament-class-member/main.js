@@ -1,5 +1,7 @@
-export class Foo {
+class Foo {
 	foo() {
-		console.log(3);
+		console.log('foo');
 	};
 }
+
+console.log(Foo);

@@ -556,11 +556,11 @@ impl<'a> AstConverter<'a> {
       ClassMember::PrivateMethod(private_method) => self.convert_private_method(private_method),
       ClassMember::PrivateProp(private_property) => self.convert_private_property(private_property),
       ClassMember::StaticBlock(static_block) => self.convert_static_block(static_block),
-      ClassMember::Empty(empty_stmt) => self.convert_empty_statement(empty_stmt),
       ClassMember::TsIndexSignature(_) => {
         unimplemented!("Cannot convert ClassMember::TsIndexSignature")
       }
       ClassMember::AutoAccessor(_) => unimplemented!("Cannot convert ClassMember::AutoAccessor"),
+      ClassMember::Empty(_) => {}
     }
   }
 
@@ -1543,8 +1543,15 @@ impl<'a> AstConverter<'a> {
 
   fn convert_class_body(&mut self, class_members: &Vec<ClassMember>, start: u32, end: u32) {
     let end_position = self.add_type_and_explicit_start(&TYPE_CLASS_BODY, start);
+    let class_members_filtered: Vec<&ClassMember> = class_members
+      .iter()
+      .filter(|class_member| match class_member {
+        ClassMember::Empty(_) => false,
+        _ => true,
+      })
+      .collect();
     // body
-    self.convert_item_list(class_members, |ast_converter, class_member| {
+    self.convert_item_list(&class_members_filtered, |ast_converter, class_member| {
       ast_converter.convert_class_member(class_member);
       true
     });

@@ -2,8 +2,8 @@
 
 class Foo {
 	foo() {
-		console.log(3);
-	}
+		console.log('foo');
+	};
 }
 
-exports.Foo = Foo;
+console.log(Foo);

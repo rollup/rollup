@@ -1,13 +1,15 @@
-System.register([], (function (exports) {
+System.register([], (function () {
 	'use strict';
 	return {
 		execute: (function () {
 
 			class Foo {
 				foo() {
-					console.log(3);
-				}
-			} exports('Foo', Foo);
+					console.log('foo');
+				};
+			}
+
+			console.log(Foo);
 
 		})
 	};

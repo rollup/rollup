@@ -1,7 +1,7 @@
 class Foo {
 	foo() {
-		console.log(3);
-	}
+		console.log('foo');
+	};
 }
 
-export { Foo };
+console.log(Foo);
