@@ -141,7 +141,7 @@ jobs:
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
               rustup default nightly &&
               rustup target add aarch64-unknown-linux-musl &&
-              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-unknown-linux-musl-gcc' cargo build --manifest-path ./rust/Cargo.toml --release --target aarch64-unknown-linux-musl -p bindings_napi &&
+              RUSTFLAGS='-C target-feature=-crt-static -C linker-flavor=gcc' cargo build --manifest-path ./rust/Cargo.toml --release --target aarch64-unknown-linux-musl -p bindings_napi &&
               ls rust/target/aarch64-unknown-linux-musl/release
 #                            /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip swc.linux-arm64-musl.node
 #              RUSTFLAGS='-C target-feature=+crt-static -C link-arg=-lgcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
