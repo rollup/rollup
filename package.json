@@ -20,6 +20,7 @@
         "aarch64-linux-android",
         "aarch64-pc-windows-msvc",
         "aarch64-unknown-linux-gnu",
+        "aarch64-unknown-linux-musl",
         "armv7-linux-androideabi",
         "armv7-unknown-linux-gnueabihf",
         "i686-pc-windows-msvc",
@@ -33,7 +34,7 @@
   "scripts": {
     "build": "npm run build:wasm && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
-    "build:napi": "napi build --platform --dts native.d.ts --js native.js --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
+    "build:napi": "napi build --platform --dts native.d.ts --js false --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
     "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && shx rm wasm/.gitignore",
     "build:wasm:node": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm-node --target nodejs --no-pack && shx rm wasm-node/.gitignore",
     "update:napi": "npm run build:napi && npm run build:copy-native",

@@ -108,6 +108,7 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
               set -e &&
+              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
               rustup default nightly &&
               rustup target add aarch64-unknown-linux-gnu &&
               npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
@@ -131,16 +132,16 @@ jobs:
             build: |
               npm run build:napi -- --release --target armv7-linux-androideabi
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
-          # TODO SWC this does not work yet, also add back in package.json
-          #          - host: ubuntu-latest
-          #            target: aarch64-unknown-linux-musl
-          #            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-          #            build: |-
-          #              set -e &&
-          #              rustup default nightly &&
-          #              rustup target add aarch64-unknown-linux-musl &&
-          #              npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
-          #              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+              rustup default nightly &&
+              rustup target add aarch64-unknown-linux-musl &&
+              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
