@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.0.1
+
+_2023-10-06_
+
+### Bug Fixes
+
+- Do not panic on trailing semicolons after class methods (#5173)
+- Add artifact for arm64 linux musl target (#5176)
+
+### Pull Requests
+
+- [#5172](https://github.com/rollup/rollup/pull/5172): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5173](https://github.com/rollup/rollup/pull/5173): fix: ignores empty statements in class body that is returned by SWC parser (@TrickyPi)
+- [#5176](https://github.com/rollup/rollup/pull/5176): Fix linux arm musl build (@lukastaegert)
+
 ## 4.0.0
 
 _2023-10-05_
