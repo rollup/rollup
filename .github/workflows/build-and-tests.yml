@@ -119,6 +119,7 @@ jobs:
             build: >-
               set -e &&
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+              rustup default nightly-2023-10-05 &&
               rustup target add aarch64-unknown-linux-gnu &&
               npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
@@ -150,6 +151,7 @@ jobs:
             build: >-
               set -e &&
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+              rustup default nightly-2023-10-05 &&
               rustup target add aarch64-unknown-linux-musl &&
               RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
