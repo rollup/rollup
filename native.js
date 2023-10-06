@@ -28,7 +28,19 @@ const bindingsByPlatformAndArch = {
 const imported = bindingsByPlatformAndArch[platform]?.[arch];
 if (!imported) {
 	throw new Error(
-		`Your current platform "${platform}" and architecture "${arch}" combination is not supported yet by the native Rollup build. Please use the WASM build "@rollup/wasm-node" instead. Maybe you should support Rollup to make a native build for your platform and architecture available?`
+		`Your current platform "${platform}" and architecture "${arch}" combination is not yet supported by the native Rollup build. Please use the WASM build "@rollup/wasm-node" instead.
+
+The following platform-architecture combinations are supported:
+${Object.entries(bindingsByPlatformAndArch)
+	.flatMap(([platformName, architectures]) =>
+		Object.entries(architectures).flatMap(([architectureName, { musl }]) => {
+			const name = `${platformName}-${architectureName}`;
+			return musl ? [name, `${name} (musl)`] : [name];
+		})
+	)
+	.join('\n')}
+
+If this is important to you, please consider supporting Rollup to make a native build for your platform and architecture available.`
 	);
 }
 

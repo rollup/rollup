@@ -141,7 +141,7 @@ jobs:
               rustup default nightly &&
               rustup target add aarch64-unknown-linux-musl &&
               RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
-              aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
