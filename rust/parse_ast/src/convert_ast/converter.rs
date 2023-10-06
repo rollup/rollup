@@ -556,10 +556,10 @@ impl<'a> AstConverter<'a> {
       ClassMember::PrivateMethod(private_method) => self.convert_private_method(private_method),
       ClassMember::PrivateProp(private_property) => self.convert_private_property(private_property),
       ClassMember::StaticBlock(static_block) => self.convert_static_block(static_block),
+      ClassMember::Empty(empty_stmt) => self.convert_empty_statement(empty_stmt),
       ClassMember::TsIndexSignature(_) => {
         unimplemented!("Cannot convert ClassMember::TsIndexSignature")
       }
-      ClassMember::Empty(_) => unimplemented!("Cannot convert ClassMember::Empty"),
       ClassMember::AutoAccessor(_) => unimplemented!("Cannot convert ClassMember::AutoAccessor"),
     }
   }
