@@ -8,6 +8,9 @@ pub struct SequentialComments {
   annotations: RefCell<Vec<AnnotationWithType>>,
 }
 
+const ASCII_AT: u8 = '@' as u8;
+const ASCII_HASH: u8 = '#' as u8;
+
 impl SequentialComments {
   pub fn add_comment(&self, comment: Comment) {
     if comment.text.starts_with('#') && comment.text.contains("sourceMappingURL=") {
@@ -17,12 +20,18 @@ impl SequentialComments {
       });
       return;
     }
-    let mut search_position = 1;
+    let mut search_position = comment
+      .text
+      .chars()
+      .nth(0)
+      .map(|first_char| first_char.len_utf8())
+      .unwrap_or(0);
     while let Some(Some(match_position)) = comment.text.get(search_position..).map(|s| s.find("__"))
     {
       search_position += match_position;
-      match &comment.text[search_position - 1..search_position] {
-        "@" | "#" => {
+      // Using a byte reference avoids UTF8 character boundary checks
+      match &comment.text.as_bytes()[search_position - 1] {
+        &ASCII_AT | &ASCII_HASH => {
           let annotation_slice = &comment.text[search_position..];
           if annotation_slice.starts_with("__PURE__") {
             self.annotations.borrow_mut().push(AnnotationWithType {
@@ -41,7 +50,7 @@ impl SequentialComments {
         }
         _ => {}
       }
-      search_position += 3;
+      search_position += 2;
     }
   }
 
