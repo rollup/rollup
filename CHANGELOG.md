@@ -38,7 +38,6 @@ _2023-10-05_
 - The minimal required Node version is now 18.0.0 (#5142)
 - The browser build now relies on a WASM artifact that needs to be provided as well (#5073)
 - The NodeJS build now relies on an optional native binary; for unsupported platforms, users can use the `@rollup/wasm-node` package that has the same interface as Rollup but relies on WASM artifacts (#5073)
-- The "with" syntax for import attributes is not yet supported, awaiting support in SWC (#5073)
 - The `INVALID_IMPORT_ASSERTION` error code has been replaced with `INVALID_IMPORT_ATTRIBUTE` (#5073)
 - Rollup will now warn for `@__PURE__` and `@__NO_SIDE_EFFECTS__` annotations in invalid locations (#5165)
 - If an entry module starts with a shebang comment `#!...`, this comment will be prepended to the output for `es` and `cjs` formats (#5163)
@@ -67,7 +66,7 @@ _2023-10-05_
 - If the import of a module id is handled by the `load` hook of a plugin, `rollup.watch` no longer watches the actual file if the module id corresponds to a real path; if this is intended, then the plugin is responsible for calling `this.addWatchFile` for any dependency files (#5150)
 - The normalized input options provided by `buildStart` and other hooks no longer contain an `onwarn` handler; plugins should use `onLog` instead (#5147)
 - `this.moduleIds` has been removed from the plugin context: Use `this.getModuleIds()` instead (#5143)
-- The `hasModuleSideEffects` flag has been removed from the `ModuleInfo` returned by `thi s.getModuleInfo()`: Use `moduleSideEffects` on the `ModuleInfo` instead (#5143)
+- The `hasModuleSideEffects` flag has been removed from the `ModuleInfo` returned by `this.getModuleInfo()`: Use `moduleSideEffects` on the `ModuleInfo` instead (#5143)
 
 ### Features
 
