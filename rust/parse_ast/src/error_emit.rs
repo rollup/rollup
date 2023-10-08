@@ -42,7 +42,7 @@ impl Emitter for ErrorEmitter {
         pos = span.lo.0 - 1;
       };
       let message = &db.message[0].0;
-      buffer.extend_from_slice(&(pos as u32).to_ne_bytes());
+      buffer.extend_from_slice(&pos.to_ne_bytes());
       convert_string(&mut buffer, message);
       let _ = self.wr.write(&buffer);
     }
@@ -111,7 +111,7 @@ where
   }
 }
 
-fn create_error_buffer(wr: &Box<Writer>, code: &str) -> Vec<u8> {
+fn create_error_buffer(wr: &Writer, code: &str) -> Vec<u8> {
   let mut buffer = TYPE_PARSE_ERROR.to_vec();
   let mut lock = wr.0.lock();
   let mut error_buffer = take(&mut *lock);

@@ -311,7 +311,7 @@ impl<'a> AstConverter<'a> {
         Some(self.convert_parenthesized_expression(parenthesized_expression))
       }
       Expr::PrivateName(private_name) => {
-        self.convert_private_name(&private_name);
+        self.convert_private_name(private_name);
         None
       }
       Expr::Seq(sequence_expression) => {
@@ -565,7 +565,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_property_or_spread(&mut self, property_or_spread: &PropOrSpread) {
     match property_or_spread {
-      PropOrSpread::Prop(property) => self.convert_property(&**property),
+      PropOrSpread::Prop(property) => self.convert_property(property),
       PropOrSpread::Spread(spread_element) => self.convert_spread_element(spread_element),
     }
   }
@@ -598,10 +598,10 @@ impl<'a> AstConverter<'a> {
   ) -> (u32, u32) {
     let start = self.index_converter.convert(
       parenthesized_expression.span.lo.0 - 1,
-      match &*parenthesized_expression.expr {
-        Expr::Call(_) | Expr::New(_) | Expr::Paren(_) => true,
-        _ => false,
-      },
+      matches!(
+        &*parenthesized_expression.expr,
+        Expr::Call(_) | Expr::New(_) | Expr::Paren(_)
+      ),
     );
     self.convert_expression(&parenthesized_expression.expr);
     let end = self
@@ -613,7 +613,7 @@ impl<'a> AstConverter<'a> {
   fn convert_optional_chain_base(&mut self, optional_chain_base: &OptChainBase, is_optional: bool) {
     match optional_chain_base {
       OptChainBase::Member(member_expression) => {
-        self.convert_member_expression(&member_expression, is_optional, true)
+        self.convert_member_expression(member_expression, is_optional, true)
       }
       OptChainBase::Call(optional_call) => {
         self.convert_optional_call(optional_call, is_optional, true)
@@ -634,14 +634,14 @@ impl<'a> AstConverter<'a> {
       Callee::Expr(callee_expression) => self.store_call_expression(
         &call_expression.span,
         is_optional,
-        &StoredCallee::Expression(&callee_expression),
+        &StoredCallee::Expression(callee_expression),
         &call_expression.args,
         is_chained,
       ),
       Callee::Super(callee_super) => self.store_call_expression(
         &call_expression.span,
         is_optional,
-        &StoredCallee::Super(&callee_super),
+        &StoredCallee::Super(callee_super),
         &call_expression.args,
         is_chained,
       ),
@@ -666,7 +666,7 @@ impl<'a> AstConverter<'a> {
   fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
     self.store_export_named_declaration(
       &export_declaration.span,
-      &vec![],
+      &[],
       None,
       Some(&export_declaration.decl),
       &None,
@@ -685,10 +685,7 @@ impl<'a> AstConverter<'a> {
       None | Some(ExportSpecifier::Named(_)) => self.store_export_named_declaration(
         &export_named_declaration.span,
         &export_named_declaration.specifiers,
-        export_named_declaration
-          .src
-          .as_ref()
-          .map(|source| &**source),
+        export_named_declaration.src.as_deref(),
         None,
         &export_named_declaration.with,
       ),
@@ -748,7 +745,7 @@ impl<'a> AstConverter<'a> {
           &mut keep_checking_directives,
           |ast_converter, module_item, can_be_directive| {
             if *can_be_directive {
-              if let ModuleItem::Stmt(Stmt::Expr(expression)) = &*module_item {
+              if let ModuleItem::Stmt(Stmt::Expr(expression)) = module_item {
                 if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
                   ast_converter.convert_expression_statement(expression, Some(&string.value));
                   return true;
@@ -767,7 +764,7 @@ impl<'a> AstConverter<'a> {
           &mut keep_checking_directives,
           |ast_converter, statement, can_be_directive| {
             if *can_be_directive {
-              if let Stmt::Expr(expression) = &*statement {
+              if let Stmt::Expr(expression) = statement {
                 if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
                   ast_converter.convert_expression_statement(expression, Some(&string.value));
                   return true;
@@ -805,10 +802,10 @@ impl<'a> AstConverter<'a> {
     // expression
     self.convert_expression(&expression_statement.expr);
     // directive
-    directive.map(|directive| {
+    if let Some(directive) = directive {
       self.update_reference_position(reference_position);
       self.convert_string(directive);
-    });
+    }
     // end
     self.add_end(end_position, &expression_statement.span);
   }
@@ -816,7 +813,7 @@ impl<'a> AstConverter<'a> {
   fn store_export_named_declaration(
     &mut self,
     span: &Span,
-    specifiers: &Vec<ExportSpecifier>,
+    specifiers: &[ExportSpecifier],
     src: Option<&Str>,
     declaration: Option<&Decl>,
     with: &Option<Box<ObjectLit>>,
@@ -838,15 +835,15 @@ impl<'a> AstConverter<'a> {
       true
     });
     // declaration
-    declaration.map(|declaration| {
+    if let Some(declaration) = declaration {
       self.update_reference_position(reference_position);
-      self.convert_declaration(declaration)
-    });
+      self.convert_declaration(declaration);
+    }
     // src
-    src.map(|src| {
+    if let Some(src) = src {
       self.update_reference_position(reference_position + 4);
-      self.convert_literal_string(src)
-    });
+      self.convert_literal_string(src);
+    }
     // attributes
     self.update_reference_position(reference_position + 8);
     self.store_import_attributes(with);
@@ -861,10 +858,10 @@ impl<'a> AstConverter<'a> {
     // value, needs to be little endian as we are reading via a DataView
     self.buffer.extend_from_slice(&literal.value.to_le_bytes());
     // raw
-    literal.raw.as_ref().map(|raw| {
+    if let Some(raw) = literal.raw.as_ref() {
       self.update_reference_position(reference_position);
-      self.convert_string(&*raw);
-    });
+      self.convert_string(raw);
+    }
   }
 
   fn convert_literal_string(&mut self, literal: &Str) {
@@ -874,20 +871,17 @@ impl<'a> AstConverter<'a> {
     // value
     self.convert_string(&literal.value);
     // raw
-    literal.raw.as_ref().map(|raw| {
+    if let Some(raw) = literal.raw.as_ref() {
       self.update_reference_position(reference_position);
-      self.convert_string(&*raw);
-    });
+      self.convert_string(raw);
+    }
   }
 
   fn convert_variable_declaration(&mut self, variable_declaration: &VarDecl) {
     let end_position = self.add_type_and_start_and_handle_annotations(
       &TYPE_VARIABLE_DECLARATION,
       &variable_declaration.span,
-      match variable_declaration.kind {
-        VarDeclKind::Const => true,
-        _ => false,
-      },
+      matches!(variable_declaration.kind, VarDeclKind::Const),
     );
     self
       .buffer
@@ -927,13 +921,13 @@ impl<'a> AstConverter<'a> {
     // id
     self.convert_pattern(&variable_declarator.name);
     // init
-    forwarded_annotations.map(|annotations| {
+    if let Some(annotations) = forwarded_annotations {
       self.index_converter.add_collected_annotations(annotations);
-    });
-    variable_declarator.init.as_ref().map(|init| {
+    }
+    if let Some(init) = variable_declarator.init.as_ref() {
       self.update_reference_position(reference_position);
-      self.convert_expression(&init);
-    });
+      self.convert_expression(init);
+    }
     // end
     self.add_end(end_position, &variable_declarator.span);
   }
@@ -954,10 +948,10 @@ impl<'a> AstConverter<'a> {
     // local
     self.convert_module_export_name(&export_named_specifier.orig);
     // exported
-    export_named_specifier.exported.as_ref().map(|exported| {
+    if let Some(exported) = export_named_specifier.exported.as_ref() {
       self.update_reference_position(reference_position);
-      self.convert_module_export_name(&exported);
-    });
+      self.convert_module_export_name(exported);
+    }
     // end
     self.add_end(end_position, &export_named_specifier.span);
   }
@@ -976,7 +970,7 @@ impl<'a> AstConverter<'a> {
     );
     // src
     self.update_reference_position(reference_position);
-    self.convert_literal_string(&*import_declaration.src);
+    self.convert_literal_string(&import_declaration.src);
     // attributes
     self.update_reference_position(reference_position + 4);
     self.store_import_attributes(&import_declaration.with);
@@ -1002,17 +996,17 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn store_import_expression(&mut self, span: &Span, arguments: &Vec<ExprOrSpread>) {
+  fn store_import_expression(&mut self, span: &Span, arguments: &[ExprOrSpread]) {
     let end_position = self.add_type_and_start(&TYPE_IMPORT_EXPRESSION, span);
     // reserve for options
     let reference_position = self.reserve_reference_positions(1);
     // source
-    self.convert_expression(&*arguments.first().unwrap().expr);
+    self.convert_expression(&arguments.first().unwrap().expr);
     // options
-    arguments.get(1).map(|argument| {
+    if let Some(argument) = arguments.get(1) {
       self.update_reference_position(reference_position);
       self.convert_expression_or_spread(argument);
-    });
+    }
     // end
     self.add_end(end_position, span);
   }
@@ -1071,10 +1065,10 @@ impl<'a> AstConverter<'a> {
     // reserve for imported, local
     let reference_position = self.reserve_reference_positions(2);
     // imported
-    import_named_specifier.imported.as_ref().map(|imported| {
+    if let Some(imported) = import_named_specifier.imported.as_ref() {
       self.update_reference_position(reference_position);
-      self.convert_module_export_name(&imported);
-    });
+      self.convert_module_export_name(imported);
+    }
     // local
     self.update_reference_position(reference_position + 4);
     self.convert_identifier(&import_named_specifier.local);
@@ -1133,7 +1127,7 @@ impl<'a> AstConverter<'a> {
       &mut keep_checking_directives,
       |ast_converter, statement, can_be_directive| {
         if *can_be_directive {
-          if let Stmt::Expr(expression) = &*statement {
+          if let Stmt::Expr(expression) = statement {
             if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
               ast_converter.convert_expression_statement(expression, Some(&string.value));
               return true;
@@ -1186,10 +1180,7 @@ impl<'a> AstConverter<'a> {
     // optional
     self.convert_boolean(is_optional);
     // computed
-    self.convert_boolean(match property {
-      MemberOrSuperProp::Computed(_) => true,
-      _ => false,
-    });
+    self.convert_boolean(matches!(property, MemberOrSuperProp::Computed(_)));
     // reserve property
     let reference_position = self.reserve_reference_positions(1);
     // object
@@ -1206,16 +1197,16 @@ impl<'a> AstConverter<'a> {
       ExpressionOrSuper::Expression(expression) => {
         self.convert_expression(expression);
       }
-      ExpressionOrSuper::Super(super_token) => self.convert_super(&super_token),
+      ExpressionOrSuper::Super(super_token) => self.convert_super(super_token),
     }
     // property
     self.update_reference_position(reference_position);
     match property {
-      MemberOrSuperProp::Identifier(ident) => self.convert_identifier(&ident),
+      MemberOrSuperProp::Identifier(ident) => self.convert_identifier(ident),
       MemberOrSuperProp::Computed(computed) => {
         self.convert_expression(&computed.expr);
       }
-      MemberOrSuperProp::PrivateName(private_name) => self.convert_private_name(&private_name),
+      MemberOrSuperProp::PrivateName(private_name) => self.convert_private_name(private_name),
     }
     // end
     self.add_end(end_position, span);
@@ -1278,10 +1269,10 @@ impl<'a> AstConverter<'a> {
       &export_default_declaration.span,
       match &export_default_declaration.decl {
         DefaultDecl::Class(class_expression) => {
-          StoredDefaultExportExpression::Class(&class_expression)
+          StoredDefaultExportExpression::Class(class_expression)
         }
         DefaultDecl::Fn(function_expression) => {
-          StoredDefaultExportExpression::Function(&function_expression)
+          StoredDefaultExportExpression::Function(function_expression)
         }
         DefaultDecl::TsInterfaceDecl(_) => {
           unimplemented!("Cannot convert ExportDefaultDeclaration with TsInterfaceDecl")
@@ -1298,19 +1289,19 @@ impl<'a> AstConverter<'a> {
     let end_position = self.add_type_and_start_and_handle_annotations(
       &TYPE_EXPORT_DEFAULT_DECLARATION,
       span,
-      match expression {
+      matches!(
+        expression,
         StoredDefaultExportExpression::Expression(Expr::Fn(_) | Expr::Arrow(_))
-        | StoredDefaultExportExpression::Function(_) => true,
-        _ => false,
-      },
+          | StoredDefaultExportExpression::Function(_)
+      ),
     );
     // expression
     match expression {
       StoredDefaultExportExpression::Expression(expression) => {
-        self.convert_expression(&expression);
+        self.convert_expression(expression);
       }
       StoredDefaultExportExpression::Class(class_expression) => {
-        self.convert_class_expression(&class_expression, &TYPE_CLASS_DECLARATION)
+        self.convert_class_expression(class_expression, &TYPE_CLASS_DECLARATION)
       }
       StoredDefaultExportExpression::Function(function_expression) => self.convert_function(
         &function_expression.function,
@@ -1351,10 +1342,10 @@ impl<'a> AstConverter<'a> {
     // reserve exported, source, attributes
     let reference_position = self.reserve_reference_positions(3);
     // exported
-    exported.map(|exported| {
+    if let Some(exported) = exported {
       self.update_reference_position(reference_position);
       self.convert_module_export_name(exported);
-    });
+    }
     // source
     self.update_reference_position(reference_position + 4);
     self.convert_literal_string(source);
@@ -1485,6 +1476,7 @@ impl<'a> AstConverter<'a> {
     node_type: &[u8; 4],
     identifier: Option<&Ident>,
   ) {
+    let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
     self.store_function_node(
       node_type,
       function.span.lo.0 - 1,
@@ -1492,7 +1484,7 @@ impl<'a> AstConverter<'a> {
       function.is_async,
       function.is_generator,
       identifier,
-      &function.params.iter().map(|param| &param.pat).collect(),
+      &parameters,
       function.body.as_ref().unwrap(),
       true,
     );
@@ -1520,17 +1512,17 @@ impl<'a> AstConverter<'a> {
     let reference_position = self.reserve_reference_positions(3);
     let mut body_start_search = class.span.lo.0 - 1;
     // id
-    identifier.map(|identifier| {
+    if let Some(identifier) = identifier {
       self.update_reference_position(reference_position);
       self.convert_identifier(identifier);
       body_start_search = identifier.span.hi.0 - 1;
-    });
+    }
     // super_class
-    class.super_class.as_ref().map(|super_class| {
+    if let Some(super_class) = class.super_class.as_ref() {
       self.update_reference_position(reference_position + 4);
       self.convert_expression(super_class);
       body_start_search = self.get_expression_span(super_class).hi.0 - 1;
-    });
+    }
     // body
     self.update_reference_position(reference_position + 8);
     let class_body_start =
@@ -1540,14 +1532,11 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &class.span);
   }
 
-  fn convert_class_body(&mut self, class_members: &Vec<ClassMember>, start: u32, end: u32) {
+  fn convert_class_body(&mut self, class_members: &[ClassMember], start: u32, end: u32) {
     let end_position = self.add_type_and_explicit_start(&TYPE_CLASS_BODY, start);
     let class_members_filtered: Vec<&ClassMember> = class_members
       .iter()
-      .filter(|class_member| match class_member {
-        ClassMember::Empty(_) => false,
-        _ => true,
-      })
+      .filter(|class_member| !matches!(class_member, ClassMember::Empty(_)))
       .collect();
     // body
     self.convert_item_list(&class_members_filtered, |ast_converter, class_member| {
@@ -1629,15 +1618,15 @@ impl<'a> AstConverter<'a> {
         None
       }
       PropName::Str(string) => {
-        self.convert_literal_string(&string);
+        self.convert_literal_string(string);
         None
       }
       PropName::Num(number) => {
-        self.convert_literal_number(&number);
+        self.convert_literal_number(number);
         None
       }
       PropName::BigInt(bigint) => {
-        self.convert_literal_bigint(&bigint);
+        self.convert_literal_bigint(bigint);
         None
       }
     }
@@ -1664,10 +1653,7 @@ impl<'a> AstConverter<'a> {
     // method
     self.convert_boolean(false);
     // computed
-    self.convert_boolean(match property_name {
-      PropName::Computed(_) => true,
-      _ => false,
-    });
+    self.convert_boolean(matches!(property_name, PropName::Computed(_)));
     // shorthand
     self.convert_boolean(false);
     // reserve key, value
@@ -1725,10 +1711,7 @@ impl<'a> AstConverter<'a> {
     // method
     self.convert_boolean(false);
     // computed
-    self.convert_boolean(match &key {
-      PropName::Computed(_) => true,
-      _ => false,
-    });
+    self.convert_boolean(matches!(key, PropName::Computed(_)));
     // shorthand
     self.convert_boolean(false);
     // reserve key, value
@@ -1736,7 +1719,7 @@ impl<'a> AstConverter<'a> {
     // key
     self.update_reference_position(reference_position);
     self.convert_property_name(key);
-    let key_end = self.get_property_name_span(&key).hi.0 - 1;
+    let key_end = self.get_property_name_span(key).hi.0 - 1;
     // value
     let block_statement = body.as_ref().expect("Getter/setter property without body");
     self.update_reference_position(reference_position + 4);
@@ -1786,10 +1769,7 @@ impl<'a> AstConverter<'a> {
     // method
     self.convert_boolean(true);
     // computed
-    self.convert_boolean(match &method_property.key {
-      PropName::Computed(_) => true,
-      _ => false,
-    });
+    self.convert_boolean(matches!(&method_property.key, PropName::Computed(_)));
     // shorthand
     self.convert_boolean(false);
     // reserve key, value
@@ -1802,6 +1782,7 @@ impl<'a> AstConverter<'a> {
     // value
     self.update_reference_position(reference_position + 4);
     let function = &method_property.function;
+    let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
     self.store_function_node(
       &TYPE_FUNCTION_EXPRESSION,
       function_start,
@@ -1809,7 +1790,7 @@ impl<'a> AstConverter<'a> {
       function.is_async,
       function.is_generator,
       None,
-      &function.params.iter().map(|param| &param.pat).collect(),
+      &parameters,
       function.body.as_ref().unwrap(),
       false,
     );
@@ -1924,7 +1905,7 @@ impl<'a> AstConverter<'a> {
     if let Some(expressions_or_spread) = &new_expression.args {
       self.update_reference_position(reference_position + 4);
       self.convert_item_list(
-        &expressions_or_spread,
+        expressions_or_spread,
         |ast_converter, expression_or_spread| {
           ast_converter.convert_expression_or_spread(expression_or_spread);
           true
@@ -1935,6 +1916,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &new_expression.span);
   }
 
+  #[allow(clippy::too_many_arguments)]
   fn store_function_node(
     &mut self,
     node_type: &[u8; 4],
@@ -1943,7 +1925,7 @@ impl<'a> AstConverter<'a> {
     is_async: bool,
     is_generator: bool,
     identifier: Option<&Ident>,
-    parameters: &Vec<&Pat>,
+    parameters: &[&Pat],
     body: &BlockStmt,
     observe_annotations: bool,
   ) {
@@ -1967,14 +1949,14 @@ impl<'a> AstConverter<'a> {
       self.buffer.extend_from_slice(&0u32.to_ne_bytes());
     }
     // id
-    identifier.map(|ident| {
+    if let Some(ident) = identifier {
       self.update_reference_position(reference_position);
       self.convert_identifier(ident);
-    });
+    }
     // params
     self.update_reference_position(reference_position + 4);
     self.convert_item_list(parameters, |ast_converter, param| {
-      ast_converter.convert_pattern(&param);
+      ast_converter.convert_pattern(param);
       true
     });
     // body
@@ -2013,9 +1995,9 @@ impl<'a> AstConverter<'a> {
     let left_position = (self.buffer.len() >> 2) as u32;
     match left {
       PatternOrIdentifier::Pattern(pattern) => {
-        self.convert_pattern(&pattern);
+        self.convert_pattern(pattern);
       }
-      PatternOrIdentifier::Identifier(identifier) => self.convert_identifier(&identifier),
+      PatternOrIdentifier::Identifier(identifier) => self.convert_identifier(identifier),
     }
     // right
     self.update_reference_position(reference_position);
@@ -2051,10 +2033,10 @@ impl<'a> AstConverter<'a> {
     // reserve label
     let reference_position = self.reserve_reference_positions(1);
     // label
-    break_statement.label.as_ref().map(|label| {
+    if let Some(label) = break_statement.label.as_ref() {
       self.update_reference_position(reference_position);
       self.convert_identifier(label);
-    });
+    }
     // end
     self.add_end(end_position, &break_statement.span);
   }
@@ -2066,15 +2048,15 @@ impl<'a> AstConverter<'a> {
     // block
     self.convert_block_statement(&try_statement.block, false);
     // handler
-    try_statement.handler.as_ref().map(|catch_clause| {
+    if let Some(catch_clause) = try_statement.handler.as_ref() {
       self.update_reference_position(reference_position);
       self.convert_catch_clause(catch_clause);
-    });
+    }
     // finalizer
-    try_statement.finalizer.as_ref().map(|block_statement| {
+    if let Some(block_statement) = try_statement.finalizer.as_ref() {
       self.update_reference_position(reference_position + 4);
       self.convert_block_statement(block_statement, false);
-    });
+    }
     // end
     self.add_end(end_position, &try_statement.span);
   }
@@ -2084,10 +2066,10 @@ impl<'a> AstConverter<'a> {
     // reserve param, body
     let reference_position = self.reserve_reference_positions(2);
     // param
-    catch_clause.param.as_ref().map(|pattern| {
+    if let Some(pattern) = catch_clause.param.as_ref() {
       self.update_reference_position(reference_position);
       self.convert_pattern(pattern);
-    });
+    }
     // body
     self.update_reference_position(reference_position + 4);
     self.convert_block_statement(&catch_clause.body, false);
@@ -2136,10 +2118,10 @@ impl<'a> AstConverter<'a> {
     // reserve label
     let reference_position = self.reserve_reference_positions(1);
     // label
-    continue_statement.label.as_ref().map(|label| {
+    if let Some(label) = continue_statement.label.as_ref() {
       self.update_reference_position(reference_position);
       self.convert_identifier(label);
-    });
+    }
     // end
     self.add_end(end_position, &continue_statement.span);
   }
@@ -2204,20 +2186,20 @@ impl<'a> AstConverter<'a> {
     // reserve init, test, update, body
     let reference_position = self.reserve_reference_positions(4);
     // init
-    for_statement.init.as_ref().map(|init| {
+    if let Some(init) = for_statement.init.as_ref() {
       self.update_reference_position(reference_position);
       self.convert_variable_declaration_or_expression(init);
-    });
+    }
     // test
-    for_statement.test.as_ref().map(|test| {
+    if let Some(test) = for_statement.test.as_ref() {
       self.update_reference_position(reference_position + 4);
       self.convert_expression(test);
-    });
+    }
     // update
-    for_statement.update.as_ref().map(|update| {
+    if let Some(update) = for_statement.update.as_ref() {
       self.update_reference_position(reference_position + 8);
       self.convert_expression(update);
-    });
+    }
     // body
     self.update_reference_position(reference_position + 12);
     self.convert_statement(&for_statement.body);
@@ -2235,10 +2217,10 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(reference_position);
     self.convert_statement(&if_statement.cons);
     // alternate
-    if_statement.alt.as_ref().map(|alt| {
+    if let Some(alt) = if_statement.alt.as_ref() {
       self.update_reference_position(reference_position + 4);
       self.convert_statement(alt);
-    });
+    }
     // end
     self.add_end(end_position, &if_statement.span);
   }
@@ -2323,6 +2305,14 @@ impl<'a> AstConverter<'a> {
         self.update_reference_position(reference_position);
         let key_end = self.get_property_name_span(&constructor.key).hi.0 - 1;
         let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
+        let parameters: Vec<&Pat> = constructor
+          .params
+          .iter()
+          .map(|param| match param {
+            ParamOrTsParamProp::Param(param) => &param.pat,
+            ParamOrTsParamProp::TsParamProp(_) => panic!("TsParamProp in constructor"),
+          })
+          .collect();
         self.store_function_node(
           &TYPE_FUNCTION_EXPRESSION,
           function_start,
@@ -2330,14 +2320,7 @@ impl<'a> AstConverter<'a> {
           false,
           false,
           None,
-          &constructor
-            .params
-            .iter()
-            .map(|param| match param {
-              ParamOrTsParamProp::Param(param) => &param.pat,
-              ParamOrTsParamProp::TsParamProp(_) => panic!("TsParamProp in constructor"),
-            })
-            .collect(),
+          &parameters,
           block_statement,
           false,
         );
@@ -2356,10 +2339,7 @@ impl<'a> AstConverter<'a> {
       &method.kind,
       method.is_static,
       PropOrPrivateName::PropName(&method.key),
-      match method.key {
-        PropName::Computed(_) => true,
-        _ => false,
-      },
+      matches!(method.key, PropName::Computed(_)),
       &method.function,
     );
   }
@@ -2400,17 +2380,18 @@ impl<'a> AstConverter<'a> {
     // key
     let key_end = match key {
       PropOrPrivateName::PropName(prop_name) => {
-        self.convert_property_name(&prop_name);
-        self.get_property_name_span(&prop_name).hi.0 - 1
+        self.convert_property_name(prop_name);
+        self.get_property_name_span(prop_name).hi.0 - 1
       }
       PropOrPrivateName::PrivateName(private_name) => {
-        self.convert_private_name(&private_name);
+        self.convert_private_name(private_name);
         private_name.id.span.hi.0 - 1
       }
     };
     let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     // value
     self.update_reference_position(reference_position);
+    let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
     self.store_function_node(
       &TYPE_FUNCTION_EXPRESSION,
       function_start,
@@ -2418,7 +2399,7 @@ impl<'a> AstConverter<'a> {
       function.is_async,
       function.is_generator,
       None,
-      &function.params.iter().map(|param| &param.pat).collect(),
+      &parameters,
       function.body.as_ref().unwrap(),
       false,
     );
@@ -2444,9 +2425,9 @@ impl<'a> AstConverter<'a> {
     // key
     match key {
       PropOrPrivateName::PropName(prop_name) => {
-        self.convert_property_name(&prop_name);
+        self.convert_property_name(prop_name);
       }
-      PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(&private_name),
+      PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(private_name),
     }
     // value
     value.map(|expression| {
@@ -2460,16 +2441,10 @@ impl<'a> AstConverter<'a> {
   fn convert_class_property(&mut self, class_property: &ClassProp) {
     self.store_property_definition(
       &class_property.span,
-      match &class_property.key {
-        PropName::Computed(_) => true,
-        _ => false,
-      },
+      matches!(&class_property.key, PropName::Computed(_)),
       class_property.is_static,
       PropOrPrivateName::PropName(&class_property.key),
-      &class_property
-        .value
-        .as_ref()
-        .map(|expression| &**expression),
+      &class_property.value.as_deref(),
     );
   }
 
@@ -2479,10 +2454,7 @@ impl<'a> AstConverter<'a> {
       false,
       private_property.is_static,
       PropOrPrivateName::PrivateName(&private_property.key),
-      &private_property
-        .value
-        .as_ref()
-        .map(|expression| &**expression),
+      &private_property.value.as_deref(),
     );
   }
 
@@ -2507,9 +2479,9 @@ impl<'a> AstConverter<'a> {
       false,
       &ExpressionOrSuper::Super(&super_property.obj),
       match &super_property.prop {
-        SuperProp::Ident(identifier) => MemberOrSuperProp::Identifier(&identifier),
+        SuperProp::Ident(identifier) => MemberOrSuperProp::Identifier(identifier),
         SuperProp::Computed(computed_property_name) => {
-          MemberOrSuperProp::Computed(&computed_property_name)
+          MemberOrSuperProp::Computed(computed_property_name)
         }
       },
       false,
@@ -2624,7 +2596,7 @@ impl<'a> AstConverter<'a> {
     for expression in template_literal.exprs.as_slice() {
       // convert expression
       let insert_position = (self.buffer.len() as u32) >> 2;
-      self.convert_expression(&expression);
+      self.convert_expression(expression);
       self.buffer[next_expression_position..next_expression_position + 4]
         .copy_from_slice(&insert_position.to_ne_bytes());
       next_expression_position += 4;
@@ -2649,10 +2621,10 @@ impl<'a> AstConverter<'a> {
     // raw
     self.convert_string(&template_element.raw);
     // cooked
-    template_element.cooked.as_ref().map(|cooked| {
+    if let Some(cooked) = template_element.cooked.as_ref() {
       self.update_reference_position(reference_position);
-      self.convert_string(cooked)
-    });
+      self.convert_string(cooked);
+    }
   }
 
   fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {

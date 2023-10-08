@@ -1,4 +1,3 @@
-use std::mem;
 use std::slice::Iter;
 use std::str::Chars;
 
@@ -126,12 +125,11 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   pub fn invalidate_collected_annotations(&mut self) {
     self
       .invalid_annotations
-      .extend(self.collected_annotations.drain(..));
+      .append(&mut self.collected_annotations);
   }
 
   pub fn take_invalid_annotations(&mut self) -> Vec<ConvertedAnnotation> {
-    let invalid_annotations = mem::replace(&mut self.invalid_annotations, Vec::new());
-    invalid_annotations
+    std::mem::take(&mut self.invalid_annotations)
   }
 }
 
