@@ -492,7 +492,7 @@ export default {
 		if (level === 'warn') {
 			handler('error', log); // turn other warnings into errors
 		} else {
-			handler(level, info); // otherwise, just print the log
+			handler(level, log); // otherwise, just print the log
 		}
 	}
 };
