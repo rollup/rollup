@@ -60,8 +60,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
         Ok(program) => {
           let annotations = comments.take_annotations();
           let converter = AstConverter::new(&code_reference, &annotations);
-          let buffer = converter.convert_ast_to_buffer(&program);
-          buffer
+          converter.convert_ast_to_buffer(&program)
         }
       }
     })
