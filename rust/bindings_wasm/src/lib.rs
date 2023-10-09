@@ -1,7 +1,6 @@
 use js_sys::Uint8Array;
 use parse_ast::parse_ast;
 use wasm_bindgen::prelude::*;
-use xxhash;
 
 #[wasm_bindgen]
 pub fn parse(code: String, allow_return_outside_function: bool) -> Vec<u8> {

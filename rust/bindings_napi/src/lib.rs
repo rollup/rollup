@@ -3,7 +3,6 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use parse_ast::parse_ast;
-use xxhash;
 
 #[napi]
 pub fn parse(code: String, allow_return_outside_function: bool) -> Buffer {
@@ -12,5 +11,5 @@ pub fn parse(code: String, allow_return_outside_function: bool) -> Buffer {
 
 #[napi]
 pub fn xxhash_base64_url(input: Uint8Array) -> String {
-  xxhash::xxhash_base64_url(&input.to_vec())
+  xxhash::xxhash_base64_url(&input)
 }
