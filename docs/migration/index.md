@@ -20,7 +20,7 @@ For larger configs, it can make sense to update to `rollup@3.29.4` first, add th
 
 ## General Changes
 
-Rollup now relies on some native code. For most users, this code should automatically be installed as an optional dependency depending on your platform and architecture. If your system is not supported, you can instead use `@rollup/wasm-node` as a platform-independent drop-in replacement.
+Rollup now includes native code that is automatically installed (and removed) as an [optional npm dependency](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#optionaldependencies) if your platform and architecture is supported. More precisely, Rollup has a list of `optionalDependencies`, each of which only install on a specific [`os`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#os) and [`cpu`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#cpu). If your system is not supported, you will receive an error message when starting Rollup that will tell you about your platform and architecture and gives you a list of supported ones. In that case, you can instead use `@rollup/wasm-node` as a platform-independent drop-in replacement.
 
 Otherwise, an obvious change is that Rollup now uses url-safe base64 hashes in file names instead of the older base16 hashes. This provides more hash safety but means that hash length is now limited to at most 22 characters for technical reasons.
 
