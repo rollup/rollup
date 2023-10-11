@@ -34,9 +34,10 @@
   "scripts": {
     "build": "npm run build:wasm && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
-    "build:napi": "napi build --platform --dts native.d.ts --js false --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
-    "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && shx rm wasm/.gitignore",
-    "build:wasm:node": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm-node --target nodejs --no-pack && shx rm wasm-node/.gitignore",
+    "build:napi": "npm run build:binding -- --binding=napi",
+    "build:wasm": "npm run build:binding -- --binding=wasm",
+    "build:wasm:node": "npm run build:binding -- --binding=wasm-node",
+    "build:binding": "node scripts/build-bindings.js",
     "update:napi": "npm run build:napi && npm run build:copy-native",
     "build:js": "rollup --config rollup.config.ts --configPlugin typescript",
     "build:js:node": "rollup --config rollup.config.ts --configPlugin typescript --configIsBuildNode",

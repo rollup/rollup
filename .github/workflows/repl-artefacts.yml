@@ -53,7 +53,9 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts
-        run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi -- --release' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
+        env:
+          BUILD_ARTEFACTS: 'build'
+        run: npm exec -- concurrently -c green,blue,yellow 'npm:build:napi' 'npm run build:wasm' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap
       - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
         uses: zdurham/s3-upload-github-action@master
         with:
