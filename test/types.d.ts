@@ -169,6 +169,11 @@ export interface TestConfigForm extends TestConfigBase {
 	 * Rollup options for bundling.
 	 */
 	options?: RollupOptions;
+	/**
+	 * Verify that the AST returned by SWC is the same as the one returned by Acorn.
+	 * The default behavior is to verify.
+	 */
+	verifyAst?: boolean;
 }
 
 export interface TestConfigFunction extends TestConfigBase {
@@ -224,6 +229,11 @@ export interface TestConfigFunction extends TestConfigBase {
 	 * Make assertions on the expected warnings.
 	 */
 	warnings?: RollupError[] | ((warnings: RollupError[]) => boolean | void);
+	/**
+	 * Verify that the AST returned by SWC is the same as the one returned by Acorn.
+	 * The default behavior is to verify.
+	 */
+	verifyAst?: boolean;
 }
 
 export interface TestConfigSourcemap extends TestConfigBase {
