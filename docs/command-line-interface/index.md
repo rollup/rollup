@@ -559,7 +559,7 @@ There is also some advanced syntax available for more complex filters.
 
 ### `--forceExit`
 
-Force exit the process when done. In some cases plugins or their dependencies might accidentally not cleanup after themselves properly and prevent the CLI process from exiting. Sometimes the root cause can be hard to diagnose and this flag provides an escape hatch until it can be resolved.
+Force exit the process when done. In some cases plugins or their dependencies might not cleanup properly and prevent the CLI process from exiting. The root cause can be hard to diagnose and this flag provides an escape hatch until it can be identified and resolved.
 
 Note that this might break certain workflows and won't always work properly.
 
