@@ -168,14 +168,13 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		super();
 		// Nodes can opt-in to keep the AST if needed during the build pipeline.
 		// Avoid true when possible as large AST takes up memory.
+
 		if (keepEsTreeNode) {
 			this.esTreeNode = esTreeNode;
 		}
 
 		const { type } = esTreeNode;
-		if (!keys[type]) {
-			keys[type] = createKeysForNode(esTreeNode);
-		}
+		keys[type] ||= createKeysForNode(esTreeNode);
 
 		this.parent = parent;
 		this.scope = parentScope;
