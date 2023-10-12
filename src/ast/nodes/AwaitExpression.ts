@@ -17,13 +17,13 @@ export default class AwaitExpression extends NodeBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
-			checkTopLevelAwait: if (!this.context.usesTopLevelAwait) {
+			checkTopLevelAwait: if (!this.scope.context.usesTopLevelAwait) {
 				let parent = this.parent;
 				do {
 					if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
 						break checkTopLevelAwait;
 				} while ((parent = (parent as Node).parent as Node));
-				this.context.usesTopLevelAwait = true;
+				this.scope.context.usesTopLevelAwait = true;
 			}
 		}
 		this.argument.include(context, includeChildrenRecursively);

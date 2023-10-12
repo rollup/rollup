@@ -148,7 +148,7 @@ export default class MemberExpression
 			const resolvedVariable = resolveNamespaceVariables(
 				baseVariable,
 				path!.slice(1),
-				this.context
+				this.scope.context
 			);
 			if (!resolvedVariable) {
 				super.bind();
@@ -379,7 +379,7 @@ export default class MemberExpression
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		const { propertyReadSideEffects } = this.context.options
+		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		if (
 			// Namespaces are not bound and should not be deoptimized
@@ -393,13 +393,13 @@ export default class MemberExpression
 				[propertyKey],
 				SHARED_RECURSION_TRACKER
 			);
-			this.context.requestTreeshakingPass();
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 
 	private applyAssignmentDeoptimization(): void {
 		this.assignmentDeoptimized = true;
-		const { propertyReadSideEffects } = this.context.options
+		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		if (
 			// Namespaces are not bound and should not be deoptimized
@@ -412,7 +412,7 @@ export default class MemberExpression
 				[this.getPropertyKey()],
 				SHARED_RECURSION_TRACKER
 			);
-			this.context.requestTreeshakingPass();
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 
@@ -421,11 +421,11 @@ export default class MemberExpression
 			const variable = this.scope.findVariable(this.object.name);
 			if (variable.isNamespace) {
 				if (this.variable) {
-					this.context.includeVariableInModule(this.variable);
+					this.scope.context.includeVariableInModule(this.variable);
 				}
-				this.context.log(
+				this.scope.context.log(
 					LOGLEVEL_WARN,
-					logIllegalImportReassignment(this.object.name, this.context.module.id),
+					logIllegalImportReassignment(this.object.name, this.scope.context.module.id),
 					this.start
 				);
 			}
@@ -447,7 +447,7 @@ export default class MemberExpression
 	}
 
 	private hasAccessEffect(context: HasEffectsContext) {
-		const { propertyReadSideEffects } = this.context.options
+		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		return (
 			!(this.variable || this.isUndefined) &&
@@ -468,7 +468,7 @@ export default class MemberExpression
 		if (!this.included) {
 			this.included = true;
 			if (this.variable) {
-				this.context.includeVariableInModule(this.variable);
+				this.scope.context.includeVariableInModule(this.variable);
 			}
 		}
 		this.object.include(context, includeChildrenRecursively);

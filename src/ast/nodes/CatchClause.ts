@@ -1,5 +1,5 @@
 import CatchScope from '../scopes/CatchScope';
-import type Scope from '../scopes/Scope';
+import type ChildScope from '../scopes/ChildScope';
 import type BlockStatement from './BlockStatement';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -13,8 +13,8 @@ export default class CatchClause extends NodeBase {
 	declare scope: CatchScope;
 	declare type: NodeType.tCatchClause;
 
-	createScope(parentScope: Scope): void {
-		this.scope = new CatchScope(parentScope, this.context);
+	createScope(parentScope: ChildScope): void {
+		this.scope = new CatchScope(parentScope, this.scope.context);
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
@@ -23,7 +23,7 @@ export default class CatchClause extends NodeBase {
 		// name instead of the variable
 		const { param } = esTreeNode;
 		if (param) {
-			(this.param as GenericEsTreeNode) = new (this.context.getNodeConstructor(param.type))(
+			(this.param as GenericEsTreeNode) = new (this.scope.context.getNodeConstructor(param.type))(
 				param,
 				this,
 				this.scope

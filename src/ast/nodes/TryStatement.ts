@@ -16,15 +16,16 @@ export default class TryStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		return (
-			((this.context.options.treeshake as NormalizedTreeshakingOptions).tryCatchDeoptimization
+			((this.scope.context.options.treeshake as NormalizedTreeshakingOptions).tryCatchDeoptimization
 				? this.block.body.length > 0
 				: this.block.hasEffects(context)) || !!this.finalizer?.hasEffects(context)
 		);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		const tryCatchDeoptimization = (this.context.options.treeshake as NormalizedTreeshakingOptions)
-			?.tryCatchDeoptimization;
+		const tryCatchDeoptimization = (
+			this.scope.context.options.treeshake as NormalizedTreeshakingOptions
+		)?.tryCatchDeoptimization;
 		const { brokenFlow, includedLabels } = context;
 		if (!this.directlyIncluded || !tryCatchDeoptimization) {
 			this.included = true;

@@ -37,7 +37,7 @@ export default class BlockStatement extends StatementBase {
 	createScope(parentScope: ChildScope): void {
 		this.scope = (this.parent as Node).preventChildBlockScope
 			? (parentScope as ChildScope)
-			: new BlockScope(parentScope, parentScope.context);
+			: new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

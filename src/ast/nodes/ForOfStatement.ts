@@ -32,7 +32,7 @@ export default class ForOfStatement extends StatementBase {
 	}
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new BlockScope(parentScope, parentScope.context);
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(): boolean {
@@ -68,6 +68,6 @@ export default class ForOfStatement extends StatementBase {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }

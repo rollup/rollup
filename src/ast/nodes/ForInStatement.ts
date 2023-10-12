@@ -24,7 +24,7 @@ export default class ForInStatement extends StatementBase {
 	declare type: NodeType.tForInStatement;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new BlockScope(parentScope, parentScope.context);
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -60,6 +60,6 @@ export default class ForInStatement extends StatementBase {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }

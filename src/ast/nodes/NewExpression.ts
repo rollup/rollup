@@ -67,6 +67,6 @@ export default class NewExpression extends NodeBase {
 			EMPTY_PATH,
 			SHARED_RECURSION_TRACKER
 		);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }

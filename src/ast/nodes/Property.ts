@@ -40,8 +40,9 @@ export default class Property extends MethodBase implements PatternNode {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions)
-			.propertyReadSideEffects;
+		const propertyReadSideEffects = (
+			this.scope.context.options.treeshake as NormalizedTreeshakingOptions
+		).propertyReadSideEffects;
 		return (
 			(this.parent.type === 'ObjectPattern' && propertyReadSideEffects === 'always') ||
 			this.key.hasEffects(context) ||
@@ -64,7 +65,7 @@ export default class Property extends MethodBase implements PatternNode {
 		this.deoptimized = true;
 		if (this.declarationInit !== null) {
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
-			this.context.requestTreeshakingPass();
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 }

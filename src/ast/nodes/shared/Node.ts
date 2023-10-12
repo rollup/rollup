@@ -34,12 +34,12 @@ export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
 	annotations?: RollupAnnotation[];
-	context: AstContext;
 	end: number;
 	esTreeNode?: GenericEsTreeNode;
 	included: boolean;
 	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
+	scope: ChildScope;
 	preventChildBlockScope?: boolean;
 	start: number;
 	type: string;
@@ -135,9 +135,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	declare annotationPure?: boolean;
 	declare annotations?: RollupAnnotation[];
 
-	get context(): AstContext {
-		return this.scope.context;
-	}
 	declare end: number;
 	esTreeNode?: AstNode;
 	parent: Node | { context: AstContext; type: string };
@@ -185,8 +182,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		this.createScope(parentScope);
 		this.parseNode(esTreeNode);
 		this.initialise();
-		this.context.magicString.addSourcemapLocation(this.start);
-		this.context.magicString.addSourcemapLocation(this.end);
+		this.scope.context.magicString.addSourcemapLocation(this.start);
+		this.scope.context.magicString.addSourcemapLocation(this.end);
 	}
 
 	addExportedVariables(
@@ -286,7 +283,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				if (key === ANNOTATION_KEY) {
 					const annotations = value as RollupAnnotation[];
 					this.annotations = annotations;
-					if ((this.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
+					if ((this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
 						this.annotationNoSideEffects = annotations.some(
 							comment => comment.type === 'noSideEffects'
 						);
@@ -294,13 +291,13 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					}
 				} else if (key === INVALID_ANNOTATION_KEY) {
 					for (const { start, end, type } of value as RollupAnnotation[]) {
-						this.context.magicString.remove(start, end);
+						this.scope.context.magicString.remove(start, end);
 						if (type === 'pure' || type === 'noSideEffects') {
-							this.context.log(
+							this.scope.context.log(
 								LOGLEVEL_WARN,
 								logInvalidAnnotation(
-									this.context.code.slice(start, end),
-									this.context.module.id,
+									this.scope.context.code.slice(start, end),
+									this.scope.context.module.id,
 									type
 								),
 								start
@@ -316,7 +313,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
-							: new (this.context.getNodeConstructor(child.type))(
+							: new (this.scope.context.getNodeConstructor(child.type))(
 									child,
 									this,
 									this.scope,
@@ -325,7 +322,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					);
 				}
 			} else {
-				(this as GenericEsTreeNode)[key] = new (this.context.getNodeConstructor(value.type))(
+				(this as GenericEsTreeNode)[key] = new (this.scope.context.getNodeConstructor(value.type))(
 					value,
 					this,
 					this.scope,
@@ -383,22 +380,28 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				value.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }
 
 export { NodeBase as StatementBase };
 
 export function locateNode(node: Node): Location & { file: string } {
-	const location = locate(node.context.code, node.start, { offsetLine: 1 }) as Location & {
+	const {
+		start,
+		scope: {
+			context: { code, fileName }
+		}
+	} = node;
+	const location = locate(code, start, { offsetLine: 1 }) as Location & {
 		file: string;
 	};
-	location.file = node.context.fileName;
+	location.file = fileName;
 	location.toString = () => JSON.stringify(location);
 
 	return location;
 }
 
 export function logNode(node: Node): string {
-	return node.context.code.slice(node.start, node.end);
+	return node.scope.context.code.slice(node.start, node.end);
 }

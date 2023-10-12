@@ -32,9 +32,9 @@ export default class Program extends NodeBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) {
-				if (this.context.options.experimentalLogSideEffects && !this.hasLoggedEffect) {
+				if (this.scope.context.options.experimentalLogSideEffects && !this.hasLoggedEffect) {
 					this.hasLoggedEffect = true;
-					const { code, log, module } = this.context;
+					const { code, log, module } = this.scope.context;
 					log(
 						LOGLEVEL_INFO,
 						logFirstSideEffect(code, module.id, locate(code, node.start, { offsetLine: 1 })!),

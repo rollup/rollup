@@ -61,7 +61,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
-			const { context, expressionsToBeDeoptimized } = this;
+			const {
+				scope: { context },
+				expressionsToBeDeoptimized
+			} = this;
 			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();

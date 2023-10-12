@@ -15,7 +15,7 @@ export default class StaticBlock extends StatementBase {
 	declare type: NodeType.tStaticBlock;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new BlockScope(parentScope, parentScope.context);
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

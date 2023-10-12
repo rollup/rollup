@@ -26,7 +26,7 @@ export default class SpreadElement extends NodeBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		const { propertyReadSideEffects } = this.context.options
+		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		return (
 			this.argument.hasEffects(context) ||
@@ -45,6 +45,6 @@ export default class SpreadElement extends NodeBase {
 		// Only properties of properties of the argument could become subject to reassignment
 		// This will also reassign the return values of iterators
 		this.argument.deoptimizePath([UnknownKey, UnknownKey]);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }

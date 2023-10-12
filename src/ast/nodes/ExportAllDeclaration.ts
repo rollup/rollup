@@ -18,7 +18,7 @@ export default class ExportAllDeclaration extends NodeBase {
 	}
 
 	initialise(): void {
-		this.context.addExport(this);
+		this.scope.context.addExport(this);
 	}
 
 	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {

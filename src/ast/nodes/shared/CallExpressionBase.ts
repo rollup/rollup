@@ -72,7 +72,7 @@ export default abstract class CallExpressionBase extends NodeBase implements Deo
 	deoptimizePath(path: ObjectPath): void {
 		if (
 			path.length === 0 ||
-			this.context.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
+			this.scope.context.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
 		) {
 			return;
 		}

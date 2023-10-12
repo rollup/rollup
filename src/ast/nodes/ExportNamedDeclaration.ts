@@ -28,7 +28,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 	}
 
 	initialise(): void {
-		this.context.addExport(this);
+		this.scope.context.addExport(this);
 	}
 
 	removeAnnotations(code: MagicString) {

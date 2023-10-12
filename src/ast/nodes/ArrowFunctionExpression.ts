@@ -22,7 +22,7 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	protected objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: Scope): void {
-		this.scope = new ReturnValueScope(parentScope, this.context);
+		this.scope = new ReturnValueScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(): boolean {

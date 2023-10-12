@@ -124,7 +124,7 @@ export default abstract class FunctionBase extends NodeBase {
 			if (!this.deoptimizedReturn) {
 				this.deoptimizedReturn = true;
 				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-				this.context.requestTreeshakingPass();
+				this.scope.context.requestTreeshakingPass();
 			}
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
@@ -145,7 +145,7 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 
 		if (this.async) {
-			const { propertyReadSideEffects } = this.context.options
+			const { propertyReadSideEffects } = this.scope.context.options
 				.treeshake as NormalizedTreeshakingOptions;
 			const returnExpression = this.scope.getReturnExpression();
 			if (

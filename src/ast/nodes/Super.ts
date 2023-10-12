@@ -27,7 +27,7 @@ export default class Super extends NodeBase {
 	include(): void {
 		if (!this.included) {
 			this.included = true;
-			this.context.includeVariableInModule(this.variable);
+			this.scope.context.includeVariableInModule(this.variable);
 		}
 	}
 }

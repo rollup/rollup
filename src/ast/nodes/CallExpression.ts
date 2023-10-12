@@ -40,11 +40,11 @@ export default class CallExpression
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
+				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
 			}
 
 			if (this.callee.name === 'eval') {
-				this.context.log(LOGLEVEL_WARN, logEval(this.context.module.id), this.start);
+				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
 			}
 		}
 		this.interaction = {
@@ -121,7 +121,7 @@ export default class CallExpression
 			EMPTY_PATH,
 			SHARED_RECURSION_TRACKER
 		);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 
 	protected getReturnExpression(

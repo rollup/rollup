@@ -22,7 +22,7 @@ export default class SwitchStatement extends StatementBase {
 
 	createScope(parentScope: ChildScope): void {
 		this.parentScope = parentScope;
-		this.scope = new BlockScope(parentScope, parentScope.context);
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -93,7 +93,7 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.discriminant = new (this.context.getNodeConstructor(esTreeNode.discriminant.type))(
+		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
 			esTreeNode.discriminant,
 			this,
 			this.parentScope
