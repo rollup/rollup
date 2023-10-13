@@ -20,6 +20,8 @@
 		}
 	],
 	"automerge": true,
+	"automergeType": "pr",
+	"platformAutomerge": true,
 	"internalChecksFilter": "strict",
 	"lockFileMaintenance": {
 		"enabled": true,
