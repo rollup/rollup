@@ -14,6 +14,13 @@ const NATIVE_JS_CONTENT = `
 const { parse } = require('./wasm-node/bindings_wasm.js');
 
 exports.parse = parse
+exports.parseAsync = async (
+	code,
+	allowReturnOutsideFunction,
+	_signal
+) => {
+	return parse(code, allowReturnOutsideFunction);
+}
 `;
 
 function getPath(...arguments_) {

@@ -342,11 +342,35 @@ export default {
 In order to parse arbitrary code using Rollup's parser, plugins can use [`this.parse`](../plugin-development/index.md#this-parse). To use this functionality outside the context of a Rollup build, the parser is also exposed as a separate export. It has the same signature as `this.parse`:
 
 ```js
-import { parseAst } from 'rollup/parseAst';
+import { parseAst, parseAstAsync } from 'rollup/parseAst';
 import assert from 'node:assert';
 
 assert.deepEqual(
 	parseAst('return 42;', { allowReturnOutsideFunction: true }),
+	{
+		type: 'Program',
+		start: 0,
+		end: 10,
+		body: [
+			{
+				type: 'ReturnStatement',
+				start: 0,
+				end: 10,
+				argument: {
+					type: 'Literal',
+					start: 7,
+					end: 9,
+					raw: '42',
+					value: 42
+				}
+			}
+		],
+		sourceType: 'module'
+	}
+);
+
+assert.deepEqual(
+	await parseAstAsync('return 42;', { allowReturnOutsideFunction: true }),
 	{
 		type: 'Program',
 		start: 0,
