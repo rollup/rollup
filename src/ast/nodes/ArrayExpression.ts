@@ -76,7 +76,7 @@ export default class ArrayExpression extends NodeBase {
 				element.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 
 	private getObjectEntity(): ObjectEntity {

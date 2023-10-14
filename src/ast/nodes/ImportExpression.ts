@@ -153,14 +153,14 @@ export default class ImportExpression extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) {
 			this.included = true;
-			this.context.includeDynamicImport(this);
+			this.scope.context.includeDynamicImport(this);
 			this.scope.addAccessedDynamicImport(this);
 		}
 		this.source.include(context, includeChildrenRecursively);
 	}
 
 	initialise(): void {
-		this.context.addDynamicImport(this);
+		this.scope.context.addDynamicImport(this);
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
@@ -278,7 +278,7 @@ export default class ImportExpression extends NodeBase {
 			{
 				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
 				format,
-				moduleId: this.context.module.id,
+				moduleId: this.scope.context.module.id,
 				targetModuleId:
 					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
 			}

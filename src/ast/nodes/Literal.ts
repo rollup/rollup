@@ -40,10 +40,10 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		if (
 			path.length > 0 ||
 			// unknown literals can also be null but do not start with an "n"
-			(this.value === null && this.context.code.charCodeAt(this.start) !== 110) ||
+			(this.value === null && this.scope.context.code.charCodeAt(this.start) !== 110) ||
 			typeof this.value === 'bigint' ||
 			// to support shims for regular expressions
-			this.context.code.charCodeAt(this.start) === 47
+			this.scope.context.code.charCodeAt(this.start) === 47
 		) {
 			return UnknownValue;
 		}

@@ -14,6 +14,7 @@ import {
 	SHARED_RECURSION_TRACKER
 } from '../../utils/PathTracker';
 import type PrivateIdentifier from '../PrivateIdentifier';
+import { Flag, isFlagSet, setFlag } from './BitFlags';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -23,10 +24,16 @@ import { type ExpressionNode, NodeBase } from './Node';
 import type { PatternNode } from './Pattern';
 
 export default class MethodBase extends NodeBase implements DeoptimizableEntity {
-	declare computed: boolean;
 	declare key: ExpressionNode | PrivateIdentifier;
 	declare kind: 'constructor' | 'method' | 'init' | 'get' | 'set';
 	declare value: ExpressionNode | (ExpressionNode & PatternNode);
+
+	get computed(): boolean {
+		return isFlagSet(this.flags, Flag.computed);
+	}
+	set computed(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.computed, value);
+	}
 
 	private accessedValue: [expression: ExpressionEntity, isPure: boolean] | null = null;
 

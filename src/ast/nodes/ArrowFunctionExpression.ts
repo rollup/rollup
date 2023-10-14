@@ -14,7 +14,6 @@ import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import type { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends FunctionBase {
-	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
 	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;
@@ -23,7 +22,7 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	protected objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: Scope): void {
-		this.scope = new ReturnValueScope(parentScope, this.context);
+		this.scope = new ReturnValueScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(): boolean {

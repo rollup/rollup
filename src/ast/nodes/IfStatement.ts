@@ -67,15 +67,15 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		this.consequentScope = new TrackingScope(this.scope);
-		this.consequent = new (this.context.getNodeConstructor(esTreeNode.consequent.type))(
+		this.consequentScope = new TrackingScope(this.scope, this.scope.context);
+		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
 			esTreeNode.consequent,
 			this,
 			this.consequentScope
 		);
 		if (esTreeNode.alternate) {
-			this.alternateScope = new TrackingScope(this.scope);
-			this.alternate = new (this.context.getNodeConstructor(esTreeNode.alternate.type))(
+			this.alternateScope = new TrackingScope(this.scope, this.scope.context);
+			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
 				esTreeNode.alternate,
 				this,
 				this.alternateScope
@@ -92,7 +92,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		const testValue = this.getTestValue();
 		const hoistedDeclarations: Identifier[] = [];
 		const includesIfElse = this.test.included;
-		const noTreeshake = !this.context.options.treeshake;
+		const noTreeshake = !this.scope.context.options.treeshake;
 		if (includesIfElse) {
 			this.test.render(code, options);
 		} else {

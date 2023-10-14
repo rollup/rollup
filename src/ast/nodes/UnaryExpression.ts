@@ -6,6 +6,7 @@ import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTrac
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
 import type * as NodeType from './NodeType';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
@@ -24,8 +25,14 @@ const unaryOperators: {
 export default class UnaryExpression extends NodeBase {
 	declare argument: ExpressionNode;
 	declare operator: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
-	declare prefix: boolean;
 	declare type: NodeType.tUnaryExpression;
+
+	get prefix(): boolean {
+		return isFlagSet(this.flags, Flag.prefix);
+	}
+	set prefix(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.prefix, value);
+	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
@@ -61,7 +68,7 @@ export default class UnaryExpression extends NodeBase {
 		this.deoptimized = true;
 		if (this.operator === 'delete') {
 			this.argument.deoptimizePath(EMPTY_PATH);
-			this.context.requestTreeshakingPass();
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 }

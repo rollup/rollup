@@ -10,12 +10,12 @@ export default class ClassBodyScope extends ChildScope {
 	readonly thisVariable: LocalVariable;
 
 	constructor(parent: Scope, classNode: ClassNode, context: AstContext) {
-		super(parent);
+		super(parent, context);
 		this.variables.set(
 			'this',
 			(this.thisVariable = new LocalVariable('this', null, classNode, context))
 		);
-		this.instanceScope = new ChildScope(this);
+		this.instanceScope = new ChildScope(this, context);
 		this.instanceScope.variables.set('this', new ThisVariable(context));
 	}
 

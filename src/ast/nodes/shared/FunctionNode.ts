@@ -14,7 +14,6 @@ import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import type { PatternNode } from './Pattern';
 
 export default class FunctionNode extends FunctionBase {
-	declare async: boolean;
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
 	declare params: readonly PatternNode[];
@@ -24,7 +23,7 @@ export default class FunctionNode extends FunctionBase {
 	private declare constructedEntity: ObjectEntity;
 
 	createScope(parentScope: FunctionScope): void {
-		this.scope = new FunctionScope(parentScope, this.context);
+		this.scope = new FunctionScope(parentScope, this.scope.context);
 		this.constructedEntity = new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE);
 		// This makes sure that all deoptimizations of "this" are applied to the
 		// constructed entity.

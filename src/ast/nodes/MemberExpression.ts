@@ -35,6 +35,7 @@ import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
@@ -95,19 +96,49 @@ export default class MemberExpression
 	extends NodeBase
 	implements DeoptimizableEntity, ChainElement
 {
-	declare computed: boolean;
 	declare object: ExpressionNode | Super;
-	declare optional: boolean;
 	declare property: ExpressionNode | PrivateIdentifier;
 	declare propertyKey: ObjectPathKey | null;
 	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
 	protected declare assignmentInteraction: NodeInteractionAssigned;
 	private declare accessInteraction: NodeInteractionAccessed;
-	private assignmentDeoptimized = false;
-	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private isUndefined = false;
+
+	get computed(): boolean {
+		return isFlagSet(this.flags, Flag.computed);
+	}
+	set computed(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.computed, value);
+	}
+
+	get optional(): boolean {
+		return isFlagSet(this.flags, Flag.optional);
+	}
+	set optional(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.optional, value);
+	}
+
+	private get assignmentDeoptimized(): boolean {
+		return isFlagSet(this.flags, Flag.assignmentDeoptimized);
+	}
+	private set assignmentDeoptimized(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.assignmentDeoptimized, value);
+	}
+
+	private get bound(): boolean {
+		return isFlagSet(this.flags, Flag.bound);
+	}
+	private set bound(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.bound, value);
+	}
+
+	private get isUndefined(): boolean {
+		return isFlagSet(this.flags, Flag.isUndefined);
+	}
+	private set isUndefined(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.isUndefined, value);
+	}
 
 	bind(): void {
 		this.bound = true;
@@ -117,7 +148,7 @@ export default class MemberExpression
 			const resolvedVariable = resolveNamespaceVariables(
 				baseVariable,
 				path!.slice(1),
-				this.context
+				this.scope.context
 			);
 			if (!resolvedVariable) {
 				super.bind();
@@ -348,7 +379,7 @@ export default class MemberExpression
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		const { propertyReadSideEffects } = this.context.options
+		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		if (
 			// Namespaces are not bound and should not be deoptimized
@@ -362,13 +393,13 @@ export default class MemberExpression
 				[propertyKey],
 				SHARED_RECURSION_TRACKER
 			);
-			this.context.requestTreeshakingPass();
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 
 	private applyAssignmentDeoptimization(): void {
 		this.assignmentDeoptimized = true;
-		const { propertyReadSideEffects } = this.context.options
+		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		if (
 			// Namespaces are not bound and should not be deoptimized
@@ -381,7 +412,7 @@ export default class MemberExpression
 				[this.getPropertyKey()],
 				SHARED_RECURSION_TRACKER
 			);
-			this.context.requestTreeshakingPass();
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 
@@ -390,11 +421,11 @@ export default class MemberExpression
 			const variable = this.scope.findVariable(this.object.name);
 			if (variable.isNamespace) {
 				if (this.variable) {
-					this.context.includeVariableInModule(this.variable);
+					this.scope.context.includeVariableInModule(this.variable);
 				}
-				this.context.log(
+				this.scope.context.log(
 					LOGLEVEL_WARN,
-					logIllegalImportReassignment(this.object.name, this.context.module.id),
+					logIllegalImportReassignment(this.object.name, this.scope.context.module.id),
 					this.start
 				);
 			}
@@ -416,7 +447,7 @@ export default class MemberExpression
 	}
 
 	private hasAccessEffect(context: HasEffectsContext) {
-		const { propertyReadSideEffects } = this.context.options
+		const { propertyReadSideEffects } = this.scope.context.options
 			.treeshake as NormalizedTreeshakingOptions;
 		return (
 			!(this.variable || this.isUndefined) &&
@@ -437,7 +468,7 @@ export default class MemberExpression
 		if (!this.included) {
 			this.included = true;
 			if (this.variable) {
-				this.context.includeVariableInModule(this.variable);
+				this.scope.context.includeVariableInModule(this.variable);
 			}
 		}
 		this.object.include(context, includeChildrenRecursively);
