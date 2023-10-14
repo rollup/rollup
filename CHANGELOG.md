@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 4.1.0
+
+_2023-10-14_
+
+### Features
+
+- Reduce memory usage of Rollup builds (#5133)
+
+### Pull Requests
+
+- [#5133](https://github.com/rollup/rollup/pull/5133): perf: reducing ast node memory overhead (@thebanjomatic)
+- [#5177](https://github.com/rollup/rollup/pull/5177): chore: explicitly set rust toolchain channel (@cijiugechu)
+- [#5179](https://github.com/rollup/rollup/pull/5179): Update migration guide for Rollup 4 (@lukastaegert)
+- [#5180](https://github.com/rollup/rollup/pull/5180): Resolve clippy errors (@cijiugechu)
+- [#5183](https://github.com/rollup/rollup/pull/5183): Add clippy to pipeline and fix remaining issues (@lukastaegert)
+- [#5184](https://github.com/rollup/rollup/pull/5184): docs: fix code example for `onLog` (@tjenkinson)
+- [#5186](https://github.com/rollup/rollup/pull/5186): Improve wording for native artifacts in migration guide (@lukastaegert)
+- [#5190](https://github.com/rollup/rollup/pull/5190): test: add verifyAst type (@TrickyPi)
+- [#5196](https://github.com/rollup/rollup/pull/5196): chore(deps): update dependency rollup to v4 (@renovate[bot])
+- [#5197](https://github.com/rollup/rollup/pull/5197): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.0.2
 
 _2023-10-06_
