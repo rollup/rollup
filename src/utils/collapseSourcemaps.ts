@@ -12,11 +12,11 @@ import { error, logConflictingSourcemapSources, logSourcemapBroken } from './log
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
-	readonly content: string | null;
+	readonly content: string;
 	readonly filename: string;
 	isOriginal = true;
 
-	constructor(filename: string, content: string | null) {
+	constructor(filename: string, content: string) {
 		this.filename = filename;
 		this.content = content;
 	}
@@ -50,7 +50,7 @@ class Link {
 	traceMappings() {
 		const sources: string[] = [];
 		const sourceIndexMap = new Map<string, number>();
-		const sourcesContent: (string | null)[] = [];
+		const sourcesContent: string[] = [];
 		const names: string[] = [];
 		const nameIndexMap = new Map<string, number>();
 
@@ -194,7 +194,7 @@ function getCollapsedSourcemap(
 
 export function collapseSourcemaps(
 	file: string,
-	map: DecodedSourceMap,
+	map: Omit<DecodedSourceMap, 'sourcesContent'> & { sourcesContent: Array<string | null> },
 	modules: readonly Module[],
 	bundleSourcemapChain: readonly DecodedSourceMapOrMissing[],
 	excludeContent: boolean | undefined,

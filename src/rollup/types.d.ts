@@ -54,7 +54,7 @@ export interface ExistingDecodedSourceMap {
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];
-	sourcesContent?: (string | null)[];
+	sourcesContent?: string[];
 	version: number;
 	x_google_ignoreList?: number[];
 }
@@ -65,7 +65,7 @@ export interface ExistingRawSourceMap {
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];
-	sourcesContent?: (string | null)[];
+	sourcesContent?: string[];
 	version: number;
 	x_google_ignoreList?: number[];
 }
@@ -82,7 +82,7 @@ export interface SourceMap {
 	mappings: string;
 	names: string[];
 	sources: string[];
-	sourcesContent: (string | null)[];
+	sourcesContent?: string[];
 	version: number;
 	toString(): string;
 	toUrl(): string;
