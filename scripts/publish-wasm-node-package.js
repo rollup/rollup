@@ -1,6 +1,6 @@
-import fs from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-
+import { fileURLToPath } from 'node:url';
 import { readJson, runWithEcho } from './helpers.js';
 import { MAIN_PACKAGE } from './release-constants.js';
 
@@ -9,14 +9,14 @@ const WASM_NODE_PACKAGE_INFO = {
 	name: '@rollup/wasm-node'
 };
 const COPIED_FILES_OR_DIRS = ['LICENSE.md', 'dist'];
-const PACKAGE_DIR = 'wasm-node-package';
+const PACKAGE_DIR = fileURLToPath(new URL('../wasm-node-package', import.meta.url));
 
-function getPath(...arguments_) {
+function getOutputPath(...arguments_) {
 	return resolve(PACKAGE_DIR, ...arguments_);
 }
 
 export default async function publishWasmNodePackage() {
-	await fs.mkdir(PACKAGE_DIR);
+	await mkdir(PACKAGE_DIR);
 
 	const mainPackage = await readJson(MAIN_PACKAGE);
 	mainPackage.files.unshift('dist/wasm-node/*.wasm');
@@ -24,9 +24,9 @@ export default async function publishWasmNodePackage() {
 	delete mainPackage.scripts;
 
 	await Promise.all([
-		...COPIED_FILES_OR_DIRS.map(file => fs.cp(file, getPath(file), { recursive: true })),
-		fs.writeFile(
-			getPath('package.json'),
+		...COPIED_FILES_OR_DIRS.map(file => cp(file, getOutputPath(file), { recursive: true })),
+		writeFile(
+			getOutputPath('package.json'),
 			JSON.stringify(
 				{
 					...mainPackage,
@@ -38,11 +38,11 @@ export default async function publishWasmNodePackage() {
 		)
 	]);
 
-	const nativeJsContent = await fs.readFile(resolve(__dirname, '../native.wasm.js'), 'utf8');
+	const nativeJsContent = await readFile(new URL('../native.wasm.js', import.meta.url), 'utf8');
 
 	await Promise.all([
-		fs.writeFile(getPath('dist', 'native.js'), nativeJsContent.trimStart()),
-		fs.cp('artifacts/bindings-wasm-node/wasm-node', getPath('dist', 'wasm-node'), {
+		writeFile(getOutputPath('dist', 'native.js'), nativeJsContent.trimStart()),
+		cp('artifacts/bindings-wasm-node/wasm-node', getOutputPath('dist', 'wasm-node'), {
 			recursive: true
 		})
 	]);
