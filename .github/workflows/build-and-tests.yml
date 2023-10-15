@@ -311,6 +311,7 @@ jobs:
     needs:
       - test
       - lint
+      - build
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
