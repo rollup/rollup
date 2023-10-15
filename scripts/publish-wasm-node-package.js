@@ -10,11 +10,6 @@ const WASM_NODE_PACKAGE_INFO = {
 };
 const COPIED_FILES_OR_DIRS = ['LICENSE.md', 'dist'];
 const PACKAGE_DIR = 'wasm-node-package';
-const NATIVE_JS_CONTENT = `
-const { parse } = require('./wasm-node/bindings_wasm.js');
-
-exports.parse = parse
-`;
 
 function getPath(...arguments_) {
 	return resolve(PACKAGE_DIR, ...arguments_);
@@ -43,8 +38,10 @@ export default async function publishWasmNodePackage() {
 		)
 	]);
 
+	const nativeJsContent = await fs.readFile(resolve(__dirname, '../native.wasm.js'), 'utf8');
+
 	await Promise.all([
-		fs.writeFile(getPath('dist', 'native.js'), NATIVE_JS_CONTENT.trimStart()),
+		fs.writeFile(getPath('dist', 'native.js'), nativeJsContent.trimStart()),
 		fs.cp('artifacts/bindings-wasm-node/wasm-node', getPath('dist', 'wasm-node'), {
 			recursive: true
 		})
