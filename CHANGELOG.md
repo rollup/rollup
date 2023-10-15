@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.1.1
+
+_2023-10-15_
+
+### Bug Fixes
+
+- Improve Node parsing performance (#5201)
+
+### Pull Requests
+
+- [#5201](https://github.com/rollup/rollup/pull/5201): perf: use mimalloc for bindings_napi (@sapphi-red)
+
 ## 4.1.0
 
 _2023-10-14_
