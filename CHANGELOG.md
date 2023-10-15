@@ -1,6 +1,6 @@
 # rollup changelog
 
-## 4.1.2
+## 4.1.3
 
 _2023-10-15_
 
@@ -11,6 +11,12 @@ _2023-10-15_
 ### Pull Requests
 
 - [#5203](https://github.com/rollup/rollup/pull/5203): fix: export xxhashBase64Url from wasm (@sapphi-red)
+
+## 4.1.2
+
+_2023-10-15_
+
+_Release did not finish successfully_
 
 ## 4.1.1
 
