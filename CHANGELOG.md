@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.1.2
+
+_2023-10-15_
+
+### Bug Fixes
+
+- Fix WASM build as hash function was not exported (#5203)
+
+### Pull Requests
+
+- [#5203](https://github.com/rollup/rollup/pull/5203): fix: export xxhashBase64Url from wasm (@sapphi-red)
+
 ## 4.1.1
 
 _2023-10-15_
