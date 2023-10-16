@@ -56,7 +56,7 @@ onMounted(async () => {
 			const relevantMessages = messages.filter(
 				(message): message is RollupLog & { pos: number } =>
 					typeof message.pos === 'number' &&
-					getFileNameFromMessage(message) === properties.moduleName
+					getFileNameFromMessage(message) === `/${properties.moduleName}`
 			);
 			editor.dispatch({ effects: [addWarningsEffect.of({ messages: relevantMessages, type })] });
 		};
