@@ -5,13 +5,8 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'throws on double default exports',
 	error: {
-		cause: {
-			code: 'PARSE_ERROR',
-			message: 'the name `default` is exported multiple times',
-			pos: 18
-		},
-		code: 'PARSE_ERROR',
-		message: 'the name `default` is exported multiple times',
+		code: 'DUPLICATE_EXPORT',
+		message: 'Duplicate export `default`',
 		id: ID_FOO,
 		pos: 18,
 		watchFiles: [ID_FOO, ID_MAIN],

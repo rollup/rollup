@@ -84,6 +84,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
+	DUPLICATE_EXPORT = 'DUPLICATE_EXPORT',
 	DUPLICATE_IMPORT_OPTIONS = 'DUPLICATE_IMPORT_OPTIONS',
 	DUPLICATE_PLUGIN_NAME = 'DUPLICATE_PLUGIN_NAME',
 	EMPTY_BUNDLE = 'EMPTY_BUNDLE',
@@ -816,6 +817,10 @@ export function logParseError(message: string, pos: number): RollupLog {
 
 export function logRedeclarationError(name: string): RollupLog {
 	return { code: REDECLARATION_ERROR, message: `Identifier \`${name}\` has already been declared` };
+}
+
+export function logDuplicateExportError(name: string): RollupLog {
+	return { code: DUPLICATE_EXPORT, message: `Duplicate export \`${name}\`` };
 }
 
 export function logModuleParseError(error: Error, moduleId: string): RollupLog {
