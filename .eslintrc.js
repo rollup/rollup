@@ -116,12 +116,13 @@ module.exports = {
 				// 'fsevents' is only available on macOS, and not installed on linux/windows
 				ignore: [
 					'fsevents',
-					'help.md',
+					'help\\.md',
 					'is-reference',
 					'package.json',
 					'types',
-					'examples.json',
-					'locate-character'
+					'examples\\.json',
+					'locate-character',
+					'^emit:'
 				]
 			}
 		],

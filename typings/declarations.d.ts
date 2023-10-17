@@ -4,6 +4,11 @@ declare module 'help.md' {
 	export default value;
 }
 
+declare module 'emit:*' {
+	const value: string;
+	export default value;
+}
+
 // external libs
 declare module 'rollup-plugin-string' {
 	import type { PluginImpl } from 'rollup';

@@ -12,6 +12,7 @@ import addCliEntry from './build-plugins/add-cli-entry';
 import { moduleAliases } from './build-plugins/aliases';
 import cleanBeforeWrite from './build-plugins/clean-before-write';
 import { copyBrowserTypes, copyNodeTypes } from './build-plugins/copy-types';
+import emitFile from './build-plugins/emit-file';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import { emitNativeEntry } from './build-plugins/emit-native-entry';
 import emitWasmFile from './build-plugins/emit-wasm-file';
@@ -50,7 +51,8 @@ const nodePlugins: readonly Plugin[] = [
 	}),
 	typescript(),
 	cleanBeforeWrite('dist'),
-	externalNativeImport()
+	externalNativeImport(),
+	emitFile()
 ];
 
 export default async function (

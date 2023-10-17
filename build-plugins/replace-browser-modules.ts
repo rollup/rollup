@@ -12,7 +12,8 @@ const JS_REPLACED_MODULES = [
 	'performance',
 	'process',
 	'resolveId',
-	'initWasm'
+	'initWasm',
+	'parseAstAsync'
 ];
 
 type ModulesMap = [string, string][];
@@ -41,7 +42,7 @@ export default function replaceBrowserModules(): Plugin & RollupPlugin {
 			}
 		},
 		transformIndexHtml(html) {
-			// Unfortunately, picomatch sneaks as a dedendency into the dev bundle.
+			// Unfortunately, picomatch sneaks as a dependency into the dev bundle.
 			// This fixes an error.
 			return html.replace('</head>', '<script>window.process={}</script></head>');
 		}
