@@ -65,6 +65,7 @@ import {
 	logMissingExport,
 	logModuleParseError,
 	logNamespaceConflict,
+	logRedeclarationError,
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
@@ -1072,7 +1073,15 @@ export default class Module {
 	private addImport(node: ImportDeclaration): void {
 		const source = node.source.value;
 		this.addSource(source, node);
+
 		for (const specifier of node.specifiers) {
+			if (
+				this.scope.variables.has(specifier.local.name) ||
+				this.importDescriptions.has(specifier.local.name)
+			) {
+				this.error(logRedeclarationError(specifier.local.name), specifier.local.start);
+			}
+
 			const name =
 				specifier instanceof ImportDefaultSpecifier
 					? 'default'

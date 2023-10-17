@@ -4,13 +4,8 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 module.exports = defineTest({
 	description: 'disallows duplicate import specifiers',
 	error: {
-		cause: {
-			code: 'PARSE_ERROR',
-			message: 'the name `a` is defined multiple times',
-			pos: 12
-		},
-		code: 'PARSE_ERROR',
-		message: 'the name `a` is defined multiple times',
+		code: 'REDECLARATION_ERROR',
+		message: 'Identifier `a` has already been declared',
 		id: ID_MAIN,
 		pos: 12,
 		watchFiles: [ID_MAIN],

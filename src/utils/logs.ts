@@ -130,6 +130,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	OPTIMIZE_CHUNK_STATUS = 'OPTIMIZE_CHUNK_STATUS',
 	PARSE_ERROR = 'PARSE_ERROR',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
+	REDECLARATION_ERROR = 'REDECLARATION_ERROR',
 	SHIMMED_EXPORT = 'SHIMMED_EXPORT',
 	SOURCEMAP_BROKEN = 'SOURCEMAP_BROKEN',
 	SOURCEMAP_ERROR = 'SOURCEMAP_ERROR',
@@ -811,6 +812,10 @@ export function logOptimizeChunkStatus(
 
 export function logParseError(message: string, pos: number): RollupLog {
 	return { code: PARSE_ERROR, message, pos };
+}
+
+export function logRedeclarationError(name: string): RollupLog {
+	return { code: REDECLARATION_ERROR, message: `Identifier \`${name}\` has already been declared` };
 }
 
 export function logModuleParseError(error: Error, moduleId: string): RollupLog {
