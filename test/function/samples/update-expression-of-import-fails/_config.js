@@ -1,15 +1,11 @@
 const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = defineTest({
 	description: 'disallows updates to imported bindings',
 	error: {
-		code: 'PARSE_ERROR',
-		cause: {
-			code: 'PARSE_ERROR',
-			message: 'cannot reassign to an imported binding',
-			pos: 28
-		},
+		code: 'ILLEGAL_REASSIGNMENT',
 		id: ID_MAIN,
 		pos: 28,
 		loc: {
@@ -22,8 +18,8 @@ module.exports = defineTest({
 			2:
 			3: a++;
 			   ^`,
-		watchFiles: [ID_MAIN],
-		message: 'cannot reassign to an imported binding'
+		watchFiles: [ID_FOO, ID_MAIN],
+		message: 'Illegal reassignment of import "a" in "main.js".'
 	}
 });
 

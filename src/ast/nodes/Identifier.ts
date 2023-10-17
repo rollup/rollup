@@ -2,7 +2,7 @@ import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { logRedeclarationError } from '../../utils/logs';
+import { logIllegalImportReassignment, logRedeclarationError } from '../../utils/logs';
 import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -173,6 +173,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
+		if (path.length === 0 && !this.scope.contains(this.name)) {
+			this.disallowImportReassignment();
+		}
 		// We keep conditional chaining because an unknown Node could have an
 		// Identifier as property that might be deoptimized by default
 		this.variable?.deoptimizePath(path);
@@ -334,6 +337,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 				code.appendRight(this.start, '0, ');
 			}
 		}
+	}
+
+	private disallowImportReassignment(): never {
+		return this.scope.context.error(
+			logIllegalImportReassignment(this.name, this.scope.context.module.id),
+			this.start
+		);
 	}
 
 	protected applyDeoptimizations(): void {
