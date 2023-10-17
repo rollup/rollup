@@ -2,7 +2,11 @@ import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { logIllegalImportReassignment, logRedeclarationError } from '../../utils/logs';
+import {
+	logDuplicateArgumentNameError,
+	logIllegalImportReassignment,
+	logRedeclarationError
+} from '../../utils/logs';
 import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -75,9 +79,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	private checkVarRedeclarationInScope(scope: Scope) {
+	private checkVarRedeclarationInScope(scope: Scope, disallowParameter: boolean) {
 		if (!(scope instanceof CatchScope)) {
 			const declaredVariableKind = scope.variables.get(this.name)?.kind;
+			if (disallowParameter && declaredVariableKind === 'parameter') {
+				this.scope.context.error(logDuplicateArgumentNameError(this.name), this.start);
+			}
+
 			if (
 				declaredVariableKind === 'let' ||
 				declaredVariableKind === 'const' ||
@@ -107,7 +115,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 				const variableScope = this.scope.findLexicalBoundary();
 				let scope: Scope = this.scope;
 				while (true) {
-					this.checkVarRedeclarationInScope(scope);
+					this.checkVarRedeclarationInScope(scope, false);
 
 					if (scope === variableScope || !(scope instanceof ChildScope)) break;
 					scope = scope.parent;
@@ -149,7 +157,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 				break;
 			}
 			case 'parameter': {
-				this.checkVarRedeclarationInScope(this.scope);
+				this.checkVarRedeclarationInScope(this.scope, true);
 
 				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;

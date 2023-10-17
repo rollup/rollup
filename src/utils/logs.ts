@@ -84,6 +84,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
+	DUPLICATE_ARGUMENT_NAME = 'DUPLICATE_ARGUMENT_NAME',
 	DUPLICATE_EXPORT = 'DUPLICATE_EXPORT',
 	DUPLICATE_IMPORT_OPTIONS = 'DUPLICATE_IMPORT_OPTIONS',
 	DUPLICATE_PLUGIN_NAME = 'DUPLICATE_PLUGIN_NAME',
@@ -821,6 +822,10 @@ export function logRedeclarationError(name: string): RollupLog {
 
 export function logDuplicateExportError(name: string): RollupLog {
 	return { code: DUPLICATE_EXPORT, message: `Duplicate export \`${name}\`` };
+}
+
+export function logDuplicateArgumentNameError(name: string): RollupLog {
+	return { code: DUPLICATE_ARGUMENT_NAME, message: `Duplicate argument name \`${name}\`` };
 }
 
 export function logModuleParseError(error: Error, moduleId: string): RollupLog {
