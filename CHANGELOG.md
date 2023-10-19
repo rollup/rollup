@@ -1,5 +1,47 @@
 # rollup changelog
 
+## 4.1.4
+
+_2023-10-16_
+
+### Bug Fixes
+
+- Reduce sizes @rollup/browser and @rollup/wasm-node WASM artifacts (#5204)
+
+### Pull Requests
+
+- [#5204](https://github.com/rollup/rollup/pull/5204): perf: shrink wasm size by avoid importing browserslist (@sapphi-red)
+
+## 4.1.3
+
+_2023-10-15_
+
+### Bug Fixes
+
+- Fix WASM build as hash function was not exported (#5203)
+
+### Pull Requests
+
+- [#5203](https://github.com/rollup/rollup/pull/5203): fix: export xxhashBase64Url from wasm (@sapphi-red)
+
+## 4.1.2
+
+_2023-10-15_
+
+_Release did not finish successfully_
+
+## 4.1.1
+
+_2023-10-15_
+
+### Bug Fixes
+
+- Improve Node parsing performance (#5201)
+
+### Pull Requests
+
+- [#5201](https://github.com/rollup/rollup/pull/5201): perf: use mimalloc for bindings_napi (@sapphi-red)
+
 ## 4.1.0
 
 _2023-10-14_
