@@ -156,7 +156,7 @@
     "husky": "^8.0.3",
     "inquirer": "^9.2.11",
     "is-reference": "^3.0.2",
-    "lint-staged": "^14.0.1",
+    "lint-staged": "^15.0.1",
     "locate-character": "^3.0.0",
     "magic-string": "^0.30.5",
     "mocha": "^10.2.0",
