@@ -1,6 +1,7 @@
 require('source-map-support').install();
 
-describe('rollup', () => {
+describe('rollup', function () {
+	this.timeout(30_000);
 	require('./misc/index.js');
 	require('./function/index.js');
 	require('./form/index.js');
@@ -12,4 +13,4 @@ describe('rollup', () => {
 	require('./load-config-file/index.js');
 	require('./cli/index.js');
 	require('./watch/index.js');
-}).timeout(30_000);
+});
