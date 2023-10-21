@@ -1,4 +1,4 @@
-use swc::atoms::JsWord;
+use swc_atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AwaitExpr, BigInt,

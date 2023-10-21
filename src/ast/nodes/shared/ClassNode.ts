@@ -3,7 +3,6 @@ import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
-import type Scope from '../../scopes/Scope';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -29,8 +28,8 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	private declare classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 
-	createScope(parentScope: Scope): void {
-		this.scope = new ChildScope(parentScope);
+	createScope(parentScope: ChildScope): void {
+		this.scope = new ChildScope(parentScope, this.scope.context);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -131,7 +130,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 				definition.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 
 	private getObjectEntity(): ObjectEntity {

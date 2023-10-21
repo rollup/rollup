@@ -50,7 +50,7 @@ export default class MetaProperty extends NodeBase {
 		if (!this.included) {
 			this.included = true;
 			if (this.meta.name === IMPORT) {
-				this.context.addImportMeta(this);
+				this.scope.context.addImportMeta(this);
 				const parent = this.parent;
 				const metaProperty = (this.metaProperty =
 					parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
@@ -66,7 +66,9 @@ export default class MetaProperty extends NodeBase {
 	render(code: MagicString, renderOptions: RenderOptions): void {
 		const { format, pluginDriver, snippets } = renderOptions;
 		const {
-			context: { module },
+			scope: {
+				context: { module }
+			},
 			meta: { name },
 			metaProperty,
 			parent,

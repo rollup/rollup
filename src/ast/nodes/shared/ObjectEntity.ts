@@ -10,6 +10,7 @@ import {
 	UnknownKey,
 	UnknownNonAccessorKey
 } from '../../utils/PathTracker';
+import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { LiteralValueOrUnknown } from './Expression';
 import {
 	deoptimizeInteraction,
@@ -32,15 +33,34 @@ export interface PropertyMap {
 const INTEGER_REG_EXP = /^\d+$/;
 
 export class ObjectEntity extends ExpressionEntity {
+	private get hasLostTrack(): boolean {
+		return isFlagSet(this.flags, Flag.hasLostTrack);
+	}
+	private set hasLostTrack(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasLostTrack, value);
+	}
+
+	private get hasUnknownDeoptimizedInteger(): boolean {
+		return isFlagSet(this.flags, Flag.hasUnknownDeoptimizedInteger);
+	}
+	private set hasUnknownDeoptimizedInteger(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasUnknownDeoptimizedInteger, value);
+	}
+
+	private get hasUnknownDeoptimizedProperty(): boolean {
+		return isFlagSet(this.flags, Flag.hasUnknownDeoptimizedProperty);
+	}
+	private set hasUnknownDeoptimizedProperty(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.hasUnknownDeoptimizedProperty, value);
+	}
+
 	private readonly additionalExpressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly allProperties: ExpressionEntity[] = [];
 	private readonly deoptimizedPaths: Record<string, boolean> = Object.create(null);
 	private readonly expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> =
 		Object.create(null);
 	private readonly gettersByKey: PropertyMap = Object.create(null);
-	private hasLostTrack = false;
-	private hasUnknownDeoptimizedInteger = false;
-	private hasUnknownDeoptimizedProperty = false;
+
 	private readonly propertiesAndGettersByKey: PropertyMap = Object.create(null);
 	private readonly propertiesAndSettersByKey: PropertyMap = Object.create(null);
 	private readonly settersByKey: PropertyMap = Object.create(null);

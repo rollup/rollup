@@ -1,5 +1,6 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Plugin as RollupPlugin } from 'rollup';
 import type { Plugin } from 'vite';
 
 const resolve = (path: string) => fileURLToPath(new URL(`../${path}`, import.meta.url));
@@ -29,12 +30,12 @@ const wasmModulesMap: ModulesMap = [[resolve('native'), resolve('browser/src/was
 
 const resolutions: ReadonlyMap<string, string> = new Map([...jsModulesMap, ...wasmModulesMap]);
 
-export default function replaceBrowserModules(): Plugin {
+export default function replaceBrowserModules(): Plugin & RollupPlugin {
 	return {
 		apply: 'serve',
 		enforce: 'pre',
 		name: 'replace-browser-modules',
-		resolveId(source, importer) {
+		resolveId(source: string, importer: string | undefined) {
 			if (importer && source[0] === '.') {
 				return resolutions.get(join(dirname(importer), source));
 			}

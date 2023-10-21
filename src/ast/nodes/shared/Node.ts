@@ -16,11 +16,12 @@ import {
 } from '../../ExecutionContext';
 import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
-import { getAndCreateKeys, keys } from '../../keys';
+import { createKeysForNode, keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
+import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { InclusionOptions } from './Expression';
 import { ExpressionEntity } from './Expression';
 
@@ -33,13 +34,12 @@ export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
 	annotations?: RollupAnnotation[];
-	context: AstContext;
 	end: number;
-	esTreeNode: GenericEsTreeNode | null;
+	esTreeNode?: GenericEsTreeNode;
 	included: boolean;
-	keys: string[];
 	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
+	scope: ChildScope;
 	preventChildBlockScope?: boolean;
 	start: number;
 	type: string;
@@ -135,10 +135,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	declare annotationPure?: boolean;
 	declare annotations?: RollupAnnotation[];
 
-	context: AstContext;
 	declare end: number;
-	esTreeNode: AstNode | null;
-	keys: string[];
+	esTreeNode?: AstNode;
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
 	declare start: number;
@@ -147,13 +145,19 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * This will be populated during initialise if setAssignedValue is called.
 	 */
 	protected declare assignmentInteraction: NodeInteractionAssigned;
+
 	/**
 	 * Nodes can apply custom deoptimizations once they become part of the
 	 * executed code. To do this, they must initialize this as false, implement
 	 * applyDeoptimizations and call this from include and hasEffects if they have
 	 * custom handlers
 	 */
-	protected deoptimized = false;
+	protected get deoptimized(): boolean {
+		return isFlagSet(this.flags, Flag.deoptimized);
+	}
+	protected set deoptimized(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.deoptimized, value);
+	}
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
@@ -164,15 +168,21 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		super();
 		// Nodes can opt-in to keep the AST if needed during the build pipeline.
 		// Avoid true when possible as large AST takes up memory.
-		this.esTreeNode = keepEsTreeNode ? esTreeNode : null;
-		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
+
+		if (keepEsTreeNode) {
+			this.esTreeNode = esTreeNode;
+		}
+
+		const { type } = esTreeNode;
+		keys[type] ||= createKeysForNode(esTreeNode);
+
 		this.parent = parent;
-		this.context = parent.context;
+		this.scope = parentScope;
 		this.createScope(parentScope);
 		this.parseNode(esTreeNode);
 		this.initialise();
-		this.context.magicString.addSourcemapLocation(this.start);
-		this.context.magicString.addSourcemapLocation(this.end);
+		this.scope.context.magicString.addSourcemapLocation(this.start);
+		this.scope.context.magicString.addSourcemapLocation(this.end);
 	}
 
 	addExportedVariables(
@@ -185,7 +195,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * that require the scopes to be populated with variables.
 	 */
 	bind(): void {
-		for (const key of this.keys) {
+		for (const key of keys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (Array.isArray(value)) {
 				for (const child of value) {
@@ -207,7 +217,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		for (const key of this.keys) {
+		for (const key of keys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -233,7 +243,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		for (const key of this.keys) {
+		for (const key of keys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -262,13 +272,17 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	parseNode(esTreeNode: GenericEsTreeNode, keepEsTreeNodeKeys?: string[]): void {
 		for (const [key, value] of Object.entries(esTreeNode)) {
-			// That way, we can override this function to add custom initialisation and then call super.parseNode
+			// Skip properties defined on the class already.
+			// This way, we can override this function to add custom initialisation and then call super.parseNode
+			// Note: this doesn't skip properties with defined getters/setters which we use to pack wrap booleans
+			// in bitfields. Those are still assigned from the value in the esTreeNode.
 			if (this.hasOwnProperty(key)) continue;
+
 			if (key.charCodeAt(0) === 95 /* _ */) {
 				if (key === ANNOTATION_KEY) {
 					const annotations = value as RollupAnnotation[];
 					this.annotations = annotations;
-					if ((this.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
+					if ((this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
 						this.annotationNoSideEffects = annotations.some(
 							comment => comment.type === 'noSideEffects'
 						);
@@ -276,13 +290,13 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					}
 				} else if (key === INVALID_ANNOTATION_KEY) {
 					for (const { start, end, type } of value as RollupAnnotation[]) {
-						this.context.magicString.remove(start, end);
+						this.scope.context.magicString.remove(start, end);
 						if (type === 'pure' || type === 'noSideEffects') {
-							this.context.log(
+							this.scope.context.log(
 								LOGLEVEL_WARN,
 								logInvalidAnnotation(
-									this.context.code.slice(start, end),
-									this.context.module.id,
+									this.scope.context.code.slice(start, end),
+									this.scope.context.module.id,
 									type
 								),
 								start
@@ -298,7 +312,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
-							: new (this.context.getNodeConstructor(child.type))(
+							: new (this.scope.context.getNodeConstructor(child.type))(
 									child,
 									this,
 									this.scope,
@@ -307,7 +321,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					);
 				}
 			} else {
-				(this as GenericEsTreeNode)[key] = new (this.context.getNodeConstructor(value.type))(
+				(this as GenericEsTreeNode)[key] = new (this.scope.context.getNodeConstructor(value.type))(
 					value,
 					this,
 					this.scope,
@@ -326,7 +340,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		for (const key of this.keys) {
+		for (const key of keys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -354,7 +368,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 */
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		for (const key of this.keys) {
+		for (const key of keys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -365,22 +379,28 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				value.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }
 
 export { NodeBase as StatementBase };
 
 export function locateNode(node: Node): Location & { file: string } {
-	const location = locate(node.context.code, node.start, { offsetLine: 1 }) as Location & {
+	const {
+		start,
+		scope: {
+			context: { code, fileName }
+		}
+	} = node;
+	const location = locate(code, start, { offsetLine: 1 }) as Location & {
 		file: string;
 	};
-	location.file = node.context.fileName;
+	location.file = fileName;
 	location.toString = () => JSON.stringify(location);
 
 	return location;
 }
 
 export function logNode(node: Node): string {
-	return node.context.code.slice(node.start, node.end);
+	return node.scope.context.code.slice(node.start, node.end);
 }

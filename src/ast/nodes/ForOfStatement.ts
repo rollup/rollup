@@ -2,11 +2,12 @@ import type MagicString from 'magic-string';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import type Scope from '../scopes/Scope';
+import type ChildScope from '../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	type ExpressionNode,
@@ -18,14 +19,20 @@ import type { PatternNode } from './shared/Pattern';
 import { includeLoopBody } from './shared/loops';
 
 export default class ForOfStatement extends StatementBase {
-	declare await: boolean;
 	declare body: StatementNode;
 	declare left: VariableDeclaration | PatternNode | MemberExpression;
 	declare right: ExpressionNode;
 	declare type: NodeType.tForOfStatement;
 
-	createScope(parentScope: Scope): void {
-		this.scope = new BlockScope(parentScope);
+	get await(): boolean {
+		return isFlagSet(this.flags, Flag.await);
+	}
+	set await(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.await, value);
+	}
+
+	createScope(parentScope: ChildScope): void {
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(): boolean {
@@ -61,6 +68,6 @@ export default class ForOfStatement extends StatementBase {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }

@@ -155,6 +155,6 @@ export default class AssignmentExpression extends NodeBase {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }

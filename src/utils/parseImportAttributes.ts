@@ -12,7 +12,11 @@ import { logImportAttributeIsInvalid, logImportOptionsAreInvalid } from './logs'
 const ATTRIBUTE_KEYWORDS = new Set(['assert', 'with']);
 
 export function getAttributesFromImportExpression(node: ImportExpression): Record<string, string> {
-	const { context, options, start } = node;
+	const {
+		scope: { context },
+		options,
+		start
+	} = node;
 	if (!(options instanceof ObjectExpression)) {
 		if (options) {
 			context.module.log(LOGLEVEL_WARN, logImportAttributeIsInvalid(context.module.id), start);

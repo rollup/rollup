@@ -44,7 +44,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		super.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
-			this.context.includeVariableInModule(this.variable);
+			this.scope.context.includeVariableInModule(this.variable);
 		}
 	}
 
@@ -53,11 +53,11 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.declarationName =
 			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
-			this.declarationName || this.context.getModuleName(),
+			this.declarationName || this.scope.context.getModuleName(),
 			this,
-			this.context
+			this.scope.context
 		);
-		this.context.addExport(this);
+		this.scope.context.addExport(this);
 	}
 
 	removeAnnotations(code: MagicString) {

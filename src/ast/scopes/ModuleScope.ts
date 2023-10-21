@@ -10,12 +10,10 @@ import ChildScope from './ChildScope';
 import type GlobalScope from './GlobalScope';
 
 export default class ModuleScope extends ChildScope {
-	readonly context: AstContext;
 	declare parent: GlobalScope;
 
 	constructor(parent: GlobalScope, context: AstContext) {
-		super(parent);
-		this.context = context;
+		super(parent, context);
 		this.variables.set('this', new LocalVariable('this', null, UNDEFINED_EXPRESSION, context));
 	}
 

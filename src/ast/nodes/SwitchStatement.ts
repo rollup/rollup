@@ -7,7 +7,6 @@ import {
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import type Scope from '../scopes/Scope';
 import type * as NodeType from './NodeType';
 import type SwitchCase from './SwitchCase';
 import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
@@ -21,9 +20,9 @@ export default class SwitchStatement extends StatementBase {
 	private declare defaultCase: number | null;
 	private declare parentScope: ChildScope;
 
-	createScope(parentScope: Scope): void {
-		this.parentScope = parentScope as ChildScope;
-		this.scope = new BlockScope(parentScope);
+	createScope(parentScope: ChildScope): void {
+		this.parentScope = parentScope;
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -94,7 +93,7 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.discriminant = new (this.context.getNodeConstructor(esTreeNode.discriminant.type))(
+		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
 			esTreeNode.discriminant,
 			this,
 			this.parentScope

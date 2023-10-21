@@ -185,7 +185,8 @@ export default class NamespaceVariable extends Variable {
 		this.mergedNamespaces = mergedNamespaces;
 		const moduleExecIndex = this.context.getModuleExecIndex();
 		for (const identifier of this.references) {
-			if (identifier.context.getModuleExecIndex() <= moduleExecIndex) {
+			const { context } = identifier.scope;
+			if (context.getModuleExecIndex() <= moduleExecIndex) {
 				this.referencedEarly = true;
 				break;
 			}
