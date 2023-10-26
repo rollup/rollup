@@ -5,6 +5,14 @@
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
   "types": "dist/rollup.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
+    }
+  },
   "bin": {
     "rollup": "dist/bin/rollup"
   },
