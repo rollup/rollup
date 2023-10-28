@@ -33,7 +33,7 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
       - name: Cache Node Modules
@@ -169,7 +169,7 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: 20
@@ -270,7 +270,7 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
@@ -324,7 +324,7 @@ jobs:
           # Necessary to find the commits included in the release
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           check-latest: true

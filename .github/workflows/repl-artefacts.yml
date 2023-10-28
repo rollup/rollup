@@ -40,7 +40,7 @@ jobs:
           key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
           restore-keys: cargo-cache
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
       - name: Cache Node Modules
