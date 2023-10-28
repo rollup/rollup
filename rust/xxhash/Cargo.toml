@@ -6,5 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-base64 = '0.21.4'
+base64 = '0.21.5'
 xxhash-rust = { version = "0.8.7", features = ["xxh3"] }
