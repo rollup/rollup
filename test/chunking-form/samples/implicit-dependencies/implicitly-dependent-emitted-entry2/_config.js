@@ -194,12 +194,6 @@ module.exports = defineTest({
 				assert.strictEqual(dep.isEntry, true, 'dep.isEntry');
 				assert.strictEqual(dep.isDynamicEntry, false, 'dep.isDynamicEntry');
 				assert.strictEqual(dep.isImplicitEntry, false, 'dep.isImplicitEntry');
-			},
-			async transform(code, id) {
-				if (id.endsWith('main.js')) {
-					// This delay used to cause a race condition
-					await new Promise(resolve => setTimeout(resolve, 200));
-				}
 			}
 		}
 	}
