@@ -1029,18 +1029,18 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.190"
+version = "1.0.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91d3c334ca1ee894a2c6f6ad698fe8c435b76d504b13d436f0685d648d6d96f7"
+checksum = "8e422a44e74ad4001bdc8eede9a4570ab52f71190e9c076d14369f38b9200537"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.190"
+version = "1.0.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67c5609f394e5c2bd7fc51efda478004ea80ef42fee983d5c67a65e34f32c0e3"
+checksum = "1e48d1f918009ce3145511378cf68d613e3b3d9137d67272562080d68a2b32d5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1370,9 +1370,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_minifier"
-version = "0.189.17"
+version = "0.189.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e17cee0ef32c6f4afb32158a56b6cd12cba4fc4042642f92066361c25eceebc3"
+checksum = "959ee58c7689e0c6b961928adf1493f6c5dc18fb1667edf16e08c31afe6220d6"
 dependencies = [
  "arrayvec",
  "indexmap 1.9.3",
@@ -1484,9 +1484,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_usage_analyzer"
-version = "0.20.10"
+version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27607e1e5d61437161679ca1762e45e72cabc7b15e9472c268da818fe8800f13"
+checksum = "c243cd4a4234c31f33ac19dc7382c419af1e9953af3712e2751f155d9982350c"
 dependencies = [
  "indexmap 1.9.3",
  "rustc-hash",
