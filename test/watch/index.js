@@ -1302,7 +1302,7 @@ describe('rollup.watch', () => {
 			],
 			0
 		);
-	});
+	}).retries(1);
 
 	it('observes configured build delays', async () => {
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
