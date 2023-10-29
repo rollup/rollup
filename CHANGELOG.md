@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.1.5
+
+_2023-10-28_
+
+### Bug Fixes
+
+- Fix an issue where actual entries that were also implicit entries could remain implicit (#5220)
+
+### Pull Requests
+
+- [#5209](https://github.com/rollup/rollup/pull/5209): Document Vite workaround for browser build (@curran)
+- [#5215](https://github.com/rollup/rollup/pull/5215): chore(deps): update dependency lint-staged to v15 (@renovate[bot])
+- [#5216](https://github.com/rollup/rollup/pull/5216): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5218](https://github.com/rollup/rollup/pull/5218): Update license plugin (@lukastaegert)
+- [#5219](https://github.com/rollup/rollup/pull/5219): Fix error highlight in REPL (@lukastaegert)
+- [#5220](https://github.com/rollup/rollup/pull/5220): Fix race condition when emitting implicitly dependent entries (@lukastaegert)
+- [#5224](https://github.com/rollup/rollup/pull/5224): chore(deps): update actions/setup-node action to v4 (@renovate[bot])
+- [#5225](https://github.com/rollup/rollup/pull/5225): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.1.4
 
 _2023-10-16_

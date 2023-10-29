@@ -245,17 +245,23 @@ export class ModuleLoader {
 				async entryModule => {
 					addChunkNamesToModule(entryModule, unresolvedModule, false, chunkNamePriority);
 					if (!entryModule.info.isEntry) {
-						this.implicitEntryModules.add(entryModule);
 						const implicitlyLoadedAfterModules = await Promise.all(
 							implicitlyLoadedAfter.map(id =>
 								this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
 							)
 						);
-						for (const module of implicitlyLoadedAfterModules) {
-							entryModule.implicitlyLoadedAfter.add(module);
-						}
-						for (const dependant of entryModule.implicitlyLoadedAfter) {
-							dependant.implicitlyLoadedBefore.add(entryModule);
+						// We need to check again if this is still an entry module as these
+						// changes need to be performed atomically to avoid race conditions
+						// if the same module is re-emitted as an entry module.
+						// The inverse changes happen in "handleExistingModule"
+						if (!entryModule.info.isEntry) {
+							this.implicitEntryModules.add(entryModule);
+							for (const module of implicitlyLoadedAfterModules) {
+								entryModule.implicitlyLoadedAfter.add(module);
+							}
+							for (const dependant of entryModule.implicitlyLoadedAfter) {
+								dependant.implicitlyLoadedBefore.add(entryModule);
+							}
 						}
 					}
 					return entryModule;
@@ -615,6 +621,8 @@ export class ModuleLoader {
 				: loadPromise;
 		}
 		if (isEntry) {
+			// This reverts the changes in addEntryWithImplicitDependants and needs to
+			// be performed atomically
 			module.info.isEntry = true;
 			this.implicitEntryModules.delete(module);
 			for (const dependant of module.implicitlyLoadedAfter) {
