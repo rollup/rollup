@@ -179,6 +179,7 @@ jobs:
         with:
           toolchain: nightly-2023-10-05
           targets: ${{ matrix.settings.target }}
+          components: rustfmt, clippy
       - name: Cache cargo
         uses: actions/cache@v3
         with:
