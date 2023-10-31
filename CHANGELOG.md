@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.1.6
+
+_2023-10-31_
+
+### Bug Fixes
+
+- Fix a bug where emtpy block comments in certain positions could freeze Rollup (#5231)
+
+### Pull Requests
+
+- [#5228](https://github.com/rollup/rollup/pull/5228): build: ensure rust toolchain components for linting are installed (@jerome-benoit)
+- [#5231](https://github.com/rollup/rollup/pull/5231): Render emtpy block comments after tree-shaken statements (@lukastaegert)
+- [#5232](https://github.com/rollup/rollup/pull/5232): Revert specifying rustfmt and clippy in toolchain file as it breaks REPL build (@lukastaegert)
+
 ## 4.1.5
 
 _2023-10-28_
