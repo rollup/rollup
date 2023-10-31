@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { parseAst } = require('../../dist/parseAst');
+const { parseAst, parseAstAsync } = require('../../dist/parseAst');
 
 describe('parseAst', () => {
 	it('parses an AST', async () => {
@@ -107,5 +107,39 @@ describe('parseAst', () => {
 		const { key, value } = parseAst('({ foo });').body[0].expression.properties[0];
 		assert.deepStrictEqual(key, value);
 		assert.ok(key !== value);
+	});
+});
+
+describe('parseAstAsync', () => {
+	it('parses an AST', async () => {
+		assert.deepStrictEqual(await parseAstAsync('console.log("ok")'), {
+			type: 'Program',
+			start: 0,
+			end: 17,
+			body: [
+				{
+					type: 'ExpressionStatement',
+					start: 0,
+					end: 17,
+					expression: {
+						type: 'CallExpression',
+						start: 0,
+						end: 17,
+						arguments: [{ type: 'Literal', start: 12, end: 16, raw: '"ok"', value: 'ok' }],
+						callee: {
+							type: 'MemberExpression',
+							start: 0,
+							end: 11,
+							computed: false,
+							object: { type: 'Identifier', start: 0, end: 7, name: 'console' },
+							optional: false,
+							property: { type: 'Identifier', start: 8, end: 11, name: 'log' }
+						},
+						optional: false
+					}
+				}
+			],
+			sourceType: 'module'
+		});
 	});
 });
