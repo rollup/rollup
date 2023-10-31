@@ -28,7 +28,6 @@ jobs:
         with:
           toolchain: nightly-2023-10-05
           targets: x86_64-unknown-linux-gnu
-          components: rustfmt, clippy
       - name: Cache cargo
         uses: actions/cache@v3
         with:
