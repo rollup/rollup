@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.2.0
+
+_2023-10-31_
+
+### Features
+
+- Run parsing in multiple threads and introduce `parseAstAsync` helper function (#5202)
+
+### Pull Requests
+
+- [#5202](https://github.com/rollup/rollup/pull/5202): perf: introduce `parseAstAsync` and parallelize parsing AST (@sapphi-red)
+
 ## 4.1.6
 
 _2023-10-31_
