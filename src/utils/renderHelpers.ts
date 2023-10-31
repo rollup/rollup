@@ -82,7 +82,7 @@ export function findFirstLineBreakOutsideComment(code: string): [number, number]
 		// With our assumption, '/' always starts a comment. Determine comment type:
 		charCodeAfterSlash = code.charCodeAt(start + 1);
 		if (charCodeAfterSlash === 47 /*"/"*/) return [start, lineBreakPos + 1];
-		start = code.indexOf('*/', start + 3) + 2;
+		start = code.indexOf('*/', start + 2) + 2;
 		if (start > lineBreakPos) {
 			lineBreakPos = code.indexOf('\n', start);
 		}
