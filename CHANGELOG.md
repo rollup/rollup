@@ -1,5 +1,50 @@
 # rollup changelog
 
+## 4.2.0
+
+_2023-10-31_
+
+### Features
+
+- Run parsing in multiple threads and introduce `parseAstAsync` helper function (#5202)
+
+### Pull Requests
+
+- [#5202](https://github.com/rollup/rollup/pull/5202): perf: introduce `parseAstAsync` and parallelize parsing AST (@sapphi-red)
+
+## 4.1.6
+
+_2023-10-31_
+
+### Bug Fixes
+
+- Fix a bug where emtpy block comments in certain positions could freeze Rollup (#5231)
+
+### Pull Requests
+
+- [#5228](https://github.com/rollup/rollup/pull/5228): build: ensure rust toolchain components for linting are installed (@jerome-benoit)
+- [#5231](https://github.com/rollup/rollup/pull/5231): Render emtpy block comments after tree-shaken statements (@lukastaegert)
+- [#5232](https://github.com/rollup/rollup/pull/5232): Revert specifying rustfmt and clippy in toolchain file as it breaks REPL build (@lukastaegert)
+
+## 4.1.5
+
+_2023-10-28_
+
+### Bug Fixes
+
+- Fix an issue where actual entries that were also implicit entries could remain implicit (#5220)
+
+### Pull Requests
+
+- [#5209](https://github.com/rollup/rollup/pull/5209): Document Vite workaround for browser build (@curran)
+- [#5215](https://github.com/rollup/rollup/pull/5215): chore(deps): update dependency lint-staged to v15 (@renovate[bot])
+- [#5216](https://github.com/rollup/rollup/pull/5216): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5218](https://github.com/rollup/rollup/pull/5218): Update license plugin (@lukastaegert)
+- [#5219](https://github.com/rollup/rollup/pull/5219): Fix error highlight in REPL (@lukastaegert)
+- [#5220](https://github.com/rollup/rollup/pull/5220): Fix race condition when emitting implicitly dependent entries (@lukastaegert)
+- [#5224](https://github.com/rollup/rollup/pull/5224): chore(deps): update actions/setup-node action to v4 (@renovate[bot])
+- [#5225](https://github.com/rollup/rollup/pull/5225): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.1.4
 
 _2023-10-16_

@@ -369,3 +369,34 @@ assert.deepEqual(
 	}
 );
 ```
+
+There is also an asynchronous version that parses in a different thread in the non-wasm builds of Rollup:
+
+```js
+import { parseAstAsync } from 'rollup/parseAst';
+import assert from 'node:assert';
+
+assert.deepEqual(
+	await parseAstAsync('return 42;', { allowReturnOutsideFunction: true }),
+	{
+		type: 'Program',
+		start: 0,
+		end: 10,
+		body: [
+			{
+				type: 'ReturnStatement',
+				start: 0,
+				end: 10,
+				argument: {
+					type: 'Literal',
+					start: 7,
+					end: 9,
+					raw: '42',
+					value: 42
+				}
+			}
+		],
+		sourceType: 'module'
+	}
+);
+```
