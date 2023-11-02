@@ -312,6 +312,14 @@ export function logDeprecation(
 	};
 }
 
+export function logDuplicateArgumentNameError(name: string): RollupLog {
+	return { code: DUPLICATE_ARGUMENT_NAME, message: `Duplicate argument name "${name}"` };
+}
+
+export function logDuplicateExportError(name: string): RollupLog {
+	return { code: DUPLICATE_EXPORT, message: `Duplicate export "${name}"` };
+}
+
 export function logDuplicateImportOptions(): RollupLog {
 	return {
 		code: DUPLICATE_IMPORT_OPTIONS,
@@ -817,15 +825,7 @@ export function logParseError(message: string, pos: number): RollupLog {
 }
 
 export function logRedeclarationError(name: string): RollupLog {
-	return { code: REDECLARATION_ERROR, message: `Identifier \`${name}\` has already been declared` };
-}
-
-export function logDuplicateExportError(name: string): RollupLog {
-	return { code: DUPLICATE_EXPORT, message: `Duplicate export \`${name}\`` };
-}
-
-export function logDuplicateArgumentNameError(name: string): RollupLog {
-	return { code: DUPLICATE_ARGUMENT_NAME, message: `Duplicate argument name \`${name}\`` };
+	return { code: REDECLARATION_ERROR, message: `Identifier "${name}" has already been declared` };
 }
 
 export function logModuleParseError(error: Error, moduleId: string): RollupLog {

@@ -3,21 +3,23 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = defineTest({
-	description: 'disallows assignments to imported bindings',
+	// solo: true,
+	description: 'disallows assignments to imported bindings not at the top level',
 	error: {
 		code: 'ILLEGAL_REASSIGNMENT',
 		id: ID_MAIN,
-		pos: 113,
+		pos: 95,
 		loc: {
-			column: 0,
+			column: 2,
 			file: ID_MAIN,
-			line: 8
+			line: 7
 		},
 		frame: `
-			6: });
-			7:
-			8: x = 10;
-			   ^`,
+			5: }
+			6: export function bar () {
+			7:   x = 1;
+			     ^
+			8: }`,
 		watchFiles: [ID_FOO, ID_MAIN],
 		message: 'Illegal reassignment of import "x" in "main.js".'
 	}

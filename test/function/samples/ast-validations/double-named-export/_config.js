@@ -3,10 +3,11 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = defineTest({
+	// solo: true,
 	description: 'throws on duplicate named exports',
 	error: {
 		code: 'DUPLICATE_EXPORT',
-		message: 'Duplicate export `foo`',
+		message: 'Duplicate export "foo"',
 		id: ID_FOO,
 		pos: 38,
 		watchFiles: [ID_FOO, ID_MAIN],

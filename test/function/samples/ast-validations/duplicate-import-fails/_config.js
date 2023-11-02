@@ -2,10 +2,11 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
+	// solo: true,
 	description: 'disallows duplicate imports',
 	error: {
 		code: 'REDECLARATION_ERROR',
-		message: 'Identifier `a` has already been declared',
+		message: 'Identifier "a" has already been declared',
 		id: ID_MAIN,
 		pos: 36,
 		watchFiles: [ID_MAIN],

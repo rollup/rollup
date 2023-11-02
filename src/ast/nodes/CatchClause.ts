@@ -33,3 +33,5 @@ export default class CatchClause extends NodeBase {
 		super.parseNode(esTreeNode);
 	}
 }
+
+CatchClause.prototype.preventChildBlockScope = true;

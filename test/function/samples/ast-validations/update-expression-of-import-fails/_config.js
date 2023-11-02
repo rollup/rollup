@@ -3,6 +3,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
 
 module.exports = defineTest({
+	// solo: true,
 	description: 'disallows updates to imported bindings',
 	error: {
 		code: 'ILLEGAL_REASSIGNMENT',
