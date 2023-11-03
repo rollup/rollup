@@ -152,7 +152,6 @@
     "flru": "^1.0.2",
     "fs-extra": "^11.1.1",
     "github-api": "^3.4.0",
-    "hash.js": "^1.1.7",
     "husky": "^8.0.3",
     "inquirer": "^9.2.11",
     "is-reference": "^3.0.2",
