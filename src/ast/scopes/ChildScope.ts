@@ -1,3 +1,4 @@
+import type { AstContext } from '../../Module';
 import type { InternalModuleFormat } from '../../rollup/types';
 import { getSafeName } from '../../utils/safeName';
 import type ImportExpression from '../nodes/ImportExpression';
@@ -8,11 +9,13 @@ import Scope from './Scope';
 export default class ChildScope extends Scope {
 	readonly accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
+	readonly context: AstContext;
 	private declare accessedDynamicImports?: Set<ImportExpression>;
 
-	constructor(parent: Scope) {
+	constructor(parent: Scope, context: AstContext) {
 		super();
 		this.parent = parent;
+		this.context = context;
 		parent.children.push(this);
 	}
 

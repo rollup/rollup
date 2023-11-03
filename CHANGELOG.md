@@ -1,5 +1,113 @@
 # rollup changelog
 
+## 4.2.0
+
+_2023-10-31_
+
+### Features
+
+- Run parsing in multiple threads and introduce `parseAstAsync` helper function (#5202)
+
+### Pull Requests
+
+- [#5202](https://github.com/rollup/rollup/pull/5202): perf: introduce `parseAstAsync` and parallelize parsing AST (@sapphi-red)
+
+## 4.1.6
+
+_2023-10-31_
+
+### Bug Fixes
+
+- Fix a bug where emtpy block comments in certain positions could freeze Rollup (#5231)
+
+### Pull Requests
+
+- [#5228](https://github.com/rollup/rollup/pull/5228): build: ensure rust toolchain components for linting are installed (@jerome-benoit)
+- [#5231](https://github.com/rollup/rollup/pull/5231): Render emtpy block comments after tree-shaken statements (@lukastaegert)
+- [#5232](https://github.com/rollup/rollup/pull/5232): Revert specifying rustfmt and clippy in toolchain file as it breaks REPL build (@lukastaegert)
+
+## 4.1.5
+
+_2023-10-28_
+
+### Bug Fixes
+
+- Fix an issue where actual entries that were also implicit entries could remain implicit (#5220)
+
+### Pull Requests
+
+- [#5209](https://github.com/rollup/rollup/pull/5209): Document Vite workaround for browser build (@curran)
+- [#5215](https://github.com/rollup/rollup/pull/5215): chore(deps): update dependency lint-staged to v15 (@renovate[bot])
+- [#5216](https://github.com/rollup/rollup/pull/5216): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5218](https://github.com/rollup/rollup/pull/5218): Update license plugin (@lukastaegert)
+- [#5219](https://github.com/rollup/rollup/pull/5219): Fix error highlight in REPL (@lukastaegert)
+- [#5220](https://github.com/rollup/rollup/pull/5220): Fix race condition when emitting implicitly dependent entries (@lukastaegert)
+- [#5224](https://github.com/rollup/rollup/pull/5224): chore(deps): update actions/setup-node action to v4 (@renovate[bot])
+- [#5225](https://github.com/rollup/rollup/pull/5225): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
+## 4.1.4
+
+_2023-10-16_
+
+### Bug Fixes
+
+- Reduce sizes @rollup/browser and @rollup/wasm-node WASM artifacts (#5204)
+
+### Pull Requests
+
+- [#5204](https://github.com/rollup/rollup/pull/5204): perf: shrink wasm size by avoid importing browserslist (@sapphi-red)
+
+## 4.1.3
+
+_2023-10-15_
+
+### Bug Fixes
+
+- Fix WASM build as hash function was not exported (#5203)
+
+### Pull Requests
+
+- [#5203](https://github.com/rollup/rollup/pull/5203): fix: export xxhashBase64Url from wasm (@sapphi-red)
+
+## 4.1.2
+
+_2023-10-15_
+
+_Release did not finish successfully_
+
+## 4.1.1
+
+_2023-10-15_
+
+### Bug Fixes
+
+- Improve Node parsing performance (#5201)
+
+### Pull Requests
+
+- [#5201](https://github.com/rollup/rollup/pull/5201): perf: use mimalloc for bindings_napi (@sapphi-red)
+
+## 4.1.0
+
+_2023-10-14_
+
+### Features
+
+- Reduce memory usage of Rollup builds (#5133)
+
+### Pull Requests
+
+- [#5133](https://github.com/rollup/rollup/pull/5133): perf: reducing ast node memory overhead (@thebanjomatic)
+- [#5177](https://github.com/rollup/rollup/pull/5177): chore: explicitly set rust toolchain channel (@cijiugechu)
+- [#5179](https://github.com/rollup/rollup/pull/5179): Update migration guide for Rollup 4 (@lukastaegert)
+- [#5180](https://github.com/rollup/rollup/pull/5180): Resolve clippy errors (@cijiugechu)
+- [#5183](https://github.com/rollup/rollup/pull/5183): Add clippy to pipeline and fix remaining issues (@lukastaegert)
+- [#5184](https://github.com/rollup/rollup/pull/5184): docs: fix code example for `onLog` (@tjenkinson)
+- [#5186](https://github.com/rollup/rollup/pull/5186): Improve wording for native artifacts in migration guide (@lukastaegert)
+- [#5190](https://github.com/rollup/rollup/pull/5190): test: add verifyAst type (@TrickyPi)
+- [#5196](https://github.com/rollup/rollup/pull/5196): chore(deps): update dependency rollup to v4 (@renovate[bot])
+- [#5197](https://github.com/rollup/rollup/pull/5197): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.0.2
 
 _2023-10-06_

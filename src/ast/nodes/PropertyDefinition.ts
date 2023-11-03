@@ -4,6 +4,7 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
@@ -13,11 +14,17 @@ import {
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class PropertyDefinition extends NodeBase {
-	declare computed: boolean;
 	declare key: ExpressionNode | PrivateIdentifier;
 	declare static: boolean;
 	declare type: NodeType.tPropertyDefinition;
 	declare value: ExpressionNode | null;
+
+	get computed(): boolean {
+		return isFlagSet(this.flags, Flag.computed);
+	}
+	set computed(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.computed, value);
+	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,

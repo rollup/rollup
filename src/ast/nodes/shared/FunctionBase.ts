@@ -16,6 +16,7 @@ import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
+import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
 import {
@@ -28,13 +29,26 @@ import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
 
 export default abstract class FunctionBase extends NodeBase {
-	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
 	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
+
+	get async(): boolean {
+		return isFlagSet(this.flags, Flag.async);
+	}
+	set async(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.async, value);
+	}
+
+	get deoptimizedReturn(): boolean {
+		return isFlagSet(this.flags, Flag.deoptimizedReturn);
+	}
+	set deoptimizedReturn(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.deoptimizedReturn, value);
+	}
+
 	protected objectEntity: ObjectEntity | null = null;
-	private deoptimizedReturn = false;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
@@ -110,7 +124,7 @@ export default abstract class FunctionBase extends NodeBase {
 			if (!this.deoptimizedReturn) {
 				this.deoptimizedReturn = true;
 				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-				this.context.requestTreeshakingPass();
+				this.scope.context.requestTreeshakingPass();
 			}
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
@@ -131,7 +145,7 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 
 		if (this.async) {
-			const { propertyReadSideEffects } = this.context.options
+			const { propertyReadSideEffects } = this.scope.context.options
 				.treeshake as NormalizedTreeshakingOptions;
 			const returnExpression = this.scope.getReturnExpression();
 			if (

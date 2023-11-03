@@ -5,8 +5,6 @@ import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity } from './Expression';
 
 export class MultiExpression extends ExpressionEntity {
-	included = false;
-
 	constructor(private expressions: readonly ExpressionEntity[]) {
 		super();
 	}

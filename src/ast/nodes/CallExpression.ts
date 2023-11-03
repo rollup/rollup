@@ -13,6 +13,7 @@ import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
@@ -24,8 +25,14 @@ export default class CallExpression
 {
 	declare arguments: (ExpressionNode | SpreadElement)[];
 	declare callee: ExpressionNode | Super;
-	declare optional: boolean;
 	declare type: NodeType.tCallExpression;
+
+	get optional(): boolean {
+		return isFlagSet(this.flags, Flag.optional);
+	}
+	set optional(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.optional, value);
+	}
 
 	bind(): void {
 		super.bind();
@@ -33,11 +40,11 @@ export default class CallExpression
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
+				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
 			}
 
 			if (this.callee.name === 'eval') {
-				this.context.log(LOGLEVEL_WARN, logEval(this.context.module.id), this.start);
+				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
 			}
 		}
 		this.interaction = {
@@ -114,7 +121,7 @@ export default class CallExpression
 			EMPTY_PATH,
 			SHARED_RECURSION_TRACKER
 		);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 
 	protected getReturnExpression(

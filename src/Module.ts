@@ -68,7 +68,7 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
-import { parseAst } from './utils/parseAst';
+import { parseAst, parseAstAsync } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -785,7 +785,7 @@ export default class Module {
 		return { source, usesTopLevelAwait };
 	}
 
-	setSource({
+	async setSource({
 		ast,
 		code,
 		customTransformCache,
@@ -799,7 +799,7 @@ export default class Module {
 	}: TransformModuleJSON & {
 		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
-	}): void {
+	}): Promise<void> {
 		if (code.startsWith('#!')) {
 			const shebangEndPosition = code.indexOf('\n');
 			this.shebang = code.slice(2, shebangEndPosition);
@@ -831,7 +831,7 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
-		const moduleAst = ast ?? this.tryParse();
+		const moduleAst = ast ?? (await this.tryParseAsync());
 
 		timeEnd('generate ast', 3);
 		timeStart('analyze ast', 3);
@@ -1330,6 +1330,14 @@ export default class Module {
 	private tryParse(): ProgramAst {
 		try {
 			return parseAst(this.info.code!) as ProgramAst;
+		} catch (error_: any) {
+			return this.error(logModuleParseError(error_, this.id), error_.pos);
+		}
+	}
+
+	private async tryParseAsync(): Promise<ProgramAst> {
+		try {
+			return (await parseAstAsync(this.info.code!)) as ProgramAst;
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}

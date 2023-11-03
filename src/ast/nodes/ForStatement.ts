@@ -2,7 +2,7 @@ import type MagicString from 'magic-string';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import type Scope from '../scopes/Scope';
+import type ChildScope from '../scopes/ChildScope';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
 import {
@@ -20,8 +20,8 @@ export default class ForStatement extends StatementBase {
 	declare type: NodeType.tForStatement;
 	declare update: ExpressionNode | null;
 
-	createScope(parentScope: Scope): void {
-		this.scope = new BlockScope(parentScope);
+	createScope(parentScope: ChildScope): void {
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

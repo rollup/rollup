@@ -46,9 +46,10 @@ If this is important to you, please consider supporting Rollup to make a native 
 
 const packageBase = imported.musl && isMusl() ? imported.musl : imported.base;
 const localName = `./rollup.${packageBase}.node`;
-const { parse, xxhashBase64Url } = require(
+const { parse, parseAsync, xxhashBase64Url } = require(
 	existsSync(join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
 
 module.exports.parse = parse;
+module.exports.parseAsync = parseAsync;
 module.exports.xxhashBase64Url = xxhashBase64Url;

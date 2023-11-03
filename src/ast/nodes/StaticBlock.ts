@@ -6,7 +6,7 @@ import {
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import type Scope from '../scopes/Scope';
+import type ChildScope from '../scopes/ChildScope';
 import type * as NodeType from './NodeType';
 import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
 
@@ -14,8 +14,8 @@ export default class StaticBlock extends StatementBase {
 	declare body: readonly StatementNode[];
 	declare type: NodeType.tStaticBlock;
 
-	createScope(parentScope: Scope): void {
-		this.scope = new BlockScope(parentScope);
+	createScope(parentScope: ChildScope): void {
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

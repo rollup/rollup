@@ -6,6 +6,11 @@
 	"rangeStrategy": "bump",
 	"packageRules": [
 		{
+			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance"],
+			"groupName": "minor/patch updates",
+			"automerge": true
+		},
+		{
 			"matchPackageNames": ["node", "npm", "fsevents", "@rollup/plugin-typescript"],
 			"enabled": false
 		},
@@ -13,11 +18,8 @@
 			"matchPackageNames": ["@types/node"],
 			"matchUpdateTypes": ["major", "minor"],
 			"enabled": false
-		},
-		{
-			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance"],
-			"groupName": "minor/patch updates"
 		}
+
 	],
 	"automerge": true,
 	"automergeType": "pr",

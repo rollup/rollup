@@ -333,10 +333,10 @@ var store$4 = sharedStore;
 (shared$b.exports = function (key, value) {
   return store$4[key] || (store$4[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.33.0',
+  version: '3.33.1',
   mode: 'global',
   copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.33.0/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.33.1/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -1658,14 +1658,15 @@ if (!NATIVE_SYMBOL$5) {
     var description = !arguments.length || arguments[0] === undefined ? undefined : $toString$3(arguments[0]);
     var tag = uid$4(description);
     var setter = function (value) {
-      if (this === ObjectPrototype$5) call$1d(setter, ObjectPrototypeSymbols, value);
-      if (hasOwn$w(this, HIDDEN) && hasOwn$w(this[HIDDEN], tag)) this[HIDDEN][tag] = false;
+      var $this = this === undefined ? global$W : this;
+      if ($this === ObjectPrototype$5) call$1d(setter, ObjectPrototypeSymbols, value);
+      if (hasOwn$w($this, HIDDEN) && hasOwn$w($this[HIDDEN], tag)) $this[HIDDEN][tag] = false;
       var descriptor = createPropertyDescriptor$9(1, value);
       try {
-        setSymbolDescriptor(this, tag, descriptor);
+        setSymbolDescriptor($this, tag, descriptor);
       } catch (error) {
         if (!(error instanceof RangeError$5)) throw error;
-        fallbackDefineProperty(this, tag, descriptor);
+        fallbackDefineProperty($this, tag, descriptor);
       }
     };
     if (DESCRIPTORS$K && USE_SETTER) setSymbolDescriptor(ObjectPrototype$5, tag, { configurable: true, set: setter });
@@ -2339,7 +2340,6 @@ exportWebAssemblyErrorCauseWrapper('RuntimeError', function (init) {
 var DESCRIPTORS$H = descriptors;
 var fails$1g = fails$1u;
 var anObject$18 = anObject$1f;
-var create$i = objectCreate$1;
 var normalizeStringArgument$4 = normalizeStringArgument$6;
 
 var nativeErrorToString = Error.prototype.toString;
@@ -2347,8 +2347,8 @@ var nativeErrorToString = Error.prototype.toString;
 var INCORRECT_TO_STRING$1 = fails$1g(function () {
   if (DESCRIPTORS$H) {
     // Chrome 32- incorrectly call accessor
-    // eslint-disable-next-line es/no-object-defineproperty -- safe
-    var object = create$i(Object.defineProperty({}, 'name', { get: function () {
+    // eslint-disable-next-line es/no-object-create, es/no-object-defineproperty -- safe
+    var object = Object.create(Object.defineProperty({}, 'name', { get: function () {
       return this === object;
     } }));
     if (nativeErrorToString.call(object) !== 'true') return true;
@@ -3400,7 +3400,7 @@ var iteratorDefine = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
 
 // `CreateIterResultObject` abstract operation
 // https://tc39.es/ecma262/#sec-createiterresultobject
-var createIterResultObject$g = function (value, done) {
+var createIterResultObject$h = function (value, done) {
   return { value: value, done: done };
 };
 
@@ -3410,7 +3410,7 @@ var Iterators$1 = iterators;
 var InternalStateModule$l = internalState;
 var defineProperty$b = objectDefineProperty.f;
 var defineIterator$2 = iteratorDefine;
-var createIterResultObject$f = createIterResultObject$g;
+var createIterResultObject$g = createIterResultObject$h;
 var DESCRIPTORS$G = descriptors;
 
 var ARRAY_ITERATOR = 'Array Iterator';
@@ -3439,16 +3439,15 @@ var es_array_iterator = defineIterator$2(Array, 'Array', function (iterated, kin
 }, function () {
   var state = getInternalState$e(this);
   var target = state.target;
-  var kind = state.kind;
   var index = state.index++;
   if (!target || index >= target.length) {
     state.target = undefined;
-    return createIterResultObject$f(undefined, true);
+    return createIterResultObject$g(undefined, true);
   }
-  switch (kind) {
-    case 'keys': return createIterResultObject$f(index, false);
-    case 'values': return createIterResultObject$f(target[index], false);
-  } return createIterResultObject$f([index, target[index]], false);
+  switch (state.kind) {
+    case 'keys': return createIterResultObject$g(index, false);
+    case 'values': return createIterResultObject$g(target[index], false);
+  } return createIterResultObject$g([index, target[index]], false);
 }, 'values');
 
 // argumentsList[@@iterator] is %ArrayProto_values%
@@ -4101,8 +4100,8 @@ var arrayFromConstructorAndList$6 = function (Constructor, list) {
 
 var global$S = global$16;
 
-var entryVirtual = function (CONSTRUCTOR) {
-  return global$S[CONSTRUCTOR].prototype;
+var getBuiltInPrototypeMethod$2 = function (CONSTRUCTOR, METHOD) {
+  return global$S[CONSTRUCTOR].prototype[METHOD];
 };
 
 var $$4P = _export;
@@ -4110,11 +4109,11 @@ var uncurryThis$1w = functionUncurryThis;
 var aCallable$F = aCallable$N;
 var toIndexedObject$8 = toIndexedObject$k;
 var arrayFromConstructorAndList$5 = arrayFromConstructorAndList$6;
-var getVirtual$1 = entryVirtual;
+var getBuiltInPrototypeMethod$1 = getBuiltInPrototypeMethod$2;
 var addToUnscopables$c = addToUnscopables$n;
 
 var $Array$6 = Array;
-var sort$1 = uncurryThis$1w(getVirtual$1('Array').sort);
+var sort$1 = uncurryThis$1w(getBuiltInPrototypeMethod$1('Array', 'sort'));
 
 // `Array.prototype.toSorted` method
 // https://tc39.es/ecma262/#sec-array.prototype.tosorted
@@ -5640,7 +5639,7 @@ var anInstance$c = anInstance$f;
 var isNullOrUndefined$e = isNullOrUndefined$k;
 var iterate$D = iterate$G;
 var defineIterator$1 = iteratorDefine;
-var createIterResultObject$e = createIterResultObject$g;
+var createIterResultObject$f = createIterResultObject$h;
 var setSpecies$4 = setSpecies$7;
 var DESCRIPTORS$A = descriptors;
 var fastKey = internalMetadataExports.fastKey;
@@ -5824,12 +5823,12 @@ var collectionStrong$2 = {
       if (!state.target || !(state.last = entry = entry ? entry.next : state.state.first)) {
         // or finish the iteration
         state.target = undefined;
-        return createIterResultObject$e(undefined, true);
+        return createIterResultObject$f(undefined, true);
       }
       // return step by kind
-      if (kind === 'keys') return createIterResultObject$e(entry.key, false);
-      if (kind === 'values') return createIterResultObject$e(entry.value, false);
-      return createIterResultObject$e([entry.key, entry.value], false);
+      if (kind === 'keys') return createIterResultObject$f(entry.key, false);
+      if (kind === 'values') return createIterResultObject$f(entry.value, false);
+      return createIterResultObject$f([entry.key, entry.value], false);
     }, IS_MAP ? 'entries' : 'values', !IS_MAP, true);
 
     // `{ Map, Set }.prototype[@@species]` accessors
@@ -9323,7 +9322,7 @@ var charAt$d = stringMultibyte.charAt;
 var toString$o = toString$J;
 var InternalStateModule$g = internalState;
 var defineIterator = iteratorDefine;
-var createIterResultObject$d = createIterResultObject$g;
+var createIterResultObject$e = createIterResultObject$h;
 
 var STRING_ITERATOR$1 = 'String Iterator';
 var setInternalState$h = InternalStateModule$g.set;
@@ -9344,10 +9343,10 @@ defineIterator(String, 'String', function (iterated) {
   var string = state.string;
   var index = state.index;
   var point;
-  if (index >= string.length) return createIterResultObject$d(undefined, true);
+  if (index >= string.length) return createIterResultObject$e(undefined, true);
   point = charAt$d(string, index);
   state.index += point.length;
-  return createIterResultObject$d(point, false);
+  return createIterResultObject$e(point, false);
 });
 
 // TODO: Remove from `core-js@4` since it's moved to entry points
@@ -9509,7 +9508,7 @@ var $$38 = _export;
 var call$T = functionCall;
 var uncurryThis$$ = functionUncurryThisClause;
 var createIteratorConstructor$5 = iteratorCreateConstructor;
-var createIterResultObject$c = createIterResultObject$g;
+var createIterResultObject$d = createIterResultObject$h;
 var requireObjectCoercible$c = requireObjectCoercible$p;
 var toLength$5 = toLength$d;
 var toString$m = toString$J;
@@ -9553,20 +9552,20 @@ var $RegExpStringIterator = createIteratorConstructor$5(function RegExpStringIte
   });
 }, REGEXP_STRING, function next() {
   var state = getInternalState$8(this);
-  if (state.done) return createIterResultObject$c(undefined, true);
+  if (state.done) return createIterResultObject$d(undefined, true);
   var R = state.regexp;
   var S = state.string;
   var match = regExpExec$2(R, S);
   if (match === null) {
     state.done = true;
-    return createIterResultObject$c(undefined, true);
+    return createIterResultObject$d(undefined, true);
   }
   if (state.global) {
     if (toString$m(match[0]) === '') R.lastIndex = advanceStringIndex$2(S, toLength$5(R.lastIndex), state.unicode);
-    return createIterResultObject$c(match, false);
+    return createIterResultObject$d(match, false);
   }
   state.done = true;
-  return createIterResultObject$c(match, false);
+  return createIterResultObject$d(match, false);
 });
 
 var $matchAll = function (string) {
@@ -11979,7 +11978,7 @@ var defineBuiltIns$6 = defineBuiltIns$b;
 var InternalStateModule$c = internalState;
 var getBuiltIn$u = getBuiltIn$M;
 var AsyncIteratorPrototype$4 = asyncIteratorPrototype;
-var createIterResultObject$b = createIterResultObject$g;
+var createIterResultObject$c = createIterResultObject$h;
 
 var Promise$5 = getBuiltIn$u('Promise');
 
@@ -11990,7 +11989,7 @@ var getInternalState$6 = InternalStateModule$c.getterFor(ASYNC_FROM_SYNC_ITERATO
 var asyncFromSyncIteratorContinuation = function (result, resolve, reject) {
   var done = result.done;
   Promise$5.resolve(result.value).then(function (value) {
-    resolve(createIterResultObject$b(value, done));
+    resolve(createIterResultObject$c(value, done));
   }, reject);
 };
 
@@ -12011,7 +12010,7 @@ AsyncFromSyncIterator$4.prototype = defineBuiltIns$6(create$8(AsyncIteratorProto
     var iterator = getInternalState$6(this).iterator;
     return new Promise$5(function (resolve, reject) {
       var $return = getMethod$b(iterator, 'return');
-      if ($return === undefined) return resolve(createIterResultObject$b(undefined, true));
+      if ($return === undefined) return resolve(createIterResultObject$c(undefined, true));
       var result = anObject$G(call$J($return, iterator));
       asyncFromSyncIteratorContinuation(result, resolve, reject);
     });
@@ -12163,14 +12162,14 @@ var getIterator$2 = getIterator$7;
 var getIteratorDirect$l = getIteratorDirect$o;
 var getIteratorMethod$3 = getIteratorMethod$8;
 var getMethod$8 = getMethod$l;
-var getVirtual = entryVirtual;
 var getBuiltIn$r = getBuiltIn$M;
+var getBuiltInPrototypeMethod = getBuiltInPrototypeMethod$2;
 var wellKnownSymbol$i = wellKnownSymbol$S;
 var AsyncFromSyncIterator$2 = asyncFromSyncIterator;
 var toArray = asyncIteratorIteration.toArray;
 
 var ASYNC_ITERATOR$1 = wellKnownSymbol$i('asyncIterator');
-var arrayIterator = uncurryThis$H(getVirtual('Array').values);
+var arrayIterator = uncurryThis$H(getBuiltInPrototypeMethod('Array', 'values'));
 var arrayIteratorNext = uncurryThis$H(arrayIterator([]).next);
 
 var safeArrayIterator = function () {
@@ -12945,7 +12944,7 @@ var InternalStateModule$a = internalState;
 var getBuiltIn$p = getBuiltIn$M;
 var getMethod$6 = getMethod$l;
 var AsyncIteratorPrototype$2 = asyncIteratorPrototype;
-var createIterResultObject$a = createIterResultObject$g;
+var createIterResultObject$b = createIterResultObject$h;
 var iteratorClose$5 = iteratorClose$8;
 
 var Promise$3 = getBuiltIn$p('Promise');
@@ -12968,7 +12967,7 @@ var createAsyncIteratorProxyPrototype = function (IS_ITERATOR) {
     var state = stateCompletion.value;
 
     if (stateError || (IS_GENERATOR && state.done)) {
-      return { exit: true, value: stateError ? Promise$3.reject(state) : Promise$3.resolve(createIterResultObject$a(undefined, true)) };
+      return { exit: true, value: stateError ? Promise$3.reject(state) : Promise$3.resolve(createIterResultObject$b(undefined, true)) };
     } return { exit: false, value: state };
   };
 
@@ -13002,7 +13001,7 @@ var createAsyncIteratorProxyPrototype = function (IS_ITERATOR) {
       });
       returnMethod = result = completion.value;
       if (completion.error) return Promise$3.reject(result);
-      if (returnMethod === undefined) return Promise$3.resolve(createIterResultObject$a(undefined, true));
+      if (returnMethod === undefined) return Promise$3.resolve(createIterResultObject$b(undefined, true));
       completion = perform$1(function () {
         return call$D(returnMethod, iterator);
       });
@@ -13010,7 +13009,7 @@ var createAsyncIteratorProxyPrototype = function (IS_ITERATOR) {
       if (completion.error) return Promise$3.reject(result);
       return IS_ITERATOR ? Promise$3.resolve(result) : Promise$3.resolve(result).then(function (resolved) {
         anObject$C(resolved);
-        return createIterResultObject$a(undefined, true);
+        return createIterResultObject$b(undefined, true);
       });
     }
   });
@@ -13045,7 +13044,7 @@ var anObject$B = anObject$1f;
 var isObject$b = isObject$K;
 var getIteratorDirect$k = getIteratorDirect$o;
 var createAsyncIteratorProxy$5 = asyncIteratorCreateProxy;
-var createIterResultObject$9 = createIterResultObject$g;
+var createIterResultObject$a = createIterResultObject$h;
 var closeAsyncIteration$3 = asyncIteratorClose;
 
 var AsyncIteratorProxy$4 = createAsyncIteratorProxy$5(function (Promise) {
@@ -13067,14 +13066,14 @@ var AsyncIteratorProxy$4 = createAsyncIteratorProxy$5(function (Promise) {
       try {
         if (anObject$B(step).done) {
           state.done = true;
-          resolve(createIterResultObject$9(undefined, true));
+          resolve(createIterResultObject$a(undefined, true));
         } else {
           var value = step.value;
           try {
             var result = mapper(value, state.counter++);
 
             var handler = function (mapped) {
-              resolve(createIterResultObject$9(mapped, false));
+              resolve(createIterResultObject$a(mapped, false));
             };
 
             if (isObject$b(result)) Promise.resolve(result).then(handler, ifAbruptCloseAsyncIterator);
@@ -13160,7 +13159,7 @@ var getIteratorDirect$j = getIteratorDirect$o;
 var notANaN$3 = notANan;
 var toPositiveInteger$3 = toPositiveInteger$5;
 var createAsyncIteratorProxy$4 = asyncIteratorCreateProxy;
-var createIterResultObject$8 = createIterResultObject$g;
+var createIterResultObject$9 = createIterResultObject$h;
 var IS_PURE$e = isPure;
 
 var AsyncIteratorProxy$3 = createAsyncIteratorProxy$4(function (Promise) {
@@ -13178,11 +13177,11 @@ var AsyncIteratorProxy$3 = createAsyncIteratorProxy$4(function (Promise) {
           try {
             if (anObject$A(step).done) {
               state.done = true;
-              resolve(createIterResultObject$8(undefined, true));
+              resolve(createIterResultObject$9(undefined, true));
             } else if (state.remaining) {
               state.remaining--;
               loop();
-            } else resolve(createIterResultObject$8(step.value, false));
+            } else resolve(createIterResultObject$9(step.value, false));
           } catch (err) { doneAndReject(err); }
         }, doneAndReject);
       } catch (error) { doneAndReject(error); }
@@ -13222,7 +13221,7 @@ var anObject$z = anObject$1f;
 var isObject$a = isObject$K;
 var getIteratorDirect$i = getIteratorDirect$o;
 var createAsyncIteratorProxy$3 = asyncIteratorCreateProxy;
-var createIterResultObject$7 = createIterResultObject$g;
+var createIterResultObject$8 = createIterResultObject$h;
 var closeAsyncIteration$2 = asyncIteratorClose;
 var IS_PURE$d = isPure;
 
@@ -13247,14 +13246,14 @@ var AsyncIteratorProxy$2 = createAsyncIteratorProxy$3(function (Promise) {
           try {
             if (anObject$z(step).done) {
               state.done = true;
-              resolve(createIterResultObject$7(undefined, true));
+              resolve(createIterResultObject$8(undefined, true));
             } else {
               var value = step.value;
               try {
                 var result = predicate(value, state.counter++);
 
                 var handler = function (selected) {
-                  selected ? resolve(createIterResultObject$7(value, false)) : loop();
+                  selected ? resolve(createIterResultObject$8(value, false)) : loop();
                 };
 
                 if (isObject$a(result)) Promise.resolve(result).then(handler, ifAbruptCloseAsyncIterator);
@@ -13330,7 +13329,7 @@ var anObject$x = anObject$1f;
 var isObject$9 = isObject$K;
 var getIteratorDirect$g = getIteratorDirect$o;
 var createAsyncIteratorProxy$2 = asyncIteratorCreateProxy;
-var createIterResultObject$6 = createIterResultObject$g;
+var createIterResultObject$7 = createIterResultObject$h;
 var getAsyncIteratorFlattenable$1 = getAsyncIteratorFlattenable$2;
 var closeAsyncIteration$1 = asyncIteratorClose;
 var IS_PURE$c = isPure;
@@ -13356,7 +13355,7 @@ var AsyncIteratorProxy$1 = createAsyncIteratorProxy$2(function (Promise) {
           try {
             if (anObject$x(step).done) {
               state.done = true;
-              resolve(createIterResultObject$6(undefined, true));
+              resolve(createIterResultObject$7(undefined, true));
             } else {
               var value = step.value;
               try {
@@ -13387,7 +13386,7 @@ var AsyncIteratorProxy$1 = createAsyncIteratorProxy$2(function (Promise) {
               if (anObject$x(result).done) {
                 state.inner = null;
                 outerLoop();
-              } else resolve(createIterResultObject$6(result.value, false));
+              } else resolve(createIterResultObject$7(result.value, false));
             } catch (error1) { ifAbruptCloseAsyncIterator(error1); }
           }, ifAbruptCloseAsyncIterator);
         } catch (error) { ifAbruptCloseAsyncIterator(error); }
@@ -13551,7 +13550,7 @@ var getIteratorDirect$e = getIteratorDirect$o;
 var notANaN$2 = notANan;
 var toPositiveInteger$2 = toPositiveInteger$5;
 var createAsyncIteratorProxy = asyncIteratorCreateProxy;
-var createIterResultObject$5 = createIterResultObject$g;
+var createIterResultObject$6 = createIterResultObject$h;
 var IS_PURE$9 = isPure;
 
 var AsyncIteratorProxy = createAsyncIteratorProxy(function (Promise) {
@@ -13560,7 +13559,7 @@ var AsyncIteratorProxy = createAsyncIteratorProxy(function (Promise) {
   var returnMethod;
 
   if (!state.remaining--) {
-    var resultDone = createIterResultObject$5(undefined, true);
+    var resultDone = createIterResultObject$6(undefined, true);
     state.done = true;
     returnMethod = iterator['return'];
     if (returnMethod !== undefined) {
@@ -13572,8 +13571,8 @@ var AsyncIteratorProxy = createAsyncIteratorProxy(function (Promise) {
   } return Promise.resolve(call$t(state.next, iterator)).then(function (step) {
     if (anObject$v(step).done) {
       state.done = true;
-      return createIterResultObject$5(undefined, true);
-    } return createIterResultObject$5(step.value, false);
+      return createIterResultObject$6(undefined, true);
+    } return createIterResultObject$6(step.value, false);
   }).then(null, function (error) {
     state.done = true;
     throw error;
@@ -13605,7 +13604,7 @@ $$2g({ target: 'AsyncIterator', proto: true, real: true }, {
 
 var InternalStateModule$9 = internalState;
 var createIteratorConstructor$4 = iteratorCreateConstructor;
-var createIterResultObject$4 = createIterResultObject$g;
+var createIterResultObject$5 = createIterResultObject$h;
 var isNullOrUndefined$4 = isNullOrUndefined$k;
 var isObject$7 = isObject$K;
 var defineBuiltInAccessor$7 = defineBuiltInAccessor$o;
@@ -13670,7 +13669,7 @@ var $RangeIterator = createIteratorConstructor$4(function NumericRangeIterator(s
   }
 }, NUMERIC_RANGE_ITERATOR, function next() {
   var state = getInternalState$5(this);
-  if (state.hitsEnd) return createIterResultObject$4(undefined, true);
+  if (state.hitsEnd) return createIterResultObject$5(undefined, true);
   var start = state.start;
   var end = state.end;
   var step = state.step;
@@ -13685,8 +13684,8 @@ var $RangeIterator = createIteratorConstructor$4(function NumericRangeIterator(s
   }
   if (endCondition) {
     state.hitsEnd = true;
-    return createIterResultObject$4(undefined, true);
-  } return createIterResultObject$4(currentYieldingValue, false);
+    return createIterResultObject$5(undefined, true);
+  } return createIterResultObject$5(currentYieldingValue, false);
 });
 
 var addGetter = function (key) {
@@ -13830,7 +13829,7 @@ var uncurryThis$x = functionUncurryThis;
 var getUint8 = uncurryThis$x(DataView.prototype.getUint8);
 
 // `DataView.prototype.getUint8Clamped` method
-// https://github.com/tc39/proposal-dataview-get-set-uint8c
+// https://github.com/tc39/proposal-dataview-get-set-uint8clamped
 $$2b({ target: 'DataView', proto: true, forced: true }, {
   getUint8Clamped: function getUint8Clamped(byteOffset) {
     return getUint8(this, byteOffset);
@@ -13882,7 +13881,7 @@ var $TypeError$d = TypeError;
 var setUint8 = uncurryThis$v(DataView.prototype.setUint8);
 
 // `DataView.prototype.setUint8Clamped` method
-// https://github.com/tc39/proposal-dataview-get-set-uint8c
+// https://github.com/tc39/proposal-dataview-get-set-uint8clamped
 $$29({ target: 'DataView', proto: true, forced: true }, {
   setUint8Clamped: function setUint8Clamped(byteOffset, value) {
     if (classof$3(this) !== 'DataView') throw new $TypeError$d('Incorrect receiver');
@@ -14135,7 +14134,7 @@ var wellKnownSymbol$8 = wellKnownSymbol$S;
 var InternalStateModule$7 = internalState;
 var getMethod$3 = getMethod$l;
 var IteratorPrototype$2 = iteratorsCore.IteratorPrototype;
-var createIterResultObject$3 = createIterResultObject$g;
+var createIterResultObject$4 = createIterResultObject$h;
 var iteratorClose$4 = iteratorClose$8;
 
 var TO_STRING_TAG$1 = wellKnownSymbol$8('toStringTag');
@@ -14155,7 +14154,7 @@ var createIteratorProxyPrototype = function (IS_ITERATOR) {
       if (IS_ITERATOR) return state.nextHandler();
       try {
         var result = state.done ? undefined : state.nextHandler();
-        return createIterResultObject$3(result, state.done);
+        return createIterResultObject$4(result, state.done);
       } catch (error) {
         state.done = true;
         throw error;
@@ -14167,7 +14166,7 @@ var createIteratorProxyPrototype = function (IS_ITERATOR) {
       state.done = true;
       if (IS_ITERATOR) {
         var returnMethod = getMethod$3(iterator, 'return');
-        return returnMethod ? call$s(returnMethod, iterator) : createIterResultObject$3(undefined, true);
+        return returnMethod ? call$s(returnMethod, iterator) : createIterResultObject$4(undefined, true);
       }
       if (state.inner) try {
         iteratorClose$4(state.inner.iterator, 'normal');
@@ -14175,7 +14174,7 @@ var createIteratorProxyPrototype = function (IS_ITERATOR) {
         return iteratorClose$4(iterator, 'throw', error);
       }
       iteratorClose$4(iterator, 'normal');
-      return createIterResultObject$3(undefined, true);
+      return createIterResultObject$4(undefined, true);
     }
   });
 };
@@ -15664,7 +15663,7 @@ var $$1g = _export;
 var anObject$g = anObject$1f;
 var numberIsFinite = numberIsFinite$2;
 var createIteratorConstructor$3 = iteratorCreateConstructor;
-var createIterResultObject$2 = createIterResultObject$g;
+var createIterResultObject$3 = createIterResultObject$h;
 var InternalStateModule$6 = internalState;
 
 var SEEDED_RANDOM = 'Seeded Random';
@@ -15682,7 +15681,7 @@ var $SeededRandomGenerator = createIteratorConstructor$3(function SeededRandomGe
 }, SEEDED_RANDOM, function next() {
   var state = getInternalState$3(this);
   var seed = state.seed = (state.seed * 1103515245 + 12345) % 2147483647;
-  return createIterResultObject$2((seed & 1073741823) / 1073741823, false);
+  return createIterResultObject$3((seed & 1073741823) / 1073741823, false);
 });
 
 // `Math.seededPRNG` method
@@ -15779,7 +15778,7 @@ $$1c({ target: 'Number', stat: true, forced: true }, {
 
 var InternalStateModule$5 = internalState;
 var createIteratorConstructor$2 = iteratorCreateConstructor;
-var createIterResultObject$1 = createIterResultObject$g;
+var createIterResultObject$2 = createIterResultObject$h;
 var hasOwn$7 = hasOwnProperty_1;
 var objectKeys$1 = objectKeys$6;
 var toObject$1 = toObject$D;
@@ -15803,15 +15802,15 @@ var objectIterator = createIteratorConstructor$2(function ObjectIterator(source,
   while (true) {
     if (keys === null || state.index >= keys.length) {
       state.object = state.keys = null;
-      return createIterResultObject$1(undefined, true);
+      return createIterResultObject$2(undefined, true);
     }
     var key = keys[state.index++];
     var object = state.object;
     if (!hasOwn$7(object, key)) continue;
     switch (state.mode) {
-      case 'keys': return createIterResultObject$1(key, false);
-      case 'values': return createIterResultObject$1(object[key], false);
-    } /* entries */ return createIterResultObject$1([key, object[key]], false);
+      case 'keys': return createIterResultObject$2(key, false);
+      case 'values': return createIterResultObject$2(object[key], false);
+    } /* entries */ return createIterResultObject$2([key, object[key]], false);
   }
 });
 
@@ -17189,7 +17188,7 @@ $$u({ target: 'String', stat: true, forced: true }, {
 
 var $$t = _export;
 var createIteratorConstructor$1 = iteratorCreateConstructor;
-var createIterResultObject = createIterResultObject$g;
+var createIterResultObject$1 = createIterResultObject$h;
 var requireObjectCoercible = requireObjectCoercible$p;
 var toString$5 = toString$J;
 var InternalStateModule$3 = internalState;
@@ -17213,10 +17212,10 @@ var $StringIterator = createIteratorConstructor$1(function StringIterator(string
   var string = state.string;
   var index = state.index;
   var point;
-  if (index >= string.length) return createIterResultObject(undefined, true);
+  if (index >= string.length) return createIterResultObject$1(undefined, true);
   point = charAt$6(string, index);
   state.index += point.length;
-  return createIterResultObject({ codePoint: codeAt$1(point, 0), position: index }, false);
+  return createIterResultObject$1({ codePoint: codeAt$1(point, 0), position: index }, false);
 });
 
 // `String.prototype.codePoints` method
@@ -17641,13 +17640,13 @@ var defineWellKnownSymbol$5 = wellKnownSymbolDefine;
 // https://github.com/tc39/proposal-pattern-matching
 defineWellKnownSymbol$5('matcher');
 
-// TODO: Remove from `core-js@4`
 var defineWellKnownSymbol$4 = wellKnownSymbolDefine;
 
 // `Symbol.metadata` well-known symbol
 // https://github.com/tc39/proposal-decorators
 defineWellKnownSymbol$4('metadata');
 
+// TODO: Remove from `core-js@4`
 var defineWellKnownSymbol$3 = wellKnownSymbolDefine;
 
 // `Symbol.metadataKey` well-known symbol
@@ -19493,6 +19492,7 @@ var create = objectCreate$1;
 var createPropertyDescriptor = createPropertyDescriptor$d;
 var getIterator = getIterator$7;
 var getIteratorMethod = getIteratorMethod$8;
+var createIterResultObject = createIterResultObject$h;
 var validateArgumentsLength$4 = validateArgumentsLength$b;
 var wellKnownSymbol = wellKnownSymbol$S;
 var arraySort = arraySort$1;
@@ -19581,17 +19581,23 @@ var serialize = function (it) {
 var URLSearchParamsIterator = createIteratorConstructor(function Iterator(params, kind) {
   setInternalState$1(this, {
     type: URL_SEARCH_PARAMS_ITERATOR,
-    iterator: getIterator(getInternalParamsState(params).entries),
+    target: getInternalParamsState(params).entries,
+    index: 0,
     kind: kind
   });
-}, 'Iterator', function next() {
+}, URL_SEARCH_PARAMS, function next() {
   var state = getInternalIteratorState(this);
-  var kind = state.kind;
-  var step = state.iterator.next();
-  var entry = step.value;
-  if (!step.done) {
-    step.value = kind === 'keys' ? entry.key : kind === 'values' ? entry.value : [entry.key, entry.value];
-  } return step;
+  var target = state.target;
+  var index = state.index++;
+  if (!target || index >= target.length) {
+    state.target = undefined;
+    return createIterResultObject(undefined, true);
+  }
+  var entry = target[index];
+  switch (state.kind) {
+    case 'keys': return createIterResultObject(entry.key, false);
+    case 'values': return createIterResultObject(entry.value, false);
+  } return createIterResultObject([entry.key, entry.value], false);
 }, true);
 
 var URLSearchParamsState = function (init) {
@@ -19611,6 +19617,7 @@ URLSearchParamsState.prototype = {
     this.update();
   },
   parseObject: function (object) {
+    var entries = this.entries;
     var iteratorMethod = getIteratorMethod(object);
     var iterator, next, step, entryIterator, entryNext, first, second;
 
@@ -19625,14 +19632,15 @@ URLSearchParamsState.prototype = {
           (second = call$1(entryNext, entryIterator)).done ||
           !call$1(entryNext, entryIterator).done
         ) throw new TypeError$2('Expected sequence with length 2');
-        push$2(this.entries, { key: $toString$1(first.value), value: $toString$1(second.value) });
+        push$2(entries, { key: $toString$1(first.value), value: $toString$1(second.value) });
       }
     } else for (var key in object) if (hasOwn$1(object, key)) {
-      push$2(this.entries, { key: key, value: $toString$1(object[key]) });
+      push$2(entries, { key: key, value: $toString$1(object[key]) });
     }
   },
   parseQuery: function (query) {
     if (query) {
+      var entries = this.entries;
       var attributes = split$1(query, '&');
       var index = 0;
       var attribute, entry;
@@ -19640,7 +19648,7 @@ URLSearchParamsState.prototype = {
         attribute = attributes[index++];
         if (attribute.length) {
           entry = split$1(attribute, '=');
-          push$2(this.entries, {
+          push$2(entries, {
             key: deserialize(shift$1(entry)),
             value: deserialize(join$1(entry, '='))
           });

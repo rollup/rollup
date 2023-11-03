@@ -12,13 +12,11 @@ export default class ParameterScope extends ChildScope {
 	readonly hoistedBodyVarScope: ChildScope;
 	parameters: readonly ParameterVariable[][] = [];
 
-	private readonly context: AstContext;
 	private hasRest = false;
 
 	constructor(parent: Scope, context: AstContext) {
-		super(parent);
-		this.context = context;
-		this.hoistedBodyVarScope = new ChildScope(this);
+		super(parent, context);
+		this.hoistedBodyVarScope = new ChildScope(this, context);
 	}
 
 	/**

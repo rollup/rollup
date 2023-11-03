@@ -2,7 +2,7 @@ import type MagicString from 'magic-string';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import type Scope from '../scopes/Scope';
+import type ChildScope from '../scopes/ChildScope';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -23,8 +23,8 @@ export default class ForInStatement extends StatementBase {
 	declare right: ExpressionNode;
 	declare type: NodeType.tForInStatement;
 
-	createScope(parentScope: Scope): void {
-		this.scope = new BlockScope(parentScope);
+	createScope(parentScope: ChildScope): void {
+		this.scope = new BlockScope(parentScope, this.scope.context);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -60,6 +60,6 @@ export default class ForInStatement extends StatementBase {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.context.requestTreeshakingPass();
+		this.scope.context.requestTreeshakingPass();
 	}
 }
