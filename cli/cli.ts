@@ -23,5 +23,9 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 		// do nothing
 	}
 
-	run(command);
+	const promise = run(command);
+	if (command.forceExit) {
+		// eslint-disable-next-line unicorn/no-process-exit
+		promise.then(() => process.exit());
+	}
 }
