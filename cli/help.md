@@ -40,6 +40,7 @@ Basic options:
 --failAfterWarnings         Exit with an error if the build produced warnings
 --filterLogs <filter>       Filter log messages
 --footer <text>             Code to insert at end of bundle (outside wrapper)
+--forceExit                 Force exit the process when done
 --no-freeze                 Do not freeze namespace objects
 --generatedCode <preset>    Which code features to use (es5/es2015)
 --generatedCode.arrowFunctions Use arrow functions in generated code

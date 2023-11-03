@@ -390,6 +390,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --failAfterWarnings         Exit with an error if the build produced warnings
 --filterLogs <filter>       Filter log messages
 --footer <text>             Code to insert at end of bundle (outside wrapper)
+--forceExit                 Force exit the process when done
 --no-freeze                 Do not freeze namespace objects
 --generatedCode <preset>    Which code features to use (es5/es2015)
 --generatedCode.arrowFunctions Use arrow functions in generated code
@@ -555,6 +556,12 @@ There is also some advanced syntax available for more complex filters.
   ```
 
   will only display logs where the property `log.foo.bar` has the value `"value"`.
+
+### `--forceExit`
+
+Force exit the process when done. In some cases plugins or their dependencies might not cleanup properly and prevent the CLI process from exiting. The root cause can be hard to diagnose and this flag provides an escape hatch until it can be identified and resolved.
+
+Note that this might break certain workflows and won't always work properly.
 
 ### `-h`/`--help`
 
