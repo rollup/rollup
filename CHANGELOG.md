@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.3.0
+
+_2023-11-03_
+
+### Features
+
+- Add `forceExit` CLI flag for situations where the CLI does not exit gracefully (#5195)
+
+### Bug Fixes
+
+- Properly catch errors when removing a temporary config file fails (#5198)
+
+### Pull Requests
+
+- [#5195](https://github.com/rollup/rollup/pull/5195): Add `forceExit` CLI flag (@raphael-theriault-swi)
+- [#5198](https://github.com/rollup/rollup/pull/5198): fix: prevent `ENOENT` error on temp config removal (@jzempel)
+- [#5237](https://github.com/rollup/rollup/pull/5237): chore: remove unused files and deps (@TrickyPi)
+- [#5238](https://github.com/rollup/rollup/pull/5238): chore(deps): update dependency eslint-plugin-unicorn to v49 (@renovate[bot])
+- [#5239](https://github.com/rollup/rollup/pull/5239): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.2.0
 
 _2023-10-31_
