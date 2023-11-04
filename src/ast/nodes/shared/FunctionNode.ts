@@ -12,6 +12,7 @@ import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import type { PatternNode } from './Pattern';
+import { VariableKind } from './VariableKinds';
 
 export default class FunctionNode extends FunctionBase {
 	declare body: BlockStatement;
@@ -102,7 +103,7 @@ export default class FunctionNode extends FunctionBase {
 
 	initialise(): void {
 		super.initialise();
-		this.id?.declare('function', this);
+		this.id?.declare(VariableKind.function, this);
 	}
 
 	protected addArgumentToBeDeoptimized(argument: ExpressionEntity) {

@@ -2,11 +2,7 @@ import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import {
-	logDuplicateArgumentNameError,
-	logIllegalImportReassignment,
-	logRedeclarationError
-} from '../../utils/logs';
+import { logIllegalImportReassignment } from '../../utils/logs';
 import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -18,10 +14,7 @@ import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../NodeInteractions';
-import CatchScope from '../scopes/CatchScope';
-import ChildScope from '../scopes/ChildScope';
-import FunctionScope from '../scopes/FunctionScope';
-import type Scope from '../scopes/Scope';
+import type FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
@@ -36,6 +29,7 @@ import {
 } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
@@ -79,34 +73,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	private checkVarRedeclarationInScope(scope: Scope, disallowParameter: boolean) {
-		if (!(scope instanceof CatchScope)) {
-			const declaredVariableKind = scope.variables.get(this.name)?.kind;
-			if (disallowParameter && declaredVariableKind === 'parameter') {
-				this.scope.context.error(logDuplicateArgumentNameError(this.name), this.start);
-			}
-
-			if (
-				declaredVariableKind === 'let' ||
-				declaredVariableKind === 'const' ||
-				declaredVariableKind === 'class' ||
-				(!(this.scope instanceof FunctionScope) && declaredVariableKind === 'function')
-			) {
-				this.scope.context.error(logRedeclarationError(this.name), this.start);
-			}
-		}
-		this.checkImportRedeclation(scope);
-	}
-
-	private checkImportRedeclation(scope: Scope) {
-		if (
-			scope === this.scope.context.module.scope &&
-			this.scope.context.module.importDescriptions.has(this.name)
-		) {
-			this.scope.context.error(logRedeclarationError(this.name), this.start);
-		}
-	}
-
 	/*
 	Redeclaration rules:
 	- var and function can always redeclare each other
@@ -122,20 +88,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 	- add "kind" to variable in scope? constructor?
 	- for existing variables, we do NOT replace kind
 	 */
-	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
+	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
 		let variable: LocalVariable;
 		const { treeshake } = this.scope.context.options;
 		switch (kind) {
-			case 'var': {
-				const variableScope = this.scope.findLexicalBoundary();
-				let scope: Scope = this.scope;
-				while (true) {
-					this.checkVarRedeclarationInScope(scope, false);
-
-					if (scope === variableScope || !(scope instanceof ChildScope)) break;
-					scope = scope.parent;
-				}
-
+			case VariableKind.var: {
 				variable = this.scope.addDeclaration(this, this.scope.context, init, true);
 				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
 					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
@@ -143,37 +100,18 @@ export default class Identifier extends NodeBase implements PatternNode {
 				}
 				break;
 			}
-			case 'function': {
-				const declaredVariableKind = this.scope.variables.get(this.name)?.kind;
-				if (
-					declaredVariableKind === 'let' ||
-					declaredVariableKind === 'const' ||
-					declaredVariableKind === 'class' ||
-					(!(this.scope instanceof FunctionScope) &&
-						(declaredVariableKind === 'var' || declaredVariableKind === 'parameter'))
-				) {
-					this.scope.context.error(logRedeclarationError(this.name), this.start);
-				}
-				this.checkImportRedeclation(this.scope);
-
+			case VariableKind.function: {
 				// in strict mode, functions are only hoisted within a scope but not across block scopes
 				variable = this.scope.addDeclaration(this, this.scope.context, init, false);
 				break;
 			}
-			case 'let':
-			case 'const':
-			case 'class': {
-				if (this.scope.variables.has(this.name)) {
-					this.scope.context.error(logRedeclarationError(this.name), this.start);
-				}
-				this.checkImportRedeclation(this.scope);
-
+			case VariableKind.let:
+			case VariableKind.const:
+			case VariableKind.class: {
 				variable = this.scope.addDeclaration(this, this.scope.context, init, false);
 				break;
 			}
-			case 'parameter': {
-				this.checkVarRedeclarationInScope(this.scope, true);
-
+			case VariableKind.parameter: {
 				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;
 			}
@@ -230,7 +168,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (this.isPossibleTDZ() && this.variable!.kind !== 'var') {
+		if (this.isPossibleTDZ() && this.variable!.kind !== VariableKind.var) {
 			return true;
 		}
 		return (

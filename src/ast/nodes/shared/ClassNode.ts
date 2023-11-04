@@ -20,6 +20,7 @@ import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
+import { VariableKind } from './VariableKinds';
 
 export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare body: ClassBody;
@@ -107,7 +108,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	initialise(): void {
-		this.id?.declare('class', this);
+		this.id?.declare(VariableKind.class, this);
 		for (const method of this.body.body) {
 			if (method instanceof MethodDefinition && method.kind === 'constructor') {
 				this.classConstructor = method;

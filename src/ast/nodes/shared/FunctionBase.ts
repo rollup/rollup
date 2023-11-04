@@ -27,6 +27,7 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
+import { VariableKind } from './VariableKinds';
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -190,7 +191,8 @@ export default abstract class FunctionBase extends NodeBase {
 	initialise(): void {
 		this.scope.addParameterVariables(
 			this.params.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter =>
+					parameter.declare(VariableKind.parameter, UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			this.params[this.params.length - 1] instanceof RestElement
 		);

@@ -6,6 +6,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
 export default class Variable extends ExpressionEntity {
@@ -16,7 +17,7 @@ export default class Variable extends ExpressionEntity {
 	// both NamespaceVariable and ExternalVariable can be namespaces
 	declare isNamespace?: boolean;
 	isReassigned = false;
-	kind: string | null = null;
+	kind: VariableKind | null = null;
 	declare module?: Module | ExternalModule;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;

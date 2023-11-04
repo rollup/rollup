@@ -7,6 +7,7 @@ import type * as NodeType from './NodeType';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import type { VariableKind } from './shared/VariableKinds';
 
 export default class RestElement extends NodeBase implements PatternNode {
 	declare argument: PatternNode;
@@ -20,7 +21,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 		this.argument.addExportedVariables(variables, exportNamesByVariable);
 	}
 
-	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
+	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
 		this.declarationInit = init;
 		return this.argument.declare(kind, UNKNOWN_EXPRESSION);
 	}

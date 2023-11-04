@@ -10,6 +10,7 @@ import type * as NodeType from './NodeType';
 import type { ExpressionEntity } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import type { VariableKind } from './shared/VariableKinds';
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
 	declare left: PatternNode;
@@ -23,7 +24,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
 	}
 
-	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
+	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
 		return this.left.declare(kind, init);
 	}
 
