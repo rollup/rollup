@@ -1,4 +1,5 @@
 import type { AstContext } from '../../Module';
+import { logDuplicateArgumentNameError } from '../../utils/logs';
 import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
@@ -24,7 +25,10 @@ export default class ParameterScope extends ChildScope {
 	 * order, i.e. from left to right.
 	 */
 	addParameterDeclaration(identifier: Identifier): ParameterVariable {
-		const { name } = identifier;
+		const { name, start } = identifier;
+		if (this.variables.has(name)) {
+			this.context.error(logDuplicateArgumentNameError(name), start);
+		}
 		const variable = new ParameterVariable(name, identifier, this.context);
 		const localVariable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
 		if (localVariable) {

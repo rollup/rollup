@@ -22,6 +22,7 @@ import {
 	UnknownValue
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
+import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
@@ -29,6 +30,7 @@ export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
+	readonly kind: VariableKind;
 
 	protected additionalInitializers: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
@@ -40,12 +42,14 @@ export default class LocalVariable extends Variable {
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		private init: ExpressionEntity,
-		context: AstContext
+		context: AstContext,
+		kind: VariableKind
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.deoptimizationTracker = context.deoptimizationTracker;
 		this.module = context.module;
+		this.kind = kind;
 	}
 
 	addDeclaration(identifier: Identifier, init: ExpressionEntity): void {

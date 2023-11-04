@@ -5,5 +5,6 @@ export const enum VariableKind {
 	let = 'let',
 	const = 'const',
 	class = 'class',
-	parameter = 'parameter'
+	parameter = 'parameter',
+	other = 'other'
 }

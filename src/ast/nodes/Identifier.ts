@@ -93,7 +93,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		const { treeshake } = this.scope.context.options;
 		switch (kind) {
 			case VariableKind.var: {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, true);
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
 					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
 					variable.markInitializersForDeoptimization();
@@ -102,13 +102,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 			}
 			case VariableKind.function: {
 				// in strict mode, functions are only hoisted within a scope but not across block scopes
-				variable = this.scope.addDeclaration(this, this.scope.context, init, false);
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				break;
 			}
 			case VariableKind.let:
 			case VariableKind.const:
 			case VariableKind.class: {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, false);
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				break;
 			}
 			case VariableKind.parameter: {
@@ -121,7 +121,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 				throw new Error(`Internal Error: Unexpected identifier kind ${kind}.`);
 			}
 		}
-		variable.kind = kind;
 		return [(this.variable = variable)];
 	}
 
@@ -134,6 +133,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
+		// TODO Lukas what about reassigning global variables?
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
 		}

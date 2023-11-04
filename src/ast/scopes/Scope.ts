@@ -1,6 +1,8 @@
 import type { AstContext } from '../../Module';
+import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
+import { VariableKind } from '../nodes/shared/VariableKinds';
 import { UNDEFINED_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
@@ -14,18 +16,25 @@ export default class Scope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		_isHoisted: boolean
+		kind: VariableKind
 	): LocalVariable {
 		const name = identifier.name;
 		let variable = this.variables.get(name) as LocalVariable;
 		if (variable) {
+			if (kind !== VariableKind.var && kind !== VariableKind.function) {
+				context.error(logRedeclarationError(name), identifier.start);
+			}
+			if (variable.kind !== VariableKind.var && variable.kind !== VariableKind.function) {
+				context.error(logRedeclarationError(name), identifier.start);
+			}
 			variable.addDeclaration(identifier, init);
 		} else {
 			variable = new LocalVariable(
 				identifier.name,
 				identifier,
 				init || UNDEFINED_EXPRESSION,
-				context
+				context,
+				kind
 			);
 			this.variables.set(name, variable);
 		}
