@@ -1,4 +1,5 @@
 import type { AstContext } from '../../Module';
+import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import { VariableKind } from '../nodes/shared/VariableKinds';
@@ -12,9 +13,19 @@ export default class BlockScope extends ChildScope {
 		init: ExpressionEntity,
 		kind: VariableKind
 	): LocalVariable {
-		// TODO Lukas find a way to add the variable to all scopes
 		if (kind === VariableKind.var) {
-			const variable = this.parent.addDeclaration(identifier, context, init, kind);
+			const name = identifier.name;
+			let variable = this.variables.get(name) as LocalVariable;
+			if (variable) {
+				if (variable.kind !== VariableKind.var && variable.kind !== VariableKind.function) {
+					context.error(logRedeclarationError(name), identifier.start);
+				}
+				variable.addDeclaration(identifier, init);
+			} else {
+				// We add the variable to this and all parent scopes to reliably detect conflicts
+				variable = this.parent.addDeclaration(identifier, context, init, kind);
+				this.variables.set(name, variable);
+			}
 			// Necessary to make sure the init is deoptimized for conditional declarations.
 			// We cannot call deoptimizePath here.
 			variable.markInitializersForDeoptimization();

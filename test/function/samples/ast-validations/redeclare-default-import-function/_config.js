@@ -2,7 +2,7 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	// solo: true,
+	solo: true,
 	description: 'throws when redeclaring a default import with a function',
 	error: {
 		code: 'REDECLARATION_ERROR',

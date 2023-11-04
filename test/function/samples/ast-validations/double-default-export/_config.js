@@ -3,7 +3,7 @@ const ID_FOO = path.join(__dirname, 'foo.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	// solo: true,
+	solo: true,
 	description: 'throws on double default exports',
 	error: {
 		code: 'DUPLICATE_EXPORT',

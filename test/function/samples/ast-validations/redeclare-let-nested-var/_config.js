@@ -3,21 +3,24 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
 	solo: true,
-	description: 'throws when redeclaring a let binding as a function',
+	description: 'throws when redeclaring a let binding with a nested var',
 	error: {
 		code: 'REDECLARATION_ERROR',
 		frame: `
-			1: let foo;
-			2: function foo() {}
-			            ^`,
+			2:   let foo = 'test';
+			3:   {
+			4:     var foo = 'other';
+			           ^
+			5:   }
+			6:   console.log(foo);`,
 		id: ID_MAIN,
 		loc: {
-			column: 9,
+			column: 8,
 			file: ID_MAIN,
-			line: 2
+			line: 4
 		},
 		message: 'Identifier "foo" has already been declared',
-		pos: 18,
+		pos: 34,
 		watchFiles: [ID_MAIN]
 	}
 });
