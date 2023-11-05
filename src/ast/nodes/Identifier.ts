@@ -73,21 +73,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	/*
-	Redeclaration rules:
-	- var and function can always redeclare each other
-	- var is hoisted across scopes, function remains in the scope it is declared
-	- var and function can redeclare function parameters, but parameters cannot redeclare parameters
-	- function cannot redeclare catch scope parameters
-	- var can redeclare catch scope parameters in a way
-		- if the parameter is an identifier and not a pattern
-		- then the variable is still declared in the hoisted outer scope, but the initializer is assigned to the parameter
-	- const, let, class cannot redeclare anything
-	Approach:
-	- add "kind" to "addDeclaration"
-	- add "kind" to variable in scope? constructor?
-	- for existing variables, we do NOT replace kind
-	 */
 	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
 		let variable: LocalVariable;
 		const { treeshake } = this.scope.context.options;

@@ -15,7 +15,7 @@ export default class BlockScope extends ChildScope {
 	): LocalVariable {
 		if (kind === VariableKind.var) {
 			const name = identifier.name;
-			let variable = this.variables.get(name) as LocalVariable;
+			let variable = this.variables.get(name) as LocalVariable | undefined;
 			if (variable) {
 				if (variable.kind !== VariableKind.var && variable.kind !== VariableKind.function) {
 					context.error(logRedeclarationError(name), identifier.start);

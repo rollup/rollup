@@ -13,18 +13,12 @@ import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
-import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
-import {
-	type ExpressionNode,
-	type GenericEsTreeNode,
-	type IncludeChildren,
-	NodeBase
-} from './Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
 import { VariableKind } from './VariableKinds';
@@ -201,13 +195,6 @@ export default abstract class FunctionBase extends NodeBase {
 		} else {
 			this.scope.addReturnExpression(this.body);
 		}
-	}
-
-	parseNode(esTreeNode: GenericEsTreeNode): void {
-		if (esTreeNode.body.type === NodeType.BlockStatement) {
-			this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
-		}
-		super.parseNode(esTreeNode);
 	}
 
 	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}

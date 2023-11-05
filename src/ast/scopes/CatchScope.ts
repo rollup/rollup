@@ -13,7 +13,38 @@ export default class CatchScope extends ParameterScope {
 		init: ExpressionEntity,
 		kind: VariableKind
 	): LocalVariable {
-		const existingParameter = this.variables.get(identifier.name) as LocalVariable;
+		// Catch scopes have special scoping in that the parameter actually shadows the var but receives the assignment:
+		// try {
+		// 	throw new Error();
+		// } catch {
+		// 	var e = 'value';
+		// 	console.log(e); // "value"
+		// }
+		// console.log(e); // undefined
+
+		// if (kind === VariableKind.var) {
+		// 	const name = identifier.name;
+		// 	let variable = this.variables.get(name) as LocalVariable | undefined;
+		// 	if (variable) {
+		// 		if (variable.kind !== VariableKind.var && variable.kind !== VariableKind.function) {
+		// 			context.error(logRedeclarationError(name), identifier.start);
+		// 		}
+		// 		variable.addDeclaration(identifier, init);
+		// 	} else {
+		// 		// We add the variable to this and all parent scopes to reliably detect conflicts
+		// 		variable = this.parent.addDeclaration(identifier, context, init, kind);
+		// 		this.variables.set(name, variable);
+		// 	}
+		// 	// Necessary to make sure the init is deoptimized for conditional declarations.
+		// 	// We cannot call deoptimizePath here.
+		// 	variable.markInitializersForDeoptimization();
+		// 	return variable;
+		// } else {
+		// 	return super.addDeclaration(identifier, context, init, kind);
+		// }
+
+		// TODO Lukas we should only hoist var here. First, create logic locally
+		const existingParameter = this.variables.get(identifier.name) as LocalVariable | undefined;
 		if (existingParameter) {
 			// TODO Lukas also re-use the variable here
 			// While we still create a hoisted declaration, the initializer goes to

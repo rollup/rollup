@@ -1,24 +1,17 @@
-import type { AstContext } from '../../Module';
-import { logDuplicateArgumentNameError } from '../../utils/logs';
+import { logDuplicateArgumentNameError, logRedeclarationError } from '../../utils/logs';
 import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
+import { VariableKind } from '../nodes/shared/VariableKinds';
 import type LocalVariable from '../variables/LocalVariable';
 import ParameterVariable from '../variables/ParameterVariable';
 import ChildScope from './ChildScope';
-import type Scope from './Scope';
 
 export default class ParameterScope extends ChildScope {
-	readonly hoistedBodyVarScope: ChildScope;
 	parameters: readonly ParameterVariable[][] = [];
 
 	private hasRest = false;
-
-	constructor(parent: Scope, context: AstContext) {
-		super(parent, context);
-		this.hoistedBodyVarScope = new ChildScope(this, context);
-	}
 
 	/**
 	 * Adds a parameter to this scope. Parameters must be added in the correct
@@ -26,14 +19,17 @@ export default class ParameterScope extends ChildScope {
 	 */
 	addParameterDeclaration(identifier: Identifier): ParameterVariable {
 		const { name, start } = identifier;
-		if (this.variables.has(name)) {
-			this.context.error(logDuplicateArgumentNameError(name), start);
-		}
 		const variable = new ParameterVariable(name, identifier, this.context);
-		const localVariable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
-		if (localVariable) {
-			this.hoistedBodyVarScope.variables.set(name, variable);
-			variable.mergeDeclarations(localVariable);
+		const existingVariable = this.variables.get(name) as LocalVariable | undefined;
+		if (existingVariable) {
+			const { kind } = existingVariable;
+			if (kind === VariableKind.parameter) {
+				return this.context.error(logDuplicateArgumentNameError(name), start);
+			}
+			if (kind !== VariableKind.var && kind !== VariableKind.function) {
+				return this.context.error(logRedeclarationError(name), start);
+			}
+			variable.mergeDeclarations(existingVariable);
 		}
 		this.variables.set(name, variable);
 		return variable;

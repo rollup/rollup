@@ -3,7 +3,7 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
 	solo: true,
-	description: 'throws when redeclaring the parameter of a catch scope as a function',
+	description: 'throws when redeclaring a pattern parameter of a catch scope as a var',
 	error: {
 		code: 'REDECLARATION_ERROR',
 		frame: `
