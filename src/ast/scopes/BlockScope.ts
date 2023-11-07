@@ -25,6 +25,8 @@ export default class BlockScope extends ChildScope {
 				// We add the variable to this and all parent scopes to reliably detect conflicts
 				variable = this.parent.addDeclaration(identifier, context, init, kind);
 				this.variables.set(name, variable);
+				// We need to ensure the variable name is deconflicted with local names
+				this.accessedOutsideVariables.set(name, variable);
 			}
 			// Necessary to make sure the init is deoptimized for conditional declarations.
 			// We cannot call deoptimizePath here.

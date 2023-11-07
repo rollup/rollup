@@ -3,19 +3,20 @@ import type { InternalModuleFormat } from '../../rollup/types';
 import { getSafeName } from '../../utils/safeName';
 import type ImportExpression from '../nodes/ImportExpression';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
+import { VariableKind } from '../nodes/shared/VariableKinds';
 import type Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
+	// TODO Lukas why is this not a set?
 	readonly accessedOutsideVariables = new Map<string, Variable>();
-	parent: Scope;
-	readonly context: AstContext;
 	private declare accessedDynamicImports?: Set<ImportExpression>;
 
-	constructor(parent: Scope, context: AstContext) {
+	constructor(
+		readonly parent: Scope,
+		readonly context: AstContext
+	) {
 		super();
-		this.parent = parent;
-		this.context = context;
 		parent.children.push(this);
 	}
 
@@ -82,6 +83,7 @@ export default class ChildScope extends Scope {
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
+		// Parameter scopes are deconflicted twice. Why does the second deconflicting not work?
 		const usedNames = new Set<string>();
 		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable, accessedGlobalsByScope);
 		if (this.accessedDynamicImports) {
@@ -92,6 +94,13 @@ export default class ChildScope extends Scope {
 			}
 		}
 		for (const [name, variable] of this.variables) {
+			if (
+				variable.kind === VariableKind.var &&
+				this.accessedOutsideVariables.get(variable.name) === variable
+			) {
+				// hoisted variable must only be deconflicted once
+				continue;
+			}
 			if (variable.included || variable.alwaysRendered) {
 				variable.setRenderNames(null, getSafeName(name, usedNames, variable.forbiddenNames));
 			}

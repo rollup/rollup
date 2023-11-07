@@ -2,7 +2,6 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	solo: true,
 	description: 'throws on duplicate exports declared with "var"',
 	error: {
 		code: 'DUPLICATE_EXPORT',

@@ -2,7 +2,6 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	solo: true,
 	description: 'throws when redeclaring the parameter of a function as a let',
 	error: {
 		code: 'REDECLARATION_ERROR',

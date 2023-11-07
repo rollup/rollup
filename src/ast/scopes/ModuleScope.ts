@@ -48,6 +48,7 @@ export default class ModuleScope extends ChildScope {
 
 	addNamespaceMemberAccess(): void {}
 
+	// TODO Lukas track which variables have already been deconflicted
 	deconflict(
 		format: InternalModuleFormat,
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,

@@ -2,7 +2,6 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	solo: true,
 	description: 'throws when redeclaring a var binding as a class',
 	error: {
 		code: 'REDECLARATION_ERROR',

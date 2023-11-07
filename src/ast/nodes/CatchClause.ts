@@ -1,6 +1,6 @@
 import CatchScope from '../scopes/CatchScope';
 import type ChildScope from '../scopes/ChildScope';
-import type BlockStatement from './BlockStatement';
+import BlockStatement from './BlockStatement';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { type GenericEsTreeNode, NodeBase } from './shared/Node';
@@ -15,14 +15,13 @@ export default class CatchClause extends NodeBase {
 	declare type: NodeType.tCatchClause;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new CatchScope(parentScope, this.scope.context);
+		// TODO Lukas ParameterScope?
+		this.scope = new CatchScope(parentScope, this.scope.context, true);
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		// Parameters need to be declared first as the logic is that initializers
-		// of hoisted body variables are associated with parameters of the same
-		// name instead of the variable
-		const { param } = esTreeNode;
+		const { body, param, type } = esTreeNode;
+		this.type = type as NodeType.tCatchClause;
 		if (param) {
 			(this.param as GenericEsTreeNode) = new (this.scope.context.getNodeConstructor(param.type))(
 				param,
@@ -31,6 +30,7 @@ export default class CatchClause extends NodeBase {
 			);
 			this.param!.declare(VariableKind.parameter, UNKNOWN_EXPRESSION);
 		}
+		this.body = new BlockStatement(body, this, this.scope.bodyScope);
 		super.parseNode(esTreeNode);
 	}
 }

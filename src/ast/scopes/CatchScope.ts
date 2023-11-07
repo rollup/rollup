@@ -1,11 +1,13 @@
 import type { AstContext } from '../../Module';
 import type Identifier from '../nodes/Identifier';
+import * as NodeType from '../nodes/NodeType';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import type { VariableKind } from '../nodes/shared/VariableKinds';
+import { VariableKind } from '../nodes/shared/VariableKinds';
 import { UNDEFINED_EXPRESSION } from '../values';
 import type LocalVariable from '../variables/LocalVariable';
 import ParameterScope from './ParameterScope';
 
+// TODO Lukas remove?
 export default class CatchScope extends ParameterScope {
 	addDeclaration(
 		identifier: Identifier,
@@ -13,47 +15,30 @@ export default class CatchScope extends ParameterScope {
 		init: ExpressionEntity,
 		kind: VariableKind
 	): LocalVariable {
-		// Catch scopes have special scoping in that the parameter actually shadows the var but receives the assignment:
-		// try {
-		// 	throw new Error();
-		// } catch {
-		// 	var e = 'value';
-		// 	console.log(e); // "value"
-		// }
-		// console.log(e); // undefined
-
-		// if (kind === VariableKind.var) {
-		// 	const name = identifier.name;
-		// 	let variable = this.variables.get(name) as LocalVariable | undefined;
-		// 	if (variable) {
-		// 		if (variable.kind !== VariableKind.var && variable.kind !== VariableKind.function) {
-		// 			context.error(logRedeclarationError(name), identifier.start);
-		// 		}
-		// 		variable.addDeclaration(identifier, init);
-		// 	} else {
-		// 		// We add the variable to this and all parent scopes to reliably detect conflicts
-		// 		variable = this.parent.addDeclaration(identifier, context, init, kind);
-		// 		this.variables.set(name, variable);
-		// 	}
-		// 	// Necessary to make sure the init is deoptimized for conditional declarations.
-		// 	// We cannot call deoptimizePath here.
-		// 	variable.markInitializersForDeoptimization();
-		// 	return variable;
-		// } else {
-		// 	return super.addDeclaration(identifier, context, init, kind);
-		// }
-
-		// TODO Lukas we should only hoist var here. First, create logic locally
-		const existingParameter = this.variables.get(identifier.name) as LocalVariable | undefined;
-		if (existingParameter) {
-			// TODO Lukas also re-use the variable here
-			// While we still create a hoisted declaration, the initializer goes to
-			// the parameter. Note that technically, the declaration now belongs to
-			// two variables, which is not correct but should not cause issues.
-			this.parent.addDeclaration(identifier, context, UNDEFINED_EXPRESSION, kind);
-			existingParameter.addDeclaration(identifier, init);
-			return existingParameter;
+		if (kind === VariableKind.var) {
+			const existingVariable = this.variables.get(identifier.name) as LocalVariable | undefined;
+			if (
+				existingVariable &&
+				existingVariable.kind === VariableKind.parameter &&
+				// Only if this is not a destructured variable
+				existingVariable.declarations[0].parent.type === NodeType.CatchClause
+			) {
+				// In this case, the parameter "shadows" the variable locally, creating
+				// an "undefined" var outside and mutating the parameter instead here
+				//
+				// Cf. this example:
+				// try {
+				// 	throw new Error();
+				// } catch {
+				// 	var e = 'value';
+				// 	console.log(e); // "value"
+				// }
+				// console.log(e); // undefined
+				existingVariable.addDeclaration(identifier, init);
+				this.parent.addDeclaration(identifier, context, UNDEFINED_EXPRESSION, kind);
+				return existingVariable;
+			}
 		}
-		return this.parent.addDeclaration(identifier, context, init, kind);
+		return super.addDeclaration(identifier, context, init, kind);
 	}
 }

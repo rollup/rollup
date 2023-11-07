@@ -2,23 +2,24 @@ const path = require('node:path');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	description: 'throws when redeclaring the parameter of a catch scope as a function',
+	description:
+		'throws when redeclaring a parameter of a catch scope as a var that conflicts with an outside binding',
 	error: {
 		code: 'REDECLARATION_ERROR',
 		frame: `
 			2:   throw new Error('failed');
-			3: } catch (error) {
-			4:   function error() {}
-			              ^
+			3: } catch ({ message }) {
+			4:   var message;
+			         ^
 			5: }`,
 		id: ID_MAIN,
 		loc: {
-			column: 10,
+			column: 5,
 			file: ID_MAIN,
 			line: 4
 		},
-		message: 'Identifier "error" has already been declared',
-		pos: 62,
+		message: 'Identifier "message" has already been declared',
+		pos: 63,
 		watchFiles: [ID_MAIN]
 	}
 });

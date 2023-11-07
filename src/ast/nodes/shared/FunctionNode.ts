@@ -17,7 +17,7 @@ import { VariableKind } from './VariableKinds';
 export default class FunctionNode extends FunctionBase {
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
-	declare params: readonly PatternNode[];
+	declare params: PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;

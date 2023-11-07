@@ -39,7 +39,11 @@ export default class Scope {
 			if (kind !== VariableKind.var && kind !== VariableKind.function) {
 				context.error(logRedeclarationError(name), identifier.start);
 			}
-			if (variable.kind !== VariableKind.var && variable.kind !== VariableKind.function) {
+			if (
+				variable.kind !== VariableKind.var &&
+				variable.kind !== VariableKind.function &&
+				variable.kind !== VariableKind.parameter
+			) {
 				context.error(logRedeclarationError(name), identifier.start);
 			}
 			variable.addDeclaration(identifier, init);
