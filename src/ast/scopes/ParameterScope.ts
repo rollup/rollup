@@ -38,8 +38,7 @@ export default class ParameterScope extends ChildScope {
 		// variables. We still need the intermediate scope, though, as parameter
 		// defaults are NOT taken from the body scope but from the parameters or
 		// outside scope.
-		// TODO Lukas instead, this should be added to additional declarations
-		this.bodyScope.variables.set(name, variable);
+		this.bodyScope.addHoistedVariable(name, variable);
 		return variable;
 	}
 

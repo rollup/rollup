@@ -8,7 +8,6 @@ import type Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
-	// TODO Lukas why is this not a set?
 	readonly accessedOutsideVariables = new Map<string, Variable>();
 	private declare accessedDynamicImports?: Set<ImportExpression>;
 
@@ -83,7 +82,6 @@ export default class ChildScope extends Scope {
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
-		// Parameter scopes are deconflicted twice. Why does the second deconflicting not work?
 		const usedNames = new Set<string>();
 		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable, accessedGlobalsByScope);
 		if (this.accessedDynamicImports) {

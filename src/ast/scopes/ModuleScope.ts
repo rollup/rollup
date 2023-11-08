@@ -28,12 +28,13 @@ export default class ModuleScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		kind: VariableKind
+		kind: VariableKind,
+		variable: LocalVariable
 	): LocalVariable {
 		if (this.context.module.importDescriptions.has(identifier.name)) {
 			context.error(logRedeclarationError(identifier.name), identifier.start);
 		}
-		return super.addDeclaration(identifier, context, init, kind);
+		return super.addDeclaration(identifier, context, init, kind, variable);
 	}
 
 	addExportDefaultDeclaration(
@@ -48,7 +49,6 @@ export default class ModuleScope extends ChildScope {
 
 	addNamespaceMemberAccess(): void {}
 
-	// TODO Lukas track which variables have already been deconflicted
 	deconflict(
 		format: InternalModuleFormat,
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,

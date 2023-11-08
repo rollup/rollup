@@ -13,7 +13,6 @@ import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
-import type * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
@@ -204,8 +203,7 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		const { body, params, type } = esTreeNode;
-		this.type = type as keyof typeof NodeType;
+		const { body, params } = esTreeNode;
 		const parameters: typeof this.params = (this.params = []);
 		const { scope } = this;
 		const { bodyScope, context } = scope;

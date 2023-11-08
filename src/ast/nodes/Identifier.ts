@@ -78,7 +78,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		const { treeshake } = this.scope.context.options;
 		switch (kind) {
 			case VariableKind.var: {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind, null);
 				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
 					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
 					variable.markInitializersForDeoptimization();
@@ -87,13 +87,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 			}
 			case VariableKind.function: {
 				// in strict mode, functions are only hoisted within a scope but not across block scopes
-				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind, null);
 				break;
 			}
 			case VariableKind.let:
 			case VariableKind.const:
 			case VariableKind.class: {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind, null);
 				break;
 			}
 			case VariableKind.parameter: {

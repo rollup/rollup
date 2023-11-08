@@ -11,6 +11,7 @@ import type ChildScope from './ChildScope';
 export default class Scope {
 	readonly children: ChildScope[] = [];
 	readonly variables = new Map<string, Variable>();
+	hoistedVariables?: Map<string, LocalVariable>;
 
 	/*
 	Redeclaration rules:
@@ -31,33 +32,33 @@ export default class Scope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		kind: VariableKind
+		kind: VariableKind,
+		variable: LocalVariable | null
 	): LocalVariable {
 		const name = identifier.name;
-		let variable = this.variables.get(name) as LocalVariable;
-		if (variable) {
-			if (kind !== VariableKind.var && kind !== VariableKind.function) {
-				context.error(logRedeclarationError(name), identifier.start);
-			}
+		const existingVariable =
+			this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable);
+		if (existingVariable) {
+			const existingKind = existingVariable.kind;
 			if (
-				variable.kind !== VariableKind.var &&
-				variable.kind !== VariableKind.function &&
-				variable.kind !== VariableKind.parameter
+				(kind === VariableKind.var &&
+					(existingKind === VariableKind.var || existingKind === VariableKind.parameter)) ||
+				(kind === VariableKind.function && existingKind === VariableKind.parameter)
 			) {
-				context.error(logRedeclarationError(name), identifier.start);
+				existingVariable.addDeclaration(identifier, init);
+				return existingVariable;
 			}
-			variable.addDeclaration(identifier, init);
-		} else {
-			variable = new LocalVariable(
-				identifier.name,
-				identifier,
-				init || UNDEFINED_EXPRESSION,
-				context,
-				kind
-			);
-			this.variables.set(name, variable);
+			context.error(logRedeclarationError(name), identifier.start);
 		}
-		return variable;
+		const newVariable =
+			variable ||
+			new LocalVariable(identifier.name, identifier, init || UNDEFINED_EXPRESSION, context, kind);
+		this.variables.set(name, newVariable);
+		return newVariable;
+	}
+
+	addHoistedVariable(name: string, variable: LocalVariable) {
+		(this.hoistedVariables ||= new Map()).set(name, variable);
 	}
 
 	contains(name: string): boolean {

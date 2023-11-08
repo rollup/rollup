@@ -12,9 +12,10 @@ export default class TrackingScope extends BlockScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		kind: VariableKind
+		kind: VariableKind,
+		variable: LocalVariable
 	): LocalVariable {
 		this.hoistedDeclarations.push(identifier);
-		return super.addDeclaration(identifier, context, init, kind);
+		return super.addDeclaration(identifier, context, init, kind, variable);
 	}
 }

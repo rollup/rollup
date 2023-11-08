@@ -1,5 +1,5 @@
-import CatchScope from '../scopes/CatchScope';
 import type ChildScope from '../scopes/ChildScope';
+import ParameterScope from '../scopes/ParameterScope';
 import BlockStatement from './BlockStatement';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -11,12 +11,11 @@ export default class CatchClause extends NodeBase {
 	declare body: BlockStatement;
 	declare param: PatternNode | null;
 	declare preventChildBlockScope: true;
-	declare scope: CatchScope;
+	declare scope: ParameterScope;
 	declare type: NodeType.tCatchClause;
 
 	createScope(parentScope: ChildScope): void {
-		// TODO Lukas ParameterScope?
-		this.scope = new CatchScope(parentScope, this.scope.context, true);
+		this.scope = new ParameterScope(parentScope, this.scope.context, true);
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
