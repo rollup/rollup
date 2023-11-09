@@ -839,7 +839,8 @@ export function logModuleParseError(error: Error, moduleId: string): RollupLog {
 		cause: error,
 		code: PARSE_ERROR,
 		id: moduleId,
-		message
+		message,
+		stack: error.stack
 	};
 }
 

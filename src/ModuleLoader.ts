@@ -317,10 +317,10 @@ export class ModuleLoader {
 				for (const emittedFile of cachedModule.transformFiles)
 					this.pluginDriver.emitFile(emittedFile);
 			}
-			module.setSource(cachedModule);
+			await module.setSource(cachedModule);
 		} else {
 			module.updateOptions(sourceDescription);
-			module.setSource(
+			await module.setSource(
 				await transform(sourceDescription, module, this.pluginDriver, this.options.onLog)
 			);
 		}

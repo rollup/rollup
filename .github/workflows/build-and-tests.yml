@@ -300,8 +300,8 @@ jobs:
         uses: codecov/codecov-action@v3
         if: matrix.coverage
         with:
-#          It appears adding the token may result in the coverage comment not being added
-#          token: ${{ secrets.CODECOV_TOKEN }}
+          # It appears adding the token may result in the coverage comment not being added
+          # token: ${{ secrets.CODECOV_TOKEN }}
           commit_parent: ${{ github.event.pull_request.head.sha }}
 
   publish:

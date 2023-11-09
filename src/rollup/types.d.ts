@@ -206,6 +206,16 @@ export type ParseAst = (
 	options?: { allowReturnOutsideFunction?: boolean }
 ) => AstNode;
 
+// declare AbortSignal here for environments without DOM lib or @types/node
+declare global {
+	interface AbortSignal {}
+}
+
+export type ParseAstAsync = (
+	input: string,
+	options?: { allowReturnOutsideFunction?: boolean; signal?: AbortSignal }
+) => Promise<AstNode>;
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;

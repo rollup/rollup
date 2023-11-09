@@ -1,0 +1,4 @@
+function instance() {
+}
+
+export { instance };
