@@ -66,6 +66,14 @@ export default class CatchBodyScope extends ChildScope {
 			this.addHoistedVariable(name, declaredVariable);
 			return declaredVariable;
 		}
+		if (kind === VariableKind.function) {
+			const name = identifier.name;
+			const existingVariable =
+				this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable | undefined);
+			if (existingVariable) {
+				context.error(logRedeclarationError(name), identifier.start);
+			}
+		}
 		return super.addDeclaration(identifier, context, init, kind, variable);
 	}
 }

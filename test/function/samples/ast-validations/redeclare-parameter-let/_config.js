@@ -7,17 +7,17 @@ module.exports = defineTest({
 		code: 'REDECLARATION_ERROR',
 		frame: `
 			1: function foo(x) {
-			                ^
 			2:   let x; // throws
+			         ^
 			3: }`,
 		id: ID_MAIN,
 		loc: {
-			column: 13,
+			column: 5,
 			file: ID_MAIN,
-			line: 1
+			line: 2
 		},
 		message: 'Identifier "x" has already been declared',
-		pos: 13,
+		pos: 23,
 		watchFiles: [ID_MAIN]
 	}
 });

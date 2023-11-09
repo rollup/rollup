@@ -188,13 +188,6 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	initialise(): void {
-		this.scope.addParameterVariables(
-			this.params.map(
-				parameter =>
-					parameter.declare(VariableKind.parameter, UNKNOWN_EXPRESSION) as ParameterVariable[]
-			),
-			this.params[this.params.length - 1] instanceof RestElement
-		);
 		if (this.body instanceof BlockStatement) {
 			this.body.addImplicitReturnExpressionToScope();
 		} else {
@@ -207,6 +200,9 @@ export default abstract class FunctionBase extends NodeBase {
 		const parameters: typeof this.params = (this.params = []);
 		const { scope } = this;
 		const { bodyScope, context } = scope;
+		// We need to ensure that parameters are declared before the body is parsed
+		// so that the scope already knows all parameters and can detect conflicts
+		// when parsing the body.
 		for (const parameter of params) {
 			parameters.push(
 				new (context.getNodeConstructor(parameter.type))(
@@ -217,6 +213,13 @@ export default abstract class FunctionBase extends NodeBase {
 				) as unknown as PatternNode
 			);
 		}
+		scope.addParameterVariables(
+			parameters.map(
+				parameter =>
+					parameter.declare(VariableKind.parameter, UNKNOWN_EXPRESSION) as ParameterVariable[]
+			),
+			parameters[parameters.length - 1] instanceof RestElement
+		);
 		this.body = new (context.getNodeConstructor(body.type))(body, this, bodyScope);
 		super.parseNode(esTreeNode);
 	}
