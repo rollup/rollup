@@ -21,7 +21,6 @@ export default class CatchBodyScope extends ChildScope {
 		context: AstContext,
 		init: ExpressionEntity,
 		kind: VariableKind,
-		// TODO Lukas what if this meets another existing variable?
 		variable: LocalVariable | null
 	): LocalVariable {
 		if (kind === VariableKind.var) {
@@ -42,6 +41,10 @@ export default class CatchBodyScope extends ChildScope {
 					// deconflicting works as expected. We then need to remove the
 					// declaration from the current scope as every declaration can only
 					// have a single scope for deconflicting to work.
+					// TODO There is one edge case left where a var that corresponds to a
+					//  catch scope is hoisted into another catch scope with the same
+					//  parameter name. As parameters are created first, we still have two
+					//  parameter variables now that should keep the same names.
 					this.parent.parent.addDeclaration(identifier, context, init, kind, existingVariable);
 					this.addHoistedVariable(name, existingVariable);
 					if (this.parent.variables.has(name)) {

@@ -118,7 +118,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		// TODO Lukas what about reassigning global variables?
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
 		}
