@@ -228,18 +228,4 @@ export default class LocalVariable extends Variable {
 		}
 		return this.additionalInitializers;
 	}
-
-	mergeDeclarations(variable: LocalVariable): void {
-		const { declarations } = this;
-		for (const declaration of variable.declarations) {
-			declarations.push(declaration);
-		}
-		const additionalInitializers = this.markInitializersForDeoptimization();
-		additionalInitializers.push(variable.init);
-		if (variable.additionalInitializers) {
-			for (const initializer of variable.additionalInitializers) {
-				additionalInitializers.push(initializer);
-			}
-		}
-	}
 }

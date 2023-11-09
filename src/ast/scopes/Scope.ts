@@ -3,7 +3,6 @@ import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import { VariableKind } from '../nodes/shared/VariableKinds';
-import { UNDEFINED_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type ChildScope from './ChildScope';
@@ -51,8 +50,7 @@ export default class Scope {
 			context.error(logRedeclarationError(name), identifier.start);
 		}
 		const newVariable =
-			variable ||
-			new LocalVariable(identifier.name, identifier, init || UNDEFINED_EXPRESSION, context, kind);
+			variable || new LocalVariable(identifier.name, identifier, init, context, kind);
 		this.variables.set(name, newVariable);
 		return newVariable;
 	}
