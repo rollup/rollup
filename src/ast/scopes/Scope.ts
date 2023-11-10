@@ -58,6 +58,7 @@ export default class Scope {
 	}
 
 	findVariable(_name: string): Variable {
+		/* istanbul ignore next */
 		throw new Error('Internal Error: findVariable needs to be implemented by a subclass');
 	}
 }

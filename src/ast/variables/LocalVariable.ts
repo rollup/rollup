@@ -91,15 +91,13 @@ export default class LocalVariable extends Variable {
 			return;
 		}
 		if (path.length === 0) {
-			if (!this.isReassigned) {
-				this.isReassigned = true;
-				const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-				this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
-				for (const expression of expressionsToBeDeoptimized) {
-					expression.deoptimizeCache();
-				}
-				this.init.deoptimizePath(UNKNOWN_PATH);
+			this.isReassigned = true;
+			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
+			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
 			}
+			this.init.deoptimizePath(UNKNOWN_PATH);
 		} else {
 			this.init.deoptimizePath(path);
 		}
