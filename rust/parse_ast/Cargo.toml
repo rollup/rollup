@@ -7,13 +7,13 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.75"
-swc_atoms = "0.6.0"
-swc_compiler_base = "0.3.27"
-swc_common = { version = "0.33.2", features = ["ahash", "parking_lot"] }
-swc_ecma_ast = "0.110.2"
-swc_ecma_parser = "0.141.7"
-swc_error_reporters = "0.17.2"
+swc_atoms = "0.6.4"
+swc_compiler_base = "0.3.44"
+swc_common = { version = "0.33.8", features = ["ahash", "parking_lot"] }
+swc_ecma_ast = "0.110.9"
+swc_ecma_parser = "0.141.18"
+swc_error_reporters = "0.17.8"
 parking_lot = "0.12.1"
-swc_ecma_lints = "0.89.14"
-swc_ecma_transforms_base = "0.134.14"
-swc_ecma_visit = "0.96.2"
+swc_ecma_lints = "0.89.27"
+swc_ecma_transforms_base = "0.134.27"
+swc_ecma_visit = "0.96.9"
