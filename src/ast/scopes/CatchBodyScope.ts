@@ -4,6 +4,7 @@ import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import { VariableKind } from '../nodes/shared/VariableKinds';
+import { UNDEFINED_EXPRESSION } from '../values';
 import type LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 import type ParameterScope from './ParameterScope';
@@ -20,8 +21,7 @@ export default class CatchBodyScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		kind: VariableKind,
-		variable: LocalVariable | null
+		kind: VariableKind
 	): LocalVariable {
 		if (kind === VariableKind.var) {
 			const name = identifier.name;
@@ -30,38 +30,39 @@ export default class CatchBodyScope extends ChildScope {
 			if (existingVariable) {
 				const existingKind = existingVariable.kind;
 				if (
-					existingKind === VariableKind.var ||
-					(existingKind === VariableKind.parameter &&
-						// If this is a destructured parameter, it is forbidden to redeclare
-						existingVariable.declarations[0].parent.type === NodeType.CatchClause)
+					existingKind === VariableKind.parameter &&
+					// If this is a destructured parameter, it is forbidden to redeclare
+					existingVariable.declarations[0].parent.type === NodeType.CatchClause
 				) {
+					// If this is a var with the same name as the catch scope parameter,
+					// the assignment actually goes to the parameter and the var is
+					// hoisted without assignment. Locally, it is shadowed by the
+					// parameter
+					const declaredVariable = this.parent.parent.addDeclaration(
+						identifier,
+						context,
+						UNDEFINED_EXPRESSION,
+						kind
+					);
+					// To avoid the need to rewrite the declaration, we link the variable
+					// names. If we ever implement a logic that splits initialization and
+					// assignment for hoisted vars, the "renderLikeHoisted" logic can be
+					// removed again.
+					// We do not need to check whether there already is a linked
+					// variable because then declaredVariable would be that linked
+					// variable.
+					existingVariable.renderLikeHoisted(declaredVariable);
+					this.addHoistedVariable(name, declaredVariable);
+					return declaredVariable;
+				}
+				if (existingKind === VariableKind.var) {
 					existingVariable.addDeclaration(identifier, init);
-					// We also need to add the "parameter" to the parent scopes as it is
-					// hoisted. Technically, it is not the same variable, but then
-					// deconflicting works as expected. We then need to remove the
-					// declaration from the current scope as every declaration can only
-					// have a single scope for deconflicting to work.
-					// TODO There is one edge case left where a var that corresponds to a
-					//  catch scope is hoisted into another catch scope with the same
-					//  parameter name. As parameters are created first, we still have two
-					//  parameter variables now that should keep the same names.
-					this.parent.parent.addDeclaration(identifier, context, init, kind, existingVariable);
-					this.addHoistedVariable(name, existingVariable);
-					if (this.parent.variables.has(name)) {
-						this.parent.variables.delete(name);
-					}
 					return existingVariable;
 				}
 				return context.error(logRedeclarationError(name), identifier.start);
 			}
 			// We only add parameters to parameter scopes
-			const declaredVariable = this.parent.parent.addDeclaration(
-				identifier,
-				context,
-				init,
-				kind,
-				variable
-			);
+			const declaredVariable = this.parent.parent.addDeclaration(identifier, context, init, kind);
 			// Necessary to make sure the init is deoptimized for conditional declarations.
 			// We cannot call deoptimizePath here.
 			declaredVariable.markInitializersForDeoptimization();
@@ -77,6 +78,6 @@ export default class CatchBodyScope extends ChildScope {
 				context.error(logRedeclarationError(name), identifier.start);
 			}
 		}
-		return super.addDeclaration(identifier, context, init, kind, variable);
+		return super.addDeclaration(identifier, context, init, kind);
 	}
 }

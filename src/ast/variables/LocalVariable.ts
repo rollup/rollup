@@ -185,7 +185,7 @@ export default class LocalVariable extends Variable {
 
 	include(): void {
 		if (!this.included) {
-			this.included = true;
+			super.include();
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
 				if (!declaration.included) declaration.include(createInclusionContext(), false);

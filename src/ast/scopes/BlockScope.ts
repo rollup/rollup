@@ -11,8 +11,7 @@ export default class BlockScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		kind: VariableKind,
-		variable: LocalVariable
+		kind: VariableKind
 	): LocalVariable {
 		if (kind === VariableKind.var) {
 			const name = identifier.name;
@@ -25,13 +24,7 @@ export default class BlockScope extends ChildScope {
 				}
 				return context.error(logRedeclarationError(name), identifier.start);
 			}
-			const declaredVariable = this.parent.addDeclaration(
-				identifier,
-				context,
-				init,
-				kind,
-				variable
-			);
+			const declaredVariable = this.parent.addDeclaration(identifier, context, init, kind);
 			// Necessary to make sure the init is deoptimized for conditional declarations.
 			// We cannot call deoptimizePath here.
 			declaredVariable.markInitializersForDeoptimization();
@@ -39,6 +32,6 @@ export default class BlockScope extends ChildScope {
 			this.addHoistedVariable(name, declaredVariable);
 			return declaredVariable;
 		}
-		return super.addDeclaration(identifier, context, init, kind, variable);
+		return super.addDeclaration(identifier, context, init, kind);
 	}
 }

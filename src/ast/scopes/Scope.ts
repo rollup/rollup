@@ -14,25 +14,20 @@ export default class Scope {
 
 	/*
 	Redeclaration rules:
-	- var and function can always redeclare each other
+	- var can redeclare var
 	- var is hoisted across scopes, function remains in the scope it is declared
 	- var and function can redeclare function parameters, but parameters cannot redeclare parameters
 	- function cannot redeclare catch scope parameters
 	- var can redeclare catch scope parameters in a way
 		- if the parameter is an identifier and not a pattern
 		- then the variable is still declared in the hoisted outer scope, but the initializer is assigned to the parameter
-	- const, let, class cannot redeclare anything
-	Approach:
-	- add "kind" to "addDeclaration"
-	- add "kind" to variable in scope? constructor?
-	- for existing variables, we do NOT replace kind
+	- const, let, class, and function except in the cases above cannot redeclare anything
 	 */
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		kind: VariableKind,
-		variable: LocalVariable | null
+		kind: VariableKind
 	): LocalVariable {
 		const name = identifier.name;
 		const existingVariable =
@@ -49,8 +44,7 @@ export default class Scope {
 			}
 			context.error(logRedeclarationError(name), identifier.start);
 		}
-		const newVariable =
-			variable || new LocalVariable(identifier.name, identifier, init, context, kind);
+		const newVariable = new LocalVariable(identifier.name, identifier, init, context, kind);
 		this.variables.set(name, newVariable);
 		return newVariable;
 	}
