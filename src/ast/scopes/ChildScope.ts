@@ -3,7 +3,6 @@ import type { InternalModuleFormat } from '../../rollup/types';
 import { getSafeName } from '../../utils/safeName';
 import type ImportExpression from '../nodes/ImportExpression';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { VariableKind } from '../nodes/shared/VariableKinds';
 import type Variable from '../variables/Variable';
 import Scope from './Scope';
 
@@ -92,13 +91,6 @@ export default class ChildScope extends Scope {
 			}
 		}
 		for (const [name, variable] of this.variables) {
-			if (
-				variable.kind === VariableKind.var &&
-				this.accessedOutsideVariables.get(variable.name) === variable
-			) {
-				// hoisted variable must only be deconflicted once
-				continue;
-			}
 			if (variable.included || variable.alwaysRendered) {
 				variable.setRenderNames(null, getSafeName(name, usedNames, variable.forbiddenNames));
 			}
