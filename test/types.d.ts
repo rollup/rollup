@@ -109,7 +109,7 @@ export interface TestConfigCli extends TestConfigBase {
 	 * Test the expected error. Assertions about the test output will only
 	 * be performed afterward if you return "true" or do not supply this option.
 	 */
-	error?: (error: RollupError) => boolean | void;
+	error?: (error: Error) => boolean | void;
 	/**
 	 * Execute the bundled code.
 	 */

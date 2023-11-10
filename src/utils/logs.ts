@@ -35,7 +35,7 @@ import {
 export function error(base: Error | RollupLog): never {
 	if (!(base instanceof Error)) {
 		base = Object.assign(new Error(base.message), base);
-		Object.defineProperty(base, 'name', { value: 'RollupError' });
+		Object.defineProperty(base, 'name', { value: 'RollupError', writable: true });
 	}
 	throw base;
 }
