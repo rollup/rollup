@@ -99,16 +99,6 @@ export default async function (
 		return commonJSBuild;
 	}
 
-	const exitOnCloseBundle: Plugin = {
-		closeBundle() {
-			// On CI, macOS runs sometimes do not close properly. This is a hack
-			// to fix this until the problem is understood.
-			console.log('Force quit.');
-			setTimeout(() => process.exit(0));
-		},
-		name: 'force-close'
-	};
-
 	const esmBuild: RollupOptions = {
 		...commonJSBuild,
 		input: {
@@ -127,7 +117,6 @@ export default async function (
 	};
 
 	if (command.configIsBuildNode) {
-		(esmBuild.plugins as Plugin[]).push(exitOnCloseBundle);
 		return [commonJSBuild, esmBuild];
 	}
 
@@ -164,8 +153,7 @@ export default async function (
 			collectLicensesBrowser(),
 			writeLicenseBrowser(),
 			cleanBeforeWrite('browser/dist'),
-			emitWasmFile(),
-			exitOnCloseBundle
+			emitWasmFile()
 		],
 		strictDeprecations: true,
 		treeshake
