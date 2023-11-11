@@ -1088,11 +1088,9 @@ export default class Module {
 		this.addSource(source, node);
 
 		for (const specifier of node.specifiers) {
-			if (
-				this.scope.variables.has(specifier.local.name) ||
-				this.importDescriptions.has(specifier.local.name)
-			) {
-				this.error(logRedeclarationError(specifier.local.name), specifier.local.start);
+			const localName = specifier.local.name;
+			if (this.scope.variables.has(localName) || this.importDescriptions.has(localName)) {
+				this.error(logRedeclarationError(localName), specifier.local.start);
 			}
 
 			const name =
@@ -1103,7 +1101,7 @@ export default class Module {
 					: specifier.imported instanceof Identifier
 					? specifier.imported.name
 					: specifier.imported.value;
-			this.importDescriptions.set(specifier.local.name, {
+			this.importDescriptions.set(localName, {
 				module: null as never, // filled in later
 				name,
 				source,
