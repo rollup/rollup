@@ -1000,8 +1000,10 @@ export default class Module {
 		this.dynamicImports.push({ argument, id: null, node, resolution: null });
 	}
 
-	private hasExportNamedAs(name: string) {
-		return this.exports.has(name) || this.reexportDescriptions.has(name);
+	private assertUniqueExportName(name: string, nodeStart: number) {
+		if (this.exports.has(name) || this.reexportDescriptions.has(name)) {
+			this.error(logDuplicateExportError(name), nodeStart);
+		}
 	}
 
 	private addExport(
@@ -1010,9 +1012,7 @@ export default class Module {
 		if (node instanceof ExportDefaultDeclaration) {
 			// export default foo;
 
-			if (this.hasExportNamedAs('default')) {
-				this.error(logDuplicateExportError('default'), node.start);
-			}
+			this.assertUniqueExportName('default', node.start);
 			this.exports.set('default', {
 				identifier: node.variable.getAssignedVariableName(),
 				localName: 'default'
@@ -1024,9 +1024,7 @@ export default class Module {
 				// export * as name from './other'
 
 				const name = node.exported.name;
-				if (this.hasExportNamedAs(name)) {
-					this.error(logDuplicateExportError(name), node.exported.start);
-				}
+				this.assertUniqueExportName(name, node.exported.start);
 				this.reexportDescriptions.set(name, {
 					localName: '*',
 					module: null as never, // filled in later,
@@ -1045,9 +1043,7 @@ export default class Module {
 			this.addSource(source, node);
 			for (const { exported, local, start } of node.specifiers) {
 				const name = exported instanceof Literal ? exported.value : exported.name;
-				if (this.hasExportNamedAs(name)) {
-					this.error(logDuplicateExportError(name), start);
-				}
+				this.assertUniqueExportName(name, start);
 				this.reexportDescriptions.set(name, {
 					localName: local instanceof Literal ? local.value : local.name,
 					module: null as never, // filled in later,
@@ -1063,9 +1059,7 @@ export default class Module {
 
 				for (const declarator of declaration.declarations) {
 					for (const localName of extractAssignedNames(declarator.id)) {
-						if (this.hasExportNamedAs(localName)) {
-							this.error(logDuplicateExportError(localName), declarator.id.start);
-						}
+						this.assertUniqueExportName(localName, declarator.id.start);
 						this.exports.set(localName, { identifier: null, localName });
 					}
 				}
@@ -1073,9 +1067,7 @@ export default class Module {
 				// export function foo () {}
 
 				const localName = (declaration.id as Identifier).name;
-				if (this.hasExportNamedAs(localName)) {
-					this.error(logDuplicateExportError(localName), declaration.id!.start);
-				}
+				this.assertUniqueExportName(localName, declaration.id!.start);
 				this.exports.set(localName, { identifier: null, localName });
 			}
 		} else {
@@ -1085,9 +1077,7 @@ export default class Module {
 				// except for reexports, local must be an Identifier
 				const localName = (local as Identifier).name;
 				const exportedName = exported instanceof Identifier ? exported.name : exported.value;
-				if (this.hasExportNamedAs(exportedName)) {
-					this.error(logDuplicateExportError(exportedName), exported.start);
-				}
+				this.assertUniqueExportName(exportedName, exported.start);
 				this.exports.set(exportedName, { identifier: null, localName });
 			}
 		}
