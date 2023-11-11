@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.3.1
+
+_2023-11-11_
+
+### Bug Fixes
+
+- Fix rename error when handling errors in watch mode (#5240)
+- Prevent warning when using `--forceExit` (#5245)
+
+### Pull Requests
+
+- [#5240](https://github.com/rollup/rollup/pull/5240): fix: allow the name of Rollup Error to be modified (@TrickyPi)
+- [#5243](https://github.com/rollup/rollup/pull/5243): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5245](https://github.com/rollup/rollup/pull/5245): Ensure --forceExit works without warning (@lukastaegert)
+
 ## 4.3.0
 
 _2023-11-03_
