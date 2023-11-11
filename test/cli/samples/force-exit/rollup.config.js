@@ -1,7 +1,7 @@
 module.exports = {
 	input: 'main.js',
-	output: {
-		format: 'cjs'
+	onwarn(warning) {
+		throw new Error(`Unexpected warning: ${warning.message}`);
 	},
 	plugins: [
 		{

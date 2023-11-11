@@ -79,6 +79,7 @@ export async function mergeOptions(
 			'environment',
 			'failAfterWarnings',
 			'filterLogs',
+			'forceExit',
 			'plugin',
 			'silent',
 			'stdin',
