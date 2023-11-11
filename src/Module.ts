@@ -63,6 +63,7 @@ import {
 	logInconsistentImportAttributes,
 	logInvalidFormatForTopLevelAwait,
 	logInvalidSourcemapForError,
+	logMissingEntryExport,
 	logMissingExport,
 	logModuleParseError,
 	logNamespaceConflict,
@@ -534,7 +535,7 @@ export default class Module {
 		const removedExports: string[] = [];
 		for (const exportName of this.exports.keys()) {
 			const [variable] = this.getVariableForExportName(exportName);
-			(variable && variable.included ? renderedExports : removedExports).push(exportName);
+			(variable?.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { removedExports, renderedExports };
 	}
@@ -686,7 +687,10 @@ export default class Module {
 
 		for (const exportName of this.exports.keys()) {
 			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
-				const variable = this.getVariableForExportName(exportName)[0]!;
+				const variable = this.getVariableForExportName(exportName)[0];
+				if (!variable) {
+					return error(logMissingEntryExport(exportName, this.id));
+				}
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
 					this.includeVariable(variable);

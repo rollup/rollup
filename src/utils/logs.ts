@@ -628,6 +628,16 @@ export function logMissingConfig(): RollupLog {
 	};
 }
 
+export function logMissingEntryExport(binding: string, exporter: string): RollupLog {
+	return {
+		binding,
+		code: MISSING_EXPORT,
+		exporter,
+		message: `Exported variable "${binding}" is not defined in "${relativeId(exporter)}".`,
+		url: getRollupUrl(URL_NAME_IS_NOT_EXPORTED)
+	};
+}
+
 export function logMissingExport(
 	binding: string,
 	importingModule: string,
@@ -853,7 +863,7 @@ export function logPluginError(
 	if (
 		!error.pluginCode &&
 		code != null &&
-		(typeof code !== 'string' || (typeof code === 'string' && !code.startsWith('PLUGIN_')))
+		(typeof code !== 'string' || !code.startsWith('PLUGIN_'))
 	) {
 		error.pluginCode = code;
 	}
