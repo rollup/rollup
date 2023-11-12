@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.4.0
+
+_2023-11-12_
+
+### Features
+
+- Replace SWC linting with faster internal linting to error on duplicate declarations etc. (#5207)
+
+### Bug Fixes
+
+- Show proper error when an entry exports non-existing bindings (#5207)
+
+### Pull Requests
+
+- [#5207](https://github.com/rollup/rollup/pull/5207): perf: run lint while constructing nodes (@sapphi-red)
+
 ## 4.3.1
 
 _2023-11-11_
