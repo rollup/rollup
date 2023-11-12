@@ -6,6 +6,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
 export default class Variable extends ExpressionEntity {
@@ -16,10 +17,12 @@ export default class Variable extends ExpressionEntity {
 	// both NamespaceVariable and ExternalVariable can be namespaces
 	declare isNamespace?: boolean;
 	isReassigned = false;
-	kind: string | null = null;
+	kind: VariableKind | null = null;
 	declare module?: Module | ExternalModule;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
+
+	private renderedLikeHoisted?: Variable;
 
 	constructor(public name: string) {
 		super();
@@ -40,7 +43,12 @@ export default class Variable extends ExpressionEntity {
 	}
 
 	getBaseVariableName(): string {
-		return this.renderBaseName || this.renderName || this.name;
+		return (
+			this.renderedLikeHoisted?.getBaseVariableName() ||
+			this.renderBaseName ||
+			this.renderName ||
+			this.name
+		);
 	}
 
 	getName(
@@ -49,6 +57,9 @@ export default class Variable extends ExpressionEntity {
 	): string {
 		if (useOriginalName?.(this)) {
 			return this.name;
+		}
+		if (this.renderedLikeHoisted) {
+			return this.renderedLikeHoisted.getName(getPropertyAccess, useOriginalName);
 		}
 		const name = this.renderName || this.name;
 		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
@@ -70,6 +81,15 @@ export default class Variable extends ExpressionEntity {
 	 */
 	include(): void {
 		this.included = true;
+		this.renderedLikeHoisted?.include();
+	}
+
+	/**
+	 * Links the rendered name of this variable to another variable and includes
+	 * this variable if the other variable is included.
+	 */
+	renderLikeHoisted(variable: Variable): void {
+		this.renderedLikeHoisted = variable;
 	}
 
 	markCalledFromTryStatement(): void {}

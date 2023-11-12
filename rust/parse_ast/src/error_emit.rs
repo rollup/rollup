@@ -2,14 +2,8 @@ use std::{io::Write, mem::take, sync::Arc};
 
 use anyhow::Error;
 use parking_lot::Mutex;
-use swc_common::{
-  errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER},
-  Mark, SourceMap, SyntaxContext,
-};
-use swc_ecma_ast::{EsVersion, Program};
-use swc_ecma_lints::{rule::Rule, rules, rules::LintParams};
-use swc_ecma_transforms_base::resolver;
-use swc_ecma_visit::VisitMutWith;
+use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER};
+use swc_ecma_ast::Program;
 
 use crate::convert_ast::converter::{convert_string, node_types::TYPE_PARSE_ERROR};
 
@@ -49,12 +43,7 @@ impl Emitter for ErrorEmitter {
   }
 }
 
-pub fn try_with_handler<F>(
-  code: &str,
-  cm: &Arc<SourceMap>,
-  es_version: EsVersion,
-  op: F,
-) -> Result<Program, Vec<u8>>
+pub fn try_with_handler<F>(code: &str, op: F) -> Result<Program, Vec<u8>>
 where
   F: FnOnce(&Handler) -> Result<Program, Error>,
 {
@@ -66,49 +55,13 @@ where
 
   let result = HANDLER.set(&handler, || op(&handler));
 
-  match result {
-    Ok(mut program) => {
-      let unresolved_mark = Mark::new();
-      let top_level_mark = Mark::new();
-      let unresolved_ctxt = SyntaxContext::empty().apply_mark(unresolved_mark);
-      let top_level_ctxt = SyntaxContext::empty().apply_mark(top_level_mark);
-
-      program.visit_mut_with(&mut resolver(unresolved_mark, top_level_mark, false));
-
-      let mut rules = rules::all(LintParams {
-        program: &program,
-        lint_config: &Default::default(),
-        unresolved_ctxt,
-        top_level_ctxt,
-        es_version,
-        source_map: cm.clone(),
-      });
-
-      HANDLER.set(&handler, || match &program {
-        Program::Module(m) => {
-          rules.lint_module(m);
-        }
-        Program::Script(s) => {
-          rules.lint_script(s);
-        }
-      });
-
-      if handler.has_errors() {
-        let buffer = create_error_buffer(&wr, code);
-        Err(buffer)
-      } else {
-        Ok(program)
-      }
+  result.map_err(|_| {
+    if handler.has_errors() {
+      create_error_buffer(&wr, code)
+    } else {
+      panic!("Unexpected error in parse")
     }
-    Err(_) => {
-      if handler.has_errors() {
-        let buffer = create_error_buffer(&wr, code);
-        Err(buffer)
-      } else {
-        panic!("Unexpected error in parse")
-      }
-    }
-  }
+  })
 }
 
 fn create_error_buffer(wr: &Writer, code: &str) -> Vec<u8> {

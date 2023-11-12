@@ -22,6 +22,7 @@ import {
 	UnknownValue
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
+import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
@@ -29,6 +30,7 @@ export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
+	readonly kind: VariableKind;
 
 	protected additionalInitializers: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
@@ -40,12 +42,14 @@ export default class LocalVariable extends Variable {
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		private init: ExpressionEntity,
-		context: AstContext
+		context: AstContext,
+		kind: VariableKind
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.deoptimizationTracker = context.deoptimizationTracker;
 		this.module = context.module;
+		this.kind = kind;
 	}
 
 	addDeclaration(identifier: Identifier, init: ExpressionEntity): void {
@@ -87,15 +91,13 @@ export default class LocalVariable extends Variable {
 			return;
 		}
 		if (path.length === 0) {
-			if (!this.isReassigned) {
-				this.isReassigned = true;
-				const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-				this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
-				for (const expression of expressionsToBeDeoptimized) {
-					expression.deoptimizeCache();
-				}
-				this.init.deoptimizePath(UNKNOWN_PATH);
+			this.isReassigned = true;
+			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
+			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
 			}
+			this.init.deoptimizePath(UNKNOWN_PATH);
 		} else {
 			this.init.deoptimizePath(path);
 		}
@@ -181,7 +183,7 @@ export default class LocalVariable extends Variable {
 
 	include(): void {
 		if (!this.included) {
-			this.included = true;
+			super.include();
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
 				if (!declaration.included) declaration.include(createInclusionContext(), false);
@@ -223,19 +225,5 @@ export default class LocalVariable extends Variable {
 			this.isReassigned = true;
 		}
 		return this.additionalInitializers;
-	}
-
-	mergeDeclarations(variable: LocalVariable): void {
-		const { declarations } = this;
-		for (const declaration of variable.declarations) {
-			declarations.push(declaration);
-		}
-		const additionalInitializers = this.markInitializersForDeoptimization();
-		additionalInitializers.push(variable.init);
-		if (variable.additionalInitializers) {
-			for (const initializer of variable.additionalInitializers) {
-				additionalInitializers.push(initializer);
-			}
-		}
 	}
 }

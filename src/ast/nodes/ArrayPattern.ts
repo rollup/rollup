@@ -7,6 +7,7 @@ import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import type { VariableKind } from './shared/VariableKinds';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
 	declare elements: (PatternNode | null)[];
@@ -21,7 +22,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	declare(kind: string): LocalVariable[] {
+	declare(kind: VariableKind): LocalVariable[] {
 		const variables: LocalVariable[] = [];
 		for (const element of this.elements) {
 			if (element !== null) {

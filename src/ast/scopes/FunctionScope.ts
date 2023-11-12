@@ -12,7 +12,7 @@ export default class FunctionScope extends ReturnValueScope {
 	readonly thisVariable: ThisVariable;
 
 	constructor(parent: ChildScope, context: AstContext) {
-		super(parent, context);
+		super(parent, context, false);
 		this.variables.set('arguments', (this.argumentsVariable = new ArgumentsVariable(context)));
 		this.variables.set('this', (this.thisVariable = new ThisVariable(context)));
 	}

@@ -8,14 +8,13 @@ import Scope from './Scope';
 
 export default class ChildScope extends Scope {
 	readonly accessedOutsideVariables = new Map<string, Variable>();
-	parent: Scope;
-	readonly context: AstContext;
 	private declare accessedDynamicImports?: Set<ImportExpression>;
 
-	constructor(parent: Scope, context: AstContext) {
+	constructor(
+		readonly parent: Scope,
+		readonly context: AstContext
+	) {
 		super();
-		this.parent = parent;
-		this.context = context;
 		parent.children.push(this);
 	}
 

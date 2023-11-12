@@ -1,22 +1,25 @@
 import type { AstContext } from '../../Module';
+import { logDuplicateArgumentNameError } from '../../utils/logs';
 import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import type LocalVariable from '../variables/LocalVariable';
 import ParameterVariable from '../variables/ParameterVariable';
+import CatchBodyScope from './CatchBodyScope';
 import ChildScope from './ChildScope';
 import type Scope from './Scope';
 
 export default class ParameterScope extends ChildScope {
-	readonly hoistedBodyVarScope: ChildScope;
+	readonly bodyScope: ChildScope;
 	parameters: readonly ParameterVariable[][] = [];
 
 	private hasRest = false;
 
-	constructor(parent: Scope, context: AstContext) {
+	constructor(parent: Scope, context: AstContext, isCatchScope: boolean) {
 		super(parent, context);
-		this.hoistedBodyVarScope = new ChildScope(this, context);
+		this.bodyScope = isCatchScope
+			? new CatchBodyScope(this, context)
+			: new ChildScope(this, context);
 	}
 
 	/**
@@ -24,14 +27,18 @@ export default class ParameterScope extends ChildScope {
 	 * order, i.e. from left to right.
 	 */
 	addParameterDeclaration(identifier: Identifier): ParameterVariable {
-		const { name } = identifier;
-		const variable = new ParameterVariable(name, identifier, this.context);
-		const localVariable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
-		if (localVariable) {
-			this.hoistedBodyVarScope.variables.set(name, variable);
-			variable.mergeDeclarations(localVariable);
+		const { name, start } = identifier;
+		const existingParameter = this.variables.get(name);
+		if (existingParameter) {
+			return this.context.error(logDuplicateArgumentNameError(name), start);
 		}
+		const variable = new ParameterVariable(name, identifier, this.context);
 		this.variables.set(name, variable);
+		// We also add it to the body scope to detect name conflicts with local
+		// variables. We still need the intermediate scope, though, as parameter
+		// defaults are NOT taken from the body scope but from the parameters or
+		// outside scope.
+		this.bodyScope.addHoistedVariable(name, variable);
 		return variable;
 	}
 

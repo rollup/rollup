@@ -2,6 +2,7 @@ import isReference, { type NodeWithFieldDefinition } from 'is-reference';
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
+import { logIllegalImportReassignment } from '../../utils/logs';
 import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -28,6 +29,7 @@ import {
 } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
@@ -71,30 +73,30 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
+	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
 		let variable: LocalVariable;
 		const { treeshake } = this.scope.context.options;
 		switch (kind) {
-			case 'var': {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, true);
+			case VariableKind.var: {
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
 					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
 					variable.markInitializersForDeoptimization();
 				}
 				break;
 			}
-			case 'function': {
+			case VariableKind.function: {
 				// in strict mode, functions are only hoisted within a scope but not across block scopes
-				variable = this.scope.addDeclaration(this, this.scope.context, init, false);
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				break;
 			}
-			case 'let':
-			case 'const':
-			case 'class': {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, false);
+			case VariableKind.let:
+			case VariableKind.const:
+			case VariableKind.class: {
+				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				break;
 			}
-			case 'parameter': {
+			case VariableKind.parameter: {
 				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;
 			}
@@ -104,7 +106,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 				throw new Error(`Internal Error: Unexpected identifier kind ${kind}.`);
 			}
 		}
-		variable.kind = kind;
 		return [(this.variable = variable)];
 	}
 
@@ -117,6 +118,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
+		if (path.length === 0 && !this.scope.contains(this.name)) {
+			this.disallowImportReassignment();
+		}
 		// We keep conditional chaining because an unknown Node could have an
 		// Identifier as property that might be deoptimized by default
 		this.variable?.deoptimizePath(path);
@@ -148,7 +152,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (this.isPossibleTDZ() && this.variable!.kind !== 'var') {
+		if (this.isPossibleTDZ() && this.variable!.kind !== VariableKind.var) {
 			return true;
 		}
 		return (
@@ -278,6 +282,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 				code.appendRight(this.start, '0, ');
 			}
 		}
+	}
+
+	private disallowImportReassignment(): never {
+		return this.scope.context.error(
+			logIllegalImportReassignment(this.name, this.scope.context.module.id),
+			this.start
+		);
 	}
 
 	protected applyDeoptimizations(): void {

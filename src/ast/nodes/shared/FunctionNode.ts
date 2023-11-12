@@ -12,11 +12,12 @@ import { type IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import type { PatternNode } from './Pattern';
+import { VariableKind } from './VariableKinds';
 
 export default class FunctionNode extends FunctionBase {
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
-	declare params: readonly PatternNode[];
+	declare params: PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	protected objectEntity: ObjectEntity | null = null;
@@ -102,7 +103,7 @@ export default class FunctionNode extends FunctionBase {
 
 	initialise(): void {
 		super.initialise();
-		this.id?.declare('function', this);
+		this.id?.declare(VariableKind.function, this);
 	}
 
 	protected addArgumentToBeDeoptimized(argument: ExpressionEntity) {

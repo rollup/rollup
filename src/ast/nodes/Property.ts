@@ -10,6 +10,7 @@ import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
 import type { ExpressionNode } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import type { VariableKind } from './shared/VariableKinds';
 
 export default class Property extends MethodBase implements PatternNode {
 	declare key: ExpressionNode;
@@ -33,7 +34,7 @@ export default class Property extends MethodBase implements PatternNode {
 		this.flags = setFlag(this.flags, Flag.shorthand, value);
 	}
 
-	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
+	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
 		this.declarationInit = init;
 		return (this.value as PatternNode).declare(kind, UNKNOWN_EXPRESSION);
 	}

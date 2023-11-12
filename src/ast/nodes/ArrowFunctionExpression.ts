@@ -15,14 +15,14 @@ import type { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends FunctionBase {
 	declare body: BlockStatement | ExpressionNode;
-	declare params: readonly PatternNode[];
+	declare params: PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 	declare type: NodeType.tArrowFunctionExpression;
 	protected objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: Scope): void {
-		this.scope = new ReturnValueScope(parentScope, this.scope.context);
+		this.scope = new ReturnValueScope(parentScope, this.scope.context, false);
 	}
 
 	hasEffects(): boolean {
