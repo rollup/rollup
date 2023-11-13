@@ -15,6 +15,7 @@ export default class Scope {
 	/*
 	Redeclaration rules:
 	- var can redeclare var
+	- in function scopes, function and var can redeclare function and var
 	- var is hoisted across scopes, function remains in the scope it is declared
 	- var and function can redeclare function parameters, but parameters cannot redeclare parameters
 	- function cannot redeclare catch scope parameters
@@ -34,11 +35,7 @@ export default class Scope {
 			this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable);
 		if (existingVariable) {
 			const existingKind = existingVariable.kind;
-			if (
-				(kind === VariableKind.var &&
-					(existingKind === VariableKind.var || existingKind === VariableKind.parameter)) ||
-				(kind === VariableKind.function && existingKind === VariableKind.parameter)
-			) {
+			if (kind === VariableKind.var && existingKind === VariableKind.var) {
 				existingVariable.addDeclaration(identifier, init);
 				return existingVariable;
 			}
