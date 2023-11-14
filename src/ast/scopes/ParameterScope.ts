@@ -7,6 +7,7 @@ import type { ExpressionEntity } from '../nodes/shared/Expression';
 import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
 import ChildScope from './ChildScope';
+import FunctionBodyScope from './FunctionBodyScope';
 import type Scope from './Scope';
 
 export default class ParameterScope extends ChildScope {
@@ -19,7 +20,7 @@ export default class ParameterScope extends ChildScope {
 		super(parent, context);
 		this.bodyScope = isCatchScope
 			? new CatchBodyScope(this, context)
-			: new ChildScope(this, context);
+			: new FunctionBodyScope(this, context);
 	}
 
 	/**

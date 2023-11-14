@@ -70,13 +70,6 @@ export default class CatchBodyScope extends ChildScope {
 			this.addHoistedVariable(name, declaredVariable);
 			return declaredVariable;
 		}
-		// Functions can never re-declare catch parameters
-		if (kind === VariableKind.function) {
-			const name = identifier.name;
-			if (this.hoistedVariables?.get(name)) {
-				context.error(logRedeclarationError(name), identifier.start);
-			}
-		}
 		return super.addDeclaration(identifier, context, init, kind);
 	}
 }
