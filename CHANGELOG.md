@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.4.1
+
+_2023-11-14_
+
+### Bug Fixes
+
+- Do not flag duplicate function declarations in function scopes as syntax errors (#5248)
+
+### Pull Requests
+
+- [#5248](https://github.com/rollup/rollup/pull/5248): Allow functions to redeclare vars and functions in function scopes (@lukastaegert)
+
 ## 4.4.0
 
 _2023-11-12_
