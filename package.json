@@ -83,7 +83,8 @@
     "test:only": "mocha test/test.js",
     "test:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/ && tsc --noEmit -p test/typescript && tsc --noEmit",
     "test:browser": "mocha test/browser/index.js",
-    "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch"
+    "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch",
+    "docker:publish-build-arm7-musl": "docker buildx build --platform linux/amd64 --push -t ghcr.io/rollup/rollup/build-arm7-musl docker/build-arm7-musl"
   },
   "repository": "rollup/rollup",
   "keywords": [
