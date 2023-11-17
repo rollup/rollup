@@ -15,6 +15,13 @@ RUN apt-get update &&\
     cd .. &&\
     rm -rf musl-cross-make-master
 
+# Install zig
+RUN wget https://ziglang.org/builds/zig-linux-x86_64-0.12.0-dev.1637+673a1efa2.tar.xz &&\
+    tar xf zig-linux-x86_64-0.12.0-dev.1637+673a1efa2.tar.xz &&\
+    rm zig-linux-x86_64-0.12.0-dev.1637+673a1efa2.tar.xz
+
+ENV PATH="${PATH}:/zig-linux-x86_64-0.12.0-dev.1637+673a1efa2"
+
 # Install rustup with correct target
 RUN wget -q -O - https://sh.rustup.rs | sh -s -- -y &&\
     . "$HOME/.cargo/env" &&\
