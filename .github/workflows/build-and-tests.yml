@@ -144,7 +144,6 @@ jobs:
             docker: ghcr.io/rollup/rollup/build-arm7-musl
             build: >-
               set -e &&
-              rustup default nightly-2023-10-05 &&
               npm run build:napi -- --release --target armv7-unknown-linux-musleabihf &&
               arm-linux-musleabihf-strip *.node
           - host: ubuntu-latest

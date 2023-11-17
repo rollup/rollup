@@ -18,6 +18,8 @@ RUN apt-get update &&\
 # Install rustup with correct target
 RUN wget -q -O - https://sh.rustup.rs | sh -s -- -y &&\
     . "$HOME/.cargo/env" &&\
-    rustup target add armv7-unknown-linux-musleabihf
+    rustup default nightly-2023-10-05 &&\
+    rustup toolchain remove stable &&\
+    rustup target add --toolchain nightly-2023-10-05 armv7-unknown-linux-musleabihf
 
 ENV PATH="${PATH}:/root/.cargo/bin"
