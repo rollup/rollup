@@ -17,5 +17,5 @@ RUN apt-get update &&\
 
 # Install rustup with correct target
 RUN wget -q -O - https://sh.rustup.rs | sh -s -- -y &&\
-    source "$HOME/.cargo/env" &&\
-    rustup target add armv7-unknown-linux-musleabihf \
+    . "$HOME/.cargo/env" &&\
+    rustup target add armv7-unknown-linux-musleabihf

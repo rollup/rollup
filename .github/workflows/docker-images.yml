@@ -18,13 +18,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       packages: write
 
     steps:
