@@ -59,6 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         settings:
+          # WASM
           - host: windows-latest
             target: x86_64-pc-windows-msvc
             name: wasm
@@ -81,12 +82,8 @@ jobs:
             path: |
               wasm-node/
               .empty
-          - host: macos-latest
-            target: x86_64-apple-darwin
-            build: >-
-              set -e &&
-              npm run build:napi -- --release &&
-              strip -x *.node
+
+          # Windows
           - host: windows-latest
             build: npm run build:napi -- --release
             target: x86_64-pc-windows-msvc
@@ -96,6 +93,26 @@ jobs:
               rustup target add i686-pc-windows-msvc &&
               npm run build:napi -- --release --target i686-pc-windows-msvc
             target: i686-pc-windows-msvc
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
+
+          # MacOS
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: >-
+              set -e &&
+              npm run build:napi -- --release &&
+              strip -x *.node
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: >-
+              set -e &&
+              rustup target add aarch64-apple-darwin &&
+              npm run build:napi -- --release --target aarch64-apple-darwin &&
+              strip -x *.node
+
+          # Linux
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
@@ -110,23 +127,6 @@ jobs:
             build: >-
               set -e &&
               npm run build:napi -- --release && strip *.node
-          - host: macos-latest
-            target: aarch64-apple-darwin
-            build: >-
-              set -e &&
-              rustup target add aarch64-apple-darwin &&
-              npm run build:napi -- --release --target aarch64-apple-darwin &&
-              strip -x *.node
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: >-
-              set -e &&
-              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default nightly-2023-10-05 &&
-              rustup target add aarch64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
-              aarch64-unknown-linux-gnu-strip *.node
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             zig: true
@@ -138,17 +138,15 @@ jobs:
               npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf &&
               arm-linux-gnueabihf-strip *.node
           - host: ubuntu-latest
-            target: aarch64-linux-android
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: >-
               set -e &&
-              npm run build:napi -- --release --target aarch64-linux-android &&
-              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
-          - host: ubuntu-latest
-            target: armv7-linux-androideabi
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target armv7-linux-androideabi &&
-              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+              rustup default nightly-2023-10-05 &&
+              rustup target add aarch64-unknown-linux-gnu &&
+              npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
+              aarch64-unknown-linux-gnu-strip *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -159,9 +157,18 @@ jobs:
               rustup target add aarch64-unknown-linux-musl &&
               RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
-          - host: windows-latest
-            target: aarch64-pc-windows-msvc
-            build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: armv7-linux-androideabi
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target armv7-linux-androideabi &&
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target aarch64-linux-android &&
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
