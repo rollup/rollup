@@ -138,6 +138,16 @@ jobs:
               npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf &&
               arm-linux-gnueabihf-strip *.node
           - host: ubuntu-latest
+            target: armv7-unknown-linux-musleabihf
+            zig: true
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-arm-linux-musleabihf -y
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target armv7-unknown-linux-musleabihf &&
+              arm-linux-musleabihf-strip *.node
+          - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: >-
