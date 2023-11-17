@@ -19,3 +19,5 @@ RUN apt-get update &&\
 RUN wget -q -O - https://sh.rustup.rs | sh -s -- -y &&\
     . "$HOME/.cargo/env" &&\
     rustup target add armv7-unknown-linux-musleabihf
+
+ENV PATH="${PATH}:/root/.cargo/bin"
