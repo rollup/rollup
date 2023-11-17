@@ -228,6 +228,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         if: ${{ matrix.settings.docker }}
         with:
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           image: ${{ matrix.settings.docker }}
