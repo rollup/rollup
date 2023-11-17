@@ -55,6 +55,8 @@ jobs:
         run: npm run test:options
 
   build:
+    permissions:
+      packages: read
     strategy:
       fail-fast: false
       matrix:
