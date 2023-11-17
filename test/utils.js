@@ -463,10 +463,10 @@ const replaceStringifyValues = (key, value) => {
 	return key.startsWith('_')
 		? undefined
 		: typeof value == 'bigint'
-		? `~BigInt${value.toString()}`
-		: value instanceof RegExp
-		? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
-		: value;
+		  ? `~BigInt${value.toString()}`
+		  : value instanceof RegExp
+		    ? `~RegExp${JSON.stringify({ flags: value.flags, source: value.source })}`
+		    : value;
 };
 
 const reviveStringifyValues = (_, value) =>
@@ -474,6 +474,6 @@ const reviveStringifyValues = (_, value) =>
 		? value.startsWith('~BigInt')
 			? BigInt(value.slice(7))
 			: value.startsWith('~RegExp')
-			? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
-			: value
+			  ? new RegExp(JSON.parse(value.slice(7)).source, JSON.parse(value.slice(7)).flags)
+			  : value
 		: value;

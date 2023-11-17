@@ -87,8 +87,8 @@ export async function normalizeOutputOptions(
 			typeof config.sanitizeFileName === 'function'
 				? config.sanitizeFileName
 				: config.sanitizeFileName === false
-				? id => id
-				: defaultSanitizeFileName,
+				  ? id => id
+				  : defaultSanitizeFileName,
 		sourcemap: config.sourcemap || false,
 		sourcemapBaseUrl: getSourcemapBaseUrl(config),
 		sourcemapExcludeSources: config.sourcemapExcludeSources || false,
@@ -98,8 +98,8 @@ export async function normalizeOutputOptions(
 			typeof config.sourcemapIgnoreList === 'function'
 				? config.sourcemapIgnoreList
 				: config.sourcemapIgnoreList === false
-				? () => false
-				: relativeSourcePath => relativeSourcePath.includes('node_modules'),
+				  ? () => false
+				  : relativeSourcePath => relativeSourcePath.includes('node_modules'),
 		sourcemapPathTransform: config.sourcemapPathTransform as
 			| SourcemapPathTransformOption
 			| undefined,
@@ -391,8 +391,8 @@ const getInterop = (config: OutputOptions): NormalizedOutputOptions['interop'] =
 			id === null
 				? defaultInterop || validateInterop((defaultInterop = configInterop(id)))
 				: id in interopPerId
-				? interopPerId[id]
-				: validateInterop((interopPerId[id] = configInterop(id)));
+				  ? interopPerId[id]
+				  : validateInterop((interopPerId[id] = configInterop(id)));
 	}
 	return configInterop === undefined ? () => 'default' : () => validateInterop(configInterop);
 };
