@@ -137,8 +137,8 @@ export class ObjectEntity extends ExpressionEntity {
 						this.unmatchablePropertiesAndGetters
 				  ]
 				: type === INTERACTION_ACCESSED
-				? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
-				: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
+				  ? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
+				  : [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 
 		if (typeof key === 'string') {
 			if (propertiesForExactMatchByKey[key]) {

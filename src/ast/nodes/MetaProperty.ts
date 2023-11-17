@@ -168,8 +168,8 @@ const getGenericImportMetaMechanism =
 		return property === null
 			? `({ url: ${urlMechanism} })`
 			: property === 'url'
-			? urlMechanism
-			: 'undefined';
+			  ? urlMechanism
+			  : 'undefined';
 	};
 
 const getFileUrlFromFullPath = (path: string) => `require('u' + 'rl').pathToFileURL(${path}).href`;

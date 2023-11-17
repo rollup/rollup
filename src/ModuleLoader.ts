@@ -294,8 +294,8 @@ export class ModuleLoader {
 			typeof source === 'string'
 				? { code: source }
 				: source != null && typeof source === 'object' && typeof source.code === 'string'
-				? source
-				: error(logBadLoader(id));
+				  ? source
+				  : error(logBadLoader(id));
 		const cachedModule = this.graph.cachedModules.get(id);
 		if (
 			cachedModule &&

@@ -440,8 +440,8 @@ export default class MemberExpression
 				value === SymbolToStringTag
 					? value
 					: typeof value === 'symbol'
-					? UnknownKey
-					: String(value));
+					  ? UnknownKey
+					  : String(value));
 		}
 		return this.propertyKey;
 	}
