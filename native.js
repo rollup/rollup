@@ -14,7 +14,7 @@ const bindingsByPlatformAndArch = {
 		x64: { base: 'darwin-x64' }
 	},
 	linux: {
-		arm: { base: 'linux-arm-gnueabihf' },
+		arm: { base: 'linux-arm-gnueabihf', musl: null },
 		arm64: { base: 'linux-arm64-gnu', musl: 'linux-arm64-musl' },
 		x64: { base: 'linux-x64-gnu', musl: 'linux-x64-musl' }
 	},
@@ -25,8 +25,9 @@ const bindingsByPlatformAndArch = {
 	}
 };
 
-const imported = bindingsByPlatformAndArch[platform]?.[arch];
-if (!imported) {
+const packageBase = getPackageBase();
+
+if (!packageBase) {
 	throw new Error(
 		`Your current platform "${platform}" and architecture "${arch}" combination is not yet supported by the native Rollup build. Please use the WASM build "@rollup/wasm-node" instead.
 
@@ -44,7 +45,17 @@ If this is important to you, please consider supporting Rollup to make a native 
 	);
 }
 
-const packageBase = imported.musl && isMusl() ? imported.musl : imported.base;
+function getPackageBase() {
+	const imported = bindingsByPlatformAndArch[platform]?.[arch];
+	if (!imported) {
+		return null;
+	}
+	if ('musl' in imported && isMusl()) {
+		return imported.musl;
+	}
+	return imported.base;
+}
+
 const localName = `./rollup.${packageBase}.node`;
 const { parse, parseAsync, xxhashBase64Url } = require(
 	existsSync(join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
