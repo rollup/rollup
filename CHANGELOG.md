@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.5.0
+
+_2023-11-18_
+
+### Bug Fixes
+
+- Show a proper error when using native Rollup on armv7 musl Linux (#5255)
+
+### Pull Requests
+
+- [#5251](https://github.com/rollup/rollup/pull/5251): doc fix import assertions to attributes in API plugin development page (@lhapaipai)
+- [#5253](https://github.com/rollup/rollup/pull/5253): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5255](https://github.com/rollup/rollup/pull/5255): Error for armv7 musl build (@lukastaegert)
+
 ## 4.4.1
 
 _2023-11-14_
