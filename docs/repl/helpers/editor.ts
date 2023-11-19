@@ -54,7 +54,8 @@ const theme = EditorView.baseTheme({
 		outline: 'none'
 	},
 	'.cm-content': {
-		caretColor: 'var(--vp-c-neutral)',
+		caretColor: '#fff',
+		// caretColor: 'var(--vp-c-neutral)',
 		color: '#A6ACCD',
 		fontFamily: 'var(--vp-font-family-mono)',
 		fontSize: '14px',
@@ -63,12 +64,17 @@ const theme = EditorView.baseTheme({
 		padding: '8px'
 	},
 	'.cm-gutters': {
-		backgroundColor: 'var(--vp-code-block-bg)',
+		// we are hard-coding to dark mode colors until we figure out how to switch
+		// colors in code mirror
+		backgroundColor: '#161618',
+		// backgroundColor: 'var(--vp-code-block-bg)',
 		border: 'none',
 		borderBottomLeftRadius: '8px',
-		borderRight: '1px solid var(--vp-code-block-divider-color)',
+		borderRight: '#000',
+		// borderRight: '1px solid var(--vp-code-block-divider-color)',
 		borderTopLeftRadius: '8px',
-		color: 'var(--vp-code-line-number-color)',
+		color: 'rgba(235,235,245,0.38)',
+		// color: 'var(--vp-code-line-number-color)',
 		minWidth: '32px'
 	},
 	'.cm-gutters .cm-gutterElement': {
