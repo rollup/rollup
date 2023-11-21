@@ -1,4 +1,3 @@
-import type { AstContext } from '../../Module';
 import { logDuplicateArgumentNameError } from '../../utils/logs';
 import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
@@ -8,7 +7,6 @@ import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
 import ChildScope from './ChildScope';
 import FunctionBodyScope from './FunctionBodyScope';
-import type Scope from './Scope';
 
 export default class ParameterScope extends ChildScope {
 	readonly bodyScope: ChildScope;
@@ -16,11 +14,9 @@ export default class ParameterScope extends ChildScope {
 
 	private hasRest = false;
 
-	constructor(parent: Scope, context: AstContext, isCatchScope: boolean) {
-		super(parent, context);
-		this.bodyScope = isCatchScope
-			? new CatchBodyScope(this, context)
-			: new FunctionBodyScope(this, context);
+	constructor(parent: ChildScope, isCatchScope: boolean) {
+		super(parent, parent.context);
+		this.bodyScope = isCatchScope ? new CatchBodyScope(this) : new FunctionBodyScope(this);
 	}
 
 	/**

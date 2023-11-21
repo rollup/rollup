@@ -7,6 +7,10 @@ import type LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 
 export default class BlockScope extends ChildScope {
+	constructor(parent: ChildScope) {
+		super(parent, parent.context);
+	}
+
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,

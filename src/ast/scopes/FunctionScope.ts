@@ -1,4 +1,3 @@
-import type { AstContext } from '../../Module';
 import type { InclusionContext } from '../ExecutionContext';
 import type SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
@@ -11,8 +10,9 @@ export default class FunctionScope extends ReturnValueScope {
 	readonly argumentsVariable: ArgumentsVariable;
 	readonly thisVariable: ThisVariable;
 
-	constructor(parent: ChildScope, context: AstContext) {
-		super(parent, context, false);
+	constructor(parent: ChildScope) {
+		const { context } = parent;
+		super(parent, false);
 		this.variables.set('arguments', (this.argumentsVariable = new ArgumentsVariable(context)));
 		this.variables.set('this', (this.thisVariable = new ThisVariable(context)));
 	}

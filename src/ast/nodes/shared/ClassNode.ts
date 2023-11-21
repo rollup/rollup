@@ -30,7 +30,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	private objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new ChildScope(parentScope, this.scope.context);
+		this.scope = new ChildScope(parentScope, parentScope.context);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
