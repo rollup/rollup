@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.5.1
+
+_2023-11-21_
+
+### Bug Fixes
+
+- Do not error when a function expression uses the same name for a parameter and its id (#5262)
+
+### Pull Requests
+
+- [#5257](https://github.com/rollup/rollup/pull/5257): Fix graphs in docs, improve REPL colors (@lukastaegert)
+- [#5262](https://github.com/rollup/rollup/pull/5262): Allow function expression parameters to shadow the function id (@lukastaegert)
+
 ## 4.5.0
 
 _2023-11-18_
