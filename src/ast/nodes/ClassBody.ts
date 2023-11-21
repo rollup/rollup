@@ -14,7 +14,7 @@ export default class ClassBody extends NodeBase {
 	declare type: NodeType.tClassBody;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode, this.scope.context);
+		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

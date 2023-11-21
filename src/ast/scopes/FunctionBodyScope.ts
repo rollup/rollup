@@ -8,11 +8,8 @@ import ChildScope from './ChildScope';
 import type ParameterScope from './ParameterScope';
 
 export default class FunctionBodyScope extends ChildScope {
-	constructor(
-		readonly parent: ParameterScope,
-		readonly context: AstContext
-	) {
-		super(parent, context);
+	constructor(parent: ParameterScope) {
+		super(parent, parent.context);
 	}
 
 	// There is stuff that is only allowed in function scopes, i.e. functions can

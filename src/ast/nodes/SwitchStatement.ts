@@ -22,7 +22,7 @@ export default class SwitchStatement extends StatementBase {
 
 	createScope(parentScope: ChildScope): void {
 		this.parentScope = parentScope;
-		this.scope = new BlockScope(parentScope, this.scope.context);
+		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

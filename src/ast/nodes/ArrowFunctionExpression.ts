@@ -1,8 +1,8 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
+import type ChildScope from '../scopes/ChildScope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
-import type Scope from '../scopes/Scope';
 import { type ObjectPath } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
@@ -21,8 +21,8 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	declare type: NodeType.tArrowFunctionExpression;
 	protected objectEntity: ObjectEntity | null = null;
 
-	createScope(parentScope: Scope): void {
-		this.scope = new ReturnValueScope(parentScope, this.scope.context, false);
+	createScope(parentScope: ChildScope): void {
+		this.scope = new ReturnValueScope(parentScope, false);
 	}
 
 	hasEffects(): boolean {

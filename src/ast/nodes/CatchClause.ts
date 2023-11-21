@@ -15,7 +15,7 @@ export default class CatchClause extends NodeBase {
 	declare type: NodeType.tCatchClause;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new ParameterScope(parentScope, this.scope.context, true);
+		this.scope = new ParameterScope(parentScope, true);
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {

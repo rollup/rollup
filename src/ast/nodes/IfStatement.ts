@@ -67,14 +67,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		this.consequentScope = new TrackingScope(this.scope, this.scope.context);
+		this.consequentScope = new TrackingScope(this.scope);
 		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
 			esTreeNode.consequent,
 			this,
 			this.consequentScope
 		);
 		if (esTreeNode.alternate) {
-			this.alternateScope = new TrackingScope(this.scope, this.scope.context);
+			this.alternateScope = new TrackingScope(this.scope);
 			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
 				esTreeNode.alternate,
 				this,
