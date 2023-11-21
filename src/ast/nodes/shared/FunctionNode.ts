@@ -1,6 +1,7 @@
 import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
+import type ChildScope from '../../scopes/ChildScope';
 import FunctionScope from '../../scopes/FunctionScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
@@ -23,7 +24,7 @@ export default class FunctionNode extends FunctionBase {
 	protected objectEntity: ObjectEntity | null = null;
 	private declare constructedEntity: ObjectEntity;
 
-	createScope(parentScope: FunctionScope): void {
+	createScope(parentScope: ChildScope): void {
 		this.scope = new FunctionScope(parentScope);
 		this.constructedEntity = new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE);
 		// This makes sure that all deoptimizations of "this" are applied to the
