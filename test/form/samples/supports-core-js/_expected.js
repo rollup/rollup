@@ -12,8 +12,9 @@ var global$16 =
   // eslint-disable-next-line no-restricted-globals -- safe
   check(typeof self == 'object' && self) ||
   check(typeof commonjsGlobal == 'object' && commonjsGlobal) ||
+  check(typeof commonjsGlobal == 'object' && commonjsGlobal) ||
   // eslint-disable-next-line no-new-func -- fallback
-  (function () { return this; })() || commonjsGlobal || Function('return this')();
+  (function () { return this; })() || Function('return this')();
 
 var objectGetOwnPropertyDescriptor = {};
 
@@ -178,7 +179,7 @@ var aFunction = function (argument) {
   return isCallable$H(argument) ? argument : undefined;
 };
 
-var getBuiltIn$N = function (namespace, method) {
+var getBuiltIn$M = function (namespace, method) {
   return arguments.length < 2 ? aFunction(global$15[namespace]) : global$15[namespace] && global$15[namespace][method];
 };
 
@@ -242,7 +243,7 @@ var useSymbolAsUid = NATIVE_SYMBOL$7
   && !Symbol.sham
   && typeof Symbol.iterator == 'symbol';
 
-var getBuiltIn$M = getBuiltIn$N;
+var getBuiltIn$L = getBuiltIn$M;
 var isCallable$G = isCallable$J;
 var isPrototypeOf$e = objectIsPrototypeOf;
 var USE_SYMBOL_AS_UID$1 = useSymbolAsUid;
@@ -252,7 +253,7 @@ var $Object$7 = Object;
 var isSymbol$8 = USE_SYMBOL_AS_UID$1 ? function (it) {
   return typeof it == 'symbol';
 } : function (it) {
-  var $Symbol = getBuiltIn$M('Symbol');
+  var $Symbol = getBuiltIn$L('Symbol');
   return isCallable$G($Symbol) && isPrototypeOf$e($Symbol.prototype, $Object$7(it));
 };
 
@@ -303,7 +304,7 @@ var ordinaryToPrimitive$2 = function (input, pref) {
   throw new $TypeError$G("Can't convert object to primitive value");
 };
 
-var shared$b = {exports: {}};
+var shared$a = {exports: {}};
 
 var isPure = false;
 
@@ -330,17 +331,17 @@ var sharedStore = store$5;
 
 var store$4 = sharedStore;
 
-(shared$b.exports = function (key, value) {
+(shared$a.exports = function (key, value) {
   return store$4[key] || (store$4[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.33.2',
+  version: '3.33.3',
   mode: 'global',
   copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.33.2/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.33.3/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
-var sharedExports = shared$b.exports;
+var sharedExports = shared$a.exports;
 
 var requireObjectCoercible$n = requireObjectCoercible$p;
 
@@ -375,14 +376,14 @@ var uid$7 = function (key) {
 };
 
 var global$10 = global$16;
-var shared$a = sharedExports;
+var shared$9 = sharedExports;
 var hasOwn$F = hasOwnProperty_1;
 var uid$6 = uid$7;
 var NATIVE_SYMBOL$6 = symbolConstructorDetection;
 var USE_SYMBOL_AS_UID = useSymbolAsUid;
 
 var Symbol$7 = global$10.Symbol;
-var WellKnownSymbolsStore$2 = shared$a('wks');
+var WellKnownSymbolsStore$2 = shared$9('wks');
 var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol$7['for'] || Symbol$7 : Symbol$7 && Symbol$7.withoutSetter || uid$6;
 
 var wellKnownSymbol$S = function (name) {
@@ -594,14 +595,14 @@ var inspectSource$4 = store$3.inspectSource;
 var global$_ = global$16;
 var isCallable$C = isCallable$J;
 
-var WeakMap$5 = global$_.WeakMap;
+var WeakMap$4 = global$_.WeakMap;
 
-var weakMapBasicDetection = isCallable$C(WeakMap$5) && /native code/.test(String(WeakMap$5));
+var weakMapBasicDetection = isCallable$C(WeakMap$4) && /native code/.test(String(WeakMap$4));
 
-var shared$9 = sharedExports;
+var shared$8 = sharedExports;
 var uid$5 = uid$7;
 
-var keys$3 = shared$9('keys');
+var keys$3 = shared$8('keys');
 
 var sharedKey$4 = function (key) {
   return keys$3[key] || (keys$3[key] = uid$5(key));
@@ -614,13 +615,13 @@ var global$Z = global$16;
 var isObject$F = isObject$K;
 var createNonEnumerableProperty$j = createNonEnumerableProperty$k;
 var hasOwn$C = hasOwnProperty_1;
-var shared$8 = sharedStore;
+var shared$7 = sharedStore;
 var sharedKey$3 = sharedKey$4;
 var hiddenKeys$5 = hiddenKeys$6;
 
 var OBJECT_ALREADY_INITIALIZED = 'Object already initialized';
 var TypeError$9 = global$Z.TypeError;
-var WeakMap$4 = global$Z.WeakMap;
+var WeakMap$3 = global$Z.WeakMap;
 var set$b, get$6, has$d;
 
 var enforce = function (it) {
@@ -636,8 +637,8 @@ var getterFor$2 = function (TYPE) {
   };
 };
 
-if (NATIVE_WEAK_MAP$1 || shared$8.state) {
-  var store$2 = shared$8.state || (shared$8.state = new WeakMap$4());
+if (NATIVE_WEAK_MAP$1 || shared$7.state) {
+  var store$2 = shared$7.state || (shared$7.state = new WeakMap$3());
   /* eslint-disable no-self-assign -- prototype methods protection */
   store$2.get = store$2.get;
   store$2.has = store$2.has;
@@ -901,7 +902,7 @@ var objectGetOwnPropertySymbols = {};
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- safe
 objectGetOwnPropertySymbols.f = Object.getOwnPropertySymbols;
 
-var getBuiltIn$L = getBuiltIn$N;
+var getBuiltIn$K = getBuiltIn$M;
 var uncurryThis$1M = functionUncurryThis;
 var getOwnPropertyNamesModule$2 = objectGetOwnPropertyNames;
 var getOwnPropertySymbolsModule$3 = objectGetOwnPropertySymbols;
@@ -910,7 +911,7 @@ var anObject$1d = anObject$1f;
 var concat$4 = uncurryThis$1M([].concat);
 
 // all object keys, includes non-enumerable and symbols
-var ownKeys$3 = getBuiltIn$L('Reflect', 'ownKeys') || function ownKeys(it) {
+var ownKeys$3 = getBuiltIn$K('Reflect', 'ownKeys') || function ownKeys(it) {
   var keys = getOwnPropertyNamesModule$2.f(anObject$1d(it));
   var getOwnPropertySymbols = getOwnPropertySymbolsModule$3.f;
   return getOwnPropertySymbols ? concat$4(keys, getOwnPropertySymbols(it)) : keys;
@@ -1092,9 +1093,9 @@ objectDefineProperties.f = DESCRIPTORS$L && !V8_PROTOTYPE_DEFINE_BUG ? Object.de
   return O;
 };
 
-var getBuiltIn$K = getBuiltIn$N;
+var getBuiltIn$J = getBuiltIn$M;
 
-var html$2 = getBuiltIn$K('document', 'documentElement');
+var html$2 = getBuiltIn$J('document', 'documentElement');
 
 /* global ActiveXObject -- old IE, WSH */
 var anObject$1b = anObject$1f;
@@ -1266,12 +1267,12 @@ var wellKnownSymbolDefine = function (NAME) {
 };
 
 var call$1e = functionCall;
-var getBuiltIn$J = getBuiltIn$N;
+var getBuiltIn$I = getBuiltIn$M;
 var wellKnownSymbol$N = wellKnownSymbol$S;
 var defineBuiltIn$s = defineBuiltIn$u;
 
 var symbolDefineToPrimitive = function () {
-  var Symbol = getBuiltIn$J('Symbol');
+  var Symbol = getBuiltIn$I('Symbol');
   var SymbolPrototype = Symbol && Symbol.prototype;
   var valueOf = SymbolPrototype && SymbolPrototype.valueOf;
   var TO_PRIMITIVE = wellKnownSymbol$N('toPrimitive');
@@ -1336,12 +1337,12 @@ var uncurryThis$1J = functionUncurryThis;
 var fails$1l = fails$1u;
 var isCallable$x = isCallable$J;
 var classof$m = classof$q;
-var getBuiltIn$I = getBuiltIn$N;
+var getBuiltIn$H = getBuiltIn$M;
 var inspectSource$2 = inspectSource$4;
 
 var noop = function () { /* empty */ };
 var empty = [];
-var construct$1 = getBuiltIn$I('Reflect', 'construct');
+var construct$1 = getBuiltIn$H('Reflect', 'construct');
 var constructorRegExp = /^\s*(?:class|function)\b/;
 var exec$g = uncurryThis$1J(constructorRegExp.exec);
 var INCORRECT_TO_STRING$2 = !constructorRegExp.test(noop);
@@ -1515,7 +1516,7 @@ var definePropertiesModule = objectDefineProperties;
 var propertyIsEnumerableModule$1 = objectPropertyIsEnumerable;
 var defineBuiltIn$r = defineBuiltIn$u;
 var defineBuiltInAccessor$n = defineBuiltInAccessor$o;
-var shared$7 = sharedExports;
+var shared$6 = sharedExports;
 var sharedKey$1 = sharedKey$4;
 var hiddenKeys$1 = hiddenKeys$6;
 var uid$4 = uid$7;
@@ -1546,9 +1547,9 @@ var nativeGetOwnPropertyNames = getOwnPropertyNamesExternal.f;
 var nativePropertyIsEnumerable = propertyIsEnumerableModule$1.f;
 var push$q = uncurryThis$1H([].push);
 
-var AllSymbols = shared$7('symbols');
-var ObjectPrototypeSymbols = shared$7('op-symbols');
-var WellKnownSymbolsStore$1 = shared$7('wks');
+var AllSymbols = shared$6('symbols');
+var ObjectPrototypeSymbols = shared$6('op-symbols');
+var WellKnownSymbolsStore$1 = shared$6('wks');
 
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var USE_SETTER = !QObject || !QObject[PROTOTYPE$1] || !QObject[PROTOTYPE$1].findChild;
@@ -1758,14 +1759,14 @@ var NATIVE_SYMBOL$4 = symbolConstructorDetection;
 var symbolRegistryDetection = NATIVE_SYMBOL$4 && !!Symbol['for'] && !!Symbol.keyFor;
 
 var $$5q = _export;
-var getBuiltIn$H = getBuiltIn$N;
+var getBuiltIn$G = getBuiltIn$M;
 var hasOwn$v = hasOwnProperty_1;
 var toString$I = toString$J;
-var shared$6 = sharedExports;
+var shared$5 = sharedExports;
 var NATIVE_SYMBOL_REGISTRY$1 = symbolRegistryDetection;
 
-var StringToSymbolRegistry = shared$6('string-to-symbol-registry');
-var SymbolToStringRegistry$1 = shared$6('symbol-to-string-registry');
+var StringToSymbolRegistry = shared$5('string-to-symbol-registry');
+var SymbolToStringRegistry$1 = shared$5('symbol-to-string-registry');
 
 // `Symbol.for` method
 // https://tc39.es/ecma262/#sec-symbol.for
@@ -1773,7 +1774,7 @@ $$5q({ target: 'Symbol', stat: true, forced: !NATIVE_SYMBOL_REGISTRY$1 }, {
   'for': function (key) {
     var string = toString$I(key);
     if (hasOwn$v(StringToSymbolRegistry, string)) return StringToSymbolRegistry[string];
-    var symbol = getBuiltIn$H('Symbol')(string);
+    var symbol = getBuiltIn$G('Symbol')(string);
     StringToSymbolRegistry[string] = symbol;
     SymbolToStringRegistry$1[symbol] = string;
     return symbol;
@@ -1784,10 +1785,10 @@ var $$5p = _export;
 var hasOwn$u = hasOwnProperty_1;
 var isSymbol$5 = isSymbol$8;
 var tryToString$5 = tryToString$7;
-var shared$5 = sharedExports;
+var shared$4 = sharedExports;
 var NATIVE_SYMBOL_REGISTRY = symbolRegistryDetection;
 
-var SymbolToStringRegistry = shared$5('symbol-to-string-registry');
+var SymbolToStringRegistry = shared$4('symbol-to-string-registry');
 
 // `Symbol.keyFor` method
 // https://tc39.es/ecma262/#sec-symbol.keyfor
@@ -1844,7 +1845,7 @@ var getJsonReplacerFunction = function (replacer) {
 };
 
 var $$5o = _export;
-var getBuiltIn$G = getBuiltIn$N;
+var getBuiltIn$F = getBuiltIn$M;
 var apply$d = functionApply$1;
 var call$1b = functionCall;
 var uncurryThis$1E = functionUncurryThis;
@@ -1856,7 +1857,7 @@ var getReplacerFunction$1 = getJsonReplacerFunction;
 var NATIVE_SYMBOL$3 = symbolConstructorDetection;
 
 var $String$4 = String;
-var $stringify$1 = getBuiltIn$G('JSON', 'stringify');
+var $stringify$1 = getBuiltIn$F('JSON', 'stringify');
 var exec$f = uncurryThis$1E(/./.exec);
 var charAt$k = uncurryThis$1E(''.charAt);
 var charCodeAt$9 = uncurryThis$1E(''.charCodeAt);
@@ -1868,7 +1869,7 @@ var low = /^[\uD800-\uDBFF]$/;
 var hi = /^[\uDC00-\uDFFF]$/;
 
 var WRONG_SYMBOLS_CONVERSION = !NATIVE_SYMBOL$3 || fails$1j(function () {
-  var symbol = getBuiltIn$G('Symbol')('stringify detection');
+  var symbol = getBuiltIn$F('Symbol')('stringify detection');
   // MS Edge converts symbol values to JSON as {}
   return $stringify$1([symbol]) !== '[null]'
     // WebKit converts symbol values to JSON as null
@@ -2063,7 +2064,7 @@ defineWellKnownSymbol$a('toPrimitive');
 // https://tc39.es/ecma262/#sec-symbol.prototype-@@toprimitive
 defineSymbolToPrimitive();
 
-var getBuiltIn$F = getBuiltIn$N;
+var getBuiltIn$E = getBuiltIn$M;
 var defineWellKnownSymbol$9 = wellKnownSymbolDefine;
 var setToStringTag$b = setToStringTag$d;
 
@@ -2073,7 +2074,7 @@ defineWellKnownSymbol$9('toStringTag');
 
 // `Symbol.prototype[@@toStringTag]` property
 // https://tc39.es/ecma262/#sec-symbol.prototype-@@tostringtag
-setToStringTag$b(getBuiltIn$F('Symbol'), 'Symbol');
+setToStringTag$b(getBuiltIn$E('Symbol'), 'Symbol');
 
 var defineWellKnownSymbol$8 = wellKnownSymbolDefine;
 
@@ -2215,7 +2216,7 @@ var errorStackInstall = function (error, C, stack, dropEntries) {
   }
 };
 
-var getBuiltIn$E = getBuiltIn$N;
+var getBuiltIn$D = getBuiltIn$M;
 var hasOwn$s = hasOwnProperty_1;
 var createNonEnumerableProperty$f = createNonEnumerableProperty$k;
 var isPrototypeOf$b = objectIsPrototypeOf;
@@ -2233,7 +2234,7 @@ var wrapErrorConstructorWithCause$2 = function (FULL_NAME, wrapper, FORCED, IS_A
   var OPTIONS_POSITION = IS_AGGREGATE_ERROR ? 2 : 1;
   var path = FULL_NAME.split('.');
   var ERROR_NAME = path[path.length - 1];
-  var OriginalError = getBuiltIn$E.apply(null, path);
+  var OriginalError = getBuiltIn$D.apply(null, path);
 
   if (!OriginalError) return;
 
@@ -2244,7 +2245,7 @@ var wrapErrorConstructorWithCause$2 = function (FULL_NAME, wrapper, FORCED, IS_A
 
   if (!FORCED) return OriginalError;
 
-  var BaseError = getBuiltIn$E('Error');
+  var BaseError = getBuiltIn$D('Error');
 
   var WrappedError = wrapper(function (a, b) {
     var message = normalizeStringArgument$5(IS_AGGREGATE_ERROR ? b : a, undefined);
@@ -2594,13 +2595,13 @@ $$5k({ global: true, constructor: true, arity: 2 }, {
 });
 
 var $$5j = _export;
-var getBuiltIn$D = getBuiltIn$N;
+var getBuiltIn$C = getBuiltIn$M;
 var apply$b = functionApply$1;
 var fails$1e = fails$1u;
 var wrapErrorConstructorWithCause = wrapErrorConstructorWithCause$2;
 
 var AGGREGATE_ERROR = 'AggregateError';
-var $AggregateError = getBuiltIn$D(AGGREGATE_ERROR);
+var $AggregateError = getBuiltIn$C(AGGREGATE_ERROR);
 
 var FORCED$C = !fails$1e(function () {
   return $AggregateError([1]).errors[0] !== 1;
@@ -3968,7 +3969,7 @@ $$4S({ target: 'Array', proto: true, forced: FORCED$u }, {
   }
 });
 
-var getBuiltIn$C = getBuiltIn$N;
+var getBuiltIn$B = getBuiltIn$M;
 var defineBuiltInAccessor$l = defineBuiltInAccessor$o;
 var wellKnownSymbol$z = wellKnownSymbol$S;
 var DESCRIPTORS$E = descriptors;
@@ -3976,7 +3977,7 @@ var DESCRIPTORS$E = descriptors;
 var SPECIES$3 = wellKnownSymbol$z('species');
 
 var setSpecies$7 = function (CONSTRUCTOR_NAME) {
-  var Constructor = getBuiltIn$C(CONSTRUCTOR_NAME);
+  var Constructor = getBuiltIn$B(CONSTRUCTOR_NAME);
 
   if (DESCRIPTORS$E && Constructor && !Constructor[SPECIES$3]) {
     defineBuiltInAccessor$l(Constructor, SPECIES$3, {
@@ -6445,30 +6446,30 @@ var toString$y = toString$J;
 var trim = stringTrim.trim;
 var whitespaces$3 = whitespaces$6;
 
-var $parseInt$2 = global$I.parseInt;
+var $parseInt$3 = global$I.parseInt;
 var Symbol$5 = global$I.Symbol;
 var ITERATOR$5 = Symbol$5 && Symbol$5.iterator;
 var hex = /^[+-]?0x/i;
 var exec$d = uncurryThis$1e(hex.exec);
-var FORCED$h = $parseInt$2(whitespaces$3 + '08') !== 8 || $parseInt$2(whitespaces$3 + '0x16') !== 22
+var FORCED$h = $parseInt$3(whitespaces$3 + '08') !== 8 || $parseInt$3(whitespaces$3 + '0x16') !== 22
   // MS Edge 18- broken with boxed symbols
-  || (ITERATOR$5 && !fails$U(function () { $parseInt$2(Object(ITERATOR$5)); }));
+  || (ITERATOR$5 && !fails$U(function () { $parseInt$3(Object(ITERATOR$5)); }));
 
 // `parseInt` method
 // https://tc39.es/ecma262/#sec-parseint-string-radix
 var numberParseInt = FORCED$h ? function parseInt(string, radix) {
   var S = trim(toString$y(string));
-  return $parseInt$2(S, (radix >>> 0) || (exec$d(hex, S) ? 16 : 10));
-} : $parseInt$2;
+  return $parseInt$3(S, (radix >>> 0) || (exec$d(hex, S) ? 16 : 10));
+} : $parseInt$3;
 
 var $$46 = _export;
-var parseInt$3 = numberParseInt;
+var parseInt$2 = numberParseInt;
 
 // `Number.parseInt` method
 // https://tc39.es/ecma262/#sec-number.parseint
 // eslint-disable-next-line es/no-number-parseint -- required for testing
-$$46({ target: 'Number', stat: true, forced: Number.parseInt !== parseInt$3 }, {
-  parseInt: parseInt$3
+$$46({ target: 'Number', stat: true, forced: Number.parseInt !== parseInt$2 }, {
+  parseInt: parseInt$2
 });
 
 var $$45 = _export;
@@ -7296,12 +7297,12 @@ $$3F({ global: true, forced: parseFloat !== $parseFloat }, {
 });
 
 var $$3E = _export;
-var $parseInt$1 = numberParseInt;
+var $parseInt$2 = numberParseInt;
 
 // `parseInt` method
 // https://tc39.es/ecma262/#sec-parseint-string-radix
-$$3E({ global: true, forced: parseInt !== $parseInt$1 }, {
-  parseInt: $parseInt$1
+$$3E({ global: true, forced: parseInt !== $parseInt$2 }, {
+  parseInt: $parseInt$2
 });
 
 var $TypeError$s = TypeError;
@@ -7981,7 +7982,7 @@ $$3C({ target: 'Promise', stat: true, forced: PROMISE_STATICS_INCORRECT_ITERATIO
 var $$3B = _export;
 var FORCED_PROMISE_CONSTRUCTOR$2 = promiseConstructorDetection.CONSTRUCTOR;
 var NativePromiseConstructor$1 = promiseNativeConstructor;
-var getBuiltIn$B = getBuiltIn$N;
+var getBuiltIn$A = getBuiltIn$M;
 var isCallable$i = isCallable$J;
 var defineBuiltIn$g = defineBuiltIn$u;
 
@@ -7997,7 +7998,7 @@ $$3B({ target: 'Promise', proto: true, forced: FORCED_PROMISE_CONSTRUCTOR$2, rea
 
 // makes sure that native promise-based APIs `Promise#catch` properly works with patched `Promise#then`
 if (isCallable$i(NativePromiseConstructor$1)) {
-  var method$1 = getBuiltIn$B('Promise').prototype['catch'];
+  var method$1 = getBuiltIn$A('Promise').prototype['catch'];
   if (NativePromisePrototype$1['catch'] !== method$1) {
     defineBuiltIn$g(NativePromisePrototype$1, 'catch', method$1, { unsafe: true });
   }
@@ -8058,11 +8059,11 @@ var promiseResolve$2 = function (C, x) {
 };
 
 var $$3y = _export;
-var getBuiltIn$A = getBuiltIn$N;
+var getBuiltIn$z = getBuiltIn$M;
 var FORCED_PROMISE_CONSTRUCTOR = promiseConstructorDetection.CONSTRUCTOR;
 var promiseResolve$1 = promiseResolve$2;
 
-getBuiltIn$A('Promise');
+getBuiltIn$z('Promise');
 
 // `Promise.resolve` method
 // https://tc39.es/ecma262/#sec-promise.resolve
@@ -8119,7 +8120,7 @@ $$3x({ target: 'Promise', stat: true, forced: PROMISE_STATICS_INCORRECT_ITERATIO
 var $$3w = _export;
 var call$$ = functionCall;
 var aCallable$w = aCallable$N;
-var getBuiltIn$z = getBuiltIn$N;
+var getBuiltIn$y = getBuiltIn$M;
 var newPromiseCapabilityModule$2 = newPromiseCapability$2;
 var perform$2 = perform$7;
 var iterate$y = iterate$G;
@@ -8132,7 +8133,7 @@ var PROMISE_ANY_ERROR = 'No one promise resolved';
 $$3w({ target: 'Promise', stat: true, forced: PROMISE_STATICS_INCORRECT_ITERATION }, {
   any: function any(iterable) {
     var C = this;
-    var AggregateError = getBuiltIn$z('AggregateError');
+    var AggregateError = getBuiltIn$y('AggregateError');
     var capability = newPromiseCapabilityModule$2.f(C);
     var resolve = capability.resolve;
     var reject = capability.reject;
@@ -8167,7 +8168,7 @@ $$3w({ target: 'Promise', stat: true, forced: PROMISE_STATICS_INCORRECT_ITERATIO
 var $$3v = _export;
 var NativePromiseConstructor = promiseNativeConstructor;
 var fails$D = fails$1u;
-var getBuiltIn$y = getBuiltIn$N;
+var getBuiltIn$x = getBuiltIn$M;
 var isCallable$h = isCallable$J;
 var speciesConstructor$3 = speciesConstructor$6;
 var promiseResolve = promiseResolve$2;
@@ -8185,7 +8186,7 @@ var NON_GENERIC = !!NativePromiseConstructor && fails$D(function () {
 // https://tc39.es/ecma262/#sec-promise.prototype.finally
 $$3v({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
   'finally': function (onFinally) {
-    var C = speciesConstructor$3(this, getBuiltIn$y('Promise'));
+    var C = speciesConstructor$3(this, getBuiltIn$x('Promise'));
     var isFunction = isCallable$h(onFinally);
     return this.then(
       isFunction ? function (x) {
@@ -8200,7 +8201,7 @@ $$3v({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
 
 // makes sure that native promise-based APIs `Promise#finally` properly works with patched `Promise#then`
 if (isCallable$h(NativePromiseConstructor)) {
-  var method = getBuiltIn$y('Promise').prototype['finally'];
+  var method = getBuiltIn$x('Promise').prototype['finally'];
   if (NativePromisePrototype['finally'] !== method) {
     defineBuiltIn$f(NativePromisePrototype, 'finally', method, { unsafe: true });
   }
@@ -8227,7 +8228,7 @@ $$3u({ target: 'Reflect', stat: true, forced: OPTIONAL_ARGUMENTS_LIST }, {
 });
 
 var $$3t = _export;
-var getBuiltIn$x = getBuiltIn$N;
+var getBuiltIn$w = getBuiltIn$M;
 var apply$8 = functionApply$1;
 var bind$k = functionBind;
 var aConstructor$3 = aConstructor$5;
@@ -8236,7 +8237,7 @@ var isObject$j = isObject$K;
 var create$c = objectCreate$1;
 var fails$B = fails$1u;
 
-var nativeConstruct = getBuiltIn$x('Reflect', 'construct');
+var nativeConstruct = getBuiltIn$w('Reflect', 'construct');
 var ObjectPrototype = Object.prototype;
 var push$l = [].push;
 
@@ -8415,7 +8416,7 @@ $$3l({ target: 'Reflect', stat: true }, {
 });
 
 var $$3k = _export;
-var getBuiltIn$w = getBuiltIn$N;
+var getBuiltIn$v = getBuiltIn$M;
 var anObject$T = anObject$1f;
 var FREEZING$3 = freezing;
 
@@ -8425,7 +8426,7 @@ $$3k({ target: 'Reflect', stat: true, sham: !FREEZING$3 }, {
   preventExtensions: function preventExtensions(target) {
     anObject$T(target);
     try {
-      var objectPreventExtensions = getBuiltIn$w('Object', 'preventExtensions');
+      var objectPreventExtensions = getBuiltIn$v('Object', 'preventExtensions');
       if (objectPreventExtensions) objectPreventExtensions(target);
       return true;
     } catch (error) {
@@ -8836,13 +8837,13 @@ var uncurryThis$17 = functionUncurryThis;
 var toString$v = toString$J;
 var regexpFlags = regexpFlags$1;
 var stickyHelpers$1 = regexpStickyHelpers;
-var shared$4 = sharedExports;
+var shared$3 = sharedExports;
 var create$b = objectCreate$1;
 var getInternalState$b = internalState.get;
 var UNSUPPORTED_DOT_ALL = regexpUnsupportedDotAll;
 var UNSUPPORTED_NCG = regexpUnsupportedNcg;
 
-var nativeReplace = shared$4('native-string-replace', String.prototype.replace);
+var nativeReplace = shared$3('native-string-replace', String.prototype.replace);
 var nativeExec = RegExp.prototype.exec;
 var patchedExec = nativeExec;
 var charAt$g = uncurryThis$17(''.charAt);
@@ -11938,7 +11939,7 @@ $$2H({ global: true, constructor: true, arity: 3 }, {
 });
 
 var global$n = global$16;
-var shared$3 = sharedStore;
+var shared$2 = sharedStore;
 var isCallable$c = isCallable$J;
 var getPrototypeOf$5 = objectGetPrototypeOf$2;
 var defineBuiltIn$a = defineBuiltIn$u;
@@ -11947,14 +11948,14 @@ var wellKnownSymbol$k = wellKnownSymbol$S;
 var USE_FUNCTION_CONSTRUCTOR = 'USE_FUNCTION_CONSTRUCTOR';
 var ASYNC_ITERATOR$3 = wellKnownSymbol$k('asyncIterator');
 var AsyncIterator = global$n.AsyncIterator;
-var PassedAsyncIteratorPrototype = shared$3.AsyncIteratorPrototype;
+var PassedAsyncIteratorPrototype = shared$2.AsyncIteratorPrototype;
 var AsyncIteratorPrototype$5, prototype;
 
 if (PassedAsyncIteratorPrototype) {
   AsyncIteratorPrototype$5 = PassedAsyncIteratorPrototype;
 } else if (isCallable$c(AsyncIterator)) {
   AsyncIteratorPrototype$5 = AsyncIterator.prototype;
-} else if (shared$3[USE_FUNCTION_CONSTRUCTOR] || global$n[USE_FUNCTION_CONSTRUCTOR]) {
+} else if (shared$2[USE_FUNCTION_CONSTRUCTOR] || global$n[USE_FUNCTION_CONSTRUCTOR]) {
   try {
     // eslint-disable-next-line no-new-func -- we have no alternatives without usage of modern syntax
     prototype = getPrototypeOf$5(getPrototypeOf$5(getPrototypeOf$5(Function('return async function*(){}()')())));
@@ -11978,11 +11979,11 @@ var create$8 = objectCreate$1;
 var getMethod$b = getMethod$l;
 var defineBuiltIns$6 = defineBuiltIns$b;
 var InternalStateModule$c = internalState;
-var getBuiltIn$v = getBuiltIn$N;
+var getBuiltIn$u = getBuiltIn$M;
 var AsyncIteratorPrototype$4 = asyncIteratorPrototype;
 var createIterResultObject$c = createIterResultObject$h;
 
-var Promise$5 = getBuiltIn$v('Promise');
+var Promise$5 = getBuiltIn$u('Promise');
 
 var ASYNC_FROM_SYNC_ITERATOR = 'AsyncFromSyncIterator';
 var setInternalState$d = InternalStateModule$c.set;
@@ -12047,14 +12048,14 @@ var getAsyncIterator$1 = function (it, usingIterator) {
 };
 
 var call$H = functionCall;
-var getBuiltIn$u = getBuiltIn$N;
+var getBuiltIn$t = getBuiltIn$M;
 var getMethod$9 = getMethod$l;
 
 var asyncIteratorClose = function (iterator, method, argument, reject) {
   try {
     var returnMethod = getMethod$9(iterator, 'return');
     if (returnMethod) {
-      return getBuiltIn$u('Promise').resolve(call$H(returnMethod, iterator)).then(function () {
+      return getBuiltIn$t('Promise').resolve(call$H(returnMethod, iterator)).then(function () {
         method(argument);
       }, function (error) {
         reject(error);
@@ -12072,7 +12073,7 @@ var aCallable$s = aCallable$N;
 var anObject$E = anObject$1f;
 var isObject$c = isObject$K;
 var doesNotExceedSafeInteger = doesNotExceedSafeInteger$7;
-var getBuiltIn$t = getBuiltIn$N;
+var getBuiltIn$s = getBuiltIn$M;
 var getIteratorDirect$m = getIteratorDirect$o;
 var closeAsyncIteration$4 = asyncIteratorClose;
 
@@ -12086,7 +12087,7 @@ var createMethod = function (TYPE) {
     var MAPPING = fn !== undefined;
     if (MAPPING || !IS_TO_ARRAY) aCallable$s(fn);
     var record = getIteratorDirect$m(object);
-    var Promise = getBuiltIn$t('Promise');
+    var Promise = getBuiltIn$s('Promise');
     var iterator = record.iterator;
     var next = record.next;
     var counter = 0;
@@ -12164,7 +12165,7 @@ var getIterator$2 = getIterator$7;
 var getIteratorDirect$l = getIteratorDirect$o;
 var getIteratorMethod$3 = getIteratorMethod$8;
 var getMethod$8 = getMethod$l;
-var getBuiltIn$s = getBuiltIn$N;
+var getBuiltIn$r = getBuiltIn$M;
 var getBuiltInPrototypeMethod = getBuiltInPrototypeMethod$2;
 var wellKnownSymbol$i = wellKnownSymbol$S;
 var AsyncFromSyncIterator$2 = asyncFromSyncIterator;
@@ -12193,7 +12194,7 @@ var arrayFromAsync$1 = function fromAsync(asyncItems /* , mapfn = undefined, thi
   var argumentsLength = arguments.length;
   var mapfn = argumentsLength > 1 ? arguments[1] : undefined;
   var thisArg = argumentsLength > 2 ? arguments[2] : undefined;
-  return new (getBuiltIn$s('Promise'))(function (resolve) {
+  return new (getBuiltIn$r('Promise'))(function (resolve) {
     var O = toObject$9(asyncItems);
     if (mapfn !== undefined) mapfn = bind$i(mapfn, thisArg);
     var usingAsyncIterator = getMethod$8(O, ASYNC_ITERATOR$1);
@@ -12774,7 +12775,7 @@ var addDisposableResource$2 = function (disposable, V, hint, method) {
 // https://github.com/tc39/proposal-async-explicit-resource-management
 var $$2v = _export;
 var DESCRIPTORS$c = descriptors;
-var getBuiltIn$r = getBuiltIn$N;
+var getBuiltIn$q = getBuiltIn$M;
 var aCallable$p = aCallable$N;
 var anInstance$8 = anInstance$f;
 var defineBuiltIn$9 = defineBuiltIn$u;
@@ -12784,8 +12785,8 @@ var wellKnownSymbol$g = wellKnownSymbol$S;
 var InternalStateModule$b = internalState;
 var addDisposableResource$1 = addDisposableResource$2;
 
-var Promise$4 = getBuiltIn$r('Promise');
-var SuppressedError$1 = getBuiltIn$r('SuppressedError');
+var Promise$4 = getBuiltIn$q('Promise');
+var SuppressedError$1 = getBuiltIn$q('SuppressedError');
 var $ReferenceError$1 = ReferenceError;
 
 var ASYNC_DISPOSE$1 = wellKnownSymbol$g('asyncDispose');
@@ -12943,13 +12944,13 @@ var createNonEnumerableProperty$5 = createNonEnumerableProperty$k;
 var defineBuiltIns$4 = defineBuiltIns$b;
 var wellKnownSymbol$e = wellKnownSymbol$S;
 var InternalStateModule$a = internalState;
-var getBuiltIn$q = getBuiltIn$N;
+var getBuiltIn$p = getBuiltIn$M;
 var getMethod$6 = getMethod$l;
 var AsyncIteratorPrototype$2 = asyncIteratorPrototype;
 var createIterResultObject$b = createIterResultObject$h;
 var iteratorClose$5 = iteratorClose$8;
 
-var Promise$3 = getBuiltIn$q('Promise');
+var Promise$3 = getBuiltIn$p('Promise');
 
 var TO_STRING_TAG$4 = wellKnownSymbol$e('toStringTag');
 var ASYNC_ITERATOR_HELPER = 'AsyncIteratorHelper';
@@ -13123,14 +13124,14 @@ $$2t({ target: 'AsyncIterator', name: 'indexed', proto: true, real: true, forced
 // https://github.com/tc39/proposal-async-explicit-resource-management
 var call$A = functionCall;
 var defineBuiltIn$8 = defineBuiltIn$u;
-var getBuiltIn$p = getBuiltIn$N;
+var getBuiltIn$o = getBuiltIn$M;
 var getMethod$5 = getMethod$l;
 var hasOwn$d = hasOwnProperty_1;
 var wellKnownSymbol$d = wellKnownSymbol$S;
 var AsyncIteratorPrototype$1 = asyncIteratorPrototype;
 
 var ASYNC_DISPOSE = wellKnownSymbol$d('asyncDispose');
-var Promise$2 = getBuiltIn$p('Promise');
+var Promise$2 = getBuiltIn$o('Promise');
 
 if (!hasOwn$d(AsyncIteratorPrototype$1, ASYNC_DISPOSE)) {
   defineBuiltIn$8(AsyncIteratorPrototype$1, ASYNC_DISPOSE, function () {
@@ -13474,11 +13475,11 @@ var call$u = functionCall;
 var aCallable$l = aCallable$N;
 var anObject$w = anObject$1f;
 var isObject$8 = isObject$K;
-var getBuiltIn$o = getBuiltIn$N;
+var getBuiltIn$n = getBuiltIn$M;
 var getIteratorDirect$f = getIteratorDirect$o;
 var closeAsyncIteration = asyncIteratorClose;
 
-var Promise$1 = getBuiltIn$o('Promise');
+var Promise$1 = getBuiltIn$n('Promise');
 var $TypeError$h = TypeError;
 
 // `AsyncIterator.prototype.reduce` method
@@ -13728,14 +13729,14 @@ if (typeof BigInt == 'function') {
 // TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
 
 
-var getBuiltIn$n = getBuiltIn$N;
+var getBuiltIn$m = getBuiltIn$M;
 var create$6 = objectCreate$1;
 var isObject$6 = isObject$K;
 
 var $Object$2 = Object;
 var $TypeError$f = TypeError;
-var Map$8 = getBuiltIn$n('Map');
-var WeakMap$3 = getBuiltIn$n('WeakMap');
+var Map$8 = getBuiltIn$m('Map');
+var WeakMap$2 = getBuiltIn$m('WeakMap');
 
 var Node$1 = function () {
   // keys
@@ -13752,7 +13753,7 @@ Node$1.prototype.get = function (key, initializer) {
 
 Node$1.prototype.next = function (i, it, IS_OBJECT) {
   var store = IS_OBJECT
-    ? this.objectsByIndex[i] || (this.objectsByIndex[i] = new WeakMap$3())
+    ? this.objectsByIndex[i] || (this.objectsByIndex[i] = new WeakMap$2())
     : this.primitives || (this.primitives = new Map$8());
   var entry = store.get(it);
   if (!entry) store.set(it, entry = new Node$1());
@@ -13778,13 +13779,13 @@ var compositeKey = function () {
 var $$2e = _export;
 var apply$3 = functionApply$1;
 var getCompositeKeyNode$1 = compositeKey;
-var getBuiltIn$m = getBuiltIn$N;
+var getBuiltIn$l = getBuiltIn$M;
 var create$5 = objectCreate$1;
 
 var $Object$1 = Object;
 
 var initializer = function () {
-  var freeze = getBuiltIn$m('Object', 'freeze');
+  var freeze = getBuiltIn$l('Object', 'freeze');
   return freeze ? freeze(create$5(null)) : create$5(null);
 };
 
@@ -13797,14 +13798,14 @@ $$2e({ global: true, forced: true }, {
 
 var $$2d = _export;
 var getCompositeKeyNode = compositeKey;
-var getBuiltIn$l = getBuiltIn$N;
+var getBuiltIn$k = getBuiltIn$M;
 var apply$2 = functionApply$1;
 
 // https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
 $$2d({ global: true, forced: true }, {
   compositeSymbol: function compositeSymbol() {
-    if (arguments.length === 1 && typeof arguments[0] == 'string') return getBuiltIn$l('Symbol')['for'](arguments[0]);
-    return apply$2(getCompositeKeyNode, null, arguments).get('symbol', getBuiltIn$l('Symbol'));
+    if (arguments.length === 1 && typeof arguments[0] == 'string') return getBuiltIn$k('Symbol')['for'](arguments[0]);
+    return apply$2(getCompositeKeyNode, null, arguments).get('symbol', getBuiltIn$k('Symbol'));
   }
 });
 
@@ -13895,7 +13896,7 @@ $$29({ target: 'DataView', proto: true, forced: true }, {
 // https://github.com/tc39/proposal-explicit-resource-management
 var $$28 = _export;
 var DESCRIPTORS$a = descriptors;
-var getBuiltIn$k = getBuiltIn$N;
+var getBuiltIn$j = getBuiltIn$M;
 var aCallable$k = aCallable$N;
 var anInstance$6 = anInstance$f;
 var defineBuiltIn$7 = defineBuiltIn$u;
@@ -13905,7 +13906,7 @@ var wellKnownSymbol$b = wellKnownSymbol$S;
 var InternalStateModule$8 = internalState;
 var addDisposableResource = addDisposableResource$2;
 
-var SuppressedError = getBuiltIn$k('SuppressedError');
+var SuppressedError = getBuiltIn$j('SuppressedError');
 var $ReferenceError = ReferenceError;
 
 var DISPOSE$1 = wellKnownSymbol$b('dispose');
@@ -14665,7 +14666,7 @@ var uncurryThis$s = functionUncurryThis;
 var hasOwn$9 = hasOwnProperty_1;
 
 var $SyntaxError$2 = SyntaxError;
-var $parseInt = parseInt;
+var $parseInt$1 = parseInt;
 var fromCharCode$3 = String.fromCharCode;
 var at$2 = uncurryThis$s(''.charAt);
 var slice$2 = uncurryThis$s(''.slice);
@@ -14700,7 +14701,7 @@ var parseJsonString = function (source, i) {
         i += 2;
         var fourHexDigits = slice$2(source, i, i + 4);
         if (!exec$7(IS_4_HEX_DIGITS, fourHexDigits)) throw new $SyntaxError$2('Bad Unicode escape at: ' + i);
-        value += fromCharCode$3($parseInt(fourHexDigits, 16));
+        value += fromCharCode$3($parseInt$1(fourHexDigits, 16));
         i += 4;
       } else throw new $SyntaxError$2('Unknown escape sequence: "' + twoChars + '"');
     } else if (chr === '"') {
@@ -14720,7 +14721,7 @@ var parseJsonString = function (source, i) {
 var $$1N = _export;
 var DESCRIPTORS$8 = descriptors;
 var global$i = global$16;
-var getBuiltIn$j = getBuiltIn$N;
+var getBuiltIn$i = getBuiltIn$M;
 var uncurryThis$r = functionUncurryThis;
 var call$i = functionCall;
 var isCallable$9 = isCallable$J;
@@ -14738,7 +14739,7 @@ var JSON$1 = global$i.JSON;
 var Number$1 = global$i.Number;
 var SyntaxError$1 = global$i.SyntaxError;
 var nativeParse = JSON$1 && JSON$1.parse;
-var enumerableOwnProperties = getBuiltIn$j('Object', 'keys');
+var enumerableOwnProperties = getBuiltIn$i('Object', 'keys');
 // eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
 var getOwnPropertyDescriptor$3 = Object.getOwnPropertyDescriptor;
 var at$1 = uncurryThis$r(''.charAt);
@@ -14971,7 +14972,7 @@ $$1N({ target: 'JSON', stat: true, forced: NO_SOURCE_SUPPORT }, {
 var $$1M = _export;
 var FREEZING$1 = freezing;
 var NATIVE_RAW_JSON = nativeRawJson;
-var getBuiltIn$i = getBuiltIn$N;
+var getBuiltIn$h = getBuiltIn$M;
 var call$h = functionCall;
 var uncurryThis$q = functionUncurryThis;
 var isCallable$8 = isCallable$J;
@@ -14985,10 +14986,10 @@ var setInternalState$7 = internalState.set;
 
 var $String = String;
 var $SyntaxError$1 = SyntaxError;
-var parse$1 = getBuiltIn$i('JSON', 'parse');
-var $stringify = getBuiltIn$i('JSON', 'stringify');
-var create$3 = getBuiltIn$i('Object', 'create');
-var freeze$1 = getBuiltIn$i('Object', 'freeze');
+var parse$1 = getBuiltIn$h('JSON', 'parse');
+var $stringify = getBuiltIn$h('JSON', 'stringify');
+var create$3 = getBuiltIn$h('Object', 'create');
+var freeze$1 = getBuiltIn$h('Object', 'freeze');
 var at = uncurryThis$q(''.charAt);
 var slice = uncurryThis$q(''.slice);
 var exec$5 = uncurryThis$q(/./.exec);
@@ -15731,13 +15732,13 @@ $$1e({ target: 'Math', stat: true, forced: true }, {
 var $$1d = _export;
 var uncurryThis$o = functionUncurryThis;
 var toIntegerOrInfinity$3 = toIntegerOrInfinity$p;
-var parseInt$2 = numberParseInt;
 
 var INVALID_NUMBER_REPRESENTATION = 'Invalid number representation';
 var INVALID_RADIX = 'Invalid radix';
 var $RangeError$2 = RangeError;
 var $SyntaxError = SyntaxError;
 var $TypeError$5 = TypeError;
+var $parseInt = parseInt;
 var pow$1 = Math.pow;
 var valid = /^[\d.a-z]+$/;
 var charAt$8 = uncurryThis$o(''.charAt);
@@ -15762,8 +15763,8 @@ $$1d({ target: 'Number', stat: true, forced: true }, {
     if (R < 2 || R > 36) throw new $RangeError$2(INVALID_RADIX);
     if (!exec$4(valid, string)) throw new $SyntaxError(INVALID_NUMBER_REPRESENTATION);
     var parts = split$4(string, '.');
-    var mathNum = parseInt$2(parts[0], R);
-    if (parts.length > 1) mathNum += parseInt$2(parts[1], R) / pow$1(R, parts[1].length);
+    var mathNum = $parseInt(parts[0], R);
+    if (parts.length > 1) mathNum += $parseInt(parts[1], R) / pow$1(R, parts[1].length);
     if (numberToString$1(mathNum, R) !== string) throw new $SyntaxError(INVALID_NUMBER_REPRESENTATION);
     return sign * mathNum;
   }
@@ -15856,14 +15857,14 @@ $$19({ target: 'Object', stat: true, forced: true }, {
 });
 
 var $$18 = _export;
-var getBuiltIn$h = getBuiltIn$N;
+var getBuiltIn$g = getBuiltIn$M;
 var uncurryThis$n = functionUncurryThis;
 var aCallable$4 = aCallable$N;
 var requireObjectCoercible$2 = requireObjectCoercible$p;
 var toPropertyKey = toPropertyKey$a;
 var iterate$b = iterate$G;
 
-var create$2 = getBuiltIn$h('Object', 'create');
+var create$2 = getBuiltIn$g('Object', 'create');
 var push$8 = uncurryThis$n([].push);
 
 // `Object.groupBy` method
@@ -16073,7 +16074,7 @@ $$17({ global: true, constructor: true, forced: true }, {
 setSpecies(OBSERVABLE);
 
 var $$16 = _export;
-var getBuiltIn$g = getBuiltIn$N;
+var getBuiltIn$f = getBuiltIn$M;
 var call$c = functionCall;
 var anObject$e = anObject$1f;
 var isConstructor$2 = isConstructor$a;
@@ -16088,7 +16089,7 @@ var $$OBSERVABLE = wellKnownSymbol$5('observable');
 // https://github.com/tc39/proposal-observable
 $$16({ target: 'Observable', stat: true, forced: true }, {
   from: function from(x) {
-    var C = isConstructor$2(this) ? this : getBuiltIn$g('Observable');
+    var C = isConstructor$2(this) ? this : getBuiltIn$f('Observable');
     var observableMethod = getMethod(anObject$e(x), $$OBSERVABLE);
     if (observableMethod) {
       var observable = anObject$e(call$c(observableMethod, x));
@@ -16108,16 +16109,16 @@ $$16({ target: 'Observable', stat: true, forced: true }, {
 });
 
 var $$15 = _export;
-var getBuiltIn$f = getBuiltIn$N;
+var getBuiltIn$e = getBuiltIn$M;
 var isConstructor$1 = isConstructor$a;
 
-var Array$2 = getBuiltIn$f('Array');
+var Array$2 = getBuiltIn$e('Array');
 
 // `Observable.of` method
 // https://github.com/tc39/proposal-observable
 $$15({ target: 'Observable', stat: true, forced: true }, {
   of: function of() {
-    var C = isConstructor$1(this) ? this : getBuiltIn$f('Observable');
+    var C = isConstructor$1(this) ? this : getBuiltIn$e('Observable');
     var length = arguments.length;
     var items = Array$2(length);
     var index = 0;
@@ -16166,16 +16167,16 @@ $$13({ target: 'Promise', stat: true }, {
 // TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
 
 
-var getBuiltIn$e = getBuiltIn$N;
+var getBuiltIn$d = getBuiltIn$M;
 var uncurryThis$m = functionUncurryThis;
-var shared$2 = sharedExports;
+var shared$1 = sharedExports;
 
-var Map$2 = getBuiltIn$e('Map');
-var WeakMap$2 = getBuiltIn$e('WeakMap');
+var Map$2 = getBuiltIn$d('Map');
+var WeakMap$1 = getBuiltIn$d('WeakMap');
 var push$7 = uncurryThis$m([].push);
 
-var metadata = shared$2('metadata');
-var store$1 = metadata.store || (metadata.store = new WeakMap$2());
+var metadata = shared$1('metadata');
+var store$1 = metadata.store || (metadata.store = new WeakMap$1());
 
 var getOrCreateMetadataMap$1 = function (target, targetKey, create) {
   var targetMetadata = store$1.get(target);
@@ -16594,7 +16595,7 @@ var setDifference = function difference(other) {
   return result;
 };
 
-var getBuiltIn$d = getBuiltIn$N;
+var getBuiltIn$c = getBuiltIn$M;
 
 var createSetLike = function (size) {
   return {
@@ -16613,7 +16614,7 @@ var createSetLike = function (size) {
 };
 
 var setMethodAcceptSetLike$7 = function (name) {
-  var Set = getBuiltIn$d('Set');
+  var Set = getBuiltIn$c('Set');
   try {
     new Set()[name](createSetLike(0));
     try {
@@ -16656,12 +16657,12 @@ var isIterable$1 = function (it) {
     || hasOwn$6(Iterators, classof$2(O));
 };
 
-var getBuiltIn$c = getBuiltIn$N;
+var getBuiltIn$b = getBuiltIn$M;
 var isCallable$4 = isCallable$J;
 var isIterable = isIterable$1;
 var isObject$2 = isObject$K;
 
-var Set$5 = getBuiltIn$c('Set');
+var Set$5 = getBuiltIn$b('Set');
 
 var isSetLike = function (it) {
   return isObject$2(it)
@@ -17231,16 +17232,30 @@ $$t({ target: 'String', proto: true, forced: true }, {
   }
 });
 
-// adapted from https://github.com/jridgewell/string-dedent
-var getBuiltIn$b = getBuiltIn$N;
 var uncurryThis$f = functionUncurryThis;
 
+// eslint-disable-next-line es/no-weak-map -- safe
+var WeakMapPrototype = WeakMap.prototype;
+
+var weakMapHelpers = {
+  // eslint-disable-next-line es/no-weak-map -- safe
+  WeakMap: WeakMap,
+  set: uncurryThis$f(WeakMapPrototype.set),
+  get: uncurryThis$f(WeakMapPrototype.get),
+  has: uncurryThis$f(WeakMapPrototype.has),
+  remove: uncurryThis$f(WeakMapPrototype['delete'])
+};
+
+// adapted from https://github.com/jridgewell/string-dedent
+var getBuiltIn$a = getBuiltIn$M;
+var uncurryThis$e = functionUncurryThis;
+
 var fromCharCode$2 = String.fromCharCode;
-var fromCodePoint = getBuiltIn$b('String', 'fromCodePoint');
-var charAt$5 = uncurryThis$f(''.charAt);
-var charCodeAt$2 = uncurryThis$f(''.charCodeAt);
-var stringIndexOf = uncurryThis$f(''.indexOf);
-var stringSlice$3 = uncurryThis$f(''.slice);
+var fromCodePoint = getBuiltIn$a('String', 'fromCodePoint');
+var charAt$5 = uncurryThis$e(''.charAt);
+var charCodeAt$2 = uncurryThis$e(''.charCodeAt);
+var stringIndexOf = uncurryThis$e(''.indexOf);
+var stringSlice$3 = uncurryThis$e(''.slice);
 
 var ZERO_CODE = 48;
 var NINE_CODE = 57;
@@ -17352,10 +17367,8 @@ var stringParse = function (raw) {
 
 var FREEZING = freezing;
 var $$s = _export;
-var shared$1 = sharedExports;
-var getBuiltIn$a = getBuiltIn$N;
 var makeBuiltIn = makeBuiltInExports;
-var uncurryThis$e = functionUncurryThis;
+var uncurryThis$d = functionUncurryThis;
 var apply$1 = functionApply$1;
 var anObject$3 = anObject$1f;
 var toObject = toObject$D;
@@ -17363,18 +17376,15 @@ var isCallable$3 = isCallable$J;
 var lengthOfArrayLike$2 = lengthOfArrayLike$C;
 var defineProperty$5 = objectDefineProperty.f;
 var createArrayFromList = arraySliceSimple;
+var WeakMapHelpers$1 = weakMapHelpers;
 var cooked = stringCooked;
 var parse = stringParse;
 var whitespaces$1 = whitespaces$6;
 
-var WeakMap$1 = getBuiltIn$a('WeakMap');
-var globalDedentRegistry = shared$1('GlobalDedentRegistry', new WeakMap$1());
-
-/* eslint-disable no-self-assign -- prototype methods protection */
-globalDedentRegistry.has = globalDedentRegistry.has;
-globalDedentRegistry.get = globalDedentRegistry.get;
-globalDedentRegistry.set = globalDedentRegistry.set;
-/* eslint-enable no-self-assign -- prototype methods protection */
+var DedentMap = new WeakMapHelpers$1.WeakMap();
+var weakMapGet = WeakMapHelpers$1.get;
+var weakMapHas = WeakMapHelpers$1.has;
+var weakMapSet = WeakMapHelpers$1.set;
 
 var $Array = Array;
 var $TypeError$1 = TypeError;
@@ -17383,10 +17393,10 @@ var freeze = Object.freeze || Object;
 // eslint-disable-next-line es/no-object-isfrozen -- safe
 var isFrozen = Object.isFrozen;
 var min$1 = Math.min;
-var charAt$4 = uncurryThis$e(''.charAt);
-var stringSlice$2 = uncurryThis$e(''.slice);
-var split$3 = uncurryThis$e(''.split);
-var exec$3 = uncurryThis$e(/./.exec);
+var charAt$4 = uncurryThis$d(''.charAt);
+var stringSlice$2 = uncurryThis$d(''.slice);
+var split$3 = uncurryThis$d(''.split);
+var exec$3 = uncurryThis$d(/./.exec);
 
 var NEW_LINE = /([\n\u2028\u2029]|\r\n?)/g;
 var LEADING_WHITESPACE = RegExp('^[' + whitespaces$1 + ']*');
@@ -17399,14 +17409,14 @@ var dedentTemplateStringsArray = function (template) {
   var rawInput = template.raw;
   // https://github.com/tc39/proposal-string-dedent/issues/75
   if (FREEZING && !isFrozen(rawInput)) throw new $TypeError$1('Raw template should be frozen');
-  if (globalDedentRegistry.has(rawInput)) return globalDedentRegistry.get(rawInput);
+  if (weakMapHas(DedentMap, rawInput)) return weakMapGet(DedentMap, rawInput);
   var raw = dedentStringsArray(rawInput);
   var cookedArr = cookStrings(raw);
   defineProperty$5(cookedArr, 'raw', {
     value: freeze(raw)
   });
   freeze(cookedArr);
-  globalDedentRegistry.set(rawInput, cookedArr);
+  weakMapSet(DedentMap, rawInput, cookedArr);
   return cookedArr;
 };
 
@@ -17549,12 +17559,12 @@ if (Symbol$3) {
   }
 }
 
-var getBuiltIn$9 = getBuiltIn$N;
-var uncurryThis$d = functionUncurryThis;
+var getBuiltIn$9 = getBuiltIn$M;
+var uncurryThis$c = functionUncurryThis;
 
 var Symbol$2 = getBuiltIn$9('Symbol');
 var keyFor = Symbol$2.keyFor;
-var thisSymbolValue$1 = uncurryThis$d(Symbol$2.prototype.valueOf);
+var thisSymbolValue$1 = uncurryThis$c(Symbol$2.prototype.valueOf);
 
 // `Symbol.isRegisteredSymbol` method
 // https://tc39.es/proposal-symbol-predicates/#sec-symbol-isregisteredsymbol
@@ -17585,15 +17595,15 @@ $$q({ target: 'Symbol', stat: true, name: 'isRegisteredSymbol' }, {
 });
 
 var shared = sharedExports;
-var getBuiltIn$8 = getBuiltIn$N;
-var uncurryThis$c = functionUncurryThis;
+var getBuiltIn$8 = getBuiltIn$M;
+var uncurryThis$b = functionUncurryThis;
 var isSymbol$1 = isSymbol$8;
 var wellKnownSymbol$3 = wellKnownSymbol$S;
 
 var Symbol$1 = getBuiltIn$8('Symbol');
 var $isWellKnownSymbol = Symbol$1.isWellKnownSymbol;
 var getOwnPropertyNames = getBuiltIn$8('Object', 'getOwnPropertyNames');
-var thisSymbolValue = uncurryThis$c(Symbol$1.prototype.valueOf);
+var thisSymbolValue = uncurryThis$b(Symbol$1.prototype.valueOf);
 var WellKnownSymbolsStore = shared('wks');
 
 for (var i = 0, symbolKeys = getOwnPropertyNames(Symbol$1), symbolKeysLength = symbolKeys.length; i < symbolKeysLength; i++) {
@@ -17677,7 +17687,7 @@ var defineWellKnownSymbol = wellKnownSymbolDefine;
 defineWellKnownSymbol('replaceAll');
 
 // TODO: Remove from `core-js@4`
-var getBuiltIn$7 = getBuiltIn$N;
+var getBuiltIn$7 = getBuiltIn$M;
 var aConstructor = aConstructor$5;
 var arrayFromAsync = arrayFromAsync$1;
 var ArrayBufferViewCore$5 = arrayBufferViewCore;
@@ -17813,7 +17823,7 @@ exportTypedArrayMethod$1('toSpliced', function toSpliced(start, deleteCount /* ,
   return A;
 }, !PROPER_ORDER);
 
-var uncurryThis$b = functionUncurryThis;
+var uncurryThis$a = functionUncurryThis;
 var ArrayBufferViewCore = arrayBufferViewCore;
 var arrayFromConstructorAndList = arrayFromConstructorAndList$6;
 var $arrayUniqueBy = arrayUniqueBy$2;
@@ -17821,7 +17831,7 @@ var $arrayUniqueBy = arrayUniqueBy$2;
 var aTypedArray = ArrayBufferViewCore.aTypedArray;
 var getTypedArrayConstructor = ArrayBufferViewCore.getTypedArrayConstructor;
 var exportTypedArrayMethod = ArrayBufferViewCore.exportTypedArrayMethod;
-var arrayUniqueBy = uncurryThis$b($arrayUniqueBy);
+var arrayUniqueBy = uncurryThis$a($arrayUniqueBy);
 
 // `%TypedArray%.prototype.uniqueBy` method
 // https://github.com/tc39/proposal-array-unique
@@ -17829,20 +17839,6 @@ exportTypedArrayMethod('uniqueBy', function uniqueBy(resolver) {
   aTypedArray(this);
   return arrayFromConstructorAndList(getTypedArrayConstructor(this), arrayUniqueBy(this, resolver));
 }, true);
-
-var uncurryThis$a = functionUncurryThis;
-
-// eslint-disable-next-line es/no-weak-map -- safe
-var WeakMapPrototype = WeakMap.prototype;
-
-var weakMapHelpers = {
-  // eslint-disable-next-line es/no-weak-map -- safe
-  WeakMap: WeakMap,
-  set: uncurryThis$a(WeakMapPrototype.set),
-  get: uncurryThis$a(WeakMapPrototype.get),
-  has: uncurryThis$a(WeakMapPrototype.has),
-  remove: uncurryThis$a(WeakMapPrototype['delete'])
-};
 
 var has$2 = weakMapHelpers.has;
 
@@ -18009,7 +18005,7 @@ var base64Map = {
 
 var $$e = _export;
 var global$f = global$16;
-var getBuiltIn$6 = getBuiltIn$N;
+var getBuiltIn$6 = getBuiltIn$M;
 var uncurryThis$8 = functionUncurryThis;
 var call$3 = functionCall;
 var fails$5 = fails$1u;
@@ -18071,7 +18067,7 @@ $$e({ global: true, bind: true, enumerable: true, forced: NO_SPACES_IGNORE || NO
 
 var $$d = _export;
 var global$e = global$16;
-var getBuiltIn$5 = getBuiltIn$N;
+var getBuiltIn$5 = getBuiltIn$M;
 var uncurryThis$7 = functionUncurryThis;
 var call$2 = functionCall;
 var fails$4 = fails$1u;
@@ -18252,7 +18248,7 @@ var domExceptionConstants = {
 
 var $$c = _export;
 var tryNodeRequire = tryNodeRequire$2;
-var getBuiltIn$4 = getBuiltIn$N;
+var getBuiltIn$4 = getBuiltIn$M;
 var fails$3 = fails$1u;
 var create$1 = objectCreate$1;
 var createPropertyDescriptor$2 = createPropertyDescriptor$d;
@@ -18396,7 +18392,7 @@ for (var key$1 in DOMExceptionConstants$1) if (hasOwn$4(DOMExceptionConstants$1,
 
 var $$b = _export;
 var global$b = global$16;
-var getBuiltIn$3 = getBuiltIn$N;
+var getBuiltIn$3 = getBuiltIn$M;
 var createPropertyDescriptor$1 = createPropertyDescriptor$d;
 var defineProperty$1 = objectDefineProperty.f;
 var hasOwn$3 = hasOwnProperty_1;
@@ -18461,7 +18457,7 @@ if (PolyfilledDOMExceptionPrototype.constructor !== PolyfilledDOMException) {
   }
 }
 
-var getBuiltIn$2 = getBuiltIn$N;
+var getBuiltIn$2 = getBuiltIn$M;
 var setToStringTag$2 = setToStringTag$d;
 
 var DOM_EXCEPTION = 'DOMException';
@@ -18479,7 +18475,7 @@ $$a({ global: true, bind: true, enumerable: true, forced: global$a.clearImmediat
   clearImmediate: clearImmediate
 });
 
-/* global Bun -- Deno case */
+/* global Bun -- Bun case */
 var engineIsBun = typeof Bun == 'function' && Bun && typeof Bun.version == 'string';
 
 var global$9 = global$16;
@@ -18590,7 +18586,7 @@ try {
 
 var $$6 = _export;
 var global$5 = global$16;
-var getBuiltIn$1 = getBuiltIn$N;
+var getBuiltIn$1 = getBuiltIn$M;
 var uncurryThis$6 = functionUncurryThis;
 var fails$2 = fails$1u;
 var uid = uid$7;
@@ -18747,6 +18743,7 @@ var cloneBuffer = function (value, map, $type) {
       } else {
         length = value.byteLength;
         options = 'maxByteLength' in value ? { maxByteLength: value.maxByteLength } : undefined;
+        // eslint-disable-next-line es/no-resizable-and-growable-arraybuffers -- safe
         clone = new ArrayBuffer(length, options);
         source = new DataView(value);
         target = new DataView(clone);
@@ -20836,7 +20833,7 @@ $$2({ global: true, constructor: true, forced: !USE_NATIVE_URL$1, sham: !DESCRIP
 });
 
 var $$1 = _export;
-var getBuiltIn = getBuiltIn$N;
+var getBuiltIn = getBuiltIn$M;
 var fails = fails$1u;
 var validateArgumentsLength$2 = validateArgumentsLength$b;
 var toString$2 = toString$J;
