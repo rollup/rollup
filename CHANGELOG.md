@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.5.2
+
+_2023-11-24_
+
+### Bug Fixes
+
+- Handle files with UTF-8 BOM when using the commonjs plugin (#5268)
+
+### Pull Requests
+
+- [#5268](https://github.com/rollup/rollup/pull/5268): fix: strip BOM before calling transform hook (@TrickyPi)
+- [#5269](https://github.com/rollup/rollup/pull/5269): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.5.1
 
 _2023-11-21_
