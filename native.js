@@ -53,7 +53,7 @@ const requireWithFriendlyError = id => {
 		throw new Error(
 			`Cannot find module ${id}. ` +
 				`npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). ` +
-				'If you are/were using them, please try `npm i` again after removing both package-lock.json and node_modules directory.',
+				'Please try `npm i` again after removing both package-lock.json and node_modules directory.',
 			{ cause: error }
 		);
 	}
