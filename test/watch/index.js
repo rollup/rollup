@@ -8,7 +8,7 @@ const { copy } = require('fs-extra');
  * @type {import('../../src/rollup/types')} Rollup
  */
 const rollup = require('../../dist/rollup');
-const { atomicWriteFileSync, wait } = require('../utils');
+const { atomicWriteFileSync, wait, withTimeout } = require('../utils');
 
 describe('rollup.watch', () => {
 	let watcher;
@@ -612,7 +612,7 @@ describe('rollup.watch', () => {
 			input: 'test/_tmp/input/main.js',
 			plugins: {
 				async watchChange() {
-					await new Promise(resolve => setTimeout(resolve, 300));
+					await wait(300);
 					if (fail) {
 						this.error('Failed in watchChange');
 					}
@@ -1830,12 +1830,9 @@ function sequence(watcher, events, timeout = 300) {
 		go();
 	});
 
-	return Promise.race([
-		sequencePromise.then(() => wait(100)),
-		wait(20_000).then(() => {
-			throw new Error(`Test timed out\n${handledEvents.join('\n')}`);
-		})
-	]);
+	return withTimeout(sequencePromise, 20_000, () => {
+		throw new Error(`Test timed out\n${handledEvents.join('\n')}`);
+	}).then(() => wait(100));
 }
 
 function getTimeDiffInMs(previous) {

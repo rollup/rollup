@@ -38,6 +38,29 @@ exports.wait = function wait(ms) {
 	});
 };
 
+/**
+ * @param {Promise<unknown>} promise
+ * @param {number} timeoutMs
+ * @param {() => unknown} onTimeout
+ * @return {Promise<unknown>}
+ */
+exports.withTimeout = function withTimeout(promise, timeoutMs, onTimeout) {
+	let timeoutId;
+	return Promise.race([
+		promise.then(() => clearTimeout(timeoutId)),
+		new Promise((resolve, reject) => {
+			timeoutId = setTimeout(() => {
+				try {
+					onTimeout();
+					resolve();
+				} catch (error) {
+					reject(error);
+				}
+			}, timeoutMs);
+		})
+	]);
+};
+
 function normaliseError(error) {
 	if (!error) {
 		throw new Error(`Expected an error but got ${JSON.stringify(error)}`);
