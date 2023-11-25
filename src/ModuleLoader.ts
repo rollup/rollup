@@ -294,8 +294,13 @@ export class ModuleLoader {
 			typeof source === 'string'
 				? { code: source }
 				: source != null && typeof source === 'object' && typeof source.code === 'string'
-				? source
-				: error(logBadLoader(id));
+				  ? source
+				  : error(logBadLoader(id));
+		const code = sourceDescription.code;
+		/* eslint-disable-next-line unicorn/number-literal-case */
+		if (code.charCodeAt(0) === 0xfe_ff) {
+			sourceDescription.code = code.slice(1);
+		}
 		const cachedModule = this.graph.cachedModules.get(id);
 		if (
 			cachedModule &&

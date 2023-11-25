@@ -53,10 +53,10 @@ runTestSuiteWithSamples(
 									config.verifyAst === false
 										? config.options?.plugins
 										: config.options?.plugins === undefined
-										? verifyAstPlugin
-										: Array.isArray(config.options.plugins)
-										? [...config.options.plugins, verifyAstPlugin]
-										: config.options.plugins
+										  ? verifyAstPlugin
+										  : Array.isArray(config.options.plugins)
+										    ? [...config.options.plugins, verifyAstPlugin]
+										    : config.options.plugins
 							}));
 						await generateAndTestBundle(
 							bundle,

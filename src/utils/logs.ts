@@ -84,6 +84,8 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
+	DUPLICATE_ARGUMENT_NAME = 'DUPLICATE_ARGUMENT_NAME',
+	DUPLICATE_EXPORT = 'DUPLICATE_EXPORT',
 	DUPLICATE_IMPORT_OPTIONS = 'DUPLICATE_IMPORT_OPTIONS',
 	DUPLICATE_PLUGIN_NAME = 'DUPLICATE_PLUGIN_NAME',
 	EMPTY_BUNDLE = 'EMPTY_BUNDLE',
@@ -130,6 +132,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	OPTIMIZE_CHUNK_STATUS = 'OPTIMIZE_CHUNK_STATUS',
 	PARSE_ERROR = 'PARSE_ERROR',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
+	REDECLARATION_ERROR = 'REDECLARATION_ERROR',
 	SHIMMED_EXPORT = 'SHIMMED_EXPORT',
 	SOURCEMAP_BROKEN = 'SOURCEMAP_BROKEN',
 	SOURCEMAP_ERROR = 'SOURCEMAP_ERROR',
@@ -307,6 +310,14 @@ export function logDeprecation(
 		url: getRollupUrl(urlSnippet),
 		...(plugin ? { plugin } : {})
 	};
+}
+
+export function logDuplicateArgumentNameError(name: string): RollupLog {
+	return { code: DUPLICATE_ARGUMENT_NAME, message: `Duplicate argument name "${name}"` };
+}
+
+export function logDuplicateExportError(name: string): RollupLog {
+	return { code: DUPLICATE_EXPORT, message: `Duplicate export "${name}"` };
 }
 
 export function logDuplicateImportOptions(): RollupLog {
@@ -617,6 +628,16 @@ export function logMissingConfig(): RollupLog {
 	};
 }
 
+export function logMissingEntryExport(binding: string, exporter: string): RollupLog {
+	return {
+		binding,
+		code: MISSING_EXPORT,
+		exporter,
+		message: `Exported variable "${binding}" is not defined in "${relativeId(exporter)}".`,
+		url: getRollupUrl(URL_NAME_IS_NOT_EXPORTED)
+	};
+}
+
 export function logMissingExport(
 	binding: string,
 	importingModule: string,
@@ -813,6 +834,10 @@ export function logParseError(message: string, pos: number): RollupLog {
 	return { code: PARSE_ERROR, message, pos };
 }
 
+export function logRedeclarationError(name: string): RollupLog {
+	return { code: REDECLARATION_ERROR, message: `Identifier "${name}" has already been declared` };
+}
+
 export function logModuleParseError(error: Error, moduleId: string): RollupLog {
 	let message = error.message.replace(/ \(\d+:\d+\)$/, '');
 	if (moduleId.endsWith('.json')) {
@@ -838,7 +863,7 @@ export function logPluginError(
 	if (
 		!error.pluginCode &&
 		code != null &&
-		(typeof code !== 'string' || (typeof code === 'string' && !code.startsWith('PLUGIN_')))
+		(typeof code !== 'string' || !code.startsWith('PLUGIN_'))
 	) {
 		error.pluginCode = code;
 	}

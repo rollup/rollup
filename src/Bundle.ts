@@ -184,13 +184,13 @@ export default class Bundle {
 		for (const { alias, modules } of inlineDynamicImports
 			? [{ alias: null, modules: includedModules }]
 			: preserveModules
-			? includedModules.map(module => ({ alias: null, modules: [module] }))
-			: getChunkAssignments(
-					this.graph.entryModules,
-					manualChunkAliasByEntry,
-					experimentalMinChunkSize,
-					this.inputOptions.onLog
-			  )) {
+			  ? includedModules.map(module => ({ alias: null, modules: [module] }))
+			  : getChunkAssignments(
+						this.graph.entryModules,
+						manualChunkAliasByEntry,
+						experimentalMinChunkSize,
+						this.inputOptions.onLog
+			    )) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
 				modules,

@@ -49,7 +49,7 @@ const selectName = (event: FocusEvent) => {
 .module {
 	margin: 0 -16px 8px -16px;
 	border-radius: 0;
-	background-color: var(--vp-code-block-bg);
+	background-color: #161618;
 	color: var(--vp-c-text-1);
 	transition: all 0.2s;
 }

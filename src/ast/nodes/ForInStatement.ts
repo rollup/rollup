@@ -24,7 +24,7 @@ export default class ForInStatement extends StatementBase {
 	declare type: NodeType.tForInStatement;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new BlockScope(parentScope, this.scope.context);
+		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

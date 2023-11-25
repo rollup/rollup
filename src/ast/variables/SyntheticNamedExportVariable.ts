@@ -45,7 +45,7 @@ export default class SyntheticNamedExportVariable extends Variable {
 	}
 
 	include(): void {
-		this.included = true;
+		super.include();
 		this.context.includeVariableInModule(this.syntheticNamespace);
 	}
 

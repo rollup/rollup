@@ -21,7 +21,7 @@ export default class ForStatement extends StatementBase {
 	declare update: ExpressionNode | null;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new BlockScope(parentScope, this.scope.context);
+		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

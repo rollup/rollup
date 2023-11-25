@@ -9,6 +9,7 @@ import type RestElement from './RestElement';
 import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import type { VariableKind } from './shared/VariableKinds';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	declare properties: readonly (Property | RestElement)[];
@@ -30,7 +31,7 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
+	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
 		const variables: LocalVariable[] = [];
 		for (const property of this.properties) {
 			variables.push(...property.declare(kind, init));

@@ -304,7 +304,7 @@ interface SourceDescription {
 	code: string;
 	map?: string | SourceMap;
 	ast?: ESTree.Program;
-	assertions?: { [key: string]: string } | null;
+	attributes?: { [key: string]: string } | null;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
@@ -315,13 +315,13 @@ Defines a custom loader. Returning `null` defers to other `load` functions (and 
 
 If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle even if the module would have side effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the [`treeshake.moduleSideEffects`](../configuration-options/index.md#treeshake-modulesideeffects) option, or eventually default to `true`. The `transform` hook can override this.
 
-`assertions` contain the import assertions that were used when this module was imported. At the moment, they do not influence rendering for bundled modules but rather serve documentation purposes. If `null` is returned or the flag is omitted, then `assertions` will be determined by the first `resolveId` hook that resolved this module, or the assertions present in the first import of this module. The `transform` hook can override this.
+`attributes` contain the import attributes that were used when this module was imported. At the moment, they do not influence rendering for bundled modules but rather serve documentation purposes. If `null` is returned or the flag is omitted, then `attributes` will be determined by the first `resolveId` hook that resolved this module, or the attributes present in the first import of this module. The `transform` hook can override this.
 
 See [synthetic named exports](#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the first `resolveId` hook that resolved this module or eventually default to `false`. The `transform` hook can override this.
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If a `meta` object is returned by this hook, it will be merged shallowly with any `meta` object returned by the resolveId hook. If no hook returns a `meta` object it will default to an empty object. The `transform` hook can further add or replace properties of this object.
 
-You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
 ### moduleParsed
 
@@ -419,7 +419,7 @@ Like the [`onLog`](#onlog) hook, this hook does not have access to most [plugin 
 type ResolveDynamicImportHook = (
 	specifier: string | AstNode,
 	importer: string,
-	options: { assertions: Record<string, string> }
+	options: { attributes: Record<string, string> }
 ) => ResolveIdResult;
 ```
 
@@ -431,7 +431,7 @@ The return type **ResolveIdResult** is the same as that of the [`resolveId`](#re
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
-`assertions` tells you which import assertions were present in the import. I.e. `import("foo", {assert: {type: "json"}})` will pass along `assertions: {type: "json"}`.
+`attributes` tells you which import attributes were present in the import. I.e. `import("foo", {assert: {type: "json"}})` will pass along `attributes: {type: "json"}`.
 
 In case a dynamic import is passed a string as argument, a string returned from this hook will be interpreted as an existing module id while returning `null` will defer to other resolvers and eventually to `resolveId` .
 
@@ -457,7 +457,7 @@ type ResolveIdHook = (
 	source: string,
 	importer: string | undefined,
 	options: {
-		assertions: Record<string, string>;
+		attributes: Record<string, string>;
 		custom?: { [plugin: string]: any };
 		isEntry: boolean;
 	}
@@ -468,7 +468,7 @@ type ResolveIdResult = string | null | false | PartialResolvedId;
 interface PartialResolvedId {
 	id: string;
 	external?: boolean | 'absolute' | 'relative';
-	assertions?: Record<string, string> | null;
+	attributes?: Record<string, string> | null;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	resolvedBy?: string | null;
@@ -560,7 +560,7 @@ function injectPolyfillPlugin() {
 }
 ```
 
-`assertions` tells you which import assertions were present in the import. I.e. `import "foo" assert {type: "json"}` will pass along `assertions: {type: "json"}`.
+`attributes` tells you which import attributes were present in the import. I.e. `import "foo" assert {type: "json"}` will pass along `attributes: {type: "json"}`.
 
 Returning `null` defers to other `resolveId` functions and eventually the default resolution behavior. Returning `false` signals that `source` should be treated as an external module and not included in the bundle. If this happens for a relative import, the id will be renormalized the same way as when the `external` option is used.
 
@@ -586,13 +586,13 @@ If `false` is returned for `moduleSideEffects` in the first hook that resolves a
 
 `resolvedBy` can be explicitly declared in the returned object. It will replace the corresponding field returned by [`this.resolve`](#this-resolve).
 
-If you return a value for `assertions` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, assertions: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `assertions` input parameter will be used. Pass an empty object to remove any assertions. While `assertions` do not influence rendering for bundled modules, they still need to be consistent across all imports of a module, otherwise a warning is emitted. The `load` and `transform` hooks can override this.
+If you return a value for `attributes` for an external module, this will determine how imports of this module will be rendered when generating `"es"` output. E.g. `{id: "foo", external: true, attributes: {type: "json"}}` will cause imports of this module appear as `import "foo" assert {type: "json"}`. If you do not pass a value, the value of the `attributes` input parameter will be used. Pass an empty object to remove any attributes. While `attributes` do not influence rendering for bundled modules, they still need to be consistent across all imports of a module, otherwise a warning is emitted. The `load` and `transform` hooks can override this.
 
 See [synthetic named exports](#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will default to `false`. The `load` and `transform` hooks can override this.
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will default to an empty object. The `load` and `transform` hooks can add or replace properties of this object.
 
-Note that while `resolveId` will be called for each import of a module and can therefore resolve to the same `id` many times, values for `external`, `assertions`, `meta`, `moduleSideEffects` or `syntheticNamedExports` can only be set once before the module is loaded. The reason is that after this call, Rollup will continue with the [`load`](#load) and [`transform`](#transform) hooks for that module that may override these values and should take precedence if they do so.
+Note that while `resolveId` will be called for each import of a module and can therefore resolve to the same `id` many times, values for `external`, `attributes`, `meta`, `moduleSideEffects` or `syntheticNamedExports` can only be set once before the module is loaded. The reason is that after this call, Rollup will continue with the [`load`](#load) and [`transform`](#transform) hooks for that module that may override these values and should take precedence if they do so.
 
 When triggering this hook from a plugin via [`this.resolve`](#this-resolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](#custom-resolver-options).
 
@@ -640,7 +640,7 @@ interface SourceDescription {
 	code: string;
 	map?: string | SourceMap;
 	ast?: ESTree.Program;
-	assertions?: { [key: string]: string } | null;
+	attributes?: { [key: string]: string } | null;
 	meta?: { [plugin: string]: any } | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
@@ -663,13 +663,13 @@ If `"no-treeshake"` is returned, treeshaking will be turned off for this module 
 
 If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the [`treeshake.moduleSideEffects`](../configuration-options/index.md#treeshake-modulesideeffects) option, or eventually default to `true`.
 
-`assertions` contain the import assertions that were used when this module was imported. At the moment, they do not influence rendering for bundled modules but rather serve documentation purposes. If `null` is returned or the flag is omitted, then `assertions` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, or the assertions present in the first import of this module.
+`attributes` contain the import attributes that were used when this module was imported. At the moment, they do not influence rendering for bundled modules but rather serve documentation purposes. If `null` is returned or the flag is omitted, then `attributes` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, or the attributes present in the first import of this module.
 
 See [synthetic named exports](#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the [`treeshake.moduleSideEffects`](../configuration-options/index.md#treeshake-modulesideeffects) option, or eventually default to `false`.
 
 See [custom module meta-data](#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module or eventually default to an empty object.
 
-You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+You can use [`this.getModuleInfo`](#this-getmoduleinfo) to find out the previous values of `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
 ### watchChange
 
@@ -874,13 +874,13 @@ Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-ban
 
 |  |  |
 | --: | :-- |
-| Type: | `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo \| ChunkInfo }, isWrite: boolean) => void` |
+| Type: | `(options: OutputOptions, bundle: { [fileName: string]: OutputAsset \| OutputChunk }, isWrite: boolean) => void` |
 | Kind: | async, sequential |
 | Previous: | [`augmentChunkHash`](#augmentchunkhash) |
 | Next: | [`writeBundle`](#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](#outputoptions) if another output is generated |
 
 ```typescript
-interface AssetInfo {
+interface OutputAsset {
 	fileName: string;
 	name?: string;
 	needsCodeReference: boolean;
@@ -888,7 +888,7 @@ interface AssetInfo {
 	type: 'asset';
 }
 
-interface ChunkInfo {
+interface OutputChunk {
 	code: string;
 	dynamicImports: string[];
 	exports: string[];
@@ -914,6 +914,7 @@ interface ChunkInfo {
 	name: string;
 	preliminaryFileName: string;
 	referencedFiles: string[];
+	sourcemapFileName: string | null;
 	type: 'chunk';
 }
 ```
@@ -1331,10 +1332,10 @@ To reference a prebuilt chunk in imports, we need to mark the "module" as extern
 function emitPrebuiltChunkPlugin() {
 	return {
 		name: 'emit-prebuilt-chunk',
-		load(id) {
-			if (id === '/my-prebuilt-chunk.js') {
+		resolveId(source) {
+			if (source === './my-prebuilt-chunk.js') {
 				return {
-					id,
+					id: source,
 					external: true
 				};
 			}
@@ -1354,7 +1355,7 @@ function emitPrebuiltChunkPlugin() {
 Then you can reference the prebuilt chunk in your code:
 
 ```js
-import { foo } from '/my-prebuilt-chunk.js';
+import { foo } from './my-prebuilt-chunk.js';
 ```
 
 Currently, emitting a prebuilt chunk is a basic feature. Looking forward to your feedback.
@@ -1447,7 +1448,7 @@ interface ModuleInfo {
 	dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
 	implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
 	implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
-	assertions: { [key: string]: string }; // import assertions for this module
+	attributes: { [key: string]: string }; // import attributes for this module
 	meta: { [plugin: string]: any }; // custom module meta-data
 	moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
 	syntheticNamedExports: boolean | string; // final value of synthetic named exports
@@ -1456,7 +1457,7 @@ interface ModuleInfo {
 interface ResolvedId {
 	id: string; // the id of the imported module
 	external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
-	assertions: { [key: string]: string }; // import assertions for this import
+	attributes: { [key: string]: string }; // import attributes for this import
 	meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
 	moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
 	resolvedBy: string; // which plugin resolved this module, "rollup" if resolved by Rollup itself
@@ -1475,7 +1476,7 @@ During the build, this object represents currently available information about t
 - `importers`, `dynamicImporters` and `implicitlyLoadedBefore` will start as empty arrays, which receive additional entries as new importers and implicit dependents are discovered. They will no longer change after `buildEnd`.
 - `isIncluded` is only available after `buildEnd`, at which point it will no longer change.
 - `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](#this-load) with the `resolveDependencies` flag. At that point, they will no longer change.
-- `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](#load) and [`transform`](#transform) hooks. Moreover, while most properties are read-only, these properties are writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` itself should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
+- `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](#load) and [`transform`](#transform) hooks. Moreover, while most properties are read-only, these properties are writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` itself should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
 
 Returns `null` if the module id cannot be found.
 
@@ -1507,7 +1508,7 @@ If the [`logLevel`](../configuration-options/index.md#loglevel) option is set to
 type Load = (options: {
 	id: string;
 	resolveDependencies?: boolean;
-	assertions?: Record<string, string> | null;
+	attributes?: Record<string, string> | null;
 	meta?: CustomPluginOptions | null;
 	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean | string | null;
@@ -1520,7 +1521,7 @@ This allows you to inspect the final content of modules before deciding how to r
 
 The returned Promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the Promise returned by `this.load` wait until all dependency ids have been resolved.
 
-Note that with regard to the `assertions`, `meta`, `moduleSideEffects` and `syntheticNamedExports` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment. Note the special handling for re-exporting the default export:
+Note that with regard to the `attributes`, `meta`, `moduleSideEffects` and `syntheticNamedExports` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment. Note the special handling for re-exporting the default export:
 
 ```js
 export default function addProxyPlugin() {
@@ -1686,7 +1687,7 @@ type Resolve = (
 	options?: {
 		skipSelf?: boolean;
 		isEntry?: boolean;
-		assertions?: { [key: string]: string };
+		attributes?: { [key: string]: string };
 		custom?: { [plugin: string]: any };
 	}
 ) => ResolvedId;
@@ -1706,9 +1707,9 @@ You can also pass an object of plugin-specific options via the `custom` option, 
 
 The value for `isEntry` you pass here will be passed along to the [`resolveId`](#resolveid) hooks handling this call, otherwise `false` will be passed if there is an importer and `true` if there is not.
 
-If you pass an object for `assertions`, it will simulate resolving an import with an assertion, e.g. `assertions: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](#resolveid) hooks handling this call and may ultimately become part of the returned object.
+If you pass an object for `attributes`, it will simulate resolving an import with an assertion, e.g. `attributes: {type: "json"}` simulates resolving `import "foo" assert {type: "json"}`. This will be passed to any [`resolveId`](#resolveid) hooks handling this call and may ultimately become part of the returned object.
 
-When calling this function from a `resolveId` hook, you should always check if it makes sense for you to pass along the `isEntry`, `custom` and `assertions` options.
+When calling this function from a `resolveId` hook, you should always check if it makes sense for you to pass along the `isEntry`, `custom` and `attributes` options.
 
 The value of `resolvedBy` refers to which plugin resolved this source. If it was resolved by Rollup itself, the value will be "rollup". If a `resolveId` hook in a plugin resolves this source, the value will be the name of the plugin unless it returned an explicit value for `resolvedBy`. This flag is only for debugging and documentation purposes and is not processed further by Rollup.
 

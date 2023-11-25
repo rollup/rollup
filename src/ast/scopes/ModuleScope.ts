@@ -1,6 +1,10 @@
 import type { AstContext } from '../../Module';
 import type { InternalModuleFormat } from '../../rollup/types';
+import { logRedeclarationError } from '../../utils/logs';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import type Identifier from '../nodes/Identifier';
+import type { ExpressionEntity } from '../nodes/shared/Expression';
+import { VariableKind } from '../nodes/shared/VariableKinds';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import GlobalVariable from '../variables/GlobalVariable';
@@ -14,7 +18,22 @@ export default class ModuleScope extends ChildScope {
 
 	constructor(parent: GlobalScope, context: AstContext) {
 		super(parent, context);
-		this.variables.set('this', new LocalVariable('this', null, UNDEFINED_EXPRESSION, context));
+		this.variables.set(
+			'this',
+			new LocalVariable('this', null, UNDEFINED_EXPRESSION, context, VariableKind.other)
+		);
+	}
+
+	addDeclaration(
+		identifier: Identifier,
+		context: AstContext,
+		init: ExpressionEntity,
+		kind: VariableKind
+	): LocalVariable {
+		if (this.context.module.importDescriptions.has(identifier.name)) {
+			context.error(logRedeclarationError(identifier.name), identifier.start);
+		}
+		return super.addDeclaration(identifier, context, init, kind);
 	}
 
 	addExportDefaultDeclaration(

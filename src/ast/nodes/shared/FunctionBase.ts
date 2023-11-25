@@ -13,7 +13,6 @@ import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
 import Identifier from '../Identifier';
-import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
@@ -27,10 +26,11 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
+import { VariableKind } from './VariableKinds';
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
-	declare params: readonly PatternNode[];
+	declare params: PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 
@@ -188,12 +188,6 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	initialise(): void {
-		this.scope.addParameterVariables(
-			this.params.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
-			),
-			this.params[this.params.length - 1] instanceof RestElement
-		);
 		if (this.body instanceof BlockStatement) {
 			this.body.addImplicitReturnExpressionToScope();
 		} else {
@@ -202,9 +196,31 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		if (esTreeNode.body.type === NodeType.BlockStatement) {
-			this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
+		const { body, params } = esTreeNode;
+		const parameters: typeof this.params = (this.params = []);
+		const { scope } = this;
+		const { bodyScope, context } = scope;
+		// We need to ensure that parameters are declared before the body is parsed
+		// so that the scope already knows all parameters and can detect conflicts
+		// when parsing the body.
+		for (const parameter of params) {
+			parameters.push(
+				new (context.getNodeConstructor(parameter.type))(
+					parameter,
+					this,
+					scope,
+					false
+				) as unknown as PatternNode
+			);
 		}
+		scope.addParameterVariables(
+			parameters.map(
+				parameter =>
+					parameter.declare(VariableKind.parameter, UNKNOWN_EXPRESSION) as ParameterVariable[]
+			),
+			parameters[parameters.length - 1] instanceof RestElement
+		);
+		this.body = new (context.getNodeConstructor(body.type))(body, this, bodyScope);
 		super.parseNode(esTreeNode);
 	}
 

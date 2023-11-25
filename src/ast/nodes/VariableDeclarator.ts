@@ -14,13 +14,14 @@ import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
+import type { VariableKind } from './shared/VariableKinds';
 
 export default class VariableDeclarator extends NodeBase {
 	declare id: PatternNode;
 	declare init: ExpressionNode | null;
 	declare type: NodeType.tVariableDeclarator;
 
-	declareDeclarator(kind: string): void {
+	declareDeclarator(kind: VariableKind): void {
 		this.id.declare(kind, this.init || UNDEFINED_EXPRESSION);
 	}
 
