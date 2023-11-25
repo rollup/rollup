@@ -207,7 +207,11 @@ export class Task {
 				return;
 			}
 			this.updateWatchedFiles(result);
-			this.skipWrite || (await Promise.all(this.outputs.map(output => result!.write(output))));
+			this.skipWrite ||
+				(await Promise.all(this.outputs.map(output => result!.write(output))).then(() =>
+					this.updateWatchedFiles(result!)
+				));
+			await result.close();
 			await this.watcher.emitter.emit('event', {
 				code: 'BUNDLE_END',
 				duration: Date.now() - start,

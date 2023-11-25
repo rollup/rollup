@@ -100,7 +100,9 @@ export async function rollupInternal(
 
 			return handleGenerateWrite(false, inputOptions, unsetInputOptions, rawOutputOptions, graph);
 		},
-		watchFiles: Object.keys(graph.watchFiles),
+		get watchFiles() {
+			return Object.keys(graph.watchFiles);
+		},
 		async write(rawOutputOptions: OutputOptions) {
 			if (result.closed) return error(logAlreadyClosed());
 

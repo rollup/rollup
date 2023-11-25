@@ -1385,11 +1385,30 @@ describe('rollup.watch', () => {
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', async () => {
 			const watchChangeIds = new Set();
+			const buildEndFile = resolve('test/_tmp/input/buildEnd');
 			const buildStartFile = resolve('test/_tmp/input/buildStart');
+			const closeBundleFile = resolve('test/_tmp/input/closeBundle');
+			const generateBundleFile = resolve('test/_tmp/input/generateBUndle');
 			const loadFile = resolve('test/_tmp/input/load');
+			const moduleParsedFile = resolve('test/_tmp/input/moduleParsed');
+			const renderChunkFile = resolve('test/_tmp/input/renderChunk');
+			const renderStartFile = resolve('test/_tmp/input/renderStart');
 			const resolveIdFile = resolve('test/_tmp/input/resolveId');
 			const transformFile = resolve('test/_tmp/input/transform');
-			const watchFiles = [buildStartFile, loadFile, resolveIdFile, transformFile];
+			const writeBundleFile = resolve('test/_tmp/input/writeBundle');
+			const watchFiles = [
+				buildEndFile,
+				buildStartFile,
+				closeBundleFile,
+				generateBundleFile,
+				loadFile,
+				moduleParsedFile,
+				renderChunkFile,
+				renderStartFile,
+				resolveIdFile,
+				transformFile,
+				writeBundleFile
+			];
 			await copy('test/watch/samples/basic', 'test/_tmp/input');
 
 			await Promise.all(watchFiles.map(file => writeFile(file, 'initial')));
@@ -1402,17 +1421,38 @@ describe('rollup.watch', () => {
 					exports: 'auto'
 				},
 				plugins: {
+					buildEnd() {
+						this.addWatchFile(buildEndFile);
+					},
 					buildStart() {
 						this.addWatchFile(buildStartFile);
 					},
+					closeBundle() {
+						this.addWatchFile(closeBundleFile);
+					},
+					generateBundle() {
+						this.addWatchFile(generateBundleFile);
+					},
 					load() {
 						this.addWatchFile(loadFile);
+					},
+					moduleParsed() {
+						this.addWatchFile(moduleParsedFile);
+					},
+					renderChunk() {
+						this.addWatchFile(renderChunkFile);
+					},
+					renderStart() {
+						this.addWatchFile(renderStartFile);
 					},
 					resolveId() {
 						this.addWatchFile(resolveIdFile);
 					},
 					transform() {
 						this.addWatchFile(transformFile);
+					},
+					writeBundle() {
+						this.addWatchFile(writeBundleFile);
 					},
 					watchChange(id) {
 						watchChangeIds.add(id);
