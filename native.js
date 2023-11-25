@@ -57,7 +57,20 @@ function getPackageBase() {
 }
 
 const localName = `./rollup.${packageBase}.node`;
-const { parse, parseAsync, xxhashBase64Url } = require(
+const requireWithFriendlyError = id => {
+	try {
+		return require(id);
+	} catch (error) {
+		throw new Error(
+			`Cannot find module ${id}. ` +
+				`npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). ` +
+				'Please try `npm i` again after removing both package-lock.json and node_modules directory.',
+			{ cause: error }
+		);
+	}
+};
+
+const { parse, parseAsync, xxhashBase64Url } = requireWithFriendlyError(
 	existsSync(join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
 
