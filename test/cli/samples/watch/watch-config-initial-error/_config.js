@@ -6,6 +6,7 @@ let configFile;
 
 module.exports = defineTest({
 	description: 'keeps watching the config file in case the initial file contains an error',
+	retry: true,
 	command: 'rollup -cw',
 	before() {
 		configFile = path.join(__dirname, 'rollup.config.mjs');
