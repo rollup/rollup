@@ -25,7 +25,10 @@ export function renderMermaidGraphsPlugin(): Plugin {
 	async function renderGraph(codeBlock: string, outFile: string) {
 		const existingGraphFileNames = await existingGraphFileNamesPromise;
 		const outFileURL = new URL(outFile, graphsDirectory);
-		if (!existingGraphFileNames.has(outFile)) {
+		if (existingGraphFileNames.has(outFile)) {
+			console.log('cached graphs found');
+		} else {
+			console.log('No pre-existing graphs found.');
 			const inFileURL = new URL(`${outFile}.mmd`, graphsDirectory);
 			await writeFile(inFileURL, codeBlock);
 			const { stdout, stderr } = await execPromise(
@@ -39,6 +42,8 @@ export function renderMermaidGraphsPlugin(): Plugin {
 			if (stdout.trim()) console.log(stdout.trim());
 		}
 		const outFileContent = await readFile(outFileURL, 'utf8');
+
+		console.log('Ids in graph:', outFileContent.match(/id="[^"]*"/g));
 		// Styles need to be placed top-level, so we extract them and then
 		// prepend them, separated with a line-break
 		const extractedStyles: string[] = [];

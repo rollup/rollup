@@ -46,7 +46,7 @@
     "dev": "vitepress dev docs",
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit",
     "build:bootstrap": "shx mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --forceExit && shx rm -rf dist-build",
-    "build:docs": "vitepress build docs",
+    "build:docs": "vitepress build docs && node docs/.vitepress/logContent.mjs",
     "preview:docs": "vitepress preview docs",
     "ci:artifacts": "napi artifacts",
     "ci:lint": "concurrently -c red,yellow,green,blue 'npm:lint:js:nofix' 'npm:lint:native-js' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
