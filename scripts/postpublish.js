@@ -3,7 +3,8 @@ import { env } from 'node:process';
 import GitHub from 'github-api';
 import semverPreRelease from 'semver/functions/prerelease.js';
 import { cyan } from './colors.js';
-import { CHANGELOG } from './release-constants.js';
+import { runWithEcho } from './helpers.js';
+import { CHANGELOG, DOCUMENTATION_BRANCH } from './release-constants.js';
 import {
 	getCurrentCommitMessage,
 	getFirstChangelogEntry,
@@ -50,10 +51,15 @@ const includedPRs = await getIncludedPRs(
 	isPreRelease
 );
 
+const gitTag = getGitTag(newVersion);
 if (changelogEntry) {
-	await createReleaseNotes(changelogEntry, getGitTag(newVersion));
+	await createReleaseNotes(changelogEntry, gitTag);
 }
 await postReleaseComments(includedPRs, issues, newVersion);
+
+if (!isPreRelease) {
+	await runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag]);
+}
 
 function createReleaseNotes(changelog, tag) {
 	return repo.createRelease({

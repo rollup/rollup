@@ -224,7 +224,6 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 	]);
 	await runWithEcho('git', ['commit', '-m', newVersion]);
 	await runWithEcho('git', ['tag', gitTag]);
-	isMainBranch && (await runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag]));
 }
 
 function pushChanges(gitTag) {
