@@ -1387,6 +1387,7 @@ describe('rollup.watch', () => {
 			const watchChangeIds = new Set();
 			const buildEndFile = resolve('test/_tmp/input/buildEnd');
 			const buildStartFile = resolve('test/_tmp/input/buildStart');
+			const closeBundleFile = resolve('test/_tmp/input/closeBundle');
 			const generateBundleFile = resolve('test/_tmp/input/generateBUndle');
 			const loadFile = resolve('test/_tmp/input/load');
 			const moduleParsedFile = resolve('test/_tmp/input/moduleParsed');
@@ -1398,6 +1399,7 @@ describe('rollup.watch', () => {
 			const watchFiles = [
 				buildEndFile,
 				buildStartFile,
+				closeBundleFile,
 				generateBundleFile,
 				loadFile,
 				moduleParsedFile,
@@ -1424,6 +1426,9 @@ describe('rollup.watch', () => {
 					},
 					buildStart() {
 						this.addWatchFile(buildStartFile);
+					},
+					closeBundle() {
+						this.addWatchFile(closeBundleFile);
 					},
 					generateBundle() {
 						this.addWatchFile(generateBundleFile);

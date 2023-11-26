@@ -209,6 +209,7 @@ export class Task {
 			this.updateWatchedFiles(result);
 			if (!this.skipWrite) {
 				await Promise.all(this.outputs.map(output => result!.write(output)));
+				await result.close();
 				if (this.closed) {
 					return;
 				}
