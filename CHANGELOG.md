@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.6.0
+
+_2023-11-26_
+
+### Features
+
+- Allow `this.addWatchFile` in all plugin hooks (#5270)
+
+### Bug Fixes
+
+- Show helpful error when native binaries are not installed due to an `npm` issue (#5267)
+- Do not access `this` context in `this.addWatchFile` so it does not need to be bound when passed around (#5270)
+
+### Pull Requests
+
+- [#5267](https://github.com/rollup/rollup/pull/5267): Add friendly error for npm bug (@sapphi-red)
+- [#5270](https://github.com/rollup/rollup/pull/5270): Allow this.addWatchFile in all hooks (@lukastaegert)
+- [#5272](https://github.com/rollup/rollup/pull/5272): Debug deployed graphs (@lukastaegert)
+
 ## 4.5.2
 
 _2023-11-24_
