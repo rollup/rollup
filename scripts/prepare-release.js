@@ -12,7 +12,6 @@ import { readJson, runAndGetStdout, runWithEcho } from './helpers.js';
 import {
 	BROWSER_PACKAGE,
 	CHANGELOG,
-	DOCUMENTATION_BRANCH,
 	MAIN_BRANCH,
 	MAIN_LOCKFILE,
 	MAIN_PACKAGE
@@ -229,7 +228,6 @@ async function commitChanges(newVersion, gitTag, isMainBranch) {
 function pushChanges(gitTag) {
 	return Promise.all([
 		runWithEcho('git', ['push', 'origin', 'HEAD']),
-		runWithEcho('git', ['push', 'origin', gitTag]),
-		isMainBranch && runWithEcho('git', ['push', '--force', 'origin', DOCUMENTATION_BRANCH])
+		runWithEcho('git', ['push', 'origin', gitTag])
 	]);
 }

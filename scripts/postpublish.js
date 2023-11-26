@@ -59,6 +59,7 @@ await postReleaseComments(includedPRs, issues, newVersion);
 
 if (!isPreRelease) {
 	await runWithEcho('git', ['branch', DOCUMENTATION_BRANCH, '--force', gitTag]);
+	await runWithEcho('git', ['push', '--force', 'origin', DOCUMENTATION_BRANCH]);
 }
 
 function createReleaseNotes(changelog, tag) {
