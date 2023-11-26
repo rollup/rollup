@@ -588,13 +588,6 @@ export function logInvalidFunctionPluginHook(hook: string, plugin: string): Roll
 	};
 }
 
-export function logInvalidRollupPhaseForAddWatchFile(): RollupLog {
-	return {
-		code: INVALID_ROLLUP_PHASE,
-		message: `Cannot call "addWatchFile" after the build has finished.`
-	};
-}
-
 export function logInvalidRollupPhaseForChunkEmission(): RollupLog {
 	return {
 		code: INVALID_ROLLUP_PHASE,
