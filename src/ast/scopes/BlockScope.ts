@@ -22,7 +22,10 @@ export default class BlockScope extends ChildScope {
 			const existingVariable =
 				this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable | undefined);
 			if (existingVariable) {
-				if (existingVariable.kind === VariableKind.var) {
+				if (
+					existingVariable.kind === VariableKind.var ||
+					(kind === VariableKind.var && existingVariable.kind === VariableKind.parameter)
+				) {
 					existingVariable.addDeclaration(identifier, init);
 					return existingVariable;
 				}
