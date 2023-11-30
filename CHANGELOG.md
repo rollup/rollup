@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.6.1
+
+_2023-11-30_
+
+### Bug Fixes
+
+- Resolve a situation where declaring the same `var` several times was considered a conflict (#5276)
+
+### Pull Requests
+
+- [#5275](https://github.com/rollup/rollup/pull/5275): Add TNG as special sponsor (@lukastaegert)
+- [#5276](https://github.com/rollup/rollup/pull/5276): Allow to redeclare parameters multiple times in nested scopes (@lukastaegert)
+
 ## 4.6.0
 
 _2023-11-26_
