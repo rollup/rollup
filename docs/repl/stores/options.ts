@@ -122,6 +122,9 @@ export const useOptions = defineStore('options2', () => {
 		defaultValue: 'undefined',
 		name: 'context'
 	});
+	const optionExperimentalLogSideEffects = getBoolean({
+		name: 'experimentalLogSideEffects'
+	});
 	const optionOutputAmdAutoId = getBoolean({
 		available: () => isAmdFormat.value,
 		name: 'output.amd.autoId'
@@ -402,6 +405,7 @@ export const useOptions = defineStore('options2', () => {
 
 	const optionList: OptionType[] = [
 		optionContext,
+		optionExperimentalLogSideEffects,
 		optionOutputAmdAutoId,
 		optionOutputAmdBasePath,
 		optionOutputAmdDefine,

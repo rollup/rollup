@@ -141,6 +141,8 @@ h2 {
 
 .repl {
 	height: calc(100% - 3.6em);
+	--log-color: #181818;
+	--log-background: #80bdff;
 	--warning-color: #181818;
 	--warning-background: #eed245;
 	--error-color: white;

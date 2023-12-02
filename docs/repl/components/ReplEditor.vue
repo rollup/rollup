@@ -5,8 +5,9 @@
 <script setup lang="ts">
 import type { EditorView } from '@codemirror/view';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import type { RollupLog } from '../../../src/rollup/types';
-import type { AddWarnings } from '../helpers/editor';
+import type { LogLevel, RollupLog } from '../../../src/rollup/types';
+import { LOGLEVEL_ERROR } from '../../../src/utils/logging';
+import type { AddLogs } from '../helpers/editor';
 import { getFileNameFromMessage } from '../helpers/messages';
 import { useRollupOutput } from '../stores/rollupOutput';
 
@@ -18,14 +19,14 @@ const properties = defineProps<{
 }>();
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits<{ (event: 'update:code', code: string): void }>();
-let addWarningsEffect: AddWarnings;
+let addLogsEffect: AddLogs;
 let editor: EditorView;
 // eslint-disable-next-line vue/no-setup-props-destructure
 let previousCode = properties.code;
 
 onMounted(async () => {
-	const { createEditor, addWarnings } = await import('../helpers/editor');
-	addWarningsEffect = addWarnings;
+	const { createEditor, addLogs } = await import('../helpers/editor');
+	addLogsEffect = addLogs;
 	editor = createEditor(
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		editorContainer.value!,
@@ -52,24 +53,24 @@ onMounted(async () => {
 	);
 
 	if (properties.moduleName && !properties.readonly) {
-		const addMarkers = (messages: RollupLog[], type: 'warning' | 'error') => {
+		const addMarkers = (messages: [LogLevel | 'error', RollupLog][]) => {
 			const relevantMessages = messages.filter(
-				(message): message is RollupLog & { pos: number } =>
-					typeof message.pos === 'number' &&
-					getFileNameFromMessage(message) === `/${properties.moduleName}`
+				(message): message is [LogLevel | 'error', RollupLog & { pos: number }] =>
+					typeof message[1].pos === 'number' &&
+					getFileNameFromMessage(message[1]) === `/${properties.moduleName}`
 			);
-			editor.dispatch({ effects: [addWarningsEffect.of({ messages: relevantMessages, type })] });
+			editor.dispatch({ effects: [addLogsEffect.of({ messages: relevantMessages })] });
 		};
 
 		const outputStore = useRollupOutput();
 
 		watch(
 			() => outputStore.output,
-			({ error, warnings }) => {
+			({ error, logs }) => {
 				if (error) {
-					addMarkers([error], 'error');
+					addMarkers([[LOGLEVEL_ERROR, error]]);
 				} else {
-					addMarkers(warnings, 'warning');
+					addMarkers(logs);
 				}
 			}
 		);
