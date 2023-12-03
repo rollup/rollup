@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import type {
+	LogLevel,
 	OutputOptions,
 	RollupError,
 	RollupLog,
@@ -18,8 +19,8 @@ import { useRollup } from './rollup';
 interface GeneratedRollupOutput {
 	error: RollupError | null;
 	externalImports: string[];
+	logs: [LogLevel, RollupLog][];
 	output: RollupOutput['output'] | never[];
-	warnings: RollupLog[];
 }
 
 interface BundleRequest {
@@ -55,15 +56,14 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		modulesById.set(module.name, module);
 	}
 
-	const warnings: RollupLog[] = [];
+	const logs: [LogLevel, RollupLog][] = [];
 	const externalImports = new Set<string>();
 
 	const rollupOptions: RollupOptions = {
 		...options,
 		input: modules.filter((module, index) => index === 0 || module.isEntry).map(({ name }) => name),
-		onwarn(warning) {
-			warnings.push(warning);
-			logWarning(warning);
+		onLog(level, log) {
+			logs.push([level, log]);
 		},
 		plugins: [
 			{
@@ -105,8 +105,8 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 		setOutput({
 			error: null,
 			externalImports: [...externalImports].sort((a, b) => (a < b ? -1 : 1)),
-			output: generated.output,
-			warnings
+			logs,
+			output: generated.output
 		});
 	} catch (error) {
 		console.log(
@@ -115,7 +115,7 @@ async function bundle({ rollup: { instance }, modules, options, setOutput }: Bun
 			error,
 			JSON.parse(JSON.stringify(error))
 		);
-		setOutput({ error: error as Error, externalImports: [], output: [], warnings });
+		setOutput({ error: error as Error, externalImports: [], logs, output: [] });
 		logWarning(error as Error);
 	}
 	console.groupEnd();
@@ -128,8 +128,8 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 	const output = ref<GeneratedRollupOutput>({
 		error: null,
 		externalImports: [],
-		output: [],
-		warnings: []
+		logs: [],
+		output: []
 	});
 	let bundleDebounceTimeout: ReturnType<typeof setTimeout> | undefined;
 	let nextBundleRequest: BundleRequest | null = null;
@@ -148,8 +148,8 @@ export const useRollupOutput = defineStore('rollupOutput', () => {
 			bundleRequest.setOutput({
 				error: bundleRequest.rollup.error,
 				externalImports: [],
-				output: [],
-				warnings: []
+				logs: [],
+				output: []
 			});
 			return;
 		}

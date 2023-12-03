@@ -1,19 +1,37 @@
 <template>
 	<div
 		class="status"
-		:class="waiting ? 'waiting' : error ? 'error' : warnings.length > 0 ? 'warnings' : 'success'"
+		:class="
+			waiting
+				? 'waiting'
+				: error
+				  ? 'error'
+				  : hasWarnings
+				    ? 'warnings'
+				    : logs.length > 0
+				      ? 'logs'
+				      : 'success'
+		"
 	>
 		<span v-if="waiting">
 			<span class="repl-icon-attention"></span>
 			Loading Rollup...
 		</span>
 		<StatusMessage v-else-if="error" :message="error" isError />
-		<span v-else-if="warnings.length > 0">
+		<span v-else-if="hasWarnings">
 			<span class="repl-icon-attention" />
 			Rollup completed with warnings:
-			<ul class="warning-list">
-				<li v-for="(warning, i) in warnings" :key="i" class="warning">
-					<StatusMessage :message="warning" />
+			<ul class="log-list">
+				<li v-for="([, log], i) in logs" :key="i" class="log">
+					<StatusMessage :message="log" />
+				</li>
+			</ul>
+		</span>
+		<span v-else-if="logs.length > 0">
+			Rollup completed with logs:
+			<ul class="log-list">
+				<li v-for="([, log], i) in logs" :key="i" class="log">
+					<StatusMessage :message="log" />
 				</li>
 			</ul>
 		</span>
@@ -26,6 +44,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { LOGLEVEL_WARN } from '../../../src/utils/logging';
 import { useRollup } from '../stores/rollup';
 import { useRollupOutput } from '../stores/rollupOutput';
 import StatusMessage from './StatusMessage.vue';
@@ -35,7 +54,8 @@ const rollupOutputStore = useRollupOutput();
 
 const waiting = computed(() => !(rollupStore.loaded.instance || rollupStore.loaded.error));
 const error = computed(() => rollupOutputStore.output.error);
-const warnings = computed(() => rollupOutputStore.output.warnings);
+const logs = computed(() => rollupOutputStore.output.logs);
+const hasWarnings = computed(() => logs.value.some(([level]) => level === LOGLEVEL_WARN));
 </script>
 
 <style scoped>
@@ -62,7 +82,12 @@ const warnings = computed(() => rollupOutputStore.output.warnings);
 	color: var(--warning-color);
 }
 
-.warning {
+.logs {
+	background-color: var(--log-background);
+	color: var(--log-color);
+}
+
+.log {
 	margin-top: 16px;
 }
 
@@ -75,7 +100,7 @@ const warnings = computed(() => rollupOutputStore.output.warnings);
 	font-size: 1em;
 }
 
-.warning-list {
+.log-list {
 	list-style-type: none;
 	padding-inline-start: 0;
 	margin-top: 10px;

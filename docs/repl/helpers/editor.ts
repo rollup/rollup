@@ -7,37 +7,36 @@ import { EditorState, StateEffect, StateField } from '@codemirror/state';
 import type { ViewUpdate } from '@codemirror/view';
 import { Decoration, dropCursor, EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
+import type { LogLevel } from '../../../src/rollup/types';
 
-export type AddWarnings = StateEffectType<{
-	messages: { message: string; pos: number }[];
-	type: 'error' | 'warning';
+export type AddLogs = StateEffectType<{
+	messages: [level: LogLevel | 'error', { message: string; pos: number }][];
 }>;
 
-export const addWarnings: AddWarnings = StateEffect.define<{
-	messages: { message: string; pos: number }[];
-	type: 'error' | 'warning';
+export const addLogs: AddLogs = StateEffect.define<{
+	messages: [level: LogLevel | 'error', { message: string; pos: number }][];
 }>();
 
-const warningsField = StateField.define({
+const logsField = StateField.define({
 	create() {
 		return Decoration.none;
 	},
 	provide: field => EditorView.decorations.from(field),
-	update(warnings, transaction) {
-		let hasWarning = false;
+	update(logs, transaction) {
+		let hasLog = false;
 		for (const effect of transaction.effects) {
-			if (effect.is(addWarnings)) {
-				if (!hasWarning) {
-					hasWarning = true;
-					warnings = Decoration.none;
+			if (effect.is(addLogs)) {
+				if (!hasLog) {
+					hasLog = true;
+					logs = Decoration.none;
 				}
-				warnings = warnings.update({
+				logs = logs.update({
 					add: effect.value.messages
-						.sort((a, b) => a.pos - b.pos)
-						.map(({ pos, message }) =>
+						.sort((a, b) => a[1].pos - b[1].pos)
+						.map(([level, { pos, message }]) =>
 							Decoration.mark({
 								attributes: {
-									class: `cm-rollup-${effect.value.type}`,
+									class: `cm-rollup-${level}`,
 									title: message
 								}
 							}).range(pos, pos + 1)
@@ -45,7 +44,7 @@ const warningsField = StateField.define({
 				});
 			}
 		}
-		return warnings;
+		return logs;
 	}
 });
 
@@ -86,15 +85,33 @@ const theme = EditorView.baseTheme({
 	},
 	'.cm-rollup-error': {
 		backgroundColor: 'var(--error-background)',
+		borderRadius: '2px',
 		color: 'var(--error-color)',
-		margin: '-1px',
-		padding: '1px'
+		margin: '-2px',
+		padding: '2px'
 	},
-	'.cm-rollup-warning': {
+	'.cm-rollup-error > span': {
+		color: 'var(--error-color)'
+	},
+	'.cm-rollup-info': {
+		backgroundColor: 'var(--log-background)',
+		borderRadius: '2px',
+		color: 'var(--log-color)',
+		margin: '-2px',
+		padding: '2px'
+	},
+	'.cm-rollup-info > span': {
+		color: 'var(--log-color)'
+	},
+	'.cm-rollup-warn': {
 		backgroundColor: 'var(--warning-background)',
+		borderRadius: '2px',
 		color: 'var(--warning-color)',
-		margin: '-1px',
-		padding: '1px'
+		margin: '-2px',
+		padding: '2px'
+	},
+	'.cm-rollup-warn > span': {
+		color: 'var(--warning-color)'
 	},
 	'.cm-scroller': {
 		borderBottomLeftRadius: '8px',
@@ -153,7 +170,7 @@ export const createEditor = (
 			EditorView.lineWrapping,
 			EditorState.tabSize.of(2),
 			EditorView.updateListener.of(onUpdate as any),
-			warningsField,
+			logsField,
 			theme
 		],
 		parent
