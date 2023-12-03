@@ -148,7 +148,7 @@ export function getChunkAssignments(
 	} = analyzeModuleGraph(entries);
 
 	// Each chunk is identified by its position in this array
-	const initialChunks = getChunksFromDependentEntries(
+	const initialChunks = getChunksWithSameDependentEntries(
 		getModulesWithDependentEntries(dependentEntriesByModule, modulesInManualChunks)
 	);
 
@@ -163,7 +163,7 @@ export function getChunkAssignments(
 
 	chunkDefinitions.push(
 		...getOptimizedChunks(
-			getChunksFromDependentEntries(initialChunks),
+			getChunksWithSameDependentEntries(initialChunks),
 			allEntries.length,
 			minChunkSize,
 			log
@@ -320,7 +320,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 	return dynamicallyDependentEntriesByDynamicEntry;
 }
 
-function getChunksFromDependentEntries(
+function getChunksWithSameDependentEntries(
 	modulesWithDependentEntries: Iterable<ModulesWithDependentEntries>
 ): ModulesWithDependentEntries[] {
 	const chunkModules: {
@@ -387,14 +387,14 @@ function removeUnnecessaryDependentEntries(
 		updatedDynamicallyDependentEntries
 	] of updatedDynamicallyDependentEntriesByDynamicEntry) {
 		updatedDynamicallyDependentEntriesByDynamicEntry.delete(dynamicEntryIndex);
-		const previousLoadedModules = alreadyLoadedChunksPerEntry[dynamicEntryIndex];
-		let newLoadedModules = previousLoadedModules;
+		const previousLoadedChunks = alreadyLoadedChunksPerEntry[dynamicEntryIndex];
+		let newLoadedChunks = previousLoadedChunks;
 		for (const entryIndex of updatedDynamicallyDependentEntries) {
-			newLoadedModules &=
+			newLoadedChunks &=
 				staticDependenciesPerEntry[entryIndex] | alreadyLoadedChunksPerEntry[entryIndex];
 		}
-		if (newLoadedModules !== previousLoadedModules) {
-			alreadyLoadedChunksPerEntry[dynamicEntryIndex] = newLoadedModules;
+		if (newLoadedChunks !== previousLoadedChunks) {
+			alreadyLoadedChunksPerEntry[dynamicEntryIndex] = newLoadedChunks;
 			for (const dynamicImport of dynamicImportsByEntry[dynamicEntryIndex]) {
 				getOrCreate(
 					updatedDynamicallyDependentEntriesByDynamicEntry,
