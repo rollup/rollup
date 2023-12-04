@@ -148,14 +148,14 @@ export function getChunkAssignments(
 	} = analyzeModuleGraph(entries);
 
 	// Each chunk is identified by its position in this array
-	const initialChunks = getChunksWithSameDependentEntries(
+	const chunkAtoms = getChunksWithSameDependentEntries(
 		getModulesWithDependentEntries(dependentEntriesByModule, modulesInManualChunks)
 	);
 
-	// This mutates initialChunks but also clears
+	// This mutates chunkAtoms but also clears
 	// dynamicallyDependentEntriesByDynamicEntry as side effect
 	removeUnnecessaryDependentEntries(
-		initialChunks,
+		chunkAtoms,
 		dynamicallyDependentEntriesByDynamicEntry,
 		dynamicImportsByEntry,
 		allEntries
@@ -163,7 +163,7 @@ export function getChunkAssignments(
 
 	chunkDefinitions.push(
 		...getOptimizedChunks(
-			getChunksWithSameDependentEntries(initialChunks),
+			getChunksWithSameDependentEntries(chunkAtoms),
 			allEntries.length,
 			minChunkSize,
 			log
@@ -357,65 +357,89 @@ function* getModulesWithDependentEntries(
  * should make a copy.
  */
 function removeUnnecessaryDependentEntries(
-	chunks: ModulesWithDependentEntries[],
+	chunkAtoms: ModulesWithDependentEntries[],
 	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>,
 	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>,
 	allEntries: ReadonlyArray<Module>
 ) {
-	// The indices correspond to the indices in allEntries. The chunks correspond
-	// to bits in the bigint values where chunk 0 is the lowest bit.
-	const staticDependenciesPerEntry: bigint[] = allEntries.map(() => 0n);
-	const alreadyLoadedChunksPerEntry: bigint[] = allEntries.map((_entry, entryIndex) =>
-		dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? -1n : 0n
+	// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
+	// If we no longer want this, we should make a copy here.
+	const alreadyLoadedAtomsPerEntry = getAlreadyLoadedAtomsPerEntry(
+		chunkAtoms,
+		dynamicallyDependentEntriesByDynamicEntry,
+		dynamicImportsByEntry,
+		allEntries
 	);
 
-	// This toggles the bits for each chunk that is a dependency of an entry
+	// Remove entries from dependent entries if a chunk is already loaded without
+	// that entry.
 	let chunkMask = 1n;
-	for (const { dependentEntries } of chunks) {
+	for (const { dependentEntries } of chunkAtoms) {
 		for (const entryIndex of dependentEntries) {
-			staticDependenciesPerEntry[entryIndex] |= chunkMask;
+			if ((alreadyLoadedAtomsPerEntry[entryIndex] & chunkMask) === chunkMask) {
+				dependentEntries.delete(entryIndex);
+			}
 		}
 		chunkMask <<= 1n;
 	}
+}
 
-	// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
-	// If we no longer want this, we should make a copy here.
-	const updatedDynamicallyDependentEntriesByDynamicEntry =
-		dynamicallyDependentEntriesByDynamicEntry;
+// Warning: This will consume dynamicallyDependentEntriesByDynamicEntry.
+function getAlreadyLoadedAtomsPerEntry(
+	chunkAtoms: ModulesWithDependentEntries[],
+	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>,
+	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>,
+	allEntries: ReadonlyArray<Module>
+) {
+	const staticDependencyAtomsPerEntry = getStaticDependencyAtomsPerEntry(allEntries, chunkAtoms);
+	const alreadyLoadedAtomsPerEntry: bigint[] = allEntries.map((_entry, entryIndex) =>
+		dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? -1n : 0n
+	);
 	for (const [
 		dynamicEntryIndex,
 		updatedDynamicallyDependentEntries
-	] of updatedDynamicallyDependentEntriesByDynamicEntry) {
-		updatedDynamicallyDependentEntriesByDynamicEntry.delete(dynamicEntryIndex);
-		const previousLoadedChunks = alreadyLoadedChunksPerEntry[dynamicEntryIndex];
-		let newLoadedChunks = previousLoadedChunks;
+	] of dynamicallyDependentEntriesByDynamicEntry) {
+		dynamicallyDependentEntriesByDynamicEntry.delete(dynamicEntryIndex);
+		const knownLoadedAtoms = alreadyLoadedAtomsPerEntry[dynamicEntryIndex];
+		let updatedLoadedAtoms = knownLoadedAtoms;
 		for (const entryIndex of updatedDynamicallyDependentEntries) {
-			newLoadedChunks &=
-				staticDependenciesPerEntry[entryIndex] | alreadyLoadedChunksPerEntry[entryIndex];
+			updatedLoadedAtoms &=
+				staticDependencyAtomsPerEntry[entryIndex] | alreadyLoadedAtomsPerEntry[entryIndex];
 		}
-		if (newLoadedChunks !== previousLoadedChunks) {
-			alreadyLoadedChunksPerEntry[dynamicEntryIndex] = newLoadedChunks;
+		if (updatedLoadedAtoms !== knownLoadedAtoms) {
+			alreadyLoadedAtomsPerEntry[dynamicEntryIndex] = updatedLoadedAtoms;
 			for (const dynamicImport of dynamicImportsByEntry[dynamicEntryIndex]) {
+				// If this adds an entry that was deleted before, it will be handled
+				// again. This is the reason why we delete every entry from this map
+				// that we processed.
 				getOrCreate(
-					updatedDynamicallyDependentEntriesByDynamicEntry,
+					dynamicallyDependentEntriesByDynamicEntry,
 					dynamicImport,
 					getNewSet<number>
 				).add(dynamicEntryIndex);
 			}
 		}
 	}
+	return alreadyLoadedAtomsPerEntry;
+}
 
-	// Remove entries from dependent entries if a chunk is already loaded without
-	// that entry.
-	chunkMask = 1n;
-	for (const { dependentEntries } of chunks) {
+function getStaticDependencyAtomsPerEntry(
+	allEntries: ReadonlyArray<Module>,
+	chunkAtoms: ModulesWithDependentEntries[]
+) {
+	// The indices correspond to the indices in allEntries. The atoms correspond
+	// to bits in the bigint values where chunk 0 is the lowest bit.
+	const staticDependencyAtomsPerEntry: bigint[] = allEntries.map(() => 0n);
+
+	// This toggles the bits for each atom that is a dependency of an entry
+	let chunkMask = 1n;
+	for (const { dependentEntries } of chunkAtoms) {
 		for (const entryIndex of dependentEntries) {
-			if ((alreadyLoadedChunksPerEntry[entryIndex] & chunkMask) === chunkMask) {
-				dependentEntries.delete(entryIndex);
-			}
+			staticDependencyAtomsPerEntry[entryIndex] |= chunkMask;
 		}
 		chunkMask <<= 1n;
 	}
+	return staticDependencyAtomsPerEntry;
 }
 
 interface ChunkDescription {
