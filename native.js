@@ -25,6 +25,12 @@ const bindingsByPlatformAndArch = {
 	}
 };
 
+const msvcLinkFilenameByArch = {
+	arm64: 'vc_redist.arm64.exe',
+	ia32: 'vc_redist.x86.exe',
+	x64: 'vc_redist.x64.exe'
+};
+
 const packageBase = getPackageBase();
 
 if (!packageBase) {
@@ -61,6 +67,22 @@ const requireWithFriendlyError = id => {
 	try {
 		return require(id);
 	} catch (error) {
+		if (
+			platform === 'win32' &&
+			error instanceof Error &&
+			error.code === 'ERR_DLOPEN_FAILED' &&
+			error.message.includes('The specified module could not be found')
+		) {
+			const msvcDownloadLink = `https://aka.ms/vs/17/release/${msvcLinkFilenameByArch[arch]}`;
+			throw new Error(
+				`Failed to load module ${id}. ` +
+					'Required DLL was not found. ' +
+					'This error usually happens when Microsoft Visual C++ Redistributable is not installed. ' +
+					`You can download it from ${msvcDownloadLink}`,
+				{ cause: error }
+			);
+		}
+
 		throw new Error(
 			`Cannot find module ${id}. ` +
 				`npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). ` +
