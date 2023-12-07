@@ -169,6 +169,16 @@ jobs:
               set -e &&
               npm run build:napi -- --release --target aarch64-linux-android &&
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+          - host: ubuntu-latest
+            target: riscv64gc-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-riscv64-linux-gnu -y
+            build: >-
+              set -e &&
+              rustup target add riscv64gc-unknown-linux-gnu &&
+              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu &&
+              riscv64-linux-gnu-strip *.node
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
