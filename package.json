@@ -113,7 +113,7 @@
     "@codemirror/view": "^6.22.1",
     "@jridgewell/sourcemap-codec": "^1.4.15",
     "@mermaid-js/mermaid-cli": "^10.6.1",
-    "@napi-rs/cli": "^2.16.5",
+    "@napi-rs/cli": "^2.17.0",
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-buble": "^1.0.3",
     "@rollup/plugin-commonjs": "^25.0.7",
