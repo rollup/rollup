@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 4.7.0
+
+_2023-12-08_
+
+### Features
+
+- Add build for Linux riscv64 architecture (#5288)
+
+### Bug Fixes
+
+- Improve error message when native Windows build does not start (#5284)
+
+### Pull Requests
+
+- [#5278](https://github.com/rollup/rollup/pull/5278): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5281](https://github.com/rollup/rollup/pull/5281): Add logs and experimentalLogSideEffects to REPL (@lukastaegert)
+- [#5284](https://github.com/rollup/rollup/pull/5284): Add friendly error for missing MSVC redistributable (@sapphi-red)
+- [#5285](https://github.com/rollup/rollup/pull/5285): chore(deps): update dependency vite to v5.0.5 [security] (@renovate[bot])
+- [#5288](https://github.com/rollup/rollup/pull/5288): Add support for linux riscv64 gnu (@kxxt)
+- [#5290](https://github.com/rollup/rollup/pull/5290): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.6.1
 
 _2023-11-30_
