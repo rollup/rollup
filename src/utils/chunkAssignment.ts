@@ -547,12 +547,14 @@ function addChunkDependenciesAndGetExternalSideEffectAtoms(
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (dependency instanceof ExternalModule) {
 					if (dependency.info.moduleSideEffects) {
-						chunk.containedAtoms |= getOrCreate(signatureByExternalModule, dependency, () => {
+						const signature = getOrCreate(signatureByExternalModule, dependency, () => {
 							const signature = nextAvailableAtomMask;
 							nextAvailableAtomMask <<= 1n;
 							externalSideEffectAtoms |= signature;
 							return signature;
 						});
+						chunk.containedAtoms |= signature;
+						chunk.correlatedAtoms |= signature;
 					}
 				} else {
 					const dependencyChunk = chunkByModule.get(dependency);
