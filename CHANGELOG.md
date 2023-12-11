@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.8.0
+
+_2023-12-11_
+
+### Features
+
+- Improve `experimentalMinChunkSize` to take already loaded modules from dynamic imports into account (#5294)
+
+### Pull Requests
+
+- [#5294](https://github.com/rollup/rollup/pull/5294): Find more merge targets for experimentalMinChunkSize (@lukastaegert)
+
 ## 4.7.0
 
 _2023-12-08_
