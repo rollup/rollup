@@ -1,6 +1,11 @@
-define(['require'], (function (require) { 'use strict';
+define(['./main'], (function (main) { 'use strict';
 
-	new Promise(function (resolve, reject) { require(['./generated-dynamic2'], resolve, reject); });
+	Promise.resolve().then(function () { return dynamic2; });
 	console.log('dynamic1');
+
+	var dynamic2 = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		shared: main.shared
+	});
 
 }));

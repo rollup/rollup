@@ -1,6 +1,7 @@
-import { sharedValue } from './shared';
+import { sharedValue } from "./shared";
+
 assert.equal(sharedValue, 'shared');
 
 export const promise = import('./other').then(result =>
-	assert.deepEqual(result, { value: 'shared' })
+	assert.deepEqual(result, { value: 'shared', extra: 'extra' })
 );

@@ -8,7 +8,7 @@ System.register([], (function (exports, module) {
 			assert.equal(sharedValue, 'shared');
 
 			const promise = exports('p', module.import('./other.js').then(result =>
-				assert.deepEqual(result, { value: 'shared' })
+				assert.deepEqual(result, { value: 'shared', extra: 'extra' })
 			));
 
 		})

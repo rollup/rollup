@@ -6,7 +6,7 @@ System.register(['./main.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-
+			const extra = exports('extra', 'extra');
 
 		})
 	};
