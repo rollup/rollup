@@ -35,7 +35,7 @@ export class Watcher {
 	readonly emitter: RollupWatcher;
 
 	private buildDelay = 0;
-	private buildTimeout: NodeJS.Timer | null = null;
+	private buildTimeout: ReturnType<typeof setTimeout> | null = null;
 	private closed = false;
 	private readonly invalidatedIds = new Map<string, ChangeEvent>();
 	private rerun = false;
