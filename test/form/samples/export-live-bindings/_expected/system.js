@@ -10,22 +10,22 @@ System.register('iife', [], (function (exports) {
       });
 
       function update$2 () {
-        exports('foo', foo += 10);
+        exports("foo", foo += 10);
       }
 
-      let foo = exports('foo', 10);
+      let foo = exports("foo", 10);
 
       function update$1 () {
-        exports('bar', bar + 1), bar++;
+        exports("bar", bar + 1), bar++;
       }
 
-      let bar = exports('bar', 10);
+      let bar = exports("bar", 10);
 
       function update () {
-        exports('baz', ++baz);
+        exports("baz", ++baz);
       }
 
-      let baz = exports('baz', 10);
+      let baz = exports("baz", 10);
 
       console.log(foo);
       update$2();

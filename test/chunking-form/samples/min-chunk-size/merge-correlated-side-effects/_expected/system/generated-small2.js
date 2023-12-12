@@ -5,7 +5,7 @@ System.register([], (function (exports) {
 
 			console.log('other effect');
 
-			const small2 = exports('s', '2');
+			const small2 = exports("s", '2');
 
 		})
 	};

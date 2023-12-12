@@ -3,8 +3,8 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const color = exports('c', 'greenyellow');
-			const size = exports('s', 6);
+			const color = exports("c", 'greenyellow');
+			const size = exports("s", 6);
 
 		})
 	};

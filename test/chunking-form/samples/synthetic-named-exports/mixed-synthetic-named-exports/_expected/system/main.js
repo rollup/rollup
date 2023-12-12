@@ -22,7 +22,7 @@ System.register([], (function (exports) {
         fn: 42,
         hello: 'hola'
       };
-      const foo = exports('foo', 100);
+      const foo = exports("foo", 100);
 
       var ns = /*#__PURE__*/_mergeNamespaces({
         __proto__: null,

@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const bar = exports('bar', 2);
+			const bar = exports("bar", 2);
 			Promise.resolve().then(function () { return foo; });
 
 			var foo = /*#__PURE__*/Object.freeze({

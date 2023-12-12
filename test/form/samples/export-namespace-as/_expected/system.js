@@ -11,7 +11,7 @@ System.register('bundle', [], (function (exports) {
 				bar: bar,
 				foo: foo
 			});
-			exports('dep', dep);
+			exports("dep", dep);
 
 		})
 	};

@@ -10,7 +10,7 @@ System.register([], (function (exports) {
         return [h, S, V];
       });
 
-      var p = exports('p', 5);
+      var p = exports("p", 5);
 
     })
   };

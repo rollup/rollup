@@ -11,11 +11,11 @@ System.register('bundle', [], (function (exports) {
 			var { x: b } = { x: effect };
 			b();
 
-			const s = exports('s', {});
+			const s = exports("s", {});
 			var { c } = { c: s };
 			c.foo = 1;
 
-			const t = exports('t', {});
+			const t = exports("t", {});
 			var { x: d } = { x: t };
 			d.foo = 1;
 
@@ -27,12 +27,12 @@ System.register('bundle', [], (function (exports) {
 			({ x: f } = { x: effect });
 			f();
 
-			const u = exports('u', {});
+			const u = exports("u", {});
 			var g;
 			({ g } = { g: u });
 			g.foo = 1;
 
-			const v = exports('v', {});
+			const v = exports("v", {});
 			var h;
 			({ x: h } = { x: v });
 			h.foo = 1;

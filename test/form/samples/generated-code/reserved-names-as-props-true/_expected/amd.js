@@ -56,12 +56,12 @@ define(['module', 'exports', 'external', 'externalDefaultOnly', 'external2'], (f
 	exports.function = 1;
 	exports.function++;
 
-	Object.defineProperty(exports, 'bar', {
+	Object.defineProperty(exports, "bar", {
 		enumerable: true,
 		get: function () { return external.function; }
 	});
 	exports.default = external__namespace;
-	Object.defineProperty(exports, 'void', {
+	Object.defineProperty(exports, "void", {
 		enumerable: true,
 		get: function () { return external__namespace.default; }
 	});

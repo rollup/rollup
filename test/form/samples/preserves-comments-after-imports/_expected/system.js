@@ -7,7 +7,7 @@ System.register('myBundle', [], (function (exports) {
 			var number = 5;
 
 			/** A comment for obj */
-			var obj = exports('obj', { number });
+			var obj = exports("obj", { number });
 
 		})
 	};

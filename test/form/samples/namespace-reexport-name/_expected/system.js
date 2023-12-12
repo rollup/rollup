@@ -17,7 +17,7 @@ System.register('bundle', ['external'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const renamedIndirectOverride = exports('renamedIndirectOverride', indirectOverride);
+			const renamedIndirectOverride = exports("renamedIndirectOverride", indirectOverride);
 
 		})
 	};

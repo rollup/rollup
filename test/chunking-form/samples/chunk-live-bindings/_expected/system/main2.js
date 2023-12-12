@@ -13,7 +13,7 @@ System.register(['./generated-dep1.js'], (function (exports) {
           fn();
           console.log(text);
         }
-      } exports('default', Main2);
+      } exports("default", Main2);
 
     })
   };

@@ -8,13 +8,13 @@ System.register('computedProperties', [], (function (exports) {
 			var baz = 'baz';
 			var bam = 'bam';
 
-			var x = exports('x', { [foo]: 'bar' });
+			var x = exports("x", { [foo]: 'bar' });
 
 			class X {
 				[bar] () {}
 				get [baz] () {}
 				set [bam] ( value ) {}
-			} exports('X', X);
+			} exports("X", X);
 
 		})
 	};

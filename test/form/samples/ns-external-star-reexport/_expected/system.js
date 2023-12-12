@@ -27,7 +27,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 			var reexportExternal = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null
 			}, [external1]);
-			exports('external', reexportExternal);
+			exports("external", reexportExternal);
 
 			const extra = 'extra';
 
@@ -40,7 +40,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 				extra: extra,
 				override: override
 			}, [reexportExternalsWithOverride, external1, external2]);
-			exports('externalOverride', reexportExternalsWithOverride$1);
+			exports("externalOverride", reexportExternalsWithOverride$1);
 
 		})
 	};

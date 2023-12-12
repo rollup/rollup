@@ -24,7 +24,7 @@ var external2__namespace = /*#__PURE__*/_interopNamespaceDefault(external2);
 
 
 
-Object.defineProperty(exports, 'x', {
+Object.defineProperty(exports, "x", {
 	enumerable: true,
 	get: function () { return external1.x; }
 });

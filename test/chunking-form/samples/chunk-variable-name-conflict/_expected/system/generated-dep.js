@@ -4,7 +4,7 @@ System.register([], (function (exports) {
 		execute: (function () {
 
 			var value = exports('v', 42);
-			const x = exports('x', 3);
+			const x = exports("x", 3);
 
 		})
 	};

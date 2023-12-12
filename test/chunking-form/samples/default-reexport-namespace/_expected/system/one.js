@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const __icon__ = exports('default', {});
+			const __icon__ = exports("default", {});
 
 		})
 	};

@@ -13,7 +13,7 @@ System.register([], (function (exports) {
 				DYNAMIC_A: DYNAMIC_A,
 				DYNAMIC_B: DYNAMIC_B
 			});
-			exports('d', dynamic2);
+			exports("d", dynamic2);
 
 			console.log('dynamic1');
 
@@ -22,7 +22,7 @@ System.register([], (function (exports) {
 				DYNAMIC_A: DYNAMIC_B,
 				DYNAMIC_B: DYNAMIC_A
 			});
-			exports('a', dynamic1);
+			exports("a", dynamic1);
 
 		})
 	};

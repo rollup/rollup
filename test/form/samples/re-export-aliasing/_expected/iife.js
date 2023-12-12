@@ -3,7 +3,7 @@ var reexportsAliasingExternal = (function (exports, d) {
 
 
 
-	Object.defineProperty(exports, 'b', {
+	Object.defineProperty(exports, "b", {
 		enumerable: true,
 		get: function () { return d.d; }
 	});

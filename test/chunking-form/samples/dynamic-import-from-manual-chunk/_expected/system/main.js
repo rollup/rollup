@@ -4,7 +4,7 @@ System.register(['./generated-manual.js'], (function (exports) {
 		setters: [null],
 		execute: (function () {
 
-			const dep1 = exports('d', 'dep1');
+			const dep1 = exports("d", 'dep1');
 
 			console.log(dep1);
 

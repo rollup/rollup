@@ -11,7 +11,7 @@ System.register([], (function (exports, module) {
 				__proto__: null,
 				promise: promise
 			});
-			exports('m', main);
+			exports("m", main);
 
 		})
 	};

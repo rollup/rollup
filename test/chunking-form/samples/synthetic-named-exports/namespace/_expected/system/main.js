@@ -42,7 +42,7 @@ System.register([], (function (exports) {
 				foo: foo,
 				synthetic: synthetic$1
 			}, [synthetic]);
-			exports('dep', dep$1);
+			exports("dep", dep$1);
 
 		})
 	};

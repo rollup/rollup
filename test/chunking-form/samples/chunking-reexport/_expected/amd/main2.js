@@ -2,7 +2,7 @@ define(['exports', './main1', 'external'], (function (exports, main1, external) 
 
 
 
-	Object.defineProperty(exports, 'dep', {
+	Object.defineProperty(exports, "dep", {
 		enumerable: true,
 		get: function () { return external.asdf; }
 	});

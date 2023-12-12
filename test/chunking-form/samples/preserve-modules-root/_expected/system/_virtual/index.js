@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			var myBasePkg = exports('__exports', {});
+			var myBasePkg = exports("__exports", {});
 
 		})
 	};

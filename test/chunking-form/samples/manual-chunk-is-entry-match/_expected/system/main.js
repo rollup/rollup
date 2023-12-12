@@ -7,7 +7,7 @@ System.register([], (function (exports) {
 
 			console.log('main');
 
-			const value = exports('value', 42);
+			const value = exports("value", 42);
 
 		})
 	};

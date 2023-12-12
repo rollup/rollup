@@ -22,7 +22,7 @@ var bundle = (function (exports, a, b, c, d$1) {
 
 	console.log(a.a, b__namespace, d);
 
-	Object.defineProperty(exports, 'c', {
+	Object.defineProperty(exports, "c", {
 		enumerable: true,
 		get: function () { return c.c; }
 	});

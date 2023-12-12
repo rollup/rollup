@@ -24,7 +24,7 @@ System.register(['./generated-dep2.js', 'external'], (function (exports) {
           fn();
           fn$3();
         }
-      } exports('default', Main2);
+      } exports("default", Main2);
 
     })
   };

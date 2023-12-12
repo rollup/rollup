@@ -28,28 +28,28 @@
 
 
 
-	Object.defineProperty(exports, 'barAuto', {
+	Object.defineProperty(exports, "barAuto", {
 		enumerable: true,
 		get: function () { return externalAuto.barAuto; }
 	});
 	exports.externalAuto = externalAuto__namespace;
-	Object.defineProperty(exports, 'fooAuto', {
+	Object.defineProperty(exports, "fooAuto", {
 		enumerable: true,
 		get: function () { return externalAuto__namespace.default; }
 	});
-	Object.defineProperty(exports, 'barDefault', {
+	Object.defineProperty(exports, "barDefault", {
 		enumerable: true,
 		get: function () { return externalDefault.barDefault; }
 	});
 	exports.externalDefault = externalDefault__namespace;
 	exports.fooDefault = externalDefault;
 	exports.fooDefaultOnly = externalDefaultOnly;
-	Object.defineProperty(exports, 'barEsModule', {
+	Object.defineProperty(exports, "barEsModule", {
 		enumerable: true,
 		get: function () { return externalEsModule.barEsModule; }
 	});
 	exports.externalEsModule = externalEsModule;
-	Object.defineProperty(exports, 'fooEsModule', {
+	Object.defineProperty(exports, "fooEsModule", {
 		enumerable: true,
 		get: function () { return externalEsModule.default; }
 	});

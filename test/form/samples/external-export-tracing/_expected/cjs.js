@@ -4,7 +4,7 @@ var external = require('external');
 
 
 
-Object.defineProperty(exports, 's', {
+Object.defineProperty(exports, "s", {
 	enumerable: true,
 	get: function () { return external.p; }
 });

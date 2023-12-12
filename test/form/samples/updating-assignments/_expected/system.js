@@ -3,20 +3,20 @@ System.register('bundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			let x = exports('x', 1);
-			exports('x', x = 2);
-			exports('x', x += 1);
-			exports('x', x -= 1);
-			exports('x', x *= 2);
-			exports('x', x /= 2);
-			exports('x', x %= 2);
-			exports('x', x **= 2);
-			exports('x', x <<= 1);
-			exports('x', x >>= 1);
-			exports('x', x >>>= 1);
-			exports('x', x &= 3);
-			exports('x', x ^= 2);
-			exports('x', x |= 2);
+			let x = exports("x", 1);
+			exports("x", x = 2);
+			exports("x", x += 1);
+			exports("x", x -= 1);
+			exports("x", x *= 2);
+			exports("x", x /= 2);
+			exports("x", x %= 2);
+			exports("x", x **= 2);
+			exports("x", x <<= 1);
+			exports("x", x >>= 1);
+			exports("x", x >>>= 1);
+			exports("x", x &= 3);
+			exports("x", x ^= 2);
+			exports("x", x |= 2);
 
 		})
 	};

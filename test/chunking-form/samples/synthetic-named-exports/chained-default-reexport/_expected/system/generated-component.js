@@ -28,7 +28,7 @@ System.register(['./generated-main.js'], (function (exports) {
 				__proto__: null,
 				default: component
 			}, [component]);
-			exports('c', component$1);
+			exports("c", component$1);
 
 		})
 	};

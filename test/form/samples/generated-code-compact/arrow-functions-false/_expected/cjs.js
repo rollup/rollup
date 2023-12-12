@@ -9,4 +9,4 @@ Promise.resolve().then(function(){return /*#__PURE__*/_interopNamespaceCompat(re
 console.log(defaultCompat__namespace.default);
 console.log(externalAuto__default.default);
 console.log(externalDefault__namespace);
-console.log(externalDefaultOnly__namespace);var main=/*#__PURE__*/_mergeNamespaces({__proto__:null,get a(){return exports.a},foo:foo},[defaultCompat__namespace]);Object.defineProperty(exports,'foo',{enumerable:true,get:function(){return defaultCompat.foo}});Object.keys(defaultCompat).forEach(function(k){if(k!=='default'&&!Object.prototype.hasOwnProperty.call(exports,k))Object.defineProperty(exports,k,{enumerable:true,get:function(){return defaultCompat[k]}})});
+console.log(externalDefaultOnly__namespace);var main=/*#__PURE__*/_mergeNamespaces({__proto__:null,get a(){return exports.a},foo:foo},[defaultCompat__namespace]);Object.defineProperty(exports,"foo",{enumerable:true,get:function(){return defaultCompat.foo}});Object.keys(defaultCompat).forEach(function(k){if(k!=='default'&&!Object.prototype.hasOwnProperty.call(exports,k))Object.defineProperty(exports,k,{enumerable:true,get:function(){return defaultCompat[k]}})});

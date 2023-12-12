@@ -5,7 +5,7 @@ System.register([], (function (exports) {
 
          console.log('shared');
 
-         const main = exports('main', 'main');
+         const main = exports("main", 'main');
 
       })
    };

@@ -10,7 +10,7 @@ System.register('iife', [], (function (exports) {
 
 			console.log(Object.keys(self));
 
-			var p = exports('p', 5);
+			var p = exports("p", 5);
 
 		})
 	};

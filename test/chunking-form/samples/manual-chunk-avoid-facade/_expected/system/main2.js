@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const value = exports('reexported', 42);
+			const value = exports("reexported", 42);
 
 			console.log('main2', value);
 

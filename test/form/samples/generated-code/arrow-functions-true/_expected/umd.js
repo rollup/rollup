@@ -71,7 +71,7 @@
 		foo: foo
 	}, [defaultCompat__namespace]);
 
-	Object.defineProperty(exports, 'foo', {
+	Object.defineProperty(exports, "foo", {
 		enumerable: true,
 		get: () => defaultCompat.foo
 	});

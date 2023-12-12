@@ -1023,7 +1023,7 @@ export default class Module {
 			if (node.exported) {
 				// export * as name from './other'
 
-				const name = node.exported.name;
+				const name = node.exported instanceof Literal ? node.exported.value : node.exported.name;
 				this.assertUniqueExportName(name, node.exported.start);
 				this.reexportDescriptions.set(name, {
 					localName: '*',

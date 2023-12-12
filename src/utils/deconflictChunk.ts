@@ -7,6 +7,7 @@ import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
 import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import type Variable from '../ast/variables/Variable';
 import type { GetInterop, InternalModuleFormat } from '../rollup/types';
+import { makeLegal } from './identifierHelpers';
 import {
 	canDefaultBeTakenFromNamespace,
 	defaultInteropHelpersByInteropType,
@@ -127,7 +128,10 @@ function deconflictImportsEsmOrSystem(
 				)
 			);
 		} else {
-			variable.setRenderNames(null, getSafeName(name, usedNames, variable.forbiddenNames));
+			variable.setRenderNames(
+				null,
+				getSafeName(makeLegal(name), usedNames, variable.forbiddenNames)
+			);
 		}
 	}
 	for (const variable of syntheticExports) {

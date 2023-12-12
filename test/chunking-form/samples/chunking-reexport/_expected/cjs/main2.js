@@ -5,7 +5,7 @@ var external = require('external');
 
 
 
-Object.defineProperty(exports, 'dep', {
+Object.defineProperty(exports, "dep", {
 	enumerable: true,
 	get: function () { return external.asdf; }
 });

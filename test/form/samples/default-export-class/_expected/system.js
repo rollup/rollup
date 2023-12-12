@@ -7,7 +7,7 @@ System.register('bundle', [], (function (exports) {
 				constructor() {
 					console.log('class');
 				}
-			} exports('default', main);
+			} exports("default", main);
 
 		})
 	};

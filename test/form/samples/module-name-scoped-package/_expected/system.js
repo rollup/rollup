@@ -3,7 +3,7 @@ System.register('@scoped/npm-package', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			let foo = exports('foo', 'foo');
+			let foo = exports("foo", 'foo');
 
 		})
 	};

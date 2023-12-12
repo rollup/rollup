@@ -11,7 +11,7 @@ System.register(['../dep.js'], (function (exports) {
         constructor () {
           fn();
         }
-      } exports('default', Main);
+      } exports("default", Main);
 
     })
   };

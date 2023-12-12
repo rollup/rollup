@@ -2,7 +2,7 @@ define(['exports', 'starexternal1', 'external1', './generated-dep', 'starexterna
 
 	var main = '1';
 
-	Object.defineProperty(exports, 'e', {
+	Object.defineProperty(exports, "e", {
 		enumerable: true,
 		get: function () { return external1.e; }
 	});

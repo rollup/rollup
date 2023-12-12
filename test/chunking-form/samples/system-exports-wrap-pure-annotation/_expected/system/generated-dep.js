@@ -4,7 +4,7 @@ System.register([], (function (exports) {
 		execute: (function () {
 
 			var dep =
-				exports('d', /*#__PURE__*/
+				exports("d", /*#__PURE__*/
 				(function() {
 					return 0;
 				})());

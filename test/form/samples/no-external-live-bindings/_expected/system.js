@@ -17,7 +17,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports, module
 		}],
 		execute: (function () {
 
-			const dynamic = exports('dynamic', module.import('external3'));
+			const dynamic = exports("dynamic", module.import('external3'));
 
 		})
 	};

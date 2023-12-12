@@ -1,4 +1,4 @@
-System.register(['./_virtual/_virtualModule-system-QemGjyyq.mjs', './_virtual/_virtualWithExt-system-m-4Ec4Ay.mjs', './_virtual/_virtualWithAssetExt.str-system-i71mo7go.mjs'], (function () {
+System.register(['./_virtual/_virtualModule-system-wIF__LeM.mjs', './_virtual/_virtualWithExt-system-RILM_C-g.mjs', './_virtual/_virtualWithAssetExt.str-system-9UiuNSi0.mjs'], (function () {
 	'use strict';
 	var virtual, virtual2, virtual3;
 	return {

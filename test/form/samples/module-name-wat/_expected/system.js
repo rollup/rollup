@@ -3,7 +3,7 @@ System.register('foo.@scoped/npm-package.bar.why-would-you-do-this', [], (functi
 	return {
 		execute: (function () {
 
-			let foo = exports('foo', 'foo');
+			let foo = exports("foo", 'foo');
 
 		})
 	};

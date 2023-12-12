@@ -8,7 +8,7 @@ System.register(['./generated-dep2.js'], (function (exports, module) {
 		}],
 		execute: (function () {
 
-			const value1 = exports('value1', 'shared1');
+			const value1 = exports("value1", 'shared1');
 
 			console.log('main1', value1, value2);
 			module.import('./generated-dynamic1.js');
