@@ -40,10 +40,10 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 				return Object.freeze(n);
 			}
 
-			let a; exports('a', a);
+			let a; exports("a", a);
 
-			(function (v) { return exports('a', a), v; })({ a } = b);
-			console.log(function (v) { return exports('a', a), v; }({ a } = b));
+			(function (v) { return exports("a", a), v; })({ a } = b);
+			console.log(function (v) { return exports("a", a), v; }({ a } = b));
 
 			Promise.resolve().then(function () { return main; }).then(console.log);
 

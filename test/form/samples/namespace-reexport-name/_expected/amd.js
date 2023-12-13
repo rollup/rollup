@@ -2,7 +2,7 @@ define(['exports', 'external'], (function (exports, external) { 'use strict';
 
 	const renamedIndirectOverride = external.indirectOverride;
 
-	Object.defineProperty(exports, 'renamedDirectOverride', {
+	Object.defineProperty(exports, "renamedDirectOverride", {
 		enumerable: true,
 		get: function () { return external.directOverride; }
 	});

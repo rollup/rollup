@@ -15,7 +15,7 @@ System.register(['./hsl2hsv.js'], (function (exports) {
 				__proto__: null,
 				hsl2hsv: hsl2hsv$1
 			});
-			exports('l', lib);
+			exports("l", lib);
 
 		})
 	};

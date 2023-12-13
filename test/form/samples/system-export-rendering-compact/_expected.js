@@ -1,30 +1,30 @@
 System.register([],(function(exports){'use strict';return{execute:(function(){// ---
 // Single export name
-let foo = exports('foo',1);
+let foo = exports("foo",1);
 
 // Assignment
 // foo = 2
-exports('foo',foo = 2);
-console.log(exports('foo',foo = 2));
+exports("foo",foo = 2);
+console.log(exports("foo",foo = 2));
 
 // foo += 2
-exports('foo',foo += 2);
-console.log(exports('foo',foo += 2));
+exports("foo",foo += 2);
+console.log(exports("foo",foo += 2));
 
 // { foo } = obj
-(function(v){return exports('foo',foo),v}({ foo } = obj));
-console.log(function(v){return exports('foo',foo),v}({ foo } = obj));
+(function(v){return exports("foo",foo),v}({ foo } = obj));
+console.log(function(v){return exports("foo",foo),v}({ foo } = obj));
 
 // Update
 // foo++
-exports('foo',foo+1),foo++;
-console.log((exports('foo',foo+1),foo++));
-exports('foo',foo-1),foo--;
+exports("foo",foo+1),foo++;
+console.log((exports("foo",foo+1),foo++));
+exports("foo",foo-1),foo--;
 
 // ++foo
-exports('foo',++foo);
-console.log(exports('foo',++foo));
-exports('foo',--foo);
+exports("foo",++foo);
+console.log(exports("foo",++foo));
+exports("foo",--foo);
 
 // ---
 // Multiple export names

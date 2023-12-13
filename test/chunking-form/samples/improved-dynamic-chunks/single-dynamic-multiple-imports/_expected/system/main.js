@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			const value = exports('value', 'shared');
+			const value = exports("value", 'shared');
 
 			console.log('a', value);
 			module.import('./generated-dynamic.js');

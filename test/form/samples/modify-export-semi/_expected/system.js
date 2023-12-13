@@ -3,9 +3,9 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			let foo = exports('foo', 'foo');
+			let foo = exports("foo", 'foo');
 
-			exports('foo', foo = 'bar');
+			exports("foo", foo = 'bar');
 
 		})
 	};

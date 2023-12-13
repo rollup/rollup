@@ -6,7 +6,7 @@ System.register('bundle', ['external'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const value = exports('value', 42);
+			const value = exports("value", 42);
 
 		})
 	};

@@ -20,7 +20,7 @@ System.register(['./generated-dep.js', 'external2', 'starexternal2'], (function 
 		}],
 		execute: (function () {
 
-			var main = exports('main', '2');
+			var main = exports("main", '2');
 
 		})
 	};

@@ -15,7 +15,7 @@ System.register(['./generated-dep.js', 'external'], (function (exports) {
 				__proto__: null,
 				reexported: reexported$1
 			});
-			exports('l', lib);
+			exports("l", lib);
 
 		})
 	};

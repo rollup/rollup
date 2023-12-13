@@ -14,8 +14,8 @@ System.register('myBundle', [], (function (exports) {
 
 			console.log( Object.keys( namespace ) );
 
-			const a = exports('a', 1);
-			const b = exports('b', 2);
+			const a = exports("a", 1);
+			const b = exports("b", 2);
 
 		})
 	};

@@ -3,10 +3,10 @@ System.register([], (function (exports) {
         return {
                 execute: (function () {
 
-                        var commonjsGlobal = exports('c', typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {});
+                        var commonjsGlobal = exports("c", typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {});
 
                         commonjsGlobal.data = [4, 5, 6];
-                        var shared = exports('s', commonjsGlobal.data);
+                        var shared = exports("s", commonjsGlobal.data);
 
                 })
         };

@@ -3,8 +3,8 @@ System.register('myBundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			var foo = exports('foo', 1);
-			var bar = exports('bar', 2);
+			var foo = exports("foo", 1);
+			var bar = exports("bar", 2);
 
 		})
 	};

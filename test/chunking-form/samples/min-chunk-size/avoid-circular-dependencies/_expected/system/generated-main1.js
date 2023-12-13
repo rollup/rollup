@@ -7,10 +7,10 @@ System.register(['./generated-small.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const result = exports('r', small + '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789');
+			const result = exports("r", small + '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789');
 			console.log(result);
 
-			const generated = exports('g', 'generated' + result);
+			const generated = exports("g", 'generated' + result);
 
 		})
 	};

@@ -63,7 +63,7 @@ var bundle = (function (exports, externalNoImport, defaultCompat, externalAuto, 
 		foo: foo
 	}, [defaultCompat__namespace]);
 
-	Object.defineProperty(exports, 'foo', {
+	Object.defineProperty(exports, "foo", {
 		enumerable: true,
 		get: function () { return defaultCompat.foo; }
 	});

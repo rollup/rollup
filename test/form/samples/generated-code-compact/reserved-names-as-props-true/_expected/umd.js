@@ -4,4 +4,4 @@
 console.log(undefined, undefined);
 
 exports.function = 1;
-exports.function++;Object.defineProperty(exports,'bar',{enumerable:true,get:function(){return external.function}});exports.default=external__namespace;Object.defineProperty(exports,'void',{enumerable:true,get:function(){return external__namespace.default}});Object.defineProperty(exports,'__esModule',{value:true});}));
+exports.function++;Object.defineProperty(exports,"bar",{enumerable:true,get:function(){return external.function}});exports.default=external__namespace;Object.defineProperty(exports,"void",{enumerable:true,get:function(){return external__namespace.default}});Object.defineProperty(exports,'__esModule',{value:true});}));

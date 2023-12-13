@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const TEST_MODULE_A = exports('TEST_MODULE_A', 'A');
+			const TEST_MODULE_A = exports("TEST_MODULE_A", 'A');
 
 		})
 	};

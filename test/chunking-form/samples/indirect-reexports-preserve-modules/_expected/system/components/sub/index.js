@@ -3,7 +3,7 @@ System.register('bundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			const foo = exports('foo', 'bar');
+			const foo = exports("foo", 'bar');
 			var bar = exports('default', () => {});
 
 		})

@@ -3,10 +3,10 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			const shared = exports('s', 'shared');
+			const shared = exports("s", 'shared');
 
-			const unused = exports('u', 'unused');
-			const dynamic = exports('d', module.import('./generated-dynamic.js'));
+			const unused = exports("u", 'unused');
+			const dynamic = exports("d", module.import('./generated-dynamic.js'));
 
 			globalThis.sharedStatic = shared;
 

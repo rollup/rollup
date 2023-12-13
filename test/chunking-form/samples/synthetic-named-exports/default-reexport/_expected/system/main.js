@@ -7,7 +7,7 @@ System.register([], (function (exports, module) {
 
 			console.log('side-effect', lib);
 
-			const component = exports('component', module.import('./generated-component.js').then(function (n) { return n.c; }));
+			const component = exports("component", module.import('./generated-component.js').then(function (n) { return n.c; }));
 
 		})
 	};

@@ -11,7 +11,7 @@ System.register(['./m2.js'], (function (exports) {
 				__proto__: null,
 				m2: m2
 			});
-			exports('m', ms);
+			exports("m", ms);
 
 		})
 	};

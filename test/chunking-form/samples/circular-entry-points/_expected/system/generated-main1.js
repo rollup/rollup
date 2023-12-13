@@ -9,7 +9,7 @@ System.register([], (function (exports) {
         }
       };
 
-      var p$1 = exports('p', 43);
+      var p$1 = exports("p", 43);
 
       new C$1().fn(p$1);
 
@@ -19,7 +19,7 @@ System.register([], (function (exports) {
         }
       }
 
-      var p = exports('a', 42);
+      var p = exports("a", 42);
 
       new C().fn(p);
 

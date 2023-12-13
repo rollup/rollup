@@ -4,8 +4,8 @@ System.register([], (function (exports) {
 		execute: (function () {
 
 			console.log('third');
-			const foo = exports('foo', 'foo');
-			const bar = exports('bar', 'bar');
+			const foo = exports("foo", 'foo');
+			const bar = exports("bar", 'bar');
 
 		})
 	};

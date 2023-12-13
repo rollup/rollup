@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			var c = exports('c', {});
+			var c = exports("c", {});
 
 			(function (exports) {
 				exports.preFaPrint = {

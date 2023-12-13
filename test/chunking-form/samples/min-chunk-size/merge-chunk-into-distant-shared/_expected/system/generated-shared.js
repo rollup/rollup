@@ -3,9 +3,9 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const small = exports('a', '1');
+			const small = exports("a", '1');
 
-			const shared = exports('s', '1');
+			const shared = exports("s", '1');
 			console.log('effect');
 
 		})

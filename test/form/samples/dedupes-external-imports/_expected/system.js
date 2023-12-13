@@ -28,9 +28,9 @@ System.register('myBundle', ['external'], (function (exports) {
 				}
 			}
 
-			const foo = exports('foo', new Foo());
-			const bar = exports('bar', new Bar());
-			const baz = exports('baz', new Baz());
+			const foo = exports("foo", new Foo());
+			const bar = exports("bar", new Bar());
+			const baz = exports("baz", new Baz());
 
 		})
 	};

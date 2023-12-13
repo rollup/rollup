@@ -6,7 +6,7 @@ console.log('other');
 
 console.log('main');
 
-Object.defineProperty(exports, 'bar', {
+Object.defineProperty(exports, "bar", {
 	enumerable: true,
 	get: function () { return external.bar; }
 });

@@ -3,9 +3,9 @@ System.register('foo', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			const make1 = exports('make1', () => {});
+			const make1 = exports("make1", () => {});
 
-			const make2 = exports('make2', () => {});
+			const make2 = exports("make2", () => {});
 
 		})
 	};

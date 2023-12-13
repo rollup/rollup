@@ -12,9 +12,9 @@ export function getSystemExportStatement(
 		exportNamesByVariable.get(exportedVariables[0])!.length === 1
 	) {
 		const variable = exportedVariables[0];
-		return `exports('${exportNamesByVariable.get(variable)}',${_}${variable.getName(
-			getPropertyAccess
-		)}${modifier})`;
+		return `exports(${JSON.stringify(
+			exportNamesByVariable.get(variable)![0]
+		)},${_}${variable.getName(getPropertyAccess)}${modifier})`;
 	} else {
 		const fields: [key: string, value: string][] = [];
 		for (const variable of exportedVariables) {
@@ -26,6 +26,7 @@ export function getSystemExportStatement(
 	}
 }
 
+// This is only invoked if there is exactly one export name
 export function renderSystemExportExpression(
 	exportedVariable: Variable,
 	expressionStart: number,
@@ -35,7 +36,7 @@ export function renderSystemExportExpression(
 ): void {
 	code.prependRight(
 		expressionStart,
-		`exports('${exportNamesByVariable.get(exportedVariable)}',${_}`
+		`exports(${JSON.stringify(exportNamesByVariable.get(exportedVariable)![0])},${_}`
 	);
 	code.appendLeft(expressionEnd, ')');
 }

@@ -13,7 +13,7 @@ System.register('bundle', [], (function (exports) {
 					x: 42
 				};
 				console.log(exports$1);
-				exports('x', x + 1), x++;
+				exports("x", x + 1), x++;
 			}
 
 			function nestedNoConflict() {
@@ -23,7 +23,7 @@ System.register('bundle', [], (function (exports) {
 				console.log(exports);
 			}
 
-			var x = exports('x', 43);
+			var x = exports("x", 43);
 			nestedConflict();
 			nestedNoConflict();
 

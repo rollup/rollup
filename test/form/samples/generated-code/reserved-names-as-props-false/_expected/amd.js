@@ -1,8 +1,8 @@
 define(['module', 'exports', 'external', 'externalDefaultOnly', 'external2'], (function (module, exports, external, defaultOnly, someDefault) { 'use strict';
 
-	function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; }
+	function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-	function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, 'default': e }); }
+	function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, default: e }); }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -47,7 +47,7 @@ define(['module', 'exports', 'external', 'externalDefaultOnly', 'external2'], (f
 
 	var ns = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
-		'default': other
+		default: other
 	}, [other]);
 
 	console.log(ns, other.foo, other["function"], other["some-prop"], external["function"], someDefault__default["default"], defaultOnly__namespace);
@@ -56,12 +56,12 @@ define(['module', 'exports', 'external', 'externalDefaultOnly', 'external2'], (f
 	exports["function"] = 1;
 	exports["function"]++;
 
-	Object.defineProperty(exports, 'bar', {
+	Object.defineProperty(exports, "bar", {
 		enumerable: true,
 		get: function () { return external["function"]; }
 	});
 	exports["default"] = external__namespace;
-	Object.defineProperty(exports, 'void', {
+	Object.defineProperty(exports, "void", {
 		enumerable: true,
 		get: function () { return external__namespace["default"]; }
 	});

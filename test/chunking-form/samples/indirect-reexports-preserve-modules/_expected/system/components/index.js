@@ -8,7 +8,7 @@ System.register('bundle', ['./sub/index.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const baz = exports('baz', { bar });
+			const baz = exports("baz", { bar });
 
 		})
 	};

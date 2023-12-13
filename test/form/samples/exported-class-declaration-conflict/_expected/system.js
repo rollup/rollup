@@ -3,9 +3,9 @@ System.register('bundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			let Foo$1 = class Foo {}; exports('First', Foo$1);
+			let Foo$1 = class Foo {}; exports("First", Foo$1);
 
-			class Foo {} exports('Second', Foo);
+			class Foo {} exports("Second", Foo);
 
 		})
 	};

@@ -1,4 +1,5 @@
 import type { AstContext, default as Module } from '../../Module';
+import { stringifyObjectKeyIfNeeded } from '../../utils/identifierHelpers';
 import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
@@ -139,7 +140,9 @@ export default class NamespaceVariable extends Variable {
 				if (this.referencedEarly || variable.isReassigned || variable === this) {
 					return [
 						null,
-						`get ${name}${_}()${_}{${_}return ${variable.getName(getPropertyAccess)}${s}${_}}`
+						`get ${stringifyObjectKeyIfNeeded(name)}${_}()${_}{${_}return ${variable.getName(
+							getPropertyAccess
+						)}${s}${_}}`
 					];
 				}
 

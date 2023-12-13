@@ -3,7 +3,7 @@ System.register('module-name-with-dashes', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			let foo = exports('foo', 'foo');
+			let foo = exports("foo", 'foo');
 
 		})
 	};

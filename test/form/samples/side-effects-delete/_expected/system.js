@@ -3,7 +3,7 @@ System.register('myBundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			var x = exports('x', {foo: 'bar'});
+			var x = exports("x", {foo: 'bar'});
 			delete x.foo;
 
 			delete globalThis.unknown.foo;

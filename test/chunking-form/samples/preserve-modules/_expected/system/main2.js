@@ -14,7 +14,7 @@ System.register(['./deps/dep2.js', './deps/dep3.js'], (function (exports) {
           fn();
           fn$1();
         }
-      } exports('default', Main2);
+      } exports("default", Main2);
 
     })
   };

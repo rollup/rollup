@@ -5,4 +5,4 @@ System.register(['./generated-dep2.js'],(function(exports){'use strict';var fn$1
     fn();
     fn$1();
   }
-}exports('default',Main1);})}}));
+}exports("default",Main1);})}}));

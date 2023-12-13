@@ -24,15 +24,15 @@ var reservedKeywords = (function (exports, external) {
 
 	const legal = 10;
 
-	Object.defineProperty(exports, 'const', {
+	Object.defineProperty(exports, "const", {
 		enumerable: true,
 		get: function () { return external.const; }
 	});
-	Object.defineProperty(exports, 'in', {
+	Object.defineProperty(exports, "in", {
 		enumerable: true,
 		get: function () { return external.for; }
 	});
-	Object.defineProperty(exports, 'return', {
+	Object.defineProperty(exports, "return", {
 		enumerable: true,
 		get: function () { return external.bar; }
 	});

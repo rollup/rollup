@@ -7,7 +7,7 @@ var starexternal2 = require('starexternal2');
 var main = '2';
 
 exports.dep = dep.dep;
-Object.defineProperty(exports, 'e', {
+Object.defineProperty(exports, "e", {
 	enumerable: true,
 	get: function () { return external2.e; }
 });

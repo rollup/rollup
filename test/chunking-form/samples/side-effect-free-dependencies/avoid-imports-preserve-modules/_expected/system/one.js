@@ -7,7 +7,7 @@ System.register(['./b.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const d = exports('d', b + 4);
+			const d = exports("d", b + 4);
 
 		})
 	};

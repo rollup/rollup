@@ -2,7 +2,7 @@ define(['exports', 'external1', 'external2'], (function (exports, external1, ext
 
 	console.log('shared');
 
-	Object.defineProperty(exports, 'foo', {
+	Object.defineProperty(exports, "foo", {
 		enumerable: true,
 		get: function () { return external1.foo; }
 	});

@@ -15,7 +15,7 @@ System.register(['./one.js'], (function (exports) {
 				two: __icon__
 			});
 
-			const __component__ = exports('Component_one', { icons });
+			const __component__ = exports("Component_one", { icons });
 
 		})
 	};

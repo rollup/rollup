@@ -4,7 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.reexportsAliasingExternal = {}, global.d));
 })(this, (function (exports, d) { 'use strict';
 
-	Object.defineProperty(exports, 'b', {
+	Object.defineProperty(exports, "b", {
 		enumerable: true,
 		get: function () { return d.d; }
 	});

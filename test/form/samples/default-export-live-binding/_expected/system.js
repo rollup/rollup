@@ -3,8 +3,8 @@ System.register('bundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			let foo = exports('default', null);
-			const setFoo = exports('setFoo', value => (exports('default', foo = value)));
+			let foo = exports("default", null);
+			const setFoo = exports("setFoo", value => (exports("default", foo = value)));
 
 		})
 	};

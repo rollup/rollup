@@ -3,7 +3,7 @@ System.register('myBundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			var FOO = exports('FOO', 'foo');
+			var FOO = exports("FOO", 'foo');
 
 			console.log( FOO );
 			console.log( FOO );

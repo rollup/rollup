@@ -5,7 +5,7 @@ System.register([], (function (exports) {
 
 			var value = exports('v', 42);
 
-			const id = exports('i', 'startBuild');
+			const id = exports("i", 'startBuild');
 			console.log(id, value);
 
 		})

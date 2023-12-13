@@ -1,9 +1,9 @@
 System.register('bundle', ['external', 'externalDefaultOnly', 'external2'], (function (exports, module) {
 	'use strict';
-	var function$1, defaultOnly, someDefault;
+	var _function, defaultOnly, someDefault;
 	return {
 		setters: [function (module) {
-			function$1 = module.function;
+			_function = module.function;
 			exports({ bar: module.function, default: module, void: module.default });
 		}, function (module) {
 			defaultOnly = module;
@@ -36,11 +36,11 @@ System.register('bundle', ['external', 'externalDefaultOnly', 'external2'], (fun
 				default: other
 			}, [other]);
 
-			console.log(ns, other.foo, other.function, other["some-prop"], function$1, someDefault, defaultOnly);
+			console.log(ns, other.foo, other.function, other["some-prop"], _function, someDefault, defaultOnly);
 			console.log(module.meta.function, module.meta["some-prop"]);
 
-			let f = exports('function', 1);
-			exports('function', f + 1), f++;
+			let f = exports("function", 1);
+			exports("function", f + 1), f++;
 
 		})
 	};

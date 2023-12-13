@@ -4,7 +4,7 @@ System.register([], (function (exports) {
 		execute: (function () {
 
 			console.log('effect');
-			const small = exports('s', '1');
+			const small = exports("s", '1');
 
 		})
 	};

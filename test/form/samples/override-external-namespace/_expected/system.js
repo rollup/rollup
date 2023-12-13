@@ -17,10 +17,10 @@ System.register('bundle', ['external'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const a = exports('a', 'defined');
-			let b; exports('b', b);
-			var c; exports('c', c);
-			const reassign = exports('reassign', () => (exports('b', b = 'defined')));
+			const a = exports("a", 'defined');
+			let b; exports("b", b);
+			var c; exports("c", c);
+			const reassign = exports("reassign", () => (exports("b", b = 'defined')));
 
 		})
 	};

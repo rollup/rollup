@@ -8,7 +8,7 @@ require('external2');
 
 var main = '1';
 
-Object.defineProperty(exports, 'e', {
+Object.defineProperty(exports, "e", {
 	enumerable: true,
 	get: function () { return external1.e; }
 });
