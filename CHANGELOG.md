@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.9.0
+
+_2023-12-13_
+
+### Features
+
+- Fully support arbitrary strings as import and export identifiers (#5298)
+
+### Pull Requests
+
+- [#5296](https://github.com/rollup/rollup/pull/5296): Do not assume setTimeout return type (@kapouer)
+- [#5298](https://github.com/rollup/rollup/pull/5298): Fully support arbitrary module namespace identifiers for all formats (@lukastaegert)
+
 ## 4.8.0
 
 _2023-12-11_
