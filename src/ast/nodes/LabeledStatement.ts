@@ -28,13 +28,18 @@ export default class LabeledStatement extends StatementBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		const brokenFlow = context.brokenFlow;
+		const { brokenFlow, includedLabels } = context;
+		context.includedLabels = new Set<string>();
 		this.body.include(context, includeChildrenRecursively);
+		// eslint-disable-next-line unicorn/consistent-destructuring
 		if (includeChildrenRecursively || context.includedLabels.has(this.label.name)) {
 			this.label.include();
+			// eslint-disable-next-line unicorn/consistent-destructuring
 			context.includedLabels.delete(this.label.name);
 			context.brokenFlow = brokenFlow;
 		}
+		// eslint-disable-next-line unicorn/consistent-destructuring
+		context.includedLabels = new Set([...includedLabels, ...context.includedLabels]);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

@@ -31,6 +31,17 @@ outer: {
 	console.log('retained');
 }
 
+outer: {
+	switch (globalThis.unknown) {
+		case 1:
+			(() => {
+				console.log('retained');
+			})();
+		case 2:
+			break outer;
+	}
+}
+
 function withConsequentReturn() {
 	{
 		inner: {
