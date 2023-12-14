@@ -5,9 +5,9 @@ System.register([], (function (exports) {
 
       exports('q', q);
 
-      var p; exports('p', p);
+      var p; exports("p", p);
       function q () {
-        exports('p', p = 10);
+        exports("p", p = 10);
       }
 
     })

@@ -23,3 +23,20 @@ export function makeLegal(value: string): string {
 
 	return value || '_';
 }
+
+export const VALID_IDENTIFIER_REGEXP = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u;
+export const NUMBER_REGEXP = /^\d+$/;
+
+export function stringifyObjectKeyIfNeeded(key: string) {
+	if (VALID_IDENTIFIER_REGEXP.test(key) || NUMBER_REGEXP.test(key)) {
+		return key;
+	}
+	return JSON.stringify(key);
+}
+
+export function stringifyIdentifierIfNeeded(key: string) {
+	if (VALID_IDENTIFIER_REGEXP.test(key)) {
+		return key;
+	}
+	return JSON.stringify(key);
+}

@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const DEP = exports('D', 'DEP');
+			const DEP = exports("D", 'DEP');
 
 			const DYNAMIC_2 = 'DYNAMIC_2';
 
@@ -11,7 +11,7 @@ System.register([], (function (exports) {
 				__proto__: null,
 				DYNAMIC_2: DYNAMIC_2
 			});
-			exports('d', dynamic2);
+			exports("d", dynamic2);
 
 			const DYNAMIC_3 = 'DYNAMIC_3';
 
@@ -19,7 +19,7 @@ System.register([], (function (exports) {
 				__proto__: null,
 				DYNAMIC_3: DYNAMIC_3
 			});
-			exports('a', dynamic3);
+			exports("a", dynamic3);
 
 			const DYNAMIC_1 = 'DYNAMIC_1';
 
@@ -30,7 +30,7 @@ System.register([], (function (exports) {
 				DYNAMIC_2: DYNAMIC_2,
 				DYNAMIC_3: DYNAMIC_3
 			});
-			exports('b', dynamic1);
+			exports("b", dynamic1);
 
 		})
 	};

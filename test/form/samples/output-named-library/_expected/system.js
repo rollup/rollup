@@ -3,7 +3,7 @@ System.register('libraryName', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			const valueOnLib = exports('valueOnLib', 42);
+			const valueOnLib = exports("valueOnLib", 42);
 
 		})
 	};

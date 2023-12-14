@@ -2,6 +2,7 @@ import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { ChunkDependency, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import { stringifyIdentifierIfNeeded } from '../utils/identifierHelpers';
 import { getHelpersBlock } from '../utils/interopHelpers';
 import type { FinaliserOptions } from './index';
 
@@ -68,7 +69,7 @@ function getImportBlock(
 						.map(specifier =>
 							specifier.imported === specifier.local
 								? specifier.imported
-								: `${specifier.imported} as ${specifier.local}`
+								: `${stringifyIdentifierIfNeeded(specifier.imported)} as ${specifier.local}`
 						)
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
@@ -100,7 +101,9 @@ function getImportBlock(
 				for (const specifier of namespaceReexports) {
 					importBlock.push(
 						`export${_}{${_}${
-							name === specifier.reexported ? name : `${name} as ${specifier.reexported}`
+							name === specifier.reexported
+								? name
+								: `${name} as ${stringifyIdentifierIfNeeded(specifier.reexported)}`
 						} };`
 					);
 				}
@@ -110,8 +113,10 @@ function getImportBlock(
 					`export${_}{${_}${namedReexports
 						.map(specifier =>
 							specifier.imported === specifier.reexported
-								? specifier.imported
-								: `${specifier.imported} as ${specifier.reexported}`
+								? stringifyIdentifierIfNeeded(specifier.imported)
+								: `${stringifyIdentifierIfNeeded(
+										specifier.imported
+								  )} as ${stringifyIdentifierIfNeeded(specifier.reexported)}`
 						)
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);
@@ -131,7 +136,7 @@ function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets
 		exportDeclaration.push(
 			specifier.exported === specifier.local
 				? specifier.local
-				: `${specifier.local} as ${specifier.exported}`
+				: `${specifier.local} as ${stringifyIdentifierIfNeeded(specifier.exported)}`
 		);
 	}
 	if (exportDeclaration.length > 0) {

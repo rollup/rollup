@@ -5,15 +5,15 @@ System.register([], (function (exports) {
 
 			const pureFunc = () => console.log('not really pure') || 0;
 
-			var singleLine = exports('singleLine', /*#__PURE__*/pureFunc());
+			var singleLine = exports("singleLine", /*#__PURE__*/pureFunc());
 
-			exports('singleLine', singleLine = /*#__PURE__*/pureFunc());
+			exports("singleLine", singleLine = /*#__PURE__*/pureFunc());
 
 			var multiLine =
-				exports('multiLine', /*#__PURE__*/
+				exports("multiLine", /*#__PURE__*/
 				pureFunc());
 
-			exports('multiLine', multiLine =
+			exports("multiLine", multiLine =
 				/*#__PURE__*/
 				pureFunc());
 

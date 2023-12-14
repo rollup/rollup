@@ -18,7 +18,7 @@ System.register(['./generated-deps2and3.js', './generated-lib1.js'], (function (
           fn$1();
           fn$2();
         }
-      } exports('default', Main);
+      } exports("default", Main);
 
     })
   };

@@ -7,7 +7,7 @@ System.register(['./main.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const bar = exports('bar', foo + 'bar');
+			const bar = exports("bar", foo + 'bar');
 
 		})
 	};

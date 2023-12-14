@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			const url = exports('url', module.meta.url);
+			const url = exports("url", module.meta.url);
 
 		})
 	};

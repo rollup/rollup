@@ -9,11 +9,11 @@ System.register('myBundle', ['a', 'b'], (function (exports) {
     }],
     execute: (function () {
 
-      const Test = exports('Test', () => {
+      const Test = exports("Test", () => {
         console.log(Test$1);
       });
 
-      const Test1 = exports('Test1', () => {
+      const Test1 = exports("Test1", () => {
         console.log(Test$2);
       });
 

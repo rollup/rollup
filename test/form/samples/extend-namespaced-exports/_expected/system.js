@@ -3,7 +3,7 @@ System.register('foo.bar.baz', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			const answer = exports('answer', 42);
+			const answer = exports("answer", 42);
 
 		})
 	};

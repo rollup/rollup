@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			var num = exports('n', 2);
+			var num = exports("n", 2);
 			console.log('referenced asset', new URL('asset-test-uF-4QoZ1', module.meta.url).href);
 
 		})
@@ -23,13 +23,13 @@ console.log({
   "name": "dep2",
   "type": "chunk",
   "dynamicImports": [],
-  "fileName": "chunk-dep2-tTS3nOMy.js",
+  "fileName": "chunk-dep2-fl4XqPqA.js",
   "implicitlyLoadedBefore": [],
   "importedBindings": {},
   "imports": [],
   "modules": {
     "**/dep2.js": {
-      "code": "\t\t\tvar num = exports('n', 2);\n\t\t\tconsole.log('referenced asset', new URL('asset-test-uF-4QoZ1', module.meta.url).href);",
+      "code": "\t\t\tvar num = exports(\"n\", 2);\n\t\t\tconsole.log('referenced asset', new URL('asset-test-uF-4QoZ1', module.meta.url).href);",
       "originalLength": 19,
       "removedExports": [],
       "renderedExports": [
@@ -42,5 +42,5 @@ console.log({
     "asset-test-uF-4QoZ1"
   ]
 });
-console.log('all chunks', ["entry-main1-j8-hK8pw.js","entry-main2-Y97yXNTt.js","chunk-dep2-tTS3nOMy.js"])
+console.log('all chunks', ["entry-main1-tjQATGfh.js","entry-main2-tZeXhorV.js","chunk-dep2-fl4XqPqA.js"])
 console.log('referenced asset in renderChunk', 'asset-test-uF-4QoZ1');

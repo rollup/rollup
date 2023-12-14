@@ -8,14 +8,14 @@ System.register([], (function (exports) {
 			var b = /*#__PURE__*/Object.freeze({
 				__proto__: null
 			});
-			exports('b', b);
+			exports("b", b);
 
 			console.log('c');
 
 			var c = /*#__PURE__*/Object.freeze({
 				__proto__: null
 			});
-			exports('c', c);
+			exports("c", c);
 
 		})
 	};

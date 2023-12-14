@@ -22,7 +22,7 @@ System.register([], (function (exports) {
 				__proto__: null,
 				bar: bar
 			});
-			exports('d', dep1);
+			exports("d", dep1);
 
 		})
 	};

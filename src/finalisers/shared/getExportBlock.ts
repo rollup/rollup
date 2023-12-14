@@ -63,7 +63,9 @@ export function getExportBlock(
 							name: null
 						});
 						exportBlock +=
-							`Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
+							`Object.defineProperty(exports,${_}${JSON.stringify(
+								specifier.reexported
+							)},${_}{${n}` +
 							`${t}enumerable:${_}true,${n}` +
 							`${t}get:${_}${left}${importName}${right}${n}});`;
 					} else {

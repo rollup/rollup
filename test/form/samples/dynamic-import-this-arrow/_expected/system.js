@@ -17,7 +17,7 @@ System.register('bundle', ['input'], (function (exports, module) {
 				}
 			}
 
-			const promise = exports('promise', new Importer().getImport());
+			const promise = exports("promise", new Importer().getImport());
 
 		})
 	};

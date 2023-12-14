@@ -7,7 +7,7 @@ System.register(['./generated-lib2.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			const lib1 = exports('l', 'lib1');
+			const lib1 = exports("l", 'lib1');
 			console.log(`${lib1} imports ${lib2}`);
 
 		})

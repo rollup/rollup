@@ -9,9 +9,9 @@ System.register('my.name.spaced.module', [], (function (exports) {
 				console.log( 'doing things...' );
 			}
 
-			const number = exports('number', 42);
+			const number = exports("number", 42);
 
-			var setting = exports('setting', 'no');
+			var setting = exports("setting", 'no');
 
 		})
 	};

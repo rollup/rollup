@@ -9,4 +9,4 @@ import('external').then(console.log);
 console.log(defaultCompat__namespace.default);
 console.log(externalAuto__default.default);
 console.log(externalDefault__namespace);
-console.log(externalDefaultOnly__namespace);var main=/*#__PURE__*/_mergeNamespaces({__proto__:null,get a(){return exports.a},foo:foo},[defaultCompat__namespace]);Object.defineProperty(exports,'foo',{enumerable:true,get:()=>defaultCompat.foo});Object.keys(defaultCompat).forEach(k=>{if(k!=='default'&&!Object.prototype.hasOwnProperty.call(exports,k))Object.defineProperty(exports,k,{enumerable:true,get:()=>defaultCompat[k]})});}));
+console.log(externalDefaultOnly__namespace);var main=/*#__PURE__*/_mergeNamespaces({__proto__:null,get a(){return exports.a},foo:foo},[defaultCompat__namespace]);Object.defineProperty(exports,"foo",{enumerable:true,get:()=>defaultCompat.foo});Object.keys(defaultCompat).forEach(k=>{if(k!=='default'&&!Object.prototype.hasOwnProperty.call(exports,k))Object.defineProperty(exports,k,{enumerable:true,get:()=>defaultCompat[k]})});}));

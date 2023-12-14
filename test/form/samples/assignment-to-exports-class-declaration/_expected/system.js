@@ -3,8 +3,8 @@ System.register('myModule', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			let Foo = exports('Foo', class Foo {});
-			exports('Foo', Foo = lol( Foo ));
+			let Foo = exports("Foo", class Foo {});
+			exports("Foo", Foo = lol( Foo ));
 
 		})
 	};

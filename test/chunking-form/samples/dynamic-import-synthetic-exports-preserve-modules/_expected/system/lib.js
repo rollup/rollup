@@ -25,7 +25,7 @@ System.register([], (function (exports) {
 				__proto__: null,
 				default: lib
 			}, [__moduleExports]);
-			exports('l', lib$1);
+			exports("l", lib$1);
 
 		})
 	};

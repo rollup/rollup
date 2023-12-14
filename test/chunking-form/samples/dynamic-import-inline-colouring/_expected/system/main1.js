@@ -14,8 +14,8 @@ System.register(['./generated-separate.js'], (function (exports, module) {
 				x: x
 			});
 
-			const inlined = exports('inlined', Promise.resolve().then(function () { return inlined$2; }));
-			const separate = exports('separate', module.import('./generated-separate.js'));
+			const inlined = exports("inlined", Promise.resolve().then(function () { return inlined$2; }));
+			const separate = exports("separate", module.import('./generated-separate.js'));
 
 		})
 	};

@@ -5,7 +5,7 @@ System.register('myBundle', [], (function (exports) {
 
 			const localIsNaN = isNaN;
 
-			const isNaN$1 = exports('isNaN', localIsNaN);
+			const isNaN$1 = exports("isNaN", localIsNaN);
 
 		})
 	};

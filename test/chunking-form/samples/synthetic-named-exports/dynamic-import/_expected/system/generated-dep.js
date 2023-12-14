@@ -26,7 +26,7 @@ System.register([], (function (exports) {
 				bar: bar,
 				default: dep
 			}, [dep]);
-			exports('d', dep$1);
+			exports("d", dep$1);
 
 		})
 	};

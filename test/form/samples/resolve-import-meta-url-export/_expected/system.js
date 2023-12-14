@@ -3,8 +3,8 @@ System.register('bundle', [], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			const url = exports('url', 'url');
-			const meta = exports('meta', 'meta');
+			const url = exports("url", 'url');
+			const meta = exports("meta", 'meta');
 
 		})
 	};

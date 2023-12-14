@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const x5 = exports('x5', 5);
+			const x5 = exports("x5", 5);
 
 		})
 	};

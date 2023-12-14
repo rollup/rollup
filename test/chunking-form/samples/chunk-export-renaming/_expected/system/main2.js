@@ -11,7 +11,7 @@ System.register(['./generated-main1.js'], (function (exports) {
                 test() {
                     return ONE_CONSTANT;
                 }
-            } exports('ItemTwo', Two);
+            } exports("ItemTwo", Two);
 
         })
     };

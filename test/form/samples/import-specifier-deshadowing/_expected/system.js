@@ -7,7 +7,7 @@ System.register('Sticky', ['react-sticky'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var Sticky = exports('default', function () {
+			var Sticky = exports("default", function () {
 				function Sticky() {}
 
 				Sticky.foo = Sticky$1;

@@ -62,7 +62,7 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 		foo: foo
 	}, [defaultCompat__namespace]);
 
-	Object.defineProperty(exports, 'foo', {
+	Object.defineProperty(exports, "foo", {
 		enumerable: true,
 		get: function () { return defaultCompat.foo; }
 	});

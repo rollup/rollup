@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const lib3 = exports('l', 'lib3');
+			const lib3 = exports("l", 'lib3');
 
 		})
 	};

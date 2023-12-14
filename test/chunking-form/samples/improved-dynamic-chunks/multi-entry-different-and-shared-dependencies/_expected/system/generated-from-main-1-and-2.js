@@ -3,9 +3,9 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const value2 = exports('v', 'all');
+			const value2 = exports("v", 'all');
 
-			const value3 = exports('a', 'main1 and main2');
+			const value3 = exports("a", 'main1 and main2');
 
 		})
 	};

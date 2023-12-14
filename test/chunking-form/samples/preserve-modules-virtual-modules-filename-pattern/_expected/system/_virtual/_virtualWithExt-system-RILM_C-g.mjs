@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			const virtual2 = exports('virtual2', "Virtual2!");
+			const virtual2 = exports("virtual2", "Virtual2!");
 
 		})
 	};
