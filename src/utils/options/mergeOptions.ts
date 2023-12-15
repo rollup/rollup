@@ -110,7 +110,7 @@ function getCommandOptions(rawCommandOptions: GenericConfigObject): CommandConfi
 							external.push(id);
 						}
 						return globals;
-				  }, Object.create(null))
+					}, Object.create(null))
 				: undefined
 	};
 }

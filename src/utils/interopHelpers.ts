@@ -246,7 +246,7 @@ const loopOverKeys = (
 		: `Object.keys(e).forEach(${getFunctionIntro(['k'], {
 				isAsync: false,
 				name: null
-		  })}${body})${s}`;
+			})}${body})${s}`;
 
 const loopOverNamespaces = (
 	body: string,
@@ -345,7 +345,7 @@ const getWithToStringTag = (
 	symbols
 		? `Object.defineProperty(${fragment},${_}Symbol.toStringTag,${_}${getToStringTagValue(
 				getObject
-		  )})`
+			)})`
 		: fragment;
 
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);

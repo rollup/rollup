@@ -317,7 +317,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 									this,
 									this.scope,
 									keepEsTreeNodeKeys?.includes(key)
-							  )
+								)
 					);
 				}
 			} else {

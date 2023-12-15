@@ -69,7 +69,7 @@ export function getAttributesFromImportExportDeclaration(attributes: ImportAttri
 	return attributes?.length
 		? Object.fromEntries(
 				attributes.map(assertion => [getPropertyKey(assertion), assertion.value.value])
-		  )
+			)
 		: EMPTY_OBJECT;
 }
 
