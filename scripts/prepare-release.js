@@ -82,8 +82,8 @@ async function getNewVersion(mainPackage, isMainBranch) {
 	const availableIncrements = isMainBranch
 		? ['patch', 'minor']
 		: semverPreRelease(version)
-		  ? ['prerelease']
-		  : ['premajor', 'preminor', 'prepatch'];
+			? ['prerelease']
+			: ['premajor', 'preminor', 'prepatch'];
 
 	const { newVersion } = await inquirer.prompt([
 		{

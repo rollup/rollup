@@ -374,10 +374,10 @@ function getInteropHelper(
 	return exportMode === 'external'
 		? namespaceInteropHelpersByInteropType[
 				interop(resolution instanceof ExternalModule ? resolution.id : null)
-		  ]
+			]
 		: exportMode === 'default'
-		  ? INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
-		  : null;
+			? INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
+			: null;
 }
 
 const accessedImportGlobals: Record<string, string[]> = {

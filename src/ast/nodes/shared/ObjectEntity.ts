@@ -135,10 +135,10 @@ export class ObjectEntity extends ExpressionEntity {
 						this.propertiesAndGettersByKey,
 						this.propertiesAndGettersByKey,
 						this.unmatchablePropertiesAndGetters
-				  ]
+					]
 				: type === INTERACTION_ACCESSED
-				  ? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
-				  : [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
+					? [this.propertiesAndGettersByKey, this.gettersByKey, this.unmatchableGetters]
+					: [this.propertiesAndSettersByKey, this.settersByKey, this.unmatchableSetters];
 
 		if (typeof key === 'string') {
 			if (propertiesForExactMatchByKey[key]) {
@@ -243,7 +243,7 @@ export class ObjectEntity extends ExpressionEntity {
 			? [
 					...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
 					...(this.settersByKey[key] || this.unmatchableSetters)
-			  ]
+				]
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}

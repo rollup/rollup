@@ -39,8 +39,8 @@ export default function system(
 	const wrapperParameters = accessedGlobals.has('module')
 		? ['exports', 'module']
 		: hasExports
-		  ? ['exports']
-		  : [];
+			? ['exports']
+			: [];
 
 	// factory function should be wrapped by parentheses to avoid lazy parsing,
 	// cf. https://v8.dev/blog/preparser#pife
@@ -61,10 +61,10 @@ export default function system(
 								? `${getFunctionIntro(['module'], {
 										isAsync: false,
 										name: null
-								  })}{${n}${t}${t}${t}${setter}${n}${t}${t}}`
+									})}{${n}${t}${t}${t}${setter}${n}${t}${t}}`
 								: systemNullSetters
-								  ? `null`
-								  : `${getFunctionIntro([], { isAsync: false, name: null })}{}`
+									? `null`
+									: `${getFunctionIntro([], { isAsync: false, name: null })}{}`
 						)
 						.join(`,${_}`)}],`
 				: ''
@@ -175,7 +175,7 @@ const getStarExcludesBlock = (
 		? `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(
 				[...starExcludes].map(property => [property, '1']),
 				{ lineBreakIndent: { base: t, t } }
-		  )};`
+			)};`
 		: '';
 
 const getImportBindingsBlock = (

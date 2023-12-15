@@ -116,7 +116,7 @@ function getImportBlock(
 								? stringifyIdentifierIfNeeded(specifier.imported)
 								: `${stringifyIdentifierIfNeeded(
 										specifier.imported
-								  )} as ${stringifyIdentifierIfNeeded(specifier.reexported)}`
+									)} as ${stringifyIdentifierIfNeeded(specifier.reexported)}`
 						)
 						.join(`,${_}`)}${_}}${_}from${_}${pathWithAssertion}`
 				);

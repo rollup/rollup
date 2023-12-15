@@ -5,12 +5,12 @@
 			waiting
 				? 'waiting'
 				: error
-				  ? 'error'
-				  : hasWarnings
-				    ? 'warnings'
-				    : logs.length > 0
-				      ? 'logs'
-				      : 'success'
+					? 'error'
+					: hasWarnings
+						? 'warnings'
+						: logs.length > 0
+							? 'logs'
+							: 'success'
 		"
 	>
 		<span v-if="waiting">

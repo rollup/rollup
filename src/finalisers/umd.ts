@@ -165,7 +165,7 @@ export default function umd(
 	const iifeEnd = iifeNeedsGlobal ? ')' : '';
 	const cjsIntro = iifeNeedsGlobal
 		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
-		  `${_}${cjsExport}${factoryVariable}(${cjsDeps.join(`,${_}`)})${_}:${n}`
+			`${_}${cjsExport}${factoryVariable}(${cjsDeps.join(`,${_}`)})${_}:${n}`
 		: '';
 
 	const wrapperIntro =

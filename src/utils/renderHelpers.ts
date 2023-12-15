@@ -122,7 +122,7 @@ export function renderStatementList(
 					? currentNode.render(code, options, {
 							end: nextNodeStart,
 							start: currentNodeStart
-					  })
+						})
 					: currentNode.render(code, options);
 			} else {
 				treeshakeNode(currentNode, code, currentNodeStart!, nextNodeStart);
