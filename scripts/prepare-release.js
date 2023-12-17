@@ -79,6 +79,9 @@ await pushChanges(gitTag);
 
 async function getNewVersion(mainPackage, isMainBranch) {
 	const { version } = mainPackage;
+	/**
+	 * @type {import('semver').ReleaseType[]}
+	 */
 	const availableIncrements = isMainBranch
 		? ['patch', 'minor']
 		: semverPreRelease(version)

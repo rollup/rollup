@@ -83,9 +83,13 @@ function getAverage(accumulatedMeasurements, runs, discarded) {
 }
 
 async function calculatePrintAndPersistTimings(config, existingTimings) {
-	const timings = await buildAndGetTimings(config);
+	const serializedTimings = await buildAndGetTimings(config);
+	/**
+	 * @type {Record<string, [number, number, number][]>}
+	 */
+	const timings = {};
 	for (const label of Object.keys(timings)) {
-		timings[label] = [timings[label]];
+		timings[label] = [serializedTimings[label]];
 	}
 	for (let currentRun = 1; currentRun < numberOfRunsToAverage; currentRun++) {
 		const numberOfLinesToClear = printMeasurements(
@@ -109,6 +113,9 @@ async function calculatePrintAndPersistTimings(config, existingTimings) {
 	if (Object.keys(existingTimings).length === 0) persistTimings(averageTimings);
 }
 
+/**
+ * @return {Promise<import('rollup').SerializedTimings>}
+ */
 async function buildAndGetTimings(config) {
 	config.perf = true;
 	if (Array.isArray(config.output)) {

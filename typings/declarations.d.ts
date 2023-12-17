@@ -23,7 +23,7 @@ declare module 'is-reference' {
 		parent: NodeWithFieldDefinition
 	): boolean;
 
-	export type Node =
+	type EstreeNode =
 		| estree.ArrayExpression
 		| estree.ArrayPattern
 		| estree.ArrowFunctionExpression
@@ -96,10 +96,10 @@ declare module 'is-reference' {
 		| estree.YieldExpression;
 
 	export type NodeWithFieldDefinition =
-		| Node
+		| EstreeNode
 		| {
 				computed: boolean;
 				type: 'FieldDefinition';
-				value: Node;
+				value: EstreeNode;
 		  };
 }
