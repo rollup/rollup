@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.9.1
+
+_2023-12-17_
+
+### Bug Fixes
+
+- Fix an issue where break statements could include the wrong label (#5297)
+
+### Pull Requests
+
+- [#5297](https://github.com/rollup/rollup/pull/5297): fix: use a new includedLabels in the body of the LabeledStatement (@TrickyPi)
+- [#5300](https://github.com/rollup/rollup/pull/5300): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.9.0
 
 _2023-12-13_
