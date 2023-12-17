@@ -1021,16 +1021,16 @@ export default class Chunk {
 								facadeChunk: this.facadeChunkByModule.get(resolution),
 								node,
 								resolution
-						  }
+							}
 						: resolution instanceof ExternalModule
-						  ? {
+							? {
 									chunk: null,
 									externalChunk: this.externalChunkByModule.get(resolution)!,
 									facadeChunk: null,
 									node,
 									resolution
-						    }
-						  : { chunk: null, externalChunk: null, facadeChunk: null, node, resolution }
+								}
+							: { chunk: null, externalChunk: null, facadeChunk: null, node, resolution }
 				);
 			}
 		}

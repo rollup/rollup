@@ -59,7 +59,7 @@ export function getGenerateCodeSnippets({
 				return `${name ? `${cnst} ${name}${_}=${_}` : ''}${asyncString}${
 					singleParameter ? parameters[0] : `(${parameters.join(`,${_}`)})`
 				}${_}=>${_}`;
-		  }
+			}
 		: getNonArrowFunctionIntro;
 
 	const getDirectReturnFunction: GenerateCodeSnippets['getDirectReturnFunction'] = (
@@ -76,7 +76,7 @@ export function getGenerateCodeSnippets({
 					: ''
 				: `{${lineBreakIndent ? `${n}${lineBreakIndent.base}${lineBreakIndent.t}` : _}${
 						functionReturn ? 'return ' : ''
-				  }`
+					}`
 		}`,
 		arrowFunctions
 			? `${name ? ';' : ''}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : ''}`

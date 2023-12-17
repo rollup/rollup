@@ -7,4 +7,4 @@ export default 'performance' in global
 			now(): 0 {
 				return 0;
 			}
-	  };
+		};

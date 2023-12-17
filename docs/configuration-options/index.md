@@ -634,7 +634,7 @@ function _interopNamespaceDefault(e) {
 								get: function () {
 									return e[k];
 								}
-						  }
+							}
 				);
 			}
 		});
@@ -924,7 +924,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   								get: function () {
   									return e[k];
   								}
-  						  }
+  							}
   				);
   			}
   		});
@@ -979,7 +979,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   								get: function () {
   									return e[k];
   								}
-  						  }
+  							}
   				);
   			}
   		});
@@ -1041,7 +1041,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   								get: function () {
   									return e[k];
   								}
-  						  }
+  							}
   				);
   			}
   		});
