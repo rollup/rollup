@@ -15,15 +15,21 @@ export default class LabeledStatement extends StatementBase {
 	declare type: NodeType.tLabeledStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		const brokenFlow = context.brokenFlow;
+		const { brokenFlow, includedLabels } = context;
 		context.ignore.labels.add(this.label.name);
-		if (this.body.hasEffects(context)) return true;
-		context.ignore.labels.delete(this.label.name);
-		if (context.includedLabels.has(this.label.name)) {
-			context.includedLabels.delete(this.label.name);
-			context.brokenFlow = brokenFlow;
+		context.includedLabels = new Set<string>();
+		let bodyHasEffects = false;
+		if (this.body.hasEffects(context)) {
+			bodyHasEffects = true;
+		} else {
+			context.ignore.labels.delete(this.label.name);
+			if (context.includedLabels.has(this.label.name)) {
+				context.includedLabels.delete(this.label.name);
+				context.brokenFlow = brokenFlow;
+			}
 		}
-		return false;
+		context.includedLabels = new Set([...includedLabels, ...context.includedLabels]);
+		return bodyHasEffects;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -31,14 +37,11 @@ export default class LabeledStatement extends StatementBase {
 		const { brokenFlow, includedLabels } = context;
 		context.includedLabels = new Set<string>();
 		this.body.include(context, includeChildrenRecursively);
-		// eslint-disable-next-line unicorn/consistent-destructuring
 		if (includeChildrenRecursively || context.includedLabels.has(this.label.name)) {
 			this.label.include();
-			// eslint-disable-next-line unicorn/consistent-destructuring
 			context.includedLabels.delete(this.label.name);
 			context.brokenFlow = brokenFlow;
 		}
-		// eslint-disable-next-line unicorn/consistent-destructuring
 		context.includedLabels = new Set([...includedLabels, ...context.includedLabels]);
 	}
 

@@ -140,6 +140,7 @@ module.exports = {
 			}
 		],
 		'sort-keys': ['error', 'asc', { caseSensitive: false }],
+		'unicorn/consistent-destructuring': 'off',
 		'unicorn/filename-case': 'off',
 		'unicorn/no-array-callback-reference': 'off',
 		'unicorn/no-array-reduce': 'off',

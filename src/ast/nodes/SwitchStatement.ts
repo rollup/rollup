@@ -34,7 +34,6 @@ export default class SwitchStatement extends StatementBase {
 		let onlyHasBrokenFlow = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
-			// eslint-disable-next-line unicorn/consistent-destructuring
 			onlyHasBrokenFlow &&= context.brokenFlow && !context.hasBreak;
 			context.hasBreak = false;
 			context.brokenFlow = brokenFlow;
@@ -68,7 +67,6 @@ export default class SwitchStatement extends StatementBase {
 			}
 			if (isCaseIncluded) {
 				switchCase.include(context, includeChildrenRecursively);
-				// eslint-disable-next-line unicorn/consistent-destructuring
 				onlyHasBrokenFlow &&= context.brokenFlow && !context.hasBreak;
 				context.hasBreak = false;
 				context.brokenFlow = brokenFlow;
