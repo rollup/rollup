@@ -115,6 +115,10 @@ async function calculatePrintAndPersistTimings(config, existingTimings) {
 	/**
 	 * @type {Record<string, [number, number, number][]>}
 	 */
+	const timings = {};
+	/**
+	 * @type {Record<string, [number, number, number][]>}
+	 */
 	const accumulatedTimings = {};
 	for (const label of Object.keys(serializedTimings)) {
 		accumulatedTimings[label] = [serializedTimings[label]];
