@@ -40,12 +40,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		if (typeof testValue === 'symbol') {
 			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
-			// eslint-disable-next-line unicorn/consistent-destructuring
 			const consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 			if (this.alternate === null) return false;
 			if (this.alternate.hasEffects(context)) return true;
-			// eslint-disable-next-line unicorn/consistent-destructuring
 			context.brokenFlow = context.brokenFlow && consequentBrokenFlow;
 			return false;
 		}
@@ -166,13 +164,11 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		let consequentBrokenFlow = false;
 		if (this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false, { asSingleStatement: true });
-			// eslint-disable-next-line unicorn/consistent-destructuring
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate?.shouldBeIncluded(context)) {
 			this.alternate.include(context, false, { asSingleStatement: true });
-			// eslint-disable-next-line unicorn/consistent-destructuring
 			context.brokenFlow = context.brokenFlow && consequentBrokenFlow;
 		}
 	}

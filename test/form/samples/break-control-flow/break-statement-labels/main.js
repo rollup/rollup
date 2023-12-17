@@ -20,7 +20,7 @@ outer: {
 }
 
 outer: {
-	inner:/* retained comment */ {
+	inner: /* retained comment */ {
 		console.log('retained');
 		break outer;
 		console.log('removed');
@@ -46,6 +46,33 @@ outer: {
 		console.log('removed');
 	}
 	console.log('retained');
+}
+
+outer: {
+	switch (globalThis.unknown) {
+		case 1:
+			(() => {
+				outer: console.log('retained');
+			})();
+		case 2:
+			break outer;
+	}
+}
+
+// removed
+outer: {
+	if (globalThis.unknown) {
+		break outer;
+	} else {
+		(() => {
+			inner: {
+				outer: {
+					break inner;
+				}
+				console.log('removed');
+			}
+		})();
+	}
 }
 
 function withConsequentReturn() {
