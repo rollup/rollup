@@ -2,12 +2,15 @@
 	"compilerOptions": {
 		"checkJs": true,
 		"allowJs": true,
-		"target": "esnext",
-		"module": "esnext",
+		"forceConsistentCasingInFileNames": true,
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
 		"noEmit": true,
-		"lib": ["esnext"],
+		"noUnusedParameters": true,
+		"lib": ["ESNext"],
 		"esModuleInterop": true,
-		"moduleResolution": "node",
-		"skipLibCheck": true
-	},
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ESNext"
+	}
 }
