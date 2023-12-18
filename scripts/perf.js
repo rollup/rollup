@@ -115,7 +115,7 @@ async function calculatePrintAndPersistTimings(config, existingTimings) {
 	/**
 	 * @type {Record<string, [number, number, number][]>}
 	 */
-	const timings = {};
+	const accumulatedTimings = {};
 	/**
 	 * @type {Record<string, [number, number, number][]>}
 	 */
