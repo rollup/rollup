@@ -8,7 +8,7 @@ type ReadString = (start: number, length: number) => string;
 export const convertProgram = (buffer: ArrayBuffer, readString: ReadString): InternalProgramNode =>
 	convertNode(0, new Uint32Array(buffer), readString);
 
-const convertNode = (position: number, buffer: Uint32Array, readString: ReadString): any => {
+function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
 	const nodeType = buffer[position];
 	const converter = nodeConverters[nodeType];
 	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
@@ -17,7 +17,7 @@ const convertNode = (position: number, buffer: Uint32Array, readString: ReadStri
 		throw new Error(`Unknown node type: ${nodeType}`);
 	}
 	return converter(position + 1, buffer, readString);
-};
+}
 
 /* eslint-disable sort-keys */
 const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadString) => any)[] = [

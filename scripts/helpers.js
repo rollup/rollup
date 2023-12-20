@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { ESLint } from 'eslint';
 import { blue, bold, cyan, green, magenta, red, yellow } from './colors.js';
 
 const colors = [cyan, yellow, blue, red, green, magenta];
@@ -72,4 +74,17 @@ function formatCommand(command, parameters) {
 export async function readJson(file) {
 	const content = await readFile(file, 'utf8');
 	return JSON.parse(content);
+}
+
+/**
+ * @param {URL} file
+ * @return {Promise<void>}
+ */
+export async function lintFile(file) {
+	const eslint = new ESLint({ fix: true });
+	const results = await eslint.lintFiles([fileURLToPath(file)]);
+	await ESLint.outputFixes(results);
+	const formatter = await eslint.loadFormatter('stylish');
+	const resultText = formatter.format(results);
+	console.log(resultText);
 }
