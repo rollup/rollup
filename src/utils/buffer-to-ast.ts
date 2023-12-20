@@ -52,7 +52,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'ArrowFunctionExpression',
 			start,
 			end,
-			annotations,
+			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
 			body,
 			parameters
 		};
@@ -83,6 +83,18 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			left,
 			right
+		};
+	},
+	function breakStatement(position, buffer, readString): BreakStatement {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const labelPosition = buffer[position++];
+		const label = labelPosition === 0 ? null : convertNode(labelPosition, buffer, readString);
+		return {
+			type: 'BreakStatement',
+			start,
+			end,
+			label
 		};
 	}
 ];

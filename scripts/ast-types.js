@@ -1,4 +1,4 @@
-/** @typedef {'Node'|'NodeList'|'Annotations'|'FixedString'} FieldType */
+/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'FixedString'} FieldType */
 
 /** @type {Record<string, {fields?: Record<string,FieldType>, flags?: string[], fixed?: Record<string,unknown>}>} */
 export const AST_NODES = {
@@ -34,6 +34,11 @@ export const AST_NODES = {
 		fields: {
 			left: 'Node',
 			right: 'Node'
+		}
+	},
+	BreakStatement: {
+		fields: {
+			label: 'OptionalNode'
 		}
 	}
 };

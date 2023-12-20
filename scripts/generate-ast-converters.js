@@ -8,24 +8,22 @@ import { lintFile } from './helpers.js';
 const bufferToJsAstFile = new URL('../src/utils/buffer-to-ast.ts', import.meta.url);
 
 const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => ({
-	fields: Object.keys(node.fields || {}),
+	fieldNames: Object.keys(node.fields || {}),
 	name
 }));
 
-const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields }) => {
+const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fieldNames }) => {
 	const node = AST_NODES[name];
-	const fieldDefinitions = fields
-		.map(name => getFieldDefinition(name, (node.fields || {})[name]))
-		.join('\n');
+	const { fields = {} } = node;
 	return `function ${firstLetterLowercase(name)} (position, buffer, readString): ${name} {
     const start = buffer[position++];
     const end = buffer[position++];
-    ${fieldDefinitions}
+    ${fieldNames.map(name => getFieldDefinition(name, fields[name])).join('\n')}
     return {
       type: '${name}',
       start,
       end,
-      ${fields.join(',\n')}
+      ${fieldNames.map(name => getFieldProperty(name, fields[name])).join(',\n')}
     };
   }`;
 });
@@ -40,6 +38,9 @@ function getFieldDefinition(fieldName, fieldType) {
 		case 'Node': {
 			return `const ${fieldName} = convertNode(buffer[position++], buffer, readString);`;
 		}
+		case 'OptionalNode': {
+			return `const ${fieldName}Position = buffer[position++];\nconst ${fieldName} = ${fieldName}Position === 0 ? null : convertNode(${fieldName}Position, buffer, readString);`;
+		}
 		case 'NodeList': {
 			return `const ${fieldName} = convertNodeList(buffer[position++], buffer, readString);`;
 		}
@@ -51,6 +52,22 @@ function getFieldDefinition(fieldName, fieldType) {
 		}
 		default: {
 			throw new Error(`Unknown field type: ${fieldType}`);
+		}
+	}
+}
+
+/**
+ * @param {string} fieldName
+ * @param {import('./ast-types.js').FieldType} fieldType
+ * @returns {string}
+ */
+function getFieldProperty(fieldName, fieldType) {
+	switch (fieldType) {
+		case 'Annotations': {
+			return `...(${fieldName}.length > 0 ? { [ANNOTATION_KEY]: ${fieldName} } : {})`;
+		}
+		default: {
+			return fieldName;
 		}
 	}
 }
