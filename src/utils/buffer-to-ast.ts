@@ -7,17 +7,6 @@ export function convertProgram(buffer: ArrayBuffer, readString: ReadString): Pro
 	return convertNode(0, new Uint32Array(buffer), readString);
 }
 
-function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
-	const nodeType = buffer[position];
-	const converter = nodeConverters[nodeType];
-	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
-	if (!converter) {
-		console.trace();
-		throw new Error(`Unknown node type: ${nodeType}`);
-	}
-	return converter(position + 1, buffer, readString);
-}
-
 /* eslint-disable sort-keys */
 const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadString) => any)[] = [
 	function arrayExpression(position, buffer, readString): ArrayExpression {
@@ -98,3 +87,24 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	}
 ];
+
+function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
+	const nodeType = buffer[position];
+	const converter = nodeConverters[nodeType];
+	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
+	if (!converter) {
+		console.trace();
+		throw new Error(`Unknown node type: ${nodeType}`);
+	}
+	return converter(position + 1, buffer, readString);
+}
+
+function convertNodeList(position: number, buffer: Uint32Array, readString: ReadString): any[] {
+	const length = buffer[position++];
+	const list: any[] = [];
+	for (let index = 0; index < length; index++) {
+		const nodePosition = buffer[position++];
+		list.push(nodePosition ? convertNode(nodePosition, buffer, readString) : null);
+	}
+	return list;
+}

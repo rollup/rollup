@@ -1160,7 +1160,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	}
 ];
 
-const convertNodeList = (position: number, buffer: Uint32Array, readString: ReadString): any[] => {
+function convertNodeList(position: number, buffer: Uint32Array, readString: ReadString): any[] {
 	const length = buffer[position++];
 	const list: any[] = [];
 	for (let index = 0; index < length; index++) {
@@ -1168,7 +1168,7 @@ const convertNodeList = (position: number, buffer: Uint32Array, readString: Read
 		list.push(nodePosition ? convertNode(nodePosition, buffer, readString) : null);
 	}
 	return list;
-};
+}
 
 const convertAnnotationList = (position: number, buffer: Uint32Array): RollupAnnotation[] => {
 	const length = buffer[position++];

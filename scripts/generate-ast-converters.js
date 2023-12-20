@@ -4,7 +4,6 @@ import { writeFile } from 'node:fs/promises';
 import { AST_NODES } from './ast-types.js';
 import { lintFile } from './helpers.js';
 
-// TODO Lukas optional Nodes
 const bufferToJsAstFile = new URL('../src/utils/buffer-to-ast.ts', import.meta.url);
 
 const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => ({
@@ -89,6 +88,11 @@ export function convertProgram(buffer: ArrayBuffer, readString: ReadString): Pro
   return convertNode(0, new Uint32Array(buffer), readString);
 }
 
+/* eslint-disable sort-keys */
+const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadString) => any)[] = [
+  ${jsConverters.join(',\n')}
+];
+
 function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
   const nodeType = buffer[position];
   const converter = nodeConverters[nodeType];
@@ -100,10 +104,15 @@ function convertNode(position: number, buffer: Uint32Array, readString: ReadStri
   return converter(position + 1, buffer, readString);
 }
 
-/* eslint-disable sort-keys */
-const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadString) => any)[] = [
-  ${jsConverters.join(',\n')}
-];
+function convertNodeList(position: number, buffer: Uint32Array, readString: ReadString): any[] {
+  const length = buffer[position++];
+  const list: any[] = [];
+  for (let index = 0; index < length; index++) {
+    const nodePosition = buffer[position++];
+    list.push(nodePosition ? convertNode(nodePosition, buffer, readString) : null);
+  }
+  return list;
+}
 `;
 
 await writeFile(bufferToJsAstFile, bufferToJsAst);
