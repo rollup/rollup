@@ -1,6 +1,8 @@
-/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'FixedString'} FieldType */
+/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'InvalidAnnotations'|'FixedString'} FieldType */
 
-/** @type {Record<string, {fields?: Record<string,FieldType>, flags?: string[], fixed?: Record<string,unknown>}>} */
+/** @typedef {{fields?: Record<string,FieldType>, flags?: string[], fixed?: Record<string,unknown>, fieldTypes?: Record<string,string>}} NodeDescription */
+
+/** @type {Record<string, NodeDescription>} */
 export const AST_NODES = {
 	ArrayExpression: {
 		fields: {
@@ -16,7 +18,7 @@ export const AST_NODES = {
 		fields: {
 			annotations: 'Annotations',
 			body: 'Node',
-			parameters: 'NodeList'
+			params: 'NodeList'
 		},
 		fixed: {
 			id: null
@@ -28,6 +30,9 @@ export const AST_NODES = {
 			left: 'Node',
 			operator: 'FixedString',
 			right: 'Node'
+		},
+		fieldTypes: {
+			operator: 'estree.AssignmentOperator'
 		}
 	},
 	AssignmentPattern: {
@@ -39,6 +44,15 @@ export const AST_NODES = {
 	BreakStatement: {
 		fields: {
 			label: 'OptionalNode'
+		}
+	},
+	Program: {
+		fields: {
+			annotations: 'InvalidAnnotations',
+			body: 'NodeList'
+		},
+		fixed: {
+			sourceType: 'module'
 		}
 	}
 };
