@@ -39,6 +39,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function arrowFunctionExpression(position, buffer, readString): ArrowFunctionExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const flags = buffer[position++];
 		const annotations = convertAnnotations(buffer[position++], buffer);
 		const body = convertNode(buffer[position++], buffer, readString);
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
@@ -46,10 +47,13 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'ArrowFunctionExpression',
 			start,
 			end,
-			id: null,
+			async: (flags & 1) === 1,
+			expression: (flags & 2) === 2,
+			generator: (flags & 4) === 4,
 			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
 			body,
-			params: parameters
+			params: parameters,
+			id: null
 		};
 	},
 	function assignmentExpression(position, buffer, readString): AssignmentExpressionNode {
@@ -101,9 +105,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'Program',
 			start,
 			end,
-			sourceType: 'module',
 			...(annotations.length > 0 ? { [INVALID_ANNOTATION_KEY]: annotations } : {}),
-			body
+			body,
+			sourceType: 'module'
 		};
 	}
 ];
@@ -120,11 +124,12 @@ export interface RollupAnnotation {
 type ArrayExpressionNode = estree.ArrayExpression & AstNode;
 type ArrayPatternNode = estree.ArrayPattern & AstNode;
 type ArrowFunctionExpressionNode = estree.ArrowFunctionExpression &
-	AstNode & { [ANNOTATION_KEY]: RollupAnnotation[] } & { id: null };
+	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[] } & { id: null };
 type AssignmentExpressionNode = estree.AssignmentExpression & AstNode;
 type AssignmentPatternNode = estree.AssignmentPattern & AstNode;
 type BreakStatementNode = estree.BreakStatement & AstNode;
-type ProgramNode = estree.Program & AstNode & { sourceType: 'module' };
+type ProgramNode = estree.Program &
+	AstNode & { [INVALID_ANNOTATION_KEY]?: RollupAnnotation[] } & { sourceType: 'module' };
 
 function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
 	const nodeType = buffer[position];

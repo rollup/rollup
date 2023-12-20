@@ -56,3 +56,8 @@ export const AST_NODES = {
 		}
 	}
 };
+
+export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => ({
+	fieldNames: Object.keys(node.fields || {}),
+	name
+}));

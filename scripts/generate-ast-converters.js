@@ -1,26 +1,24 @@
 #!/usr/bin/env node
 
 import { writeFile } from 'node:fs/promises';
-import { AST_NODES } from './ast-types.js';
+import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.js';
 import { lintFile } from './helpers.js';
 
 const bufferToJsAstFile = new URL('../src/utils/buffer-to-ast.ts', import.meta.url);
 
-const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => ({
-	fieldNames: Object.keys(node.fields || {}),
-	name
-}));
-
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fieldNames }) => {
 	const node = AST_NODES[name];
+	const flagsDefinition = node.flags ? `const flags = buffer[position++];\n` : '';
 	const properties = [
-		...getFixedProperties(node),
-		...fieldNames.map(name => getFieldProperty(name, node))
+		...(node.flags?.map((name, index) => `${name}: (flags & ${1 << index}) === ${1 << index}`) ||
+			[]),
+		...fieldNames.map(name => getFieldProperty(name, node)),
+		...getFixedProperties(node)
 	];
 	return `function ${firstLetterLowercase(name)} (position, buffer, readString): ${name}Node {
     const start = buffer[position++];
     const end = buffer[position++];
-    ${fieldNames.map(name => getFieldDefinition(name, node)).join('\n')}
+    ${flagsDefinition}${fieldNames.map(name => getFieldDefinition(name, node)).join('\n')}
     return {
       type: '${name}',
       start,
@@ -93,7 +91,10 @@ const types = astNodeNamesWithFieldOrder.map(({ name }) => {
 	const node = AST_NODES[name];
 	let typeDefinition = `type ${name}Node = estree.${name} & AstNode`;
 	if (Object.values(node.fields || {}).includes('Annotations')) {
-		typeDefinition += ' & { [ANNOTATION_KEY]: RollupAnnotation[] }';
+		typeDefinition += ' & { [ANNOTATION_KEY]?: RollupAnnotation[] }';
+	}
+	if (Object.values(node.fields || {}).includes('InvalidAnnotations')) {
+		typeDefinition += ' & { [INVALID_ANNOTATION_KEY]?: RollupAnnotation[] }';
 	}
 	const fixedProperties = getFixedProperties(node);
 	if (fixedProperties.length > 0) {
