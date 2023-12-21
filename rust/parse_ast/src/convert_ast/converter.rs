@@ -31,6 +31,7 @@ mod analyze_code;
 mod string_constants;
 mod utf16_positions;
 
+mod ast_constants;
 pub mod node_types;
 
 pub struct AstConverter<'a> {

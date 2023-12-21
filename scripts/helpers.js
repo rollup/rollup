@@ -88,3 +88,19 @@ export async function lintFile(file) {
 	const resultText = formatter.format(results);
 	console.log(resultText);
 }
+
+/**
+ * @param {string} string
+ * @returns {string}
+ */
+export function firstLetterLowercase(string) {
+	return string[0].toLowerCase() + string.slice(1);
+}
+
+/**
+ * @param {string} string
+ * @returns {string}
+ */
+export function toScreamingSnakeCase(string) {
+	return string.replace(/(?<!^)([A-Z])/g, '_$1').toUpperCase();
+}
