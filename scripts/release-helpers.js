@@ -11,7 +11,7 @@ export function getFirstChangelogEntry(changelog) {
 	const match = changelog.match(
 		/(?<text>## (?<currentVersion>\d+\.\d+\.\d+(-\d+)?)[\S\s]*?)\n+## (?<previousVersion>\d+\.\d+\.\d+)/
 	);
-	if (!match) {
+	if (!match || !match.groups || typeof match.index !== 'number') {
 		throw new Error('Could not detect any changelog entry.');
 	}
 	const {
@@ -22,12 +22,20 @@ export function getFirstChangelogEntry(changelog) {
 }
 
 /**
+ * @typedef {object} IncludedPR
+ * @property {string} author
+ * @property {number[]} closed - which PRs are closed by this
+ * @property {number} pr
+ * @property {string} text
+ */
+
+/**
  * @param {string} fromVersion
  * @param {string} toVersion
- * @param repo
+ * @param {import('github-api').Repo} repo
  * @param {string|null} currentBranch We only have a branch when locally prepare a release, otherwise we use the sha to find the PR
  * @param {boolean} isPreRelease
- * @returns {Promise<{ author: string, closed: string[], pr: string, text: string }[]>}
+ * @returns {Promise<IncludedPR[]>}
  */
 export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch, isPreRelease) {
 	const [commits, commitSha] = await Promise.all([
@@ -69,7 +77,7 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[ds]?) #(\d+)/g;
 			const closed = [];
 			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
-				closed.push(match[4]);
+				closed.push(Number(match[4]));
 			}
 			return {
 				author: data.user.login,
@@ -81,13 +89,16 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 	);
 }
 
+/**
+ * @return {Promise<GitHub>}
+ */
 export async function getGithubApi() {
 	const GITHUB_TOKEN = '.github_token';
 	try {
 		const token = (await readFile(GITHUB_TOKEN, 'utf8')).trim();
 		return new GitHub({ token });
 	} catch (error) {
-		if (error.code === 'ENOENT') {
+		if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
 			console.error(
 				`Could not find GitHub token file. Please create "${GITHUB_TOKEN}" containing a token with the following permissions:
 - public_repo`
@@ -99,6 +110,10 @@ export async function getGithubApi() {
 	}
 }
 
+/**
+ * @param {string} version
+ * @return {string}
+ */
 export function getGitTag(version) {
 	return `v${version}`;
 }

@@ -24,9 +24,13 @@ rmSync(TARGET_DIR, {
 	recursive: true
 });
 
-const [, repo, , branch] = VALID_REPO.exec(repoWithBranch);
+const repoWithBranchMatch = VALID_REPO.exec(repoWithBranch);
+if (!repoWithBranchMatch) {
+	throw new Error('Could not match repository and branch.');
+}
+const [, repo, , branch] = repoWithBranchMatch;
 
-const gitArguments = ['clone', '--depth', 1, '--progress'];
+const gitArguments = ['clone', '--depth', '1', '--progress'];
 if (branch) {
 	console.error(`Cloning branch "${branch}" of "${repo}"...`);
 	gitArguments.push('--branch', branch);

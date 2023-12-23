@@ -5,24 +5,32 @@ import { blue, bold, cyan, green, magenta, red, yellow } from './colors.js';
 const colors = [cyan, yellow, blue, red, green, magenta];
 let nextColorIndex = 0;
 
+/**
+ * @param {string} command
+ * @param {string[]} parameters
+ * @param {Parameters<typeof spawn>[2]=} options
+ * @return {Promise<void>}
+ */
 export function runWithEcho(command, parameters, options) {
 	const color = colors[nextColorIndex];
 	nextColorIndex = (nextColorIndex + 1) % colors.length;
-	return new Promise((resolve, reject) => {
-		const cmdString = formatCommand(command, parameters);
-		console.error(bold(`\n${color`Run>`} ${cmdString}`));
+	return /** @type {Promise<void>} */ (
+		new Promise((resolve, reject) => {
+			const cmdString = formatCommand(command, parameters);
+			console.error(bold(`\n${color('Run>')} ${cmdString}`));
 
-		const childProcess = spawn(command, parameters, { stdio: 'inherit', ...options });
+			const childProcess = spawn(command, parameters, { stdio: 'inherit', ...options });
 
-		childProcess.on('close', code => {
-			if (code) {
-				reject(new Error(`"${cmdString}" exited with code ${code}.`));
-			} else {
-				console.error(bold(`${color`Finished>`} ${cmdString}\n`));
-				resolve();
-			}
-		});
-	});
+			childProcess.on('close', code => {
+				if (code) {
+					reject(new Error(`"${cmdString}" exited with code ${code}.`));
+				} else {
+					console.error(bold(`${color('Finished>')} ${cmdString}\n`));
+					resolve();
+				}
+			});
+		})
+	);
 }
 
 /**
@@ -48,6 +56,11 @@ export function runAndGetStdout(command, parameters) {
 	});
 }
 
+/**
+ * @param {string} command
+ * @param {string[]} parameters
+ * @return {string}
+ */
 function formatCommand(command, parameters) {
 	return [command, ...parameters].join(' ');
 }

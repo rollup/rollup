@@ -11,6 +11,14 @@ import { loadConfigFile } from '../dist/loadConfigFile.js';
 import { rollup } from '../dist/rollup.js';
 import { findConfigFileName } from './find-config.js';
 
+/**
+ * @typedef {Record<string,{memory:number,time:number}>} PersistedTimings
+ */
+
+/**
+ * @typedef {Record<string, [number, number, number][]>} AccumulatedTimings
+ */
+
 const initialDirectory = cwd();
 const targetDirectory = fileURLToPath(new URL('../perf', import.meta.url).href);
 const perfFile = fileURLToPath(new URL('../perf/rollup.perf.json', import.meta.url).href);
@@ -51,6 +59,12 @@ console.info(
 
 await calculatePrintAndPersistTimings(configs.options[0], await getExistingTimings());
 
+/**
+ * @param {number[]} times
+ * @param {number} runs
+ * @param {number} discarded
+ * @return {number}
+ */
 function getSingleAverage(times, runs, discarded) {
 	const actualDiscarded = Math.min(discarded, runs - 1);
 	return (
@@ -63,7 +77,16 @@ function getSingleAverage(times, runs, discarded) {
 	);
 }
 
+/**
+ * @param {AccumulatedTimings} accumulatedMeasurements
+ * @param {number} runs
+ * @param {number} discarded
+ * @return {PersistedTimings}
+ */
 function getAverage(accumulatedMeasurements, runs, discarded) {
+	/**
+	 * @type {PersistedTimings}
+	 */
 	const average = {};
 	for (const label of Object.keys(accumulatedMeasurements)) {
 		average[label] = {
@@ -82,50 +105,80 @@ function getAverage(accumulatedMeasurements, runs, discarded) {
 	return average;
 }
 
+/**
+ * @param {import('rollup').MergedRollupOptions} config
+ * @param {PersistedTimings} existingTimings
+ * @return {Promise<void>}
+ */
 async function calculatePrintAndPersistTimings(config, existingTimings) {
-	const timings = await buildAndGetTimings(config);
-	for (const label of Object.keys(timings)) {
-		timings[label] = [timings[label]];
+	const serializedTimings = await buildAndGetTimings(config);
+	/**
+	 * @type {Record<string, [number, number, number][]>}
+	 */
+	const accumulatedTimings = {};
+	for (const label of Object.keys(serializedTimings)) {
+		accumulatedTimings[label] = [serializedTimings[label]];
 	}
 	for (let currentRun = 1; currentRun < numberOfRunsToAverage; currentRun++) {
 		const numberOfLinesToClear = printMeasurements(
-			getAverage(timings, currentRun, numberOfDiscardedResults),
+			getAverage(accumulatedTimings, currentRun, numberOfDiscardedResults),
 			existingTimings,
 			/^#/
 		);
 		console.info(`Completed run ${currentRun}.`);
 		const currentTimings = await buildAndGetTimings(config);
 		clearLines(numberOfLinesToClear);
-		for (const label of Object.keys(timings)) {
+		for (const label of Object.keys(accumulatedTimings)) {
 			if (currentTimings.hasOwnProperty(label)) {
-				timings[label].push(currentTimings[label]);
+				accumulatedTimings[label].push(currentTimings[label]);
 			} else {
-				delete timings[label];
+				delete accumulatedTimings[label];
 			}
 		}
 	}
-	const averageTimings = getAverage(timings, numberOfRunsToAverage, numberOfDiscardedResults);
+	const averageTimings = getAverage(
+		accumulatedTimings,
+		numberOfRunsToAverage,
+		numberOfDiscardedResults
+	);
 	printMeasurements(averageTimings, existingTimings);
-	if (Object.keys(existingTimings).length === 0) persistTimings(averageTimings);
+	if (Object.keys(existingTimings).length === 0) {
+		persistTimings(averageTimings);
+	}
 }
 
+/**
+ * @param {import('rollup').MergedRollupOptions} config
+ * @return {Promise<import('rollup').SerializedTimings>}
+ */
 async function buildAndGetTimings(config) {
 	config.perf = true;
-	if (Array.isArray(config.output)) {
-		config.output = config.output[0];
-	}
+	const output = Array.isArray(config.output) ? config.output[0] : config.output;
+	// @ts-expect-error garbage collection may not be enabled
 	gc();
 	chdir(targetDirectory);
 	const bundle = await rollup(config);
 	chdir(initialDirectory);
-	await bundle.generate(config.output);
+	await bundle.generate(output);
+	if (!bundle.getTimings) {
+		throw new Error('Timings not found in the bundle.');
+	}
 	return bundle.getTimings();
 }
 
+/**
+ * @param {PersistedTimings} average
+ * @param {PersistedTimings} existingAverage
+ * @param {RegExp} filter
+ * @return {number}
+ */
 function printMeasurements(average, existingAverage, filter = /.*/) {
 	const printedLabels = Object.keys(average).filter(label => filter.test(label));
 	console.info('');
 	for (const label of printedLabels) {
+		/**
+		 * @type {function(string): string}
+		 */
 		let color = identity;
 		if (label[0] === '#') {
 			color = bold;
@@ -148,10 +201,16 @@ function printMeasurements(average, existingAverage, filter = /.*/) {
 	return printedLabels.length + 2;
 }
 
+/**
+ * @param {number} numberOfLines
+ */
 function clearLines(numberOfLines) {
 	console.info('\u001B[A' + '\u001B[2K\u001B[A'.repeat(numberOfLines));
 }
 
+/**
+ * @return {PersistedTimings}
+ */
 function getExistingTimings() {
 	try {
 		const timings = JSON.parse(readFileSync(perfFile, 'utf8'));
@@ -164,6 +223,9 @@ function getExistingTimings() {
 	}
 }
 
+/**
+ * @param {PersistedTimings} timings
+ */
 function persistTimings(timings) {
 	try {
 		writeFileSync(perfFile, JSON.stringify(timings, null, 2), 'utf8');
@@ -174,7 +236,15 @@ function persistTimings(timings) {
 	}
 }
 
+/**
+ * @param {number} currentTime
+ * @param {number} persistedTime
+ * @return {string}
+ */
 function getFormattedTime(currentTime, persistedTime = currentTime) {
+	/**
+	 * @type {function(string): string}
+	 */
 	let color = identity,
 		formattedTime = `${currentTime.toFixed(0)}ms`;
 	const absoluteDeviation = Math.abs(currentTime - persistedTime);
@@ -191,7 +261,15 @@ function getFormattedTime(currentTime, persistedTime = currentTime) {
 	return color(formattedTime);
 }
 
+/**
+ * @param {number} currentMemory
+ * @param {number} persistedMemory
+ * @return {string}
+ */
 function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
+	/**
+	 * @type {function(string): string}
+	 */
 	let color = identity,
 		formattedMemory = prettyBytes(currentMemory);
 	const absoluteDeviation = Math.abs(currentMemory - persistedMemory);
@@ -204,6 +282,11 @@ function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
 	return color(formattedMemory);
 }
 
+/**
+ * @template T
+ * @param {T} x
+ * @returns {T}
+ */
 function identity(x) {
 	return x;
 }

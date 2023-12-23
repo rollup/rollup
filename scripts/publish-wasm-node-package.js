@@ -11,8 +11,12 @@ const WASM_NODE_PACKAGE_INFO = {
 const COPIED_FILES_OR_DIRS = ['LICENSE.md', 'dist'];
 const PACKAGE_DIR = fileURLToPath(new URL('../wasm-node-package', import.meta.url));
 
-function getOutputPath(...arguments_) {
-	return resolve(PACKAGE_DIR, ...arguments_);
+/**
+ * @param {string[]} pathSegments
+ * @return {string}
+ */
+function getOutputPath(...pathSegments) {
+	return resolve(PACKAGE_DIR, ...pathSegments);
 }
 
 export default async function publishWasmNodePackage() {

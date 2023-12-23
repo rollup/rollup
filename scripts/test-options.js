@@ -78,10 +78,14 @@ const helpOptionLines = splitHelpText.filter(line => line.startsWith('-'));
 const cliFlagsText = commandReferenceText
 	.split('\n## ')
 	.find(text => text.startsWith('Command line flags'));
-const optionListLines = cliFlagsText
-	.match(/```\n([\S\s]*?)\n```/)[1]
-	.split('\n')
-	.filter(line => line.startsWith('-'));
+if (!cliFlagsText) {
+	throw new Error('Could not find "Command line flags" section.');
+}
+const cliMarkdownSection = cliFlagsText.match(/```\n([\S\s]*?)\n```/);
+if (!cliMarkdownSection) {
+	throw new Error('Could not find markdown section in "Command line flags" section.');
+}
+const optionListLines = cliMarkdownSection[1].split('\n').filter(line => line.startsWith('-'));
 
 for (const [index, line] of helpOptionLines.entries()) {
 	const optionListLine = optionListLines[index];

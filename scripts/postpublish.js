@@ -62,6 +62,11 @@ if (!isPreRelease) {
 	await runWithEcho('git', ['push', '--force', 'origin', DOCUMENTATION_BRANCH]);
 }
 
+/**
+ * @param {string} changelog
+ * @param {string} tag
+ * @return {Promise<void>}
+ */
 function createReleaseNotes(changelog, tag) {
 	return repo.createRelease({
 		body: changelog,
@@ -70,12 +75,24 @@ function createReleaseNotes(changelog, tag) {
 	});
 }
 
+/**
+ * @param {import('./release-helpers.js').IncludedPR[]} includedPRs
+ * @param {import('github-api').Issues} issues
+ * @param {string} version
+ * @return {Promise<void>}
+ */
 async function postReleaseComments(includedPRs, issues, version) {
 	const installNote = semverPreRelease(version)
 		? `Note that this is a pre-release, so to test it, you need to install Rollup via \`npm install rollup@${version}\` or \`npm install rollup@beta\`. It will likely become part of a regular release later.`
 		: 'You can test it via `npm install rollup`.';
 
 	let caughtError = null;
+
+	/**
+	 * @param {number} issueNumber
+	 * @param {string} comment
+	 * @return {Promise<unknown>}
+	 */
 	const addComment = (issueNumber, comment) =>
 		// Add a small timeout to avoid rate limiting issues
 		new Promise(resolve => setTimeout(resolve, 500)).then(() =>
