@@ -125,6 +125,7 @@
     "@rollup/plugin-typescript": "11.1.5",
     "@rollup/pluginutils": "^5.1.0",
     "@types/estree": "1.0.5",
+    "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.0.0",
     "@types/yargs-parser": "^21.0.3",
