@@ -88,11 +88,12 @@ export function getExportBlock(
 		const rhs = local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
-			exportBlock += exported === '__proto__'
-				? `Object.defineProperty(exports,${_}"__proto__",${_}{${n}` +
-					`${t}enumerable:${_}true,${n}` +
-					`${t}value:${_}${rhs}${n}});`
-				: `${lhs}${_}=${_}${rhs};`;
+			exportBlock +=
+				exported === '__proto__'
+					? `Object.defineProperty(exports,${_}"__proto__",${_}{${n}` +
+						`${t}enumerable:${_}true,${n}` +
+						`${t}value:${_}${rhs}${n}});`
+					: `${lhs}${_}=${_}${rhs};`;
 		}
 	}
 
