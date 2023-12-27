@@ -146,6 +146,10 @@ export default class NamespaceVariable extends Variable {
 					];
 				}
 
+				if (name === '__proto__') {
+					return [null, `["__proto__"]:${_}${variable.getName(getPropertyAccess)}`];
+				}
+
 				return [name, variable.getName(getPropertyAccess)];
 			});
 		members.unshift([null, `__proto__:${_}null`]);
