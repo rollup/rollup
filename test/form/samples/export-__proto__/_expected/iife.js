@@ -7,7 +7,7 @@ var bundle = (function (exports, x$1) {
 		__proto__: null,
 		["__proto__"]: __proto__
 	});
-	
+
 	Object.defineProperty(exports, "__proto__", {
 		enumerable: true,
 		value: __proto__

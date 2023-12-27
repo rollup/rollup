@@ -6,7 +6,7 @@ define(['exports', 'x'], (function (exports, x$1) { 'use strict';
 		__proto__: null,
 		["__proto__"]: __proto__
 	});
-	
+
 	Object.defineProperty(exports, "__proto__", {
 		enumerable: true,
 		value: __proto__

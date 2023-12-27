@@ -1,4 +1,4 @@
-System.register(['x'], (function (exports) {
+System.register('bundle', ['x'], (function (exports) {
 	'use strict';
 	var _starExcludes = {
 		__proto__: 1,
