@@ -1,0 +1,4 @@
+const main = () => {
+};
+
+export { main };
