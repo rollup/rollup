@@ -116,7 +116,9 @@ export function getGenerateCodeSnippets({
 					const keyInObject = stringifyObjectKeyIfNeeded(key);
 					return key === value && objectShorthand && key === keyInObject
 						? prefix + key
-						: `${prefix}${keyInObject}:${_}${value}`;
+						: `${prefix}${
+								keyInObject === '__proto__' ? '["__proto__"]' : keyInObject
+							}:${_}${value}`;
 				})
 				.join(`,`)}${
 				fields.length === 0 ? '' : lineBreakIndent ? `${n}${lineBreakIndent.base}` : _

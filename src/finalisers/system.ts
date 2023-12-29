@@ -128,7 +128,10 @@ function analyzeDependencies(
 				}
 			}
 			if (reexportedNames.length > 1 || hasStarReexport) {
-				const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
+				const exportMapping = getObject(
+					[[null, `__proto__:${_}null`], ...reexportedNames],
+					{ lineBreakIndent: null }
+				);
 				if (hasStarReexport) {
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
@@ -145,7 +148,7 @@ function analyzeDependencies(
 				}
 			} else {
 				const [key, value] = reexportedNames[0];
-				setter.push(`exports('${key}',${_}${value});`);
+				setter.push(`exports(${JSON.stringify(key)},${_}${value});`);
 			}
 		}
 		setters.push(setter.join(`${n}${t}${t}${t}`));
