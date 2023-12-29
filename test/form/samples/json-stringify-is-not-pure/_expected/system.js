@@ -3,7 +3,7 @@ System.register('myBundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			var main = exports('default', (input) => {
+			var main = exports("default", (input) => {
 				try {
 					JSON.stringify(input);
 					return true;

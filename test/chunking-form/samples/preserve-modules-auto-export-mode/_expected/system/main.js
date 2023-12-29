@@ -4,7 +4,7 @@ System.register(['./default.js', './named.js'], (function (exports, module) {
 	return {
 		setters: [function (module) {
 			foo = module.default;
-			exports('default', module.default);
+			exports("default", module.default);
 		}, function (module) {
 			value = module.value;
 		}],

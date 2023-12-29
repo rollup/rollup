@@ -3,7 +3,7 @@ System.register('FooBar', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			exports('doThings', doThings);
+			exports("doThings", doThings);
 
 			function doThings() {
 				console.log( 'doing things...' );

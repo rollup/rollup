@@ -11,7 +11,7 @@ System.register([], (function (exports) {
 
 			console.log(_missingExportShim$1);
 
-			exports('missing2', _missingExportShim);
+			exports("missing2", _missingExportShim);
 
 		})
 	};

@@ -4,7 +4,7 @@ System.register(['./main1.js', './generated-dep2.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			value1 = module.value1;
-			exports('value1', module.value1);
+			exports("value1", module.value1);
 		}, null],
 		execute: (function () {
 

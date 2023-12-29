@@ -7,7 +7,7 @@ System.register(['../lib/lib2.js'], (function (exports) {
     }],
     execute: (function () {
 
-      exports('fn', fn);
+      exports("fn", fn);
 
       function fn () {
         fn$1();

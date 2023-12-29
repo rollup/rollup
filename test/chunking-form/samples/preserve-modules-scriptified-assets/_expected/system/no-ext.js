@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			var noExt = exports('default', "COULDN'T TRANSFORM");
+			var noExt = exports("default", "COULDN'T TRANSFORM");
 
 		})
 	};

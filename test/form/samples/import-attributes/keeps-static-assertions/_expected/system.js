@@ -12,7 +12,7 @@ System.register('bundle', ['a', 'b', 'c', 'd', 'unresolved'], (function (exports
 		}, function (module) {
 			b = module;
 		}, function (module) {
-			exports('c', module.c);
+			exports("c", module.c);
 		}, function (module) {
 			var setter = { __proto__: null };
 			for (var name in module) {

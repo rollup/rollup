@@ -8,7 +8,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports, module
 	};
 	return {
 		setters: [function (module) {
-			exports('external1', module.external1);
+			exports("external1", module.external1);
 		}, function (module) {
 			var setter = { __proto__: null };
 			for (var name in module) {

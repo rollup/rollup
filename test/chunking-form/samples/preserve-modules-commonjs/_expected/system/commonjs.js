@@ -18,7 +18,7 @@ System.register(['./_virtual/_commonjsHelpers.js', 'external', './other.js', './
 
 			var commonjs = 42;
 
-			var value$1 = exports('default', /*@__PURE__*/getDefaultExportFromCjs(commonjs));
+			var value$1 = exports("default", /*@__PURE__*/getDefaultExportFromCjs(commonjs));
 
 		})
 	};

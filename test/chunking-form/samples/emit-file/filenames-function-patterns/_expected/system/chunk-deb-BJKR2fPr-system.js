@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			var deb = exports('default', 'string');
+			var deb = exports("default", 'string');
 
 		})
 	};

@@ -3,7 +3,7 @@ System.register([], (function (exports) {
   return {
     execute: (function () {
 
-      exports('f', fn);
+      exports("f", fn);
 
       function fn () {
         console.log('lib1 fn');

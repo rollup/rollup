@@ -4,13 +4,13 @@ System.register(['./generated-main.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			lib = module.l;
-			exports('component', module.c);
+			exports("component", module.c);
 		}],
 		execute: (function () {
 
 
 
-			exports('lib', lib.named.named);
+			exports("lib", lib.named.named);
 
 		})
 	};

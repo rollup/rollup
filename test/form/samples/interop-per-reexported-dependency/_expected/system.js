@@ -6,7 +6,7 @@ System.register('bundle', ['external-auto', 'external-default', 'external-defaul
 		}, function (module) {
 			exports({ __proto__: null, barDefault: module.barDefault, externalDefault: module, fooDefault: module.default });
 		}, function (module) {
-			exports('fooDefaultOnly', module.default);
+			exports("fooDefaultOnly", module.default);
 		}, function (module) {
 			exports({ __proto__: null, barEsModule: module.barEsModule, externalEsModule: module, fooEsModule: module.default });
 		}],

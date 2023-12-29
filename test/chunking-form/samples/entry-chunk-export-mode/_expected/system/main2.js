@@ -3,7 +3,7 @@ System.register([], (function (exports) {
   return {
     execute: (function () {
 
-      exports('default', fn);
+      exports("default", fn);
 
       function fn () {
         console.log('main fn');

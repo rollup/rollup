@@ -11,7 +11,7 @@ System.register('myBundle', [], (function (exports) {
 
 			foo();
 
-			var main = exports('default', 42);
+			var main = exports("default", 42);
 
 		})
 	};

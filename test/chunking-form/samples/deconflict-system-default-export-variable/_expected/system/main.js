@@ -7,7 +7,7 @@ System.register(['./other.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var main = exports('default', other + "extended");
+			var main = exports("default", other + "extended");
 
 		})
 	};

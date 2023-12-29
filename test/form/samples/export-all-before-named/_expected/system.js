@@ -15,7 +15,7 @@ System.register('exposedInternals', ['external'], (function (exports) {
 		}],
 		execute: (function () {
 
-			exports('internalFn', internalFn);
+			exports("internalFn", internalFn);
 
 			function internalFn(path) {
 				return path[0] === '.';

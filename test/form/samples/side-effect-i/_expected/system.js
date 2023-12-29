@@ -7,7 +7,7 @@ System.register('myBundle', [], (function (exports) {
 				throw new Error( 'this will be included' );
 			}
 
-			var main = exports('default', 42);
+			var main = exports("default", 42);
 
 		})
 	};

@@ -2,7 +2,7 @@ System.register(['external'], (function (exports) {
 	'use strict';
 	return {
 		setters: [module => {
-			exports('baz', module.baz);
+			exports("baz", module.baz);
 		}],
 		execute: (function () {
 

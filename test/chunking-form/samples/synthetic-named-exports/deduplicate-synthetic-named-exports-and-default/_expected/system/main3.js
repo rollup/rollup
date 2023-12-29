@@ -9,7 +9,7 @@ System.register(['./main1.js'], (function (exports) {
 
 
 
-			exports('foo', lib.foo);
+			exports("foo", lib.foo);
 
 		})
 	};

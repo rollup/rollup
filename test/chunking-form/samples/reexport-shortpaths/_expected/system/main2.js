@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			exports('f', foo);
+			exports("f", foo);
 
 			function foo() {}
 			console.log('dep2');

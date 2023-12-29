@@ -7,7 +7,7 @@ System.register(['./generated-c.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			exports('B', B);
+			exports("B", B);
 
 			function B() {
 				return { icon: c.faPrint };

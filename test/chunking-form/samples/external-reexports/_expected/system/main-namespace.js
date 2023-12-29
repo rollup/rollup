@@ -2,13 +2,13 @@ System.register(['external-all', 'external-namespace', 'external-default-namespa
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('foo', module);
+			exports("foo", module);
 		}, function (module) {
-			exports('bar', module);
+			exports("bar", module);
 		}, function (module) {
-			exports('baz', module);
+			exports("baz", module);
 		}, function (module) {
-			exports('quux', module);
+			exports("quux", module);
 		}],
 		execute: (function () {
 

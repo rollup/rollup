@@ -10,7 +10,7 @@ System.register(['./generated-index.js', './hsl2hsv.js'], (function (exports) {
 		execute: (function () {
 
 			console.log(p);
-			var main = exports('default', new Map(Object.entries(lib)));
+			var main = exports("default", new Map(Object.entries(lib)));
 
 		})
 	};

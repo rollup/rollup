@@ -4,9 +4,14 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.x));
 })(this, (function (exports, x) { 'use strict';
 
-	Object.defineProperty(exports, "'", {
-		enumerable: true,
-		value: x.x
-	});
+	const y = 1;
+
+	function a () {}
+	function b () {}
+
+	exports["'x"] = x.x;
+	exports["'a"] = a;
+	exports["'b"] = b;
+	exports["'y"] = y;
 
 }));

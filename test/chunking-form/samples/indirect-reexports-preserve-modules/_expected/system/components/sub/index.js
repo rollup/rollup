@@ -4,7 +4,7 @@ System.register('bundle', [], (function (exports) {
 		execute: (function () {
 
 			const foo = exports("foo", 'bar');
-			var bar = exports('default', () => {});
+			var bar = exports("default", () => {});
 
 		})
 	};

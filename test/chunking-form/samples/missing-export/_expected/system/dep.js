@@ -3,7 +3,7 @@ System.register([], (function (exports) {
   return {
     execute: (function () {
 
-      exports('x', x);
+      exports("x", x);
 
       var _missingExportShim = void 0;
 
