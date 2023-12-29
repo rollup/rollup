@@ -12,6 +12,7 @@ System.register([], (function (exports) {
       }
 
       exports({
+        __proto__: null,
         default: _missingExportShim,
         missingExport: _missingExportShim,
         missingFn: _missingExportShim

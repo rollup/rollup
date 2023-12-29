@@ -128,10 +128,9 @@ function analyzeDependencies(
 				}
 			}
 			if (reexportedNames.length > 1 || hasStarReexport) {
-				const exportMapping = getObject(
-					[[null, `__proto__:${_}null`], ...reexportedNames],
-					{ lineBreakIndent: null }
-				);
+				const exportMapping = getObject([[null, `__proto__:${_}null`], ...reexportedNames], {
+					lineBreakIndent: null
+				});
 				if (hasStarReexport) {
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });

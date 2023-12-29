@@ -4,7 +4,7 @@ System.register('bundle', ['external', 'externalDefaultOnly', 'external2'], (fun
 	return {
 		setters: [function (module) {
 			_function = module.function;
-			exports({ bar: module.function, default: module, void: module.default });
+			exports({ __proto__: null, bar: module.function, default: module, void: module.default });
 		}, function (module) {
 			defaultOnly = module;
 		}, function (module) {

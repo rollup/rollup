@@ -4,6 +4,7 @@ System.register('iife', [], (function (exports) {
     execute: (function () {
 
       exports({
+        __proto__: null,
         updateBar: update$1,
         updateBaz: update,
         updateFoo: update$2

@@ -15,13 +15,13 @@ System.register('bundle', [], (function (exports) {
 			const g = 3, h = 4;
 			console.log(g, h);
 
-			var i, j; exports({ i: i, j: j });
+			var i, j; exports({ __proto__: null, i: i, j: j });
 
-			var k, l; exports({ k: k, l: l });
+			var k, l; exports({ __proto__: null, k: k, l: l });
 
-			const m = 1, n = 2; exports({ m: m, n: n });
+			const m = 1, n = 2; exports({ __proto__: null, m: m, n: n });
 
-			const o = 3, p = 4; exports({ o: o, p: p });
+			const o = 3, p = 4; exports({ __proto__: null, o: o, p: p });
 
 		})
 	};

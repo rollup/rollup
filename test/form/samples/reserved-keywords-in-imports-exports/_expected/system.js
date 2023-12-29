@@ -5,7 +5,7 @@ System.register('reservedKeywords', ['external'], (function (exports) {
 		setters: [function (module) {
 			_finally = module.finally;
 			_catch = module.catch;
-			exports({ const: module.const, in: module.for, return: module.bar, yield: module });
+			exports({ __proto__: null, const: module.const, in: module.for, return: module.bar, yield: module });
 		}],
 		execute: (function () {
 

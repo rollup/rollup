@@ -5,7 +5,7 @@ System.register(['./generated-from-main-1-and-2.js'], (function (exports, module
 		setters: [function (module) {
 			value2 = module.v;
 			value3 = module.a;
-			exports({ value2: module.v, value3: module.a });
+			exports({ __proto__: null, value2: module.v, value3: module.a });
 		}],
 		execute: (function () {
 

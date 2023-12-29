@@ -8,7 +8,7 @@ System.register(['./generated-from-main-1-and-dynamic.js', './generated-from-mai
 		}, function (module) {
 			value2 = module.v;
 			value3 = module.a;
-			exports({ value2: module.v, value3: module.a });
+			exports({ __proto__: null, value2: module.v, value3: module.a });
 		}],
 		execute: (function () {
 

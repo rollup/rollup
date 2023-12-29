@@ -38,6 +38,7 @@ System.register([], (function (exports) {
       console.log(ns);
 
       exports({
+        __proto__: null,
         fn: d.fn,
         stuff: d.stuff
       });

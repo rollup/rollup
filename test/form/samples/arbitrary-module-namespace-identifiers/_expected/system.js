@@ -6,7 +6,7 @@ System.register('bundle', ['external'], (function (exports) {
 			external__foo___ = module["external:\nfoo'\"`"];
 			external = module;
 			external__reExported___ = module["external:\nre-exported'\"`"];
-			exports({ "external:\nnamespace'\"`": module, "external:\nre-exported'\"`": module["external:\nre-exported'\"`"] });
+			exports({ __proto__: null, "external:\nnamespace'\"`": module, "external:\nre-exported'\"`": module["external:\nre-exported'\"`"] });
 		}],
 		execute: (function () {
 
@@ -35,7 +35,7 @@ System.register('bundle', ['external'], (function (exports) {
 
 			console.log(external__foo___, main, dep);
 
-			const bar = 42; exports({ bar: bar, "bar:\nfrom main'\"`": bar });
+			const bar = 42; exports({ __proto__: null, bar: bar, "bar:\nfrom main'\"`": bar });
 			const one = exports("1", 43);
 			class C {} exports("class:\nfrom main'\"`", C);
 
