@@ -3,7 +3,7 @@ System.register([], (function (exports) {
   return {
     execute: (function () {
 
-      exports('l', log);
+      exports("l", log);
 
       var dep = exports('d', { x: 42 });
 

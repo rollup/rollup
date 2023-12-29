@@ -2,7 +2,7 @@ System.register(['./generated-main1.js', './generated-small.js'], (function (exp
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('generated', module.g);
+			exports("generated", module.g);
 		}, null],
 		execute: (function () {
 

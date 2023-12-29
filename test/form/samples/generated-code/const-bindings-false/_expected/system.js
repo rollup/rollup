@@ -32,7 +32,7 @@ System.register('bundle', ['external'], (function (exports) {
 			console.log(foo__default, foo$1, other, bar, _missingExportShim);
 			var main = exports('default', 42);
 
-			exports('syntheticMissing', synthetic.syntheticMissing);
+			exports("syntheticMissing", synthetic.syntheticMissing);
 
 		})
 	};

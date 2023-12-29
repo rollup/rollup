@@ -5,7 +5,7 @@ System.register([], (function (exports) {
 
 			var lib = exports('lib', { foo: true, bar: true, baz: true });
 
-			exports('foo', lib.foo);
+			exports("foo", lib.foo);
 
 		})
 	};

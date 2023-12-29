@@ -2,13 +2,13 @@ System.register('myBundle', ['external'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports(''x', module.x);
+			exports("'x", module.x);
 		}],
 		execute: (function () {
 
 			exports({
-				'a: a,
-				'b: b
+				"'a": a,
+				"'b": b
 			});
 
 			function a () {}

@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			exports('getA', getA);
+			exports("getA", getA);
 
 			function getA() {
 				return module.import('./chunks/generated-a.js');

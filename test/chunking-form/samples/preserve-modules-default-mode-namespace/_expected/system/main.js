@@ -4,7 +4,7 @@ System.register(['./lib.js'], (function (exports, module) {
 	return {
 		setters: [function (module) {
 			lib = module;
-			exports('lib', module);
+			exports("lib", module);
 		}],
 		execute: (function () {
 

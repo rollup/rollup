@@ -11,11 +11,11 @@ System.register(['external1', 'external2', 'external3', 'external4', 'external5'
 	};
 	return {
 		setters: [function (module) {
-			exports('namedReexport1', module.namedReexport1);
+			exports("namedReexport1", module.namedReexport1);
 		}, function (module) {
 			exports({ namedReexport2a: module.namedReexport2a, namedReexport2b: module.default });
 		}, function (module) {
-			exports('namespaceReexport3', module);
+			exports("namespaceReexport3", module);
 		}, function (module) {
 			var setter = {};
 			for (var name in module) {

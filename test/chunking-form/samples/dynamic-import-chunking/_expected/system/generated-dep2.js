@@ -7,7 +7,7 @@ System.register(['./generated-main.js'], (function (exports) {
     }],
     execute: (function () {
 
-      exports('mult', mult);
+      exports("mult", mult);
 
       function mult (num) {
         return num + multiplier;

@@ -15,7 +15,7 @@ System.register([], (function (exports) {
 
 			almostUseUnused(false);
 
-			exports('missing1', _missingExportShim);
+			exports("missing1", _missingExportShim);
 
 		})
 	};

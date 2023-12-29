@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			exports('s', showImage);
+			exports("s", showImage);
 
 			var logo = new URL('assets/logo1-BarkEXVd.svg', module.meta.url).href;
 
