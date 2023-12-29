@@ -16,7 +16,8 @@ export function getSystemExportStatement(
 			exportNamesByVariable.get(variable)![0]
 		)},${_}${variable.getName(getPropertyAccess)}${modifier})`;
 	} else {
-		const fields: [key: string, value: string][] = [];
+		const fields: [key: string | null, value: string][] = [];
+		fields.push([null, `__proto__:${_}null`]);
 		for (const variable of exportedVariables) {
 			for (const exportName of exportNamesByVariable.get(variable)!) {
 				fields.push([exportName, variable.getName(getPropertyAccess) + modifier]);
