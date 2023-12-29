@@ -211,8 +211,14 @@ function getExportsBlock(
 	}
 	return (
 		`exports({${n}${t}__proto__:${_}null` +
-		exports.map(({ name, value }) =>
-			`,${n}${t}${name === '__proto__' ? '["__proto__"]' : stringifyObjectKeyIfNeeded(name)}:${_}${value}`).join('') +
+		exports
+			.map(
+				({ name, value }) =>
+					`,${n}${t}${
+						name === '__proto__' ? '["__proto__"]' : stringifyObjectKeyIfNeeded(name)
+					}:${_}${value}`
+			)
+			.join('') +
 		`${n}});${n}${n}`
 	);
 }
