@@ -175,9 +175,14 @@ const getStarExcludesBlock = (
 	{ _, cnst, getObject, n }: GenerateCodeSnippets
 ): string => {
 	if (starExcludes) {
-		const fields :[key: string | null, value: string][] = [...starExcludes].map(property => [property, '1']);
+		const fields :[key: string | null, value: string][] = [...starExcludes].map(property => [
+			property,
+			'1'
+		]);
 		fields.unshift([null, `__proto__:${_}null`]);
-		return `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(fields, { lineBreakIndent: { base: t, t } })};`;
+		return `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(fields, {
+			lineBreakIndent: { base: t, t }
+		})};`;
 	}
 	return '';
 };
