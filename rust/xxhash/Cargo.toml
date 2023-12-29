@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 base64 = '0.21.5'
-xxhash-rust = { version = "0.8.7", features = ["xxh3"] }
+xxhash-rust = { version = "0.8.8", features = ["xxh3"] }
