@@ -175,7 +175,7 @@ const getStarExcludesBlock = (
 	{ _, cnst, getObject, n }: GenerateCodeSnippets
 ): string => {
 	if (starExcludes) {
-		const fields :[key: string | null, value: string][] = [...starExcludes].map(property => [
+		const fields: [key: string | null, value: string][] = [...starExcludes].map(property => [
 			property,
 			'1'
 		]);
