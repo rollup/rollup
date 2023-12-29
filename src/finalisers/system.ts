@@ -2,6 +2,7 @@ import type { Bundle as MagicStringBundle } from 'magic-string';
 import type { ChunkDependency, ChunkExports, ModuleDeclarations } from '../Chunk';
 import type { NormalizedOutputOptions } from '../rollup/types';
 import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import { stringifyObjectKeyIfNeeded } from '../utils/identifierHelpers';
 import { getHelpersBlock } from '../utils/interopHelpers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
 import type { FinaliserOptions } from './index';
@@ -145,7 +146,7 @@ function analyzeDependencies(
 				}
 			} else {
 				const [key, value] = reexportedNames[0];
-				setter.push(`exports('${key}',${_}${value});`);
+				setter.push(`exports(${JSON.stringify(key)},${_}${value});`);
 			}
 		}
 		setters.push(setter.join(`${n}${t}${t}${t}`));
@@ -204,11 +205,13 @@ function getExportsBlock(
 		return '';
 	}
 	if (exports.length === 1) {
-		return `exports('${exports[0].name}',${_}${exports[0].value});${n}${n}`;
+		return `exports(${JSON.stringify(exports[0].name)},${_}${exports[0].value});${n}${n}`;
 	}
 	return (
 		`exports({${n}` +
-		exports.map(({ name, value }) => `${t}${name}:${_}${value}`).join(`,${n}`) +
+		exports
+			.map(({ name, value }) => `${t}${stringifyObjectKeyIfNeeded(name)}:${_}${value}`)
+			.join(`,${n}`) +
 		`${n}});${n}${n}`
 	);
 }
