@@ -9,7 +9,7 @@ System.register('myBundle', ['babel-polyfill', 'other'], (function (exports) {
 
 			x();
 
-			var main = exports('default', new WeakMap());
+			var main = exports("default", new WeakMap());
 
 		})
 	};

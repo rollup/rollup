@@ -7,7 +7,7 @@ System.register(['lib'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var dep = exports('d', 2 * value);
+			var dep = exports("d", 2 * value);
 
 		})
 	};

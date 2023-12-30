@@ -7,7 +7,7 @@ System.register([], (function (exports) {
 			// This should log a global variable
 			console.log(foo);
 
-			exports('foo', dep.foo);
+			exports("foo", dep.foo);
 
 		})
 	};

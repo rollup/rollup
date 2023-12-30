@@ -4,10 +4,10 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 	return {
 		setters: [function (module) {
 			imported1 = module;
-			exports('external1', module);
+			exports("external1", module);
 		}, function (module) {
 			imported2 = module.imported2;
-			exports('external2', module);
+			exports("external2", module);
 		}],
 		execute: (function () {
 

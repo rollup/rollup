@@ -21,7 +21,7 @@ System.register('foo', ['external'], (function (exports) {
 			console.log( a );
 			console.log( b );
 
-			var main = exports('default', 42);
+			var main = exports("default", 42);
 
 			/* this is an outro */
 

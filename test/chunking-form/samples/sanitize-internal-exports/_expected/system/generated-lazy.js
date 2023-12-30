@@ -7,7 +7,7 @@ System.register(['./main.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var lazy = exports('default', () => v1);
+			var lazy = exports("default", () => v1);
 
 		})
 	};

@@ -3,7 +3,7 @@ System.register('foo', [], (function (exports) {
 return {
 execute: (function () {
 
-exports('default', foo);
+exports("default", foo);
 
 function foo () {
 	console.log( 'not indented' );

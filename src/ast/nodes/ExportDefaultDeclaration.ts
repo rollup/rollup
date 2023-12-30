@@ -146,7 +146,9 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${cnst} ${this.variable.getName(getPropertyAccess)} = exports('${systemExportNames[0]}', `
+				`${cnst} ${this.variable.getName(getPropertyAccess)} = exports(${JSON.stringify(
+					systemExportNames[0]
+				)}, `
 			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,

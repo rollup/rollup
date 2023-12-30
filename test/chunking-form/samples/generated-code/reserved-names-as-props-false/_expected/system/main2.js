@@ -3,7 +3,7 @@ System.register('bundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			var main2 = exports('default', 42);
+			var main2 = exports("default", 42);
 
 		})
 	};

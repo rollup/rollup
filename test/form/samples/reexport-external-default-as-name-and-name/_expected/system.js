@@ -4,7 +4,7 @@ System.register('bundle', ['external'], (function (exports) {
 	return {
 		setters: [function (module) {
 			value = module.value;
-			exports('reexported', module.default);
+			exports("reexported", module.default);
 		}],
 		execute: (function () {
 

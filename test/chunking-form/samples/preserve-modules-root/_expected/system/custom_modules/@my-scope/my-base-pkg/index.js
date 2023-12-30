@@ -4,7 +4,7 @@ System.register(['../../../_virtual/index.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			myBasePkg = module.__exports;
-			exports('default', module.__exports);
+			exports("default", module.__exports);
 		}],
 		execute: (function () {
 

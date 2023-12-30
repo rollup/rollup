@@ -15,7 +15,7 @@ System.register(['./_virtual/_commonjsHelpers.js', './custom_modules/@my-scope/m
 				base
 			};
 
-			var underBuild$1 = exports('default', /*@__PURE__*/getDefaultExportFromCjs(underBuild));
+			var underBuild$1 = exports("default", /*@__PURE__*/getDefaultExportFromCjs(underBuild));
 
 		})
 	};

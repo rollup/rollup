@@ -3,7 +3,7 @@ System.register('myBundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			exports('default', x);
+			exports("default", x);
 
 			var augment;
 			augment = y => y.augmented = true;

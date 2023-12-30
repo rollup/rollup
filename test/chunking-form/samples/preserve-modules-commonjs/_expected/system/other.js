@@ -4,7 +4,7 @@ System.register(['./_virtual/other.js'], (function (exports) {
 	return {
 		setters: [function (module) {
 			other = module.__exports;
-			exports('default', module.__exports);
+			exports("default", module.__exports);
 		}],
 		execute: (function () {
 

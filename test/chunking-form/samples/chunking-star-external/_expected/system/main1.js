@@ -14,9 +14,9 @@ System.register(['starexternal1', 'external1', './generated-dep.js', 'starextern
 			}
 			exports(setter);
 		}, function (module) {
-			exports('e', module.e);
+			exports("e", module.e);
 		}, function (module) {
-			exports('dep', module.d);
+			exports("dep", module.d);
 		}, null, null],
 		execute: (function () {
 

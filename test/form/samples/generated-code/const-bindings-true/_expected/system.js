@@ -30,9 +30,9 @@ System.register('bundle', ['external'], (function (exports) {
 			const synthetic = { bar: 'baz' };
 
 			console.log(foo__default, foo$1, other, bar, _missingExportShim);
-			const main = exports('default', 42);
+			const main = exports("default", 42);
 
-			exports('syntheticMissing', synthetic.syntheticMissing);
+			exports("syntheticMissing", synthetic.syntheticMissing);
 
 		})
 	};

@@ -9,7 +9,7 @@ System.register(['./main.js'], (function (exports) {
 
 
 
-			exports('default', main.one.two.three.four);
+			exports("default", main.one.two.three.four);
 
 		})
 	};

@@ -3,7 +3,7 @@ System.register('my.name.spaced.module', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			exports('doThings', doThings);
+			exports("doThings", doThings);
 
 			function doThings() {
 				console.log( 'doing things...' );

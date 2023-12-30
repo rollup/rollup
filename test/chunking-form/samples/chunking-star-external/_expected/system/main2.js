@@ -8,9 +8,9 @@ System.register(['./generated-dep.js', 'external2', 'starexternal2'], (function 
 	};
 	return {
 		setters: [function (module) {
-			exports('dep', module.d);
+			exports("dep", module.d);
 		}, function (module) {
-			exports('e', module.e);
+			exports("e", module.e);
 		}, function (module) {
 			var setter = {};
 			for (var name in module) {

@@ -5,7 +5,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 		setters: [function (module) {
 			foo = module.foo;
 		}, function (module) {
-			exports('default', module.default);
+			exports("default", module.default);
 		}],
 		execute: (function () {
 

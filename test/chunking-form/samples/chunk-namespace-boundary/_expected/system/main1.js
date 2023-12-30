@@ -11,7 +11,7 @@ System.register(['./generated-shared.js'], (function (exports) {
 			commonjsGlobal.fn = d => d + 1;
 			var cjs = commonjsGlobal.fn;
 
-			var main1 = exports('default', shared.map(cjs));
+			var main1 = exports("default", shared.map(cjs));
 
 		})
 	};
