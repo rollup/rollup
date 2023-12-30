@@ -243,7 +243,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return (this.isTDZAccess = true);
 		}
 
-		if (!this.variable.initReached) {
+		// We ignore the case where the module is not yet executed because
+		// moduleSideEffects are false.
+		if (!this.variable.initReached && this.scope.context.module.isExecuted) {
 			// Either a const/let TDZ violation or
 			// var use before declaration was encountered.
 			return (this.isTDZAccess = true);
