@@ -7,6 +7,7 @@ System.register('myBundle', ['external'], (function (exports) {
 		execute: (function () {
 
 			exports({
+				__proto__: null,
 				"'a": a,
 				"'b": b
 			});
