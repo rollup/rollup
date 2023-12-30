@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 4.9.2
+
+_2023-12-30_
+
+### Bug Fixes
+
+- Extend support for arbitrary namespace identifiers in SystemJS (#5321)
+- Do not wrongly flag functions without side effects as side effects if moduleSideEffects is false (#5322)
+
+### Pull Requests
+
+- [#5305](https://github.com/rollup/rollup/pull/5305): Add JSDoc types to internal scripts (@lukastaegert)
+- [#5309](https://github.com/rollup/rollup/pull/5309): chore(deps): update actions/download-artifact action to v4 (@renovate[bot])
+- [#5311](https://github.com/rollup/rollup/pull/5311): chode: add node badge (@btea)
+- [#5312](https://github.com/rollup/rollup/pull/5312): Remove rollup-plugin-thatworks from devDeps (@TrickyPi)
+- [#5318](https://github.com/rollup/rollup/pull/5318): chore(deps): update dependency eslint-plugin-unicorn to v50 (@renovate[bot])
+- [#5319](https://github.com/rollup/rollup/pull/5319): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5321](https://github.com/rollup/rollup/pull/5321): Handle arbitrary namespace identifiers in some SystemJS scenarios (@lukastaegert)
+- [#5322](https://github.com/rollup/rollup/pull/5322): Do not handle declarations in modules without side effects as TDZ (@lukastaegert)
+
 ## 4.9.1
 
 _2023-12-17_
