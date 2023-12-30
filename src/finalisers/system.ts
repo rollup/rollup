@@ -217,7 +217,9 @@ function getExportsBlock(
 	}
 	return (
 		`exports({${n}` +
-		exports.map(({ name, value }) => `${t}${stringifyObjectKeyIfNeeded(name)}:${_}${value}`).join(`,${n}`) +
+		exports
+			.map(({ name, value }) => `${t}${stringifyObjectKeyIfNeeded(name)}:${_}${value}`)
+			.join(`,${n}`) +
 		`${n}});${n}${n}`
 	);
 }
