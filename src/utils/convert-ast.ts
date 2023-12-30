@@ -1,5 +1,11 @@
 import type * as estree from 'estree';
-import type { AstNode } from '../rollup/types';
+import type {
+	AnnotationType,
+	AstNode,
+	INVALID_ANNOTATION_KEY_TYPE,
+	ProgramAst,
+	RollupAnnotation
+} from '../rollup/types';
 import { FIXED_STRINGS } from './convert-ast-strings';
 import { error, logParseError } from './logs';
 
@@ -1229,15 +1235,7 @@ interface ImportExpression extends estree.ImportExpression {
 }
 
 export const ANNOTATION_KEY = '_rollupAnnotations';
-export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
-
-export type AnnotationType = 'pure' | 'noSideEffects';
-
-export interface RollupAnnotation {
-	start: number;
-	end: number;
-	type: AnnotationType;
-}
+export const INVALID_ANNOTATION_KEY: INVALID_ANNOTATION_KEY_TYPE = '_rollupRemoved';
 
 interface CallExpression extends estree.SimpleCallExpression {
 	[ANNOTATION_KEY]?: RollupAnnotation[];
@@ -1258,8 +1256,3 @@ interface FunctionDeclaration extends estree.FunctionDeclaration {
 interface ArrowFunctionExpression extends estree.ArrowFunctionExpression {
 	[ANNOTATION_KEY]?: RollupAnnotation[];
 }
-
-export type ProgramAst = estree.Program &
-	AstNode & {
-		[INVALID_ANNOTATION_KEY]?: RollupAnnotation[];
-	};

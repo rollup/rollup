@@ -1,3 +1,5 @@
+import type { Program } from 'estree';
+
 export const VERSION: string;
 
 // utils
@@ -98,13 +100,13 @@ interface ModuleOptions {
 }
 
 export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
-	ast?: AstNode;
+	ast?: ProgramAst;
 	code: string;
 	map?: SourceMapInput;
 }
 
 export interface TransformModuleJSON {
-	ast?: AstNode;
+	ast?: ProgramAst;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -115,7 +117,7 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
-	ast: AstNode;
+	ast: ProgramAst;
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;
@@ -171,7 +173,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 interface ModuleInfo extends ModuleOptions {
-	ast: AstNode | null;
+	ast: ProgramAst | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
@@ -204,7 +206,7 @@ type LoggingFunctionWithPosition = (
 export type ParseAst = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean }
-) => AstNode;
+) => ProgramAst;
 
 // declare AbortSignal here for environments without DOM lib or @types/node
 declare global {
@@ -214,7 +216,7 @@ declare global {
 export type ParseAstAsync = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean; signal?: AbortSignal }
-) => Promise<AstNode>;
+) => Promise<ProgramAst>;
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
@@ -280,7 +282,7 @@ export type ResolveIdHook = (
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
 	options: {
-		ast: AstNode;
+		ast: ProgramAst;
 		code: string;
 		id: string;
 		meta: CustomPluginOptions;
@@ -976,6 +978,20 @@ interface AstNode {
 	start: number;
 	type: string;
 }
+
+type AnnotationType = 'pure' | 'noSideEffects';
+
+interface RollupAnnotation {
+	start: number;
+	end: number;
+	type: AnnotationType;
+}
+
+type INVALID_ANNOTATION_KEY_TYPE = '_rollupRemoved';
+
+type ProgramAst = Program &
+	AstNode &
+	Partial<Record<INVALID_ANNOTATION_KEY_TYPE, RollupAnnotation[]>>;
 
 export function defineConfig(options: RollupOptions): RollupOptions;
 export function defineConfig(options: RollupOptions[]): RollupOptions[];

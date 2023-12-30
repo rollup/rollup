@@ -39,6 +39,7 @@ import type {
 	NormalizedInputOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
+	ProgramAst,
 	ResolvedId,
 	ResolvedIdMap,
 	RollupError,
@@ -47,7 +48,6 @@ import type {
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
-import type { ProgramAst } from './utils/convert-ast';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
