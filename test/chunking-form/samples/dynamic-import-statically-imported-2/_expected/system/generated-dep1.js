@@ -4,7 +4,6 @@ System.register([], (function (exports) {
 		execute: (function () {
 
 			exports({
-				__proto__: null,
 				b: bar,
 				f: foo
 			});

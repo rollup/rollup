@@ -33,31 +33,31 @@ System.register([], (function (exports) {
 
 			// ---
 			// Multiple export names
-			let bar = 1; exports({ __proto__: null, bar: bar, bar2: bar });
+			let bar = 1; exports({ bar: bar, bar2: bar });
 
 			// Assignment
 			// bar = 2
-			bar = 2, exports({ __proto__: null, bar: bar, bar2: bar }), bar;
-			console.log((bar = 2, exports({ __proto__: null, bar: bar, bar2: bar }), bar));
+			bar = 2, exports({ bar: bar, bar2: bar }), bar;
+			console.log((bar = 2, exports({ bar: bar, bar2: bar }), bar));
 
 			// bar += 2
-			bar += 2, exports({ __proto__: null, bar: bar, bar2: bar }), bar;
-			console.log((bar += 2, exports({ __proto__: null, bar: bar, bar2: bar }), bar));
+			bar += 2, exports({ bar: bar, bar2: bar }), bar;
+			console.log((bar += 2, exports({ bar: bar, bar2: bar }), bar));
 
 			// { bar } = obj
-			(function (v) { return exports({ __proto__: null, bar: bar, bar2: bar }), v; }({ bar } = obj));
-			console.log(function (v) { return exports({ __proto__: null, bar: bar, bar2: bar }), v; }({ bar } = obj));
+			(function (v) { return exports({ bar: bar, bar2: bar }), v; }({ bar } = obj));
+			console.log(function (v) { return exports({ bar: bar, bar2: bar }), v; }({ bar } = obj));
 
 			// Update
 			// bar++
-			exports({ __proto__: null, bar: bar + 1, bar2: bar + 1 }), bar++;
-			console.log((exports({ __proto__: null, bar: bar + 1, bar2: bar + 1 }), bar++));
-			exports({ __proto__: null, bar: bar - 1, bar2: bar - 1 }), bar--;
+			exports({ bar: bar + 1, bar2: bar + 1 }), bar++;
+			console.log((exports({ bar: bar + 1, bar2: bar + 1 }), bar++));
+			exports({ bar: bar - 1, bar2: bar - 1 }), bar--;
 
 			// ++bar
-			++bar, exports({ __proto__: null, bar: bar, bar2: bar }), bar;
-			console.log((++bar, exports({ __proto__: null, bar: bar, bar2: bar }), bar));
-			--bar, exports({ __proto__: null, bar: bar, bar2: bar }), bar;
+			++bar, exports({ bar: bar, bar2: bar }), bar;
+			console.log((++bar, exports({ bar: bar, bar2: bar }), bar));
+			--bar, exports({ bar: bar, bar2: bar }), bar;
 
 		})
 	};

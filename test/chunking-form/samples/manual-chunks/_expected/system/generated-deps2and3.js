@@ -8,7 +8,6 @@ System.register(['./generated-lib1.js'], (function (exports) {
     execute: (function () {
 
       exports({
-        __proto__: null,
         a: fn,
         f: fn$1
       });

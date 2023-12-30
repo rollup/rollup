@@ -29,7 +29,7 @@ export const NUMBER_REGEXP = /^\d+$/;
 
 export function stringifyObjectKeyIfNeeded(key: string) {
 	if (VALID_IDENTIFIER_REGEXP.test(key) || NUMBER_REGEXP.test(key)) {
-		return key;
+		return key === '__proto__' ? '["__proto__"]' : key;
 	}
 	return JSON.stringify(key);
 }

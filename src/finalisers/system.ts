@@ -129,13 +129,12 @@ function analyzeDependencies(
 				}
 			}
 			if (reexportedNames.length > 1 || hasStarReexport) {
-				const exportMapping = getObject([[null, `__proto__:${_}null`], ...reexportedNames], {
-					lineBreakIndent: null
-				});
 				if (hasStarReexport) {
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
 					}
+					reexportedNames.unshift([null, `__proto__:${_}null`]);
+					const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
 					setter.push(
 						`${cnst} setter${_}=${_}${exportMapping};`,
 						`for${_}(${cnst} name in module)${_}{`,
@@ -144,6 +143,7 @@ function analyzeDependencies(
 						'exports(setter);'
 					);
 				} else {
+					const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
 					setter.push(`exports(${exportMapping});`);
 				}
 			} else {
@@ -216,15 +216,8 @@ function getExportsBlock(
 		return `exports(${JSON.stringify(exports[0].name)},${_}${exports[0].value});${n}${n}`;
 	}
 	return (
-		`exports({${n}${t}__proto__:${_}null` +
-		exports
-			.map(
-				({ name, value }) =>
-					`,${n}${t}${
-						name === '__proto__' ? '["__proto__"]' : stringifyObjectKeyIfNeeded(name)
-					}:${_}${value}`
-			)
-			.join('') +
+		`exports({${n}` +
+		exports.map(({ name, value }) => `${t}${stringifyObjectKeyIfNeeded(name)}:${_}${value}`).join(`,${n}`) +
 		`${n}});${n}${n}`
 	);
 }

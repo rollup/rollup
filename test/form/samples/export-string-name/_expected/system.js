@@ -7,7 +7,6 @@ System.register('bundle', ['x'], (function (exports) {
 		execute: (function () {
 
 			exports({
-				__proto__: null,
 				"'a": a,
 				"'b": b
 			});
