@@ -5,7 +5,7 @@ System.register([], (function (exports) {
 
 			const pureFunc = () => console.log('not really pure') || 0;
 
-			var main = exports('default', /*#__PURE__*/pureFunc());
+			var main = exports("default", /*#__PURE__*/pureFunc());
 
 		})
 	};

@@ -15,7 +15,7 @@ System.register(['../_virtual/_commonjsHelpers.js', '../custom_modules/@my-scope
         base2,
       };
 
-      var module$2 = exports('default', /*@__PURE__*/getDefaultExportFromCjs(module$1));
+      var module$2 = exports("default", /*@__PURE__*/getDefaultExportFromCjs(module$1));
 
     })
   };

@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			var separate = exports('default', 'separate');
+			var separate = exports("default", 'separate');
 			const x = exports("x", 2);
 			console.log('separate');
 

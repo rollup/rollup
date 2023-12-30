@@ -3,7 +3,7 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			var lib = exports('lib', {});
+			var lib = exports("lib", {});
 
 			console.log('side-effect', lib);
 

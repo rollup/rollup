@@ -3,7 +3,7 @@ System.register([], (function (exports) {
 	return {
 		execute: (function () {
 
-			var main = exports('default', null);
+			var e = exports("default", 42);
 
 		})
 	};

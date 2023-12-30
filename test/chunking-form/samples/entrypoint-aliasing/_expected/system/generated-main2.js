@@ -5,7 +5,7 @@ System.register([], (function (exports) {
 
       exports("l", log);
 
-      var dep = exports('d', { x: 42 });
+      var dep = exports("d", { x: 42 });
 
       function log (x) {
         if (dep) {

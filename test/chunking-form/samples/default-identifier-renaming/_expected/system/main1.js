@@ -7,7 +7,7 @@ System.register(['./generated-shared.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var main1 = exports('default', data.map(d => d + 1));
+			var main1 = exports("default", data.map(d => d + 1));
 
 		})
 	};

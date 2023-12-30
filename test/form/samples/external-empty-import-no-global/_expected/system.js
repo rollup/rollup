@@ -4,7 +4,7 @@ System.register('myBundle', ['babel-polyfill'], (function (exports) {
 		setters: [null],
 		execute: (function () {
 
-			var main = exports('default', new WeakMap());
+			var main = exports("default", new WeakMap());
 
 		})
 	};

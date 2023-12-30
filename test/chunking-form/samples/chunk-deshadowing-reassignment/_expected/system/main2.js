@@ -9,10 +9,10 @@ System.register(['./main3.js', './main4.js'], (function (exports) {
 		}],
 		execute: (function () {
 
-			var x = exports('x', x$1 + 1);
+			var x = exports("x", x$1 + 1);
 			console.log('shared1');
 
-			var y = exports('y', x$2 + 1);
+			var y = exports("y", x$2 + 1);
 			console.log('shared2');
 
 		})

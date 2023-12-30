@@ -3,7 +3,7 @@ System.register('bundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			var value = exports('default', global);
+			var value = exports("default", global);
 
 			console.log(value);
 
