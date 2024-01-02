@@ -106,7 +106,7 @@ function getAverage(accumulatedMeasurements, runs, discarded) {
 }
 
 /**
- * @param {import('rollup').MergedRollupOptions} config
+ * @param {import('../dist/rollup.js').MergedRollupOptions} config
  * @param {PersistedTimings} existingTimings
  * @return {Promise<void>}
  */
@@ -148,8 +148,8 @@ async function calculatePrintAndPersistTimings(config, existingTimings) {
 }
 
 /**
- * @param {import('rollup').MergedRollupOptions} config
- * @return {Promise<import('rollup').SerializedTimings>}
+ * @param {import('../dist/rollup.js').MergedRollupOptions} config
+ * @return {Promise<import('../dist/rollup.js').SerializedTimings>}
  */
 async function buildAndGetTimings(config) {
 	config.perf = true;
