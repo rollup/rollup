@@ -1,12 +1,12 @@
 import { locate } from 'locate-character';
 import type Module from '../Module';
 import type {
-	AnnotationType,
 	InternalModuleFormat,
 	LogHandler,
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
+import type { AnnotationType } from './convert-ast';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';

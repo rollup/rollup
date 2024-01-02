@@ -1,11 +1,8 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
-import type {
-	AstNode,
-	NormalizedTreeshakingOptions,
-	RollupAnnotation
-} from '../../../rollup/types';
+import type { AstNode, NormalizedTreeshakingOptions } from '../../../rollup/types';
+import type { RollupAnnotation } from '../../../utils/convert-ast';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/convert-ast';
 import { LOGLEVEL_WARN } from '../../../utils/logging';
 import { logInvalidAnnotation } from '../../../utils/logs';

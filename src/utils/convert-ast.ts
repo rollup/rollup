@@ -1,17 +1,11 @@
 import type * as estree from 'estree';
-import type {
-	AnnotationType,
-	AstNode,
-	INVALID_ANNOTATION_KEY_TYPE,
-	ProgramAst,
-	RollupAnnotation
-} from '../rollup/types';
+import type { AstNode, ProgramAst } from '../rollup/types';
 import { FIXED_STRINGS } from './convert-ast-strings';
 import { error, logParseError } from './logs';
 
 type ReadString = (start: number, length: number) => string;
 
-export const convertProgram = (buffer: ArrayBuffer, readString: ReadString): ProgramAst =>
+export const convertProgram = (buffer: ArrayBuffer, readString: ReadString): InternalProgramAst =>
 	convertNode(0, new Uint32Array(buffer), readString);
 
 const convertNode = (position: number, buffer: Uint32Array, readString: ReadString): any => {
@@ -832,7 +826,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// index:53; Program
-	(position, buffer, readString): ProgramAst => {
+	(position, buffer, readString): InternalProgramAst => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const annotations = convertAnnotationList(buffer[position++], buffer);
@@ -1235,7 +1229,15 @@ interface ImportExpression extends estree.ImportExpression {
 }
 
 export const ANNOTATION_KEY = '_rollupAnnotations';
-export const INVALID_ANNOTATION_KEY: INVALID_ANNOTATION_KEY_TYPE = '_rollupRemoved';
+export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
+
+export type AnnotationType = 'pure' | 'noSideEffects';
+
+export interface RollupAnnotation {
+	start: number;
+	end: number;
+	type: AnnotationType;
+}
 
 interface CallExpression extends estree.SimpleCallExpression {
 	[ANNOTATION_KEY]?: RollupAnnotation[];
@@ -1256,3 +1258,7 @@ interface FunctionDeclaration extends estree.FunctionDeclaration {
 interface ArrowFunctionExpression extends estree.ArrowFunctionExpression {
 	[ANNOTATION_KEY]?: RollupAnnotation[];
 }
+
+type InternalProgramAst = ProgramAst & {
+	[INVALID_ANNOTATION_KEY]?: RollupAnnotation[];
+};

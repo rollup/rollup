@@ -979,19 +979,7 @@ interface AstNode {
 	type: string;
 }
 
-type AnnotationType = 'pure' | 'noSideEffects';
-
-interface RollupAnnotation {
-	start: number;
-	end: number;
-	type: AnnotationType;
-}
-
-type INVALID_ANNOTATION_KEY_TYPE = '_rollupRemoved';
-
-type ProgramAst = Program &
-	AstNode &
-	Partial<Record<INVALID_ANNOTATION_KEY_TYPE, RollupAnnotation[]>>;
+type ProgramAst = Program & AstNode;
 
 export function defineConfig(options: RollupOptions): RollupOptions;
 export function defineConfig(options: RollupOptions[]): RollupOptions[];

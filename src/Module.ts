@@ -39,7 +39,6 @@ import type {
 	NormalizedInputOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
-	ProgramAst,
 	ResolvedId,
 	ResolvedIdMap,
 	RollupError,
@@ -1347,17 +1346,17 @@ export default class Module {
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
-	private tryParse(): ProgramAst {
+	private tryParse() {
 		try {
-			return parseAst(this.info.code!) as ProgramAst;
+			return parseAst(this.info.code!);
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
 	}
 
-	private async tryParseAsync(): Promise<ProgramAst> {
+	private async tryParseAsync() {
 		try {
-			return (await parseAstAsync(this.info.code!)) as ProgramAst;
+			return await parseAstAsync(this.info.code!);
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
