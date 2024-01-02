@@ -4,6 +4,7 @@
 import type * as estree from 'estree';
 import type { AstNode } from '../rollup/types';
 import { FIXED_STRINGS } from './convert-ast-strings';
+import { error, logParseError } from './logs';
 
 export const ANNOTATION_KEY = '_rollupAnnotations';
 export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
@@ -14,10 +15,15 @@ export function convertProgram(buffer: ArrayBuffer, readString: ReadString): Pro
 
 /* eslint-disable sort-keys */
 const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadString) => any)[] = [
+	function parseError(position, buffer, readString): never {
+		const pos = buffer[position++];
+		const message = convertString(position, buffer, readString);
+		error(logParseError(message, pos));
+	},
 	function arrayExpression(position, buffer, readString): ArrayExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const elements = convertNodeList(buffer[position++], buffer, readString);
+		const elements = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ArrayExpression',
 			start,
@@ -28,7 +34,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function arrayPattern(position, buffer, readString): ArrayPatternNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const elements = convertNodeList(buffer[position++], buffer, readString);
+		const elements = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ArrayPattern',
 			start,
@@ -42,7 +48,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const annotations = convertAnnotations(buffer[position++], buffer);
 		const body = convertNode(buffer[position++], buffer, readString);
-		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const parameters = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ArrowFunctionExpression',
 			start,
@@ -61,7 +67,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const left = convertNode(buffer[position++], buffer, readString);
 		const operator = FIXED_STRINGS[buffer[position++]] as estree.AssignmentOperator;
-		const right = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'AssignmentExpression',
 			start,
@@ -75,7 +81,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const left = convertNode(buffer[position++], buffer, readString);
-		const right = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'AssignmentPattern',
 			start,
@@ -87,7 +93,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function breakStatement(position, buffer, readString): BreakStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const labelPosition = buffer[position++];
+		const labelPosition = buffer[position];
 		const label = labelPosition === 0 ? null : convertNode(labelPosition, buffer, readString);
 		return {
 			type: 'BreakStatement',
@@ -100,7 +106,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const annotations = convertAnnotations(buffer[position++], buffer);
-		const body = convertNodeList(buffer[position++], buffer, readString);
+		const body = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'Program',
 			start,
@@ -166,4 +172,10 @@ const convertAnnotation = (position: number, buffer: Uint32Array): RollupAnnotat
 	const end = buffer[position++];
 	const type = FIXED_STRINGS[buffer[position]] as AnnotationType;
 	return { end, start, type };
+};
+
+const convertString = (position: number, buffer: Uint32Array, readString: ReadString): string => {
+	const length = buffer[position++];
+	const bytePosition = position << 2;
+	return readString(bytePosition, length);
 };

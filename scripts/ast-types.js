@@ -57,7 +57,16 @@ export const AST_NODES = {
 	}
 };
 
-export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => ({
-	fieldNames: Object.keys(node.fields || {}),
-	name
-}));
+export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => {
+	const fields = node.fields || {};
+	const fieldNames = Object.keys(fields);
+	return {
+		fieldNames,
+		isSimple:
+			fieldNames.every(name => fields[name] !== 'OptionalNode') &&
+			fieldNames.filter(name =>
+				['Node', 'NodeList', 'Annotations', 'InvalidAnnotations'].includes(fields[name])
+			).length <= 1,
+		name
+	};
+});
