@@ -5,10 +5,10 @@ import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
 import type {
-	AstNode,
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
+	ProgramNode,
 	RollupCache,
 	RollupWatcher,
 	SerializablePluginCache,
@@ -52,7 +52,7 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	readonly astLru = flru<AstNode>(5);
+	readonly astLru = flru<ProgramNode>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
 	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
