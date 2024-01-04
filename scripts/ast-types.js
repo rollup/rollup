@@ -1,6 +1,6 @@
-/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'InvalidAnnotations'|'FixedString'} FieldType */
+/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'InvalidAnnotations'|'String'|'FixedString'|'OptionalString'|'Float'} FieldType */
 
-/** @typedef {{fields?: Record<string,FieldType>, flags?: string[], fixed?: Record<string,unknown>, fieldTypes?: Record<string,string>}} NodeDescription */
+/** @typedef {{astType?: string, estreeType?: string, fields?: Record<string,FieldType>, flags?: string[], fixed?: Record<string,unknown>, fieldTypes?: Record<string,string>}} NodeDescription */
 
 /** @type {Record<string, NodeDescription>} */
 export const AST_NODES = {
@@ -46,6 +46,27 @@ export const AST_NODES = {
 			label: 'OptionalNode'
 		}
 	},
+	Directive: {
+		astType: 'ExpressionStatement',
+		estreeType: 'Directive',
+		fields: {
+			directive: 'String',
+			expression: 'Node'
+		}
+	},
+	ExpressionStatement: {
+		fields: {
+			expression: 'Node'
+		}
+	},
+	LiteralNumber: {
+		astType: 'Literal',
+		estreeType: 'Literal',
+		fields: {
+			raw: 'OptionalString',
+			value: 'Float'
+		}
+	},
 	Program: {
 		fields: {
 			annotations: 'InvalidAnnotations',
@@ -63,10 +84,8 @@ export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, 
 	return {
 		fieldNames,
 		isSimple:
-			fieldNames.every(name => fields[name] !== 'OptionalNode') &&
-			fieldNames.filter(name =>
-				['Node', 'NodeList', 'Annotations', 'InvalidAnnotations'].includes(fields[name])
-			).length <= 1,
+			fieldNames.every(name => !['OptionalNode', 'OptionalString'].includes(fields[name])) &&
+			fieldNames.filter(name => !['FixedString', 'Float'].includes(fields[name])).length <= 1,
 		name
 	};
 });

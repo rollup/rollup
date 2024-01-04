@@ -8,7 +8,10 @@ pub const TYPE_ARROW_FUNCTION_EXPRESSION_FLAGS: [u8; 4] = 3u32.to_ne_bytes();
 pub const TYPE_ASSIGNMENT_EXPRESSION: [u8; 4] = 4u32.to_ne_bytes();
 pub const TYPE_ASSIGNMENT_PATTERN: [u8; 4] = 5u32.to_ne_bytes();
 pub const TYPE_BREAK_STATEMENT: [u8; 4] = 6u32.to_ne_bytes();
-pub const TYPE_PROGRAM: [u8; 4] = 7u32.to_ne_bytes();
+pub const TYPE_DIRECTIVE: [u8; 4] = 7u32.to_ne_bytes();
+pub const TYPE_EXPRESSION_STATEMENT_SIMPLE: [u8; 4] = 8u32.to_ne_bytes();
+pub const TYPE_LITERAL_NUMBER: [u8; 4] = 9u32.to_ne_bytes();
+pub const TYPE_PROGRAM: [u8; 4] = 10u32.to_ne_bytes();
 
 pub const ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES: usize = 20;
 pub const ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG: u32 = 1;
@@ -29,6 +32,14 @@ pub const ASSIGNMENT_PATTERN_RIGHT_OFFSET: usize = 8;
 
 pub const BREAK_STATEMENT_RESERVED_BYTES: usize = 8;
 pub const BREAK_STATEMENT_LABEL_OFFSET: usize = 4;
+
+pub const DIRECTIVE_RESERVED_BYTES: usize = 12;
+pub const DIRECTIVE_DIRECTIVE_OFFSET: usize = 4;
+pub const DIRECTIVE_EXPRESSION_OFFSET: usize = 8;
+
+pub const LITERAL_NUMBER_RESERVED_BYTES: usize = 16;
+pub const LITERAL_NUMBER_RAW_OFFSET: usize = 4;
+pub const LITERAL_NUMBER_VALUE_OFFSET: usize = 8;
 
 pub const PROGRAM_RESERVED_BYTES: usize = 12;
 pub const PROGRAM_ANNOTATIONS_OFFSET: usize = 4;

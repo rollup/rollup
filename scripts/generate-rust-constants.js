@@ -32,7 +32,7 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 		}
 		/** @type {string[]} */
 		const lines = [];
-		const { flags } = AST_NODES[name];
+		const { flags, fields } = AST_NODES[name];
 		// reservedBytes is the number of bytes reserved for
 		// - end position
 		// - flags if present
@@ -54,7 +54,15 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 					fieldName
 				)}_OFFSET: usize = ${reservedBytes};`
 			);
-			reservedBytes += BYTES_PER_U32;
+			switch (fields?.[fieldName]) {
+				case 'Float': {
+					reservedBytes += 8;
+					break;
+				}
+				default: {
+					reservedBytes += BYTES_PER_U32;
+				}
+			}
 		}
 		lines.unshift(
 			`pub const ${toScreamingSnakeCase(name)}_RESERVED_BYTES: usize = ${reservedBytes};`

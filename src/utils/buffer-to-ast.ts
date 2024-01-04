@@ -23,7 +23,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function arrayExpression(position, buffer, readString): ArrayExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const elements = convertNodeList(buffer[position], buffer, readString);
+		const elements = convertNodeList(position, buffer, readString);
 		return {
 			type: 'ArrayExpression',
 			start,
@@ -34,7 +34,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function arrayPattern(position, buffer, readString): ArrayPatternNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const elements = convertNodeList(buffer[position], buffer, readString);
+		const elements = convertNodeList(position, buffer, readString);
 		return {
 			type: 'ArrayPattern',
 			start,
@@ -102,6 +102,44 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			label
 		};
 	},
+	function directive(position, buffer, readString): DirectiveNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const directive = convertString(buffer[position++], buffer, readString);
+		const expression = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'ExpressionStatement',
+			start,
+			end,
+			directive,
+			expression
+		};
+	},
+	function expressionStatement(position, buffer, readString): ExpressionStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const expression = convertNode(position, buffer, readString);
+		return {
+			type: 'ExpressionStatement',
+			start,
+			end,
+			expression
+		};
+	},
+	function literalNumber(position, buffer, readString): LiteralNumberNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const rawPosition = buffer[position++];
+		const raw = rawPosition === 0 ? undefined : convertString(rawPosition, buffer, readString);
+		const value = new DataView(buffer.buffer).getFloat64(position << 2, true);
+		return {
+			type: 'Literal',
+			start,
+			end,
+			raw,
+			value
+		};
+	},
 	function program(position, buffer, readString): ProgramNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -127,14 +165,17 @@ export interface RollupAnnotation {
 	type: AnnotationType;
 }
 
-type ArrayExpressionNode = estree.ArrayExpression & AstNode;
-type ArrayPatternNode = estree.ArrayPattern & AstNode;
-type ArrowFunctionExpressionNode = estree.ArrowFunctionExpression &
+export type ArrayExpressionNode = estree.ArrayExpression & AstNode;
+export type ArrayPatternNode = estree.ArrayPattern & AstNode;
+export type ArrowFunctionExpressionNode = estree.ArrowFunctionExpression &
 	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[] } & { id: null };
-type AssignmentExpressionNode = estree.AssignmentExpression & AstNode;
-type AssignmentPatternNode = estree.AssignmentPattern & AstNode;
-type BreakStatementNode = estree.BreakStatement & AstNode;
-type ProgramNode = estree.Program &
+export type AssignmentExpressionNode = estree.AssignmentExpression & AstNode;
+export type AssignmentPatternNode = estree.AssignmentPattern & AstNode;
+export type BreakStatementNode = estree.BreakStatement & AstNode;
+export type DirectiveNode = estree.Directive & AstNode;
+export type ExpressionStatementNode = estree.ExpressionStatement & AstNode;
+export type LiteralNumberNode = estree.Literal & AstNode;
+export type ProgramNode = estree.Program &
 	AstNode & { [INVALID_ANNOTATION_KEY]?: RollupAnnotation[] } & { sourceType: 'module' };
 
 function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {

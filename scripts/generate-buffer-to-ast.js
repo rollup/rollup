@@ -12,7 +12,7 @@ const jsConverters = [
     const message = convertString(position, buffer, readString);
     error(logParseError(message, pos));
 	}`,
-	...astNodeNamesWithFieldOrder.map(({ name, fieldNames }) => {
+	...astNodeNamesWithFieldOrder.map(({ name, fieldNames, isSimple }) => {
 		const node = AST_NODES[name];
 		const flagsDefinition = node.flags ? `const flags = buffer[position++];\n` : '';
 		const properties = [
@@ -25,10 +25,12 @@ const jsConverters = [
     const start = buffer[position++];
     const end = buffer[position++];
     ${flagsDefinition}${fieldNames
-			.map((name, index) => getFieldDefinition(name, node, index === fieldNames.length - 1))
+			.map((name, index) =>
+				getFieldDefinition(name, node, isSimple, index === fieldNames.length - 1)
+			)
 			.join('\n')}
     return {
-      type: '${name}',
+      type: '${node.astType || name}',
       start,
       end,
       ${properties.join(',\n')}
@@ -40,30 +42,41 @@ const jsConverters = [
 /**
  * @param {string} fieldName
  * @param {import('./ast-types.js').NodeDescription} node
+ * @param {boolean} isSimple
  * @param {boolean} isLastField
  * @returns {string}
  */
-function getFieldDefinition(fieldName, node, isLastField) {
+function getFieldDefinition(fieldName, node, isSimple, isLastField) {
 	const fieldType = node.fields?.[fieldName];
 	const typeCast = node.fieldTypes?.[fieldName];
 	const typeCastString = typeCast ? ` as ${typeCast}` : '';
 	const getAndUpdatePosition = isLastField ? 'position' : 'position++';
+	const dataStart = isSimple ? getAndUpdatePosition : `buffer[${getAndUpdatePosition}]`;
 	switch (fieldType) {
 		case 'Node': {
-			return `const ${fieldName} = convertNode(buffer[${getAndUpdatePosition}], buffer, readString)${typeCastString};`;
+			return `const ${fieldName} = convertNode(${dataStart}, buffer, readString)${typeCastString};`;
 		}
 		case 'OptionalNode': {
 			return `const ${fieldName}Position = buffer[${getAndUpdatePosition}];\nconst ${fieldName} = ${fieldName}Position === 0 ? null : convertNode(${fieldName}Position, buffer, readString)${typeCastString};`;
 		}
 		case 'NodeList': {
-			return `const ${fieldName} = convertNodeList(buffer[${getAndUpdatePosition}], buffer, readString)${typeCastString};`;
+			return `const ${fieldName} = convertNodeList(${dataStart}, buffer, readString)${typeCastString};`;
 		}
 		case 'Annotations':
 		case 'InvalidAnnotations': {
-			return `const ${fieldName} = convertAnnotations(buffer[${getAndUpdatePosition}], buffer)${typeCastString};`;
+			return `const ${fieldName} = convertAnnotations(${dataStart}, buffer)${typeCastString};`;
+		}
+		case 'String': {
+			return `const ${fieldName} = convertString(${dataStart}, buffer, readString)${typeCastString};`;
+		}
+		case 'OptionalString': {
+			return `const ${fieldName}Position = buffer[${getAndUpdatePosition}];\nconst ${fieldName} = ${fieldName}Position === 0 ? undefined : convertString(${fieldName}Position, buffer, readString)${typeCastString};`;
 		}
 		case 'FixedString': {
 			return `const ${fieldName} = FIXED_STRINGS[buffer[${getAndUpdatePosition}]]${typeCastString};`;
+		}
+		case 'Float': {
+			return `const ${fieldName} = new DataView(buffer.buffer).getFloat64(${getAndUpdatePosition} << 2, true);`;
 		}
 		default: {
 			throw new Error(`Unknown field type: ${fieldType}`);
@@ -100,7 +113,7 @@ function getFixedProperties(node) {
 
 const types = astNodeNamesWithFieldOrder.map(({ name }) => {
 	const node = AST_NODES[name];
-	let typeDefinition = `type ${name}Node = estree.${name} & AstNode`;
+	let typeDefinition = `export type ${name}Node = estree.${node.estreeType || name} & AstNode`;
 	if (Object.values(node.fields || {}).includes('Annotations')) {
 		typeDefinition += ' & { [ANNOTATION_KEY]?: RollupAnnotation[] }';
 	}
