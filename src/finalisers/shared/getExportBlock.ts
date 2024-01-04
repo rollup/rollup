@@ -68,6 +68,11 @@ export function getExportBlock(
 							)},${_}{${n}` +
 							`${t}enumerable:${_}true,${n}` +
 							`${t}get:${_}${left}${importName}${right}${n}});`;
+					} else if (specifier.reexported === '__proto__') {
+						exportBlock +=
+							`Object.defineProperty(exports,${_}"__proto__",${_}{${n}` +
+							`${t}enumerable:${_}true,${n}` +
+							`${t}value:${_}${importName}${n}});`;
 					} else {
 						exportBlock += `exports${getPropertyAccess(
 							specifier.reexported
@@ -83,7 +88,12 @@ export function getExportBlock(
 		const rhs = local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
-			exportBlock += `${lhs}${_}=${_}${rhs};`;
+			exportBlock +=
+				exported === '__proto__'
+					? `Object.defineProperty(exports,${_}"__proto__",${_}{${n}` +
+						`${t}enumerable:${_}true,${n}` +
+						`${t}value:${_}${rhs}${n}});`
+					: `${lhs}${_}=${_}${rhs};`;
 		}
 	}
 
@@ -241,5 +251,9 @@ const getDefineProperty = (
 			`${t}${t}get:${_}${left}${name}[k]${right}${n}${t}})`
 		);
 	}
-	return `exports[k]${_}=${_}${name}[k]`;
+	return (
+		`k${_}===${_}'__proto__'${_}?${_}Object.defineProperty(exports,${_}k,${_}{${n}` +
+		`${t}${t}enumerable:${_}true,${n}` +
+		`${t}${t}value:${_}${name}[k]${n}${t}})${_}:${_}exports[k]${_}=${_}${name}[k]`
+	);
 };

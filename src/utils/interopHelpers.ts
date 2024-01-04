@@ -127,7 +127,7 @@ const HELPER_GENERATORS: {
 		freeze: boolean,
 		symbols: boolean
 	) {
-		const { getDirectReturnFunction, getObject, n } = snippets;
+		const { getDirectReturnFunction, getObject, n, _ } = snippets;
 		const [left, right] = getDirectReturnFunction(['e'], {
 			functionReturn: true,
 			lineBreakIndent: null,
@@ -139,7 +139,7 @@ const HELPER_GENERATORS: {
 				symbols,
 				getObject(
 					[
-						['__proto__', 'null'],
+						[null, `__proto__:${_}null`],
 						['default', 'e']
 					],
 					{ lineBreakIndent: null }

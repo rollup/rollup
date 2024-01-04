@@ -1,6 +1,7 @@
 System.register('bundle', ['external'], (function (exports) {
 	'use strict';
 	var _starExcludes = {
+		__proto__: null,
 		default: 1,
 		syntheticMissing: 1
 	};
@@ -9,7 +10,7 @@ System.register('bundle', ['external'], (function (exports) {
 		setters: [module => {
 			foo__default = module.default;
 			foo$1 = module;
-			var setter = {};
+			var setter = { __proto__: null };
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
