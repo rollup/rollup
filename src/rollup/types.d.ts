@@ -100,13 +100,13 @@ interface ModuleOptions {
 }
 
 export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
-	ast?: ProgramAst;
+	ast?: ProgramNode;
 	code: string;
 	map?: SourceMapInput;
 }
 
 export interface TransformModuleJSON {
-	ast?: ProgramAst;
+	ast?: ProgramNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -117,7 +117,7 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
-	ast: ProgramAst;
+	ast: ProgramNode;
 	dependencies: string[];
 	id: string;
 	resolvedIds: ResolvedIdMap;
@@ -173,7 +173,7 @@ export type EmittedFile = EmittedAsset | EmittedChunk | EmittedPrebuiltChunk;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 interface ModuleInfo extends ModuleOptions {
-	ast: ProgramAst | null;
+	ast: ProgramNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
@@ -206,7 +206,7 @@ type LoggingFunctionWithPosition = (
 export type ParseAst = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean }
-) => ProgramAst;
+) => ProgramNode;
 
 // declare AbortSignal here for environments without DOM lib or @types/node
 declare global {
@@ -216,7 +216,7 @@ declare global {
 export type ParseAstAsync = (
 	input: string,
 	options?: { allowReturnOutsideFunction?: boolean; signal?: AbortSignal }
-) => Promise<ProgramAst>;
+) => Promise<ProgramNode>;
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
@@ -282,7 +282,7 @@ export type ResolveIdHook = (
 export type ShouldTransformCachedModuleHook = (
 	this: PluginContext,
 	options: {
-		ast: ProgramAst;
+		ast: ProgramNode;
 		code: string;
 		id: string;
 		meta: CustomPluginOptions;
@@ -979,7 +979,7 @@ interface AstNode {
 	type: string;
 }
 
-type ProgramAst = Program & AstNode;
+type ProgramNode = Program & AstNode;
 
 export function defineConfig(options: RollupOptions): RollupOptions;
 export function defineConfig(options: RollupOptions[]): RollupOptions[];

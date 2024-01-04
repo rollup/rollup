@@ -8,7 +8,7 @@ import type {
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
-	ProgramAst,
+	ProgramNode,
 	RollupCache,
 	RollupWatcher,
 	SerializablePluginCache,
@@ -52,7 +52,7 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	readonly astLru = flru<ProgramAst>(5);
+	readonly astLru = flru<ProgramNode>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
 	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
