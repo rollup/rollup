@@ -31,7 +31,7 @@ export function stringifyObjectKeyIfNeeded(key: string) {
 	if (VALID_IDENTIFIER_REGEXP.test(key)) {
 		return key === '__proto__' ? '["__proto__"]' : key;
 	}
-	if (NUMBER_REGEXP.test(key) && +key<=Number.MAX_SAFE_INTEGER) {
+	if (NUMBER_REGEXP.test(key) && +key <= Number.MAX_SAFE_INTEGER) {
 		return key;
 	}
 	return JSON.stringify(key);
