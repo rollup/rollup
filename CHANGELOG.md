@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.9.3
+
+_2024-01-05_
+
+### Bug Fixes
+
+- Support `__proto__` as export/import name (#5313)
+- Use ESTree AST type over custom type in user-facing types (#5323)
+
+### Pull Requests
+
+- [#5313](https://github.com/rollup/rollup/pull/5313): Correctly handling **proto** export as module object key (@LongTengDao)
+- [#5323](https://github.com/rollup/rollup/pull/5323): fix: Add estree.Program type to rollup.d.ts (@TrickyPi)
+- [#5326](https://github.com/rollup/rollup/pull/5326): docs: fix grammar (@gigabites19)
+- [#5329](https://github.com/rollup/rollup/pull/5329): chore(deps): update dependency @vue/eslint-config-prettier to v9 (@renovate[bot])
+- [#5330](https://github.com/rollup/rollup/pull/5330): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.9.2
 
 _2023-12-30_
