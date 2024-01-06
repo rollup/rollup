@@ -13,7 +13,7 @@ impl SequentialComments {
     if comment.text.starts_with('#') && comment.text.contains("sourceMappingURL=") {
       self.annotations.borrow_mut().push(AnnotationWithType {
         comment,
-        kind: AnnotationKind::SourceMappingUrl,
+        kind: CommentKind::Annotation(AnnotationKind::SourceMappingUrl),
       });
       return;
     }
@@ -33,14 +33,14 @@ impl SequentialComments {
           if annotation_slice.starts_with("__PURE__") {
             self.annotations.borrow_mut().push(AnnotationWithType {
               comment,
-              kind: AnnotationKind::Pure,
+              kind: CommentKind::Annotation(AnnotationKind::Pure),
             });
             return;
           }
           if annotation_slice.starts_with("__NO_SIDE_EFFECTS__") {
             self.annotations.borrow_mut().push(AnnotationWithType {
               comment,
-              kind: AnnotationKind::NoSideEffects,
+              kind: CommentKind::Annotation(AnnotationKind::NoSideEffects),
             });
             return;
           }
@@ -49,6 +49,10 @@ impl SequentialComments {
       }
       search_position += 2;
     }
+    self.annotations.borrow_mut().push(AnnotationWithType {
+      comment,
+      kind: CommentKind::Comment,
+    });
   }
 
   pub fn take_annotations(self) -> Vec<AnnotationWithType> {
@@ -122,9 +126,16 @@ impl Comments for SequentialComments {
   }
 }
 
+#[derive(Debug)]
 pub struct AnnotationWithType {
   pub comment: Comment,
-  pub kind: AnnotationKind,
+  pub kind: CommentKind,
+}
+
+#[derive(Clone, Debug)]
+pub enum CommentKind {
+  Annotation(AnnotationKind),
+  Comment,
 }
 
 #[derive(Clone, PartialEq, Debug)]
