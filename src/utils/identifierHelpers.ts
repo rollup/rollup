@@ -25,11 +25,14 @@ export function makeLegal(value: string): string {
 }
 
 export const VALID_IDENTIFIER_REGEXP = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u;
-export const NUMBER_REGEXP = /^\d+$/;
+const NUMBER_REGEXP = /^(?:0|[1-9]\d*)$/;
 
 export function stringifyObjectKeyIfNeeded(key: string) {
-	if (VALID_IDENTIFIER_REGEXP.test(key) || NUMBER_REGEXP.test(key)) {
+	if (VALID_IDENTIFIER_REGEXP.test(key)) {
 		return key === '__proto__' ? '["__proto__"]' : key;
+	}
+	if (NUMBER_REGEXP.test(key) && +key <= Number.MAX_SAFE_INTEGER) {
+		return key;
 	}
 	return JSON.stringify(key);
 }
