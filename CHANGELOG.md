@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.9.4
+
+_2024-01-06_
+
+### Bug Fixes
+
+- Use quotes for keys in namespaces that are only numbers but are not valid integers (#5328)
+- Allow to have comments between pure annotations and the annoted node (#5332)
+
+### Pull Requests
+
+- [#5328](https://github.com/rollup/rollup/pull/5328): Correctly handling number key (@LongTengDao)
+- [#5332](https://github.com/rollup/rollup/pull/5332): Handle pure annotations that are separated by a comment (@lukastaegert)
+
 ## 4.9.3
 
 _2024-01-05_
