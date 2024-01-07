@@ -18,27 +18,25 @@ const astConstantsFile = new URL(
 const nodeTypes = [
 	'pub const TYPE_PARSE_ERROR: [u8; 4] = 0u32.to_ne_bytes();',
 	...astNodeNamesWithFieldOrder.map(
-		({ name, isSimple }, index) =>
-			`pub const TYPE_${toScreamingSnakeCase(name)}${isSimple ? '_SIMPLE' : ''}${
-				AST_NODES[name].flags ? '_FLAGS' : ''
+		({ name, inlinedVariableField }, index) =>
+			`pub const TYPE_${toScreamingSnakeCase(name)}${
+				inlinedVariableField ? `_INLINED_${toScreamingSnakeCase(inlinedVariableField[0])}` : ''
 			}: [u8; 4] = ${index + 1}u32.to_ne_bytes();`
 	)
 ].join('\n');
 
 const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
-	.map(({ name, fieldNames, isSimple }) => {
-		if (isSimple) {
-			return '';
-		}
+	.map(({ name, reservedFields }) => {
 		/** @type {string[]} */
 		const lines = [];
-		const { flags, fields } = AST_NODES[name];
+		const { flags } = AST_NODES[name];
 		// reservedBytes is the number of bytes reserved for
 		// - end position
 		// - flags if present
 		// - non-inlined fields
 		let reservedBytes = BYTES_PER_U32;
 		if (flags) {
+			lines.push(`pub const ${toScreamingSnakeCase(name)}_FLAGS_OFFSET: usize = ${reservedBytes};`);
 			reservedBytes += BYTES_PER_U32;
 			for (const [index, flag] of flags.entries()) {
 				lines.push(
@@ -48,13 +46,13 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 				);
 			}
 		}
-		for (const fieldName of fieldNames) {
+		for (const [fieldName, fieldType] of reservedFields) {
 			lines.push(
 				`pub const ${toScreamingSnakeCase(name)}_${toScreamingSnakeCase(
 					fieldName
 				)}_OFFSET: usize = ${reservedBytes};`
 			);
-			switch (fields?.[fieldName]) {
+			switch (fieldType) {
 				case 'Float': {
 					reservedBytes += 8;
 					break;

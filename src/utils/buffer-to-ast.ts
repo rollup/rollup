@@ -46,46 +46,64 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const flags = buffer[position++];
-		const annotations = convertAnnotations(buffer[position++], buffer);
+		const async = (flags & 1) === 1;
+		const expression = (flags & 2) === 2;
+		const generator = (flags & 4) === 4;
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
 		const body = convertNode(buffer[position++], buffer, readString);
-		const parameters = convertNodeList(buffer[position], buffer, readString);
+		const annotations = convertAnnotations(position, buffer);
 		return {
 			type: 'ArrowFunctionExpression',
 			start,
 			end,
-			async: (flags & 1) === 1,
-			expression: (flags & 2) === 2,
-			generator: (flags & 4) === 4,
+			async,
+			expression,
+			generator,
 			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
-			body,
 			params: parameters,
+			body,
 			id: null
 		};
 	},
 	function assignmentExpression(position, buffer, readString): AssignmentExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
 		const operator = FIXED_STRINGS[buffer[position++]] as estree.AssignmentOperator;
-		const right = convertNode(buffer[position], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'AssignmentExpression',
 			start,
 			end,
-			left,
 			operator,
+			left,
 			right
 		};
 	},
 	function assignmentPattern(position, buffer, readString): AssignmentPatternNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const left = convertNode(buffer[position++], buffer, readString);
-		const right = convertNode(buffer[position], buffer, readString);
+		const right = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
 		return {
 			type: 'AssignmentPattern',
 			start,
 			end,
+			left,
+			right
+		};
+	},
+	function binaryExpression(position, buffer, readString): BinaryExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.BinaryOperator;
+		const right = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
+		return {
+			type: 'BinaryExpression',
+			start,
+			end,
+			operator,
 			left,
 			right
 		};
@@ -102,11 +120,29 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			label
 		};
 	},
+	function callExpression(position, buffer, readString): CallExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const optional = (flags & 1) === 1;
+		const callee = convertNode(buffer[position++], buffer, readString);
+		const arguments_ = convertNodeList(buffer[position++], buffer, readString);
+		const annotations = convertAnnotations(position, buffer);
+		return {
+			type: 'CallExpression',
+			start,
+			end,
+			optional,
+			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
+			callee,
+			arguments: arguments_
+		};
+	},
 	function directive(position, buffer, readString): DirectiveNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const directive = convertString(buffer[position++], buffer, readString);
-		const expression = convertNode(buffer[position], buffer, readString);
+		const expression = convertNode(buffer[position++], buffer, readString);
+		const directive = convertString(position, buffer, readString);
 		return {
 			type: 'ExpressionStatement',
 			start,
@@ -126,6 +162,47 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			expression
 		};
 	},
+	function identifier(position, buffer, readString): IdentifierNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const name = convertString(position, buffer, readString);
+		return {
+			type: 'Identifier',
+			start,
+			end,
+			name
+		};
+	},
+	function ifStatement(position, buffer, readString): IfStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const consequent = convertNode(buffer[position++], buffer, readString);
+		const alternatePosition = buffer[position++];
+		const alternate =
+			alternatePosition === 0 ? null : convertNode(alternatePosition, buffer, readString);
+		const test = convertNode(position, buffer, readString);
+		return {
+			type: 'IfStatement',
+			start,
+			end,
+			test,
+			consequent,
+			alternate
+		};
+	},
+	function literalBoolean(position, buffer): LiteralBooleanNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const value = (flags & 1) === 1;
+		return {
+			type: 'Literal',
+			start,
+			end,
+			value,
+			raw: value ? 'true' : 'false'
+		};
+	},
 	function literalNumber(position, buffer, readString): LiteralNumberNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -140,18 +217,92 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			value
 		};
 	},
+	function literalString(position, buffer, readString): LiteralStringNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const rawPosition = buffer[position++];
+		const raw = rawPosition === 0 ? undefined : convertString(rawPosition, buffer, readString);
+		const value = convertString(position, buffer, readString);
+		return {
+			type: 'Literal',
+			start,
+			end,
+			value,
+			raw
+		};
+	},
+	function logicalExpression(position, buffer, readString): LogicalExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.LogicalOperator;
+		const right = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
+		return {
+			type: 'LogicalExpression',
+			start,
+			end,
+			operator,
+			left,
+			right
+		};
+	},
+	function memberExpression(position, buffer, readString): MemberExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const computed = (flags & 1) === 1;
+		const optional = (flags & 2) === 2;
+		const property = convertNode(buffer[position++], buffer, readString);
+		const object = convertNode(position, buffer, readString);
+		return {
+			type: 'MemberExpression',
+			start,
+			end,
+			computed,
+			optional,
+			object,
+			property
+		};
+	},
 	function program(position, buffer, readString): ProgramNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const annotations = convertAnnotations(buffer[position++], buffer);
-		const body = convertNodeList(buffer[position], buffer, readString);
+		const body = convertNodeList(position, buffer, readString);
 		return {
 			type: 'Program',
 			start,
 			end,
-			...(annotations.length > 0 ? { [INVALID_ANNOTATION_KEY]: annotations } : {}),
 			body,
+			...(annotations.length > 0 ? { [INVALID_ANNOTATION_KEY]: annotations } : {}),
 			sourceType: 'module'
+		};
+	},
+	function variableDeclaration(position, buffer, readString): VariableDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const kind = FIXED_STRINGS[buffer[position++]] as estree.VariableDeclaration['kind'];
+		const declarations = convertNodeList(position, buffer, readString);
+		return {
+			type: 'VariableDeclaration',
+			start,
+			end,
+			kind,
+			declarations
+		};
+	},
+	function variableDeclarator(position, buffer, readString): VariableDeclaratorNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const initPosition = buffer[position++];
+		const init = initPosition === 0 ? null : convertNode(initPosition, buffer, readString);
+		const id = convertNode(position, buffer, readString);
+		return {
+			type: 'VariableDeclarator',
+			start,
+			end,
+			id,
+			init
 		};
 	}
 ];
@@ -171,12 +322,23 @@ export type ArrowFunctionExpressionNode = estree.ArrowFunctionExpression &
 	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[] } & { id: null };
 export type AssignmentExpressionNode = estree.AssignmentExpression & AstNode;
 export type AssignmentPatternNode = estree.AssignmentPattern & AstNode;
+export type BinaryExpressionNode = estree.BinaryExpression & AstNode;
 export type BreakStatementNode = estree.BreakStatement & AstNode;
+export type CallExpressionNode = estree.CallExpression &
+	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[] };
 export type DirectiveNode = estree.Directive & AstNode;
 export type ExpressionStatementNode = estree.ExpressionStatement & AstNode;
-export type LiteralNumberNode = estree.Literal & AstNode;
+export type IdentifierNode = estree.Identifier & AstNode;
+export type IfStatementNode = estree.IfStatement & AstNode;
+export type LiteralBooleanNode = estree.SimpleLiteral & AstNode;
+export type LiteralNumberNode = estree.SimpleLiteral & AstNode;
+export type LiteralStringNode = estree.SimpleLiteral & AstNode;
+export type LogicalExpressionNode = estree.LogicalExpression & AstNode;
+export type MemberExpressionNode = estree.MemberExpression & AstNode;
 export type ProgramNode = estree.Program &
 	AstNode & { [INVALID_ANNOTATION_KEY]?: RollupAnnotation[] } & { sourceType: 'module' };
+export type VariableDeclarationNode = estree.VariableDeclaration & AstNode;
+export type VariableDeclaratorNode = estree.VariableDeclarator & AstNode;
 
 function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
 	const nodeType = buffer[position];

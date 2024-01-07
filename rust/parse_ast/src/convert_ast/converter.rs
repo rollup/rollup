@@ -2,7 +2,7 @@ use swc_atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AwaitExpr, BigInt,
-  BinExpr, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, BreakStmt, CallExpr, Callee,
+  BinExpr, BinaryOp, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, BreakStmt, CallExpr, Callee,
   CatchClause, Class, ClassDecl, ClassExpr, ClassMember, ClassMethod, ClassProp, ComputedPropName,
   CondExpr, Constructor, ContinueStmt, DebuggerStmt, Decl, DefaultDecl, DoWhileStmt, EmptyStmt,
   ExportAll, ExportDecl, ExportDefaultDecl, ExportDefaultExpr, ExportNamedSpecifier,
@@ -15,7 +15,7 @@ use swc_ecma_ast::{
   Program, Prop, PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp,
   SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
   TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, UnaryExpr, UpdateExpr, VarDecl,
-  VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
+  VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
@@ -54,29 +54,10 @@ impl<'a> AstConverter<'a> {
   }
 
   // === helpers
-  // For nodes with an inlined child and without flags or annotations
-  fn add_type_and_start_simple(&mut self, node_type: &[u8; 4], span: &Span) -> usize {
-    // type
-    self.buffer.extend_from_slice(node_type);
-    // start
-    let start = self.index_converter.convert(span.lo.0 - 1, false);
-    self.buffer.extend_from_slice(&start.to_ne_bytes());
-    // end
-    let end_position = self.buffer.len();
-    self.buffer.resize(end_position + 4, 0);
-    end_position
-  }
-
-  fn add_end(&mut self, end_position: usize, span: &Span) {
-    self.buffer[end_position..end_position + 4]
-      .copy_from_slice(&(self.index_converter.convert(span.hi.0 - 1, false)).to_ne_bytes());
-  }
-
-  fn add_type_start_flags_and_handle_annotations(
+  fn add_type_and_start(
     &mut self,
     node_type: &[u8; 4],
     span: &Span,
-    flags: Option<u32>,
     reserved_bytes: usize,
     keep_annotations: bool,
   ) -> usize {
@@ -91,10 +72,6 @@ impl<'a> AstConverter<'a> {
     let end_position = self.buffer.len();
     // reserved bytes
     self.buffer.resize(end_position + reserved_bytes, 0);
-    //flags
-    if let Some(flags) = flags {
-      self.buffer[end_position + 4..end_position + 8].copy_from_slice(&flags.to_ne_bytes());
-    }
     end_position
   }
 
@@ -117,51 +94,14 @@ impl<'a> AstConverter<'a> {
     end_position
   }
 
-  fn add_type_and_positions(
-    &mut self,
-    node_type: &[u8; 4],
-    span: &Span,
-    reserved_bytes: usize,
-  ) -> usize {
-    // type
-    self.buffer.extend_from_slice(node_type);
-    // start
-    self
-      .buffer
-      .extend_from_slice(&(self.index_converter.convert(span.lo.0 - 1, false)).to_ne_bytes());
-    // end
-    let end_position = self.buffer.len();
-    self
-      .buffer
-      .extend_from_slice(&(self.index_converter.convert(span.hi.0 - 1, false)).to_ne_bytes());
-    // reserved bytes
-    self.buffer.resize(end_position + reserved_bytes, 0);
-    end_position
+  fn add_end(&mut self, end_position: usize, span: &Span) {
+    self.buffer[end_position..end_position + 4]
+      .copy_from_slice(&(self.index_converter.convert(span.hi.0 - 1, false)).to_ne_bytes());
   }
 
   fn add_explicit_end(&mut self, end_position: usize, end: u32) {
     self.buffer[end_position..end_position + 4]
       .copy_from_slice(&(self.index_converter.convert(end, false)).to_ne_bytes());
-  }
-
-  // TODO Lukas replace with add_type_start_and_flags_and_handle_annotations
-  fn add_type_and_start_and_handle_annotations(
-    &mut self,
-    node_type: &[u8; 4],
-    span: &Span,
-    keep_annotations: bool,
-  ) -> usize {
-    // type
-    self.buffer.extend_from_slice(node_type);
-    // start
-    let start = self
-      .index_converter
-      .convert(span.lo.0 - 1, keep_annotations);
-    self.buffer.extend_from_slice(&start.to_ne_bytes());
-    // end
-    let end_position = self.buffer.len();
-    self.buffer.resize(end_position + 4, 0);
-    end_position
   }
 
   fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
@@ -217,12 +157,6 @@ impl<'a> AstConverter<'a> {
   // TODO SWC deduplicate strings and see if we can easily compare atoms
   fn convert_string(&mut self, string: &str) {
     convert_string(&mut self.buffer, string);
-  }
-
-  fn convert_boolean(&mut self, boolean: bool) {
-    self
-      .buffer
-      .extend_from_slice(&(if boolean { 1u32 } else { 0u32 }).to_ne_bytes());
   }
 
   fn reserve_for_items(&mut self, item_count: usize) -> usize {
@@ -1042,8 +976,12 @@ impl<'a> AstConverter<'a> {
 
   // === nodes
   fn convert_array_literal(&mut self, array_literal: &ArrayLit) {
-    let end_position =
-      self.add_type_and_start_simple(&TYPE_ARRAY_EXPRESSION_SIMPLE, &array_literal.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_ARRAY_EXPRESSION_INLINED_ELEMENTS,
+      &array_literal.span,
+      ARRAY_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
     // elements
     self.convert_item_list(
       &array_literal.elems,
@@ -1060,8 +998,12 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_array_pattern(&mut self, array_pattern: &ArrayPat) {
-    let end_position =
-      self.add_type_and_start_simple(&TYPE_ARRAY_PATTERN_SIMPLE, &array_pattern.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_ARRAY_PATTERN_INLINED_ELEMENTS,
+      &array_pattern.span,
+      ARRAY_PATTERN_RESERVED_BYTES,
+      false,
+    );
     // elements
     self.convert_item_list(
       &array_pattern.elems,
@@ -1078,6 +1020,21 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_arrow_expression(&mut self, arrow_expression: &ArrowExpr) {
+    let end_position = self.add_type_and_start(
+      &TYPE_ARROW_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      &arrow_expression.span,
+      ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // annotations
+    let annotations = self
+      .index_converter
+      .take_collected_annotations(AnnotationKind::NoSideEffects);
+    self.convert_item_list(&annotations, |ast_converter, annotation| {
+      convert_annotation(&mut ast_converter.buffer, annotation);
+      true
+    });
+    // flags
     let mut flags = 0u32;
     if arrow_expression.is_async {
       flags |= ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG;
@@ -1088,22 +1045,8 @@ impl<'a> AstConverter<'a> {
     if let BlockStmtOrExpr::Expr(_) = &*arrow_expression.body {
       flags |= ARROW_FUNCTION_EXPRESSION_EXPRESSION_FLAG;
     }
-    let end_position = self.add_type_start_flags_and_handle_annotations(
-      &TYPE_ARROW_FUNCTION_EXPRESSION_FLAGS,
-      &arrow_expression.span,
-      Some(flags),
-      ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
-      false,
-    );
-    // annotations
-    self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET);
-    let annotations = self
-      .index_converter
-      .take_collected_annotations(AnnotationKind::NoSideEffects);
-    self.convert_item_list(&annotations, |ast_converter, annotation| {
-      convert_annotation(&mut ast_converter.buffer, annotation);
-      true
-    });
+    let flags_position = end_position + ARROW_FUNCTION_EXPRESSION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // params
     self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET);
     self.convert_item_list(&arrow_expression.params, |ast_converter, param| {
@@ -1125,13 +1068,14 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
-    let end_position = self.add_type_start_flags_and_handle_annotations(
-      &TYPE_ASSIGNMENT_EXPRESSION,
+    let end_position = self.add_type_and_start(
+      &TYPE_ASSIGNMENT_EXPRESSION_INLINED_LEFT,
       &assignment_expression.span,
-      None,
       ASSIGNMENT_EXPRESSION_RESERVED_BYTES,
       false,
     );
+    // left
+    self.convert_pattern_or_expression(&assignment_expression.left);
     // operator
     let operator_position = end_position + ASSIGNMENT_EXPRESSION_OPERATOR_OFFSET;
     self.buffer[operator_position..operator_position + 4].copy_from_slice(
@@ -1154,9 +1098,6 @@ impl<'a> AstConverter<'a> {
         AssignOp::NullishAssign => &STRING_NULLISHASSIGN,
       },
     );
-    // left
-    self.update_reference_position(end_position + ASSIGNMENT_EXPRESSION_LEFT_OFFSET);
-    self.convert_pattern_or_expression(&assignment_expression.left);
     // right
     self.update_reference_position(end_position + ASSIGNMENT_EXPRESSION_RIGHT_OFFSET);
     self.convert_expression(&assignment_expression.right);
@@ -1170,15 +1111,13 @@ impl<'a> AstConverter<'a> {
     left: PatternOrIdentifier,
     right: &Expr,
   ) -> u32 {
-    let end_position = self.add_type_start_flags_and_handle_annotations(
-      &TYPE_ASSIGNMENT_PATTERN,
+    let end_position = self.add_type_and_start(
+      &TYPE_ASSIGNMENT_PATTERN_INLINED_LEFT,
       span,
-      None,
       ASSIGNMENT_PATTERN_RESERVED_BYTES,
       false,
     );
     // left
-    self.update_reference_position(end_position + ASSIGNMENT_PATTERN_LEFT_OFFSET);
     let left_position = (self.buffer.len() >> 2) as u32;
     match left {
       PatternOrIdentifier::Pattern(pattern) => {
@@ -1194,8 +1133,6 @@ impl<'a> AstConverter<'a> {
     left_position
   }
 
-  // TODO Lukas not yet done
-
   fn convert_await_expression(&mut self, await_expression: &AwaitExpr) {
     panic!("Await expressions are not supported");
     // let end_position =
@@ -1207,53 +1144,55 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_binary_expression(&mut self, binary_expression: &BinExpr) {
-    panic!("Binary expressions are not supported");
-    // let end_position = self.add_type_and_start_simple(
-    //   match binary_expression.op {
-    //     BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => {
-    //       &TYPE_LOGICAL_EXPRESSION
-    //     }
-    //     _ => &TYPE_BINARY_EXPRESSION,
-    //   },
-    //   &binary_expression.span,
-    // );
-    // // operator
-    // self.buffer.extend_from_slice(match binary_expression.op {
-    //   BinaryOp::EqEq => &STRING_EQEQ,
-    //   BinaryOp::NotEq => &STRING_NOTEQ,
-    //   BinaryOp::EqEqEq => &STRING_EQEQEQ,
-    //   BinaryOp::NotEqEq => &STRING_NOTEQEQ,
-    //   BinaryOp::Lt => &STRING_LT,
-    //   BinaryOp::LtEq => &STRING_LTEQ,
-    //   BinaryOp::Gt => &STRING_GT,
-    //   BinaryOp::GtEq => &STRING_GTEQ,
-    //   BinaryOp::LShift => &STRING_LSHIFT,
-    //   BinaryOp::RShift => &STRING_RSHIFT,
-    //   BinaryOp::ZeroFillRShift => &STRING_ZEROFILLRSHIFT,
-    //   BinaryOp::Add => &STRING_ADD,
-    //   BinaryOp::Sub => &STRING_SUB,
-    //   BinaryOp::Mul => &STRING_MUL,
-    //   BinaryOp::Div => &STRING_DIV,
-    //   BinaryOp::Mod => &STRING_MOD,
-    //   BinaryOp::BitOr => &STRING_BITOR,
-    //   BinaryOp::BitXor => &STRING_BITXOR,
-    //   BinaryOp::BitAnd => &STRING_BITAND,
-    //   BinaryOp::LogicalOr => &STRING_LOGICALOR,
-    //   BinaryOp::LogicalAnd => &STRING_LOGICALAND,
-    //   BinaryOp::In => &STRING_IN,
-    //   BinaryOp::InstanceOf => &STRING_INSTANCEOF,
-    //   BinaryOp::Exp => &STRING_EXP,
-    //   BinaryOp::NullishCoalescing => &STRING_NULLISHCOALESCING,
-    // });
-    // // reserve right
-    // let reference_position = self.reserve_for_items(1);
-    // // left
-    // self.convert_expression(&binary_expression.left);
-    // // right
-    // self.update_reference_position(reference_position);
-    // self.convert_expression(&binary_expression.right);
-    // // end
-    // self.add_end(end_position, &binary_expression.span);
+    let end_position = self.add_type_and_start(
+      match binary_expression.op {
+        BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => {
+          &TYPE_LOGICAL_EXPRESSION_INLINED_LEFT
+        }
+        _ => &TYPE_BINARY_EXPRESSION_INLINED_LEFT,
+      },
+      &binary_expression.span,
+      BINARY_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // left
+    self.convert_expression(&binary_expression.left);
+    // operator
+    let operator_position = end_position + BINARY_EXPRESSION_OPERATOR_OFFSET;
+    self.buffer[operator_position..operator_position + 4].copy_from_slice(
+      match binary_expression.op {
+        BinaryOp::EqEq => &STRING_EQEQ,
+        BinaryOp::NotEq => &STRING_NOTEQ,
+        BinaryOp::EqEqEq => &STRING_EQEQEQ,
+        BinaryOp::NotEqEq => &STRING_NOTEQEQ,
+        BinaryOp::Lt => &STRING_LT,
+        BinaryOp::LtEq => &STRING_LTEQ,
+        BinaryOp::Gt => &STRING_GT,
+        BinaryOp::GtEq => &STRING_GTEQ,
+        BinaryOp::LShift => &STRING_LSHIFT,
+        BinaryOp::RShift => &STRING_RSHIFT,
+        BinaryOp::ZeroFillRShift => &STRING_ZEROFILLRSHIFT,
+        BinaryOp::Add => &STRING_ADD,
+        BinaryOp::Sub => &STRING_SUB,
+        BinaryOp::Mul => &STRING_MUL,
+        BinaryOp::Div => &STRING_DIV,
+        BinaryOp::Mod => &STRING_MOD,
+        BinaryOp::BitOr => &STRING_BITOR,
+        BinaryOp::BitXor => &STRING_BITXOR,
+        BinaryOp::BitAnd => &STRING_BITAND,
+        BinaryOp::LogicalOr => &STRING_LOGICALOR,
+        BinaryOp::LogicalAnd => &STRING_LOGICALAND,
+        BinaryOp::In => &STRING_IN,
+        BinaryOp::InstanceOf => &STRING_INSTANCEOF,
+        BinaryOp::Exp => &STRING_EXP,
+        BinaryOp::NullishCoalescing => &STRING_NULLISHCOALESCING,
+      },
+    );
+    // right
+    self.update_reference_position(end_position + BINARY_EXPRESSION_RIGHT_OFFSET);
+    self.convert_expression(&binary_expression.right);
+    // end
+    self.add_end(end_position, &binary_expression.span);
   }
 
   fn convert_block_statement(&mut self, block_statement: &BlockStmt, check_directive: bool) {
@@ -1283,17 +1222,19 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_break_statement(&mut self, break_statement: &BreakStmt) {
-    panic!("Break statements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_BREAK_STATEMENT, &break_statement.span);
-    // // reserve label
-    // let reference_position = self.reserve_for_items(1);
-    // // label
-    // if let Some(label) = break_statement.label.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_identifier(label);
-    // }
-    // // end
-    // self.add_end(end_position, &break_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_BREAK_STATEMENT,
+      &break_statement.span,
+      BREAK_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // label
+    if let Some(label) = break_statement.label.as_ref() {
+      self.update_reference_position(end_position + BREAK_STATEMENT_LABEL_OFFSET);
+      self.convert_identifier(label);
+    }
+    // end
+    self.add_end(end_position, &break_statement.span);
   }
 
   fn store_call_expression(
@@ -1304,45 +1245,53 @@ impl<'a> AstConverter<'a> {
     arguments: &[ExprOrSpread],
     is_chained: bool,
   ) {
-    panic!("Call expressions are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_CALL_EXPRESSION, span);
-    // let annotations = self
-    //   .index_converter
-    //   .take_collected_annotations(AnnotationKind::Pure);
-    // // optional
-    // self.convert_boolean(is_optional);
-    // // reserve for callee, arguments
-    // let reference_position = self.reserve_for_items(2);
-    // // annotations
-    // self.convert_item_list(&annotations, |ast_converter, annotation| {
-    //   ast_converter.convert_annotation(annotation);
-    //   true
-    // });
-    // // callee
-    // self.update_reference_position(reference_position);
-    // match callee {
-    //   StoredCallee::Expression(Expr::OptChain(optional_chain_expression)) => {
-    //     self.convert_optional_chain_expression(optional_chain_expression, is_chained);
-    //   }
-    //   StoredCallee::Expression(Expr::Call(call_expression)) => {
-    //     self.convert_call_expression(call_expression, false, is_chained);
-    //   }
-    //   StoredCallee::Expression(Expr::Member(member_expression)) => {
-    //     self.convert_member_expression(member_expression, false, is_chained);
-    //   }
-    //   StoredCallee::Expression(callee_expression) => {
-    //     self.convert_expression(callee_expression);
-    //   }
-    //   StoredCallee::Super(callee_super) => self.convert_super(callee_super),
-    // }
-    // // arguments
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_item_list(arguments, |ast_converter, argument| {
-    //   ast_converter.convert_expression_or_spread(argument);
-    //   true
-    // });
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_CALL_EXPRESSION_INLINED_ANNOTATIONS,
+      span,
+      CALL_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // annotations
+    let annotations = self
+      .index_converter
+      .take_collected_annotations(AnnotationKind::Pure);
+    self.convert_item_list(&annotations, |ast_converter, annotation| {
+      convert_annotation(&mut ast_converter.buffer, annotation);
+      true
+    });
+    // flags
+    let flags = if is_optional {
+      CALL_EXPRESSION_OPTIONAL_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + CALL_EXPRESSION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // callee
+    self.update_reference_position(end_position + CALL_EXPRESSION_CALLEE_OFFSET);
+    match callee {
+      StoredCallee::Expression(Expr::OptChain(optional_chain_expression)) => {
+        self.convert_optional_chain_expression(optional_chain_expression, is_chained);
+      }
+      StoredCallee::Expression(Expr::Call(call_expression)) => {
+        self.convert_call_expression(call_expression, false, is_chained);
+      }
+      StoredCallee::Expression(Expr::Member(member_expression)) => {
+        self.convert_member_expression(member_expression, false, is_chained);
+      }
+      StoredCallee::Expression(callee_expression) => {
+        self.convert_expression(callee_expression);
+      }
+      StoredCallee::Super(callee_super) => self.convert_super(callee_super),
+    }
+    // arguments
+    self.update_reference_position(end_position + CALL_EXPRESSION_ARGUMENTS_OFFSET);
+    self.convert_item_list(arguments, |ast_converter, argument| {
+      ast_converter.convert_expression_or_spread(argument);
+      true
+    });
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_catch_clause(&mut self, catch_clause: &CatchClause) {
@@ -1468,19 +1417,17 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_directive(&mut self, expression_statement: &ExprStmt, directive: &JsWord) {
-    let end_position = self.add_type_start_flags_and_handle_annotations(
-      &TYPE_DIRECTIVE,
+    let end_position = self.add_type_and_start(
+      &TYPE_DIRECTIVE_INLINED_DIRECTIVE,
       &expression_statement.span,
-      None,
       DIRECTIVE_RESERVED_BYTES,
       false,
     );
+    // directive
+    self.convert_string(directive);
     // expression
     self.update_reference_position(end_position + DIRECTIVE_EXPRESSION_OFFSET);
     self.convert_expression(&expression_statement.expr);
-    // directive
-    self.update_reference_position(end_position + DIRECTIVE_DIRECTIVE_OFFSET);
-    self.convert_string(directive);
     // end
     self.add_end(end_position, &expression_statement.span);
   }
@@ -1624,9 +1571,11 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_expression_statement(&mut self, expression_statement: &ExprStmt) {
-    let end_position = self.add_type_and_start_simple(
-      &TYPE_EXPRESSION_STATEMENT_SIMPLE,
+    let end_position = self.add_type_and_start(
+      &TYPE_EXPRESSION_STATEMENT_INLINED_EXPRESSION,
       &expression_statement.span,
+      EXPRESSION_STATEMENT_RESERVED_BYTES,
+      false,
     );
     // expression
     self.convert_expression(&expression_statement.expr);
@@ -1751,31 +1700,36 @@ impl<'a> AstConverter<'a> {
   }
 
   fn store_identifier(&mut self, start: u32, end: u32, name: &str) {
-    panic!("Identifiers are not supported");
-    // let end_position = self.add_type_and_explicit_start(&TYPE_IDENTIFIER, start);
-    // // name
-    // self.convert_string(name);
-    // // end
-    // self.add_explicit_end(end_position, end);
+    let end_position = self.add_type_and_explicit_start(
+      &TYPE_IDENTIFIER_INLINED_NAME,
+      start,
+      IDENTIFIER_RESERVED_BYTES,
+    );
+    // name
+    self.convert_string(name);
+    // end
+    self.add_explicit_end(end_position, end);
   }
 
   fn convert_if_statement(&mut self, if_statement: &IfStmt) {
-    panic!("If statements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_IF_STATEMENT, &if_statement.span);
-    // // reserve consequent, alternate
-    // let reference_position = self.reserve_for_items(2);
-    // // test
-    // self.convert_expression(&if_statement.test);
-    // // consequent
-    // self.update_reference_position(reference_position);
-    // self.convert_statement(&if_statement.cons);
-    // // alternate
-    // if let Some(alt) = if_statement.alt.as_ref() {
-    //   self.update_reference_position(reference_position + 4);
-    //   self.convert_statement(alt);
-    // }
-    // // end
-    // self.add_end(end_position, &if_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_IF_STATEMENT_INLINED_TEST,
+      &if_statement.span,
+      IF_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // test
+    self.convert_expression(&if_statement.test);
+    // consequent
+    self.update_reference_position(end_position + IF_STATEMENT_CONSEQUENT_OFFSET);
+    self.convert_statement(&if_statement.cons);
+    // alternate
+    if let Some(alt) = if_statement.alt.as_ref() {
+      self.update_reference_position(end_position + IF_STATEMENT_ALTERNATE_OFFSET);
+      self.convert_statement(alt);
+    }
+    // end
+    self.add_end(end_position, &if_statement.span);
   }
 
   fn convert_import_attribute(&mut self, key_value_property: &KeyValueProp) {
@@ -1929,10 +1883,20 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_literal_boolean(&mut self, literal: &Bool) {
-    panic!("Boolean literals are not supported");
-    // self.add_type_and_positions(&TYPE_LITERAL_BOOLEAN, &literal.span);
-    // // value
-    // self.convert_boolean(literal.value);
+    let end_position = self.add_type_and_start(
+      &TYPE_LITERAL_BOOLEAN,
+      &literal.span,
+      LITERAL_BOOLEAN_RESERVED_BYTES,
+      false,
+    );
+    let mut flags = if literal.value {
+      LITERAL_BOOLEAN_VALUE_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + LITERAL_BOOLEAN_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    self.add_end(end_position, &literal.span);
   }
 
   fn convert_literal_null(&mut self, literal: &Null) {
@@ -1941,10 +1905,11 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_literal_number(&mut self, literal: &Number) {
-    let end_position = self.add_type_and_positions(
+    let end_position = self.add_type_and_start(
       &TYPE_LITERAL_NUMBER,
       &literal.span,
       LITERAL_NUMBER_RESERVED_BYTES,
+      false,
     );
     // value, needs to be little endian as we are reading via a DataView
     let value_position = end_position + LITERAL_NUMBER_VALUE_OFFSET;
@@ -1954,6 +1919,8 @@ impl<'a> AstConverter<'a> {
       self.update_reference_position(end_position + LITERAL_NUMBER_RAW_OFFSET);
       self.convert_string(raw);
     }
+    // end
+    self.add_end(end_position, &literal.span);
   }
 
   fn convert_literal_regex(&mut self, regex: &Regex) {
@@ -1969,17 +1936,21 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_literal_string(&mut self, literal: &Str) {
-    panic!("String literals are not supported");
-    // self.add_type_and_positions(&TYPE_LITERAL_STRING, &literal.span);
-    // // reserve for raw
-    // let reference_position = self.reserve_for_items(1);
-    // // value
-    // self.convert_string(&literal.value);
-    // // raw
-    // if let Some(raw) = literal.raw.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_string(raw);
-    // }
+    let end_position = self.add_type_and_start(
+      &TYPE_LITERAL_STRING_INLINED_VALUE,
+      &literal.span,
+      LITERAL_STRING_RESERVED_BYTES,
+      false,
+    );
+    // value
+    self.convert_string(&literal.value);
+    // raw
+    if let Some(raw) = literal.raw.as_ref() {
+      self.update_reference_position(end_position + LITERAL_STRING_RAW_OFFSET);
+      self.convert_string(raw);
+    }
+    // end
+    self.add_end(end_position, &literal.span);
   }
 
   fn store_member_expression(
@@ -1990,41 +1961,49 @@ impl<'a> AstConverter<'a> {
     property: MemberOrSuperProp,
     is_chained: bool,
   ) {
-    panic!("Member expressions are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_MEMBER_EXPRESSION, span);
-    // // optional
-    // self.convert_boolean(is_optional);
-    // // computed
-    // self.convert_boolean(matches!(property, MemberOrSuperProp::Computed(_)));
-    // // reserve property
-    // let reference_position = self.reserve_for_items(1);
-    // // object
-    // match object {
-    //   ExpressionOrSuper::Expression(Expr::OptChain(optional_chain_expression)) => {
-    //     self.convert_optional_chain_expression(optional_chain_expression, is_chained);
-    //   }
-    //   ExpressionOrSuper::Expression(Expr::Call(call_expression)) => {
-    //     self.convert_call_expression(call_expression, false, is_chained);
-    //   }
-    //   ExpressionOrSuper::Expression(Expr::Member(member_expression)) => {
-    //     self.convert_member_expression(member_expression, false, is_chained);
-    //   }
-    //   ExpressionOrSuper::Expression(expression) => {
-    //     self.convert_expression(expression);
-    //   }
-    //   ExpressionOrSuper::Super(super_token) => self.convert_super(super_token),
-    // }
-    // // property
-    // self.update_reference_position(reference_position);
-    // match property {
-    //   MemberOrSuperProp::Identifier(ident) => self.convert_identifier(ident),
-    //   MemberOrSuperProp::Computed(computed) => {
-    //     self.convert_expression(&computed.expr);
-    //   }
-    //   MemberOrSuperProp::PrivateName(private_name) => self.convert_private_name(private_name),
-    // }
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_MEMBER_EXPRESSION_INLINED_OBJECT,
+      span,
+      MEMBER_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // object
+    match object {
+      ExpressionOrSuper::Expression(Expr::OptChain(optional_chain_expression)) => {
+        self.convert_optional_chain_expression(optional_chain_expression, is_chained);
+      }
+      ExpressionOrSuper::Expression(Expr::Call(call_expression)) => {
+        self.convert_call_expression(call_expression, false, is_chained);
+      }
+      ExpressionOrSuper::Expression(Expr::Member(member_expression)) => {
+        self.convert_member_expression(member_expression, false, is_chained);
+      }
+      ExpressionOrSuper::Expression(expression) => {
+        self.convert_expression(expression);
+      }
+      ExpressionOrSuper::Super(super_token) => self.convert_super(super_token),
+    }
+    // flags
+    let mut flags = 0u32;
+    if is_optional {
+      flags |= MEMBER_EXPRESSION_OPTIONAL_FLAG;
+    }
+    if matches!(property, MemberOrSuperProp::Computed(_)) {
+      flags |= MEMBER_EXPRESSION_COMPUTED_FLAG;
+    }
+    let flags_position = end_position + MEMBER_EXPRESSION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // property
+    self.update_reference_position(end_position + MEMBER_EXPRESSION_PROPERTY_OFFSET);
+    match property {
+      MemberOrSuperProp::Identifier(ident) => self.convert_identifier(ident),
+      MemberOrSuperProp::Computed(computed) => {
+        self.convert_expression(&computed.expr);
+      }
+      MemberOrSuperProp::PrivateName(private_name) => self.convert_private_name(private_name),
+    }
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_meta_property(&mut self, meta_property_expression: &MetaPropExpr) {
@@ -2241,9 +2220,8 @@ impl<'a> AstConverter<'a> {
 
   fn store_program(&mut self, body: ModuleItemsOrStatements) {
     let end_position =
-      self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32, PROGRAM_RESERVED_BYTES);
+      self.add_type_and_explicit_start(&TYPE_PROGRAM_INLINED_BODY, 0u32, PROGRAM_RESERVED_BYTES);
     // body
-    self.update_reference_position(end_position + PROGRAM_BODY_OFFSET);
     let mut keep_checking_directives = true;
     match body {
       ModuleItemsOrStatements::ModuleItems(module_items) => {
@@ -2285,8 +2263,6 @@ impl<'a> AstConverter<'a> {
         );
       }
     }
-    // end
-    self.add_explicit_end(end_position, self.code.len() as u32);
     // annotations
     self.update_reference_position(end_position + PROGRAM_ANNOTATIONS_OFFSET);
     self.index_converter.invalidate_collected_annotations();
@@ -2295,6 +2271,8 @@ impl<'a> AstConverter<'a> {
       convert_annotation(&mut ast_converter.buffer, annotation);
       true
     });
+    // end
+    self.add_explicit_end(end_position, self.code.len() as u32);
   }
 
   // TODO SWC property has many different formats that should be merged if possible
@@ -2759,60 +2737,64 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_variable_declaration(&mut self, variable_declaration: &VarDecl) {
-    panic!("Variable declarations are not supported");
-    // let end_position = self.add_type_and_start_and_handle_annotations(
-    //   &TYPE_VARIABLE_DECLARATION,
-    //   &variable_declaration.span,
-    //   matches!(variable_declaration.kind, VarDeclKind::Const),
-    // );
-    // self
-    //     .buffer
-    //     .extend_from_slice(match variable_declaration.kind {
-    //       VarDeclKind::Var => &STRING_VAR,
-    //       VarDeclKind::Let => &STRING_LET,
-    //       VarDeclKind::Const => &STRING_CONST,
-    //     });
-    // self.convert_item_list(
-    //   &variable_declaration.decls,
-    //   |ast_converter, variable_declarator| {
-    //     ast_converter.convert_variable_declarator(variable_declarator);
-    //     true
-    //   },
-    // );
-    // // end
-    // self.add_end(end_position, &variable_declaration.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_VARIABLE_DECLARATION_INLINED_DECLARATIONS,
+      &variable_declaration.span,
+      VARIABLE_DECLARATION_RESERVED_BYTES,
+      matches!(variable_declaration.kind, VarDeclKind::Const),
+    );
+    // declarations
+    self.convert_item_list(
+      &variable_declaration.decls,
+      |ast_converter, variable_declarator| {
+        ast_converter.convert_variable_declarator(variable_declarator);
+        true
+      },
+    );
+    // kind
+    let kind_position = end_position + VARIABLE_DECLARATION_KIND_OFFSET;
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(
+      match variable_declaration.kind {
+        VarDeclKind::Var => &STRING_VAR,
+        VarDeclKind::Let => &STRING_LET,
+        VarDeclKind::Const => &STRING_CONST,
+      },
+    );
+    // end
+    self.add_end(end_position, &variable_declaration.span);
   }
 
   fn convert_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
-    panic!("Variable declarators are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_VARIABLE_DECLARATOR, &variable_declarator.span);
-    // let forwarded_annotations = match &variable_declarator.init {
-    //   Some(expression) => match &**expression {
-    //     Expr::Arrow(_) => {
-    //       let annotations = self
-    //           .index_converter
-    //           .take_collected_annotations(AnnotationKind::NoSideEffects);
-    //       Some(annotations)
-    //     }
-    //     _ => None,
-    //   },
-    //   None => None,
-    // };
-    // // reserve for init
-    // let reference_position = self.reserve_for_items(1);
-    // // id
-    // self.convert_pattern(&variable_declarator.name);
-    // // init
-    // if let Some(annotations) = forwarded_annotations {
-    //   self.index_converter.add_collected_annotations(annotations);
-    // }
-    // if let Some(init) = variable_declarator.init.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_expression(init);
-    // }
-    // // end
-    // self.add_end(end_position, &variable_declarator.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_VARIABLE_DECLARATOR_INLINED_ID,
+      &variable_declarator.span,
+      VARIABLE_DECLARATOR_RESERVED_BYTES,
+      false,
+    );
+    let forwarded_annotations = match &variable_declarator.init {
+      Some(expression) => match &**expression {
+        Expr::Arrow(_) => {
+          let annotations = self
+            .index_converter
+            .take_collected_annotations(AnnotationKind::NoSideEffects);
+          Some(annotations)
+        }
+        _ => None,
+      },
+      None => None,
+    };
+    // id
+    self.convert_pattern(&variable_declarator.name);
+    // init
+    if let Some(annotations) = forwarded_annotations {
+      self.index_converter.add_collected_annotations(annotations);
+    }
+    if let Some(init) = variable_declarator.init.as_ref() {
+      self.update_reference_position(end_position + VARIABLE_DECLARATOR_INIT_OFFSET);
+      self.convert_expression(init);
+    }
+    // end
+    self.add_end(end_position, &variable_declarator.span);
   }
 
   fn convert_while_statement(&mut self, while_statement: &WhileStmt) {
