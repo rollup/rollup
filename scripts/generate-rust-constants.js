@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.js';

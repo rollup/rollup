@@ -93,6 +93,17 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			right
 		};
 	},
+	function awaitExpression(position, buffer, readString): AwaitExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(position, buffer, readString);
+		return {
+			type: 'AwaitExpression',
+			start,
+			end,
+			argument
+		};
+	},
 	function binaryExpression(position, buffer, readString): BinaryExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -106,6 +117,17 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			operator,
 			left,
 			right
+		};
+	},
+	function blockStatement(position, buffer, readString): BlockStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			type: 'BlockStatement',
+			start,
+			end,
+			body
 		};
 	},
 	function breakStatement(position, buffer, readString): BreakStatementNode {
@@ -126,7 +148,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const optional = (flags & 1) === 1;
 		const callee = convertNode(buffer[position++], buffer, readString);
-		const arguments_ = convertNodeList(buffer[position++], buffer, readString);
+		const callArguments = convertNodeList(buffer[position++], buffer, readString);
 		const annotations = convertAnnotations(position, buffer);
 		return {
 			type: 'CallExpression',
@@ -135,7 +157,116 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			optional,
 			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
 			callee,
-			arguments: arguments_
+			arguments: callArguments
+		};
+	},
+	function catchClause(position, buffer, readString): CatchClauseNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const parameterPosition = buffer[position++];
+		const parameter =
+			parameterPosition === 0 ? null : convertNode(parameterPosition, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'CatchClause',
+			start,
+			end,
+			param: parameter,
+			body
+		};
+	},
+	function chainExpression(position, buffer, readString): ChainExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const expression = convertNode(position, buffer, readString);
+		return {
+			type: 'ChainExpression',
+			start,
+			end,
+			expression
+		};
+	},
+	function classBody(position, buffer, readString): ClassBodyNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			type: 'ClassBody',
+			start,
+			end,
+			body
+		};
+	},
+	function classDeclaration(position, buffer, readString): ClassDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const idPosition = buffer[position++];
+		const id = idPosition === 0 ? null : convertNode(idPosition, buffer, readString);
+		const superClassPosition = buffer[position++];
+		const superClass =
+			superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'ClassDeclaration',
+			start,
+			end,
+			id,
+			superClass,
+			body
+		};
+	},
+	function classExpression(position, buffer, readString): ClassExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const idPosition = buffer[position++];
+		const id = idPosition === 0 ? null : convertNode(idPosition, buffer, readString);
+		const superClassPosition = buffer[position++];
+		const superClass =
+			superClassPosition === 0 ? null : convertNode(superClassPosition, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'ClassExpression',
+			start,
+			end,
+			id,
+			superClass,
+			body
+		};
+	},
+	function conditionalExpression(position, buffer, readString): ConditionalExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const consequent = convertNode(buffer[position++], buffer, readString);
+		const alternate = convertNode(buffer[position++], buffer, readString);
+		const test = convertNode(position, buffer, readString);
+		return {
+			type: 'ConditionalExpression',
+			start,
+			end,
+			test,
+			consequent,
+			alternate
+		};
+	},
+	function continueStatement(position, buffer, readString): ContinueStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const labelPosition = buffer[position];
+		const label = labelPosition === 0 ? null : convertNode(labelPosition, buffer, readString);
+		return {
+			type: 'ContinueStatement',
+			start,
+			end,
+			label
+		};
+	},
+	function debuggerStatement(position, buffer): DebuggerStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'DebuggerStatement',
+			start,
+			end
 		};
 	},
 	function directive(position, buffer, readString): DirectiveNode {
@@ -151,6 +282,91 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			expression
 		};
 	},
+	function doWhileStatement(position, buffer, readString): DoWhileStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const test = convertNode(buffer[position++], buffer, readString);
+		const body = convertNode(position, buffer, readString);
+		return {
+			type: 'DoWhileStatement',
+			start,
+			end,
+			body,
+			test
+		};
+	},
+	function emptyStatement(position, buffer): EmptyStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'EmptyStatement',
+			start,
+			end
+		};
+	},
+	function exportAllDeclaration(position, buffer, readString): ExportAllDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const exportedPosition = buffer[position++];
+		const exported =
+			exportedPosition === 0 ? null : convertNode(exportedPosition, buffer, readString);
+		const source = convertNode(buffer[position++], buffer, readString);
+		const attributes = convertNodeList(buffer[position], buffer, readString);
+		return {
+			type: 'ExportAllDeclaration',
+			start,
+			end,
+			exported,
+			source,
+			attributes
+		};
+	},
+	function exportDefaultDeclaration(position, buffer, readString): ExportDefaultDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const declaration = convertNode(position, buffer, readString);
+		return {
+			type: 'ExportDefaultDeclaration',
+			start,
+			end,
+			declaration
+		};
+	},
+	function exportNamedDeclaration(position, buffer, readString): ExportNamedDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const sourcePosition = buffer[position++];
+		const source = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer, readString);
+		const attributes = convertNodeList(buffer[position++], buffer, readString);
+		const declarationPosition = buffer[position++];
+		const declaration =
+			declarationPosition === 0 ? null : convertNode(declarationPosition, buffer, readString);
+		const specifiers = convertNodeList(position, buffer, readString);
+		return {
+			type: 'ExportNamedDeclaration',
+			start,
+			end,
+			specifiers,
+			source,
+			attributes,
+			declaration
+		};
+	},
+	function exportSpecifier(position, buffer, readString): ExportSpecifierNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const exportedPosition = buffer[position++];
+		const exported =
+			exportedPosition === 0 ? null : convertNode(exportedPosition, buffer, readString);
+		const local = convertNode(position, buffer, readString);
+		return {
+			type: 'ExportSpecifier',
+			start,
+			end,
+			local,
+			exported: exported === null ? { ...local } : exported
+		};
+	},
 	function expressionStatement(position, buffer, readString): ExpressionStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -160,6 +376,107 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			start,
 			end,
 			expression
+		};
+	},
+	function forInStatement(position, buffer, readString): ForInStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const right = convertNode(buffer[position++], buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
+		return {
+			type: 'ForInStatement',
+			start,
+			end,
+			left,
+			right,
+			body
+		};
+	},
+	function forOfStatement(position, buffer, readString): ForOfStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const awaited = (flags & 1) === 1;
+		const right = convertNode(buffer[position++], buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const left = convertNode(position, buffer, readString);
+		return {
+			type: 'ForOfStatement',
+			start,
+			end,
+			await: awaited,
+			left,
+			right,
+			body
+		};
+	},
+	function forStatement(position, buffer, readString): ForStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const initPosition = buffer[position++];
+		const init = initPosition === 0 ? null : convertNode(initPosition, buffer, readString);
+		const testPosition = buffer[position++];
+		const test = testPosition === 0 ? null : convertNode(testPosition, buffer, readString);
+		const updatePosition = buffer[position++];
+		const update = updatePosition === 0 ? null : convertNode(updatePosition, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'ForStatement',
+			start,
+			end,
+			init,
+			test,
+			update,
+			body
+		};
+	},
+	function functionDeclaration(position, buffer, readString): FunctionDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const async = (flags & 1) === 1;
+		const generator = (flags & 2) === 2;
+		const idPosition = buffer[position++];
+		const id = idPosition === 0 ? null : convertNode(idPosition, buffer, readString);
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const annotations = convertAnnotations(position, buffer);
+		return {
+			type: 'FunctionDeclaration',
+			start,
+			end,
+			async,
+			generator,
+			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
+			id,
+			params: parameters,
+			body,
+			expression: false
+		};
+	},
+	function functionExpression(position, buffer, readString): FunctionExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const async = (flags & 1) === 1;
+		const generator = (flags & 2) === 2;
+		const idPosition = buffer[position++];
+		const id = idPosition === 0 ? null : convertNode(idPosition, buffer, readString);
+		const parameters = convertNodeList(buffer[position++], buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const annotations = convertAnnotations(position, buffer);
+		return {
+			type: 'FunctionExpression',
+			start,
+			end,
+			async,
+			generator,
+			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
+			id,
+			params: parameters,
+			body,
+			expression: false
 		};
 	},
 	function identifier(position, buffer, readString): IdentifierNode {
@@ -190,6 +507,112 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			alternate
 		};
 	},
+	function importAttribute(position, buffer, readString): ImportAttributeNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const value = convertNode(buffer[position++], buffer, readString);
+		const key = convertNode(position, buffer, readString);
+		return {
+			type: 'ImportAttribute',
+			start,
+			end,
+			key,
+			value
+		};
+	},
+	function importDeclaration(position, buffer, readString): ImportDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const source = convertNode(buffer[position++], buffer, readString);
+		const attributes = convertNodeList(buffer[position++], buffer, readString);
+		const specifiers = convertNodeList(position, buffer, readString);
+		return {
+			type: 'ImportDeclaration',
+			start,
+			end,
+			specifiers,
+			source,
+			attributes
+		};
+	},
+	function importDefaultSpecifier(position, buffer, readString): ImportDefaultSpecifierNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		return {
+			type: 'ImportDefaultSpecifier',
+			start,
+			end,
+			local
+		};
+	},
+	function importExpression(position, buffer, readString): ImportExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const optionsPosition = buffer[position++];
+		const options = optionsPosition === 0 ? null : convertNode(optionsPosition, buffer, readString);
+		const source = convertNode(position, buffer, readString);
+		return {
+			type: 'ImportExpression',
+			start,
+			end,
+			source,
+			options
+		};
+	},
+	function importNamespaceSpecifier(position, buffer, readString): ImportNamespaceSpecifierNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const local = convertNode(position, buffer, readString);
+		return {
+			type: 'ImportNamespaceSpecifier',
+			start,
+			end,
+			local
+		};
+	},
+	function importSpecifier(position, buffer, readString): ImportSpecifierNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const importedPosition = buffer[position++];
+		const imported =
+			importedPosition === 0 ? null : convertNode(importedPosition, buffer, readString);
+		const local = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'ImportSpecifier',
+			start,
+			end,
+			local,
+			imported: imported === null ? { ...local } : imported
+		};
+	},
+	function labeledStatement(position, buffer, readString): LabeledStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNode(buffer[position++], buffer, readString);
+		const label = convertNode(position, buffer, readString);
+		return {
+			type: 'LabeledStatement',
+			start,
+			end,
+			label,
+			body
+		};
+	},
+	function literalBigInt(position, buffer, readString): LiteralBigIntNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const raw = convertString(buffer[position++], buffer, readString);
+		const bigint = convertString(position, buffer, readString);
+		return {
+			type: 'Literal',
+			start,
+			end,
+			bigint,
+			raw,
+			value: BigInt(bigint)
+		};
+	},
 	function literalBoolean(position, buffer): LiteralBooleanNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -201,6 +624,17 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			value,
 			raw: value ? 'true' : 'false'
+		};
+	},
+	function literalNull(position, buffer): LiteralNullNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'Literal',
+			start,
+			end,
+			raw: 'null',
+			value: null
 		};
 	},
 	function literalNumber(position, buffer, readString): LiteralNumberNode {
@@ -215,6 +649,20 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end,
 			raw,
 			value
+		};
+	},
+	function literalRegExp(position, buffer, readString): LiteralRegExpNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const pattern = convertString(buffer[position++], buffer, readString);
+		const flags = convertString(position, buffer, readString);
+		return {
+			type: 'Literal',
+			start,
+			end,
+			raw: `/${pattern}/${flags}`,
+			regex: { flags, pattern },
+			value: new RegExp(pattern, flags)
 		};
 	},
 	function literalString(position, buffer, readString): LiteralStringNode {
@@ -264,6 +712,87 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			property
 		};
 	},
+	function metaProperty(position, buffer, readString): MetaPropertyNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const property = convertNode(buffer[position++], buffer, readString);
+		const meta = convertNode(position, buffer, readString);
+		return {
+			type: 'MetaProperty',
+			start,
+			end,
+			meta,
+			property
+		};
+	},
+	function methodDefinition(position, buffer, readString): MethodDefinitionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const computed = (flags & 1) === 1;
+		const isStatic = (flags & 2) === 2;
+		const value = convertNode(buffer[position++], buffer, readString);
+		const kind = FIXED_STRINGS[buffer[position++]] as estree.MethodDefinition['kind'];
+		const key = convertNode(position, buffer, readString);
+		return {
+			type: 'MethodDefinition',
+			start,
+			end,
+			computed,
+			static: isStatic,
+			key,
+			value,
+			kind
+		};
+	},
+	function newExpression(position, buffer, readString): NewExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const callee = convertNode(buffer[position++], buffer, readString);
+		const callArguments = convertNodeList(buffer[position++], buffer, readString);
+		const annotations = convertAnnotations(position, buffer);
+		return {
+			type: 'NewExpression',
+			start,
+			end,
+			...(annotations.length > 0 ? { [ANNOTATION_KEY]: annotations } : {}),
+			callee,
+			arguments: callArguments
+		};
+	},
+	function objectExpression(position, buffer, readString): ObjectExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const properties = convertNodeList(position, buffer, readString);
+		return {
+			type: 'ObjectExpression',
+			start,
+			end,
+			properties
+		};
+	},
+	function objectPattern(position, buffer, readString): ObjectPatternNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const properties = convertNodeList(position, buffer, readString);
+		return {
+			type: 'ObjectPattern',
+			start,
+			end,
+			properties
+		};
+	},
+	function privateIdentifier(position, buffer, readString): PrivateIdentifierNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const name = convertString(position, buffer, readString);
+		return {
+			type: 'PrivateIdentifier',
+			start,
+			end,
+			name
+		};
+	},
 	function program(position, buffer, readString): ProgramNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -276,6 +805,252 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			body,
 			...(annotations.length > 0 ? { [INVALID_ANNOTATION_KEY]: annotations } : {}),
 			sourceType: 'module'
+		};
+	},
+	function property(position, buffer, readString): PropertyNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const method = (flags & 1) === 1;
+		const shorthand = (flags & 2) === 2;
+		const computed = (flags & 4) === 4;
+		const keyPosition = buffer[position++];
+		const key = keyPosition === 0 ? null : convertNode(keyPosition, buffer, readString);
+		const value = convertNode(buffer[position++], buffer, readString);
+		const kind = FIXED_STRINGS[buffer[position]] as estree.Property['kind'];
+		return {
+			type: 'Property',
+			start,
+			end,
+			method,
+			shorthand,
+			computed,
+			value,
+			kind,
+			key: key === null ? { ...value } : key
+		};
+	},
+	function propertyDefinition(position, buffer, readString): PropertyDefinitionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const computed = (flags & 1) === 1;
+		const isStatic = (flags & 2) === 2;
+		const valuePosition = buffer[position++];
+		const value = valuePosition === 0 ? null : convertNode(valuePosition, buffer, readString);
+		const key = convertNode(position, buffer, readString);
+		return {
+			type: 'PropertyDefinition',
+			start,
+			end,
+			computed,
+			static: isStatic,
+			key,
+			value
+		};
+	},
+	function restElement(position, buffer, readString): RestElementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(position, buffer, readString);
+		return {
+			type: 'RestElement',
+			start,
+			end,
+			argument
+		};
+	},
+	function returnStatement(position, buffer, readString): ReturnStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argumentPosition = buffer[position];
+		const argument =
+			argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, readString);
+		return {
+			type: 'ReturnStatement',
+			start,
+			end,
+			argument
+		};
+	},
+	function sequenceExpression(position, buffer, readString): SequenceExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const expressions = convertNodeList(position, buffer, readString);
+		return {
+			type: 'SequenceExpression',
+			start,
+			end,
+			expressions
+		};
+	},
+	function spreadElement(position, buffer, readString): SpreadElementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(position, buffer, readString);
+		return {
+			type: 'SpreadElement',
+			start,
+			end,
+			argument
+		};
+	},
+	function staticBlock(position, buffer, readString): StaticBlockNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNodeList(position, buffer, readString);
+		return {
+			type: 'StaticBlock',
+			start,
+			end,
+			body
+		};
+	},
+	function superElement(position, buffer): SuperElementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'Super',
+			start,
+			end
+		};
+	},
+	function switchCase(position, buffer, readString): SwitchCaseNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const testPosition = buffer[position++];
+		const test = testPosition === 0 ? null : convertNode(testPosition, buffer, readString);
+		const consequent = convertNodeList(buffer[position], buffer, readString);
+		return {
+			type: 'SwitchCase',
+			start,
+			end,
+			test,
+			consequent
+		};
+	},
+	function switchStatement(position, buffer, readString): SwitchStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const cases = convertNodeList(buffer[position++], buffer, readString);
+		const discriminant = convertNode(position, buffer, readString);
+		return {
+			type: 'SwitchStatement',
+			start,
+			end,
+			discriminant,
+			cases
+		};
+	},
+	function taggedTemplateExpression(position, buffer, readString): TaggedTemplateExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const quasi = convertNode(buffer[position++], buffer, readString);
+		const tag = convertNode(position, buffer, readString);
+		return {
+			type: 'TaggedTemplateExpression',
+			start,
+			end,
+			tag,
+			quasi
+		};
+	},
+	function templateElement(position, buffer, readString): TemplateElementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const tail = (flags & 1) === 1;
+		const cookedPosition = buffer[position++];
+		const cooked =
+			cookedPosition === 0 ? undefined : convertString(cookedPosition, buffer, readString);
+		const raw = convertString(position, buffer, readString);
+		return {
+			type: 'TemplateElement',
+			start,
+			end,
+			tail,
+			value: { cooked, raw }
+		};
+	},
+	function templateLiteral(position, buffer, readString): TemplateLiteralNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const expressions = convertNodeList(buffer[position++], buffer, readString);
+		const quasis = convertNodeList(position, buffer, readString);
+		return {
+			type: 'TemplateLiteral',
+			start,
+			end,
+			quasis,
+			expressions
+		};
+	},
+	function thisExpression(position, buffer): ThisExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'ThisExpression',
+			start,
+			end
+		};
+	},
+	function throwStatement(position, buffer, readString): ThrowStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const argument = convertNode(position, buffer, readString);
+		return {
+			type: 'ThrowStatement',
+			start,
+			end,
+			argument
+		};
+	},
+	function tryStatement(position, buffer, readString): TryStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const handlerPosition = buffer[position++];
+		const handler = handlerPosition === 0 ? null : convertNode(handlerPosition, buffer, readString);
+		const finalizerPosition = buffer[position++];
+		const finalizer =
+			finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer, readString);
+		const block = convertNode(position, buffer, readString);
+		return {
+			type: 'TryStatement',
+			start,
+			end,
+			block,
+			handler,
+			finalizer
+		};
+	},
+	function unaryExpression(position, buffer, readString): UnaryExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.UnaryOperator;
+		const argument = convertNode(position, buffer, readString);
+		return {
+			type: 'UnaryExpression',
+			start,
+			end,
+			operator,
+			argument,
+			prefix: true
+		};
+	},
+	function updateExpression(position, buffer, readString): UpdateExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const prefix = (flags & 1) === 1;
+		const operator = FIXED_STRINGS[buffer[position++]] as estree.UpdateOperator;
+		const argument = convertNode(position, buffer, readString);
+		return {
+			type: 'UpdateExpression',
+			start,
+			end,
+			prefix,
+			operator,
+			argument
 		};
 	},
 	function variableDeclaration(position, buffer, readString): VariableDeclarationNode {
@@ -304,6 +1079,35 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			id,
 			init
 		};
+	},
+	function whileStatement(position, buffer, readString): WhileStatementNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const body = convertNode(buffer[position++], buffer, readString);
+		const test = convertNode(position, buffer, readString);
+		return {
+			type: 'WhileStatement',
+			start,
+			end,
+			test,
+			body
+		};
+	},
+	function yieldExpression(position, buffer, readString): YieldExpressionNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const delegate = (flags & 1) === 1;
+		const argumentPosition = buffer[position];
+		const argument =
+			argumentPosition === 0 ? null : convertNode(argumentPosition, buffer, readString);
+		return {
+			type: 'YieldExpression',
+			start,
+			end,
+			delegate,
+			argument
+		};
 	}
 ];
 
@@ -319,26 +1123,98 @@ export interface RollupAnnotation {
 export type ArrayExpressionNode = estree.ArrayExpression & AstNode;
 export type ArrayPatternNode = estree.ArrayPattern & AstNode;
 export type ArrowFunctionExpressionNode = estree.ArrowFunctionExpression &
-	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[] } & { id: null };
+	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[]; id: null };
 export type AssignmentExpressionNode = estree.AssignmentExpression & AstNode;
 export type AssignmentPatternNode = estree.AssignmentPattern & AstNode;
+export type AwaitExpressionNode = estree.AwaitExpression & AstNode;
 export type BinaryExpressionNode = estree.BinaryExpression & AstNode;
+export type BlockStatementNode = estree.BlockStatement & AstNode;
 export type BreakStatementNode = estree.BreakStatement & AstNode;
 export type CallExpressionNode = estree.CallExpression &
 	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[] };
+export type CatchClauseNode = estree.CatchClause & AstNode;
+export type ChainExpressionNode = estree.ChainExpression & AstNode;
+export type ClassBodyNode = estree.ClassBody & AstNode;
+export type ClassDeclarationNode = estree.ClassDeclaration & AstNode;
+export type ClassExpressionNode = estree.ClassExpression & AstNode;
+export type ConditionalExpressionNode = estree.ConditionalExpression & AstNode;
+export type ContinueStatementNode = estree.ContinueStatement & AstNode;
+export type DebuggerStatementNode = estree.DebuggerStatement & AstNode;
 export type DirectiveNode = estree.Directive & AstNode;
+export type DoWhileStatementNode = estree.DoWhileStatement & AstNode;
+export type EmptyStatementNode = estree.EmptyStatement & AstNode;
+export type ExportAllDeclarationNode = estree.ExportAllDeclaration & {
+	attributes: ImportAttributeNode[];
+} & AstNode;
+export type ExportDefaultDeclarationNode = estree.ExportDefaultDeclaration & AstNode;
+export type ExportNamedDeclarationNode = estree.ExportNamedDeclaration & {
+	attributes: ImportAttributeNode[];
+} & AstNode;
+export type ExportSpecifierNode = estree.ExportSpecifier & AstNode;
 export type ExpressionStatementNode = estree.ExpressionStatement & AstNode;
+export type ForInStatementNode = estree.ForInStatement & AstNode;
+export type ForOfStatementNode = estree.ForOfStatement & AstNode;
+export type ForStatementNode = estree.ForStatement & AstNode;
+export type FunctionDeclarationNode = estree.FunctionDeclaration &
+	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[]; expression: false };
+export type FunctionExpressionNode = estree.FunctionExpression &
+	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[]; expression: false };
 export type IdentifierNode = estree.Identifier & AstNode;
 export type IfStatementNode = estree.IfStatement & AstNode;
+export type ImportAttributeNode = {
+	key: estree.Identifier | estree.Literal;
+	type: 'ImportAttribute';
+	value: estree.Literal;
+} & AstNode;
+export type ImportDeclarationNode = estree.ImportDeclaration & {
+	attributes: ImportAttributeNode[];
+} & AstNode;
+export type ImportDefaultSpecifierNode = estree.ImportDefaultSpecifier & AstNode;
+export type ImportExpressionNode = estree.ImportExpression & {
+	options: estree.Expression | null;
+} & AstNode;
+export type ImportNamespaceSpecifierNode = estree.ImportNamespaceSpecifier & AstNode;
+export type ImportSpecifierNode = estree.ImportSpecifier & AstNode;
+export type LabeledStatementNode = estree.LabeledStatement & AstNode;
+export type LiteralBigIntNode = estree.BigIntLiteral & AstNode;
 export type LiteralBooleanNode = estree.SimpleLiteral & AstNode;
+export type LiteralNullNode = estree.SimpleLiteral & AstNode & { raw: 'null'; value: null };
 export type LiteralNumberNode = estree.SimpleLiteral & AstNode;
+export type LiteralRegExpNode = estree.RegExpLiteral & AstNode;
 export type LiteralStringNode = estree.SimpleLiteral & AstNode;
 export type LogicalExpressionNode = estree.LogicalExpression & AstNode;
 export type MemberExpressionNode = estree.MemberExpression & AstNode;
+export type MetaPropertyNode = estree.MetaProperty & AstNode;
+export type MethodDefinitionNode = estree.MethodDefinition & AstNode;
+export type NewExpressionNode = estree.NewExpression &
+	AstNode & { [ANNOTATION_KEY]?: RollupAnnotation[] };
+export type ObjectExpressionNode = estree.ObjectExpression & AstNode;
+export type ObjectPatternNode = estree.ObjectPattern & AstNode;
+export type PrivateIdentifierNode = estree.PrivateIdentifier & AstNode;
 export type ProgramNode = estree.Program &
-	AstNode & { [INVALID_ANNOTATION_KEY]?: RollupAnnotation[] } & { sourceType: 'module' };
+	AstNode & { [INVALID_ANNOTATION_KEY]?: RollupAnnotation[]; sourceType: 'module' };
+export type PropertyNode = estree.Property & AstNode;
+export type PropertyDefinitionNode = estree.PropertyDefinition & AstNode;
+export type RestElementNode = estree.RestElement & AstNode;
+export type ReturnStatementNode = estree.ReturnStatement & AstNode;
+export type SequenceExpressionNode = estree.SequenceExpression & AstNode;
+export type SpreadElementNode = estree.SpreadElement & AstNode;
+export type StaticBlockNode = estree.StaticBlock & AstNode;
+export type SuperElementNode = estree.Super & AstNode;
+export type SwitchCaseNode = estree.SwitchCase & AstNode;
+export type SwitchStatementNode = estree.SwitchStatement & AstNode;
+export type TaggedTemplateExpressionNode = estree.TaggedTemplateExpression & AstNode;
+export type TemplateElementNode = estree.TemplateElement & AstNode;
+export type TemplateLiteralNode = estree.TemplateLiteral & AstNode;
+export type ThisExpressionNode = estree.ThisExpression & AstNode;
+export type ThrowStatementNode = estree.ThrowStatement & AstNode;
+export type TryStatementNode = estree.TryStatement & AstNode;
+export type UnaryExpressionNode = estree.UnaryExpression & AstNode & { prefix: true };
+export type UpdateExpressionNode = estree.UpdateExpression & AstNode;
 export type VariableDeclarationNode = estree.VariableDeclaration & AstNode;
 export type VariableDeclaratorNode = estree.VariableDeclarator & AstNode;
+export type WhileStatementNode = estree.WhileStatement & AstNode;
+export type YieldExpressionNode = estree.YieldExpression & AstNode;
 
 function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
 	const nodeType = buffer[position];

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { writeFile } from 'node:fs/promises';
 import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.js';
 import { firstLetterLowercase, lintFile } from './helpers.js';
@@ -27,7 +25,10 @@ const jsConverters = [
 			definitions.push(
 				'const flags = buffer[position++];\n',
 				...node.flags.map(
-					(name, index) => `const ${name} = (flags & ${1 << index}) === ${1 << index};`
+					(name, index) =>
+						`const ${node.variableNames?.[name] || name} = (flags & ${1 << index}) === ${
+							1 << index
+						};`
 				)
 			);
 		}
@@ -41,8 +42,13 @@ const jsConverters = [
 		}
 		/** @type {string[]} */
 		const properties = [
-			...(node.flags || []),
-			...allFields.map(getFieldProperty),
+			...(node.flags || []).map(name => {
+				const alternativeVariableName = node.variableNames?.[name];
+				return alternativeVariableName ? `${name}: ${alternativeVariableName}` : name;
+			}),
+			...allFields
+				.filter(([fieldName]) => !node.hiddenFields?.includes(fieldName))
+				.map(field => getFieldProperty(field, node)),
 			...getFixedProperties(node),
 			...Object.entries(node.additionalFields || []).map(([key, value]) => `${key}: ${value}`)
 		];
@@ -73,7 +79,7 @@ function getFieldDefinition([fieldName, fieldType], node, isInlined, isLastField
 	const typeCastString = typeCast ? ` as ${typeCast}` : '';
 	const getAndUpdatePosition = isLastField ? 'position' : 'position++';
 	const dataStart = isInlined ? getAndUpdatePosition : `buffer[${getAndUpdatePosition}]`;
-	const variableName = sanitizeVariableName(fieldName);
+	const variableName = node.variableNames?.[fieldName] || fieldName;
 	switch (fieldType) {
 		case 'Node': {
 			return `const ${variableName} = convertNode(${dataStart}, buffer, readString)${typeCastString};`;
@@ -108,9 +114,10 @@ function getFieldDefinition([fieldName, fieldType], node, isInlined, isLastField
 
 /**
  * @param {import('./ast-types.js').FieldWithType} field
+ * @param {import('./ast-types.js').NodeDescription} node
  * @returns {string}
  */
-function getFieldProperty([fieldName, fieldType]) {
+function getFieldProperty([fieldName, fieldType], node) {
 	switch (fieldType) {
 		case 'Annotations': {
 			return `...(${fieldName}.length > 0 ? { [ANNOTATION_KEY]: ${fieldName} } : {})`;
@@ -119,18 +126,10 @@ function getFieldProperty([fieldName, fieldType]) {
 			return `...(${fieldName}.length > 0 ? { [INVALID_ANNOTATION_KEY]: ${fieldName} } : {})`;
 		}
 		default: {
-			const sanitizedFieldName = sanitizeVariableName(fieldName);
-			return fieldName === sanitizedFieldName ? fieldName : `${fieldName}: ${sanitizedFieldName}`;
+			const variableName = node.variableNames?.[fieldName];
+			return variableName ? `${fieldName}: ${variableName}` : fieldName;
 		}
 	}
-}
-
-/**
- * @param {string} name
- * @returns {string}
- */
-function sanitizeVariableName(name) {
-	return name === 'arguments' ? 'arguments_' : name;
 }
 
 /**
@@ -143,16 +142,21 @@ function getFixedProperties(node) {
 
 const types = astNodeNamesWithFieldOrder.map(({ name }) => {
 	const node = AST_NODES[name];
-	let typeDefinition = `export type ${name}Node = estree.${node.estreeType || name} & AstNode`;
+	let typeDefinition = `export type ${name}Node = ${node.estreeType || `estree.${name}`} & AstNode`;
+	/** @type {string[]} */
+	const additionalFieldTypes = [];
 	if ((node.fields || []).some(([, fieldType]) => fieldType === 'Annotations')) {
-		typeDefinition += ' & { [ANNOTATION_KEY]?: RollupAnnotation[] }';
+		additionalFieldTypes.push('[ANNOTATION_KEY]?: RollupAnnotation[]');
 	}
 	if ((node.fields || []).some(([, fieldType]) => fieldType === 'InvalidAnnotations')) {
-		typeDefinition += ' & { [INVALID_ANNOTATION_KEY]?: RollupAnnotation[] }';
+		additionalFieldTypes.push('[INVALID_ANNOTATION_KEY]?: RollupAnnotation[]');
 	}
 	const fixedProperties = getFixedProperties(node);
 	if (fixedProperties.length > 0) {
-		typeDefinition += ` & { ${fixedProperties.join(', ')} }`;
+		additionalFieldTypes.push(...getFixedProperties(node));
+	}
+	if (additionalFieldTypes.length > 0) {
+		typeDefinition += ` & { ${additionalFieldTypes.join('; ')} }`;
 	}
 	typeDefinition += ';';
 	return typeDefinition;

@@ -53,6 +53,10 @@ jobs:
         run: npm run test:package
       - name: CLI Docs
         run: npm run test:options
+      - name: Generated Code
+        run: |
+          npm run build:ast-converters
+          git diff HEAD --exit-code --ignore-space-at-eol
 
   build:
     strategy:

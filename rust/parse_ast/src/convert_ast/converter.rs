@@ -9,16 +9,18 @@ use swc_ecma_ast::{
   ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr, ForHead, ForInStmt, ForOfStmt, ForStmt,
   Function, GetterProp, Ident, IfStmt, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier,
   ImportSpecifier, ImportStarAsSpecifier, KeyValuePatProp, KeyValueProp, LabeledStmt, Lit,
-  MemberExpr, MemberProp, MetaPropExpr, MethodKind, MethodProp, ModuleDecl, ModuleExportName,
-  ModuleItem, NamedExport, NewExpr, Null, Number, ObjectLit, ObjectPat, ObjectPatProp, OptCall,
-  OptChainBase, OptChainExpr, ParenExpr, Pat, PatOrExpr, PrivateMethod, PrivateName, PrivateProp,
-  Program, Prop, PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp,
-  SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
-  TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, UnaryExpr, UpdateExpr, VarDecl,
-  VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
+  MemberExpr, MemberProp, MetaPropExpr, MetaPropKind, MethodKind, MethodProp, ModuleDecl,
+  ModuleExportName, ModuleItem, NamedExport, NewExpr, Null, Number, ObjectLit, ObjectPat,
+  ObjectPatProp, OptCall, OptChainBase, OptChainExpr, ParamOrTsParamProp, ParenExpr, Pat,
+  PatOrExpr, PrivateMethod, PrivateName, PrivateProp, Program, Prop, PropName, PropOrSpread, Regex,
+  RestPat, ReturnStmt, SeqExpr, SetterProp, SpreadElement, StaticBlock, Stmt, Str, Super,
+  SuperProp, SuperPropExpr, SwitchCase, SwitchStmt, TaggedTpl, ThisExpr, ThrowStmt, Tpl,
+  TplElement, TryStmt, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, VarDecl, VarDeclKind,
+  VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
+use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::*;
 use crate::convert_ast::converter::string_constants::*;
 use crate::convert_ast::converter::utf16_positions::{
@@ -159,14 +161,6 @@ impl<'a> AstConverter<'a> {
     convert_string(&mut self.buffer, string);
   }
 
-  fn reserve_for_items(&mut self, item_count: usize) -> usize {
-    let reference_position = self.buffer.len();
-    self
-      .buffer
-      .resize(reference_position + (item_count << 2), 0);
-    reference_position
-  }
-
   fn update_reference_position(&mut self, reference_position: usize) {
     let insert_position = (self.buffer.len() as u32) >> 2;
     self.buffer[reference_position..reference_position + 4]
@@ -222,12 +216,11 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_class_declaration(&mut self, class_declaration: &ClassDecl) {
-    panic!("Class declarations are not supported");
-    // self.store_class_node(
-    //   &TYPE_CLASS_DECLARATION,
-    //   Some(&class_declaration.ident),
-    //   &class_declaration.class,
-    // );
+    self.store_class_node(
+      &TYPE_CLASS_DECLARATION,
+      Some(&class_declaration.ident),
+      &class_declaration.class,
+    );
   }
 
   fn convert_class_expression(&mut self, class_expression: &ClassExpr, node_type: &[u8; 4]) {
@@ -267,14 +260,11 @@ impl<'a> AstConverter<'a> {
   fn convert_declaration(&mut self, declaration: &Decl) {
     match declaration {
       Decl::Var(variable_declaration) => self.convert_variable_declaration(variable_declaration),
-      Decl::Fn(function_declaration) => {
-        panic!("Cannot convert Decl::Fn");
-        // self.convert_function(
-        //   &function_declaration.function,
-        //   &TYPE_FUNCTION_DECLARATION,
-        //   Some(&function_declaration.ident),
-        // )
-      }
+      Decl::Fn(function_declaration) => self.convert_function(
+        &function_declaration.function,
+        &TYPE_FUNCTION_DECLARATION_INLINED_ANNOTATIONS,
+        Some(&function_declaration.ident),
+      ),
       Decl::Class(class_declaration) => self.convert_class_declaration(class_declaration),
       Decl::Using(_) => unimplemented!("Cannot convert Decl::Using"),
       Decl::TsInterface(_) => unimplemented!("Cannot convert Decl::TsInterface"),
@@ -379,22 +369,20 @@ impl<'a> AstConverter<'a> {
         None
       }
       Expr::Class(class_expression) => {
-        panic!("Cannot convert Expr::Class");
-        // self.convert_class_expression(class_expression, &TYPE_CLASS_EXPRESSION);
-        // None
+        self.convert_class_expression(class_expression, &TYPE_CLASS_EXPRESSION);
+        None
       }
       Expr::Cond(conditional_expression) => {
         self.convert_conditional_expression(conditional_expression);
         None
       }
       Expr::Fn(function_expression) => {
-        panic!("Cannot convert Expr::Fn");
-        // self.convert_function(
-        //   &function_expression.function,
-        //   &TYPE_FUNCTION_EXPRESSION,
-        //   function_expression.ident.as_ref(),
-        // );
-        // None
+        self.convert_function(
+          &function_expression.function,
+          &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+          function_expression.ident.as_ref(),
+        );
+        None
       }
       Expr::Ident(identifier) => {
         self.convert_identifier(identifier);
@@ -554,19 +542,18 @@ impl<'a> AstConverter<'a> {
     node_type: &[u8; 4],
     identifier: Option<&Ident>,
   ) {
-    panic!("Functions are not supported");
-    // let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
-    // self.store_function_node(
-    //   node_type,
-    //   function.span.lo.0 - 1,
-    //   function.span.hi.0 - 1,
-    //   function.is_async,
-    //   function.is_generator,
-    //   identifier,
-    //   &parameters,
-    //   function.body.as_ref().unwrap(),
-    //   true,
-    // );
+    let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
+    self.store_function_node(
+      node_type,
+      function.span.lo.0 - 1,
+      function.span.hi.0 - 1,
+      function.is_async,
+      function.is_generator,
+      identifier,
+      &parameters,
+      function.body.as_ref().unwrap(),
+      true,
+    );
   }
 
   fn convert_getter_property(&mut self, getter_property: &GetterProp) {
@@ -1035,10 +1022,11 @@ impl<'a> AstConverter<'a> {
       true
     });
     // flags
-    let mut flags = 0u32;
-    if arrow_expression.is_async {
-      flags |= ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG;
-    }
+    let mut flags = if arrow_expression.is_async {
+      ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG
+    } else {
+      0u32
+    };
     if arrow_expression.is_generator {
       flags |= ARROW_FUNCTION_EXPRESSION_GENERATOR_FLAG;
     }
@@ -1134,13 +1122,16 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_await_expression(&mut self, await_expression: &AwaitExpr) {
-    panic!("Await expressions are not supported");
-    // let end_position =
-    //   self.add_type_and_start_simple(&TYPE_AWAIT_EXPRESSION, &await_expression.span);
-    // // argument
-    // self.convert_expression(&await_expression.arg);
-    // // end
-    // self.add_end(end_position, &await_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_AWAIT_EXPRESSION_INLINED_ARGUMENT,
+      &await_expression.span,
+      AWAIT_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // argument
+    self.convert_expression(&await_expression.arg);
+    // end
+    self.add_end(end_position, &await_expression.span);
   }
 
   fn convert_binary_expression(&mut self, binary_expression: &BinExpr) {
@@ -1196,29 +1187,33 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_block_statement(&mut self, block_statement: &BlockStmt, check_directive: bool) {
-    panic!("Block statements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_BLOCK_STATEMENT, &block_statement.span);
-    // // body
-    // let mut keep_checking_directives = check_directive;
-    // self.convert_item_list_with_state(
-    //   &block_statement.stmts,
-    //   &mut keep_checking_directives,
-    //   |ast_converter, statement, can_be_directive| {
-    //     if *can_be_directive {
-    //       if let Stmt::Expr(expression) = statement {
-    //         if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
-    //           ast_converter.convert_expression_statement(expression, Some(&string.value));
-    //           return true;
-    //         }
-    //       }
-    //     }
-    //     *can_be_directive = false;
-    //     ast_converter.convert_statement(statement);
-    //     true
-    //   },
-    // );
-    // // end
-    // self.add_end(end_position, &block_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_BLOCK_STATEMENT_INLINED_BODY,
+      &block_statement.span,
+      BLOCK_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // body
+    let mut keep_checking_directives = check_directive;
+    self.convert_item_list_with_state(
+      &block_statement.stmts,
+      &mut keep_checking_directives,
+      |ast_converter, statement, can_be_directive| {
+        if *can_be_directive {
+          if let Stmt::Expr(expression) = statement {
+            if let Expr::Lit(Lit::Str(string)) = &*expression.expr {
+              ast_converter.convert_directive(expression, &string.value);
+              return true;
+            }
+          }
+        }
+        *can_be_directive = false;
+        ast_converter.convert_statement(statement);
+        true
+      },
+    );
+    // end
+    self.add_end(end_position, &block_statement.span);
   }
 
   fn convert_break_statement(&mut self, break_statement: &BreakStmt) {
@@ -1295,20 +1290,22 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_catch_clause(&mut self, catch_clause: &CatchClause) {
-    panic!("Catch clauses are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_CATCH_CLAUSE, &catch_clause.span);
-    // // reserve param, body
-    // let reference_position = self.reserve_for_items(2);
-    // // param
-    // if let Some(pattern) = catch_clause.param.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_pattern(pattern);
-    // }
-    // // body
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_block_statement(&catch_clause.body, false);
-    // // end
-    // self.add_end(end_position, &catch_clause.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_CATCH_CLAUSE,
+      &catch_clause.span,
+      CATCH_CLAUSE_RESERVED_BYTES,
+      false,
+    );
+    // param
+    if let Some(pattern) = catch_clause.param.as_ref() {
+      self.update_reference_position(end_position + CATCH_CLAUSE_PARAM_OFFSET);
+      self.convert_pattern(pattern);
+    }
+    // body
+    self.update_reference_position(end_position + CATCH_CLAUSE_BODY_OFFSET);
+    self.convert_block_statement(&catch_clause.body, false);
+    // end
+    self.add_end(end_position, &catch_clause.span);
   }
 
   fn convert_optional_chain_expression(
@@ -1316,104 +1313,119 @@ impl<'a> AstConverter<'a> {
     optional_chain_expression: &OptChainExpr,
     is_chained: bool,
   ) {
-    panic!("Optional chain expressions are not supported");
-    // if is_chained {
-    //   self.convert_optional_chain_base(
-    //     &optional_chain_expression.base,
-    //     optional_chain_expression.optional,
-    //   );
-    // } else {
-    //   let end_position =
-    //       self.add_type_and_start_simple(&TYPE_CHAIN_EXPRESSION, &optional_chain_expression.span);
-    //   // expression
-    //   self.convert_optional_chain_base(
-    //     &optional_chain_expression.base,
-    //     optional_chain_expression.optional,
-    //   );
-    //   // end
-    //   self.add_end(end_position, &optional_chain_expression.span);
-    // }
+    if is_chained {
+      self.convert_optional_chain_base(
+        &optional_chain_expression.base,
+        optional_chain_expression.optional,
+      );
+    } else {
+      let end_position = self.add_type_and_start(
+        &TYPE_CHAIN_EXPRESSION_INLINED_EXPRESSION,
+        &optional_chain_expression.span,
+        CHAIN_EXPRESSION_RESERVED_BYTES,
+        false,
+      );
+      // expression
+      self.convert_optional_chain_base(
+        &optional_chain_expression.base,
+        optional_chain_expression.optional,
+      );
+      // end
+      self.add_end(end_position, &optional_chain_expression.span);
+    }
   }
 
   fn convert_class_body(&mut self, class_members: &[ClassMember], start: u32, end: u32) {
-    panic!("Class bodies are not supported");
-    // let end_position = self.add_type_and_explicit_start(&TYPE_CLASS_BODY, start);
-    // let class_members_filtered: Vec<&ClassMember> = class_members
-    //     .iter()
-    //     .filter(|class_member| !matches!(class_member, ClassMember::Empty(_)))
-    //     .collect();
-    // // body
-    // self.convert_item_list(&class_members_filtered, |ast_converter, class_member| {
-    //   ast_converter.convert_class_member(class_member);
-    //   true
-    // });
-    // // end
-    // self.add_explicit_end(end_position, end);
+    let end_position = self.add_type_and_explicit_start(
+      &TYPE_CLASS_BODY_INLINED_BODY,
+      start,
+      CLASS_BODY_RESERVED_BYTES,
+    );
+    let class_members_filtered: Vec<&ClassMember> = class_members
+      .iter()
+      .filter(|class_member| !matches!(class_member, ClassMember::Empty(_)))
+      .collect();
+    // body
+    self.convert_item_list(&class_members_filtered, |ast_converter, class_member| {
+      ast_converter.convert_class_member(class_member);
+      true
+    });
+    // end
+    self.add_explicit_end(end_position, end);
   }
 
   fn store_class_node(&mut self, node_type: &[u8; 4], identifier: Option<&Ident>, class: &Class) {
-    panic!("Class nodes are not supported");
-    // let end_position = self.add_type_and_start_simple(node_type, &class.span);
-    // // reserve id, super_class, body
-    // let reference_position = self.reserve_for_items(3);
-    // let mut body_start_search = class.span.lo.0 - 1;
-    // // id
-    // if let Some(identifier) = identifier {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_identifier(identifier);
-    //   body_start_search = identifier.span.hi.0 - 1;
-    // }
-    // // super_class
-    // if let Some(super_class) = class.super_class.as_ref() {
-    //   self.update_reference_position(reference_position + 4);
-    //   self.convert_expression(super_class);
-    //   body_start_search = self.get_expression_span(super_class).hi.0 - 1;
-    // }
-    // // body
-    // self.update_reference_position(reference_position + 8);
-    // let class_body_start =
-    //     find_first_occurrence_outside_comment(self.code, b'{', body_start_search);
-    // self.convert_class_body(&class.body, class_body_start, class.span.hi.0 - 1);
-    // // end
-    // self.add_end(end_position, &class.span);
+    let end_position = self.add_type_and_start(
+      node_type,
+      &class.span,
+      CLASS_DECLARATION_RESERVED_BYTES,
+      false,
+    );
+    let mut body_start_search = class.span.lo.0 - 1;
+    // id
+    if let Some(identifier) = identifier {
+      self.update_reference_position(end_position + CLASS_DECLARATION_ID_OFFSET);
+      self.convert_identifier(identifier);
+      body_start_search = identifier.span.hi.0 - 1;
+    }
+    // super_class
+    if let Some(super_class) = class.super_class.as_ref() {
+      self.update_reference_position(end_position + CLASS_DECLARATION_SUPER_CLASS_OFFSET);
+      self.convert_expression(super_class);
+      body_start_search = self.get_expression_span(super_class).hi.0 - 1;
+    }
+    // body
+    self.update_reference_position(end_position + CLASS_DECLARATION_BODY_OFFSET);
+    let class_body_start =
+      find_first_occurrence_outside_comment(self.code, b'{', body_start_search);
+    self.convert_class_body(&class.body, class_body_start, class.span.hi.0 - 1);
+    // end
+    self.add_end(end_position, &class.span);
   }
 
   fn convert_conditional_expression(&mut self, conditional_expression: &CondExpr) {
-    panic!("Conditional expressions are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_CONDITIONAL_EXPRESSION, &conditional_expression.span);
-    // // reserve consequent, alternate
-    // let reference_position = self.reserve_for_items(2);
-    // // test
-    // self.convert_expression(&conditional_expression.test);
-    // // consequent
-    // self.update_reference_position(reference_position);
-    // self.convert_expression(&conditional_expression.cons);
-    // // alternate
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_expression(&conditional_expression.alt);
-    // // end
-    // self.add_end(end_position, &conditional_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_CONDITIONAL_EXPRESSION_INLINED_TEST,
+      &conditional_expression.span,
+      CONDITIONAL_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // test
+    self.convert_expression(&conditional_expression.test);
+    // consequent
+    self.update_reference_position(end_position + CONDITIONAL_EXPRESSION_CONSEQUENT_OFFSET);
+    self.convert_expression(&conditional_expression.cons);
+    // alternate
+    self.update_reference_position(end_position + CONDITIONAL_EXPRESSION_ALTERNATE_OFFSET);
+    self.convert_expression(&conditional_expression.alt);
+    // end
+    self.add_end(end_position, &conditional_expression.span);
   }
 
   fn convert_continue_statement(&mut self, continue_statement: &ContinueStmt) {
-    panic!("Continue statements are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_CONTINUE_STATEMENT, &continue_statement.span);
-    // // reserve label
-    // let reference_position = self.reserve_for_items(1);
-    // // label
-    // if let Some(label) = continue_statement.label.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_identifier(label);
-    // }
-    // // end
-    // self.add_end(end_position, &continue_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_CONTINUE_STATEMENT,
+      &continue_statement.span,
+      CONTINUE_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // label
+    if let Some(label) = continue_statement.label.as_ref() {
+      self.update_reference_position(end_position + CONTINUE_STATEMENT_LABEL_OFFSET);
+      self.convert_identifier(label);
+    }
+    // end
+    self.add_end(end_position, &continue_statement.span);
   }
 
   fn convert_debugger_statement(&mut self, debugger_statement: &DebuggerStmt) {
-    panic!("Debugger statements are not supported");
-    // self.add_type_and_positions(&TYPE_DEBUGGER_STATEMENT, &debugger_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_DEBUGGER_STATEMENT,
+      &debugger_statement.span,
+      DEBUGGER_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    self.add_end(end_position, &debugger_statement.span);
   }
 
   fn convert_directive(&mut self, expression_statement: &ExprStmt, directive: &JsWord) {
@@ -1433,23 +1445,29 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_do_while_statement(&mut self, do_while_statement: &DoWhileStmt) {
-    panic!("Do while statements are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_DO_WHILE_STATEMENT, &do_while_statement.span);
-    // // reserve test
-    // let reference_position = self.reserve_for_items(1);
-    // // body
-    // self.convert_statement(&do_while_statement.body);
-    // // test
-    // self.update_reference_position(reference_position);
-    // self.convert_expression(&do_while_statement.test);
-    // // end
-    // self.add_end(end_position, &do_while_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_DO_WHILE_STATEMENT_INLINED_BODY,
+      &do_while_statement.span,
+      DO_WHILE_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // body
+    self.convert_statement(&do_while_statement.body);
+    // test
+    self.update_reference_position(end_position + DO_WHILE_STATEMENT_TEST_OFFSET);
+    self.convert_expression(&do_while_statement.test);
+    // end
+    self.add_end(end_position, &do_while_statement.span);
   }
 
   fn convert_empty_statement(&mut self, empty_statement: &EmptyStmt) {
-    panic!("Empty statements are not supported");
-    // self.add_type_and_positions(&TYPE_EMPTY_STATEMENT, &empty_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_EMPTY_STATEMENT,
+      &empty_statement.span,
+      EMPTY_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    self.add_end(end_position, &empty_statement.span)
   }
 
   fn store_export_all_declaration(
@@ -1459,23 +1477,25 @@ impl<'a> AstConverter<'a> {
     attributes: &Option<Box<ObjectLit>>,
     exported: Option<&ModuleExportName>,
   ) {
-    panic!("Export all declarations are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_EXPORT_ALL_DECLARATION, span);
-    // // reserve exported, source, attributes
-    // let reference_position = self.reserve_for_items(3);
-    // // exported
-    // if let Some(exported) = exported {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_module_export_name(exported);
-    // }
-    // // source
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_literal_string(source);
-    // // attributes
-    // self.update_reference_position(reference_position + 8);
-    // self.store_import_attributes(attributes);
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_EXPORT_ALL_DECLARATION,
+      span,
+      EXPORT_ALL_DECLARATION_RESERVED_BYTES,
+      false,
+    );
+    // exported
+    if let Some(exported) = exported {
+      self.update_reference_position(end_position + EXPORT_ALL_DECLARATION_EXPORTED_OFFSET);
+      self.convert_module_export_name(exported);
+    }
+    // source
+    self.update_reference_position(end_position + EXPORT_ALL_DECLARATION_SOURCE_OFFSET);
+    self.convert_literal_string(source);
+    // attributes
+    self.update_reference_position(end_position + EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET);
+    self.store_import_attributes(attributes);
+    // end
+    self.add_end(end_position, span);
   }
 
   fn store_export_default_declaration(
@@ -1483,32 +1503,32 @@ impl<'a> AstConverter<'a> {
     span: &Span,
     expression: StoredDefaultExportExpression,
   ) {
-    panic!("Export default declarations are not supported");
-    // let end_position = self.add_type_and_start_and_handle_annotations(
-    //   &TYPE_EXPORT_DEFAULT_DECLARATION,
-    //   span,
-    //   matches!(
-    //     expression,
-    //     StoredDefaultExportExpression::Expression(Expr::Fn(_) | Expr::Arrow(_))
-    //       | StoredDefaultExportExpression::Function(_)
-    //   ),
-    // );
-    // // expression
-    // match expression {
-    //   StoredDefaultExportExpression::Expression(expression) => {
-    //     self.convert_expression(expression);
-    //   }
-    //   StoredDefaultExportExpression::Class(class_expression) => {
-    //     self.convert_class_expression(class_expression, &TYPE_CLASS_DECLARATION)
-    //   }
-    //   StoredDefaultExportExpression::Function(function_expression) => self.convert_function(
-    //     &function_expression.function,
-    //     &TYPE_FUNCTION_DECLARATION,
-    //     function_expression.ident.as_ref(),
-    //   ),
-    // }
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_EXPORT_DEFAULT_DECLARATION_INLINED_DECLARATION,
+      span,
+      EXPORT_DEFAULT_DECLARATION_RESERVED_BYTES,
+      matches!(
+        expression,
+        StoredDefaultExportExpression::Expression(Expr::Fn(_) | Expr::Arrow(_))
+          | StoredDefaultExportExpression::Function(_)
+      ),
+    );
+    // declaration
+    match expression {
+      StoredDefaultExportExpression::Expression(expression) => {
+        self.convert_expression(expression);
+      }
+      StoredDefaultExportExpression::Class(class_expression) => {
+        self.convert_class_expression(class_expression, &TYPE_CLASS_DECLARATION)
+      }
+      StoredDefaultExportExpression::Function(function_expression) => self.convert_function(
+        &function_expression.function,
+        &TYPE_FUNCTION_DECLARATION_INLINED_ANNOTATIONS,
+        function_expression.ident.as_ref(),
+      ),
+    }
+    // end
+    self.add_end(end_position, span);
   }
 
   fn store_export_named_declaration(
@@ -1519,55 +1539,54 @@ impl<'a> AstConverter<'a> {
     declaration: Option<&Decl>,
     with: &Option<Box<ObjectLit>>,
   ) {
-    panic!("Export named declarations are not supported");
-    // let end_position = self.add_type_and_start_and_handle_annotations(
-    //   &TYPE_EXPORT_NAMED_DECLARATION,
-    //   span,
-    //   match declaration {
-    //     Some(Decl::Fn(_)) => true,
-    //     Some(Decl::Var(variable_declaration)) => variable_declaration.kind == VarDeclKind::Const,
-    //     _ => false,
-    //   },
-    // );
-    // // reserve for declaration, src, attributes
-    // let reference_position = self.reserve_for_items(3);
-    // // specifiers
-    // self.convert_item_list(specifiers, |ast_converter, specifier| {
-    //   ast_converter.convert_export_specifier(specifier);
-    //   true
-    // });
-    // // declaration
-    // if let Some(declaration) = declaration {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_declaration(declaration);
-    // }
-    // // src
-    // if let Some(src) = src {
-    //   self.update_reference_position(reference_position + 4);
-    //   self.convert_literal_string(src);
-    // }
-    // // attributes
-    // self.update_reference_position(reference_position + 8);
-    // self.store_import_attributes(with);
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_EXPORT_NAMED_DECLARATION_INLINED_SPECIFIERS,
+      span,
+      EXPORT_NAMED_DECLARATION_RESERVED_BYTES,
+      match declaration {
+        Some(Decl::Fn(_)) => true,
+        Some(Decl::Var(variable_declaration)) => variable_declaration.kind == VarDeclKind::Const,
+        _ => false,
+      },
+    );
+    // specifiers
+    self.convert_item_list(specifiers, |ast_converter, specifier| {
+      ast_converter.convert_export_specifier(specifier);
+      true
+    });
+    // declaration
+    if let Some(declaration) = declaration {
+      self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET);
+      self.convert_declaration(declaration);
+    }
+    // source
+    if let Some(src) = src {
+      self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_SOURCE_OFFSET);
+      self.convert_literal_string(src);
+    }
+    // attributes
+    self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET);
+    self.store_import_attributes(with);
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_export_named_specifier(&mut self, export_named_specifier: &ExportNamedSpecifier) {
-    panic!("Export named specifiers are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_EXPORT_SPECIFIER, &export_named_specifier.span);
-    // // reserve for exported
-    // let reference_position = self.reserve_for_items(1);
-    // // local
-    // self.convert_module_export_name(&export_named_specifier.orig);
-    // // exported
-    // if let Some(exported) = export_named_specifier.exported.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_module_export_name(exported);
-    // }
-    // // end
-    // self.add_end(end_position, &export_named_specifier.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_EXPORT_SPECIFIER_INLINED_LOCAL,
+      &export_named_specifier.span,
+      EXPORT_SPECIFIER_RESERVED_BYTES,
+      false,
+    );
+    // local
+    self.convert_module_export_name(&export_named_specifier.orig);
+    // exported
+    if let Some(exported) = export_named_specifier.exported.as_ref() {
+      self.update_reference_position(end_position + EXPORT_SPECIFIER_EXPORTED_OFFSET);
+      self.convert_module_export_name(exported);
+    }
+    // end
+    self.add_end(end_position, &export_named_specifier.span);
   }
 
   fn convert_expression_statement(&mut self, expression_statement: &ExprStmt) {
@@ -1584,68 +1603,78 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_for_in_statement(&mut self, for_in_statement: &ForInStmt) {
-    panic!("For in statements are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_FOR_IN_STATEMENT, &for_in_statement.span);
-    // // reserve right, body
-    // let reference_position = self.reserve_for_items(2);
-    // // left
-    // self.convert_for_head(&for_in_statement.left);
-    // // right
-    // self.update_reference_position(reference_position);
-    // self.convert_expression(&for_in_statement.right);
-    // // body
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_statement(&for_in_statement.body);
-    // // end
-    // self.add_end(end_position, &for_in_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_FOR_IN_STATEMENT_INLINED_LEFT,
+      &for_in_statement.span,
+      FOR_IN_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // left
+    self.convert_for_head(&for_in_statement.left);
+    // right
+    self.update_reference_position(end_position + FOR_IN_STATEMENT_RIGHT_OFFSET);
+    self.convert_expression(&for_in_statement.right);
+    // body
+    self.update_reference_position(end_position + FOR_IN_STATEMENT_BODY_OFFSET);
+    self.convert_statement(&for_in_statement.body);
+    // end
+    self.add_end(end_position, &for_in_statement.span);
   }
 
   fn convert_for_of_statement(&mut self, for_of_statement: &ForOfStmt) {
-    panic!("For of statements are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_FOR_OF_STATEMENT, &for_of_statement.span);
-    // // await
-    // self.convert_boolean(for_of_statement.is_await);
-    // // reserve right, body
-    // let reference_position = self.reserve_for_items(2);
-    // // left
-    // self.convert_for_head(&for_of_statement.left);
-    // // right
-    // self.update_reference_position(reference_position);
-    // self.convert_expression(&for_of_statement.right);
-    // // body
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_statement(&for_of_statement.body);
-    // // end
-    // self.add_end(end_position, &for_of_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_FOR_OF_STATEMENT_INLINED_LEFT,
+      &for_of_statement.span,
+      FOR_OF_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // flags
+    let flags = if for_of_statement.is_await {
+      FOR_OF_STATEMENT_AWAIT_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + FOR_OF_STATEMENT_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // left
+    self.convert_for_head(&for_of_statement.left);
+    // right
+    self.update_reference_position(end_position + FOR_OF_STATEMENT_RIGHT_OFFSET);
+    self.convert_expression(&for_of_statement.right);
+    // body
+    self.update_reference_position(end_position + FOR_OF_STATEMENT_BODY_OFFSET);
+    self.convert_statement(&for_of_statement.body);
+    // end
+    self.add_end(end_position, &for_of_statement.span);
   }
 
   fn convert_for_statement(&mut self, for_statement: &ForStmt) {
-    panic!("For statements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_FOR_STATEMENT, &for_statement.span);
-    // // reserve init, test, update, body
-    // let reference_position = self.reserve_for_items(4);
-    // // init
-    // if let Some(init) = for_statement.init.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_variable_declaration_or_expression(init);
-    // }
-    // // test
-    // if let Some(test) = for_statement.test.as_ref() {
-    //   self.update_reference_position(reference_position + 4);
-    //   self.convert_expression(test);
-    // }
-    // // update
-    // if let Some(update) = for_statement.update.as_ref() {
-    //   self.update_reference_position(reference_position + 8);
-    //   self.convert_expression(update);
-    // }
-    // // body
-    // self.update_reference_position(reference_position + 12);
-    // self.convert_statement(&for_statement.body);
-    // // end
-    // self.add_end(end_position, &for_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_FOR_STATEMENT,
+      &for_statement.span,
+      FOR_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // init
+    if let Some(init) = for_statement.init.as_ref() {
+      self.update_reference_position(end_position + FOR_STATEMENT_INIT_OFFSET);
+      self.convert_variable_declaration_or_expression(init);
+    }
+    // test
+    if let Some(test) = for_statement.test.as_ref() {
+      self.update_reference_position(end_position + FOR_STATEMENT_TEST_OFFSET);
+      self.convert_expression(test);
+    }
+    // update
+    if let Some(update) = for_statement.update.as_ref() {
+      self.update_reference_position(end_position + FOR_STATEMENT_UPDATE_OFFSET);
+      self.convert_expression(update);
+    }
+    // body
+    self.update_reference_position(end_position + FOR_STATEMENT_BODY_OFFSET);
+    self.convert_statement(&for_statement.body);
+    // end
+    self.add_end(end_position, &for_statement.span);
   }
 
   #[allow(clippy::too_many_arguments)]
@@ -1661,42 +1690,47 @@ impl<'a> AstConverter<'a> {
     body: &BlockStmt,
     observe_annotations: bool,
   ) {
-    panic!("Function nodes are not supported");
-    // let end_position = self.add_type_and_explicit_start(node_type, start);
-    // // async
-    // self.convert_boolean(is_async);
-    // // generator
-    // self.convert_boolean(is_generator);
-    // // reserve id, params, body
-    // let reference_position = self.reserve_for_items(3);
-    // // annotations
-    // if observe_annotations {
-    //   let annotations = self
-    //       .index_converter
-    //       .take_collected_annotations(AnnotationKind::NoSideEffects);
-    //   self.convert_item_list(&annotations, |ast_converter, annotation| {
-    //     ast_converter.convert_annotation(annotation);
-    //     true
-    //   });
-    // } else {
-    //   self.buffer.extend_from_slice(&0u32.to_ne_bytes());
-    // }
-    // // id
-    // if let Some(ident) = identifier {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_identifier(ident);
-    // }
-    // // params
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_item_list(parameters, |ast_converter, param| {
-    //   ast_converter.convert_pattern(param);
-    //   true
-    // });
-    // // body
-    // self.update_reference_position(reference_position + 8);
-    // self.convert_block_statement(body, true);
-    // // end
-    // self.add_explicit_end(end_position, end);
+    let end_position =
+      self.add_type_and_explicit_start(node_type, start, FUNCTION_DECLARATION_RESERVED_BYTES);
+    // flags
+    let mut flags = if is_async {
+      FUNCTION_DECLARATION_ASYNC_FLAG
+    } else {
+      0u32
+    };
+    if is_generator {
+      flags |= FUNCTION_DECLARATION_GENERATOR_FLAG;
+    }
+    let flags_position = end_position + FUNCTION_DECLARATION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // annotations
+    if observe_annotations {
+      let annotations = self
+        .index_converter
+        .take_collected_annotations(AnnotationKind::NoSideEffects);
+      self.convert_item_list(&annotations, |ast_converter, annotation| {
+        convert_annotation(&mut ast_converter.buffer, annotation);
+        true
+      });
+    } else {
+      self.buffer.extend_from_slice(&0u32.to_ne_bytes());
+    }
+    // id
+    if let Some(ident) = identifier {
+      self.update_reference_position(end_position + FUNCTION_DECLARATION_ID_OFFSET);
+      self.convert_identifier(ident);
+    }
+    // params
+    self.update_reference_position(end_position + FUNCTION_DECLARATION_PARAMS_OFFSET);
+    self.convert_item_list(parameters, |ast_converter, param| {
+      ast_converter.convert_pattern(param);
+      true
+    });
+    // body
+    self.update_reference_position(end_position + FUNCTION_DECLARATION_BODY_OFFSET);
+    self.convert_block_statement(body, true);
+    // end
+    self.add_explicit_end(end_position, end);
   }
 
   fn store_identifier(&mut self, start: u32, end: u32, name: &str) {
@@ -1733,153 +1767,169 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_import_attribute(&mut self, key_value_property: &KeyValueProp) {
-    panic!("Import attributes are not supported");
-    // // type
-    // self.buffer.extend_from_slice(&TYPE_IMPORT_ATTRIBUTE);
-    // // reserve start, end, value
-    // let reference_position = self.reserve_for_items(3);
-    // // key
-    // let key_position = self.buffer.len();
-    // let key_boundaries = self.convert_property_name(&key_value_property.key);
-    // let start_bytes: [u8; 4] = match key_boundaries {
-    //   Some((start, _)) => start.to_ne_bytes(),
-    //   None => {
-    //     let key_start: [u8; 4] = self.buffer[key_position + 4..key_position + 8]
-    //         .try_into()
-    //         .unwrap();
-    //     key_start
-    //   }
-    // };
-    // self.buffer[reference_position..reference_position + 4].copy_from_slice(&start_bytes);
-    // // value
-    // self.update_reference_position(reference_position + 8);
-    // let value_position = self.buffer.len();
-    // let value_boundaries = self.convert_expression(&key_value_property.value);
-    // let end_bytes: [u8; 4] = match value_boundaries {
-    //   Some((_, end)) => end.to_ne_bytes(),
-    //   None => {
-    //     let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12]
-    //         .try_into()
-    //         .unwrap();
-    //     value_end
-    //   }
-    // };
-    // self.buffer[reference_position + 4..reference_position + 8].copy_from_slice(&end_bytes);
+    // type
+    self
+      .buffer
+      .extend_from_slice(&TYPE_IMPORT_ATTRIBUTE_INLINED_KEY);
+    let start_position = self.buffer.len();
+    let end_position = start_position + 4;
+    // reserved bytes
+    self
+      .buffer
+      .resize(end_position + IMPORT_ATTRIBUTE_RESERVED_BYTES, 0);
+    // key
+    let key_position = self.buffer.len();
+    let key_boundaries = self.convert_property_name(&key_value_property.key);
+    let start_bytes: [u8; 4] = match key_boundaries {
+      Some((start, _)) => start.to_ne_bytes(),
+      None => {
+        let key_start: [u8; 4] = self.buffer[key_position + 4..key_position + 8]
+          .try_into()
+          .unwrap();
+        key_start
+      }
+    };
+    self.buffer[start_position..start_position + 4].copy_from_slice(&start_bytes);
+    // value
+    self.update_reference_position(end_position + IMPORT_ATTRIBUTE_VALUE_OFFSET);
+    let value_position = self.buffer.len();
+    let value_boundaries = self.convert_expression(&key_value_property.value);
+    let end_bytes: [u8; 4] = match value_boundaries {
+      Some((_, end)) => end.to_ne_bytes(),
+      None => {
+        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12]
+          .try_into()
+          .unwrap();
+        value_end
+      }
+    };
+    self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
   }
 
   fn convert_import_declaration(&mut self, import_declaration: &ImportDecl) {
-    panic!("Import declarations are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_IMPORT_DECLARATION, &import_declaration.span);
-    // // reserve for src, attributes
-    // let reference_position = self.reserve_for_items(2);
-    // // specifiers
-    // self.convert_item_list(
-    //   &import_declaration.specifiers,
-    //   |ast_converter, import_specifier| {
-    //     ast_converter.convert_import_specifier(import_specifier);
-    //     true
-    //   },
-    // );
-    // // src
-    // self.update_reference_position(reference_position);
-    // self.convert_literal_string(&import_declaration.src);
-    // // attributes
-    // self.update_reference_position(reference_position + 4);
-    // self.store_import_attributes(&import_declaration.with);
-    // // end
-    // self.add_end(end_position, &import_declaration.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_IMPORT_DECLARATION_INLINED_SPECIFIERS,
+      &import_declaration.span,
+      IMPORT_DECLARATION_RESERVED_BYTES,
+      false,
+    );
+    // specifiers
+    self.convert_item_list(
+      &import_declaration.specifiers,
+      |ast_converter, import_specifier| {
+        ast_converter.convert_import_specifier(import_specifier);
+        true
+      },
+    );
+    // source
+    self.update_reference_position(end_position + IMPORT_DECLARATION_SOURCE_OFFSET);
+    self.convert_literal_string(&import_declaration.src);
+    // attributes
+    self.update_reference_position(end_position + IMPORT_DECLARATION_ATTRIBUTES_OFFSET);
+    self.store_import_attributes(&import_declaration.with);
+    // end
+    self.add_end(end_position, &import_declaration.span);
   }
 
   fn convert_import_default_specifier(
     &mut self,
     import_default_specifier: &ImportDefaultSpecifier,
   ) {
-    panic!("Import default specifiers are not supported");
-    // let end_position = self.add_type_and_start_simple(
-    //   &TYPE_IMPORT_DEFAULT_SPECIFIER,
-    //   &import_default_specifier.span,
-    // );
-    // // local
-    // self.convert_identifier(&import_default_specifier.local);
-    // // end
-    // self.add_end(end_position, &import_default_specifier.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_IMPORT_DEFAULT_SPECIFIER_INLINED_LOCAL,
+      &import_default_specifier.span,
+      IMPORT_DEFAULT_SPECIFIER_RESERVED_BYTES,
+      false,
+    );
+    // local
+    self.convert_identifier(&import_default_specifier.local);
+    // end
+    self.add_end(end_position, &import_default_specifier.span);
   }
 
   fn store_import_expression(&mut self, span: &Span, arguments: &[ExprOrSpread]) {
-    panic!("Import expressions are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_IMPORT_EXPRESSION, span);
-    // // reserve for options
-    // let reference_position = self.reserve_for_items(1);
-    // // source
-    // self.convert_expression(&arguments.first().unwrap().expr);
-    // // options
-    // if let Some(argument) = arguments.get(1) {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_expression_or_spread(argument);
-    // }
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_IMPORT_EXPRESSION_INLINED_SOURCE,
+      span,
+      IMPORT_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // source
+    self.convert_expression(&arguments.first().unwrap().expr);
+    // options
+    if let Some(argument) = arguments.get(1) {
+      self.update_reference_position(end_position + IMPORT_EXPRESSION_OPTIONS_OFFSET);
+      self.convert_expression_or_spread(argument);
+    }
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_import_namespace_specifier(
     &mut self,
     import_namespace_specifier: &ImportStarAsSpecifier,
   ) {
-    panic!("Import namespace specifiers are not supported");
-    // let end_position = self.add_type_and_start_simple(
-    //   &TYPE_IMPORT_NAMESPACE_SPECIFIER,
-    //   &import_namespace_specifier.span,
-    // );
-    // // local
-    // self.convert_identifier(&import_namespace_specifier.local);
-    // // end
-    // self.add_end(end_position, &import_namespace_specifier.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_IMPORT_NAMESPACE_SPECIFIER_INLINED_LOCAL,
+      &import_namespace_specifier.span,
+      IMPORT_NAMESPACE_SPECIFIER_RESERVED_BYTES,
+      false,
+    );
+    // local
+    self.convert_identifier(&import_namespace_specifier.local);
+    // end
+    self.add_end(end_position, &import_namespace_specifier.span);
   }
 
   fn convert_import_named_specifier(&mut self, import_named_specifier: &ImportNamedSpecifier) {
-    panic!("Import named specifiers are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_IMPORT_SPECIFIER, &import_named_specifier.span);
-    // // reserve for imported, local
-    // let reference_position = self.reserve_for_items(2);
-    // // imported
-    // if let Some(imported) = import_named_specifier.imported.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_module_export_name(imported);
-    // }
-    // // local
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_identifier(&import_named_specifier.local);
-    // // end
-    // self.add_end(end_position, &import_named_specifier.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_IMPORT_SPECIFIER,
+      &import_named_specifier.span,
+      IMPORT_SPECIFIER_RESERVED_BYTES,
+      false,
+    );
+    // imported
+    if let Some(imported) = import_named_specifier.imported.as_ref() {
+      self.update_reference_position(end_position + IMPORT_SPECIFIER_IMPORTED_OFFSET);
+      self.convert_module_export_name(imported);
+    }
+    // local
+    self.update_reference_position(end_position + IMPORT_SPECIFIER_LOCAL_OFFSET);
+    self.convert_identifier(&import_named_specifier.local);
+    // end
+    self.add_end(end_position, &import_named_specifier.span);
   }
 
   fn convert_labeled_statement(&mut self, labeled_statement: &LabeledStmt) {
-    panic!("Labeled statements are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_LABELED_STATEMENT, &labeled_statement.span);
-    // // reserve body
-    // let reference_position = self.reserve_for_items(1);
-    // // label
-    // self.convert_identifier(&labeled_statement.label);
-    // // body
-    // self.update_reference_position(reference_position);
-    // self.convert_statement(&labeled_statement.body);
-    // // end
-    // self.add_end(end_position, &labeled_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_LABELED_STATEMENT_INLINED_LABEL,
+      &labeled_statement.span,
+      LABELED_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // label
+    self.convert_identifier(&labeled_statement.label);
+    // body
+    self.update_reference_position(end_position + LABELED_STATEMENT_BODY_OFFSET);
+    self.convert_statement(&labeled_statement.body);
+    // end
+    self.add_end(end_position, &labeled_statement.span);
   }
 
   fn convert_literal_bigint(&mut self, bigint: &BigInt) {
-    panic!("BigInt literals are not supported");
-    // self.add_type_and_positions(&TYPE_LITERAL_BIGINT, &bigint.span);
-    // // reserve value
-    // let reference_position = self.reserve_for_items(1);
-    // // raw
-    // self.convert_string(bigint.raw.as_ref().unwrap());
-    // // value
-    // self.update_reference_position(reference_position);
-    // self.convert_string(&bigint.value.to_str_radix(10));
+    let end_position = self.add_type_and_start(
+      &TYPE_LITERAL_BIG_INT_INLINED_BIGINT,
+      &bigint.span,
+      LITERAL_BIG_INT_RESERVED_BYTES,
+      false,
+    );
+    // bigint
+    self.convert_string(&bigint.value.to_str_radix(10));
+    // raw
+    self.update_reference_position(end_position + LITERAL_BIG_INT_RAW_OFFSET);
+    self.convert_string(bigint.raw.as_ref().unwrap());
+    // end
+    self.add_end(end_position, &bigint.span);
   }
 
   fn convert_literal_boolean(&mut self, literal: &Bool) {
@@ -1889,7 +1939,7 @@ impl<'a> AstConverter<'a> {
       LITERAL_BOOLEAN_RESERVED_BYTES,
       false,
     );
-    let mut flags = if literal.value {
+    let flags = if literal.value {
       LITERAL_BOOLEAN_VALUE_FLAG
     } else {
       0u32
@@ -1900,8 +1950,13 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_literal_null(&mut self, literal: &Null) {
-    panic!("Null literals are not supported");
-    // self.add_type_and_positions(&TYPE_LITERAL_NULL, &literal.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_LITERAL_NULL,
+      &literal.span,
+      LITERAL_NULL_RESERVED_BYTES,
+      false,
+    );
+    self.add_end(end_position, &literal.span);
   }
 
   fn convert_literal_number(&mut self, literal: &Number) {
@@ -1924,15 +1979,19 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_literal_regex(&mut self, regex: &Regex) {
-    panic!("Regex literals are not supported");
-    // self.add_type_and_positions(&TYPE_LITERAL_REGEXP, &regex.span);
-    // // reserve pattern
-    // let reference_position = self.reserve_for_items(1);
-    // // flags
-    // self.convert_string(&regex.flags);
-    // // pattern
-    // self.update_reference_position(reference_position);
-    // self.convert_string(&regex.exp);
+    let end_position = self.add_type_and_start(
+      &TYPE_LITERAL_REG_EXP_INLINED_FLAGS,
+      &regex.span,
+      LITERAL_REG_EXP_RESERVED_BYTES,
+      false,
+    );
+    // flags
+    self.convert_string(&regex.flags);
+    // pattern
+    self.update_reference_position(end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
+    self.convert_string(&regex.exp);
+    // end
+    self.add_end(end_position, &regex.span);
   }
 
   fn convert_literal_string(&mut self, literal: &Str) {
@@ -2007,93 +2066,96 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_meta_property(&mut self, meta_property_expression: &MetaPropExpr) {
-    panic!("Meta properties are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_META_PROPERTY, &meta_property_expression.span);
-    // // reserve property
-    // let reference_position = self.reserve_for_items(1);
-    // match meta_property_expression.kind {
-    //   MetaPropKind::ImportMeta => {
-    //     // meta
-    //     self.store_identifier(
-    //       meta_property_expression.span.lo.0 - 1,
-    //       meta_property_expression.span.lo.0 + 5,
-    //       "import",
-    //     );
-    //     // property
-    //     self.update_reference_position(reference_position);
-    //     self.store_identifier(
-    //       meta_property_expression.span.hi.0 - 5,
-    //       meta_property_expression.span.hi.0 - 1,
-    //       "meta",
-    //     );
-    //   }
-    //   MetaPropKind::NewTarget => {
-    //     // meta
-    //     self.store_identifier(
-    //       meta_property_expression.span.lo.0 - 1,
-    //       meta_property_expression.span.lo.0 + 2,
-    //       "new",
-    //     );
-    //     // property
-    //     self.update_reference_position(reference_position);
-    //     self.store_identifier(
-    //       meta_property_expression.span.hi.0 - 7,
-    //       meta_property_expression.span.hi.0 - 1,
-    //       "target",
-    //     );
-    //   }
-    // }
-    // // end
-    // self.add_end(end_position, &meta_property_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_META_PROPERTY_INLINED_META,
+      &meta_property_expression.span,
+      META_PROPERTY_RESERVED_BYTES,
+      false,
+    );
+    match meta_property_expression.kind {
+      MetaPropKind::ImportMeta => {
+        // meta
+        self.store_identifier(
+          meta_property_expression.span.lo.0 - 1,
+          meta_property_expression.span.lo.0 + 5,
+          "import",
+        );
+        // property
+        self.update_reference_position(end_position + META_PROPERTY_PROPERTY_OFFSET);
+        self.store_identifier(
+          meta_property_expression.span.hi.0 - 5,
+          meta_property_expression.span.hi.0 - 1,
+          "meta",
+        );
+      }
+      MetaPropKind::NewTarget => {
+        // meta
+        self.store_identifier(
+          meta_property_expression.span.lo.0 - 1,
+          meta_property_expression.span.lo.0 + 2,
+          "new",
+        );
+        // property
+        self.update_reference_position(end_position + META_PROPERTY_PROPERTY_OFFSET);
+        self.store_identifier(
+          meta_property_expression.span.hi.0 - 7,
+          meta_property_expression.span.hi.0 - 1,
+          "target",
+        );
+      }
+    }
+    // end
+    self.add_end(end_position, &meta_property_expression.span);
   }
 
-  // TODO Lukas can this become a store_method_definition?
+  // TODO SWC can this become a store_method_definition?
   fn convert_constructor(&mut self, constructor: &Constructor) {
-    panic!("Constructors are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_METHOD_DEFINITION, &constructor.span);
-    // // kind
-    // self.buffer.extend_from_slice(&STRING_CONSTRUCTOR);
-    // // computed
-    // self.convert_boolean(false);
-    // // static
-    // self.convert_boolean(false);
-    // // reserve value
-    // let reference_position = self.reserve_for_items(1);
-    // // key
-    // self.convert_property_name(&constructor.key);
-    // // value
-    // match &constructor.body {
-    //   Some(block_statement) => {
-    //     self.update_reference_position(reference_position);
-    //     let key_end = self.get_property_name_span(&constructor.key).hi.0 - 1;
-    //     let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
-    //     let parameters: Vec<&Pat> = constructor
-    //         .params
-    //         .iter()
-    //         .map(|param| match param {
-    //           ParamOrTsParamProp::Param(param) => &param.pat,
-    //           ParamOrTsParamProp::TsParamProp(_) => panic!("TsParamProp in constructor"),
-    //         })
-    //         .collect();
-    //     self.store_function_node(
-    //       &TYPE_FUNCTION_EXPRESSION,
-    //       function_start,
-    //       block_statement.span.hi.0 - 1,
-    //       false,
-    //       false,
-    //       None,
-    //       &parameters,
-    //       block_statement,
-    //       false,
-    //     );
-    //   }
-    //   None => {
-    //     panic!("Getter property without body");
-    //   }
-    // }
-    // // end
-    // self.add_end(end_position, &constructor.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_METHOD_DEFINITION_INLINED_KEY,
+      &constructor.span,
+      METHOD_DEFINITION_RESERVED_BYTES,
+      false,
+    );
+    // key
+    self.convert_property_name(&constructor.key);
+    // flags, method definitions are neither static nor computed
+    let flags_position = end_position + METHOD_DEFINITION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&0u32.to_ne_bytes());
+    // kind
+    let kind_position = end_position + METHOD_DEFINITION_KIND_OFFSET;
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_CONSTRUCTOR);
+    // value
+    match &constructor.body {
+      Some(block_statement) => {
+        self.update_reference_position(end_position + METHOD_DEFINITION_VALUE_OFFSET);
+        let key_end = self.get_property_name_span(&constructor.key).hi.0 - 1;
+        let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
+        let parameters: Vec<&Pat> = constructor
+          .params
+          .iter()
+          .map(|param| match param {
+            ParamOrTsParamProp::Param(param) => &param.pat,
+            ParamOrTsParamProp::TsParamProp(_) => panic!("TsParamProp in constructor"),
+          })
+          .collect();
+        self.store_function_node(
+          &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+          function_start,
+          block_statement.span.hi.0 - 1,
+          false,
+          false,
+          None,
+          &parameters,
+          block_statement,
+          false,
+        );
+      }
+      None => {
+        panic!("Getter property without body");
+      }
+    }
+    // end
+    self.add_end(end_position, &constructor.span);
   }
 
   fn store_method_definition(
@@ -2105,117 +2167,143 @@ impl<'a> AstConverter<'a> {
     is_computed: bool,
     function: &Function,
   ) {
-    panic!("Method definitions are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_METHOD_DEFINITION, span);
-    // // kind
-    // self.buffer.extend_from_slice(match kind {
-    //   MethodKind::Method => &STRING_METHOD,
-    //   MethodKind::Getter => &STRING_GET,
-    //   MethodKind::Setter => &STRING_SET,
-    // });
-    // // computed
-    // self.convert_boolean(is_computed);
-    // // static
-    // self.convert_boolean(is_static);
-    // // reserve value
-    // let reference_position = self.reserve_for_items(1);
-    // // key
-    // let key_end = match key {
-    //   PropOrPrivateName::PropName(prop_name) => {
-    //     self.convert_property_name(prop_name);
-    //     self.get_property_name_span(prop_name).hi.0 - 1
-    //   }
-    //   PropOrPrivateName::PrivateName(private_name) => {
-    //     self.convert_private_name(private_name);
-    //     private_name.id.span.hi.0 - 1
-    //   }
-    // };
-    // let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
-    // // value
-    // self.update_reference_position(reference_position);
-    // let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
-    // self.store_function_node(
-    //   &TYPE_FUNCTION_EXPRESSION,
-    //   function_start,
-    //   function.span.hi.0 - 1,
-    //   function.is_async,
-    //   function.is_generator,
-    //   None,
-    //   &parameters,
-    //   function.body.as_ref().unwrap(),
-    //   false,
-    // );
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_METHOD_DEFINITION_INLINED_KEY,
+      span,
+      METHOD_DEFINITION_RESERVED_BYTES,
+      false,
+    );
+    // key
+    let key_end = match key {
+      PropOrPrivateName::PropName(prop_name) => {
+        self.convert_property_name(prop_name);
+        self.get_property_name_span(prop_name).hi.0 - 1
+      }
+      PropOrPrivateName::PrivateName(private_name) => {
+        self.convert_private_name(private_name);
+        private_name.id.span.hi.0 - 1
+      }
+    };
+    let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
+    // flags
+    let mut flags = if is_static {
+      METHOD_DEFINITION_STATIC_FLAG
+    } else {
+      0u32
+    };
+    if is_computed {
+      flags |= METHOD_DEFINITION_COMPUTED_FLAG;
+    }
+    let flags_position = end_position + METHOD_DEFINITION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // kind
+    let kind_position = end_position + METHOD_DEFINITION_KIND_OFFSET;
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(match kind {
+      MethodKind::Method => &STRING_METHOD,
+      MethodKind::Getter => &STRING_GET,
+      MethodKind::Setter => &STRING_SET,
+    });
+    // value
+    self.update_reference_position(end_position + METHOD_DEFINITION_VALUE_OFFSET);
+    let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
+    self.store_function_node(
+      &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      function_start,
+      function.span.hi.0 - 1,
+      function.is_async,
+      function.is_generator,
+      None,
+      &parameters,
+      function.body.as_ref().unwrap(),
+      false,
+    );
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_new_expression(&mut self, new_expression: &NewExpr) {
-    panic!("New expressions are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_NEW_EXPRESSION, &new_expression.span);
-    // let annotations = self
-    //     .index_converter
-    //     .take_collected_annotations(AnnotationKind::Pure);
-    // // reserve for callee, args
-    // let reference_position = self.reserve_for_items(2);
-    // // annotations
-    // self.convert_item_list(&annotations, |ast_converter, annotation| {
-    //   ast_converter.convert_annotation(annotation);
-    //   true
-    // });
-    // // callee
-    // self.update_reference_position(reference_position);
-    // self.convert_expression(&new_expression.callee);
-    // // args
-    // if let Some(expressions_or_spread) = &new_expression.args {
-    //   self.update_reference_position(reference_position + 4);
-    //   self.convert_item_list(
-    //     expressions_or_spread,
-    //     |ast_converter, expression_or_spread| {
-    //       ast_converter.convert_expression_or_spread(expression_or_spread);
-    //       true
-    //     },
-    //   );
-    // }
-    // // end
-    // self.add_end(end_position, &new_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_NEW_EXPRESSION_INLINED_ANNOTATIONS,
+      &new_expression.span,
+      NEW_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    let annotations = self
+      .index_converter
+      .take_collected_annotations(AnnotationKind::Pure);
+    // annotations
+    self.convert_item_list(&annotations, |ast_converter, annotation| {
+      convert_annotation(&mut ast_converter.buffer, annotation);
+      true
+    });
+    // callee
+    self.update_reference_position(end_position + NEW_EXPRESSION_CALLEE_OFFSET);
+    self.convert_expression(&new_expression.callee);
+    // arguments
+    self.update_reference_position(end_position + NEW_EXPRESSION_ARGUMENTS_OFFSET);
+    self.convert_item_list(
+      match &new_expression.args {
+        Some(arguments) => arguments,
+        None => &[],
+      },
+      |ast_converter, expression_or_spread| {
+        ast_converter.convert_expression_or_spread(expression_or_spread);
+        true
+      },
+    );
+    // end
+    self.add_end(end_position, &new_expression.span);
   }
 
   fn convert_object_literal(&mut self, object_literal: &ObjectLit) {
-    panic!("Object literals are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_OBJECT_EXPRESSION, &object_literal.span);
-    // // properties
-    // self.convert_item_list(
-    //   &object_literal.props,
-    //   |ast_converter, property_or_spread| {
-    //     ast_converter.convert_property_or_spread(property_or_spread);
-    //     true
-    //   },
-    // );
-    // // end
-    // self.add_end(end_position, &object_literal.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_OBJECT_EXPRESSION_INLINED_PROPERTIES,
+      &object_literal.span,
+      OBJECT_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // properties
+    self.convert_item_list(
+      &object_literal.props,
+      |ast_converter, property_or_spread| {
+        ast_converter.convert_property_or_spread(property_or_spread);
+        true
+      },
+    );
+    // end
+    self.add_end(end_position, &object_literal.span);
   }
 
   fn convert_object_pattern(&mut self, object_pattern: &ObjectPat) {
-    panic!("Object patterns are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_OBJECT_PATTERN, &object_pattern.span);
-    // // properties
-    // self.convert_item_list(
-    //   &object_pattern.props,
-    //   |ast_converter, object_pattern_property| {
-    //     ast_converter.convert_object_pattern_property(object_pattern_property);
-    //     true
-    //   },
-    // );
-    // // end
-    // self.add_end(end_position, &object_pattern.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_OBJECT_PATTERN_INLINED_PROPERTIES,
+      &object_pattern.span,
+      OBJECT_PATTERN_RESERVED_BYTES,
+      false,
+    );
+    // properties
+    self.convert_item_list(
+      &object_pattern.props,
+      |ast_converter, object_pattern_property| {
+        ast_converter.convert_object_pattern_property(object_pattern_property);
+        true
+      },
+    );
+    // end
+    self.add_end(end_position, &object_pattern.span);
   }
 
   fn convert_private_name(&mut self, private_name: &PrivateName) {
-    panic!("Private names are not supported");
-    // self.add_type_and_positions(&TYPE_PRIVATE_IDENTIFIER, &private_name.span);
-    // // id
-    // self.convert_string(&private_name.id.sym);
+    let end_position = self.add_type_and_start(
+      &TYPE_PRIVATE_IDENTIFIER_INLINED_NAME,
+      &private_name.span,
+      PRIVATE_IDENTIFIER_RESERVED_BYTES,
+      false,
+    );
+    // id
+    self.convert_string(&private_name.id.sym);
+    // end
+    self.add_end(end_position, &private_name.span);
   }
 
   fn store_program(&mut self, body: ModuleItemsOrStatements) {
@@ -2263,7 +2351,10 @@ impl<'a> AstConverter<'a> {
         );
       }
     }
-    // annotations
+    // end
+    self.add_explicit_end(end_position, self.code.len() as u32);
+    // annotations, these need to come after end so that trailing comments are
+    // included
     self.update_reference_position(end_position + PROGRAM_ANNOTATIONS_OFFSET);
     self.index_converter.invalidate_collected_annotations();
     let invalid_annotations = self.index_converter.take_invalid_annotations();
@@ -2271,49 +2362,48 @@ impl<'a> AstConverter<'a> {
       convert_annotation(&mut ast_converter.buffer, annotation);
       true
     });
-    // end
-    self.add_explicit_end(end_position, self.code.len() as u32);
   }
 
   // TODO SWC property has many different formats that should be merged if possible
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
-    panic!("Key value properties are not supported");
-    // let end_position = self.add_type_and_explicit_start(
-    //   &TYPE_PROPERTY,
-    //   self.get_property_name_span(property_name).lo.0 - 1,
-    // );
-    // // kind
-    // self.buffer.extend_from_slice(&STRING_INIT);
-    // // method
-    // self.convert_boolean(false);
-    // // computed
-    // self.convert_boolean(matches!(property_name, PropName::Computed(_)));
-    // // shorthand
-    // self.convert_boolean(false);
-    // // reserve key, value
-    // let reference_position = self.reserve_for_items(2);
-    // // key
-    // self.update_reference_position(reference_position);
-    // self.convert_property_name(property_name);
-    // // value
-    // self.update_reference_position(reference_position + 4);
-    // let value_position = self.buffer.len();
-    // let value_boundaries = match value {
-    //   PatternOrExpression::Pattern(pattern) => self.convert_pattern(pattern),
-    //   PatternOrExpression::Expression(expression) => self.convert_expression(expression),
-    // };
-    // // end
-    // let end_bytes: [u8; 4] = match value_boundaries {
-    //   Some((_, end)) => end.to_ne_bytes(),
-    //   None => {
-    //     let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12]
-    //         .try_into()
-    //         .unwrap();
-    //     value_end
-    //   }
-    // };
-    // // TODO SWC avoid copying positions around but use span getters instead
-    // self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
+    let end_position = self.add_type_and_explicit_start(
+      &TYPE_PROPERTY,
+      self.get_property_name_span(property_name).lo.0 - 1,
+      PROPERTY_RESERVED_BYTES,
+    );
+    // key
+    self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
+    self.convert_property_name(property_name);
+    // flags, method and shorthand are always false
+    let flags = if matches!(property_name, PropName::Computed(_)) {
+      PROPERTY_COMPUTED_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // kind
+    let kind_position = end_position + PROPERTY_KIND_OFFSET;
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
+    // value
+    self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
+    let value_position = self.buffer.len();
+    let value_boundaries = match value {
+      PatternOrExpression::Pattern(pattern) => self.convert_pattern(pattern),
+      PatternOrExpression::Expression(expression) => self.convert_expression(expression),
+    };
+    // end
+    let end_bytes: [u8; 4] = match value_boundaries {
+      Some((_, end)) => end.to_ne_bytes(),
+      None => {
+        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12]
+          .try_into()
+          .unwrap();
+        value_end
+      }
+    };
+    // TODO SWC avoid copying positions around but use span getters instead
+    self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
   }
 
   // TODO SWC merge with method
@@ -2325,80 +2415,84 @@ impl<'a> AstConverter<'a> {
     body: &Option<BlockStmt>,
     param: Option<&Pat>,
   ) {
-    panic!("Getter/setter properties are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_PROPERTY, span);
-    // // kind
-    // self.buffer.extend_from_slice(kind);
-    // // method
-    // self.convert_boolean(false);
-    // // computed
-    // self.convert_boolean(matches!(key, PropName::Computed(_)));
-    // // shorthand
-    // self.convert_boolean(false);
-    // // reserve key, value
-    // let reference_position = self.reserve_for_items(2);
-    // // key
-    // self.update_reference_position(reference_position);
-    // self.convert_property_name(key);
-    // let key_end = self.get_property_name_span(key).hi.0 - 1;
-    // // value
-    // let block_statement = body.as_ref().expect("Getter/setter property without body");
-    // self.update_reference_position(reference_position + 4);
-    // let parameters = match param {
-    //   Some(pattern) => vec![pattern],
-    //   None => vec![],
-    // };
-    // self.store_function_node(
-    //   &TYPE_FUNCTION_EXPRESSION,
-    //   find_first_occurrence_outside_comment(self.code, b'(', key_end),
-    //   block_statement.span.hi.0 - 1,
-    //   false,
-    //   false,
-    //   None,
-    //   &parameters,
-    //   block_statement,
-    //   false,
-    // );
-    // // end
-    // self.add_end(end_position, span);
+    let end_position =
+      self.add_type_and_start(&TYPE_PROPERTY, span, PROPERTY_RESERVED_BYTES, false);
+    // key
+    self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
+    self.convert_property_name(key);
+    let key_end = self.get_property_name_span(key).hi.0 - 1;
+    // flags, method and shorthand are always false
+    let flags = if matches!(key, PropName::Computed(_)) {
+      PROPERTY_COMPUTED_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // kind
+    let kind_position = end_position + PROPERTY_KIND_OFFSET;
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(kind);
+    // value
+    let block_statement = body.as_ref().expect("Getter/setter property without body");
+    self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
+    let parameters = match param {
+      Some(pattern) => vec![pattern],
+      None => vec![],
+    };
+    self.store_function_node(
+      &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      find_first_occurrence_outside_comment(self.code, b'(', key_end),
+      block_statement.span.hi.0 - 1,
+      false,
+      false,
+      None,
+      &parameters,
+      block_statement,
+      false,
+    );
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_method_property(&mut self, method_property: &MethodProp) {
-    panic!("Method properties are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_PROPERTY, &method_property.function.span);
-    // // kind
-    // self.buffer.extend_from_slice(&STRING_INIT);
-    // // method
-    // self.convert_boolean(true);
-    // // computed
-    // self.convert_boolean(matches!(&method_property.key, PropName::Computed(_)));
-    // // shorthand
-    // self.convert_boolean(false);
-    // // reserve key, value
-    // let reference_position = self.reserve_for_items(2);
-    // // key
-    // self.update_reference_position(reference_position);
-    // self.convert_property_name(&method_property.key);
-    // let key_end = self.get_property_name_span(&method_property.key).hi.0 - 1;
-    // let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
-    // // value
-    // self.update_reference_position(reference_position + 4);
-    // let function = &method_property.function;
-    // let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
-    // self.store_function_node(
-    //   &TYPE_FUNCTION_EXPRESSION,
-    //   function_start,
-    //   function.span.hi.0 - 1,
-    //   function.is_async,
-    //   function.is_generator,
-    //   None,
-    //   &parameters,
-    //   function.body.as_ref().unwrap(),
-    //   false,
-    // );
-    // // end
-    // self.add_end(end_position, &method_property.function.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_PROPERTY,
+      &method_property.function.span,
+      PROPERTY_RESERVED_BYTES,
+      false,
+    );
+    // key
+    self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
+    self.convert_property_name(&method_property.key);
+    let key_end = self.get_property_name_span(&method_property.key).hi.0 - 1;
+    let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
+    // flags, shorthand is always false
+    let mut flags = PROPERTY_METHOD_FLAG;
+    if matches!(&method_property.key, PropName::Computed(_)) {
+      flags |= PROPERTY_COMPUTED_FLAG
+    };
+    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // kind
+    let kind_position = end_position + PROPERTY_KIND_OFFSET;
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
+    // value
+    self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
+    let function = &method_property.function;
+    let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
+    self.store_function_node(
+      &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      function_start,
+      function.span.hi.0 - 1,
+      function.is_async,
+      function.is_generator,
+      None,
+      &parameters,
+      function.body.as_ref().unwrap(),
+      false,
+    );
+    // end
+    self.add_end(end_position, &method_property.function.span);
   }
 
   fn store_shorthand_property(
@@ -2407,40 +2501,36 @@ impl<'a> AstConverter<'a> {
     key: &Ident,
     assignment_value: &Option<Box<Expr>>,
   ) {
-    panic!("Shorthand properties are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_PROPERTY, span);
-    // // kind
-    // self.buffer.extend_from_slice(&STRING_INIT);
-    // // method
-    // self.convert_boolean(false);
-    // // computed
-    // self.convert_boolean(false);
-    // // shorthand
-    // self.convert_boolean(true);
-    // // reserve key, value
-    // let reference_position = self.reserve_for_items(2);
-    // // value
-    // match assignment_value {
-    //   Some(value) => {
-    //     // value
-    //     self.update_reference_position(reference_position + 4);
-    //     let left_position = self.store_assignment_pattern_and_get_left_position(
-    //       span,
-    //       PatternOrIdentifier::Identifier(key),
-    //       value,
-    //     );
-    //     // key, reuse identifier to avoid converting positions out of order
-    //     self.buffer[reference_position..reference_position + 4]
-    //         .copy_from_slice(&left_position.to_ne_bytes());
-    //   }
-    //   None => {
-    //     // key
-    //     self.update_reference_position(reference_position);
-    //     self.convert_identifier(key);
-    //   }
-    // }
-    // // end
-    // self.add_end(end_position, span);
+    let end_position =
+      self.add_type_and_start(&TYPE_PROPERTY, span, PROPERTY_RESERVED_BYTES, false);
+    match assignment_value {
+      Some(value) => {
+        // value
+        self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
+        let left_position = self.store_assignment_pattern_and_get_left_position(
+          span,
+          PatternOrIdentifier::Identifier(key),
+          value,
+        );
+        // key, reuse identifier to avoid converting positions out of order
+        let key_position = end_position + PROPERTY_KEY_OFFSET;
+        self.buffer[key_position..key_position + 4].copy_from_slice(&left_position.to_ne_bytes());
+      }
+      None => {
+        // value
+        self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
+        self.convert_identifier(key);
+      }
+    }
+    // flags
+    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4]
+      .copy_from_slice(&PROPERTY_SHORTHAND_FLAG.to_ne_bytes());
+    // kind
+    let kind_position = end_position + PROPERTY_KIND_OFFSET;
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
+    // end
+    self.add_end(end_position, span);
   }
 
   fn store_property_definition(
@@ -2451,289 +2541,363 @@ impl<'a> AstConverter<'a> {
     key: PropOrPrivateName,
     value: &Option<&Expr>,
   ) {
-    panic!("Property definitions are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_PROPERTY_DEFINITION, span);
-    // // computed
-    // self.convert_boolean(is_computed);
-    // // static
-    // self.convert_boolean(is_static);
-    // // reserve value
-    // let reference_position = self.reserve_for_items(1);
-    // // key
-    // match key {
-    //   PropOrPrivateName::PropName(prop_name) => {
-    //     self.convert_property_name(prop_name);
-    //   }
-    //   PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(private_name),
-    // }
-    // // value
-    // value.map(|expression| {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_expression(expression);
-    // });
-    // // end
-    // self.add_end(end_position, span);
+    let end_position = self.add_type_and_start(
+      &TYPE_PROPERTY_DEFINITION_INLINED_KEY,
+      span,
+      PROPERTY_DEFINITION_RESERVED_BYTES,
+      false,
+    );
+    // key
+    match key {
+      PropOrPrivateName::PropName(prop_name) => {
+        self.convert_property_name(prop_name);
+      }
+      PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(private_name),
+    }
+    // flags
+    let mut flags = if is_static {
+      PROPERTY_DEFINITION_STATIC_FLAG
+    } else {
+      0u32
+    };
+    if is_computed {
+      flags |= PROPERTY_DEFINITION_COMPUTED_FLAG;
+    }
+    let flags_position = end_position + PROPERTY_DEFINITION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // value
+    value.map(|expression| {
+      self.update_reference_position(end_position + PROPERTY_DEFINITION_VALUE_OFFSET);
+      self.convert_expression(expression);
+    });
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_rest_pattern(&mut self, rest_pattern: &RestPat) {
-    panic!("Rest patterns are not supported");
-    // let end_position =
-    //     self.add_type_and_explicit_start(&TYPE_REST_ELEMENT, rest_pattern.dot3_token.lo.0 - 1);
-    // // argument
-    // self.convert_pattern(&rest_pattern.arg);
-    // // end
-    // self.add_explicit_end(end_position, rest_pattern.span.hi.0 - 1);
+    let end_position = self.add_type_and_explicit_start(
+      &TYPE_REST_ELEMENT_INLINED_ARGUMENT,
+      rest_pattern.dot3_token.lo.0 - 1,
+      REST_ELEMENT_RESERVED_BYTES,
+    );
+    // argument
+    self.convert_pattern(&rest_pattern.arg);
+    // end
+    self.add_explicit_end(end_position, rest_pattern.span.hi.0 - 1);
   }
 
   fn convert_return_statement(&mut self, return_statement: &ReturnStmt) {
-    panic!("Return statements are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_RETURN_STATEMENT, &return_statement.span);
-    // // reserve argument
-    // let reference_position = self.reserve_for_items(1);
-    // // argument
-    // return_statement.arg.as_ref().map(|argument| {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_expression(argument)
-    // });
-    // // end
-    // self.add_end(end_position, &return_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_RETURN_STATEMENT,
+      &return_statement.span,
+      RETURN_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // argument
+    return_statement.arg.as_ref().map(|argument| {
+      self.update_reference_position(end_position + RETURN_STATEMENT_ARGUMENT_OFFSET);
+      self.convert_expression(argument)
+    });
+    // end
+    self.add_end(end_position, &return_statement.span);
   }
 
   fn convert_sequence_expression(&mut self, sequence_expression: &SeqExpr) {
-    panic!("Sequence expressions are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_SEQUENCE_EXPRESSION, &sequence_expression.span);
-    // // expressions
-    // self.convert_item_list(&sequence_expression.exprs, |ast_converter, expression| {
-    //   ast_converter.convert_expression(expression);
-    //   true
-    // });
-    // // end
-    // self.add_end(end_position, &sequence_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_SEQUENCE_EXPRESSION_INLINED_EXPRESSIONS,
+      &sequence_expression.span,
+      SEQUENCE_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // expressions
+    self.convert_item_list(&sequence_expression.exprs, |ast_converter, expression| {
+      ast_converter.convert_expression(expression);
+      true
+    });
+    // end
+    self.add_end(end_position, &sequence_expression.span);
   }
 
   fn store_spread_element(&mut self, dot_span: &Span, argument: &Expr) {
-    panic!("Spread elements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_SPREAD_ELEMENT, dot_span);
-    // // we need to set the end position to that of the expression
-    // let argument_position = self.buffer.len();
-    // // argument
-    // self.convert_expression(argument);
-    // let expression_end: [u8; 4] = self.buffer[argument_position + 8..argument_position + 12]
-    //     .try_into()
-    //     .unwrap();
-    // self.buffer[end_position..end_position + 4].copy_from_slice(&expression_end);
+    let end_position = self.add_type_and_start(
+      &TYPE_SPREAD_ELEMENT_INLINED_ARGUMENT,
+      dot_span,
+      SPREAD_ELEMENT_RESERVED_BYTES,
+      false,
+    );
+    // we need to set the end position to that of the expression
+    let argument_position = self.buffer.len();
+    // argument
+    self.convert_expression(argument);
+    let expression_end: [u8; 4] = self.buffer[argument_position + 8..argument_position + 12]
+      .try_into()
+      .unwrap();
+    self.buffer[end_position..end_position + 4].copy_from_slice(&expression_end);
   }
 
   fn convert_static_block(&mut self, static_block: &StaticBlock) {
-    panic!("Static blocks are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_STATIC_BLOCK, &static_block.span);
-    // // body
-    // self.convert_item_list(&static_block.body.stmts, |ast_converter, statement| {
-    //   ast_converter.convert_statement(statement);
-    //   true
-    // });
-    // // end
-    // self.add_end(end_position, &static_block.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_STATIC_BLOCK_INLINED_BODY,
+      &static_block.span,
+      STATIC_BLOCK_RESERVED_BYTES,
+      false,
+    );
+    // body
+    self.convert_item_list(&static_block.body.stmts, |ast_converter, statement| {
+      ast_converter.convert_statement(statement);
+      true
+    });
+    // end
+    self.add_end(end_position, &static_block.span);
   }
 
   fn convert_super(&mut self, super_token: &Super) {
-    panic!("Super is not supported");
-    // self.add_type_and_positions(&TYPE_SUPER, &super_token.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_SUPER_ELEMENT,
+      &super_token.span,
+      SUPER_ELEMENT_RESERVED_BYTES,
+      false,
+    );
+    // end
+    self.add_end(end_position, &super_token.span);
   }
 
   fn convert_switch_case(&mut self, switch_case: &SwitchCase) {
-    panic!("Switch cases are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_SWITCH_CASE, &switch_case.span);
-    // // reserve test, consequent
-    // let reference_position = self.reserve_for_items(2);
-    // // test
-    // switch_case.test.as_ref().map(|expression| {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_expression(expression)
-    // });
-    // // consequent
-    // self.update_reference_position(reference_position + 4);
-    // self.convert_item_list(&switch_case.cons, |ast_converter, statement| {
-    //   ast_converter.convert_statement(statement);
-    //   true
-    // });
-    // // end
-    // self.add_end(end_position, &switch_case.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_SWITCH_CASE,
+      &switch_case.span,
+      SWITCH_CASE_RESERVED_BYTES,
+      false,
+    );
+    // test
+    switch_case.test.as_ref().map(|expression| {
+      self.update_reference_position(end_position + SWITCH_CASE_TEST_OFFSET);
+      self.convert_expression(expression)
+    });
+    // consequent
+    self.update_reference_position(end_position + SWITCH_CASE_CONSEQUENT_OFFSET);
+    self.convert_item_list(&switch_case.cons, |ast_converter, statement| {
+      ast_converter.convert_statement(statement);
+      true
+    });
+    // end
+    self.add_end(end_position, &switch_case.span);
   }
 
   fn convert_switch_statement(&mut self, switch_statement: &SwitchStmt) {
-    panic!("Switch statements are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_SWITCH_STATEMENT, &switch_statement.span);
-    // // reserve cases
-    // let reference_position = self.reserve_for_items(1);
-    // // discriminant
-    // self.convert_expression(&switch_statement.discriminant);
-    // // cases
-    // self.update_reference_position(reference_position);
-    // self.convert_item_list(&switch_statement.cases, |ast_converter, switch_case| {
-    //   ast_converter.convert_switch_case(switch_case);
-    //   true
-    // });
-    // // end
-    // self.add_end(end_position, &switch_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_SWITCH_STATEMENT_INLINED_DISCRIMINANT,
+      &switch_statement.span,
+      SWITCH_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // discriminant
+    self.convert_expression(&switch_statement.discriminant);
+    // cases
+    self.update_reference_position(end_position + SWITCH_STATEMENT_CASES_OFFSET);
+    self.convert_item_list(&switch_statement.cases, |ast_converter, switch_case| {
+      ast_converter.convert_switch_case(switch_case);
+      true
+    });
+    // end
+    self.add_end(end_position, &switch_statement.span);
   }
 
   fn convert_tagged_template_expression(&mut self, tagged_template: &TaggedTpl) {
-    panic!("Tagged template expressions are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_TAGGED_TEMPLATE_EXPRESSION, &tagged_template.span);
-    // // reserve quasi
-    // let reference_position = self.reserve_for_items(1);
-    // // tag
-    // self.convert_expression(&tagged_template.tag);
-    // // quasi
-    // self.update_reference_position(reference_position);
-    // self.convert_template_literal(&tagged_template.tpl);
-    // // end
-    // self.add_end(end_position, &tagged_template.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_TAGGED_TEMPLATE_EXPRESSION_INLINED_TAG,
+      &tagged_template.span,
+      TAGGED_TEMPLATE_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // tag
+    self.convert_expression(&tagged_template.tag);
+    // quasi
+    self.update_reference_position(end_position + TAGGED_TEMPLATE_EXPRESSION_QUASI_OFFSET);
+    self.convert_template_literal(&tagged_template.tpl);
+    // end
+    self.add_end(end_position, &tagged_template.span);
   }
 
   fn convert_template_element(&mut self, template_element: &TplElement) {
-    panic!("Template elements are not supported");
-    // self.add_type_and_positions(&TYPE_TEMPLATE_ELEMENT, &template_element.span);
-    // // tail
-    // self.convert_boolean(template_element.tail);
-    // // reserve cooked
-    // let reference_position = self.reserve_for_items(1);
-    // // raw
-    // self.convert_string(&template_element.raw);
-    // // cooked
-    // if let Some(cooked) = template_element.cooked.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_string(cooked);
-    // }
+    let end_position = self.add_type_and_start(
+      &TYPE_TEMPLATE_ELEMENT_INLINED_RAW,
+      &template_element.span,
+      TEMPLATE_ELEMENT_RESERVED_BYTES,
+      false,
+    );
+    // flags
+    let flags = if template_element.tail {
+      TEMPLATE_ELEMENT_TAIL_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + TEMPLATE_ELEMENT_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // raw
+    self.convert_string(&template_element.raw);
+    // cooked
+    if let Some(cooked) = template_element.cooked.as_ref() {
+      self.update_reference_position(end_position + TEMPLATE_ELEMENT_COOKED_OFFSET);
+      self.convert_string(cooked);
+    }
+    // end
+    self.add_end(end_position, &template_element.span);
   }
 
   fn convert_template_literal(&mut self, template_literal: &Tpl) {
-    panic!("Template literals are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_TEMPLATE_LITERAL, &template_literal.span);
-    // // reserve expressions
-    // let reference_position = self.reserve_for_items(1);
-    // // quasis, we manually do an item list here
-    // self
-    //     .buffer
-    //     .extend_from_slice(&(template_literal.quasis.len() as u32).to_ne_bytes());
-    // let mut next_quasi_position = self.buffer.len();
-    // // make room for the positions of the quasis
-    // self
-    //     .buffer
-    //     .resize(self.buffer.len() + template_literal.quasis.len() * 4, 0);
-    // let mut quasis = template_literal.quasis.iter();
-    // // convert first quasi
-    // let first_quasi = quasis.next().unwrap();
-    // let insert_position = (self.buffer.len() as u32) >> 2;
-    // self.convert_template_element(first_quasi);
-    // self.buffer[next_quasi_position..next_quasi_position + 4]
-    //     .copy_from_slice(&insert_position.to_ne_bytes());
-    // next_quasi_position += 4;
-    // // now convert expressions, interleaved with quasis
-    // self.update_reference_position(reference_position);
-    // self
-    //     .buffer
-    //     .extend_from_slice(&(template_literal.exprs.len() as u32).to_ne_bytes());
-    // let mut next_expression_position = self.buffer.len();
-    // // make room for the positions of the expressions
-    // self
-    //     .buffer
-    //     .resize(self.buffer.len() + template_literal.exprs.len() * 4, 0);
-    // for expression in template_literal.exprs.as_slice() {
-    //   // convert expression
-    //   let insert_position = (self.buffer.len() as u32) >> 2;
-    //   self.convert_expression(expression);
-    //   self.buffer[next_expression_position..next_expression_position + 4]
-    //       .copy_from_slice(&insert_position.to_ne_bytes());
-    //   next_expression_position += 4;
-    //   // convert next quasi
-    //   let next_quasi = quasis.next().unwrap();
-    //   let insert_position = (self.buffer.len() as u32) >> 2;
-    //   self.convert_template_element(next_quasi);
-    //   self.buffer[next_quasi_position..next_quasi_position + 4]
-    //       .copy_from_slice(&insert_position.to_ne_bytes());
-    //   next_quasi_position += 4;
-    // }
-    // // end
-    // self.add_end(end_position, &template_literal.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_TEMPLATE_LITERAL_INLINED_QUASIS,
+      &template_literal.span,
+      TEMPLATE_LITERAL_RESERVED_BYTES,
+      false,
+    );
+    // quasis, we manually do an item list here
+    self
+      .buffer
+      .extend_from_slice(&(template_literal.quasis.len() as u32).to_ne_bytes());
+    let mut next_quasi_position = self.buffer.len();
+    // make room for the positions of the quasis
+    self
+      .buffer
+      .resize(self.buffer.len() + template_literal.quasis.len() * 4, 0);
+    let mut quasis = template_literal.quasis.iter();
+    // convert first quasi
+    let first_quasi = quasis.next().unwrap();
+    let insert_position = (self.buffer.len() as u32) >> 2;
+    self.convert_template_element(first_quasi);
+    self.buffer[next_quasi_position..next_quasi_position + 4]
+      .copy_from_slice(&insert_position.to_ne_bytes());
+    next_quasi_position += 4;
+    // now convert expressions, interleaved with quasis
+    self.update_reference_position(end_position + TEMPLATE_LITERAL_EXPRESSIONS_OFFSET);
+    self
+      .buffer
+      .extend_from_slice(&(template_literal.exprs.len() as u32).to_ne_bytes());
+    let mut next_expression_position = self.buffer.len();
+    // make room for the positions of the expressions
+    self
+      .buffer
+      .resize(self.buffer.len() + template_literal.exprs.len() * 4, 0);
+    for expression in template_literal.exprs.as_slice() {
+      // convert expression
+      let insert_position = (self.buffer.len() as u32) >> 2;
+      self.convert_expression(expression);
+      self.buffer[next_expression_position..next_expression_position + 4]
+        .copy_from_slice(&insert_position.to_ne_bytes());
+      next_expression_position += 4;
+      // convert next quasi
+      let next_quasi = quasis.next().unwrap();
+      let insert_position = (self.buffer.len() as u32) >> 2;
+      self.convert_template_element(next_quasi);
+      self.buffer[next_quasi_position..next_quasi_position + 4]
+        .copy_from_slice(&insert_position.to_ne_bytes());
+      next_quasi_position += 4;
+    }
+    // end
+    self.add_end(end_position, &template_literal.span);
   }
 
   fn convert_this_expression(&mut self, this_expression: &ThisExpr) {
-    panic!("This expressions are not supported");
-    // self.add_type_and_positions(&TYPE_THIS_EXPRESSION, &this_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_THIS_EXPRESSION,
+      &this_expression.span,
+      THIS_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // end
+    self.add_end(end_position, &this_expression.span);
   }
 
   fn convert_throw_statement(&mut self, throw_statement: &ThrowStmt) {
-    panic!("Throw statements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_THROW_STATEMENT, &throw_statement.span);
-    // // argument
-    // self.convert_expression(&throw_statement.arg);
-    // // end
-    // self.add_end(end_position, &throw_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_THROW_STATEMENT_INLINED_ARGUMENT,
+      &throw_statement.span,
+      THROW_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // argument
+    self.convert_expression(&throw_statement.arg);
+    // end
+    self.add_end(end_position, &throw_statement.span);
   }
 
   fn convert_try_statement(&mut self, try_statement: &TryStmt) {
-    panic!("Try statements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_TRY_STATEMENT, &try_statement.span);
-    // // reserve handler, finalizer
-    // let reference_position = self.reserve_for_items(2);
-    // // block
-    // self.convert_block_statement(&try_statement.block, false);
-    // // handler
-    // if let Some(catch_clause) = try_statement.handler.as_ref() {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_catch_clause(catch_clause);
-    // }
-    // // finalizer
-    // if let Some(block_statement) = try_statement.finalizer.as_ref() {
-    //   self.update_reference_position(reference_position + 4);
-    //   self.convert_block_statement(block_statement, false);
-    // }
-    // // end
-    // self.add_end(end_position, &try_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_TRY_STATEMENT_INLINED_BLOCK,
+      &try_statement.span,
+      TRY_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // block
+    self.convert_block_statement(&try_statement.block, false);
+    // handler
+    if let Some(catch_clause) = try_statement.handler.as_ref() {
+      self.update_reference_position(end_position + TRY_STATEMENT_HANDLER_OFFSET);
+      self.convert_catch_clause(catch_clause);
+    }
+    // finalizer
+    if let Some(block_statement) = try_statement.finalizer.as_ref() {
+      self.update_reference_position(end_position + TRY_STATEMENT_FINALIZER_OFFSET);
+      self.convert_block_statement(block_statement, false);
+    }
+    // end
+    self.add_end(end_position, &try_statement.span);
   }
 
   fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {
-    panic!("Unary expressions are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_UNARY_EXPRESSION, &unary_expression.span);
-    // // operator
-    // self.buffer.extend_from_slice(match unary_expression.op {
-    //   UnaryOp::Minus => &STRING_MINUS,
-    //   UnaryOp::Plus => &STRING_PLUS,
-    //   UnaryOp::Bang => &STRING_BANG,
-    //   UnaryOp::Tilde => &STRING_TILDE,
-    //   UnaryOp::TypeOf => &STRING_TYPEOF,
-    //   UnaryOp::Void => &STRING_VOID,
-    //   UnaryOp::Delete => &STRING_DELETE,
-    // });
-    // // argument
-    // self.convert_expression(&unary_expression.arg);
-    // // end
-    // self.add_end(end_position, &unary_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_UNARY_EXPRESSION_INLINED_ARGUMENT,
+      &unary_expression.span,
+      UNARY_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // argument
+    self.convert_expression(&unary_expression.arg);
+    // operator
+    let operator_position = end_position + UNARY_EXPRESSION_OPERATOR_OFFSET;
+    self.buffer[operator_position..operator_position + 4].copy_from_slice(
+      match unary_expression.op {
+        UnaryOp::Minus => &STRING_MINUS,
+        UnaryOp::Plus => &STRING_PLUS,
+        UnaryOp::Bang => &STRING_BANG,
+        UnaryOp::Tilde => &STRING_TILDE,
+        UnaryOp::TypeOf => &STRING_TYPEOF,
+        UnaryOp::Void => &STRING_VOID,
+        UnaryOp::Delete => &STRING_DELETE,
+      },
+    );
+    // end
+    self.add_end(end_position, &unary_expression.span);
   }
 
   fn convert_update_expression(&mut self, update_expression: &UpdateExpr) {
-    panic!("Update expressions are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_UPDATE_EXPRESSION, &update_expression.span);
-    // // prefix
-    // self.convert_boolean(update_expression.prefix);
-    // // operator
-    // self.buffer.extend_from_slice(match update_expression.op {
-    //   UpdateOp::PlusPlus => &STRING_PLUSPLUS,
-    //   UpdateOp::MinusMinus => &STRING_MINUSMINUS,
-    // });
-    // // argument
-    // self.convert_expression(&update_expression.arg);
-    // // end
-    // self.add_end(end_position, &update_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_UPDATE_EXPRESSION_INLINED_ARGUMENT,
+      &update_expression.span,
+      UPDATE_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // argument
+    self.convert_expression(&update_expression.arg);
+    // flags
+    let flags = if update_expression.prefix {
+      UPDATE_EXPRESSION_PREFIX_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + UPDATE_EXPRESSION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // operator
+    let operator_position = end_position + UPDATE_EXPRESSION_OPERATOR_OFFSET;
+    self.buffer[operator_position..operator_position + 4].copy_from_slice(
+      match update_expression.op {
+        UpdateOp::PlusPlus => &STRING_PLUSPLUS,
+        UpdateOp::MinusMinus => &STRING_MINUSMINUS,
+      },
+    );
+    // end
+    self.add_end(end_position, &update_expression.span);
   }
 
   fn convert_variable_declaration(&mut self, variable_declaration: &VarDecl) {
@@ -2798,34 +2962,43 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_while_statement(&mut self, while_statement: &WhileStmt) {
-    panic!("While statements are not supported");
-    // let end_position = self.add_type_and_start_simple(&TYPE_WHILE_STATEMENT, &while_statement.span);
-    // // reserve body
-    // let reference_position = self.reserve_for_items(1);
-    // // test
-    // self.convert_expression(&while_statement.test);
-    // // body
-    // self.update_reference_position(reference_position);
-    // self.convert_statement(&while_statement.body);
-    // // end
-    // self.add_end(end_position, &while_statement.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_WHILE_STATEMENT_INLINED_TEST,
+      &while_statement.span,
+      WHILE_STATEMENT_RESERVED_BYTES,
+      false,
+    );
+    // test
+    self.convert_expression(&while_statement.test);
+    // body
+    self.update_reference_position(end_position + WHILE_STATEMENT_BODY_OFFSET);
+    self.convert_statement(&while_statement.body);
+    // end
+    self.add_end(end_position, &while_statement.span);
   }
 
   fn convert_yield_expression(&mut self, yield_expression: &YieldExpr) {
-    panic!("Yield expressions are not supported");
-    // let end_position =
-    //     self.add_type_and_start_simple(&TYPE_YIELD_EXPRESSION, &yield_expression.span);
-    // // delegate
-    // self.convert_boolean(yield_expression.delegate);
-    // // reserve argument
-    // let reference_position = self.reserve_for_items(1);
-    // // argument
-    // yield_expression.arg.as_ref().map(|expression| {
-    //   self.update_reference_position(reference_position);
-    //   self.convert_expression(expression)
-    // });
-    // // end
-    // self.add_end(end_position, &yield_expression.span);
+    let end_position = self.add_type_and_start(
+      &TYPE_YIELD_EXPRESSION,
+      &yield_expression.span,
+      YIELD_EXPRESSION_RESERVED_BYTES,
+      false,
+    );
+    // flags
+    let flags = if yield_expression.delegate {
+      YIELD_EXPRESSION_DELEGATE_FLAG
+    } else {
+      0u32
+    };
+    let flags_position = end_position + YIELD_EXPRESSION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // argument
+    yield_expression.arg.as_ref().map(|expression| {
+      self.update_reference_position(end_position + YIELD_EXPRESSION_ARGUMENT_OFFSET);
+      self.convert_expression(expression)
+    });
+    // end
+    self.add_end(end_position, &yield_expression.span);
   }
 }
 
