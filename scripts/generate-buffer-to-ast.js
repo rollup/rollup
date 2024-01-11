@@ -85,7 +85,11 @@ function getFieldDefinition([fieldName, fieldType], node, isInlined, isLastField
 			return `const ${variableName} = convertNode(${dataStart}, buffer, readString)${typeCastString};`;
 		}
 		case 'OptionalNode': {
-			return `const ${fieldName}Position = buffer[${getAndUpdatePosition}];\nconst ${variableName} = ${fieldName}Position === 0 ? null : convertNode(${fieldName}Position, buffer, readString)${typeCastString};`;
+			let definition = `const ${fieldName}Position = buffer[${getAndUpdatePosition}];`;
+			if (!node.optionalFallback?.[fieldName]) {
+				definition += `\nconst ${variableName} = ${fieldName}Position === 0 ? null : convertNode(${fieldName}Position, buffer, readString)${typeCastString};`;
+			}
+			return definition;
 		}
 		case 'NodeList': {
 			return `const ${variableName} = convertNodeList(${dataStart}, buffer, readString)${typeCastString};`;
@@ -126,8 +130,12 @@ function getFieldProperty([fieldName, fieldType], node) {
 			return `...(${fieldName}.length > 0 ? { [INVALID_ANNOTATION_KEY]: ${fieldName} } : {})`;
 		}
 		default: {
-			const variableName = node.variableNames?.[fieldName];
-			return variableName ? `${fieldName}: ${variableName}` : fieldName;
+			const variableName = node.variableNames?.[fieldName] || fieldName;
+			const fallback = node.optionalFallback?.[fieldName];
+			const value = fallback
+				? `${fieldName}Position === 0 ? { ...${fallback} } : convertNode(${fieldName}Position, buffer, readString)`
+				: variableName;
+			return value === fieldName ? fieldName : `${fieldName}: ${value}`;
 		}
 	}
 }

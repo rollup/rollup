@@ -356,15 +356,14 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const exportedPosition = buffer[position++];
-		const exported =
-			exportedPosition === 0 ? null : convertNode(exportedPosition, buffer, readString);
 		const local = convertNode(position, buffer, readString);
 		return {
 			type: 'ExportSpecifier',
 			start,
 			end,
 			local,
-			exported: exported === null ? { ...local } : exported
+			exported:
+				exportedPosition === 0 ? { ...local } : convertNode(exportedPosition, buffer, readString)
 		};
 	},
 	function expressionStatement(position, buffer, readString): ExpressionStatementNode {
@@ -575,15 +574,14 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const importedPosition = buffer[position++];
-		const imported =
-			importedPosition === 0 ? null : convertNode(importedPosition, buffer, readString);
 		const local = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ImportSpecifier',
 			start,
 			end,
-			local,
-			imported: imported === null ? { ...local } : imported
+			imported:
+				importedPosition === 0 ? { ...local } : convertNode(importedPosition, buffer, readString),
+			local
 		};
 	},
 	function labeledStatement(position, buffer, readString): LabeledStatementNode {
@@ -815,7 +813,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const shorthand = (flags & 2) === 2;
 		const computed = (flags & 4) === 4;
 		const keyPosition = buffer[position++];
-		const key = keyPosition === 0 ? null : convertNode(keyPosition, buffer, readString);
 		const value = convertNode(buffer[position++], buffer, readString);
 		const kind = FIXED_STRINGS[buffer[position]] as estree.Property['kind'];
 		return {
@@ -825,9 +822,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			method,
 			shorthand,
 			computed,
+			key: keyPosition === 0 ? { ...value } : convertNode(keyPosition, buffer, readString),
 			value,
-			kind,
-			key: key === null ? { ...value } : key
+			kind
 		};
 	},
 	function propertyDefinition(position, buffer, readString): PropertyDefinitionNode {

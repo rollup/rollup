@@ -2,7 +2,18 @@
 
 /** @typedef {[name:string, type:FieldType]} FieldWithType */
 
-/** @typedef {{astType?: string, estreeType?: string, fields?: FieldWithType[], flags?: string[], fixed?: Record<string,unknown>, fieldTypes?: Record<string,string>, additionalFields?: Record<string,string>, hiddenFields?: string[], variableNames?: Record<string,string>}} NodeDescription */
+/** @typedef {{
+ *    astType?: string,
+ *    estreeType?: string,
+ *    fields?: FieldWithType[],
+ *    flags?: string[],
+ *    fixed?: Record<string,unknown>,
+ *    fieldTypes?: Record<string,string>,
+ *    additionalFields?: Record<string,string>,
+ *    hiddenFields?: string[],
+ *    variableNames?: Record<string,string>,
+ *    optionalFallback?: Record<string,string>
+ *  }} NodeDescription */
 
 /** @type {Record<string, NodeDescription>} */
 export const AST_NODES = {
@@ -142,14 +153,13 @@ export const AST_NODES = {
 		]
 	},
 	ExportSpecifier: {
-		additionalFields: {
-			exported: 'exported === null ? {...local} : exported'
-		},
 		fields: [
 			['local', 'Node'],
 			['exported', 'OptionalNode']
 		],
-		hiddenFields: ['exported']
+		optionalFallback: {
+			exported: 'local'
+		}
 	},
 	ExpressionStatement: {
 		fields: [['expression', 'Node']]
@@ -245,14 +255,13 @@ export const AST_NODES = {
 		fields: [['local', 'Node']]
 	},
 	ImportSpecifier: {
-		additionalFields: {
-			imported: 'imported === null ? {...local} : imported'
-		},
 		fields: [
 			['imported', 'OptionalNode'],
 			['local', 'Node']
 		],
-		hiddenFields: ['imported']
+		optionalFallback: {
+			imported: 'local'
+		}
 	},
 	LabeledStatement: {
 		fields: [
@@ -383,10 +392,6 @@ export const AST_NODES = {
 		}
 	},
 	Property: {
-		// TODO Lukas think about a "fallback" solution for those
-		additionalFields: {
-			key: 'key === null ? { ...value } : key'
-		},
 		fields: [
 			['key', 'OptionalNode'],
 			['value', 'Node'],
@@ -394,7 +399,9 @@ export const AST_NODES = {
 		],
 		fieldTypes: { kind: "estree.Property['kind']" },
 		flags: ['method', 'shorthand', 'computed'],
-		hiddenFields: ['key']
+		optionalFallback: {
+			key: 'value'
+		}
 	},
 	PropertyDefinition: {
 		fields: [
