@@ -192,6 +192,7 @@ export const AST_NODES = {
 		},
 		flags: ['async', 'generator']
 	},
+	// TODO Lukas add a way to mark a field as duplicating an existing field
 	FunctionExpression: {
 		fields: [
 			['annotations', 'Annotations'],
