@@ -6,12 +6,12 @@ export default function commondir(files: readonly string[]): string {
 	if (files.length === 1) return dirname(files[0]);
 	const commonSegments = files.slice(1).reduce(
 		(commonSegments, file) => {
-			const pathSegements = file.split(/\/+|\\+/);
+			const pathSegments = file.split(/\/+|\\+/);
 			let index;
 			for (
 				index = 0;
-				commonSegments[index] === pathSegements[index] &&
-				index < Math.min(commonSegments.length, pathSegements.length);
+				commonSegments[index] === pathSegments[index] &&
+				index < Math.min(commonSegments.length, pathSegments.length);
 				index++
 			);
 			return commonSegments.slice(0, index);
