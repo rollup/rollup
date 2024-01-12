@@ -1,6 +1,7 @@
 use std::slice::Iter;
 use std::str::Chars;
 
+use crate::convert_ast::annotations::CommentKind::Annotation;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 
 pub struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
@@ -71,20 +72,22 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     while self.current_utf8_index < utf8_index {
       if self.current_utf8_index == self.next_annotation_start {
         let start = self.current_utf16_index;
-        let (next_annotation_end, next_annotation_kind) = self
+        let (next_comment_end, next_comment_kind) = self
           .next_annotation
           .map(|a| (a.comment.span.hi.0 - 1, a.kind.clone()))
           .unwrap();
-        while self.current_utf8_index < next_annotation_end {
+        while self.current_utf8_index < next_comment_end {
           let character = self.character_iterator.next().unwrap();
           self.current_utf8_index += character.len_utf8() as u32;
           self.current_utf16_index += character.len_utf16() as u32;
         }
-        self.collected_annotations.push(ConvertedAnnotation {
-          start,
-          end: self.current_utf16_index,
-          kind: next_annotation_kind,
-        });
+        if let Annotation(kind) = next_comment_kind {
+          self.collected_annotations.push(ConvertedAnnotation {
+            start,
+            end: self.current_utf16_index,
+            kind,
+          });
+        }
         self.next_annotation = self.annotation_iterator.next();
         self.next_annotation_start = get_annotation_start(self.next_annotation);
       } else {

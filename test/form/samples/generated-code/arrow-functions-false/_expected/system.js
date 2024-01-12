@@ -1,6 +1,7 @@
 System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (exports, module) {
 	'use strict';
 	var _starExcludes = {
+		__proto__: null,
 		a: 1,
 		default: 1,
 		foo: 1
@@ -11,7 +12,7 @@ System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'exte
 			b = module.b;
 			defaultCompat = module;
 			defaultCompat__default = module.default;
-			var setter = { foo: module.foo };
+			var setter = { __proto__: null, foo: module.foo };
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}

@@ -129,11 +129,12 @@ function analyzeDependencies(
 				}
 			}
 			if (reexportedNames.length > 1 || hasStarReexport) {
-				const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
 				if (hasStarReexport) {
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
 					}
+					reexportedNames.unshift([null, `__proto__:${_}null`]);
+					const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
 					setter.push(
 						`${cnst} setter${_}=${_}${exportMapping};`,
 						`for${_}(${cnst} name in module)${_}{`,
@@ -142,6 +143,7 @@ function analyzeDependencies(
 						'exports(setter);'
 					);
 				} else {
+					const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
 					setter.push(`exports(${exportMapping});`);
 				}
 			} else {
@@ -171,13 +173,19 @@ const getStarExcludesBlock = (
 	starExcludes: ReadonlySet<string> | null,
 	t: string,
 	{ _, cnst, getObject, n }: GenerateCodeSnippets
-): string =>
-	starExcludes
-		? `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(
-				[...starExcludes].map(property => [property, '1']),
-				{ lineBreakIndent: { base: t, t } }
-			)};`
-		: '';
+): string => {
+	if (starExcludes) {
+		const fields: [key: string | null, value: string][] = [...starExcludes].map(property => [
+			property,
+			'1'
+		]);
+		fields.unshift([null, `__proto__:${_}null`]);
+		return `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(fields, {
+			lineBreakIndent: { base: t, t }
+		})};`;
+	}
+	return '';
+};
 
 const getImportBindingsBlock = (
 	importBindings: readonly string[],

@@ -85,7 +85,7 @@ jobs:
 
           # Windows
           - host: windows-latest
-            build: npm run build:napi -- --release
+            build: RUSTFLAGS="-C target-feature=+crt-static" npm run build:napi -- --release
             target: x86_64-pc-windows-msvc
           - host: windows-latest
             build: >-

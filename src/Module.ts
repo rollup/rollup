@@ -47,7 +47,6 @@ import type {
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
-import type { ProgramAst } from './utils/convert-ast';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
@@ -1347,17 +1346,17 @@ export default class Module {
 		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 
-	private tryParse(): ProgramAst {
+	private tryParse() {
 		try {
-			return parseAst(this.info.code!) as ProgramAst;
+			return parseAst(this.info.code!);
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
 	}
 
-	private async tryParseAsync(): Promise<ProgramAst> {
+	private async tryParseAsync() {
 		try {
-			return (await parseAstAsync(this.info.code!)) as ProgramAst;
+			return await parseAstAsync(this.info.code!);
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}

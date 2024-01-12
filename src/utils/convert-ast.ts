@@ -1,11 +1,11 @@
 import type * as estree from 'estree';
-import type { AstNode } from '../rollup/types';
+import type { AstNode, ProgramNode } from '../rollup/types';
 import { FIXED_STRINGS } from './convert-ast-strings';
 import { error, logParseError } from './logs';
 
 type ReadString = (start: number, length: number) => string;
 
-export const convertProgram = (buffer: ArrayBuffer, readString: ReadString): ProgramAst =>
+export const convertProgram = (buffer: ArrayBuffer, readString: ReadString): InternalProgramNode =>
 	convertNode(0, new Uint32Array(buffer), readString);
 
 const convertNode = (position: number, buffer: Uint32Array, readString: ReadString): any => {
@@ -826,7 +826,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		};
 	},
 	// index:53; Program
-	(position, buffer, readString): ProgramAst => {
+	(position, buffer, readString): InternalProgramNode => {
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const annotations = convertAnnotationList(buffer[position++], buffer);
@@ -1259,7 +1259,6 @@ interface ArrowFunctionExpression extends estree.ArrowFunctionExpression {
 	[ANNOTATION_KEY]?: RollupAnnotation[];
 }
 
-export type ProgramAst = estree.Program &
-	AstNode & {
-		[INVALID_ANNOTATION_KEY]?: RollupAnnotation[];
-	};
+type InternalProgramNode = ProgramNode & {
+	[INVALID_ANNOTATION_KEY]?: RollupAnnotation[];
+};

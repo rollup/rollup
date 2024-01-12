@@ -1,5 +1,50 @@
 # rollup changelog
 
+## 4.9.5
+
+_2024-01-12_
+
+### Bug Fixes
+
+- Fix issue where on Windows, Rollup would not load due to problems with the MSVC executable (#5335)
+
+### Pull Requests
+
+- [#5334](https://github.com/rollup/rollup/pull/5334): Fix typo in commondir.ts (@akiomik)
+- [#5335](https://github.com/rollup/rollup/pull/5335): build: static link msvc runtime on Windows x64 platform (@Brooooooklyn)
+- [#5338](https://github.com/rollup/rollup/pull/5338): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
+## 4.9.4
+
+_2024-01-06_
+
+### Bug Fixes
+
+- Use quotes for keys in namespaces that are only numbers but are not valid integers (#5328)
+- Allow to have comments between pure annotations and the annoted node (#5332)
+
+### Pull Requests
+
+- [#5328](https://github.com/rollup/rollup/pull/5328): Correctly handling number key (@LongTengDao)
+- [#5332](https://github.com/rollup/rollup/pull/5332): Handle pure annotations that are separated by a comment (@lukastaegert)
+
+## 4.9.3
+
+_2024-01-05_
+
+### Bug Fixes
+
+- Support `__proto__` as export/import name (#5313)
+- Use ESTree AST type over custom type in user-facing types (#5323)
+
+### Pull Requests
+
+- [#5313](https://github.com/rollup/rollup/pull/5313): Correctly handling **proto** export as module object key (@LongTengDao)
+- [#5323](https://github.com/rollup/rollup/pull/5323): fix: Add estree.Program type to rollup.d.ts (@TrickyPi)
+- [#5326](https://github.com/rollup/rollup/pull/5326): docs: fix grammar (@gigabites19)
+- [#5329](https://github.com/rollup/rollup/pull/5329): chore(deps): update dependency @vue/eslint-config-prettier to v9 (@renovate[bot])
+- [#5330](https://github.com/rollup/rollup/pull/5330): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.9.2
 
 _2023-12-30_
