@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.9.5
+
+_2024-01-12_
+
+### Bug Fixes
+
+- Fix issue where on Windows, Rollup would not load due to problems with the MSVC executable (#5335)
+
+### Pull Requests
+
+- [#5334](https://github.com/rollup/rollup/pull/5334): Fix typo in commondir.ts (@akiomik)
+- [#5335](https://github.com/rollup/rollup/pull/5335): build: static link msvc runtime on Windows x64 platform (@Brooooooklyn)
+- [#5338](https://github.com/rollup/rollup/pull/5338): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.9.4
 
 _2024-01-06_
