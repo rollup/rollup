@@ -3,16 +3,17 @@
 /** @typedef {[name:string, type:FieldType]} FieldWithType */
 
 /** @typedef {{
- *    astType?: string,
- *    estreeType?: string,
- *    fields?: FieldWithType[],
- *    flags?: string[],
- *    fixed?: Record<string,unknown>,
- *    fieldTypes?: Record<string,string>,
- *    additionalFields?: Record<string,string>,
- *    hiddenFields?: string[],
- *    variableNames?: Record<string,string>,
- *    optionalFallback?: Record<string,string>
+ *    astType?: string; // If several converters produce the same type, specify the actual type here
+ *    estreeType?: string, // If the extended ESTree type is different from the AST type
+ *    hasSameFieldsAs?: string, // If this node uses the same Rust converter as another one, specify the name here. This will skip Rust field constant generation.
+ *    fields?: FieldWithType[],  // The non-boolean fields of the node, sorted by parse order
+ *    flags?: string[], // The boolean fields of the node
+ *    fixed?: Record<string,unknown>, // Any fields with fixed values
+ *    fieldTypes?: Record<string,string>, // Add a type cast to a field
+ *    additionalFields?: Record<string,string>, // Derived fields can be specified as arbitrary strings here
+ *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
+ *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
+ *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field
  *  }} NodeDescription */
 
 /** @type {Record<string, NodeDescription>} */
@@ -100,11 +101,7 @@ export const AST_NODES = {
 		]
 	},
 	ClassExpression: {
-		fields: [
-			['id', 'OptionalNode'],
-			['superClass', 'OptionalNode'],
-			['body', 'Node']
-		]
+		hasSameFieldsAs: 'ClassDeclaration'
 	},
 	ConditionalExpression: {
 		fields: [
@@ -202,18 +199,8 @@ export const AST_NODES = {
 		},
 		flags: ['async', 'generator']
 	},
-	// TODO Lukas add a way to mark a field as duplicating an existing field
 	FunctionExpression: {
-		fields: [
-			['annotations', 'Annotations'],
-			['id', 'OptionalNode'],
-			['params', 'NodeList'],
-			['body', 'Node']
-		],
-		fixed: {
-			expression: false
-		},
-		flags: ['async', 'generator']
+		hasSameFieldsAs: 'FunctionDeclaration'
 	},
 	Identifier: {
 		fields: [['name', 'String']]
@@ -327,14 +314,10 @@ export const AST_NODES = {
 		]
 	},
 	LogicalExpression: {
-		fields: [
-			['operator', 'FixedString'],
-			['left', 'Node'],
-			['right', 'Node']
-		],
 		fieldTypes: {
 			operator: 'estree.LogicalOperator'
-		}
+		},
+		hasSameFieldsAs: 'BinaryExpression'
 	},
 	MemberExpression: {
 		fields: [
@@ -528,7 +511,9 @@ export const AST_NODES = {
 };
 
 export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => {
-	const fields = node.fields || [];
+	/** @type {FieldWithType[]} */
+	const fields =
+		(node.hasSameFieldsAs ? AST_NODES[node.hasSameFieldsAs].fields : node.fields) || [];
 	/** @type {FieldWithType[]} */
 	const allFields = [];
 	/** @type {FieldWithType[]} */

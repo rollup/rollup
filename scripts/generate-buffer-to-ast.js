@@ -11,7 +11,7 @@ const jsConverters = [
     error(logParseError(message, pos));
 	}`,
 	...astNodeNamesWithFieldOrder.map(({ name, inlinedVariableField, reservedFields, allFields }) => {
-		const node = AST_NODES[name];
+		const node = getNode(name);
 		const readStringArgument = allFields.some(([, fieldType]) =>
 			['Node', 'OptionalNode', 'NodeList', 'String', 'FixedString', 'OptionalString'].includes(
 				fieldType
@@ -34,11 +34,11 @@ const jsConverters = [
 		}
 		for (const [index, field] of reservedFields.entries()) {
 			definitions.push(
-				`${getFieldDefinition(field, node, false, index === allFields.length - 1)}\n`
+				`${getFieldDefinition(field, name, false, index === allFields.length - 1)}\n`
 			);
 		}
 		if (inlinedVariableField) {
-			definitions.push(`${getFieldDefinition(inlinedVariableField, node, true, true)}\n`);
+			definitions.push(`${getFieldDefinition(inlinedVariableField, name, true, true)}\n`);
 		}
 		/** @type {string[]} */
 		const properties = [
@@ -68,14 +68,27 @@ const jsConverters = [
 ];
 
 /**
+ * @param {string} name
+ * @return {import("./ast-types.js").NodeDescription}
+ */
+function getNode(name) {
+	const referencedNode = AST_NODES[name];
+	return referencedNode.hasSameFieldsAs
+		? AST_NODES[referencedNode.hasSameFieldsAs]
+		: referencedNode;
+}
+
+/**
  * @param {import('./ast-types.js').FieldWithType} field
- * @param {import('./ast-types.js').NodeDescription} node
+ * @param {string} name
  * @param {boolean} isInlined
  * @param {boolean} isLastField
  * @returns {string}
  */
-function getFieldDefinition([fieldName, fieldType], node, isInlined, isLastField) {
-	const typeCast = node.fieldTypes?.[fieldName];
+function getFieldDefinition([fieldName, fieldType], name, isInlined, isLastField) {
+	const originalNode = AST_NODES[name];
+	const node = getNode(name);
+	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
 	const typeCastString = typeCast ? ` as ${typeCast}` : '';
 	const getAndUpdatePosition = isLastField ? 'position' : 'position++';
 	const dataStart = isInlined ? getAndUpdatePosition : `buffer[${getAndUpdatePosition}]`;
@@ -149,7 +162,7 @@ function getFixedProperties(node) {
 }
 
 const types = astNodeNamesWithFieldOrder.map(({ name }) => {
-	const node = AST_NODES[name];
+	const node = getNode(name);
 	let typeDefinition = `export type ${name}Node = ${node.estreeType || `estree.${name}`} & AstNode`;
 	/** @type {string[]} */
 	const additionalFieldTypes = [];

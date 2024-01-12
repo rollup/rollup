@@ -25,9 +25,12 @@ const nodeTypes = [
 
 const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 	.map(({ name, reservedFields }) => {
+		const { flags, hasSameFieldsAs } = AST_NODES[name];
+		if (hasSameFieldsAs) {
+			return '';
+		}
 		/** @type {string[]} */
 		const lines = [];
-		const { flags } = AST_NODES[name];
 		// reservedBytes is the number of bytes reserved for
 		// - end position
 		// - flags if present
