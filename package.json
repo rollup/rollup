@@ -33,7 +33,7 @@
     }
   },
   "scripts": {
-    "build": "npm run build:wasm && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
+    "build": "concurrently -c green,blue \"npm run build:wasm\" \"npm:build:ast-converters\" && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
     "build:quick": "concurrently -c green,blue 'npm:build:napi' 'npm:build:cjs' && npm run build:copy-native",
     "build:napi": "napi build --platform --dts native.d.ts --js false --cargo-cwd rust -p bindings_napi --cargo-name bindings_napi",
     "build:wasm": "wasm-pack build rust/bindings_wasm --out-dir ../../wasm --target web --no-pack && shx rm wasm/.gitignore",
@@ -48,6 +48,7 @@
     "build:cjs": "rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit",
     "build:bootstrap": "shx mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --forceExit && shx rm -rf dist-build",
     "build:docs": "vitepress build docs",
+    "build:ast-converters": "node scripts/generate-ast-converters.js",
     "preview:docs": "vitepress preview docs",
     "ci:artifacts": "napi artifacts",
     "ci:lint": "concurrently -c red,yellow,green,blue 'npm:lint:js:nofix' 'npm:lint:native-js' 'npm:lint:markdown:nofix' 'npm:lint:rust:nofix'",
@@ -127,6 +128,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "11.1.5",
     "@rollup/pluginutils": "^5.1.0",
+    "@types/eslint": "^8.44.9",
     "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.0.0",
