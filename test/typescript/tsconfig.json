@@ -3,7 +3,7 @@
 		"noEmit": true,
 		"strict": true,
 		"pretty": true,
-		"lib": ["es2015"],
+		"lib": ["ESNext"],
 		"types": []
 	},
 	"include": ["./dist", "./typings"],
