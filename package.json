@@ -23,6 +23,7 @@
         "aarch64-unknown-linux-musl",
         "armv7-linux-androideabi",
         "armv7-unknown-linux-gnueabihf",
+        "armv7-unknown-linux-musleabihf",
         "i686-pc-windows-msvc",
         "riscv64gc-unknown-linux-gnu",
         "x86_64-apple-darwin",

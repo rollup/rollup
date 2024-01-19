@@ -1,5 +1,5 @@
 {
-  "name": "@rollup/rollup-linux-arm-gnueabihf",
+  "name": "@rollup/rollup-linux-arm-musleabihf",
   "version": "0.0.0",
   "os": [
     "linux"
@@ -8,7 +8,7 @@
     "arm"
   ],
   "files": [
-    "rollup.linux-arm-gnueabihf.node"
+    "rollup.linux-arm-musleabihf.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
@@ -16,7 +16,7 @@
   "license": "MIT",
   "repository": "rollup/rollup",
   "libc": [
-    "glibc"
+    "musl"
   ],
-  "main": "./rollup.linux-arm-gnueabihf.node"
+  "main": "./rollup.linux-arm-musleabihf.node"
 }
