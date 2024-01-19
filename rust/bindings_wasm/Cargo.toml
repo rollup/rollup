@@ -4,10 +4,10 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-wasm-bindgen = "0.2.89"
+wasm-bindgen = "0.2.90"
 parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
-js-sys = "0.3.66"
+js-sys = "0.3.67"
 getrandom = { version = "0.2.12", features = ["js"] }
 
 [lib]
