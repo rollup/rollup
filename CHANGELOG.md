@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.9.6
+
+_2024-01-21_
+
+### Bug Fixes
+
+- Detect side effects when an element that was pushed into an array is modified via the array (#5352)
+
+### Pull Requests
+
+- [#5337](https://github.com/rollup/rollup/pull/5337): Generate AST transformers from config (@lukastaegert)
+- [#5340](https://github.com/rollup/rollup/pull/5340): Also type-check d.ts files (@lukastaegert)
+- [#5348](https://github.com/rollup/rollup/pull/5348): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5351](https://github.com/rollup/rollup/pull/5351): chore(deps): update dependency vite to v5.0.12 [security] (@renovate[bot])
+- [#5352](https://github.com/rollup/rollup/pull/5352): Track mutations of elements pushed into arrays (@lukastaegert)
+
 ## 4.9.5
 
 _2024-01-12_
