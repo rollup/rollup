@@ -185,6 +185,7 @@ jobs:
               riscv64-linux-gnu-strip *.node
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
+            zig: true
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-powerpc64le-linux-gnu -y
