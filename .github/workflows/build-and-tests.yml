@@ -190,9 +190,9 @@ jobs:
               sudo apt-get install gcc-powerpc64-linux-gnu -y
             build: >-
               set -e &&
-              rustup target add ppc64le-unknown-linux-gnu &&
+              rustup target add powerpc64le-unknown-linux-gnu &&
               npm run build:napi -- --release --target ppc64le-unknown-linux-gnu &&
-              ppc64le-unknown-linux-gnu-strip *.node
+              powerpc64le-linux-gnu-strip *.node
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
