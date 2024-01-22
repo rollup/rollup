@@ -187,7 +187,7 @@ jobs:
             target: powerpc64le-unknown-linux-gnu
             setup: |
               sudo apt-get update
-              sudo apt-get install gcc-powerpc64-linux-gnu -y
+              sudo apt-get install gcc-powerpc64le-linux-gnu -y
             build: >-
               set -e &&
               rustup target add powerpc64le-unknown-linux-gnu &&
