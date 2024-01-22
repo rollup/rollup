@@ -184,14 +184,14 @@ jobs:
               npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu &&
               riscv64-linux-gnu-strip *.node
           - host: ubuntu-latest
-            target: ppc64le-unknown-linux-gnu
+            target: powerpc64le-unknown-linux-gnu
             setup: |
               sudo apt-get update
               sudo apt-get install gcc-powerpc64-linux-gnu -y
             build: >-
               set -e &&
               rustup target add powerpc64le-unknown-linux-gnu &&
-              npm run build:napi -- --release --target ppc64le-unknown-linux-gnu &&
+              npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu &&
               powerpc64le-linux-gnu-strip *.node
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
