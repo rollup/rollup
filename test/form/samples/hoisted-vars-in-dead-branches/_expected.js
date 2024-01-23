@@ -1,4 +1,4 @@
-var b, a; {
+var a, b; {
 	console.log(a, b);
 }
 

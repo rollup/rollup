@@ -19,6 +19,7 @@ const NEW_ARRAY_PROPERTIES: ObjectProperty[] = [
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_BOOLEAN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
+		mutatesArgs: false,
 		mutatesSelfAsArray: 'deopt-only',
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
@@ -28,6 +29,7 @@ const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_BOOLEAN: [ExpressionEntity] = [
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
+		mutatesArgs: false,
 		mutatesSelfAsArray: 'deopt-only',
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
@@ -37,6 +39,7 @@ const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
 const METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: true,
 		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
 		returnsPrimitive: null
@@ -46,6 +49,7 @@ const METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 const METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: 'deopt-only',
 		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
 		returnsPrimitive: null
@@ -55,15 +59,17 @@ const METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
+		mutatesArgs: false,
 		mutatesSelfAsArray: 'deopt-only',
 		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
 		returnsPrimitive: null
 	})
 ];
 
-const METHOD_MUTATES_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
+const METHOD_MUTATES_SELF_AND_ARGS_RETURNS_NUMBER: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: true,
 		mutatesSelfAsArray: true,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
@@ -73,6 +79,7 @@ const METHOD_MUTATES_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
 const METHOD_MUTATES_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: true,
 		returns: null,
 		returnsPrimitive: UNKNOWN_EXPRESSION
@@ -82,6 +89,7 @@ const METHOD_MUTATES_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 const METHOD_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: 'deopt-only',
 		returns: null,
 		returnsPrimitive: UNKNOWN_EXPRESSION
@@ -91,6 +99,7 @@ const METHOD_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
+		mutatesArgs: false,
 		mutatesSelfAsArray: 'deopt-only',
 		returns: null,
 		returnsPrimitive: UNKNOWN_EXPRESSION
@@ -100,6 +109,7 @@ const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 const METHOD_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: true,
 		returns: 'self',
 		returnsPrimitive: null
@@ -109,6 +119,7 @@ const METHOD_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
+		mutatesArgs: false,
 		mutatesSelfAsArray: true,
 		returns: 'self',
 		returnsPrimitive: null
@@ -140,7 +151,7 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		lastIndexOf: METHOD_RETURNS_NUMBER,
 		map: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY,
 		pop: METHOD_MUTATES_SELF_RETURNS_UNKNOWN,
-		push: METHOD_MUTATES_SELF_RETURNS_NUMBER,
+		push: METHOD_MUTATES_SELF_AND_ARGS_RETURNS_NUMBER,
 		reduce: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
 		reduceRight: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
 		reverse: METHOD_MUTATES_SELF_RETURNS_SELF,
@@ -151,7 +162,7 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		splice: METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY,
 		toLocaleString: METHOD_RETURNS_STRING,
 		toString: METHOD_RETURNS_STRING,
-		unshift: METHOD_MUTATES_SELF_RETURNS_NUMBER,
+		unshift: METHOD_MUTATES_SELF_AND_ARGS_RETURNS_NUMBER,
 		values: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN
 	} as unknown as PropertyMap,
 	OBJECT_PROTOTYPE,

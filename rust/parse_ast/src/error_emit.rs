@@ -5,7 +5,7 @@ use parking_lot::Mutex;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER};
 use swc_ecma_ast::Program;
 
-use crate::convert_ast::converter::{convert_string, node_types::TYPE_PARSE_ERROR};
+use crate::convert_ast::converter::{ast_constants::TYPE_PARSE_ERROR, convert_string};
 
 #[derive(Clone, Default)]
 struct Writer(Arc<Mutex<Vec<u8>>>);

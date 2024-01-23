@@ -155,15 +155,6 @@ var bail1$1 = /*#__PURE__*/Object.freeze({
   named1: named1
 });
 
-var bail3 = '@included-bail-3';
-const named3 = 'bail3';
-
-var bail3$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  default: bail3,
-  named3: named3
-});
-
 var bail2 = '@included-bail-2';
 const named2 = 'bail2';
 
@@ -171,6 +162,15 @@ var bail2$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   default: bail2,
   named2: named2
+});
+
+var bail3 = '@included-bail-3';
+const named3 = 'bail3';
+
+var bail3$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: bail3,
+  named3: named3
 });
 
 var bail4 = '@included-bail-4';
