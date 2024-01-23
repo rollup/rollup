@@ -151,6 +151,7 @@ module.exports = {
 		'unicorn/no-null': 'off',
 		'unicorn/no-this-assignment': 'off',
 		'unicorn/no-useless-undefined': 'off',
+		'unicorn/number-literal-case': 'off',
 		'unicorn/prefer-at': 'off',
 		'unicorn/prefer-code-point': 'off',
 		'unicorn/prefer-math-trunc': 'off',

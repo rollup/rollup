@@ -297,7 +297,6 @@ export class ModuleLoader {
 					? source
 					: error(logBadLoader(id));
 		const code = sourceDescription.code;
-		/* eslint-disable-next-line unicorn/number-literal-case */
 		if (code.charCodeAt(0) === 0xfe_ff) {
 			sourceDescription.code = code.slice(1);
 		}
