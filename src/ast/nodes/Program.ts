@@ -35,11 +35,15 @@ export default class Program extends NodeBase {
 				if (this.scope.context.options.experimentalLogSideEffects && !this.hasLoggedEffect) {
 					this.hasLoggedEffect = true;
 					const { code, log, module } = this.scope.context;
+					if (this.scope.context.options.experimentalLogSideEffects instanceof Function) {
+						this.scope.context.options.experimentalLogSideEffects(code, module.id, locate(code, node.start, { offsetLine: 1 })!);
+					} else {
 					log(
 						LOGLEVEL_INFO,
 						logFirstSideEffect(code, module.id, locate(code, node.start, { offsetLine: 1 })!),
 						node.start
 					);
+					}
 				}
 				return (this.hasCachedEffect = true);
 			}

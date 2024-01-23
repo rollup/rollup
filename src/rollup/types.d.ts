@@ -578,7 +578,7 @@ export interface InputOptions {
 	cache?: boolean | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;
-	experimentalLogSideEffects?: boolean;
+	experimentalLogSideEffects?: boolean | (() => void);
 	external?: ExternalOption;
 	input?: InputOption;
 	logLevel?: LogLevelOption;
