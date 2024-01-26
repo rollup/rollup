@@ -33,7 +33,7 @@ jobs:
           toolchain: nightly-2023-10-05
           targets: x86_64-unknown-linux-gnu
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -49,7 +49,7 @@ jobs:
           node-version: 18
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
