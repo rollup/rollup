@@ -99,7 +99,7 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: 'Thank you for your contribution!'
       - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         id: createInitialComment
         with:
           comment-id: ${{ steps.findComment.outputs.comment-id }}
@@ -124,7 +124,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Update comment with Vercel preview URL
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         if: ${{ steps.waitForVercel.outputs.url }}
         with:
           comment-id: ${{ steps.createInitialComment.outputs.comment-id }}
