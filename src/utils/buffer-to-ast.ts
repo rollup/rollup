@@ -4,6 +4,7 @@
 import type * as estree from 'estree';
 import type { RollupAstNode } from '../rollup/types';
 import { FIXED_STRINGS } from './convert-ast-strings';
+import type { ReadString } from './getReadStringFunction';
 import { error, logParseError } from './logs';
 
 export const ANNOTATION_KEY = '_rollupAnnotations';
@@ -1112,7 +1113,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	}
 ];
 
-type ReadString = (start: number, length: number) => string;
 export type AnnotationType = 'pure' | 'noSideEffects';
 
 export interface RollupAnnotation {
