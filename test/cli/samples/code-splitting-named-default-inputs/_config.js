@@ -8,13 +8,13 @@ module.exports = defineTest({
 		assert.equal(
 			code,
 			'\n' +
-				`//→ entry1-JF9mQsXW.js:\n` +
+				`//→ entry1-F7XBegnP.js:\n` +
 				"console.log('main1');\n" +
 				'\n' +
-				`//→ Entry 2-GmuWsq4N.js:\n` +
+				`//→ Entry 2-DJUOC_be.js:\n` +
 				"console.log('main2');\n" +
 				'\n' +
-				`//→ main3-RQC0q0DR.js:\n` +
+				`//→ main3-CcbE82tV.js:\n` +
 				"console.log('main3');\n"
 		);
 	}

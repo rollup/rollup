@@ -15,7 +15,7 @@ module.exports = defineTest({
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
 		message:
-			'Could not set source for asset "WPGYjwIl", asset source needs to be a string, Uint8Array or Buffer.',
+			'Could not set source for asset "BY8ZiPAi", asset source needs to be a string, Uint8Array or Buffer.',
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}
