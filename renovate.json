@@ -14,12 +14,12 @@
 			"platformAutomerge": true
 		},
 		{
-			"matchPackageNames": ["node", "npm", "fsevents", "@rollup/plugin-typescript"],
+			"matchPackageNames": ["node", "npm", "fsevents"],
 			"enabled": false
 		},
 		{
 			"matchPackageNames": ["@types/node"],
-			"matchUpdateTypes": ["major", "minor"],
+			"matchUpdateTypes": ["major", "minor", "lockFileMaintenance"],
 			"enabled": false
 		}
 
