@@ -1,6 +1,6 @@
-import type { FSWatcher } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import process from 'node:process';
+import type { FSWatcher } from 'chokidar';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';

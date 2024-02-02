@@ -4,11 +4,14 @@
 	"dependencyDashboard": true,
 	"configMigration": true,
 	"rangeStrategy": "bump",
+	"prHourlyLimit": 0,
 	"packageRules": [
 		{
-			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance"],
+			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance", "pin"],
 			"groupName": "minor/patch updates",
-			"automerge": true
+			"automerge": true,
+			"automergeType": "pr",
+			"platformAutomerge": true
 		},
 		{
 			"matchPackageNames": ["node", "npm", "fsevents", "@rollup/plugin-typescript"],
@@ -21,9 +24,7 @@
 		}
 
 	],
-	"automerge": true,
-	"automergeType": "pr",
-	"platformAutomerge": true,
+	"automerge": false,
 	"internalChecksFilter": "strict",
 	"lockFileMaintenance": {
 		"enabled": true,
