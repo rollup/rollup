@@ -131,7 +131,7 @@
     "@types/eslint": "^8.56.2",
     "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^18.19.10",
+    "@types/node": "^18.18.14",
     "@types/yargs-parser": "^21.0.3",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
