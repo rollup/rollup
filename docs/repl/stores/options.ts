@@ -242,6 +242,11 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.globals',
 		required: () => true
 	});
+	const optionOutputHashCharacters = getSelect({
+		defaultValue: 'base64',
+		name: 'output.hashCharacters',
+		options: () => ['base64', 'base36', 'hex']
+	});
 	const optionOutputHoistTransitiveImports = getBoolean({
 		available: alwaysTrue,
 		defaultValue: true,
@@ -432,6 +437,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputGeneratedCodeReservedNamesAsProperties,
 		optionOutputGeneratedCodeSymbols,
 		optionOutputGlobals,
+		optionOutputHashCharacters,
 		optionOutputHoistTransitiveImports,
 		optionOutputIndent,
 		optionOutputInlineDynamicImports,

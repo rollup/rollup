@@ -69,6 +69,7 @@ export async function normalizeOutputOptions(
 		freeze: config.freeze ?? true,
 		generatedCode,
 		globals: config.globals || {},
+		hashCharacters: config.hashCharacters ?? 'base64',
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
 		indent: getIndent(config, compact),
 		inlineDynamicImports,

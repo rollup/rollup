@@ -1,7 +1,7 @@
 const { loader } = require('../../../utils.js');
 
 module.exports = defineTest({
-	description: 'bundles files for the browser',
+	description: 'supports hashes in the browser build',
 	options: {
 		input: ['main', 'dep'],
 		plugins: loader({
