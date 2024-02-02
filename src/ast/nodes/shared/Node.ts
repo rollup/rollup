@@ -35,7 +35,6 @@ export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 export interface Node extends Entity {
 	annotations?: RollupAnnotation[];
 	end: number;
-	esTreeNode?: GenericEsTreeNode;
 	included: boolean;
 	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
@@ -136,7 +135,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	declare annotations?: RollupAnnotation[];
 
 	declare end: number;
-	esTreeNode?: AstNode;
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
 	declare start: number;
@@ -162,17 +160,9 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	constructor(
 		esTreeNode: GenericEsTreeNode,
 		parent: Node | { context: AstContext; type: string },
-		parentScope: ChildScope,
-		keepEsTreeNode = false
+		parentScope: ChildScope
 	) {
 		super();
-		// Nodes can opt-in to keep the AST if needed during the build pipeline.
-		// Avoid true when possible as large AST takes up memory.
-
-		if (keepEsTreeNode) {
-			this.esTreeNode = esTreeNode;
-		}
-
 		const { type } = esTreeNode;
 		keys[type] ||= createKeysForNode(esTreeNode);
 
@@ -270,7 +260,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 */
 	initialise(): void {}
 
-	parseNode(esTreeNode: GenericEsTreeNode, keepEsTreeNodeKeys?: string[]): void {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// Skip properties defined on the class already.
 			// This way, we can override this function to add custom initialisation and then call super.parseNode
@@ -312,20 +302,14 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
-							: new (this.scope.context.getNodeConstructor(child.type))(
-									child,
-									this,
-									this.scope,
-									keepEsTreeNodeKeys?.includes(key)
-								)
+							: new (this.scope.context.getNodeConstructor(child.type))(child, this, this.scope)
 					);
 				}
 			} else {
 				(this as GenericEsTreeNode)[key] = new (this.scope.context.getNodeConstructor(value.type))(
 					value,
 					this,
-					this.scope,
-					keepEsTreeNodeKeys?.includes(key)
+					this.scope
 				);
 			}
 		}

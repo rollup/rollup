@@ -71,6 +71,7 @@ export const AST_NODES = {
 		fields: [['label', 'OptionalNode']]
 	},
 	CallExpression: {
+		estreeType: 'estree.SimpleCallExpression',
 		fields: [
 			['annotations', 'Annotations'],
 			['callee', 'Node'],
@@ -272,12 +273,12 @@ export const AST_NODES = {
 			raw: 'value ? "true" : "false"'
 		},
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		estreeType: 'estree.SimpleLiteral & {value: boolean}',
 		flags: ['value']
 	},
 	LiteralNull: {
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		estreeType: 'estree.SimpleLiteral & {value: null}',
 		fixed: {
 			raw: 'null',
 			value: null
@@ -285,7 +286,7 @@ export const AST_NODES = {
 	},
 	LiteralNumber: {
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		estreeType: 'estree.SimpleLiteral & {value: number}',
 		fields: [
 			['raw', 'OptionalString'],
 			['value', 'Float']
@@ -307,7 +308,7 @@ export const AST_NODES = {
 	},
 	LiteralString: {
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		estreeType: 'estree.SimpleLiteral & {value: string}',
 		fields: [
 			['value', 'String'],
 			['raw', 'OptionalString']

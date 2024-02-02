@@ -22,11 +22,11 @@ export default class CatchClause extends NodeBase {
 		const { body, param, type } = esTreeNode;
 		this.type = type as NodeType.tCatchClause;
 		if (param) {
-			(this.param as GenericEsTreeNode) = new (this.scope.context.getNodeConstructor(param.type))(
+			this.param = new (this.scope.context.getNodeConstructor(param.type))(
 				param,
 				this,
 				this.scope
-			);
+			) as unknown as PatternNode;
 			this.param!.declare(VariableKind.parameter, UNKNOWN_EXPRESSION);
 		}
 		this.body = new BlockStatement(body, this, this.scope.bodyScope);

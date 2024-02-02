@@ -15,10 +15,10 @@ import type ImportExpression from './ast/nodes/ImportExpression';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import Literal from './ast/nodes/Literal';
 import type MetaProperty from './ast/nodes/MetaProperty';
+import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
-import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
-import type { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
+import type { NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
@@ -28,6 +28,7 @@ import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
 import type {
+	AstNode,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -46,6 +47,7 @@ import type {
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import type { LiteralStringNode, TemplateLiteralNode } from './utils/buffer-to-ast';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
@@ -134,7 +136,7 @@ export interface AstContext {
 }
 
 export interface DynamicImport {
-	argument: string | ExpressionNode;
+	argument: string | AstNode;
 	id: string | null;
 	node: ImportExpression;
 	resolution: Module | ExternalModule | string | null;
@@ -882,7 +884,7 @@ export default class Module {
 		this.namespace = new NamespaceVariable(this.astContext);
 		this.ast = new Program(moduleAst, { context: this.astContext, type: 'Module' }, this.scope);
 
-		// Assign AST directly if has existing one as there's no way to drop it from memory.
+		// Assign AST directly if there is an existing one as there's no way to drop it from memory.
 		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.
 		if (ast || this.options.cache !== false) {
 			this.info.ast = moduleAst;
@@ -988,13 +990,19 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: ImportExpression) {
-		let argument: ExpressionNode | string = node.source;
-		if (argument instanceof TemplateLiteral) {
-			if (argument.quasis.length === 1 && argument.quasis[0].value.cooked) {
-				argument = argument.quasis[0].value.cooked;
+		let argument: AstNode | string = node.sourceAstNode;
+		if (argument.type === NodeType.TemplateLiteral) {
+			if (
+				(argument as TemplateLiteralNode).quasis.length === 1 &&
+				typeof (argument as TemplateLiteralNode).quasis[0].value.cooked === 'string'
+			) {
+				argument = (argument as TemplateLiteralNode).quasis[0].value.cooked!;
 			}
-		} else if (argument instanceof Literal && typeof argument.value === 'string') {
-			argument = argument.value;
+		} else if (
+			argument.type === NodeType.Literal &&
+			typeof (argument as LiteralStringNode).value === 'string'
+		) {
+			argument = (argument as LiteralStringNode).value!;
 		}
 		this.dynamicImports.push({ argument, id: null, node, resolution: null });
 	}

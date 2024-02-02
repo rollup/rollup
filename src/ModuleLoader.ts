@@ -565,9 +565,7 @@ export class ModuleLoader {
 		return module.dynamicImports.map(async dynamicImport => {
 			const resolvedId = await this.resolveDynamicImport(
 				module,
-				typeof dynamicImport.argument === 'string'
-					? dynamicImport.argument
-					: dynamicImport.argument.esTreeNode!,
+				dynamicImport.argument,
 				module.id,
 				getAttributesFromImportExpression(dynamicImport.node)
 			);

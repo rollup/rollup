@@ -208,8 +208,7 @@ export default abstract class FunctionBase extends NodeBase {
 				new (context.getNodeConstructor(parameter.type))(
 					parameter,
 					this,
-					scope,
-					false
+					scope
 				) as unknown as PatternNode
 			);
 		}
