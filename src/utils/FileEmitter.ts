@@ -11,7 +11,7 @@ import type {
 	OutputChunk
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
-import { getXxhash } from './crypto';
+import { getHash64 } from './crypto';
 import { getOrCreate } from './getOrCreate';
 import { defaultHashSize } from './hashPlaceholders';
 import { LOGLEVEL_WARN } from './logging';
@@ -270,7 +270,7 @@ export class FileEmitter {
 				if (consumedFile.fileName) {
 					this.finalizeAdditionalAsset(consumedFile, consumedFile.source, output);
 				} else {
-					const sourceHash = getXxhash(consumedFile.source);
+					const sourceHash = getHash64(consumedFile.source);
 					getOrCreate(consumedAssetsByHash, sourceHash, () => []).push(consumedFile);
 				}
 			} else if (consumedFile.type === 'prebuilt-chunk') {
@@ -290,7 +290,7 @@ export class FileEmitter {
 		let referenceId = idBase;
 
 		do {
-			referenceId = getXxhash(referenceId).slice(0, 8).replaceAll('-', '$');
+			referenceId = getHash64(referenceId).slice(0, 8).replaceAll('-', '$');
 		} while (
 			this.filesByReferenceId.has(referenceId) ||
 			this.outputFileEmitters.some(({ filesByReferenceId }) => filesByReferenceId.has(referenceId))
@@ -445,7 +445,7 @@ export class FileEmitter {
 
 		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
-			const sourceHash = getXxhash(source);
+			const sourceHash = getHash64(source);
 			fileName = fileNamesBySource.get(sourceHash);
 			if (!fileName) {
 				fileName = generateAssetFileName(

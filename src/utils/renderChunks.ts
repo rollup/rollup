@@ -9,7 +9,7 @@ import type {
 } from '../rollup/types';
 import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
-import { getXxhash } from './crypto';
+import { getHash64 } from './crypto';
 import { decodedSourcemap } from './decodedSourcemap';
 import {
 	replacePlaceholders,
@@ -258,7 +258,7 @@ async function transformChunksAndGenerateContentHashes(
 					renderedChunksByPlaceholder.set(hashPlaceholder, transformedChunk);
 					hashDependenciesByPlaceholder.set(hashPlaceholder, {
 						containedPlaceholders,
-						contentHash: getXxhash(contentToHash)
+						contentHash: getHash64(contentToHash)
 					});
 				} else {
 					nonHashedChunksWithPlaceholders.push(transformedChunk);
@@ -268,7 +268,7 @@ async function transformChunksAndGenerateContentHashes(
 				if (map && sourcemapHashPlaceholder) {
 					initialHashesByPlaceholder.set(
 						preliminarySourcemapFileName.hashPlaceholder,
-						getXxhash(map.toString()).slice(0, preliminarySourcemapFileName.hashPlaceholder.length)
+						getHash64(map.toString()).slice(0, preliminarySourcemapFileName.hashPlaceholder.length)
 					);
 				}
 			}
@@ -308,7 +308,7 @@ function generateFinalHashes(
 			if (finalHash) {
 				contentToHash = finalHash;
 			}
-			finalHash = getXxhash(contentToHash).slice(0, placeholder.length);
+			finalHash = getHash64(contentToHash).slice(0, placeholder.length);
 			finalFileName = replaceSinglePlaceholder(fileName, placeholder, finalHash);
 		} while (bundle[lowercaseBundleKeys].has(finalFileName.toLowerCase()));
 		bundle[finalFileName] = FILE_PLACEHOLDER;
