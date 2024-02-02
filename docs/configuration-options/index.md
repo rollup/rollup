@@ -539,7 +539,10 @@ The pattern to use for naming custom emitted assets to include in the build outp
 
 - `[extname]`: The file extension of the asset including a leading dot, e.g. `.css`.
 - `[ext]`: The file extension without a leading dot, e.g. `css`.
-- `[hash]`: A hash based on the content of the asset. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash]`: An alias for `[hash64]`. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash64]`: A hash based on the content of the asset. It uses url-safe base-64 characters `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_`. You can also set a specific hash length via e.g. `[hash64:10]`.
+- `[hash36]`: The same as `[hash64]` but using only lowercase letters and numbers `abcdefghijklmnopqrstuvwxyz0123456789`. You can also set a specific hash length via e.g. `[hash36:10]`.
+- `[hash16]`: The same as `[hash64]` but using hexadecimal encoding `abcdef0123456789`. You can also set a specific hash length via e.g. `[hash16:10]`.
 - `[name]`: The file name of the asset excluding any extension.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#output-chunkfilenames), [`output.entryFileNames`](#output-entryfilenames).
@@ -585,7 +588,10 @@ See also [`output.intro/output.outro`](#output-intro-output-outro).
 The pattern to use for naming shared chunks created when code-splitting, or a function that is called per chunk to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
-- `[hash]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash]`: An alias for `[hash64]`. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash64]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. It uses url-safe base-64 characters `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_`. You can also set a specific hash length via e.g. `[hash64:10]`.
+- `[hash36]`: The same as `[hash64]` but using only lowercase letters and numbers `abcdefghijklmnopqrstuvwxyz0123456789`. You can also set a specific hash length via e.g. `[hash36:10]`.
+- `[hash16]`: The same as `[hash64]` but using hexadecimal encoding `abcdef0123456789`. You can also set a specific hash length via e.g. `[hash16:10]`.
 - `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](#output-manualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](../plugin-development/index.md#this-emitfile). Otherwise, it will be derived from the chunk contents.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.entryFileNames`](#output-entryfilenames).
@@ -661,7 +667,10 @@ Promise.resolve()
 The pattern to use for chunks created from entry points, or a function that is called per entry chunk to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
-- `[hash]`: A hash based only on the content of the final generated entry chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash]`: An alias for `[hash64]`. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash64]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. It uses url-safe base-64 characters `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_`. You can also set a specific hash length via e.g. `[hash64:10]`.
+- `[hash36]`: The same as `[hash64]` but using only lowercase letters and numbers `abcdefghijklmnopqrstuvwxyz0123456789`. You can also set a specific hash length via e.g. `[hash36:10]`.
+- `[hash16]`: The same as `[hash64]` but using hexadecimal encoding `abcdef0123456789`. You can also set a specific hash length via e.g. `[hash16:10]`.
 - `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.chunkFileNames`](#output-chunkfilenames).
@@ -1480,8 +1489,11 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 The pattern to use for sourcemaps, or a function that is called per sourcemap to return such a pattern. Patterns support the following placeholders:
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
-- `[hash]`: A hash based only on the content of the final generated sourcemap. You can also set a specific hash length via e.g. `[hash:10]`.
-- `[chunkhash]`: The same hash as the one used for the corresponding generated chunk (if any).
+- `[hash]`: An alias for `[hash64]`. You can also set a specific hash length via e.g. `[hash:10]`.
+- `[hash64]`: A hash based only on the content of the final generated sourcemap. It uses url-safe base-64 characters `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_`. You can also set a specific hash length via e.g. `[hash64:10]`.
+- `[hash36]`: The same as `[hash64]` but using only lowercase letters and numbers `abcdefghijklmnopqrstuvwxyz0123456789`. You can also set a specific hash length via e.g. `[hash36:10]`.
+- `[hash16]`: The same as `[hash64]` but using hexadecimal encoding `abcdef0123456789`. You can also set a specific hash length via e.g. `[hash16:10]`.
+- `[chunkhash]`: The same hash as the one used for the corresponding generated chunk (if any), with the same encoding (`hash64/hash36/hash16`).
 - `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.chunkFileNames`](#output-chunkfilenames).
