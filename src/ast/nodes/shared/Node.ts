@@ -16,7 +16,7 @@ import {
 } from '../../ExecutionContext';
 import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
-import { createKeysForNode, keys } from '../../keys';
+import { keys } from '../../keys';
 import type ChildScope from '../../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
@@ -164,6 +164,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	) {
 		super();
 		const { type } = esTreeNode;
+		// extend for unknown node types
 		keys[type] ||= createKeysForNode(esTreeNode);
 
 		this.parent = parent;
@@ -368,6 +369,12 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 }
 
 export { NodeBase as StatementBase };
+
+function createKeysForNode(esTreeNode: GenericEsTreeNode): string[] {
+	return Object.keys(esTreeNode).filter(
+		key => typeof esTreeNode[key] === 'object' && key.charCodeAt(0) !== 95 /* _ */
+	);
+}
 
 export function locateNode(node: Node): Location & { file: string } {
 	const {
