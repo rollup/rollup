@@ -14,7 +14,7 @@
 			"platformAutomerge": true
 		},
 		{
-			"matchPackageNames": ["node", "npm", "fsevents"],
+			"matchPackageNames": ["node", "npm", "fsevents", "vitepress"],
 			"enabled": false
 		},
 		{
