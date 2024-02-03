@@ -882,7 +882,9 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.ast = new Program(moduleAst, { context: this.astContext, type: 'Module' }, this.scope);
+		this.ast = new Program({ context: this.astContext, type: 'Module' }, this.scope).parseNode(
+			moduleAst
+		);
 
 		// Assign AST directly if there is an existing one as there's no way to drop it from memory.
 		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.

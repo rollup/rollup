@@ -18,19 +18,18 @@ export default class CatchClause extends NodeBase {
 		this.scope = new ParameterScope(parentScope, true);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		const { body, param, type } = esTreeNode;
 		this.type = type as NodeType.tCatchClause;
 		if (param) {
 			this.param = new (this.scope.context.getNodeConstructor(param.type))(
-				param,
 				this,
 				this.scope
-			) as unknown as PatternNode;
+			).parseNode(param) as unknown as PatternNode;
 			this.param!.declare(VariableKind.parameter, UNKNOWN_EXPRESSION);
 		}
-		this.body = new BlockStatement(body, this, this.scope.bodyScope);
-		super.parseNode(esTreeNode);
+		this.body = new BlockStatement(this, this.scope.bodyScope).parseNode(body);
+		return super.parseNode(esTreeNode);
 	}
 }
 

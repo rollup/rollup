@@ -27,9 +27,9 @@ export default class TemplateElement extends NodeBase {
 		this.included = true;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		this.value = esTreeNode.value;
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 
 	render(): void {}

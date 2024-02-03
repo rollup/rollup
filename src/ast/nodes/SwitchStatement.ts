@@ -90,13 +90,12 @@ export default class SwitchStatement extends StatementBase {
 		this.defaultCase = null;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
-			esTreeNode.discriminant,
 			this,
 			this.parentScope
-		);
-		super.parseNode(esTreeNode);
+		).parseNode(esTreeNode.discriminant);
+		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

@@ -195,7 +195,7 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		const { body, params } = esTreeNode;
 		const parameters: typeof this.params = (this.params = []);
 		const { scope } = this;
@@ -205,10 +205,8 @@ export default abstract class FunctionBase extends NodeBase {
 		// when parsing the body.
 		for (const parameter of params) {
 			parameters.push(
-				new (context.getNodeConstructor(parameter.type))(
-					parameter,
-					this,
-					scope
+				new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(
+					parameter
 				) as unknown as PatternNode
 			);
 		}
@@ -219,8 +217,8 @@ export default abstract class FunctionBase extends NodeBase {
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		this.body = new (context.getNodeConstructor(body.type))(body, this, bodyScope);
-		super.parseNode(esTreeNode);
+		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body);
+		return super.parseNode(esTreeNode);
 	}
 
 	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}

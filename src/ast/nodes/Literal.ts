@@ -89,10 +89,10 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		this.members = getLiteralMembersForValue(this.value);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		this.value = esTreeNode.value;
 		this.regex = esTreeNode.regex;
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString): void {

@@ -164,9 +164,9 @@ export default class ImportExpression extends NodeBase {
 		this.scope.context.addDynamicImport(this);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		this.sourceAstNode = esTreeNode.source;
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

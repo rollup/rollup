@@ -2,4 +2,4 @@
 
 import './generate-rust-constants.js';
 import './generate-buffer-to-ast.js';
-import './generate-keys.js';
+import './generate-child-node-keys.js';

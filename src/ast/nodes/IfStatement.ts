@@ -64,22 +64,20 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		this.consequentScope = new TrackingScope(this.scope);
 		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
-			esTreeNode.consequent,
 			this,
 			this.consequentScope
-		);
+		).parseNode(esTreeNode.consequent);
 		if (esTreeNode.alternate) {
 			this.alternateScope = new TrackingScope(this.scope);
 			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
-				esTreeNode.alternate,
 				this,
 				this.alternateScope
-			);
+			).parseNode(esTreeNode.alternate);
 		}
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
