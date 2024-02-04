@@ -2,8 +2,8 @@ import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
 import type { AstNode, NormalizedTreeshakingOptions } from '../../../rollup/types';
-import type { RollupAnnotation } from '../../../utils/buffer-to-ast';
-import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/buffer-to-ast';
+import type { RollupAnnotation } from '../../../utils/astConverterHelpers';
+import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
 import { LOGLEVEL_WARN } from '../../../utils/logging';
 import { logInvalidAnnotation } from '../../../utils/logs';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
@@ -153,6 +153,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	protected get deoptimized(): boolean {
 		return isFlagSet(this.flags, Flag.deoptimized);
 	}
+
 	protected set deoptimized(value: boolean) {
 		this.flags = setFlag(this.flags, Flag.deoptimized, value);
 	}

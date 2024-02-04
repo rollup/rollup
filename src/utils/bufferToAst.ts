@@ -3,12 +3,16 @@
 
 import type * as estree from 'estree';
 import type { RollupAstNode } from '../rollup/types';
+import type { RollupAnnotation } from './astConverterHelpers';
+import {
+	ANNOTATION_KEY,
+	convertAnnotations,
+	convertString,
+	INVALID_ANNOTATION_KEY
+} from './astConverterHelpers';
 import { FIXED_STRINGS } from './convert-ast-strings';
 import type { ReadString } from './getReadStringFunction';
 import { error, logParseError } from './logs';
-
-export const ANNOTATION_KEY = '_rollupAnnotations';
-export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
 
 export function convertProgram(buffer: ArrayBuffer, readString: ReadString): ProgramNode {
 	return convertNode(0, new Uint32Array(buffer), readString);
@@ -1113,14 +1117,6 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	}
 ];
 
-export type AnnotationType = 'pure' | 'noSideEffects';
-
-export interface RollupAnnotation {
-	start: number;
-	end: number;
-	type: AnnotationType;
-}
-
 export type ArrayExpressionNode = RollupAstNode<estree.ArrayExpression>;
 export type ArrayPatternNode = RollupAstNode<estree.ArrayPattern>;
 export type ArrowFunctionExpressionNode = RollupAstNode<estree.ArrowFunctionExpression> & {
@@ -1250,25 +1246,3 @@ function convertNodeList(position: number, buffer: Uint32Array, readString: Read
 	}
 	return list;
 }
-
-const convertAnnotations = (position: number, buffer: Uint32Array): RollupAnnotation[] => {
-	const length = buffer[position++];
-	const list: any[] = [];
-	for (let index = 0; index < length; index++) {
-		list.push(convertAnnotation(buffer[position++], buffer));
-	}
-	return list;
-};
-
-const convertAnnotation = (position: number, buffer: Uint32Array): RollupAnnotation => {
-	const start = buffer[position++];
-	const end = buffer[position++];
-	const type = FIXED_STRINGS[buffer[position]] as AnnotationType;
-	return { end, start, type };
-};
-
-const convertString = (position: number, buffer: Uint32Array, readString: ReadString): string => {
-	const length = buffer[position++];
-	const bytePosition = position << 2;
-	return readString(bytePosition, length);
-};

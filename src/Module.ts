@@ -47,7 +47,7 @@ import type {
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
-import type { LiteralStringNode, TemplateLiteralNode } from './utils/buffer-to-ast';
+import type { LiteralStringNode, TemplateLiteralNode } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
