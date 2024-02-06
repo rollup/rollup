@@ -44,6 +44,7 @@ export default class ForInStatement extends StatementBase {
 	}
 
 	initialise() {
+		super.initialise();
 		this.left.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 

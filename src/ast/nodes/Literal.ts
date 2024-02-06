@@ -23,8 +23,13 @@ import {
 import { type GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
+export type LiteralValueOrBigInt = LiteralValue | bigint;
 
-export default class Literal<T extends LiteralValue = LiteralValue> extends NodeBase {
+export default class Literal<
+	T extends LiteralValueOrBigInt = LiteralValueOrBigInt
+> extends NodeBase {
+	declare bigint?: string;
+	declare raw?: string;
 	declare regex?: {
 		flags: string;
 		pattern: string;
@@ -86,6 +91,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.members = getLiteralMembersForValue(this.value);
 	}
 

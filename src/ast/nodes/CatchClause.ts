@@ -5,7 +5,6 @@ import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { type GenericEsTreeNode, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
-import { VariableKind } from './shared/VariableKinds';
 
 export default class CatchClause extends NodeBase {
 	declare body: BlockStatement;
@@ -26,7 +25,7 @@ export default class CatchClause extends NodeBase {
 				this,
 				this.scope
 			).parseNode(param) as unknown as PatternNode;
-			this.param!.declare(VariableKind.parameter, UNKNOWN_EXPRESSION);
+			this.param!.declare('parameter', UNKNOWN_EXPRESSION);
 		}
 		this.body = new BlockStatement(this, this.scope.bodyScope).parseNode(body);
 		return super.parseNode(esTreeNode);

@@ -22,6 +22,7 @@ export default class ReturnStatement extends StatementBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.scope.addReturnExpression(this.argument || UNKNOWN_EXPRESSION);
 	}
 

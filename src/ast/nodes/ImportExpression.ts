@@ -161,6 +161,7 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.scope.context.addDynamicImport(this);
 	}
 

@@ -26,7 +26,6 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
-import { VariableKind } from './VariableKinds';
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -46,6 +45,13 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 	set deoptimizedReturn(value: boolean) {
 		this.flags = setFlag(this.flags, Flag.deoptimizedReturn, value);
+	}
+
+	get generator(): boolean {
+		return isFlagSet(this.flags, Flag.generator);
+	}
+	set generator(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
 	protected objectEntity: ObjectEntity | null = null;
@@ -188,6 +194,7 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		if (this.body instanceof BlockStatement) {
 			this.body.addImplicitReturnExpressionToScope();
 		} else {
@@ -212,8 +219,7 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 		scope.addParameterVariables(
 			parameters.map(
-				parameter =>
-					parameter.declare(VariableKind.parameter, UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);

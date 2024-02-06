@@ -248,7 +248,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * Override to perform special initialisation steps after the scope is
 	 * initialised
 	 */
-	initialise(): void {}
+	initialise(): void {
+		this.scope.context.magicString.addSourcemapLocation(this.start);
+		this.scope.context.magicString.addSourcemapLocation(this.end);
+	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
 		for (const [key, value] of Object.entries(esTreeNode)) {
@@ -307,8 +310,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		// extend child keys for unknown node types
 		childNodeKeys[esTreeNode.type] ||= createChildNodeKeysForNode(esTreeNode);
 		this.initialise();
-		this.scope.context.magicString.addSourcemapLocation(this.start);
-		this.scope.context.magicString.addSourcemapLocation(this.end);
 		return this;
 	}
 

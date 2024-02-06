@@ -4,7 +4,7 @@ import { logRedeclarationError } from '../../utils/logs';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { VariableKind } from '../nodes/shared/VariableKinds';
+import type { VariableKind } from '../nodes/shared/VariableKinds';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import GlobalVariable from '../variables/GlobalVariable';
@@ -20,7 +20,7 @@ export default class ModuleScope extends ChildScope {
 		super(parent, context);
 		this.variables.set(
 			'this',
-			new LocalVariable('this', null, UNDEFINED_EXPRESSION, context, VariableKind.other)
+			new LocalVariable('this', null, UNDEFINED_EXPRESSION, context, 'other')
 		);
 	}
 

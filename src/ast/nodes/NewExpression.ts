@@ -48,6 +48,7 @@ export default class NewExpression extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.interaction = {
 			args: [null, ...this.arguments],
 			type: INTERACTION_CALLED,

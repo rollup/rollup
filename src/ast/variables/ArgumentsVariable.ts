@@ -3,7 +3,6 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
@@ -12,7 +11,7 @@ export default class ArgumentsVariable extends LocalVariable {
 	private deoptimizedArguments: ExpressionEntity[] = [];
 
 	constructor(context: AstContext) {
-		super('arguments', null, UNKNOWN_EXPRESSION, context, VariableKind.other);
+		super('arguments', null, UNKNOWN_EXPRESSION, context, 'other');
 	}
 
 	addArgumentToBeDeoptimized(argument: ExpressionEntity): void {

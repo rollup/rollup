@@ -12,8 +12,8 @@ import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { NodeBase } from './shared/Node';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
@@ -38,6 +38,7 @@ export default class UpdateExpression extends NodeBase {
 	}
 
 	initialise() {
+		super.initialise();
 		this.argument.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 

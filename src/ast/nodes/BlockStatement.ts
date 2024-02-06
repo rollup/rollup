@@ -62,6 +62,7 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		const firstBodyStatement = this.body[0];
 		this.deoptimizeBody =
 			firstBodyStatement instanceof ExpressionStatement &&

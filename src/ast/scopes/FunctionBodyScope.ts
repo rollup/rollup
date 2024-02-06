@@ -2,7 +2,7 @@ import type { AstContext } from '../../Module';
 import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { VariableKind } from '../nodes/shared/VariableKinds';
+import type { VariableKind } from '../nodes/shared/VariableKinds';
 import LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 import type ParameterScope from './ParameterScope';
@@ -26,10 +26,8 @@ export default class FunctionBodyScope extends ChildScope {
 		if (existingVariable) {
 			const existingKind = existingVariable.kind;
 			if (
-				(kind === VariableKind.var || kind === VariableKind.function) &&
-				(existingKind === VariableKind.var ||
-					existingKind === VariableKind.function ||
-					existingKind === VariableKind.parameter)
+				(kind === 'var' || kind === 'function') &&
+				(existingKind === 'var' || existingKind === 'function' || existingKind === 'parameter')
 			) {
 				existingVariable.addDeclaration(identifier, init);
 				return existingVariable;

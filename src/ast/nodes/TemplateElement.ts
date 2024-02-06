@@ -5,7 +5,7 @@ import { type GenericEsTreeNode, NodeBase } from './shared/Node';
 export default class TemplateElement extends NodeBase {
 	declare type: NodeType.tTemplateElement;
 	declare value: {
-		cooked: string | null;
+		cooked: string | undefined;
 		raw: string;
 	};
 

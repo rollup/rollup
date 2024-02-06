@@ -81,6 +81,7 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		for (let caseIndex = 0; caseIndex < this.cases.length; caseIndex++) {
 			if (this.cases[caseIndex].test === null) {
 				this.defaultCase = caseIndex;
