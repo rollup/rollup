@@ -109,13 +109,13 @@ export default {
 If you want to convert a set of files to another format while maintaining the file structure and export signatures, the recommended way—instead of using [`output.preserveModules`](#output-preservemodules) that may tree-shake exports as well as emit virtual files created by plugins—is to turn every file into an entry point. You can do so dynamically e.g. via the `glob` package:
 
 ```js
-import glob from 'glob';
+import { globSync } from 'glob';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export default {
 	input: Object.fromEntries(
-		glob.sync('src/**/*.js').map(file => [
+		globSync('src/**/*.js').map(file => [
 			// This remove `src/` as well as the file extension from each
 			// file, so e.g. src/nested/foo.js becomes nested/foo
 			path.relative(
