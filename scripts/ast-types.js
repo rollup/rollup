@@ -11,6 +11,7 @@
  *    fixed?: Record<string,unknown>, // Any fields with fixed values
  *    fieldTypes?: Record<string,string>, // Add a type cast to a field
  *    additionalFields?: Record<string,string>, // Derived fields can be specified as arbitrary strings here
+ *    baseForAdditionalFields?: string[], // Fields needed to define additional fields
  *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
  *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
  *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field
@@ -262,6 +263,7 @@ export const AST_NODES = {
 			value: 'BigInt(bigint)'
 		},
 		astType: 'Literal',
+		baseForAdditionalFields: ['bigint'],
 		estreeType: 'estree.BigIntLiteral',
 		fields: [
 			['bigint', 'String'],
@@ -273,6 +275,7 @@ export const AST_NODES = {
 			raw: 'value ? "true" : "false"'
 		},
 		astType: 'Literal',
+		baseForAdditionalFields: ['value'],
 		estreeType: 'estree.SimpleLiteral & {value: boolean}',
 		flags: ['value']
 	},
@@ -299,6 +302,7 @@ export const AST_NODES = {
 			value: 'new RegExp(pattern, flags)'
 		},
 		astType: 'Literal',
+		baseForAdditionalFields: ['flags', 'pattern'],
 		estreeType: 'estree.RegExpLiteral',
 		fields: [
 			['flags', 'String'],
@@ -438,6 +442,7 @@ export const AST_NODES = {
 		additionalFields: {
 			value: '{ cooked, raw}'
 		},
+		baseForAdditionalFields: ['cooked', 'raw'],
 		fields: [
 			['cooked', 'OptionalString'],
 			['raw', 'String']
