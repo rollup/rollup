@@ -77,6 +77,15 @@ describe('parseAst', () => {
 		});
 	});
 
+	it('throws on parse errors, Prop::Assign case', async () => {
+		assert.throws(() => parseAst(`const foo = { bar = baz, }; console.log(foo);`), {
+			name: 'RollupError',
+			message: 'Expression expected',
+			code: 'PARSE_ERROR',
+			pos: 0
+		});
+	});
+
 	it('throws on return outside function by default', async () => {
 		assert.throws(() => parseAst('return 42;'), {
 			name: 'RollupError',
