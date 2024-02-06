@@ -1,4 +1,3 @@
-const assert = require('node:assert');
 const { execSync } = require('node:child_process');
 
 module.exports = defineTest({
@@ -24,19 +23,27 @@ module.exports = defineTest({
 					this.emitFile({
 						type: 'prebuilt-chunk',
 						fileName: 'foo.js',
-						code: 'exports.foo = 1;'
+						code:
+							'exports.foo = 1;\n' +
+							'Object.defineProperty(exports, "__proto__", {\n' +
+							'	enumerable: true,\n' +
+							'	value: 2\n' +
+							'});'
 					});
 					this.emitFile({
 						type: 'prebuilt-chunk',
 						fileName: 'execute.mjs',
-						code: 'import { foo } from "./cjs.js";'
+						code:
+							'import assert from "node:assert";\n' +
+							'import { foo, __proto__ } from "./cjs.js";\n' +
+							'assert.strictEqual(foo, 1);\n' +
+							'assert.strictEqual(__proto__, 2);'
 					});
 				}
 			}
 		]
 	},
 	after() {
-		const result = execSync('node _expected/execute.mjs', { cwd: __dirname });
-		assert.strictEqual(result.toString(), '');
+		execSync('node _actual/execute.mjs', { cwd: __dirname });
 	}
 });
