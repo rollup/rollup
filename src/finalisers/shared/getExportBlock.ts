@@ -102,6 +102,16 @@ export function getExportBlock(
 			for (const specifier of reexports) {
 				if (specifier.reexported === '*') {
 					if (exportBlock) exportBlock += n;
+					if (!specifier.needsLiveBinding) {
+						const protoString = "'__proto__'";
+						exportBlock +=
+							`Object.prototype.hasOwnProperty.call(${name},${_}${protoString})${_}&&${n}` +
+							`${t}!Object.prototype.hasOwnProperty.call(exports,${_}${protoString})${_}&&${n}` +
+							`${t}Object.defineProperty(exports,${_}${protoString},${_}{${n}` +
+							`${t}${t}enumerable:${_}true,${n}` +
+							`${t}${t}value:${_}${name}[${protoString}]${n}` +
+							`${t}});${n}${n}`;
+					}
 					const copyPropertyIfNecessary = `{${n}${t}if${_}(k${_}!==${_}'default'${_}&&${_}!Object.prototype.hasOwnProperty.call(exports,${_}k))${_}${getDefineProperty(
 						name,
 						specifier.needsLiveBinding,
@@ -251,9 +261,5 @@ const getDefineProperty = (
 			`${t}${t}get:${_}${left}${name}[k]${right}${n}${t}})`
 		);
 	}
-	return (
-		`k${_}===${_}'__proto__'${_}?${_}Object.defineProperty(exports,${_}k,${_}{${n}` +
-		`${t}${t}enumerable:${_}true,${n}` +
-		`${t}${t}value:${_}${name}[k]${n}${t}})${_}:${_}exports[k]${_}=${_}${name}[k]`
-	);
+	return `exports[k]${_}=${_}${name}[k]`;
 };
