@@ -15,8 +15,8 @@ const nodeTypeStrings = nodeTypes.map(name => `\t'${name}'`);
 
 const jsConverters = [
 	`function parseError (_node, position, buffer, readString): void {
-    const pos = buffer[position++];
-    const message = convertString(position, buffer, readString);
+    const pos = buffer[position];
+    const message = convertString(position + 1, buffer, readString);
     error(logParseError(message, pos));
 	}`,
 	...astNodeNamesWithFieldOrder.map(({ name, inlinedVariableField, reservedFields, allFields }) => {
@@ -30,10 +30,12 @@ const jsConverters = [
 			: '';
 		/** @type {string[]} */
 		const definitions = [];
+		let offset = 0;
 		let needsScope = false;
 		if (node.flags) {
+			offset++;
 			definitions.push(
-				'const flags = buffer[position++];\n',
+				'const flags = buffer[position];\n',
 				...node.flags.map((flagName, index) => {
 					let assignmentLeftHand = node.baseForAdditionalFields?.includes(flagName)
 						? `const ${flagName} = `
@@ -46,17 +48,13 @@ const jsConverters = [
 			);
 		}
 		for (const [index, field] of reservedFields.entries()) {
-			const fieldDefinition = getFieldDefinition(
-				field,
-				name,
-				false,
-				index === allFields.length - 1
-			);
+			const fieldDefinition = getFieldDefinition(field, name, offset + index, false);
 			needsScope ||= fieldDefinition.needsScope;
 			definitions.push(`${fieldDefinition.definition}\n`);
 		}
+		offset += reservedFields.length;
 		if (inlinedVariableField) {
-			const fieldDefinition = getFieldDefinition(inlinedVariableField, name, true, true);
+			const fieldDefinition = getFieldDefinition(inlinedVariableField, name, offset, true);
 			needsScope ||= fieldDefinition.needsScope;
 			definitions.push(`${fieldDefinition.definition}\n`);
 		}
@@ -84,17 +82,17 @@ const jsConverters = [
 /**
  * @param {import('./ast-types.js').FieldWithType} field
  * @param {string} name
+ * @param {number} offset
  * @param {boolean} isInlined
- * @param {boolean} isLastField
  * @returns {{definition: string, needsScope: boolean}}
  */
-function getFieldDefinition([fieldName, fieldType], name, isInlined, isLastField) {
+function getFieldDefinition([fieldName, fieldType], name, offset, isInlined) {
 	const originalNode = AST_NODES[name];
 	const node = getNode(name);
 	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
 	const typeCastString = typeCast ? ` as ${typeCast}` : '';
-	const getAndUpdatePosition = isLastField ? 'position' : 'position++';
-	const dataStart = isInlined ? getAndUpdatePosition : `buffer[${getAndUpdatePosition}]`;
+	const getPosition = offset > 0 ? `position + ${offset}` : 'position';
+	const dataStart = isInlined ? getPosition : `buffer[${getPosition}]`;
 	let assignmentLeftHand = node.baseForAdditionalFields?.includes(fieldName)
 		? `const ${fieldName} = `
 		: '';
@@ -109,7 +107,7 @@ function getFieldDefinition([fieldName, fieldType], name, isInlined, isLastField
 			};
 		}
 		case 'OptionalNode': {
-			let definition = `const ${fieldName}Position = buffer[${getAndUpdatePosition}];`;
+			let definition = `const ${fieldName}Position = buffer[${getPosition}];`;
 			let needsScope = false;
 			if (!node.optionalFallback?.[fieldName]) {
 				needsScope = true;
@@ -138,19 +136,19 @@ function getFieldDefinition([fieldName, fieldType], name, isInlined, isLastField
 		}
 		case 'OptionalString': {
 			return {
-				definition: `const ${fieldName}Position = buffer[${getAndUpdatePosition}];\n${assignmentLeftHand}${fieldName}Position === 0 ? undefined : convertString(${fieldName}Position, buffer, readString)${typeCastString};`,
+				definition: `const ${fieldName}Position = buffer[${getPosition}];\n${assignmentLeftHand}${fieldName}Position === 0 ? undefined : convertString(${fieldName}Position, buffer, readString)${typeCastString};`,
 				needsScope: false
 			};
 		}
 		case 'FixedString': {
 			return {
-				definition: `${assignmentLeftHand}FIXED_STRINGS[buffer[${getAndUpdatePosition}]]${typeCastString};`,
+				definition: `${assignmentLeftHand}FIXED_STRINGS[buffer[${getPosition}]]${typeCastString};`,
 				needsScope: false
 			};
 		}
 		case 'Float': {
 			return {
-				definition: `${assignmentLeftHand}new DataView(buffer.buffer).getFloat64(${getAndUpdatePosition} << 2, true);`,
+				definition: `${assignmentLeftHand}new DataView(buffer.buffer).getFloat64((${getPosition}) << 2, true);`,
 				needsScope: false
 			};
 		}
