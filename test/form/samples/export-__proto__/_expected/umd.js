@@ -16,11 +16,15 @@
 		value: __proto__
 	});
 	exports.x = x;
-	Object.keys(x$1).forEach(function (k) {
-		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) k === '__proto__' ? Object.defineProperty(exports, k, {
+	Object.prototype.hasOwnProperty.call(x$1, '__proto__') &&
+		!Object.prototype.hasOwnProperty.call(exports, '__proto__') &&
+		Object.defineProperty(exports, '__proto__', {
 			enumerable: true,
-			value: x$1[k]
-		}) : exports[k] = x$1[k];
+			value: x$1['__proto__']
+		});
+
+	Object.keys(x$1).forEach(function (k) {
+		if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) exports[k] = x$1[k];
 	});
 
 }));
