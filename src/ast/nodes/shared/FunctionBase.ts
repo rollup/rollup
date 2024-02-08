@@ -33,6 +33,9 @@ export default abstract class FunctionBase extends NodeBase {
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 
+	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
+	declare annotationNoSideEffects?: boolean;
+
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);
 	}
@@ -199,6 +202,14 @@ export default abstract class FunctionBase extends NodeBase {
 			this.body.addImplicitReturnExpressionToScope();
 		} else {
 			this.scope.addReturnExpression(this.body);
+		}
+		if (
+			this.annotations &&
+			(this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations
+		) {
+			this.annotationNoSideEffects = this.annotations.some(
+				comment => comment.type === 'noSideEffects'
+			);
 		}
 	}
 

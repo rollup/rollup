@@ -1,7 +1,7 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
-import type { AstNode, NormalizedTreeshakingOptions } from '../../../rollup/types';
+import type { AstNode } from '../../../rollup/types';
 import type { RollupAnnotation } from '../../../utils/astConverterHelpers';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
 import { LOGLEVEL_WARN } from '../../../utils/logging';
@@ -128,12 +128,7 @@ export interface ChainElement extends ExpressionNode {
 }
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
-	declare annotationNoSideEffects?: boolean;
-	/** Marked with #__PURE__ annotation */
-	declare annotationPure?: boolean;
 	declare annotations?: RollupAnnotation[];
-
 	declare end: number;
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
@@ -263,14 +258,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 			if (key.charCodeAt(0) === 95 /* _ */) {
 				if (key === ANNOTATION_KEY) {
-					const annotations = value as RollupAnnotation[];
-					this.annotations = annotations;
-					if ((this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
-						this.annotationNoSideEffects = annotations.some(
-							comment => comment.type === 'noSideEffects'
-						);
-						this.annotationPure = annotations.some(comment => comment.type === 'pure');
-					}
+					this.annotations = value as RollupAnnotation[];
 				} else if (key === INVALID_ANNOTATION_KEY) {
 					for (const { start, end, type } of value as RollupAnnotation[]) {
 						this.scope.context.magicString.remove(start, end);
