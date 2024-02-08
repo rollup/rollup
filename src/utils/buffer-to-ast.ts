@@ -20,7 +20,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const message = convertString(position, buffer, readString);
 		error(logParseError(message, pos));
 	},
-	function rustPanicError(position, buffer, readString): never {
+	function panicError(position, buffer, readString): never {
 		const message = convertString(position, buffer, readString);
 		error(logParseError(message));
 	},
