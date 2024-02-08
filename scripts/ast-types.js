@@ -373,7 +373,7 @@ export const AST_NODES = {
 	Program: {
 		fields: [
 			['body', 'NodeList'],
-			['annotations', 'InvalidAnnotations']
+			['invalidAnnotations', 'InvalidAnnotations']
 		],
 		fixed: {
 			sourceType: 'module'

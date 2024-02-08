@@ -261,7 +261,7 @@ pub const OBJECT_PATTERN_RESERVED_BYTES: usize = 4;
 pub const PRIVATE_IDENTIFIER_RESERVED_BYTES: usize = 4;
 
 pub const PROGRAM_RESERVED_BYTES: usize = 8;
-pub const PROGRAM_ANNOTATIONS_OFFSET: usize = 4;
+pub const PROGRAM_INVALID_ANNOTATIONS_OFFSET: usize = 4;
 
 pub const PROPERTY_RESERVED_BYTES: usize = 20;
 pub const PROPERTY_FLAGS_OFFSET: usize = 4;

@@ -803,14 +803,14 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function program(position, buffer, readString): ProgramNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const annotations = convertAnnotations(buffer[position++], buffer);
+		const invalidAnnotations = convertAnnotations(buffer[position++], buffer);
 		const body = convertNodeList(position, buffer, readString);
 		return {
 			type: 'Program',
 			start,
 			end,
 			body,
-			...(annotations.length > 0 ? { [INVALID_ANNOTATION_KEY]: annotations } : {}),
+			...(invalidAnnotations.length > 0 ? { [INVALID_ANNOTATION_KEY]: invalidAnnotations } : {}),
 			sourceType: 'module'
 		};
 	},

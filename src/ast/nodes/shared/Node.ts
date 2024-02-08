@@ -4,8 +4,6 @@ import type { AstContext } from '../../../Module';
 import type { AstNode } from '../../../rollup/types';
 import type { RollupAnnotation } from '../../../utils/astConverterHelpers';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
-import { LOGLEVEL_WARN } from '../../../utils/logging';
-import { logInvalidAnnotation } from '../../../utils/logs';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -21,6 +19,7 @@ import type ChildScope from '../../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
+import type Program from '../Program';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { InclusionOptions } from './Expression';
 import { ExpressionEntity } from './Expression';
@@ -260,20 +259,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				if (key === ANNOTATION_KEY) {
 					this.annotations = value as RollupAnnotation[];
 				} else if (key === INVALID_ANNOTATION_KEY) {
-					for (const { start, end, type } of value as RollupAnnotation[]) {
-						this.scope.context.magicString.remove(start, end);
-						if (type === 'pure' || type === 'noSideEffects') {
-							this.scope.context.log(
-								LOGLEVEL_WARN,
-								logInvalidAnnotation(
-									this.scope.context.code.slice(start, end),
-									this.scope.context.module.id,
-									type
-								),
-								start
-							);
-						}
-					}
+					(this as unknown as Program).invalidAnnotations = value as RollupAnnotation[];
 				}
 			} else if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
