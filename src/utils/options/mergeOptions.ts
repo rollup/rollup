@@ -252,6 +252,7 @@ async function mergeOutputOptions(
 			)
 		),
 		globals: getOption('globals'),
+		hashCharacters: getOption('hashCharacters'),
 		hoistTransitiveImports: getOption('hoistTransitiveImports'),
 		indent: getOption('indent'),
 		inlineDynamicImports: getOption('inlineDynamicImports'),

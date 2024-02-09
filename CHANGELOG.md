@@ -1,5 +1,32 @@
 # rollup changelog
 
+## 4.10.0
+
+_2024-02-09_
+
+### Features
+
+- Support base-36 and base-16 hashes again via new `output.hashCharacters` option (#5371)
+
+### Bug Fixes
+
+- Do not crash process for panics in native code but throw them as JavaScript errors (#5383)
+
+### Pull Requests
+
+- [#5359](https://github.com/rollup/rollup/pull/5359): chore(deps): update actions/cache action to v4 (@renovate[bot])
+- [#5360](https://github.com/rollup/rollup/pull/5360): chore(deps): update dependency pretty-ms to v9 (@renovate[bot])
+- [#5366](https://github.com/rollup/rollup/pull/5366): chore(deps): update dependency husky to v9 (@renovate[bot])
+- [#5367](https://github.com/rollup/rollup/pull/5367): chore(deps): update peter-evans/create-or-update-comment action to v4 (@renovate[bot])
+- [#5368](https://github.com/rollup/rollup/pull/5368): chore(deps): update peter-evans/find-comment action to v3 (@renovate[bot])
+- [#5369](https://github.com/rollup/rollup/pull/5369): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5370](https://github.com/rollup/rollup/pull/5370): Fix dependency range for Node types (@lukastaegert)
+- [#5371](https://github.com/rollup/rollup/pull/5371): Implement "output.hashCharacters" option to define character set for file hashes (@lukastaegert)
+- [#5372](https://github.com/rollup/rollup/pull/5372): Roll back vitepress as 1.0.0-rc.40 breaks the development build (@lukastaegert)
+- [#5382](https://github.com/rollup/rollup/pull/5382): Update documentation (@TrickyPi)
+- [#5383](https://github.com/rollup/rollup/pull/5383): Catch Rust panics and then throw them in JS (@TrickyPi)
+- [#5385](https://github.com/rollup/rollup/pull/5385): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.9.6
 
 _2024-01-21_

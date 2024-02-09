@@ -6,3 +6,5 @@
 export function parse(code: string, allowReturnOutsideFunction: boolean): Buffer
 export function parseAsync(code: string, allowReturnOutsideFunction: boolean, signal?: AbortSignal | undefined | null): Promise<Buffer>
 export function xxhashBase64Url(input: Uint8Array): string
+export function xxhashBase36(input: Uint8Array): string
+export function xxhashBase16(input: Uint8Array): string

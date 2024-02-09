@@ -52,3 +52,13 @@ pub fn parse_async(
 pub fn xxhash_base64_url(input: Uint8Array) -> String {
   xxhash::xxhash_base64_url(&input)
 }
+
+#[napi]
+pub fn xxhash_base36(input: Uint8Array) -> String {
+  xxhash::xxhash_base36(&input)
+}
+
+#[napi]
+pub fn xxhash_base16(input: Uint8Array) -> String {
+  xxhash::xxhash_base16(&input)
+}

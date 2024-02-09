@@ -11,9 +11,10 @@ import type {
 	OutputChunk
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
-import { getXxhash } from './crypto';
+import type { GetHash } from './crypto';
+import { getHash64, hasherByType } from './crypto';
 import { getOrCreate } from './getOrCreate';
-import { defaultHashSize } from './hashPlaceholders';
+import { DEFAULT_HASH_SIZE } from './hashPlaceholders';
 import { LOGLEVEL_WARN } from './logging';
 import {
 	error,
@@ -50,7 +51,7 @@ function generateAssetFileName(
 			{
 				ext: () => extname(emittedName).slice(1),
 				extname: () => extname(emittedName),
-				hash: size => sourceHash.slice(0, Math.max(0, size || defaultHashSize)),
+				hash: size => sourceHash.slice(0, Math.max(0, size || DEFAULT_HASH_SIZE)),
 				name: () =>
 					emittedName.slice(0, Math.max(0, emittedName.length - extname(emittedName).length))
 			}
@@ -155,6 +156,7 @@ interface FileEmitterOutput {
 	bundle: OutputBundleWithPlaceholders;
 	fileNamesBySource: Map<string, string>;
 	outputOptions: NormalizedOutputOptions;
+	getHash: GetHash;
 }
 
 export class FileEmitter {
@@ -254,9 +256,11 @@ export class FileEmitter {
 		bundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions
 	): void => {
+		const getHash = hasherByType[outputOptions.hashCharacters];
 		const output = (this.output = {
 			bundle,
 			fileNamesBySource: new Map<string, string>(),
+			getHash,
 			outputOptions
 		});
 		for (const emittedFile of this.filesByReferenceId.values()) {
@@ -270,7 +274,7 @@ export class FileEmitter {
 				if (consumedFile.fileName) {
 					this.finalizeAdditionalAsset(consumedFile, consumedFile.source, output);
 				} else {
-					const sourceHash = getXxhash(consumedFile.source);
+					const sourceHash = getHash(consumedFile.source);
 					getOrCreate(consumedAssetsByHash, sourceHash, () => []).push(consumedFile);
 				}
 			} else if (consumedFile.type === 'prebuilt-chunk') {
@@ -290,7 +294,7 @@ export class FileEmitter {
 		let referenceId = idBase;
 
 		do {
-			referenceId = getXxhash(referenceId).slice(0, 8).replaceAll('-', '$');
+			referenceId = getHash64(referenceId).slice(0, 8).replaceAll('-', '$');
 		} while (
 			this.filesByReferenceId.has(referenceId) ||
 			this.outputFileEmitters.some(({ filesByReferenceId }) => filesByReferenceId.has(referenceId))
@@ -439,13 +443,13 @@ export class FileEmitter {
 	private finalizeAdditionalAsset(
 		consumedFile: Readonly<ConsumedAsset>,
 		source: string | Uint8Array,
-		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
+		{ bundle, fileNamesBySource, getHash, outputOptions }: FileEmitterOutput
 	): void {
 		let { fileName, needsCodeReference, referenceId } = consumedFile;
 
 		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
-			const sourceHash = getXxhash(source);
+			const sourceHash = getHash(source);
 			fileName = fileNamesBySource.get(sourceHash);
 			if (!fileName) {
 				fileName = generateAssetFileName(

@@ -10,6 +10,10 @@ const jsConverters = [
     const message = convertString(position, buffer, readString);
     error(logParseError(message, pos));
 	}`,
+	`function panicError(position, buffer, readString): never {
+	const message = convertString(position, buffer, readString);
+	error(logParseError(message));
+	}`,
 	...astNodeNamesWithFieldOrder.map(({ name, inlinedVariableField, reservedFields, allFields }) => {
 		const node = getNode(name);
 		const readStringArgument = allFields.some(([, fieldType]) =>

@@ -28,14 +28,14 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1-e1JxsyY1.js', 'input2-82mPINil.js', 'generated-shared-8B_aVNG6.js'],
+					['input1-BM2OP0FT.js', 'input2-5N8un_JB.js', 'generated-shared-CbVywpjf.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import { u as used, s as shared } from './generated-shared-8B_aVNG6.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
-						`import './generated-shared-8B_aVNG6.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport { input2 as default };\n`,
+						`import { u as used, s as shared } from './generated-shared-CbVywpjf.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
+						`import './generated-shared-CbVywpjf.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport { input2 as default };\n`,
 						`console.log("shared");const used = "used"; var shared = "stuff";\n\nexport { shared as s, used as u };\n`
 					],
 					'code'
@@ -62,14 +62,14 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.imports),
-					[['generated-shared-8B_aVNG6.js'], ['generated-shared-8B_aVNG6.js'], []],
+					[['generated-shared-CbVywpjf.js'], ['generated-shared-CbVywpjf.js'], []],
 					'imports'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.importedBindings),
 					[
-						{ 'generated-shared-8B_aVNG6.js': ['u', 's'] },
-						{ 'generated-shared-8B_aVNG6.js': [] },
+						{ 'generated-shared-CbVywpjf.js': ['u', 's'] },
+						{ 'generated-shared-CbVywpjf.js': [] },
 						{}
 					],
 					'importedBindings'
