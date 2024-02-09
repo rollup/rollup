@@ -1945,6 +1945,51 @@ export default {
 
 This will generate an additional `noConflict` export to UMD bundles. When called in an IIFE scenario, this method will return the bundle exports while restoring the corresponding global variable to its previous value.
 
+### output.reexportProtoFromExternal
+
+|  |  |
+| --: | :-- |
+| Type: | `boolean` |
+| CLI: | `--reexportProtoFromExternal`/`--no-reexportProtoFromExternal` |
+| Default: | `true` |
+
+This option is only effective when [`output.format`](#output.format) is set to one of `['amd', 'cjs', 'iife', 'umd']` and [`output.externalLiveBindings`](#output.externalLiveBindings) is set to false.
+
+For maximum compatibility, Rollup reexports `__proto__` from an external module by default. However, for common use cases, it is strongly recommended to set this value to false as it effectively reduces the output size.
+
+```js
+// the input file
+export * from 'rollup';
+```
+
+```js
+// the output file if the output.format is cjs
+'use strict';
+
+// reexportProtoFromExternal is true
+var rollup = require('rollup');
+
+Object.prototype.hasOwnProperty.call(rollup, '__proto__') &&
+	!Object.prototype.hasOwnProperty.call(exports, '__proto__') &&
+	Object.defineProperty(exports, '__proto__', {
+		enumerable: true,
+		value: rollup['__proto__']
+	});
+
+Object.keys(rollup).forEach(function (k) {
+	if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k))
+		exports[k] = rollup[k];
+});
+
+// reexportProtoFromExternal is false
+var rollup = require('rollup');
+
+Object.keys(rollup).forEach(function (k) {
+	if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k))
+		exports[k] = rollup[k];
+});
+```
+
 ### output.sanitizeFileName
 
 |          |                                            |
