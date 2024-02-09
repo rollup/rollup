@@ -20,6 +20,10 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const message = convertString(position, buffer, readString);
 		error(logParseError(message, pos));
 	},
+	function panicError(position, buffer, readString): never {
+		const message = convertString(position, buffer, readString);
+		error(logParseError(message));
+	},
 	function arrayExpression(position, buffer, readString): ArrayExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];

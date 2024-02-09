@@ -1,4 +1,7 @@
-use convert_ast::converter::AstConverter;
+use std::panic::{catch_unwind, AssertUnwindSafe};
+
+use convert_ast::converter::ast_constants::TYPE_PANIC_ERROR;
+use convert_ast::converter::{convert_string, AstConverter};
 use swc_common::sync::Lrc;
 use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
 use swc_compiler_base::parse_js;
@@ -28,23 +31,40 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
   let code_reference = Lrc::clone(&file.src);
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
-    let result = try_with_handler(&code_reference, |handler| {
-      parse_js(
-        cm,
-        file,
-        handler,
-        target,
-        syntax,
-        IsModule::Unknown,
-        Some(&comments),
-      )
-    });
+    let result = catch_unwind(AssertUnwindSafe(|| {
+      let result = try_with_handler(&code_reference, |handler| {
+        parse_js(
+          cm,
+          file,
+          handler,
+          target,
+          syntax,
+          IsModule::Unknown,
+          Some(&comments),
+        )
+      });
+      match result {
+        Err(buffer) => buffer,
+        Ok(program) => {
+          let annotations = comments.take_annotations();
+          let converter = AstConverter::new(&code_reference, &annotations);
+          converter.convert_ast_to_buffer(&program)
+        }
+      }
+    }));
     match result {
-      Err(buffer) => buffer,
-      Ok(program) => {
-        let annotations = comments.take_annotations();
-        let converter = AstConverter::new(&code_reference, &annotations);
-        converter.convert_ast_to_buffer(&program)
+      Ok(buffer) => buffer,
+      Err(err) => {
+        let msg = if let Some(msg) = err.downcast_ref::<&str>() {
+          msg
+        } else if let Some(msg) = err.downcast_ref::<String>() {
+          msg
+        } else {
+          "Unknown rust panic message"
+        };
+        let mut buffer = TYPE_PANIC_ERROR.to_vec();
+        convert_string(&mut buffer, msg);
+        buffer
       }
     }
   })
