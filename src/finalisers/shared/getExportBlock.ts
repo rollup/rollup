@@ -16,6 +16,7 @@ export function getExportBlock(
 	snippets: GenerateCodeSnippets,
 	t: string,
 	externalLiveBindings: boolean,
+	reexportProtoFromExternal: boolean,
 	mechanism = 'return '
 ): string {
 	const { _, getDirectReturnFunction, getFunctionIntro, getPropertyAccess, n, s } = snippets;
@@ -102,7 +103,7 @@ export function getExportBlock(
 			for (const specifier of reexports) {
 				if (specifier.reexported === '*') {
 					if (exportBlock) exportBlock += n;
-					if (!specifier.needsLiveBinding) {
+					if (!specifier.needsLiveBinding && reexportProtoFromExternal) {
 						const protoString = "'__proto__'";
 						exportBlock +=
 							`Object.prototype.hasOwnProperty.call(${name},${_}${protoString})${_}&&${n}` +

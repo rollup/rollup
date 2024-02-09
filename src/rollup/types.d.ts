@@ -722,6 +722,7 @@ export interface OutputOptions {
 	plugins?: OutputPluginOption;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
+	reexportProtoFromExternal?: boolean;
 	sanitizeFileName?: boolean | ((fileName: string) => string);
 	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapBaseUrl?: string;
@@ -772,6 +773,7 @@ export interface NormalizedOutputOptions {
 	plugins: OutputPlugin[];
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
+	reexportProtoFromExternal: boolean;
 	sanitizeFileName: (fileName: string) => string;
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapBaseUrl: string | undefined;

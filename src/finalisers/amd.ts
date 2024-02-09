@@ -32,6 +32,7 @@ export default function amd(
 		freeze,
 		generatedCode: { symbols },
 		interop,
+		reexportProtoFromExternal,
 		strict
 	}: NormalizedOutputOptions
 ): void {
@@ -83,7 +84,8 @@ export default function amd(
 		interop,
 		snippets,
 		t,
-		externalLiveBindings
+		externalLiveBindings,
+		reexportProtoFromExternal
 	);
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
