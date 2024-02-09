@@ -11,6 +11,16 @@ export function parse(code: string, allow_return_outside_function: boolean): Uin
 * @returns {string}
 */
 export function xxhashBase64Url(input: Uint8Array): string;
+/**
+* @param {Uint8Array} input
+* @returns {string}
+*/
+export function xxhashBase36(input: Uint8Array): string;
+/**
+* @param {Uint8Array} input
+* @returns {string}
+*/
+export function xxhashBase16(input: Uint8Array): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -18,6 +28,8 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly parse: (a: number, b: number, c: number, d: number) => void;
   readonly xxhashBase64Url: (a: number, b: number) => void;
+  readonly xxhashBase36: (a: number, b: number) => void;
+  readonly xxhashBase16: (a: number, b: number) => void;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

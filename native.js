@@ -93,10 +93,12 @@ const requireWithFriendlyError = id => {
 	}
 };
 
-const { parse, parseAsync, xxhashBase64Url } = requireWithFriendlyError(
+const { parse, parseAsync, xxhashBase64Url, xxhashBase36, xxhashBase16 } = requireWithFriendlyError(
 	existsSync(join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
 
 module.exports.parse = parse;
 module.exports.parseAsync = parseAsync;
 module.exports.xxhashBase64Url = xxhashBase64Url;
+module.exports.xxhashBase36 = xxhashBase36;
+module.exports.xxhashBase16 = xxhashBase16;

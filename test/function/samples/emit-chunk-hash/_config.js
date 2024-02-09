@@ -14,7 +14,7 @@ module.exports = defineTest({
 					referenceId = this.emitFile({ type: 'chunk', id: 'emitted' });
 				},
 				generateBundle() {
-					assert.strictEqual(this.getFileName(referenceId), 'emitted-QRI93uhT.js');
+					assert.strictEqual(this.getFileName(referenceId), 'emitted-gSMhVgKt.js');
 				}
 			}
 		]

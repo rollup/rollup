@@ -90,6 +90,7 @@ export default {
 		externalImportAttributes,
 		footer,
 		generatedCode,
+		hashCharacters,
 		hoistTransitiveImports,
 		inlineDynamicImports,
 		interop,
@@ -398,6 +399,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --generatedCode.objectShorthand Use shorthand properties in generated code
 --no-generatedCode.reservedNamesAsProps Always quote reserved names as props
 --generatedCode.symbols     Use symbols in generated code
+--hashCharacters <name>     Use the specified character set for file hashes
 --no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
 --inlineDynamicImports      Create single bundle when using dynamic imports

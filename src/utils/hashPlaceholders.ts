@@ -8,18 +8,18 @@ const hashPlaceholderRight = '}~';
 const hashPlaceholderOverhead = hashPlaceholderLeft.length + hashPlaceholderRight.length;
 
 // This is the size of a 128-bits xxhash with base64url encoding
-export const maxHashSize = 22;
-export const defaultHashSize = 8;
+const MAX_HASH_SIZE = 22;
+export const DEFAULT_HASH_SIZE = 8;
 
-export type HashPlaceholderGenerator = (optionName: string, hashSize?: number) => string;
+export type HashPlaceholderGenerator = (optionName: string, hashSize: number) => string;
 
 export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
 	let nextIndex = 0;
-	return (optionName: string, hashSize: number = defaultHashSize) => {
-		if (hashSize > maxHashSize) {
+	return (optionName, hashSize) => {
+		if (hashSize > MAX_HASH_SIZE) {
 			return error(
 				logFailedValidation(
-					`Hashes cannot be longer than ${maxHashSize} characters, received ${hashSize}. Check the "${optionName}" option.`
+					`Hashes cannot be longer than ${MAX_HASH_SIZE} characters, received ${hashSize}. Check the "${optionName}" option.`
 				)
 			);
 		}
@@ -40,7 +40,7 @@ export const getHashPlaceholderGenerator = (): HashPlaceholderGenerator => {
 
 const REPLACER_REGEX = new RegExp(
 	`${hashPlaceholderLeft}[0-9a-zA-Z_$]{1,${
-		maxHashSize - hashPlaceholderOverhead
+		MAX_HASH_SIZE - hashPlaceholderOverhead
 	}}${hashPlaceholderRight}`,
 	'g'
 );
