@@ -1,22 +1,22 @@
 use swc_atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
-  ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AwaitExpr, BigInt,
-  BinExpr, BinaryOp, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, BreakStmt, CallExpr, Callee,
-  CatchClause, Class, ClassDecl, ClassExpr, ClassMember, ClassMethod, ClassProp, ComputedPropName,
-  CondExpr, Constructor, ContinueStmt, DebuggerStmt, Decl, DefaultDecl, DoWhileStmt, EmptyStmt,
-  ExportAll, ExportDecl, ExportDefaultDecl, ExportDefaultExpr, ExportNamedSpecifier,
-  ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr, ForHead, ForInStmt, ForOfStmt, ForStmt,
-  Function, GetterProp, Ident, IfStmt, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier,
-  ImportSpecifier, ImportStarAsSpecifier, KeyValuePatProp, KeyValueProp, LabeledStmt, Lit,
-  MemberExpr, MemberProp, MetaPropExpr, MetaPropKind, MethodKind, MethodProp, ModuleDecl,
-  ModuleExportName, ModuleItem, NamedExport, NewExpr, Null, Number, ObjectLit, ObjectPat,
-  ObjectPatProp, OptCall, OptChainBase, OptChainExpr, ParamOrTsParamProp, ParenExpr, Pat,
-  PatOrExpr, PrivateMethod, PrivateName, PrivateProp, Program, Prop, PropName, PropOrSpread, Regex,
-  RestPat, ReturnStmt, SeqExpr, SetterProp, SpreadElement, StaticBlock, Stmt, Str, Super,
-  SuperProp, SuperPropExpr, SwitchCase, SwitchStmt, TaggedTpl, ThisExpr, ThrowStmt, Tpl,
-  TplElement, TryStmt, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, VarDecl, VarDeclKind,
-  VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
+  ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AssignTarget,
+  AssignTargetPat, AwaitExpr, BigInt, BinExpr, BinaryOp, BindingIdent, BlockStmt, BlockStmtOrExpr,
+  Bool, BreakStmt, CallExpr, Callee, CatchClause, Class, ClassDecl, ClassExpr, ClassMember,
+  ClassMethod, ClassProp, ComputedPropName, CondExpr, Constructor, ContinueStmt, DebuggerStmt,
+  Decl, DefaultDecl, DoWhileStmt, EmptyStmt, ExportAll, ExportDecl, ExportDefaultDecl,
+  ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr,
+  ForHead, ForInStmt, ForOfStmt, ForStmt, Function, GetterProp, Ident, IfStmt, ImportDecl,
+  ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, ImportStarAsSpecifier,
+  KeyValuePatProp, KeyValueProp, LabeledStmt, Lit, MemberExpr, MemberProp, MetaPropExpr,
+  MetaPropKind, MethodKind, MethodProp, ModuleDecl, ModuleExportName, ModuleItem, NamedExport,
+  NewExpr, Null, Number, ObjectLit, ObjectPat, ObjectPatProp, OptCall, OptChainBase, OptChainExpr,
+  ParamOrTsParamProp, ParenExpr, Pat, PrivateMethod, PrivateName, PrivateProp, Program, Prop,
+  PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget,
+  SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
+  TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, UnaryExpr, UnaryOp, UpdateExpr,
+  UpdateOp, VarDecl, VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
@@ -791,17 +791,59 @@ impl<'a> AstConverter<'a> {
         self.convert_rest_pattern(rest_pattern);
         None
       }
-      Pat::Invalid(_) => unimplemented!("Cannot convert invalid pattern"),
+      Pat::Invalid(_) => unimplemented!("Cannot convert Pat::Invalid"),
     }
   }
 
-  fn convert_pattern_or_expression(&mut self, pattern_or_expression: &PatOrExpr) {
+  fn convert_pattern_or_expression(&mut self, pattern_or_expression: &AssignTarget) {
     match pattern_or_expression {
-      PatOrExpr::Pat(pattern) => {
-        self.convert_pattern(pattern);
+      AssignTarget::Pat(assignment_target_pattern) => {
+        self.convert_assignment_target_pattern(assignment_target_pattern);
       }
-      PatOrExpr::Expr(expression) => {
-        self.convert_expression(expression);
+      AssignTarget::Simple(simple_assigment_target) => {
+        self.convert_simple_assignment_target(simple_assigment_target);
+      }
+    }
+  }
+
+  fn convert_assignment_target_pattern(&mut self, assignment_target_pattern: &AssignTargetPat) {
+    match assignment_target_pattern {
+      AssignTargetPat::Array(array_pattern) => self.convert_array_pattern(array_pattern),
+      AssignTargetPat::Object(object_pattern) => self.convert_object_pattern(object_pattern),
+      AssignTargetPat::Invalid(_) => unimplemented!("Cannot convert AssignTargetPat::Invalid"),
+    }
+  }
+
+  fn convert_simple_assignment_target(&mut self, simple_assignment_target: &SimpleAssignTarget) {
+    match simple_assignment_target {
+      SimpleAssignTarget::Ident(binding_identifier) => {
+        self.convert_binding_identifier(binding_identifier)
+      }
+      SimpleAssignTarget::Member(member_expression) => {
+        self.convert_member_expression(member_expression, false, false)
+      }
+      SimpleAssignTarget::SuperProp(super_property) => self.convert_super_property(super_property),
+      SimpleAssignTarget::Paren(parenthesized_expression) => {
+        self.convert_parenthesized_expression(parenthesized_expression);
+      }
+      SimpleAssignTarget::OptChain(optional_chain_expression) => {
+        self.convert_optional_chain_expression(optional_chain_expression, false)
+      }
+      SimpleAssignTarget::TsAs(_) => unimplemented!("Cannot convert SimpleAssignTarget::TsAs"),
+      SimpleAssignTarget::TsSatisfies(_) => {
+        unimplemented!("Cannot convert SimpleAssignTarget::TsSatisfies")
+      }
+      SimpleAssignTarget::TsNonNull(_) => {
+        unimplemented!("Cannot convert SimpleAssignTarget::TsNonNull")
+      }
+      SimpleAssignTarget::TsTypeAssertion(_) => {
+        unimplemented!("Cannot convert SimpleAssignTarget::TsTypeAssertion")
+      }
+      SimpleAssignTarget::TsInstantiation(_) => {
+        unimplemented!("Cannot convert SimpleAssignTarget::TsInstantiation")
+      }
+      SimpleAssignTarget::Invalid(_) => {
+        unimplemented!("Cannot convert SimpleAssignTarget::Invalid")
       }
     }
   }
