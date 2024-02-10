@@ -5,7 +5,10 @@ use parking_lot::Mutex;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER};
 use swc_ecma_ast::Program;
 
-use crate::convert_ast::converter::{ast_constants::TYPE_PARSE_ERROR, convert_string};
+use crate::convert_ast::converter::{
+  ast_constants::{PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR_INLINED_MESSAGE},
+  convert_string,
+};
 
 #[derive(Clone, Default)]
 struct Writer(Arc<Mutex<Vec<u8>>>);
@@ -65,9 +68,9 @@ where
 }
 
 fn create_error_buffer(wr: &Writer, code: &str) -> Vec<u8> {
-  let mut buffer = TYPE_PARSE_ERROR.to_vec();
+  let mut buffer = TYPE_PARSE_ERROR_INLINED_MESSAGE.to_vec();
   let mut lock = wr.0.lock();
-  let mut error_buffer = take(&mut *lock);
+  let error_buffer = take(&mut *lock);
   let pos = u32::from_ne_bytes(error_buffer[0..4].try_into().unwrap());
   let mut utf_16_pos: u32 = 0;
   for (utf_8_pos, char) in code.char_indices() {
@@ -76,7 +79,11 @@ fn create_error_buffer(wr: &Writer, code: &str) -> Vec<u8> {
     }
     utf_16_pos += char.len_utf16() as u32;
   }
-  error_buffer[0..4].copy_from_slice(&utf_16_pos.to_ne_bytes());
-  buffer.extend_from_slice(&error_buffer);
+  // start
+  buffer.extend_from_slice(&utf_16_pos.to_ne_bytes());
+  // end
+  buffer.resize(buffer.len() + PARSE_ERROR_RESERVED_BYTES, 0);
+  // message
+  buffer.extend_from_slice(&error_buffer[4..]);
   buffer
 }

@@ -49,6 +49,8 @@ export const childNodeKeys: Record<string, string[]> = {
 	NewExpression: ['callee', 'arguments'],
 	ObjectExpression: ['properties'],
 	ObjectPattern: ['properties'],
+	PanicError: [],
+	ParseError: [],
 	PrivateIdentifier: [],
 	Program: ['body'],
 	Property: ['key', 'value'],

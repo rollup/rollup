@@ -6,7 +6,6 @@ import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
 import { FIXED_STRINGS } from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
-import { error, logParseError } from '../utils/logs';
 import ArrayExpression from './nodes/ArrayExpression';
 import ArrayPattern from './nodes/ArrayPattern';
 import ArrowFunctionExpression from './nodes/ArrowFunctionExpression';
@@ -54,6 +53,7 @@ import MethodDefinition from './nodes/MethodDefinition';
 import NewExpression from './nodes/NewExpression';
 import ObjectExpression from './nodes/ObjectExpression';
 import ObjectPattern from './nodes/ObjectPattern';
+import PanicError from './nodes/PanicError';
 import ParseError from './nodes/ParseError';
 import PrivateIdentifier from './nodes/PrivateIdentifier';
 import Program from './nodes/Program';
@@ -83,6 +83,7 @@ import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
 
 const nodeTypeStrings = [
+	'PanicError',
 	'ParseError',
 	'ArrayExpression',
 	'ArrayPattern',
@@ -164,6 +165,7 @@ const nodeTypeStrings = [
 ] as const;
 
 const nodeConstructors: (typeof NodeBase)[] = [
+	PanicError,
 	ParseError,
 	ArrayExpression,
 	ArrayPattern,
@@ -250,10 +252,11 @@ const bufferParsers: ((
 	buffer: Uint32Array,
 	readString: ReadString
 ) => void)[] = [
-	function parseError(_node, position, buffer, readString): void {
-		const pos = buffer[position];
-		const message = convertString(position + 1, buffer, readString);
-		error(logParseError(message, pos));
+	function panicError(node: PanicError, position, buffer, readString) {
+		node.message = convertString(position, buffer, readString);
+	},
+	function parseError(node: ParseError, position, buffer, readString) {
+		node.message = convertString(position, buffer, readString);
 	},
 	function arrayExpression(node: ArrayExpression, position, buffer, readString) {
 		const { scope } = node;

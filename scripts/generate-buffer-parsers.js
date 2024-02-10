@@ -5,21 +5,13 @@ import { firstLetterLowercase, lintFile } from './helpers.js';
 
 const bufferParsersFile = new URL('../src/ast/bufferParsers.ts', import.meta.url);
 
-const nodeTypes = [
-	'ParseError',
-	...astNodeNamesWithFieldOrder.map(({ name }) => getNode(name).astType || name)
-];
+const nodeTypes = astNodeNamesWithFieldOrder.map(({ name }) => getNode(name).astType || name);
 
 const nodeTypeImports = nodeTypes.map(name => `import ${name} from './nodes/${name}';`);
 const nodeTypeStrings = nodeTypes.map(name => `\t'${name}'`);
 
-const jsConverters = [
-	`function parseError (_node, position, buffer, readString): void {
-    const pos = buffer[position];
-    const message = convertString(position + 1, buffer, readString);
-    error(logParseError(message, pos));
-	}`,
-	...astNodeNamesWithFieldOrder.map(({ name, inlinedVariableField, reservedFields, allFields }) => {
+const jsConverters = astNodeNamesWithFieldOrder.map(
+	({ name, inlinedVariableField, reservedFields, allFields }) => {
 		const node = getNode(name);
 		const readStringArgument = allFields.some(([, fieldType]) =>
 			['Node', 'OptionalNode', 'NodeList', 'String', 'FixedString', 'OptionalString'].includes(
@@ -76,8 +68,8 @@ const jsConverters = [
 				: '';
 		return `function ${firstLetterLowercase(name)} (${parameters}) {
     ${definitions.join('')}}`;
-	})
-];
+	}
+);
 
 /**
  * @param {import('./ast-types.js').FieldWithType} field
@@ -166,7 +158,6 @@ import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
 import { FIXED_STRINGS } from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
-import { error, logParseError } from '../utils/logs';
 ${nodeTypeImports.join('\n')}
 import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';

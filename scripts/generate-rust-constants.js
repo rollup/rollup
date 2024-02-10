@@ -14,20 +14,14 @@ const astConstantsFile = new URL(
 // an indirect reference (e.g. one non-optional AST Node or a list of AST Nodes)
 // and can use "add_type_and_start_simple"
 
-const ERROR_TYPES = [
-	'pub const TYPE_PARSE_ERROR: [u8; 4] = 0u32.to_ne_bytes();',
-	'pub const TYPE_PANIC_ERROR: [u8; 4] = 1u32.to_ne_bytes();'
-];
-
-const nodeTypes = [
-	...ERROR_TYPES,
-	...astNodeNamesWithFieldOrder.map(
+const nodeTypes = astNodeNamesWithFieldOrder
+	.map(
 		({ name, inlinedVariableField }, index) =>
 			`pub const TYPE_${toScreamingSnakeCase(name)}${
 				inlinedVariableField ? `_INLINED_${toScreamingSnakeCase(inlinedVariableField[0])}` : ''
-			}: [u8; 4] = ${index + ERROR_TYPES.length}u32.to_ne_bytes();`
+			}: [u8; 4] = ${index}u32.to_ne_bytes();`
 	)
-].join('\n');
+	.join('\n');
 
 const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 	.map(({ name, reservedFields }) => {

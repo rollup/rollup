@@ -19,6 +19,15 @@
 
 /** @type {Record<string, NodeDescription>} */
 export const AST_NODES = {
+	PanicError: {
+		estreeType: "{ type: 'PanicError', message: string }",
+		fields: [['message', 'String']]
+	},
+	ParseError: {
+		estreeType: "{ type: 'ParseError', message: string }",
+		fields: [['message', 'String']]
+	},
+	// eslint-disable-next-line sort-keys
 	ArrayExpression: {
 		fields: [['elements', 'NodeList']]
 	},

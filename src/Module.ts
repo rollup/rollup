@@ -16,7 +16,7 @@ import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import Literal from './ast/nodes/Literal';
 import type MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
-import Program from './ast/nodes/Program';
+import type Program from './ast/nodes/Program';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import type { NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
@@ -882,9 +882,10 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.ast = new Program({ context: this.astContext, type: 'Module' }, this.scope).parseNode(
-			moduleAst
-		);
+		this.ast = new nodeConstructors[moduleAst.type](
+			{ context: this.astContext, type: 'Module' },
+			this.scope
+		).parseNode(moduleAst) as Program;
 
 		// Assign AST directly if there is an existing one as there's no way to drop it from memory.
 		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.

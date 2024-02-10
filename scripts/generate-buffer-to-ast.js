@@ -4,17 +4,8 @@ import { firstLetterLowercase, lintFile } from './helpers.js';
 
 const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url);
 
-const jsConverters = [
-	`function parseError (position, buffer, readString): never {
-    const pos = buffer[position++];
-    const message = convertString(position, buffer, readString);
-    error(logParseError(message, pos));
-	}`,
-	`function panicError(position, buffer, readString): never {
-	const message = convertString(position, buffer, readString);
-	error(logParseError(message));
-	}`,
-	...astNodeNamesWithFieldOrder.map(({ name, inlinedVariableField, reservedFields, allFields }) => {
+const jsConverters = astNodeNamesWithFieldOrder.map(
+	({ name, inlinedVariableField, reservedFields, allFields }) => {
 		const node = getNode(name);
 		const readStringArgument = allFields.some(([, fieldType]) =>
 			['Node', 'OptionalNode', 'NodeList', 'String', 'FixedString', 'OptionalString'].includes(
@@ -68,8 +59,8 @@ const jsConverters = [
       ${properties.join(',\n')}
     };
   }`;
-	})
-];
+	}
+);
 
 /**
  * @param {string} name
@@ -201,7 +192,6 @@ import {
 } from './astConverterHelpers';
 import { FIXED_STRINGS } from './convert-ast-strings';
 import type { ReadString } from './getReadStringFunction';
-import { error, logParseError } from './logs';
 
 export function convertProgram(buffer: ArrayBuffer, readString: ReadString): ProgramNode {
   return convertNode(0, new Uint32Array(buffer), readString);
