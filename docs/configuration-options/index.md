@@ -1967,7 +1967,7 @@ This will generate an additional `noConflict` export to UMD bundles. When called
 | CLI: | `--reexportProtoFromExternal`/`--no-reexportProtoFromExternal` |
 | Default: | `true` |
 
-This option is only effective when [`output.format`](#output.format) is set to one of `['amd', 'cjs', 'iife', 'umd']` and [`output.externalLiveBindings`](#output.externalLiveBindings) is set to false.
+This option is only effective when [`output.format`](#output-format) is set to one of `['amd', 'cjs', 'iife', 'umd']` and [`output.externalLiveBindings`](#output-externallivebindings) is set to false.
 
 For maximum compatibility, Rollup reexports `__proto__` from an external module by default. However, for common use cases, it is strongly recommended to set this value to false as it effectively reduces the output size.
 
