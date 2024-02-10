@@ -318,11 +318,10 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: matrix.coverage
         with:
-          # It appears adding the token may result in the coverage comment not being added
-          # token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
           commit_parent: ${{ github.event.pull_request.head.sha }}
 
   publish:

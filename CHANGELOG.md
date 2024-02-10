@@ -2,7 +2,7 @@
 
 ## 4.10.0
 
-_2024-02-09_
+_2024-02-10_
 
 ### Features
 
@@ -25,7 +25,9 @@ _2024-02-09_
 - [#5372](https://github.com/rollup/rollup/pull/5372): Roll back vitepress as 1.0.0-rc.40 breaks the development build (@lukastaegert)
 - [#5382](https://github.com/rollup/rollup/pull/5382): Update documentation (@TrickyPi)
 - [#5383](https://github.com/rollup/rollup/pull/5383): Catch Rust panics and then throw them in JS (@TrickyPi)
+- [#5384](https://github.com/rollup/rollup/pull/5384): chore(deps): update codecov/codecov-action action to v4 (@renovate[bot])
 - [#5385](https://github.com/rollup/rollup/pull/5385): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5386](https://github.com/rollup/rollup/pull/5386): Resolve all rollup imports to node_modules to avoid type conflict (@TrickyPi)
 
 ## 4.9.6
 
