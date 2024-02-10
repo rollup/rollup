@@ -8,6 +8,7 @@
 		"noUnusedParameters": true,
 		"pretty": true,
 		"resolveJsonModule": true,
+		"skipLibCheck": true,
 		"strict": true,
 		"target": "ES2022",
 		"useDefineForClassFields": false
