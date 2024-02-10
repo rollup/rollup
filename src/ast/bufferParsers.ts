@@ -592,7 +592,7 @@ const bufferParsers: ((
 	},
 	function program(node: Program, position, buffer, readString) {
 		const { scope } = node;
-		node.annotations = convertAnnotations(buffer[position], buffer);
+		node.invalidAnnotations = convertAnnotations(buffer[position], buffer);
 		node.body = convertNodeList(node, scope, position + 1, buffer, readString);
 	},
 	function property(node: Property, position, buffer, readString) {

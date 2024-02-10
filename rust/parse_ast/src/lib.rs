@@ -52,20 +52,17 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
         }
       }
     }));
-    match result {
-      Ok(buffer) => buffer,
-      Err(err) => {
-        let msg = if let Some(msg) = err.downcast_ref::<&str>() {
-          msg
-        } else if let Some(msg) = err.downcast_ref::<String>() {
-          msg
-        } else {
-          "Unknown rust panic message"
-        };
-        let mut buffer = TYPE_PANIC_ERROR.to_vec();
-        convert_string(&mut buffer, msg);
-        buffer
-      }
-    }
+    result.unwrap_or_else(|err| {
+      let msg = if let Some(msg) = err.downcast_ref::<&str>() {
+        msg
+      } else if let Some(msg) = err.downcast_ref::<String>() {
+        msg
+      } else {
+        "Unknown rust panic message"
+      };
+      let mut buffer = TYPE_PANIC_ERROR.to_vec();
+      convert_string(&mut buffer, msg);
+      buffer
+    })
   })
 }
