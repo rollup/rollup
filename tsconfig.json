@@ -11,7 +11,10 @@
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "ES2022",
-		"useDefineForClassFields": false
+		"useDefineForClassFields": false,
+		"paths": {
+			"rollup": ["./node_modules/rollup"]
+		}
 	},
 	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts", "native"],
 	"exclude": ["dist", "node_modules", "test/typescript", "browser/dist"]

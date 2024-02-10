@@ -1,6 +1,5 @@
 import type { SourceMap } from 'magic-string';
-import type { RollupLog } from 'rollup';
-import type { RollupBuild, RollupError, RollupOptions } from '../src/rollup/types';
+import type { RollupBuild, RollupError, RollupLog, RollupOptions } from '../src/rollup/types';
 
 export interface TestConfigBase {
 	/**
