@@ -7,7 +7,7 @@ module.exports = defineTest({
 	options: {
 		output: {
 			externalLiveBindings: false,
-			reExportProtoFromExternal: false
+			reexportProtoFromExternal: false
 		},
 		plugins: [
 			{
