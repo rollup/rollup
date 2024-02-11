@@ -4,8 +4,10 @@
 import type * as estree from 'estree';
 import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
+import { convertNode as convertJsonNode } from '../utils/bufferToAst';
 import { FIXED_STRINGS } from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
+import getReadStringFunction from '../utils/getReadStringFunction';
 import ArrayExpression from './nodes/ArrayExpression';
 import ArrayPattern from './nodes/ArrayPattern';
 import ArrowFunctionExpression from './nodes/ArrowFunctionExpression';
@@ -79,8 +81,26 @@ import VariableDeclaration from './nodes/VariableDeclaration';
 import VariableDeclarator from './nodes/VariableDeclarator';
 import WhileStatement from './nodes/WhileStatement';
 import YieldExpression from './nodes/YieldExpression';
+import { UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
+import type ModuleScope from './scopes/ModuleScope';
+import TrackingScope from './scopes/TrackingScope';
+import type ParameterVariable from './variables/ParameterVariable';
+
+export function convertProgram(
+	buffer: Buffer | Uint8Array,
+	parent: Node | { context: AstContext; type: string },
+	parentScope: ModuleScope
+): Program {
+	return convertNode(
+		parent,
+		parentScope,
+		0,
+		new Uint32Array(buffer.buffer),
+		getReadStringFunction(buffer)
+	);
+}
 
 const nodeTypeStrings = [
 	'PanicError',
@@ -272,9 +292,27 @@ const bufferParsers: ((
 		node.async = (flags & 1) === 1;
 		node.expression = (flags & 2) === 2;
 		node.generator = (flags & 4) === 4;
-		node.params = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
-		node.body = convertNode(node, scope, buffer[position + 2], buffer, readString);
-		node.annotations = convertAnnotations(position + 3, buffer);
+		// TODO Lukas extracted variable
+		const parameters = (node.params = convertNodeList(
+			node,
+			scope,
+			buffer[position + 1],
+			buffer,
+			readString
+		));
+		// TODO Lukas added in between
+		scope.addParameterVariables(
+			parameters.map(
+				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+			),
+			parameters[parameters.length - 1] instanceof RestElement
+		);
+		// TODO Lukas different scope
+		node.body = convertNode(node, scope.bodyScope, buffer[position + 2], buffer, readString);
+		// TODO Lukas extracted variable
+		const annotations = (node.annotations = convertAnnotations(position + 3, buffer));
+		// TODO Lukas added
+		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 	},
 	function assignmentExpression(node: AssignmentExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -318,11 +356,15 @@ const bufferParsers: ((
 	function catchClause(node: CatchClause, position, buffer, readString) {
 		const { scope } = node;
 		const parameterPosition = buffer[position];
-		node.param =
+		// TODO Lukas extracted parameter
+		const parameter = (node.param =
 			parameterPosition === 0
 				? null
-				: convertNode(node, scope, parameterPosition, buffer, readString);
-		node.body = convertNode(node, scope, buffer[position + 1], buffer, readString);
+				: convertNode(node, scope, parameterPosition, buffer, readString));
+		// TODO Lukas additional line
+		parameter?.declare('parameter', UNKNOWN_EXPRESSION);
+		// TODO Lukas different scope
+		node.body = convertNode(node, scope.bodyScope, buffer[position + 1], buffer, readString);
 	},
 	function chainExpression(node: ChainExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -330,12 +372,33 @@ const bufferParsers: ((
 	},
 	function classBody(node: ClassBody, position, buffer, readString) {
 		const { scope } = node;
-		node.body = convertNodeList(node, scope, position, buffer, readString);
+		// TODO Lukas provide different scope for static definitions
+		const length = buffer[position++];
+		const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
+		for (let index = 0; index < length; index++) {
+			const nodePosition = buffer[position++];
+			body.push(
+				nodePosition
+					? convertNode(
+							node,
+							// TODO Lukas ensure that the static flag is always at the same position, first would be better
+							(buffer[nodePosition + 3] & 2) === 0 ? scope.instanceScope : scope,
+							nodePosition,
+							buffer,
+							readString
+						)
+					: null
+			);
+		}
 	},
 	function classDeclaration(node: ClassDeclaration, position, buffer, readString) {
 		const { scope } = node;
 		const idPosition = buffer[position];
-		node.id = idPosition === 0 ? null : convertNode(node, scope, idPosition, buffer, readString);
+		// TODO Lukas different scope
+		node.id =
+			idPosition === 0
+				? null
+				: convertNode(node, scope.parent as ChildScope, idPosition, buffer, readString);
 		const superClassPosition = buffer[position + 1];
 		node.superClass =
 			superClassPosition === 0
@@ -451,10 +514,32 @@ const bufferParsers: ((
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
 		const idPosition = buffer[position + 1];
-		node.id = idPosition === 0 ? null : convertNode(node, scope, idPosition, buffer, readString);
-		node.params = convertNodeList(node, scope, buffer[position + 2], buffer, readString);
-		node.body = convertNode(node, scope, buffer[position + 3], buffer, readString);
-		node.annotations = convertAnnotations(position + 4, buffer);
+		// TODO Lukas different scope
+		node.id =
+			idPosition === 0
+				? null
+				: convertNode(node, scope.parent as ChildScope, idPosition, buffer, readString);
+		// TODO Lukas extracted variable
+		const parameters = (node.params = convertNodeList(
+			node,
+			scope,
+			buffer[position + 2],
+			buffer,
+			readString
+		));
+		// TODO Lukas added in between
+		scope.addParameterVariables(
+			parameters.map(
+				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+			),
+			parameters[parameters.length - 1] instanceof RestElement
+		);
+		// TODO Lukas different scope
+		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
+		// TODO Lukas extracted variable
+		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
+		// TODO Lukas added
+		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 	},
 	function functionExpression(node: FunctionExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -462,22 +547,56 @@ const bufferParsers: ((
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
 		const idPosition = buffer[position + 1];
-		node.id = idPosition === 0 ? null : convertNode(node, scope, idPosition, buffer, readString);
-		node.params = convertNodeList(node, scope, buffer[position + 2], buffer, readString);
-		node.body = convertNode(node, scope, buffer[position + 3], buffer, readString);
-		node.annotations = convertAnnotations(position + 4, buffer);
+		// TODO Lukas different scope
+		node.id =
+			idPosition === 0 ? null : convertNode(node, node.idScope, idPosition, buffer, readString);
+		// TODO Lukas extracted variable
+		const parameters = (node.params = convertNodeList(
+			node,
+			scope,
+			buffer[position + 2],
+			buffer,
+			readString
+		));
+		// TODO Lukas added in between
+		scope.addParameterVariables(
+			parameters.map(
+				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+			),
+			parameters[parameters.length - 1] instanceof RestElement
+		);
+		// TODO Lukas different scope
+		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
+		// TODO Lukas extracted variable
+		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
+		// TODO Lukas added
+		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 	},
 	function identifier(node: Identifier, position, buffer, readString) {
 		node.name = convertString(position, buffer, readString);
 	},
 	function ifStatement(node: IfStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.consequent = convertNode(node, scope, buffer[position], buffer, readString);
+		// TODO Lukas different scope
+		node.consequent = convertNode(
+			node,
+			(node.consequentScope = new TrackingScope(scope)),
+			buffer[position],
+			buffer,
+			readString
+		);
+		// TODO Lukas different scope
 		const alternatePosition = buffer[position + 1];
 		node.alternate =
 			alternatePosition === 0
 				? null
-				: convertNode(node, scope, alternatePosition, buffer, readString);
+				: convertNode(
+						node,
+						(node.alternateScope = new TrackingScope(scope)),
+						alternatePosition,
+						buffer,
+						readString
+					);
 		node.test = convertNode(node, scope, position + 2, buffer, readString);
 	},
 	function importAttribute(node: ImportAttribute, position, buffer, readString) {
@@ -487,6 +606,7 @@ const bufferParsers: ((
 	},
 	function importDeclaration(node: ImportDeclaration, position, buffer, readString) {
 		const { scope } = node;
+		// TODO Lukas inject estree-parser here for node.sourceAstNode
 		node.source = convertNode(node, scope, buffer[position], buffer, readString);
 		node.attributes = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
 		node.specifiers = convertNodeList(node, scope, position + 2, buffer, readString);
@@ -501,6 +621,8 @@ const bufferParsers: ((
 		node.options =
 			optionsPosition === 0 ? null : convertNode(node, scope, optionsPosition, buffer, readString);
 		node.source = convertNode(node, scope, position + 1, buffer, readString);
+		// TODO Lukas additional line for source
+		node.sourceAstNode = convertJsonNode(position + 1, buffer, readString);
 	},
 	function importNamespaceSpecifier(node: ImportNamespaceSpecifier, position, buffer, readString) {
 		const { scope } = node;
@@ -530,7 +652,10 @@ const bufferParsers: ((
 		const value = (node.value = (flags & 1) === 1);
 		node.raw = value ? 'true' : 'false';
 	},
-	function literalNull() {},
+	function literalNull(node: Literal) {
+		// TODO Lukas missing fixed value to distinguish literal
+		node.value = null;
+	},
 	function literalNumber(node: Literal, position, buffer, readString) {
 		const rawPosition = buffer[position];
 		node.raw = rawPosition === 0 ? undefined : convertString(rawPosition, buffer, readString);
@@ -655,7 +780,8 @@ const bufferParsers: ((
 	function switchStatement(node: SwitchStatement, position, buffer, readString) {
 		const { scope } = node;
 		node.cases = convertNodeList(node, scope, buffer[position], buffer, readString);
-		node.discriminant = convertNode(node, scope, position + 1, buffer, readString);
+		// TODO Lukas different scope
+		node.discriminant = convertNode(node, node.parentScope, position + 1, buffer, readString);
 	},
 	function taggedTemplateExpression(node: TaggedTemplateExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -753,6 +879,7 @@ function convertNode(
 	node.start = buffer[position + 1];
 	node.end = buffer[position + 2];
 	bufferParsers[nodeType](node, position + 3, buffer, readString);
+	node.initialise();
 	return node;
 }
 

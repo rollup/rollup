@@ -24,8 +24,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	declare test: ExpressionNode;
 	declare type: NodeType.tIfStatement;
 
-	private declare alternateScope?: TrackingScope;
-	private declare consequentScope: TrackingScope;
+	declare alternateScope?: TrackingScope;
+	declare consequentScope: TrackingScope;
 	private testValue: LiteralValueOrUnknown | typeof unset = unset;
 
 	deoptimizeCache(): void {
@@ -65,16 +65,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
-		this.consequentScope = new TrackingScope(this.scope);
 		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
 			this,
-			this.consequentScope
+			(this.consequentScope = new TrackingScope(this.scope))
 		).parseNode(esTreeNode.consequent);
 		if (esTreeNode.alternate) {
-			this.alternateScope = new TrackingScope(this.scope);
 			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
 				this,
-				this.alternateScope
+				(this.alternateScope = new TrackingScope(this.scope))
 			).parseNode(esTreeNode.alternate);
 		}
 		return super.parseNode(esTreeNode);

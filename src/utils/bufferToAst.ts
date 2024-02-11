@@ -1253,7 +1253,7 @@ export type VariableDeclaratorNode = RollupAstNode<estree.VariableDeclarator>;
 export type WhileStatementNode = RollupAstNode<estree.WhileStatement>;
 export type YieldExpressionNode = RollupAstNode<estree.YieldExpression>;
 
-function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
+export function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
 	const nodeType = buffer[position];
 	const converter = nodeConverters[nodeType];
 	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */

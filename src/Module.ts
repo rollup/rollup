@@ -1,9 +1,11 @@
 import { extractAssignedNames } from '@rollup/pluginutils';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
+import { parseAsync } from '../native';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import { createInclusionContext } from './ast/ExecutionContext';
+import { convertProgram } from './ast/bufferParsers';
 import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -72,7 +74,7 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
-import { parseAst, parseAstAsync } from './utils/parseAst';
+import { parseAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -834,10 +836,6 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
-		const moduleAst = ast ?? (await this.tryParseAsync());
-
-		timeEnd('generate ast', 3);
-		timeStart('analyze ast', 3);
 
 		this.resolvedIds = resolvedIds ?? Object.create(null);
 
@@ -882,16 +880,16 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.ast = new nodeConstructors[moduleAst.type](
-			{ context: this.astContext, type: 'Module' },
-			this.scope
-		).parseNode(moduleAst) as Program;
+		const programParent = { context: this.astContext, type: 'Module' };
 
-		// Assign AST directly if there is an existing one as there's no way to drop it from memory.
-		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.
-		if (ast || this.options.cache !== false) {
-			this.info.ast = moduleAst;
+		if (ast) {
+			this.ast = new nodeConstructors[ast.type](programParent, this.scope).parseNode(
+				ast
+			) as Program;
+			this.info.ast = ast;
 		} else {
+			const astBuffer = await parseAsync(code, false);
+			this.ast = convertProgram(astBuffer, programParent, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
 				get: () => {
@@ -906,7 +904,7 @@ export default class Module {
 			});
 		}
 
-		timeEnd('analyze ast', 3);
+		timeEnd('generate ast', 3);
 	}
 
 	toJSON(): ModuleJSON {
@@ -1360,14 +1358,6 @@ export default class Module {
 	private tryParse() {
 		try {
 			return parseAst(this.info.code!);
-		} catch (error_: any) {
-			return this.error(logModuleParseError(error_, this.id), error_.pos);
-		}
-	}
-
-	private async tryParseAsync() {
-		try {
-			return await parseAstAsync(this.info.code!);
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}
