@@ -4,26 +4,27 @@
 	"dependencyDashboard": true,
 	"configMigration": true,
 	"rangeStrategy": "bump",
+	"prHourlyLimit": 0,
 	"packageRules": [
 		{
-			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance"],
+			"matchUpdateTypes": ["minor", "patch", "lockFileMaintenance", "pin"],
 			"groupName": "minor/patch updates",
-			"automerge": true
+			"automerge": true,
+			"automergeType": "pr",
+			"platformAutomerge": true
 		},
 		{
-			"matchPackageNames": ["node", "npm", "fsevents", "@rollup/plugin-typescript"],
+			"matchPackageNames": ["node", "npm", "fsevents", "vitepress"],
 			"enabled": false
 		},
 		{
 			"matchPackageNames": ["@types/node"],
-			"matchUpdateTypes": ["major", "minor"],
+			"matchUpdateTypes": ["major", "minor", "lockFileMaintenance"],
 			"enabled": false
 		}
 
 	],
-	"automerge": true,
-	"automergeType": "pr",
-	"platformAutomerge": true,
+	"automerge": false,
 	"internalChecksFilter": "strict",
 	"lockFileMaintenance": {
 		"enabled": true,

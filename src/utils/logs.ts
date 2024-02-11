@@ -823,7 +823,7 @@ export function logOptimizeChunkStatus(
 	};
 }
 
-export function logParseError(message: string, pos: number): RollupLog {
+export function logParseError(message: string, pos?: number): RollupLog {
 	return { code: PARSE_ERROR, message, pos };
 }
 

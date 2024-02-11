@@ -165,6 +165,7 @@ const outputOptions = {
 	externalImportAttributes,
 	footer,
 	generatedCode,
+	hashCharacters,
 	hoistTransitiveImports,
 	inlineDynamicImports,
 	interop,

@@ -37,7 +37,7 @@ import getIndentString from './utils/getIndentString';
 import { getNewArray, getOrCreate } from './utils/getOrCreate';
 import { getStaticDependencies } from './utils/getStaticDependencies';
 import type { HashPlaceholderGenerator } from './utils/hashPlaceholders';
-import { replacePlaceholders } from './utils/hashPlaceholders';
+import { DEFAULT_HASH_SIZE, replacePlaceholders } from './utils/hashPlaceholders';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
@@ -533,7 +533,8 @@ export default class Chunk {
 				{
 					format: () => format,
 					hash: size =>
-						hashPlaceholder || (hashPlaceholder = this.getPlaceholder(patternName, size)),
+						hashPlaceholder ||
+						(hashPlaceholder = this.getPlaceholder(patternName, size || DEFAULT_HASH_SIZE)),
 					name: () => this.getChunkName()
 				}
 			);
@@ -566,7 +567,8 @@ export default class Chunk {
 					chunkhash: () => this.getPreliminaryFileName().hashPlaceholder || '',
 					format: () => format,
 					hash: size =>
-						hashPlaceholder || (hashPlaceholder = this.getPlaceholder(patternName, size)),
+						hashPlaceholder ||
+						(hashPlaceholder = this.getPlaceholder(patternName, size || DEFAULT_HASH_SIZE)),
 					name: () => this.getChunkName()
 				}
 			);

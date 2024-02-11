@@ -1,6 +1,6 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	const renderStart = new URL(require.toUrl('./assets/renderStart-eFzm3QZM.txt'), document.baseURI).href;
+	const renderStart = new URL(require.toUrl('./assets/renderStart-B4XObdBk.txt'), document.baseURI).href;
 	const renderStartNamed = new URL(require.toUrl('./renderStart.txt'), document.baseURI).href;
 	const renderStartNamedImmediately = 'renderStart.txt';
 	const bannerNamed = new URL(require.toUrl('./banner.txt'), document.baseURI).href;

@@ -7,7 +7,7 @@ System.register(['../main.js'], (function (exports, module) {
 		}],
 		execute: (function () {
 
-			var logo = new URL('../assets/logo2-yX706C0w.svg', module.meta.url).href;
+			var logo = new URL('../assets/logo2-DJfvToLT.svg', module.meta.url).href;
 
 			showImage(logo);
 

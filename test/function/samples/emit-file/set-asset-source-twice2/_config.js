@@ -15,7 +15,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'buildEnd',
-		message: 'Unable to set the source for asset "WPGYjwIl", source already set.',
+		message: 'Unable to set the source for asset "BY8ZiPAi", source already set.',
 		plugin: 'test-plugin',
 		pluginCode: 'ASSET_SOURCE_ALREADY_SET'
 	}
