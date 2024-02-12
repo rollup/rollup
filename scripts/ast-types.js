@@ -17,6 +17,7 @@
  *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
  *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
  *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
+ *    scriptedFields?: Record<string,string> // If fields are parsed via custom logic, $position references the node position
  *  }} NodeDescription */
 
 /** @type {Record<string, NodeDescription>} */
@@ -128,7 +129,25 @@ export const AST_NODES = {
 		fields: [['expression', 'Node']]
 	},
 	ClassBody: {
-		fields: [['body', 'NodeList']]
+		fields: [['body', 'NodeList']],
+		scriptedFields: {
+			body: `const length = buffer[$position];
+        const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
+        for (let index = 0; index < length; index++) {
+          const nodePosition = buffer[$position + 1 + index];
+          body.push(
+            nodePosition
+              ? convertNode(
+                  node,
+                  (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+                  nodePosition,
+                  buffer,
+                  readString
+                )
+              : null
+          );
+        }`
+		}
 	},
 	ClassDeclaration: {
 		fields: [
@@ -305,7 +324,11 @@ export const AST_NODES = {
 		fields: [
 			['source', 'Node'],
 			['options', 'OptionalNode']
-		]
+		],
+		scriptedFields: {
+			source: `node.source = convertNode(node, scope, $position, buffer, readString);
+			  node.sourceAstNode = convertJsonNode($position, buffer, readString);`
+		}
 	},
 	ImportNamespaceSpecifier: {
 		fields: [['local', 'Node']]

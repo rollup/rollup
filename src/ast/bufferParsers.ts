@@ -364,16 +364,14 @@ const bufferParsers: ((
 	},
 	function classBody(node: ClassBody, position, buffer, readString) {
 		const { scope } = node;
-		// TODO Lukas provide different scope for static definitions
-		const length = buffer[position++];
+		const length = buffer[position];
 		const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
 		for (let index = 0; index < length; index++) {
-			const nodePosition = buffer[position++];
+			const nodePosition = buffer[position + 1 + index];
 			body.push(
 				nodePosition
 					? convertNode(
 							node,
-							// TODO Lukas ensure that the static flag is always at first position
 							(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
 							nodePosition,
 							buffer,
@@ -597,7 +595,6 @@ const bufferParsers: ((
 		node.options =
 			optionsPosition === 0 ? null : convertNode(node, scope, optionsPosition, buffer, readString);
 		node.source = convertNode(node, scope, position + 1, buffer, readString);
-		// TODO Lukas additional line for source
 		node.sourceAstNode = convertJsonNode(position + 1, buffer, readString);
 	},
 	function importNamespaceSpecifier(node: ImportNamespaceSpecifier, position, buffer, readString) {
