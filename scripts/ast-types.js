@@ -15,6 +15,7 @@
  *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
  *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
  *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
+ *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
  *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
  *  }} NodeDescription */
 
@@ -45,6 +46,21 @@ export const AST_NODES = {
 			id: null
 		},
 		flags: ['async', 'expression', 'generator'],
+		postProcessFields: {
+			annotations: [
+				'annotations',
+				"node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects')"
+			],
+			params: [
+				'parameters',
+				`scope.addParameterVariables(
+           parameters.map(
+             parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+           ),
+           parameters[parameters.length - 1] instanceof RestElement
+         );`
+			]
+		},
 		scopes: {
 			body: 'scope.bodyScope'
 		}
@@ -101,6 +117,9 @@ export const AST_NODES = {
 			['param', 'OptionalNode'],
 			['body', 'Node']
 		],
+		postProcessFields: {
+			param: ['parameter', "parameter?.declare('parameter', UNKNOWN_EXPRESSION)"]
+		},
 		scopes: {
 			body: 'scope.bodyScope'
 		}
@@ -222,6 +241,21 @@ export const AST_NODES = {
 			expression: false
 		},
 		flags: ['async', 'generator'],
+		postProcessFields: {
+			annotations: [
+				'annotations',
+				"node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects')"
+			],
+			params: [
+				'parameters',
+				`scope.addParameterVariables(
+					 parameters.map(
+						 parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+					 ),
+					 parameters[parameters.length - 1] instanceof RestElement
+				 );`
+			]
+		},
 		scopes: {
 			body: 'scope.bodyScope',
 			id: 'scope.parent as ChildScope'

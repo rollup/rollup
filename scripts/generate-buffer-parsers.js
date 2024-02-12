@@ -112,20 +112,35 @@ function getFieldDefinition([fieldName, fieldType], name, offset, isInlined) {
 			let needsScope = false;
 			if (!node.optionalFallback?.[fieldName]) {
 				needsScope = true;
-				definition += `\n${assignmentLeftHand}${fieldName}Position === 0 ? null : convertNode(node, ${scope}, ${fieldName}Position, buffer, readString)${typeCastString};`;
+				let additionalDefinition = `\n${assignmentLeftHand}${fieldName}Position === 0 ? null : convertNode(node, ${scope}, ${fieldName}Position, buffer, readString)${typeCastString}`;
+				if (node.postProcessFields?.[fieldName]) {
+					const [variableName, postProcess] = node.postProcessFields[fieldName];
+					additionalDefinition = `const ${variableName} = (${additionalDefinition});\n${postProcess}`;
+				}
+				definition += additionalDefinition;
 			}
 			return { definition, needsScope };
 		}
 		case 'NodeList': {
+			let definition = `${assignmentLeftHand}convertNodeList(node, ${scope}, ${dataStart}, buffer, readString)${typeCastString}`;
+			if (node.postProcessFields?.[fieldName]) {
+				const [variableName, postProcess] = node.postProcessFields[fieldName];
+				definition = `const ${variableName} = (${definition});\n${postProcess}`;
+			}
 			return {
-				definition: `${assignmentLeftHand}convertNodeList(node, ${scope}, ${dataStart}, buffer, readString)${typeCastString};`,
+				definition,
 				needsScope: true
 			};
 		}
 		case 'Annotations':
 		case 'InvalidAnnotations': {
+			let definition = `${assignmentLeftHand}convertAnnotations(${dataStart}, buffer)${typeCastString}`;
+			if (node.postProcessFields?.[fieldName]) {
+				const [variableName, postProcess] = node.postProcessFields[fieldName];
+				definition = `const ${variableName} = (${definition});\n${postProcess}`;
+			}
 			return {
-				definition: `${assignmentLeftHand}convertAnnotations(${dataStart}, buffer)${typeCastString};`,
+				definition,
 				needsScope: false
 			};
 		}
@@ -169,10 +184,12 @@ import { FIXED_STRINGS } from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
 import getReadStringFunction from '../utils/getReadStringFunction';
 ${nodeTypeImports.join('\n')}
+import { UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
 import type ModuleScope from './scopes/ModuleScope';
 import TrackingScope from './scopes/TrackingScope';
+import type ParameterVariable from './variables/ParameterVariable';
 
 export function convertProgram(
   buffer: Buffer | Uint8Array,

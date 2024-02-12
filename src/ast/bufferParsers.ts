@@ -292,7 +292,6 @@ const bufferParsers: ((
 		node.async = (flags & 1) === 1;
 		node.expression = (flags & 2) === 2;
 		node.generator = (flags & 4) === 4;
-		// TODO Lukas extracted variable
 		const parameters = (node.params = convertNodeList(
 			node,
 			scope,
@@ -300,7 +299,6 @@ const bufferParsers: ((
 			buffer,
 			readString
 		));
-		// TODO Lukas added in between
 		scope.addParameterVariables(
 			parameters.map(
 				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
@@ -308,9 +306,7 @@ const bufferParsers: ((
 			parameters[parameters.length - 1] instanceof RestElement
 		);
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 2], buffer, readString);
-		// TODO Lukas extracted variable
 		const annotations = (node.annotations = convertAnnotations(position + 3, buffer));
-		// TODO Lukas added
 		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 	},
 	function assignmentExpression(node: AssignmentExpression, position, buffer, readString) {
@@ -355,12 +351,10 @@ const bufferParsers: ((
 	function catchClause(node: CatchClause, position, buffer, readString) {
 		const { scope } = node;
 		const parameterPosition = buffer[position];
-		// TODO Lukas extracted parameter
 		const parameter = (node.param =
 			parameterPosition === 0
 				? null
 				: convertNode(node, scope, parameterPosition, buffer, readString));
-		// TODO Lukas additional line
 		parameter?.declare('parameter', UNKNOWN_EXPRESSION);
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 1], buffer, readString);
 	},
@@ -515,7 +509,6 @@ const bufferParsers: ((
 			idPosition === 0
 				? null
 				: convertNode(node, scope.parent as ChildScope, idPosition, buffer, readString);
-		// TODO Lukas extracted variable
 		const parameters = (node.params = convertNodeList(
 			node,
 			scope,
@@ -523,7 +516,6 @@ const bufferParsers: ((
 			buffer,
 			readString
 		));
-		// TODO Lukas added in between
 		scope.addParameterVariables(
 			parameters.map(
 				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
@@ -531,9 +523,7 @@ const bufferParsers: ((
 			parameters[parameters.length - 1] instanceof RestElement
 		);
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
-		// TODO Lukas extracted variable
 		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
-		// TODO Lukas added
 		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 	},
 	function functionExpression(node: FunctionExpression, position, buffer, readString) {
@@ -544,7 +534,6 @@ const bufferParsers: ((
 		const idPosition = buffer[position + 1];
 		node.id =
 			idPosition === 0 ? null : convertNode(node, node.idScope, idPosition, buffer, readString);
-		// TODO Lukas extracted variable
 		const parameters = (node.params = convertNodeList(
 			node,
 			scope,
@@ -552,7 +541,6 @@ const bufferParsers: ((
 			buffer,
 			readString
 		));
-		// TODO Lukas added in between
 		scope.addParameterVariables(
 			parameters.map(
 				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
@@ -560,9 +548,7 @@ const bufferParsers: ((
 			parameters[parameters.length - 1] instanceof RestElement
 		);
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
-		// TODO Lukas extracted variable
 		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
-		// TODO Lukas added
 		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 	},
 	function identifier(node: Identifier, position, buffer, readString) {
