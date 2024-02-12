@@ -761,8 +761,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const flags = buffer[position++];
-		const computed = (flags & 1) === 1;
-		const isStatic = (flags & 2) === 2;
+		const isStatic = (flags & 1) === 1;
+		const computed = (flags & 2) === 2;
 		const value = convertNode(buffer[position++], buffer, readString);
 		const kind = FIXED_STRINGS[buffer[position++]] as estree.MethodDefinition['kind'];
 		const key = convertNode(position, buffer, readString);
@@ -770,8 +770,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'MethodDefinition',
 			start,
 			end,
-			computed,
 			static: isStatic,
+			computed,
 			key,
 			value,
 			kind
@@ -865,8 +865,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const flags = buffer[position++];
-		const computed = (flags & 1) === 1;
-		const isStatic = (flags & 2) === 2;
+		const isStatic = (flags & 1) === 1;
+		const computed = (flags & 2) === 2;
 		const valuePosition = buffer[position++];
 		const value = valuePosition === 0 ? null : convertNode(valuePosition, buffer, readString);
 		const key = convertNode(position, buffer, readString);
@@ -874,8 +874,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'PropertyDefinition',
 			start,
 			end,
-			computed,
 			static: isStatic,
+			computed,
 			key,
 			value
 		};

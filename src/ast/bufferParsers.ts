@@ -373,8 +373,8 @@ const bufferParsers: ((
 				nodePosition
 					? convertNode(
 							node,
-							// TODO Lukas ensure that the static flag is always at the same position, first would be better
-							(buffer[nodePosition + 3] & 2) === 0 ? scope.instanceScope : scope,
+							// TODO Lukas ensure that the static flag is always at first position
+							(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
 							nodePosition,
 							buffer,
 							readString
@@ -670,8 +670,8 @@ const bufferParsers: ((
 	function methodDefinition(node: MethodDefinition, position, buffer, readString) {
 		const { scope } = node;
 		const flags = buffer[position];
-		node.computed = (flags & 1) === 1;
-		node.static = (flags & 2) === 2;
+		node.static = (flags & 1) === 1;
+		node.computed = (flags & 2) === 2;
 		node.value = convertNode(node, scope, buffer[position + 1], buffer, readString);
 		node.kind = FIXED_STRINGS[buffer[position + 2]] as estree.MethodDefinition['kind'];
 		node.key = convertNode(node, scope, position + 3, buffer, readString);
@@ -713,8 +713,8 @@ const bufferParsers: ((
 	function propertyDefinition(node: PropertyDefinition, position, buffer, readString) {
 		const { scope } = node;
 		const flags = buffer[position];
-		node.computed = (flags & 1) === 1;
-		node.static = (flags & 2) === 2;
+		node.static = (flags & 1) === 1;
+		node.computed = (flags & 2) === 2;
 		const valuePosition = buffer[position + 1];
 		node.value =
 			valuePosition === 0 ? null : convertNode(node, scope, valuePosition, buffer, readString);

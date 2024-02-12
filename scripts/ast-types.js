@@ -415,7 +415,8 @@ export const AST_NODES = {
 		fieldTypes: {
 			kind: "estree.MethodDefinition['kind']"
 		},
-		flags: ['computed', 'static'],
+		// "static" needs to come first as ClassBody depends on it
+		flags: ['static', 'computed'],
 		variableNames: {
 			static: 'isStatic'
 		}
@@ -465,7 +466,8 @@ export const AST_NODES = {
 			['key', 'Node'],
 			['value', 'OptionalNode']
 		],
-		flags: ['computed', 'static'],
+		// "static" needs to come first as ClassBody depends on it
+		flags: ['static', 'computed'],
 		variableNames: {
 			static: 'isStatic'
 		}
