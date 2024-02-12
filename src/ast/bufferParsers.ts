@@ -307,7 +307,6 @@ const bufferParsers: ((
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		// TODO Lukas different scope
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 2], buffer, readString);
 		// TODO Lukas extracted variable
 		const annotations = (node.annotations = convertAnnotations(position + 3, buffer));
@@ -363,7 +362,6 @@ const bufferParsers: ((
 				: convertNode(node, scope, parameterPosition, buffer, readString));
 		// TODO Lukas additional line
 		parameter?.declare('parameter', UNKNOWN_EXPRESSION);
-		// TODO Lukas different scope
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 1], buffer, readString);
 	},
 	function chainExpression(node: ChainExpression, position, buffer, readString) {
@@ -394,7 +392,6 @@ const bufferParsers: ((
 	function classDeclaration(node: ClassDeclaration, position, buffer, readString) {
 		const { scope } = node;
 		const idPosition = buffer[position];
-		// TODO Lukas different scope
 		node.id =
 			idPosition === 0
 				? null
@@ -514,7 +511,6 @@ const bufferParsers: ((
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
 		const idPosition = buffer[position + 1];
-		// TODO Lukas different scope
 		node.id =
 			idPosition === 0
 				? null
@@ -534,7 +530,6 @@ const bufferParsers: ((
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		// TODO Lukas different scope
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
 		// TODO Lukas extracted variable
 		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
@@ -547,7 +542,6 @@ const bufferParsers: ((
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
 		const idPosition = buffer[position + 1];
-		// TODO Lukas different scope
 		node.id =
 			idPosition === 0 ? null : convertNode(node, node.idScope, idPosition, buffer, readString);
 		// TODO Lukas extracted variable
@@ -565,7 +559,6 @@ const bufferParsers: ((
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		// TODO Lukas different scope
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
 		// TODO Lukas extracted variable
 		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
@@ -577,7 +570,6 @@ const bufferParsers: ((
 	},
 	function ifStatement(node: IfStatement, position, buffer, readString) {
 		const { scope } = node;
-		// TODO Lukas different scope
 		node.consequent = convertNode(
 			node,
 			(node.consequentScope = new TrackingScope(scope)),
@@ -585,7 +577,6 @@ const bufferParsers: ((
 			buffer,
 			readString
 		);
-		// TODO Lukas different scope
 		const alternatePosition = buffer[position + 1];
 		node.alternate =
 			alternatePosition === 0
@@ -606,7 +597,6 @@ const bufferParsers: ((
 	},
 	function importDeclaration(node: ImportDeclaration, position, buffer, readString) {
 		const { scope } = node;
-		// TODO Lukas inject estree-parser here for node.sourceAstNode
 		node.source = convertNode(node, scope, buffer[position], buffer, readString);
 		node.attributes = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
 		node.specifiers = convertNodeList(node, scope, position + 2, buffer, readString);
@@ -653,7 +643,6 @@ const bufferParsers: ((
 		node.raw = value ? 'true' : 'false';
 	},
 	function literalNull(node: Literal) {
-		// TODO Lukas missing fixed value to distinguish literal
 		node.value = null;
 	},
 	function literalNumber(node: Literal, position, buffer, readString) {
@@ -780,7 +769,6 @@ const bufferParsers: ((
 	function switchStatement(node: SwitchStatement, position, buffer, readString) {
 		const { scope } = node;
 		node.cases = convertNodeList(node, scope, buffer[position], buffer, readString);
-		// TODO Lukas different scope
 		node.discriminant = convertNode(node, node.parentScope, position + 1, buffer, readString);
 	},
 	function taggedTemplateExpression(node: TaggedTemplateExpression, position, buffer, readString) {

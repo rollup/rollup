@@ -14,7 +14,8 @@
  *    baseForAdditionalFields?: string[], // Fields needed to define additional fields
  *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
  *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
- *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field
+ *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
+ *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
  *  }} NodeDescription */
 
 /** @type {Record<string, NodeDescription>} */
@@ -43,7 +44,10 @@ export const AST_NODES = {
 		fixed: {
 			id: null
 		},
-		flags: ['async', 'expression', 'generator']
+		flags: ['async', 'expression', 'generator'],
+		scopes: {
+			body: 'scope.bodyScope'
+		}
 	},
 	AssignmentExpression: {
 		fields: [
@@ -96,7 +100,10 @@ export const AST_NODES = {
 		fields: [
 			['param', 'OptionalNode'],
 			['body', 'Node']
-		]
+		],
+		scopes: {
+			body: 'scope.bodyScope'
+		}
 	},
 	ChainExpression: {
 		fields: [['expression', 'Node']]
@@ -109,10 +116,16 @@ export const AST_NODES = {
 			['id', 'OptionalNode'],
 			['superClass', 'OptionalNode'],
 			['body', 'Node']
-		]
+		],
+		scopes: {
+			id: 'scope.parent as ChildScope'
+		}
 	},
 	ClassExpression: {
-		hasSameFieldsAs: 'ClassDeclaration'
+		hasSameFieldsAs: 'ClassDeclaration',
+		scopes: {
+			id: 'scope'
+		}
 	},
 	ConditionalExpression: {
 		fields: [
@@ -208,10 +221,17 @@ export const AST_NODES = {
 		fixed: {
 			expression: false
 		},
-		flags: ['async', 'generator']
+		flags: ['async', 'generator'],
+		scopes: {
+			body: 'scope.bodyScope',
+			id: 'scope.parent as ChildScope'
+		}
 	},
 	FunctionExpression: {
-		hasSameFieldsAs: 'FunctionDeclaration'
+		hasSameFieldsAs: 'FunctionDeclaration',
+		scopes: {
+			id: 'node.idScope'
+		}
 	},
 	Identifier: {
 		fields: [['name', 'String']]
@@ -221,7 +241,11 @@ export const AST_NODES = {
 			['test', 'Node'],
 			['consequent', 'Node'],
 			['alternate', 'OptionalNode']
-		]
+		],
+		scopes: {
+			alternate: '(node.alternateScope = new TrackingScope(scope))',
+			consequent: '(node.consequentScope = new TrackingScope(scope))'
+		}
 	},
 	ImportAttribute: {
 		estreeType:
@@ -289,11 +313,13 @@ export const AST_NODES = {
 		flags: ['value']
 	},
 	LiteralNull: {
+		additionalFields: {
+			value: 'null'
+		},
 		astType: 'Literal',
 		estreeType: 'estree.SimpleLiteral & {value: null}',
 		fixed: {
-			raw: 'null',
-			value: null
+			raw: 'null'
 		}
 	},
 	LiteralNumber: {
@@ -439,7 +465,10 @@ export const AST_NODES = {
 		fields: [
 			['discriminant', 'Node'],
 			['cases', 'NodeList']
-		]
+		],
+		scopes: {
+			discriminant: 'node.parentScope'
+		}
 	},
 	TaggedTemplateExpression: {
 		fields: [

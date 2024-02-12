@@ -1211,7 +1211,6 @@ export type LiteralBigIntNode = RollupAstNode<estree.BigIntLiteral>;
 export type LiteralBooleanNode = RollupAstNode<estree.SimpleLiteral & { value: boolean }>;
 export type LiteralNullNode = RollupAstNode<estree.SimpleLiteral & { value: null }> & {
 	raw: 'null';
-	value: null;
 };
 export type LiteralNumberNode = RollupAstNode<estree.SimpleLiteral & { value: number }>;
 export type LiteralRegExpNode = RollupAstNode<estree.RegExpLiteral>;

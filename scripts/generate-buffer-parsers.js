@@ -23,9 +23,11 @@ const jsConverters = astNodeNamesWithFieldOrder.map(
 		/** @type {string[]} */
 		const definitions = [];
 		let offset = 0;
+		let needsBuffer = false;
 		let needsScope = false;
 		if (node.flags) {
 			offset++;
+			needsBuffer = true;
 			definitions.push(
 				'const flags = buffer[position];\n',
 				...node.flags.map((flagName, index) => {
@@ -41,12 +43,14 @@ const jsConverters = astNodeNamesWithFieldOrder.map(
 		}
 		for (const [index, field] of reservedFields.entries()) {
 			const fieldDefinition = getFieldDefinition(field, name, offset + index, false);
+			needsBuffer = true;
 			needsScope ||= fieldDefinition.needsScope;
 			definitions.push(`${fieldDefinition.definition}\n`);
 		}
 		offset += reservedFields.length;
 		if (inlinedVariableField) {
 			const fieldDefinition = getFieldDefinition(inlinedVariableField, name, offset, true);
+			needsBuffer = true;
 			needsScope ||= fieldDefinition.needsScope;
 			definitions.push(`${fieldDefinition.definition}\n`);
 		}
@@ -62,11 +66,15 @@ const jsConverters = astNodeNamesWithFieldOrder.map(
 		if (needsScope) {
 			definitions.unshift('const {scope} = node;');
 		}
-		const parameters =
-			definitions.length > 0
-				? `node: ${node.astType || name}, position, buffer${readStringArgument}`
-				: '';
-		return `function ${firstLetterLowercase(name)} (${parameters}) {
+		/** @type {string[]} */
+		const parameters = [];
+		if (definitions.length > 0) {
+			parameters.push(`node: ${node.astType || name}`);
+			if (needsBuffer) {
+				parameters.push(`position, buffer${readStringArgument}`);
+			}
+		}
+		return `function ${firstLetterLowercase(name)} (${parameters.join(', ')}) {
     ${definitions.join('')}}`;
 	}
 );
@@ -91,10 +99,11 @@ function getFieldDefinition([fieldName, fieldType], name, offset, isInlined) {
 	if (!node.hiddenFields?.includes(fieldName)) {
 		assignmentLeftHand += `node.${fieldName} = `;
 	}
+	const scope = originalNode?.scopes?.[fieldName] || node?.scopes?.[fieldName] || 'scope';
 	switch (fieldType) {
 		case 'Node': {
 			return {
-				definition: `${assignmentLeftHand}convertNode(node, scope, ${dataStart}, buffer, readString)${typeCastString};`,
+				definition: `${assignmentLeftHand}convertNode(node, ${scope}, ${dataStart}, buffer, readString)${typeCastString};`,
 				needsScope: true
 			};
 		}
@@ -103,13 +112,13 @@ function getFieldDefinition([fieldName, fieldType], name, offset, isInlined) {
 			let needsScope = false;
 			if (!node.optionalFallback?.[fieldName]) {
 				needsScope = true;
-				definition += `\n${assignmentLeftHand}${fieldName}Position === 0 ? null : convertNode(node, scope, ${fieldName}Position, buffer, readString)${typeCastString};`;
+				definition += `\n${assignmentLeftHand}${fieldName}Position === 0 ? null : convertNode(node, ${scope}, ${fieldName}Position, buffer, readString)${typeCastString};`;
 			}
 			return { definition, needsScope };
 		}
 		case 'NodeList': {
 			return {
-				definition: `${assignmentLeftHand}convertNodeList(node, scope, ${dataStart}, buffer, readString)${typeCastString};`,
+				definition: `${assignmentLeftHand}convertNodeList(node, ${scope}, ${dataStart}, buffer, readString)${typeCastString};`,
 				needsScope: true
 			};
 		}
@@ -158,9 +167,26 @@ import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
 import { FIXED_STRINGS } from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
+import getReadStringFunction from '../utils/getReadStringFunction';
 ${nodeTypeImports.join('\n')}
 import type { Node, NodeBase } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
+import type ModuleScope from './scopes/ModuleScope';
+import TrackingScope from './scopes/TrackingScope';
+
+export function convertProgram(
+  buffer: Buffer | Uint8Array,
+  parent: Node | { context: AstContext; type: string },
+  parentScope: ModuleScope
+): Program {
+  return convertNode(
+    parent,
+    parentScope,
+    0,
+    new Uint32Array(buffer.buffer),
+    getReadStringFunction(buffer)
+  );
+}
 
 const nodeTypeStrings = [
   ${nodeTypeStrings.join(',\n')}
@@ -187,6 +213,7 @@ function convertNode(parent: Node | { context: AstContext; type: string }, paren
   node.start = buffer[position + 1];
   node.end = buffer[position + 2];
   bufferParsers[nodeType](node, position + 3, buffer, readString);
+  node.initialise();
   return node;
 }
 
