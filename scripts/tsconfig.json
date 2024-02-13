@@ -8,7 +8,6 @@
 		"noEmit": true,
 		"noUnusedParameters": true,
 		"lib": ["ESNext"],
-		"esModuleInterop": true,
 		"strict": true,
 		"target": "ESNext",
 		"types": ["node"]

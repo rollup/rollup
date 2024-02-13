@@ -809,12 +809,11 @@ export default class Module {
 		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): Promise<void> {
+		timeStart('generate ast', 3);
 		if (code.startsWith('#!')) {
 			const shebangEndPosition = code.indexOf('\n');
 			this.shebang = code.slice(2, shebangEndPosition);
 		}
-
-		timeStart('generate ast', 3);
 
 		this.info.code = code;
 		this.originalCode = originalCode;
@@ -888,7 +887,10 @@ export default class Module {
 			) as Program;
 			this.info.ast = ast;
 		} else {
+			// Measuring asynchronous code does not provide reasonable results
+			timeEnd('generate ast', 3);
 			const astBuffer = await parseAsync(code, false);
+			timeStart('generate ast', 3);
 			this.ast = convertProgram(astBuffer, programParent, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
