@@ -316,7 +316,7 @@ export function logDeprecation(
 export function logConstVariableReassignError() {
 	return {
 		code: CONST_REASSIGN,
-		message: 'Cannot reassign to a variable declared with `const`'
+		message: 'Cannot reassign a variable declared with `const`'
 	};
 }
 
