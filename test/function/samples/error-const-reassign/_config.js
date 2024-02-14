@@ -2,7 +2,7 @@ const path = require('node:path');
 const MAIN_ID = path.resolve(__dirname, 'main.js');
 
 module.exports = defineTest({
-	description: 'Cannot reassign to a variable declared with `const`',
+	description: 'Cannot reassign a variable declared with `const`',
 	error: {
 		code: 'CONST_REASSIGN',
 		frame: `
@@ -14,7 +14,7 @@ module.exports = defineTest({
 			file: MAIN_ID,
 			line: 2
 		},
-		message: 'Cannot reassign to a variable declared with `const`',
+		message: 'Cannot reassign a variable declared with `const`',
 		pos: 15,
 		watchFiles: [MAIN_ID]
 	}
