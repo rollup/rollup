@@ -416,6 +416,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --preserveModules           Preserve module structure
 --preserveModulesRoot       Put preserved modules under this path at root level
 --preserveSymlinks          Do not follow symlinks when resolving files
+--no-reexportProtoFromExternal Ignore `__proto__` in star re-exports
 --no-sanitizeFileName       Do not replace invalid characters in file names
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
