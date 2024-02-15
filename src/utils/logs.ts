@@ -82,6 +82,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CHUNK_INVALID = 'CHUNK_INVALID',
 	CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CONST_REASSIGN = 'CONST_REASSIGN',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	DUPLICATE_ARGUMENT_NAME = 'DUPLICATE_ARGUMENT_NAME',
@@ -309,6 +310,13 @@ export function logDeprecation(
 		message: deprecation,
 		url: getRollupUrl(urlSnippet),
 		...(plugin ? { plugin } : {})
+	};
+}
+
+export function logConstVariableReassignError() {
+	return {
+		code: CONST_REASSIGN,
+		message: 'Cannot reassign a variable declared with `const`'
 	};
 }
 

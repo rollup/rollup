@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
+import { logConstVariableReassignError } from '../../utils/logs';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -79,6 +80,12 @@ export default class AssignmentExpression extends NodeBase {
 	}
 
 	initialise(): void {
+		if (this.left instanceof Identifier) {
+			const variable = this.scope.variables.get(this.left.name);
+			if (variable?.kind === 'const') {
+				this.scope.context.error(logConstVariableReassignError(), this.left.start);
+			}
+		}
 		this.left.setAssignedValue(this.right);
 	}
 
