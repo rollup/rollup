@@ -319,6 +319,12 @@ export const useOptions = defineStore('options2', () => {
 		available: optionOutputPreserveModules.value,
 		name: 'output.preserveModulesRoot'
 	});
+	const optionOutputReexportProtoFromExternal = getBoolean({
+		available: () =>
+			isInteropFormat.value && optionOutputExternalLiveBindings.value.value === false,
+		defaultValue: true,
+		name: 'output.reexportProtoFromExternal'
+	});
 	const optionOutputSanitizeFileName = getBoolean({
 		available: alwaysTrue,
 		defaultValue: true,
@@ -450,6 +456,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputPaths,
 		optionOutputPreserveModules,
 		optionOutputPreserveModulesRoot,
+		optionOutputReexportProtoFromExternal,
 		optionOutputSourcemap,
 		optionOutputSourcemapFileNames,
 		optionOutputSanitizeFileName,

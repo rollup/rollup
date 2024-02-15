@@ -84,6 +84,7 @@ export async function normalizeOutputOptions(
 		plugins: await normalizePluginOption(config.plugins),
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),
+		reexportProtoFromExternal: config.reexportProtoFromExternal ?? true,
 		sanitizeFileName:
 			typeof config.sanitizeFileName === 'function'
 				? config.sanitizeFileName

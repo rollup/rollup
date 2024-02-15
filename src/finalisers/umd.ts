@@ -61,6 +61,7 @@ export default function umd(
 		generatedCode: { symbols },
 		globals,
 		noConflict,
+		reexportProtoFromExternal,
 		strict
 	}: NormalizedOutputOptions
 ): void {
@@ -202,7 +203,8 @@ export default function umd(
 		interop,
 		snippets,
 		t,
-		externalLiveBindings
+		externalLiveBindings,
+		reexportProtoFromExternal
 	);
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,

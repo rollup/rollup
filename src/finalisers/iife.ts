@@ -36,6 +36,7 @@ export default function iife(
 		extend,
 		freeze,
 		externalLiveBindings,
+		reexportProtoFromExternal,
 		globals,
 		interop,
 		name,
@@ -116,7 +117,8 @@ export default function iife(
 		interop,
 		snippets,
 		t,
-		externalLiveBindings
+		externalLiveBindings,
+		reexportProtoFromExternal
 	);
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,

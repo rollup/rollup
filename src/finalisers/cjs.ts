@@ -29,6 +29,7 @@ export default function cjs(
 		freeze,
 		interop,
 		generatedCode: { symbols },
+		reexportProtoFromExternal,
 		strict
 	}: NormalizedOutputOptions
 ): void {
@@ -66,6 +67,7 @@ export default function cjs(
 		snippets,
 		t,
 		externalLiveBindings,
+		reexportProtoFromExternal,
 		`module.exports${_}=${_}`
 	);
 
