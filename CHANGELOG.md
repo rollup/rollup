@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 4.11.0
+
+_2024-02-15_
+
+### Features
+
+- Add `output.reexportProtoFromExternal` option to disable special code for handling `__proto__` reexports (#5380)
+
+### Bug Fixes
+
+- Ensure namespace reexport code can be parsed by cjs-module-lexer (#5380)
+- Throw when trying to reassing `const` variables (#5388)
+
+### Pull Requests
+
+- [#5380](https://github.com/rollup/rollup/pull/5380): fix: separately export `__proto__` for compatibility with CJS Transpiler Re-exports (@TrickyPi)
+- [#5388](https://github.com/rollup/rollup/pull/5388): Add const reassign rule (@TrickyPi)
+
 ## 4.10.0
 
 _2024-02-10_
