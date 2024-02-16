@@ -136,15 +136,13 @@ export const AST_NODES = {
         for (let index = 0; index < length; index++) {
           const nodePosition = buffer[$position + 1 + index];
           body.push(
-            nodePosition
-              ? convertNode(
-                  node,
-                  (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-                  nodePosition,
-                  buffer,
-                  readString
-                )
-              : null
+            convertNode(
+              node,
+              (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+              nodePosition,
+              buffer,
+              readString
+            )
           );
         }`
 		}
