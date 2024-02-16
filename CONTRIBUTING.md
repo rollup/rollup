@@ -56,6 +56,32 @@ npm run test:quick
 
 Note that this does not run the browser tests and a few CLI tests will fail.
 
+### How to write tests
+
+For any new feature or bug fix, sufficient test coverage is crucial.
+
+Note that Rollup does not really have unit tests, only the external APIs are tested with the full Rollup build. While this may seem unusual, the tests are still very stable and fast. This provides us with the ability to perform major refactorings of the code base while ensuring full compatibility with the previous versions.
+
+There are different test categories. Most of these tests are directory-based where you have a directory with a `_config.js` file that contains the test description and configuration and several code files. See [/test/types.d.ts](./test/types.d.ts) for a full list of available test configuration options for all directory based test types. By default, unless specified otherwise, the `main.js` file is the entry point for the test. To run the tests in an IDE, configure a ["Mocha" compatible test runner](https://mochajs.org/#editor-plugins) that uses `test/test.js` as the entry point.
+
+- **[`test/function`](./test/function/samples)**: These tests bundle to CommonJS and then run the entry point provided by `main.js`. The `assert` function from `node:assert` is injected as a global variable, so you can make inline assertions in the code. You can also use the `exports` configuration key to make assertions on the exported values. These are very stable and meaningful tests and should be your first choice for new tests.
+  - For regression testing when Rollup produces invalid code or crashes
+  - For testing plugin interactions. To do so, import `node:assert` in your `_config.js` file and make assertions in your plugin hooks as needed.
+  - For testing expected bundling errors, warnings and logs (use the `error`, `generateError`, `warnings` and `logs` configuration keys)
+  - For asserting on the generated bundle object (use the `bundle` configuration key)
+- **[`test/form`](./test/form/samples)**: These tests bundle to all output formats and do not run the code. They compare the bundled code against an `_expected` directory that contains the output for all formats. If the format is not important, you can specify an `_expected.js` file instead, which will be compared against the output when bundling to ES module format.
+  - For testing tree-shaking
+  - For testing code that does not run on all supported NodeJS platforms
+- **[`test/chunking-form`](./test/chunking-form/samples)**: Similar to the `form` tests, these tests support multiple output files and assets. Instead of a single file, there is a directory for each output format.
+- **[`test/cli`](./test/cli/samples)**: These tests run the Rollup CLI with a given configuration. They can compare the generated files against provided files and make assertions on stderr output. They can also optionally run the generated files.
+- **[`test/watch`](./test/watch)**: Test that watch mode works as expected. These tests are actually in the `index.js` file and only use the `samples` directory for input files.
+- **[`test/browser`](./test/browser/samples)**: These tests bundle with the browser build of Rollup. They compare the output to an `_expected` directory and allow to make assertions on bundling errors. Note that you need to provide all input files via plugins.
+- **[`test/sourcemaps`](./test/sourcemaps/samples)**: Tests to make assertions on the generated sourcemaps.
+- **[`test/incremental`](./test/incremental)**: For testing the caching behaviour of Rollup. As these tests need to run Rollup more than once, it was not easily possible to implement them as directory-based tests.
+- **[`test/file-hashes`](./test/file-hashes/samples)**: Relevant for testing that different outputs have different file hashes. With the new hashing algorithm, these tests are not as important as they used to be and are kept mostly for historical reasons.
+- **[`test/hooks`](./test/hooks)**: Do not add new tests here. These tests were the original tests for the plugin interface. For new tests, `function` tests are preferred as they are much easier to maintain.
+- **[`test/misc`](./test/misc)**: General tests that do not fit into the other categories.
+
 ### Developing with the website
 
 Running
