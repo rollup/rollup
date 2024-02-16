@@ -895,12 +895,20 @@ export default class Module {
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
 				get: () => {
-					// TODO Lukas can we explicitly disable the cache in the CLI?
-					// TODO Lukas if the cache is enabled, just keep it?
 					if (this.graph.astLru.has(fileName)) {
 						return this.graph.astLru.get(fileName)!;
 					} else {
 						const parsedAst = this.tryParse();
+						// If the cache is not disabled, we need to keep the AST in memory
+						// until the end when the cache is generated
+						if (this.options.cache !== false) {
+							Object.defineProperty(this.info, 'ast', {
+								value: parsedAst
+							});
+							return parsedAst;
+						}
+						// Otherwise, we keep it in a small LRU cache to not hog too much
+						// memory but allow the same AST to be requested several times.
 						this.graph.astLru.set(fileName, parsedAst);
 						return parsedAst;
 					}
