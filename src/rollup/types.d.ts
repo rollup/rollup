@@ -1,4 +1,4 @@
-import type { Program } from 'estree';
+import type { Node as EstreeNode, Program } from 'estree';
 
 export const VERSION: string;
 
@@ -979,13 +979,22 @@ export type RollupWatcher = AwaitingEventEmitter<{
 
 export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
 
-interface AstNode {
+interface AstNodeLocation {
 	end: number;
 	start: number;
-	type: string;
 }
 
-type ProgramNode = Program & AstNode;
+type OmittedEstreeKeys =
+	| 'loc'
+	| 'range'
+	| 'leadingComments'
+	| 'trailingComments'
+	| 'innerComments'
+	| 'comments';
+type RollupAstNode<T> = Omit<T, OmittedEstreeKeys> & AstNodeLocation;
+
+type ProgramNode = RollupAstNode<Program>;
+export type AstNode = RollupAstNode<EstreeNode>;
 
 export function defineConfig(options: RollupOptions): RollupOptions;
 export function defineConfig(options: RollupOptions[]): RollupOptions[];

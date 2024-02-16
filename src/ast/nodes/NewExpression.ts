@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { renderCallArguments } from '../../utils/renderCallArguments';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -14,6 +15,8 @@ export default class NewExpression extends NodeBase {
 	declare callee: ExpressionNode;
 	declare type: NodeType.tNewExpression;
 	private declare interaction: NodeInteractionCalled;
+	/** Marked with #__PURE__ annotation */
+	declare annotationPure?: boolean;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		try {
@@ -48,11 +51,18 @@ export default class NewExpression extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.interaction = {
 			args: [null, ...this.arguments],
 			type: INTERACTION_CALLED,
 			withNew: true
 		};
+		if (
+			this.annotations &&
+			(this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations
+		) {
+			this.annotationPure = this.annotations.some(comment => comment.type === 'pure');
+		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {

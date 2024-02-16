@@ -50,6 +50,7 @@ export default class ThisExpression extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope
 				? this.scope.context.moduleContext

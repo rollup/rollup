@@ -61,6 +61,12 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 			const { options, warnings } = await getConfigs(command);
 			try {
 				for (const inputOptions of options) {
+					if (!inputOptions.cache) {
+						// We explicitly disable the cache when unused as the CLI will not
+						// use the cache object on the bundle when not in watch mode. This
+						// improves performance as the cache is not generated.
+						inputOptions.cache = false;
+					}
 					await build(inputOptions, warnings, command.silent);
 				}
 				if (command.failAfterWarnings && warnings.warningOccurred) {

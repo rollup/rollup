@@ -6,7 +6,7 @@ import type {
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
-import type { AnnotationType } from './buffer-to-ast';
+import type { AnnotationType } from './astConverterHelpers';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -33,11 +33,13 @@ import {
 } from './urls';
 
 export function error(base: Error | RollupLog): never {
-	if (!(base instanceof Error)) {
-		base = Object.assign(new Error(base.message), base);
-		Object.defineProperty(base, 'name', { value: 'RollupError', writable: true });
-	}
-	throw base;
+	throw base instanceof Error ? base : getRollupEror(base);
+}
+
+export function getRollupEror(base: RollupLog): Error & RollupLog {
+	const errorInstance = Object.assign(new Error(base.message), base);
+	Object.defineProperty(errorInstance, 'name', { value: 'RollupError', writable: true });
+	return errorInstance;
 }
 
 export function augmentCodeLocation(

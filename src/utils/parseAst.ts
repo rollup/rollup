@@ -1,6 +1,6 @@
 import { parse, parseAsync } from '../../native';
 import type { ParseAst, ParseAstAsync } from '../rollup/types';
-import { convertProgram } from './buffer-to-ast';
+import { convertProgram } from './bufferToAst';
 import getReadStringFunction from './getReadStringFunction';
 
 export const parseAst: ParseAst = (input, { allowReturnOutsideFunction = false } = {}) => {

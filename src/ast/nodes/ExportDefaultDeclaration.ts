@@ -49,6 +49,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
 		this.declarationName =
 			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;

@@ -14,14 +14,12 @@ export default class FunctionDeclaration extends FunctionNode {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		if (esTreeNode.id !== null) {
-			this.id = new Identifier(
-				esTreeNode.id,
-				this,
-				this.scope.parent as ChildScope
+			this.id = new Identifier(this, this.scope.parent as ChildScope).parseNode(
+				esTreeNode.id
 			) as IdentifierWithVariable;
 		}
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 }

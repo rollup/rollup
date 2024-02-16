@@ -26,13 +26,15 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
-import { VariableKind } from './VariableKinds';
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
 	declare params: PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
+
+	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
+	declare annotationNoSideEffects?: boolean;
 
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);
@@ -46,6 +48,13 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 	set deoptimizedReturn(value: boolean) {
 		this.flags = setFlag(this.flags, Flag.deoptimizedReturn, value);
+	}
+
+	get generator(): boolean {
+		return isFlagSet(this.flags, Flag.generator);
+	}
+	set generator(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
 	protected objectEntity: ObjectEntity | null = null;
@@ -188,14 +197,23 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		if (this.body instanceof BlockStatement) {
 			this.body.addImplicitReturnExpressionToScope();
 		} else {
 			this.scope.addReturnExpression(this.body);
 		}
+		if (
+			this.annotations &&
+			(this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations
+		) {
+			this.annotationNoSideEffects = this.annotations.some(
+				comment => comment.type === 'noSideEffects'
+			);
+		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		const { body, params } = esTreeNode;
 		const parameters: typeof this.params = (this.params = []);
 		const { scope } = this;
@@ -205,23 +223,19 @@ export default abstract class FunctionBase extends NodeBase {
 		// when parsing the body.
 		for (const parameter of params) {
 			parameters.push(
-				new (context.getNodeConstructor(parameter.type))(
-					parameter,
-					this,
-					scope,
-					false
+				new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(
+					parameter
 				) as unknown as PatternNode
 			);
 		}
 		scope.addParameterVariables(
 			parameters.map(
-				parameter =>
-					parameter.declare(VariableKind.parameter, UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		this.body = new (context.getNodeConstructor(body.type))(body, this, bodyScope);
-		super.parseNode(esTreeNode);
+		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body);
+		return super.parseNode(esTreeNode);
 	}
 
 	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}

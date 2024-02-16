@@ -22,7 +22,7 @@ import ObjectPattern from './ObjectPattern';
 import type VariableDeclarator from './VariableDeclarator';
 import type { InclusionOptions } from './shared/Expression';
 import { type IncludeChildren, NodeBase } from './shared/Node';
-import type { VariableKind } from './shared/VariableKinds';
+import type { VariableDeclarationKind } from './shared/VariableKinds';
 
 function areAllDeclarationsIncludedAndNotExported(
 	declarations: readonly VariableDeclarator[],
@@ -43,7 +43,7 @@ function areAllDeclarationsIncludedAndNotExported(
 
 export default class VariableDeclaration extends NodeBase {
 	declare declarations: readonly VariableDeclarator[];
-	declare kind: VariableKind.var | VariableKind.let | VariableKind.const;
+	declare kind: VariableDeclarationKind;
 	declare type: NodeType.tVariableDeclaration;
 
 	deoptimizePath(): void {
@@ -81,6 +81,7 @@ export default class VariableDeclaration extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		for (const declarator of this.declarations) {
 			declarator.declareDeclarator(this.kind);
 		}

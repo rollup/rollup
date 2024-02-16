@@ -2397,7 +2397,7 @@ impl<'a> AstConverter<'a> {
     self.add_explicit_end(end_position, self.code.len() as u32);
     // annotations, these need to come after end so that trailing comments are
     // included
-    self.update_reference_position(end_position + PROGRAM_ANNOTATIONS_OFFSET);
+    self.update_reference_position(end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET);
     self.index_converter.invalidate_collected_annotations();
     let invalid_annotations = self.index_converter.take_invalid_annotations();
     self.convert_item_list(&invalid_annotations, |ast_converter, annotation| {
