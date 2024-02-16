@@ -108,7 +108,8 @@
   },
   "devDependenciesComments": {
     "@types/node": "Version 18.19.0 breaks chokidar and vite types",
-    "vitepress": "Version 1.0.0-rc.40 breaks npm run dev"
+    "vitepress": "Version 1.0.0-rc.40 breaks npm run dev",
+    "core-js": "We only update manually as every update requires a snapshot update"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.3.3",
@@ -145,7 +146,7 @@
     "chokidar": "^3.6.0",
     "colorette": "^2.0.20",
     "concurrently": "^8.2.2",
-    "core-js": "^3.35.1",
+    "core-js": "3.36.0",
     "date-time": "^4.0.0",
     "es5-shim": "^4.6.7",
     "es6-shim": "^0.35.8",
