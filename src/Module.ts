@@ -895,6 +895,8 @@ export default class Module {
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
 				get: () => {
+					// TODO Lukas can we explicitly disable the cache in the CLI?
+					// TODO Lukas if the cache is enabled, just keep it?
 					if (this.graph.astLru.has(fileName)) {
 						return this.graph.astLru.get(fileName)!;
 					} else {

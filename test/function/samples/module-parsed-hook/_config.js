@@ -29,6 +29,7 @@ module.exports = defineTest({
 										type: 'ExportNamedDeclaration',
 										start: 0,
 										end: 33,
+										attributes: [],
 										declaration: null,
 										specifiers: [
 											{
@@ -91,6 +92,7 @@ module.exports = defineTest({
 										type: 'ExportNamedDeclaration',
 										start: 0,
 										end: 24,
+										attributes: [],
 										declaration: {
 											type: 'VariableDeclaration',
 											start: 7,
