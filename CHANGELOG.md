@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.12.0
+
+_2024-02-16_
+
+### Features
+
+- Improve raw bundling performance by 10-15% when not using the cache or plugins that return an AST (#5391)
+
+### Pull Requests
+
+- [#5391](https://github.com/rollup/rollup/pull/5391): Improve performance by directly constructing AST from buffer (@lukastaegert)
+- [#5393](https://github.com/rollup/rollup/pull/5393): chore(deps): update dependency eslint-plugin-unicorn to v51 (@renovate[bot])
+- [#5394](https://github.com/rollup/rollup/pull/5394): chore(deps): update typescript-eslint monorepo to v7 (major) (@renovate[bot])
+- [#5395](https://github.com/rollup/rollup/pull/5395): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.11.0
 
 _2024-02-15_
