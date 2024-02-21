@@ -192,16 +192,16 @@ import {
 } from './astConverterHelpers';
 import { FIXED_STRINGS } from './convert-ast-strings';
 import type { ReadString } from './getReadStringFunction';
-import { error, getRollupEror, logParseError } from './logs';
+import { error, getRollupError, logParseError } from './logs';
 
 export function convertProgram(buffer: ArrayBuffer, readString: ReadString): ProgramNode {
   const node = convertNode(0, new Uint32Array(buffer), readString);
   switch (node.type) {
     case PanicError: {
-      return error(getRollupEror(logParseError(node.message)));
+      return error(getRollupError(logParseError(node.message)));
     }
     case ParseError: {
-      return error(getRollupEror(logParseError(node.message, node.start)));
+      return error(getRollupError(logParseError(node.message, node.start)));
     }
     default: {
       return node;

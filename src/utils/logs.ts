@@ -33,10 +33,10 @@ import {
 } from './urls';
 
 export function error(base: Error | RollupLog): never {
-	throw base instanceof Error ? base : getRollupEror(base);
+	throw base instanceof Error ? base : getRollupError(base);
 }
 
-export function getRollupEror(base: RollupLog): Error & RollupLog {
+export function getRollupError(base: RollupLog): Error & RollupLog {
 	const errorInstance = Object.assign(new Error(base.message), base);
 	Object.defineProperty(errorInstance, 'name', { value: 'RollupError', writable: true });
 	return errorInstance;
