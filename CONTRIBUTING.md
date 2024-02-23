@@ -18,7 +18,28 @@ Working on your first Pull Request? You can learn how from this _free_ course, [
 
 ### Setting up the Rust toolchain
 
-Rollup now includes some Rust code. To compile it, you need to set up Rust nightly. If you haven't installed it yet, please first see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust, then see https://rust-lang.github.io/rustup/concepts/channels.html to learn how to install Rust nightly. If everything is set up correctly, `npm run build` should complete successfully. The first build will be rather slow, but subsequent builds will be much faster.
+Rollup now includes some Rust code. To compile it, you need to set up Rust nightly. If you haven't installed it yet, please first see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust, then see https://rust-lang.github.io/rustup/concepts/channels.html to learn how to install Rust nightly.
+
+Make sure you use the same nightly version as specified in the `/rust/rust-toolchain.toml` file. You should be able to install it with the following commands:
+
+```shell
+rustup toolchain install nightly-2023-10-05
+rustup default nightly-2023-10-05
+```
+
+You should also install the `wasm32-unknown-unknown` target:
+
+```shell
+rustup target add wasm32-unknown-unknown
+```
+
+In the end, run
+
+```shell
+rustup update
+```
+
+If everything is set up correctly, `npm run build` should complete successfully. The first build will be rather slow, but subsequent builds will be much faster.
 
 For local development and tests, it is even faster to run `npm run build:quick`, which does not perform a Rust production build, does not build WASM artefacts, and only builds the CommonJS version of Rollup. Note that with this build, a few tests will fail that rely on the other artefacts, see below.
 
@@ -110,7 +131,7 @@ We also welcome financial contributions in full transparency on our [open collec
 
 ## Questions
 
-If you require technical assistance, [Stackoverflow](https://stackoverflow.com/questions/tagged/rollupjs) or [Discord](https://is.gd/rollup_chat) are usually the best places to start. You can also create an [issue](issue) (protip: do a quick search first to see if someone else didn't ask the same question before!).
+If you require technical assistance, [Stackoverflow](https://stackoverflow.com/questions/tagged/rollupjs) or [Discord](https://is.gd/rollup_chat) are usually the best places to start. You can also create an [issue](issue) ( protip: do a quick search first to see if someone else didn't ask the same question before!).
 
 ## Credits
 
