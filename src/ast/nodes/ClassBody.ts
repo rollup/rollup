@@ -25,18 +25,17 @@ export default class ClassBody extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		const body: NodeBase[] = (this.body = []);
 		for (const definition of esTreeNode.body) {
 			body.push(
 				new (this.scope.context.getNodeConstructor(definition.type))(
-					definition,
 					this,
 					definition.static ? this.scope : this.scope.instanceScope
-				)
+				).parseNode(definition)
 			);
 		}
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 
 	protected applyDeoptimizations() {}

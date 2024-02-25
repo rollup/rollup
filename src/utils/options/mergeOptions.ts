@@ -267,6 +267,7 @@ async function mergeOutputOptions(
 		plugins: await normalizePluginOption(config.plugins),
 		preserveModules: getOption('preserveModules'),
 		preserveModulesRoot: getOption('preserveModulesRoot'),
+		reexportProtoFromExternal: getOption('reexportProtoFromExternal'),
 		sanitizeFileName: getOption('sanitizeFileName'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapBaseUrl: getOption('sourcemapBaseUrl'),

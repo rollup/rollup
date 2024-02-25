@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logCannotCallNamespace, logEval } from '../../utils/logs';
@@ -26,6 +27,8 @@ export default class CallExpression
 	declare arguments: (ExpressionNode | SpreadElement)[];
 	declare callee: ExpressionNode | Super;
 	declare type: NodeType.tCallExpression;
+	/** Marked with #__PURE__ annotation */
+	declare annotationPure?: boolean;
 
 	get optional(): boolean {
 		return isFlagSet(this.flags, Flag.optional);
@@ -92,6 +95,16 @@ export default class CallExpression
 			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
+	}
+
+	initialise() {
+		super.initialise();
+		if (
+			this.annotations &&
+			(this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations
+		) {
+			this.annotationPure = this.annotations.some(comment => comment.type === 'pure');
+		}
 	}
 
 	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {

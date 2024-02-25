@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.80"
 swc_atoms = "0.6.5"
-swc_compiler_base = "0.7.3"
-swc_common = { version = "0.33.17", features = ["ahash", "parking_lot"] }
-swc_ecma_ast = "0.112.2"
-swc_ecma_parser = "0.143.3"
+swc_compiler_base = "0.7.8"
+swc_common = { version = "0.33.18", features = ["ahash", "parking_lot"] }
+swc_ecma_ast = "0.112.4"
+swc_ecma_parser = "0.143.5"
 parking_lot = "0.12.1"

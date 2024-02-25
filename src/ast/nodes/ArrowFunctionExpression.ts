@@ -7,6 +7,7 @@ import { type ObjectPath } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import type * as NodeType from './NodeType';
+import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import FunctionBase from './shared/FunctionBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { ObjectEntity } from './shared/ObjectEntity';
@@ -20,6 +21,13 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	declare scope: ReturnValueScope;
 	declare type: NodeType.tArrowFunctionExpression;
 	protected objectEntity: ObjectEntity | null = null;
+
+	get expression(): boolean {
+		return isFlagSet(this.flags, Flag.expression);
+	}
+	set expression(value: boolean) {
+		this.flags = setFlag(this.flags, Flag.expression, value);
+	}
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new ReturnValueScope(parentScope, false);

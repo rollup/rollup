@@ -29,7 +29,7 @@ import {
 } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
-import { VariableKind } from './shared/VariableKinds';
+import type { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
@@ -77,7 +77,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		let variable: LocalVariable;
 		const { treeshake } = this.scope.context.options;
 		switch (kind) {
-			case VariableKind.var: {
+			case 'var': {
 				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
 					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
@@ -85,18 +85,18 @@ export default class Identifier extends NodeBase implements PatternNode {
 				}
 				break;
 			}
-			case VariableKind.function: {
+			case 'function': {
 				// in strict mode, functions are only hoisted within a scope but not across block scopes
 				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				break;
 			}
-			case VariableKind.let:
-			case VariableKind.const:
-			case VariableKind.class: {
+			case 'let':
+			case 'const':
+			case 'class': {
 				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				break;
 			}
-			case VariableKind.parameter: {
+			case 'parameter': {
 				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;
 			}
@@ -152,7 +152,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (this.isPossibleTDZ() && this.variable!.kind !== VariableKind.var) {
+		if (this.isPossibleTDZ() && this.variable!.kind !== 'var') {
 			return true;
 		}
 		return (

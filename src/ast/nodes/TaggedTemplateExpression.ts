@@ -64,6 +64,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.args = [UNKNOWN_EXPRESSION, ...this.quasi.expressions];
 		this.interaction = {
 			args: [

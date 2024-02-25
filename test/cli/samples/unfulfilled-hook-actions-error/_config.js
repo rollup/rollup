@@ -1,7 +1,8 @@
 const assert = require('node:assert');
-const { assertIncludes, assertDoesNotInclude } = require('../../../utils.js');
+const { assertIncludes, assertDoesNotInclude, hasEsBuild } = require('../../../utils.js');
 
 module.exports = defineTest({
+	skip: !hasEsBuild,
 	description: 'does not show unfulfilled hook actions if there are errors',
 	command: 'node build.mjs',
 	after(error) {

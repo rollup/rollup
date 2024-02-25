@@ -23,6 +23,7 @@ export default class ImportDeclaration extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.scope.context.addImport(this);
 	}
 

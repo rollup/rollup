@@ -4,6 +4,8 @@ declare module 'github-api' {
 			data: { number: number; title: string; head: { sha: string } }[];
 		}>;
 
+		listCommitsOnPR(pr: number): Promise<{ data: { author: { login: string } }[] }>;
+
 		getPullRequest(pr: number): Promise<{ data: { body: string; user: { login: string } } }>;
 
 		createRelease(release: { body: string; name: string; tag_name: string }): Promise<void>;

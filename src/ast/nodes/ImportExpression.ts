@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
-import type { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
+import type { AstNode, GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import type { PluginDriver } from '../../utils/PluginDriver';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
@@ -40,6 +40,7 @@ export default class ImportExpression extends NodeBase {
 	inlineNamespace: NamespaceVariable | null = null;
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
+	declare sourceAstNode: AstNode;
 
 	private attributes: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
@@ -160,12 +161,13 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.scope.context.addDynamicImport(this);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
-		// Keep the source AST to be used by renderDynamicImport
-		super.parseNode(esTreeNode, ['source']);
+	parseNode(esTreeNode: GenericEsTreeNode): this {
+		this.sourceAstNode = esTreeNode.source;
+		return super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

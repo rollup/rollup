@@ -23,7 +23,7 @@ export function getFirstChangelogEntry(changelog) {
 
 /**
  * @typedef {object} IncludedPR
- * @property {string} author
+ * @property {string[]} authors
  * @property {number[]} closed - which PRs are closed by this
  * @property {number} pr
  * @property {string} text
@@ -72,15 +72,21 @@ export async function getIncludedPRs(fromVersion, toVersion, repo, currentBranch
 	prs.sort((a, b) => (a.pr > b.pr ? 1 : -1));
 	return Promise.all(
 		prs.map(async ({ pr, text }) => {
-			const { data } = await repo.getPullRequest(pr);
-			const bodyWithoutComments = data.body.replace(/<!--[\S\s]*?-->/g, '');
+			const [{ data: pullRequest }, { data: commits }] = await Promise.all([
+				repo.getPullRequest(pr),
+				repo.listCommitsOnPR(pr)
+			]);
+			const mainAuthor = pullRequest.user.login;
+			const otherAuthors = new Set(commits.map(({ author: { login } }) => login));
+			otherAuthors.delete(mainAuthor);
+			const bodyWithoutComments = pullRequest.body.replace(/<!--[\S\s]*?-->/g, '');
 			const closedIssuesRegexp = /([Ff]ix(es|ed)?|([Cc]lose|[Rr]esolve)[ds]?) #(\d+)/g;
 			const closed = [];
 			while ((match = closedIssuesRegexp.exec(bodyWithoutComments))) {
 				closed.push(Number(match[4]));
 			}
 			return {
-				author: data.user.login,
+				authors: [mainAuthor, ...otherAuthors],
 				closed,
 				pr,
 				text

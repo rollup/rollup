@@ -174,8 +174,8 @@ ${sections}### Pull Requests
 
 ${prs
 	.map(
-		({ text, pr, author }) =>
-			`- [#${pr}](https://github.com/rollup/rollup/pull/${pr}): ${text} (@${author})`
+		({ text, pr, authors }) =>
+			`- [#${pr}](https://github.com/rollup/rollup/pull/${pr}): ${text} (${authors.map(author => `@${author}`).join(', ')})`
 	)
 	.join('\n')}`;
 }

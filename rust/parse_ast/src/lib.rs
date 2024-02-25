@@ -1,6 +1,8 @@
 use std::panic::{catch_unwind, AssertUnwindSafe};
 
-use convert_ast::converter::ast_constants::TYPE_PANIC_ERROR;
+use convert_ast::converter::ast_constants::{
+  PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR_INLINED_MESSAGE,
+};
 use convert_ast::converter::{convert_string, AstConverter};
 use swc_common::sync::Lrc;
 use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
@@ -52,20 +54,19 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
         }
       }
     }));
-    match result {
-      Ok(buffer) => buffer,
-      Err(err) => {
-        let msg = if let Some(msg) = err.downcast_ref::<&str>() {
-          msg
-        } else if let Some(msg) = err.downcast_ref::<String>() {
-          msg
-        } else {
-          "Unknown rust panic message"
-        };
-        let mut buffer = TYPE_PANIC_ERROR.to_vec();
-        convert_string(&mut buffer, msg);
-        buffer
-      }
-    }
+    result.unwrap_or_else(|err| {
+      let msg = if let Some(msg) = err.downcast_ref::<&str>() {
+        msg
+      } else if let Some(msg) = err.downcast_ref::<String>() {
+        msg
+      } else {
+        "Unknown rust panic message"
+      };
+      let mut buffer = TYPE_PANIC_ERROR_INLINED_MESSAGE.to_vec();
+      // reserve for start and end even though they are unused
+      buffer.resize(buffer.len() + 4 + PANIC_ERROR_RESERVED_BYTES, 0);
+      convert_string(&mut buffer, msg);
+      buffer
+    })
   })
 }

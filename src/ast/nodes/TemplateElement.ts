@@ -5,7 +5,7 @@ import { type GenericEsTreeNode, NodeBase } from './shared/Node';
 export default class TemplateElement extends NodeBase {
 	declare type: NodeType.tTemplateElement;
 	declare value: {
-		cooked: string | null;
+		cooked: string | undefined;
 		raw: string;
 	};
 
@@ -27,9 +27,9 @@ export default class TemplateElement extends NodeBase {
 		this.included = true;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		this.value = esTreeNode.value;
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 
 	render(): void {}

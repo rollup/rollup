@@ -193,6 +193,7 @@ const outputOptions = {
 	freeze,
 	indent,
 	noConflict,
+	reexportProtoFromExternal,
 	sanitizeFileName,
 	strict,
 	systemNullSetters,

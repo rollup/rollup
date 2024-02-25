@@ -64,6 +64,7 @@ module.exports = defineTest({
 											type: 'ImportDeclaration',
 											start: 0,
 											end: 24,
+											attributes: [],
 											specifiers: [
 												{
 													type: 'ImportDefaultSpecifier',
@@ -78,6 +79,7 @@ module.exports = defineTest({
 											type: 'ExportNamedDeclaration',
 											start: 26,
 											end: 65,
+											attributes: [],
 											declaration: {
 												type: 'VariableDeclaration',
 												start: 33,
@@ -162,6 +164,7 @@ module.exports = defineTest({
 											type: 'ExportNamedDeclaration',
 											start: 0,
 											end: 31,
+											attributes: [],
 											declaration: null,
 											specifiers: [
 												{
@@ -184,6 +187,7 @@ module.exports = defineTest({
 											type: 'ExportNamedDeclaration',
 											start: 32,
 											end: 80,
+											attributes: [],
 											declaration: {
 												type: 'VariableDeclaration',
 												start: 39,
@@ -198,6 +202,7 @@ module.exports = defineTest({
 															type: 'ImportExpression',
 															start: 54,
 															end: 79,
+															options: null,
 															source: {
 																type: 'Literal',
 																start: 61,
@@ -217,6 +222,7 @@ module.exports = defineTest({
 											type: 'ExportNamedDeclaration',
 											start: 81,
 											end: 116,
+											attributes: [],
 											declaration: {
 												type: 'VariableDeclaration',
 												start: 88,
@@ -231,6 +237,7 @@ module.exports = defineTest({
 															type: 'ImportExpression',
 															start: 101,
 															end: 115,
+															options: null,
 															source: {
 																type: 'Literal',
 																start: 108,
@@ -250,6 +257,7 @@ module.exports = defineTest({
 											type: 'ExportNamedDeclaration',
 											start: 117,
 											end: 158,
+											attributes: [],
 											declaration: {
 												type: 'VariableDeclaration',
 												start: 124,
@@ -264,6 +272,7 @@ module.exports = defineTest({
 															type: 'ImportExpression',
 															start: 142,
 															end: 157,
+															options: null,
 															source: { type: 'Identifier', start: 149, end: 156, name: 'thePath' }
 														}
 													}
@@ -339,6 +348,7 @@ module.exports = defineTest({
 											type: 'ImportDeclaration',
 											start: 0,
 											end: 32,
+											attributes: [],
 											specifiers: [
 												{
 													type: 'ImportSpecifier',
@@ -360,6 +370,7 @@ module.exports = defineTest({
 											type: 'ExportNamedDeclaration',
 											start: 34,
 											end: 71,
+											attributes: [],
 											declaration: {
 												type: 'VariableDeclaration',
 												start: 41,

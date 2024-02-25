@@ -6,7 +6,7 @@ import type {
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
-import type { AnnotationType } from './buffer-to-ast';
+import type { AnnotationType } from './astConverterHelpers';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -33,11 +33,13 @@ import {
 } from './urls';
 
 export function error(base: Error | RollupLog): never {
-	if (!(base instanceof Error)) {
-		base = Object.assign(new Error(base.message), base);
-		Object.defineProperty(base, 'name', { value: 'RollupError', writable: true });
-	}
-	throw base;
+	throw base instanceof Error ? base : getRollupError(base);
+}
+
+export function getRollupError(base: RollupLog): Error & RollupLog {
+	const errorInstance = Object.assign(new Error(base.message), base);
+	Object.defineProperty(errorInstance, 'name', { value: 'RollupError', writable: true });
+	return errorInstance;
 }
 
 export function augmentCodeLocation(
@@ -82,6 +84,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CHUNK_INVALID = 'CHUNK_INVALID',
 	CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CONST_REASSIGN = 'CONST_REASSIGN',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	DUPLICATE_ARGUMENT_NAME = 'DUPLICATE_ARGUMENT_NAME',
@@ -309,6 +312,13 @@ export function logDeprecation(
 		message: deprecation,
 		url: getRollupUrl(urlSnippet),
 		...(plugin ? { plugin } : {})
+	};
+}
+
+export function logConstVariableReassignError() {
+	return {
+		code: CONST_REASSIGN,
+		message: 'Cannot reassign a variable declared with `const`'
 	};
 }
 

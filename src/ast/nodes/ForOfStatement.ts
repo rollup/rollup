@@ -51,6 +51,7 @@ export default class ForOfStatement extends StatementBase {
 	}
 
 	initialise() {
+		super.initialise();
 		this.left.setAssignedValue(UNKNOWN_EXPRESSION);
 	}
 

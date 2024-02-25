@@ -16,7 +16,8 @@ const {
 	unlinkSync,
 	rmSync,
 	writeFileSync,
-	writeSync
+	writeSync,
+	existsSync
 } = require('node:fs');
 const { basename, join } = require('node:path');
 const { platform, version } = require('node:process');
@@ -447,6 +448,9 @@ exports.replaceDirectoryInStringifiedObject = function replaceDirectoryInStringi
 	);
 };
 
+/** @type {boolean} */
+exports.hasEsBuild = existsSync(join(__dirname, '../dist/es'));
+
 const acornParser = Parser.extend(importAssertions);
 
 exports.verifyAstPlugin = {
@@ -465,21 +469,15 @@ const replaceStringifyValues = (key, value) => {
 		case 'ImportDeclaration':
 		case 'ExportNamedDeclaration':
 		case 'ExportAllDeclaration': {
-			const { attributes } = value;
-			if (attributes) {
-				delete value.attributes;
-				if (attributes.length > 0) {
-					value.assertions = attributes;
-				}
-			}
-			break;
+			const { attributes, ...nonAttributesProperties } = value;
+			return {
+				...nonAttributesProperties,
+				...(attributes?.length > 0 ? { assertions: attributes } : {})
+			};
 		}
 		case 'ImportExpression': {
-			const { options } = value;
-			delete value.options;
-			if (options) {
-				value.arguments = [options];
-			}
+			const { options, ...nonOptionsProperties } = value;
+			return { ...nonOptionsProperties, ...(options ? { arguments: [options] } : {}) };
 		}
 	}
 
