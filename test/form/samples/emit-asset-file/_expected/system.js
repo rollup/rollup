@@ -5,6 +5,8 @@ System.register([], (function (exports, module) {
 
 			var logo = new URL('assets/logo-zDlmrXar.svg', module.meta.url).href;
 
+			var logoReverse = new URL('assets/logo_reverse\'-DbGK2oiS.svg', module.meta.url).href;
+
 			function showImage(url) {
 				console.log(url);
 				if (typeof document !== 'undefined') {
@@ -15,6 +17,7 @@ System.register([], (function (exports, module) {
 			}
 
 			showImage(logo);
+			showImage(logoReverse);
 
 		})
 	};
