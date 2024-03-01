@@ -152,6 +152,7 @@ function mergeInputOptions(
 			'treeshake',
 			objectifyOptionWithPresets(treeshakePresets, 'treeshake', URL_TREESHAKE, 'false, true, ')
 		),
+		typescript: getOption('typescript'),
 		watch: getWatch(config, overrides)
 	};
 

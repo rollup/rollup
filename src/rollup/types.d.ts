@@ -534,6 +534,7 @@ interface ManualChunkMeta {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
+
 export type GetManualChunk = (id: string, meta: ManualChunkMeta) => string | NullValue;
 
 export type ExternalOption =
@@ -594,6 +595,7 @@ export interface InputOptions {
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingPreset | TreeshakingOptions;
+	typescript?: boolean | 'preserve';
 	watch?: WatcherOptions | false;
 }
 
@@ -620,6 +622,7 @@ export interface NormalizedInputOptions {
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;
 	treeshake: false | NormalizedTreeshakingOptions;
+	typescript: boolean | 'preserve';
 }
 
 export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';

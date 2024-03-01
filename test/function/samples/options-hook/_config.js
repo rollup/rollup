@@ -28,7 +28,8 @@ module.exports = defineTest({
 						preserveSymlinks: false,
 						shimMissingExports: false,
 						strictDeprecations: true,
-						treeshake: false
+						treeshake: false,
+						typescript: false
 					});
 					assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
 					assert.strictEqual(this.meta.watchMode, false);

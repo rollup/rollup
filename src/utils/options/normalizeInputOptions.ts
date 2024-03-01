@@ -61,7 +61,8 @@ export async function normalizeInputOptions(
 		preserveSymlinks: config.preserveSymlinks || false,
 		shimMissingExports: config.shimMissingExports || false,
 		strictDeprecations,
-		treeshake: getTreeshake(config)
+		treeshake: getTreeshake(config),
+		typescript: config.typescript || false
 	};
 
 	warnUnknownOptions(
