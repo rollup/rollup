@@ -529,6 +529,18 @@ export interface Plugin<A = any> extends OutputPlugin, Partial<PluginHooks> {
 	api?: A;
 }
 
+export type JsxPreset = 'react' | 'react-jsx';
+
+export interface NormalizedJsxOptions {
+	factory: string;
+	fragmentFactory: string;
+	importSource: string | null;
+}
+
+export interface JsxOptions extends Partial<NormalizedJsxOptions> {
+	preset?: JsxPreset;
+}
+
 export type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 
 export interface NormalizedTreeshakingOptions {
@@ -551,6 +563,7 @@ interface ManualChunkMeta {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
+
 export type GetManualChunk = (id: string, meta: ManualChunkMeta) => string | NullValue;
 
 export type ExternalOption =
@@ -598,6 +611,7 @@ export interface InputOptions {
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
 	input?: InputOption;
+	jsx?: false | 'preserve' | JsxOptions;
 	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	maxParallelFileOps?: number;
@@ -625,6 +639,7 @@ export interface NormalizedInputOptions {
 	experimentalLogSideEffects: boolean;
 	external: IsExternal;
 	input: string[] | { [entryAlias: string]: string };
+	jsx: false | 'preserve' | NormalizedJsxOptions;
 	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	maxParallelFileOps: number;

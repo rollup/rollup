@@ -15,6 +15,7 @@ module.exports = defineTest({
 						experimentalCacheExpiry: 10,
 						experimentalLogSideEffects: false,
 						input: ['used'],
+						jsx: false,
 						logLevel: 'info',
 						makeAbsoluteExternalsRelative: 'ifRelativeSource',
 						maxParallelFileOps: 20,

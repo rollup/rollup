@@ -8,10 +8,11 @@ import type {
 	RollupCache,
 	RollupOptions
 } from '../../rollup/types';
+import { EMPTY_ARRAY } from '../blank';
 import { ensureArray } from '../ensureArray';
 import { getLogger } from '../logger';
 import { LOGLEVEL_INFO } from '../logging';
-import { URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
+import { URL_JSX, URL_OUTPUT_GENERATEDCODE, URL_TREESHAKE } from '../urls';
 import type { CommandConfigObject } from './normalizeInputOptions';
 import {
 	generatedCodePresets,
@@ -134,6 +135,13 @@ function mergeInputOptions(
 		experimentalLogSideEffects: getOption('experimentalLogSideEffects'),
 		external: getExternal(config, overrides),
 		input: getOption('input') || [],
+		jsx: getObjectOption(
+			config,
+			overrides,
+			'jsx',
+			['preserve'],
+			objectifyOptionWithPresets(treeshakePresets, 'jsx', URL_JSX, 'false, "preserve", ')
+		),
 		logLevel: getOption('logLevel'),
 		makeAbsoluteExternalsRelative: getOption('makeAbsoluteExternalsRelative'),
 		maxParallelFileOps: getOption('maxParallelFileOps'),
@@ -150,6 +158,7 @@ function mergeInputOptions(
 			config,
 			overrides,
 			'treeshake',
+			EMPTY_ARRAY,
 			objectifyOptionWithPresets(treeshakePresets, 'treeshake', URL_TREESHAKE, 'false, true, ')
 		),
 		watch: getWatch(config, overrides)
@@ -171,8 +180,13 @@ const getObjectOption = <T extends object>(
 	config: T,
 	overrides: T,
 	name: keyof T,
+	nonObjectValues: readonly unknown[],
 	objectifyValue = objectifyOption
-) => {
+): any => {
+	const primitiveValue = overrides[name] ?? config[name];
+	if (nonObjectValues.includes(primitiveValue)) {
+		return primitiveValue;
+	}
 	const commandOption = normalizeObjectOptionValue(overrides[name], objectifyValue);
 	const configOption = normalizeObjectOptionValue(config[name], objectifyValue);
 	if (commandOption !== undefined) {
@@ -182,7 +196,7 @@ const getObjectOption = <T extends object>(
 };
 
 export const getWatch = (config: InputOptions, overrides: InputOptions) =>
-	config.watch !== false && getObjectOption(config, overrides, 'watch');
+	config.watch !== false && getObjectOption(config, overrides, 'watch', EMPTY_ARRAY);
 
 export const isWatchEnabled = (optionValue: unknown): boolean => {
 	if (Array.isArray(optionValue)) {
@@ -221,7 +235,7 @@ async function mergeOutputOptions(
 ): Promise<OutputOptions> {
 	const getOption = (name: keyof OutputOptions): any => overrides[name] ?? config[name];
 	const outputOptions: CompleteOutputOptions<keyof OutputOptions> = {
-		amd: getObjectOption(config, overrides, 'amd'),
+		amd: getObjectOption(config, overrides, 'amd', EMPTY_ARRAY),
 		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		chunkFileNames: getOption('chunkFileNames'),
@@ -244,6 +258,7 @@ async function mergeOutputOptions(
 			config,
 			overrides,
 			'generatedCode',
+			EMPTY_ARRAY,
 			objectifyOptionWithPresets(
 				generatedCodePresets,
 				'output.generatedCode',
