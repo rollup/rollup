@@ -11,10 +11,11 @@ import { getLogger } from '../logger';
 import { LOGLEVEL_INFO } from '../logging';
 import { error, logInvalidOption } from '../logs';
 import { resolve } from '../path';
-import { URL_TREESHAKE, URL_TREESHAKE_MODULESIDEEFFECTS } from '../urls';
+import { URL_JSX, URL_TREESHAKE, URL_TREESHAKE_MODULESIDEEFFECTS } from '../urls';
 import {
 	getOnLog,
 	getOptionWithPreset,
+	jsxPresets,
 	normalizePluginOption,
 	treeshakePresets,
 	warnUnknownOptions
@@ -50,6 +51,7 @@ export async function normalizeInputOptions(
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
 		input: getInput(config),
+		jsx: getJsx(config),
 		logLevel,
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
 		maxParallelFileOps,
@@ -112,6 +114,24 @@ const getIdMatcher = <T extends any[]>(
 const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {
 	const configInput = config.input;
 	return configInput == null ? [] : typeof configInput === 'string' ? [configInput] : configInput;
+};
+
+const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
+	const configJsx = config.jsx;
+	if (!configJsx) return false;
+	if (configJsx === 'preserve') return 'preserve';
+	const configWithPreset = getOptionWithPreset(
+		configJsx,
+		jsxPresets,
+		'jsx',
+		URL_JSX,
+		'false, "preserve", '
+	);
+	return {
+		factory: configWithPreset.factory || 'React.createElement',
+		fragmentFactory: configWithPreset.fragmentFactory || 'React.Fragment',
+		importSource: configWithPreset.importSource || null
+	};
 };
 
 const getMaxParallelFileOps = (

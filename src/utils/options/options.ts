@@ -5,6 +5,7 @@ import type {
 	LogLevelOption,
 	NormalizedGeneratedCodeOptions,
 	NormalizedInputOptions,
+	NormalizedJsxOptions,
 	NormalizedOutputOptions,
 	NormalizedTreeshakingOptions,
 	OutputOptions,
@@ -136,6 +137,21 @@ export const treeshakePresets: {
 	}
 };
 
+export const jsxPresets: {
+	[key in NonNullable<ObjectValue<InputOptions['jsx']>['preset']>]: NormalizedJsxOptions;
+} = {
+	react: {
+		factory: 'React.createElement',
+		fragmentFactory: 'React.Fragment',
+		importSource: null
+	},
+	'react-jsx': {
+		factory: 'jsx',
+		fragmentFactory: 'Fragment',
+		importSource: 'react'
+	}
+};
+
 export const generatedCodePresets: {
 	[key in NonNullable<
 		ObjectValue<OutputOptions['generatedCode']>['preset']
@@ -159,7 +175,8 @@ export const generatedCodePresets: {
 
 type ObjectOptionWithPresets =
 	| Partial<NormalizedTreeshakingOptions>
-	| Partial<NormalizedGeneratedCodeOptions>;
+	| Partial<NormalizedGeneratedCodeOptions>
+	| Partial<NormalizedJsxOptions>;
 
 export const objectifyOption = (value: unknown): Record<string, unknown> =>
 	value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
@@ -197,7 +214,7 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 	optionName: string,
 	urlSnippet: string,
 	additionalValues: string
-): Record<string, unknown> => {
+): T => {
 	const presetName: string | undefined = (value as any)?.preset;
 	if (presetName) {
 		const preset = presets[presetName];
@@ -214,7 +231,7 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 			);
 		}
 	}
-	return objectifyOptionWithPresets(presets, optionName, urlSnippet, additionalValues)(value);
+	return objectifyOptionWithPresets(presets, optionName, urlSnippet, additionalValues)(value) as T;
 };
 
 export const normalizePluginOption: {

@@ -169,6 +169,14 @@ File names containing spaces can be specified by using quotes:
 rollup "main entry"="src/entry 1.js" "src/other entry.js" --format es
 ```
 
+### jsx
+
+|          |                                                  |
+| -------: | :----------------------------------------------- |
+|    Type: | `false \| "preserve" \| JsxPreset \| JsxOptions` |
+|     CLI: | `--jsx <preset>`/`--no-jsx`                      |
+| Default: | `false`                                          |
+
 ### output.dir
 
 |       |                        |
