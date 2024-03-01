@@ -49,13 +49,10 @@ interface ChunkPartition {
  *
  * One non-trivial optimization we can apply is that dynamic entries are
  * different from static entries in so far as when a dynamic import occurs,
- * some
- * modules are already in memory. If some of these modules are also
- * dependencies
- * of the dynamic entry, then it does not make sense to create a separate chunk
- * for them. Instead, the dynamic import target can load them from the
- * importing
- * chunk.
+ * some modules are already in memory. If some of these modules are also
+ * dependencies of the dynamic entry, then it does not make sense to create a
+ * separate chunk for them. Instead, the dynamic import target can load them
+ * from the importing chunk.
  *
  * With regard to chunking, if B is implicitly loaded after A, then this can be
  * handled the same way as if there was a dynamic import A => B.
@@ -64,8 +61,7 @@ interface ChunkPartition {
  * Assume A -> B (A imports B), A => C (A dynamically imports C) and C -> B.
  * Then the initial algorithm would assign A into the A chunk, C into the C
  * chunk and B into the AC chunk, i.e. the chunk with the dependent entry
- * points
- * A and C.
+ * points A and C.
  * However we know that C can only be loaded from A, so A and its dependency B
  * must already be in memory when C is loaded. So it is enough to create only
  * two chunks A containing [AB] and C containing [C].
@@ -80,15 +76,13 @@ interface ChunkPartition {
  * A => D,
  * D -> B, D -> C
  * So without dynamic import optimization, the dependent entry points are
- * A: XY, B: DXY, C: DX, D: D, X: X, Y: Y,
- * so we would for now create six chunks.
+ * A: XY, B: DXY, C: DX, D: D, X: X, Y: Y, so we would for now create six
+ * chunks.
  *
  * Now D is loaded only after A is loaded. But A is loaded if either X is
- * loaded
- * or Y is loaded. So the modules that are already in memory when D is loaded
- * are the intersection of all modules that X depends on with all modules that
- * Y
- * depends on, which in this case are the modules A and B.
+ * loaded or Y is loaded. So the modules that are already in memory when D is
+ * loaded are the intersection of all modules that X depends on with all
+ * modules that Y depends on, which in this case are the modules A and B.
  * We could also say they are all modules that have both X and Y as dependent
  * entry points.
  *
@@ -97,8 +91,7 @@ interface ChunkPartition {
  * same chunk.
  *
  * Now let us extend this to the most general case where we have several
- * dynamic
- * importers for one dynamic entry point.
+ * dynamic importers for one dynamic entry point.
  *
  * In the most general form, it works like this:
  * For each dynamic entry point, we have a number of dynamic importers, which
@@ -111,9 +104,8 @@ interface ChunkPartition {
  * each dynamic importer.
  *
  * Assuming that A => D and B => D and A has dependent entry points XY and B
- * has
- * dependent entry points YZ, then the modules guaranteed to be in memory are
- * all modules that have at least XYZ as dependent entry points.
+ * has dependent entry points YZ, then the modules guaranteed to be in memory
+ * are all modules that have at least XYZ as dependent entry points.
  * We call XYZ the *dynamically dependent entry points* of D.
  *
  * Now there is one last case to consider: If one of the dynamically dependent
@@ -140,7 +132,7 @@ interface ChunkPartition {
  *
  * For efficient operations, we assign each entry a numerical index and
  * represent Sets of Chunks as BigInt values where each chunk corresponds to a
- * bit index. Then thw last two maps can be represented as arrays of BigInt
+ * bit index. Then the last two maps can be represented as arrays of BigInt
  * values.
  *
  * Then we iterate through each dynamic entry. We set the already loaded modules
