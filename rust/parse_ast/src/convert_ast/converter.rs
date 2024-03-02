@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use swc_atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
@@ -37,6 +38,7 @@ pub struct AstConverter<'a> {
   buffer: Vec<u8>,
   code: &'a [u8],
   index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
+  string_position_map: HashMap<String, usize>,
 }
 
 impl<'a> AstConverter<'a> {
@@ -46,6 +48,7 @@ impl<'a> AstConverter<'a> {
       buffer: Vec::with_capacity(20 * code.len()),
       code: code.as_bytes(),
       index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler::new(code, annotations),
+      string_position_map: HashMap::new(),
     }
   }
 
@@ -156,9 +159,27 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  // TODO SWC deduplicate strings and see if we can easily compare atoms
-  fn convert_string(&mut self, string: &str) {
-    convert_string(&mut self.buffer, string);
+  fn get_string_position_if_present(&mut self, string: &str) -> Option<usize> {
+    match self.string_position_map.get(string) {
+      Some(position) => Some(*position),
+      None => None,
+    }
+  }
+
+  fn store_string_position(&mut self, string: &str, position: usize) {
+    self.string_position_map.insert(string.to_string(), position);
+  }
+
+  fn store_string(&mut self, string: &str, reference_position: usize){
+    let found_position: Option<usize> = self.get_string_position_if_present(string);
+    if found_position.is_some() {
+      self.update_reference_position(found_position.unwrap());
+    } else {
+      self.update_reference_position(reference_position);
+      let start_position: usize = self.buffer.len();
+      convert_string(&mut self.buffer, string);
+      self.store_string_position(string, start_position);
+    }
   }
 
   fn update_reference_position(&mut self, reference_position: usize) {
@@ -1481,8 +1502,8 @@ impl<'a> AstConverter<'a> {
     self.convert_expression(&expression_statement.expr);
 
     // directive
-    self.update_reference_position(end_position + DIRECTIVE_DIRECTIVE_OFFSET);
-    self.convert_string(directive);
+    self.store_string(directive, end_position + DIRECTIVE_DIRECTIVE_OFFSET);
+
     // end
     self.add_end(end_position, &expression_statement.span);
   }
@@ -1783,9 +1804,7 @@ impl<'a> AstConverter<'a> {
       IDENTIFIER_RESERVED_BYTES,
     );
     // name
-
-    self.update_reference_position(end_position + IDENTIFIER_NAME_OFFSET);
-    self.convert_string(name);
+    self.store_string(name, end_position + IDENTIFIER_NAME_OFFSET);
     // end
     self.add_explicit_end(end_position, end);
   }
@@ -1969,11 +1988,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // bigint
-    self.update_reference_position(end_position + LITERAL_BIG_INT_BIGINT_OFFSET);
-    self.convert_string(&bigint.value.to_str_radix(10));
+    self.store_string(&bigint.value.to_str_radix(10), end_position + LITERAL_BIG_INT_BIGINT_OFFSET);
     // raw
-    self.update_reference_position(end_position + LITERAL_BIG_INT_RAW_OFFSET);
-    self.convert_string(bigint.raw.as_ref().unwrap());
+    self.store_string(bigint.raw.as_ref().unwrap(), end_position + LITERAL_BIG_INT_RAW_OFFSET);
     // end
     self.add_end(end_position, &bigint.span);
   }
@@ -2017,8 +2034,7 @@ impl<'a> AstConverter<'a> {
     self.buffer[value_position..value_position + 8].copy_from_slice(&literal.value.to_le_bytes());
     // raw
     if let Some(raw) = literal.raw.as_ref() {
-      self.update_reference_position(end_position + LITERAL_NUMBER_RAW_OFFSET);
-      self.convert_string(raw);
+      self.store_string(raw, end_position + LITERAL_NUMBER_RAW_OFFSET);
     }
     // end
     self.add_end(end_position, &literal.span);
@@ -2032,11 +2048,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    self.update_reference_position(end_position + LITERAL_REG_EXP_FLAGS_OFFSET);
-    self.convert_string(&regex.flags);
+    self.store_string(&regex.flags, end_position + LITERAL_REG_EXP_FLAGS_OFFSET);
     // pattern
-    self.update_reference_position(end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
-    self.convert_string(&regex.exp);
+    self.store_string(&regex.exp, end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
     // end
     self.add_end(end_position, &regex.span);
   }
@@ -2049,12 +2063,11 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // value
-    self.update_reference_position(end_position + LITERAL_STRING_VALUE_OFFSET);
-    self.convert_string(&literal.value);
+
+    self.store_string(&literal.value, end_position + LITERAL_STRING_VALUE_OFFSET);
     // raw
     if let Some(raw) = literal.raw.as_ref() {
-      self.update_reference_position(end_position + LITERAL_STRING_RAW_OFFSET);
-      self.convert_string(raw);
+      self.store_string(raw, end_position + LITERAL_STRING_RAW_OFFSET);
     }
     // end
     self.add_end(end_position, &literal.span);
@@ -2349,8 +2362,7 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // id
-    self.update_reference_position(end_position + PRIVATE_IDENTIFIER_NAME_OFFSET);
-    self.convert_string(&private_name.id.sym);
+    self.store_string(&private_name.id.sym, end_position + PRIVATE_IDENTIFIER_NAME_OFFSET);
     // end
     self.add_end(end_position, &private_name.span);
   }
@@ -2784,12 +2796,10 @@ impl<'a> AstConverter<'a> {
     let flags_position = end_position + TEMPLATE_ELEMENT_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // raw
-    self.update_reference_position(end_position + TEMPLATE_ELEMENT_RAW_OFFSET);
-    self.convert_string(&template_element.raw);
+    self.store_string(&template_element.raw, end_position + TEMPLATE_ELEMENT_RAW_OFFSET);
     // cooked
     if let Some(cooked) = template_element.cooked.as_ref() {
-      self.update_reference_position(end_position + TEMPLATE_ELEMENT_COOKED_OFFSET);
-      self.convert_string(cooked);
+      self.store_string(cooked, end_position + TEMPLATE_ELEMENT_COOKED_OFFSET);
     }
     // end
     self.add_end(end_position, &template_element.span);
