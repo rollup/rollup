@@ -596,8 +596,14 @@ export const AST_NODES = {
 			['finalizer', 'OptionalNode']
 		]
 	},
-	TSInterfaceBody: { fields: [['body', 'NodeList']] },
-	TSInterfaceDeclaration: { fields: [['body', 'Node']] },
+	TSInterfaceBody: {
+		estreeType: 'any',
+		fields: [['body', 'NodeList']]
+	},
+	TSInterfaceDeclaration: {
+		estreeType: 'any',
+		fields: [['body', 'Node']]
+	},
 	TSNumberKeyword: {
 		estreeType: 'any',
 		fields: []
