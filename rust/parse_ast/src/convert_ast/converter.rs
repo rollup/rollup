@@ -1,11 +1,20 @@
 use swc_common::Span;
-use swc_ecma_ast::{AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr, JSXElement};
+use swc_ecma_ast::{
+  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
+  ExprOrSpread, ForHead, ImportSpecifier, JSXElement, JSXElementName, JSXOpeningElement, Lit,
+  ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr,
+  Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
+};
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
+  JSX_ELEMENT_CHILDREN_OFFSET, JSX_ELEMENT_OPENING_ELEMENT_OFFSET, JSX_ELEMENT_RESERVED_BYTES,
+  JSX_IDENTIFIER_NAME_OFFSET, JSX_IDENTIFIER_RESERVED_BYTES, JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
+  JSX_OPENING_ELEMENT_NAME_OFFSET, JSX_OPENING_ELEMENT_RESERVED_BYTES, TYPE_CLASS_EXPRESSION,
+  TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ELEMENT, TYPE_JSX_IDENTIFIER,
+  TYPE_JSX_OPENING_ELEMENT,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
@@ -359,7 +368,7 @@ impl<'a> AstConverter<'a> {
       Expr::JSXEmpty(_) => unimplemented!("Cannot convert Expr::JSXEmpty"),
       Expr::JSXElement(jsx_element) => {
         self.convert_jsx_element(jsx_element);
-      },
+      }
       Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
       Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
       Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
@@ -653,23 +662,84 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_jsx_element(&mut self, jsx_element: &JSXElement) {
-      panic!("JSXElement not supported");
-      /*   let end_position = self.add_type_and_start(
-        &TYPE_JSX_ELEMENT_EXPRESSION,
-        &jsx_element.span,
-        JSX_ELEMENT_EXPRESSION_RESERVED_BYTES,
-        false,
-      );
-      self.store_identifier()
-      // argument
-      jsx_element.opening.as_ref().map(|expression| {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_ELEMENT,
+      &jsx_element.span,
+      JSX_ELEMENT_RESERVED_BYTES,
+      false,
+    );
+    // openingElement
+    self.update_reference_position(end_position + JSX_ELEMENT_OPENING_ELEMENT_OFFSET);
+    self.store_jsx_opening_element(&jsx_element.opening);
+    // children
+    self.convert_item_list(
+      &jsx_element.children,
+      end_position + JSX_ELEMENT_CHILDREN_OFFSET,
+      |ast_converter, jsx_element_child| {
+        // ast_converter.convert_jsx_element_child(jsx_element_child);
+        true
+      },
+    );
 
+    // closingElement
+    // self.update_reference_position(end_position + JSX_ELEMENT_CLOSING_ELEMENT_OFFSET);
+    // self.store_jsx_closing()
 
-        self.update_reference_position(end_position + YIELD_EXPRESSION_ARGUMENT_OFFSET);
-        self.convert_expression(expression)
-      });
-      // end
-      self.add_end(end_position, &jsx_element.span);*/
+    // end
+    self.add_end(end_position, &jsx_element.span);
+  }
+
+  fn store_jsx_opening_element(&mut self, jsx_opening_element: &JSXOpeningElement) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_OPENING_ELEMENT,
+      &jsx_opening_element.span,
+      JSX_OPENING_ELEMENT_RESERVED_BYTES,
+      false,
+    );
+    // name
+    self.update_reference_position(end_position + JSX_OPENING_ELEMENT_NAME_OFFSET);
+    self.store_jsx_element_name(&jsx_opening_element.name);
+    // attributes
+    self.convert_item_list(
+      &jsx_opening_element.attrs,
+      end_position + JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
+      |ast_converter, jsx_attribute| {
+        unimplemented!("Convert JSXAttribute")
+        // ast_converter.store_jsx_attribute(jsx_attribute);
+        // true
+      },
+    );
+    // end
+    self.add_end(end_position, &jsx_opening_element.span);
+  }
+
+  fn store_jsx_element_name(&mut self, jsx_element_name: &JSXElementName) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_IDENTIFIER,
+      match jsx_element_name {
+        JSXElementName::Ident(ident) => &ident.span,
+        JSXElementName::JSXMemberExpr(jsx_member_expr) => {
+          unimplemented!("JSXElementName::JSXMemberExpr")
+        }
+        JSXElementName::JSXNamespacedName(jsx_namespaced_name) => {
+          unimplemented!("JSXElementName::JSXNamespacedName")
+        }
+      },
+      JSX_IDENTIFIER_RESERVED_BYTES,
+      false,
+    );
+
+    match jsx_element_name {
+      JSXElementName::Ident(ident) => {
+        self.convert_string(&ident.sym, end_position + JSX_IDENTIFIER_NAME_OFFSET);
+      }
+      JSXElementName::JSXMemberExpr(jsx_member_expr) => {
+        unimplemented!("JSXElementName::JSXMemberExpr")
+      }
+      JSXElementName::JSXNamespacedName(jsx_namespaced_name) => {
+        unimplemented!("JSXElementName::JSXNamespacedName")
+      }
+    }
   }
 }
 

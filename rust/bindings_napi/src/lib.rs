@@ -21,7 +21,14 @@ impl Task for ParseTask {
   type JsValue = Buffer;
 
   fn compute(&mut self) -> Result<Self::Output> {
-    Ok(parse_ast(self.code.clone(), self.allow_return_outside_function, self.jsx).into())
+    Ok(
+      parse_ast(
+        self.code.clone(),
+        self.allow_return_outside_function,
+        self.jsx,
+      )
+      .into(),
+    )
   }
 
   fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {

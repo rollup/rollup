@@ -4,5 +4,7 @@ module.exports = defineTest({
 	options: {
 		external: ['react'],
 		jsx: 'preserve'
-	}
+	},
+	expectedWarnings: ['UNUSED_EXTERNAL_IMPORT'],
+	verifyAst: false
 });

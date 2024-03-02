@@ -24,20 +24,23 @@ pub const TYPE_IDENTIFIER: [u8; 4] = 34u32.to_ne_bytes();
 pub const TYPE_IMPORT_ATTRIBUTE: [u8; 4] = 36u32.to_ne_bytes();
 pub const TYPE_IMPORT_DECLARATION: [u8; 4] = 37u32.to_ne_bytes();
 pub const TYPE_IMPORT_EXPRESSION: [u8; 4] = 39u32.to_ne_bytes();
-pub const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 50u32.to_ne_bytes();
-pub const TYPE_MEMBER_EXPRESSION: [u8; 4] = 51u32.to_ne_bytes();
-pub const TYPE_META_PROPERTY: [u8; 4] = 52u32.to_ne_bytes();
-pub const TYPE_METHOD_DEFINITION: [u8; 4] = 53u32.to_ne_bytes();
-pub const TYPE_NEW_EXPRESSION: [u8; 4] = 54u32.to_ne_bytes();
-pub const TYPE_PROGRAM: [u8; 4] = 58u32.to_ne_bytes();
-pub const TYPE_PROPERTY: [u8; 4] = 59u32.to_ne_bytes();
-pub const TYPE_PROPERTY_DEFINITION: [u8; 4] = 60u32.to_ne_bytes();
-pub const TYPE_REST_ELEMENT: [u8; 4] = 61u32.to_ne_bytes();
-pub const TYPE_SPREAD_ELEMENT: [u8; 4] = 64u32.to_ne_bytes();
-pub const TYPE_TEMPLATE_LITERAL: [u8; 4] = 71u32.to_ne_bytes();
-pub const TYPE_TRY_STATEMENT: [u8; 4] = 74u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 77u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 78u32.to_ne_bytes();
+pub const TYPE_JSX_ELEMENT: [u8; 4] = 42u32.to_ne_bytes();
+pub const TYPE_JSX_IDENTIFIER: [u8; 4] = 43u32.to_ne_bytes();
+pub const TYPE_JSX_OPENING_ELEMENT: [u8; 4] = 44u32.to_ne_bytes();
+pub const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 52u32.to_ne_bytes();
+pub const TYPE_MEMBER_EXPRESSION: [u8; 4] = 53u32.to_ne_bytes();
+pub const TYPE_META_PROPERTY: [u8; 4] = 54u32.to_ne_bytes();
+pub const TYPE_METHOD_DEFINITION: [u8; 4] = 55u32.to_ne_bytes();
+pub const TYPE_NEW_EXPRESSION: [u8; 4] = 56u32.to_ne_bytes();
+pub const TYPE_PROGRAM: [u8; 4] = 60u32.to_ne_bytes();
+pub const TYPE_PROPERTY: [u8; 4] = 61u32.to_ne_bytes();
+pub const TYPE_PROPERTY_DEFINITION: [u8; 4] = 62u32.to_ne_bytes();
+pub const TYPE_REST_ELEMENT: [u8; 4] = 63u32.to_ne_bytes();
+pub const TYPE_SPREAD_ELEMENT: [u8; 4] = 66u32.to_ne_bytes();
+pub const TYPE_TEMPLATE_LITERAL: [u8; 4] = 73u32.to_ne_bytes();
+pub const TYPE_TRY_STATEMENT: [u8; 4] = 76u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 79u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 80u32.to_ne_bytes();
 
 pub const PANIC_ERROR_RESERVED_BYTES: usize = 8;
 pub const PANIC_ERROR_MESSAGE_OFFSET: usize = 4;
@@ -124,6 +127,18 @@ pub const IMPORT_DECLARATION_ATTRIBUTES_OFFSET: usize = 12;
 pub const IMPORT_EXPRESSION_RESERVED_BYTES: usize = 12;
 pub const IMPORT_EXPRESSION_SOURCE_OFFSET: usize = 4;
 pub const IMPORT_EXPRESSION_OPTIONS_OFFSET: usize = 8;
+
+pub const JSX_ELEMENT_RESERVED_BYTES: usize = 16;
+pub const JSX_ELEMENT_OPENING_ELEMENT_OFFSET: usize = 4;
+pub const JSX_ELEMENT_CLOSING_ELEMENT_OFFSET: usize = 8;
+pub const JSX_ELEMENT_CHILDREN_OFFSET: usize = 12;
+
+pub const JSX_IDENTIFIER_RESERVED_BYTES: usize = 8;
+pub const JSX_IDENTIFIER_NAME_OFFSET: usize = 4;
+
+pub const JSX_OPENING_ELEMENT_RESERVED_BYTES: usize = 16;
+pub const JSX_OPENING_ELEMENT_NAME_OFFSET: usize = 8;
+pub const JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET: usize = 12;
 
 pub const MEMBER_EXPRESSION_RESERVED_BYTES: usize = 16;
 pub const MEMBER_EXPRESSION_OBJECT_OFFSET: usize = 8;

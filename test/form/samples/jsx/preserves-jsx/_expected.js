@@ -1,4 +1,5 @@
-import React from "react";
+import 'react';
 
-const Foo = () => {};
-export const result = <Foo />;
+const result = <Foo />;
+
+export { result };

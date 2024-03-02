@@ -462,6 +462,25 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			children: convertNodeList(buffer[position + 4], buffer)
 		};
 	},
+	function jsxIdentifier(position, buffer): JsxIdentifierNode {
+		return {
+			type: 'JsxIdentifier',
+			start: buffer[position],
+			end: buffer[position + 1],
+			name: buffer.convertString(buffer[position + 2])
+		};
+	},
+	function jsxOpeningElement(position, buffer): JsxOpeningElementNode {
+		const flags = buffer[position + 2];
+		return {
+			type: 'JsxOpeningElement',
+			start: buffer[position],
+			end: buffer[position + 1],
+			selfClosing: (flags & 1) === 1,
+			name: convertNode(buffer[position + 3], buffer),
+			attributes: convertNodeList(buffer[position + 4], buffer)
+		};
+	},
 	function labeledStatement(position, buffer): LabeledStatementNode {
 		return {
 			type: 'LabeledStatement',
@@ -908,6 +927,8 @@ export type ImportExpressionNode = RollupAstNode<
 export type ImportNamespaceSpecifierNode = RollupAstNode<estree.ImportNamespaceSpecifier>;
 export type ImportSpecifierNode = RollupAstNode<estree.ImportSpecifier>;
 export type JsxElementNode = RollupAstNode<any>;
+export type JsxIdentifierNode = RollupAstNode<any>;
+export type JsxOpeningElementNode = RollupAstNode<any>;
 export type LabeledStatementNode = RollupAstNode<estree.LabeledStatement>;
 export type LiteralBigIntNode = RollupAstNode<estree.BigIntLiteral>;
 export type LiteralBooleanNode = RollupAstNode<estree.SimpleLiteral & { value: boolean }>;
