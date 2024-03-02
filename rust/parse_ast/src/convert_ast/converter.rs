@@ -1,9 +1,10 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
-  ExprOrSpread, ForHead, ImportSpecifier, JSXElement, JSXElementName, JSXOpeningElement, Lit,
-  ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr,
-  Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
+  AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
+  ExprOrSpread, ForHead, ImportSpecifier, JSXElement, JSXElementChild, JSXElementName,
+  JSXOpeningElement, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp,
+  OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt,
+  VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
@@ -676,7 +677,7 @@ impl<'a> AstConverter<'a> {
       &jsx_element.children,
       end_position + JSX_ELEMENT_CHILDREN_OFFSET,
       |ast_converter, jsx_element_child| {
-        // ast_converter.convert_jsx_element_child(jsx_element_child);
+        ast_converter.convert_jsx_element_child(jsx_element_child);
         true
       },
     );
@@ -687,6 +688,30 @@ impl<'a> AstConverter<'a> {
 
     // end
     self.add_end(end_position, &jsx_element.span);
+  }
+
+  fn convert_jsx_element_child(&mut self, jsx_element_child: &JSXElementChild) {
+    match jsx_element_child {
+      JSXElementChild::JSXText(_jsx_text) => {
+        // self.store_jsx_text(jsx_text);
+        unimplemented!("JSXElementChild::JSXText")
+      }
+      JSXElementChild::JSXExprContainer(_jsx_expr_container) => {
+        // self.store_jsx_expr_container(jsx_expr_container);
+        unimplemented!("JSXElementChild::JSXExprContainer")
+      }
+      JSXElementChild::JSXSpreadChild(_jsx_spread_child) => {
+        // self.store_jsx_spread_child(jsx_spread_child);
+        unimplemented!("JSXElementChild::JSXSpreadChild")
+      }
+      JSXElementChild::JSXFragment(_jsx_fragment) => {
+        // self.store_jsx_fragment(jsx_fragment);
+        unimplemented!("JSXElementChild::JSXFragment")
+      }
+      JSXElementChild::JSXElement(jsx_element) => {
+        self.convert_jsx_element(jsx_element);
+      }
+    }
   }
 
   fn store_jsx_opening_element(&mut self, jsx_opening_element: &JSXOpeningElement) {
