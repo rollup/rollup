@@ -342,3 +342,16 @@ pub const YIELD_EXPRESSION_RESERVED_BYTES: usize = 16;
 pub const YIELD_EXPRESSION_FLAGS_OFFSET: usize = 8;
 pub const YIELD_EXPRESSION_DELEGATE_FLAG: u32 = 1;
 pub const YIELD_EXPRESSION_ARGUMENT_OFFSET: usize = 12;
+
+pub const BLOCK_SCOPE: [u8; 4] = 42u32.to_ne_bytes();
+pub const CATCH_BODY_SCOPE: [u8; 4] = 43u32.to_ne_bytes();
+pub const CHILD_SCOPE: [u8; 4] = 44u32.to_ne_bytes();
+pub const CLASS_BODY_SCOPE: [u8; 4] = 45u32.to_ne_bytes();
+pub const FUNCTION_BODY_SCOPE: [u8; 4] = 46u32.to_ne_bytes();
+pub const FUNCTION_SCOPE: [u8; 4] = 47u32.to_ne_bytes();
+pub const GLOBAL_SCOPE: [u8; 4] = 48u32.to_ne_bytes();
+pub const MODULE_SCOPE: [u8; 4] = 49u32.to_ne_bytes();
+pub const PARAMETER_SCOPE: [u8; 4] = 50u32.to_ne_bytes();
+pub const RETURN_VALUE_SCOPE: [u8; 4] = 51u32.to_ne_bytes();
+pub const SCOPE: [u8; 4] = 52u32.to_ne_bytes();
+pub const TRACKING_SCOPE: [u8; 4] = 53u32.to_ne_bytes();

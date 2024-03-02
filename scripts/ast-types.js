@@ -25,7 +25,7 @@
  * https://typescript-eslint.io/play/#showAST=es&fileType=.tsx
  */
 
-/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"Float"} FieldType */
+/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'InvalidAnnotations'|'String'|'FixedString'|'OptionalString'|'Float'} FieldType */
 
 /** @typedef {[name:string, type:FieldType]} FieldWithType */
 
@@ -41,7 +41,7 @@
  *    baseForAdditionalFields?: string[], // Fields needed to define additional fields
  *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
  *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
- *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
+ *    optionalFallback?: Record<string,string> // If an optional variable should not have 'null' as fallback, but the value of another field,
  *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
  *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
  *    scriptedFields?: Record<string,string> // If fields are parsed via custom logic, $position references the node position
@@ -691,14 +691,23 @@ export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, 
 		reservedFields
 	};
 });
-//
-// /** @typedef {{
-//  *  }} ScopeDescription */
-//
-// /** @type {Record<string, ScopeDescription>} */
-// export const AST_SCOPES = {
-// 	GlobalScope: {},
-// 	ModuleScope: {}
-// };
-//
-// export const astScopeNames = Object.keys(AST_NODES).map(key => key);
+
+/** @typedef {{
+ *  }} ScopeDescription
+ */
+/** @type {Record<string, ScopeDescription>} */
+export const AST_SCOPES = {
+	BlockScope: {},
+	CatchBodyScope: {},
+	ChildScope: {},
+	ClassBodyScope: {},
+	FunctionBodyScope: {},
+	FunctionScope: {},
+	GlobalScope: {},
+	ModuleScope: {},
+	ParameterScope: {},
+	ReturnValueScope: {},
+	Scope: {},
+	TrackingScope: {}
+};
+export const astScopeNames = Object.keys(AST_SCOPES);

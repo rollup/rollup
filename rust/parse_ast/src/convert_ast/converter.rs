@@ -32,9 +32,6 @@ mod analyze_code;
 mod string_constants;
 mod utf16_positions;
 
-pub const GLOBAL_SCOPE: [u8; 4] = 42u32.to_ne_bytes();
-pub const MODULE_SCOPE: [u8; 4] = 43u32.to_ne_bytes();
-
 pub mod ast_constants;
 
 pub struct AstConverter<'a> {
