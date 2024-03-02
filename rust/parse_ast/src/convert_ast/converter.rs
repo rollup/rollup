@@ -170,7 +170,7 @@ impl<'a> AstConverter<'a> {
   fn store_string(&mut self, string: &str, reference_position: usize){
     let found_position: Option<usize> = self.get_string_position_if_present(string);
     if let Some(pos) = found_position {
-      self.update_reference_position(pos);
+      self.update_reference_position_with_reference(reference_position, pos);
     } else {
       self.update_reference_position(reference_position);
       let start_position: usize = self.buffer.len();
@@ -180,7 +180,11 @@ impl<'a> AstConverter<'a> {
   }
 
   fn update_reference_position(&mut self, reference_position: usize) {
-    let insert_position = (self.buffer.len() as u32) >> 2;
+    let insert_position = self.buffer.len() >> 2;
+    self.update_reference_position_with_reference(reference_position ,insert_position)
+  }
+
+  fn update_reference_position_with_reference(&mut self, reference_position: usize, insert_position: usize) {
     self.buffer[reference_position..reference_position + 4]
       .copy_from_slice(&insert_position.to_ne_bytes());
   }
