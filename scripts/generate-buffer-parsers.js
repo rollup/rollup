@@ -261,7 +261,7 @@ function convertScope(context: AstContext, position: number, buffer: Uint32Array
 	const parentScope = parentScopePosition
 		? convertScope(context, parentScopePosition, buffer)
 		: new GlobalScope();
-	return new ChildScope(parentScope!, context);
+	return new ChildScope(parentScope, context);
 }
 
 function convertNodeList(parent: Node | { context: AstContext; type: string }, parentScope: ChildScope, position: number, buffer: Uint32Array, readString: ReadString): any[] {

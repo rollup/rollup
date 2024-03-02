@@ -2357,10 +2357,8 @@ impl<'a> AstConverter<'a> {
     // body
     let mut keep_checking_directives = true;
 
-    let scope_position = self.buffer.len();
-    // reserve space for the scope
-    self.buffer.resize(end_position + 4, 0);
-
+    let scope_position = self.buffer.len() - 4;
+    
     match body {
       Program::Module(module) => {
         self.convert_item_list_with_state(
@@ -2402,14 +2400,16 @@ impl<'a> AstConverter<'a> {
       }
     }
 
+    println!("Scope position: {}", scope_position);
     self.update_reference_position(scope_position);
+    println!("Converting scope");
     // write scope
     self.convert_scope(&GLOBAL_SCOPE, Option::None);
-
     // end
     self.add_explicit_end(end_position, self.code.len() as u32);
     // annotations, these need to come after end so that trailing comments are
     // included
+    println!("Invalidating collected annotations");
     self.update_reference_position(end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET);
     self.index_converter.invalidate_collected_annotations();
     let invalid_annotations = self.index_converter.take_invalid_annotations();

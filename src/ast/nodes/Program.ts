@@ -62,6 +62,7 @@ export default class Program extends NodeBase {
 		super.initialise();
 		if (this.invalidAnnotations)
 			for (const { start, end, type } of this.invalidAnnotations) {
+				console.log('start:', start, 'end:', end, 'type:', type);
 				this.scope.context.magicString.remove(start, end);
 				if (type === 'pure' || type === 'noSideEffects') {
 					this.scope.context.log(

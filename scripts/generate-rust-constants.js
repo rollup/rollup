@@ -33,9 +33,10 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 		const lines = [];
 		// reservedBytes is the number of bytes reserved for
 		// - end position
+		// - scope
 		// - flags if present
 		// - non-inlined fields
-		let reservedBytes = BYTES_PER_U32;
+		let reservedBytes = BYTES_PER_U32 * 2;
 		if (flags) {
 			lines.push(`pub const ${toScreamingSnakeCase(name)}_FLAGS_OFFSET: usize = ${reservedBytes};`);
 			reservedBytes += BYTES_PER_U32;

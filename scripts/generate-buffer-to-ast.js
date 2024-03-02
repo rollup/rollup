@@ -52,6 +52,8 @@ const jsConverters = astNodeNamesWithFieldOrder.map(
 		)} (position, buffer${readStringArgument}): ${name}Node {
     const start = buffer[position++];
     const end = buffer[position++];
+    // TODO init scope
+    position++;
     ${definitions.join('')}return {
       type: '${node.astType || name}',
       start,
