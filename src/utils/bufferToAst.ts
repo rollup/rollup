@@ -517,7 +517,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const name = convertString(buffer[position++], buffer, readString);
-		const typeAnnotation = convertNode(buffer[position], buffer, readString);
+		const typeAnnotationPosition = buffer[position];
+		const typeAnnotation =
+			typeAnnotationPosition === 0 ? null : convertNode(typeAnnotationPosition, buffer, readString);
 		return {
 			type: 'Identifier',
 			start,
@@ -1235,7 +1237,7 @@ export type FunctionExpressionNode = RollupAstNode<estree.FunctionExpression> & 
 	[ANNOTATION_KEY]?: readonly RollupAnnotation[];
 	expression: false;
 };
-export type IdentifierNode = RollupAstNode<estree.Identifier>;
+export type IdentifierNode = RollupAstNode<estree.Identifier & { typeAnnotation: any }>;
 export type IfStatementNode = RollupAstNode<estree.IfStatement>;
 export type ImportAttributeNode = RollupAstNode<{
 	key: estree.Identifier | estree.Literal;
@@ -1292,8 +1294,8 @@ export type ThrowStatementNode = RollupAstNode<estree.ThrowStatement>;
 export type TryStatementNode = RollupAstNode<estree.TryStatement>;
 export type TSInterfaceBodyNode = RollupAstNode<estree.TSInterfaceBody>;
 export type TSInterfaceDeclarationNode = RollupAstNode<estree.TSInterfaceDeclaration>;
-export type TSNumberKeywordNode = RollupAstNode<estree.TSNumberKeyword>;
-export type TSTypeAnnotationNode = RollupAstNode<estree.TSTypeAnnotation>;
+export type TSNumberKeywordNode = RollupAstNode<any>;
+export type TSTypeAnnotationNode = RollupAstNode<any>;
 export type UnaryExpressionNode = RollupAstNode<estree.UnaryExpression> & { prefix: true };
 export type UpdateExpressionNode = RollupAstNode<estree.UpdateExpression>;
 export type VariableDeclarationNode = RollupAstNode<estree.VariableDeclaration>;
