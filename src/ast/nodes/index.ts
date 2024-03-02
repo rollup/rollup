@@ -40,6 +40,7 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportExpression from './ImportExpression';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import ImportSpecifier from './ImportSpecifier';
+import JsxAttribute from './JsxAttribute';
 import JsxElement from './JsxElement';
 import JsxIdentifier from './JsxIdentifier';
 import JsxOpeningElement from './JsxOpeningElement';
@@ -122,6 +123,7 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	ImportExpression,
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
+	JsxAttribute,
 	JsxElement,
 	JsxIdentifier,
 	JsxOpeningElement,

@@ -1,22 +1,23 @@
 use swc_common::Span;
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
-  ExprOrSpread, ForHead, ImportSpecifier, JSXElement, JSXElementChild, JSXElementName,
-  JSXOpeningElement, JSXText, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport,
-  ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget,
-  Stmt, VarDeclOrExpr,
+  ExprOrSpread, ForHead, ImportSpecifier, JSXAttr, JSXAttrName, JSXAttrOrSpread,
+  JSXElement, JSXElementChild, JSXElementName, JSXOpeningElement, JSXText, Lit, ModuleDecl,
+  ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program,
+  PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  JSX_ELEMENT_CHILDREN_OFFSET, JSX_ELEMENT_OPENING_ELEMENT_OFFSET, JSX_ELEMENT_RESERVED_BYTES,
-  JSX_IDENTIFIER_NAME_OFFSET, JSX_IDENTIFIER_RESERVED_BYTES, JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
+  JSX_ATTRIBUTE_NAME_OFFSET, JSX_ATTRIBUTE_RESERVED_BYTES, JSX_ELEMENT_CHILDREN_OFFSET,
+  JSX_ELEMENT_OPENING_ELEMENT_OFFSET, JSX_ELEMENT_RESERVED_BYTES, JSX_IDENTIFIER_NAME_OFFSET,
+  JSX_IDENTIFIER_RESERVED_BYTES, JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
   JSX_OPENING_ELEMENT_NAME_OFFSET, JSX_OPENING_ELEMENT_RESERVED_BYTES, JSX_TEXT_RESERVED_BYTES,
   JSX_TEXT_VALUE_OFFSET, TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION,
-  TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ELEMENT, TYPE_JSX_IDENTIFIER, TYPE_JSX_OPENING_ELEMENT,
-  TYPE_JSX_TEXT,
+  TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ATTRIBUTE, TYPE_JSX_ELEMENT, TYPE_JSX_IDENTIFIER,
+  TYPE_JSX_OPENING_ELEMENT, TYPE_JSX_TEXT,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
@@ -24,6 +25,7 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::utf16_positions::{
   ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
 };
+use crate::store_jsx_opening_element_flags;
 
 pub(crate) mod analyze_code;
 pub mod string_constants;
@@ -734,42 +736,32 @@ impl<'a> AstConverter<'a> {
       JSX_OPENING_ELEMENT_RESERVED_BYTES,
       false,
     );
+    // flags
+    store_jsx_opening_element_flags!(
+      self,
+      end_position,
+      selfClosing => jsx_opening_element.self_closing
+    );
     // name
     self.update_reference_position(end_position + JSX_OPENING_ELEMENT_NAME_OFFSET);
-    self.store_jsx_element_name(&jsx_opening_element.name);
+    self.convert_jsx_element_name(&jsx_opening_element.name);
     // attributes
     self.convert_item_list(
       &jsx_opening_element.attrs,
       end_position + JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
       |ast_converter, jsx_attribute| {
-        unimplemented!("Convert JSXAttribute")
-        // ast_converter.store_jsx_attribute(jsx_attribute);
-        // true
+        ast_converter.convert_jsx_attribute_or_spread(jsx_attribute);
+        true
       },
     );
     // end
     self.add_end(end_position, &jsx_opening_element.span);
   }
 
-  fn store_jsx_element_name(&mut self, jsx_element_name: &JSXElementName) {
-    let end_position = self.add_type_and_start(
-      &TYPE_JSX_IDENTIFIER,
-      match jsx_element_name {
-        JSXElementName::Ident(ident) => &ident.span,
-        JSXElementName::JSXMemberExpr(jsx_member_expr) => {
-          unimplemented!("JSXElementName::JSXMemberExpr")
-        }
-        JSXElementName::JSXNamespacedName(jsx_namespaced_name) => {
-          unimplemented!("JSXElementName::JSXNamespacedName")
-        }
-      },
-      JSX_IDENTIFIER_RESERVED_BYTES,
-      false,
-    );
-
+  fn convert_jsx_element_name(&mut self, jsx_element_name: &JSXElementName) {
     match jsx_element_name {
-      JSXElementName::Ident(ident) => {
-        self.convert_string(&ident.sym, end_position + JSX_IDENTIFIER_NAME_OFFSET);
+      JSXElementName::Ident(identifier) => {
+        self.store_jsx_identifier(&identifier.span, &identifier.sym)
       }
       JSXElementName::JSXMemberExpr(jsx_member_expr) => {
         unimplemented!("JSXElementName::JSXMemberExpr")
@@ -778,6 +770,60 @@ impl<'a> AstConverter<'a> {
         unimplemented!("JSXElementName::JSXNamespacedName")
       }
     }
+  }
+
+  fn convert_jsx_attribute_or_spread(&mut self, jsx_attribute: &JSXAttrOrSpread) {
+    match jsx_attribute {
+      JSXAttrOrSpread::JSXAttr(jsx_attribute) => {
+        self.store_jsx_attribute(jsx_attribute);
+      }
+      JSXAttrOrSpread::SpreadElement(spread_element) => {
+        unimplemented!("JSXAttrOrSpread::SpreadElement")
+      }
+    }
+  }
+
+  fn store_jsx_attribute(&mut self, jsx_attribute: &JSXAttr) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_ATTRIBUTE,
+      &jsx_attribute.span,
+      JSX_ATTRIBUTE_RESERVED_BYTES,
+      false,
+    );
+    // name
+    self.update_reference_position(end_position + JSX_ATTRIBUTE_NAME_OFFSET);
+    self.convert_jsx_attribute_name(&jsx_attribute.name);
+    // value
+    // jsx_attribute.value.as_ref().map(|jsx_attribute_value| {
+    //   self.update_reference_position(end_position + JSX_ATTRIBUTE_VALUE_OFFSET);
+    //   self.store_jsx_attribute_value(jsx_attribute_value);
+    // });
+    // end
+    self.add_end(end_position, &jsx_attribute.span);
+  }
+
+  fn convert_jsx_attribute_name(&mut self, jsx_attribute_name: &JSXAttrName) {
+    match jsx_attribute_name {
+      JSXAttrName::Ident(identifier) => {
+        self.store_jsx_identifier(&identifier.span, &identifier.sym);
+      }
+      JSXAttrName::JSXNamespacedName(jsx_namespaced_name) => {
+        unimplemented!("JSXElementName::JSXNamespacedName")
+      }
+    }
+  }
+
+  fn store_jsx_identifier(&mut self, span: &Span, name: &str) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_IDENTIFIER,
+      span,
+      JSX_IDENTIFIER_RESERVED_BYTES,
+      false,
+    );
+    // name
+    self.convert_string(name, end_position + JSX_IDENTIFIER_NAME_OFFSET);
+    // end
+    self.add_end(end_position, span);
   }
 }
 

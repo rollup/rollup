@@ -48,6 +48,7 @@ import ImportDefaultSpecifier from './nodes/ImportDefaultSpecifier';
 import ImportExpression from './nodes/ImportExpression';
 import ImportNamespaceSpecifier from './nodes/ImportNamespaceSpecifier';
 import ImportSpecifier from './nodes/ImportSpecifier';
+import JsxAttribute from './nodes/JsxAttribute';
 import JsxElement from './nodes/JsxElement';
 import JsxIdentifier from './nodes/JsxIdentifier';
 import JsxOpeningElement from './nodes/JsxOpeningElement';
@@ -145,6 +146,7 @@ const nodeTypeStrings = [
 	'ImportExpression',
 	'ImportNamespaceSpecifier',
 	'ImportSpecifier',
+	'JsxAttribute',
 	'JsxElement',
 	'JsxIdentifier',
 	'JsxOpeningElement',
@@ -232,6 +234,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	ImportExpression,
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
+	JsxAttribute,
 	JsxElement,
 	JsxIdentifier,
 	JsxOpeningElement,
@@ -574,6 +577,10 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.local = convertNode(node, scope, buffer[position + 1], buffer);
 		node.imported =
 			importedPosition === 0 ? node.local : convertNode(node, scope, importedPosition, buffer);
+	},
+	function jsxAttribute(node: JsxAttribute, position, buffer) {
+		const { scope } = node;
+		node.name = convertNode(node, scope, buffer[position], buffer);
 	},
 	function jsxElement(node: JsxElement, position, buffer) {
 		const { scope } = node;

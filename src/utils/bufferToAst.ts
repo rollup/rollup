@@ -450,6 +450,14 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			local
 		};
 	},
+	function jsxAttribute(position, buffer): JsxAttributeNode {
+		return {
+			type: 'JsxAttribute',
+			start: buffer[position],
+			end: buffer[position + 1],
+			name: convertNode(buffer[position + 2], buffer)
+		};
+	},
 	function jsxElement(position, buffer): JsxElementNode {
 		const closingElementPosition = buffer[position + 3];
 		return {
@@ -934,6 +942,7 @@ export type ImportExpressionNode = RollupAstNode<
 >;
 export type ImportNamespaceSpecifierNode = RollupAstNode<estree.ImportNamespaceSpecifier>;
 export type ImportSpecifierNode = RollupAstNode<estree.ImportSpecifier>;
+export type JsxAttributeNode = RollupAstNode<any>;
 export type JsxElementNode = RollupAstNode<any>;
 export type JsxIdentifierNode = RollupAstNode<any>;
 export type JsxOpeningElementNode = RollupAstNode<any>;
