@@ -41,6 +41,8 @@ import ImportExpression from './ImportExpression';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import ImportSpecifier from './ImportSpecifier';
 import JsxElement from './JsxElement';
+import JsxIdentifier from './JsxIdentifier';
+import JsxOpeningElement from './JsxOpeningElement';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
@@ -122,6 +124,8 @@ export const nodeConstructors: {
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
 	JsxElement,
+	JsxIdentifier,
+	JsxOpeningElement,
 	LabeledStatement,
 	Literal,
 	LogicalExpression,

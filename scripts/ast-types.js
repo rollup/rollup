@@ -394,7 +394,22 @@ export const AST_NODES = {
 			['openingElement', 'Node'],
 			['closingElement', 'OptionalNode'],
 			['children', 'NodeList']
-		]
+		],
+		useMacro: false
+	},
+	JsxIdentifier: {
+		estreeType: 'any',
+		fields: [['name', 'String']],
+		useMacro: false
+	},
+	JsxOpeningElement: {
+		estreeType: 'any',
+		fields: [
+			['name', 'Node'],
+			['attributes', 'NodeList']
+		],
+		flags: ['selfClosing'],
+		useMacro: false
 	},
 	LabeledStatement: {
 		fields: [
