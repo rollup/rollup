@@ -83,23 +83,35 @@ import WhileStatement from './nodes/WhileStatement';
 import YieldExpression from './nodes/YieldExpression';
 import { UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import type { Node, NodeBase } from './nodes/shared/Node';
-import type ChildScope from './scopes/ChildScope';
+import ChildScope from './scopes/ChildScope';
+import GlobalScope from './scopes/GlobalScope';
 import type ModuleScope from './scopes/ModuleScope';
 import TrackingScope from './scopes/TrackingScope';
 import type ParameterVariable from './variables/ParameterVariable';
 
 export function convertProgram(
-	buffer: Buffer | Uint8Array,
-	parent: Node | { context: AstContext; type: string },
+	buff: Buffer | Uint8Array,
+	parent: { context: AstContext; type: string },
 	parentScope: ModuleScope
 ): Program {
-	return convertNode(
-		parent,
-		parentScope,
-		0,
-		new Uint32Array(buffer.buffer),
-		getReadStringFunction(buffer)
-	);
+	const buffer = new Uint32Array(buff.buffer);
+	const readString = getReadStringFunction(buff);
+	const position = 0;
+	const nodeType = buffer[position];
+	const NodeConstructor = nodeConstructors[nodeType];
+	/* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
+	if (!NodeConstructor) {
+		console.trace();
+		throw new Error(`Unknown node type: ${nodeType}`);
+	}
+	const node = new NodeConstructor(parent, parentScope);
+	node.type = nodeTypeStrings[nodeType];
+	node.start = buffer[position + 1];
+	node.end = buffer[position + 2];
+	node.scope = convertScope(parent.context, buffer[position + 3], buffer);
+	bufferParsers[nodeType](node, position + 4, buffer, readString);
+	node.initialise();
+	return node as any;
 }
 
 const nodeTypeStrings = [
@@ -847,9 +859,21 @@ function convertNode(
 	node.type = nodeTypeStrings[nodeType];
 	node.start = buffer[position + 1];
 	node.end = buffer[position + 2];
+	// node.scope = convertScope(parent.context, buffer[position + 3], buffer);
 	bufferParsers[nodeType](node, position + 3, buffer, readString);
 	node.initialise();
 	return node;
+}
+
+function convertScope(context: AstContext, position: number, buffer: Uint32Array): ChildScope {
+	// const type = buffer[position++];
+	position++;
+	const parentScopePosition = buffer[position++];
+	console.log('parentScopePosition', parentScopePosition);
+	const parentScope = parentScopePosition
+		? convertScope(context, parentScopePosition, buffer)
+		: new GlobalScope();
+	return new ChildScope(parentScope!, context);
 }
 
 function convertNodeList(

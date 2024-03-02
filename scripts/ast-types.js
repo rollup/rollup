@@ -691,3 +691,14 @@ export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, 
 		reservedFields
 	};
 });
+//
+// /** @typedef {{
+//  *  }} ScopeDescription */
+//
+// /** @type {Record<string, ScopeDescription>} */
+// export const AST_SCOPES = {
+// 	GlobalScope: {},
+// 	ModuleScope: {}
+// };
+//
+// export const astScopeNames = Object.keys(AST_NODES).map(key => key);

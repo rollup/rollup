@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
 use swc_atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
@@ -31,6 +32,9 @@ mod analyze_code;
 mod string_constants;
 mod utf16_positions;
 
+pub const GLOBAL_SCOPE: [u8; 4] = 42u32.to_ne_bytes();
+pub const MODULE_SCOPE: [u8; 4] = 43u32.to_ne_bytes();
+
 pub mod ast_constants;
 
 pub struct AstConverter<'a> {
@@ -59,12 +63,15 @@ impl<'a> AstConverter<'a> {
   fn add_type_and_start(
     &mut self,
     node_type: &[u8; 4],
+    // scope: &[u8; 4],
     span: &Span,
     reserved_bytes: usize,
     keep_annotations: bool,
   ) -> usize {
     // type
     self.buffer.extend_from_slice(node_type);
+    // // scope
+    // self.buffer.extend_from_slice(scope);
     // start
     let start = self
       .index_converter
@@ -107,8 +114,8 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
-  where
-    F: Fn(&mut AstConverter, &T) -> bool,
+    where
+      F: Fn(&mut AstConverter, &T) -> bool,
   {
     // store number of items in first position
     self
@@ -590,6 +597,13 @@ impl<'a> AstConverter<'a> {
       }
       None => self.buffer.resize(self.buffer.len() + 4, 0),
     }
+  }
+
+  fn convert_scope(&mut self, scope_type: &[u8; 4], parent_scope: Option<&[u8; 4]>) {
+    // type
+    self.buffer.extend_from_slice(scope_type);
+    // parent scope
+    self.buffer.extend_from_slice(parent_scope.unwrap_or(&[0, 0, 0, 0]));
   }
 
   fn convert_import_specifier(&mut self, import_specifier: &ImportSpecifier) {
@@ -2342,6 +2356,11 @@ impl<'a> AstConverter<'a> {
       self.add_type_and_explicit_start(&TYPE_PROGRAM_INLINED_BODY, 0u32, PROGRAM_RESERVED_BYTES);
     // body
     let mut keep_checking_directives = true;
+
+    let scope_position = self.buffer.len();
+    // reserve space for the scope
+    self.buffer.resize(end_position + 4, 0);
+
     match body {
       Program::Module(module) => {
         self.convert_item_list_with_state(
@@ -2382,6 +2401,11 @@ impl<'a> AstConverter<'a> {
         );
       }
     }
+
+    self.update_reference_position(scope_position);
+    // write scope
+    self.convert_scope(&GLOBAL_SCOPE, Option::None);
+
     // end
     self.add_explicit_end(end_position, self.code.len() as u32);
     // annotations, these need to come after end so that trailing comments are
@@ -2993,8 +3017,10 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_while_statement(&mut self, while_statement: &WhileStmt) {
+  // fn convert_while_statement(&mut self, while_statement: &WhileStmt, scope: &[u8; 4]) {
     let end_position = self.add_type_and_start(
       &TYPE_WHILE_STATEMENT_INLINED_TEST,
+      // scope,
       &while_statement.span,
       WHILE_STATEMENT_RESERVED_BYTES,
       false,
@@ -3090,3 +3116,32 @@ enum PatternOrExpression<'a> {
   Pattern(&'a Pat),
   Expression(&'a Expr),
 }
+
+pub enum ScopeType {
+  Global,
+  Module,
+}
+
+pub struct Scope {
+  pub scope_type: ScopeType,
+  pub id: usize,
+  pub parent_id: Option<usize>,
+}
+
+static GLOBAL_SCOPE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+impl Scope {
+  fn new(scope_type: ScopeType, parent: Option<&Scope>) -> Self {
+    let count = GLOBAL_SCOPE_COUNTER.fetch_add(1, Ordering::SeqCst);
+    let parent_id: Option<usize> = match parent {
+      Some(scope) => Option::Some(scope.id),
+      None => Option::None,
+    };
+    Scope {
+      scope_type,
+      id: count,
+      parent_id,
+    }
+  }
+}
+
