@@ -470,6 +470,21 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			children: convertNodeList(buffer[position + 4], buffer)
 		};
 	},
+	function jsxEmptyExpr(position, buffer): JsxEmptyExprNode {
+		return {
+			type: 'JsxEmptyExpr',
+			start: buffer[position],
+			end: buffer[position + 1]
+		};
+	},
+	function jsxExprContainer(position, buffer): JsxExprContainerNode {
+		return {
+			type: 'JsxExprContainer',
+			start: buffer[position],
+			end: buffer[position + 1],
+			expression: convertNode(buffer[position + 2], buffer)
+		};
+	},
 	function jsxIdentifier(position, buffer): JsxIdentifierNode {
 		return {
 			type: 'JsxIdentifier',
@@ -944,6 +959,8 @@ export type ImportNamespaceSpecifierNode = RollupAstNode<estree.ImportNamespaceS
 export type ImportSpecifierNode = RollupAstNode<estree.ImportSpecifier>;
 export type JsxAttributeNode = RollupAstNode<any>;
 export type JsxElementNode = RollupAstNode<any>;
+export type JsxEmptyExprNode = RollupAstNode<any>;
+export type JsxExprContainerNode = RollupAstNode<any>;
 export type JsxIdentifierNode = RollupAstNode<any>;
 export type JsxOpeningElementNode = RollupAstNode<any>;
 export type JsxTextNode = RollupAstNode<any>;

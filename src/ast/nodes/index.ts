@@ -42,6 +42,8 @@ import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import ImportSpecifier from './ImportSpecifier';
 import JsxAttribute from './JsxAttribute';
 import JsxElement from './JsxElement';
+import JsxEmptyExpr from './JsxEmptyExpr';
+import JsxExprContainer from './JsxExprContainer';
 import JsxIdentifier from './JsxIdentifier';
 import JsxOpeningElement from './JsxOpeningElement';
 import JsxText from './JsxText';
@@ -125,6 +127,8 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	ImportSpecifier,
 	JsxAttribute,
 	JsxElement,
+	JsxEmptyExpr,
+	JsxExprContainer,
 	JsxIdentifier,
 	JsxOpeningElement,
 	JsxText,
