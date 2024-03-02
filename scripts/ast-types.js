@@ -602,6 +602,14 @@ export const AST_NODES = {
 		estreeType: 'any',
 		fields: []
 	},
+	TSPropertySignature: {
+		estreeType: 'any',
+		fields: [
+			['key', 'Node'],
+			['typeAnnotation', 'OptionalNode']
+		],
+		flags: ['computed', 'optional', 'readonly', 'static'],
+	},
 	TSTypeAnnotation: {
 		estreeType: 'any',
 		fields: [['typeAnnotation', 'Node']]
