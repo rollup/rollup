@@ -40,6 +40,7 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportExpression from './ImportExpression';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import ImportSpecifier from './ImportSpecifier';
+import JsxElement from './JsxElement';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
@@ -118,6 +119,7 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	ImportExpression,
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
+	JsxElement,
 	LabeledStatement,
 	Literal,
 	LogicalExpression,
