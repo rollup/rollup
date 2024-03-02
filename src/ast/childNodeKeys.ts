@@ -44,6 +44,7 @@ export const childNodeKeys: Record<string, string[]> = {
 	JsxElement: ['openingElement', 'closingElement', 'children'],
 	JsxIdentifier: [],
 	JsxOpeningElement: ['name', 'attributes'],
+	JsxText: [],
 	LabeledStatement: ['label', 'body'],
 	Literal: [],
 	LogicalExpression: ['left', 'right'],

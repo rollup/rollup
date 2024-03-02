@@ -481,6 +481,14 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			attributes: convertNodeList(buffer[position + 4], buffer)
 		};
 	},
+	function jsxText(position, buffer): JsxTextNode {
+		return {
+			type: 'JsxText',
+			start: buffer[position],
+			end: buffer[position + 1],
+			value: buffer.convertString(buffer[position + 2])
+		};
+	},
 	function labeledStatement(position, buffer): LabeledStatementNode {
 		return {
 			type: 'LabeledStatement',
@@ -929,6 +937,7 @@ export type ImportSpecifierNode = RollupAstNode<estree.ImportSpecifier>;
 export type JsxElementNode = RollupAstNode<any>;
 export type JsxIdentifierNode = RollupAstNode<any>;
 export type JsxOpeningElementNode = RollupAstNode<any>;
+export type JsxTextNode = RollupAstNode<any>;
 export type LabeledStatementNode = RollupAstNode<estree.LabeledStatement>;
 export type LiteralBigIntNode = RollupAstNode<estree.BigIntLiteral>;
 export type LiteralBooleanNode = RollupAstNode<estree.SimpleLiteral & { value: boolean }>;
