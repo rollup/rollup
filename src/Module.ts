@@ -906,7 +906,7 @@ export default class Module {
 		} else {
 			// Measuring asynchronous code does not provide reasonable results
 			timeEnd('generate ast', 3);
-			const astBuffer = await parseAsync(code, false);
+			const astBuffer = await parseAsync(code, false, this.options.jsx !== false);
 			timeStart('generate ast', 3);
 			this.ast = convertProgram(astBuffer, programParent, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
@@ -1386,7 +1386,7 @@ export default class Module {
 
 	private tryParse() {
 		try {
-			return parseAst(this.info.code!);
+			return parseAst(this.info.code!, { jsx: this.options.jsx !== false });
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}

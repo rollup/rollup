@@ -220,7 +220,7 @@ type LoggingFunctionWithPosition = (
 
 export type ParseAst = (
 	input: string,
-	options?: { allowReturnOutsideFunction?: boolean }
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
 ) => ProgramNode;
 
 // declare AbortSignal here for environments without DOM lib or @types/node
@@ -231,7 +231,7 @@ declare global {
 
 export type ParseAstAsync = (
 	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; signal?: AbortSignal }
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
 ) => Promise<ProgramNode>;
 
 export interface PluginContext extends MinimalPluginContext {
