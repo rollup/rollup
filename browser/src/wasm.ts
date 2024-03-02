@@ -6,7 +6,8 @@ import { parse } from '../../wasm/bindings_wasm.js';
 export async function parseAsync(
 	code: string,
 	allowReturnOutsideFunction: boolean,
+	preserveTypescript: boolean,
 	_signal?: AbortSignal | undefined | null
 ) {
-	return parse(code, allowReturnOutsideFunction);
+	return parse(code, allowReturnOutsideFunction, preserveTypescript);
 }

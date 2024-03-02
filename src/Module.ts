@@ -906,7 +906,7 @@ export default class Module {
 		} else {
 			// Measuring asynchronous code does not provide reasonable results
 			timeEnd('generate ast', 3);
-			const astBuffer = await parseAsync(code, false);
+			const astBuffer = await parseAsync(code, false, !!this.options.typescript);
 			timeStart('generate ast', 3);
 			this.ast = convertProgram(astBuffer, programParent, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
