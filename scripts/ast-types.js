@@ -405,6 +405,15 @@ export const AST_NODES = {
 		],
 		useMacro: false
 	},
+	JsxEmptyExpr: {
+		estreeType: 'any',
+		useMacro: false
+	},
+	JsxExprContainer: {
+		estreeType: 'any',
+		fields: [['expression', 'Node']],
+		useMacro: false
+	},
 	JsxIdentifier: {
 		estreeType: 'any',
 		fields: [['name', 'String']],
