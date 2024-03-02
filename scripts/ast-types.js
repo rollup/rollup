@@ -411,6 +411,11 @@ export const AST_NODES = {
 		flags: ['selfClosing'],
 		useMacro: false
 	},
+	JsxText: {
+		estreeType: 'any',
+		fields: [['value', 'String']],
+		useMacro: false
+	},
 	LabeledStatement: {
 		fields: [
 			['label', 'Node'],

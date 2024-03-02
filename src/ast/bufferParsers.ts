@@ -51,6 +51,7 @@ import ImportSpecifier from './nodes/ImportSpecifier';
 import JsxElement from './nodes/JsxElement';
 import JsxIdentifier from './nodes/JsxIdentifier';
 import JsxOpeningElement from './nodes/JsxOpeningElement';
+import JsxText from './nodes/JsxText';
 import LabeledStatement from './nodes/LabeledStatement';
 import Literal from './nodes/Literal';
 import LogicalExpression from './nodes/LogicalExpression';
@@ -147,6 +148,7 @@ const nodeTypeStrings = [
 	'JsxElement',
 	'JsxIdentifier',
 	'JsxOpeningElement',
+	'JsxText',
 	'LabeledStatement',
 	'Literal',
 	'Literal',
@@ -233,6 +235,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	JsxElement,
 	JsxIdentifier,
 	JsxOpeningElement,
+	JsxText,
 	LabeledStatement,
 	Literal,
 	Literal,
@@ -591,6 +594,9 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.selfClosing = (flags & 1) === 1;
 		node.name = convertNode(node, scope, buffer[position + 1], buffer);
 		node.attributes = convertNodeList(node, scope, buffer[position + 2], buffer);
+	},
+	function jsxText(node: JsxText, position, buffer) {
+		node.value = buffer.convertString(buffer[position]);
 	},
 	function labeledStatement(node: LabeledStatement, position, buffer) {
 		const { scope } = node;

@@ -43,6 +43,7 @@ import ImportSpecifier from './ImportSpecifier';
 import JsxElement from './JsxElement';
 import JsxIdentifier from './JsxIdentifier';
 import JsxOpeningElement from './JsxOpeningElement';
+import JsxText from './JsxText';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
@@ -126,6 +127,7 @@ export const nodeConstructors: {
 	JsxElement,
 	JsxIdentifier,
 	JsxOpeningElement,
+	JsxText,
 	LabeledStatement,
 	Literal,
 	LogicalExpression,

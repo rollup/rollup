@@ -2,9 +2,9 @@ use swc_common::Span;
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
   ExprOrSpread, ForHead, ImportSpecifier, JSXElement, JSXElementChild, JSXElementName,
-  JSXOpeningElement, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp,
-  OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt,
-  VarDeclOrExpr,
+  JSXOpeningElement, JSXText, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport,
+  ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget,
+  Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
@@ -13,9 +13,10 @@ use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
   JSX_ELEMENT_CHILDREN_OFFSET, JSX_ELEMENT_OPENING_ELEMENT_OFFSET, JSX_ELEMENT_RESERVED_BYTES,
   JSX_IDENTIFIER_NAME_OFFSET, JSX_IDENTIFIER_RESERVED_BYTES, JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
-  JSX_OPENING_ELEMENT_NAME_OFFSET, JSX_OPENING_ELEMENT_RESERVED_BYTES, TYPE_CLASS_EXPRESSION,
-  TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ELEMENT, TYPE_JSX_IDENTIFIER,
-  TYPE_JSX_OPENING_ELEMENT,
+  JSX_OPENING_ELEMENT_NAME_OFFSET, JSX_OPENING_ELEMENT_RESERVED_BYTES, JSX_TEXT_RESERVED_BYTES,
+  JSX_TEXT_VALUE_OFFSET, TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION,
+  TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ELEMENT, TYPE_JSX_IDENTIFIER, TYPE_JSX_OPENING_ELEMENT,
+  TYPE_JSX_TEXT,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
@@ -436,7 +437,7 @@ impl<'a> AstConverter<'a> {
       Lit::Str(string_literal) => {
         self.store_literal_string(string_literal);
       }
-      Lit::JSXText(_) => unimplemented!("Lit::JSXText"),
+      Lit::JSXText(_) => unimplemented!("Lit::JsxText"),
     }
   }
 
@@ -692,9 +693,8 @@ impl<'a> AstConverter<'a> {
 
   fn convert_jsx_element_child(&mut self, jsx_element_child: &JSXElementChild) {
     match jsx_element_child {
-      JSXElementChild::JSXText(_jsx_text) => {
-        // self.store_jsx_text(jsx_text);
-        unimplemented!("JSXElementChild::JSXText")
+      JSXElementChild::JSXText(jsx_text) => {
+        self.store_jsx_text(jsx_text);
       }
       JSXElementChild::JSXExprContainer(_jsx_expr_container) => {
         // self.store_jsx_expr_container(jsx_expr_container);
@@ -712,6 +712,19 @@ impl<'a> AstConverter<'a> {
         self.convert_jsx_element(jsx_element);
       }
     }
+  }
+
+  fn store_jsx_text(&mut self, jsx_text: &JSXText) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_TEXT,
+      &jsx_text.span,
+      JSX_TEXT_RESERVED_BYTES,
+      false,
+    );
+    // value
+    self.convert_string(&jsx_text.value, end_position + JSX_TEXT_VALUE_OFFSET);
+    // end
+    self.add_end(end_position, &jsx_text.span);
   }
 
   fn store_jsx_opening_element(&mut self, jsx_opening_element: &JSXOpeningElement) {
