@@ -650,10 +650,11 @@ export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, 
 	let inlinedVariableField = undefined;
 	for (const field of fields) {
 		allFields.push(field);
-		switch (field[1]) {
+		const fieldName = field[0];
+		const fieldType = field[1];
+		switch (fieldType) {
 			case 'Annotations':
 			case 'InvalidAnnotations':
-			case 'String':
 			case 'NodeList':
 			case 'Node': {
 				if (inlinedVariableField === undefined) {
@@ -673,6 +674,7 @@ export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, 
 				reservedFields.push(field);
 				break;
 			}
+			case 'String':
 			case 'OptionalString':
 			case 'FixedString':
 			case 'Float': {
@@ -680,7 +682,7 @@ export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, 
 				break;
 			}
 			default: {
-				throw new Error(`Unknown field type ${field[0]}`);
+				throw new Error(`Unknown field type ${fieldName}`);
 			}
 		}
 	}

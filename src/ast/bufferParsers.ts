@@ -273,10 +273,10 @@ const bufferParsers: ((
 	readString: ReadString
 ) => void)[] = [
 	function panicError(node: PanicError, position, buffer, readString) {
-		node.message = convertString(position, buffer, readString);
+		node.message = convertString(buffer[position], buffer, readString);
 	},
 	function parseError(node: ParseError, position, buffer, readString) {
-		node.message = convertString(position, buffer, readString);
+		node.message = convertString(buffer[position], buffer, readString);
 	},
 	function arrayExpression(node: ArrayExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -419,8 +419,8 @@ const bufferParsers: ((
 	function debuggerStatement() {},
 	function directive(node: ExpressionStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.expression = convertNode(node, scope, buffer[position], buffer, readString);
-		node.directive = convertString(position + 1, buffer, readString);
+		node.directive = convertString(buffer[position], buffer, readString);
+		node.expression = convertNode(node, scope, position + 1, buffer, readString);
 	},
 	function doWhileStatement(node: DoWhileStatement, position, buffer, readString) {
 		const { scope } = node;
@@ -548,7 +548,7 @@ const bufferParsers: ((
 		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 	},
 	function identifier(node: Identifier, position, buffer, readString) {
-		node.name = convertString(position, buffer, readString);
+		node.name = convertString(buffer[position], buffer, readString);
 	},
 	function ifStatement(node: IfStatement, position, buffer, readString) {
 		const { scope } = node;
@@ -614,8 +614,8 @@ const bufferParsers: ((
 		node.label = convertNode(node, scope, position + 1, buffer, readString);
 	},
 	function literalBigInt(node: Literal, position, buffer, readString) {
-		node.raw = convertString(buffer[position], buffer, readString);
-		const bigint = (node.bigint = convertString(position + 1, buffer, readString));
+		const bigint = (node.bigint = convertString(buffer[position], buffer, readString));
+		node.raw = convertString(buffer[position + 1], buffer, readString);
 		node.value = BigInt(bigint);
 	},
 	function literalBoolean(node: Literal, position, buffer) {
@@ -632,16 +632,16 @@ const bufferParsers: ((
 		node.value = new DataView(buffer.buffer).getFloat64((position + 1) << 2, true);
 	},
 	function literalRegExp(node: Literal, position, buffer, readString) {
-		const pattern = convertString(buffer[position], buffer, readString);
-		const flags = convertString(position + 1, buffer, readString);
+		const flags = convertString(buffer[position], buffer, readString);
+		const pattern = convertString(buffer[position + 1], buffer, readString);
 		node.raw = `/${pattern}/${flags}`;
 		node.regex = { flags, pattern };
 		node.value = new RegExp(pattern, flags);
 	},
 	function literalString(node: Literal, position, buffer, readString) {
-		const rawPosition = buffer[position];
+		node.value = convertString(buffer[position], buffer, readString);
+		const rawPosition = buffer[position + 1];
 		node.raw = rawPosition === 0 ? undefined : convertString(rawPosition, buffer, readString);
-		node.value = convertString(position + 1, buffer, readString);
 	},
 	function logicalExpression(node: LogicalExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -686,7 +686,7 @@ const bufferParsers: ((
 		node.properties = convertNodeList(node, scope, position, buffer, readString);
 	},
 	function privateIdentifier(node: PrivateIdentifier, position, buffer, readString) {
-		node.name = convertString(position, buffer, readString);
+		node.name = convertString(buffer[position], buffer, readString);
 	},
 	function program(node: Program, position, buffer, readString) {
 		const { scope } = node;
@@ -763,7 +763,7 @@ const bufferParsers: ((
 		const cookedPosition = buffer[position + 1];
 		const cooked =
 			cookedPosition === 0 ? undefined : convertString(cookedPosition, buffer, readString);
-		const raw = convertString(position + 2, buffer, readString);
+		const raw = convertString(buffer[position + 2], buffer, readString);
 		node.value = { cooked, raw };
 	},
 	function templateLiteral(node: TemplateLiteral, position, buffer, readString) {

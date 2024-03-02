@@ -35,7 +35,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function panicError(position, buffer, readString): PanicErrorNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const message = convertString(position, buffer, readString);
+		const message = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'PanicError',
 			start,
@@ -46,7 +46,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function parseError(position, buffer, readString): ParseErrorNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const message = convertString(position, buffer, readString);
+		const message = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'ParseError',
 			start,
@@ -306,8 +306,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function directive(position, buffer, readString): DirectiveNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const expression = convertNode(buffer[position++], buffer, readString);
-		const directive = convertString(position, buffer, readString);
+		const directive = convertString(buffer[position++], buffer, readString);
+		const expression = convertNode(position, buffer, readString);
 		return {
 			type: 'ExpressionStatement',
 			start,
@@ -515,7 +515,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function identifier(position, buffer, readString): IdentifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const name = convertString(position, buffer, readString);
+		const name = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'Identifier',
 			start,
@@ -634,8 +634,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function literalBigInt(position, buffer, readString): LiteralBigIntNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const raw = convertString(buffer[position++], buffer, readString);
-		const bigint = convertString(position, buffer, readString);
+		const bigint = convertString(buffer[position++], buffer, readString);
+		const raw = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'Literal',
 			start,
@@ -686,8 +686,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function literalRegExp(position, buffer, readString): LiteralRegExpNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const pattern = convertString(buffer[position++], buffer, readString);
-		const flags = convertString(position, buffer, readString);
+		const flags = convertString(buffer[position++], buffer, readString);
+		const pattern = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'Literal',
 			start,
@@ -700,9 +700,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function literalString(position, buffer, readString): LiteralStringNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const rawPosition = buffer[position++];
+		const value = convertString(buffer[position++], buffer, readString);
+		const rawPosition = buffer[position];
 		const raw = rawPosition === 0 ? undefined : convertString(rawPosition, buffer, readString);
-		const value = convertString(position, buffer, readString);
 		return {
 			type: 'Literal',
 			start,
@@ -817,7 +817,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function privateIdentifier(position, buffer, readString): PrivateIdentifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const name = convertString(position, buffer, readString);
+		const name = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'PrivateIdentifier',
 			start,
@@ -994,7 +994,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const cookedPosition = buffer[position++];
 		const cooked =
 			cookedPosition === 0 ? undefined : convertString(cookedPosition, buffer, readString);
-		const raw = convertString(position, buffer, readString);
+		const raw = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'TemplateElement',
 			start,
