@@ -70,6 +70,8 @@ import StaticBlock from './nodes/StaticBlock';
 import Super from './nodes/Super';
 import SwitchCase from './nodes/SwitchCase';
 import SwitchStatement from './nodes/SwitchStatement';
+import TSInterfaceBody from './nodes/TSInterfaceBody';
+import TSInterfaceDeclaration from './nodes/TSInterfaceDeclaration';
 import TSNumberKeyword from './nodes/TSNumberKeyword';
 import TSTypeAnnotation from './nodes/TSTypeAnnotation';
 import TaggedTemplateExpression from './nodes/TaggedTemplateExpression';
@@ -179,6 +181,8 @@ const nodeTypeStrings = [
 	'ThisExpression',
 	'ThrowStatement',
 	'TryStatement',
+	'TSInterfaceBody',
+	'TSInterfaceDeclaration',
 	'TSNumberKeyword',
 	'TSTypeAnnotation',
 	'UnaryExpression',
@@ -263,6 +267,8 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	ThisExpression,
 	ThrowStatement,
 	TryStatement,
+	TSInterfaceBody,
+	TSInterfaceDeclaration,
 	TSNumberKeyword,
 	TSTypeAnnotation,
 	UnaryExpression,
@@ -799,6 +805,14 @@ const bufferParsers: ((
 			finalizerPosition === 0
 				? null
 				: convertNode(node, scope, finalizerPosition, buffer, readString);
+	},
+	function tSInterfaceBody(node: TSInterfaceBody, position, buffer, readString) {
+		const { scope } = node;
+		node.body = convertNodeList(node, scope, buffer[position], buffer, readString);
+	},
+	function tSInterfaceDeclaration(node: TSInterfaceDeclaration, position, buffer, readString) {
+		const { scope } = node;
+		node.body = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function tSNumberKeyword() {},
 	function tSTypeAnnotation(node: TSTypeAnnotation, position, buffer, readString) {

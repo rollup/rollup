@@ -249,9 +249,7 @@ export const AST_NODES = {
 		}
 	},
 	ExpressionStatement: {
-		fields: [
-			['expression', 'Node']
-		]
+		fields: [['expression', 'Node']]
 	},
 	ForInStatement: {
 		fields: [
@@ -597,6 +595,8 @@ export const AST_NODES = {
 			['finalizer', 'OptionalNode']
 		]
 	},
+	TSInterfaceBody: { fields: [['body', 'NodeList']] },
+	TSInterfaceDeclaration: { fields: [['body', 'Node']] },
 	TSNumberKeyword: {
 		fields: []
 	},
