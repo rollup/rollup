@@ -516,12 +516,14 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function identifier(position, buffer, readString): IdentifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const name = convertString(buffer[position], buffer, readString);
+		const name = convertString(buffer[position++], buffer, readString);
+		const typeAnnotation = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'Identifier',
 			start,
 			end,
-			name
+			name,
+			typeAnnotation
 		};
 	},
 	function ifStatement(position, buffer, readString): IfStatementNode {
@@ -1055,6 +1057,26 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			finalizer
 		};
 	},
+	function tSNumberKeyword(position, buffer): TSNumberKeywordNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'TSNumberKeyword',
+			start,
+			end
+		};
+	},
+	function tSTypeAnnotation(position, buffer, readString): TSTypeAnnotationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const typeAnnotation = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'TSTypeAnnotation',
+			start,
+			end,
+			typeAnnotation
+		};
+	},
 	function unaryExpression(position, buffer, readString): UnaryExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -1246,6 +1268,8 @@ export type TemplateLiteralNode = RollupAstNode<estree.TemplateLiteral>;
 export type ThisExpressionNode = RollupAstNode<estree.ThisExpression>;
 export type ThrowStatementNode = RollupAstNode<estree.ThrowStatement>;
 export type TryStatementNode = RollupAstNode<estree.TryStatement>;
+export type TSNumberKeywordNode = RollupAstNode<estree.TSNumberKeyword>;
+export type TSTypeAnnotationNode = RollupAstNode<estree.TSTypeAnnotation>;
 export type UnaryExpressionNode = RollupAstNode<estree.UnaryExpression> & { prefix: true };
 export type UpdateExpressionNode = RollupAstNode<estree.UpdateExpression>;
 export type VariableDeclarationNode = RollupAstNode<estree.VariableDeclaration>;

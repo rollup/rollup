@@ -74,12 +74,14 @@ pub const TYPE_TEMPLATE_LITERAL: [u8; 4] = 69u32.to_ne_bytes();
 pub const TYPE_THIS_EXPRESSION: [u8; 4] = 70u32.to_ne_bytes();
 pub const TYPE_THROW_STATEMENT: [u8; 4] = 71u32.to_ne_bytes();
 pub const TYPE_TRY_STATEMENT: [u8; 4] = 72u32.to_ne_bytes();
-pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 73u32.to_ne_bytes();
-pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 74u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 75u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 76u32.to_ne_bytes();
-pub const TYPE_WHILE_STATEMENT: [u8; 4] = 77u32.to_ne_bytes();
-pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 78u32.to_ne_bytes();
+pub const TYPE_T_S_NUMBER_KEYWORD: [u8; 4] = 73u32.to_ne_bytes();
+pub const TYPE_T_S_TYPE_ANNOTATION: [u8; 4] = 74u32.to_ne_bytes();
+pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 75u32.to_ne_bytes();
+pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 76u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 77u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 78u32.to_ne_bytes();
+pub const TYPE_WHILE_STATEMENT: [u8; 4] = 79u32.to_ne_bytes();
+pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 80u32.to_ne_bytes();
 
 pub const PANIC_ERROR_RESERVED_BYTES: usize = 8;
 pub const PANIC_ERROR_MESSAGE_OFFSET: usize = 4;
@@ -215,8 +217,9 @@ pub const FUNCTION_DECLARATION_ID_OFFSET: usize = 12;
 pub const FUNCTION_DECLARATION_PARAMS_OFFSET: usize = 16;
 pub const FUNCTION_DECLARATION_BODY_OFFSET: usize = 20;
 
-pub const IDENTIFIER_RESERVED_BYTES: usize = 8;
+pub const IDENTIFIER_RESERVED_BYTES: usize = 12;
 pub const IDENTIFIER_NAME_OFFSET: usize = 4;
+pub const IDENTIFIER_TYPE_ANNOTATION_OFFSET: usize = 8;
 
 pub const IF_STATEMENT_RESERVED_BYTES: usize = 16;
 pub const IF_STATEMENT_TEST_OFFSET: usize = 4;
@@ -373,6 +376,11 @@ pub const TRY_STATEMENT_RESERVED_BYTES: usize = 16;
 pub const TRY_STATEMENT_BLOCK_OFFSET: usize = 4;
 pub const TRY_STATEMENT_HANDLER_OFFSET: usize = 8;
 pub const TRY_STATEMENT_FINALIZER_OFFSET: usize = 12;
+
+pub const T_S_NUMBER_KEYWORD_RESERVED_BYTES: usize = 4;
+
+pub const T_S_TYPE_ANNOTATION_RESERVED_BYTES: usize = 8;
+pub const T_S_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET: usize = 4;
 
 pub const UNARY_EXPRESSION_RESERVED_BYTES: usize = 12;
 pub const UNARY_EXPRESSION_OPERATOR_OFFSET: usize = 4;
