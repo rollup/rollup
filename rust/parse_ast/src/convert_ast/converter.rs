@@ -50,7 +50,7 @@ impl<'a> AstConverter<'a> {
   }
 
   pub fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
-    self.convert_program(node);
+    self.store_program(node);
     self.buffer.shrink_to_fit();
     self.buffer
   }
@@ -867,17 +867,6 @@ impl<'a> AstConverter<'a> {
       PropOrPrivateName::PrivateName(&private_property.key),
       &private_property.value.as_deref(),
     );
-  }
-
-  fn convert_program(&mut self, node: &Program) {
-    match node {
-      Program::Module(module) => {
-        self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body));
-      }
-      Program::Script(script) => {
-        self.store_program(ModuleItemsOrStatements::Statements(&script.body));
-      }
-    }
   }
 
   fn convert_property(&mut self, property: &Prop) {
@@ -2348,15 +2337,15 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &private_name.span);
   }
 
-  fn store_program(&mut self, body: ModuleItemsOrStatements) {
+  fn store_program(&mut self, body: &Program) {
     let end_position =
       self.add_type_and_explicit_start(&TYPE_PROGRAM_INLINED_BODY, 0u32, PROGRAM_RESERVED_BYTES);
     // body
     let mut keep_checking_directives = true;
     match body {
-      ModuleItemsOrStatements::ModuleItems(module_items) => {
+      Program::Module(module) => {
         self.convert_item_list_with_state(
-          module_items,
+          &module.body,
           &mut keep_checking_directives,
           |ast_converter, module_item, can_be_directive| {
             if *can_be_directive {
@@ -2373,9 +2362,9 @@ impl<'a> AstConverter<'a> {
           },
         );
       }
-      ModuleItemsOrStatements::Statements(statements) => {
+      Program::Script(script) => {
         self.convert_item_list_with_state(
-          statements,
+          &script.body,
           &mut keep_checking_directives,
           |ast_converter, statement, can_be_directive| {
             if *can_be_directive {
@@ -3100,9 +3089,4 @@ enum PatternOrIdentifier<'a> {
 enum PatternOrExpression<'a> {
   Pattern(&'a Pat),
   Expression(&'a Expr),
-}
-
-enum ModuleItemsOrStatements<'a> {
-  ModuleItems(&'a Vec<ModuleItem>),
-  Statements(&'a Vec<Stmt>),
 }
