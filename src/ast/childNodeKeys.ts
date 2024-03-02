@@ -41,6 +41,7 @@ export const childNodeKeys: Record<string, string[]> = {
 	ImportExpression: ['source', 'options'],
 	ImportNamespaceSpecifier: ['local'],
 	ImportSpecifier: ['imported', 'local'],
+	JsxAttribute: ['name'],
 	JsxElement: ['openingElement', 'closingElement', 'children'],
 	JsxIdentifier: [],
 	JsxOpeningElement: ['name', 'attributes'],
