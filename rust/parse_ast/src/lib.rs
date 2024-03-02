@@ -1,7 +1,7 @@
 use std::panic::{catch_unwind, AssertUnwindSafe};
 
 use convert_ast::converter::ast_constants::{
-  PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR_INLINED_MESSAGE,
+  PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR,
 };
 use convert_ast::converter::{convert_string, AstConverter};
 use swc_common::sync::Lrc;
@@ -62,7 +62,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
       } else {
         "Unknown rust panic message"
       };
-      let mut buffer = TYPE_PANIC_ERROR_INLINED_MESSAGE.to_vec();
+      let mut buffer = TYPE_PANIC_ERROR.to_vec();
       // reserve for start and end even though they are unused
       buffer.resize(buffer.len() + 4 + PANIC_ERROR_RESERVED_BYTES, 0);
       convert_string(&mut buffer, msg);

@@ -1472,16 +1472,17 @@ impl<'a> AstConverter<'a> {
 
   fn convert_directive(&mut self, expression_statement: &ExprStmt, directive: &JsWord) {
     let end_position = self.add_type_and_start(
-      &TYPE_DIRECTIVE_INLINED_DIRECTIVE,
+      &TYPE_DIRECTIVE_INLINED_EXPRESSION,
       &expression_statement.span,
       DIRECTIVE_RESERVED_BYTES,
       false,
     );
-    // directive
-    self.convert_string(directive);
     // expression
-    self.update_reference_position(end_position + DIRECTIVE_EXPRESSION_OFFSET);
     self.convert_expression(&expression_statement.expr);
+
+    // directive
+    self.update_reference_position(end_position + DIRECTIVE_DIRECTIVE_OFFSET);
+    self.convert_string(directive);
     // end
     self.add_end(end_position, &expression_statement.span);
   }
@@ -1777,11 +1778,13 @@ impl<'a> AstConverter<'a> {
 
   fn store_identifier(&mut self, start: u32, end: u32, name: &str) {
     let end_position = self.add_type_and_explicit_start(
-      &TYPE_IDENTIFIER_INLINED_NAME,
+      &TYPE_IDENTIFIER,
       start,
       IDENTIFIER_RESERVED_BYTES,
     );
     // name
+
+    self.update_reference_position(end_position + IDENTIFIER_NAME_OFFSET);
     self.convert_string(name);
     // end
     self.add_explicit_end(end_position, end);
@@ -1960,12 +1963,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_literal_bigint(&mut self, bigint: &BigInt) {
     let end_position = self.add_type_and_start(
-      &TYPE_LITERAL_BIG_INT_INLINED_BIGINT,
+      &TYPE_LITERAL_BIG_INT,
       &bigint.span,
       LITERAL_BIG_INT_RESERVED_BYTES,
       false,
     );
     // bigint
+    self.update_reference_position(end_position + LITERAL_BIG_INT_BIGINT_OFFSET);
     self.convert_string(&bigint.value.to_str_radix(10));
     // raw
     self.update_reference_position(end_position + LITERAL_BIG_INT_RAW_OFFSET);
@@ -2022,12 +2026,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_literal_regex(&mut self, regex: &Regex) {
     let end_position = self.add_type_and_start(
-      &TYPE_LITERAL_REG_EXP_INLINED_FLAGS,
+      &TYPE_LITERAL_REG_EXP,
       &regex.span,
       LITERAL_REG_EXP_RESERVED_BYTES,
       false,
     );
     // flags
+    self.update_reference_position(end_position + LITERAL_REG_EXP_FLAGS_OFFSET);
     self.convert_string(&regex.flags);
     // pattern
     self.update_reference_position(end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
@@ -2038,12 +2043,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_literal_string(&mut self, literal: &Str) {
     let end_position = self.add_type_and_start(
-      &TYPE_LITERAL_STRING_INLINED_VALUE,
+      &TYPE_LITERAL_STRING,
       &literal.span,
       LITERAL_STRING_RESERVED_BYTES,
       false,
     );
     // value
+    self.update_reference_position(end_position + LITERAL_STRING_VALUE_OFFSET);
     self.convert_string(&literal.value);
     // raw
     if let Some(raw) = literal.raw.as_ref() {
@@ -2337,12 +2343,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_private_name(&mut self, private_name: &PrivateName) {
     let end_position = self.add_type_and_start(
-      &TYPE_PRIVATE_IDENTIFIER_INLINED_NAME,
+      &TYPE_PRIVATE_IDENTIFIER,
       &private_name.span,
       PRIVATE_IDENTIFIER_RESERVED_BYTES,
       false,
     );
     // id
+    self.update_reference_position(end_position + PRIVATE_IDENTIFIER_NAME_OFFSET);
     self.convert_string(&private_name.id.sym);
     // end
     self.add_end(end_position, &private_name.span);
@@ -2763,7 +2770,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_template_element(&mut self, template_element: &TplElement) {
     let end_position = self.add_type_and_start(
-      &TYPE_TEMPLATE_ELEMENT_INLINED_RAW,
+      &TYPE_TEMPLATE_ELEMENT,
       &template_element.span,
       TEMPLATE_ELEMENT_RESERVED_BYTES,
       false,
@@ -2777,6 +2784,7 @@ impl<'a> AstConverter<'a> {
     let flags_position = end_position + TEMPLATE_ELEMENT_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // raw
+    self.update_reference_position(end_position + TEMPLATE_ELEMENT_RAW_OFFSET);
     self.convert_string(&template_element.raw);
     // cooked
     if let Some(cooked) = template_element.cooked.as_ref() {
