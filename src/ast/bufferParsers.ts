@@ -859,8 +859,9 @@ function convertNode(
 	node.type = nodeTypeStrings[nodeType];
 	node.start = buffer[position + 1];
 	node.end = buffer[position + 2];
+	// TODO convert scope
 	// node.scope = convertScope(parent.context, buffer[position + 3], buffer);
-	bufferParsers[nodeType](node, position + 3, buffer, readString);
+	bufferParsers[nodeType](node, position + 4, buffer, readString);
 	node.initialise();
 	return node;
 }
