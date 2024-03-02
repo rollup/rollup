@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function parse(a: number, b: number, c: number, d: number): void;
+export function parse(a: number, b: number, c: number, d: number, e: number): void;
 export function xxhashBase64Url(a: number, b: number): void;
 export function xxhashBase36(a: number, b: number): void;
 export function xxhashBase16(a: number, b: number): void;
