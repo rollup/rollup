@@ -160,10 +160,7 @@ impl<'a> AstConverter<'a> {
   }
 
   fn get_string_position_if_present(&mut self, string: &str) -> Option<usize> {
-    match self.string_position_map.get(string) {
-      Some(position) => Some(*position),
-      None => None,
-    }
+    self.string_position_map.get(string).copied()
   }
 
   fn store_string_position(&mut self, string: &str, position: usize) {
@@ -172,8 +169,8 @@ impl<'a> AstConverter<'a> {
 
   fn store_string(&mut self, string: &str, reference_position: usize){
     let found_position: Option<usize> = self.get_string_position_if_present(string);
-    if found_position.is_some() {
-      self.update_reference_position(found_position.unwrap());
+    if let Some(pos) = found_position {
+      self.update_reference_position(pos);
     } else {
       self.update_reference_position(reference_position);
       let start_position: usize = self.buffer.len();
