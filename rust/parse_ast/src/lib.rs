@@ -22,7 +22,7 @@ mod error_emit;
 pub fn parse_ast(code: String, allow_return_outside_function: bool, preserve_typescript: bool) -> Vec<u8> {
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
-  let syntax= if preserve_typescript {
+  let syntax= if true {
     Syntax::Typescript(TsConfig {
       tsx: false,
       decorators: false,

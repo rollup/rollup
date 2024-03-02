@@ -13,6 +13,7 @@ const {
 } = require('../utils.js');
 
 function requireWithContext(code, context, exports) {
+	console.log('DEBUG: ' + code.toString());
 	const module = { exports };
 	const contextWithExports = { ...context, module, exports };
 	const contextKeys = Object.keys(contextWithExports);
@@ -28,6 +29,7 @@ function requireWithContext(code, context, exports) {
 }
 
 function runCodeSplitTest(codeMap, entryId, configContext) {
+	console.log('DEBUG runCodeSplitTest' + codeMap.toString());
 	const exportsMap = Object.create(null);
 
 	const requireFromOutputVia = importer => importee => {
