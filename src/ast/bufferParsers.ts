@@ -49,11 +49,14 @@ import ImportExpression from './nodes/ImportExpression';
 import ImportNamespaceSpecifier from './nodes/ImportNamespaceSpecifier';
 import ImportSpecifier from './nodes/ImportSpecifier';
 import JsxAttribute from './nodes/JsxAttribute';
+import JsxClosingFragment from './nodes/JsxClosingFragment';
 import JsxElement from './nodes/JsxElement';
 import JsxEmptyExpr from './nodes/JsxEmptyExpr';
 import JsxExprContainer from './nodes/JsxExprContainer';
+import JsxFragment from './nodes/JsxFragment';
 import JsxIdentifier from './nodes/JsxIdentifier';
 import JsxOpeningElement from './nodes/JsxOpeningElement';
+import JsxOpeningFragment from './nodes/JsxOpeningFragment';
 import JsxText from './nodes/JsxText';
 import LabeledStatement from './nodes/LabeledStatement';
 import Literal from './nodes/Literal';
@@ -149,11 +152,14 @@ const nodeTypeStrings = [
 	'ImportNamespaceSpecifier',
 	'ImportSpecifier',
 	'JsxAttribute',
+	'JsxClosingFragment',
 	'JsxElement',
 	'JsxEmptyExpr',
 	'JsxExprContainer',
+	'JsxFragment',
 	'JsxIdentifier',
 	'JsxOpeningElement',
+	'JsxOpeningFragment',
 	'JsxText',
 	'LabeledStatement',
 	'Literal',
@@ -239,11 +245,14 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
 	JsxAttribute,
+	JsxClosingFragment,
 	JsxElement,
 	JsxEmptyExpr,
 	JsxExprContainer,
+	JsxFragment,
 	JsxIdentifier,
 	JsxOpeningElement,
+	JsxOpeningFragment,
 	JsxText,
 	LabeledStatement,
 	Literal,
@@ -588,6 +597,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const { scope } = node;
 		node.name = convertNode(node, scope, buffer[position], buffer);
 	},
+	function jsxClosingFragment() {},
 	function jsxElement(node: JsxElement, position, buffer) {
 		const { scope } = node;
 		node.openingElement = convertNode(node, scope, buffer[position], buffer);
@@ -603,6 +613,12 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const { scope } = node;
 		node.expression = convertNode(node, scope, buffer[position], buffer);
 	},
+	function jsxFragment(node: JsxFragment, position, buffer) {
+		const { scope } = node;
+		node.openingFragment = convertNode(node, scope, buffer[position], buffer);
+		node.closingFragment = convertNode(node, scope, buffer[position + 1], buffer);
+		node.children = convertNodeList(node, scope, buffer[position + 2], buffer);
+	},
 	function jsxIdentifier(node: JsxIdentifier, position, buffer) {
 		node.name = buffer.convertString(buffer[position]);
 	},
@@ -613,6 +629,7 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.name = convertNode(node, scope, buffer[position + 1], buffer);
 		node.attributes = convertNodeList(node, scope, buffer[position + 2], buffer);
 	},
+	function jsxOpeningFragment() {},
 	function jsxText(node: JsxText, position, buffer) {
 		node.value = buffer.convertString(buffer[position]);
 	},

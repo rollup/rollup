@@ -396,6 +396,11 @@ export const AST_NODES = {
 		],
 		useMacro: false
 	},
+	JsxClosingFragment: {
+		estreeType: 'any',
+		fields: [],
+		useMacro: false
+	},
 	JsxElement: {
 		estreeType: 'any',
 		fields: [
@@ -414,6 +419,15 @@ export const AST_NODES = {
 		fields: [['expression', 'Node']],
 		useMacro: false
 	},
+	JsxFragment: {
+		estreeType: 'any',
+		fields: [
+			['openingFragment', 'Node'],
+			['closingFragment', 'Node'],
+			['children', 'NodeList']
+		],
+		useMacro: false
+	},
 	JsxIdentifier: {
 		estreeType: 'any',
 		fields: [['name', 'String']],
@@ -426,6 +440,11 @@ export const AST_NODES = {
 			['attributes', 'NodeList']
 		],
 		flags: ['selfClosing'],
+		useMacro: false
+	},
+	JsxOpeningFragment: {
+		estreeType: 'any',
+		fields: [],
 		useMacro: false
 	},
 	JsxText: {

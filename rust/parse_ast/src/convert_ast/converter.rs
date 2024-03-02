@@ -1,24 +1,29 @@
 use swc_common::Span;
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
-  ExprOrSpread, ForHead, ImportSpecifier, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXElement,
-  JSXElementChild, JSXElementName, JSXEmptyExpr, JSXExpr, JSXExprContainer, JSXOpeningElement,
-  JSXText, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase,
-  ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
+  ExprOrSpread, ForHead, ImportSpecifier, JSXAttr, JSXAttrName, JSXAttrOrSpread,
+  JSXClosingFragment, JSXElement, JSXElementChild, JSXElementName, JSXEmptyExpr, JSXExpr,
+  JSXExprContainer, JSXFragment, JSXOpeningElement, JSXOpeningFragment, JSXText, Lit, ModuleDecl,
+  ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program,
+  PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  JSX_ATTRIBUTE_NAME_OFFSET, JSX_ATTRIBUTE_RESERVED_BYTES, JSX_ELEMENT_CHILDREN_OFFSET,
-  JSX_ELEMENT_OPENING_ELEMENT_OFFSET, JSX_ELEMENT_RESERVED_BYTES, JSX_EMPTY_EXPR_RESERVED_BYTES,
-  JSX_EXPR_CONTAINER_EXPRESSION_OFFSET, JSX_EXPR_CONTAINER_RESERVED_BYTES,
-  JSX_IDENTIFIER_NAME_OFFSET, JSX_IDENTIFIER_RESERVED_BYTES, JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
-  JSX_OPENING_ELEMENT_NAME_OFFSET, JSX_OPENING_ELEMENT_RESERVED_BYTES, JSX_TEXT_RESERVED_BYTES,
+  JSX_ATTRIBUTE_NAME_OFFSET, JSX_ATTRIBUTE_RESERVED_BYTES, JSX_CLOSING_FRAGMENT_RESERVED_BYTES,
+  JSX_ELEMENT_CHILDREN_OFFSET, JSX_ELEMENT_OPENING_ELEMENT_OFFSET, JSX_ELEMENT_RESERVED_BYTES,
+  JSX_EMPTY_EXPR_RESERVED_BYTES, JSX_EXPR_CONTAINER_EXPRESSION_OFFSET,
+  JSX_EXPR_CONTAINER_RESERVED_BYTES, JSX_FRAGMENT_CHILDREN_OFFSET,
+  JSX_FRAGMENT_CLOSING_FRAGMENT_OFFSET, JSX_FRAGMENT_OPENING_FRAGMENT_OFFSET,
+  JSX_FRAGMENT_RESERVED_BYTES, JSX_IDENTIFIER_NAME_OFFSET, JSX_IDENTIFIER_RESERVED_BYTES,
+  JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET, JSX_OPENING_ELEMENT_NAME_OFFSET,
+  JSX_OPENING_ELEMENT_RESERVED_BYTES, JSX_OPENING_FRAGMENT_RESERVED_BYTES, JSX_TEXT_RESERVED_BYTES,
   JSX_TEXT_VALUE_OFFSET, TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION,
-  TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ATTRIBUTE, TYPE_JSX_ELEMENT, TYPE_JSX_EMPTY_EXPR,
-  TYPE_JSX_EXPR_CONTAINER, TYPE_JSX_IDENTIFIER, TYPE_JSX_OPENING_ELEMENT, TYPE_JSX_TEXT,
+  TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ATTRIBUTE, TYPE_JSX_CLOSING_FRAGMENT, TYPE_JSX_ELEMENT,
+  TYPE_JSX_EMPTY_EXPR, TYPE_JSX_EXPR_CONTAINER, TYPE_JSX_FRAGMENT, TYPE_JSX_IDENTIFIER,
+  TYPE_JSX_OPENING_ELEMENT, TYPE_JSX_OPENING_FRAGMENT, TYPE_JSX_TEXT,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
@@ -374,7 +379,9 @@ impl<'a> AstConverter<'a> {
       Expr::JSXElement(jsx_element) => {
         self.convert_jsx_element(jsx_element);
       }
-      Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
+      Expr::JSXFragment(jsx_fragment) => {
+        self.convert_jsx_fragment(jsx_fragment);
+      }
       Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
       Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
       Expr::TsNonNull(_) => unimplemented!("Cannot convert Expr::TsNonNull"),
@@ -706,9 +713,8 @@ impl<'a> AstConverter<'a> {
         // self.store_jsx_spread_child(jsx_spread_child);
         unimplemented!("JSXElementChild::JSXSpreadChild")
       }
-      JSXElementChild::JSXFragment(_jsx_fragment) => {
-        // self.store_jsx_fragment(jsx_fragment);
-        unimplemented!("JSXElementChild::JSXFragment")
+      JSXElementChild::JSXFragment(jsx_fragment) => {
+        self.convert_jsx_fragment(jsx_fragment);
       }
       JSXElementChild::JSXElement(jsx_element) => {
         self.convert_jsx_element(jsx_element);
@@ -856,6 +862,55 @@ impl<'a> AstConverter<'a> {
     self.convert_string(name, end_position + JSX_IDENTIFIER_NAME_OFFSET);
     // end
     self.add_end(end_position, span);
+  }
+
+  fn convert_jsx_fragment(&mut self, jsx_fragment: &JSXFragment) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_FRAGMENT,
+      &jsx_fragment.span,
+      JSX_FRAGMENT_RESERVED_BYTES,
+      false,
+    );
+    // openingFragment
+    self.update_reference_position(end_position + JSX_FRAGMENT_OPENING_FRAGMENT_OFFSET);
+    self.store_jsx_opening_fragment(jsx_fragment.opening);
+    // children
+    self.convert_item_list(
+      &jsx_fragment.children,
+      end_position + JSX_FRAGMENT_CHILDREN_OFFSET,
+      |ast_converter, jsx_fragment_child| {
+        unimplemented!("Convert JSXFragmentChild");
+        // ast_converter.convert_jsx_fragment_child(jsx_fragment_child);
+        // true
+      },
+    );
+    // closingFragment
+    self.update_reference_position(end_position + JSX_FRAGMENT_CLOSING_FRAGMENT_OFFSET);
+    self.store_jsx_closing_fragment(&jsx_fragment.closing);
+    // end
+    self.add_end(end_position, &jsx_fragment.span);
+  }
+
+  fn store_jsx_opening_fragment(&mut self, jsxopening_fragment: JSXOpeningFragment) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_OPENING_FRAGMENT,
+      &jsxopening_fragment.span,
+      JSX_OPENING_FRAGMENT_RESERVED_BYTES,
+      false,
+    );
+    // end
+    self.add_end(end_position, &jsxopening_fragment.span);
+  }
+
+  fn store_jsx_closing_fragment(&mut self, jsx_closing_fragment: &JSXClosingFragment) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_CLOSING_FRAGMENT,
+      &jsx_closing_fragment.span,
+      JSX_CLOSING_FRAGMENT_RESERVED_BYTES,
+      false,
+    );
+    // end
+    self.add_end(end_position, &jsx_closing_fragment.span);
   }
 }
 

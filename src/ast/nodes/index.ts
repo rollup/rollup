@@ -41,11 +41,14 @@ import ImportExpression from './ImportExpression';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import ImportSpecifier from './ImportSpecifier';
 import JsxAttribute from './JsxAttribute';
+import JsxClosingFragment from './JsxClosingFragment';
 import JsxElement from './JsxElement';
 import JsxEmptyExpr from './JsxEmptyExpr';
 import JsxExprContainer from './JsxExprContainer';
+import JsxFragment from './JsxFragment';
 import JsxIdentifier from './JsxIdentifier';
 import JsxOpeningElement from './JsxOpeningElement';
+import JsxOpeningFragment from './JsxOpeningFragment';
 import JsxText from './JsxText';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
@@ -126,11 +129,14 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
 	JsxAttribute,
+	JsxClosingFragment,
 	JsxElement,
 	JsxEmptyExpr,
 	JsxExprContainer,
+	JsxFragment,
 	JsxIdentifier,
 	JsxOpeningElement,
+	JsxOpeningFragment,
 	JsxText,
 	LabeledStatement,
 	Literal,
