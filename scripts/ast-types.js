@@ -388,6 +388,14 @@ export const AST_NODES = {
 			imported: 'local'
 		}
 	},
+	JsxElement: {
+		estreeType: 'any',
+		fields: [
+			['openingElement', 'Node'],
+			['closingElement', 'OptionalNode'],
+			['children', 'NodeList']
+		]
+	},
 	LabeledStatement: {
 		fields: [
 			['label', 'Node'],

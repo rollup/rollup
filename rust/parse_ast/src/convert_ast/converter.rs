@@ -1,10 +1,5 @@
 use swc_common::Span;
-use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
-  ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
-  NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
-  SimpleAssignTarget, Stmt, VarDeclOrExpr,
-};
+use swc_ecma_ast::{AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr, JSXElement};
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
@@ -362,7 +357,9 @@ impl<'a> AstConverter<'a> {
       Expr::JSXMember(_) => unimplemented!("Cannot convert Expr::JSXMember"),
       Expr::JSXNamespacedName(_) => unimplemented!("Cannot convert Expr::JSXNamespacedName"),
       Expr::JSXEmpty(_) => unimplemented!("Cannot convert Expr::JSXEmpty"),
-      Expr::JSXElement(_) => unimplemented!("Cannot convert Expr::JSXElement"),
+      Expr::JSXElement(jsx_element) => {
+        self.convert_jsx_element(jsx_element);
+      },
       Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
       Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
       Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
@@ -653,6 +650,26 @@ impl<'a> AstConverter<'a> {
         self.convert_expression(expression);
       }
     }
+  }
+
+  fn convert_jsx_element(&mut self, jsx_element: &JSXElement) {
+      panic!("JSXElement not supported");
+      /*   let end_position = self.add_type_and_start(
+        &TYPE_JSX_ELEMENT_EXPRESSION,
+        &jsx_element.span,
+        JSX_ELEMENT_EXPRESSION_RESERVED_BYTES,
+        false,
+      );
+      self.store_identifier()
+      // argument
+      jsx_element.opening.as_ref().map(|expression| {
+
+
+        self.update_reference_position(end_position + YIELD_EXPRESSION_ARGUMENT_OFFSET);
+        self.convert_expression(expression)
+      });
+      // end
+      self.add_end(end_position, &jsx_element.span);*/
   }
 }
 
