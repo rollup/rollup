@@ -1090,6 +1090,30 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end
 		};
 	},
+	function tSPropertySignature(position, buffer, readString): TSPropertySignatureNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const flags = buffer[position++];
+		const isStatic = (flags & 1) === 1;
+		const computed = (flags & 2) === 2;
+		const optional = (flags & 4) === 4;
+		const readonly = (flags & 8) === 8;
+		const key = convertNode(buffer[position++], buffer, readString);
+		const typeAnnotationPosition = buffer[position];
+		const typeAnnotation =
+			typeAnnotationPosition === 0 ? null : convertNode(typeAnnotationPosition, buffer, readString);
+		return {
+			type: 'TSPropertySignature',
+			start,
+			end,
+			static: isStatic,
+			computed,
+			optional,
+			readonly,
+			key,
+			typeAnnotation
+		};
+	},
 	function tSTypeAnnotation(position, buffer, readString): TSTypeAnnotationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -1295,6 +1319,7 @@ export type TryStatementNode = RollupAstNode<estree.TryStatement>;
 export type TSInterfaceBodyNode = RollupAstNode<estree.TSInterfaceBody>;
 export type TSInterfaceDeclarationNode = RollupAstNode<estree.TSInterfaceDeclaration>;
 export type TSNumberKeywordNode = RollupAstNode<any>;
+export type TSPropertySignatureNode = RollupAstNode<any>;
 export type TSTypeAnnotationNode = RollupAstNode<any>;
 export type UnaryExpressionNode = RollupAstNode<estree.UnaryExpression> & { prefix: true };
 export type UpdateExpressionNode = RollupAstNode<estree.UpdateExpression>;

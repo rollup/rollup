@@ -73,6 +73,7 @@ import SwitchStatement from './nodes/SwitchStatement';
 import TSInterfaceBody from './nodes/TSInterfaceBody';
 import TSInterfaceDeclaration from './nodes/TSInterfaceDeclaration';
 import TSNumberKeyword from './nodes/TSNumberKeyword';
+import TSPropertySignature from './nodes/TSPropertySignature';
 import TSTypeAnnotation from './nodes/TSTypeAnnotation';
 import TaggedTemplateExpression from './nodes/TaggedTemplateExpression';
 import TemplateElement from './nodes/TemplateElement';
@@ -184,6 +185,7 @@ const nodeTypeStrings = [
 	'TSInterfaceBody',
 	'TSInterfaceDeclaration',
 	'TSNumberKeyword',
+	'TSPropertySignature',
 	'TSTypeAnnotation',
 	'UnaryExpression',
 	'UpdateExpression',
@@ -270,6 +272,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	TSInterfaceBody,
 	TSInterfaceDeclaration,
 	TSNumberKeyword,
+	TSPropertySignature,
 	TSTypeAnnotation,
 	UnaryExpression,
 	UpdateExpression,
@@ -819,6 +822,20 @@ const bufferParsers: ((
 		node.body = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function tSNumberKeyword() {},
+	function tSPropertySignature(node: TSPropertySignature, position, buffer, readString) {
+		const { scope } = node;
+		const flags = buffer[position];
+		node.static = (flags & 1) === 1;
+		node.computed = (flags & 2) === 2;
+		node.optional = (flags & 4) === 4;
+		node.readonly = (flags & 8) === 8;
+		node.key = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		const typeAnnotationPosition = buffer[position + 2];
+		node.typeAnnotation =
+			typeAnnotationPosition === 0
+				? null
+				: convertNode(node, scope, typeAnnotationPosition, buffer, readString);
+	},
 	function tSTypeAnnotation(node: TSTypeAnnotation, position, buffer, readString) {
 		const { scope } = node;
 		node.typeAnnotation = convertNode(node, scope, buffer[position], buffer, readString);

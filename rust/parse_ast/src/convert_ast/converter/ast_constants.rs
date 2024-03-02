@@ -77,13 +77,14 @@ pub const TYPE_TRY_STATEMENT: [u8; 4] = 72u32.to_ne_bytes();
 pub const TYPE_T_S_INTERFACE_BODY: [u8; 4] = 73u32.to_ne_bytes();
 pub const TYPE_T_S_INTERFACE_DECLARATION: [u8; 4] = 74u32.to_ne_bytes();
 pub const TYPE_T_S_NUMBER_KEYWORD: [u8; 4] = 75u32.to_ne_bytes();
-pub const TYPE_T_S_TYPE_ANNOTATION: [u8; 4] = 76u32.to_ne_bytes();
-pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 77u32.to_ne_bytes();
-pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 78u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 79u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 80u32.to_ne_bytes();
-pub const TYPE_WHILE_STATEMENT: [u8; 4] = 81u32.to_ne_bytes();
-pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 82u32.to_ne_bytes();
+pub const TYPE_T_S_PROPERTY_SIGNATURE: [u8; 4] = 76u32.to_ne_bytes();
+pub const TYPE_T_S_TYPE_ANNOTATION: [u8; 4] = 77u32.to_ne_bytes();
+pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 78u32.to_ne_bytes();
+pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 79u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 80u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 81u32.to_ne_bytes();
+pub const TYPE_WHILE_STATEMENT: [u8; 4] = 82u32.to_ne_bytes();
+pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 83u32.to_ne_bytes();
 
 pub const PANIC_ERROR_RESERVED_BYTES: usize = 8;
 pub const PANIC_ERROR_MESSAGE_OFFSET: usize = 4;
@@ -386,6 +387,15 @@ pub const T_S_INTERFACE_DECLARATION_RESERVED_BYTES: usize = 8;
 pub const T_S_INTERFACE_DECLARATION_BODY_OFFSET: usize = 4;
 
 pub const T_S_NUMBER_KEYWORD_RESERVED_BYTES: usize = 4;
+
+pub const T_S_PROPERTY_SIGNATURE_RESERVED_BYTES: usize = 16;
+pub const T_S_PROPERTY_SIGNATURE_FLAGS_OFFSET: usize = 4;
+pub const T_S_PROPERTY_SIGNATURE_STATIC_FLAG: u32 = 1;
+pub const T_S_PROPERTY_SIGNATURE_COMPUTED_FLAG: u32 = 2;
+pub const T_S_PROPERTY_SIGNATURE_OPTIONAL_FLAG: u32 = 4;
+pub const T_S_PROPERTY_SIGNATURE_READONLY_FLAG: u32 = 8;
+pub const T_S_PROPERTY_SIGNATURE_KEY_OFFSET: usize = 8;
+pub const T_S_PROPERTY_SIGNATURE_TYPE_ANNOTATION_OFFSET: usize = 12;
 
 pub const T_S_TYPE_ANNOTATION_RESERVED_BYTES: usize = 8;
 pub const T_S_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET: usize = 4;
