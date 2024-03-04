@@ -1,4 +1,31 @@
-/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'InvalidAnnotations'|'String'|'FixedString'|'OptionalString'|'Float'} FieldType */
+/**
+ * This file contains the AST node descriptions for the ESTree AST.
+ * From this file, "npm run build:ast:converters" will generate
+ * - /rust/parse_ast/src/convert_ast/converter/ast_constants.rs:
+ *   Constants that describe how the AST nodes are encoded in Rust.
+ * - /src/utils/bufferToAst.ts:
+ *   Helper functions that are used by this.parse in plugins to convert a buffer
+ *   to a JSON AST.
+ * - /src/ast/bufferParsers.ts
+ *   Helper functions that are used by Module.ts to convert a buffer to an
+ *   internal Rollup AST. While this uses roughly the same AST format, it
+ *   instantiates the classes in /src/ast/nodes instead.
+ * - /src/ast/childNodeKeys.ts
+ *   A list of which AST nodes keys represent child nodes. This is used by the
+ *   legacy parser to instantiate a Rollup AST from a JSON AST.
+ *
+ * JavaScript AST nodes follow the ESTree format specified here
+ * https://github.com/estree/estree. While the binary buffer format could
+ * theoretically deviate from this, it should be either a one-to-one or a
+ * many-to-one mapping (Example: All Literal* nodes in the buffer are encoded
+ * as "type: Literal" in the JSON AST).
+ *
+ * For encoded non-JavaScript AST nodes like TypeScript or JSX, we try to follow
+ * the format of typescript-eslint, which can be derived from their playground
+ * https://typescript-eslint.io/play/#showAST=es&fileType=.tsx
+ */
+
+/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"Float"} FieldType */
 
 /** @typedef {[name:string, type:FieldType]} FieldWithType */
 
