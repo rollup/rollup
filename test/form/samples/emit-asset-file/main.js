@@ -1,4 +1,5 @@
 import logo from './logo.svg';
+import logoReverse from "./logo_reverse'.svg"
 
 function showImage(url) {
 	console.log(url);
@@ -10,3 +11,4 @@ function showImage(url) {
 }
 
 showImage(logo);
+showImage(logoReverse);

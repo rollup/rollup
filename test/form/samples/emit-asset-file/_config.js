@@ -24,7 +24,7 @@ module.exports = defineTest({
 				},
 				generateBundle(options, outputBundle) {
 					const keys = Object.keys(outputBundle);
-					assert.strictEqual(keys.length, 2);
+					assert.strictEqual(keys.length, 3);
 					assert.strictEqual(keys[0], 'assets/logo-zDlmrXar.svg');
 					const asset = outputBundle[keys[0]];
 					assert.strictEqual(asset.fileName, 'assets/logo-zDlmrXar.svg');
@@ -37,7 +37,8 @@ module.exports = defineTest({
 						source.equals(readFileSync(path.resolve(__dirname, 'logo.svg'))),
 						'asset has correct source'
 					);
-					assert.ok(keys[1].endsWith('.js'), `${keys[1]} ends with ".js"`);
+					assert.ok(keys[1].endsWith('.svg'), `${keys[1]} ends with ".svg"`);
+					assert.ok(keys[2].endsWith('.js'), `${keys[2]} ends with ".js"`);
 				}
 			}
 		]
