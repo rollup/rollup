@@ -37,8 +37,12 @@ export function error(base: Error | RollupLog): never {
 }
 
 export function getRollupError(base: RollupLog): Error & RollupLog {
+	augmentLogMessage(base);
 	const errorInstance = Object.assign(new Error(base.message), base);
-	Object.defineProperty(errorInstance, 'name', { value: 'RollupError', writable: true });
+	Object.defineProperty(errorInstance, 'name', {
+		value: 'RollupError',
+		writable: true
+	});
 	return errorInstance;
 }
 
@@ -65,6 +69,32 @@ export function augmentCodeLocation(
 		const { line, column } = properties.loc;
 		properties.frame = getCodeFrame(source, line, column);
 	}
+}
+
+const symbolAugmented = Symbol('augmented');
+
+interface AugmentedRollupLog extends RollupLog {
+	[symbolAugmented]?: boolean;
+}
+
+export function augmentLogMessage(log: AugmentedRollupLog): void {
+	// Make sure to only augment the log message once
+	if (!(log.plugin || log.loc) || log[symbolAugmented]) {
+		return;
+	}
+	log[symbolAugmented] = true;
+	let prefix = '';
+
+	if (log.plugin) {
+		prefix += `[plugin ${log.plugin}] `;
+	}
+	const id = log.id || log.loc?.file;
+	if (id) {
+		const position = log.loc ? ` (${log.loc.line}:${log.loc.column})` : '';
+		prefix += `${relativeId(id)}${position}: `;
+	}
+
+	log.message = prefix + log.message;
 }
 
 // Error codes should be sorted alphabetically while errors should be sorted by
@@ -323,7 +353,10 @@ export function logConstVariableReassignError() {
 }
 
 export function logDuplicateArgumentNameError(name: string): RollupLog {
-	return { code: DUPLICATE_ARGUMENT_NAME, message: `Duplicate argument name "${name}"` };
+	return {
+		code: DUPLICATE_ARGUMENT_NAME,
+		message: `Duplicate argument name "${name}"`
+	};
 }
 
 export function logDuplicateExportError(name: string): RollupLog {
@@ -838,7 +871,10 @@ export function logParseError(message: string, pos?: number): RollupLog {
 }
 
 export function logRedeclarationError(name: string): RollupLog {
-	return { code: REDECLARATION_ERROR, message: `Identifier "${name}" has already been declared` };
+	return {
+		code: REDECLARATION_ERROR,
+		message: `Identifier "${name}" has already been declared`
+	};
 }
 
 export function logModuleParseError(error: Error, moduleId: string): RollupLog {

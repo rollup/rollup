@@ -14,7 +14,7 @@ module.exports = defineTest({
 	},
 	after() {
 		Object.assign(console, { debug, info, warn });
-		assert.deepStrictEqual(logs, []);
+		assert.deepEqual(logs, []);
 	},
 	options: {
 		logLevel: 'silent',

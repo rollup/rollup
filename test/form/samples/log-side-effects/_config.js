@@ -28,7 +28,7 @@ module.exports = defineTest({
 		{
 			level: 'info',
 			code: 'FIRST_SIDE_EFFECT',
-			message: `First side effect in dep-mapped.js is at (2:26)
+			message: `dep-mapped.js (1:0): First side effect in dep-mapped.js is at (2:26)
 1: const removed = true;
 2: const alsoRemoved = true; console.log('mapped effect');
                              ^`,
@@ -46,7 +46,7 @@ module.exports = defineTest({
 		{
 			level: 'info',
 			code: 'FIRST_SIDE_EFFECT',
-			message: `First side effect in main.js is at (2:0)
+			message: `main.js (2:0): First side effect in main.js is at (2:0)
 1: import './dep-mapped';
 2: console.log('main effect');
    ^

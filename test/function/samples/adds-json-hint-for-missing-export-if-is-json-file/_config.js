@@ -23,6 +23,6 @@ module.exports = defineTest({
 		`,
 		watchFiles: [ID_ARRAY_JSON, ID_MAIN],
 		message:
-			'"default" is not exported by "array.json", imported by "main.js". (Note that you need @rollup/plugin-json to import JSON files)'
+			'main.js (1:7): "default" is not exported by "array.json", imported by "main.js". (Note that you need @rollup/plugin-json to import JSON files)'
 	}
 });

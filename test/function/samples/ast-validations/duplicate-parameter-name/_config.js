@@ -5,7 +5,7 @@ module.exports = defineTest({
 	description: 'throws on duplicate parameter names as it would when running in strict mode',
 	error: {
 		code: 'DUPLICATE_ARGUMENT_NAME',
-		message: 'Duplicate argument name "a"',
+		message: 'main.js (1:15): Duplicate argument name "a"',
 		id: ID_MAIN,
 		pos: 15,
 		watchFiles: [ID_MAIN],

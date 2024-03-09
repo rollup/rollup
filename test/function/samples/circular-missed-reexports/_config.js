@@ -25,7 +25,8 @@ module.exports = defineTest({
 			binding: 'doesNotExist',
 			code: 'MISSING_EXPORT',
 			id: ID_MAIN,
-			message: '"doesNotExist" is not exported by "dep1.js", imported by "main.js".',
+			message:
+				'main.js (1:17): "doesNotExist" is not exported by "dep1.js", imported by "main.js".',
 			exporter: ID_DEP1,
 			pos: 17,
 			loc: {

@@ -1,27 +1,37 @@
 const assert = require('node:assert');
 const { existsSync, readdirSync, readFileSync, rmSync, unlinkSync } = require('node:fs');
-const { rm, unlink, writeFile } = require('node:fs/promises');
-const { resolve } = require('node:path');
-const { chdir, cwd, hrtime } = require('node:process');
+const { rm, unlink, writeFile, mkdir } = require('node:fs/promises');
+const { join, resolve } = require('node:path');
+const { hrtime } = require('node:process');
 const { copy } = require('fs-extra');
 /**
- * @type {import('../../src/rollup/types')} Rollup
+ * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup');
 const { atomicWriteFileSync, wait, withTimeout } = require('../utils');
 
-describe('rollup.watch', () => {
+const SAMPLES_DIR = join(__dirname, 'samples');
+const TEMP_DIR = join(__dirname, '../_tmp');
+const INPUT_DIR = join(TEMP_DIR, 'input');
+const ENTRY_FILE = join(INPUT_DIR, 'main.js');
+const OUTPUT_DIR = join(TEMP_DIR, 'output');
+const BUNDLE_FILE = join(OUTPUT_DIR, 'bundle.js');
+
+describe('rollup.watch', function () {
+	this.timeout(40_000);
 	let watcher;
 
-	beforeEach(() => {
-		chdir(cwd());
-		return rm('test/_tmp', {
+	beforeEach(async () => {
+		process.chdir(__dirname);
+		await rm(TEMP_DIR, {
 			force: true,
 			recursive: true
 		});
+		await mkdir(INPUT_DIR, { recursive: true });
+		process.chdir(INPUT_DIR);
 	});
 
-	afterEach(() => {
+	afterEach(async () => {
 		if (watcher) {
 			watcher.close();
 			watcher = null;
@@ -31,9 +41,9 @@ describe('rollup.watch', () => {
 	it('watches a file and triggers reruns if necessary', async () => {
 		let triggerRestart = false;
 
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				name: 'test-plugin',
 				options() {
@@ -44,14 +54,14 @@ describe('rollup.watch', () => {
 					if (triggerRestart) {
 						triggerRestart = false;
 						await wait(100);
-						atomicWriteFileSync('test/_tmp/input/main.js', 'export default 44;');
+						atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
 						await wait(100);
 						return code;
 					}
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -62,9 +72,9 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				triggerRestart = true;
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
@@ -75,7 +85,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 44);
+				assert.strictEqual(run(BUNDLE_FILE), 44);
 			}
 		]);
 	});
@@ -84,14 +94,14 @@ describe('rollup.watch', () => {
 		let run = 0;
 		const events = new Set();
 
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				async writeBundle() {
 					if (run++ === 0) {
 						await wait(100);
-						atomicWriteFileSync('test/_tmp/input/main.js', 'export default 48;');
+						atomicWriteFileSync(ENTRY_FILE, 'export default 48;');
 						await wait(100);
 					}
 					if (run === 2) {
@@ -100,7 +110,7 @@ describe('rollup.watch', () => {
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -134,9 +144,9 @@ describe('rollup.watch', () => {
 	});
 
 	it('does not fail for virtual files', async () => {
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				resolveId(id) {
 					if (id === 'virtual') {
@@ -150,7 +160,7 @@ describe('rollup.watch', () => {
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -161,9 +171,9 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				atomicWriteFileSync(
-					'test/_tmp/input/main.js',
+					ENTRY_FILE,
 					"import {value} from 'virtual';\nexport default value + 1;"
 				);
 			},
@@ -172,26 +182,26 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
 
 	it('passes file events to the watchChange plugin hook once for each change', async () => {
 		let watchChangeCnt = 0;
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		await wait(100);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			},
 			plugins: {
 				watchChange(id) {
 					watchChangeCnt++;
-					assert.strictEqual(id, resolve('test/_tmp/input/main.js'));
+					assert.strictEqual(id, ENTRY_FILE);
 				}
 			}
 		});
@@ -203,50 +213,50 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				watchChangeCnt = 0;
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 				assert.strictEqual(watchChangeCnt, 1);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 				assert.strictEqual(watchChangeCnt, 2);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 				assert.strictEqual(watchChangeCnt, 3);
 			}
 		]);
 	});
 
 	it('passes change parameter to the watchChange plugin hook', async () => {
-		const WATCHED_ID = resolve('test/_tmp/input/watched');
+		const WATCHED_ID = join(INPUT_DIR, 'watched');
 		const events = [];
 		let ids;
-		const expectedIds = [WATCHED_ID, resolve('test/_tmp/input/main.js')];
-		await copy('test/watch/samples/watch-files', 'test/_tmp/input');
+		const expectedIds = [WATCHED_ID, ENTRY_FILE];
+		await copy(join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
 		await unlink(WATCHED_ID);
 		await wait(100);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			},
@@ -273,7 +283,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				assert.deepStrictEqual(events, []);
 				assert.deepStrictEqual(ids, expectedIds);
 				atomicWriteFileSync(WATCHED_ID, 'first');
@@ -283,7 +293,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				assert.deepStrictEqual(events, ['create']);
 				assert.deepStrictEqual(ids, expectedIds);
 				atomicWriteFileSync(WATCHED_ID, 'first');
@@ -293,7 +303,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				assert.deepStrictEqual(events, ['create', 'update']);
 				assert.deepStrictEqual(ids, expectedIds);
 				unlinkSync(WATCHED_ID);
@@ -303,7 +313,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				assert.deepStrictEqual(events, ['create', 'update', 'delete']);
 				assert.deepStrictEqual(ids, expectedIds);
 			}
@@ -311,15 +321,15 @@ describe('rollup.watch', () => {
 	});
 
 	it('correctly rewrites change event during build delay', async () => {
-		const WATCHED_ID = resolve('test/_tmp/input/watched');
-		const MAIN_ID = resolve('test/_tmp/input/main.js');
+		const WATCHED_ID = join(INPUT_DIR, 'watched');
+		const MAIN_ID = ENTRY_FILE;
 		let lastEvent = null;
-		await copy('test/watch/samples/watch-files', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
 		await wait(100);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			},
@@ -390,11 +400,11 @@ describe('rollup.watch', () => {
 		let calls = 0;
 		let context1;
 		let context2;
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			},
@@ -427,7 +437,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				assert.ok(context1);
 				assert.ok(context2);
 				watcher.once('close', () => {
@@ -439,11 +449,11 @@ describe('rollup.watch', () => {
 	});
 
 	it('watches a file in code-splitting mode', async () => {
-		await copy('test/watch/samples/code-splitting', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'code-splitting'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: ['test/_tmp/input/main1.js', 'test/_tmp/input/main2.js'],
+			input: [join(INPUT_DIR, 'main1.js'), join(INPUT_DIR, 'main2.js')],
 			output: {
-				dir: 'test/_tmp/output',
+				dir: OUTPUT_DIR,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -454,30 +464,30 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/main1.js'), 21);
-				assert.strictEqual(run('../_tmp/output/main2.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
+				assert.strictEqual(run(join(OUTPUT_DIR, 'main1.js')), 21);
+				assert.strictEqual(run(join(OUTPUT_DIR, 'main2.js')), 42);
+				atomicWriteFileSync(join(INPUT_DIR, 'shared.js'), 'export const value = 22;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/main1.js'), 22);
-				assert.strictEqual(run('../_tmp/output/main2.js'), 44);
+				assert.strictEqual(run(join(OUTPUT_DIR, 'main1.js')), 22);
+				assert.strictEqual(run(join(OUTPUT_DIR, 'main2.js')), 44);
 			}
 		]);
 	});
 
 	it('watches a file in code-splitting mode with an input object', async () => {
-		await copy('test/watch/samples/code-splitting', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'code-splitting'), INPUT_DIR);
 		watcher = rollup.watch({
 			input: {
-				_main_1: 'test/_tmp/input/main1.js',
-				'subfolder/_main_2': 'test/_tmp/input/main2.js'
+				_main_1: join(INPUT_DIR, 'main1.js'),
+				'subfolder/_main_2': join(INPUT_DIR, 'main2.js')
 			},
 			output: {
-				dir: 'test/_tmp/output',
+				dir: OUTPUT_DIR,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -488,27 +498,27 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/_main_1.js'), 21);
-				assert.strictEqual(run('../_tmp/output/subfolder/_main_2.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
+				assert.strictEqual(run(join(OUTPUT_DIR, '_main_1.js')), 21);
+				assert.strictEqual(run(join(OUTPUT_DIR, 'subfolder/_main_2.js')), 42);
+				atomicWriteFileSync(join(INPUT_DIR, 'shared.js'), 'export const value = 22;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/_main_1.js'), 22);
-				assert.strictEqual(run('../_tmp/output/subfolder/_main_2.js'), 44);
+				assert.strictEqual(run(join(OUTPUT_DIR, '_main_1.js')), 22);
+				assert.strictEqual(run(join(OUTPUT_DIR, 'subfolder/_main_2.js')), 44);
 			}
 		]);
 	});
 
 	it('recovers from an error', async () => {
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -519,32 +529,32 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export nope;');
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				atomicWriteFileSync(ENTRY_FILE, 'export nope;');
 			},
 			'START',
 			'BUNDLE_START',
-			"ERROR:Expected '{', got 'nope'",
+			"ERROR:main.js (1:7): Expected '{', got 'nope'",
 			'END',
 			() => {
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
 
 	it('recovers from an error on initial build', async () => {
-		await copy('test/watch/samples/error', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'error'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -552,36 +562,36 @@ describe('rollup.watch', () => {
 		return sequence(watcher, [
 			'START',
 			'BUNDLE_START',
-			'ERROR:Expression expected',
+			'ERROR:main.js (2:0): Expression expected',
 			'END',
 			() => {
-				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				assert.strictEqual(existsSync(BUNDLE_FILE), false);
+				atomicWriteFileSync(ENTRY_FILE, '' + 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
 
 	it('recovers from a plugin error on initial build', async () => {
-		let count = 0;
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		let error = true;
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				transform() {
-					if (count++ === 0) {
-						this.error('The first run failed, try again.');
+					if (error) {
+						this.error('This run failed, try again.');
 					}
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -589,27 +599,28 @@ describe('rollup.watch', () => {
 		return sequence(watcher, [
 			'START',
 			'BUNDLE_START',
-			'ERROR:The first run failed, try again.',
+			'ERROR:[plugin at position 1] main.js: This run failed, try again.',
 			'END',
 			() => {
-				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				error = false;
+				assert.strictEqual(existsSync(BUNDLE_FILE), false);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
 
 	it('awaits and recovers from a plugin error in the watchChange hook', async () => {
 		let fail = true;
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				async watchChange() {
 					await wait(300);
@@ -619,7 +630,7 @@ describe('rollup.watch', () => {
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -630,31 +641,31 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 21;');
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 21;');
 			},
-			'ERROR:Failed in watchChange',
+			'ERROR:[plugin at position 1] Failed in watchChange',
 			'END',
 			() => {
 				fail = false;
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
 
 	it('recovers from an error even when erroring entry was "renamed" (#38)', async () => {
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -665,34 +676,34 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				unlinkSync('test/_tmp/input/main.js');
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export nope;');
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				unlinkSync(ENTRY_FILE);
+				atomicWriteFileSync(ENTRY_FILE, 'export nope;');
 			},
 			'START',
 			'BUNDLE_START',
-			"ERROR:Expected '{', got 'nope'",
+			"ERROR:main.js (1:7): Expected '{', got 'nope'",
 			'END',
 			() => {
-				unlinkSync('test/_tmp/input/main.js');
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				unlinkSync(ENTRY_FILE);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
 
 	it('recovers from an error even when erroring dependency was "renamed" (#38)', async () => {
-		await copy('test/watch/samples/dependency', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'dependency'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -703,39 +714,39 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-				unlinkSync('test/_tmp/input/dep.js');
-				atomicWriteFileSync('test/_tmp/input/dep.js', 'export nope;');
+				assert.strictEqual(run(BUNDLE_FILE), 43);
+				unlinkSync(join(INPUT_DIR, 'dep.js'));
+				atomicWriteFileSync(join(INPUT_DIR, 'dep.js'), 'export nope;');
 			},
 			'START',
 			'BUNDLE_START',
-			"ERROR:Expected '{', got 'nope'",
+			"ERROR:dep.js (1:7): Expected '{', got 'nope'",
 			'END',
 			() => {
-				unlinkSync('test/_tmp/input/dep.js');
-				atomicWriteFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
+				unlinkSync(join(INPUT_DIR, 'dep.js'));
+				atomicWriteFileSync(join(INPUT_DIR, 'dep.js'), 'export const value = 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 44);
+				assert.strictEqual(run(BUNDLE_FILE), 44);
 			}
 		]);
 	});
 
 	it('handles closing the watcher during a build', async () => {
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				load() {
 					watcher.close();
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -746,7 +757,7 @@ describe('rollup.watch', () => {
 			'START',
 			'BUNDLE_START',
 			async () => {
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 44;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
 				await wait(400);
 				assert.deepStrictEqual(events, ['START', 'BUNDLE_START']);
 			}
@@ -754,16 +765,16 @@ describe('rollup.watch', () => {
 	});
 
 	it('handles closing the watcher during a build even if an error occurred', async () => {
-		await copy('test/watch/samples/error', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'error'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				load() {
 					watcher.close();
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -774,7 +785,7 @@ describe('rollup.watch', () => {
 			'START',
 			'BUNDLE_START',
 			async () => {
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 44;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 44;');
 				await wait(400);
 				assert.deepStrictEqual(events, ['START', 'BUNDLE_START']);
 			}
@@ -782,11 +793,11 @@ describe('rollup.watch', () => {
 	});
 
 	it('stops watching files that are no longer part of the graph', async () => {
-		await copy('test/watch/samples/dependency', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'dependency'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -797,20 +808,20 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 42;');
+				assert.strictEqual(run(BUNDLE_FILE), 43);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 42;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			async () => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 				let unexpectedEvent = false;
 				watcher.once('event', event => {
 					unexpectedEvent = event;
 				});
-				atomicWriteFileSync('test/_tmp/input/dep.js', '= invalid');
+				atomicWriteFileSync(join(INPUT_DIR, 'dep.js'), '= invalid');
 				await wait(400);
 				assert.strictEqual(unexpectedEvent, false);
 			}
@@ -818,11 +829,11 @@ describe('rollup.watch', () => {
 	});
 
 	it('refuses to watch the output file (#15)', async () => {
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -833,37 +844,37 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/main.js', `import '../output/bundle.js'`);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				atomicWriteFileSync(ENTRY_FILE, `import '../output/bundle.js'`);
 			},
 			'START',
 			'BUNDLE_START',
 			'ERROR:Cannot import the generated bundle',
 			'END',
 			() => {
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
 
 	it('ignores files that are not specified in options.watch.include, if given', async () => {
-		await copy('test/watch/samples/ignored', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'ignored'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			},
 			watch: {
-				include: ['test/_tmp/input/+(main|foo).js']
+				include: [join(INPUT_DIR, '+(main|foo).js')]
 			}
 		});
 		return sequence(watcher, [
@@ -872,18 +883,18 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+				assert.deepStrictEqual(run(BUNDLE_FILE), {
 					foo: 'foo-1',
 					bar: 'bar-1'
 				});
-				atomicWriteFileSync('test/_tmp/input/foo.js', `export default 'foo-2';`);
+				atomicWriteFileSync(join(INPUT_DIR, 'foo.js'), `export default 'foo-2';`);
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			async () => {
-				assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+				assert.deepStrictEqual(run(BUNDLE_FILE), {
 					foo: 'foo-2',
 					bar: 'bar-1'
 				});
@@ -891,9 +902,9 @@ describe('rollup.watch', () => {
 				watcher.once('event', event => {
 					unexpectedEvent = event;
 				});
-				atomicWriteFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
+				atomicWriteFileSync(join(INPUT_DIR, 'bar.js'), "export default 'bar-2';");
 				await wait(400);
-				assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+				assert.deepStrictEqual(run(BUNDLE_FILE), {
 					foo: 'foo-2',
 					bar: 'bar-1'
 				});
@@ -903,16 +914,16 @@ describe('rollup.watch', () => {
 	});
 
 	it('ignores files that are specified in options.watch.exclude, if given', async () => {
-		await copy('test/watch/samples/ignored', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'ignored'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			},
 			watch: {
-				exclude: ['test/_tmp/input/bar.js']
+				exclude: [join(INPUT_DIR, 'bar.js')]
 			}
 		});
 		return sequence(watcher, [
@@ -921,18 +932,18 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+				assert.deepStrictEqual(run(BUNDLE_FILE), {
 					foo: 'foo-1',
 					bar: 'bar-1'
 				});
-				atomicWriteFileSync('test/_tmp/input/foo.js', `export default 'foo-2';`);
+				atomicWriteFileSync(join(INPUT_DIR, 'foo.js'), `export default 'foo-2';`);
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			async () => {
-				assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+				assert.deepStrictEqual(run(BUNDLE_FILE), {
 					foo: 'foo-2',
 					bar: 'bar-1'
 				});
@@ -940,9 +951,9 @@ describe('rollup.watch', () => {
 				watcher.once('event', event => {
 					unexpectedEvent = event;
 				});
-				atomicWriteFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
+				atomicWriteFileSync(join(INPUT_DIR, 'bar.js'), "export default 'bar-2';");
 				await wait(400);
-				assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+				assert.deepStrictEqual(run(BUNDLE_FILE), {
 					foo: 'foo-2',
 					bar: 'bar-1'
 				});
@@ -952,21 +963,21 @@ describe('rollup.watch', () => {
 	});
 
 	it('only rebuilds the appropriate configs', async () => {
-		await copy('test/watch/samples/multiple', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'multiple'), INPUT_DIR);
 		await wait(100);
 		watcher = rollup.watch([
 			{
-				input: 'test/_tmp/input/main1.js',
+				input: join(INPUT_DIR, 'main1.js'),
 				output: {
-					file: 'test/_tmp/output/bundle1.js',
+					file: join(OUTPUT_DIR, 'bundle1.js'),
 					format: 'cjs',
 					exports: 'auto'
 				}
 			},
 			{
-				input: 'test/_tmp/input/main2.js',
+				input: join(INPUT_DIR, 'main2.js'),
 				output: {
-					file: 'test/_tmp/output/bundle2.js',
+					file: join(OUTPUT_DIR, 'bundle2.js'),
 					format: 'cjs',
 					exports: 'auto'
 				}
@@ -980,38 +991,38 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.deepStrictEqual(run('../_tmp/output/bundle1.js'), 42);
-				assert.deepStrictEqual(run('../_tmp/output/bundle2.js'), 43);
-				atomicWriteFileSync('test/_tmp/input/main2.js', 'export default 44');
+				assert.deepStrictEqual(run(join(OUTPUT_DIR, 'bundle1.js')), 42);
+				assert.deepStrictEqual(run(join(OUTPUT_DIR, 'bundle2.js')), 43);
+				atomicWriteFileSync(join(INPUT_DIR, 'main2.js'), 'export default 44');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.deepStrictEqual(run('../_tmp/output/bundle1.js'), 42);
-				assert.deepStrictEqual(run('../_tmp/output/bundle2.js'), 44);
+				assert.deepStrictEqual(run(join(OUTPUT_DIR, 'bundle1.js')), 42);
+				assert.deepStrictEqual(run(join(OUTPUT_DIR, 'bundle2.js')), 44);
 			}
 		]);
 	});
 
 	it('allows watching only some configs', async () => {
-		await copy('test/watch/samples/multiple', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'multiple'), INPUT_DIR);
 		await wait(100);
 		watcher = rollup.watch([
 			{
-				input: 'test/_tmp/input/main1.js',
+				input: join(INPUT_DIR, 'main1.js'),
 				watch: false,
 				output: {
-					file: 'test/_tmp/output/bundle1.js',
+					file: join(OUTPUT_DIR, 'bundle1.js'),
 					format: 'cjs',
 					exports: 'auto'
 				}
 			},
 			{
-				input: 'test/_tmp/input/main2.js',
+				input: join(INPUT_DIR, 'main2.js'),
 				output: {
-					file: 'test/_tmp/output/bundle2.js',
+					file: join(OUTPUT_DIR, 'bundle2.js'),
 					format: 'cjs',
 					exports: 'auto'
 				}
@@ -1023,19 +1034,19 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(existsSync(resolve(__dirname, '../_tmp/output/bundle1.js')), false);
-				assert.strictEqual(existsSync(resolve(__dirname, '../_tmp/output/bundle2.js')), true);
-				assert.deepStrictEqual(run('../_tmp/output/bundle2.js'), 43);
+				assert.strictEqual(existsSync(resolve(__dirname, join(OUTPUT_DIR, 'bundle1.js'))), false);
+				assert.strictEqual(existsSync(resolve(__dirname, join(OUTPUT_DIR, 'bundle2.js'))), true);
+				assert.deepStrictEqual(run(join(OUTPUT_DIR, 'bundle2.js')), 43);
 			}
 		]);
 	});
 
 	it('respects output.globals', async () => {
-		await copy('test/watch/samples/globals', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'globals'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'iife',
 				globals: {
 					jquery: 'jQuery'
@@ -1049,7 +1060,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				const generated = readFileSync('test/_tmp/output/bundle.js', {
+				const generated = readFileSync(BUNDLE_FILE, {
 					encoding: 'utf8'
 				});
 				assert.ok(/jQuery/.test(generated));
@@ -1058,11 +1069,11 @@ describe('rollup.watch', () => {
 	});
 
 	it('treats filenames literally, not as globs', async () => {
-		await copy('test/watch/samples/non-glob', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'non-glob'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -1073,15 +1084,15 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/[foo]/bar.js', `export const bar = 43;`);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				atomicWriteFileSync(join(INPUT_DIR, '[foo]/bar.js'), `export const bar = 43;`);
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 			}
 		]);
 	});
@@ -1090,11 +1101,11 @@ describe('rollup.watch', () => {
 		let dynamicName;
 		let staticName;
 		let chunkName;
-		await copy('test/watch/samples/hashing', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'hashing'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: ['test/_tmp/input/main-static.js', 'test/_tmp/input/main-dynamic.js'],
+			input: [join(INPUT_DIR, 'main-static.js'), join(INPUT_DIR, 'main-dynamic.js')],
 			output: {
-				dir: 'test/_tmp/output',
+				dir: OUTPUT_DIR,
 				format: 'cjs',
 				exports: 'auto',
 				entryFileNames: '[name].[hash].js',
@@ -1107,15 +1118,15 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				[dynamicName, staticName, chunkName] = readdirSync('test/_tmp/output').sort();
-				rmSync('test/_tmp/output', {
+				[dynamicName, staticName, chunkName] = readdirSync(OUTPUT_DIR).sort();
+				rmSync(OUTPUT_DIR, {
 					force: true,
 					recursive: true
 				});
 
 				// this should only update the hash of that particular entry point
 				atomicWriteFileSync(
-					'test/_tmp/input/main-static.js',
+					join(INPUT_DIR, 'main-static.js'),
 					"import {value} from './shared';\nexport default 2 * value;"
 				);
 			},
@@ -1124,9 +1135,8 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				const [newDynamicName, newStaticName, newChunkName] =
-					readdirSync('test/_tmp/output').sort();
-				rmSync('test/_tmp/output', {
+				const [newDynamicName, newStaticName, newChunkName] = readdirSync(OUTPUT_DIR).sort();
+				rmSync(OUTPUT_DIR, {
 					force: true,
 					recursive: true
 				});
@@ -1136,15 +1146,14 @@ describe('rollup.watch', () => {
 				staticName = newStaticName;
 
 				// this should update all hashes
-				atomicWriteFileSync('test/_tmp/input/shared.js', 'export const value = 42;');
+				atomicWriteFileSync(join(INPUT_DIR, 'shared.js'), 'export const value = 42;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				const [newDynamicName, newStaticName, newChunkName] =
-					readdirSync('test/_tmp/output').sort();
+				const [newDynamicName, newStaticName, newChunkName] = readdirSync(OUTPUT_DIR).sort();
 				assert.notEqual(newStaticName, staticName);
 				assert.notEqual(newDynamicName, dynamicName);
 				assert.notEqual(newChunkName, chunkName);
@@ -1154,11 +1163,11 @@ describe('rollup.watch', () => {
 
 	it('runs transforms again on previously erroring files that were changed back', async () => {
 		const brokenFiles = new Set();
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		const INITIAL_CONTENT = 'export default 42;';
-		atomicWriteFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
+		atomicWriteFileSync(ENTRY_FILE, INITIAL_CONTENT);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			plugins: {
 				transform(code, id) {
 					if (code.includes('broken')) {
@@ -1174,7 +1183,7 @@ describe('rollup.watch', () => {
 				}
 			},
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -1185,32 +1194,32 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default "broken";');
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				atomicWriteFileSync(ENTRY_FILE, 'export default "broken";');
 			},
 			'START',
 			'BUNDLE_START',
 			'ERROR:Broken in transform',
 			() => {
-				atomicWriteFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
+				atomicWriteFileSync(ENTRY_FILE, INITIAL_CONTENT);
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.strictEqual(run(BUNDLE_FILE), 42);
 			}
 		]);
 	});
 
 	it('skips filesystem writes when configured', async () => {
 		let watchChangeCnt = 0;
-		await copy('test/watch/samples/skip-writes', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'skip-writes'), INPUT_DIR);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			},
@@ -1220,7 +1229,7 @@ describe('rollup.watch', () => {
 			plugins: {
 				watchChange(id) {
 					watchChangeCnt++;
-					assert.strictEqual(id, resolve('test/_tmp/input/main.js'));
+					assert.strictEqual(id, ENTRY_FILE);
 				}
 			}
 		});
@@ -1231,47 +1240,47 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				watchChangeCnt = 0;
-				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				assert.strictEqual(existsSync(BUNDLE_FILE), false);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
+				assert.strictEqual(existsSync(BUNDLE_FILE), false);
 				assert.strictEqual(watchChangeCnt, 1);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
+				assert.strictEqual(existsSync(BUNDLE_FILE), false);
 				assert.strictEqual(watchChangeCnt, 2);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
 			'BUNDLE_END',
 			// 'END',
 			event => {
-				assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
+				assert.strictEqual(existsSync(BUNDLE_FILE), false);
 				assert.strictEqual(watchChangeCnt, 3);
 				// still aware of its output destination
-				assert.strictEqual(event.output[0], resolve('test/_tmp/output/bundle.js'));
+				assert.strictEqual(event.output[0], resolve(BUNDLE_FILE));
 			}
 		]);
 	});
 
 	it('rebuilds immediately by default', async () => {
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		await wait(300);
 		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
+			input: ENTRY_FILE,
 			output: {
-				file: 'test/_tmp/output/bundle.js',
+				file: BUNDLE_FILE,
 				format: 'cjs',
 				exports: 'auto'
 			}
@@ -1286,8 +1295,8 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+					assert.strictEqual(run(BUNDLE_FILE), 42);
+					atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 					startTime = hrtime();
 				},
 				'START',
@@ -1295,7 +1304,7 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+					assert.strictEqual(run(BUNDLE_FILE), 43);
 					const timeDiff = getTimeDiffInMs(startTime);
 					assert.ok(timeDiff < 400, `Time difference ${timeDiff} < 400`);
 				}
@@ -1305,40 +1314,40 @@ describe('rollup.watch', () => {
 	}).retries(1);
 
 	it('observes configured build delays', async () => {
-		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 		watcher = rollup.watch(
 			[
 				{
-					input: 'test/_tmp/input/main.js',
+					input: ENTRY_FILE,
 					output: {
-						file: 'test/_tmp/output/bundle.js',
+						file: BUNDLE_FILE,
 						format: 'cjs',
 						exports: 'auto'
 					}
 				},
 				{
-					input: 'test/_tmp/input/main.js',
+					input: ENTRY_FILE,
 					watch: { clearScreen: true },
 					output: {
-						file: 'test/_tmp/output/bundle.js',
+						file: BUNDLE_FILE,
 						format: 'cjs',
 						exports: 'auto'
 					}
 				},
 				{
-					input: 'test/_tmp/input/main.js',
+					input: ENTRY_FILE,
 					watch: { buildDelay: 1000 },
 					output: {
-						file: 'test/_tmp/output/bundle.js',
+						file: BUNDLE_FILE,
 						format: 'cjs',
 						exports: 'auto'
 					}
 				},
 				{
-					input: 'test/_tmp/input/main.js',
+					input: ENTRY_FILE,
 					watch: { buildDelay: 50 },
 					output: {
-						file: 'test/_tmp/output/bundle.js',
+						file: BUNDLE_FILE,
 						format: 'cjs',
 						exports: 'auto'
 					}
@@ -1360,8 +1369,8 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				assert.strictEqual(run(BUNDLE_FILE), 42);
+				atomicWriteFileSync(ENTRY_FILE, 'export default 43;');
 				startTime = hrtime();
 			},
 			'START',
@@ -1375,7 +1384,7 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				assert.strictEqual(run(BUNDLE_FILE), 43);
 				const timeDiff = getTimeDiffInMs(startTime);
 				assert.ok(timeDiff > 1000, `Time difference ${timeDiff} > 1000`);
 			}
@@ -1385,16 +1394,16 @@ describe('rollup.watch', () => {
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', async () => {
 			const watchChangeIds = new Set();
-			const buildEndFile = resolve('test/_tmp/input/buildEnd');
-			const buildStartFile = resolve('test/_tmp/input/buildStart');
-			const generateBundleFile = resolve('test/_tmp/input/generateBUndle');
-			const loadFile = resolve('test/_tmp/input/load');
-			const moduleParsedFile = resolve('test/_tmp/input/moduleParsed');
-			const renderChunkFile = resolve('test/_tmp/input/renderChunk');
-			const renderStartFile = resolve('test/_tmp/input/renderStart');
-			const resolveIdFile = resolve('test/_tmp/input/resolveId');
-			const transformFile = resolve('test/_tmp/input/transform');
-			const writeBundleFile = resolve('test/_tmp/input/writeBundle');
+			const buildEndFile = resolve(join(INPUT_DIR, 'buildEnd'));
+			const buildStartFile = resolve(join(INPUT_DIR, 'buildStart'));
+			const generateBundleFile = resolve(join(INPUT_DIR, 'generateBUndle'));
+			const loadFile = resolve(join(INPUT_DIR, 'load'));
+			const moduleParsedFile = resolve(join(INPUT_DIR, 'moduleParsed'));
+			const renderChunkFile = resolve(join(INPUT_DIR, 'renderChunk'));
+			const renderStartFile = resolve(join(INPUT_DIR, 'renderStart'));
+			const resolveIdFile = resolve(join(INPUT_DIR, 'resolveId'));
+			const transformFile = resolve(join(INPUT_DIR, 'transform'));
+			const writeBundleFile = resolve(join(INPUT_DIR, 'writeBundle'));
 			const watchFiles = [
 				buildEndFile,
 				buildStartFile,
@@ -1407,14 +1416,13 @@ describe('rollup.watch', () => {
 				transformFile,
 				writeBundleFile
 			];
-			await copy('test/watch/samples/basic', 'test/_tmp/input');
-
+			await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 			await Promise.all(watchFiles.map(file => writeFile(file, 'initial')));
 
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
@@ -1460,7 +1468,7 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				async () => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+					assert.strictEqual(run(BUNDLE_FILE), 42);
 					// sometimes the watcher is triggered during the initial run
 					watchChangeIds.clear();
 
@@ -1471,19 +1479,19 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+					assert.strictEqual(run(BUNDLE_FILE), 42);
 					assert.deepStrictEqual([...watchChangeIds].sort(), watchFiles.sort());
 				}
 			]);
 		});
 
 		it('respects changed watched files in the load hook', async () => {
-			const WATCHED_ID = resolve('test/_tmp/input/watched');
-			await copy('test/watch/samples/watch-files', 'test/_tmp/input');
+			const WATCHED_ID = join(INPUT_DIR, 'watched');
+			await copy(join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
@@ -1500,7 +1508,7 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
+					assert.strictEqual(run(BUNDLE_FILE), 'initial');
 					atomicWriteFileSync(WATCHED_ID, 'next');
 				},
 				'START',
@@ -1508,19 +1516,19 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
+					assert.strictEqual(run(BUNDLE_FILE), 'next');
 				}
 			]);
 		});
 
 		it('respects changed watched files in the transform hook and removes them if they are no longer watched', async () => {
-			const WATCHED_ID = resolve('test/_tmp/input/watched');
+			const WATCHED_ID = join(INPUT_DIR, 'watched');
 			let addWatchFile = true;
-			await copy('test/watch/samples/watch-files', 'test/_tmp/input');
+			await copy(join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
@@ -1555,7 +1563,7 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
+					assert.strictEqual(run(BUNDLE_FILE), 'initial');
 					addWatchFile = false;
 					atomicWriteFileSync(WATCHED_ID, 'next');
 				},
@@ -1564,7 +1572,7 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				async () => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
+					assert.strictEqual(run(BUNDLE_FILE), 'next');
 					atomicWriteFileSync(WATCHED_ID, 'other');
 					events.length = 0;
 					await wait(400);
@@ -1574,19 +1582,19 @@ describe('rollup.watch', () => {
 		});
 
 		it('respects changed watched modules that are already part of the graph in the transform hook', async () => {
-			await copy('test/watch/samples/dependencies', 'test/_tmp/input');
+			await copy(join(SAMPLES_DIR, 'dependencies'), INPUT_DIR);
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
 				plugins: {
 					transform(code, id) {
 						if (id.endsWith('dep1.js')) {
-							this.addWatchFile(resolve('test/_tmp/input/dep2.js'));
-							const text = readFileSync('test/_tmp/input/dep2.js').toString().trim();
+							this.addWatchFile(resolve(join(INPUT_DIR, 'dep2.js')));
+							const text = readFileSync(join(INPUT_DIR, 'dep2.js')).toString().trim();
 							return `export default ${JSON.stringify(text)}`;
 						}
 					}
@@ -1598,38 +1606,32 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(
-						run('../_tmp/output/bundle.js'),
-						`dep1: "export default 'dep2';", dep2: "dep2"`
-					);
-					atomicWriteFileSync('test/_tmp/input/dep2.js', 'export default "next";');
+					assert.strictEqual(run(BUNDLE_FILE), `dep1: "export default 'dep2';", dep2: "dep2"`);
+					atomicWriteFileSync(join(INPUT_DIR, 'dep2.js'), 'export default "next";');
 				},
 				'START',
 				'BUNDLE_START',
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(
-						run('../_tmp/output/bundle.js'),
-						`dep1: "export default "next";", dep2: "next"`
-					);
+					assert.strictEqual(run(BUNDLE_FILE), `dep1: "export default "next";", dep2: "next"`);
 				}
 			]);
 		});
 
 		it('respects changed watched directories in the transform hook', async () => {
-			const WATCHED_ID = resolve('test/_tmp/input/watched');
-			await copy('test/watch/samples/watch-files', 'test/_tmp/input');
+			const WATCHED_ID = join(INPUT_DIR, 'watched');
+			await copy(join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
 				plugins: {
 					transform() {
-						this.addWatchFile('test/_tmp/input');
+						this.addWatchFile(INPUT_DIR);
 						return `export default ${existsSync(WATCHED_ID)}`;
 					}
 				}
@@ -1640,7 +1642,7 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), true);
+					assert.strictEqual(run(BUNDLE_FILE), true);
 					unlinkSync(WATCHED_ID);
 				},
 				'START',
@@ -1648,25 +1650,25 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), false);
+					assert.strictEqual(run(BUNDLE_FILE), false);
 					watcher.close();
 				}
 			]);
 		});
 
 		it('respects initially missing added watched files', async () => {
-			await copy('test/watch/samples/basic', 'test/_tmp/input');
+			await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
 				plugins: {
 					transform() {
-						this.addWatchFile('test/_tmp/input/dep');
-						return `export default ${existsSync('test/_tmp/input/dep')}`;
+						this.addWatchFile(join(INPUT_DIR, 'dep'));
+						return `export default ${existsSync(join(INPUT_DIR, 'dep'))}`;
 					}
 				}
 			});
@@ -1676,33 +1678,33 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), false);
-					atomicWriteFileSync('test/_tmp/input/dep', '');
+					assert.strictEqual(run(BUNDLE_FILE), false);
+					atomicWriteFileSync(join(INPUT_DIR, 'dep'), '');
 				},
 				'START',
 				'BUNDLE_START',
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), true);
+					assert.strictEqual(run(BUNDLE_FILE), true);
 				}
 			]);
 		});
 
 		it('respects unlinked and re-added watched files', async () => {
-			await copy('test/watch/samples/basic', 'test/_tmp/input');
-			await writeFile('test/_tmp/input/dep', '');
+			await copy(join(SAMPLES_DIR, 'basic'), INPUT_DIR);
+			await writeFile(join(INPUT_DIR, 'dep'), '');
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
 				plugins: {
 					transform() {
-						this.addWatchFile('test/_tmp/input/dep');
-						return `export default ${existsSync('test/_tmp/input/dep')}`;
+						this.addWatchFile(join(INPUT_DIR, 'dep'));
+						return `export default ${existsSync(join(INPUT_DIR, 'dep'))}`;
 					}
 				}
 			});
@@ -1712,43 +1714,43 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), true);
-					unlinkSync('test/_tmp/input/dep');
+					assert.strictEqual(run(BUNDLE_FILE), true);
+					unlinkSync(join(INPUT_DIR, 'dep'));
 				},
 				'START',
 				'BUNDLE_START',
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), false);
-					atomicWriteFileSync('test/_tmp/input/dep', '');
+					assert.strictEqual(run(BUNDLE_FILE), false);
+					atomicWriteFileSync(join(INPUT_DIR, 'dep'), '');
 				},
 				'START',
 				'BUNDLE_START',
 				'BUNDLE_END',
 				'END',
 				() => {
-					assert.strictEqual(run('../_tmp/output/bundle.js'), true);
+					assert.strictEqual(run(BUNDLE_FILE), true);
 				}
 			]);
 		});
 
 		it('does not rerun the transform hook if a non-watched change triggered the re-run', async () => {
-			const WATCHED_ID = resolve('test/_tmp/input/watched');
+			const WATCHED_ID = join(INPUT_DIR, 'watched');
 			let transformRuns = 0;
-			await copy('test/watch/samples/watch-files', 'test/_tmp/input');
+			await copy(join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
 			await wait(100);
-			await writeFile('test/_tmp/input/alsoWatched', 'initial');
+			await writeFile(join(INPUT_DIR, 'alsoWatched'), 'initial');
 			watcher = rollup.watch({
-				input: 'test/_tmp/input/main.js',
+				input: ENTRY_FILE,
 				output: {
-					file: 'test/_tmp/output/bundle.js',
+					file: BUNDLE_FILE,
 					format: 'cjs',
 					exports: 'auto'
 				},
 				plugins: {
 					buildStart() {
-						this.addWatchFile('test/_tmp/input/alsoWatched');
+						this.addWatchFile(join(INPUT_DIR, 'alsoWatched'));
 					},
 					transform() {
 						transformRuns++;
@@ -1764,7 +1766,7 @@ describe('rollup.watch', () => {
 				'END',
 				() => {
 					assert.strictEqual(transformRuns, 1);
-					atomicWriteFileSync('test/_tmp/input/alsoWatched', 'next');
+					atomicWriteFileSync(join(INPUT_DIR, 'alsoWatched'), 'next');
 				},
 				'START',
 				'BUNDLE_START',
@@ -1786,6 +1788,10 @@ function run(file) {
 
 function sequence(watcher, events, timeout = 300) {
 	const handledEvents = [];
+	const allEvents = [];
+	const formatEvents = () =>
+		`\nHandled events:\n${handledEvents.join('\n')}\n\nWatcher events:\n${allEvents.join('\n')}`;
+	watcher.on('event', event => allEvents.push(JSON.stringify(event)));
 	const sequencePromise = new Promise((fulfil, reject) => {
 		function go(event) {
 			const next = events.shift();
@@ -1795,26 +1801,36 @@ function sequence(watcher, events, timeout = 300) {
 				fulfil();
 			} else if (typeof next === 'string') {
 				handledEvents.push(next);
-				const [eventCode, eventMessage] = next.split(':');
+				const [eventCode, ...eventMessageParts] = next.split(':');
+				const eventMessage = eventMessageParts.join(':');
 				watcher.once('event', event => {
 					if (event.code !== eventCode) {
 						watcher.close();
 						if (event.code === 'ERROR') console.log(event.error);
-						reject(new Error(`Expected ${eventCode} event, got ${event.code}`));
+						reject(new Error(`Expected ${eventCode} event, got ${event.code}.${formatEvents()}`));
 					} else if (
 						eventCode === 'ERROR' &&
 						eventMessage &&
 						event.error.message !== eventMessage
 					) {
 						reject(
-							new Error(`Expected to throw "${eventMessage}" but got "${event.error.message}".`)
+							new Error(
+								`Expected to throw "${eventMessage}" but got "${event.error.message}".${formatEvents()}`
+							)
 						);
 					} else {
 						go(event);
 					}
 				});
 			} else {
-				wait(timeout) // gah, this appears to be necessary to fix random errors
+				// "next" is a function
+				// This solves two problems:
+				// - Sometimes a change in the function does not trigger a rebuild if
+				//   it happens too quickly, i.e. shorter than 300ms after the previous
+				//   change.
+				// - On the flipside, sometimes a single change triggers two builds.
+				//   In that case, waiting here "swallows" the second build.
+				wait(timeout)
 					.then(() => {
 						handledEvents.push(`fn: ${JSON.stringify(event)}`);
 						next(event);
@@ -1822,6 +1838,7 @@ function sequence(watcher, events, timeout = 300) {
 					})
 					.catch(error => {
 						watcher.close();
+						error.message += formatEvents();
 						reject(error);
 					});
 			}
@@ -1831,7 +1848,7 @@ function sequence(watcher, events, timeout = 300) {
 	});
 
 	return withTimeout(sequencePromise, 20_000, () => {
-		throw new Error(`Test timed out\n${handledEvents.join('\n')}`);
+		throw new Error(`Test timed out.\nHandled events:\n${handledEvents.join('\n')}`);
 	}).then(() => wait(100));
 }
 

@@ -1,3 +1,4 @@
+const { sep } = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
 module.exports = defineTest({
@@ -31,10 +32,9 @@ module.exports = defineTest({
 				'8: export {url, assert, path};'
 		);
 		assertIncludes(
-			stderr,
-
-			'(!) Module level directives cause errors when bundled, "use stuff" in "main.js" was ignored.\n' +
-				'main.js (1:0)\n' +
+			stderr.replaceAll(__dirname + sep, 'CWD/'),
+			'(!) main.js (1:0): Module level directives cause errors when bundled, "use stuff" in "main.js" was ignored.\n' +
+				'CWD/main.js:1:0\n' +
 				"1: 'use stuff';\n" +
 				'   ^\n' +
 				'2: \n' +

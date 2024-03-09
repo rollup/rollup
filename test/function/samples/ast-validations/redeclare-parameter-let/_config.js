@@ -16,7 +16,7 @@ module.exports = defineTest({
 			file: ID_MAIN,
 			line: 2
 		},
-		message: 'Identifier "x" has already been declared',
+		message: 'main.js (2:5): Identifier "x" has already been declared',
 		pos: 23,
 		watchFiles: [ID_MAIN]
 	}
