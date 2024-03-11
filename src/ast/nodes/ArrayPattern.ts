@@ -39,7 +39,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	// Patterns are only checked at the emtpy path at the moment
+	// Patterns are only checked at the empty path at the moment
 	hasEffectsOnInteractionAtPath(
 		_path: ObjectPath,
 		interaction: NodeInteractionAssigned,
