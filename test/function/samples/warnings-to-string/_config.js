@@ -14,7 +14,7 @@ module.exports = defineTest({
 	},
 	warnings(warnings) {
 		assert.deepStrictEqual(warnings.map(String), [
-			'(test-plugin plugin) main.js (1:6) This might be removed',
+			'[plugin test-plugin] main.js (1:6): This might be removed',
 			'Generated an empty chunk: "main".'
 		]);
 	}

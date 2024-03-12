@@ -9,7 +9,7 @@ module.exports = defineTest({
 		binding: 'default',
 		code: 'MISSING_EXPORT',
 		exporter: ID_FOO,
-		message: '"default" is not exported by "foo.js", imported by "main.js".',
+		message: 'main.js (1:7): "default" is not exported by "foo.js", imported by "main.js".',
 		id: ID_MAIN,
 		pos: 7,
 		watchFiles: [ID_BAR, ID_FOO, ID_MAIN],

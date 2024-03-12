@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	description: 'buildStart hooks can use this.error',
+	description: 'buildEnd hooks can use this.error',
 	options: {
 		plugins: [
 			{
@@ -13,7 +13,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
-		message: 'nope',
+		message: '[plugin test] nope',
 		hook: 'buildEnd'
 	}
 });

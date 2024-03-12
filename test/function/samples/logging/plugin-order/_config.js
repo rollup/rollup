@@ -16,7 +16,7 @@ module.exports = defineTest({
 				},
 				onLog(level, log) {
 					logs.push(['first', level, log]);
-					if (log.message === 'first') {
+					if (log.message.endsWith('first')) {
 						return false;
 					}
 				}
@@ -27,7 +27,7 @@ module.exports = defineTest({
 					order: 'pre',
 					handler(level, log) {
 						logs.push(['second', level, log]);
-						if (log.message === 'second') {
+						if (log.message.endsWith('second')) {
 							return false;
 						}
 					}
@@ -39,7 +39,7 @@ module.exports = defineTest({
 					order: 'post',
 					handler(level, log) {
 						logs.push(['third', level, log]);
-						if (log.message === 'third') {
+						if (log.message.endsWith('third')) {
 							return false;
 						}
 					}
@@ -48,13 +48,13 @@ module.exports = defineTest({
 		]
 	},
 	after() {
-		assert.deepStrictEqual(logs, [
-			['second', 'info', { message: 'first', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['first', 'info', { message: 'first', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['second', 'info', { message: 'second', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['second', 'info', { message: 'third', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['first', 'info', { message: 'third', code: 'PLUGIN_LOG', plugin: 'first' }],
-			['third', 'info', { message: 'third', code: 'PLUGIN_LOG', plugin: 'first' }]
+		assert.deepEqual(logs, [
+			['second', 'info', { message: '[plugin first] first', code: 'PLUGIN_LOG', plugin: 'first' }],
+			['first', 'info', { message: '[plugin first] first', code: 'PLUGIN_LOG', plugin: 'first' }],
+			['second', 'info', { message: '[plugin first] second', code: 'PLUGIN_LOG', plugin: 'first' }],
+			['second', 'info', { message: '[plugin first] third', code: 'PLUGIN_LOG', plugin: 'first' }],
+			['first', 'info', { message: '[plugin first] third', code: 'PLUGIN_LOG', plugin: 'first' }],
+			['third', 'info', { message: '[plugin first] third', code: 'PLUGIN_LOG', plugin: 'first' }]
 		]);
 	},
 	logs: []

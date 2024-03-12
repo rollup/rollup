@@ -25,6 +25,6 @@ module.exports = defineTest({
 			2:
 			3: assert.strictEqual(foo, 1);`,
 		watchFiles: [ID_FIRST, ID_MAIN, ID_REEXPORT, ID_SECOND],
-		message: '"foo" is not exported by "reexport.js", imported by "main.js".'
+		message: 'main.js (1:9): "foo" is not exported by "reexport.js", imported by "main.js".'
 	}
 });

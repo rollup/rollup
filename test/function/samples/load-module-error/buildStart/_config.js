@@ -13,7 +13,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
-		message: 'nope',
+		message: '[plugin test] nope',
 		hook: 'buildStart'
 	}
 });

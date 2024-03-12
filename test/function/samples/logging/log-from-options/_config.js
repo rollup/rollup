@@ -22,7 +22,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'onLog',
-		message: 'error',
+		message: '[plugin test] error',
 		plugin: 'test'
 	}
 });

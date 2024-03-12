@@ -25,7 +25,7 @@ module.exports = defineTest({
 	logs: [
 		{
 			level: 'warn',
-			message: 'warn-message1',
+			message: '[plugin test] main.js (2:3): warn-message1',
 			pos: 20,
 			loc: {
 				column: 3,
@@ -44,7 +44,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'info',
-			message: 'info-message1',
+			message: '[plugin test] main.js (2:3): info-message1',
 			pos: 20,
 			loc: {
 				column: 3,
@@ -63,7 +63,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'debug',
-			message: 'debug-message1',
+			message: '[plugin test] main.js (2:3): debug-message1',
 			pos: 20,
 			loc: {
 				column: 3,
@@ -82,7 +82,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'warn',
-			message: 'warn-message2',
+			message: '[plugin test] main.js (2:1): warn-message2',
 			loc: {
 				column: 1,
 				file: ID_MAIN,
@@ -100,7 +100,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'info',
-			message: 'info-message2',
+			message: '[plugin test] main.js (2:1): info-message2',
 			loc: {
 				column: 1,
 				file: ID_MAIN,
@@ -118,7 +118,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'debug',
-			message: 'debug-message2',
+			message: '[plugin test] main.js (2:1): debug-message2',
 			loc: {
 				column: 1,
 				file: ID_MAIN,
@@ -136,7 +136,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'warn',
-			message: 'warn-message3',
+			message: '[plugin test] main.js (2:3): warn-message3',
 			pos: 20,
 			loc: {
 				column: 3,
@@ -155,7 +155,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'info',
-			message: 'info-message3',
+			message: '[plugin test] main.js (2:3): info-message3',
 			pos: 20,
 			loc: {
 				column: 3,
@@ -174,7 +174,7 @@ module.exports = defineTest({
 		},
 		{
 			level: 'debug',
-			message: 'debug-message3',
+			message: '[plugin test] main.js (2:3): debug-message3',
 			pos: 20,
 			loc: {
 				column: 3,

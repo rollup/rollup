@@ -5,6 +5,6 @@ module.exports = defineTest({
 	command: 'rollup --config rollup.config.js -w',
 	error: () => true,
 	stderr(stderr) {
-		assertIncludes(stderr, 'Uncaught RollupError: LOL');
+		assertIncludes(stderr, 'Uncaught RollupError: [plugin test] LOL');
 	}
 });

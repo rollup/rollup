@@ -23,6 +23,6 @@ module.exports = defineTest({
 			3: a();
 		`,
 		watchFiles: [ID_EMPTY, ID_MAIN],
-		message: '"default" is not exported by "empty.js", imported by "main.js".'
+		message: 'main.js (1:7): "default" is not exported by "empty.js", imported by "main.js".'
 	}
 });
