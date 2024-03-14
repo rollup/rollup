@@ -128,7 +128,7 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	include(): void {
+	includePath(): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;

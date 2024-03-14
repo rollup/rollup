@@ -331,9 +331,13 @@ export default class MemberExpression
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties(context, includeChildrenRecursively);
+		this.includeProperties(path, context, includeChildrenRecursively);
 	}
 
 	includeAsAssignmentTarget(
@@ -343,9 +347,9 @@ export default class MemberExpression
 	): void {
 		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		if (deoptimizeAccess) {
-			this.include(context, includeChildrenRecursively);
+			this.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 		} else {
-			this.includeProperties(context, includeChildrenRecursively);
+			this.includeProperties(EMPTY_PATH, context, includeChildrenRecursively);
 		}
 	}
 
@@ -490,6 +494,7 @@ export default class MemberExpression
 	}
 
 	private includeProperties(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	) {
@@ -499,8 +504,8 @@ export default class MemberExpression
 				this.scope.context.includeVariableInModule(this.variable);
 			}
 		}
-		this.object.include(context, includeChildrenRecursively);
-		this.property.include(context, includeChildrenRecursively);
+		this.object.includePath(path, context, includeChildrenRecursively);
+		this.property.includePath(path, context, includeChildrenRecursively);
 	}
 }
 

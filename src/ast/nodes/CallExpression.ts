@@ -13,15 +13,15 @@ import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
-import type SpreadElement from './SpreadElement';
-import type Super from './Super';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
+import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN } from './shared/Node';
-import { getChainElementLiteralValueAtPath } from './shared/chainElements';
+import type SpreadElement from './SpreadElement';
+import type Super from './Super';
 
 export default class CallExpression
 	extends CallExpressionBase
@@ -111,10 +111,14 @@ export default class CallExpression
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
+			super.includePath(path, context, includeChildrenRecursively);
 			if (
 				includeChildrenRecursively === INCLUDE_PARAMETERS &&
 				this.callee instanceof Identifier &&
@@ -124,7 +128,7 @@ export default class CallExpression
 			}
 		} else {
 			this.included = true;
-			this.callee.include(context, false);
+			this.callee.includePath(path, context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
 	}

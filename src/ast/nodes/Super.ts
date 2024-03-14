@@ -24,7 +24,7 @@ export default class Super extends NodeBase {
 		this.variable.deoptimizePath(path);
 	}
 
-	include(): void {
+	includePath(): void {
 		if (!this.included) {
 			this.included = true;
 			this.scope.context.includeVariableInModule(this.variable);

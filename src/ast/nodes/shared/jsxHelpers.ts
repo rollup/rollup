@@ -35,7 +35,7 @@ export function getAndIncludeFactoryVariable(
 		if (preserve) {
 			// This pretends we are accessing an included global variable of the same name
 			const globalVariable = node.scope.findGlobal(baseName);
-			globalVariable.include();
+			globalVariable.includePath();
 			// This excludes this variable from renaming
 			factoryVariable.globalName = baseName;
 		}

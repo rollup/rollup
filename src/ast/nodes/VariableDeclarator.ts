@@ -38,14 +38,18 @@ export default class VariableDeclarator extends NodeBase {
 		return initEffect || this.id.hasEffects(context) || this.isUsingDeclaration;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		const { deoptimized, id, init } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		init?.include(context, includeChildrenRecursively);
+		init?.includePath(path, context, includeChildrenRecursively);
 		id.markDeclarationReached();
 		if (includeChildrenRecursively || id.shouldBeIncluded(context)) {
-			id.include(context, includeChildrenRecursively);
+			id.includePath(path, context, includeChildrenRecursively);
 		}
 	}
 

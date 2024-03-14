@@ -1,6 +1,7 @@
 import type { InclusionContext } from '../ExecutionContext';
 import type SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
 import type ChildScope from './ChildScope';
@@ -29,7 +30,7 @@ export default class FunctionScope extends ReturnValueScope {
 		if (this.argumentsVariable.included) {
 			for (const argument of parameters) {
 				if (!argument.included) {
-					argument.include(context, false);
+					argument.includePath(EMPTY_PATH, context, false);
 				}
 			}
 		}

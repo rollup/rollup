@@ -12,6 +12,7 @@ import {
 import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
+import type { ObjectPath } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import AwaitExpression from './AwaitExpression';
@@ -151,13 +152,17 @@ export default class ImportExpression extends NodeBase {
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.included) {
 			this.included = true;
 			this.scope.context.includeDynamicImport(this);
 			this.scope.addAccessedDynamicImport(this);
 		}
-		this.source.include(context, includeChildrenRecursively);
+		this.source.includePath(path, context, includeChildrenRecursively);
 	}
 
 	initialise(): void {

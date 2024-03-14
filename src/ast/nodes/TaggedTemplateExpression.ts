@@ -4,7 +4,7 @@ import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import type { PathTracker } from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
@@ -44,19 +44,23 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
+			super.includePath(path, context, includeChildrenRecursively);
 		} else {
 			this.included = true;
-			this.tag.include(context, includeChildrenRecursively);
-			this.quasi.include(context, includeChildrenRecursively);
+			this.tag.includePath(path, context, includeChildrenRecursively);
+			this.quasi.includePath(path, context, includeChildrenRecursively);
 		}
 		this.tag.includeCallArguments(context, this.args);
 		const [returnExpression] = this.getReturnExpression();
 		if (!returnExpression.included) {
-			returnExpression.include(context, false);
+			returnExpression.includePath(path, context, false);
 		}
 	}
 
