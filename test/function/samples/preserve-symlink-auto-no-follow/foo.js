@@ -1,0 +1,1 @@
+symlinked/foo.js

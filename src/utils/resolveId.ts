@@ -8,7 +8,7 @@ import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 export async function resolveId(
 	source: string,
 	importer: string | undefined,
-	preserveSymlinks: boolean,
+	preserveSymlinks: boolean | 'auto',
 	pluginDriver: PluginDriver,
 	moduleLoaderResolveId: ModuleLoaderResolveId,
 	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
@@ -48,14 +48,31 @@ export async function resolveId(
 	// are skipped at this stage.
 	if (importer !== undefined && !isAbsolute(source) && source[0] !== '.') return null;
 
-	// `resolve` processes paths from right to left, prepending them until an
-	// absolute path is created. Absolute importees therefore shortcircuit the
-	// resolve call and require no special handing on our part.
-	// See https://nodejs.org/api/path.html#path_path_resolve_paths
-	return addJsExtensionIfNecessary(
-		importer ? resolve(dirname(importer), source) : resolve(source),
-		preserveSymlinks
-	);
+	switch (preserveSymlinks) {
+		case 'auto': {
+			// Try to resolve the importee.
+			if (!importer) return addJsExtensionIfNecessary(resolve(source), true);
+			const resolved = await addJsExtensionIfNecessary(resolve(dirname(importer), source), true);
+			if (resolved) return resolved;
+
+			// Since resolving the importee failed, see if the importer is a symlink and can be resolved.
+			importer = await addJsExtensionIfNecessary(resolve(importer), false);
+			if (!importer) return;
+
+			// Try again
+			return addJsExtensionIfNecessary(resolve(dirname(importer), source), true);
+		}
+		default: {
+			// `resolve` processes paths from right to left, prepending them until an
+			// absolute path is created. Absolute importees therefore shortcircuit the
+			// resolve call and require no special handing on our part.
+			// See https://nodejs.org/api/path.html#path_path_resolve_paths
+			return addJsExtensionIfNecessary(
+				importer ? resolve(dirname(importer), source) : resolve(source),
+				preserveSymlinks
+			);
+		}
+	}
 }
 
 async function addJsExtensionIfNecessary(

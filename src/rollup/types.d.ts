@@ -590,7 +590,7 @@ export interface InputOptions {
 	perf?: boolean;
 	plugins?: InputPluginOption;
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
-	preserveSymlinks?: boolean;
+	preserveSymlinks?: boolean | 'auto';
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingPreset | TreeshakingOptions;
@@ -616,7 +616,7 @@ export interface NormalizedInputOptions {
 	perf: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures: PreserveEntrySignaturesOption;
-	preserveSymlinks: boolean;
+	preserveSymlinks: boolean | 'auto';
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;
 	treeshake: false | NormalizedTreeshakingOptions;
