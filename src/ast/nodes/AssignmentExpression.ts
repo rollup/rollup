@@ -67,7 +67,11 @@ export default class AssignmentExpression extends NodeBase {
 		return this.right.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		const { deoptimized, left, right, operator } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
@@ -79,7 +83,7 @@ export default class AssignmentExpression extends NodeBase {
 		) {
 			left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
 		}
-		right.include(context, includeChildrenRecursively);
+		right.includePath(path, context, includeChildrenRecursively);
 	}
 
 	initialise(): void {

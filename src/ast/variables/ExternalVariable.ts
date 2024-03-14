@@ -27,8 +27,8 @@ export default class ExternalVariable extends Variable {
 		return type !== INTERACTION_ACCESSED || path.length > (this.isNamespace ? 1 : 0);
 	}
 
-	include(): void {
-		super.include();
+	includePath(): void {
+		super.includePath();
 		this.module.used = true;
 	}
 }

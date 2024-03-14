@@ -67,7 +67,11 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
 		const lastExpression = this.expressions[this.expressions.length - 1];
 		for (const expression of this.expressions) {
@@ -76,7 +80,7 @@ export default class SequenceExpression extends NodeBase {
 				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
 				expression.shouldBeIncluded(context)
 			)
-				expression.include(context, includeChildrenRecursively);
+				expression.includePath(path, context, includeChildrenRecursively);
 		}
 	}
 

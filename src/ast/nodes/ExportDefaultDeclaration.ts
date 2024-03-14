@@ -9,6 +9,7 @@ import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
 import type ModuleScope from '../scopes/ModuleScope';
+import type { ObjectPath } from '../utils/PathTracker';
 import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
@@ -41,8 +42,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	private declare declarationName: string | undefined;
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		super.include(context, includeChildrenRecursively);
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
+		super.includePath(path, context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
 			this.scope.context.includeVariableInModule(this.variable);
 		}

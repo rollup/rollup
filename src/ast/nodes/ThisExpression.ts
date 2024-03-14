@@ -42,7 +42,7 @@ export default class ThisExpression extends NodeBase {
 		return this.variable.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	include(): void {
+	includePath(): void {
 		if (!this.included) {
 			this.included = true;
 			this.scope.context.includeVariableInModule(this.variable);

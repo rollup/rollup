@@ -1,4 +1,5 @@
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
+import type { ObjectPath } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
@@ -19,10 +20,10 @@ export default class BreakStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext): void {
+	includePath(_: ObjectPath, context: InclusionContext): void {
 		this.included = true;
 		if (this.label) {
-			this.label.include();
+			this.label.includePath();
 			context.includedLabels.add(this.label.name);
 		} else {
 			context.hasBreak = true;

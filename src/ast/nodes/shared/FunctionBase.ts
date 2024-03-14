@@ -228,7 +228,12 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	private parameterVariableValuesDeoptimized = false;
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.parameterVariableValuesDeoptimized && !this.onlyFunctionCallUsed()) {
 			this.parameterVariableValuesDeoptimized = true;
 			this.deoptimizeParameterVariableValues();
@@ -237,7 +242,7 @@ export default abstract class FunctionBase extends NodeBase {
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.include(context, includeChildrenRecursively);
+		this.body.includePath(path, context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
 

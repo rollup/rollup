@@ -16,12 +16,8 @@ import {
 import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
-import {
-	EMPTY_PATH,
-	type ObjectPath,
-	type PathTracker,
-	UNKNOWN_PATH
-} from '../../utils/PathTracker';
+import type { ObjectPath } from '../../utils/PathTracker';
+import { EMPTY_PATH, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
 import type Program from '../Program';
@@ -82,7 +78,8 @@ export interface Node extends Entity {
 	 * usually included if they are necessary for this node (e.g. a function body)
 	 * or if they have effects. Necessary variables need to be included as well.
 	 */
-	include(
+	includePath(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		options?: InclusionOptions
@@ -221,7 +218,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		);
 	}
 
-	include(
+	includePath(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
@@ -233,10 +231,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.include(context, includeChildrenRecursively);
+					child?.includePath(path, context, includeChildrenRecursively);
 				}
 			} else {
-				value.include(context, includeChildrenRecursively);
+				value.includePath(path, context, includeChildrenRecursively);
 			}
 		}
 	}
@@ -246,7 +244,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		_deoptimizeAccess: boolean
 	) {
-		this.include(context, includeChildrenRecursively);
+		this.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 	}
 
 	/**

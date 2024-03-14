@@ -90,13 +90,17 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		super.include(context, includeChildrenRecursively);
-		this.id?.include();
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
+		super.includePath(path, context, includeChildrenRecursively);
+		this.id?.includePath();
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {
-				parameter.include(context, includeChildrenRecursively);
+				parameter.includePath(path, context, includeChildrenRecursively);
 			}
 		}
 	}

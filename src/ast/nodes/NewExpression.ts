@@ -36,13 +36,17 @@ export default class NewExpression extends NodeBase {
 		return path.length > 0 || type !== INTERACTION_ACCESSED;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
+			super.includePath(path, context, includeChildrenRecursively);
 		} else {
 			this.included = true;
-			this.callee.include(context, false);
+			this.callee.includePath(path, context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
 	}

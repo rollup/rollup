@@ -44,8 +44,8 @@ export default class SyntheticNamedExportVariable extends Variable {
 		return `${this.syntheticNamespace.getName(getPropertyAccess)}${getPropertyAccess(this.name)}`;
 	}
 
-	include(): void {
-		super.include();
+	includePath(): void {
+		super.includePath();
 		this.context.includeVariableInModule(this.syntheticNamespace);
 	}
 
