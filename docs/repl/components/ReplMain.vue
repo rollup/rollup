@@ -45,6 +45,12 @@ onUnmounted(() => {
 </script>
 
 <style>
+/* override vitepress styles */
+.vp-doc.container {
+	padding: 0;
+	max-width: 100%;
+}
+
 /* global styles */
 .repl-button {
 	font-family: inherit;
@@ -108,31 +114,39 @@ input {
 
 .repl-icon-pencil:before {
 	content: '\e800';
-} /* '' */
+}
+
 .repl-icon-cancel:before {
 	content: '\e801';
-} /* '' */
+}
+
 .repl-icon-plus:before {
 	content: '\e802';
-} /* '' */
+}
+
 .repl-icon-minus:before {
 	content: '\e803';
-} /* '' */
+}
+
 .repl-icon-ok:before {
 	content: '\e804';
-} /* '' */
+}
+
 .repl-icon-error:before {
 	content: '\e805';
-} /* '' */
+}
+
 .repl-icon-attention:before {
 	content: '\e806';
-} /* '' */
+}
 </style>
 
 <style scoped>
 h2 {
 	white-space: nowrap;
-	margin-bottom: 0.25rem;
+	margin: 0 0 0.25rem;
+	border: none;
+	padding: 0;
 	font-size: 20px;
 	line-height: 28px;
 	font-weight: 600;
