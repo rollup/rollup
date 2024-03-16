@@ -27,6 +27,9 @@ export function renderMermaidGraphsPlugin(): Plugin {
 		const existingGraphFileNames = await existingGraphFileNamesPromise;
 		const outFileURL = new URL(outFile, graphsDirectory);
 		if (!existingGraphFileNames.has(outFile)) {
+			console.warn(
+				`Pre-rendered file ${outFile} not found, rendering...\nIf this throws on Vercel, you need to run "npm run build:docs" locally first and commit the updated svg files.`
+			);
 			const inFileURL = new URL(`${outFile}.mmd`, graphsDirectory);
 			await writeFile(inFileURL, codeBlock);
 			const { stdout, stderr } = await execPromise(
