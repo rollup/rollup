@@ -115,6 +115,10 @@ will start the website locally in development mode via Vite. This will give you 
 
 A special feature of the website is that the REPL at `http://localhost:5173/repl/` is directly using the browser build of your local copy of Rollup created via Vite. It even supports full hot module replacement, which means that when you change anything within Rollup, the REPL will automatically rebundle the current code using your latest changes. This can come in very handy when working on a bug or tree-shaking improvement to allow extremely fast iterations.
 
+## Navigating the codebase
+
+See the [architecure documentation](ARCHITECTURE.md) for an overview of the codebase and a high-level explanation of how Rollup works.
+
 ## Submitting code
 
 Any code change should be submitted as a pull request. The description should explain what the code does and give steps to execute it. The pull request should also contain tests.
