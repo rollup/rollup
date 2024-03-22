@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.81"
 swc_atoms = "0.6.5"
-swc_compiler_base = "0.7.17"
-swc_common = { version = "0.33.19", features = ["ahash", "parking_lot"] }
-swc_ecma_ast = "0.112.5"
-swc_ecma_parser = "0.143.9"
+swc_compiler_base = "0.7.18"
+swc_common = { version = "0.33.20", features = ["ahash", "parking_lot"] }
+swc_ecma_ast = "0.112.6"
+swc_ecma_parser = "0.143.10"
 parking_lot = "0.12.1"
