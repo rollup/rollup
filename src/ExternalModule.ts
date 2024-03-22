@@ -1,6 +1,7 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
+import { cacheObjectGetters } from './utils/getter';
 import { makeLegal } from './utils/identifierHelpers';
 import { LOGLEVEL_WARN } from './utils/logging';
 import { logUnusedExternalImports } from './utils/logs';
@@ -30,6 +31,7 @@ export default class ExternalModule {
 		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
 
 		const { importers, dynamicImporters } = this;
+		// NOTE: any getter props should also be defined in cacheInfoGetters
 		this.info = {
 			ast: null,
 			attributes,
@@ -57,6 +59,10 @@ export default class ExternalModule {
 			moduleSideEffects,
 			syntheticNamedExports: false
 		};
+	}
+
+	cacheInfoGetters(): void {
+		cacheObjectGetters(this.info, ['dynamicImporters', 'importers']);
 	}
 
 	getVariableForExportName(name: string): [variable: ExternalVariable] {
