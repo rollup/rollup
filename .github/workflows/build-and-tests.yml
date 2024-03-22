@@ -100,7 +100,7 @@ jobs:
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
-          - host: windows-latest  # Add this for x86_64-pc-windows-gnu
+          - host: windows-latest  
             target: x86_64-pc-windows-gnu
             build: >-
               set -e &&
