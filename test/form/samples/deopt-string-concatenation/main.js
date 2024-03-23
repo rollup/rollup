@@ -9,3 +9,4 @@ function parseInt(str, radix) {
 }
 
 console.log(parseInt('1'));
+console.log(parseInt(Symbol('1')));
