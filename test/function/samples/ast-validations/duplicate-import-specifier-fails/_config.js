@@ -5,7 +5,7 @@ module.exports = defineTest({
 	description: 'disallows duplicate import specifiers',
 	error: {
 		code: 'REDECLARATION_ERROR',
-		message: 'Identifier "a" has already been declared',
+		message: 'main.js (1:12): Identifier "a" has already been declared',
 		id: ID_MAIN,
 		pos: 12,
 		watchFiles: [ID_MAIN],

@@ -7,7 +7,7 @@ module.exports = defineTest({
 		{
 			code: 'THIS_IS_UNDEFINED',
 			id: path.join(__dirname, 'main.js'),
-			message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
+			message: `main.js (3:0): The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
 			pos: 81,
 			loc: {
 				file: path.join(__dirname, 'main.js'),

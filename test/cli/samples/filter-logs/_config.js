@@ -14,11 +14,11 @@ module.exports = defineTest({
 			stderr,
 			`
 main.js → stdout...
-first
-second
-third
-fourth
-fifth
+[plugin test] first
+[plugin test] second
+[plugin test] third
+[plugin test] fourth
+[plugin test] fifth
 `
 		);
 	}

@@ -11,7 +11,7 @@ import { getSortedValidatedPlugins } from './PluginDriver';
 import { EMPTY_SET } from './blank';
 import { doNothing } from './doNothing';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN, logLevelPriority } from './logging';
-import { error } from './logs';
+import { augmentLogMessage, error } from './logs';
 import { normalizeLog } from './options/options';
 
 export function getLogger(
@@ -23,6 +23,7 @@ export function getLogger(
 	plugins = getSortedValidatedPlugins('onLog', plugins);
 	const minimalPriority = logLevelPriority[logLevel];
 	const logger = (level: LogLevel, log: RollupLog, skipped: ReadonlySet<Plugin> = EMPTY_SET) => {
+		augmentLogMessage(log);
 		const logPriority = logLevelPriority[level];
 		if (logPriority < minimalPriority) {
 			return;

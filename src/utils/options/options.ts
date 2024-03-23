@@ -19,7 +19,6 @@ import { EMPTY_ARRAY } from '../blank';
 import { LOGLEVEL_DEBUG, LOGLEVEL_ERROR, LOGLEVEL_WARN, logLevelPriority } from '../logging';
 import { error, logInvalidOption, logUnknownOption } from '../logs';
 import { printQuotedStringList } from '../printStringList';
-import relativeId from '../relativeId';
 
 export interface GenericConfigObject {
 	[key: string]: unknown;
@@ -60,7 +59,7 @@ const getDefaultOnLog = (printLog: LogHandler, onwarn?: WarningHandlerWithDefaul
 
 const addLogToString = (log: RollupLog): RollupLog => {
 	Object.defineProperty(log, 'toString', {
-		value: () => getExtendedLogMessage(log),
+		value: () => log.message,
 		writable: true
 	});
 	return log;
@@ -73,21 +72,7 @@ export const normalizeLog = (log: RollupLog | string | (() => RollupLog | string
 			? normalizeLog(log())
 			: log;
 
-const getExtendedLogMessage = (log: RollupLog): string => {
-	let prefix = '';
-
-	if (log.plugin) {
-		prefix += `(${log.plugin} plugin) `;
-	}
-	if (log.loc) {
-		prefix += `${relativeId(log.loc.file!)} (${log.loc.line}:${log.loc.column}) `;
-	}
-
-	return prefix + log.message;
-};
-
-const defaultPrintLog: LogHandler = (level, log) => {
-	const message = getExtendedLogMessage(log);
+const defaultPrintLog: LogHandler = (level, { message }) => {
 	switch (level) {
 		case LOGLEVEL_WARN: {
 			return console.warn(message);

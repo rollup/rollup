@@ -20,7 +20,7 @@ module.exports = defineTest({
 			     ^
 			8: }`,
 		watchFiles: [ID_FOO, ID_MAIN],
-		message: 'Illegal reassignment of import "x" in "main.js".'
+		message: 'main.js (7:2): Illegal reassignment of import "x" in "main.js".'
 	}
 });
 

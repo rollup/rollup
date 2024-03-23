@@ -19,7 +19,7 @@ module.exports = defineTest({
 		hook: 'transform',
 		id: path.join(__dirname, 'main.js'),
 		message:
-			'setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.',
+			'[plugin test-plugin] main.js: setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.',
 		plugin: 'test-plugin',
 		pluginCode: 'INVALID_SETASSETSOURCE',
 		watchFiles: [path.join(__dirname, 'main.js')]

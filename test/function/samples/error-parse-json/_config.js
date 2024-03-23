@@ -27,6 +27,6 @@ module.exports = defineTest({
 		`,
 		watchFiles: [ID_JSON, ID_MAIN],
 		message:
-			"Expected ';', '}' or <eof> (Note that you need @rollup/plugin-json to import JSON files)"
+			"file.json (2:8): Expected ';', '}' or <eof> (Note that you need @rollup/plugin-json to import JSON files)"
 	}
 });

@@ -11,7 +11,7 @@ module.exports = defineTest({
 	warnings: [
 		{
 			code: 'ILLEGAL_REASSIGNMENT',
-			message: 'Illegal reassignment of import "exp" in "main.js".',
+			message: 'main.js (3:0): Illegal reassignment of import "exp" in "main.js".',
 			id: ID_MAIN,
 			pos: 31,
 			loc: {

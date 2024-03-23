@@ -195,22 +195,18 @@ const deferredHandlers: {
 	PLUGIN_WARNING(warnings) {
 		const nestedByPlugin = nest(warnings, 'plugin');
 
-		for (const { key: plugin, items } of nestedByPlugin) {
+		for (const { items } of nestedByPlugin) {
 			const nestedByMessage = nest(items, 'message');
 
 			let lastUrl = '';
 
 			for (const { key: message, items } of nestedByMessage) {
-				title(`Plugin ${plugin}: ${message}`);
+				title(message);
 				for (const warning of items) {
 					if (warning.url && warning.url !== lastUrl) info((lastUrl = warning.url));
 
-					const id = warning.id || warning.loc?.file;
-					if (id) {
-						let loc = relativeId(id);
-						if (warning.loc) {
-							loc += `: (${warning.loc.line}:${warning.loc.column})`;
-						}
+					const loc = formatLocation(warning);
+					if (loc) {
 						stderr(bold(loc));
 					}
 					if (warning.frame) info(warning.frame);
@@ -273,11 +269,9 @@ function defaultBody(log: RollupLog): void {
 		info(getRollupUrl(log.url));
 	}
 
-	const id = log.loc?.file || log.id;
-	if (id) {
-		const loc = log.loc ? `${relativeId(id)} (${log.loc.line}:${log.loc.column})` : relativeId(id);
-
-		stderr(bold(relativeId(loc)));
+	const loc = formatLocation(log);
+	if (loc) {
+		stderr(bold(loc));
 	}
 
 	if (log.frame) info(log.frame);
@@ -339,4 +333,10 @@ function generateLogFilter(command: Record<string, any>) {
 		filters.push(...process.env.ROLLUP_FILTER_LOGS.split(','));
 	}
 	return getLogFilter(filters);
+}
+
+function formatLocation(log: RollupLog): string | null {
+	const id = log.loc?.file || log.id;
+	if (!id) return null;
+	return log.loc ? `${id}:${log.loc.line}:${log.loc.column}` : id;
 }

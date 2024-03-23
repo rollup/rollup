@@ -11,13 +11,13 @@ module.exports = defineTest({
 	},
 	after() {
 		Object.assign(console, { debug, info, warn });
-		assert.deepStrictEqual(logs, [
-			['warn', '(test plugin) warnLog'],
-			['warn', '(test plugin) warnString'],
-			['info', '(test plugin) infoLog'],
-			['info', '(test plugin) infoString'],
-			['debug', '(test plugin) debugLog'],
-			['debug', '(test plugin) debugString']
+		assert.deepEqual(logs, [
+			['warn', '[plugin test] warnLog'],
+			['warn', '[plugin test] warnString'],
+			['info', '[plugin test] infoLog'],
+			['info', '[plugin test] infoString'],
+			['debug', '[plugin test] debugLog'],
+			['debug', '[plugin test] debugString']
 		]);
 	},
 	options: {

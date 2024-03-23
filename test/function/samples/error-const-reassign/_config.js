@@ -14,7 +14,7 @@ module.exports = defineTest({
 			file: MAIN_ID,
 			line: 2
 		},
-		message: 'Cannot reassign a variable declared with `const`',
+		message: 'main.js (2:0): Cannot reassign a variable declared with `const`',
 		pos: 15,
 		watchFiles: [MAIN_ID]
 	}

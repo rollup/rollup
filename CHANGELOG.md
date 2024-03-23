@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.13.0
+
+_2024-03-12_
+
+### Features
+
+- Ensure that the location of parse errors and other logs is encoded in the error message as well (#5424)
+
+### Pull Requests
+
+- [#5417](https://github.com/rollup/rollup/pull/5417): chore(deps): lock file maintenance minor/patch updates ( @renovate[bot])
+- [#5418](https://github.com/rollup/rollup/pull/5418): chore(deps): lock file maintenance (@renovate[bot])
+- [#5419](https://github.com/rollup/rollup/pull/5419): chore: fix typo (@OnlyWick)
+- [#5424](https://github.com/rollup/rollup/pull/5424): Add locations to logs, warnings and error messages ( @lukastaegert)
+
 ## 4.12.1
 
 _2024-03-06_

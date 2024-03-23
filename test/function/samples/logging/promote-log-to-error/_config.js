@@ -11,7 +11,7 @@ module.exports = defineTest({
 	},
 	after() {
 		Object.assign(console, { debug, info, warn });
-		assert.deepStrictEqual(logs, []);
+		assert.deepEqual(logs, []);
 	},
 	options: {
 		onwarn: null,
@@ -31,7 +31,7 @@ module.exports = defineTest({
 		binding: 'foo',
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
-		message: 'info becomes error',
+		message: '[plugin test] info becomes error',
 		plugin: 'test',
 		pluginCode: 'EXTRA_CODE'
 	}

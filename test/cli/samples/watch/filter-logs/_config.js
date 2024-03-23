@@ -19,11 +19,11 @@ module.exports = defineTest({
 			stderr,
 			`
 bundles main.js → _actual.js...
-first
-second
-third
-fourth
-fifth
+[plugin test] first
+[plugin test] second
+[plugin test] third
+[plugin test] fourth
+[plugin test] fifth
 created _actual.js`
 		);
 	}

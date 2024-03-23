@@ -7,7 +7,7 @@ module.exports = defineTest({
 		code: 'INVALID_PLUGIN_HOOK',
 		hook: 'resolveId',
 		message:
-			'Error running plugin hook "resolveId" for plugin "at position 1", expected a function hook or an object with a "handler" function.',
+			'[plugin at position 1] Error running plugin hook "resolveId" for plugin "at position 1", expected a function hook or an object with a "handler" function.',
 		plugin: 'at position 1'
 	}
 });

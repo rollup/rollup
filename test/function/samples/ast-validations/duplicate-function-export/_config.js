@@ -5,7 +5,7 @@ module.exports = defineTest({
 	description: 'throws on duplicate namespace exports',
 	error: {
 		code: 'DUPLICATE_EXPORT',
-		message: 'Duplicate export "foo"',
+		message: 'main.js (3:16): Duplicate export "foo"',
 		id: ID_MAIN,
 		pos: 54,
 		watchFiles: [ID_MAIN],

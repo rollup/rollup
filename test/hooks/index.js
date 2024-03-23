@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const path = require('node:path');
 const { outputFile, readdir, remove } = require('fs-extra');
 /**
- * @type {import('../../src/rollup/types')} Rollup
+ * @type {import("../../src/rollup/types")} Rollup
  */
 const rollup = require('../../dist/rollup.js');
 const { loader, wait } = require('../utils.js');
@@ -96,10 +96,10 @@ describe('hooks', () => {
 				input: 'input',
 				onwarn(warning) {
 					if (callCnt === 0) {
-						assert.strictEqual(warning.message, 'build start');
+						assert.strictEqual(warning.message, '[plugin at position 2] build start');
 						callCnt++;
 					} else if (callCnt === 1) {
-						assert.strictEqual(warning.message, 'build end');
+						assert.strictEqual(warning.message, '[plugin at position 2] build end');
 						callCnt++;
 					}
 				},
@@ -132,7 +132,7 @@ describe('hooks', () => {
 							this.error('build start error');
 						},
 						buildEnd(error) {
-							assert.strictEqual(error.message, 'build start error');
+							assert.strictEqual(error.message, '[plugin at position 2] build start error');
 							handledError = true;
 						}
 					}
@@ -140,7 +140,7 @@ describe('hooks', () => {
 			})
 			.catch(error => {
 				assert.ok(handledError);
-				assert.strictEqual(error.message, 'build start error');
+				assert.strictEqual(error.message, '[plugin at position 2] build start error');
 			})
 			.then(() => {
 				assert.ok(handledError);
@@ -1024,7 +1024,7 @@ describe('hooks', () => {
 			})
 			.then(bundle => bundle.close())
 			.catch(error => {
-				assert.strictEqual(error.message, 'close bundle error');
+				assert.strictEqual(error.message, '[plugin at position 2] close bundle error');
 				handledError = true;
 			})
 			.then(() => {
@@ -1080,6 +1080,7 @@ describe('hooks', () => {
 		addPlugin('post');
 		addPlugin('pre');
 		addPlugin();
+
 		function addPlugin(order) {
 			const name = `${order}-${plugins.length}`;
 			const plugin = { name };

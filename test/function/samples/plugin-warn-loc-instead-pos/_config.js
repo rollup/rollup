@@ -19,7 +19,7 @@ module.exports = defineTest({
 			id: path.join(__dirname, 'main.js'),
 			plugin: 'test',
 			hook: 'transform',
-			message: 'foo',
+			message: '[plugin test] main.js (1:22): foo',
 			loc: {
 				file: path.join(__dirname, 'main.js'),
 				line: 1,

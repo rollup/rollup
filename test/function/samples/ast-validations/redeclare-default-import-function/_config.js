@@ -5,7 +5,7 @@ module.exports = defineTest({
 	description: 'throws when redeclaring a default import with a function',
 	error: {
 		code: 'REDECLARATION_ERROR',
-		message: 'Identifier "foo" has already been declared',
+		message: 'main.js (4:9): Identifier "foo" has already been declared',
 		id: ID_MAIN,
 		pos: 56,
 		watchFiles: [ID_MAIN],
