@@ -5,13 +5,12 @@ export function cacheObjectGetters<T, K extends PropertyKey = keyof T>(
 	for (const property of getterProperties) {
 		const propertyGetter = Object.getOwnPropertyDescriptor(object, property)?.get;
 		if (propertyGetter) {
-			let cached: unknown;
 			Object.defineProperty(object, property, {
 				get: () => {
-					if (cached === undefined) {
-						cached = propertyGetter.call(object);
-					}
-					return cached;
+					const value = propertyGetter.call(object);
+					// This replaces the getter with a fixed value for subsequent calls
+					Object.defineProperty(object, property, { value });
+					return value;
 				}
 			});
 		}
