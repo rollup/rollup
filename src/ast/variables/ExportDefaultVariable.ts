@@ -3,6 +3,7 @@ import ClassDeclaration from '../nodes/ClassDeclaration';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier, { type IdentifierWithVariable } from '../nodes/Identifier';
+import type { NodeBase } from '../nodes/shared/Node';
 import LocalVariable from './LocalVariable';
 import UndefinedVariable from './UndefinedVariable';
 import type Variable from './Variable';
@@ -37,6 +38,16 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
+	addUsedPlace(identifier: NodeBase): void {
+		const original = this.getOriginalVariable();
+		this.originalVariable = null;
+		if (original === this) {
+			super.addUsedPlace(identifier);
+		} else {
+			original.addUsedPlace(identifier);
+		}
+	}
+
 	forbidName(name: string) {
 		const original = this.getOriginalVariable();
 		if (original === this) {
@@ -57,6 +68,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getDirectOriginalVariable(): Variable | null {
 		return this.originalId &&
+			this.originalId.variable &&
 			(this.hasId ||
 				!(
 					this.originalId.isPossibleTDZ() ||

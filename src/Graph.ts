@@ -18,6 +18,7 @@ import { PluginDriver } from './utils/PluginDriver';
 import Queue from './utils/Queue';
 import { BuildPhase } from './utils/buildPhase';
 import { analyseModuleExecution } from './utils/executionOrder';
+import { functionParameterPass } from './utils/functionParameterPass';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
 	error,
@@ -160,6 +161,7 @@ export default class Graph {
 	}
 
 	private includeStatements(): void {
+		functionParameterPass(this.modules);
 		const entryModules = [...this.entryModules, ...this.implicitEntryModules];
 		for (const module of entryModules) {
 			markModuleAndImpureDependenciesAsExecuted(module);

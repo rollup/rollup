@@ -1,14 +1,17 @@
 import type { AstContext } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
+import type { LiteralValue } from '../nodes/Literal';
+import type { ExpressionEntity, LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import {
 	deoptimizeInteraction,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_RETURN_EXPRESSION
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownValue
 } from '../nodes/shared/Expression';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
@@ -69,6 +72,22 @@ export default class ParameterVariable extends LocalVariable {
 				entity.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
 			}
 		}
+	}
+
+	literalValue: LiteralValue | null = null;
+	setKnownLiteralValue(value: LiteralValue): void {
+		this.literalValue = value;
+	}
+
+	getLiteralValueAtPath(
+		_path: ObjectPath,
+		_recursionTracker: PathTracker,
+		_origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (this.isReassigned) {
+			return UnknownValue;
+		}
+		return this.literalValue ?? UnknownValue;
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {

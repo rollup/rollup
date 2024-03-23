@@ -6,6 +6,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import type { NodeBase } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
@@ -33,6 +34,12 @@ export default class Variable extends ExpressionEntity {
 	 * Necessary to be able to change variable names.
 	 */
 	addReference(_identifier: Identifier): void {}
+
+	AllUsedPlaces: NodeBase[] = [];
+
+	addUsedPlace(identifier: NodeBase): void {
+		this.AllUsedPlaces.push(identifier);
+	}
 
 	/**
 	 * Prevent this variable from being renamed to this name to avoid name
