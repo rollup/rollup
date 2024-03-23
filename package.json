@@ -128,7 +128,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@rollup/pluginutils": "^5.1.0",
-    "@types/eslint": "^8.56.5",
+    "@types/eslint": "^8.56.6",
     "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
     "@types/node": "~18.18.14",
