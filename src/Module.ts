@@ -294,7 +294,6 @@ export default class Module {
 			sourcesWithAttributes
 		} = this;
 
-		// NOTE: any getter props should also be defined in cacheInfoGetters
 		this.info = {
 			ast: null,
 			attributes,
@@ -404,8 +403,7 @@ export default class Module {
 			'implicitlyLoadedBefore',
 			'importedIdResolutions',
 			'importedIds',
-			'importers',
-			'isIncluded'
+			'importers'
 		]);
 	}
 
