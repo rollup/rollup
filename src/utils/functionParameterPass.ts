@@ -3,6 +3,7 @@ import type Module from '../Module';
 import type CallExpression from '../ast/nodes/CallExpression';
 import type FunctionDeclaration from '../ast/nodes/FunctionDeclaration';
 import type { LiteralValue } from '../ast/nodes/Literal';
+import type { ExpressionNode } from '../ast/nodes/shared/Node';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../ast/utils/PathTracker';
 import LocalVariable from '../ast/variables/LocalVariable';
 import ParameterVariable from '../ast/variables/ParameterVariable';
@@ -15,21 +16,42 @@ function collectTopLevelFunctionCalls(modules: Module[]) {
 		for (const [_, v] of scope) {
 			if (!(v instanceof LocalVariable)) continue;
 			if (v.kind !== 'function') continue;
+
 			const allUses = v.AllUsedPlaces;
+			if (allUses.length === 0) continue;
+
 			const containNonCallExpression = allUses.some(use => use.parent.type !== 'CallExpression');
 			if (containNonCallExpression) continue;
+
 			const function_ = v.declarations[0].parent as FunctionDeclaration;
+			if (function_.params.length === 0) continue;
+
 			const allParameterIsIdentifier = function_.params.every(
 				parameter => parameter.type === 'Identifier'
 			);
 			if (!allParameterIsIdentifier) continue;
-			topLevelFunctions.set(
-				function_,
-				allUses.map(use => use.parent as CallExpression)
-			);
+
+			if (allUses.length === 1) {
+				forwardFunctionUsedOnce(function_, allUses[0].parent as CallExpression);
+			} else {
+				topLevelFunctions.set(
+					function_,
+					allUses.map(use => use.parent as CallExpression)
+				);
+			}
 		}
 	}
 	return topLevelFunctions;
+}
+
+function forwardFunctionUsedOnce(function_: FunctionDeclaration, call: CallExpression) {
+	const maxLength = Math.min(function_.params.length, call.arguments.length);
+	for (let index = 0; index < maxLength; index++) {
+		const parameter = function_.params[index];
+		if (parameter.variable instanceof ParameterVariable) {
+			parameter.variable.setKnownValue(call.arguments[index] as ExpressionNode);
+		}
+	}
 }
 
 function setKnownLiteralValue(topLevelFunctions: Map<FunctionDeclaration, CallExpression[]>) {
@@ -66,7 +88,7 @@ function setKnownLiteralValue(topLevelFunctions: Map<FunctionDeclaration, CallEx
 			if (parameter.variable instanceof ParameterVariable) {
 				changed = true;
 				deleteFunctions.add(function_);
-				parameter.variable.setKnownLiteralValue(literalValues[0]);
+				parameter.variable.setKnownValue(calls[0].arguments[index] as ExpressionNode);
 			}
 		}
 	}

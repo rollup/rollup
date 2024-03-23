@@ -5,7 +5,6 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
-import type { LiteralValue } from '../nodes/Literal';
 import type { ExpressionEntity, LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import {
 	deoptimizeInteraction,
@@ -13,6 +12,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
+import type { ExpressionNode } from '../nodes/shared/Node';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	PathTracker,
@@ -74,20 +74,23 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
-	literalValue: LiteralValue | null = null;
-	setKnownLiteralValue(value: LiteralValue): void {
-		this.literalValue = value;
+	knownValue: ExpressionNode | null = null;
+	setKnownValue(value: ExpressionNode): void {
+		this.knownValue = value;
 	}
 
 	getLiteralValueAtPath(
-		_path: ObjectPath,
-		_recursionTracker: PathTracker,
-		_origin: DeoptimizableEntity
+		path: ObjectPath,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.isReassigned) {
 			return UnknownValue;
 		}
-		return this.literalValue ?? UnknownValue;
+		if (this.knownValue) {
+			return this.knownValue.getLiteralValueAtPath(path, recursionTracker, origin);
+		}
+		return UnknownValue;
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
