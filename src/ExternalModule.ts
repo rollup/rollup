@@ -31,7 +31,6 @@ export default class ExternalModule {
 		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
 
 		const { importers, dynamicImporters } = this;
-		// NOTE: any getter props should also be defined in cacheInfoGetters
 		this.info = {
 			ast: null,
 			attributes,
