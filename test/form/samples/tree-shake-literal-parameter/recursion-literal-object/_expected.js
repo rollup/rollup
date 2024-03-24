@@ -10,8 +10,17 @@ function fun2(options) {
 	}
 }
 
+function fun4(options) {
+	if (options.enable) ; else {
+		console.log('func4');
+	}
+}
+
 console.log(
 	fun2({
 		enable: true
+	}),
+	fun4({
+		enable: false
 	})
 );
