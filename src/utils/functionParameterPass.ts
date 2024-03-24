@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type Module from '../Module';
 import type CallExpression from '../ast/nodes/CallExpression';
 import type FunctionDeclaration from '../ast/nodes/FunctionDeclaration';
@@ -14,8 +13,7 @@ function collectTopLevelFunctionCalls(modules: Module[]) {
 	for (const module of modules) {
 		const scope = module.scope.variables;
 		for (const [_, v] of scope) {
-			if (!(v instanceof LocalVariable)) continue;
-			if (v.kind !== 'function') continue;
+			if (!(v instanceof LocalVariable) || v.kind !== 'function') continue;
 
 			const allUses = v.AllUsedPlaces;
 			if (allUses.length === 0) continue;
@@ -27,7 +25,8 @@ function collectTopLevelFunctionCalls(modules: Module[]) {
 			if (function_.params.length === 0) continue;
 
 			const allParameterIsIdentifier = function_.params.every(
-				parameter => parameter.type === 'Identifier'
+				parameter =>
+					parameter.type === 'Identifier' && parameter.variable instanceof ParameterVariable
 			);
 			if (!allParameterIsIdentifier) continue;
 
@@ -47,10 +46,8 @@ function collectTopLevelFunctionCalls(modules: Module[]) {
 function forwardFunctionUsedOnce(function_: FunctionDeclaration, call: CallExpression) {
 	const maxLength = Math.min(function_.params.length, call.arguments.length);
 	for (let index = 0; index < maxLength; index++) {
-		const parameter = function_.params[index];
-		if (parameter.variable instanceof ParameterVariable) {
-			parameter.variable.setKnownValue(call.arguments[index] as ExpressionNode);
-		}
+		const parameterVariable = function_.params[index].variable as ParameterVariable;
+		parameterVariable.setKnownValue(call.arguments[index] as ExpressionNode);
 	}
 }
 
@@ -85,11 +82,10 @@ function setKnownLiteralValue(topLevelFunctions: Map<FunctionDeclaration, CallEx
 			const allSame = literalValues.every(literal => literal === literalValues[0]);
 			if (!allSame) continue;
 
-			if (parameter.variable instanceof ParameterVariable) {
-				changed = true;
-				deleteFunctions.add(function_);
-				parameter.variable.setKnownValue(calls[0].arguments[index] as ExpressionNode);
-			}
+			changed = true;
+			deleteFunctions.add(function_);
+			const parameterVariable = parameter.variable as ParameterVariable;
+			parameterVariable.setKnownValue(calls[0].arguments[index] as ExpressionNode);
 		}
 	}
 
