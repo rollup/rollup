@@ -123,14 +123,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	protected applyDeoptimizations() {}
 
 	private getTestValue(): LiteralValueOrUnknown {
-		if (this.testValue === unset) {
-			return (this.testValue = this.test.getLiteralValueAtPath(
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER,
-				this
-			));
-		}
-		return this.testValue;
+		// if (this.testValue === unset) {
+		return (this.testValue = this.test.getLiteralValueAtPath(
+			EMPTY_PATH,
+			SHARED_RECURSION_TRACKER,
+			this
+		));
+		// }
+		// return this.testValue;
 	}
 
 	private includeKnownTest(context: InclusionContext, testValue: LiteralValueOrUnknown) {

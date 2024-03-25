@@ -3,16 +3,37 @@ import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import FunctionScope from '../../scopes/FunctionScope';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	type PathTracker,
+	SHARED_RECURSION_TRACKER
+} from '../../utils/PathTracker';
+import type ParameterVariable from '../../variables/ParameterVariable';
 import type BlockStatement from '../BlockStatement';
+import type CallExpression from '../CallExpression';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
+import RestElement from '../RestElement';
+import type SpreadElement from '../SpreadElement';
 import type { ExpressionEntity } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
-import { type IncludeChildren } from './Node';
+import type { ExpressionNode, IncludeChildren } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import type { PatternNode } from './Pattern';
+
+type FunctionParameterState =
+	| {
+			kind: 'TOP';
+	  }
+	| {
+			kind: 'MID';
+			expression: ExpressionNode | SpreadElement;
+	  }
+	| {
+			kind: 'BOTTOM';
+	  };
 
 export default class FunctionNode extends FunctionBase {
 	declare body: BlockStatement;
@@ -29,6 +50,64 @@ export default class FunctionNode extends FunctionBase {
 		// This makes sure that all deoptimizations of "this" are applied to the
 		// constructed entity.
 		this.scope.thisVariable.addEntityToBeDeoptimized(this.constructedEntity);
+	}
+
+	private knownParameters: FunctionParameterState[] = [];
+	initKnownParameters() {
+		if (this.knownParameters.length === 0) {
+			this.knownParameters = Array.from({ length: this.params.length }).map(() => ({
+				kind: 'TOP'
+			}));
+		}
+	}
+	/**
+	 * updated knownParameters when a call is made to this function
+	 * @param newArguments arguments of the call
+	 */
+	updateKnownArguments(newArguments: (SpreadElement | ExpressionNode)[]): void {
+		this.initKnownParameters();
+		for (let position = 0; position < newArguments.length; position++) {
+			const argument = newArguments[position];
+			const parameter = this.params[position];
+			if (!parameter || parameter instanceof RestElement) {
+				break;
+			}
+			const knownParameter = this.knownParameters[position];
+			if (knownParameter.kind === 'TOP') {
+				this.knownParameters[position] = { expression: argument, kind: 'MID' };
+			} else if (knownParameter.kind === 'MID') {
+				const knownLiteral = knownParameter.expression.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					knownParameter.expression.parent as CallExpression
+				);
+				const newLiteral = argument.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					argument.parent as CallExpression
+				);
+				const bothLiteral = typeof knownLiteral !== 'symbol' && typeof newLiteral !== 'symbol';
+				if (bothLiteral && knownLiteral !== newLiteral) {
+					this.knownParameters[position] = { kind: 'BOTTOM' };
+				} else if (!bothLiteral) {
+					// if two call with same object: foo(bar);foo(bar);
+					this.knownParameters[position] =
+						knownParameter.expression === argument ? knownParameter : { kind: 'BOTTOM' };
+				} // else both are the same literal, no need to update
+			}
+		}
+	}
+
+	applyFunctionParameterOptimization() {
+		for (let position = 0; position < this.params.length; position++) {
+			const knownParameter = this.knownParameters[position];
+			const parameter = this.params[position];
+			if (knownParameter.kind === 'MID' && parameter instanceof Identifier) {
+				(parameter.variable as ParameterVariable).setKnownValue(
+					knownParameter.expression as ExpressionNode
+				);
+			}
+		}
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -91,6 +170,12 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (this.id?.variable.onlyFunctionCallUsed && this.id.variable.argumentsList.length > 0) {
+			for (let index = 0; index < this.id.variable.argumentsList.length; index++) {
+				this.updateKnownArguments(this.id.variable.argumentsList[index]);
+			}
+			this.applyFunctionParameterOptimization();
+		}
 		super.include(context, includeChildrenRecursively);
 		this.id?.include();
 		const hasArguments = this.scope.argumentsVariable.included;

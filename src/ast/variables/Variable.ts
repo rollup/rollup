@@ -4,9 +4,11 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import type CallExpression from '../nodes/CallExpression';
 import type Identifier from '../nodes/Identifier';
+import type SpreadElement from '../nodes/SpreadElement';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import type { NodeBase } from '../nodes/shared/Node';
+import type { ExpressionNode, NodeBase } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
@@ -35,10 +37,16 @@ export default class Variable extends ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier): void {}
 
-	AllUsedPlaces: NodeBase[] = [];
-
-	addUsedPlace(identifier: NodeBase): void {
-		this.AllUsedPlaces.push(identifier);
+	onlyFunctionCallUsed = true;
+	argumentsList: (ExpressionNode | SpreadElement)[][] = [];
+	addUsedPlace(usedPlace: NodeBase): void {
+		const isFunctionCall = usedPlace.parent.type === 'CallExpression';
+		if (isFunctionCall) {
+			const callExpression = usedPlace.parent as CallExpression;
+			this.argumentsList.push(callExpression.arguments);
+		} else {
+			this.onlyFunctionCallUsed = false;
+		}
 	}
 
 	/**

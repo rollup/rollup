@@ -88,7 +88,12 @@ export default class ParameterVariable extends LocalVariable {
 			return UnknownValue;
 		}
 		if (this.knownValue) {
-			return this.knownValue.getLiteralValueAtPath(path, recursionTracker, origin);
+			return recursionTracker.withTrackedEntityAtPath(
+				path,
+				this.knownValue,
+				() => this.knownValue!.getLiteralValueAtPath(path, recursionTracker, origin),
+				UnknownValue
+			);
 		}
 		return UnknownValue;
 	}

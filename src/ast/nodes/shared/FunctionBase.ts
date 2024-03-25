@@ -102,6 +102,7 @@ export default abstract class FunctionBase extends NodeBase {
 			for (const parameterList of this.scope.parameters) {
 				for (const parameter of parameterList) {
 					parameter.deoptimizePath(UNKNOWN_PATH);
+					parameter.isReassigned = true;
 				}
 			}
 		}
