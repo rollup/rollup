@@ -4,6 +4,7 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import type CallExpression from '../nodes/CallExpression';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import type { NodeBase } from '../nodes/shared/Node';
@@ -37,7 +38,9 @@ export default class Variable extends ExpressionEntity {
 
 	onlyFunctionCallUsed = true;
 	addUsedPlace(usedPlace: NodeBase): void {
-		const isFunctionCall = usedPlace.parent.type === 'CallExpression';
+		const isFunctionCall =
+			usedPlace.parent.type === 'CallExpression' &&
+			(usedPlace.parent as CallExpression).callee === usedPlace;
 		if (!isFunctionCall) {
 			this.onlyFunctionCallUsed = false;
 		}
