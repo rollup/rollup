@@ -58,5 +58,8 @@ export const FIXED_STRINGS = [
 	'||=',
 	'??=',
 	'pure',
-	'noSideEffects'
+	'noSideEffects',
+	'sourcemap',
+	'using',
+	'await using'
 ];
