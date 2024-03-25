@@ -75,7 +75,7 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	knownValue: ExpressionNode | null = null;
-	setKnownValue(value: ExpressionNode): void {
+	setKnownValue(value: ExpressionNode | null): void {
 		this.knownValue = value;
 	}
 

@@ -9,9 +9,15 @@ import {
 } from '../../NodeInteractions';
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH,
+	UnknownKey
+} from '../../utils/PathTracker';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
+import type CallExpression from '../CallExpression';
 import Identifier from '../Identifier';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
@@ -26,6 +32,18 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
+
+type FunctionParameterState =
+	| {
+			kind: 'TOP';
+	  }
+	| {
+			kind: 'MID';
+			expression: ExpressionNode | SpreadElement;
+	  }
+	| {
+			kind: 'BOTTOM';
+	  };
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -57,6 +75,65 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
+	private knownParameters: FunctionParameterState[] = [];
+	protected allArguments: (ExpressionNode | SpreadElement)[][] = [];
+	initKnownParameters() {
+		if (this.knownParameters.length === 0) {
+			this.knownParameters = Array.from({ length: this.params.length }).map(() => ({
+				kind: 'TOP'
+			}));
+		}
+	}
+	/**
+	 * updated knownParameters when a call is made to this function
+	 * @param newArguments arguments of the call
+	 */
+	updateKnownArguments(newArguments: (SpreadElement | ExpressionNode)[]): void {
+		this.initKnownParameters();
+		for (let position = 0; position < newArguments.length; position++) {
+			const argument = newArguments[position];
+			const parameter = this.params[position];
+			if (!parameter || parameter instanceof RestElement) {
+				break;
+			}
+			const knownParameter = this.knownParameters[position];
+			if (knownParameter.kind === 'TOP') {
+				this.knownParameters[position] = { expression: argument, kind: 'MID' };
+			} else if (knownParameter.kind === 'MID') {
+				if (knownParameter.expression === argument) {
+					continue;
+				}
+				const knownLiteral = knownParameter.expression.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					knownParameter.expression.parent as CallExpression
+				);
+				const newLiteral = argument.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					argument.parent as CallExpression
+				);
+				const bothLiteral = typeof knownLiteral !== 'symbol' && typeof newLiteral !== 'symbol';
+				if (!bothLiteral || knownLiteral !== newLiteral) {
+					this.knownParameters[position] = { kind: 'BOTTOM' };
+				} // else both are the same literal, no need to update
+			}
+		}
+	}
+
+	applyFunctionParameterOptimization() {
+		for (let position = 0; position < this.params.length; position++) {
+			const knownParameter = this.knownParameters[position];
+			const parameter = this.params[position];
+			const ParameterVariable = parameter.variable as ParameterVariable | null;
+			if (knownParameter.kind === 'MID' && parameter instanceof Identifier) {
+				ParameterVariable?.setKnownValue(knownParameter.expression as ExpressionNode);
+			} else {
+				ParameterVariable?.setKnownValue(null);
+			}
+		}
+	}
+
 	protected objectEntity: ObjectEntity | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -84,6 +161,7 @@ export default abstract class FunctionBase extends NodeBase {
 					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
+			this.allArguments.push(args.slice(1) as (ExpressionNode | SpreadElement)[]);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
