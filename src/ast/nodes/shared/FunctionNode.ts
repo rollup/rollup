@@ -87,12 +87,8 @@ export default class FunctionNode extends FunctionBase {
 					argument.parent as CallExpression
 				);
 				const bothLiteral = typeof knownLiteral !== 'symbol' && typeof newLiteral !== 'symbol';
-				if (bothLiteral && knownLiteral !== newLiteral) {
+				if (!bothLiteral || knownLiteral !== newLiteral) {
 					this.knownParameters[position] = { kind: 'BOTTOM' };
-				} else if (!bothLiteral) {
-					// if two call with same object: foo(bar);foo(bar);
-					this.knownParameters[position] =
-						knownParameter.expression === argument ? knownParameter : { kind: 'BOTTOM' };
 				} // else both are the same literal, no need to update
 			}
 		}
