@@ -24,7 +24,7 @@ function add4(a, b, enable) {
 }
 
 function foo(bar) {
-	bar();
+	console.log(bar());
 }
 
 console.log(add1(1, 2));

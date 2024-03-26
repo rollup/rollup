@@ -1,8 +1,9 @@
 import type { AstContext } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import { INTERACTION_CALLED } from '../NodeInteractions';
+import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity, LiteralValueOrUnknown } from '../nodes/shared/Expression';
@@ -75,7 +76,9 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	knownValue: ExpressionEntity | null = null;
-	setKnownValue(value: ExpressionEntity | null): void {
+	argument: ExpressionEntity | null = null;
+	setKnownValue(value: ExpressionEntity | null, isOnlyArgument = false): void {
+		this.argument = isOnlyArgument ? value : null;
 		if (this.knownValue !== value) {
 			for (const expression of this.knownExpressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
@@ -103,6 +106,17 @@ export default class ParameterVariable extends LocalVariable {
 			);
 		}
 		return UnknownValue;
+	}
+
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		interaction: NodeInteraction,
+		context: HasEffectsContext
+	): boolean {
+		// assigned is a bit different, because we are in a new scope
+		return this.argument && interaction.type !== INTERACTION_ASSIGNED
+			? this.argument.hasEffectsOnInteractionAtPath(path, interaction, context)
+			: super.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {

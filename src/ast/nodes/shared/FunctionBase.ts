@@ -122,12 +122,32 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
+	forwardArgumentsForFunctionCalledOnce(newArguments: (SpreadElement | ExpressionNode)[]): void {
+		for (let position = 0; position < this.params.length; position++) {
+			const argument = newArguments[position] ?? UNDEFINED_EXPRESSION;
+			const parameter = this.params[position];
+			if (!parameter || parameter instanceof RestElement) {
+				break;
+			}
+			if (parameter instanceof Identifier) {
+				const ParameterVariable = parameter.variable as ParameterVariable | null;
+				ParameterVariable?.setKnownValue(argument, true);
+			}
+		}
+	}
+
 	/**
 	 * each time tree-shake starts, this method should be called to reoptimize the parameters
 	 * since it is a lattice analysis (the direction is one way, from TOP to BOTTOM)
 	 * we are sure it will converge, and can use state from last iteration
 	 */
 	applyFunctionParameterOptimization() {
+		if (this.allArguments.length === 1) {
+			// we are sure what knownParameters will be, so skip it and do setKnownValue
+			this.forwardArgumentsForFunctionCalledOnce(this.allArguments[0]);
+			return;
+		}
+
 		// reoptimize all arguments, that's why we save them
 		for (const argumentsList of this.allArguments) {
 			this.updateKnownArguments(argumentsList);
