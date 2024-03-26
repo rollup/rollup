@@ -92,12 +92,6 @@ export default class FunctionNode extends FunctionBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (this.id?.variable.onlyFunctionCallUsed && this.allArguments.length > 0) {
-			// each time tree-shake starts, we reoptimize the function parameters
-			// since it is a lattice analysis (the direction is one way, from TOP to BOTTOM)
-			// we are sure it will converge, and can use state from last iteration
-			for (const argumentsList of this.allArguments) {
-				this.updateKnownArguments(argumentsList);
-			}
 			this.applyFunctionParameterOptimization();
 		}
 		super.include(context, includeChildrenRecursively);

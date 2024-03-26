@@ -121,7 +121,16 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
+	/**
+	 * each time tree-shake starts, this method should be called to reoptimize the parameters
+	 * since it is a lattice analysis (the direction is one way, from TOP to BOTTOM)
+	 * we are sure it will converge, and can use state from last iteration
+	 */
 	applyFunctionParameterOptimization() {
+		// reoptimize all arguments, that's why we save them
+		for (const argumentsList of this.allArguments) {
+			this.updateKnownArguments(argumentsList);
+		}
 		for (let position = 0; position < this.params.length; position++) {
 			const knownParameter = this.knownParameters[position];
 			const parameter = this.params[position];
