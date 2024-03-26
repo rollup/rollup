@@ -19,3 +19,11 @@ export function add3(a, b, enable) {
 	}
 	return a - b;
 }
+
+// conditional expression
+export function add4(a, b, enable) {
+	if (enable? true: false) {
+		return a + b;
+	}
+	return a - b;
+}

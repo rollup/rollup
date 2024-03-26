@@ -16,6 +16,13 @@ function add3(a, b, enable) {
 	return a - b;
 }
 
+// conditional expression
+function add4(a, b, enable) {
+	{
+		return a + b;
+	}
+}
+
 function foo(bar) {
 	bar();
 }
@@ -23,3 +30,4 @@ function foo(bar) {
 console.log(add1(1, 2));
 console.log(add2(1, 2)); // unused should be treated as undefined
 console.log(foo(add3));
+console.log(add4(1, 2));
