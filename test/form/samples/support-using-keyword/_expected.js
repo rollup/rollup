@@ -10,6 +10,13 @@ const logClean = function () {
 };
 
 async function foo() {
-	using a = logClean();	await using b = logClean();}
+	using a = logClean();
+	await using b = logClean();
+	for (using a of [logClean(), logClean()]) {
+	}
+
+	for (await using a of [logClean(), logClean()]) {
+	}
+}
 
 foo();
