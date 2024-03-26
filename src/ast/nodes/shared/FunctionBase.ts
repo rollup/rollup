@@ -15,6 +15,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import BlockStatement from '../BlockStatement';
 import type CallExpression from '../CallExpression';
@@ -90,8 +91,8 @@ export default abstract class FunctionBase extends NodeBase {
 	 */
 	updateKnownArguments(newArguments: (SpreadElement | ExpressionNode)[]): void {
 		this.initKnownParameters();
-		for (let position = 0; position < newArguments.length; position++) {
-			const argument = newArguments[position];
+		for (let position = 0; position < this.params.length; position++) {
+			const argument = newArguments[position] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
 			if (!parameter || parameter instanceof RestElement) {
 				break;
@@ -135,10 +136,13 @@ export default abstract class FunctionBase extends NodeBase {
 			const knownParameter = this.knownParameters[position];
 			const parameter = this.params[position];
 			const ParameterVariable = parameter.variable as ParameterVariable | null;
-			if (knownParameter.kind === 'MID' && parameter instanceof Identifier) {
-				ParameterVariable?.setKnownValue(knownParameter.expression as ExpressionNode);
-			} else {
-				ParameterVariable?.setKnownValue(null);
+			// Parameters without default values
+			if (parameter instanceof Identifier) {
+				if (knownParameter.kind === 'MID') {
+					ParameterVariable?.setKnownValue(knownParameter.expression);
+				} else {
+					ParameterVariable?.setKnownValue(null);
+				}
 			}
 		}
 	}

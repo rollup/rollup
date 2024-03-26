@@ -21,5 +21,5 @@ function foo(bar) {
 }
 
 console.log(add1(1, 2));
-console.log(add2(1, 2));
+console.log(add2(1, 2)); // unused should be treated as undefined
 console.log(foo(add3));

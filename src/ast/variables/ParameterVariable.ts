@@ -12,7 +12,6 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
-import type { ExpressionNode } from '../nodes/shared/Node';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	PathTracker,
@@ -74,8 +73,8 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
-	knownValue: ExpressionNode | null = null;
-	setKnownValue(value: ExpressionNode | null): void {
+	knownValue: ExpressionEntity | null = null;
+	setKnownValue(value: ExpressionEntity | null): void {
 		this.knownValue = value;
 	}
 
