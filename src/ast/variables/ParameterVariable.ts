@@ -37,6 +37,7 @@ export default class ParameterVariable extends LocalVariable {
 	private deoptimizations = new PathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
+	private knownExpressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
 		name: string,
@@ -75,6 +76,12 @@ export default class ParameterVariable extends LocalVariable {
 
 	knownValue: ExpressionEntity | null = null;
 	setKnownValue(value: ExpressionEntity | null): void {
+		if (this.knownValue !== value) {
+			for (const expression of this.knownExpressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+			this.knownExpressionsToBeDeoptimized = [];
+		}
 		this.knownValue = value;
 	}
 
@@ -83,6 +90,7 @@ export default class ParameterVariable extends LocalVariable {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		this.knownExpressionsToBeDeoptimized.push(origin);
 		if (this.isReassigned) {
 			return UnknownValue;
 		}

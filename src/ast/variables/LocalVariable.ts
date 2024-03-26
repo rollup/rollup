@@ -1,5 +1,4 @@
 import type { AstContext, default as Module } from '../../Module';
-import { EMPTY_ARRAY } from '../../utils/blank';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createInclusionContext } from '../ExecutionContext';
@@ -93,7 +92,7 @@ export default class LocalVariable extends Variable {
 		if (path.length === 0) {
 			this.isReassigned = true;
 			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+			this.expressionsToBeDeoptimized = [];
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}

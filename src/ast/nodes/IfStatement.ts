@@ -7,7 +7,7 @@ import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type LiteralValueOrUnknown } from './shared/Expression';
 import {
 	type ExpressionNode,
 	type GenericEsTreeNode,
@@ -29,7 +29,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	private testValue: LiteralValueOrUnknown | typeof unset = unset;
 
 	deoptimizeCache(): void {
-		this.testValue = UnknownValue;
+		this.testValue = unset;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -123,14 +123,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	protected applyDeoptimizations() {}
 
 	private getTestValue(): LiteralValueOrUnknown {
-		// if (this.testValue === unset) {
-		return (this.testValue = this.test.getLiteralValueAtPath(
-			EMPTY_PATH,
-			SHARED_RECURSION_TRACKER,
-			this
-		));
-		// }
-		// return this.testValue;
+		if (this.testValue === unset) {
+			return (this.testValue = this.test.getLiteralValueAtPath(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				this
+			));
+		}
+		return this.testValue;
 	}
 
 	private includeKnownTest(context: InclusionContext, testValue: LiteralValueOrUnknown) {
