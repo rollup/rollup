@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.13.1
+
+_2024-03-27_
+
+### Bug Fixes
+
+- Add new linux-s390x-gnu native binary package (#5346)
+
+### Pull Requests
+
+- [#5346](https://github.com/rollup/rollup/pull/5346): Add support for linux s390x gnu (@edlerd)
+- [#5430](https://github.com/rollup/rollup/pull/5430): chore(deps): update dependency @vue/eslint-config-typescript to v13 (@renovate[bot], @lukastaegert)
+- [#5431](https://github.com/rollup/rollup/pull/5431): chore(deps): lock file maintenance minor/patch updates ( @renovate[bot])
+- [#5432](https://github.com/rollup/rollup/pull/5432): chore(deps): lock file maintenance minor/patch updates ( @renovate[bot])
+- [#5436](https://github.com/rollup/rollup/pull/5436): chore(deps): lock file maintenance minor/patch updates ( @renovate[bot])
+- [#5437](https://github.com/rollup/rollup/pull/5437): chore(deps): lock file maintenance minor/patch updates ( @renovate[bot])
+
 ## 4.13.0
 
 _2024-03-12_

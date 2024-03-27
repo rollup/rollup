@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "4.13.0",
+  "version": "4.13.1",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -25,6 +25,7 @@
         "armv7-unknown-linux-gnueabihf",
         "i686-pc-windows-msvc",
         "riscv64gc-unknown-linux-gnu",
+        "s390x-unknown-linux-gnu",
         "x86_64-apple-darwin",
         "x86_64-pc-windows-msvc",
         "x86_64-unknown-linux-gnu",
