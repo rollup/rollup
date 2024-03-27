@@ -10,7 +10,9 @@
     "jsx": "preserve",
     "lib": ["ESNext", "DOM"],
     "types": ["vite/client"],
-    "isolatedModules": true
+    "isolatedModules": true,
+    "noEmit": true
   },
-  "exclude": ["**/node_modules/**", "**/dist/**"]
+  "include": ["**/*"],
+  "exclude": ["**/node_modules/**", "**/dist/**", ".vitepress/cache/**", ".vitepress/dist/**"]
 }

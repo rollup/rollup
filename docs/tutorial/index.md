@@ -96,8 +96,11 @@ To save repeating ourselves, we can create a config file containing all the opti
 
 Create a file in the project root called `rollup.config.mjs`, and add the following code:
 
-```js
+```js twoslash
 // rollup.config.mjs
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main.js',
 	output: {
@@ -212,10 +215,13 @@ export default function () {
 
 Edit your `rollup.config.mjs` file to include the JSON plugin:
 
-```js
+```js twoslash
 // rollup.config.mjs
 import json from '@rollup/plugin-json';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main.js',
 	output: {
@@ -254,11 +260,14 @@ npm install --save-dev @rollup/plugin-terser
 
 Edit your `rollup.config.mjs` file to add a second minified output. As format, we choose `iife`. This format wraps the code so that it can be consumed via a `script` tag in the browser while avoiding unwanted interactions with other code. As we have an export, we need to provide the name of a global variable that will be created by our bundle so that other code can access our export via this variable.
 
-```js
+```js twoslash
 // rollup.config.mjs
 import json from '@rollup/plugin-json';
 import terser from '@rollup/plugin-terser';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main.js',
 	output: [

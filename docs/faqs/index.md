@@ -134,7 +134,10 @@ and for the UMD build
 
 which will create a global variable `window.rollup`. As the browser build cannot access the file system, you need to provide plugins that resolve and load all modules you want to bundle. Here is a contrived example that does this:
 
-```js
+```js twoslash
+/** @type {import('rollup')} */
+var rollup;
+// ---cut---
 const modules = {
 	'main.js': "import foo from 'foo.js'; console.log(foo);",
 	'foo.js': 'export default 42;'
@@ -165,7 +168,10 @@ rollup
 
 This example only supports two imports, `"main.js"` and `"foo.js"`, and no relative imports. Here is another example that uses absolute URLs as entry points and supports relative imports. In that case, we are just re-bundling Rollup itself, but it could be used on any other URL that exposes an ES module:
 
-```js
+```js twoslash
+/** @type {import('rollup')} */
+var rollup;
+// ---cut---
 rollup
 	.rollup({
 		input: 'https://unpkg.com/rollup/dist/es/rollup.js',
