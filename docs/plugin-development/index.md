@@ -1304,23 +1304,24 @@ This will not result in duplicate modules in the graph, instead if necessary, ex
 
 By default, Rollup assumes that emitted chunks are executed independent of other entry points, possibly even before any other code is executed. This means that if an emitted chunk shares a dependency with an existing entry point, Rollup will create an additional chunk for dependencies that are shared between those entry points. Providing a non-empty array of module ids for `implicitlyLoadedAfterOneOf` will change that behaviour by giving Rollup additional information to prevent this in some cases. Those ids will be resolved the same way as the `id` property, respecting the `importer` property if it is provided. Rollup will now assume that the emitted chunk is only executed if at least one of the entry points that lead to one of the ids in `implicitlyLoadedAfterOneOf` being loaded has already been executed, creating the same chunks as if the newly emitted chunk was only reachable via dynamic import from the modules in `implicitlyLoadedAfterOneOf`. Here is an example that uses this to create a simple HTML file with several scripts, creating optimized chunks to respect their execution order:
 
+<!-- prettier-ignore-start -->
 ```js twoslash
 // rollup.config.js
 // ---cut-start---
 /** @returns {import('rollup').Plugin} */
 // ---cut-end---
 function generateHtmlPlugin() {
-	// ---cut-start---
+// ---cut-start---
 	/** @type {string} */
-	// ---cut-end---
+// ---cut-end---
 	let ref1;
-	// ---cut-start---
+// ---cut-start---
 	/** @type {string} */
-	// ---cut-end---
+// ---cut-end---
 	let ref2;
-	// ---cut-start---
+// ---cut-start---
 	/** @type {string} */
-	// ---cut-end---
+// ---cut-end---
 	let ref3;
 	return {
 		name: 'generate-html',
@@ -1375,6 +1376,7 @@ export default {
 	}
 };
 ```
+<!-- prettier-ignore-end -->
 
 If there are no dynamic imports, this will create exactly three chunks where the first chunk contains all dependencies of `src/entry1`, the second chunk contains only the dependencies of `src/entry2` that are not contained in the first chunk, importing those from the first chunk, and again the same for the third chunk.
 
@@ -2178,6 +2180,7 @@ function plugin() {
 
 For any other kind of inter-plugin communication, we recommend the pattern below. Note that `api` will never conflict with any upcoming plugin hooks.
 
+<!-- prettier-ignore-start -->
 ```js twoslash
 /** @typedef {{ doSomething(...args: any[]): void }} ParentPluginApi */
 
@@ -2200,17 +2203,17 @@ function parentPlugin() {
 /** @returns {import('rollup').Plugin} */
 // ---cut-end---
 function dependentPlugin() {
-	// ---cut-start---
+// ---cut-start---
 	/** @type {ParentPluginApi} */
-	// ---cut-end---
+// ---cut-end---
 	let parentApi;
 	return {
 		name: 'dependent',
 		buildStart({ plugins }) {
 			const parentName = 'parent';
-			// ---cut-start---
+// ---cut-start---
 			/** @type {import('rollup').Plugin<ParentPluginApi> | undefined} */
-			// ---cut-end---
+// ---cut-end---
 			const parentPlugin = plugins.find(
 				plugin => plugin.name === parentName
 			);
@@ -2231,3 +2234,4 @@ function dependentPlugin() {
 	};
 }
 ```
+<!-- prettier-ignore-end -->

@@ -18,6 +18,7 @@ Once you're finished with the `bundle` object, you should call `bundle.close()`,
 
 If an error occurs at either stage, it will return a Promise rejected with an Error, which you can identify via their `code` property. Besides `code` and `message`, many errors have additional properties you can use for custom reporting, see [`utils/logs.ts`](https://github.com/rollup/rollup/blob/master/src/utils/logs.ts) for a complete list of errors and logs together with their codes and properties.
 
+<!-- prettier-ignore-start -->
 ```javascript twoslash
 import { rollup } from 'rollup';
 
@@ -46,9 +47,9 @@ const outputOptionsList = [
 build();
 
 async function build() {
-	// ---cut-start---
+// ---cut-start---
 	/** @type {import('rollup').RollupBuild} */
-	// ---cut-end---
+// ---cut-end---
 	let bundle;
 	let buildFailed = false;
 	try {
@@ -125,6 +126,7 @@ async function generateOutputs(bundle) {
 	}
 }
 ```
+<!-- prettier-ignore-end -->
 
 ### inputOptions object
 

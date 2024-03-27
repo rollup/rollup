@@ -1280,6 +1280,7 @@ If a lot of such components are used together, this will result in a lot of dyna
 
 The following code will merge all files of the same language that are only used by a single entry point:
 
+<!-- prettier-ignore-start -->
 ```js twoslash
 // ---cut-start---
 /** @type {import('rollup').GetManualChunk} */
@@ -1288,9 +1289,9 @@ function manualChunks(id, { getModuleInfo }) {
 	const match = /.*\.strings\.(\w+)\.js/.exec(id);
 	if (match) {
 		const language = match[1]; // e.g. "en"
-		// ---cut-start---
+// ---cut-start---
 		/** @type {string[]} */
-		// ---cut-end---
+// ---cut-end---
 		const dependentEntryPoints = [];
 
 		// we use a Set here so we handle each module at most once. This
@@ -1298,9 +1299,9 @@ function manualChunks(id, { getModuleInfo }) {
 		const idsToHandle = new Set(getModuleInfo(id).dynamicImporters);
 
 		for (const moduleId of idsToHandle) {
-			// ---cut-start---
+// ---cut-start---
 			/** @type {import('rollup').ModuleInfo} */
-			// ---cut-end---
+// ---cut-end---
 			const { isEntry, dynamicImporters, importers } =
 				getModuleInfo(moduleId);
 			if (isEntry || dynamicImporters.length > 0)
@@ -1325,6 +1326,7 @@ function manualChunks(id, { getModuleInfo }) {
 	}
 }
 ```
+<!-- prettier-ignore-end -->
 
 ### output.minifyInternalExports
 
