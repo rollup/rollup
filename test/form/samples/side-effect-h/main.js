@@ -5,5 +5,6 @@ function foo ( ok ) {
 }
 
 foo();
+foo(true);
 
 export default 42;

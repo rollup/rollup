@@ -8,5 +8,6 @@ define((function () { 'use strict';
 	}
 
 	assert.equal( isUsed( true ), 2 );
+	assert.equal( isUsed( false ), 1 );
 
 }));

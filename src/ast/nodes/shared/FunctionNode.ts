@@ -91,6 +91,9 @@ export default class FunctionNode extends FunctionBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (this.id?.variable.onlyFunctionCallUsed && this.allArguments.length > 0) {
+			this.applyFunctionParameterOptimization();
+		}
 		super.include(context, includeChildrenRecursively);
 		this.id?.include();
 		const hasArguments = this.scope.argumentsVariable.included;

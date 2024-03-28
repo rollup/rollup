@@ -4,8 +4,10 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import type CallExpression from '../nodes/CallExpression';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import type { NodeBase } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
@@ -33,6 +35,16 @@ export default class Variable extends ExpressionEntity {
 	 * Necessary to be able to change variable names.
 	 */
 	addReference(_identifier: Identifier): void {}
+
+	onlyFunctionCallUsed = true;
+	addUsedPlace(usedPlace: NodeBase): void {
+		const isFunctionCall =
+			usedPlace.parent.type === 'CallExpression' &&
+			(usedPlace.parent as CallExpression).callee === usedPlace;
+		if (!isFunctionCall) {
+			this.onlyFunctionCallUsed = false;
+		}
+	}
 
 	/**
 	 * Prevent this variable from being renamed to this name to avoid name

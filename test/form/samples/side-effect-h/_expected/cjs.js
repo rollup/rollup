@@ -7,6 +7,7 @@ function foo ( ok ) {
 }
 
 foo();
+foo(true);
 
 var main = 42;
 

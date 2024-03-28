@@ -68,6 +68,9 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (this.allArguments.length > 0) {
+			this.applyFunctionParameterOptimization();
+		}
 		super.include(context, includeChildrenRecursively);
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {
