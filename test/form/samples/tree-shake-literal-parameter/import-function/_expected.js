@@ -1,3 +1,10 @@
+// export default
+function add(a, b, enable) {
+	{
+		return a + b;
+	}
+}
+
 function add1(a, b, enable) {
 	{
 		return a + b;
@@ -27,6 +34,7 @@ function foo(bar) {
 	console.log(bar());
 }
 
+console.log(add(1, 2));
 console.log(add1(1, 2));
 console.log(add2(1, 2)); // unused should be treated as undefined
 console.log(foo(add3));
