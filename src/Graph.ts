@@ -151,6 +151,7 @@ export default class Graph {
 			throw new Error('You must supply options.input to rollup');
 		}
 		for (const module of this.modulesById.values()) {
+			module.cacheInfoGetters();
 			if (module instanceof Module) {
 				this.modules.push(module);
 			} else {
