@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.13.2
+
+_2024-03-28_
+
+### Bug Fixes
+
+- Ensure accessing module info is cached after the build phase for improved performance (#5438)
+- Support powerpc64le CPUs (#5350)
+
+### Pull Requests
+
+- [#5350](https://github.com/rollup/rollup/pull/5350): Add support for ppc64le (@pavolloffay, @lukastaegert)
+- [#5438](https://github.com/rollup/rollup/pull/5438): Cache module info getters before output generation (@bluwy, @lukastaegert)
+
 ## 4.13.1
 
 _2024-03-27_
