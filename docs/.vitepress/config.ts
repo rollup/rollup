@@ -1,4 +1,5 @@
 import alias from '@rollup/plugin-alias';
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitepress';
 import { moduleAliases } from '../../build-plugins/aliases';
@@ -35,6 +36,28 @@ export default defineConfig({
 			callback,
 			level: 2
 		},
+		codeTransformers: [
+			transformerTwoslash({
+				langs: [
+					// defaults
+					'ts',
+					'tsx',
+					'js',
+					'jsx',
+					'json',
+					'vue',
+					// custom
+					'javascript',
+					'typescript'
+				],
+				twoslashOptions: {
+					compilerOptions: {
+						moduleResolution: 100, // bundler
+						types: ['node']
+					}
+				}
+			})
+		],
 		config(md) {
 			transposeTables(md);
 		},

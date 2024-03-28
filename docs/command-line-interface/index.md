@@ -12,7 +12,9 @@ Rollup should typically be used from the command line. You can provide an option
 
 Rollup configuration files are optional, but they are powerful and convenient and thus **recommended**. A config file is an ES module that exports a default object with the desired options:
 
-```javascript
+```javascript twoslash
+/** @type {import('rollup').RollupOptions} */
+// ---cut---
 export default {
 	input: 'src/main.js',
 	output: {
@@ -36,10 +38,13 @@ Using the `--configPlugin` option will always force your config file to be trans
 
 Config files support the options listed below. Consult the [big list of options](../configuration-options/index.md) for details on each option:
 
-```javascript
+```javascript twoslash
 // rollup.config.js
 
 // can be an array (for multiple inputs)
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	// core input options
 	external,
@@ -139,9 +144,12 @@ export default {
 
 You can export an **array** from your config file to build bundles from several unrelated inputs at once, even in watch mode. To build different bundles with the same input, you supply an array of output options for each input:
 
-```javascript
+```javascript twoslash
 // rollup.config.js (building more than one bundle)
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions[]} */
+// ---cut-end---
 export default [
 	{
 		input: 'main-a.js',
@@ -196,11 +204,14 @@ rollup --config
 
 You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](#silent). You can even define your own command line options if you prefix them with `config`:
 
-```javascript
+```javascript twoslash
 // rollup.config.js
 import defaultConfig from './rollup.default.config.js';
 import debugConfig from './rollup.debug.config.js';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptionsFunction} */
+// ---cut-end---
 export default commandLineArgs => {
 	if (commandLineArgs.configDebug === true) {
 		return debugConfig;
@@ -213,25 +224,30 @@ If you now run `rollup --config --configDebug`, the debug configuration will be 
 
 By default, command line arguments will always override the respective values exported from a config file. If you want to change this behaviour, you can make Rollup ignore command line arguments by deleting them from the `commandLineArgs` object:
 
-```javascript
+```javascript twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptionsFunction} */
+// ---cut-end---
 export default commandLineArgs => {
-  const inputBase = commandLineArgs.input || 'main.js';
+	const inputBase = commandLineArgs.input || 'main.js';
 
-  // this will make Rollup ignore the CLI argument
-  delete commandLineArgs.input;
-  return {
-    input: 'src/entries/' + inputBase,
-    output: { ... }
-  }
-}
+	// this will make Rollup ignore the CLI argument
+	delete commandLineArgs.input;
+	return {
+		input: 'src/entries/' + inputBase,
+		output: {
+			/* ... */
+		}
+	};
+};
 ```
 
 ### Config Intellisense
 
 Since Rollup ships with TypeScript typings, you can leverage your IDE's Intellisense with JSDoc type hints:
 
-```javascript
+```javascript twoslash
 // rollup.config.js
 /**
  * @type {import('rollup').RollupOptions}
@@ -244,7 +260,7 @@ export default config;
 
 Alternatively you can use the `defineConfig` helper, which should provide Intellisense without the need for JSDoc annotations:
 
-```javascript
+```javascript twoslash
 // rollup.config.js
 import { defineConfig } from 'rollup';
 
@@ -261,7 +277,7 @@ Besides `RollupOptions` and the `defineConfig` helper that encapsulates this typ
 
 You can also directly write your config in TypeScript via the [`--configPlugin`](#configplugin-plugin) option. With TypeScript, you can import the `RollupOptions` type directly:
 
-```typescript
+```typescript twoslash
 import type { RollupOptions } from 'rollup';
 
 const config: RollupOptions = {
@@ -298,14 +314,14 @@ Especially when upgrading from an older Rollup version, there are some things yo
 
 With CommonJS files, people often use `__dirname` to access the current directory and resolve relative paths to absolute paths. This is not supported for native ES modules. Instead, we recommend the following approach e.g. to generate an absolute id for an external module:
 
-```js
+```js twoslash
 // rollup.config.js
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath } from 'node:url';
 
 export default {
-  ...,
-  // generates an absolute path for <currentdir>/src/some-file.js
-  external: [fileURLToPath(new URL('src/some-file.js', import.meta.url))]
+	/* ..., */
+	// generates an absolute path for <currentdir>/src/some-file.js
+	external: [fileURLToPath(new URL('src/some-file.js', import.meta.url))]
 };
 ```
 
@@ -315,7 +331,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
 
 - For Node 17.5+, you can use an import assertion
 
-  ```js
+  ```js twoslash
   import pkg from './package.json' assert { type: 'json' };
 
   export default {
@@ -327,7 +343,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
 
 - For older Node versions, you can use `createRequire`
 
-  ```js
+  ```js twoslash
   import { createRequire } from 'node:module';
   const require = createRequire(import.meta.url);
   const pkg = require('./package.json');
@@ -337,7 +353,7 @@ It can be useful to import your package file to e.g. mark your dependencies as "
 
 - Or just directly read and parse the file from disk
 
-  ```js
+  ```js twoslash
   // rollup.config.mjs
   import { readFileSync } from 'node:fs';
 
