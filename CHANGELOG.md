@@ -6,8 +6,8 @@ _2024-03-28_
 
 ### Bug Fixes
 
-- Support now ppc64le architecture (#5350)
 - Ensure accessing module info is cached after the build phase for improved performance (#5438)
+- Support powerpc64le CPUs (#5350)
 
 ### Pull Requests
 
