@@ -55,6 +55,7 @@ import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap'
 import { getId } from './utils/getId';
 import { getNewSet, getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
+import { cacheObjectGetters } from './utils/getter';
 import { makeLegal } from './utils/identifierHelpers';
 import { LOGLEVEL_WARN } from './utils/logging';
 import {
@@ -388,6 +389,22 @@ export default class Module {
 
 	bindReferences(): void {
 		this.ast!.bind();
+	}
+
+	cacheInfoGetters(): void {
+		cacheObjectGetters(this.info, [
+			'dynamicallyImportedIdResolutions',
+			'dynamicallyImportedIds',
+			'dynamicImporters',
+			'exportedBindings',
+			'exports',
+			'hasDefaultExport',
+			'implicitlyLoadedAfterOneOf',
+			'implicitlyLoadedBefore',
+			'importedIdResolutions',
+			'importedIds',
+			'importers'
+		]);
 	}
 
 	error(properties: RollupError, pos: number | undefined): never {
