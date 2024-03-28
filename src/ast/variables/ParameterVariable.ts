@@ -76,9 +76,12 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	knownValue: ExpressionEntity | null = null;
-	argument: ExpressionEntity | null = null;
-	setKnownValue(value: ExpressionEntity | null, isOnlyArgument = false): void {
-		this.argument = isOnlyArgument ? value : null;
+	/**
+	 * If we are sure about the value of this parameter, we can set it here.
+	 * It can be a literal or the only possible value of the parameter.
+	 * @param value The known value of the parameter to be set.
+	 */
+	setKnownValue(value: ExpressionEntity | null): void {
 		if (this.knownValue !== value) {
 			for (const expression of this.knownExpressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
@@ -113,9 +116,9 @@ export default class ParameterVariable extends LocalVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		// assigned is a bit different, because we are in a new scope
-		return this.argument && interaction.type !== INTERACTION_ASSIGNED
-			? this.argument.hasEffectsOnInteractionAtPath(path, interaction, context)
+		// assigned is a bit different, since the value has a new name (the parameter)
+		return this.knownValue && interaction.type !== INTERACTION_ASSIGNED
+			? this.knownValue.hasEffectsOnInteractionAtPath(path, interaction, context)
 			: super.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 

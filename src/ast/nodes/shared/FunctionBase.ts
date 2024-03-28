@@ -104,6 +104,13 @@ export default abstract class FunctionBase extends NodeBase {
 				if (knownParameter.expression === argument) {
 					continue;
 				}
+				if (
+					knownParameter.expression instanceof Identifier &&
+					argument instanceof Identifier &&
+					knownParameter.expression.variable === argument.variable
+				) {
+					continue;
+				}
 				const knownLiteral = knownParameter.expression.getLiteralValueAtPath(
 					EMPTY_PATH,
 					SHARED_RECURSION_TRACKER,
@@ -131,7 +138,7 @@ export default abstract class FunctionBase extends NodeBase {
 			}
 			if (parameter instanceof Identifier) {
 				const ParameterVariable = parameter.variable as ParameterVariable | null;
-				ParameterVariable?.setKnownValue(argument, true);
+				ParameterVariable?.setKnownValue(argument);
 			}
 		}
 	}
