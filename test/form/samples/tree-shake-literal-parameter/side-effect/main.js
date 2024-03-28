@@ -6,7 +6,7 @@ function bar1(foo) {
 	console.log(foo())
 }
 
-// pure
+// pure, can be tree-shaken
 function foo2() {
 	return 1;
 }
@@ -15,7 +15,7 @@ function bar2(foo) {
 	foo()
 }
 
-// not pure
+// not pure, preserve
 function foo3() {
 	console.log(1);
 }
@@ -24,5 +24,48 @@ function bar3(foo) {
 	foo()
 }
 
-
 console.log(bar1(foo1), bar2(foo2), bar3(foo3))
+
+const options = {
+	enable: 1
+}
+
+const options2 = {
+	enable: 1
+}
+
+function calledWithSameVariable(options) {
+	if (options.enable) {
+		return 'enabled';
+	} else {
+		return 'disabled';
+	}
+}
+
+function calledWithDifferentVariable(options) {
+	if (options.enable) {
+		return 'enabled';
+	} else {
+		return 'disabled';
+	}
+}
+
+// forward hasEffects to `options`
+console.log(calledWithSameVariable(options), calledWithSameVariable(options))
+// no optimization
+console.log(calledWithDifferentVariable(options), calledWithDifferentVariable(options2))
+
+const optionsBeModified = {
+	enable: 1
+}
+
+function calledWithModifiedVariable(options) {
+	if (options.enable) {
+		return 'enabled';
+	} else {
+		return 'disabled';
+	}
+}
+
+console.log(calledWithModifiedVariable(optionsBeModified))
+optionsBeModified.enable = 0;
