@@ -16,7 +16,7 @@ use swc_ecma_ast::{
   PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget,
   SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
   TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, UnaryExpr, UnaryOp, UpdateExpr,
-  UpdateOp, VarDecl, VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
+  UpdateOp, UsingDecl, VarDecl, VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
@@ -259,14 +259,18 @@ impl<'a> AstConverter<'a> {
 
   fn convert_declaration(&mut self, declaration: &Decl) {
     match declaration {
-      Decl::Var(variable_declaration) => self.convert_variable_declaration(variable_declaration),
+      Decl::Var(variable_declaration) => {
+        self.convert_variable_declaration(&VariableDeclaration::Var(variable_declaration))
+      }
       Decl::Fn(function_declaration) => self.convert_function(
         &function_declaration.function,
         &TYPE_FUNCTION_DECLARATION_INLINED_ANNOTATIONS,
         Some(&function_declaration.ident),
       ),
       Decl::Class(class_declaration) => self.convert_class_declaration(class_declaration),
-      Decl::Using(_) => unimplemented!("Cannot convert Decl::Using"),
+      Decl::Using(using_declaration) => {
+        self.convert_variable_declaration(&VariableDeclaration::Using(using_declaration))
+      }
       Decl::TsInterface(_) => unimplemented!("Cannot convert Decl::TsInterface"),
       Decl::TsTypeAlias(_) => unimplemented!("Cannot convert Decl::TsTypeAlias"),
       Decl::TsEnum(_) => unimplemented!("Cannot convert Decl::TsEnum"),
@@ -527,12 +531,14 @@ impl<'a> AstConverter<'a> {
   fn convert_for_head(&mut self, for_head: &ForHead) {
     match for_head {
       ForHead::VarDecl(variable_declaration) => {
-        self.convert_variable_declaration(variable_declaration)
+        self.convert_variable_declaration(&VariableDeclaration::Var(variable_declaration))
       }
       ForHead::Pat(pattern) => {
         self.convert_pattern(pattern);
       }
-      ForHead::UsingDecl(_) => unimplemented!("Cannot convert ForHead::UsingDecl"),
+      ForHead::UsingDecl(using_declaration) => {
+        self.convert_variable_declaration(&VariableDeclaration::Using(using_declaration))
+      }
     }
   }
 
@@ -995,7 +1001,7 @@ impl<'a> AstConverter<'a> {
   ) {
     match variable_declaration_or_expression {
       VarDeclOrExpr::VarDecl(variable_declaration) => {
-        self.convert_variable_declaration(variable_declaration);
+        self.convert_variable_declaration(&VariableDeclaration::Var(variable_declaration));
       }
       VarDeclOrExpr::Expr(expression) => {
         self.convert_expression(expression);
@@ -2942,32 +2948,43 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &update_expression.span);
   }
 
-  fn convert_variable_declaration(&mut self, variable_declaration: &VarDecl) {
+  fn convert_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
+    let (kind, span, decls): (&[u8; 4], Span, &Vec<VarDeclarator>) = match variable_declaration {
+      VariableDeclaration::Var(value) => (
+        match value.kind {
+          VarDeclKind::Var => &STRING_VAR,
+          VarDeclKind::Let => &STRING_LET,
+          VarDeclKind::Const => &STRING_CONST,
+        },
+        value.span,
+        &value.decls,
+      ),
+      &VariableDeclaration::Using(value) => (
+        if value.is_await {
+          &STRING_AWAIT_USING
+        } else {
+          &STRING_USING
+        },
+        value.span,
+        &value.decls,
+      ),
+    };
     let end_position = self.add_type_and_start(
       &TYPE_VARIABLE_DECLARATION_INLINED_DECLARATIONS,
-      &variable_declaration.span,
+      &span,
       VARIABLE_DECLARATION_RESERVED_BYTES,
-      matches!(variable_declaration.kind, VarDeclKind::Const),
+      kind == &STRING_CONST,
     );
     // declarations
-    self.convert_item_list(
-      &variable_declaration.decls,
-      |ast_converter, variable_declarator| {
-        ast_converter.convert_variable_declarator(variable_declarator);
-        true
-      },
-    );
+    self.convert_item_list(decls, |ast_converter, variable_declarator| {
+      ast_converter.convert_variable_declarator(variable_declarator);
+      true
+    });
     // kind
     let kind_position = end_position + VARIABLE_DECLARATION_KIND_OFFSET;
-    self.buffer[kind_position..kind_position + 4].copy_from_slice(
-      match variable_declaration.kind {
-        VarDeclKind::Var => &STRING_VAR,
-        VarDeclKind::Let => &STRING_LET,
-        VarDeclKind::Const => &STRING_CONST,
-      },
-    );
+    self.buffer[kind_position..kind_position + 4].copy_from_slice(kind);
     // end
-    self.add_end(end_position, &variable_declaration.span);
+    self.add_end(end_position, &span);
   }
 
   fn convert_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
@@ -3063,6 +3080,11 @@ pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   buffer.extend_from_slice(&(length as u32).to_ne_bytes());
   buffer.extend_from_slice(string.as_bytes());
   buffer.resize(buffer.len() + additional_length, 0);
+}
+
+enum VariableDeclaration<'a> {
+  Var(&'a VarDecl),
+  Using(&'a UsingDecl),
 }
 
 enum StoredCallee<'a> {

@@ -60,3 +60,5 @@ pub const STRING_NULLISHASSIGN: [u8; 4] = 57u32.to_ne_bytes(); // ??=
 pub const STRING_PURE: [u8; 4] = 58u32.to_ne_bytes(); // pure
 pub const STRING_NOSIDEEFFECTS: [u8; 4] = 59u32.to_ne_bytes(); // noSideEffects
 pub const STRING_SOURCEMAP: [u8; 4] = 60u32.to_ne_bytes(); // sourcemap
+pub const STRING_USING: [u8; 4] = 61u32.to_ne_bytes(); // using
+pub const STRING_AWAIT_USING: [u8; 4] = 62u32.to_ne_bytes(); // await using
