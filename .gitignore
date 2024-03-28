@@ -18,7 +18,7 @@ perf/
 .nyc_output/
 .github_token
 .temp
-docs/.vitepress/graphs
+docs/.vitepress/graphs/*.mmd
 *.tsbuildinfo
 target
 *.node

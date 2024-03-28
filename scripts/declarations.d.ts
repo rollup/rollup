@@ -1,8 +1,10 @@
 declare module 'github-api' {
 	export interface Repo {
-		listPullRequests({ state: string }): Promise<{
+		listPullRequests(filter: { state: string }): Promise<{
 			data: { number: number; title: string; head: { sha: string } }[];
 		}>;
+
+		listCommitsOnPR(pr: number): Promise<{ data: { author: { login: string } }[] }>;
 
 		getPullRequest(pr: number): Promise<{ data: { body: string; user: { login: string } } }>;
 
@@ -14,7 +16,7 @@ declare module 'github-api' {
 	}
 
 	export default class GitHub {
-		constructor({ token: string });
+		constructor(options: { token: string });
 
 		getRepo(organization: string, repository: string): Repo;
 

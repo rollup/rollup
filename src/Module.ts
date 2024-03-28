@@ -1,9 +1,11 @@
 import { extractAssignedNames } from '@rollup/pluginutils';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
+import { parseAsync } from '../native';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import { createInclusionContext } from './ast/ExecutionContext';
+import { convertProgram } from './ast/bufferParsers';
 import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -15,10 +17,10 @@ import type ImportExpression from './ast/nodes/ImportExpression';
 import ImportNamespaceSpecifier from './ast/nodes/ImportNamespaceSpecifier';
 import Literal from './ast/nodes/Literal';
 import type MetaProperty from './ast/nodes/MetaProperty';
-import Program from './ast/nodes/Program';
-import TemplateLiteral from './ast/nodes/TemplateLiteral';
+import * as NodeType from './ast/nodes/NodeType';
+import type Program from './ast/nodes/Program';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
-import type { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
+import type { NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
@@ -28,6 +30,7 @@ import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
 import type {
+	AstNode,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -46,6 +49,7 @@ import type {
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import type { LiteralStringNode, TemplateLiteralNode } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
@@ -70,7 +74,7 @@ import {
 	logShimmedExport,
 	logSyntheticNamedExportsNeedNamespaceExport
 } from './utils/logs';
-import { parseAst, parseAstAsync } from './utils/parseAst';
+import { parseAst } from './utils/parseAst';
 import {
 	doAttributesDiffer,
 	getAttributesFromImportExportDeclaration
@@ -134,7 +138,7 @@ export interface AstContext {
 }
 
 export interface DynamicImport {
-	argument: string | ExpressionNode;
+	argument: string | AstNode;
 	id: string | null;
 	node: ImportExpression;
 	resolution: Module | ExternalModule | string | null;
@@ -386,8 +390,8 @@ export default class Module {
 		this.ast!.bind();
 	}
 
-	error(properties: RollupError, pos: number): never {
-		this.addLocationToLogProps(properties, pos);
+	error(properties: RollupError, pos: number | undefined): never {
+		pos !== undefined && this.addLocationToLogProps(properties, pos);
 		return error(properties);
 	}
 
@@ -805,12 +809,11 @@ export default class Module {
 		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): Promise<void> {
+		timeStart('generate ast', 3);
 		if (code.startsWith('#!')) {
 			const shebangEndPosition = code.indexOf('\n');
 			this.shebang = code.slice(2, shebangEndPosition);
 		}
-
-		timeStart('generate ast', 3);
 
 		this.info.code = code;
 		this.originalCode = originalCode;
@@ -832,10 +835,6 @@ export default class Module {
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		this.updateOptions(moduleOptions);
-		const moduleAst = ast ?? (await this.tryParseAsync());
-
-		timeEnd('generate ast', 3);
-		timeStart('analyze ast', 3);
 
 		this.resolvedIds = resolvedIds ?? Object.create(null);
 
@@ -880,13 +879,19 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext);
-		this.ast = new Program(moduleAst, { context: this.astContext, type: 'Module' }, this.scope);
+		const programParent = { context: this.astContext, type: 'Module' };
 
-		// Assign AST directly if has existing one as there's no way to drop it from memory.
-		// If cache is enabled, also assign directly as otherwise it takes more CPU and memory to re-compute.
-		if (ast || this.options.cache !== false) {
-			this.info.ast = moduleAst;
+		if (ast) {
+			this.ast = new nodeConstructors[ast.type](programParent, this.scope).parseNode(
+				ast
+			) as Program;
+			this.info.ast = ast;
 		} else {
+			// Measuring asynchronous code does not provide reasonable results
+			timeEnd('generate ast', 3);
+			const astBuffer = await parseAsync(code, false);
+			timeStart('generate ast', 3);
+			this.ast = convertProgram(astBuffer, programParent, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
 			Object.defineProperty(this.info, 'ast', {
 				get: () => {
@@ -894,6 +899,16 @@ export default class Module {
 						return this.graph.astLru.get(fileName)!;
 					} else {
 						const parsedAst = this.tryParse();
+						// If the cache is not disabled, we need to keep the AST in memory
+						// until the end when the cache is generated
+						if (this.options.cache !== false) {
+							Object.defineProperty(this.info, 'ast', {
+								value: parsedAst
+							});
+							return parsedAst;
+						}
+						// Otherwise, we keep it in a small LRU cache to not hog too much
+						// memory but allow the same AST to be requested several times.
 						this.graph.astLru.set(fileName, parsedAst);
 						return parsedAst;
 					}
@@ -901,7 +916,7 @@ export default class Module {
 			});
 		}
 
-		timeEnd('analyze ast', 3);
+		timeEnd('generate ast', 3);
 	}
 
 	toJSON(): ModuleJSON {
@@ -988,13 +1003,19 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: ImportExpression) {
-		let argument: ExpressionNode | string = node.source;
-		if (argument instanceof TemplateLiteral) {
-			if (argument.quasis.length === 1 && argument.quasis[0].value.cooked) {
-				argument = argument.quasis[0].value.cooked;
+		let argument: AstNode | string = node.sourceAstNode;
+		if (argument.type === NodeType.TemplateLiteral) {
+			if (
+				(argument as TemplateLiteralNode).quasis.length === 1 &&
+				typeof (argument as TemplateLiteralNode).quasis[0].value.cooked === 'string'
+			) {
+				argument = (argument as TemplateLiteralNode).quasis[0].value.cooked!;
 			}
-		} else if (argument instanceof Literal && typeof argument.value === 'string') {
-			argument = argument.value;
+		} else if (
+			argument.type === NodeType.Literal &&
+			typeof (argument as LiteralStringNode).value === 'string'
+		) {
+			argument = (argument as LiteralStringNode).value!;
 		}
 		this.dynamicImports.push({ argument, id: null, node, resolution: null });
 	}
@@ -1349,14 +1370,6 @@ export default class Module {
 	private tryParse() {
 		try {
 			return parseAst(this.info.code!);
-		} catch (error_: any) {
-			return this.error(logModuleParseError(error_, this.id), error_.pos);
-		}
-	}
-
-	private async tryParseAsync() {
-		try {
-			return await parseAstAsync(this.info.code!);
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}

@@ -3,7 +3,9 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			var logo = new URL('assets/logo-Mw5Zq12q.svg', module.meta.url).href;
+			var logo = new URL('assets/logo-zDlmrXar.svg', module.meta.url).href;
+
+			var logoReverse = new URL('assets/logo_reverse\'-DbGK2oiS.svg', module.meta.url).href;
 
 			function showImage(url) {
 				console.log(url);
@@ -15,6 +17,7 @@ System.register([], (function (exports, module) {
 			}
 
 			showImage(logo);
+			showImage(logoReverse);
 
 		})
 	};

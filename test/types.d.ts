@@ -1,6 +1,5 @@
 import type { SourceMap } from 'magic-string';
-import type { RollupLog } from 'rollup';
-import type { RollupBuild, RollupError, RollupOptions } from '../src/rollup/types';
+import type { RollupBuild, RollupError, RollupLog, RollupOptions } from '../src/rollup/types';
 
 export interface TestConfigBase {
 	/**
@@ -170,8 +169,8 @@ export interface TestConfigForm extends TestConfigBase {
 	 */
 	options?: RollupOptions;
 	/**
-	 * Verify that the AST returned by SWC is the same as the one returned by Acorn.
-	 * The default behavior is to verify.
+	 * Verify that the AST returned by SWC is the same as the one returned by
+	 * Acorn. The default behavior is to verify.
 	 */
 	verifyAst?: boolean;
 }
@@ -194,7 +193,8 @@ export interface TestConfigFunction extends TestConfigBase {
 	 */
 	code?: (code: string | Record<string, string>) => void;
 	/**
-	 * The global context executed the bundled code.
+	 * Injected global variables and functions. You can also use this to mock
+	 * "require" calls.
 	 */
 	context?: Record<string, any>;
 	/**
@@ -230,8 +230,8 @@ export interface TestConfigFunction extends TestConfigBase {
 	 */
 	warnings?: RollupError[] | ((warnings: RollupError[]) => boolean | void);
 	/**
-	 * Verify that the AST returned by SWC is the same as the one returned by Acorn.
-	 * The default behavior is to verify.
+	 * Verify that the AST returned by SWC is the same as the one returned by
+	 * Acorn. The default behavior is to verify.
 	 */
 	verifyAst?: boolean;
 }

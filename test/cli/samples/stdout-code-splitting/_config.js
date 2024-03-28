@@ -20,7 +20,7 @@ module.exports = defineTest({
 				`${COLOR}//→ main2.js:${STANDARD}\n` +
 				"console.log('main2');\n" +
 				'\n' +
-				`${COLOR}//→ assets/asset-bdGDFXtM:${STANDARD}\n` +
+				`${COLOR}//→ assets/asset-Bt0YMVe0:${STANDARD}\n` +
 				'Hello'
 		);
 	}

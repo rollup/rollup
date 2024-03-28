@@ -13,15 +13,15 @@ const astConstantsFile = new URL(
 // Nodes with suffix _SIMPLE have at most one variable child that does not need
 // an indirect reference (e.g. one non-optional AST Node or a list of AST Nodes)
 // and can use "add_type_and_start_simple"
-const nodeTypes = [
-	'pub const TYPE_PARSE_ERROR: [u8; 4] = 0u32.to_ne_bytes();',
-	...astNodeNamesWithFieldOrder.map(
+
+const nodeTypes = astNodeNamesWithFieldOrder
+	.map(
 		({ name, inlinedVariableField }, index) =>
 			`pub const TYPE_${toScreamingSnakeCase(name)}${
 				inlinedVariableField ? `_INLINED_${toScreamingSnakeCase(inlinedVariableField[0])}` : ''
-			}: [u8; 4] = ${index + 1}u32.to_ne_bytes();`
+			}: [u8; 4] = ${index}u32.to_ne_bytes();`
 	)
-].join('\n');
+	.join('\n');
 
 const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 	.map(({ name, reservedFields }) => {

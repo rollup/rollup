@@ -6,6 +6,6 @@ module.exports = defineTest({
 	generateError: {
 		code: 'ADDON_ERROR',
 		message:
-			'Could not retrieve "intro". Check configuration of plugin "at position 1".\n\tError Message: Error running plugin hook "intro" for plugin "at position 1", expected a string, a function hook or an object with a "handler" string or function.'
+			'Could not retrieve "intro". Check configuration of plugin "at position 1".\n\tError Message: [plugin at position 1] Error running plugin hook "intro" for plugin "at position 1", expected a string, a function hook or an object with a "handler" string or function.'
 	}
 });

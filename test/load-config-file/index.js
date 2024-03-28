@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const path = require('node:path');
 const { loadConfigFile } = require('../../dist/loadConfigFile.js');
-const { compareError } = require('../utils');
+const { compareError, hasEsBuild } = require('../utils');
 
 describe('loadConfigFile', () => {
 	const defaultConfigs = [
@@ -41,14 +41,16 @@ describe('loadConfigFile', () => {
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), defaultConfigs);
 	});
 
-	it('loads an ESM config file exporting a config as a function with defineConfig()', async () => {
-		const { options, warnings } = await loadConfigFile(
-			path.resolve(__dirname, 'samples/esm-defineconfig-as-fn/rollup.config.mjs')
-		);
-		assert.strictEqual(warnings.count, 0);
-		// Remove undefined values and functions before checking
-		assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), defaultConfigs);
-	});
+	if (hasEsBuild) {
+		it('loads an ESM config file exporting a config as a function with defineConfig()', async () => {
+			const { options, warnings } = await loadConfigFile(
+				path.resolve(__dirname, 'samples/esm-defineconfig-as-fn/rollup.config.mjs')
+			);
+			assert.strictEqual(warnings.count, 0);
+			// Remove undefined values and functions before checking
+			assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), defaultConfigs);
+		});
+	}
 
 	it('loads a CommonJS config file', async () => {
 		const { options, warnings } = await loadConfigFile(

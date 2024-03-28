@@ -5,7 +5,7 @@ import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_CALL
 } from './NodeInteractions';
-import type { LiteralValue } from './nodes/Literal';
+import type { LiteralValueOrBigInt } from './nodes/Literal';
 import {
 	ExpressionEntity,
 	UNKNOWN_EXPRESSION,
@@ -268,7 +268,7 @@ export const literalStringMembers: MemberDescriptions = assembleMemberDescriptio
 	objectMembers
 );
 
-export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(
+export function getLiteralMembersForValue<T extends LiteralValueOrBigInt = LiteralValueOrBigInt>(
 	value: T
 ): MemberDescriptions {
 	if (value instanceof RegExp) {

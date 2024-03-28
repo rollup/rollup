@@ -11,6 +11,7 @@ export default class ExpressionStatement extends StatementBase {
 	declare expression: ExpressionNode;
 
 	initialise(): void {
+		super.initialise();
 		if (
 			this.directive &&
 			this.directive !== 'use strict' &&

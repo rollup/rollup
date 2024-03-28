@@ -6,7 +6,12 @@ import {
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
 	NODE_INTERACTION_UNKNOWN_CALL
 } from '../../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	UNKNOWN_INTEGER_PATH,
+	UNKNOWN_PATH
+} from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
 	UNKNOWN_LITERAL_NUMBER,
@@ -17,6 +22,7 @@ import { ExpressionEntity, UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from 
 type MethodDescription = {
 	callsArgs: number[] | null;
 	mutatesSelfAsArray: boolean | 'deopt-only';
+	mutatesArgs: boolean;
 } & (
 	| {
 			returns: 'self' | (() => ExpressionEntity);
@@ -34,8 +40,15 @@ export class Method extends ExpressionEntity {
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath({ args, type }: NodeInteraction, path: ObjectPath): void {
-		if (type === INTERACTION_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
-			args[0]?.deoptimizePath(UNKNOWN_INTEGER_PATH);
+		if (type === INTERACTION_CALLED && path.length === 0) {
+			if (this.description.mutatesSelfAsArray) {
+				args[0]?.deoptimizePath(UNKNOWN_INTEGER_PATH);
+			}
+			if (this.description.mutatesArgs) {
+				for (let index = 1; index < args.length; index++) {
+					args[index]!.deoptimizePath(UNKNOWN_PATH);
+				}
+			}
 		}
 	}
 
@@ -97,6 +110,7 @@ export class Method extends ExpressionEntity {
 export const METHOD_RETURNS_BOOLEAN = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
@@ -106,6 +120,7 @@ export const METHOD_RETURNS_BOOLEAN = [
 export const METHOD_RETURNS_STRING = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_STRING
@@ -115,6 +130,7 @@ export const METHOD_RETURNS_STRING = [
 export const METHOD_RETURNS_NUMBER = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
@@ -124,6 +140,7 @@ export const METHOD_RETURNS_NUMBER = [
 export const METHOD_RETURNS_UNKNOWN = [
 	new Method({
 		callsArgs: null,
+		mutatesArgs: false,
 		mutatesSelfAsArray: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_EXPRESSION

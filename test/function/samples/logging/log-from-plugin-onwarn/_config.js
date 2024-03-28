@@ -11,22 +11,22 @@ module.exports = defineTest({
 	},
 	after() {
 		Object.assign(console, { debug, info, warn });
-		assert.deepStrictEqual(logs, [
+		assert.deepEqual(logs, [
 			[
 				'onwarn',
 				{
-					message: 'warnLog',
+					message: '[plugin test] warnLog',
 					pluginCode: 'PLUGIN_CODE',
 					binding: 'foo',
 					code: 'PLUGIN_WARNING',
 					plugin: 'test'
 				}
 			],
-			['onwarn', { message: 'warnString', code: 'PLUGIN_WARNING', plugin: 'test' }],
-			['info', '(test plugin) infoLog'],
-			['info', '(test plugin) infoString'],
-			['debug', '(test plugin) debugLog'],
-			['debug', '(test plugin) debugString']
+			['onwarn', { message: '[plugin test] warnString', code: 'PLUGIN_WARNING', plugin: 'test' }],
+			['info', '[plugin test] infoLog'],
+			['info', '[plugin test] infoString'],
+			['debug', '[plugin test] debugLog'],
+			['debug', '[plugin test] debugString']
 		]);
 	},
 	options: {

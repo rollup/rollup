@@ -1,4 +1,6 @@
-var logo = new URL('assets/logo-Mw5Zq12q.svg', import.meta.url).href;
+var logo = new URL('assets/logo-zDlmrXar.svg', import.meta.url).href;
+
+var logoReverse = new URL('assets/logo_reverse\'-DbGK2oiS.svg', import.meta.url).href;
 
 function showImage(url) {
 	console.log(url);
@@ -10,3 +12,4 @@ function showImage(url) {
 }
 
 showImage(logo);
+showImage(logoReverse);

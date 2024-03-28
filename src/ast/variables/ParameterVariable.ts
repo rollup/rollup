@@ -10,7 +10,6 @@ import {
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION
 } from '../nodes/shared/Expression';
-import { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	PathTracker,
@@ -42,7 +41,7 @@ export default class ParameterVariable extends LocalVariable {
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		context: AstContext
 	) {
-		super(name, declarator, UNKNOWN_EXPRESSION, context, VariableKind.parameter);
+		super(name, declarator, UNKNOWN_EXPRESSION, context, 'parameter');
 	}
 
 	addEntityToBeDeoptimized(entity: ExpressionEntity): void {

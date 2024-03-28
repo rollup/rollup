@@ -54,11 +54,21 @@ module.exports = defineTest({
 			message:
 				'Plugin "test" tried to add a file position to a log or warning. This is only supported in the "transform" hook at the moment and will be ignored.'
 		},
-		{ level: 'warn', message: 'log-message1', code: 'PLUGIN_WARNING', plugin: 'test' },
-		{ level: 'warn', message: 'log-message1', code: 'PLUGIN_WARNING', plugin: 'test' },
-		{ level: 'info', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
-		{ level: 'info', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
-		{ level: 'debug', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
-		{ level: 'debug', message: 'log-message1', code: 'PLUGIN_LOG', plugin: 'test' }
+		{
+			level: 'warn',
+			message: '[plugin test] log-message1',
+			code: 'PLUGIN_WARNING',
+			plugin: 'test'
+		},
+		{
+			level: 'warn',
+			message: '[plugin test] log-message1',
+			code: 'PLUGIN_WARNING',
+			plugin: 'test'
+		},
+		{ level: 'info', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
+		{ level: 'info', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
+		{ level: 'debug', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' },
+		{ level: 'debug', message: '[plugin test] log-message1', code: 'PLUGIN_LOG', plugin: 'test' }
 	]
 });

@@ -1,4 +1,5 @@
 const assert = require('node:assert');
+const { sep } = require('node:path');
 
 const BOLD = '\u001B[1m';
 const BLUE = '\u001B[34m';
@@ -14,23 +15,23 @@ module.exports = defineTest({
 	env: { FORCE_COLOR: '1', TERM: 'xterm' },
 	stderr(stderr) {
 		assert.strictEqual(
-			stderr,
+			stderr.replaceAll(__dirname + sep, 'CWD/'),
 			`${CYAN}
 ${BOLD}main.js${REGULAR} → ${BOLD}stdout${REGULAR}...${NOCOLOR}
-${BOLD}${CYAN}simple-info${NOCOLOR}${REGULAR}
-${BOLD}${CYAN}complex-info${NOCOLOR}${REGULAR}
+${BOLD}${CYAN}[plugin test] simple-info${NOCOLOR}${REGULAR}
+${BOLD}${CYAN}[plugin test] complex-info${NOCOLOR}${REGULAR}
 ${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
-${BOLD}${BLUE}simple-debug${NOCOLOR}${REGULAR}
-${BOLD}${BLUE}complex-debug${NOCOLOR}${REGULAR}
+${BOLD}${BLUE}[plugin test] simple-debug${NOCOLOR}${REGULAR}
+${BOLD}${BLUE}[plugin test] complex-debug${NOCOLOR}${REGULAR}
 ${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
-${BOLD}${CYAN}transform-info${NOCOLOR}${REGULAR}
+${BOLD}${CYAN}[plugin test] main.js (1:12): transform-info${NOCOLOR}${REGULAR}
 ${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
-${BOLD}main.js (1:12)${REGULAR}
+${BOLD}CWD/main.js:1:12${REGULAR}
 ${GRAY}1: assert.ok( true );
                ^${NOCOLOR}
-${BOLD}${BLUE}transform-debug${NOCOLOR}${REGULAR}
+${BOLD}${BLUE}[plugin test] main.js (1:13): transform-debug${NOCOLOR}${REGULAR}
 ${GRAY}https://rollupjs.org/https://my-url.net${NOCOLOR}
-${BOLD}main.js (1:13)${REGULAR}
+${BOLD}CWD/main.js:1:13${REGULAR}
 ${GRAY}1: assert.ok( true );
                 ^${NOCOLOR}
 `

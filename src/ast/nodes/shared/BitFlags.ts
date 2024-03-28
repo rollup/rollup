@@ -20,7 +20,9 @@ export const enum Flag {
 	method = 1 << 18,
 	shorthand = 1 << 19,
 	tail = 1 << 20,
-	prefix = 1 << 21
+	prefix = 1 << 21,
+	generator = 1 << 22,
+	expression = 1 << 23
 }
 
 export function isFlagSet(flags: number, flag: Flag): boolean {

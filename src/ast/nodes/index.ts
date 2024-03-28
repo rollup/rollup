@@ -44,6 +44,8 @@ import MethodDefinition from './MethodDefinition';
 import NewExpression from './NewExpression';
 import ObjectExpression from './ObjectExpression';
 import ObjectPattern from './ObjectPattern';
+import PanicError from './PanicError';
+import ParseError from './ParseError';
 import PrivateIdentifier from './PrivateIdentifier';
 import Program from './Program';
 import Property from './Property';
@@ -120,6 +122,8 @@ export const nodeConstructors: {
 	NewExpression,
 	ObjectExpression,
 	ObjectPattern,
+	PanicError,
+	ParseError,
 	PrivateIdentifier,
 	Program,
 	Property,

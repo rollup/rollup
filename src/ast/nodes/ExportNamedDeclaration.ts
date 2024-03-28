@@ -28,6 +28,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.scope.context.addExport(this);
 	}
 

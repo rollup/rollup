@@ -1,11 +1,9 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
-import type { AstNode, NormalizedTreeshakingOptions } from '../../../rollup/types';
-import type { RollupAnnotation } from '../../../utils/buffer-to-ast';
-import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/buffer-to-ast';
-import { LOGLEVEL_WARN } from '../../../utils/logging';
-import { logInvalidAnnotation } from '../../../utils/logs';
+import type { AstNode } from '../../../rollup/types';
+import type { RollupAnnotation } from '../../../utils/astConverterHelpers';
+import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
@@ -16,11 +14,12 @@ import {
 } from '../../ExecutionContext';
 import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
-import { createKeysForNode, keys } from '../../keys';
+import { childNodeKeys } from '../../childNodeKeys';
 import type ChildScope from '../../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
+import type Program from '../Program';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { InclusionOptions } from './Expression';
 import { ExpressionEntity } from './Expression';
@@ -35,7 +34,6 @@ export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 export interface Node extends Entity {
 	annotations?: RollupAnnotation[];
 	end: number;
-	esTreeNode?: GenericEsTreeNode;
 	included: boolean;
 	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
@@ -129,14 +127,8 @@ export interface ChainElement extends ExpressionNode {
 }
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
-	declare annotationNoSideEffects?: boolean;
-	/** Marked with #__PURE__ annotation */
-	declare annotationPure?: boolean;
 	declare annotations?: RollupAnnotation[];
-
 	declare end: number;
-	esTreeNode?: AstNode;
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
 	declare start: number;
@@ -155,34 +147,16 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	protected get deoptimized(): boolean {
 		return isFlagSet(this.flags, Flag.deoptimized);
 	}
+
 	protected set deoptimized(value: boolean) {
 		this.flags = setFlag(this.flags, Flag.deoptimized, value);
 	}
 
-	constructor(
-		esTreeNode: GenericEsTreeNode,
-		parent: Node | { context: AstContext; type: string },
-		parentScope: ChildScope,
-		keepEsTreeNode = false
-	) {
+	constructor(parent: Node | { context: AstContext; type: string }, parentScope: ChildScope) {
 		super();
-		// Nodes can opt-in to keep the AST if needed during the build pipeline.
-		// Avoid true when possible as large AST takes up memory.
-
-		if (keepEsTreeNode) {
-			this.esTreeNode = esTreeNode;
-		}
-
-		const { type } = esTreeNode;
-		keys[type] ||= createKeysForNode(esTreeNode);
-
 		this.parent = parent;
 		this.scope = parentScope;
 		this.createScope(parentScope);
-		this.parseNode(esTreeNode);
-		this.initialise();
-		this.scope.context.magicString.addSourcemapLocation(this.start);
-		this.scope.context.magicString.addSourcemapLocation(this.end);
 	}
 
 	addExportedVariables(
@@ -195,7 +169,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * that require the scopes to be populated with variables.
 	 */
 	bind(): void {
-		for (const key of keys[this.type]) {
+		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (Array.isArray(value)) {
 				for (const child of value) {
@@ -217,7 +191,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		for (const key of keys[this.type]) {
+		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -243,7 +217,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		for (const key of keys[this.type]) {
+		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -268,9 +242,12 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * Override to perform special initialisation steps after the scope is
 	 * initialised
 	 */
-	initialise(): void {}
+	initialise(): void {
+		this.scope.context.magicString.addSourcemapLocation(this.start);
+		this.scope.context.magicString.addSourcemapLocation(this.end);
+	}
 
-	parseNode(esTreeNode: GenericEsTreeNode, keepEsTreeNodeKeys?: string[]): void {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// Skip properties defined on the class already.
 			// This way, we can override this function to add custom initialisation and then call super.parseNode
@@ -280,29 +257,9 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 			if (key.charCodeAt(0) === 95 /* _ */) {
 				if (key === ANNOTATION_KEY) {
-					const annotations = value as RollupAnnotation[];
-					this.annotations = annotations;
-					if ((this.scope.context.options.treeshake as NormalizedTreeshakingOptions).annotations) {
-						this.annotationNoSideEffects = annotations.some(
-							comment => comment.type === 'noSideEffects'
-						);
-						this.annotationPure = annotations.some(comment => comment.type === 'pure');
-					}
+					this.annotations = value as RollupAnnotation[];
 				} else if (key === INVALID_ANNOTATION_KEY) {
-					for (const { start, end, type } of value as RollupAnnotation[]) {
-						this.scope.context.magicString.remove(start, end);
-						if (type === 'pure' || type === 'noSideEffects') {
-							this.scope.context.log(
-								LOGLEVEL_WARN,
-								logInvalidAnnotation(
-									this.scope.context.code.slice(start, end),
-									this.scope.context.module.id,
-									type
-								),
-								start
-							);
-						}
-					}
+					(this as unknown as Program).invalidAnnotations = value as RollupAnnotation[];
 				}
 			} else if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
@@ -312,23 +269,22 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
-							: new (this.scope.context.getNodeConstructor(child.type))(
-									child,
-									this,
-									this.scope,
-									keepEsTreeNodeKeys?.includes(key)
+							: new (this.scope.context.getNodeConstructor(child.type))(this, this.scope).parseNode(
+									child
 								)
 					);
 				}
 			} else {
 				(this as GenericEsTreeNode)[key] = new (this.scope.context.getNodeConstructor(value.type))(
-					value,
 					this,
-					this.scope,
-					keepEsTreeNodeKeys?.includes(key)
-				);
+					this.scope
+				).parseNode(value);
 			}
 		}
+		// extend child keys for unknown node types
+		childNodeKeys[esTreeNode.type] ||= createChildNodeKeysForNode(esTreeNode);
+		this.initialise();
+		return this;
 	}
 
 	removeAnnotations(code: MagicString): void {
@@ -340,7 +296,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		for (const key of keys[this.type]) {
+		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -368,7 +324,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 */
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		for (const key of keys[this.type]) {
+		for (const key of childNodeKeys[this.type]) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
 			if (Array.isArray(value)) {
@@ -384,6 +340,12 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 }
 
 export { NodeBase as StatementBase };
+
+function createChildNodeKeysForNode(esTreeNode: GenericEsTreeNode): string[] {
+	return Object.keys(esTreeNode).filter(
+		key => typeof esTreeNode[key] === 'object' && key.charCodeAt(0) !== 95 /* _ */
+	);
+}
 
 export function locateNode(node: Node): Location & { file: string } {
 	const {

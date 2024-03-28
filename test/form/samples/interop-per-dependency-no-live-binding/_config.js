@@ -15,7 +15,15 @@ module.exports = defineTest({
 				return id.split('-')[1];
 			},
 			format: 'cjs',
-			dynamicImportInCjs: false
+			dynamicImportInCjs: false,
+			plugins: [
+				{
+					name: 'test',
+					renderStart() {
+						checkedIds.clear();
+					}
+				}
+			]
 		}
 	}
 });

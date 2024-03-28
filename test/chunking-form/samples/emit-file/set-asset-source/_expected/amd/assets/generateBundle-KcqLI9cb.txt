@@ -1,1 +1,0 @@
-generateBundle amd with assets/generateBundle-format-5jVvk-26.txt

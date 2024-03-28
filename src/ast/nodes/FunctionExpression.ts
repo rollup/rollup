@@ -16,11 +16,13 @@ export default class FunctionExpression extends FunctionNode {
 		super.createScope((this.idScope = new ChildScope(parentScope, parentScope.context)));
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): this {
 		if (esTreeNode.id !== null) {
-			this.id = new Identifier(esTreeNode.id, this, this.idScope) as IdentifierWithVariable;
+			this.id = new Identifier(this, this.idScope).parseNode(
+				esTreeNode.id
+			) as IdentifierWithVariable;
 		}
-		super.parseNode(esTreeNode);
+		return super.parseNode(esTreeNode);
 	}
 
 	render(

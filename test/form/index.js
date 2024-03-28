@@ -30,7 +30,7 @@ runTestSuiteWithSamples(
 				let bundle;
 				const logs = [];
 
-				const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
+				const runRollupTest = async (inputFile, bundleFile, format, fromCache) => {
 					const warnings = [];
 					if (config.before) {
 						await config.before();
@@ -38,17 +38,20 @@ runTestSuiteWithSamples(
 					try {
 						process.chdir(directory);
 						bundle =
-							bundle ||
+							(!fromCache && bundle) ||
 							(await rollup({
 								input: directory + '/main.js',
 								onLog: (level, log) => {
-									logs.push({ level, ...log });
+									if (!fromCache) {
+										logs.push({ level, ...log });
+									}
 									if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
 										warnings.push(log);
 									}
 								},
 								strictDeprecations: true,
 								...config.options,
+								...(fromCache ? { cache: bundle.cache } : {}),
 								plugins:
 									config.verifyAst === false
 										? config.options?.plugins
@@ -63,7 +66,7 @@ runTestSuiteWithSamples(
 							{
 								exports: 'auto',
 								file: inputFile,
-								format: defaultFormat,
+								format,
 								validate: true,
 								...(config.options || {}).output
 							},
@@ -89,22 +92,35 @@ runTestSuiteWithSamples(
 				};
 
 				if (isSingleFormatTest) {
-					return runRollupTest(directory + '/_actual.js', directory + '/_expected.js', 'es').then(
-						() => config.logs && compareLogs(logs, config.logs)
-					);
+					// We are running Rollup twice where the second time checks if it
+					// works the same when using the cache
+					return runRollupTest(`${directory}/_actual.js`, `${directory}/_expected.js`, 'es', false)
+						.then(() =>
+							runRollupTest(`${directory}/_actual.js`, `${directory}/_expected.js`, 'es', true)
+						)
+						.then(() => config.logs && compareLogs(logs, config.logs));
 				}
 
 				for (const format of config.formats || FORMATS) {
 					after(() => config.logs && compareLogs(logs, config.logs));
 
-					it('generates ' + format, () =>
+					it(`generates ${format}`, () =>
 						runRollupTest(
-							directory + '/_actual/' + format + '.js',
-							directory + '/_expected/' + format + '.js',
-							format
-						)
-					);
+							`${directory}/_actual/${format}.js`,
+							`${directory}/_expected/${format}.js`,
+							format,
+							false
+						));
 				}
+
+				const format = (config.formats || FORMATS)[0];
+				it(`generates ${format} from the cache`, () =>
+					runRollupTest(
+						`${directory}/_actual/${format}.js`,
+						`${directory}/_expected/${format}.js`,
+						format,
+						false
+					));
 			}
 		);
 	}

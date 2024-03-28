@@ -6,7 +6,7 @@ import type {
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
-import type { AnnotationType } from './buffer-to-ast';
+import type { AnnotationType } from './astConverterHelpers';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -33,11 +33,17 @@ import {
 } from './urls';
 
 export function error(base: Error | RollupLog): never {
-	if (!(base instanceof Error)) {
-		base = Object.assign(new Error(base.message), base);
-		Object.defineProperty(base, 'name', { value: 'RollupError', writable: true });
-	}
-	throw base;
+	throw base instanceof Error ? base : getRollupError(base);
+}
+
+export function getRollupError(base: RollupLog): Error & RollupLog {
+	augmentLogMessage(base);
+	const errorInstance = Object.assign(new Error(base.message), base);
+	Object.defineProperty(errorInstance, 'name', {
+		value: 'RollupError',
+		writable: true
+	});
+	return errorInstance;
 }
 
 export function augmentCodeLocation(
@@ -65,6 +71,32 @@ export function augmentCodeLocation(
 	}
 }
 
+const symbolAugmented = Symbol('augmented');
+
+interface AugmentedRollupLog extends RollupLog {
+	[symbolAugmented]?: boolean;
+}
+
+export function augmentLogMessage(log: AugmentedRollupLog): void {
+	// Make sure to only augment the log message once
+	if (!(log.plugin || log.loc) || log[symbolAugmented]) {
+		return;
+	}
+	log[symbolAugmented] = true;
+	let prefix = '';
+
+	if (log.plugin) {
+		prefix += `[plugin ${log.plugin}] `;
+	}
+	const id = log.id || log.loc?.file;
+	if (id) {
+		const position = log.loc ? ` (${log.loc.line}:${log.loc.column})` : '';
+		prefix += `${relativeId(id)}${position}: `;
+	}
+
+	log.message = prefix + log.message;
+}
+
 // Error codes should be sorted alphabetically while errors should be sorted by
 // error code below
 const ADDON_ERROR = 'ADDON_ERROR',
@@ -82,6 +114,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	CHUNK_INVALID = 'CHUNK_INVALID',
 	CIRCULAR_DEPENDENCY = 'CIRCULAR_DEPENDENCY',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CONST_REASSIGN = 'CONST_REASSIGN',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	DUPLICATE_ARGUMENT_NAME = 'DUPLICATE_ARGUMENT_NAME',
@@ -312,8 +345,18 @@ export function logDeprecation(
 	};
 }
 
+export function logConstVariableReassignError() {
+	return {
+		code: CONST_REASSIGN,
+		message: 'Cannot reassign a variable declared with `const`'
+	};
+}
+
 export function logDuplicateArgumentNameError(name: string): RollupLog {
-	return { code: DUPLICATE_ARGUMENT_NAME, message: `Duplicate argument name "${name}"` };
+	return {
+		code: DUPLICATE_ARGUMENT_NAME,
+		message: `Duplicate argument name "${name}"`
+	};
 }
 
 export function logDuplicateExportError(name: string): RollupLog {
@@ -823,12 +866,15 @@ export function logOptimizeChunkStatus(
 	};
 }
 
-export function logParseError(message: string, pos: number): RollupLog {
+export function logParseError(message: string, pos?: number): RollupLog {
 	return { code: PARSE_ERROR, message, pos };
 }
 
 export function logRedeclarationError(name: string): RollupLog {
-	return { code: REDECLARATION_ERROR, message: `Identifier "${name}" has already been declared` };
+	return {
+		code: REDECLARATION_ERROR,
+		message: `Identifier "${name}" has already been declared`
+	};
 }
 
 export function logModuleParseError(error: Error, moduleId: string): RollupLog {

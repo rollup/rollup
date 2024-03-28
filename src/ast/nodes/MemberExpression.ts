@@ -328,6 +328,7 @@ export default class MemberExpression
 	}
 
 	initialise(): void {
+		super.initialise();
 		this.propertyKey = getResolvablePropertyKey(this);
 		this.accessInteraction = { args: [this.object], type: INTERACTION_ACCESSED };
 	}

@@ -12,12 +12,12 @@ module.exports = defineTest({
 	},
 	after() {
 		Object.assign(console, { debug, info, warn });
-		assert.deepStrictEqual(logs, [
+		assert.deepEqual(logs, [
 			['warn', 'warnLog'],
 			['info', 'infoLog'],
 			['debug', 'debugLog']
 		]);
-		assert.deepStrictEqual(pluginLogs, [
+		assert.deepEqual(pluginLogs, [
 			['warn', { message: 'warnLog' }],
 			['info', { message: 'infoLog' }],
 			['debug', { message: 'debugLog' }]

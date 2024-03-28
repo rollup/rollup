@@ -44,6 +44,7 @@ module.exports = defineTest({
 							symbols: false
 						},
 						globals: {},
+						hashCharacters: 'base64',
 						hoistTransitiveImports: true,
 						indent: true,
 						inlineDynamicImports: false,
@@ -53,6 +54,7 @@ module.exports = defineTest({
 						paths: {},
 						plugins: [],
 						preserveModules: false,
+						reexportProtoFromExternal: true,
 						sourcemap: false,
 						sourcemapExcludeSources: false,
 						strict: true,

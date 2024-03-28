@@ -1,4 +1,31 @@
-/** @typedef {'Node'|'OptionalNode'|'NodeList'|'Annotations'|'InvalidAnnotations'|'String'|'FixedString'|'OptionalString'|'Float'} FieldType */
+/**
+ * This file contains the AST node descriptions for the ESTree AST.
+ * From this file, "npm run build:ast:converters" will generate
+ * - /rust/parse_ast/src/convert_ast/converter/ast_constants.rs:
+ *   Constants that describe how the AST nodes are encoded in Rust.
+ * - /src/utils/bufferToAst.ts:
+ *   Helper functions that are used by this.parse in plugins to convert a buffer
+ *   to a JSON AST.
+ * - /src/ast/bufferParsers.ts
+ *   Helper functions that are used by Module.ts to convert a buffer to an
+ *   internal Rollup AST. While this uses roughly the same AST format, it
+ *   instantiates the classes in /src/ast/nodes instead.
+ * - /src/ast/childNodeKeys.ts
+ *   A list of which AST nodes keys represent child nodes. This is used by the
+ *   legacy parser to instantiate a Rollup AST from a JSON AST.
+ *
+ * JavaScript AST nodes follow the ESTree format specified here
+ * https://github.com/estree/estree. While the binary buffer format could
+ * theoretically deviate from this, it should be either a one-to-one or a
+ * many-to-one mapping (Example: All Literal* nodes in the buffer are encoded
+ * as "type: Literal" in the JSON AST).
+ *
+ * For encoded non-JavaScript AST nodes like TypeScript or JSX, we try to follow
+ * the format of typescript-eslint, which can be derived from their playground
+ * https://typescript-eslint.io/play/#showAST=es&fileType=.tsx
+ */
+
+/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"Float"} FieldType */
 
 /** @typedef {[name:string, type:FieldType]} FieldWithType */
 
@@ -11,13 +38,26 @@
  *    fixed?: Record<string,unknown>, // Any fields with fixed values
  *    fieldTypes?: Record<string,string>, // Add a type cast to a field
  *    additionalFields?: Record<string,string>, // Derived fields can be specified as arbitrary strings here
+ *    baseForAdditionalFields?: string[], // Fields needed to define additional fields
  *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
  *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
- *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field
+ *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
+ *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
+ *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
+ *    scriptedFields?: Record<string,string> // If fields are parsed via custom logic, $position references the node position
  *  }} NodeDescription */
 
 /** @type {Record<string, NodeDescription>} */
 export const AST_NODES = {
+	PanicError: {
+		estreeType: "{ type: 'PanicError', message: string }",
+		fields: [['message', 'String']]
+	},
+	ParseError: {
+		estreeType: "{ type: 'ParseError', message: string }",
+		fields: [['message', 'String']]
+	},
+	// eslint-disable-next-line sort-keys
 	ArrayExpression: {
 		fields: [['elements', 'NodeList']]
 	},
@@ -33,7 +73,25 @@ export const AST_NODES = {
 		fixed: {
 			id: null
 		},
-		flags: ['async', 'expression', 'generator']
+		flags: ['async', 'expression', 'generator'],
+		postProcessFields: {
+			annotations: [
+				'annotations',
+				"node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects')"
+			],
+			params: [
+				'parameters',
+				`scope.addParameterVariables(
+           parameters.map(
+             parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+           ),
+           parameters[parameters.length - 1] instanceof RestElement
+         );`
+			]
+		},
+		scopes: {
+			body: 'scope.bodyScope'
+		}
 	},
 	AssignmentExpression: {
 		fields: [
@@ -71,6 +129,7 @@ export const AST_NODES = {
 		fields: [['label', 'OptionalNode']]
 	},
 	CallExpression: {
+		estreeType: 'estree.SimpleCallExpression',
 		fields: [
 			['annotations', 'Annotations'],
 			['callee', 'Node'],
@@ -85,23 +144,51 @@ export const AST_NODES = {
 		fields: [
 			['param', 'OptionalNode'],
 			['body', 'Node']
-		]
+		],
+		postProcessFields: {
+			param: ['parameter', "parameter?.declare('parameter', UNKNOWN_EXPRESSION)"]
+		},
+		scopes: {
+			body: 'scope.bodyScope'
+		}
 	},
 	ChainExpression: {
 		fields: [['expression', 'Node']]
 	},
 	ClassBody: {
-		fields: [['body', 'NodeList']]
+		fields: [['body', 'NodeList']],
+		scriptedFields: {
+			body: `const length = buffer[$position];
+        const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
+        for (let index = 0; index < length; index++) {
+          const nodePosition = buffer[$position + 1 + index];
+          body.push(
+            convertNode(
+              node,
+              (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+              nodePosition,
+              buffer,
+              readString
+            )
+          );
+        }`
+		}
 	},
 	ClassDeclaration: {
 		fields: [
 			['id', 'OptionalNode'],
 			['superClass', 'OptionalNode'],
 			['body', 'Node']
-		]
+		],
+		scopes: {
+			id: 'scope.parent as ChildScope'
+		}
 	},
 	ClassExpression: {
-		hasSameFieldsAs: 'ClassDeclaration'
+		hasSameFieldsAs: 'ClassDeclaration',
+		scopes: {
+			id: 'scope'
+		}
 	},
 	ConditionalExpression: {
 		fields: [
@@ -197,10 +284,32 @@ export const AST_NODES = {
 		fixed: {
 			expression: false
 		},
-		flags: ['async', 'generator']
+		flags: ['async', 'generator'],
+		postProcessFields: {
+			annotations: [
+				'annotations',
+				"node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects')"
+			],
+			params: [
+				'parameters',
+				`scope.addParameterVariables(
+					 parameters.map(
+						 parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+					 ),
+					 parameters[parameters.length - 1] instanceof RestElement
+				 );`
+			]
+		},
+		scopes: {
+			body: 'scope.bodyScope',
+			id: 'scope.parent as ChildScope'
+		}
 	},
 	FunctionExpression: {
-		hasSameFieldsAs: 'FunctionDeclaration'
+		hasSameFieldsAs: 'FunctionDeclaration',
+		scopes: {
+			id: 'node.idScope'
+		}
 	},
 	Identifier: {
 		fields: [['name', 'String']]
@@ -210,7 +319,11 @@ export const AST_NODES = {
 			['test', 'Node'],
 			['consequent', 'Node'],
 			['alternate', 'OptionalNode']
-		]
+		],
+		scopes: {
+			alternate: '(node.alternateScope = new TrackingScope(scope))',
+			consequent: '(node.consequentScope = new TrackingScope(scope))'
+		}
 	},
 	ImportAttribute: {
 		estreeType:
@@ -236,7 +349,11 @@ export const AST_NODES = {
 		fields: [
 			['source', 'Node'],
 			['options', 'OptionalNode']
-		]
+		],
+		scriptedFields: {
+			source: `node.source = convertNode(node, scope, $position, buffer, readString);
+			  node.sourceAstNode = convertJsonNode($position, buffer, readString);`
+		}
 	},
 	ImportNamespaceSpecifier: {
 		fields: [['local', 'Node']]
@@ -261,6 +378,7 @@ export const AST_NODES = {
 			value: 'BigInt(bigint)'
 		},
 		astType: 'Literal',
+		baseForAdditionalFields: ['bigint'],
 		estreeType: 'estree.BigIntLiteral',
 		fields: [
 			['bigint', 'String'],
@@ -272,20 +390,23 @@ export const AST_NODES = {
 			raw: 'value ? "true" : "false"'
 		},
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		baseForAdditionalFields: ['value'],
+		estreeType: 'estree.SimpleLiteral & {value: boolean}',
 		flags: ['value']
 	},
 	LiteralNull: {
+		additionalFields: {
+			value: 'null'
+		},
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		estreeType: 'estree.SimpleLiteral & {value: null}',
 		fixed: {
-			raw: 'null',
-			value: null
+			raw: 'null'
 		}
 	},
 	LiteralNumber: {
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		estreeType: 'estree.SimpleLiteral & {value: number}',
 		fields: [
 			['raw', 'OptionalString'],
 			['value', 'Float']
@@ -298,6 +419,7 @@ export const AST_NODES = {
 			value: 'new RegExp(pattern, flags)'
 		},
 		astType: 'Literal',
+		baseForAdditionalFields: ['flags', 'pattern'],
 		estreeType: 'estree.RegExpLiteral',
 		fields: [
 			['flags', 'String'],
@@ -307,7 +429,7 @@ export const AST_NODES = {
 	},
 	LiteralString: {
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral',
+		estreeType: 'estree.SimpleLiteral & {value: string}',
 		fields: [
 			['value', 'String'],
 			['raw', 'OptionalString']
@@ -341,7 +463,8 @@ export const AST_NODES = {
 		fieldTypes: {
 			kind: "estree.MethodDefinition['kind']"
 		},
-		flags: ['computed', 'static'],
+		// "static" needs to come first as ClassBody depends on it
+		flags: ['static', 'computed'],
 		variableNames: {
 			static: 'isStatic'
 		}
@@ -368,7 +491,7 @@ export const AST_NODES = {
 	Program: {
 		fields: [
 			['body', 'NodeList'],
-			['annotations', 'InvalidAnnotations']
+			['invalidAnnotations', 'InvalidAnnotations']
 		],
 		fixed: {
 			sourceType: 'module'
@@ -391,7 +514,8 @@ export const AST_NODES = {
 			['key', 'Node'],
 			['value', 'OptionalNode']
 		],
-		flags: ['computed', 'static'],
+		// "static" needs to come first as ClassBody depends on it
+		flags: ['static', 'computed'],
 		variableNames: {
 			static: 'isStatic'
 		}
@@ -425,7 +549,10 @@ export const AST_NODES = {
 		fields: [
 			['discriminant', 'Node'],
 			['cases', 'NodeList']
-		]
+		],
+		scopes: {
+			discriminant: 'node.parentScope'
+		}
 	},
 	TaggedTemplateExpression: {
 		fields: [
@@ -437,6 +564,7 @@ export const AST_NODES = {
 		additionalFields: {
 			value: '{ cooked, raw}'
 		},
+		baseForAdditionalFields: ['cooked', 'raw'],
 		fields: [
 			['cooked', 'OptionalString'],
 			['raw', 'String']

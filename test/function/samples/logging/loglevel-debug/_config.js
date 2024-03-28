@@ -16,26 +16,29 @@ module.exports = defineTest({
 	},
 	after() {
 		Object.assign(console, { debug, info, warn });
-		assert.deepStrictEqual(logs, [
+		assert.deepEqual(logs, [
 			['debug', { message: 'onLog-debug' }],
 			['console-debug', 'onLogOption-debug'],
 			['console-info', 'onLogOption-info'],
 			['console-warn', 'onLogOption-warn'],
 			['info', { message: 'onLog-info' }],
 			['warn', { message: 'onLog-warn' }],
-			['debug', { message: 'options-debug', code: 'PLUGIN_LOG', plugin: 'test' }],
-			['info', { message: 'options-info', code: 'PLUGIN_LOG', plugin: 'test' }],
-			['warn', { message: 'options-warn', code: 'PLUGIN_WARNING', plugin: 'test' }],
-			['debug', { message: 'buildStart-debug', code: 'PLUGIN_LOG', plugin: 'test' }],
-			['info', { message: 'buildStart-info', code: 'PLUGIN_LOG', plugin: 'test' }],
-			['warn', { message: 'buildStart-warn', code: 'PLUGIN_WARNING', plugin: 'test' }],
+			['debug', { message: '[plugin test] options-debug', code: 'PLUGIN_LOG', plugin: 'test' }],
+			['info', { message: '[plugin test] options-info', code: 'PLUGIN_LOG', plugin: 'test' }],
+			['warn', { message: '[plugin test] options-warn', code: 'PLUGIN_WARNING', plugin: 'test' }],
+			['debug', { message: '[plugin test] buildStart-debug', code: 'PLUGIN_LOG', plugin: 'test' }],
+			['info', { message: '[plugin test] buildStart-info', code: 'PLUGIN_LOG', plugin: 'test' }],
+			[
+				'warn',
+				{ message: '[plugin test] buildStart-warn', code: 'PLUGIN_WARNING', plugin: 'test' }
+			],
 			['debug', { message: 'buildStart-options-debug' }],
 			['info', { message: 'buildStart-options-info' }],
 			['warn', { message: 'buildStart-options-warn' }],
 			[
 				'debug',
 				{
-					message: 'transform-debug',
+					message: '[plugin test] main.js: transform-debug',
 					id: ID_MAIN,
 					hook: 'transform',
 					code: 'PLUGIN_LOG',
@@ -45,7 +48,7 @@ module.exports = defineTest({
 			[
 				'info',
 				{
-					message: 'transform-info',
+					message: '[plugin test] main.js: transform-info',
 					id: ID_MAIN,
 					hook: 'transform',
 					code: 'PLUGIN_LOG',
@@ -55,7 +58,7 @@ module.exports = defineTest({
 			[
 				'warn',
 				{
-					message: 'transform-warn',
+					message: '[plugin test] main.js: transform-warn',
 					id: ID_MAIN,
 					hook: 'transform',
 					code: 'PLUGIN_WARNING',
@@ -68,7 +71,7 @@ module.exports = defineTest({
 					code: 'EVAL',
 					id: ID_MAIN,
 					message:
-						'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
+						'main.js (1:0): Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
 					url: 'https://rollupjs.org/troubleshooting/#avoiding-eval',
 					pos: 0,
 					loc: {

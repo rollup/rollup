@@ -8,7 +8,7 @@ module.exports = defineTest({
 			code: 'EVAL',
 			id: ID_MAIN,
 			message:
-				'Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
+				'main.js (1:13): Use of eval in "main.js" is strongly discouraged as it poses security risks and may cause issues with minification.',
 			url: 'https://rollupjs.org/troubleshooting/#avoiding-eval',
 			pos: 13,
 			loc: {

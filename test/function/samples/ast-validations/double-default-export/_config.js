@@ -6,7 +6,7 @@ module.exports = defineTest({
 	description: 'throws on double default exports',
 	error: {
 		code: 'DUPLICATE_EXPORT',
-		message: 'Duplicate export "default"',
+		message: 'foo.js (2:0): Duplicate export "default"',
 		id: ID_FOO,
 		pos: 18,
 		watchFiles: [ID_FOO, ID_MAIN],

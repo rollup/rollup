@@ -38,7 +38,7 @@ jobs:
           node-version: 20
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -193,6 +193,17 @@ jobs:
               export CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER=powerpc64le-linux-gnu-gcc && rustup target add powerpc64le-unknown-linux-gnu &&
               npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu &&
               powerpc64le-linux-gnu-strip *.node
+          - host: ubuntu-latest
+            target: s390x-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-s390x-linux-gnu -y
+            build: >-
+              set -e &&
+              export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
+              rustup target add s390x-unknown-linux-gnu &&
+              npm run build:napi -- --release --target s390x-unknown-linux-gnu &&
+              s390x-linux-gnu-strip *.node
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
@@ -211,7 +222,7 @@ jobs:
           toolchain: nightly-2023-10-05
           targets: ${{ matrix.settings.target }}
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -231,7 +242,7 @@ jobs:
         shell: bash
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -307,7 +318,7 @@ jobs:
           check-latest: true
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -328,11 +339,10 @@ jobs:
         env:
           CI: true
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: matrix.coverage
         with:
-          # It appears adding the token may result in the coverage comment not being added
-          # token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
           commit_parent: ${{ github.event.pull_request.head.sha }}
 
   publish:
@@ -361,7 +371,7 @@ jobs:
           check-latest: true
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}

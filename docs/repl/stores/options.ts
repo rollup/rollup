@@ -242,6 +242,11 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.globals',
 		required: () => true
 	});
+	const optionOutputHashCharacters = getSelect({
+		defaultValue: 'base64',
+		name: 'output.hashCharacters',
+		options: () => ['base64', 'base36', 'hex']
+	});
 	const optionOutputHoistTransitiveImports = getBoolean({
 		available: alwaysTrue,
 		defaultValue: true,
@@ -313,6 +318,12 @@ export const useOptions = defineStore('options2', () => {
 	const optionOutputPreserveModulesRoot = getString({
 		available: optionOutputPreserveModules.value,
 		name: 'output.preserveModulesRoot'
+	});
+	const optionOutputReexportProtoFromExternal = getBoolean({
+		available: () =>
+			isInteropFormat.value && optionOutputExternalLiveBindings.value.value === false,
+		defaultValue: true,
+		name: 'output.reexportProtoFromExternal'
 	});
 	const optionOutputSanitizeFileName = getBoolean({
 		available: alwaysTrue,
@@ -432,6 +443,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputGeneratedCodeReservedNamesAsProperties,
 		optionOutputGeneratedCodeSymbols,
 		optionOutputGlobals,
+		optionOutputHashCharacters,
 		optionOutputHoistTransitiveImports,
 		optionOutputIndent,
 		optionOutputInlineDynamicImports,
@@ -444,6 +456,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputPaths,
 		optionOutputPreserveModules,
 		optionOutputPreserveModulesRoot,
+		optionOutputReexportProtoFromExternal,
 		optionOutputSourcemap,
 		optionOutputSourcemapFileNames,
 		optionOutputSanitizeFileName,

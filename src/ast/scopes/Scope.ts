@@ -2,7 +2,7 @@ import type { AstContext } from '../../Module';
 import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { VariableKind } from '../nodes/shared/VariableKinds';
+import type { VariableKind } from '../nodes/shared/VariableKinds';
 import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type ChildScope from './ChildScope';
@@ -35,7 +35,7 @@ export default class Scope {
 			this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable);
 		if (existingVariable) {
 			const existingKind = existingVariable.kind;
-			if (kind === VariableKind.var && existingKind === VariableKind.var) {
+			if (kind === 'var' && existingKind === 'var') {
 				existingVariable.addDeclaration(identifier, init);
 				return existingVariable;
 			}

@@ -1,5 +1,6 @@
 const assert = require('node:assert');
 const { parseAst, parseAstAsync } = require('../../dist/parseAst');
+const { hasEsBuild } = require('../utils');
 
 describe('parseAst', () => {
 	it('parses an AST', async () => {
@@ -34,39 +35,41 @@ describe('parseAst', () => {
 		});
 	});
 
-	it('works as an ES module', async () => {
-		// eslint-disable-next-line import/no-unresolved
-		const { parseAst: parseEsm } = await import('../../dist/es/parseAst.js');
-		assert.deepStrictEqual(parseEsm('console.log("ok")'), {
-			type: 'Program',
-			start: 0,
-			end: 17,
-			body: [
-				{
-					type: 'ExpressionStatement',
-					start: 0,
-					end: 17,
-					expression: {
-						type: 'CallExpression',
+	if (hasEsBuild) {
+		it('works as an ES module', async () => {
+			// eslint-disable-next-line import/no-unresolved
+			const { parseAst: parseEsm } = await import('../../dist/es/parseAst.js');
+			assert.deepStrictEqual(parseEsm('console.log("ok")'), {
+				type: 'Program',
+				start: 0,
+				end: 17,
+				body: [
+					{
+						type: 'ExpressionStatement',
 						start: 0,
 						end: 17,
-						arguments: [{ type: 'Literal', start: 12, end: 16, raw: '"ok"', value: 'ok' }],
-						callee: {
-							type: 'MemberExpression',
+						expression: {
+							type: 'CallExpression',
 							start: 0,
-							end: 11,
-							computed: false,
-							object: { type: 'Identifier', start: 0, end: 7, name: 'console' },
-							optional: false,
-							property: { type: 'Identifier', start: 8, end: 11, name: 'log' }
-						},
-						optional: false
+							end: 17,
+							arguments: [{ type: 'Literal', start: 12, end: 16, raw: '"ok"', value: 'ok' }],
+							callee: {
+								type: 'MemberExpression',
+								start: 0,
+								end: 11,
+								computed: false,
+								object: { type: 'Identifier', start: 0, end: 7, name: 'console' },
+								optional: false,
+								property: { type: 'Identifier', start: 8, end: 11, name: 'log' }
+							},
+							optional: false
+						}
 					}
-				}
-			],
-			sourceType: 'module'
+				],
+				sourceType: 'module'
+			});
 		});
-	});
+	}
 
 	it('throws on parse errors', async () => {
 		assert.throws(() => parseAst('<=>'), {

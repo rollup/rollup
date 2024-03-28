@@ -23,7 +23,7 @@ module.exports = defineTest({
 				line: 3
 			},
 			message:
-				'Module "main.js" tried to import "external" with "type": "bar" attributes, but it was already imported elsewhere with "type": "foo" attributes. Please ensure that import attributes for the same module are always consistent.',
+				'main.js (3:0): Module "main.js" tried to import "external" with "type": "bar" attributes, but it was already imported elsewhere with "type": "foo" attributes. Please ensure that import attributes for the same module are always consistent.',
 			pos: 61
 		},
 		{
@@ -42,7 +42,7 @@ module.exports = defineTest({
 				line: 4
 			},
 			message:
-				'Module "main.js" tried to import "external" with no attributes, but it was already imported elsewhere with "type": "foo" attributes. Please ensure that import attributes for the same module are always consistent.',
+				'main.js (4:0): Module "main.js" tried to import "external" with no attributes, but it was already imported elsewhere with "type": "foo" attributes. Please ensure that import attributes for the same module are always consistent.',
 			pos: 101
 		},
 		{

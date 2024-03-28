@@ -13,7 +13,7 @@ module.exports = defineTest({
 	generateError: {
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
-		message: 'nope',
+		message: '[plugin test] nope',
 		hook: 'renderChunk'
 	}
 });

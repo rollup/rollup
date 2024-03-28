@@ -3,11 +3,11 @@
 	factory();
 })((function () { 'use strict';
 
-	var asset1 = 'chunkId=umd.js:moduleId=solved:fileName=assets/asset-solved-0oyI4hTT.txt:format=umd:relativePath=assets/asset-solved-0oyI4hTT.txt:referenceId=JY$sxHZX';
+	var asset1 = 'chunkId=umd.js:moduleId=solved:fileName=assets/asset-solved-DSjIjiFN.txt:format=umd:relativePath=assets/asset-solved-DSjIjiFN.txt:referenceId=lj6zEdlc';
 
 	var asset2 = 'resolved';
 
-	var asset3 = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__dirname + '/assets/asset-unresolved-e0Iev6TZ.txt').href : new URL('assets/asset-unresolved-e0Iev6TZ.txt', typeof document === 'undefined' ? location.href : document.currentScript && document.currentScript.src || document.baseURI).href);
+	var asset3 = (typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__dirname + '/assets/asset-unresolved-B7Qh6_pN.txt').href : new URL('assets/asset-unresolved-B7Qh6_pN.txt', typeof document === 'undefined' ? location.href : document.currentScript && document.currentScript.src || document.baseURI).href);
 
 	console.log(asset1, asset2, asset3);
 

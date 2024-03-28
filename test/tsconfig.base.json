@@ -5,11 +5,11 @@
 		"allowJs": true,
 		"composite": true,
 		"target": "esnext",
-		"module": "node16",
+		"module": "NodeNext",
 		"noEmit": true,
 		"lib": ["esnext"],
 		"esModuleInterop": true,
-		"moduleResolution": "node",
+		"moduleResolution": "NodeNext",
 		"types": ["node", "mocha"]
 	}
 }

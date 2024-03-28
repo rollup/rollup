@@ -1,7 +1,8 @@
 import { locate } from 'locate-character';
 import type MagicString from 'magic-string';
-import { LOGLEVEL_INFO } from '../../utils/logging';
-import { logFirstSideEffect } from '../../utils/logs';
+import type { RollupAnnotation } from '../../utils/astConverterHelpers';
+import { LOGLEVEL_INFO, LOGLEVEL_WARN } from '../../utils/logging';
+import { logFirstSideEffect, logInvalidAnnotation } from '../../utils/logs';
 import {
 	findFirstLineBreakOutsideComment,
 	type RenderOptions,
@@ -16,6 +17,7 @@ export default class Program extends NodeBase {
 	declare body: readonly StatementNode[];
 	declare sourceType: 'module';
 	declare type: NodeType.tProgram;
+	declare invalidAnnotations?: RollupAnnotation[];
 
 	private hasCachedEffect: boolean | null = null;
 	private hasLoggedEffect = false;
@@ -54,6 +56,25 @@ export default class Program extends NodeBase {
 				node.include(context, includeChildrenRecursively);
 			}
 		}
+	}
+
+	initialise() {
+		super.initialise();
+		if (this.invalidAnnotations)
+			for (const { start, end, type } of this.invalidAnnotations) {
+				this.scope.context.magicString.remove(start, end);
+				if (type === 'pure' || type === 'noSideEffects') {
+					this.scope.context.log(
+						LOGLEVEL_WARN,
+						logInvalidAnnotation(
+							this.scope.context.code.slice(start, end),
+							this.scope.context.module.id,
+							type
+						),
+						start
+					);
+				}
+			}
 	}
 
 	render(code: MagicString, options: RenderOptions): void {

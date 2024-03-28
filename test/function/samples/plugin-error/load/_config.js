@@ -15,7 +15,7 @@ module.exports = defineTest({
 	error: {
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
-		message: `Could not load ${path.join(__dirname, 'main.js')}: nope`,
+		message: `Could not load ${path.join(__dirname, 'main.js')}: [plugin test] nope`,
 		hook: 'load'
 	}
 });

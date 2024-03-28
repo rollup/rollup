@@ -11,15 +11,19 @@ module.exports = defineTest({
 	},
 	after() {
 		Object.assign(console, { debug, info, warn });
-		assert.deepStrictEqual(logs, [
+		assert.deepEqual(logs, [
 			['onLog', 'warn', { message: 'warnLog' }],
 			['warn', 'warnLog'],
 			[
 				'onLog',
 				'warn',
-				{ message: 'warnLog', plugin: 'fooPlugin', loc: { file: 'fooFile', line: 1, column: 2 } }
+				{
+					message: '[plugin fooPlugin] fooFile (1:2): warnLog',
+					plugin: 'fooPlugin',
+					loc: { file: 'fooFile', line: 1, column: 2 }
+				}
 			],
-			['warn', '(fooPlugin plugin) fooFile (1:2) warnLog'],
+			['warn', '[plugin fooPlugin] fooFile (1:2): warnLog'],
 			['onLog', 'warn', { message: 'warnLog-' }],
 			['onLog', 'warn', { message: 'warnLog+-' }],
 			['debug', 'log was replaced'],
@@ -31,7 +35,7 @@ module.exports = defineTest({
 			['debug', 'debugLog']
 		]);
 		assert.strictEqual(logs[0][2].toString(), 'warnLog');
-		assert.strictEqual(logs[2][2].toString(), '(fooPlugin plugin) fooFile (1:2) warnLog');
+		assert.strictEqual(logs[2][2].toString(), '[plugin fooPlugin] fooFile (1:2): warnLog');
 	},
 	options: {
 		logLevel: 'debug',

@@ -3,11 +3,11 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			var asset1 = 'chunkId=system.js:moduleId=solved:fileName=assets/asset-solved-0oyI4hTT.txt:format=system:relativePath=assets/asset-solved-0oyI4hTT.txt:referenceId=JY$sxHZX';
+			var asset1 = 'chunkId=system.js:moduleId=solved:fileName=assets/asset-solved-DSjIjiFN.txt:format=system:relativePath=assets/asset-solved-DSjIjiFN.txt:referenceId=lj6zEdlc';
 
 			var asset2 = 'resolved';
 
-			var asset3 = new URL('assets/asset-unresolved-e0Iev6TZ.txt', module.meta.url).href;
+			var asset3 = new URL('assets/asset-unresolved-B7Qh6_pN.txt', module.meta.url).href;
 
 			console.log(asset1, asset2, asset3);
 

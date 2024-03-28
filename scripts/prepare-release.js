@@ -36,8 +36,8 @@ chdir(fileURLToPath(new URL('..', import.meta.url)));
 
 const [gh, currentBranch] = await Promise.all([
 	getGithubApi(),
-	runAndGetStdout('git', ['branch', '--show-current'])
-	// runWithEcho('git', ['pull', '--ff-only'])
+	runAndGetStdout('git', ['branch', '--show-current']),
+	runWithEcho('git', ['pull', '--ff-only'])
 ]);
 const [mainPackage, mainLockFile, browserPackage, repo, changelog] = await Promise.all([
 	readJson(MAIN_PACKAGE),
@@ -174,8 +174,8 @@ ${sections}### Pull Requests
 
 ${prs
 	.map(
-		({ text, pr, author }) =>
-			`- [#${pr}](https://github.com/rollup/rollup/pull/${pr}): ${text} (@${author})`
+		({ text, pr, authors }) =>
+			`- [#${pr}](https://github.com/rollup/rollup/pull/${pr}): ${text} (${authors.map(author => `@${author}`).join(', ')})`
 	)
 	.join('\n')}`;
 }

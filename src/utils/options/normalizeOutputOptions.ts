@@ -69,6 +69,7 @@ export async function normalizeOutputOptions(
 		freeze: config.freeze ?? true,
 		generatedCode,
 		globals: config.globals || {},
+		hashCharacters: config.hashCharacters ?? 'base64',
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
@@ -83,6 +84,7 @@ export async function normalizeOutputOptions(
 		plugins: await normalizePluginOption(config.plugins),
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),
+		reexportProtoFromExternal: config.reexportProtoFromExternal ?? true,
 		sanitizeFileName:
 			typeof config.sanitizeFileName === 'function'
 				? config.sanitizeFileName
