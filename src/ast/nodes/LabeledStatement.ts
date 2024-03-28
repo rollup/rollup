@@ -5,6 +5,7 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { ObjectPath } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
 import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
@@ -32,13 +33,17 @@ export default class LabeledStatement extends StatementBase {
 		return bodyHasEffects;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
 		const { brokenFlow, includedLabels } = context;
 		context.includedLabels = new Set<string>();
-		this.body.include(context, includeChildrenRecursively);
+		this.body.includePath(path, context, includeChildrenRecursively);
 		if (includeChildrenRecursively || context.includedLabels.has(this.label.name)) {
-			this.label.include();
+			this.label.includePath();
 			context.includedLabels.delete(this.label.name);
 			context.brokenFlow = brokenFlow;
 		}

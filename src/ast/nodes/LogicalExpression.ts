@@ -155,7 +155,11 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return usedBranch.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (
@@ -163,10 +167,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			(usedBranch === this.right && this.left.shouldBeIncluded(context)) ||
 			!usedBranch
 		) {
-			this.left.include(context, includeChildrenRecursively);
-			this.right.include(context, includeChildrenRecursively);
+			this.left.includePath(path, context, includeChildrenRecursively);
+			this.right.includePath(path, context, includeChildrenRecursively);
 		} else {
-			usedBranch.include(context, includeChildrenRecursively);
+			usedBranch.includePath(path, context, includeChildrenRecursively);
 		}
 	}
 

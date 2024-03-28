@@ -22,7 +22,7 @@ import type Program from './ast/nodes/Program';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import type { NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
+import { EMPTY_PATH, type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -218,6 +218,7 @@ export default class Module {
 	readonly dynamicDependencies = new Set<Module | ExternalModule>();
 	readonly dynamicImporters: string[] = [];
 	readonly dynamicImports: DynamicImport[] = [];
+	private dynamicDependenciesIncludeAllExports = new Set<Module>();
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	readonly implicitlyLoadedAfter = new Set<Module>();
@@ -694,9 +695,15 @@ export default class Module {
 		return this.info.moduleSideEffects === 'no-treeshake' || this.ast!.hasCachedEffects();
 	}
 
+	includeDynamicDependenciesIncludeAllExports() {
+		for (const dynamicDependencies of this.dynamicDependenciesIncludeAllExports) {
+			dynamicDependencies.includeAllExports(true);
+		}
+	}
+
 	include(): void {
 		const context = createInclusionContext();
-		if (this.ast!.shouldBeIncluded(context)) this.ast!.include(context, false);
+		if (this.ast!.shouldBeIncluded(context)) this.ast!.includePath(EMPTY_PATH, context, false);
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
@@ -737,7 +744,7 @@ export default class Module {
 	}
 
 	includeAllInBundle(): void {
-		this.ast!.include(createInclusionContext(), true);
+		this.ast!.includePath(EMPTY_PATH, createInclusionContext(), true);
 		this.includeAllExports(false);
 	}
 
@@ -1311,12 +1318,12 @@ export default class Module {
 		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const [externalVariable] = module.getVariableForExportName('*');
-				externalVariable.include();
+				externalVariable.includePath();
 				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
-				syntheticNamespace.include();
+				syntheticNamespace.includePath();
 				this.includedImports.add(syntheticNamespace);
 				syntheticNamespaces.add(syntheticNamespace);
 			}
@@ -1325,23 +1332,23 @@ export default class Module {
 	}
 
 	private includeDynamicImport(node: ImportExpression): void {
-		const resolution = (
-			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
-				resolution: string | Module | ExternalModule | undefined;
-			}
-		).resolution;
+		const resolution = this.dynamicImports.find(
+			dynamicImport => dynamicImport.node === node
+		)!.resolution;
 
 		if (resolution instanceof Module) {
-			resolution.includedDynamicImporters.push(this);
+			!resolution.includedDynamicImporters.includes(this) &&
+				resolution.includedDynamicImporters.push(this);
 
 			const importedNames = this.options.treeshake
 				? node.getDeterministicImportedNames()
 				: undefined;
 
 			if (importedNames) {
+				this.dynamicDependenciesIncludeAllExports.delete(resolution);
 				resolution.includeExportsByNames(importedNames);
 			} else {
-				resolution.includeAllExports(true);
+				this.dynamicDependenciesIncludeAllExports.add(resolution);
 			}
 		}
 	}
@@ -1353,7 +1360,7 @@ export default class Module {
 				getAndExtendSideEffectModules(variable, this);
 			}
 		} else {
-			variable.include();
+			variable.includePath();
 			this.graph.needsTreeshakingPass = true;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {

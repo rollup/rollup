@@ -13,6 +13,7 @@ import {
 	renderSystemExportExpression
 } from '../../utils/systemJsRendering';
 import type { InclusionContext } from '../ExecutionContext';
+import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import ArrayPattern from './ArrayPattern';
@@ -56,7 +57,8 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	include(
+	includePath(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		{ asSingleStatement }: InclusionOptions = BLANK
@@ -64,10 +66,10 @@ export default class VariableDeclaration extends NodeBase {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
-				declarator.include(context, includeChildrenRecursively);
+				declarator.includePath(path, context, includeChildrenRecursively);
 			const { id, init } = declarator;
 			if (asSingleStatement) {
-				id.include(context, includeChildrenRecursively);
+				id.includePath(path, context, includeChildrenRecursively);
 			}
 			if (
 				init &&
@@ -75,7 +77,7 @@ export default class VariableDeclaration extends NodeBase {
 				!init.included &&
 				(id instanceof ObjectPattern || id instanceof ArrayPattern)
 			) {
-				init.include(context, includeChildrenRecursively);
+				init.includePath(path, context, includeChildrenRecursively);
 			}
 		}
 	}

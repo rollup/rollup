@@ -16,6 +16,7 @@ import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
 import { childNodeKeys } from '../../childNodeKeys';
 import type ChildScope from '../../scopes/ChildScope';
+import type { ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
@@ -76,7 +77,8 @@ export interface Node extends Entity {
 	 * usually included if they are necessary for this node (e.g. a function body)
 	 * or if they have effects. Necessary variables need to be included as well.
 	 */
-	include(
+	includePath(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		options?: InclusionOptions
@@ -210,7 +212,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		);
 	}
 
-	include(
+	includePath(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
@@ -222,10 +225,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.include(context, includeChildrenRecursively);
+					child?.includePath(path, context, includeChildrenRecursively);
 				}
 			} else {
-				value.include(context, includeChildrenRecursively);
+				value.includePath(path, context, includeChildrenRecursively);
 			}
 		}
 	}
@@ -235,7 +238,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		_deoptimizeAccess: boolean
 	) {
-		this.include(context, includeChildrenRecursively);
+		this.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 	}
 
 	/**

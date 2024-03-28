@@ -7,6 +7,7 @@ import {
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import type { ObjectPath } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type SwitchCase from './SwitchCase';
 import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
@@ -46,9 +47,13 @@ export default class SwitchStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
-		this.discriminant.include(context, includeChildrenRecursively);
+		this.discriminant.includePath(path, context, includeChildrenRecursively);
 		const { brokenFlow, hasBreak } = context;
 		context.hasBreak = false;
 		let onlyHasBrokenFlow = true;
@@ -66,7 +71,7 @@ export default class SwitchStatement extends StatementBase {
 				isCaseIncluded = switchCase.hasEffects(hasEffectsContext);
 			}
 			if (isCaseIncluded) {
-				switchCase.include(context, includeChildrenRecursively);
+				switchCase.includePath(path, context, includeChildrenRecursively);
 				onlyHasBrokenFlow &&= context.brokenFlow && !context.hasBreak;
 				context.hasBreak = false;
 				context.brokenFlow = brokenFlow;

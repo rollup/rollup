@@ -3,6 +3,7 @@ import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
+import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -41,12 +42,16 @@ export default class ForOfStatement extends StatementBase {
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		const { body, deoptimized, left, right } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
-		right.include(context, includeChildrenRecursively);
+		right.includePath(path, context, includeChildrenRecursively);
 		includeLoopBody(context, body, includeChildrenRecursively);
 	}
 

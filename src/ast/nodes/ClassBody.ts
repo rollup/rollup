@@ -1,6 +1,7 @@
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import ClassBodyScope from '../scopes/ClassBodyScope';
+import type { ObjectPath } from '../utils/PathTracker';
 
 import type MethodDefinition from './MethodDefinition';
 import type * as NodeType from './NodeType';
@@ -17,11 +18,15 @@ export default class ClassBody extends NodeBase {
 		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
 		this.scope.context.includeVariableInModule(this.scope.thisVariable);
 		for (const definition of this.body) {
-			definition.include(context, includeChildrenRecursively);
+			definition.includePath(path, context, includeChildrenRecursively);
 		}
 	}
 

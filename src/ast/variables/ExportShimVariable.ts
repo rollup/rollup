@@ -10,8 +10,8 @@ export default class ExportShimVariable extends Variable {
 		this.module = module;
 	}
 
-	include(): void {
-		super.include();
+	includePath(): void {
+		super.includePath();
 		this.module.needsExportShim = true;
 	}
 }

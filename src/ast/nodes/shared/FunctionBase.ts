@@ -180,12 +180,16 @@ export default abstract class FunctionBase extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.include(context, includeChildrenRecursively);
+		this.body.includePath(path, context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
 

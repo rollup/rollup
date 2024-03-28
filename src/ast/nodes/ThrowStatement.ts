@@ -1,6 +1,7 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { type InclusionContext } from '../ExecutionContext';
+import type { ObjectPath } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
 
@@ -12,9 +13,13 @@ export default class ThrowStatement extends StatementBase {
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
-		this.argument.include(context, includeChildrenRecursively);
+		this.argument.includePath(path, context, includeChildrenRecursively);
 		context.brokenFlow = true;
 	}
 

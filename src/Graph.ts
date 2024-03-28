@@ -190,6 +190,11 @@ export default class Graph {
 					}
 				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
+				if (!this.needsTreeshakingPass) {
+					for (const module of this.modules) {
+						module.includeDynamicDependenciesIncludeAllExports();
+					}
+				}
 			} while (this.needsTreeshakingPass);
 		} else {
 			for (const module of this.modules) module.includeAllInBundle();
