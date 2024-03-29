@@ -1784,8 +1784,8 @@ An ID to use for AMD/UMD bundles:
 // ---cut-end---
 export default {
 	// ...
-	format: 'amd',
 	output: {
+	  format: 'amd',
 		amd: {
 			id: 'my-bundle'
 		}
@@ -1811,8 +1811,8 @@ Set the ID to the chunk ID (with the '.js' extension removed).
 // ---cut-end---
 export default {
 	// ...
-	format: 'amd',
 	output: {
+	  format: 'amd',
 		amd: {
 			autoId: true
 		}
@@ -1841,8 +1841,8 @@ Only valid with [`output.amd.autoId`](#output-amd-autoid).
 // ---cut-end---
 export default {
 	// ...
-	format: 'amd',
 	output: {
+	  format: 'amd',
 		amd: {
 			autoId: true,
 			basePath: 'some/where'
@@ -1870,8 +1870,8 @@ A function name to use instead of `define`:
 // ---cut-end---
 export default {
 	// ...
-	format: 'amd',
 	output: {
+  	format: 'amd',
 		amd: {
 			define: 'def'
 		}
@@ -1898,8 +1898,8 @@ Add `.js` extension for imports of generated chunks and local AMD modules:
 // ---cut-end---
 export default {
 	// ...
-	format: 'amd',
 	output: {
+		format: 'amd',
 		amd: {
 			forceJsExtensionForImports: true
 		}
