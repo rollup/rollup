@@ -183,6 +183,27 @@ jobs:
               rustup target add riscv64gc-unknown-linux-gnu &&
               npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu &&
               riscv64-linux-gnu-strip *.node
+          - host: ubuntu-latest
+            target: powerpc64le-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-powerpc64le-linux-gnu -y
+            build: >-
+              set -e &&
+              export CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER=powerpc64le-linux-gnu-gcc && rustup target add powerpc64le-unknown-linux-gnu &&
+              npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu &&
+              powerpc64le-linux-gnu-strip *.node
+          - host: ubuntu-latest
+            target: s390x-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-s390x-linux-gnu -y
+            build: >-
+              set -e &&
+              export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
+              rustup target add s390x-unknown-linux-gnu &&
+              npm run build:napi -- --release --target s390x-unknown-linux-gnu &&
+              s390x-linux-gnu-strip *.node
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
