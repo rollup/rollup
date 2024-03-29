@@ -75,13 +75,14 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
-	knownValue: ExpressionEntity | null = null;
+	knownValue: ExpressionEntity | undefined = undefined;
 	/**
 	 * If we are sure about the value of this parameter, we can set it here.
 	 * It can be a literal or the only possible value of the parameter.
+	 * an undefined value means that the parameter is not known.
 	 * @param value The known value of the parameter to be set.
 	 */
-	setKnownValue(value: ExpressionEntity | null): void {
+	setKnownValue(value: ExpressionEntity | undefined): void {
 		if (this.knownValue !== value) {
 			for (const expression of this.knownExpressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
