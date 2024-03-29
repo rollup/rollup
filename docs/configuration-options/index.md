@@ -1785,7 +1785,7 @@ An ID to use for AMD/UMD bundles:
 export default {
 	// ...
 	output: {
-	  format: 'amd',
+		format: 'amd',
 		amd: {
 			id: 'my-bundle'
 		}
@@ -1812,7 +1812,7 @@ Set the ID to the chunk ID (with the '.js' extension removed).
 export default {
 	// ...
 	output: {
-	  format: 'amd',
+		format: 'amd',
 		amd: {
 			autoId: true
 		}
@@ -1842,7 +1842,7 @@ Only valid with [`output.amd.autoId`](#output-amd-autoid).
 export default {
 	// ...
 	output: {
-	  format: 'amd',
+		format: 'amd',
 		amd: {
 			autoId: true,
 			basePath: 'some/where'
@@ -1871,7 +1871,7 @@ A function name to use instead of `define`:
 export default {
 	// ...
 	output: {
-  	format: 'amd',
+		format: 'amd',
 		amd: {
 			define: 'def'
 		}
