@@ -11,6 +11,7 @@ const logClean = function () {
 
 async function foo() {
 	using a = logClean();
+	const aa = a;
 
 	await using b = logClean();
 

@@ -148,9 +148,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (this.variable && (this.variable.kind === 'using' || this.variable.kind === 'await using')) {
-			return true;
-		}
 		if (this.isPossibleTDZ() && this.variable!.kind !== 'var') {
 			return true;
 		}

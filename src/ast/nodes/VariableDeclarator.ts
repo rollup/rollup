@@ -20,8 +20,10 @@ export default class VariableDeclarator extends NodeBase {
 	declare id: PatternNode;
 	declare init: ExpressionNode | null;
 	declare type: NodeType.tVariableDeclarator;
+	declare isUsingDeclaration: boolean;
 
-	declareDeclarator(kind: VariableKind): void {
+	declareDeclarator(kind: VariableKind, isUsingDeclaration: boolean): void {
+		this.isUsingDeclaration = isUsingDeclaration;
 		this.id.declare(kind, this.init || UNDEFINED_EXPRESSION);
 	}
 
@@ -33,7 +35,7 @@ export default class VariableDeclarator extends NodeBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		const initEffect = this.init?.hasEffects(context);
 		this.id.markDeclarationReached();
-		return initEffect || this.id.hasEffects(context);
+		return initEffect || this.id.hasEffects(context) || this.isUsingDeclaration;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -57,7 +59,7 @@ export default class VariableDeclarator extends NodeBase {
 			snippets: { _, getPropertyAccess }
 		} = options;
 		const { end, id, init, start } = this;
-		const renderId = id.included;
+		const renderId = id.included || this.isUsingDeclaration;
 		if (renderId) {
 			id.render(code, options);
 		} else {
