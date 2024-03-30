@@ -284,7 +284,7 @@ export default abstract class FunctionBase extends NodeBase {
 		return false;
 	}
 
-	getIdentifierVariable(): Variable | null {
+	getDeclarationVariable(): Variable | null {
 		return null;
 	}
 
@@ -292,7 +292,7 @@ export default abstract class FunctionBase extends NodeBase {
 		const isIIFE =
 			this.parent.type === 'CallExpression' && (this.parent as CallExpression).callee === this;
 		if (
-			(isIIFE || this.getIdentifierVariable()?.onlyFunctionCallUsed) &&
+			(isIIFE || this.getDeclarationVariable()?.onlyFunctionCallUsed) &&
 			this.allArguments.length > 0
 		) {
 			this.applyFunctionParameterOptimization();

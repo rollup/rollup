@@ -1,19 +1,12 @@
 // export default
-export default function (a, b, enable) {
+export default (a, b, enable) => {
 	if (enable) {
 		return a + b;
 	}
 	return a - b;
 }
 
-export function add1(a, b, enable) {
-	if (enable) {
-		return a + b;
-	}
-	return a - b;
-}
-
-export function add2(a, b, enable) {
+export const arrowAdd1 = (a, b, enable) => {
 	if (enable) {
 		return a + b;
 	}
@@ -21,7 +14,7 @@ export function add2(a, b, enable) {
 }
 
 // keep it
-export function add3(a, b, enable) {
+export const arrowAdd2 = (a, b, enable) => {
 	if (enable) {
 		return a + b;
 	}
@@ -29,7 +22,7 @@ export function add3(a, b, enable) {
 }
 
 // conditional expression
-export function add4(a, b, enable) {
+export const arrowAdd3 = (a, b, enable) => {
 	if (enable? true: false) {
 		return a + b;
 	}

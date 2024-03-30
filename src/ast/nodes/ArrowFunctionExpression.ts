@@ -6,9 +6,10 @@ import ReturnValueScope from '../scopes/ReturnValueScope';
 import { type ObjectPath } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import type BlockStatement from './BlockStatement';
+import type ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import VariableDeclarator from './VariableDeclarator';
+import type VariableDeclarator from './VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import FunctionBase from './shared/FunctionBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
@@ -69,9 +70,12 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		return false;
 	}
 
-	getIdentifierVariable(): Variable | null {
-		if (this.parent instanceof VariableDeclarator) {
-			return this.parent.id.variable ?? null;
+	getDeclarationVariable(): Variable | null {
+		if (this.parent.type === 'VariableDeclarator') {
+			return (this.parent as VariableDeclarator).id.variable ?? null;
+		}
+		if (this.parent.type === 'ExportDefaultDeclaration') {
+			return (this.parent as ExportDefaultDeclaration).variable;
 		}
 		return null;
 	}

@@ -6,6 +6,7 @@ import FunctionScope from '../../scopes/FunctionScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type BlockStatement from '../BlockStatement';
+import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import type { ExpressionEntity } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
@@ -91,8 +92,13 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
-	getIdentifierVariable(): Variable | null {
-		return this.id?.variable ?? null;
+	getDeclarationVariable(): Variable | null {
+		return (
+			this.id?.variable ??
+			(this.parent.type === 'ExportDefaultDeclaration'
+				? (this.parent as ExportDefaultDeclaration).variable
+				: null)
+		);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
