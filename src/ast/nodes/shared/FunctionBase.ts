@@ -80,35 +80,31 @@ export default abstract class FunctionBase extends NodeBase {
 			if (!parameter || parameter instanceof RestElement) {
 				break;
 			}
+
 			const knownParameter = this.knownParameters[position];
 			if (knownParameter === undefined) {
 				this.knownParameters[position] = argument;
-			} else if (knownParameter !== UNKNOWN_EXPRESSION) {
-				// update knownParameter with argument
-				if (knownParameter === argument) {
-					continue;
-				}
-				if (
-					knownParameter instanceof Identifier &&
-					argument instanceof Identifier &&
-					knownParameter.variable === argument.variable
-				) {
-					continue;
-				}
-				const knownLiteral = knownParameter.getLiteralValueAtPath(
-					EMPTY_PATH,
-					SHARED_RECURSION_TRACKER,
-					{
-						deoptimizeCache() {}
-					}
-				);
-				const newLiteral = argument.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
-					deoptimizeCache() {}
-				});
-				if (knownLiteral !== newLiteral || typeof knownLiteral === 'symbol') {
-					this.knownParameters[position] = UNKNOWN_EXPRESSION;
-				} // else both are the same literal, no need to update
+				continue;
 			}
+			if (
+				knownParameter === UNKNOWN_EXPRESSION ||
+				knownParameter === argument ||
+				(knownParameter instanceof Identifier &&
+					argument instanceof Identifier &&
+					knownParameter.variable === argument.variable)
+			) {
+				continue;
+			}
+
+			const oldValue = knownParameter.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+				deoptimizeCache() {}
+			});
+			const newValue = argument.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+				deoptimizeCache() {}
+			});
+			if (oldValue !== newValue || typeof oldValue === 'symbol') {
+				this.knownParameters[position] = UNKNOWN_EXPRESSION;
+			} // else both are the same literal, no need to update
 		}
 	}
 
