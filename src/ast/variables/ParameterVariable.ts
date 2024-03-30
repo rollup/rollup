@@ -83,6 +83,9 @@ export default class ParameterVariable extends LocalVariable {
 	 * @param value The known value of the parameter to be set.
 	 */
 	setKnownValue(value: ExpressionEntity | undefined): void {
+		if (this.isReassigned) {
+			return;
+		}
 		if (this.knownValue !== value) {
 			for (const expression of this.knownExpressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
@@ -97,10 +100,10 @@ export default class ParameterVariable extends LocalVariable {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		this.knownExpressionsToBeDeoptimized.push(origin);
 		if (this.isReassigned) {
 			return UnknownValue;
 		}
+		this.knownExpressionsToBeDeoptimized.push(origin);
 		if (this.knownValue) {
 			return recursionTracker.withTrackedEntityAtPath(
 				path,

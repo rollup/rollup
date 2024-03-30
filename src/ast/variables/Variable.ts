@@ -64,8 +64,7 @@ export default class Variable extends ExpressionEntity {
 			(usedPlace.parent as CallExpression).callee === usedPlace;
 		if (!isFunctionCall) {
 			this.onlyFunctionCallUsed = false;
-			const isExportDefaultVariable = usedPlace.parent.type === 'ExportDefaultDeclaration';
-			if (isExportDefaultVariable) {
+			if (this.usedTimes == 1 && usedPlace.parent.type === 'ExportDefaultDeclaration') {
 				this.exportDefaultVariable = (usedPlace.parent as ExportDefaultDeclaration).variable;
 			}
 		}
