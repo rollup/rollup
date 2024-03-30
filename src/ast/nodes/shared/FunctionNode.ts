@@ -4,6 +4,7 @@ import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import FunctionScope from '../../scopes/FunctionScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import type Variable from '../../variables/Variable';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import type { ExpressionEntity } from './Expression';
@@ -90,10 +91,11 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
+	getIdentifierVariable(): Variable | null {
+		return this.id?.variable ?? null;
+	}
+
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (this.id?.variable.onlyFunctionCallUsed && this.allArguments.length > 0) {
-			this.applyFunctionParameterOptimization();
-		}
 		super.include(context, includeChildrenRecursively);
 		this.id?.include();
 		const hasArguments = this.scope.argumentsVariable.included;

@@ -17,6 +17,7 @@ import {
 } from '../../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
+import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
 import type CallExpression from '../CallExpression';
 import Identifier from '../Identifier';
@@ -68,7 +69,7 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	private knownParameters: FunctionParameterState[] = [];
-	protected allArguments: (ExpressionNode | SpreadElement)[][] = [];
+	private allArguments: (ExpressionNode | SpreadElement)[][] = [];
 	/**
 	 * updated knownParameters when a call is made to this function
 	 * @param newArguments arguments of the call
@@ -283,7 +284,19 @@ export default abstract class FunctionBase extends NodeBase {
 		return false;
 	}
 
+	getIdentifierVariable(): Variable | null {
+		return null;
+	}
+
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		const isIIFE =
+			this.parent.type === 'CallExpression' && (this.parent as CallExpression).callee === this;
+		if (
+			(isIIFE || this.getIdentifierVariable()?.onlyFunctionCallUsed) &&
+			this.allArguments.length > 0
+		) {
+			this.applyFunctionParameterOptimization();
+		}
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;

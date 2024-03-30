@@ -4,9 +4,11 @@ import { INTERACTION_CALLED } from '../NodeInteractions';
 import type ChildScope from '../scopes/ChildScope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import { type ObjectPath } from '../utils/PathTracker';
+import type Variable from '../variables/Variable';
 import type BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import type * as NodeType from './NodeType';
+import VariableDeclarator from './VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import FunctionBase from './shared/FunctionBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
@@ -67,10 +69,14 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (this.allArguments.length > 0) {
-			this.applyFunctionParameterOptimization();
+	getIdentifierVariable(): Variable | null {
+		if (this.parent instanceof VariableDeclarator) {
+			return this.parent.id.variable ?? null;
 		}
+		return null;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		super.include(context, includeChildrenRecursively);
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {

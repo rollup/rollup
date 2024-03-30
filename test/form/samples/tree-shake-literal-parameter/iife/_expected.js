@@ -1,14 +1,14 @@
-const result = ((enable) => {
+const result1 = ((enable) => {
 	{
 		return 'enabled';
 	}
 })();
 
-const resultFunction = ((enable) => {
+const result2 = (function (enable) {
 	{
 		return 'enabled';
 	}
-});
+})();
 
-console.log(result);
-console.log(resultFunction());
+console.log(result1);
+console.log(result2);
