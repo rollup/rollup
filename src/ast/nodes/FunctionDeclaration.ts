@@ -1,4 +1,5 @@
 import type ChildScope from '../scopes/ChildScope';
+import type Variable from '../variables/Variable';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -12,6 +13,10 @@ export default class FunctionDeclaration extends FunctionNode {
 		if (this.id !== null) {
 			this.id.variable.isId = true;
 		}
+	}
+
+	getDeclarationVariable(): Variable | null {
+		return super.getDeclarationVariable() ?? this.id?.variable ?? null;
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {

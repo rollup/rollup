@@ -20,9 +20,11 @@ import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
 import type CallExpression from '../CallExpression';
+import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
+import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
@@ -99,13 +101,13 @@ export default abstract class FunctionBase extends NodeBase {
 				const knownLiteral = knownParameter.getLiteralValueAtPath(
 					EMPTY_PATH,
 					SHARED_RECURSION_TRACKER,
-					knownParameter.parent as CallExpression
+					{
+						deoptimizeCache() {}
+					}
 				);
-				const newLiteral = argument.getLiteralValueAtPath(
-					EMPTY_PATH,
-					SHARED_RECURSION_TRACKER,
-					argument.parent as CallExpression
-				);
+				const newLiteral = argument.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
+					deoptimizeCache() {}
+				});
 				if (knownLiteral !== newLiteral || typeof knownLiteral === 'symbol') {
 					this.knownParameters[position] = UnknownArgument;
 				} // else both are the same literal, no need to update
@@ -284,7 +286,21 @@ export default abstract class FunctionBase extends NodeBase {
 		return false;
 	}
 
+	/**
+	 * If the function is assigned/bound/... to some identifier declaration,
+	 * getDeclarationVariable will return the Variable entity of that declaration.
+	 * It can be used to track if all usages of this function are only function calls.
+	 * While there are methods like deoptimizePath,
+	 * this one can make sure 100% of usages are function calls.
+	 * @returns the Variable entity of the declaration
+	 */
 	getDeclarationVariable(): Variable | null {
+		if (this.parent.type === 'VariableDeclarator') {
+			return (this.parent as VariableDeclarator).id.variable ?? null;
+		}
+		if (this.parent.type === 'ExportDefaultDeclaration') {
+			return (this.parent as ExportDefaultDeclaration).variable;
+		}
 		return null;
 	}
 
@@ -292,7 +308,7 @@ export default abstract class FunctionBase extends NodeBase {
 		const isIIFE =
 			this.parent.type === 'CallExpression' && (this.parent as CallExpression).callee === this;
 		if (
-			(isIIFE || this.getDeclarationVariable()?.onlyFunctionCallUsed) &&
+			(isIIFE || this.getDeclarationVariable()?.getOnlyFunctionCallUsed()) &&
 			this.allArguments.length > 0
 		) {
 			this.applyFunctionParameterOptimization();

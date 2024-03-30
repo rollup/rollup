@@ -5,6 +5,7 @@ import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type CallExpression from '../nodes/CallExpression';
+import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import type { NodeBase } from '../nodes/shared/Node';
@@ -36,13 +37,37 @@ export default class Variable extends ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier): void {}
 
-	onlyFunctionCallUsed = true;
+	private usedTimes = 0;
+	private exportDefaultVariable: Variable | null = null;
+	private onlyFunctionCallUsed = true;
+
+	/**
+	 * Check if the identifier variable is only used as function call
+	 * Forward the check to the export default variable if it is only used once
+	 * @returns true if the variable is only used as function call
+	 */
+
+	getOnlyFunctionCallUsed(): boolean {
+		if (this.usedTimes === 1 && this.exportDefaultVariable)
+			return this.exportDefaultVariable.getOnlyFunctionCallUsed();
+		return this.onlyFunctionCallUsed;
+	}
+
+	/**
+	 * Collect the places where the identifier variable is used
+	 * @param usedPlace Where the variable is used
+	 */
 	addUsedPlace(usedPlace: NodeBase): void {
+		this.usedTimes++;
 		const isFunctionCall =
 			usedPlace.parent.type === 'CallExpression' &&
 			(usedPlace.parent as CallExpression).callee === usedPlace;
 		if (!isFunctionCall) {
 			this.onlyFunctionCallUsed = false;
+			const isExportDefaultVariable = usedPlace.parent.type === 'ExportDefaultDeclaration';
+			if (isExportDefaultVariable) {
+				this.exportDefaultVariable = (usedPlace.parent as ExportDefaultDeclaration).variable;
+			}
 		}
 	}
 

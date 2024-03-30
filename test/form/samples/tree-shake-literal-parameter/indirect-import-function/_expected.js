@@ -1,7 +1,14 @@
-function module2Func(enable) {
+function importThenExportSub(enable) {
 	{
-		return 'module2Func';
+		return 'importThenExportSub';
 	}
 }
 
-console.log(module2Func());
+function defineAndExportDefault(enable) {
+	{
+		return 'defineAndExportDefault';
+	}
+}
+
+console.log(importThenExportSub());
+console.log(defineAndExportDefault());

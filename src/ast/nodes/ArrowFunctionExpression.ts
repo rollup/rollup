@@ -4,12 +4,9 @@ import { INTERACTION_CALLED } from '../NodeInteractions';
 import type ChildScope from '../scopes/ChildScope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import { type ObjectPath } from '../utils/PathTracker';
-import type Variable from '../variables/Variable';
 import type BlockStatement from './BlockStatement';
-import type ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import type VariableDeclarator from './VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import FunctionBase from './shared/FunctionBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
@@ -68,16 +65,6 @@ export default class ArrowFunctionExpression extends FunctionBase {
 			context.brokenFlow = brokenFlow;
 		}
 		return false;
-	}
-
-	getDeclarationVariable(): Variable | null {
-		if (this.parent.type === 'VariableDeclarator') {
-			return (this.parent as VariableDeclarator).id.variable ?? null;
-		}
-		if (this.parent.type === 'ExportDefaultDeclaration') {
-			return (this.parent as ExportDefaultDeclaration).variable;
-		}
-		return null;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
