@@ -37,9 +37,6 @@ import {
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
 
-const UnknownArgument = Symbol('Unknown Argument');
-type FunctionParameterState = ExpressionNode | SpreadElement | typeof UnknownArgument;
-
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
 	declare params: PatternNode[];
@@ -70,13 +67,13 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
-	private knownParameters: FunctionParameterState[] = [];
-	private allArguments: (ExpressionNode | SpreadElement)[][] = [];
+	private knownParameters: ExpressionEntity[] = [];
+	private allArguments: ExpressionEntity[][] = [];
 	/**
 	 * updated knownParameters when a call is made to this function
 	 * @param newArguments arguments of the call
 	 */
-	updateKnownArguments(newArguments: (SpreadElement | ExpressionNode)[]): void {
+	updateKnownArguments(newArguments: ExpressionEntity[]): void {
 		for (let position = 0; position < this.params.length; position++) {
 			const argument = newArguments[position] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
@@ -86,7 +83,7 @@ export default abstract class FunctionBase extends NodeBase {
 			const knownParameter = this.knownParameters[position];
 			if (knownParameter === undefined) {
 				this.knownParameters[position] = argument;
-			} else if (knownParameter !== UnknownArgument) {
+			} else if (knownParameter !== UNKNOWN_EXPRESSION) {
 				// update knownParameter with argument
 				if (knownParameter === argument) {
 					continue;
@@ -109,13 +106,13 @@ export default abstract class FunctionBase extends NodeBase {
 					deoptimizeCache() {}
 				});
 				if (knownLiteral !== newLiteral || typeof knownLiteral === 'symbol') {
-					this.knownParameters[position] = UnknownArgument;
+					this.knownParameters[position] = UNKNOWN_EXPRESSION;
 				} // else both are the same literal, no need to update
 			}
 		}
 	}
 
-	forwardArgumentsForFunctionCalledOnce(newArguments: (SpreadElement | ExpressionNode)[]): void {
+	forwardArgumentsForFunctionCalledOnce(newArguments: ExpressionEntity[]): void {
 		for (let position = 0; position < this.params.length; position++) {
 			const argument = newArguments[position] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
@@ -147,16 +144,12 @@ export default abstract class FunctionBase extends NodeBase {
 			this.updateKnownArguments(argumentsList);
 		}
 		for (let position = 0; position < this.params.length; position++) {
-			const knownParameter = this.knownParameters[position];
+			const knownParameter = this.knownParameters[position] ?? UNKNOWN_EXPRESSION;
 			const parameter = this.params[position];
 			const ParameterVariable = parameter.variable as ParameterVariable | null;
 			// Parameters without default values
 			if (parameter instanceof Identifier) {
-				if (knownParameter === UnknownArgument) {
-					ParameterVariable?.setKnownValue(undefined);
-				} else {
-					ParameterVariable?.setKnownValue(knownParameter);
-				}
+				ParameterVariable?.setKnownValue(knownParameter);
 			}
 		}
 	}

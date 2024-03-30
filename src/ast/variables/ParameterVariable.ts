@@ -75,14 +75,14 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
-	knownValue: ExpressionEntity | undefined = undefined;
+	private knownValue: ExpressionEntity = UNKNOWN_EXPRESSION;
 	/**
 	 * If we are sure about the value of this parameter, we can set it here.
 	 * It can be a literal or the only possible value of the parameter.
 	 * an undefined value means that the parameter is not known.
 	 * @param value The known value of the parameter to be set.
 	 */
-	setKnownValue(value: ExpressionEntity | undefined): void {
+	setKnownValue(value: ExpressionEntity): void {
 		if (this.isReassigned) {
 			return;
 		}
@@ -104,15 +104,12 @@ export default class ParameterVariable extends LocalVariable {
 			return UnknownValue;
 		}
 		this.knownExpressionsToBeDeoptimized.push(origin);
-		if (this.knownValue) {
-			return recursionTracker.withTrackedEntityAtPath(
-				path,
-				this.knownValue,
-				() => this.knownValue!.getLiteralValueAtPath(path, recursionTracker, origin),
-				UnknownValue
-			);
-		}
-		return UnknownValue;
+		return recursionTracker.withTrackedEntityAtPath(
+			path,
+			this.knownValue,
+			() => this.knownValue!.getLiteralValueAtPath(path, recursionTracker, origin),
+			UnknownValue
+		);
 	}
 
 	hasEffectsOnInteractionAtPath(
@@ -121,9 +118,9 @@ export default class ParameterVariable extends LocalVariable {
 		context: HasEffectsContext
 	): boolean {
 		// assigned is a bit different, since the value has a new name (the parameter)
-		return this.knownValue && interaction.type !== INTERACTION_ASSIGNED
-			? this.knownValue.hasEffectsOnInteractionAtPath(path, interaction, context)
-			: super.hasEffectsOnInteractionAtPath(path, interaction, context);
+		return interaction.type === INTERACTION_ASSIGNED
+			? super.hasEffectsOnInteractionAtPath(path, interaction, context)
+			: this.knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
