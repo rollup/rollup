@@ -156,9 +156,7 @@ export default class MemberExpression
 				this.isUndefined = true;
 			} else {
 				this.variable = resolvedVariable;
-				if (this.object instanceof Identifier) {
-					this.variable.addUsedPlace(this);
-				}
+				this.variable.addUsedPlace(this);
 				this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
 			}
 		} else {
