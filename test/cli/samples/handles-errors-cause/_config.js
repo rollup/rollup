@@ -10,6 +10,5 @@ module.exports = defineTest({
 		assertIncludes(stderr, '\n[!] (plugin at position 1) Error: Outer error\n    at ');
 		assertIncludes(stderr, '\n  [cause] Error: Inner error\n      at ');
 		assertIncludes(stderr, '\n    [cause] Error: Innermost error\n        at ');
-	},
-	solo: true
+	}
 });

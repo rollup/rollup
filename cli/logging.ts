@@ -38,16 +38,18 @@ export function handleError(error: RollupError, recover = false): void {
 	// ES2022: Error.prototype.cause is optional
 	if (error.cause) {
 		let cause = error.cause as Error | undefined;
-		let causeErrorMessages = '';
+		const causeErrorLines = [];
+		let indent = '';
 
 		while (cause) {
+			indent += '  ';
 			const message = cause.stack || cause;
-			causeErrorMessages += `[cause] ${causeErrorMessages ? '\n' : ''}${message}`;
+			causeErrorLines.push(...`[cause] ${message}`.split('\n').map(line => indent + line));
 
 			cause = cause.cause as Error | undefined;
 		}
 
-		outputLines.push(dim(causeErrorMessages));
+		outputLines.push(dim(causeErrorLines.join('\n')));
 	}
 
 	outputLines.push('', '');
