@@ -78,8 +78,11 @@ import moment from 'moment';
 
 …won't result in `moment` being included in your bundle – instead, it will be an external dependency that is required at runtime. If that's what you want, you can suppress this warning with the `external` option, which makes your intentions explicit:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	entry: 'src/index.js',
 	dest: 'bundle.js',
@@ -96,15 +99,18 @@ Some modules, like `events` or `util`, are built in to Node.js. If you want to i
 
 For large projects, you may run into an EMFILE error when running Rollup in watch mode on macOS. If you experience this, disabling FSEvents may eliminate the problem:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  watch: {
-    chokidar: {
-      useFsEvents: false
-    }
-  }
+	/* ..., */
+	watch: {
+		chokidar: {
+			useFsEvents: false
+		}
+	}
 };
 ```
 

@@ -54,10 +54,13 @@ npm install --save-dev @rollup/plugin-node-resolve
 
 …and add it to your config file:
 
-```js
+```js twoslash
 // rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main.js',
 	output: {
@@ -91,10 +94,13 @@ You can finely tune which imports are bundled and which are treated as external.
 
 Here is the config file:
 
-```js
+```js twoslash
 // rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main.js',
 	output: {
@@ -116,7 +122,10 @@ Voilà, `lodash` will now be treated as external, and not be bundled with your l
 
 The `external` key accepts either an array of module names, or a function which takes the module name and returns true if it should be treated as external. For example:
 
-```js
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	// ...
 	external: id => /lodash/.test(id)
@@ -143,11 +152,14 @@ npm i -D @rollup/plugin-babel @rollup/plugin-node-resolve
 
 Add it to `rollup.config.js`:
 
-```js
+```js twoslash
 // rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main.js',
 	output: {
@@ -205,7 +217,7 @@ Rollup returns Promises which are understood by gulp so integration is relativel
 
 The syntax is very similar to the configuration file, but the properties are split across two different operations corresponding to the [JavaScript API](../javascript-api/index.md):
 
-```js
+```js twoslash
 const gulp = require('gulp');
 const rollup = require('rollup');
 const rollupTypescript = require('@rollup/plugin-typescript');
@@ -229,7 +241,7 @@ gulp.task('build', () => {
 
 You may also use the `async/await` syntax:
 
-```js
+```js twoslash
 const gulp = require('gulp');
 const rollup = require('rollup');
 const rollupTypescript = require('@rollup/plugin-typescript');
