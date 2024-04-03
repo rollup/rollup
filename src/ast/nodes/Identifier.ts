@@ -33,13 +33,7 @@ import type { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
-const tdzVariableKinds = {
-	__proto__: null,
-	class: true,
-	const: true,
-	let: true,
-	var: true
-};
+const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'await using']);
 
 export default class Identifier extends NodeBase implements PatternNode {
 	declare name: string;
@@ -92,6 +86,8 @@ export default class Identifier extends NodeBase implements PatternNode {
 			}
 			case 'let':
 			case 'const':
+			case 'using':
+			case 'await using':
 			case 'class': {
 				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
 				break;
@@ -221,7 +217,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 			!(
 				this.variable instanceof LocalVariable &&
 				this.variable.kind &&
-				this.variable.kind in tdzVariableKinds &&
+				tdzVariableKinds.has(this.variable.kind) &&
 				// we ignore possible TDZs due to circular module dependencies as
 				// otherwise we get many false positives
 				this.variable.module === this.scope.context.module
