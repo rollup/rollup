@@ -20,10 +20,13 @@ Either a function that takes an `id` and returns `true` (external) or `false` (n
 1. the name of an external dependency, exactly the way it is written in the import statement. I.e. to mark `import "dependency.js"` as external, use `"dependency.js"` while to mark `import "dependency"` as external, use `"dependency"`.
 2. a resolved ID (like an absolute path to a file).
 
-```js
+```js twoslash
 // rollup.config.js
 import { fileURLToPath } from 'node:url';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	//...,
 	external: [
@@ -91,24 +94,34 @@ The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If 
 
 Note that it is possible when using the object form to put entry points into different sub-folders by adding a `/` to the name. The following will generate at least two entry chunks with the names `entry-a.js` and `entry-b/index.js`, i.e. the file `index.js` is placed in the folder `entry-b`:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  input: {
-    a: 'src/main-a.js',
-    'b/index': 'src/main-b.js'
-  },
-  output: {
-    ...,
-    entryFileNames: 'entry-[name].js'
-  }
+	// ...
+	input: {
+		a: 'src/main-a.js',
+		'b/index': 'src/main-b.js'
+	},
+	output: {
+		// ...
+		entryFileNames: 'entry-[name].js'
+	}
 };
 ```
 
 If you want to convert a set of files to another format while maintaining the file structure and export signatures, the recommended way—instead of using [`output.preserveModules`](#output-preservemodules) that may tree-shake exports as well as emit virtual files created by plugins—is to turn every file into an entry point. You can do so dynamically e.g. via the `glob` package:
 
-```js
+```ts twoslash
+// @filename: glob.d.ts
+declare module 'glob' {
+	export function globSync(pattern: string): string[];
+}
+
+// @filename: index.js
+// ---cut---
 import { globSync } from 'glob';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -206,18 +219,21 @@ import $ from 'jquery';
 
 …we want to tell Rollup that `jquery` is external and the `jquery` module ID equates to the global `$` variable:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  external: ['jquery'],
-  output: {
-    format: 'iife',
-    name: 'MyBundle',
-    globals: {
-      jquery: '$'
-    }
-  }
+	// ...
+	external: ['jquery'],
+	output: {
+		format: 'iife',
+		name: 'MyBundle',
+		globals: {
+			jquery: '$'
+		}
+	}
 };
 
 /*
@@ -237,7 +253,7 @@ rollup -i src/main.js ... -g jquery:$,underscore:_
 
 To tell Rollup that a local file should be replaced by a global variable, use an absolute id:
 
-```js
+```js twoslash
 // rollup.config.js
 import { fileURLToPath } from 'node:url';
 const externalId = fileURLToPath(
@@ -247,6 +263,9 @@ const externalId = fileURLToPath(
 	)
 );
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	//...,
 	external: [externalId],
@@ -269,15 +288,18 @@ export default {
 
 Necessary for `iife`/`umd` bundles that exports values in which case it is the global variable name representing your bundle. Other scripts on the same page can use this variable name to access the exports of your bundle.
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  output: {
-    file: 'bundle.js',
-    format: 'iife',
-    name: 'MyBundle'
-  }
+	// ...
+	output: {
+		file: 'bundle.js',
+		format: 'iife',
+		name: 'MyBundle'
+	}
 };
 
 // var MyBundle = (function () {...
@@ -307,10 +329,13 @@ Not every plugin can be used here. `output.plugins` is limited to plugins that o
 
 The following will add minification to one of the outputs:
 
-```js
+```js twoslash
 // rollup.config.js
 import terser from '@rollup/plugin-terser';
 
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'main.js',
 	output: [
@@ -335,13 +360,16 @@ export default {
 
 See [Using plugins](../tutorial/index.md#using-plugins) for more information on how to use plugins and [Plugins](../plugin-development/index.md) on how to write your own (try it out, it's not as difficult as it may sound and very much extends what you can do with Rollup). For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins. Nested plugins will be flattened. Async plugins will be awaited and resolved.
 
-```js
+```js twoslash
 // rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+// ---cut-start---
+/** @type {Promise<import('rollup').RollupOptions>} */
+// ---cut-end---
 export default (async () => ({
 	input: 'main.js',
 	plugins: [
@@ -369,8 +397,11 @@ export default (async () => ({
 
 The `cache` property of a previous bundle. Use it to speed up subsequent builds in watch mode — Rollup will only reanalyse the modules that have changed. Setting this option explicitly to `false` will prevent generating the `cache` property on the bundle and also deactivate caching for plugins.
 
-```js
+```js twoslash
 const rollup = require('rollup');
+// ---cut-start---
+/** @type {import('rollup').RollupCache | undefined} */
+// ---cut-end---
 let cache;
 
 async function buildWithCache() {
@@ -481,8 +512,11 @@ The function receives three arguments: the log level, the log object and the def
 
 If the default handler is not invoked, the log will not be printed to the console. Moreover, you can change the log level by invoking the default handler with a different level. Using the additional level `"error"` will turn the log into a thrown error that has all properties of the log attached.
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	//...
 	onLog(level, log, handler) {
@@ -502,8 +536,11 @@ This handler will not be invoked if logs are filtered out by the [`logLevel`](#l
 
 Some logs also have a `loc` property and a `frame` allowing you to locate the source of the log:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	//...
 	onLog(level, { loc, frame, message }) {
@@ -560,15 +597,18 @@ If you supply a function, `chunk` contains additional information about the chun
 
 `chunk` is mutable and changes applied in this hook will propagate to other plugins and to the generated bundle. That means if you add or remove imports or exports in this hook, you should update `imports`, `importedBindings` and/or `exports`.
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  output: {
-    ...,
-    banner: '/* my-library version ' + version + ' */',
-    footer: '/* follow me on Twitter! @rich_harris */'
-  }
+	// ...
+	output: {
+		// ...
+		banner: '/* my-library version ' + version + ' */',
+		footer: '/* follow me on Twitter! @rich_harris */'
+	}
 };
 ```
 
@@ -610,7 +650,7 @@ This will minify the wrapper code generated by rollup. Note that this does not a
 
 While CommonJS output originally supported only `require(…)` to import dependencies, recent Node versions also started to support `import(…)`, which is the only way to import ES modules from CommonJS files. If this option is `true`, which is the default, Rollup will keep external dynamic imports as `import(…)` expressions in CommonJS output. Set this to `false` to rewrite dynamic imports using `require(…)` syntax.
 
-```js
+```js twoslash
 // input
 import('external').then(console.log);
 
@@ -721,7 +761,7 @@ Whether to use arrow functions for auto-generated code snippets. Note that in ce
 
 This will use `const` instead of `var` in certain places and helper functions. This will allow Rollup to generate more efficient helpers due to block scoping.
 
-```js
+```js twoslash
 // input
 export * from 'external';
 
@@ -760,7 +800,7 @@ for (const k in external) {
 
 Allows the use of shorthand notation in objects when the property name matches the value.
 
-```javascript
+```javascript twoslash
 // input
 const foo = 1;
 export { foo, foo as bar };
@@ -797,7 +837,10 @@ System.register('bundle', [], function (exports) {
 
 Allows choosing one of the presets listed above while overriding some options.
 
-```js
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	// ...
 	output: {
@@ -919,7 +962,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 
 - `"default"` assumes that the required value should be treated as the default export of the imported module, just like when importing CommonJS from an ES module context in NodeJS. Named imports are supported as well, which are treated as properties of the default import. To create the namespace object, Rollup injects these helpers:
 
-  ```js
+  ```js twoslash
   var external = require('external1');
 
   function _interopNamespaceDefault(e) {
@@ -973,7 +1016,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 
 - `"auto"` combines both `"esModule"` and `"default"` by injecting helpers that contain code that detects at runtime if the required value contains the [`__esModule` property](#output-esmodule). Adding this property is a hack implemented by TypeScript `esModuleInterop`, Babel and other tools to signify that the required value is the namespace of a transpiled ES module.:
 
-  ```js
+  ```js twoslash
   var external = require('external1');
 
   function _interopNamespace(e) {
@@ -1035,7 +1078,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 
 - `compat` is equivalent to `"auto"` except that it uses a slightly different helper for the default export that checks for the presence of a `default` property instead of the `__esModule` property. Except for the rare situation where a CommonJS module exports a property `"default"` that should not be the default export, this often helps to make interop "just work" as it does not rely on idiosyncratic hacks but instead uses duck-typing:
 
-  ```js
+  ```js twoslash
   var external = require('external1');
 
   function _interopNamespaceCompat(e) {
@@ -1131,11 +1174,14 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 
   As an example if all dependencies are CommonJs, the following config will ensure that named imports are only permitted from Node builtins:
 
-  ```js
+  ```js twoslash
   // rollup.config.js
   import builtins from 'builtins';
   const nodeBuiltins = new Set(builtins());
 
+  // ---cut-start---
+  /** @type {import('rollup').RollupOptions} */
+  // ---cut-end---
   export default {
   	// ...
   	output: {
@@ -1164,7 +1210,10 @@ There are some additional options that have an effect on the generated interop c
 
 Similar to [`output.banner/output.footer`](#output-banner-output-footer), except that the code goes _inside_ any format-specific wrapper.
 
-```js
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	//...,
 	output: {
@@ -1196,7 +1245,10 @@ will put all lodash modules into a manual chunk even if you are only using impor
 
 When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
 
-```javascript
+```javascript twoslash
+// ---cut-start---
+/** @type {import('rollup').GetManualChunk} */
+// ---cut-end---
 function manualChunks(id) {
 	if (id.includes('node_modules')) {
 		return 'vendor';
@@ -1228,11 +1280,18 @@ If a lot of such components are used together, this will result in a lot of dyna
 
 The following code will merge all files of the same language that are only used by a single entry point:
 
-```js
+<!-- prettier-ignore-start -->
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').GetManualChunk} */
+// ---cut-end---
 function manualChunks(id, { getModuleInfo }) {
 	const match = /.*\.strings\.(\w+)\.js/.exec(id);
 	if (match) {
 		const language = match[1]; // e.g. "en"
+// ---cut-start---
+		/** @type {string[]} */
+// ---cut-end---
 		const dependentEntryPoints = [];
 
 		// we use a Set here so we handle each module at most once. This
@@ -1240,6 +1299,9 @@ function manualChunks(id, { getModuleInfo }) {
 		const idsToHandle = new Set(getModuleInfo(id).dynamicImporters);
 
 		for (const moduleId of idsToHandle) {
+// ---cut-start---
+			/** @type {import('rollup').ModuleInfo} */
+// ---cut-end---
 			const { isEntry, dynamicImporters, importers } =
 				getModuleInfo(moduleId);
 			if (isEntry || dynamicImporters.length > 0)
@@ -1264,6 +1326,7 @@ function manualChunks(id, { getModuleInfo }) {
 	}
 }
 ```
+<!-- prettier-ignore-end -->
 
 ### output.minifyInternalExports
 
@@ -1336,13 +1399,16 @@ Even though it appears that setting this option to `true` makes the output large
 
 Maps external module IDs to paths. External ids are ids that [cannot be resolved](../troubleshooting/index.md#warning-treating-module-as-external-dependency) or ids explicitly provided by the [`external`](#external) option. Paths supplied by `output.paths` will be used in the generated bundle instead of the module ID, allowing you to, for example, load dependencies from a CDN:
 
-```js
+```js twoslash
 // app.js
 import { selectAll } from 'd3';
 selectAll('p').style('color', 'purple');
 // ...
 
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'app.js',
 	external: ['d3'],
@@ -1426,7 +1492,10 @@ A directory path to input modules that should be stripped away from [`output.dir
 
 For example, given the following configuration:
 
-```javascript
+```javascript twoslash
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: ['src/module.js', `src/another/module.js`],
 	output: [
@@ -1508,8 +1577,11 @@ Forward slashes `/` can be used to place files in sub-directories. When using a 
 
 A predicate to decide whether or not to ignore-list source files in a sourcemap, used to populate the [`x_google_ignoreList` source map extension](https://developer.chrome.com/articles/x-google-ignore-list/). `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
 
-```js
+```js twoslash
 import path from 'node:path';
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main',
 	output: [
@@ -1536,8 +1608,11 @@ When you don't specify this option explicitly, by default it will put all files 
 
 A transformation to apply to each path in a sourcemap. `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
 
-```js
+```js twoslash
 import path from 'node:path';
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	input: 'src/main',
 	output: [
@@ -1702,14 +1777,19 @@ Note `id` can only be used for single-file builds, and cannot be combined with `
 
 An ID to use for AMD/UMD bundles:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  format: 'amd',
-  amd: {
-    id: 'my-bundle'
-  }
+	// ...
+	output: {
+		format: 'amd',
+		amd: {
+			id: 'my-bundle'
+		}
+	}
 };
 
 // -> define('my-bundle', ['dependency'], ...
@@ -1724,14 +1804,19 @@ export default {
 
 Set the ID to the chunk ID (with the '.js' extension removed).
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  format: 'amd',
-  amd: {
-    autoId: true
-  }
+	// ...
+	output: {
+		format: 'amd',
+		amd: {
+			autoId: true
+		}
+	}
 };
 
 // -> define('main', ['dependency'], ...
@@ -1749,15 +1834,20 @@ The path that will be prepended to the auto generated ID. This is useful if the 
 
 Only valid with [`output.amd.autoId`](#output-amd-autoid).
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  format: 'amd',
-  amd: {
-    autoId: true,
-    basePath: 'some/where'
-  }
+	// ...
+	output: {
+		format: 'amd',
+		amd: {
+			autoId: true,
+			basePath: 'some/where'
+		}
+	}
 };
 
 // -> define('some/where/main', ['dependency'], ...
@@ -1773,14 +1863,19 @@ export default {
 
 A function name to use instead of `define`:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  format: 'amd',
-  amd: {
-    define: 'def'
-  }
+	// ...
+	output: {
+		format: 'amd',
+		amd: {
+			define: 'def'
+		}
+	}
 };
 
 // -> def(['dependency'],...
@@ -1796,14 +1891,19 @@ export default {
 
 Add `.js` extension for imports of generated chunks and local AMD modules:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  format: 'amd',
-  amd: {
-    forceJsExtensionForImports: true
-  }
+	// ...
+	output: {
+		format: 'amd',
+		amd: {
+			forceJsExtensionForImports: true
+		}
+	}
 };
 
 // -> define(['./chunk-or-local-file.js', 'dependency', 'third/dependency'],...
@@ -1938,14 +2038,17 @@ Whether to `Object.freeze()` namespace import objects (i.e. `import * as namespa
 
 The indent string to use, for formats that require code to be indented (`amd`, `iife`, `umd`, `system`). Can also be `false` (no indent), or `true` (the default – auto-indent)
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  output: {
-    ...,
-    indent: false
-  }
+	// ...
+	output: {
+		// ...
+		indent: false
+	}
 };
 ```
 
@@ -2217,8 +2320,11 @@ This can not only help with dead code removal, but can also improve JavaScript c
 
 Besides any functions matching that name, any properties on a pure function and any functions returned from a pure functions will also be considered pure functions, and accessing any properties is not checked for side effects.
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	treeshake: {
 		preset: 'smallest',
@@ -2339,7 +2445,10 @@ Note that despite the name, this option does not "add" side effects to modules t
 
 Allows choosing one of the presets listed above while overriding some options.
 
-```js
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
 	treeshake: {
 		preset: 'smallest',
@@ -2526,8 +2635,11 @@ interface WatcherOptions {
 
 Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions[]} */
+// ---cut-end---
 export default [
 	{
 		input: 'main.js',
@@ -2580,13 +2692,16 @@ Whether to clear the screen when a rebuild is triggered.
 
 Prevent files from being watched:
 
-```js
+```js twoslash
 // rollup.config.js
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 export default {
-  ...,
-  watch: {
-    exclude: 'node_modules/**'
-  }
+	// ...
+	watch: {
+		exclude: 'node_modules/**'
+	}
 };
 ```
 
@@ -2599,13 +2714,16 @@ export default {
 
 Limit the file-watching to certain files. Note that this only filters the module graph but does not allow adding additional watch files:
 
-```js
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
 // rollup.config.js
 export default {
-  ...,
-  watch: {
-    include: 'src/**'
-  }
+	// ...
+	watch: {
+		include: 'src/**'
+	}
 };
 ```
 
