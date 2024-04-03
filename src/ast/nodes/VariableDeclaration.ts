@@ -45,6 +45,7 @@ export default class VariableDeclaration extends NodeBase {
 	declare declarations: readonly VariableDeclarator[];
 	declare kind: VariableDeclarationKind;
 	declare type: NodeType.tVariableDeclaration;
+	declare isUsingDeclaration: boolean;
 
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {
@@ -82,8 +83,9 @@ export default class VariableDeclaration extends NodeBase {
 
 	initialise(): void {
 		super.initialise();
+		this.isUsingDeclaration = this.kind === 'await using' || this.kind === 'using';
 		for (const declarator of this.declarations) {
-			declarator.declareDeclarator(this.kind);
+			declarator.declareDeclarator(this.kind, this.isUsingDeclaration);
 		}
 	}
 
@@ -97,6 +99,7 @@ export default class VariableDeclaration extends NodeBase {
 		nodeRenderOptions: NodeRenderOptions = BLANK
 	): void {
 		if (
+			this.isUsingDeclaration ||
 			areAllDeclarationsIncludedAndNotExported(this.declarations, options.exportNamesByVariable)
 		) {
 			for (const declarator of this.declarations) {

@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "4.13.2",
+  "version": "4.14.0",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -130,6 +130,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@rollup/pluginutils": "^5.1.0",
+    "@shikijs/vitepress-twoslash": "^1.2.1",
     "@types/eslint": "^8.56.6",
     "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
