@@ -35,6 +35,23 @@ export function handleError(error: RollupError, recover = false): void {
 		outputLines.push(dim(error.stack?.replace(`${nameSection}${error.message}\n`, '')));
 	}
 
+	// ES2022: Error.prototype.cause is optional
+	if (error.cause) {
+		let cause = error.cause as Error | undefined;
+		const causeErrorLines = [];
+		let indent = '';
+
+		while (cause) {
+			indent += '  ';
+			const message = cause.stack || cause;
+			causeErrorLines.push(...`[cause] ${message}`.split('\n').map(line => indent + line));
+
+			cause = cause.cause as Error | undefined;
+		}
+
+		outputLines.push(dim(causeErrorLines.join('\n')));
+	}
+
 	outputLines.push('', '');
 	stderr(outputLines.join('\n'));
 
