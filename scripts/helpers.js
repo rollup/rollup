@@ -80,13 +80,21 @@ export async function readJson(file) {
  * @param {URL} file
  * @return {Promise<void>}
  */
-export async function lintFile(file) {
+export async function lintTsFile(file) {
 	const eslint = new ESLint({ fix: true });
 	const results = await eslint.lintFiles([fileURLToPath(file)]);
 	await ESLint.outputFixes(results);
 	const formatter = await eslint.loadFormatter('stylish');
 	const resultText = formatter.format(results);
 	console.log(resultText);
+}
+
+/**
+ * @param {URL} file
+ * @return {Promise<void>}
+ */
+export function lintRustFile(file) {
+	return runWithEcho('rustfmt', [fileURLToPath(file)]);
 }
 
 /**

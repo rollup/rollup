@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { AST_NODES } from './ast-types.js';
-import { lintFile } from './helpers.js';
+import { lintTsFile } from './helpers.js';
 
 const childNodeKeysFile = new URL('../src/ast/childNodeKeys.ts', import.meta.url);
 
@@ -30,4 +30,4 @@ export const childNodeKeys: Record<string, string[]> = {
 `;
 
 await writeFile(childNodeKeysFile, childNodeKeys);
-await lintFile(childNodeKeysFile);
+await lintTsFile(childNodeKeysFile);

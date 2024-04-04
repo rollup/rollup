@@ -1,4 +1,4 @@
-import { FIXED_STRINGS } from './convert-ast-strings';
+import FIXED_STRINGS from './convert-ast-strings';
 import type { ReadString } from './getReadStringFunction';
 
 export const ANNOTATION_KEY = '_rollupAnnotations';

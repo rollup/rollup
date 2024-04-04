@@ -11,7 +11,7 @@ import {
 	convertString,
 	INVALID_ANNOTATION_KEY
 } from './astConverterHelpers';
-import { FIXED_STRINGS } from './convert-ast-strings';
+import FIXED_STRINGS from './convert-ast-strings';
 import type { ReadString } from './getReadStringFunction';
 import { error, getRollupError, logParseError } from './logs';
 
