@@ -22,6 +22,7 @@ import BlockStatement from '../BlockStatement';
 import type CallExpression from '../CallExpression';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
+import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
@@ -280,10 +281,10 @@ export default abstract class FunctionBase extends NodeBase {
 	 */
 	onlyFunctionCallUsed(): boolean {
 		let variable: Variable | null = null;
-		if (this.parent.type === 'VariableDeclarator') {
+		if (this.parent.type === NodeType.VariableDeclarator) {
 			variable = (this.parent as VariableDeclarator).id.variable ?? null;
 		}
-		if (this.parent.type === 'ExportDefaultDeclaration') {
+		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
 			variable = (this.parent as ExportDefaultDeclaration).variable;
 		}
 		return variable?.getOnlyFunctionCallUsed() ?? false;
@@ -291,7 +292,8 @@ export default abstract class FunctionBase extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const isIIFE =
-			this.parent.type === 'CallExpression' && (this.parent as CallExpression).callee === this;
+			this.parent.type === NodeType.CallExpression &&
+			(this.parent as CallExpression).callee === this;
 		if ((isIIFE || this.onlyFunctionCallUsed()) && this.allArguments.length > 0) {
 			this.applyFunctionParameterOptimization();
 		}

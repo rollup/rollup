@@ -1,7 +1,7 @@
 import type ChildScope from '../scopes/ChildScope';
 import type ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
-import type * as NodeType from './NodeType';
+import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
 import type { GenericEsTreeNode } from './shared/Node';
 
@@ -17,7 +17,7 @@ export default class FunctionDeclaration extends FunctionNode {
 
 	onlyFunctionCallUsed(): boolean {
 		let isOnlyFunctionCallUsed = true;
-		if (this.parent.type === 'ExportDefaultDeclaration') {
+		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
 			isOnlyFunctionCallUsed &&= (
 				this.parent as ExportDefaultDeclaration
 			).variable.getOnlyFunctionCallUsed();

@@ -7,6 +7,7 @@ import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type CallExpression from '../nodes/CallExpression';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
+import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import type { NodeBase } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
@@ -60,11 +61,11 @@ export default class Variable extends ExpressionEntity {
 	addUsedPlace(usedPlace: NodeBase): void {
 		this.usedTimes++;
 		const isFunctionCall =
-			usedPlace.parent.type === 'CallExpression' &&
+			usedPlace.parent.type === NodeType.CallExpression &&
 			(usedPlace.parent as CallExpression).callee === usedPlace;
 		if (!isFunctionCall) {
 			this.onlyFunctionCallUsed = false;
-			if (this.usedTimes == 1 && usedPlace.parent.type === 'ExportDefaultDeclaration') {
+			if (this.usedTimes == 1 && usedPlace.parent.type === NodeType.ExportDefaultDeclaration) {
 				this.exportDefaultVariable = (usedPlace.parent as ExportDefaultDeclaration).variable;
 			}
 		}
