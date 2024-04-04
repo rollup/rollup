@@ -5,7 +5,7 @@ import type * as estree from 'estree';
 import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
 import { convertNode as convertJsonNode } from '../utils/bufferToAst';
-import { FIXED_STRINGS } from '../utils/convert-ast-strings';
+import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
 import getReadStringFunction from '../utils/getReadStringFunction';
 import ArrayExpression from './nodes/ArrayExpression';

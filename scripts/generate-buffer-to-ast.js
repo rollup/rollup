@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.js';
-import { firstLetterLowercase, lintFile } from './helpers.js';
+import { firstLetterLowercase, lintTsFile } from './helpers.js';
 
 const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url);
 
@@ -190,7 +190,7 @@ import {
   convertString,
   INVALID_ANNOTATION_KEY
 } from './astConverterHelpers';
-import { FIXED_STRINGS } from './convert-ast-strings';
+import FIXED_STRINGS from './convert-ast-strings';
 import type { ReadString } from './getReadStringFunction';
 import { error, getRollupError, logParseError } from './logs';
 
@@ -239,4 +239,4 @@ function convertNodeList(position: number, buffer: Uint32Array, readString: Read
 `;
 
 await writeFile(bufferToJsAstFile, bufferToJsAst);
-await lintFile(bufferToJsAstFile);
+await lintTsFile(bufferToJsAstFile);

@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.js';
 import { getNode } from './generate-buffer-to-ast.js';
-import { firstLetterLowercase, lintFile } from './helpers.js';
+import { firstLetterLowercase, lintTsFile } from './helpers.js';
 
 const bufferParsersFile = new URL('../src/ast/bufferParsers.ts', import.meta.url);
 
@@ -187,7 +187,7 @@ import type * as estree from 'estree';
 import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
 import { convertNode as convertJsonNode } from '../utils/bufferToAst';
-import { FIXED_STRINGS } from '../utils/convert-ast-strings';
+import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
 import getReadStringFunction from '../utils/getReadStringFunction';
 ${nodeTypeImports.join('\n')}
@@ -253,4 +253,4 @@ function convertNodeList(parent: Node | { context: AstContext; type: string }, p
 `;
 
 await writeFile(bufferParsersFile, bufferParsers);
-await lintFile(bufferParsersFile);
+await lintTsFile(bufferParsersFile);
