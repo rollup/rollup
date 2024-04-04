@@ -1,7 +1,6 @@
 import { writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.js';
-import { runWithEcho, toScreamingSnakeCase } from './helpers.js';
+import { lintRustFile, toScreamingSnakeCase } from './helpers.js';
 
 const BYTES_PER_U32 = 4;
 
@@ -79,4 +78,4 @@ ${reservedBytesAndOffsets}
 `;
 
 await writeFile(astConstantsFile, astConstants);
-await runWithEcho('rustfmt', [fileURLToPath(astConstantsFile)]);
+await lintRustFile(astConstantsFile);
