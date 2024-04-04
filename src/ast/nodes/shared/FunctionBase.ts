@@ -276,30 +276,23 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	/**
-	 * If the function is assigned/bound/... to some identifier declaration,
-	 * getDeclarationVariable will return the Variable entity of that declaration.
-	 * It can be used to track if all usages of this function are only function calls.
-	 * While there are methods like deoptimizePath,
-	 * this one can make sure 100% of usages are function calls.
-	 * @returns the Variable entity of the declaration
+	 * If the function (expression or declaration) is only used as function calls
 	 */
-	getDeclarationVariable(): Variable | null {
+	onlyFunctionCallUsed(): boolean {
+		let variable: Variable | null = null;
 		if (this.parent.type === 'VariableDeclarator') {
-			return (this.parent as VariableDeclarator).id.variable ?? null;
+			variable = (this.parent as VariableDeclarator).id.variable ?? null;
 		}
 		if (this.parent.type === 'ExportDefaultDeclaration') {
-			return (this.parent as ExportDefaultDeclaration).variable;
+			variable = (this.parent as ExportDefaultDeclaration).variable;
 		}
-		return null;
+		return variable?.getOnlyFunctionCallUsed() ?? false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const isIIFE =
 			this.parent.type === 'CallExpression' && (this.parent as CallExpression).callee === this;
-		if (
-			(isIIFE || this.getDeclarationVariable()?.getOnlyFunctionCallUsed()) &&
-			this.allArguments.length > 0
-		) {
+		if ((isIIFE || this.onlyFunctionCallUsed()) && this.allArguments.length > 0) {
 			this.applyFunctionParameterOptimization();
 		}
 		if (!this.deoptimized) this.applyDeoptimizations();

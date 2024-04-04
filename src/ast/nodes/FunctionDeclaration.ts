@@ -1,5 +1,5 @@
 import type ChildScope from '../scopes/ChildScope';
-import type Variable from '../variables/Variable';
+import type ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -15,8 +15,16 @@ export default class FunctionDeclaration extends FunctionNode {
 		}
 	}
 
-	getDeclarationVariable(): Variable | null {
-		return super.getDeclarationVariable() ?? this.id?.variable ?? null;
+	onlyFunctionCallUsed(): boolean {
+		let isOnlyFunctionCallUsed = true;
+		if (this.parent.type === 'ExportDefaultDeclaration') {
+			isOnlyFunctionCallUsed &&= (
+				this.parent as ExportDefaultDeclaration
+			).variable.getOnlyFunctionCallUsed();
+		}
+		// if no id, it cannot be accessed from the same module
+		isOnlyFunctionCallUsed &&= this.id?.variable.getOnlyFunctionCallUsed() ?? true;
+		return isOnlyFunctionCallUsed;
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
