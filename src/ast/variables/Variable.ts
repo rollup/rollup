@@ -38,20 +38,18 @@ export default class Variable extends ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier): void {}
 
-	private usedTimes = 0;
-	private exportDefaultVariable: Variable | null = null;
+	private exportDefaultVariables: Variable[] = [];
 	private onlyFunctionCallUsed = true;
-
 	/**
 	 * Check if the identifier variable is only used as function call
 	 * Forward the check to the export default variable if it is only used once
 	 * @returns true if the variable is only used as function call
 	 */
-
 	getOnlyFunctionCallUsed(): boolean {
-		if (this.usedTimes === 1 && this.exportDefaultVariable)
-			return this.exportDefaultVariable.getOnlyFunctionCallUsed();
-		return this.onlyFunctionCallUsed;
+		return (
+			this.onlyFunctionCallUsed &&
+			this.exportDefaultVariables.every(variable => variable.getOnlyFunctionCallUsed())
+		);
 	}
 
 	/**
@@ -59,14 +57,14 @@ export default class Variable extends ExpressionEntity {
 	 * @param usedPlace Where the variable is used
 	 */
 	addUsedPlace(usedPlace: NodeBase): void {
-		this.usedTimes++;
 		const isFunctionCall =
 			usedPlace.parent.type === NodeType.CallExpression &&
 			(usedPlace.parent as CallExpression).callee === usedPlace;
 		if (!isFunctionCall) {
-			this.onlyFunctionCallUsed = false;
-			if (this.usedTimes == 1 && usedPlace.parent.type === NodeType.ExportDefaultDeclaration) {
-				this.exportDefaultVariable = (usedPlace.parent as ExportDefaultDeclaration).variable;
+			if (usedPlace.parent.type === NodeType.ExportDefaultDeclaration) {
+				this.exportDefaultVariables.push((usedPlace.parent as ExportDefaultDeclaration).variable);
+			} else {
+				this.onlyFunctionCallUsed = false;
 			}
 		}
 	}
