@@ -172,7 +172,8 @@ impl<'a> AstConverter<'a> {
   }
 
   // TODO SWC deduplicate strings and see if we can easily compare atoms
-  fn convert_string(&mut self, string: &str) {
+  fn convert_string(&mut self, string: &str, reference_position: usize) {
+    self.update_reference_position(reference_position);
     convert_string(&mut self.buffer, string);
   }
 
@@ -1531,8 +1532,7 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // directive
-    self.update_reference_position(end_position + DIRECTIVE_DIRECTIVE_OFFSET);
-    self.convert_string(directive);
+    self.convert_string(directive, end_position + DIRECTIVE_DIRECTIVE_OFFSET);
     // expression
     self.update_reference_position(end_position + DIRECTIVE_EXPRESSION_OFFSET);
     self.convert_expression(&expression_statement.expr);
@@ -1854,8 +1854,7 @@ impl<'a> AstConverter<'a> {
     let end_position =
       self.add_type_and_explicit_start(&TYPE_IDENTIFIER, start, IDENTIFIER_RESERVED_BYTES);
     // name
-    self.update_reference_position(end_position + IDENTIFIER_NAME_OFFSET);
-    self.convert_string(name);
+    self.convert_string(name, end_position + IDENTIFIER_NAME_OFFSET);
     // end
     self.add_explicit_end(end_position, end);
   }
@@ -2046,11 +2045,15 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // bigint
-    self.update_reference_position(end_position + LITERAL_BIG_INT_BIGINT_OFFSET);
-    self.convert_string(&bigint.value.to_str_radix(10));
+    self.convert_string(
+      &bigint.value.to_str_radix(10),
+      end_position + LITERAL_BIG_INT_BIGINT_OFFSET,
+    );
     // raw
-    self.update_reference_position(end_position + LITERAL_BIG_INT_RAW_OFFSET);
-    self.convert_string(bigint.raw.as_ref().unwrap());
+    self.convert_string(
+      bigint.raw.as_ref().unwrap(),
+      end_position + LITERAL_BIG_INT_RAW_OFFSET,
+    );
     // end
     self.add_end(end_position, &bigint.span);
   }
@@ -2094,8 +2097,7 @@ impl<'a> AstConverter<'a> {
     self.buffer[value_position..value_position + 8].copy_from_slice(&literal.value.to_le_bytes());
     // raw
     if let Some(raw) = literal.raw.as_ref() {
-      self.update_reference_position(end_position + LITERAL_NUMBER_RAW_OFFSET);
-      self.convert_string(raw);
+      self.convert_string(raw, end_position + LITERAL_NUMBER_RAW_OFFSET);
     }
     // end
     self.add_end(end_position, &literal.span);
@@ -2109,11 +2111,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    self.update_reference_position(end_position + LITERAL_REG_EXP_FLAGS_OFFSET);
-    self.convert_string(&regex.flags);
+    self.convert_string(&regex.flags, end_position + LITERAL_REG_EXP_FLAGS_OFFSET);
     // pattern
-    self.update_reference_position(end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
-    self.convert_string(&regex.exp);
+    self.convert_string(&regex.exp, end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
     // end
     self.add_end(end_position, &regex.span);
   }
@@ -2126,12 +2126,10 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // value
-    self.update_reference_position(end_position + LITERAL_STRING_VALUE_OFFSET);
-    self.convert_string(&literal.value);
+    self.convert_string(&literal.value, end_position + LITERAL_STRING_VALUE_OFFSET);
     // raw
     if let Some(raw) = literal.raw.as_ref() {
-      self.update_reference_position(end_position + LITERAL_STRING_RAW_OFFSET);
-      self.convert_string(raw);
+      self.convert_string(raw, end_position + LITERAL_STRING_RAW_OFFSET);
     }
     // end
     self.add_end(end_position, &literal.span);
@@ -2439,8 +2437,10 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // name
-    self.update_reference_position(end_position + PRIVATE_IDENTIFIER_NAME_OFFSET);
-    self.convert_string(&private_name.id.sym);
+    self.convert_string(
+      &private_name.id.sym,
+      end_position + PRIVATE_IDENTIFIER_NAME_OFFSET,
+    );
     // end
     self.add_end(end_position, &private_name.span);
   }
@@ -2900,12 +2900,13 @@ impl<'a> AstConverter<'a> {
     let flags_position = end_position + TEMPLATE_ELEMENT_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // raw
-    self.update_reference_position(end_position + TEMPLATE_ELEMENT_RAW_OFFSET);
-    self.convert_string(&template_element.raw);
+    self.convert_string(
+      &template_element.raw,
+      end_position + TEMPLATE_ELEMENT_RAW_OFFSET,
+    );
     // cooked
     if let Some(cooked) = template_element.cooked.as_ref() {
-      self.update_reference_position(end_position + TEMPLATE_ELEMENT_COOKED_OFFSET);
-      self.convert_string(cooked);
+      self.convert_string(cooked, end_position + TEMPLATE_ELEMENT_COOKED_OFFSET);
     }
     // end
     self.add_end(end_position, &template_element.span);
