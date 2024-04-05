@@ -215,19 +215,17 @@ export default abstract class FunctionBase extends NodeBase {
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
 		const { body, params } = esTreeNode;
-		const parameters: typeof this.params = (this.params = []);
 		const { scope } = this;
 		const { bodyScope, context } = scope;
 		// We need to ensure that parameters are declared before the body is parsed
 		// so that the scope already knows all parameters and can detect conflicts
 		// when parsing the body.
-		for (const parameter of params) {
-			parameters.push(
+		const parameters: typeof this.params = (this.params = params.map(
+			(parameter: GenericEsTreeNode) =>
 				new (context.getNodeConstructor(parameter.type))(this, scope).parseNode(
 					parameter
 				) as unknown as PatternNode
-			);
-		}
+		));
 		scope.addParameterVariables(
 			parameters.map(
 				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]

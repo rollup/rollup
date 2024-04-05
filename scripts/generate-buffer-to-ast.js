@@ -168,6 +168,7 @@ import {
   convertString,
   INVALID_ANNOTATION_KEY
 } from './astConverterHelpers';
+import { EMPTY_ARRAY } from '../utils/blank';
 import FIXED_STRINGS from './convert-ast-strings';
 import type { ReadString } from './getReadStringFunction';
 import { error, getRollupError, logParseError } from './logs';
@@ -206,6 +207,7 @@ export function convertNode(position: number, buffer: Uint32Array, readString: R
 }
 
 function convertNodeList(position: number, buffer: Uint32Array, readString: ReadString): any[] {
+  if (position === 0) return EMPTY_ARRAY as never[];
   const length = buffer[position++];
   const list: any[] = [];
   for (let index = 0; index < length; index++) {

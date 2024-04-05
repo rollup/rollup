@@ -4,6 +4,7 @@
 import type * as estree from 'estree';
 import { PanicError, ParseError } from '../ast/nodes/NodeType';
 import type { RollupAstNode } from '../rollup/types';
+import { EMPTY_ARRAY } from '../utils/blank';
 import type { RollupAnnotation } from './astConverterHelpers';
 import {
 	ANNOTATION_KEY,
@@ -1264,6 +1265,7 @@ export function convertNode(position: number, buffer: Uint32Array, readString: R
 }
 
 function convertNodeList(position: number, buffer: Uint32Array, readString: ReadString): any[] {
+	if (position === 0) return EMPTY_ARRAY as never[];
 	const length = buffer[position++];
 	const list: any[] = [];
 	for (let index = 0; index < length; index++) {

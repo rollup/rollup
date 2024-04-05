@@ -158,19 +158,22 @@ export const AST_NODES = {
 	ClassBody: {
 		fields: [['body', 'NodeList']],
 		scriptedFields: {
-			body: `const length = buffer[$position];
+			body: ` const bodyPosition = $position;
         const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
-        for (let index = 0; index < length; index++) {
-          const nodePosition = buffer[$position + 1 + index];
-          body.push(
-            convertNode(
-              node,
-              (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-              nodePosition,
-              buffer,
-              readString
-            )
-          );
+			  if (bodyPosition) {
+			    const length = buffer[bodyPosition];
+          for (let index = 0; index < length; index++) {
+            const nodePosition = buffer[bodyPosition + 1 + index];
+            body.push(
+              convertNode(
+                node,
+                (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+                nodePosition,
+                buffer,
+                readString
+              )
+            );
+          }
         }`
 		}
 	},

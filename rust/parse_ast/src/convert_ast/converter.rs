@@ -88,7 +88,7 @@ impl<'a> AstConverter<'a> {
     // start
     self
       .buffer
-      .extend_from_slice(&(self.index_converter.convert(start, false)).to_ne_bytes());
+      .extend_from_slice(&self.index_converter.convert(start, false).to_ne_bytes());
     // end
     let end_position = self.buffer.len();
     // reserved bytes
@@ -97,19 +97,28 @@ impl<'a> AstConverter<'a> {
   }
 
   fn add_end(&mut self, end_position: usize, span: &Span) {
-    self.buffer[end_position..end_position + 4]
-      .copy_from_slice(&(self.index_converter.convert(span.hi.0 - 1, false)).to_ne_bytes());
+    self.buffer[end_position..end_position + 4].copy_from_slice(
+      &self
+        .index_converter
+        .convert(span.hi.0 - 1, false)
+        .to_ne_bytes(),
+    );
   }
 
   fn add_explicit_end(&mut self, end_position: usize, end: u32) {
     self.buffer[end_position..end_position + 4]
-      .copy_from_slice(&(self.index_converter.convert(end, false)).to_ne_bytes());
+      .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
 
-  fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
+  fn convert_item_list<T, F>(&mut self, item_list: &[T], reference_position: usize, convert_item: F)
   where
     F: Fn(&mut AstConverter, &T) -> bool,
   {
+    // for an empty list, we leave the referenced position at zero
+    if item_list.is_empty() {
+      return;
+    }
+    self.update_reference_position(reference_position);
     // store number of items in first position
     self
       .buffer
@@ -580,19 +589,23 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  fn store_import_attributes(&mut self, with: &Option<Box<ObjectLit>>) {
+  fn store_import_attributes(&mut self, with: &Option<Box<ObjectLit>>, reference_position: usize) {
     match with {
       Some(ref with) => {
-        self.convert_item_list(&with.props, |ast_converter, prop| match prop {
-          PropOrSpread::Prop(prop) => match &**prop {
-            Prop::KeyValue(key_value_property) => {
-              ast_converter.convert_import_attribute(key_value_property);
-              true
-            }
-            _ => panic!("Non key-value property in import declaration attributes"),
+        self.convert_item_list(
+          &with.props,
+          reference_position,
+          |ast_converter, prop| match prop {
+            PropOrSpread::Prop(prop) => match &**prop {
+              Prop::KeyValue(key_value_property) => {
+                ast_converter.convert_import_attribute(key_value_property);
+                true
+              }
+              _ => panic!("Non key-value property in import declaration attributes"),
+            },
+            PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
           },
-          PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
-        });
+        );
       }
       None => self.buffer.resize(self.buffer.len() + 4, 0),
     }
@@ -1018,9 +1031,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // elements
-    self.update_reference_position(end_position + ARRAY_EXPRESSION_ELEMENTS_OFFSET);
     self.convert_item_list(
       &array_literal.elems,
+      end_position + ARRAY_EXPRESSION_ELEMENTS_OFFSET,
       |ast_converter, element| match element {
         Some(element) => {
           ast_converter.convert_expression_or_spread(element);
@@ -1041,9 +1054,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // elements
-    self.update_reference_position(end_position + ARRAY_PATTERN_ELEMENTS_OFFSET);
     self.convert_item_list(
       &array_pattern.elems,
+      end_position + ARRAY_PATTERN_ELEMENTS_OFFSET,
       |ast_converter, element| match element {
         Some(element) => {
           ast_converter.convert_pattern(element);
@@ -1068,11 +1081,14 @@ impl<'a> AstConverter<'a> {
       .index_converter
       .take_collected_annotations(AnnotationKind::NoSideEffects);
     if !annotations.is_empty() {
-      self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET);
-      self.convert_item_list(&annotations, |ast_converter, annotation| {
-        convert_annotation(&mut ast_converter.buffer, annotation);
-        true
-      });
+      self.convert_item_list(
+        &annotations,
+        end_position + ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
     }
     // flags
     let mut flags = if arrow_expression.is_async {
@@ -1089,11 +1105,14 @@ impl<'a> AstConverter<'a> {
     let flags_position = end_position + ARROW_FUNCTION_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // params
-    self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET);
-    self.convert_item_list(&arrow_expression.params, |ast_converter, param| {
-      ast_converter.convert_pattern(param);
-      true
-    });
+    self.convert_item_list(
+      &arrow_expression.params,
+      end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET,
+      |ast_converter, param| {
+        ast_converter.convert_pattern(param);
+        true
+      },
+    );
     // body
     self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_BODY_OFFSET);
     match &*arrow_expression.body {
@@ -1309,11 +1328,14 @@ impl<'a> AstConverter<'a> {
       .index_converter
       .take_collected_annotations(AnnotationKind::Pure);
     if !annotations.is_empty() {
-      self.update_reference_position(end_position + CALL_EXPRESSION_ANNOTATIONS_OFFSET);
-      self.convert_item_list(&annotations, |ast_converter, annotation| {
-        convert_annotation(&mut ast_converter.buffer, annotation);
-        true
-      });
+      self.convert_item_list(
+        &annotations,
+        end_position + CALL_EXPRESSION_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
     }
     // flags
     let flags = if is_optional {
@@ -1341,11 +1363,14 @@ impl<'a> AstConverter<'a> {
       StoredCallee::Super(callee_super) => self.convert_super(callee_super),
     }
     // arguments
-    self.update_reference_position(end_position + CALL_EXPRESSION_ARGUMENTS_OFFSET);
-    self.convert_item_list(arguments, |ast_converter, argument| {
-      ast_converter.convert_expression_or_spread(argument);
-      true
-    });
+    self.convert_item_list(
+      arguments,
+      end_position + CALL_EXPRESSION_ARGUMENTS_OFFSET,
+      |ast_converter, argument| {
+        ast_converter.convert_expression_or_spread(argument);
+        true
+      },
+    );
     // end
     self.add_end(end_position, span);
   }
@@ -1405,11 +1430,14 @@ impl<'a> AstConverter<'a> {
       .filter(|class_member| !matches!(class_member, ClassMember::Empty(_)))
       .collect();
     // body
-    self.update_reference_position(end_position + CLASS_BODY_BODY_OFFSET);
-    self.convert_item_list(&class_members_filtered, |ast_converter, class_member| {
-      ast_converter.convert_class_member(class_member);
-      true
-    });
+    self.convert_item_list(
+      &class_members_filtered,
+      end_position + CLASS_BODY_BODY_OFFSET,
+      |ast_converter, class_member| {
+        ast_converter.convert_class_member(class_member);
+        true
+      },
+    );
     // end
     self.add_explicit_end(end_position, end);
   }
@@ -1555,8 +1583,10 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + EXPORT_ALL_DECLARATION_SOURCE_OFFSET);
     self.convert_literal_string(source);
     // attributes
-    self.update_reference_position(end_position + EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET);
-    self.store_import_attributes(attributes);
+    self.store_import_attributes(
+      attributes,
+      end_position + EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET,
+    );
     // end
     self.add_end(end_position, span);
   }
@@ -1614,11 +1644,14 @@ impl<'a> AstConverter<'a> {
       },
     );
     // specifiers
-    self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET);
-    self.convert_item_list(specifiers, |ast_converter, specifier| {
-      ast_converter.convert_export_specifier(specifier);
-      true
-    });
+    self.convert_item_list(
+      specifiers,
+      end_position + EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET,
+      |ast_converter, specifier| {
+        ast_converter.convert_export_specifier(specifier);
+        true
+      },
+    );
     // declaration
     if let Some(declaration) = declaration {
       self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET);
@@ -1630,8 +1663,10 @@ impl<'a> AstConverter<'a> {
       self.convert_literal_string(src);
     }
     // attributes
-    self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET);
-    self.store_import_attributes(with);
+    self.store_import_attributes(
+      with,
+      end_position + EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET,
+    );
     // end
     self.add_end(end_position, span);
   }
@@ -1778,11 +1813,14 @@ impl<'a> AstConverter<'a> {
         .index_converter
         .take_collected_annotations(AnnotationKind::NoSideEffects);
       if !annotations.is_empty() {
-        self.update_reference_position(end_position + FUNCTION_DECLARATION_ANNOTATIONS_OFFSET);
-        self.convert_item_list(&annotations, |ast_converter, annotation| {
-          convert_annotation(&mut ast_converter.buffer, annotation);
-          true
-        });
+        self.convert_item_list(
+          &annotations,
+          end_position + FUNCTION_DECLARATION_ANNOTATIONS_OFFSET,
+          |ast_converter, annotation| {
+            convert_annotation(&mut ast_converter.buffer, annotation);
+            true
+          },
+        );
       }
     }
     // id
@@ -1791,11 +1829,14 @@ impl<'a> AstConverter<'a> {
       self.convert_identifier(ident);
     }
     // params
-    self.update_reference_position(end_position + FUNCTION_DECLARATION_PARAMS_OFFSET);
-    self.convert_item_list(parameters, |ast_converter, param| {
-      ast_converter.convert_pattern(param);
-      true
-    });
+    self.convert_item_list(
+      parameters,
+      end_position + FUNCTION_DECLARATION_PARAMS_OFFSET,
+      |ast_converter, param| {
+        ast_converter.convert_pattern(param);
+        true
+      },
+    );
     // body
     self.update_reference_position(end_position + FUNCTION_DECLARATION_BODY_OFFSET);
     self.convert_block_statement(body, true);
@@ -1882,9 +1923,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // specifiers
-    self.update_reference_position(end_position + IMPORT_DECLARATION_SPECIFIERS_OFFSET);
     self.convert_item_list(
       &import_declaration.specifiers,
+      end_position + IMPORT_DECLARATION_SPECIFIERS_OFFSET,
       |ast_converter, import_specifier| {
         ast_converter.convert_import_specifier(import_specifier);
         true
@@ -1894,8 +1935,10 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + IMPORT_DECLARATION_SOURCE_OFFSET);
     self.convert_literal_string(&import_declaration.src);
     // attributes
-    self.update_reference_position(end_position + IMPORT_DECLARATION_ATTRIBUTES_OFFSET);
-    self.store_import_attributes(&import_declaration.with);
+    self.store_import_attributes(
+      &import_declaration.with,
+      end_position + IMPORT_DECLARATION_ATTRIBUTES_OFFSET,
+    );
     // end
     self.add_end(end_position, &import_declaration.span);
   }
@@ -2314,22 +2357,25 @@ impl<'a> AstConverter<'a> {
       .index_converter
       .take_collected_annotations(AnnotationKind::Pure);
     if !annotations.is_empty() {
-      self.update_reference_position(end_position + NEW_EXPRESSION_ANNOTATIONS_OFFSET);
-      self.convert_item_list(&annotations, |ast_converter, annotation| {
-        convert_annotation(&mut ast_converter.buffer, annotation);
-        true
-      });
+      self.convert_item_list(
+        &annotations,
+        end_position + NEW_EXPRESSION_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
     }
     // callee
     self.update_reference_position(end_position + NEW_EXPRESSION_CALLEE_OFFSET);
     self.convert_expression(&new_expression.callee);
     // arguments
-    self.update_reference_position(end_position + NEW_EXPRESSION_ARGUMENTS_OFFSET);
     self.convert_item_list(
       match &new_expression.args {
         Some(arguments) => arguments,
         None => &[],
       },
+      end_position + NEW_EXPRESSION_ARGUMENTS_OFFSET,
       |ast_converter, expression_or_spread| {
         ast_converter.convert_expression_or_spread(expression_or_spread);
         true
@@ -2347,9 +2393,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // properties
-    self.update_reference_position(end_position + OBJECT_EXPRESSION_PROPERTIES_OFFSET);
     self.convert_item_list(
       &object_literal.props,
+      end_position + OBJECT_EXPRESSION_PROPERTIES_OFFSET,
       |ast_converter, property_or_spread| {
         ast_converter.convert_property_or_spread(property_or_spread);
         true
@@ -2367,9 +2413,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // properties
-    self.update_reference_position(end_position + OBJECT_PATTERN_PROPERTIES_OFFSET);
     self.convert_item_list(
       &object_pattern.props,
+      end_position + OBJECT_PATTERN_PROPERTIES_OFFSET,
       |ast_converter, object_pattern_property| {
         ast_converter.convert_object_pattern_property(object_pattern_property);
         true
@@ -2446,11 +2492,14 @@ impl<'a> AstConverter<'a> {
     self.index_converter.invalidate_collected_annotations();
     let invalid_annotations = self.index_converter.take_invalid_annotations();
     if !invalid_annotations.is_empty() {
-      self.update_reference_position(end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET);
-      self.convert_item_list(&invalid_annotations, |ast_converter, annotation| {
-        convert_annotation(&mut ast_converter.buffer, annotation);
-        true
-      });
+      self.convert_item_list(
+        &invalid_annotations,
+        end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
     }
   }
 
@@ -2702,11 +2751,14 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // expressions
-    self.update_reference_position(end_position + SEQUENCE_EXPRESSION_EXPRESSIONS_OFFSET);
-    self.convert_item_list(&sequence_expression.exprs, |ast_converter, expression| {
-      ast_converter.convert_expression(expression);
-      true
-    });
+    self.convert_item_list(
+      &sequence_expression.exprs,
+      end_position + SEQUENCE_EXPRESSION_EXPRESSIONS_OFFSET,
+      |ast_converter, expression| {
+        ast_converter.convert_expression(expression);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &sequence_expression.span);
   }
@@ -2737,11 +2789,14 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // body
-    self.update_reference_position(end_position + STATIC_BLOCK_BODY_OFFSET);
-    self.convert_item_list(&static_block.body.stmts, |ast_converter, statement| {
-      ast_converter.convert_statement(statement);
-      true
-    });
+    self.convert_item_list(
+      &static_block.body.stmts,
+      end_position + STATIC_BLOCK_BODY_OFFSET,
+      |ast_converter, statement| {
+        ast_converter.convert_statement(statement);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &static_block.span);
   }
@@ -2770,11 +2825,14 @@ impl<'a> AstConverter<'a> {
       self.convert_expression(expression)
     });
     // consequent
-    self.update_reference_position(end_position + SWITCH_CASE_CONSEQUENT_OFFSET);
-    self.convert_item_list(&switch_case.cons, |ast_converter, statement| {
-      ast_converter.convert_statement(statement);
-      true
-    });
+    self.convert_item_list(
+      &switch_case.cons,
+      end_position + SWITCH_CASE_CONSEQUENT_OFFSET,
+      |ast_converter, statement| {
+        ast_converter.convert_statement(statement);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &switch_case.span);
   }
@@ -2790,11 +2848,14 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + SWITCH_STATEMENT_DISCRIMINANT_OFFSET);
     self.convert_expression(&switch_statement.discriminant);
     // cases
-    self.update_reference_position(end_position + SWITCH_STATEMENT_CASES_OFFSET);
-    self.convert_item_list(&switch_statement.cases, |ast_converter, switch_case| {
-      ast_converter.convert_switch_case(switch_case);
-      true
-    });
+    self.convert_item_list(
+      &switch_statement.cases,
+      end_position + SWITCH_STATEMENT_CASES_OFFSET,
+      |ast_converter, switch_case| {
+        ast_converter.convert_switch_case(switch_case);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &switch_statement.span);
   }
@@ -3031,11 +3092,14 @@ impl<'a> AstConverter<'a> {
       kind == &STRING_CONST,
     );
     // declarations
-    self.update_reference_position(end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET);
-    self.convert_item_list(decls, |ast_converter, variable_declarator| {
-      ast_converter.convert_variable_declarator(variable_declarator);
-      true
-    });
+    self.convert_item_list(
+      decls,
+      end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
+      |ast_converter, variable_declarator| {
+        ast_converter.convert_variable_declarator(variable_declarator);
+        true
+      },
+    );
     // kind
     let kind_position = end_position + VARIABLE_DECLARATION_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(kind);

@@ -4,6 +4,7 @@
 import type * as estree from 'estree';
 import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
+import { EMPTY_ARRAY } from '../utils/blank';
 import { convertNode as convertJsonNode } from '../utils/bufferToAst';
 import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
@@ -364,19 +365,22 @@ const bufferParsers: ((
 	},
 	function classBody(node: ClassBody, position, buffer, readString) {
 		const { scope } = node;
-		const length = buffer[buffer[position]];
+		const bodyPosition = buffer[position];
 		const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
-		for (let index = 0; index < length; index++) {
-			const nodePosition = buffer[buffer[position] + 1 + index];
-			body.push(
-				convertNode(
-					node,
-					(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-					nodePosition,
-					buffer,
-					readString
-				)
-			);
+		if (bodyPosition) {
+			const length = buffer[bodyPosition];
+			for (let index = 0; index < length; index++) {
+				const nodePosition = buffer[bodyPosition + 1 + index];
+				body.push(
+					convertNode(
+						node,
+						(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+						nodePosition,
+						buffer,
+						readString
+					)
+				);
+			}
 		}
 	},
 	function classDeclaration(node: ClassDeclaration, position, buffer, readString) {
@@ -859,6 +863,7 @@ function convertNodeList(
 	buffer: Uint32Array,
 	readString: ReadString
 ): any[] {
+	if (position === 0) return EMPTY_ARRAY as never[];
 	const length = buffer[position++];
 	const list: any[] = [];
 	for (let index = 0; index < length; index++) {
