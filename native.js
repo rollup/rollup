@@ -35,36 +35,6 @@ const msvcLinkFilenameByArch = {
 };
 
 const packageBase = getPackageBase();
-
-if (!packageBase) {
-	throw new Error(
-		`Your current platform "${platform}" and architecture "${arch}" combination is not yet supported by the native Rollup build. Please use the WASM build "@rollup/wasm-node" instead.
-
-The following platform-architecture combinations are supported:
-${Object.entries(bindingsByPlatformAndArch)
-	.flatMap(([platformName, architectures]) =>
-		Object.entries(architectures).flatMap(([architectureName, { musl }]) => {
-			const name = `${platformName}-${architectureName}`;
-			return musl ? [name, `${name} (musl)`] : [name];
-		})
-	)
-	.join('\n')}
-
-If this is important to you, please consider supporting Rollup to make a native build for your platform and architecture available.`
-	);
-}
-
-function getPackageBase() {
-	const imported = bindingsByPlatformAndArch[platform]?.[arch];
-	if (!imported) {
-		return null;
-	}
-	if ('musl' in imported && isMusl()) {
-		return imported.musl;
-	}
-	return imported.base;
-}
-
 const localName = `./rollup.${packageBase}.node`;
 const requireWithFriendlyError = id => {
 	try {
@@ -98,6 +68,35 @@ const requireWithFriendlyError = id => {
 const { parse, parseAsync, xxhashBase64Url, xxhashBase36, xxhashBase16 } = requireWithFriendlyError(
 	existsSync(join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
+
+function getPackageBase() {
+	const imported = bindingsByPlatformAndArch[platform]?.[arch];
+	if (!imported) {
+		throwUnsupportedError(false);
+	}
+	if ('musl' in imported && isMusl()) {
+		return imported.musl || throwUnsupportedError(true);
+	}
+	return imported.base;
+}
+
+function throwUnsupportedError(isMusl) {
+	throw new Error(
+		`Your current platform "${platform}${isMusl ? ' (musl)' : ''}" and architecture "${arch}" combination is not yet supported by the native Rollup build. Please use the WASM build "@rollup/wasm-node" instead.
+
+The following platform-architecture combinations are supported:
+${Object.entries(bindingsByPlatformAndArch)
+	.flatMap(([platformName, architectures]) =>
+		Object.entries(architectures).flatMap(([architectureName, { musl }]) => {
+			const name = `${platformName}-${architectureName}`;
+			return musl ? [name, `${name} (musl)`] : [name];
+		})
+	)
+	.join('\n')}
+
+If this is important to you, please consider supporting Rollup to make a native build for your platform and architecture available.`
+	);
+}
 
 module.exports.parse = parse;
 module.exports.parseAsync = parseAsync;
