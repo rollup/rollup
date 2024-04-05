@@ -142,10 +142,16 @@ impl<'a> AstConverter<'a> {
     &mut self,
     item_list: &[T],
     state: &mut S,
+    reference_position: usize,
     convert_item: F,
   ) where
     F: Fn(&mut AstConverter, &T, &mut S) -> bool,
   {
+    // for an empty list, we leave the referenced position at zero
+    if item_list.is_empty() {
+      return;
+    }
+    self.update_reference_position(reference_position);
     // store number of items in first position
     self
       .buffer
@@ -1270,11 +1276,11 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // body
-    self.update_reference_position(end_position + BLOCK_STATEMENT_BODY_OFFSET);
     let mut keep_checking_directives = check_directive;
     self.convert_item_list_with_state(
       &block_statement.stmts,
       &mut keep_checking_directives,
+      end_position + BLOCK_STATEMENT_BODY_OFFSET,
       |ast_converter, statement, can_be_directive| {
         if *can_be_directive {
           if let Stmt::Expr(expression) = statement {
@@ -2443,13 +2449,13 @@ impl<'a> AstConverter<'a> {
     let end_position =
       self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32, PROGRAM_RESERVED_BYTES);
     // body
-    self.update_reference_position(end_position + PROGRAM_BODY_OFFSET);
     let mut keep_checking_directives = true;
     match body {
       ModuleItemsOrStatements::ModuleItems(module_items) => {
         self.convert_item_list_with_state(
           module_items,
           &mut keep_checking_directives,
+          end_position + PROGRAM_BODY_OFFSET,
           |ast_converter, module_item, can_be_directive| {
             if *can_be_directive {
               if let ModuleItem::Stmt(Stmt::Expr(expression)) = module_item {
@@ -2469,6 +2475,7 @@ impl<'a> AstConverter<'a> {
         self.convert_item_list_with_state(
           statements,
           &mut keep_checking_directives,
+          end_position + PROGRAM_BODY_OFFSET,
           |ast_converter, statement, can_be_directive| {
             if *can_be_directive {
               if let Stmt::Expr(expression) = statement {
