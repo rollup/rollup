@@ -2,14 +2,14 @@ use std::{io::Write, mem::take, sync::Arc};
 
 use anyhow::Error;
 use parking_lot::Mutex;
-use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, HANDLER, Level};
+use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER};
 use swc_ecma_ast::Program;
 
+use crate::convert_ast::converter::ast_constants::PARSE_ERROR_MESSAGE_OFFSET;
 use crate::convert_ast::converter::{
   ast_constants::{PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR},
   convert_string, update_reference_position,
 };
-use crate::convert_ast::converter::ast_constants::PARSE_ERROR_MESSAGE_OFFSET;
 
 #[derive(Clone, Default)]
 struct Writer(Arc<Mutex<Vec<u8>>>);

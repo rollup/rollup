@@ -1,14 +1,14 @@
-use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::panic::{catch_unwind, AssertUnwindSafe};
 
-use swc_common::{FileName, FilePathMapping, Globals, GLOBALS, SourceMap};
 use swc_common::sync::Lrc;
-use swc_compiler_base::IsModule;
+use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
 use swc_compiler_base::parse_js;
+use swc_compiler_base::IsModule;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsConfig, Syntax};
 
-use convert_ast::converter::{AstConverter, convert_string};
 use convert_ast::converter::ast_constants::{PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR};
+use convert_ast::converter::{convert_string, AstConverter};
 use error_emit::try_with_handler;
 
 use crate::convert_ast::annotations::SequentialComments;

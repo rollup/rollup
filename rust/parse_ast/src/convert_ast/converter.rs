@@ -2,8 +2,8 @@ use swc_atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AssignTarget,
-  AssignTargetPat, AwaitExpr, BigInt, BinaryOp, BindingIdent, BinExpr, BlockStmt, BlockStmtOrExpr,
-  Bool, BreakStmt, Callee, CallExpr, CatchClause, Class, ClassDecl, ClassExpr, ClassMember,
+  AssignTargetPat, AwaitExpr, BigInt, BinExpr, BinaryOp, BindingIdent, BlockStmt, BlockStmtOrExpr,
+  Bool, BreakStmt, CallExpr, Callee, CatchClause, Class, ClassDecl, ClassExpr, ClassMember,
   ClassMethod, ClassProp, ComputedPropName, CondExpr, Constructor, ContinueStmt, DebuggerStmt,
   Decl, DefaultDecl, DoWhileStmt, EmptyStmt, ExportAll, ExportDecl, ExportDefaultDecl,
   ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr,
@@ -16,7 +16,7 @@ use swc_ecma_ast::{
   PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget,
   SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
   TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, UnaryExpr, UnaryOp, UpdateExpr,
-  UpdateOp, UsingDecl, VarDecl, VarDeclarator, VarDeclKind, VarDeclOrExpr, WhileStmt, YieldExpr,
+  UpdateOp, UsingDecl, VarDecl, VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
