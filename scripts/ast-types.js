@@ -638,56 +638,15 @@ export const AST_NODES = {
 	}
 };
 
-export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, node]) => {
-	/** @type {FieldWithType[]} */
-	const fields =
-		(node.hasSameFieldsAs ? AST_NODES[node.hasSameFieldsAs].fields : node.fields) || [];
-	/** @type {FieldWithType[]} */
-	const allFields = [];
-	/** @type {FieldWithType[]} */
-	const reservedFields = [];
-	/** @type {FieldWithType|null|undefined} */
-	let inlinedVariableField = undefined;
-	for (const field of fields) {
-		allFields.push(field);
-		switch (field[1]) {
-			case 'Annotations':
-			case 'InvalidAnnotations':
-			case 'String':
-			case 'NodeList':
-			case 'Node': {
-				if (inlinedVariableField === undefined) {
-					inlinedVariableField = field;
-				} else {
-					reservedFields.push(field);
-				}
-				break;
-			}
-			case 'OptionalNode': {
-				// Optional nodes cannot be inlined, but they also cannot be parsed
-				// out-of-order, so nothing is inlined as the inlined node is always
-				// parsed first.
-				if (inlinedVariableField === undefined) {
-					inlinedVariableField = null;
-				}
-				reservedFields.push(field);
-				break;
-			}
-			case 'OptionalString':
-			case 'FixedString':
-			case 'Float': {
-				reservedFields.push(field);
-				break;
-			}
-			default: {
-				throw new Error(`Unknown field type ${field[0]}`);
-			}
-		}
-	}
+/** @type { {name: string; fields: FieldWithType[]; node: NodeDescription; originalNode: NodeDescription;}[] } */
+export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, originalNode]) => {
+	const node = originalNode.hasSameFieldsAs
+		? AST_NODES[originalNode.hasSameFieldsAs]
+		: originalNode;
 	return {
-		allFields,
-		inlinedVariableField,
+		fields: node.fields || [],
 		name,
-		reservedFields
+		node,
+		originalNode
 	};
 });

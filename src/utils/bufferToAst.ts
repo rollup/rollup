@@ -35,7 +35,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function panicError(position, buffer, readString): PanicErrorNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const message = convertString(position, buffer, readString);
+		const message = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'PanicError',
 			start,
@@ -46,7 +46,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function parseError(position, buffer, readString): ParseErrorNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const message = convertString(position, buffer, readString);
+		const message = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'ParseError',
 			start,
@@ -57,7 +57,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function arrayExpression(position, buffer, readString): ArrayExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const elements = convertNodeList(position, buffer, readString);
+		const elements = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ArrayExpression',
 			start,
@@ -68,7 +68,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function arrayPattern(position, buffer, readString): ArrayPatternNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const elements = convertNodeList(position, buffer, readString);
+		const elements = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ArrayPattern',
 			start,
@@ -83,9 +83,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const async = (flags & 1) === 1;
 		const expression = (flags & 2) === 2;
 		const generator = (flags & 4) === 4;
+		const annotations = convertAnnotations(buffer[position++], buffer);
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position++], buffer, readString);
-		const annotations = convertAnnotations(position, buffer);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ArrowFunctionExpression',
 			start,
@@ -103,8 +103,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const operator = FIXED_STRINGS[buffer[position++]] as estree.AssignmentOperator;
-		const right = convertNode(buffer[position++], buffer, readString);
-		const left = convertNode(position, buffer, readString);
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'AssignmentExpression',
 			start,
@@ -117,8 +117,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function assignmentPattern(position, buffer, readString): AssignmentPatternNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const right = convertNode(buffer[position++], buffer, readString);
-		const left = convertNode(position, buffer, readString);
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'AssignmentPattern',
 			start,
@@ -130,7 +130,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function awaitExpression(position, buffer, readString): AwaitExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const argument = convertNode(position, buffer, readString);
+		const argument = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'AwaitExpression',
 			start,
@@ -142,8 +142,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const operator = FIXED_STRINGS[buffer[position++]] as estree.BinaryOperator;
-		const right = convertNode(buffer[position++], buffer, readString);
-		const left = convertNode(position, buffer, readString);
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'BinaryExpression',
 			start,
@@ -156,7 +156,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function blockStatement(position, buffer, readString): BlockStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const body = convertNodeList(position, buffer, readString);
+		const body = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'BlockStatement',
 			start,
@@ -181,9 +181,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const flags = buffer[position++];
 		const optional = (flags & 1) === 1;
+		const annotations = convertAnnotations(buffer[position++], buffer);
 		const callee = convertNode(buffer[position++], buffer, readString);
-		const callArguments = convertNodeList(buffer[position++], buffer, readString);
-		const annotations = convertAnnotations(position, buffer);
+		const callArguments = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'CallExpression',
 			start,
@@ -212,7 +212,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function chainExpression(position, buffer, readString): ChainExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const expression = convertNode(position, buffer, readString);
+		const expression = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ChainExpression',
 			start,
@@ -223,7 +223,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function classBody(position, buffer, readString): ClassBodyNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const body = convertNodeList(position, buffer, readString);
+		const body = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ClassBody',
 			start,
@@ -270,9 +270,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function conditionalExpression(position, buffer, readString): ConditionalExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const test = convertNode(buffer[position++], buffer, readString);
 		const consequent = convertNode(buffer[position++], buffer, readString);
-		const alternate = convertNode(buffer[position++], buffer, readString);
-		const test = convertNode(position, buffer, readString);
+		const alternate = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ConditionalExpression',
 			start,
@@ -306,8 +306,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function directive(position, buffer, readString): DirectiveNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const expression = convertNode(buffer[position++], buffer, readString);
-		const directive = convertString(position, buffer, readString);
+		const directive = convertString(buffer[position++], buffer, readString);
+		const expression = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ExpressionStatement',
 			start,
@@ -319,8 +319,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function doWhileStatement(position, buffer, readString): DoWhileStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const test = convertNode(buffer[position++], buffer, readString);
-		const body = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const test = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'DoWhileStatement',
 			start,
@@ -358,7 +358,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function exportDefaultDeclaration(position, buffer, readString): ExportDefaultDeclarationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const declaration = convertNode(position, buffer, readString);
+		const declaration = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ExportDefaultDeclaration',
 			start,
@@ -369,13 +369,13 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function exportNamedDeclaration(position, buffer, readString): ExportNamedDeclarationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const specifiers = convertNodeList(buffer[position++], buffer, readString);
 		const sourcePosition = buffer[position++];
 		const source = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer, readString);
 		const attributes = convertNodeList(buffer[position++], buffer, readString);
-		const declarationPosition = buffer[position++];
+		const declarationPosition = buffer[position];
 		const declaration =
 			declarationPosition === 0 ? null : convertNode(declarationPosition, buffer, readString);
-		const specifiers = convertNodeList(position, buffer, readString);
 		return {
 			type: 'ExportNamedDeclaration',
 			start,
@@ -389,8 +389,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function exportSpecifier(position, buffer, readString): ExportSpecifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const exportedPosition = buffer[position++];
-		const local = convertNode(position, buffer, readString);
+		const local = convertNode(buffer[position++], buffer, readString);
+		const exportedPosition = buffer[position];
 		return {
 			type: 'ExportSpecifier',
 			start,
@@ -403,7 +403,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function expressionStatement(position, buffer, readString): ExpressionStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const expression = convertNode(position, buffer, readString);
+		const expression = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ExpressionStatement',
 			start,
@@ -414,9 +414,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function forInStatement(position, buffer, readString): ForInStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const left = convertNode(buffer[position++], buffer, readString);
 		const right = convertNode(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position++], buffer, readString);
-		const left = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ForInStatement',
 			start,
@@ -431,9 +431,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const end = buffer[position++];
 		const flags = buffer[position++];
 		const awaited = (flags & 1) === 1;
+		const left = convertNode(buffer[position++], buffer, readString);
 		const right = convertNode(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position++], buffer, readString);
-		const left = convertNode(position, buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ForOfStatement',
 			start,
@@ -470,11 +470,11 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const async = (flags & 1) === 1;
 		const generator = (flags & 2) === 2;
+		const annotations = convertAnnotations(buffer[position++], buffer);
 		const idPosition = buffer[position++];
 		const id = idPosition === 0 ? null : convertNode(idPosition, buffer, readString);
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position++], buffer, readString);
-		const annotations = convertAnnotations(position, buffer);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'FunctionDeclaration',
 			start,
@@ -494,11 +494,11 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const async = (flags & 1) === 1;
 		const generator = (flags & 2) === 2;
+		const annotations = convertAnnotations(buffer[position++], buffer);
 		const idPosition = buffer[position++];
 		const id = idPosition === 0 ? null : convertNode(idPosition, buffer, readString);
 		const parameters = convertNodeList(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position++], buffer, readString);
-		const annotations = convertAnnotations(position, buffer);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'FunctionExpression',
 			start,
@@ -515,7 +515,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function identifier(position, buffer, readString): IdentifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const name = convertString(position, buffer, readString);
+		const name = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'Identifier',
 			start,
@@ -526,11 +526,11 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function ifStatement(position, buffer, readString): IfStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const test = convertNode(buffer[position++], buffer, readString);
 		const consequent = convertNode(buffer[position++], buffer, readString);
-		const alternatePosition = buffer[position++];
+		const alternatePosition = buffer[position];
 		const alternate =
 			alternatePosition === 0 ? null : convertNode(alternatePosition, buffer, readString);
-		const test = convertNode(position, buffer, readString);
 		return {
 			type: 'IfStatement',
 			start,
@@ -543,8 +543,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function importAttribute(position, buffer, readString): ImportAttributeNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const value = convertNode(buffer[position++], buffer, readString);
-		const key = convertNode(position, buffer, readString);
+		const key = convertNode(buffer[position++], buffer, readString);
+		const value = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ImportAttribute',
 			start,
@@ -556,9 +556,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function importDeclaration(position, buffer, readString): ImportDeclarationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const specifiers = convertNodeList(buffer[position++], buffer, readString);
 		const source = convertNode(buffer[position++], buffer, readString);
-		const attributes = convertNodeList(buffer[position++], buffer, readString);
-		const specifiers = convertNodeList(position, buffer, readString);
+		const attributes = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ImportDeclaration',
 			start,
@@ -571,7 +571,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function importDefaultSpecifier(position, buffer, readString): ImportDefaultSpecifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const local = convertNode(position, buffer, readString);
+		const local = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ImportDefaultSpecifier',
 			start,
@@ -582,9 +582,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function importExpression(position, buffer, readString): ImportExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const optionsPosition = buffer[position++];
+		const source = convertNode(buffer[position++], buffer, readString);
+		const optionsPosition = buffer[position];
 		const options = optionsPosition === 0 ? null : convertNode(optionsPosition, buffer, readString);
-		const source = convertNode(position, buffer, readString);
 		return {
 			type: 'ImportExpression',
 			start,
@@ -596,7 +596,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function importNamespaceSpecifier(position, buffer, readString): ImportNamespaceSpecifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const local = convertNode(position, buffer, readString);
+		const local = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ImportNamespaceSpecifier',
 			start,
@@ -621,8 +621,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function labeledStatement(position, buffer, readString): LabeledStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const body = convertNode(buffer[position++], buffer, readString);
-		const label = convertNode(position, buffer, readString);
+		const label = convertNode(buffer[position++], buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'LabeledStatement',
 			start,
@@ -634,8 +634,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function literalBigInt(position, buffer, readString): LiteralBigIntNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const raw = convertString(buffer[position++], buffer, readString);
-		const bigint = convertString(position, buffer, readString);
+		const bigint = convertString(buffer[position++], buffer, readString);
+		const raw = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'Literal',
 			start,
@@ -686,8 +686,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function literalRegExp(position, buffer, readString): LiteralRegExpNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const pattern = convertString(buffer[position++], buffer, readString);
-		const flags = convertString(position, buffer, readString);
+		const flags = convertString(buffer[position++], buffer, readString);
+		const pattern = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'Literal',
 			start,
@@ -700,9 +700,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function literalString(position, buffer, readString): LiteralStringNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const rawPosition = buffer[position++];
+		const value = convertString(buffer[position++], buffer, readString);
+		const rawPosition = buffer[position];
 		const raw = rawPosition === 0 ? undefined : convertString(rawPosition, buffer, readString);
-		const value = convertString(position, buffer, readString);
 		return {
 			type: 'Literal',
 			start,
@@ -715,8 +715,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const operator = FIXED_STRINGS[buffer[position++]] as estree.LogicalOperator;
-		const right = convertNode(buffer[position++], buffer, readString);
-		const left = convertNode(position, buffer, readString);
+		const left = convertNode(buffer[position++], buffer, readString);
+		const right = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'LogicalExpression',
 			start,
@@ -732,8 +732,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const computed = (flags & 1) === 1;
 		const optional = (flags & 2) === 2;
-		const property = convertNode(buffer[position++], buffer, readString);
-		const object = convertNode(position, buffer, readString);
+		const object = convertNode(buffer[position++], buffer, readString);
+		const property = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'MemberExpression',
 			start,
@@ -747,8 +747,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function metaProperty(position, buffer, readString): MetaPropertyNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const property = convertNode(buffer[position++], buffer, readString);
-		const meta = convertNode(position, buffer, readString);
+		const meta = convertNode(buffer[position++], buffer, readString);
+		const property = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'MetaProperty',
 			start,
@@ -763,9 +763,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const isStatic = (flags & 1) === 1;
 		const computed = (flags & 2) === 2;
+		const key = convertNode(buffer[position++], buffer, readString);
 		const value = convertNode(buffer[position++], buffer, readString);
-		const kind = FIXED_STRINGS[buffer[position++]] as estree.MethodDefinition['kind'];
-		const key = convertNode(position, buffer, readString);
+		const kind = FIXED_STRINGS[buffer[position]] as estree.MethodDefinition['kind'];
 		return {
 			type: 'MethodDefinition',
 			start,
@@ -780,9 +780,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function newExpression(position, buffer, readString): NewExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const annotations = convertAnnotations(buffer[position++], buffer);
 		const callee = convertNode(buffer[position++], buffer, readString);
-		const callArguments = convertNodeList(buffer[position++], buffer, readString);
-		const annotations = convertAnnotations(position, buffer);
+		const callArguments = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'NewExpression',
 			start,
@@ -795,7 +795,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function objectExpression(position, buffer, readString): ObjectExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const properties = convertNodeList(position, buffer, readString);
+		const properties = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ObjectExpression',
 			start,
@@ -806,7 +806,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function objectPattern(position, buffer, readString): ObjectPatternNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const properties = convertNodeList(position, buffer, readString);
+		const properties = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'ObjectPattern',
 			start,
@@ -817,7 +817,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function privateIdentifier(position, buffer, readString): PrivateIdentifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const name = convertString(position, buffer, readString);
+		const name = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'PrivateIdentifier',
 			start,
@@ -828,8 +828,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function program(position, buffer, readString): ProgramNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const invalidAnnotations = convertAnnotations(buffer[position++], buffer);
-		const body = convertNodeList(position, buffer, readString);
+		const body = convertNodeList(buffer[position++], buffer, readString);
+		const invalidAnnotations = convertAnnotations(buffer[position], buffer);
 		return {
 			type: 'Program',
 			start,
@@ -867,9 +867,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const isStatic = (flags & 1) === 1;
 		const computed = (flags & 2) === 2;
-		const valuePosition = buffer[position++];
+		const key = convertNode(buffer[position++], buffer, readString);
+		const valuePosition = buffer[position];
 		const value = valuePosition === 0 ? null : convertNode(valuePosition, buffer, readString);
-		const key = convertNode(position, buffer, readString);
 		return {
 			type: 'PropertyDefinition',
 			start,
@@ -883,7 +883,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function restElement(position, buffer, readString): RestElementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const argument = convertNode(position, buffer, readString);
+		const argument = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'RestElement',
 			start,
@@ -907,7 +907,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function sequenceExpression(position, buffer, readString): SequenceExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const expressions = convertNodeList(position, buffer, readString);
+		const expressions = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'SequenceExpression',
 			start,
@@ -918,7 +918,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function spreadElement(position, buffer, readString): SpreadElementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const argument = convertNode(position, buffer, readString);
+		const argument = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'SpreadElement',
 			start,
@@ -929,7 +929,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function staticBlock(position, buffer, readString): StaticBlockNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const body = convertNodeList(position, buffer, readString);
+		const body = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'StaticBlock',
 			start,
@@ -963,8 +963,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function switchStatement(position, buffer, readString): SwitchStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const cases = convertNodeList(buffer[position++], buffer, readString);
-		const discriminant = convertNode(position, buffer, readString);
+		const discriminant = convertNode(buffer[position++], buffer, readString);
+		const cases = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'SwitchStatement',
 			start,
@@ -976,8 +976,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function taggedTemplateExpression(position, buffer, readString): TaggedTemplateExpressionNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const quasi = convertNode(buffer[position++], buffer, readString);
-		const tag = convertNode(position, buffer, readString);
+		const tag = convertNode(buffer[position++], buffer, readString);
+		const quasi = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'TaggedTemplateExpression',
 			start,
@@ -994,7 +994,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const cookedPosition = buffer[position++];
 		const cooked =
 			cookedPosition === 0 ? undefined : convertString(cookedPosition, buffer, readString);
-		const raw = convertString(position, buffer, readString);
+		const raw = convertString(buffer[position], buffer, readString);
 		return {
 			type: 'TemplateElement',
 			start,
@@ -1006,8 +1006,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function templateLiteral(position, buffer, readString): TemplateLiteralNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const expressions = convertNodeList(buffer[position++], buffer, readString);
-		const quasis = convertNodeList(position, buffer, readString);
+		const quasis = convertNodeList(buffer[position++], buffer, readString);
+		const expressions = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'TemplateLiteral',
 			start,
@@ -1028,7 +1028,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function throwStatement(position, buffer, readString): ThrowStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const argument = convertNode(position, buffer, readString);
+		const argument = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'ThrowStatement',
 			start,
@@ -1039,12 +1039,12 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function tryStatement(position, buffer, readString): TryStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const block = convertNode(buffer[position++], buffer, readString);
 		const handlerPosition = buffer[position++];
 		const handler = handlerPosition === 0 ? null : convertNode(handlerPosition, buffer, readString);
-		const finalizerPosition = buffer[position++];
+		const finalizerPosition = buffer[position];
 		const finalizer =
 			finalizerPosition === 0 ? null : convertNode(finalizerPosition, buffer, readString);
-		const block = convertNode(position, buffer, readString);
 		return {
 			type: 'TryStatement',
 			start,
@@ -1058,7 +1058,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const operator = FIXED_STRINGS[buffer[position++]] as estree.UnaryOperator;
-		const argument = convertNode(position, buffer, readString);
+		const argument = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'UnaryExpression',
 			start,
@@ -1074,7 +1074,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const flags = buffer[position++];
 		const prefix = (flags & 1) === 1;
 		const operator = FIXED_STRINGS[buffer[position++]] as estree.UpdateOperator;
-		const argument = convertNode(position, buffer, readString);
+		const argument = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'UpdateExpression',
 			start,
@@ -1088,7 +1088,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const start = buffer[position++];
 		const end = buffer[position++];
 		const kind = FIXED_STRINGS[buffer[position++]] as estree.VariableDeclaration['kind'];
-		const declarations = convertNodeList(position, buffer, readString);
+		const declarations = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'VariableDeclaration',
 			start,
@@ -1100,9 +1100,9 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function variableDeclarator(position, buffer, readString): VariableDeclaratorNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const initPosition = buffer[position++];
+		const id = convertNode(buffer[position++], buffer, readString);
+		const initPosition = buffer[position];
 		const init = initPosition === 0 ? null : convertNode(initPosition, buffer, readString);
-		const id = convertNode(position, buffer, readString);
 		return {
 			type: 'VariableDeclarator',
 			start,
@@ -1114,8 +1114,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function whileStatement(position, buffer, readString): WhileStatementNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
-		const body = convertNode(buffer[position++], buffer, readString);
-		const test = convertNode(position, buffer, readString);
+		const test = convertNode(buffer[position++], buffer, readString);
+		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'WhileStatement',
 			start,
@@ -1147,7 +1147,7 @@ export type ParseErrorNode = RollupAstNode<{ type: 'ParseError'; message: string
 export type ArrayExpressionNode = RollupAstNode<estree.ArrayExpression>;
 export type ArrayPatternNode = RollupAstNode<estree.ArrayPattern>;
 export type ArrowFunctionExpressionNode = RollupAstNode<estree.ArrowFunctionExpression> & {
-	[ANNOTATION_KEY]?: RollupAnnotation[];
+	[ANNOTATION_KEY]?: readonly RollupAnnotation[];
 	id: null;
 };
 export type AssignmentExpressionNode = RollupAstNode<estree.AssignmentExpression>;
@@ -1157,7 +1157,7 @@ export type BinaryExpressionNode = RollupAstNode<estree.BinaryExpression>;
 export type BlockStatementNode = RollupAstNode<estree.BlockStatement>;
 export type BreakStatementNode = RollupAstNode<estree.BreakStatement>;
 export type CallExpressionNode = RollupAstNode<estree.SimpleCallExpression> & {
-	[ANNOTATION_KEY]?: RollupAnnotation[];
+	[ANNOTATION_KEY]?: readonly RollupAnnotation[];
 };
 export type CatchClauseNode = RollupAstNode<estree.CatchClause>;
 export type ChainExpressionNode = RollupAstNode<estree.ChainExpression>;
@@ -1183,11 +1183,11 @@ export type ForInStatementNode = RollupAstNode<estree.ForInStatement>;
 export type ForOfStatementNode = RollupAstNode<estree.ForOfStatement>;
 export type ForStatementNode = RollupAstNode<estree.ForStatement>;
 export type FunctionDeclarationNode = RollupAstNode<estree.FunctionDeclaration> & {
-	[ANNOTATION_KEY]?: RollupAnnotation[];
+	[ANNOTATION_KEY]?: readonly RollupAnnotation[];
 	expression: false;
 };
 export type FunctionExpressionNode = RollupAstNode<estree.FunctionExpression> & {
-	[ANNOTATION_KEY]?: RollupAnnotation[];
+	[ANNOTATION_KEY]?: readonly RollupAnnotation[];
 	expression: false;
 };
 export type IdentifierNode = RollupAstNode<estree.Identifier>;
@@ -1220,13 +1220,13 @@ export type MemberExpressionNode = RollupAstNode<estree.MemberExpression>;
 export type MetaPropertyNode = RollupAstNode<estree.MetaProperty>;
 export type MethodDefinitionNode = RollupAstNode<estree.MethodDefinition>;
 export type NewExpressionNode = RollupAstNode<estree.NewExpression> & {
-	[ANNOTATION_KEY]?: RollupAnnotation[];
+	[ANNOTATION_KEY]?: readonly RollupAnnotation[];
 };
 export type ObjectExpressionNode = RollupAstNode<estree.ObjectExpression>;
 export type ObjectPatternNode = RollupAstNode<estree.ObjectPattern>;
 export type PrivateIdentifierNode = RollupAstNode<estree.PrivateIdentifier>;
 export type ProgramNode = RollupAstNode<estree.Program> & {
-	[INVALID_ANNOTATION_KEY]?: RollupAnnotation[];
+	[INVALID_ANNOTATION_KEY]?: readonly RollupAnnotation[];
 	sourceType: 'module';
 };
 export type PropertyNode = RollupAstNode<estree.Property>;
