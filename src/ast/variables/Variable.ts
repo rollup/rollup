@@ -1,5 +1,6 @@
 import type ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
+import { EMPTY_ARRAY } from '../../utils/blank';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -40,16 +41,21 @@ export default class Variable extends ExpressionEntity {
 
 	private exportDefaultVariables: Variable[] = [];
 	private onlyFunctionCallUsed = true;
+	private isOnlyFunctionCallUsedAnalysed = false;
 	/**
 	 * Check if the identifier variable is only used as function call
 	 * Forward the check to the export default variable if it is only used once
 	 * @returns true if the variable is only used as function call
 	 */
 	getOnlyFunctionCallUsed(): boolean {
-		return (
-			this.onlyFunctionCallUsed &&
-			this.exportDefaultVariables.every(variable => variable.getOnlyFunctionCallUsed())
-		);
+		if (!this.isOnlyFunctionCallUsedAnalysed) {
+			this.isOnlyFunctionCallUsedAnalysed = true;
+			this.onlyFunctionCallUsed &&= this.exportDefaultVariables.every(variable =>
+				variable.getOnlyFunctionCallUsed()
+			);
+			this.exportDefaultVariables = EMPTY_ARRAY as unknown as Variable[];
+		}
+		return this.onlyFunctionCallUsed;
 	}
 
 	/**
