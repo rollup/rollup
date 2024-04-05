@@ -1098,11 +1098,10 @@ impl<'a> AstConverter<'a> {
       );
     }
     // flags
-    let mut flags = if arrow_expression.is_async {
-      ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if arrow_expression.is_async {
+      flags |= ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG;
+    }
     if arrow_expression.is_generator {
       flags |= ARROW_FUNCTION_EXPRESSION_GENERATOR_FLAG;
     }
@@ -1345,10 +1344,9 @@ impl<'a> AstConverter<'a> {
       );
     }
     // flags
-    let flags = if is_optional {
-      CALL_EXPRESSION_OPTIONAL_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if is_optional {
+      flags |= CALL_EXPRESSION_OPTIONAL_FLAG;
     };
     let flags_position = end_position + CALL_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -1738,10 +1736,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    let flags = if for_of_statement.is_await {
-      FOR_OF_STATEMENT_AWAIT_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if for_of_statement.is_await {
+      flags |= FOR_OF_STATEMENT_AWAIT_FLAG;
     };
     let flags_position = end_position + FOR_OF_STATEMENT_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -1803,10 +1800,9 @@ impl<'a> AstConverter<'a> {
     let end_position =
       self.add_type_and_explicit_start(node_type, start, FUNCTION_DECLARATION_RESERVED_BYTES);
     // flags
-    let mut flags = if is_async {
-      FUNCTION_DECLARATION_ASYNC_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if is_async {
+      flags |= FUNCTION_DECLARATION_ASYNC_FLAG
     };
     if is_generator {
       flags |= FUNCTION_DECLARATION_GENERATOR_FLAG;
@@ -2065,10 +2061,9 @@ impl<'a> AstConverter<'a> {
       LITERAL_BOOLEAN_RESERVED_BYTES,
       false,
     );
-    let flags = if literal.value {
-      LITERAL_BOOLEAN_VALUE_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if literal.value {
+      flags |= LITERAL_BOOLEAN_VALUE_FLAG
     };
     let flags_position = end_position + LITERAL_BOOLEAN_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -2301,10 +2296,9 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    let mut flags = if is_static {
-      METHOD_DEFINITION_STATIC_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if is_static {
+      flags |= METHOD_DEFINITION_STATIC_FLAG
     };
     if is_computed {
       flags |= METHOD_DEFINITION_COMPUTED_FLAG;
@@ -2521,10 +2515,9 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(property_name);
     // flags, method and shorthand are always false
-    let flags = if matches!(property_name, PropName::Computed(_)) {
-      PROPERTY_COMPUTED_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if matches!(property_name, PropName::Computed(_)) {
+      flags |= PROPERTY_COMPUTED_FLAG
     };
     let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -2568,10 +2561,9 @@ impl<'a> AstConverter<'a> {
     self.convert_property_name(key);
     let key_end = self.get_property_name_span(key).hi.0 - 1;
     // flags, method and shorthand are always false
-    let flags = if matches!(key, PropName::Computed(_)) {
-      PROPERTY_COMPUTED_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if matches!(key, PropName::Computed(_)) {
+      flags |= PROPERTY_COMPUTED_FLAG;
     };
     let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -2702,11 +2694,10 @@ impl<'a> AstConverter<'a> {
       PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(private_name),
     }
     // flags
-    let mut flags = if is_static {
-      PROPERTY_DEFINITION_STATIC_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if is_static {
+      flags |= PROPERTY_DEFINITION_STATIC_FLAG;
+    }
     if is_computed {
       flags |= PROPERTY_DEFINITION_COMPUTED_FLAG;
     }
@@ -2892,11 +2883,10 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    let flags = if template_element.tail {
-      TEMPLATE_ELEMENT_TAIL_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if template_element.tail {
+      flags |= TEMPLATE_ELEMENT_TAIL_FLAG
+    }
     let flags_position = end_position + TEMPLATE_ELEMENT_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // raw
@@ -3053,11 +3043,10 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + UPDATE_EXPRESSION_ARGUMENT_OFFSET);
     self.convert_expression(&update_expression.arg);
     // flags
-    let flags = if update_expression.prefix {
-      UPDATE_EXPRESSION_PREFIX_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if update_expression.prefix {
+      flags |= UPDATE_EXPRESSION_PREFIX_FLAG;
+    }
     let flags_position = end_position + UPDATE_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // operator
@@ -3174,11 +3163,10 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    let flags = if yield_expression.delegate {
-      YIELD_EXPRESSION_DELEGATE_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if yield_expression.delegate {
+      flags |= YIELD_EXPRESSION_DELEGATE_FLAG;
+    }
     let flags_position = end_position + YIELD_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // argument
