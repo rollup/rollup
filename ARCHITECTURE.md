@@ -48,34 +48,50 @@ Building an output has two phases
 - The "generate" phase generates the output files from the bundle by calling `.generate(outputOptions)` or `.write(outputOptions)`
   - The main difference is that `.write` will write the files to disk while `.generate` just returns the output in-memory. Hence `.write` requires the [`file`](https://rollupjs.org/configuration-options/#output-file) or [`dir`](https://rollupjs.org/configuration-options/#output-dir) options to be set while `.generate` does not.
   - It is possible to generate multiple outputs from the same bundle e.g. with different formats
-  - As code-splitting is also part of the "generate" phase, output can also use [`preserveModules`](https://rollupjs.org/configuration-options/#output-preservemodules) to keep the file structure or [`inlineDynamicImports`](https://rollupjs.org/configuration-options/#output-inlinedynamicimports) to inline dynamic imports, albeit at the cost of some semantic changes.
-
-On the highest level, all of this is orchestrated by the `rollupInternal` function in [`rollup.ts`](src/rollup/rollup.ts). This function
-
-- Parses and normalizes the input options via [`normalizeInputOptions`](src/utils/options/normalizeInputOptions.ts)
-- Initializes the [`Graph`](src/Graph.ts) object
-- Triggers the actual build phase via `Graph.build()`
-- Generates the "bundle" object with the `.generate` and `.write` methods
-- These methods in turn first parse and normalize the output options via [`normalizeOutputOptions`](src/utils/options/normalizeOutputOptions.ts)
-- Then they create the [`Bundle`](src/Bundle.ts) object that manages one output
-- Last, they trigger the actual generate phase via `Bundle.generate()`
+  - As code-splitting is also part of the "generate" phase, outputs can also use [`preserveModules`](https://rollupjs.org/configuration-options/#output-preservemodules) to keep the file structure or [`inlineDynamicImports`](https://rollupjs.org/configuration-options/#output-inlinedynamicimports) to inline dynamic imports, albeit at the cost of some semantic changes.
 
 ```mermaid
 flowchart LR
     classDef default fill: transparent, color: black;
     classDef graphobject fill: #ffb3b3, stroke: black;
     classDef command fill: #ffd2b3, stroke: black, text-align: left;
-    build("rollup (build phase)\n<code>input: main.js</code>"):::command
+    build("rollup\n<code>input: main.js</code>"):::command
     --> bundle(bundle):::command
-    --> generate1("generate\n<code>file: main.mjs,\nformat: 'es'</code>"):::command
+    --> generate1(".generate\n<code>file: main.mjs,\nformat: 'es'</code>"):::command
 
     bundle
-    -->generate2("generate\n<code>file: main.cjs,\nformat: 'cjs'</code>"):::command
+    -->generate2(".generate\n<code>file: main.cjs,\nformat: 'cjs'</code>"):::command
 ```
 
-## The build phase
+On the highest level, all of this is orchestrated by the `rollupInternal` function in [`rollup.ts`](src/rollup/rollup.ts). This function
 
-In detail, the `Graph.build` performs the following steps
+- Parses and normalizes the input options via [`normalizeInputOptions`](src/utils/options/normalizeInputOptions.ts)
+- Initializes the [`Graph`](src/Graph.ts) instance
+- Triggers the actual build phase via `Graph.build()`
+- Generates the "bundle" object with the `.generate` and `.write` methods
+- These methods in turn first parse and normalize the output options via [`normalizeOutputOptions`](src/utils/options/normalizeOutputOptions.ts)
+- Then they create a [`Bundle`](src/Bundle.ts) instance that manages one output
+- Last, they trigger the actual generate phase via `Bundle.generate()`
 
-- it reads all entry points provided by the [`input`](https://rollupjs.org/configuration-options/#input) option and additional entry points emitted from plugins via [`this.emitFile()`](https://rollupjs.org/plugin-development/#this-emitfile).
--
+### The build phase
+
+To understand this phase from a plugin perspective, have a look at [Build Hooks](https://rollupjs.org/plugin-development/#build-hooks), which also contains a graph to show in which order these hooks are executed. In detail, `Graph.build` performs the following steps
+
+- It generates the module graph. This is orchestrated by the [`ModuleLoader`](src/ModuleLoader.ts) class. This class
+  - Reads all entry points provided by the [`input`](https://rollupjs.org/configuration-options/#input) option and additional entry points emitted from plugins via [`this.emitFile()`](https://rollupjs.org/plugin-development/#this-emitfile).
+  - For each module, it first creates a [`Module`](src/Module.ts) instance.
+  - Then it loads and transforms the code via the corresponding plugin hooks.
+  - The resulting code and sourcemaps are passed to the `Module` instance via `Module.setSource()`.
+  - This parses the code into the Rollup AST, which consists of the classes defined in the [ast folder](src/ast/nodes)
+  - In the process, it also collects all static and dynamic dependencies of the module.
+  - These are then again loaded and transformed by the `ModuleLoader`, a process that repeats until the graph is complete.
+- It sorts the modules by their execution order to assign an `execIndex` to each module in [`executionOrder.ts`](src/utils/executionOrder.ts).
+- It marks which statements in each module are included in the output, also known as "tree-shaking"
+  - This happens in several passes. Each pass starts with calling `.include` on the `Module` instance.
+  - This again calls `.include` on the top-level AST node, that is then propagated to the child nodes. At several stages, inclusion will only happen if a statement or expression has "side effects", which is determined by calling its `.hasEffects` method. Usually, it means mutating a variable that is already included or performing an action where we cannot determine whether there are side effects like calling a global function.
+  - Nodes that are already included are included again for each pass as it is possible that with each pass, some additional child nodes may need to be included. Whenever something new is included, another pass will be scheduled once the current pass is finished.
+  - In the end, it sets `.included` flags on the AST nodes that are then picked up by the rendering logic in the "generate" phase.
+
+### The generate phase
+
+To understand this phase from a plugin perspective, have a look at [Output Generation Hooks](https://rollupjs.org/plugin-development/#output-generation-hooks), which again contains a graph to show in which order these hooks are executed.
