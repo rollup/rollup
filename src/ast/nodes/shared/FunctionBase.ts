@@ -38,6 +38,8 @@ import {
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
 
+type InteractionCalledArguments = NodeInteractionCalled['args'];
+
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
 	declare params: PatternNode[];
@@ -69,14 +71,15 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	private knownParameters: ExpressionEntity[] = [];
-	private allArguments: ExpressionEntity[][] = [];
+	private allArguments: InteractionCalledArguments[] = [];
 	/**
 	 * updated knownParameters when a call is made to this function
 	 * @param newArguments arguments of the call
 	 */
-	updateKnownArguments(newArguments: ExpressionEntity[]): void {
+	updateKnownArguments(newArguments: InteractionCalledArguments): void {
 		for (let position = 0; position < this.params.length; position++) {
-			const argument = newArguments[position] ?? UNDEFINED_EXPRESSION;
+			// only the "this" argument newArguments[0] can be null
+			const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
 			if (!parameter || parameter instanceof RestElement) {
 				break;
@@ -109,9 +112,10 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
-	forwardArgumentsForFunctionCalledOnce(newArguments: ExpressionEntity[]): void {
+	forwardArgumentsForFunctionCalledOnce(newArguments: InteractionCalledArguments): void {
 		for (let position = 0; position < this.params.length; position++) {
-			const argument = newArguments[position] ?? UNDEFINED_EXPRESSION;
+			// only the "this" argument newArguments[0] can be null
+			const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
 			if (!parameter || parameter instanceof RestElement) {
 				break;
@@ -178,7 +182,7 @@ export default abstract class FunctionBase extends NodeBase {
 					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
-			this.allArguments.push(args.slice(1) as (ExpressionNode | SpreadElement)[]);
+			this.allArguments.push(args);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
