@@ -15,15 +15,13 @@ const astConstantsFile = new URL(
 
 const nodeTypes = astNodeNamesWithFieldOrder
 	.map(
-		({ name, inlinedVariableField }, index) =>
-			`pub const TYPE_${toScreamingSnakeCase(name)}${
-				inlinedVariableField ? `_INLINED_${toScreamingSnakeCase(inlinedVariableField[0])}` : ''
-			}: [u8; 4] = ${index}u32.to_ne_bytes();`
+		({ name }, index) =>
+			`pub const TYPE_${toScreamingSnakeCase(name)}: [u8; 4] = ${index}u32.to_ne_bytes();`
 	)
 	.join('\n');
 
 const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
-	.map(({ name, reservedFields }) => {
+	.map(({ name, fields }) => {
 		const { flags, hasSameFieldsAs } = AST_NODES[name];
 		if (hasSameFieldsAs) {
 			return '';
@@ -46,7 +44,7 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 				);
 			}
 		}
-		for (const [fieldName, fieldType] of reservedFields) {
+		for (const [fieldName, fieldType] of fields) {
 			lines.push(
 				`pub const ${toScreamingSnakeCase(name)}_${toScreamingSnakeCase(
 					fieldName

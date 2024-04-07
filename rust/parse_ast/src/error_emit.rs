@@ -5,9 +5,10 @@ use parking_lot::Mutex;
 use swc_common::errors::{DiagnosticBuilder, Emitter, Handler, Level, HANDLER};
 use swc_ecma_ast::Program;
 
+use crate::convert_ast::converter::ast_constants::PARSE_ERROR_MESSAGE_OFFSET;
 use crate::convert_ast::converter::{
-  ast_constants::{PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR_INLINED_MESSAGE},
-  convert_string,
+  ast_constants::{PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR},
+  convert_string, update_reference_position,
 };
 
 #[derive(Clone, Default)]
@@ -68,22 +69,26 @@ where
 }
 
 fn create_error_buffer(wr: &Writer, code: &str) -> Vec<u8> {
-  let mut buffer = TYPE_PARSE_ERROR_INLINED_MESSAGE.to_vec();
   let mut lock = wr.0.lock();
   let error_buffer = take(&mut *lock);
   let pos = u32::from_ne_bytes(error_buffer[0..4].try_into().unwrap());
   let mut utf_16_pos: u32 = 0;
+  // convert utf-8 to utf-16 inline
   for (utf_8_pos, char) in code.char_indices() {
     if (utf_8_pos as u32) == pos {
       break;
     }
     utf_16_pos += char.len_utf16() as u32;
   }
+  // type
+  let mut buffer = TYPE_PARSE_ERROR.to_vec();
   // start
   buffer.extend_from_slice(&utf_16_pos.to_ne_bytes());
   // end
-  buffer.resize(buffer.len() + PARSE_ERROR_RESERVED_BYTES, 0);
-  // message
+  let end_position = buffer.len();
+  buffer.resize(end_position + PARSE_ERROR_RESERVED_BYTES, 0);
+  // message, the string is already converted to a buffer via convert_string
+  update_reference_position(&mut buffer, end_position + PARSE_ERROR_MESSAGE_OFFSET);
   buffer.extend_from_slice(&error_buffer[4..]);
   buffer
 }

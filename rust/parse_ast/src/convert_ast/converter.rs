@@ -88,7 +88,7 @@ impl<'a> AstConverter<'a> {
     // start
     self
       .buffer
-      .extend_from_slice(&(self.index_converter.convert(start, false)).to_ne_bytes());
+      .extend_from_slice(&self.index_converter.convert(start, false).to_ne_bytes());
     // end
     let end_position = self.buffer.len();
     // reserved bytes
@@ -97,19 +97,28 @@ impl<'a> AstConverter<'a> {
   }
 
   fn add_end(&mut self, end_position: usize, span: &Span) {
-    self.buffer[end_position..end_position + 4]
-      .copy_from_slice(&(self.index_converter.convert(span.hi.0 - 1, false)).to_ne_bytes());
+    self.buffer[end_position..end_position + 4].copy_from_slice(
+      &self
+        .index_converter
+        .convert(span.hi.0 - 1, false)
+        .to_ne_bytes(),
+    );
   }
 
   fn add_explicit_end(&mut self, end_position: usize, end: u32) {
     self.buffer[end_position..end_position + 4]
-      .copy_from_slice(&(self.index_converter.convert(end, false)).to_ne_bytes());
+      .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
 
-  fn convert_item_list<T, F>(&mut self, item_list: &[T], convert_item: F)
+  fn convert_item_list<T, F>(&mut self, item_list: &[T], reference_position: usize, convert_item: F)
   where
     F: Fn(&mut AstConverter, &T) -> bool,
   {
+    // for an empty list, we leave the referenced position at zero
+    if item_list.is_empty() {
+      return;
+    }
+    self.update_reference_position(reference_position);
     // store number of items in first position
     self
       .buffer
@@ -133,10 +142,16 @@ impl<'a> AstConverter<'a> {
     &mut self,
     item_list: &[T],
     state: &mut S,
+    reference_position: usize,
     convert_item: F,
   ) where
     F: Fn(&mut AstConverter, &T, &mut S) -> bool,
   {
+    // for an empty list, we leave the referenced position at zero
+    if item_list.is_empty() {
+      return;
+    }
+    self.update_reference_position(reference_position);
     // store number of items in first position
     self
       .buffer
@@ -157,7 +172,8 @@ impl<'a> AstConverter<'a> {
   }
 
   // TODO SWC deduplicate strings and see if we can easily compare atoms
-  fn convert_string(&mut self, string: &str) {
+  fn convert_string(&mut self, string: &str, reference_position: usize) {
+    self.update_reference_position(reference_position);
     convert_string(&mut self.buffer, string);
   }
 
@@ -264,7 +280,7 @@ impl<'a> AstConverter<'a> {
       }
       Decl::Fn(function_declaration) => self.convert_function(
         &function_declaration.function,
-        &TYPE_FUNCTION_DECLARATION_INLINED_ANNOTATIONS,
+        &TYPE_FUNCTION_DECLARATION,
         Some(&function_declaration.ident),
       ),
       Decl::Class(class_declaration) => self.convert_class_declaration(class_declaration),
@@ -383,7 +399,7 @@ impl<'a> AstConverter<'a> {
       Expr::Fn(function_expression) => {
         self.convert_function(
           &function_expression.function,
-          &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+          &TYPE_FUNCTION_EXPRESSION,
           function_expression.ident.as_ref(),
         );
         None
@@ -580,19 +596,23 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  fn store_import_attributes(&mut self, with: &Option<Box<ObjectLit>>) {
+  fn store_import_attributes(&mut self, with: &Option<Box<ObjectLit>>, reference_position: usize) {
     match with {
       Some(ref with) => {
-        self.convert_item_list(&with.props, |ast_converter, prop| match prop {
-          PropOrSpread::Prop(prop) => match &**prop {
-            Prop::KeyValue(key_value_property) => {
-              ast_converter.convert_import_attribute(key_value_property);
-              true
-            }
-            _ => panic!("Non key-value property in import declaration attributes"),
+        self.convert_item_list(
+          &with.props,
+          reference_position,
+          |ast_converter, prop| match prop {
+            PropOrSpread::Prop(prop) => match &**prop {
+              Prop::KeyValue(key_value_property) => {
+                ast_converter.convert_import_attribute(key_value_property);
+                true
+              }
+              _ => panic!("Non key-value property in import declaration attributes"),
+            },
+            PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
           },
-          PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
-        });
+        );
       }
       None => self.buffer.resize(self.buffer.len() + 4, 0),
     }
@@ -1012,7 +1032,7 @@ impl<'a> AstConverter<'a> {
   // === nodes
   fn convert_array_literal(&mut self, array_literal: &ArrayLit) {
     let end_position = self.add_type_and_start(
-      &TYPE_ARRAY_EXPRESSION_INLINED_ELEMENTS,
+      &TYPE_ARRAY_EXPRESSION,
       &array_literal.span,
       ARRAY_EXPRESSION_RESERVED_BYTES,
       false,
@@ -1020,6 +1040,7 @@ impl<'a> AstConverter<'a> {
     // elements
     self.convert_item_list(
       &array_literal.elems,
+      end_position + ARRAY_EXPRESSION_ELEMENTS_OFFSET,
       |ast_converter, element| match element {
         Some(element) => {
           ast_converter.convert_expression_or_spread(element);
@@ -1034,7 +1055,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_array_pattern(&mut self, array_pattern: &ArrayPat) {
     let end_position = self.add_type_and_start(
-      &TYPE_ARRAY_PATTERN_INLINED_ELEMENTS,
+      &TYPE_ARRAY_PATTERN,
       &array_pattern.span,
       ARRAY_PATTERN_RESERVED_BYTES,
       false,
@@ -1042,6 +1063,7 @@ impl<'a> AstConverter<'a> {
     // elements
     self.convert_item_list(
       &array_pattern.elems,
+      end_position + ARRAY_PATTERN_ELEMENTS_OFFSET,
       |ast_converter, element| match element {
         Some(element) => {
           ast_converter.convert_pattern(element);
@@ -1056,7 +1078,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_arrow_expression(&mut self, arrow_expression: &ArrowExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_ARROW_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      &TYPE_ARROW_FUNCTION_EXPRESSION,
       &arrow_expression.span,
       ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
       false,
@@ -1065,16 +1087,21 @@ impl<'a> AstConverter<'a> {
     let annotations = self
       .index_converter
       .take_collected_annotations(AnnotationKind::NoSideEffects);
-    self.convert_item_list(&annotations, |ast_converter, annotation| {
-      convert_annotation(&mut ast_converter.buffer, annotation);
-      true
-    });
+    if !annotations.is_empty() {
+      self.convert_item_list(
+        &annotations,
+        end_position + ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
+    }
     // flags
-    let mut flags = if arrow_expression.is_async {
-      ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if arrow_expression.is_async {
+      flags |= ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG;
+    }
     if arrow_expression.is_generator {
       flags |= ARROW_FUNCTION_EXPRESSION_GENERATOR_FLAG;
     }
@@ -1084,11 +1111,14 @@ impl<'a> AstConverter<'a> {
     let flags_position = end_position + ARROW_FUNCTION_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // params
-    self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET);
-    self.convert_item_list(&arrow_expression.params, |ast_converter, param| {
-      ast_converter.convert_pattern(param);
-      true
-    });
+    self.convert_item_list(
+      &arrow_expression.params,
+      end_position + ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET,
+      |ast_converter, param| {
+        ast_converter.convert_pattern(param);
+        true
+      },
+    );
     // body
     self.update_reference_position(end_position + ARROW_FUNCTION_EXPRESSION_BODY_OFFSET);
     match &*arrow_expression.body {
@@ -1105,12 +1135,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_ASSIGNMENT_EXPRESSION_INLINED_LEFT,
+      &TYPE_ASSIGNMENT_EXPRESSION,
       &assignment_expression.span,
       ASSIGNMENT_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // left
+    self.update_reference_position(end_position + ASSIGNMENT_EXPRESSION_LEFT_OFFSET);
     self.convert_pattern_or_expression(&assignment_expression.left);
     // operator
     let operator_position = end_position + ASSIGNMENT_EXPRESSION_OPERATOR_OFFSET;
@@ -1148,12 +1179,13 @@ impl<'a> AstConverter<'a> {
     right: &Expr,
   ) -> u32 {
     let end_position = self.add_type_and_start(
-      &TYPE_ASSIGNMENT_PATTERN_INLINED_LEFT,
+      &TYPE_ASSIGNMENT_PATTERN,
       span,
       ASSIGNMENT_PATTERN_RESERVED_BYTES,
       false,
     );
     // left
+    self.update_reference_position(end_position + ASSIGNMENT_PATTERN_LEFT_OFFSET);
     let left_position = (self.buffer.len() >> 2) as u32;
     match left {
       PatternOrIdentifier::Pattern(pattern) => {
@@ -1171,12 +1203,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_await_expression(&mut self, await_expression: &AwaitExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_AWAIT_EXPRESSION_INLINED_ARGUMENT,
+      &TYPE_AWAIT_EXPRESSION,
       &await_expression.span,
       AWAIT_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // argument
+    self.update_reference_position(end_position + AWAIT_EXPRESSION_ARGUMENT_OFFSET);
     self.convert_expression(&await_expression.arg);
     // end
     self.add_end(end_position, &await_expression.span);
@@ -1186,15 +1219,16 @@ impl<'a> AstConverter<'a> {
     let end_position = self.add_type_and_start(
       match binary_expression.op {
         BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => {
-          &TYPE_LOGICAL_EXPRESSION_INLINED_LEFT
+          &TYPE_LOGICAL_EXPRESSION
         }
-        _ => &TYPE_BINARY_EXPRESSION_INLINED_LEFT,
+        _ => &TYPE_BINARY_EXPRESSION,
       },
       &binary_expression.span,
       BINARY_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // left
+    self.update_reference_position(end_position + BINARY_EXPRESSION_LEFT_OFFSET);
     self.convert_expression(&binary_expression.left);
     // operator
     let operator_position = end_position + BINARY_EXPRESSION_OPERATOR_OFFSET;
@@ -1236,7 +1270,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_block_statement(&mut self, block_statement: &BlockStmt, check_directive: bool) {
     let end_position = self.add_type_and_start(
-      &TYPE_BLOCK_STATEMENT_INLINED_BODY,
+      &TYPE_BLOCK_STATEMENT,
       &block_statement.span,
       BLOCK_STATEMENT_RESERVED_BYTES,
       false,
@@ -1246,6 +1280,7 @@ impl<'a> AstConverter<'a> {
     self.convert_item_list_with_state(
       &block_statement.stmts,
       &mut keep_checking_directives,
+      end_position + BLOCK_STATEMENT_BODY_OFFSET,
       |ast_converter, statement, can_be_directive| {
         if *can_be_directive {
           if let Stmt::Expr(expression) = statement {
@@ -1289,7 +1324,7 @@ impl<'a> AstConverter<'a> {
     is_chained: bool,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_CALL_EXPRESSION_INLINED_ANNOTATIONS,
+      &TYPE_CALL_EXPRESSION,
       span,
       CALL_EXPRESSION_RESERVED_BYTES,
       false,
@@ -1298,15 +1333,20 @@ impl<'a> AstConverter<'a> {
     let annotations = self
       .index_converter
       .take_collected_annotations(AnnotationKind::Pure);
-    self.convert_item_list(&annotations, |ast_converter, annotation| {
-      convert_annotation(&mut ast_converter.buffer, annotation);
-      true
-    });
+    if !annotations.is_empty() {
+      self.convert_item_list(
+        &annotations,
+        end_position + CALL_EXPRESSION_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
+    }
     // flags
-    let flags = if is_optional {
-      CALL_EXPRESSION_OPTIONAL_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if is_optional {
+      flags |= CALL_EXPRESSION_OPTIONAL_FLAG;
     };
     let flags_position = end_position + CALL_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -1328,11 +1368,14 @@ impl<'a> AstConverter<'a> {
       StoredCallee::Super(callee_super) => self.convert_super(callee_super),
     }
     // arguments
-    self.update_reference_position(end_position + CALL_EXPRESSION_ARGUMENTS_OFFSET);
-    self.convert_item_list(arguments, |ast_converter, argument| {
-      ast_converter.convert_expression_or_spread(argument);
-      true
-    });
+    self.convert_item_list(
+      arguments,
+      end_position + CALL_EXPRESSION_ARGUMENTS_OFFSET,
+      |ast_converter, argument| {
+        ast_converter.convert_expression_or_spread(argument);
+        true
+      },
+    );
     // end
     self.add_end(end_position, span);
   }
@@ -1368,12 +1411,13 @@ impl<'a> AstConverter<'a> {
       );
     } else {
       let end_position = self.add_type_and_start(
-        &TYPE_CHAIN_EXPRESSION_INLINED_EXPRESSION,
+        &TYPE_CHAIN_EXPRESSION,
         &optional_chain_expression.span,
         CHAIN_EXPRESSION_RESERVED_BYTES,
         false,
       );
       // expression
+      self.update_reference_position(end_position + CHAIN_EXPRESSION_EXPRESSION_OFFSET);
       self.convert_optional_chain_base(
         &optional_chain_expression.base,
         optional_chain_expression.optional,
@@ -1384,20 +1428,21 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_class_body(&mut self, class_members: &[ClassMember], start: u32, end: u32) {
-    let end_position = self.add_type_and_explicit_start(
-      &TYPE_CLASS_BODY_INLINED_BODY,
-      start,
-      CLASS_BODY_RESERVED_BYTES,
-    );
+    let end_position =
+      self.add_type_and_explicit_start(&TYPE_CLASS_BODY, start, CLASS_BODY_RESERVED_BYTES);
     let class_members_filtered: Vec<&ClassMember> = class_members
       .iter()
       .filter(|class_member| !matches!(class_member, ClassMember::Empty(_)))
       .collect();
     // body
-    self.convert_item_list(&class_members_filtered, |ast_converter, class_member| {
-      ast_converter.convert_class_member(class_member);
-      true
-    });
+    self.convert_item_list(
+      &class_members_filtered,
+      end_position + CLASS_BODY_BODY_OFFSET,
+      |ast_converter, class_member| {
+        ast_converter.convert_class_member(class_member);
+        true
+      },
+    );
     // end
     self.add_explicit_end(end_position, end);
   }
@@ -1433,12 +1478,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_conditional_expression(&mut self, conditional_expression: &CondExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_CONDITIONAL_EXPRESSION_INLINED_TEST,
+      &TYPE_CONDITIONAL_EXPRESSION,
       &conditional_expression.span,
       CONDITIONAL_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // test
+    self.update_reference_position(end_position + CONDITIONAL_EXPRESSION_TEST_OFFSET);
     self.convert_expression(&conditional_expression.test);
     // consequent
     self.update_reference_position(end_position + CONDITIONAL_EXPRESSION_CONSEQUENT_OFFSET);
@@ -1478,13 +1524,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_directive(&mut self, expression_statement: &ExprStmt, directive: &JsWord) {
     let end_position = self.add_type_and_start(
-      &TYPE_DIRECTIVE_INLINED_DIRECTIVE,
+      &TYPE_DIRECTIVE,
       &expression_statement.span,
       DIRECTIVE_RESERVED_BYTES,
       false,
     );
     // directive
-    self.convert_string(directive);
+    self.convert_string(directive, end_position + DIRECTIVE_DIRECTIVE_OFFSET);
     // expression
     self.update_reference_position(end_position + DIRECTIVE_EXPRESSION_OFFSET);
     self.convert_expression(&expression_statement.expr);
@@ -1494,12 +1540,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_do_while_statement(&mut self, do_while_statement: &DoWhileStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_DO_WHILE_STATEMENT_INLINED_BODY,
+      &TYPE_DO_WHILE_STATEMENT,
       &do_while_statement.span,
       DO_WHILE_STATEMENT_RESERVED_BYTES,
       false,
     );
     // body
+    self.update_reference_position(end_position + DO_WHILE_STATEMENT_BODY_OFFSET);
     self.convert_statement(&do_while_statement.body);
     // test
     self.update_reference_position(end_position + DO_WHILE_STATEMENT_TEST_OFFSET);
@@ -1540,8 +1587,10 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + EXPORT_ALL_DECLARATION_SOURCE_OFFSET);
     self.convert_literal_string(source);
     // attributes
-    self.update_reference_position(end_position + EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET);
-    self.store_import_attributes(attributes);
+    self.store_import_attributes(
+      attributes,
+      end_position + EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET,
+    );
     // end
     self.add_end(end_position, span);
   }
@@ -1552,7 +1601,7 @@ impl<'a> AstConverter<'a> {
     expression: StoredDefaultExportExpression,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_EXPORT_DEFAULT_DECLARATION_INLINED_DECLARATION,
+      &TYPE_EXPORT_DEFAULT_DECLARATION,
       span,
       EXPORT_DEFAULT_DECLARATION_RESERVED_BYTES,
       matches!(
@@ -1562,6 +1611,7 @@ impl<'a> AstConverter<'a> {
       ),
     );
     // declaration
+    self.update_reference_position(end_position + EXPORT_DEFAULT_DECLARATION_DECLARATION_OFFSET);
     match expression {
       StoredDefaultExportExpression::Expression(expression) => {
         self.convert_expression(expression);
@@ -1571,7 +1621,7 @@ impl<'a> AstConverter<'a> {
       }
       StoredDefaultExportExpression::Function(function_expression) => self.convert_function(
         &function_expression.function,
-        &TYPE_FUNCTION_DECLARATION_INLINED_ANNOTATIONS,
+        &TYPE_FUNCTION_DECLARATION,
         function_expression.ident.as_ref(),
       ),
     }
@@ -1588,7 +1638,7 @@ impl<'a> AstConverter<'a> {
     with: &Option<Box<ObjectLit>>,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_EXPORT_NAMED_DECLARATION_INLINED_SPECIFIERS,
+      &TYPE_EXPORT_NAMED_DECLARATION,
       span,
       EXPORT_NAMED_DECLARATION_RESERVED_BYTES,
       match declaration {
@@ -1598,10 +1648,14 @@ impl<'a> AstConverter<'a> {
       },
     );
     // specifiers
-    self.convert_item_list(specifiers, |ast_converter, specifier| {
-      ast_converter.convert_export_specifier(specifier);
-      true
-    });
+    self.convert_item_list(
+      specifiers,
+      end_position + EXPORT_NAMED_DECLARATION_SPECIFIERS_OFFSET,
+      |ast_converter, specifier| {
+        ast_converter.convert_export_specifier(specifier);
+        true
+      },
+    );
     // declaration
     if let Some(declaration) = declaration {
       self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET);
@@ -1613,20 +1667,23 @@ impl<'a> AstConverter<'a> {
       self.convert_literal_string(src);
     }
     // attributes
-    self.update_reference_position(end_position + EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET);
-    self.store_import_attributes(with);
+    self.store_import_attributes(
+      with,
+      end_position + EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET,
+    );
     // end
     self.add_end(end_position, span);
   }
 
   fn convert_export_named_specifier(&mut self, export_named_specifier: &ExportNamedSpecifier) {
     let end_position = self.add_type_and_start(
-      &TYPE_EXPORT_SPECIFIER_INLINED_LOCAL,
+      &TYPE_EXPORT_SPECIFIER,
       &export_named_specifier.span,
       EXPORT_SPECIFIER_RESERVED_BYTES,
       false,
     );
     // local
+    self.update_reference_position(end_position + EXPORT_SPECIFIER_LOCAL_OFFSET);
     self.convert_module_export_name(&export_named_specifier.orig);
     // exported
     if let Some(exported) = export_named_specifier.exported.as_ref() {
@@ -1639,12 +1696,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_expression_statement(&mut self, expression_statement: &ExprStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_EXPRESSION_STATEMENT_INLINED_EXPRESSION,
+      &TYPE_EXPRESSION_STATEMENT,
       &expression_statement.span,
       EXPRESSION_STATEMENT_RESERVED_BYTES,
       false,
     );
     // expression
+    self.update_reference_position(end_position + EXPRESSION_STATEMENT_EXPRESSION_OFFSET);
     self.convert_expression(&expression_statement.expr);
     // end
     self.add_end(end_position, &expression_statement.span);
@@ -1652,12 +1710,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_for_in_statement(&mut self, for_in_statement: &ForInStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_FOR_IN_STATEMENT_INLINED_LEFT,
+      &TYPE_FOR_IN_STATEMENT,
       &for_in_statement.span,
       FOR_IN_STATEMENT_RESERVED_BYTES,
       false,
     );
     // left
+    self.update_reference_position(end_position + FOR_IN_STATEMENT_LEFT_OFFSET);
     self.convert_for_head(&for_in_statement.left);
     // right
     self.update_reference_position(end_position + FOR_IN_STATEMENT_RIGHT_OFFSET);
@@ -1671,20 +1730,20 @@ impl<'a> AstConverter<'a> {
 
   fn convert_for_of_statement(&mut self, for_of_statement: &ForOfStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_FOR_OF_STATEMENT_INLINED_LEFT,
+      &TYPE_FOR_OF_STATEMENT,
       &for_of_statement.span,
       FOR_OF_STATEMENT_RESERVED_BYTES,
       false,
     );
     // flags
-    let flags = if for_of_statement.is_await {
-      FOR_OF_STATEMENT_AWAIT_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if for_of_statement.is_await {
+      flags |= FOR_OF_STATEMENT_AWAIT_FLAG;
     };
     let flags_position = end_position + FOR_OF_STATEMENT_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // left
+    self.update_reference_position(end_position + FOR_OF_STATEMENT_LEFT_OFFSET);
     self.convert_for_head(&for_of_statement.left);
     // right
     self.update_reference_position(end_position + FOR_OF_STATEMENT_RIGHT_OFFSET);
@@ -1741,10 +1800,9 @@ impl<'a> AstConverter<'a> {
     let end_position =
       self.add_type_and_explicit_start(node_type, start, FUNCTION_DECLARATION_RESERVED_BYTES);
     // flags
-    let mut flags = if is_async {
-      FUNCTION_DECLARATION_ASYNC_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if is_async {
+      flags |= FUNCTION_DECLARATION_ASYNC_FLAG
     };
     if is_generator {
       flags |= FUNCTION_DECLARATION_GENERATOR_FLAG;
@@ -1756,12 +1814,16 @@ impl<'a> AstConverter<'a> {
       let annotations = self
         .index_converter
         .take_collected_annotations(AnnotationKind::NoSideEffects);
-      self.convert_item_list(&annotations, |ast_converter, annotation| {
-        convert_annotation(&mut ast_converter.buffer, annotation);
-        true
-      });
-    } else {
-      self.buffer.extend_from_slice(&0u32.to_ne_bytes());
+      if !annotations.is_empty() {
+        self.convert_item_list(
+          &annotations,
+          end_position + FUNCTION_DECLARATION_ANNOTATIONS_OFFSET,
+          |ast_converter, annotation| {
+            convert_annotation(&mut ast_converter.buffer, annotation);
+            true
+          },
+        );
+      }
     }
     // id
     if let Some(ident) = identifier {
@@ -1769,11 +1831,14 @@ impl<'a> AstConverter<'a> {
       self.convert_identifier(ident);
     }
     // params
-    self.update_reference_position(end_position + FUNCTION_DECLARATION_PARAMS_OFFSET);
-    self.convert_item_list(parameters, |ast_converter, param| {
-      ast_converter.convert_pattern(param);
-      true
-    });
+    self.convert_item_list(
+      parameters,
+      end_position + FUNCTION_DECLARATION_PARAMS_OFFSET,
+      |ast_converter, param| {
+        ast_converter.convert_pattern(param);
+        true
+      },
+    );
     // body
     self.update_reference_position(end_position + FUNCTION_DECLARATION_BODY_OFFSET);
     self.convert_block_statement(body, true);
@@ -1782,25 +1847,23 @@ impl<'a> AstConverter<'a> {
   }
 
   fn store_identifier(&mut self, start: u32, end: u32, name: &str) {
-    let end_position = self.add_type_and_explicit_start(
-      &TYPE_IDENTIFIER_INLINED_NAME,
-      start,
-      IDENTIFIER_RESERVED_BYTES,
-    );
+    let end_position =
+      self.add_type_and_explicit_start(&TYPE_IDENTIFIER, start, IDENTIFIER_RESERVED_BYTES);
     // name
-    self.convert_string(name);
+    self.convert_string(name, end_position + IDENTIFIER_NAME_OFFSET);
     // end
     self.add_explicit_end(end_position, end);
   }
 
   fn convert_if_statement(&mut self, if_statement: &IfStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_IF_STATEMENT_INLINED_TEST,
+      &TYPE_IF_STATEMENT,
       &if_statement.span,
       IF_STATEMENT_RESERVED_BYTES,
       false,
     );
     // test
+    self.update_reference_position(end_position + IF_STATEMENT_TEST_OFFSET);
     self.convert_expression(&if_statement.test);
     // consequent
     self.update_reference_position(end_position + IF_STATEMENT_CONSEQUENT_OFFSET);
@@ -1816,9 +1879,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_import_attribute(&mut self, key_value_property: &KeyValueProp) {
     // type
-    self
-      .buffer
-      .extend_from_slice(&TYPE_IMPORT_ATTRIBUTE_INLINED_KEY);
+    self.buffer.extend_from_slice(&TYPE_IMPORT_ATTRIBUTE);
     let start_position = self.buffer.len();
     let end_position = start_position + 4;
     // reserved bytes
@@ -1826,6 +1887,7 @@ impl<'a> AstConverter<'a> {
       .buffer
       .resize(end_position + IMPORT_ATTRIBUTE_RESERVED_BYTES, 0);
     // key
+    self.update_reference_position(end_position + IMPORT_ATTRIBUTE_KEY_OFFSET);
     let key_position = self.buffer.len();
     let key_boundaries = self.convert_property_name(&key_value_property.key);
     let start_bytes: [u8; 4] = match key_boundaries {
@@ -1856,7 +1918,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_import_declaration(&mut self, import_declaration: &ImportDecl) {
     let end_position = self.add_type_and_start(
-      &TYPE_IMPORT_DECLARATION_INLINED_SPECIFIERS,
+      &TYPE_IMPORT_DECLARATION,
       &import_declaration.span,
       IMPORT_DECLARATION_RESERVED_BYTES,
       false,
@@ -1864,6 +1926,7 @@ impl<'a> AstConverter<'a> {
     // specifiers
     self.convert_item_list(
       &import_declaration.specifiers,
+      end_position + IMPORT_DECLARATION_SPECIFIERS_OFFSET,
       |ast_converter, import_specifier| {
         ast_converter.convert_import_specifier(import_specifier);
         true
@@ -1873,8 +1936,10 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + IMPORT_DECLARATION_SOURCE_OFFSET);
     self.convert_literal_string(&import_declaration.src);
     // attributes
-    self.update_reference_position(end_position + IMPORT_DECLARATION_ATTRIBUTES_OFFSET);
-    self.store_import_attributes(&import_declaration.with);
+    self.store_import_attributes(
+      &import_declaration.with,
+      end_position + IMPORT_DECLARATION_ATTRIBUTES_OFFSET,
+    );
     // end
     self.add_end(end_position, &import_declaration.span);
   }
@@ -1884,12 +1949,13 @@ impl<'a> AstConverter<'a> {
     import_default_specifier: &ImportDefaultSpecifier,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_IMPORT_DEFAULT_SPECIFIER_INLINED_LOCAL,
+      &TYPE_IMPORT_DEFAULT_SPECIFIER,
       &import_default_specifier.span,
       IMPORT_DEFAULT_SPECIFIER_RESERVED_BYTES,
       false,
     );
     // local
+    self.update_reference_position(end_position + IMPORT_DEFAULT_SPECIFIER_LOCAL_OFFSET);
     self.convert_identifier(&import_default_specifier.local);
     // end
     self.add_end(end_position, &import_default_specifier.span);
@@ -1897,12 +1963,13 @@ impl<'a> AstConverter<'a> {
 
   fn store_import_expression(&mut self, span: &Span, arguments: &[ExprOrSpread]) {
     let end_position = self.add_type_and_start(
-      &TYPE_IMPORT_EXPRESSION_INLINED_SOURCE,
+      &TYPE_IMPORT_EXPRESSION,
       span,
       IMPORT_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // source
+    self.update_reference_position(end_position + IMPORT_EXPRESSION_SOURCE_OFFSET);
     self.convert_expression(&arguments.first().unwrap().expr);
     // options
     if let Some(argument) = arguments.get(1) {
@@ -1918,12 +1985,13 @@ impl<'a> AstConverter<'a> {
     import_namespace_specifier: &ImportStarAsSpecifier,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_IMPORT_NAMESPACE_SPECIFIER_INLINED_LOCAL,
+      &TYPE_IMPORT_NAMESPACE_SPECIFIER,
       &import_namespace_specifier.span,
       IMPORT_NAMESPACE_SPECIFIER_RESERVED_BYTES,
       false,
     );
     // local
+    self.update_reference_position(end_position + IMPORT_NAMESPACE_SPECIFIER_LOCAL_OFFSET);
     self.convert_identifier(&import_namespace_specifier.local);
     // end
     self.add_end(end_position, &import_namespace_specifier.span);
@@ -1950,12 +2018,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_labeled_statement(&mut self, labeled_statement: &LabeledStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_LABELED_STATEMENT_INLINED_LABEL,
+      &TYPE_LABELED_STATEMENT,
       &labeled_statement.span,
       LABELED_STATEMENT_RESERVED_BYTES,
       false,
     );
     // label
+    self.update_reference_position(end_position + LABELED_STATEMENT_LABEL_OFFSET);
     self.convert_identifier(&labeled_statement.label);
     // body
     self.update_reference_position(end_position + LABELED_STATEMENT_BODY_OFFSET);
@@ -1966,16 +2035,21 @@ impl<'a> AstConverter<'a> {
 
   fn convert_literal_bigint(&mut self, bigint: &BigInt) {
     let end_position = self.add_type_and_start(
-      &TYPE_LITERAL_BIG_INT_INLINED_BIGINT,
+      &TYPE_LITERAL_BIG_INT,
       &bigint.span,
       LITERAL_BIG_INT_RESERVED_BYTES,
       false,
     );
     // bigint
-    self.convert_string(&bigint.value.to_str_radix(10));
+    self.convert_string(
+      &bigint.value.to_str_radix(10),
+      end_position + LITERAL_BIG_INT_BIGINT_OFFSET,
+    );
     // raw
-    self.update_reference_position(end_position + LITERAL_BIG_INT_RAW_OFFSET);
-    self.convert_string(bigint.raw.as_ref().unwrap());
+    self.convert_string(
+      bigint.raw.as_ref().unwrap(),
+      end_position + LITERAL_BIG_INT_RAW_OFFSET,
+    );
     // end
     self.add_end(end_position, &bigint.span);
   }
@@ -1987,10 +2061,9 @@ impl<'a> AstConverter<'a> {
       LITERAL_BOOLEAN_RESERVED_BYTES,
       false,
     );
-    let flags = if literal.value {
-      LITERAL_BOOLEAN_VALUE_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if literal.value {
+      flags |= LITERAL_BOOLEAN_VALUE_FLAG
     };
     let flags_position = end_position + LITERAL_BOOLEAN_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -2019,8 +2092,7 @@ impl<'a> AstConverter<'a> {
     self.buffer[value_position..value_position + 8].copy_from_slice(&literal.value.to_le_bytes());
     // raw
     if let Some(raw) = literal.raw.as_ref() {
-      self.update_reference_position(end_position + LITERAL_NUMBER_RAW_OFFSET);
-      self.convert_string(raw);
+      self.convert_string(raw, end_position + LITERAL_NUMBER_RAW_OFFSET);
     }
     // end
     self.add_end(end_position, &literal.span);
@@ -2028,33 +2100,31 @@ impl<'a> AstConverter<'a> {
 
   fn convert_literal_regex(&mut self, regex: &Regex) {
     let end_position = self.add_type_and_start(
-      &TYPE_LITERAL_REG_EXP_INLINED_FLAGS,
+      &TYPE_LITERAL_REG_EXP,
       &regex.span,
       LITERAL_REG_EXP_RESERVED_BYTES,
       false,
     );
     // flags
-    self.convert_string(&regex.flags);
+    self.convert_string(&regex.flags, end_position + LITERAL_REG_EXP_FLAGS_OFFSET);
     // pattern
-    self.update_reference_position(end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
-    self.convert_string(&regex.exp);
+    self.convert_string(&regex.exp, end_position + LITERAL_REG_EXP_PATTERN_OFFSET);
     // end
     self.add_end(end_position, &regex.span);
   }
 
   fn convert_literal_string(&mut self, literal: &Str) {
     let end_position = self.add_type_and_start(
-      &TYPE_LITERAL_STRING_INLINED_VALUE,
+      &TYPE_LITERAL_STRING,
       &literal.span,
       LITERAL_STRING_RESERVED_BYTES,
       false,
     );
     // value
-    self.convert_string(&literal.value);
+    self.convert_string(&literal.value, end_position + LITERAL_STRING_VALUE_OFFSET);
     // raw
     if let Some(raw) = literal.raw.as_ref() {
-      self.update_reference_position(end_position + LITERAL_STRING_RAW_OFFSET);
-      self.convert_string(raw);
+      self.convert_string(raw, end_position + LITERAL_STRING_RAW_OFFSET);
     }
     // end
     self.add_end(end_position, &literal.span);
@@ -2069,12 +2139,13 @@ impl<'a> AstConverter<'a> {
     is_chained: bool,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_MEMBER_EXPRESSION_INLINED_OBJECT,
+      &TYPE_MEMBER_EXPRESSION,
       span,
       MEMBER_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // object
+    self.update_reference_position(end_position + MEMBER_EXPRESSION_OBJECT_OFFSET);
     match object {
       ExpressionOrSuper::Expression(Expr::OptChain(optional_chain_expression)) => {
         self.convert_optional_chain_expression(optional_chain_expression, is_chained);
@@ -2115,7 +2186,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_meta_property(&mut self, meta_property_expression: &MetaPropExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_META_PROPERTY_INLINED_META,
+      &TYPE_META_PROPERTY,
       &meta_property_expression.span,
       META_PROPERTY_RESERVED_BYTES,
       false,
@@ -2123,6 +2194,7 @@ impl<'a> AstConverter<'a> {
     match meta_property_expression.kind {
       MetaPropKind::ImportMeta => {
         // meta
+        self.update_reference_position(end_position + META_PROPERTY_META_OFFSET);
         self.store_identifier(
           meta_property_expression.span.lo.0 - 1,
           meta_property_expression.span.lo.0 + 5,
@@ -2138,6 +2210,7 @@ impl<'a> AstConverter<'a> {
       }
       MetaPropKind::NewTarget => {
         // meta
+        self.update_reference_position(end_position + META_PROPERTY_META_OFFSET);
         self.store_identifier(
           meta_property_expression.span.lo.0 - 1,
           meta_property_expression.span.lo.0 + 2,
@@ -2159,12 +2232,13 @@ impl<'a> AstConverter<'a> {
   // TODO SWC can this become a store_method_definition?
   fn convert_constructor(&mut self, constructor: &Constructor) {
     let end_position = self.add_type_and_start(
-      &TYPE_METHOD_DEFINITION_INLINED_KEY,
+      &TYPE_METHOD_DEFINITION,
       &constructor.span,
       METHOD_DEFINITION_RESERVED_BYTES,
       false,
     );
     // key
+    self.update_reference_position(end_position + METHOD_DEFINITION_KEY_OFFSET);
     self.convert_property_name(&constructor.key);
     // flags, method definitions are neither static nor computed
     let flags_position = end_position + METHOD_DEFINITION_FLAGS_OFFSET;
@@ -2187,7 +2261,7 @@ impl<'a> AstConverter<'a> {
           })
           .collect();
         self.store_function_node(
-          &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+          &TYPE_FUNCTION_EXPRESSION,
           function_start,
           block_statement.span.hi.0 - 1,
           false,
@@ -2216,28 +2290,15 @@ impl<'a> AstConverter<'a> {
     function: &Function,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_METHOD_DEFINITION_INLINED_KEY,
+      &TYPE_METHOD_DEFINITION,
       span,
       METHOD_DEFINITION_RESERVED_BYTES,
       false,
     );
-    // key
-    let key_end = match key {
-      PropOrPrivateName::PropName(prop_name) => {
-        self.convert_property_name(prop_name);
-        self.get_property_name_span(prop_name).hi.0 - 1
-      }
-      PropOrPrivateName::PrivateName(private_name) => {
-        self.convert_private_name(private_name);
-        private_name.id.span.hi.0 - 1
-      }
-    };
-    let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     // flags
-    let mut flags = if is_static {
-      METHOD_DEFINITION_STATIC_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if is_static {
+      flags |= METHOD_DEFINITION_STATIC_FLAG
     };
     if is_computed {
       flags |= METHOD_DEFINITION_COMPUTED_FLAG;
@@ -2251,11 +2312,24 @@ impl<'a> AstConverter<'a> {
       MethodKind::Getter => &STRING_GET,
       MethodKind::Setter => &STRING_SET,
     });
+    // key
+    self.update_reference_position(end_position + METHOD_DEFINITION_KEY_OFFSET);
+    let key_end = match key {
+      PropOrPrivateName::PropName(prop_name) => {
+        self.convert_property_name(prop_name);
+        self.get_property_name_span(prop_name).hi.0 - 1
+      }
+      PropOrPrivateName::PrivateName(private_name) => {
+        self.convert_private_name(private_name);
+        private_name.id.span.hi.0 - 1
+      }
+    };
     // value
     self.update_reference_position(end_position + METHOD_DEFINITION_VALUE_OFFSET);
+    let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
     self.store_function_node(
-      &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      &TYPE_FUNCTION_EXPRESSION,
       function_start,
       function.span.hi.0 - 1,
       function.is_async,
@@ -2271,29 +2345,35 @@ impl<'a> AstConverter<'a> {
 
   fn convert_new_expression(&mut self, new_expression: &NewExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_NEW_EXPRESSION_INLINED_ANNOTATIONS,
+      &TYPE_NEW_EXPRESSION,
       &new_expression.span,
       NEW_EXPRESSION_RESERVED_BYTES,
       false,
     );
+    // annotations
     let annotations = self
       .index_converter
       .take_collected_annotations(AnnotationKind::Pure);
-    // annotations
-    self.convert_item_list(&annotations, |ast_converter, annotation| {
-      convert_annotation(&mut ast_converter.buffer, annotation);
-      true
-    });
+    if !annotations.is_empty() {
+      self.convert_item_list(
+        &annotations,
+        end_position + NEW_EXPRESSION_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
+    }
     // callee
     self.update_reference_position(end_position + NEW_EXPRESSION_CALLEE_OFFSET);
     self.convert_expression(&new_expression.callee);
     // arguments
-    self.update_reference_position(end_position + NEW_EXPRESSION_ARGUMENTS_OFFSET);
     self.convert_item_list(
       match &new_expression.args {
         Some(arguments) => arguments,
         None => &[],
       },
+      end_position + NEW_EXPRESSION_ARGUMENTS_OFFSET,
       |ast_converter, expression_or_spread| {
         ast_converter.convert_expression_or_spread(expression_or_spread);
         true
@@ -2305,7 +2385,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_object_literal(&mut self, object_literal: &ObjectLit) {
     let end_position = self.add_type_and_start(
-      &TYPE_OBJECT_EXPRESSION_INLINED_PROPERTIES,
+      &TYPE_OBJECT_EXPRESSION,
       &object_literal.span,
       OBJECT_EXPRESSION_RESERVED_BYTES,
       false,
@@ -2313,6 +2393,7 @@ impl<'a> AstConverter<'a> {
     // properties
     self.convert_item_list(
       &object_literal.props,
+      end_position + OBJECT_EXPRESSION_PROPERTIES_OFFSET,
       |ast_converter, property_or_spread| {
         ast_converter.convert_property_or_spread(property_or_spread);
         true
@@ -2324,7 +2405,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_object_pattern(&mut self, object_pattern: &ObjectPat) {
     let end_position = self.add_type_and_start(
-      &TYPE_OBJECT_PATTERN_INLINED_PROPERTIES,
+      &TYPE_OBJECT_PATTERN,
       &object_pattern.span,
       OBJECT_PATTERN_RESERVED_BYTES,
       false,
@@ -2332,6 +2413,7 @@ impl<'a> AstConverter<'a> {
     // properties
     self.convert_item_list(
       &object_pattern.props,
+      end_position + OBJECT_PATTERN_PROPERTIES_OFFSET,
       |ast_converter, object_pattern_property| {
         ast_converter.convert_object_pattern_property(object_pattern_property);
         true
@@ -2343,20 +2425,23 @@ impl<'a> AstConverter<'a> {
 
   fn convert_private_name(&mut self, private_name: &PrivateName) {
     let end_position = self.add_type_and_start(
-      &TYPE_PRIVATE_IDENTIFIER_INLINED_NAME,
+      &TYPE_PRIVATE_IDENTIFIER,
       &private_name.span,
       PRIVATE_IDENTIFIER_RESERVED_BYTES,
       false,
     );
-    // id
-    self.convert_string(&private_name.id.sym);
+    // name
+    self.convert_string(
+      &private_name.id.sym,
+      end_position + PRIVATE_IDENTIFIER_NAME_OFFSET,
+    );
     // end
     self.add_end(end_position, &private_name.span);
   }
 
   fn store_program(&mut self, body: ModuleItemsOrStatements) {
     let end_position =
-      self.add_type_and_explicit_start(&TYPE_PROGRAM_INLINED_BODY, 0u32, PROGRAM_RESERVED_BYTES);
+      self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32, PROGRAM_RESERVED_BYTES);
     // body
     let mut keep_checking_directives = true;
     match body {
@@ -2364,6 +2449,7 @@ impl<'a> AstConverter<'a> {
         self.convert_item_list_with_state(
           module_items,
           &mut keep_checking_directives,
+          end_position + PROGRAM_BODY_OFFSET,
           |ast_converter, module_item, can_be_directive| {
             if *can_be_directive {
               if let ModuleItem::Stmt(Stmt::Expr(expression)) = module_item {
@@ -2383,6 +2469,7 @@ impl<'a> AstConverter<'a> {
         self.convert_item_list_with_state(
           statements,
           &mut keep_checking_directives,
+          end_position + PROGRAM_BODY_OFFSET,
           |ast_converter, statement, can_be_directive| {
             if *can_be_directive {
               if let Stmt::Expr(expression) = statement {
@@ -2403,13 +2490,18 @@ impl<'a> AstConverter<'a> {
     self.add_explicit_end(end_position, self.code.len() as u32);
     // annotations, these need to come after end so that trailing comments are
     // included
-    self.update_reference_position(end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET);
     self.index_converter.invalidate_collected_annotations();
     let invalid_annotations = self.index_converter.take_invalid_annotations();
-    self.convert_item_list(&invalid_annotations, |ast_converter, annotation| {
-      convert_annotation(&mut ast_converter.buffer, annotation);
-      true
-    });
+    if !invalid_annotations.is_empty() {
+      self.convert_item_list(
+        &invalid_annotations,
+        end_position + PROGRAM_INVALID_ANNOTATIONS_OFFSET,
+        |ast_converter, annotation| {
+          convert_annotation(&mut ast_converter.buffer, annotation);
+          true
+        },
+      );
+    }
   }
 
   // TODO SWC property has many different formats that should be merged if possible
@@ -2423,10 +2515,9 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(property_name);
     // flags, method and shorthand are always false
-    let flags = if matches!(property_name, PropName::Computed(_)) {
-      PROPERTY_COMPUTED_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if matches!(property_name, PropName::Computed(_)) {
+      flags |= PROPERTY_COMPUTED_FLAG
     };
     let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -2470,10 +2561,9 @@ impl<'a> AstConverter<'a> {
     self.convert_property_name(key);
     let key_end = self.get_property_name_span(key).hi.0 - 1;
     // flags, method and shorthand are always false
-    let flags = if matches!(key, PropName::Computed(_)) {
-      PROPERTY_COMPUTED_FLAG
-    } else {
-      0u32
+    let mut flags = 0u32;
+    if matches!(key, PropName::Computed(_)) {
+      flags |= PROPERTY_COMPUTED_FLAG;
     };
     let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
@@ -2488,7 +2578,7 @@ impl<'a> AstConverter<'a> {
       None => vec![],
     };
     self.store_function_node(
-      &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      &TYPE_FUNCTION_EXPRESSION,
       find_first_occurrence_outside_comment(self.code, b'(', key_end),
       block_statement.span.hi.0 - 1,
       false,
@@ -2529,7 +2619,7 @@ impl<'a> AstConverter<'a> {
     let function = &method_property.function;
     let parameters: Vec<&Pat> = function.params.iter().map(|param| &param.pat).collect();
     self.store_function_node(
-      &TYPE_FUNCTION_EXPRESSION_INLINED_ANNOTATIONS,
+      &TYPE_FUNCTION_EXPRESSION,
       function_start,
       function.span.hi.0 - 1,
       function.is_async,
@@ -2590,12 +2680,13 @@ impl<'a> AstConverter<'a> {
     value: &Option<&Expr>,
   ) {
     let end_position = self.add_type_and_start(
-      &TYPE_PROPERTY_DEFINITION_INLINED_KEY,
+      &TYPE_PROPERTY_DEFINITION,
       span,
       PROPERTY_DEFINITION_RESERVED_BYTES,
       false,
     );
     // key
+    self.update_reference_position(end_position + PROPERTY_DEFINITION_KEY_OFFSET);
     match key {
       PropOrPrivateName::PropName(prop_name) => {
         self.convert_property_name(prop_name);
@@ -2603,11 +2694,10 @@ impl<'a> AstConverter<'a> {
       PropOrPrivateName::PrivateName(private_name) => self.convert_private_name(private_name),
     }
     // flags
-    let mut flags = if is_static {
-      PROPERTY_DEFINITION_STATIC_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if is_static {
+      flags |= PROPERTY_DEFINITION_STATIC_FLAG;
+    }
     if is_computed {
       flags |= PROPERTY_DEFINITION_COMPUTED_FLAG;
     }
@@ -2624,11 +2714,12 @@ impl<'a> AstConverter<'a> {
 
   fn convert_rest_pattern(&mut self, rest_pattern: &RestPat) {
     let end_position = self.add_type_and_explicit_start(
-      &TYPE_REST_ELEMENT_INLINED_ARGUMENT,
+      &TYPE_REST_ELEMENT,
       rest_pattern.dot3_token.lo.0 - 1,
       REST_ELEMENT_RESERVED_BYTES,
     );
     // argument
+    self.update_reference_position(end_position + REST_ELEMENT_ARGUMENT_OFFSET);
     self.convert_pattern(&rest_pattern.arg);
     // end
     self.add_explicit_end(end_position, rest_pattern.span.hi.0 - 1);
@@ -2652,23 +2743,27 @@ impl<'a> AstConverter<'a> {
 
   fn convert_sequence_expression(&mut self, sequence_expression: &SeqExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_SEQUENCE_EXPRESSION_INLINED_EXPRESSIONS,
+      &TYPE_SEQUENCE_EXPRESSION,
       &sequence_expression.span,
       SEQUENCE_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // expressions
-    self.convert_item_list(&sequence_expression.exprs, |ast_converter, expression| {
-      ast_converter.convert_expression(expression);
-      true
-    });
+    self.convert_item_list(
+      &sequence_expression.exprs,
+      end_position + SEQUENCE_EXPRESSION_EXPRESSIONS_OFFSET,
+      |ast_converter, expression| {
+        ast_converter.convert_expression(expression);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &sequence_expression.span);
   }
 
   fn store_spread_element(&mut self, dot_span: &Span, argument: &Expr) {
     let end_position = self.add_type_and_start(
-      &TYPE_SPREAD_ELEMENT_INLINED_ARGUMENT,
+      &TYPE_SPREAD_ELEMENT,
       dot_span,
       SPREAD_ELEMENT_RESERVED_BYTES,
       false,
@@ -2676,6 +2771,7 @@ impl<'a> AstConverter<'a> {
     // we need to set the end position to that of the expression
     let argument_position = self.buffer.len();
     // argument
+    self.update_reference_position(end_position + SPREAD_ELEMENT_ARGUMENT_OFFSET);
     self.convert_expression(argument);
     let expression_end: [u8; 4] = self.buffer[argument_position + 8..argument_position + 12]
       .try_into()
@@ -2685,16 +2781,20 @@ impl<'a> AstConverter<'a> {
 
   fn convert_static_block(&mut self, static_block: &StaticBlock) {
     let end_position = self.add_type_and_start(
-      &TYPE_STATIC_BLOCK_INLINED_BODY,
+      &TYPE_STATIC_BLOCK,
       &static_block.span,
       STATIC_BLOCK_RESERVED_BYTES,
       false,
     );
     // body
-    self.convert_item_list(&static_block.body.stmts, |ast_converter, statement| {
-      ast_converter.convert_statement(statement);
-      true
-    });
+    self.convert_item_list(
+      &static_block.body.stmts,
+      end_position + STATIC_BLOCK_BODY_OFFSET,
+      |ast_converter, statement| {
+        ast_converter.convert_statement(statement);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &static_block.span);
   }
@@ -2723,42 +2823,50 @@ impl<'a> AstConverter<'a> {
       self.convert_expression(expression)
     });
     // consequent
-    self.update_reference_position(end_position + SWITCH_CASE_CONSEQUENT_OFFSET);
-    self.convert_item_list(&switch_case.cons, |ast_converter, statement| {
-      ast_converter.convert_statement(statement);
-      true
-    });
+    self.convert_item_list(
+      &switch_case.cons,
+      end_position + SWITCH_CASE_CONSEQUENT_OFFSET,
+      |ast_converter, statement| {
+        ast_converter.convert_statement(statement);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &switch_case.span);
   }
 
   fn convert_switch_statement(&mut self, switch_statement: &SwitchStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_SWITCH_STATEMENT_INLINED_DISCRIMINANT,
+      &TYPE_SWITCH_STATEMENT,
       &switch_statement.span,
       SWITCH_STATEMENT_RESERVED_BYTES,
       false,
     );
     // discriminant
+    self.update_reference_position(end_position + SWITCH_STATEMENT_DISCRIMINANT_OFFSET);
     self.convert_expression(&switch_statement.discriminant);
     // cases
-    self.update_reference_position(end_position + SWITCH_STATEMENT_CASES_OFFSET);
-    self.convert_item_list(&switch_statement.cases, |ast_converter, switch_case| {
-      ast_converter.convert_switch_case(switch_case);
-      true
-    });
+    self.convert_item_list(
+      &switch_statement.cases,
+      end_position + SWITCH_STATEMENT_CASES_OFFSET,
+      |ast_converter, switch_case| {
+        ast_converter.convert_switch_case(switch_case);
+        true
+      },
+    );
     // end
     self.add_end(end_position, &switch_statement.span);
   }
 
   fn convert_tagged_template_expression(&mut self, tagged_template: &TaggedTpl) {
     let end_position = self.add_type_and_start(
-      &TYPE_TAGGED_TEMPLATE_EXPRESSION_INLINED_TAG,
+      &TYPE_TAGGED_TEMPLATE_EXPRESSION,
       &tagged_template.span,
       TAGGED_TEMPLATE_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // tag
+    self.update_reference_position(end_position + TAGGED_TEMPLATE_EXPRESSION_TAG_OFFSET);
     self.convert_expression(&tagged_template.tag);
     // quasi
     self.update_reference_position(end_position + TAGGED_TEMPLATE_EXPRESSION_QUASI_OFFSET);
@@ -2769,25 +2877,26 @@ impl<'a> AstConverter<'a> {
 
   fn convert_template_element(&mut self, template_element: &TplElement) {
     let end_position = self.add_type_and_start(
-      &TYPE_TEMPLATE_ELEMENT_INLINED_RAW,
+      &TYPE_TEMPLATE_ELEMENT,
       &template_element.span,
       TEMPLATE_ELEMENT_RESERVED_BYTES,
       false,
     );
     // flags
-    let flags = if template_element.tail {
-      TEMPLATE_ELEMENT_TAIL_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if template_element.tail {
+      flags |= TEMPLATE_ELEMENT_TAIL_FLAG
+    }
     let flags_position = end_position + TEMPLATE_ELEMENT_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // raw
-    self.convert_string(&template_element.raw);
+    self.convert_string(
+      &template_element.raw,
+      end_position + TEMPLATE_ELEMENT_RAW_OFFSET,
+    );
     // cooked
     if let Some(cooked) = template_element.cooked.as_ref() {
-      self.update_reference_position(end_position + TEMPLATE_ELEMENT_COOKED_OFFSET);
-      self.convert_string(cooked);
+      self.convert_string(cooked, end_position + TEMPLATE_ELEMENT_COOKED_OFFSET);
     }
     // end
     self.add_end(end_position, &template_element.span);
@@ -2795,12 +2904,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_template_literal(&mut self, template_literal: &Tpl) {
     let end_position = self.add_type_and_start(
-      &TYPE_TEMPLATE_LITERAL_INLINED_QUASIS,
+      &TYPE_TEMPLATE_LITERAL,
       &template_literal.span,
       TEMPLATE_LITERAL_RESERVED_BYTES,
       false,
     );
     // quasis, we manually do an item list here
+    self.update_reference_position(end_position + TEMPLATE_LITERAL_QUASIS_OFFSET);
     self
       .buffer
       .extend_from_slice(&(template_literal.quasis.len() as u32).to_ne_bytes());
@@ -2859,12 +2969,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_throw_statement(&mut self, throw_statement: &ThrowStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_THROW_STATEMENT_INLINED_ARGUMENT,
+      &TYPE_THROW_STATEMENT,
       &throw_statement.span,
       THROW_STATEMENT_RESERVED_BYTES,
       false,
     );
     // argument
+    self.update_reference_position(end_position + THROW_STATEMENT_ARGUMENT_OFFSET);
     self.convert_expression(&throw_statement.arg);
     // end
     self.add_end(end_position, &throw_statement.span);
@@ -2872,12 +2983,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_try_statement(&mut self, try_statement: &TryStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_TRY_STATEMENT_INLINED_BLOCK,
+      &TYPE_TRY_STATEMENT,
       &try_statement.span,
       TRY_STATEMENT_RESERVED_BYTES,
       false,
     );
     // block
+    self.update_reference_position(end_position + TRY_STATEMENT_BLOCK_OFFSET);
     self.convert_block_statement(&try_statement.block, false);
     // handler
     if let Some(catch_clause) = try_statement.handler.as_ref() {
@@ -2895,12 +3007,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_UNARY_EXPRESSION_INLINED_ARGUMENT,
+      &TYPE_UNARY_EXPRESSION,
       &unary_expression.span,
       UNARY_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // argument
+    self.update_reference_position(end_position + UNARY_EXPRESSION_ARGUMENT_OFFSET);
     self.convert_expression(&unary_expression.arg);
     // operator
     let operator_position = end_position + UNARY_EXPRESSION_OPERATOR_OFFSET;
@@ -2921,19 +3034,19 @@ impl<'a> AstConverter<'a> {
 
   fn convert_update_expression(&mut self, update_expression: &UpdateExpr) {
     let end_position = self.add_type_and_start(
-      &TYPE_UPDATE_EXPRESSION_INLINED_ARGUMENT,
+      &TYPE_UPDATE_EXPRESSION,
       &update_expression.span,
       UPDATE_EXPRESSION_RESERVED_BYTES,
       false,
     );
     // argument
+    self.update_reference_position(end_position + UPDATE_EXPRESSION_ARGUMENT_OFFSET);
     self.convert_expression(&update_expression.arg);
     // flags
-    let flags = if update_expression.prefix {
-      UPDATE_EXPRESSION_PREFIX_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if update_expression.prefix {
+      flags |= UPDATE_EXPRESSION_PREFIX_FLAG;
+    }
     let flags_position = end_position + UPDATE_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // operator
@@ -2970,16 +3083,20 @@ impl<'a> AstConverter<'a> {
       ),
     };
     let end_position = self.add_type_and_start(
-      &TYPE_VARIABLE_DECLARATION_INLINED_DECLARATIONS,
+      &TYPE_VARIABLE_DECLARATION,
       &span,
       VARIABLE_DECLARATION_RESERVED_BYTES,
       kind == &STRING_CONST,
     );
     // declarations
-    self.convert_item_list(decls, |ast_converter, variable_declarator| {
-      ast_converter.convert_variable_declarator(variable_declarator);
-      true
-    });
+    self.convert_item_list(
+      decls,
+      end_position + VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
+      |ast_converter, variable_declarator| {
+        ast_converter.convert_variable_declarator(variable_declarator);
+        true
+      },
+    );
     // kind
     let kind_position = end_position + VARIABLE_DECLARATION_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(kind);
@@ -2989,7 +3106,7 @@ impl<'a> AstConverter<'a> {
 
   fn convert_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
     let end_position = self.add_type_and_start(
-      &TYPE_VARIABLE_DECLARATOR_INLINED_ID,
+      &TYPE_VARIABLE_DECLARATOR,
       &variable_declarator.span,
       VARIABLE_DECLARATOR_RESERVED_BYTES,
       false,
@@ -3007,6 +3124,7 @@ impl<'a> AstConverter<'a> {
       None => None,
     };
     // id
+    self.update_reference_position(end_position + VARIABLE_DECLARATOR_ID_OFFSET);
     self.convert_pattern(&variable_declarator.name);
     // init
     if let Some(annotations) = forwarded_annotations {
@@ -3022,12 +3140,13 @@ impl<'a> AstConverter<'a> {
 
   fn convert_while_statement(&mut self, while_statement: &WhileStmt) {
     let end_position = self.add_type_and_start(
-      &TYPE_WHILE_STATEMENT_INLINED_TEST,
+      &TYPE_WHILE_STATEMENT,
       &while_statement.span,
       WHILE_STATEMENT_RESERVED_BYTES,
       false,
     );
     // test
+    self.update_reference_position(end_position + WHILE_STATEMENT_TEST_OFFSET);
     self.convert_expression(&while_statement.test);
     // body
     self.update_reference_position(end_position + WHILE_STATEMENT_BODY_OFFSET);
@@ -3044,11 +3163,10 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    let flags = if yield_expression.delegate {
-      YIELD_EXPRESSION_DELEGATE_FLAG
-    } else {
-      0u32
-    };
+    let mut flags = 0u32;
+    if yield_expression.delegate {
+      flags |= YIELD_EXPRESSION_DELEGATE_FLAG;
+    }
     let flags_position = end_position + YIELD_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // argument
@@ -3080,6 +3198,12 @@ pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   buffer.extend_from_slice(&(length as u32).to_ne_bytes());
   buffer.extend_from_slice(string.as_bytes());
   buffer.resize(buffer.len() + additional_length, 0);
+}
+
+pub fn update_reference_position(buffer: &mut Vec<u8>, reference_position: usize) {
+  let insert_position = (buffer.len() as u32) >> 2;
+  buffer[reference_position..reference_position + 4]
+    .copy_from_slice(&insert_position.to_ne_bytes());
 }
 
 enum VariableDeclaration<'a> {

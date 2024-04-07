@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.14.1
+
+_2024-04-07_
+
+### Bug Fixes
+
+- Show better error when running on musl Linux where the musl build is not supported (#5454)
+
+### Pull Requests
+
+- [#5451](https://github.com/rollup/rollup/pull/5451): chore: generate string constants from config (@TrickyPi)
+- [#5452](https://github.com/rollup/rollup/pull/5452): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5453](https://github.com/rollup/rollup/pull/5453): chore(deps): lock file maintenance (@renovate[bot])
+- [#5454](https://github.com/rollup/rollup/pull/5454): Improve error message when running on unsupported MUSL Linux (@lukastaegert)
+- [#5455](https://github.com/rollup/rollup/pull/5455): Remove inlining logic in AST (de-)serializer (@lukastaegert)
+
 ## 4.14.0
 
 _2024-04-03_
