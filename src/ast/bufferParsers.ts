@@ -4,6 +4,7 @@
 import type * as estree from 'estree';
 import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
+import { EMPTY_ARRAY } from '../utils/blank';
 import { convertNode as convertJsonNode } from '../utils/bufferToAst';
 import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
@@ -273,18 +274,18 @@ const bufferParsers: ((
 	readString: ReadString
 ) => void)[] = [
 	function panicError(node: PanicError, position, buffer, readString) {
-		node.message = convertString(position, buffer, readString);
+		node.message = convertString(buffer[position], buffer, readString);
 	},
 	function parseError(node: ParseError, position, buffer, readString) {
-		node.message = convertString(position, buffer, readString);
+		node.message = convertString(buffer[position], buffer, readString);
 	},
 	function arrayExpression(node: ArrayExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.elements = convertNodeList(node, scope, position, buffer, readString);
+		node.elements = convertNodeList(node, scope, buffer[position], buffer, readString);
 	},
 	function arrayPattern(node: ArrayPattern, position, buffer, readString) {
 		const { scope } = node;
-		node.elements = convertNodeList(node, scope, position, buffer, readString);
+		node.elements = convertNodeList(node, scope, buffer[position], buffer, readString);
 	},
 	function arrowFunctionExpression(node: ArrowFunctionExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -292,10 +293,12 @@ const bufferParsers: ((
 		node.async = (flags & 1) === 1;
 		node.expression = (flags & 2) === 2;
 		node.generator = (flags & 4) === 4;
+		const annotations = (node.annotations = convertAnnotations(buffer[position + 1], buffer));
+		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
 		const parameters = (node.params = convertNodeList(
 			node,
 			scope,
-			buffer[position + 1],
+			buffer[position + 2],
 			buffer,
 			readString
 		));
@@ -305,34 +308,32 @@ const bufferParsers: ((
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		node.body = convertNode(node, scope.bodyScope, buffer[position + 2], buffer, readString);
-		const annotations = (node.annotations = convertAnnotations(position + 3, buffer));
-		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
+		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
 	},
 	function assignmentExpression(node: AssignmentExpression, position, buffer, readString) {
 		const { scope } = node;
 		node.operator = FIXED_STRINGS[buffer[position]] as estree.AssignmentOperator;
-		node.right = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.left = convertNode(node, scope, position + 2, buffer, readString);
+		node.left = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.right = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function assignmentPattern(node: AssignmentPattern, position, buffer, readString) {
 		const { scope } = node;
-		node.right = convertNode(node, scope, buffer[position], buffer, readString);
-		node.left = convertNode(node, scope, position + 1, buffer, readString);
+		node.left = convertNode(node, scope, buffer[position], buffer, readString);
+		node.right = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function awaitExpression(node: AwaitExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.argument = convertNode(node, scope, position, buffer, readString);
+		node.argument = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function binaryExpression(node: BinaryExpression, position, buffer, readString) {
 		const { scope } = node;
 		node.operator = FIXED_STRINGS[buffer[position]] as estree.BinaryOperator;
-		node.right = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.left = convertNode(node, scope, position + 2, buffer, readString);
+		node.left = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.right = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function blockStatement(node: BlockStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.body = convertNodeList(node, scope, position, buffer, readString);
+		node.body = convertNodeList(node, scope, buffer[position], buffer, readString);
 	},
 	function breakStatement(node: BreakStatement, position, buffer, readString) {
 		const { scope } = node;
@@ -344,9 +345,9 @@ const bufferParsers: ((
 		const { scope } = node;
 		const flags = buffer[position];
 		node.optional = (flags & 1) === 1;
-		node.callee = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.arguments = convertNodeList(node, scope, buffer[position + 2], buffer, readString);
-		node.annotations = convertAnnotations(position + 3, buffer);
+		node.annotations = convertAnnotations(buffer[position + 1], buffer);
+		node.callee = convertNode(node, scope, buffer[position + 2], buffer, readString);
+		node.arguments = convertNodeList(node, scope, buffer[position + 3], buffer, readString);
 	},
 	function catchClause(node: CatchClause, position, buffer, readString) {
 		const { scope } = node;
@@ -360,23 +361,26 @@ const bufferParsers: ((
 	},
 	function chainExpression(node: ChainExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.expression = convertNode(node, scope, position, buffer, readString);
+		node.expression = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function classBody(node: ClassBody, position, buffer, readString) {
 		const { scope } = node;
-		const length = buffer[position];
+		const bodyPosition = buffer[position];
 		const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
-		for (let index = 0; index < length; index++) {
-			const nodePosition = buffer[position + 1 + index];
-			body.push(
-				convertNode(
-					node,
-					(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-					nodePosition,
-					buffer,
-					readString
-				)
-			);
+		if (bodyPosition) {
+			const length = buffer[bodyPosition];
+			for (let index = 0; index < length; index++) {
+				const nodePosition = buffer[bodyPosition + 1 + index];
+				body.push(
+					convertNode(
+						node,
+						(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+						nodePosition,
+						buffer,
+						readString
+					)
+				);
+			}
 		}
 	},
 	function classDeclaration(node: ClassDeclaration, position, buffer, readString) {
@@ -406,9 +410,9 @@ const bufferParsers: ((
 	},
 	function conditionalExpression(node: ConditionalExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.consequent = convertNode(node, scope, buffer[position], buffer, readString);
-		node.alternate = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.test = convertNode(node, scope, position + 2, buffer, readString);
+		node.test = convertNode(node, scope, buffer[position], buffer, readString);
+		node.consequent = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.alternate = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function continueStatement(node: ContinueStatement, position, buffer, readString) {
 		const { scope } = node;
@@ -419,13 +423,13 @@ const bufferParsers: ((
 	function debuggerStatement() {},
 	function directive(node: ExpressionStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.expression = convertNode(node, scope, buffer[position], buffer, readString);
-		node.directive = convertString(position + 1, buffer, readString);
+		node.directive = convertString(buffer[position], buffer, readString);
+		node.expression = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function doWhileStatement(node: DoWhileStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.test = convertNode(node, scope, buffer[position], buffer, readString);
-		node.body = convertNode(node, scope, position + 1, buffer, readString);
+		node.body = convertNode(node, scope, buffer[position], buffer, readString);
+		node.test = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function emptyStatement() {},
 	function exportAllDeclaration(node: ExportAllDeclaration, position, buffer, readString) {
@@ -440,25 +444,25 @@ const bufferParsers: ((
 	},
 	function exportDefaultDeclaration(node: ExportDefaultDeclaration, position, buffer, readString) {
 		const { scope } = node;
-		node.declaration = convertNode(node, scope, position, buffer, readString);
+		node.declaration = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function exportNamedDeclaration(node: ExportNamedDeclaration, position, buffer, readString) {
 		const { scope } = node;
-		const sourcePosition = buffer[position];
+		node.specifiers = convertNodeList(node, scope, buffer[position], buffer, readString);
+		const sourcePosition = buffer[position + 1];
 		node.source =
 			sourcePosition === 0 ? null : convertNode(node, scope, sourcePosition, buffer, readString);
-		node.attributes = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
-		const declarationPosition = buffer[position + 2];
+		node.attributes = convertNodeList(node, scope, buffer[position + 2], buffer, readString);
+		const declarationPosition = buffer[position + 3];
 		node.declaration =
 			declarationPosition === 0
 				? null
 				: convertNode(node, scope, declarationPosition, buffer, readString);
-		node.specifiers = convertNodeList(node, scope, position + 3, buffer, readString);
 	},
 	function exportSpecifier(node: ExportSpecifier, position, buffer, readString) {
 		const { scope } = node;
-		const exportedPosition = buffer[position];
-		node.local = convertNode(node, scope, position + 1, buffer, readString);
+		node.local = convertNode(node, scope, buffer[position], buffer, readString);
+		const exportedPosition = buffer[position + 1];
 		node.exported =
 			exportedPosition === 0
 				? node.local
@@ -466,21 +470,21 @@ const bufferParsers: ((
 	},
 	function expressionStatement(node: ExpressionStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.expression = convertNode(node, scope, position, buffer, readString);
+		node.expression = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function forInStatement(node: ForInStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.right = convertNode(node, scope, buffer[position], buffer, readString);
-		node.body = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.left = convertNode(node, scope, position + 2, buffer, readString);
+		node.left = convertNode(node, scope, buffer[position], buffer, readString);
+		node.right = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.body = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function forOfStatement(node: ForOfStatement, position, buffer, readString) {
 		const { scope } = node;
 		const flags = buffer[position];
 		node.await = (flags & 1) === 1;
-		node.right = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.body = convertNode(node, scope, buffer[position + 2], buffer, readString);
-		node.left = convertNode(node, scope, position + 3, buffer, readString);
+		node.left = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.right = convertNode(node, scope, buffer[position + 2], buffer, readString);
+		node.body = convertNode(node, scope, buffer[position + 3], buffer, readString);
 	},
 	function forStatement(node: ForStatement, position, buffer, readString) {
 		const { scope } = node;
@@ -500,7 +504,9 @@ const bufferParsers: ((
 		const flags = buffer[position];
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
-		const idPosition = buffer[position + 1];
+		const annotations = (node.annotations = convertAnnotations(buffer[position + 1], buffer));
+		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
+		const idPosition = buffer[position + 2];
 		node.id =
 			idPosition === 0
 				? null
@@ -508,7 +514,7 @@ const bufferParsers: ((
 		const parameters = (node.params = convertNodeList(
 			node,
 			scope,
-			buffer[position + 2],
+			buffer[position + 3],
 			buffer,
 			readString
 		));
@@ -518,22 +524,22 @@ const bufferParsers: ((
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
-		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
-		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
+		node.body = convertNode(node, scope.bodyScope, buffer[position + 4], buffer, readString);
 	},
 	function functionExpression(node: FunctionExpression, position, buffer, readString) {
 		const { scope } = node;
 		const flags = buffer[position];
 		node.async = (flags & 1) === 1;
 		node.generator = (flags & 2) === 2;
-		const idPosition = buffer[position + 1];
+		const annotations = (node.annotations = convertAnnotations(buffer[position + 1], buffer));
+		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
+		const idPosition = buffer[position + 2];
 		node.id =
 			idPosition === 0 ? null : convertNode(node, node.idScope, idPosition, buffer, readString);
 		const parameters = (node.params = convertNodeList(
 			node,
 			scope,
-			buffer[position + 2],
+			buffer[position + 3],
 			buffer,
 			readString
 		));
@@ -543,23 +549,22 @@ const bufferParsers: ((
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);
-		node.body = convertNode(node, scope.bodyScope, buffer[position + 3], buffer, readString);
-		const annotations = (node.annotations = convertAnnotations(position + 4, buffer));
-		node.annotationNoSideEffects = annotations.some(comment => comment.type === 'noSideEffects');
+		node.body = convertNode(node, scope.bodyScope, buffer[position + 4], buffer, readString);
 	},
 	function identifier(node: Identifier, position, buffer, readString) {
-		node.name = convertString(position, buffer, readString);
+		node.name = convertString(buffer[position], buffer, readString);
 	},
 	function ifStatement(node: IfStatement, position, buffer, readString) {
 		const { scope } = node;
+		node.test = convertNode(node, scope, buffer[position], buffer, readString);
 		node.consequent = convertNode(
 			node,
 			(node.consequentScope = new TrackingScope(scope)),
-			buffer[position],
+			buffer[position + 1],
 			buffer,
 			readString
 		);
-		const alternatePosition = buffer[position + 1];
+		const alternatePosition = buffer[position + 2];
 		node.alternate =
 			alternatePosition === 0
 				? null
@@ -570,34 +575,33 @@ const bufferParsers: ((
 						buffer,
 						readString
 					);
-		node.test = convertNode(node, scope, position + 2, buffer, readString);
 	},
 	function importAttribute(node: ImportAttribute, position, buffer, readString) {
 		const { scope } = node;
-		node.value = convertNode(node, scope, buffer[position], buffer, readString);
-		node.key = convertNode(node, scope, position + 1, buffer, readString);
+		node.key = convertNode(node, scope, buffer[position], buffer, readString);
+		node.value = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function importDeclaration(node: ImportDeclaration, position, buffer, readString) {
 		const { scope } = node;
-		node.source = convertNode(node, scope, buffer[position], buffer, readString);
-		node.attributes = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
-		node.specifiers = convertNodeList(node, scope, position + 2, buffer, readString);
+		node.specifiers = convertNodeList(node, scope, buffer[position], buffer, readString);
+		node.source = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.attributes = convertNodeList(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function importDefaultSpecifier(node: ImportDefaultSpecifier, position, buffer, readString) {
 		const { scope } = node;
-		node.local = convertNode(node, scope, position, buffer, readString);
+		node.local = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function importExpression(node: ImportExpression, position, buffer, readString) {
 		const { scope } = node;
-		const optionsPosition = buffer[position];
+		node.source = convertNode(node, scope, buffer[position], buffer, readString);
+		node.sourceAstNode = convertJsonNode(buffer[position], buffer, readString);
+		const optionsPosition = buffer[position + 1];
 		node.options =
 			optionsPosition === 0 ? null : convertNode(node, scope, optionsPosition, buffer, readString);
-		node.source = convertNode(node, scope, position + 1, buffer, readString);
-		node.sourceAstNode = convertJsonNode(position + 1, buffer, readString);
 	},
 	function importNamespaceSpecifier(node: ImportNamespaceSpecifier, position, buffer, readString) {
 		const { scope } = node;
-		node.local = convertNode(node, scope, position, buffer, readString);
+		node.local = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function importSpecifier(node: ImportSpecifier, position, buffer, readString) {
 		const { scope } = node;
@@ -610,12 +614,12 @@ const bufferParsers: ((
 	},
 	function labeledStatement(node: LabeledStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.body = convertNode(node, scope, buffer[position], buffer, readString);
-		node.label = convertNode(node, scope, position + 1, buffer, readString);
+		node.label = convertNode(node, scope, buffer[position], buffer, readString);
+		node.body = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function literalBigInt(node: Literal, position, buffer, readString) {
-		node.raw = convertString(buffer[position], buffer, readString);
-		const bigint = (node.bigint = convertString(position + 1, buffer, readString));
+		const bigint = (node.bigint = convertString(buffer[position], buffer, readString));
+		node.raw = convertString(buffer[position + 1], buffer, readString);
 		node.value = BigInt(bigint);
 	},
 	function literalBoolean(node: Literal, position, buffer) {
@@ -632,66 +636,66 @@ const bufferParsers: ((
 		node.value = new DataView(buffer.buffer).getFloat64((position + 1) << 2, true);
 	},
 	function literalRegExp(node: Literal, position, buffer, readString) {
-		const pattern = convertString(buffer[position], buffer, readString);
-		const flags = convertString(position + 1, buffer, readString);
+		const flags = convertString(buffer[position], buffer, readString);
+		const pattern = convertString(buffer[position + 1], buffer, readString);
 		node.raw = `/${pattern}/${flags}`;
 		node.regex = { flags, pattern };
 		node.value = new RegExp(pattern, flags);
 	},
 	function literalString(node: Literal, position, buffer, readString) {
-		const rawPosition = buffer[position];
+		node.value = convertString(buffer[position], buffer, readString);
+		const rawPosition = buffer[position + 1];
 		node.raw = rawPosition === 0 ? undefined : convertString(rawPosition, buffer, readString);
-		node.value = convertString(position + 1, buffer, readString);
 	},
 	function logicalExpression(node: LogicalExpression, position, buffer, readString) {
 		const { scope } = node;
 		node.operator = FIXED_STRINGS[buffer[position]] as estree.LogicalOperator;
-		node.right = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.left = convertNode(node, scope, position + 2, buffer, readString);
+		node.left = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.right = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function memberExpression(node: MemberExpression, position, buffer, readString) {
 		const { scope } = node;
 		const flags = buffer[position];
 		node.computed = (flags & 1) === 1;
 		node.optional = (flags & 2) === 2;
-		node.property = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.object = convertNode(node, scope, position + 2, buffer, readString);
+		node.object = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.property = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function metaProperty(node: MetaProperty, position, buffer, readString) {
 		const { scope } = node;
-		node.property = convertNode(node, scope, buffer[position], buffer, readString);
-		node.meta = convertNode(node, scope, position + 1, buffer, readString);
+		node.meta = convertNode(node, scope, buffer[position], buffer, readString);
+		node.property = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function methodDefinition(node: MethodDefinition, position, buffer, readString) {
 		const { scope } = node;
 		const flags = buffer[position];
 		node.static = (flags & 1) === 1;
 		node.computed = (flags & 2) === 2;
-		node.value = convertNode(node, scope, buffer[position + 1], buffer, readString);
-		node.kind = FIXED_STRINGS[buffer[position + 2]] as estree.MethodDefinition['kind'];
-		node.key = convertNode(node, scope, position + 3, buffer, readString);
+		node.key = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.value = convertNode(node, scope, buffer[position + 2], buffer, readString);
+		node.kind = FIXED_STRINGS[buffer[position + 3]] as estree.MethodDefinition['kind'];
 	},
 	function newExpression(node: NewExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.callee = convertNode(node, scope, buffer[position], buffer, readString);
-		node.arguments = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
-		node.annotations = convertAnnotations(position + 2, buffer);
+		node.annotations = convertAnnotations(buffer[position], buffer);
+		node.callee = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.arguments = convertNodeList(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function objectExpression(node: ObjectExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.properties = convertNodeList(node, scope, position, buffer, readString);
+		node.properties = convertNodeList(node, scope, buffer[position], buffer, readString);
 	},
 	function objectPattern(node: ObjectPattern, position, buffer, readString) {
 		const { scope } = node;
-		node.properties = convertNodeList(node, scope, position, buffer, readString);
+		node.properties = convertNodeList(node, scope, buffer[position], buffer, readString);
 	},
 	function privateIdentifier(node: PrivateIdentifier, position, buffer, readString) {
-		node.name = convertString(position, buffer, readString);
+		node.name = convertString(buffer[position], buffer, readString);
 	},
 	function program(node: Program, position, buffer, readString) {
 		const { scope } = node;
-		node.invalidAnnotations = convertAnnotations(buffer[position], buffer);
-		node.body = convertNodeList(node, scope, position + 1, buffer, readString);
+		node.body = convertNodeList(node, scope, buffer[position], buffer, readString);
+		node.invalidAnnotations = convertAnnotations(buffer[position + 1], buffer);
 	},
 	function property(node: Property, position, buffer, readString) {
 		const { scope } = node;
@@ -710,14 +714,14 @@ const bufferParsers: ((
 		const flags = buffer[position];
 		node.static = (flags & 1) === 1;
 		node.computed = (flags & 2) === 2;
-		const valuePosition = buffer[position + 1];
+		node.key = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		const valuePosition = buffer[position + 2];
 		node.value =
 			valuePosition === 0 ? null : convertNode(node, scope, valuePosition, buffer, readString);
-		node.key = convertNode(node, scope, position + 2, buffer, readString);
 	},
 	function restElement(node: RestElement, position, buffer, readString) {
 		const { scope } = node;
-		node.argument = convertNode(node, scope, position, buffer, readString);
+		node.argument = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function returnStatement(node: ReturnStatement, position, buffer, readString) {
 		const { scope } = node;
@@ -729,15 +733,15 @@ const bufferParsers: ((
 	},
 	function sequenceExpression(node: SequenceExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.expressions = convertNodeList(node, scope, position, buffer, readString);
+		node.expressions = convertNodeList(node, scope, buffer[position], buffer, readString);
 	},
 	function spreadElement(node: SpreadElement, position, buffer, readString) {
 		const { scope } = node;
-		node.argument = convertNode(node, scope, position, buffer, readString);
+		node.argument = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function staticBlock(node: StaticBlock, position, buffer, readString) {
 		const { scope } = node;
-		node.body = convertNodeList(node, scope, position, buffer, readString);
+		node.body = convertNodeList(node, scope, buffer[position], buffer, readString);
 	},
 	function superElement() {},
 	function switchCase(node: SwitchCase, position, buffer, readString) {
@@ -749,13 +753,13 @@ const bufferParsers: ((
 	},
 	function switchStatement(node: SwitchStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.cases = convertNodeList(node, scope, buffer[position], buffer, readString);
-		node.discriminant = convertNode(node, node.parentScope, position + 1, buffer, readString);
+		node.discriminant = convertNode(node, node.parentScope, buffer[position], buffer, readString);
+		node.cases = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function taggedTemplateExpression(node: TaggedTemplateExpression, position, buffer, readString) {
 		const { scope } = node;
-		node.quasi = convertNode(node, scope, buffer[position], buffer, readString);
-		node.tag = convertNode(node, scope, position + 1, buffer, readString);
+		node.tag = convertNode(node, scope, buffer[position], buffer, readString);
+		node.quasi = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function templateElement(node: TemplateElement, position, buffer, readString) {
 		const flags = buffer[position];
@@ -763,59 +767,59 @@ const bufferParsers: ((
 		const cookedPosition = buffer[position + 1];
 		const cooked =
 			cookedPosition === 0 ? undefined : convertString(cookedPosition, buffer, readString);
-		const raw = convertString(position + 2, buffer, readString);
+		const raw = convertString(buffer[position + 2], buffer, readString);
 		node.value = { cooked, raw };
 	},
 	function templateLiteral(node: TemplateLiteral, position, buffer, readString) {
 		const { scope } = node;
-		node.expressions = convertNodeList(node, scope, buffer[position], buffer, readString);
-		node.quasis = convertNodeList(node, scope, position + 1, buffer, readString);
+		node.quasis = convertNodeList(node, scope, buffer[position], buffer, readString);
+		node.expressions = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function thisExpression() {},
 	function throwStatement(node: ThrowStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.argument = convertNode(node, scope, position, buffer, readString);
+		node.argument = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function tryStatement(node: TryStatement, position, buffer, readString) {
 		const { scope } = node;
-		const handlerPosition = buffer[position];
+		node.block = convertNode(node, scope, buffer[position], buffer, readString);
+		const handlerPosition = buffer[position + 1];
 		node.handler =
 			handlerPosition === 0 ? null : convertNode(node, scope, handlerPosition, buffer, readString);
-		const finalizerPosition = buffer[position + 1];
+		const finalizerPosition = buffer[position + 2];
 		node.finalizer =
 			finalizerPosition === 0
 				? null
 				: convertNode(node, scope, finalizerPosition, buffer, readString);
-		node.block = convertNode(node, scope, position + 2, buffer, readString);
 	},
 	function unaryExpression(node: UnaryExpression, position, buffer, readString) {
 		const { scope } = node;
 		node.operator = FIXED_STRINGS[buffer[position]] as estree.UnaryOperator;
-		node.argument = convertNode(node, scope, position + 1, buffer, readString);
+		node.argument = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function updateExpression(node: UpdateExpression, position, buffer, readString) {
 		const { scope } = node;
 		const flags = buffer[position];
 		node.prefix = (flags & 1) === 1;
 		node.operator = FIXED_STRINGS[buffer[position + 1]] as estree.UpdateOperator;
-		node.argument = convertNode(node, scope, position + 2, buffer, readString);
+		node.argument = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function variableDeclaration(node: VariableDeclaration, position, buffer, readString) {
 		const { scope } = node;
 		node.kind = FIXED_STRINGS[buffer[position]] as estree.VariableDeclaration['kind'];
-		node.declarations = convertNodeList(node, scope, position + 1, buffer, readString);
+		node.declarations = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function variableDeclarator(node: VariableDeclarator, position, buffer, readString) {
 		const { scope } = node;
-		const initPosition = buffer[position];
+		node.id = convertNode(node, scope, buffer[position], buffer, readString);
+		const initPosition = buffer[position + 1];
 		node.init =
 			initPosition === 0 ? null : convertNode(node, scope, initPosition, buffer, readString);
-		node.id = convertNode(node, scope, position + 1, buffer, readString);
 	},
 	function whileStatement(node: WhileStatement, position, buffer, readString) {
 		const { scope } = node;
-		node.body = convertNode(node, scope, buffer[position], buffer, readString);
-		node.test = convertNode(node, scope, position + 1, buffer, readString);
+		node.test = convertNode(node, scope, buffer[position], buffer, readString);
+		node.body = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function yieldExpression(node: YieldExpression, position, buffer, readString) {
 		const { scope } = node;
@@ -859,6 +863,7 @@ function convertNodeList(
 	buffer: Uint32Array,
 	readString: ReadString
 ): any[] {
+	if (position === 0) return EMPTY_ARRAY as never[];
 	const length = buffer[position++];
 	const list: any[] = [];
 	for (let index = 0; index < length; index++) {
