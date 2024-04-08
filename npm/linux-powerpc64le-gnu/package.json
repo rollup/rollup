@@ -5,7 +5,7 @@
     "linux"
   ],
   "cpu": [
-    "ppc64le"
+    "ppc64"
   ],
   "files": [
     "rollup.linux-powerpc64le-gnu.node"
