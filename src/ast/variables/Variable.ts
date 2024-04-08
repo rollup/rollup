@@ -1,12 +1,10 @@
 import type ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
-import { EMPTY_ARRAY } from '../../utils/blank';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type CallExpression from '../nodes/CallExpression';
-import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
@@ -39,22 +37,13 @@ export default class Variable extends ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier): void {}
 
-	private exportDefaultVariables: Variable[] = [];
 	private onlyFunctionCallUsed = true;
-	private isOnlyFunctionCallUsedAnalysed = false;
 	/**
 	 * Check if the identifier variable is only used as function call
 	 * Forward the check to the export default variable if it is only used once
 	 * @returns true if the variable is only used as function call
 	 */
 	getOnlyFunctionCallUsed(): boolean {
-		if (!this.isOnlyFunctionCallUsedAnalysed) {
-			this.isOnlyFunctionCallUsedAnalysed = true;
-			this.onlyFunctionCallUsed &&= this.exportDefaultVariables.every(variable =>
-				variable.getOnlyFunctionCallUsed()
-			);
-			this.exportDefaultVariables = EMPTY_ARRAY as unknown as Variable[];
-		}
 		return this.onlyFunctionCallUsed;
 	}
 
@@ -66,12 +55,8 @@ export default class Variable extends ExpressionEntity {
 		const isFunctionCall =
 			usedPlace.parent.type === NodeType.CallExpression &&
 			(usedPlace.parent as CallExpression).callee === usedPlace;
-		if (!isFunctionCall) {
-			if (usedPlace.parent.type === NodeType.ExportDefaultDeclaration) {
-				this.exportDefaultVariables.push((usedPlace.parent as ExportDefaultDeclaration).variable);
-			} else {
-				this.onlyFunctionCallUsed = false;
-			}
+		if (!isFunctionCall && usedPlace.parent.type !== NodeType.ExportDefaultDeclaration) {
+			this.onlyFunctionCallUsed = false;
 		}
 	}
 

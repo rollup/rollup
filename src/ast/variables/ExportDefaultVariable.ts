@@ -3,9 +3,15 @@ import ClassDeclaration from '../nodes/ClassDeclaration';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier, { type IdentifierWithVariable } from '../nodes/Identifier';
+import type { NodeBase } from '../nodes/shared/Node';
 import LocalVariable from './LocalVariable';
 import UndefinedVariable from './UndefinedVariable';
 import type Variable from './Variable';
+
+enum OriginalVariableStage {
+	BIND_REFERENCE,
+	GENERATE_CHUNK
+}
 
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId = false;
@@ -37,6 +43,15 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
+	addUsedPlace(usedPlace: NodeBase): void {
+		const original = this.getOriginalVariable(OriginalVariableStage.BIND_REFERENCE);
+		if (original === this) {
+			super.addUsedPlace(usedPlace);
+		} else {
+			original.addUsedPlace(usedPlace);
+		}
+	}
+
 	forbidName(name: string) {
 		const original = this.getOriginalVariable();
 		if (original === this) {
@@ -57,6 +72,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getDirectOriginalVariable(): Variable | null {
 		return this.originalId &&
+			this.originalId.variable &&
 			(this.hasId ||
 				!(
 					this.originalId.isPossibleTDZ() ||
@@ -76,7 +92,14 @@ export default class ExportDefaultVariable extends LocalVariable {
 			: original.getName(getPropertyAccess);
 	}
 
-	getOriginalVariable(): Variable {
+	private previousOriginalVariableState: OriginalVariableStage | null = null;
+	getOriginalVariable(
+		originalVariableState: OriginalVariableStage = OriginalVariableStage.GENERATE_CHUNK
+	): Variable {
+		if (this.previousOriginalVariableState !== originalVariableState) {
+			this.originalVariable = null;
+			this.previousOriginalVariableState = originalVariableState;
+		}
 		if (this.originalVariable) return this.originalVariable;
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let original: Variable | null = this;
