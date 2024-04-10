@@ -1,96 +1,84 @@
 import { writeFile } from 'node:fs/promises';
-import { AST_NODES, astNodeNamesWithFieldOrder } from './ast-types.js';
-import { getNode } from './generate-buffer-to-ast.js';
+import { astNodeNamesWithFieldOrder } from './ast-types.js';
 import { firstLetterLowercase, lintTsFile } from './helpers.js';
 
 const bufferParsersFile = new URL('../src/ast/bufferParsers.ts', import.meta.url);
 
-const nodeTypes = astNodeNamesWithFieldOrder.map(({ name }) => getNode(name).astType || name);
+const nodeTypes = astNodeNamesWithFieldOrder.map(({ name, node }) => node.astType || name);
 
 const nodeTypeImports = nodeTypes.map(name => `import ${name} from './nodes/${name}';`);
 const nodeTypeStrings = nodeTypes.map(name => `\t'${name}'`);
 
-const jsConverters = astNodeNamesWithFieldOrder.map(
-	({ name, inlinedVariableField, reservedFields, allFields }) => {
-		const node = getNode(name);
-		const readStringArgument = allFields.some(([, fieldType]) =>
-			['Node', 'OptionalNode', 'NodeList', 'String', 'FixedString', 'OptionalString'].includes(
-				fieldType
-			)
+const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, originalNode }) => {
+	const readStringArgument = fields.some(([, fieldType]) =>
+		['Node', 'OptionalNode', 'NodeList', 'String', 'FixedString', 'OptionalString'].includes(
+			fieldType
 		)
-			? ', readString'
-			: '';
-		/** @type {string[]} */
-		const definitions = [];
-		let offset = 0;
-		let needsBuffer = false;
-		let needsScope = false;
-		if (node.flags) {
-			offset++;
-			needsBuffer = true;
-			definitions.push(
-				'const flags = buffer[position];\n',
-				...node.flags.map((flagName, index) => {
-					let assignmentLeftHand = node.baseForAdditionalFields?.includes(flagName)
-						? `const ${flagName} = `
-						: '';
-					if (!node.hiddenFields?.includes(flagName)) {
-						assignmentLeftHand += `node.${flagName} = `;
-					}
-					return `${assignmentLeftHand}(flags & ${1 << index}) === ${1 << index};`;
-				})
-			);
-		}
-		for (const [index, field] of reservedFields.entries()) {
-			const fieldDefinition = getFieldDefinition(field, name, offset + index, false);
-			needsBuffer = true;
-			needsScope ||= fieldDefinition.needsScope;
-			definitions.push(`${fieldDefinition.definition}\n`);
-		}
-		offset += reservedFields.length;
-		if (inlinedVariableField) {
-			const fieldDefinition = getFieldDefinition(inlinedVariableField, name, offset, true);
-			needsBuffer = true;
-			needsScope ||= fieldDefinition.needsScope;
-			definitions.push(`${fieldDefinition.definition}\n`);
-		}
-		for (const [fieldName, fieldValue] of Object.entries(node.additionalFields || {})) {
-			definitions.push(`node.${fieldName} = ${fieldValue};\n`);
-		}
-		for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
-			needsScope = true;
-			definitions.push(
-				`node.${fieldName} = ${fieldName}Position === 0 ? node.${fallbackName} : convertNode(node, scope, ${fieldName}Position, buffer, readString);\n`
-			);
-		}
-		if (needsScope) {
-			definitions.unshift('const {scope} = node;');
-		}
-		/** @type {string[]} */
-		const parameters = [];
-		if (definitions.length > 0) {
-			parameters.push(`node: ${node.astType || name}`);
-			if (needsBuffer) {
-				parameters.push(`position, buffer${readStringArgument}`);
-			}
-		}
-		return `function ${firstLetterLowercase(name)} (${parameters.join(', ')}) {
-    ${definitions.join('')}}`;
+	)
+		? ', readString'
+		: '';
+	/** @type {string[]} */
+	const definitions = [];
+	let offset = 0;
+	let needsBuffer = false;
+	let needsScope = false;
+	if (node.flags) {
+		offset++;
+		needsBuffer = true;
+		definitions.push(
+			'const flags = buffer[position];\n',
+			...node.flags.map((flagName, index) => {
+				let assignmentLeftHand = node.baseForAdditionalFields?.includes(flagName)
+					? `const ${flagName} = `
+					: '';
+				if (!node.hiddenFields?.includes(flagName)) {
+					assignmentLeftHand += `node.${flagName} = `;
+				}
+				return `${assignmentLeftHand}(flags & ${1 << index}) === ${1 << index};`;
+			})
+		);
 	}
-);
+	for (const [index, field] of fields.entries()) {
+		const fieldDefinition = getFieldDefinition(field, node, originalNode, offset + index);
+		needsBuffer = true;
+		needsScope ||= fieldDefinition.needsScope;
+		definitions.push(`${fieldDefinition.definition}\n`);
+	}
+	offset += fields.length;
+	for (const [fieldName, fieldValue] of Object.entries(node.additionalFields || {})) {
+		definitions.push(`node.${fieldName} = ${fieldValue};\n`);
+	}
+	for (const [fieldName, fallbackName] of Object.entries(node.optionalFallback || {})) {
+		needsScope = true;
+		definitions.push(
+			`node.${fieldName} = ${fieldName}Position === 0 ? node.${fallbackName} : convertNode(node, scope, ${fieldName}Position, buffer, readString);\n`
+		);
+	}
+	if (needsScope) {
+		definitions.unshift('const {scope} = node;');
+	}
+	/** @type {string[]} */
+	const parameters = [];
+	if (definitions.length > 0) {
+		parameters.push(`node: ${node.astType || name}`);
+		if (needsBuffer) {
+			parameters.push(`position, buffer${readStringArgument}`);
+		}
+	}
+	return `function ${firstLetterLowercase(name)} (${parameters.join(', ')}) {
+    ${definitions.join('')}}`;
+});
 
 /**
- * @param {import('./ast-types.js').FieldWithType} field
- * @param {string} name
+ * @param {import("./ast-types.js").FieldWithType} field
+ * @param {import("./ast-types.js").NodeDescription} node
+ * @param {import("./ast-types.js").NodeDescription} originalNode
  * @param {number} offset
- * @param {boolean} isInlined
  * @returns {{definition: string, needsScope: boolean}}
  */
-function getFieldDefinition([fieldName, fieldType], name, offset, isInlined) {
-	const originalNode = AST_NODES[name];
-	const node = getNode(name);
+function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) {
 	const getPosition = offset > 0 ? `position + ${offset}` : 'position';
-	const dataStart = isInlined ? getPosition : `buffer[${getPosition}]`;
+	const dataStart = `buffer[${getPosition}]`;
 	if (node.scriptedFields?.[fieldName]) {
 		return {
 			definition: node.scriptedFields?.[fieldName].replace(/\$position/g, dataStart),
@@ -114,7 +102,7 @@ function getFieldDefinition([fieldName, fieldType], name, offset, isInlined) {
 			};
 		}
 		case 'OptionalNode': {
-			let definition = `const ${fieldName}Position = buffer[${getPosition}];`;
+			let definition = `const ${fieldName}Position = ${dataStart};`;
 			let needsScope = false;
 			if (!node.optionalFallback?.[fieldName]) {
 				needsScope = true;
@@ -158,13 +146,13 @@ function getFieldDefinition([fieldName, fieldType], name, offset, isInlined) {
 		}
 		case 'OptionalString': {
 			return {
-				definition: `const ${fieldName}Position = buffer[${getPosition}];\n${assignmentLeftHand}${fieldName}Position === 0 ? undefined : convertString(${fieldName}Position, buffer, readString)${typeCastString};`,
+				definition: `const ${fieldName}Position = ${dataStart};\n${assignmentLeftHand}${fieldName}Position === 0 ? undefined : convertString(${fieldName}Position, buffer, readString)${typeCastString};`,
 				needsScope: false
 			};
 		}
 		case 'FixedString': {
 			return {
-				definition: `${assignmentLeftHand}FIXED_STRINGS[buffer[${getPosition}]]${typeCastString};`,
+				definition: `${assignmentLeftHand}FIXED_STRINGS[${dataStart}]${typeCastString};`,
 				needsScope: false
 			};
 		}
@@ -186,6 +174,7 @@ const bufferParsers = `// This file is generated by scripts/generate-ast-convert
 import type * as estree from 'estree';
 import type { AstContext } from '../Module';
 import { convertAnnotations, convertString } from '../utils/astConverterHelpers';
+import { EMPTY_ARRAY } from '../utils/blank';
 import { convertNode as convertJsonNode } from '../utils/bufferToAst';
 import FIXED_STRINGS from '../utils/convert-ast-strings';
 import type { ReadString } from '../utils/getReadStringFunction';
@@ -242,6 +231,7 @@ function convertNode(parent: Node | { context: AstContext; type: string }, paren
 }
 
 function convertNodeList(parent: Node | { context: AstContext; type: string }, parentScope: ChildScope, position: number, buffer: Uint32Array, readString: ReadString): any[] {
+  if (position === 0) return EMPTY_ARRAY as never[];
   const length = buffer[position++];
   const list: any[] = [];
   for (let index = 0; index < length; index++) {

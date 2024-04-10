@@ -32,7 +32,7 @@ export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
-	annotations?: RollupAnnotation[];
+	annotations?: readonly RollupAnnotation[];
 	end: number;
 	included: boolean;
 	needsBoundaries?: boolean;
@@ -127,7 +127,7 @@ export interface ChainElement extends ExpressionNode {
 }
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	declare annotations?: RollupAnnotation[];
+	declare annotations?: readonly RollupAnnotation[];
 	declare end: number;
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;

@@ -17,7 +17,7 @@ export default class Program extends NodeBase {
 	declare body: readonly StatementNode[];
 	declare sourceType: 'module';
 	declare type: NodeType.tProgram;
-	declare invalidAnnotations?: RollupAnnotation[];
+	declare invalidAnnotations?: readonly RollupAnnotation[];
 
 	private hasCachedEffect: boolean | null = null;
 	private hasLoggedEffect = false;
