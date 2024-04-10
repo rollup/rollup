@@ -652,15 +652,15 @@ export default class Chunk {
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
 		let hasExports = renderedExports.length > 0;
 		let hasDefaultExport = false;
-		for (const renderedDependence of renderedDependencies) {
-			const { reexports } = renderedDependence;
+		for (const renderedDependency of renderedDependencies) {
+			const { reexports } = renderedDependency;
 			if (reexports?.length) {
 				hasExports = true;
 				if (!hasDefaultExport && reexports.some(reexport => reexport.reexported === 'default')) {
 					hasDefaultExport = true;
 				}
 				if (format === 'es') {
-					renderedDependence.reexports = reexports.filter(
+					renderedDependency.reexports = reexports.filter(
 						// eslint-disable-next-line unicorn/prefer-array-some
 						({ reexported }) => !renderedExports.find(({ exported }) => exported === reexported)
 					);
