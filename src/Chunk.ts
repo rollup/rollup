@@ -908,9 +908,14 @@ export default class Chunk {
 								deconflictedDefault.add(chunk);
 							}
 						} else if (
-							variable.name === '*' &&
-							namespaceInteropHelpersByInteropType[interop(module.id)]
+							variable.isNamespace &&
+							namespaceInteropHelpersByInteropType[interop(module.id)] &&
+							(this.imports.has(variable) ||
+								!this.exportNamesByVariable.get(variable)?.every(name => name.startsWith('*')))
 						) {
+							// We only need to deconflict it if the namespace is actually
+							// created as a variable, i.e. because it is used internally or
+							// because it is reexported as an object
 							deconflictedNamespace.add(chunk);
 						}
 					}

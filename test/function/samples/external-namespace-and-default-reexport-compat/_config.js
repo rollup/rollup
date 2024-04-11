@@ -1,8 +1,6 @@
 const assert = require('node:assert');
 
 module.exports = defineTest({
-	solo: true,
-	show: true,
 	description: 'reexports both a namespace and the default export when using compat interop',
 	options: {
 		external: true,
@@ -21,6 +19,9 @@ module.exports = defineTest({
 		}
 	},
 	exports(exports) {
-		assert.deepStrictEqual(exports, { foo: 'foo', default: 'default' });
+		assert.deepStrictEqual(exports, {
+			default: 'default',
+			foo: 'foo'
+		});
 	}
 });
