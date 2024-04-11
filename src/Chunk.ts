@@ -1139,30 +1139,34 @@ export default class Chunk {
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const renderedDependencies = new Map<Chunk | ExternalChunk, ChunkDependency>();
 		const fileName = this.getFileName();
-		for (const dep of this.dependencies) {
-			const imports = importSpecifiers.get(dep) || null;
-			const reexports = reexportSpecifiers.get(dep) || null;
-			const namedExportsMode = dep instanceof ExternalChunk || dep.exportMode !== 'default';
-			const importPath = dep.getImportPath(fileName);
+		for (const dependency of this.dependencies) {
+			const imports = importSpecifiers.get(dependency) || null;
+			const reexports = reexportSpecifiers.get(dependency) || null;
+			const namedExportsMode =
+				dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
+			const importPath = dependency.getImportPath(fileName);
 
-			renderedDependencies.set(dep, {
-				attributes: dep instanceof ExternalChunk ? dep.getImportAttributes(this.snippets) : null,
-				defaultVariableName: dep.defaultVariableName,
+			renderedDependencies.set(dependency, {
+				attributes:
+					dependency instanceof ExternalChunk
+						? dependency.getImportAttributes(this.snippets)
+						: null,
+				defaultVariableName: dependency.defaultVariableName,
 				globalName:
-					dep instanceof ExternalChunk &&
+					dependency instanceof ExternalChunk &&
 					(this.outputOptions.format === 'umd' || this.outputOptions.format === 'iife') &&
 					getGlobalName(
-						dep,
+						dependency,
 						this.outputOptions.globals,
 						(imports || reexports) !== null,
 						this.inputOptions.onLog
 					),
 				importPath,
 				imports,
-				isChunk: dep instanceof Chunk,
-				name: dep.variableName,
+				isChunk: dependency instanceof Chunk,
+				name: dependency.variableName,
 				namedExportsMode,
-				namespaceVariableName: dep.namespaceVariableName,
+				namespaceVariableName: dependency.namespaceVariableName,
 				reexports
 			});
 		}
