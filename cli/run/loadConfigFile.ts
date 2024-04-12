@@ -1,5 +1,5 @@
 import { unlink, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join } from 'node:path';
+import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import * as rollup from '../../src/node-entry';
@@ -98,7 +98,7 @@ async function loadTranspiledConfigFile(
 	const warnings = batchWarnings(commandOptions);
 	const inputOptions = {
 		external: (id: string) =>
-			(id[0] !== '.' && !isAbsolute(id)) || id.slice(-5, id.length) === '.json',
+			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
 		plugins: [],
@@ -130,7 +130,10 @@ async function loadTranspiledConfigFile(
 		warnings.flush();
 	}
 	return loadConfigFromWrittenFile(
-		join(dirname(fileName), `rollup.config-${Date.now()}.${bundleConfigAsCjs ? 'cjs' : 'mjs'}`),
+		path.join(
+			path.dirname(fileName),
+			`rollup.config-${Date.now()}.${bundleConfigAsCjs ? 'cjs' : 'mjs'}`
+		),
 		code
 	);
 }

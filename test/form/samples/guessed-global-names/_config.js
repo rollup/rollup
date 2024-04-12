@@ -1,4 +1,4 @@
-const { resolve } = require('node:path');
+const path = require('node:path');
 
 module.exports = defineTest({
 	description: 'guesses global names if necessary',
@@ -9,7 +9,7 @@ module.exports = defineTest({
 			'changed',
 			'special-character',
 			'with/slash',
-			resolve(__dirname, 'relative.js')
+			path.resolve(__dirname, 'relative.js')
 		]
 	}
 });

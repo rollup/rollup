@@ -1,10 +1,10 @@
 const assert = require('node:assert');
-const { resolve } = require('node:path');
+const path = require('node:path');
 
 const FOO_IMPORTED_PATH = './foo.js';
 const BAR_IMPORTED_PATH = './bar.js';
 const OTHER_IMPORTED_PATH = './other.js';
-const MAIN_PATH = resolve(__dirname, 'main.js');
+const MAIN_PATH = path.resolve(__dirname, 'main.js');
 
 module.exports = defineTest({
 	description: 'validate resolvedBy logic',

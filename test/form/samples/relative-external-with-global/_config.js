@@ -1,6 +1,6 @@
-const { resolve } = require('node:path');
+const path = require('node:path');
 
-const throttle = resolve(__dirname, 'lib/throttle.js');
+const throttle = path.resolve(__dirname, 'lib/throttle.js');
 
 module.exports = defineTest({
 	description: 'applies globals to externalised relative imports',

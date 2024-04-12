@@ -53,7 +53,7 @@ const nodePlugins: readonly Plugin[] = [
 	externalNativeImport()
 ];
 
-export default async function (
+export default async function getConfig(
 	command: Record<string, unknown>
 ): Promise<RollupOptions | RollupOptions[]> {
 	const { collectLicenses, writeLicense } = getLicenseHandler(

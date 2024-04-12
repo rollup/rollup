@@ -2,7 +2,7 @@
 // globally accessible same as in the browser. this can be removed once `performance` is
 // available globally in all supported platforms. [currently global for node.js v16+].
 const { readFile } = require('node:fs/promises');
-const { basename, resolve } = require('node:path');
+const path = require('node:path');
 
 global.performance = require('node:perf_hooks').performance;
 
@@ -18,13 +18,13 @@ const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('
 
 runTestSuiteWithSamples(
 	'browser',
-	resolve(__dirname, 'samples'),
+	path.resolve(__dirname, 'samples'),
 	/**
 	 * @param {import('../types').TestConfigBrowser} config
 	 */
 	(directory, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
-			basename(directory) + ': ' + config.description,
+			path.basename(directory) + ': ' + config.description,
 			async () => {
 				let bundle;
 				try {
@@ -91,7 +91,7 @@ function assertOutputMatches(output, directory) {
 		}
 		currentDirectory[fileName] = file.source || file.code;
 	}
-	fixturify.writeSync(resolve(directory, '_actual'), actual);
-	const expected = fixturify.readSync(resolve(directory, '_expected'));
+	fixturify.writeSync(path.resolve(directory, '_actual'), actual);
+	const expected = fixturify.readSync(path.resolve(directory, '_expected'));
 	assertFilesAreEqual(actual, expected);
 }

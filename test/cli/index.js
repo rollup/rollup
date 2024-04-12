@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { exec } = require('node:child_process');
 const { existsSync, readFileSync } = require('node:fs');
-const { basename, resolve, sep } = require('node:path');
+const path = require('node:path');
 const process = require('node:process');
 const { copySync, removeSync, statSync } = require('fs-extra');
 const {
@@ -12,23 +12,26 @@ const {
 
 const cwd = process.cwd();
 
-removeSync(resolve(__dirname, 'node_modules'));
-copySync(resolve(__dirname, 'node_modules_rename_me'), resolve(__dirname, 'node_modules'));
+removeSync(path.resolve(__dirname, 'node_modules'));
+copySync(
+	path.resolve(__dirname, 'node_modules_rename_me'),
+	path.resolve(__dirname, 'node_modules')
+);
 
 runTestSuiteWithSamples(
 	'cli',
-	resolve(__dirname, 'samples'),
+	path.resolve(__dirname, 'samples'),
 	/**
 	 * @param {import('../types').TestConfigCli} config
 	 */
 	(directory, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
-			basename(directory) + ': ' + config.description,
+			path.basename(directory) + ': ' + config.description,
 			async () => {
 				process.chdir(config.cwd || directory);
 				const command = config.command.replace(
 					/(^| )rollup($| )/g,
-					`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
+					`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
 				);
 				try {
 					await runTest(config, command);

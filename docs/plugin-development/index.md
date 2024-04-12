@@ -124,7 +124,7 @@ Instead of a function, hooks can also be objects. In that case, the actual hook 
   This can be useful when you need to run several command line tools in different [`writeBundle`](#writebundle) hooks that depend on each other (note that if possible, it is recommended to add/remove files in the sequential [`generateBundle`](#generatebundle) hook, though, which is faster, works with pure in-memory builds and permits other in-memory build plugins to see the files). You can combine this option with `order` for additional sorting.
 
   ```js twoslash
-  import { resolve } from 'node:path';
+  import path from 'node:path';
   import { readdir } from 'node:fs/promises';
 
   // ---cut-start---
@@ -137,7 +137,7 @@ Instead of a function, hooks can also be objects. In that case, the actual hook 
   			sequential: true,
   			order: 'post',
   			async handler({ dir }) {
-  				const topLevelFiles = await readdir(resolve(dir));
+  				const topLevelFiles = await readdir(path.resolve(dir));
   				console.log(topLevelFiles);
   			}
   		}

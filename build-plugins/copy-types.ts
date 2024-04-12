@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import path from 'node:path';
 import type { Plugin } from 'rollup';
 
 function copyRollupType(
@@ -10,7 +10,7 @@ function copyRollupType(
 	return {
 		async generateBundle(_options, _bundle, isWrite) {
 			if (isWrite) {
-				let source = await readFile(resolve(inputFile), 'utf8');
+				let source = await readFile(path.resolve(inputFile), 'utf8');
 				if (rollupImportPath) {
 					source = source.replace(rollupImportPath, './rollup');
 				}

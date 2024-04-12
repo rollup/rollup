@@ -1,4 +1,4 @@
-import { dirname, join } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Plugin as RollupPlugin } from 'rollup';
 import type { Plugin } from 'vite';
@@ -37,7 +37,7 @@ export default function replaceBrowserModules(): Plugin & RollupPlugin {
 		name: 'replace-browser-modules',
 		resolveId(source: string, importer: string | undefined) {
 			if (importer && source[0] === '.') {
-				return resolutions.get(join(dirname(importer), source));
+				return resolutions.get(path.join(path.dirname(importer), source));
 			}
 		},
 		transformIndexHtml(html) {
