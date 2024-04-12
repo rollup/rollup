@@ -1,4 +1,4 @@
-const { basename, resolve } = require('node:path');
+const path = require('node:path');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
@@ -9,67 +9,72 @@ const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
-runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (directory, config) => {
-	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
-		basename(directory) + ': ' + config.description,
-		() => {
-			let bundle;
+runTestSuiteWithSamples(
+	'chunking form',
+	path.resolve(__dirname, 'samples'),
+	(directory, config) => {
+		(config.skip ? describe.skip : config.solo ? describe.only : describe)(
+			path.basename(directory) + ': ' + config.description,
+			() => {
+				let bundle;
 
-			if (config.before) {
-				before(config.before);
-			}
-			if (config.after) {
-				after(config.after);
-			}
-			const logs = [];
-			after(() => config.logs && compareLogs(logs, config.logs));
+				if (config.before) {
+					before(config.before);
+				}
+				if (config.after) {
+					after(config.after);
+				}
+				const logs = [];
+				after(() => config.logs && compareLogs(logs, config.logs));
 
-			for (const format of FORMATS) {
-				it('generates ' + format, async () => {
-					process.chdir(directory);
-					const warnings = [];
-					bundle =
-						bundle ||
-						(await rollup({
-							input: [directory + '/main.js'],
-							onLog: (level, log) => {
-								logs.push({ level, ...log });
-								if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
-									warnings.push(log);
-								}
+				for (const format of FORMATS) {
+					it('generates ' + format, async () => {
+						process.chdir(directory);
+						const warnings = [];
+						bundle =
+							bundle ||
+							(await rollup({
+								input: [directory + '/main.js'],
+								onLog: (level, log) => {
+									logs.push({ level, ...log });
+									if (level === 'warn' && !config.expectedWarnings?.includes(log.code)) {
+										warnings.push(log);
+									}
+								},
+								strictDeprecations: true,
+								...config.options
+							}));
+						await generateAndTestBundle(
+							bundle,
+							{
+								dir: `${directory}/_actual/${format}`,
+								exports: 'auto',
+								format,
+								chunkFileNames: 'generated-[name].js',
+								validate: true,
+								...(config.options || {}).output
 							},
-							strictDeprecations: true,
-							...config.options
-						}));
-					await generateAndTestBundle(
-						bundle,
-						{
-							dir: `${directory}/_actual/${format}`,
-							exports: 'auto',
-							format,
-							chunkFileNames: 'generated-[name].js',
-							validate: true,
-							...(config.options || {}).output
-						},
-						`${directory}/_expected/${format}`,
-						config
-					);
-					if (warnings.length > 0) {
-						const codes = new Set();
-						for (const { code } of warnings) {
-							codes.add(code);
-						}
-						throw new Error(
-							`Unexpected warnings (${[...codes].join(', ')}): \n${warnings
-								.map(({ message }) => `${message}\n\n`)
-								.join('')}` + 'If you expect warnings, list their codes in config.expectedWarnings'
+							`${directory}/_expected/${format}`,
+							config
 						);
-					}
-				});
+						if (warnings.length > 0) {
+							const codes = new Set();
+							for (const { code } of warnings) {
+								codes.add(code);
+							}
+							throw new Error(
+								`Unexpected warnings (${[...codes].join(', ')}): \n${warnings
+									.map(({ message }) => `${message}\n\n`)
+									.join('')}` +
+									'If you expect warnings, list their codes in config.expectedWarnings'
+							);
+						}
+					});
+				}
 			}
-		}
-	);
-});
+		);
+	}
+);
 
 async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, config) {
 	await bundle.write({

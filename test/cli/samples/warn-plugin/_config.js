@@ -1,4 +1,4 @@
-const { sep } = require('node:path');
+const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
 module.exports = defineTest({
@@ -7,11 +7,11 @@ module.exports = defineTest({
 	env: { FORCE_COLOR: undefined, NO_COLOR: true },
 	stderr: stderr => {
 		assertIncludes(
-			stderr.replaceAll(__dirname + sep, 'CWD/'),
+			stderr.replaceAll(__dirname + path.sep, 'CWD/'),
 			'[plugin second-plugin] other.js: Fifth\n' + 'CWD/other.js\n'
 		);
 		assertIncludes(
-			stderr.replaceAll(__dirname + sep, 'CWD/'),
+			stderr.replaceAll(__dirname + path.sep, 'CWD/'),
 			'(!) [plugin test-plugin] First\n' +
 				'(!) [plugin test-plugin] Second\n' +
 				'https://information\n' +

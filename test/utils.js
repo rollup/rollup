@@ -19,7 +19,7 @@ const {
 	writeSync,
 	existsSync
 } = require('node:fs');
-const { basename, join } = require('node:path');
+const path = require('node:path');
 const { platform, version } = require('node:process');
 const { Parser } = require('acorn');
 const { importAssertions } = require('acorn-import-assertions');
@@ -227,7 +227,7 @@ function runSamples(samplesDirectory, runTest, onTeardown) {
 	for (const fileName of readdirSync(samplesDirectory)
 		.filter(name => name[0] !== '.')
 		.sort()) {
-		runTestsInDirectory(join(samplesDirectory, fileName), runTest);
+		runTestsInDirectory(path.join(samplesDirectory, fileName), runTest);
 	}
 }
 
@@ -247,9 +247,9 @@ function runTestsInDirectory(directory, runTest) {
 			recursive: true
 		});
 	} else {
-		describe(basename(directory), () => {
+		describe(path.basename(directory), () => {
 			for (const fileName of fileNames.filter(name => name[0] !== '.').sort()) {
-				runTestsInDirectory(join(directory, fileName), runTest);
+				runTestsInDirectory(path.join(directory, fileName), runTest);
 			}
 		});
 	}
@@ -262,14 +262,14 @@ function getFileNamesAndRemoveOutput(directory) {
 	try {
 		return readdirSync(directory).filter(fileName => {
 			if (fileName === '_actual') {
-				rmSync(join(directory, '_actual'), {
+				rmSync(path.join(directory, '_actual'), {
 					force: true,
 					recursive: true
 				});
 				return false;
 			}
 			if (fileName === '_actual.js') {
-				unlinkSync(join(directory, '_actual.js'));
+				unlinkSync(path.join(directory, '_actual.js'));
 				return false;
 			}
 			return true;
@@ -292,7 +292,7 @@ exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
  * @param {(directory: string, config: C) => void} runTest
  */
 function loadConfigAndRunTest(directory, runTest) {
-	const configFile = join(directory, '_config.js');
+	const configFile = path.join(directory, '_config.js');
 	const config = require(configFile);
 	if (!config || !config.description) {
 		throw new Error(`Found invalid config without description: ${configFile}`);
@@ -449,7 +449,7 @@ exports.replaceDirectoryInStringifiedObject = function replaceDirectoryInStringi
 };
 
 /** @type {boolean} */
-exports.hasEsBuild = existsSync(join(__dirname, '../dist/es'));
+exports.hasEsBuild = existsSync(path.join(__dirname, '../dist/es'));
 
 const acornParser = Parser.extend(importAssertions);
 

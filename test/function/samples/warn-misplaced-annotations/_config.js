@@ -1,5 +1,5 @@
-const { join } = require('node:path');
-const ID_MAIN = join(__dirname, 'main.js');
+const path = require('node:path');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
 	description: 'warns for misplaced annotations',

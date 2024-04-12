@@ -1,5 +1,5 @@
 const { existsSync } = require('node:fs');
-const { join } = require('node:path');
+const path = require('node:path');
 const { platform, arch, report } = require('node:process');
 
 const isMusl = () => !report.getReport().header.glibcVersionRuntime;
@@ -66,7 +66,7 @@ const requireWithFriendlyError = id => {
 };
 
 const { parse, parseAsync, xxhashBase64Url, xxhashBase36, xxhashBase16 } = requireWithFriendlyError(
-	existsSync(join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
+	existsSync(path.join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
 
 function getPackageBase() {
