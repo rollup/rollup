@@ -1,4 +1,4 @@
-const { sep } = require('node:path');
+const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
 module.exports = defineTest({
@@ -7,7 +7,7 @@ module.exports = defineTest({
 	env: { FORCE_COLOR: undefined, NO_COLOR: true },
 	stderr: stderr =>
 		assertIncludes(
-			stderr.replaceAll(__dirname + sep, 'CWD/'),
+			stderr.replaceAll(__dirname + path.sep, 'CWD/'),
 			`dep-mapped.js (1:0): First side effect in dep-mapped.js is at (2:26)
 1: const removed = true;
 2: const alsoRemoved = true; console.log('mapped effect');

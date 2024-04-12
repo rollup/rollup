@@ -1,5 +1,5 @@
 const { promises: fs } = require('node:fs');
-const { join } = require('node:path');
+const path = require('node:path');
 const { loader } = require('../../../../utils.js');
 
 const fsReadFile = fs.readFile;
@@ -25,7 +25,7 @@ module.exports = defineTest({
 		fs.readFile = fsReadFile;
 	},
 	error: {
-		message: `Could not load ${join(__dirname, 'dep.js')} (imported by main): broken`,
-		watchFiles: [join(__dirname, 'dep.js')]
+		message: `Could not load ${path.join(__dirname, 'dep.js')} (imported by main): broken`,
+		watchFiles: [path.join(__dirname, 'dep.js')]
 	}
 });

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { existsSync, readFileSync } = require('node:fs');
-const { basename, resolve } = require('node:path');
+const path = require('node:path');
 /**
  * @type {import('../../src/rollup/types')} Rollup
  */
@@ -17,7 +17,7 @@ const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
 runTestSuiteWithSamples(
 	'form',
-	resolve(__dirname, 'samples'),
+	path.resolve(__dirname, 'samples'),
 	/**
 	 * @param {import('../types').TestConfigForm} config
 	 */
@@ -25,7 +25,7 @@ runTestSuiteWithSamples(
 		const isSingleFormatTest = existsSync(directory + '/_expected.js');
 		const itOrDescribe = isSingleFormatTest ? it : describe;
 		(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
-			basename(directory) + ': ' + config.description,
+			path.basename(directory) + ': ' + config.description,
 			() => {
 				let bundle;
 				const logs = [];

@@ -1,10 +1,10 @@
 const assert = require('node:assert');
-const { join } = require('node:path');
+const path = require('node:path');
 
 module.exports = defineTest({
 	description: 'includes a relative external module only once (two external deps)',
 	options: {
-		external: [join(__dirname, './foo.js'), join(__dirname, './first/foo.js')]
+		external: [path.join(__dirname, './foo.js'), path.join(__dirname, './first/foo.js')]
 	},
 	context: {
 		require(required) {

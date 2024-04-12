@@ -1,4 +1,4 @@
-import { resolve } from 'node:path';
+import path from 'node:path';
 import process from 'node:process';
 import { createFilter } from '@rollup/pluginutils';
 import { rollupInternal } from '../rollup/rollup';
@@ -153,7 +153,7 @@ export class Task {
 		this.skipWrite = Boolean(options.watch && options.watch.skipWrite);
 		this.outputs = this.options.output;
 		this.outputFiles = this.outputs.map(output => {
-			if (output.file || output.dir) return resolve(output.file || output.dir!);
+			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
 			return undefined as never;
 		});
 
