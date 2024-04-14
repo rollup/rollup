@@ -14,7 +14,7 @@ const bindingsByPlatformAndArch = {
 		x64: { base: 'darwin-x64' }
 	},
 	linux: {
-		arm: { base: 'linux-arm-gnueabihf', musl: null },
+		arm: { base: 'linux-arm-gnueabihf', musl: 'linux-arm-musleabihf' },
 		arm64: { base: 'linux-arm64-gnu', musl: 'linux-arm64-musl' },
 		ppc64: { base: 'linux-powerpc64le-gnu', musl: null },
 		riscv64: { base: 'linux-riscv64-gnu', musl: null },
