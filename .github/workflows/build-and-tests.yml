@@ -106,15 +106,13 @@ jobs:
             target: x86_64-apple-darwin
             build: >-
               set -e &&
-              npm run build:napi -- --release &&
-              strip -x *.node
+              npm run build:napi -- --release
           - host: macos-latest
             target: aarch64-apple-darwin
             build: >-
               set -e &&
               rustup target add aarch64-apple-darwin &&
-              npm run build:napi -- --release --target aarch64-apple-darwin &&
-              strip -x *.node
+              npm run build:napi -- --release --target aarch64-apple-darwin
 
           # Linux
           - host: ubuntu-latest
@@ -123,14 +121,13 @@ jobs:
             build: >-
               set -e &&
               rustup target add x86_64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target x86_64-unknown-linux-gnu &&
-              strip *.node
+              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: >-
               set -e &&
-              npm run build:napi -- --release && strip *.node
+              npm run build:napi -- --release
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             zig: true
@@ -139,8 +136,13 @@ jobs:
               sudo apt-get install gcc-arm-linux-gnueabihf -y
             build: >-
               set -e &&
-              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf &&
-              arm-linux-gnueabihf-strip *.node
+              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf
+          - host: ubuntu-latest
+            target: armv7-unknown-linux-musleabihf
+            zig: true
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target armv7-unknown-linux-musleabihf
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
@@ -149,8 +151,7 @@ jobs:
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
               rustup default nightly-2023-10-05 &&
               rustup target add aarch64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target aarch64-unknown-linux-gnu &&
-              aarch64-unknown-linux-gnu-strip *.node
+              npm run build:napi -- --release --target aarch64-unknown-linux-gnu
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -159,20 +160,17 @@ jobs:
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
               rustup default nightly-2023-10-05 &&
               rustup target add aarch64-unknown-linux-musl &&
-              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl &&
-              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             build: >-
               set -e &&
-              npm run build:napi -- --release --target armv7-linux-androideabi &&
-              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+              npm run build:napi -- --release --target armv7-linux-androideabi
           - host: ubuntu-latest
             target: aarch64-linux-android
             build: >-
               set -e &&
-              npm run build:napi -- --release --target aarch64-linux-android &&
-              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+              npm run build:napi -- --release --target aarch64-linux-android
           - host: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
             setup: |
@@ -181,8 +179,7 @@ jobs:
             build: >-
               set -e &&
               rustup target add riscv64gc-unknown-linux-gnu &&
-              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu &&
-              riscv64-linux-gnu-strip *.node
+              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
             setup: |
@@ -191,8 +188,7 @@ jobs:
             build: >-
               set -e &&
               export CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER=powerpc64le-linux-gnu-gcc && rustup target add powerpc64le-unknown-linux-gnu &&
-              npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu &&
-              powerpc64le-linux-gnu-strip *.node
+              npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu
           - host: ubuntu-latest
             target: s390x-unknown-linux-gnu
             setup: |
@@ -202,8 +198,7 @@ jobs:
               set -e &&
               export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
               rustup target add s390x-unknown-linux-gnu &&
-              npm run build:napi -- --release --target s390x-unknown-linux-gnu &&
-              s390x-linux-gnu-strip *.node
+              npm run build:napi -- --release --target s390x-unknown-linux-gnu
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
