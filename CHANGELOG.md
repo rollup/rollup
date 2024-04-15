@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.14.3
+
+_2024-04-15_
+
+### Bug Fixes
+
+- Support Alpine Linux and other MUSL builds on ARM (#5471)
+
+### Pull Requests
+
+- [#5471](https://github.com/rollup/rollup/pull/5471): Add linux arm musl build (@sapphi-red)
+
 ## 4.14.2
 
 _2024-04-12_
