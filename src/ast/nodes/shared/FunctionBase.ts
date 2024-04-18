@@ -124,14 +124,10 @@ export default abstract class FunctionBase extends NodeBase {
 
 	private forwardArgumentsForFunctionCalledOnce(newArguments: InteractionCalledArguments): void {
 		for (let position = 0; position < this.params.length; position++) {
-			// only the "this" argument newArguments[0] can be null
-			const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
-			if (parameter instanceof RestElement) {
-				break;
-			}
 			if (parameter instanceof Identifier) {
 				const ParameterVariable = parameter.variable as ParameterVariable | null;
+				const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
 				ParameterVariable?.setKnownValue(argument);
 			}
 		}
@@ -159,8 +155,8 @@ export default abstract class FunctionBase extends NodeBase {
 			// Parameters without default values
 			if (parameter instanceof Identifier) {
 				const parameterVariable = parameter.variable as ParameterVariable | null;
-				const knownParameter = this.knownParameterValues[position] ?? UNKNOWN_EXPRESSION;
-				parameterVariable?.setKnownValue(knownParameter);
+				const knownParameterValue = this.knownParameterValues[position] ?? UNKNOWN_EXPRESSION;
+				parameterVariable?.setKnownValue(knownParameterValue);
 			}
 		}
 	}
