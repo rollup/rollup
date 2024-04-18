@@ -89,6 +89,7 @@ But with ES modules, instead of importing the whole `utils` object, we can just 
 ```js
 // import the ajax function with an ES import statement
 import { ajax } from 'node:utils';
+
 var query = 'Rollup';
 // call the ajax function
 ajax('https://api.example.com?search=' + query).then(handleResponse);
@@ -108,7 +109,7 @@ To make sure your ES modules are immediately usable by tools that work with Comm
 
 ## Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)]. <a href="https://github.com/rollup/rollup/graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)]. <a href="https://github.com/rollup/rollup/graphs/contributors"><img src="https://opencollective.com/rollup/contributors.svg?width=890" /></a>. If you want to contribute yourself, head over to the [contribution guidelines](CONTRIBUTING.md).
 
 ## Backers
 

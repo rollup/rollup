@@ -1,4 +1,4 @@
-const { sep } = require('node:path');
+const path = require('node:path');
 const { assertIncludes } = require('../../../utils.js');
 
 module.exports = defineTest({
@@ -6,7 +6,7 @@ module.exports = defineTest({
 	command: 'rollup -c',
 	stderr: stderr => {
 		assertIncludes(
-			stderr.replaceAll(__dirname + sep, 'CWD/'),
+			stderr.replaceAll(__dirname + path.sep, 'CWD/'),
 			'(!) [plugin test] file1 (1:2): Warning with file and id\n' +
 				'CWD/file1:1:2\n' +
 				'(!) [plugin test] file2 (2:3): Warning with file\n' +

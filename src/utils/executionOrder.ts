@@ -12,6 +12,13 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]): void {
 	units.sort(compareExecIndex);
 }
 
+// This process is currently faulty in so far as it only takes the first entry
+// module into account and assumes that dynamic imports are imported in a
+// certain order.
+// A better algorithm would follow every possible execution path and mark which
+// modules are executed before or after which other modules. THen the chunking
+// would need to take care that in each chunk, all modules are always executed
+// in the same sequence.
 export function analyseModuleExecution(entryModules: readonly Module[]): {
 	cyclePaths: string[][];
 	orderedModules: Module[];

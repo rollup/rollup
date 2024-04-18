@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { sep } = require('node:path');
+const path = require('node:path');
 
 const BOLD = '\u001B[1m';
 const BLUE = '\u001B[34m';
@@ -15,7 +15,7 @@ module.exports = defineTest({
 	env: { FORCE_COLOR: '1', TERM: 'xterm' },
 	stderr(stderr) {
 		assert.strictEqual(
-			stderr.replaceAll(__dirname + sep, 'CWD/'),
+			stderr.replaceAll(__dirname + path.sep, 'CWD/'),
 			`${CYAN}
 ${BOLD}main.js${REGULAR} → ${BOLD}stdout${REGULAR}...${NOCOLOR}
 ${BOLD}${CYAN}[plugin test] simple-info${NOCOLOR}${REGULAR}

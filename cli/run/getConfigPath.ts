@@ -1,5 +1,5 @@
 import { readdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import path from 'node:path';
 import { cwd } from 'node:process';
 import { logMissingExternalConfig } from '../../src/utils/logs';
 import { handleError } from '../logging';
@@ -8,7 +8,7 @@ const DEFAULT_CONFIG_BASE = 'rollup.config';
 
 export async function getConfigPath(commandConfig: string | true): Promise<string> {
 	if (commandConfig === true) {
-		return resolve(await findConfigFileNameInCwd());
+		return path.resolve(await findConfigFileNameInCwd());
 	}
 	if (commandConfig.slice(0, 5) === 'node:') {
 		const packageName = commandConfig.slice(5);
@@ -27,7 +27,7 @@ export async function getConfigPath(commandConfig: string | true): Promise<strin
 			}
 		}
 	}
-	return resolve(commandConfig);
+	return path.resolve(commandConfig);
 }
 
 async function findConfigFileNameInCwd(): Promise<string> {

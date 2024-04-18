@@ -1,5 +1,5 @@
 const { existsSync } = require('node:fs');
-const { join } = require('node:path');
+const path = require('node:path');
 const { platform, arch, report } = require('node:process');
 
 const isMusl = () => !report.getReport().header.glibcVersionRuntime;
@@ -14,9 +14,9 @@ const bindingsByPlatformAndArch = {
 		x64: { base: 'darwin-x64' }
 	},
 	linux: {
-		arm: { base: 'linux-arm-gnueabihf', musl: null },
+		arm: { base: 'linux-arm-gnueabihf', musl: 'linux-arm-musleabihf' },
 		arm64: { base: 'linux-arm64-gnu', musl: 'linux-arm64-musl' },
-		ppc64le: { base: 'linux-powerpc64le-gnu', musl: null },
+		ppc64: { base: 'linux-powerpc64le-gnu', musl: null },
 		riscv64: { base: 'linux-riscv64-gnu', musl: null },
 		s390x: { base: 'linux-s390x-gnu', musl: null },
 		x64: { base: 'linux-x64-gnu', musl: 'linux-x64-musl' }
@@ -66,7 +66,7 @@ const requireWithFriendlyError = id => {
 };
 
 const { parse, parseAsync, xxhashBase64Url, xxhashBase36, xxhashBase16 } = requireWithFriendlyError(
-	existsSync(join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
+	existsSync(path.join(__dirname, localName)) ? localName : `@rollup/rollup-${packageBase}`
 );
 
 function getPackageBase() {

@@ -1,6 +1,6 @@
-const { resolve } = require('node:path');
+const path = require('node:path');
 
-const resolved = resolve(__dirname, 'foo.js');
+const resolved = path.resolve(__dirname, 'foo.js');
 
 module.exports = defineTest({
 	description: 'external paths (#754)',

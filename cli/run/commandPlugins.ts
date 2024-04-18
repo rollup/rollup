@@ -1,4 +1,4 @@
-import { resolve } from 'node:path';
+import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { InputOptionsWithPlugins } from '../../src/rollup/types';
 import { normalizePluginOption } from '../../src/utils/options/options';
@@ -73,11 +73,11 @@ async function loadAndRegisterPlugin(
 		}
 		if (!plugin) {
 			try {
-				if (pluginText[0] == '.') pluginText = resolve(pluginText);
+				if (pluginText[0] == '.') pluginText = path.resolve(pluginText);
 				// Windows absolute paths must be specified as file:// protocol URL
 				// Note that we do not have coverage for Windows-only code paths
 				else if (/^[A-Za-z]:\\/.test(pluginText)) {
-					pluginText = pathToFileURL(resolve(pluginText)).href;
+					pluginText = pathToFileURL(path.resolve(pluginText)).href;
 				}
 				plugin = await requireOrImport(pluginText);
 			} catch (error: any) {

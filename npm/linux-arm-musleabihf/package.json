@@ -1,22 +1,19 @@
 {
-  "name": "@rollup/rollup-linux-powerpc64le-gnu",
+  "name": "@rollup/rollup-linux-arm-musleabihf",
   "version": "0.0.0",
   "os": [
     "linux"
   ],
   "cpu": [
-    "ppc64"
+    "arm"
   ],
   "files": [
-    "rollup.linux-powerpc64le-gnu.node"
+    "rollup.linux-arm-musleabihf.node"
   ],
   "description": "Native bindings for Rollup",
   "author": "Lukas Taegert-Atkinson",
   "homepage": "https://rollupjs.org/",
   "license": "MIT",
   "repository": "rollup/rollup",
-  "libc": [
-    "glibc"
-  ],
-  "main": "./rollup.linux-powerpc64le-gnu.node"
+  "main": "./rollup.linux-arm-musleabihf.node"
 }

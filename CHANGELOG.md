@@ -1,5 +1,36 @@
 # rollup changelog
 
+## 4.14.3
+
+_2024-04-15_
+
+### Bug Fixes
+
+- Support Alpine Linux and other MUSL builds on ARM (#5471)
+
+### Pull Requests
+
+- [#5471](https://github.com/rollup/rollup/pull/5471): Add linux arm musl build (@sapphi-red)
+
+## 4.14.2
+
+_2024-04-12_
+
+### Bug Fixes
+
+- Do not create invalid code when reexporting both a namespace and the default export from that namespace (#5466)
+- Ensure ppc64 platform is properly detected (#5460)
+
+### Pull Requests
+
+- [#5456](https://github.com/rollup/rollup/pull/5456): Add high-level architecture documentation (@lukastaegert)
+- [#5460](https://github.com/rollup/rollup/pull/5460): Fix ppc64le target (@lukastaegert)
+- [#5463](https://github.com/rollup/rollup/pull/5463): chore: tweak the comment about files should not be edited (@TrickyPi)
+- [#5466](https://github.com/rollup/rollup/pull/5466): Ensure reexported namespaces do not prevent creation of default export helpers (@lukastaegert)
+- [#5468](https://github.com/rollup/rollup/pull/5468): chore(deps): update dependency eslint-plugin-unicorn to v52 (@renovate[bot], @lukastaegert)
+- [#5469](https://github.com/rollup/rollup/pull/5469): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5470](https://github.com/rollup/rollup/pull/5470): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.14.1
 
 _2024-04-07_

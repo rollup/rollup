@@ -1,5 +1,6 @@
 [profile.release]
 lto = true
+strip = true
 
 [workspace]
 resolver = "2"

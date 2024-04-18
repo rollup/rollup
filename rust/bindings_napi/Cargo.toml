@@ -10,8 +10,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "2.16.1", default-features = false, features = ["napi4"] }
-napi-derive = "2.16.1"
+napi = { version = "2.16.2", default-features = false, features = ["napi4"] }
+napi-derive = "2.16.2"
 parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
 

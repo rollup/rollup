@@ -652,15 +652,15 @@ export default class Chunk {
 		const renderedExports = exportMode === 'none' ? [] : this.getChunkExportDeclarations(format);
 		let hasExports = renderedExports.length > 0;
 		let hasDefaultExport = false;
-		for (const renderedDependence of renderedDependencies) {
-			const { reexports } = renderedDependence;
+		for (const renderedDependency of renderedDependencies) {
+			const { reexports } = renderedDependency;
 			if (reexports?.length) {
 				hasExports = true;
 				if (!hasDefaultExport && reexports.some(reexport => reexport.reexported === 'default')) {
 					hasDefaultExport = true;
 				}
 				if (format === 'es') {
-					renderedDependence.reexports = reexports.filter(
+					renderedDependency.reexports = reexports.filter(
 						// eslint-disable-next-line unicorn/prefer-array-some
 						({ reexported }) => !renderedExports.find(({ exported }) => exported === reexported)
 					);
@@ -908,9 +908,14 @@ export default class Chunk {
 								deconflictedDefault.add(chunk);
 							}
 						} else if (
-							variable.name === '*' &&
-							namespaceInteropHelpersByInteropType[interop(module.id)]
+							variable.isNamespace &&
+							namespaceInteropHelpersByInteropType[interop(module.id)] &&
+							(this.imports.has(variable) ||
+								!this.exportNamesByVariable.get(variable)?.every(name => name.startsWith('*')))
 						) {
+							// We only need to deconflict it if the namespace is actually
+							// created as a variable, i.e. because it is used internally or
+							// because it is reexported as an object
 							deconflictedNamespace.add(chunk);
 						}
 					}
@@ -1139,30 +1144,34 @@ export default class Chunk {
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const renderedDependencies = new Map<Chunk | ExternalChunk, ChunkDependency>();
 		const fileName = this.getFileName();
-		for (const dep of this.dependencies) {
-			const imports = importSpecifiers.get(dep) || null;
-			const reexports = reexportSpecifiers.get(dep) || null;
-			const namedExportsMode = dep instanceof ExternalChunk || dep.exportMode !== 'default';
-			const importPath = dep.getImportPath(fileName);
+		for (const dependency of this.dependencies) {
+			const imports = importSpecifiers.get(dependency) || null;
+			const reexports = reexportSpecifiers.get(dependency) || null;
+			const namedExportsMode =
+				dependency instanceof ExternalChunk || dependency.exportMode !== 'default';
+			const importPath = dependency.getImportPath(fileName);
 
-			renderedDependencies.set(dep, {
-				attributes: dep instanceof ExternalChunk ? dep.getImportAttributes(this.snippets) : null,
-				defaultVariableName: dep.defaultVariableName,
+			renderedDependencies.set(dependency, {
+				attributes:
+					dependency instanceof ExternalChunk
+						? dependency.getImportAttributes(this.snippets)
+						: null,
+				defaultVariableName: dependency.defaultVariableName,
 				globalName:
-					dep instanceof ExternalChunk &&
+					dependency instanceof ExternalChunk &&
 					(this.outputOptions.format === 'umd' || this.outputOptions.format === 'iife') &&
 					getGlobalName(
-						dep,
+						dependency,
 						this.outputOptions.globals,
 						(imports || reexports) !== null,
 						this.inputOptions.onLog
 					),
 				importPath,
 				imports,
-				isChunk: dep instanceof Chunk,
-				name: dep.variableName,
+				isChunk: dependency instanceof Chunk,
+				name: dependency.variableName,
 				namedExportsMode,
-				namespaceVariableName: dep.namespaceVariableName,
+				namespaceVariableName: dependency.namespaceVariableName,
 				reexports
 			});
 		}

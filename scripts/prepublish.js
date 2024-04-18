@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import path from 'node:path';
 import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readJson, runWithEcho } from './helpers.js';
@@ -23,7 +23,7 @@ if (!matched) {
 const isPreRelease = !!matched[1];
 await verifyChangelog(isPreRelease);
 
-await runWithEcho('npm', ['publish'], { cwd: resolve('browser') });
+await runWithEcho('npm', ['publish'], { cwd: path.resolve('browser') });
 await publishWasmNodePackage();
 
 const { optionalDependencies } = await readJson(MAIN_PACKAGE);
