@@ -50,6 +50,7 @@ Basic options:
 --generatedCode.symbols     Use symbols in generated code
 --hashCharacters <name>     Use the specified character set for file hashes
 --no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
+--importAttributesKey <name> Use the specified keyword for import attributes
 --no-indent                 Don't indent result
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --no-interop                Do not include interop block
