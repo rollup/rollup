@@ -254,6 +254,7 @@ async function mergeOutputOptions(
 		globals: getOption('globals'),
 		hashCharacters: getOption('hashCharacters'),
 		hoistTransitiveImports: getOption('hoistTransitiveImports'),
+		importAttributesKey: getOption('importAttributesKey'),
 		indent: getOption('indent'),
 		inlineDynamicImports: getOption('inlineDynamicImports'),
 		interop: getOption('interop'),

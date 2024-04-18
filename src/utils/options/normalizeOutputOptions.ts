@@ -71,6 +71,7 @@ export async function normalizeOutputOptions(
 		globals: config.globals || {},
 		hashCharacters: config.hashCharacters ?? 'base64',
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
+		importAttributesKey: config.importAttributesKey ?? 'assert',
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
 		interop: getInterop(config),
