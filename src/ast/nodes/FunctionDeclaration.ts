@@ -14,7 +14,7 @@ export default class FunctionDeclaration extends FunctionNode {
 		}
 	}
 
-	onlyFunctionCallUsed(): boolean {
+	protected onlyFunctionCallUsed(): boolean {
 		// call super.onlyFunctionCallUsed for export default anonymous function
 		return this.id?.variable.getOnlyFunctionCallUsed() ?? super.onlyFunctionCallUsed();
 	}
