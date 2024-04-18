@@ -127,7 +127,7 @@ export default abstract class FunctionBase extends NodeBase {
 			// only the "this" argument newArguments[0] can be null
 			const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
-			if (!parameter || parameter instanceof RestElement) {
+			if (parameter instanceof RestElement) {
 				break;
 			}
 			if (parameter instanceof Identifier) {
