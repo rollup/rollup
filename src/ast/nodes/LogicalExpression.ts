@@ -58,17 +58,19 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	deoptimizeCache(): void {
 		this.isBranchResolutionAnalysed = false;
-		const {
-			scope: { context },
-			expressionsToBeDeoptimized
-		} = this;
-		this.expressionsToBeDeoptimized = [];
-		for (const expression of expressionsToBeDeoptimized) {
-			expression.deoptimizeCache();
+		if (this.expressionsToBeDeoptimized.length > 0) {
+			const {
+				scope: { context },
+				expressionsToBeDeoptimized
+			} = this;
+			this.expressionsToBeDeoptimized = [];
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+			// Request another pass because we need to ensure "include" runs again if
+			// it is rendered
+			context.requestTreeshakingPass();
 		}
-		// Request another pass because we need to ensure "include" runs again if
-		// it is rendered
-		context.requestTreeshakingPass();
 		if (this.usedBranch) {
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
