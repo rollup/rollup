@@ -8,6 +8,8 @@ import LocalVariable from './LocalVariable';
 import UndefinedVariable from './UndefinedVariable';
 import type Variable from './Variable';
 
+// Between two stages, there might be variable bound change, like `export default a; a = 0`.
+// Therefore we clear the cache if the stage changes.
 enum OriginalVariableStage {
 	BIND_REFERENCE,
 	GENERATE_CHUNK
@@ -97,6 +99,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		originalVariableState: OriginalVariableStage = OriginalVariableStage.GENERATE_CHUNK
 	): Variable {
 		if (this.previousOriginalVariableState !== originalVariableState) {
+			// clear the `originalVariable` cache
 			this.originalVariable = null;
 			this.previousOriginalVariableState = originalVariableState;
 		}
