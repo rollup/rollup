@@ -87,7 +87,7 @@ export default abstract class FunctionBase extends NodeBase {
 			// it's possible that some arguments are empty, so the value is undefined
 			const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
-			if (!parameter || parameter instanceof RestElement) {
+			if (parameter instanceof RestElement) {
 				break;
 			}
 
