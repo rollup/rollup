@@ -17,7 +17,7 @@ const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
 runTestSuiteWithSamples(
 	'form',
-	path.resolve(__dirname, 'samples', 'import-attributes'),
+	path.resolve(__dirname, 'samples'),
 	/**
 	 * @param {import('../types').TestConfigForm} config
 	 */
