@@ -301,6 +301,8 @@ jobs:
 
   # smoke test for most architectures that do not receive the full test suite
   smoke-test:
+    permissions:
+      packages: write # for caching container images
     name: Smoke Test ${{ matrix.settings.target }}
     needs:
       - build
@@ -375,11 +377,12 @@ jobs:
             echo "Node: $(node -v)" &&
             echo "npm: $(npm -v)" &&
             mv package.json renamed-package.json &&
-            npm install shx @rollup/plugin-typescript --omit=optional &&
+            npm install shx @rollup/plugin-typescript tslib --omit=optional &&
             mv renamed-package.json package.json &&
             chmod +x dist/bin/rollup &&
             dist/bin/rollup --version &&
-            npm run build:bootstrap
+            npm run build:bootstrap &&
+            dist/bin/rollup --version
 
 #  test:
 #    name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
