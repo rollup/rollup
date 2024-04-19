@@ -115,13 +115,14 @@ jobs:
 #              npm run build:napi -- --release --target aarch64-apple-darwin
 #
 #          # Linux
-#          - host: ubuntu-latest
-#            target: x86_64-unknown-linux-gnu
-#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-#            build: >-
-#              set -e &&
-#              rustup target add x86_64-unknown-linux-gnu &&
-#              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+            upload-build: true
+            build: >-
+              set -e &&
+              rustup target add x86_64-unknown-linux-gnu &&
+              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
 #          - host: ubuntu-latest
 #            target: x86_64-unknown-linux-musl
 #            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -255,6 +256,13 @@ jobs:
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
+      - name: Upload dist folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollup-dist-folder
+          path: dist
+          if-no-files-found: error
+        if: ${{ matrix.settings.upload-build }}
       - name: Upload wasm artifact
         uses: actions/upload-artifact@v4
         with:
@@ -305,6 +313,13 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
+      - name: Download dist folder
+        uses: actions/download-artifact@v4
+        with:
+          name: rollup-dist-folder
+          path: dist/
+      - name: Verify dist folder
+        run: ls -la dist/
       - name: Download napi artifacts
         uses: actions/download-artifact@v4
         with:
@@ -323,14 +338,10 @@ jobs:
           install: |
             case "${{ matrix.settings.distro }}" in
               ubuntu*)
-                echo UPDATE APK
                 apt-get update -y
-                echo INSTALL CURL
                 apt-get install -y curl
-                echo CURL NVM
                 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
                 source ~/.nvm/nvm.sh
-                echo INSTALL NODEJS
                 nvm install 20
                 ;;
               alpine*)
@@ -339,12 +350,11 @@ jobs:
             esac
           run: >-
             set -e &&
-            node -v &&
-            npm -v &&
+            echo "Node: $(node -v)" &&
+            echo "npm: $(npm -v)" &&
             mv package.json renamed-package.json &&
-            npm install rollup shx --omit=optional &&
+            npm install shx @rollup/plugin-typescript --omit=optional &&
             mv renamed-package.json package.json &&
-            cp -r node_modules/rollup/dist/* dist/ &&
             dist/bin/rollup --version &&
             npm run build:bootstrap
 
