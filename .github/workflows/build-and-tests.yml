@@ -329,11 +329,11 @@ jobs:
                 apt-get install -y curl
                 echo CURL NVM
                 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+                source ~/.nvm/nvm.sh
                 echo INSTALL NODEJS
                 nvm install 20
                 ;;
               alpine*)
-                echo ADD NODEJS
                 apk add nodejs npm
                 ;;
             esac
@@ -342,7 +342,8 @@ jobs:
             node -v &&
             npm -v &&
             ls &&
-            npm install rollup --no-save --no-optional &&
+            rm package.json &&
+            npm install rollup --omit=optional &&
             mkdir dist &&
             cp -r node_modules/rollup/dist/* dist/ &&
             dist/bin/rollup --version &&
