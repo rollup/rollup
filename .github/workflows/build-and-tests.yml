@@ -321,18 +321,25 @@ jobs:
           distro: ${{ matrix.settings.distro }}
           githubToken: ${{ github.token }}
           install: |
-            echo UPDATE
-            apt-get update
-            echo INSTALL CURL
-            apt-get install -y curl
-            echo CURL NODEJS
-            curl -sL https://deb.nodesource.com/setup_current.x | bash -
-            echo INSTALL NODEJS
-            apt-get install -y nodejs
+            ls
+            case "${{ matrix.distro }}" in
+              ubuntu*)
+                apt-get update -q -y
+                apt-get install -q -y curl
+                echo CURL NVM
+                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+                echo INSTALL NODEJS
+                nvm install 20
+                ;;
+              alpine*)
+                apk add nodejs npm
+                ;;
+            esac
+            node -v
+            npm -v
           run: >-
             set -e &&
-            node -v &&
-            npm -v &&
+            ls &&
             npm install rollup --no-save --no-optional &&
             mkdir dist &&
             cp -r node_modules/rollup/dist/* dist/ &&
