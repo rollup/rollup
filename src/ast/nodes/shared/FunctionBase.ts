@@ -75,7 +75,7 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
-	private knownParameterValues: ExpressionEntity[] = [];
+	private knownParameterValues: (ExpressionEntity | undefined)[] = [];
 	private allArguments: InteractionCalledArguments[] = [];
 	/**
 	 * update knownParameterValues when a call is made to this function
@@ -87,8 +87,9 @@ export default abstract class FunctionBase extends NodeBase {
 			// it's possible that some arguments are empty, so the value is undefined
 			const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
 			const parameter = this.params[position];
+			// RestElement can be, and can only be, the last parameter
 			if (parameter instanceof RestElement) {
-				break;
+				return;
 			}
 
 			const knownParameterValue = this.knownParameterValues[position];
@@ -140,6 +141,10 @@ export default abstract class FunctionBase extends NodeBase {
 	 * we are sure it will converge, and can use state from last iteration
 	 */
 	private applyFunctionParameterOptimization() {
+		if (this.allArguments.length === 0) {
+			return;
+		}
+
 		if (this.allArguments.length === 1) {
 			// we are sure what knownParameterValues will be, so skip it and do setKnownValue
 			this.forwardArgumentsForFunctionCalledOnce(this.allArguments[0]);
@@ -155,7 +160,8 @@ export default abstract class FunctionBase extends NodeBase {
 			// Parameters without default values
 			if (parameter instanceof Identifier) {
 				const parameterVariable = parameter.variable as ParameterVariable | null;
-				const knownParameterValue = this.knownParameterValues[position] ?? UNKNOWN_EXPRESSION;
+				// Only the RestElement may be undefined
+				const knownParameterValue = this.knownParameterValues[position]!;
 				parameterVariable?.setKnownValue(knownParameterValue);
 			}
 		}
@@ -314,8 +320,7 @@ export default abstract class FunctionBase extends NodeBase {
 		const isIIFE =
 			this.parent.type === NodeType.CallExpression &&
 			(this.parent as CallExpression).callee === this;
-		const shoulOptimizeFunctionParameters =
-			(isIIFE || this.onlyFunctionCallUsed()) && this.allArguments.length > 0;
+		const shoulOptimizeFunctionParameters = isIIFE || this.onlyFunctionCallUsed();
 		if (shoulOptimizeFunctionParameters) {
 			this.applyFunctionParameterOptimization();
 		} else if (this.functionParametersOptimized) {
