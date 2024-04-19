@@ -165,7 +165,7 @@ export default abstract class FunctionBase extends NodeBase {
 		for (const parameter of this.params) {
 			if (parameter instanceof Identifier) {
 				const parameterVariable = parameter.variable as ParameterVariable | null;
-				parameterVariable?.setKnownValue(UNKNOWN_EXPRESSION);
+				parameterVariable?.markReassigned();
 			}
 		}
 	}
