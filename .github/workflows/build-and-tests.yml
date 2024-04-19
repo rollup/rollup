@@ -320,9 +320,15 @@ jobs:
           arch: ${{ matrix.settings.arch }}
           distro: ${{ matrix.settings.distro }}
           githubToken: ${{ github.token }}
-          install: >-
-            curl -sL https://deb.nodesource.com/setup_current.x | sudo -E bash - &&
-            apt-get install -y nodejs npm
+          install: |
+            echo UPDATE
+            apt-get update
+            echo INSTALL CURL
+            apt-get install -y curl
+            echo CURL NODEJS
+            curl -sL https://deb.nodesource.com/setup_current.x | bash -
+            echo INSTALL NODEJS
+            apt-get install -y nodejs
           run: >-
             set -e &&
             node -v &&
