@@ -75,6 +75,17 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
+	markReassigned(): void {
+		if (this.isReassigned) {
+			return;
+		}
+		super.markReassigned();
+		for (const expression of this.knownExpressionsToBeDeoptimized) {
+			expression.deoptimizeCache();
+		}
+		this.knownExpressionsToBeDeoptimized = [];
+	}
+
 	private knownValue: ExpressionEntity = UNKNOWN_EXPRESSION;
 	/**
 	 * If we are sure about the value of this parameter, we can set it here.
@@ -83,6 +94,9 @@ export default class ParameterVariable extends LocalVariable {
 	 * @param value The known value of the parameter to be set.
 	 */
 	setKnownValue(value: ExpressionEntity): void {
+		if (this.isReassigned) {
+			return;
+		}
 		if (this.knownValue !== value) {
 			for (const expression of this.knownExpressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
@@ -147,7 +161,11 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		if (path.length === 0 || this.deoptimizedFields.has(UnknownKey)) {
+		if (this.deoptimizedFields.has(UnknownKey)) {
+			return;
+		}
+		if (path.length === 0) {
+			this.markReassigned();
 			return;
 		}
 		const key = path[0];
