@@ -363,10 +363,10 @@ jobs:
             case "${{ matrix.settings.distro }}" in
               ubuntu*)
                 apt-get update -y
-                apt-get install -y curl
+                apt-get install -y curl git
                 ;;
               alpine*)
-                apk add nodejs npm
+                apk add nodejs npm git
                 ;;
             esac
           run: |
