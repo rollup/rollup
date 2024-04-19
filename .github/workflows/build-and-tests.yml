@@ -189,8 +189,6 @@ jobs:
               set -e &&
               export CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER=powerpc64le-linux-gnu-gcc && rustup target add powerpc64le-unknown-linux-gnu &&
               npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu
-            test:
-              arch: ppc64le
 #          - host: ubuntu-latest
 #            target: s390x-unknown-linux-gnu
 #            setup: |
@@ -257,24 +255,6 @@ jobs:
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
-      - name: Run Smoke Test
-        if: ${{ matrix.settings.test }}
-        uses: uraimo/run-on-arch-action@v2
-        with:
-          arch: ${{ matrix.settings.test.arch }}
-          distro: ubuntu_latest
-          githubToken: ${{ github.token }}
-          install: >-
-            apt-get update &&
-            apt-get install -y nodejs npm
-          run: >-
-            set -e &&
-            node -v &&
-            ls &&
-            which node &&
-            which npm &&
-            dist/bin/rollup --version
-            npm run build:bootstrap
       - name: Upload wasm artifact
         uses: actions/upload-artifact@v4
         with:
@@ -289,6 +269,51 @@ jobs:
           path: ${{ env.APP_NAME }}.*.node
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
+
+  # smoke test for architectures that do not receive the full test suite
+  smoke-test:
+    name: Smoke Test ${{ matrix.settings.target }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - arch: ppc64le
+            dist: ubuntu_latest
+            target: powerpc64le-unknown-linux-gnu
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+      - name: Download napi artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: .
+#      - name: Download wasm artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: bindings-wasm
+      - name: Run Smoke Test
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.settings.arch }}
+          distro: ${{ matrix.settings.dist }}
+          githubToken: ${{ github.token }}
+          install: |
+            apt-get update
+            apt-get install -y nodejs
+            apt-get install -y npm
+          run: >-
+            set -e &&
+            node -v &&
+            ls &&
+            which node &&
+            which npm &&
+            dist/bin/rollup --version
+            npm run build:bootstrap
 
 #  test:
 #    name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
@@ -369,8 +394,9 @@ jobs:
 #    runs-on: ubuntu-latest
 #    timeout-minutes: 15
 #    needs:
-#      - test
 #      - lint
+#      - test
+#      - smoke-test
 #    # This needs to be adapted for Rollup 5
 #    if: startsWith(github.ref_name, 'v4')
 #    steps:
