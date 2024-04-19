@@ -58,6 +58,35 @@ jobs:
 #          npm run build:ast-converters
 #          git diff HEAD --exit-code --ignore-space-at-eol
 
+  build-js-for-smoke-tests:
+    name: Build JavaScript For Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+      - name: Build
+        run: npm run build:cjs
+      - name: Upload Dist Folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollup-dist-folder
+          path: dist/
+          if-no-files-found: error
+
   build:
     strategy:
       fail-fast: false
@@ -115,14 +144,13 @@ jobs:
 #              npm run build:napi -- --release --target aarch64-apple-darwin
 #
 #          # Linux
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            upload-build: true
-            build: >-
-              set -e &&
-              rustup target add x86_64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
+#          - host: ubuntu-latest
+#            target: x86_64-unknown-linux-gnu
+#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+#            build: >-
+#              set -e &&
+#              rustup target add x86_64-unknown-linux-gnu &&
+#              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
 #          - host: ubuntu-latest
 #            target: x86_64-unknown-linux-musl
 #            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
@@ -256,13 +284,6 @@ jobs:
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
-      - name: Upload dist folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: rollup-dist-folder
-          path: dist
-          if-no-files-found: error
-        if: ${{ matrix.settings.upload-build }}
       - name: Upload wasm artifact
         uses: actions/upload-artifact@v4
         with:
@@ -283,6 +304,7 @@ jobs:
     name: Smoke Test ${{ matrix.settings.target }}
     needs:
       - build
+      - build-js-for-smoke-tests
     strategy:
       fail-fast: false
       matrix:
