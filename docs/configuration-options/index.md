@@ -932,11 +932,11 @@ By default, when creating multiple chunks, transitive imports of entry chunks wi
 
 ### output.importAttributesKey
 
-|          |                                 |
-| -------: | :------------------------------ |
-|    Type: | `"with" \| "assert"` |
-|     CLI: | `--importAttributesKey <name>`       |
-| Default: | `"assert"`                      |
+|          |                                |
+| -------: | :----------------------------- |
+|    Type: | `"with" \| "assert"`           |
+|     CLI: | `--importAttributesKey <name>` |
+| Default: | `"assert"`                     |
 
 This determines the keyword set that Rollup will use for import attributes.
 
