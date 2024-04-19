@@ -370,6 +370,8 @@ jobs:
                 node -v
                 npm -v
                 which node
+                echo $HOME
+                ls -la $HOME
                 ;;
               alpine*)
                 apk add nodejs npm
@@ -377,10 +379,12 @@ jobs:
             esac
           run: >-
             set -e &&
+            echo $HOME &&
+            ls -la $HOME &&
             echo "Node: $(node -v)" &&
             echo "npm: $(npm -v)" &&
             mv package.json renamed-package.json &&
-            npm install shx @rollup/plugin-typescript tslib @types/node rollup --omit=optional &&
+            npm install shx @rollup/plugin-typescript tslib @types/node rollup @rollup/plugin-replace --omit=optional &&
             mv renamed-package.json package.json &&
             chmod +x dist/bin/rollup &&
             dist/bin/rollup --version &&
