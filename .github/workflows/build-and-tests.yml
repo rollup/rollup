@@ -378,7 +378,7 @@ jobs:
             if [[ -n "${{ matrix.settings.use-nvm }}" ]]; then
               curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
               export NVM_DIR="${HOME}/.nvm"
-              "${NVM_DIR}/nvm.sh"
+              source "${NVM_DIR}/nvm.sh"
               nvm install --lts
             fi
             echo "Node: $(node -v)"
