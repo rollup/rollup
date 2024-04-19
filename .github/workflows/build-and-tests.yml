@@ -320,18 +320,22 @@ jobs:
           - arch: armv7
             distro: ubuntu_latest
             target: armv7-unknown-linux-gnueabihf
-          - arch: armv7
-            distro: alpine_latest
-            target: armv7-unknown-linux-musleabihf
+# There is a bug that hangs the build when running npm
+#          - arch: armv7
+#            distro: alpine_latest
+#            target: armv7-unknown-linux-musleabihf
           - arch: ppc64le
             distro: ubuntu_latest
             target: powerpc64le-unknown-linux-gnu
+            use-nvm: true
           - arch: s390x
             distro: ubuntu_latest
             target: s390x-unknown-linux-gnu
-          - arch: riscv64
-            distro: ubuntu_latest
-            target: riscv64gc-unknown-linux-gnu
+            use-nvm: true
+# I could not find a way to install Node without compiling from source
+#          - arch: riscv64
+#            distro: ubuntu_latest
+#            target: riscv64gc-unknown-linux-gnu
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -349,10 +353,6 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: dist/
-#      - name: Download wasm artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: bindings-wasm
       - name: Run Smoke Test
         uses: uraimo/run-on-arch-action@v2
         with:
@@ -364,11 +364,10 @@ jobs:
               ubuntu*)
                 apt-get update -y
                 apt-get install -y curl git
-                curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-                apt-get install -y nodejs
-                echo INSTALLED
-                node -v
-                npm -v
+                if [[ -z "${{ matrix.settings.use-nvm }}" ]]; then
+                  curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+                  apt-get install -y nodejs
+                fi
                 ;;
               alpine*)
                 apk add nodejs npm git
@@ -376,6 +375,12 @@ jobs:
             esac
           run: |
             set -e
+            if [[ -n "${{ matrix.settings.use-nvm }}" ]]; then
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+              export NVM_DIR="${HOME}/.nvm"
+              "${NVM_DIR}/nvm.sh"
+              nvm install --lts
+            fi
             echo "Node: $(node -v)"
             echo "npm: $(npm -v)"
             npm install --ignore-scripts --omit=optional
