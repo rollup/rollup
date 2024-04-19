@@ -262,15 +262,19 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: ${{ matrix.settings.test.arch }}
-          distro: ubuntu22.04
+          distro: ubuntu_latest
           githubToken: ${{ github.token }}
+          install: >-
+            apt-get update &&
+            apt-get install -y nodejs npm
           run: >-
             set -e &&
-            pwd &&
+            node -v &&
             ls &&
             which node &&
             which npm &&
-            npm install
+            dist/bin/rollup --version
+            npm run build:bootstrap
       - name: Upload wasm artifact
         uses: actions/upload-artifact@v4
         with:
