@@ -369,20 +369,15 @@ jobs:
                 nvm install 20
                 node -v
                 npm -v
-                which node
-                echo $HOME
-                ls -la $HOME
                 ;;
               alpine*)
-                touch .bashrc
+                touch "${HOME}/.bashrc"
                 apk add nodejs npm
                 ;;
             esac
           run: >-
             set -e &&
-            source .bashrc &&
-            echo $HOME &&
-            ls -la $HOME &&
+            source "${HOME}/.bashrc" &&
             echo "Node: $(node -v)" &&
             echo "npm: $(npm -v)" &&
             npm install --ignore-scripts --omit=optional &&
