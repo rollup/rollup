@@ -128,39 +128,39 @@ jobs:
 #            build: >-
 #              set -e &&
 #              npm run build:napi -- --release
-#          - host: ubuntu-latest
-#            target: armv7-unknown-linux-gnueabihf
-#            zig: true
-#            setup: |
-#              sudo apt-get update
-#              sudo apt-get install gcc-arm-linux-gnueabihf -y
-#            build: >-
-#              set -e &&
-#              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf
-#          - host: ubuntu-latest
-#            target: armv7-unknown-linux-musleabihf
-#            zig: true
-#            build: >-
-#              set -e &&
-#              npm run build:napi -- --release --target armv7-unknown-linux-musleabihf
-#          - host: ubuntu-latest
-#            target: aarch64-unknown-linux-gnu
-#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-#            build: >-
-#              set -e &&
-#              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-#              rustup default nightly-2023-10-05 &&
-#              rustup target add aarch64-unknown-linux-gnu &&
-#              npm run build:napi -- --release --target aarch64-unknown-linux-gnu
-#          - host: ubuntu-latest
-#            target: aarch64-unknown-linux-musl
-#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-#            build: >-
-#              set -e &&
-#              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-#              rustup default nightly-2023-10-05 &&
-#              rustup target add aarch64-unknown-linux-musl &&
-#              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl
+          - host: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            zig: true
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-arm-linux-gnueabihf -y
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf
+          - host: ubuntu-latest
+            target: armv7-unknown-linux-musleabihf
+            zig: true
+            build: >-
+              set -e &&
+              npm run build:napi -- --release --target armv7-unknown-linux-musleabihf
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            build: >-
+              set -e &&
+              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+              rustup default nightly-2023-10-05 &&
+              rustup target add aarch64-unknown-linux-gnu &&
+              npm run build:napi -- --release --target aarch64-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: >-
+              set -e &&
+              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+              rustup default nightly-2023-10-05 &&
+              rustup target add aarch64-unknown-linux-musl &&
+              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl
 #          - host: ubuntu-latest
 #            target: armv7-linux-androideabi
 #            build: >-
@@ -171,15 +171,15 @@ jobs:
 #            build: >-
 #              set -e &&
 #              npm run build:napi -- --release --target aarch64-linux-android
-#          - host: ubuntu-latest
-#            target: riscv64gc-unknown-linux-gnu
-#            setup: |
-#              sudo apt-get update
-#              sudo apt-get install gcc-riscv64-linux-gnu -y
-#            build: >-
-#              set -e &&
-#              rustup target add riscv64gc-unknown-linux-gnu &&
-#              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: riscv64gc-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-riscv64-linux-gnu -y
+            build: >-
+              set -e &&
+              rustup target add riscv64gc-unknown-linux-gnu &&
+              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
             setup: |
@@ -189,16 +189,16 @@ jobs:
               set -e &&
               export CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER=powerpc64le-linux-gnu-gcc && rustup target add powerpc64le-unknown-linux-gnu &&
               npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu
-#          - host: ubuntu-latest
-#            target: s390x-unknown-linux-gnu
-#            setup: |
-#              sudo apt-get update
-#              sudo apt-get install gcc-s390x-linux-gnu -y
-#            build: >-
-#              set -e &&
-#              export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
-#              rustup target add s390x-unknown-linux-gnu &&
-#              npm run build:napi -- --release --target s390x-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: s390x-unknown-linux-gnu
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-s390x-linux-gnu -y
+            build: >-
+              set -e &&
+              export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
+              rustup target add s390x-unknown-linux-gnu &&
+              npm run build:napi -- --release --target s390x-unknown-linux-gnu
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
@@ -270,7 +270,7 @@ jobs:
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
 
-  # smoke test for architectures that do not receive the full test suite
+  # smoke test for most architectures that do not receive the full test suite
   smoke-test:
     name: Smoke Test ${{ matrix.settings.target }}
     needs:
@@ -279,11 +279,29 @@ jobs:
       fail-fast: false
       matrix:
         settings:
+          - arch: aarch64
+            distro: ubuntu_latest
+            target: aarch64-unknown-linux-gnu
+          - arch: aarch64
+            distro: alpine_latest
+            target: aarch64-unknown-linux-musl
+          - arch: armv7
+            distro: ubuntu_latest
+            target: armv7-unknown-linux-gnueabihf
+          - arch: armv7
+            distro: alpine_latest
+            target: armv7-unknown-linux-musleabihf
           - arch: ppc64le
-            dist: ubuntu_latest
+            distro: ubuntu_latest
             target: powerpc64le-unknown-linux-gnu
+          - arch: s390x
+            distro: ubuntu_latest
+            target: s390x-unknown-linux-gnu
+          - arch: riscv64
+            distro: ubuntu_latest
+            target: riscv64gc-unknown-linux-gnu
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
@@ -300,19 +318,19 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: ${{ matrix.settings.arch }}
-          distro: ${{ matrix.settings.dist }}
+          distro: ${{ matrix.settings.distro }}
           githubToken: ${{ github.token }}
-          install: |
-            apt-get update
-            apt-get install -y nodejs
-            apt-get install -y npm
+          install: >-
+            curl -sL https://deb.nodesource.com/setup_current.x | sudo -E bash - &&
+            apt-get install -y nodejs npm
           run: >-
             set -e &&
             node -v &&
-            ls &&
-            which node &&
-            which npm &&
-            dist/bin/rollup --version
+            npm -v &&
+            npm install rollup --no-save --no-optional &&
+            mkdir dist &&
+            cp -r node_modules/rollup/dist/* dist/ &&
+            dist/bin/rollup --version &&
             npm run build:bootstrap
 
 #  test:
