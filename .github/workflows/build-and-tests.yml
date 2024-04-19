@@ -364,26 +364,28 @@ jobs:
               ubuntu*)
                 apt-get update -y
                 apt-get install -y curl
-                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-                source ~/.nvm/nvm.sh
-                nvm install 20
-                node -v
-                npm -v
                 ;;
               alpine*)
-                touch "${HOME}/.bashrc"
                 apk add nodejs npm
                 ;;
             esac
-          run: >-
-            set -e &&
-            source "${HOME}/.bashrc" &&
-            echo "Node: $(node -v)" &&
-            echo "npm: $(npm -v)" &&
-            npm install --ignore-scripts --omit=optional &&
-            chmod +x dist/bin/rollup &&
-            dist/bin/rollup --version &&
-            npm run build:bootstrap &&
+          run: |
+            set -e
+            case "${{ matrix.settings.distro }}" in
+              ubuntu*)
+                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+                source ~/.nvm/nvm.sh
+                nvm install 20
+                ;;
+            esac
+            echo "Node: $(node -v)"
+            echo "npm: $(npm -v)"
+            npm install --ignore-scripts --omit=optional
+            chmod +x dist/bin/rollup
+            dist/bin/rollup --version
+            mv dist dist-build
+            node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit
+            cp dist-build/rollup.*.node dist/
             dist/bin/rollup --version
 
 #  test:
