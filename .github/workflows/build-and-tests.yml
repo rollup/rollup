@@ -364,6 +364,11 @@ jobs:
               ubuntu*)
                 apt-get update -y
                 apt-get install -y curl git
+                curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+                apt-get install -y nodejs
+                echo INSTALLED
+                node -v
+                npm -v
                 ;;
               alpine*)
                 apk add nodejs npm git
@@ -371,13 +376,6 @@ jobs:
             esac
           run: |
             set -e
-            case "${{ matrix.settings.distro }}" in
-              ubuntu*)
-                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-                source ~/.nvm/nvm.sh
-                nvm install 20
-                ;;
-            esac
             echo "Node: $(node -v)"
             echo "npm: $(npm -v)"
             npm install --ignore-scripts --omit=optional
