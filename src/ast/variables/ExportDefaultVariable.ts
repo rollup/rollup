@@ -8,13 +8,6 @@ import LocalVariable from './LocalVariable';
 import UndefinedVariable from './UndefinedVariable';
 import type Variable from './Variable';
 
-// Between two stages, there might be variable bound change, like `export default a; a = 0`.
-// Therefore we clear the cache if the stage changes.
-enum OriginalVariableStage {
-	BIND_REFERENCE,
-	GENERATE_CHUNK
-}
-
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId = false;
 
@@ -46,7 +39,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	addUsedPlace(usedPlace: NodeBase): void {
-		const original = this.getOriginalVariable(OriginalVariableStage.BIND_REFERENCE);
+		const original = this.getOriginalVariable();
 		if (original === this) {
 			super.addUsedPlace(usedPlace);
 		} else {
@@ -74,7 +67,6 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getDirectOriginalVariable(): Variable | null {
 		return this.originalId &&
-			this.originalId.variable &&
 			(this.hasId ||
 				!(
 					this.originalId.isPossibleTDZ() ||
@@ -94,15 +86,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 			: original.getName(getPropertyAccess);
 	}
 
-	private previousOriginalVariableState: OriginalVariableStage | null = null;
-	getOriginalVariable(
-		originalVariableState: OriginalVariableStage = OriginalVariableStage.GENERATE_CHUNK
-	): Variable {
-		if (this.previousOriginalVariableState !== originalVariableState) {
-			// clear the `originalVariable` cache
-			this.originalVariable = null;
-			this.previousOriginalVariableState = originalVariableState;
-		}
+	getOriginalVariable(): Variable {
 		if (this.originalVariable) return this.originalVariable;
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let original: Variable | null = this;

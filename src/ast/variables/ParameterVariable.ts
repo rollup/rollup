@@ -83,9 +83,6 @@ export default class ParameterVariable extends LocalVariable {
 	 * @param value The known value of the parameter to be set.
 	 */
 	setKnownValue(value: ExpressionEntity): void {
-		if (this.isReassigned) {
-			return;
-		}
 		if (this.knownValue !== value) {
 			for (const expression of this.knownExpressionsToBeDeoptimized) {
 				expression.deoptimizeCache();

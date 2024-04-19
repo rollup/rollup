@@ -156,7 +156,6 @@ export default class MemberExpression
 				this.isUndefined = true;
 			} else {
 				this.variable = resolvedVariable;
-				this.variable.addUsedPlace(this);
 				this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
 			}
 		} else {
@@ -396,6 +395,9 @@ export default class MemberExpression
 				SHARED_RECURSION_TRACKER
 			);
 			this.scope.context.requestTreeshakingPass();
+		}
+		if (this.variable) {
+			this.variable.addUsedPlace(this);
 		}
 	}
 

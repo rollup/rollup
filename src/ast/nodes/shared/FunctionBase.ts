@@ -161,6 +161,15 @@ export default abstract class FunctionBase extends NodeBase {
 		}
 	}
 
+	private deoptimizeFunctionParameters() {
+		for (const parameter of this.params) {
+			if (parameter instanceof Identifier) {
+				const parameterVariable = parameter.variable as ParameterVariable | null;
+				parameterVariable?.setKnownValue(UNKNOWN_EXPRESSION);
+			}
+		}
+	}
+
 	protected objectEntity: ObjectEntity | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -300,13 +309,20 @@ export default abstract class FunctionBase extends NodeBase {
 		return variable?.getOnlyFunctionCallUsed() ?? false;
 	}
 
+	private functionParametersOptimized = false;
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const isIIFE =
 			this.parent.type === NodeType.CallExpression &&
 			(this.parent as CallExpression).callee === this;
-		if ((isIIFE || this.onlyFunctionCallUsed()) && this.allArguments.length > 0) {
+		const shoulOptimizeFunctionParameters =
+			(isIIFE || this.onlyFunctionCallUsed()) && this.allArguments.length > 0;
+		if (shoulOptimizeFunctionParameters) {
 			this.applyFunctionParameterOptimization();
+		} else if (this.functionParametersOptimized) {
+			this.deoptimizeFunctionParameters();
 		}
+		this.functionParametersOptimized = shoulOptimizeFunctionParameters;
+
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
