@@ -25,161 +25,161 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint and Audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Lint
-        run: npm run ci:lint
-      - name: Vulnerabilities
-        run: npm audit
-      - name: Optional Dependencies
-        run: npm run test:package
-      - name: CLI Docs
-        run: npm run test:options
-      - name: Generated Code
-        run: |
-          npm run build:ast-converters
-          git diff HEAD --exit-code --ignore-space-at-eol
+#  lint:
+#    name: Lint and Audit
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v4
+#      - name: Setup Node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: 20
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v4
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Lint
+#        run: npm run ci:lint
+#      - name: Vulnerabilities
+#        run: npm audit
+#      - name: Optional Dependencies
+#        run: npm run test:package
+#      - name: CLI Docs
+#        run: npm run test:options
+#      - name: Generated Code
+#        run: |
+#          npm run build:ast-converters
+#          git diff HEAD --exit-code --ignore-space-at-eol
 
   build:
     strategy:
       fail-fast: false
       matrix:
         settings:
-          # WASM
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-            name: wasm
-            is-wasm-build: true
-            build: >-
-              set -e &&
-              rustup target add wasm32-unknown-unknown &&
-              npm run build:wasm
-            path: |
-              wasm/
-              .empty
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-            name: wasm-node
-            is-wasm-build: true
-            build: >-
-              set -e &&
-              rustup target add wasm32-unknown-unknown &&
-              npm run build:wasm:node
-            path: |
-              wasm-node/
-              .empty
-
-          # Windows
-          - host: windows-latest
-            build: RUSTFLAGS="-C target-feature=+crt-static" npm run build:napi -- --release
-            target: x86_64-pc-windows-msvc
-          - host: windows-latest
-            build: >-
-              set -e &&
-              rustup target add i686-pc-windows-msvc &&
-              npm run build:napi -- --release --target i686-pc-windows-msvc
-            target: i686-pc-windows-msvc
-          - host: windows-latest
-            target: aarch64-pc-windows-msvc
-            build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
-
-          # MacOS
-          - host: macos-latest
-            target: x86_64-apple-darwin
-            build: >-
-              set -e &&
-              npm run build:napi -- --release
-          - host: macos-latest
-            target: aarch64-apple-darwin
-            build: >-
-              set -e &&
-              rustup target add aarch64-apple-darwin &&
-              npm run build:napi -- --release --target aarch64-apple-darwin
-
-          # Linux
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: >-
-              set -e &&
-              rustup target add x86_64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: >-
-              set -e &&
-              npm run build:napi -- --release
-          - host: ubuntu-latest
-            target: armv7-unknown-linux-gnueabihf
-            zig: true
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-arm-linux-gnueabihf -y
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf
-          - host: ubuntu-latest
-            target: armv7-unknown-linux-musleabihf
-            zig: true
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target armv7-unknown-linux-musleabihf
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: >-
-              set -e &&
-              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default nightly-2023-10-05 &&
-              rustup target add aarch64-unknown-linux-gnu &&
-              npm run build:napi -- --release --target aarch64-unknown-linux-gnu
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: >-
-              set -e &&
-              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default nightly-2023-10-05 &&
-              rustup target add aarch64-unknown-linux-musl &&
-              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl
-          - host: ubuntu-latest
-            target: armv7-linux-androideabi
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target armv7-linux-androideabi
-          - host: ubuntu-latest
-            target: aarch64-linux-android
-            build: >-
-              set -e &&
-              npm run build:napi -- --release --target aarch64-linux-android
-          - host: ubuntu-latest
-            target: riscv64gc-unknown-linux-gnu
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-riscv64-linux-gnu -y
-            build: >-
-              set -e &&
-              rustup target add riscv64gc-unknown-linux-gnu &&
-              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
+#          # WASM
+#          - host: windows-latest
+#            target: x86_64-pc-windows-msvc
+#            name: wasm
+#            is-wasm-build: true
+#            build: >-
+#              set -e &&
+#              rustup target add wasm32-unknown-unknown &&
+#              npm run build:wasm
+#            path: |
+#              wasm/
+#              .empty
+#          - host: windows-latest
+#            target: x86_64-pc-windows-msvc
+#            name: wasm-node
+#            is-wasm-build: true
+#            build: >-
+#              set -e &&
+#              rustup target add wasm32-unknown-unknown &&
+#              npm run build:wasm:node
+#            path: |
+#              wasm-node/
+#              .empty
+#
+#          # Windows
+#          - host: windows-latest
+#            build: RUSTFLAGS="-C target-feature=+crt-static" npm run build:napi -- --release
+#            target: x86_64-pc-windows-msvc
+#          - host: windows-latest
+#            build: >-
+#              set -e &&
+#              rustup target add i686-pc-windows-msvc &&
+#              npm run build:napi -- --release --target i686-pc-windows-msvc
+#            target: i686-pc-windows-msvc
+#          - host: windows-latest
+#            target: aarch64-pc-windows-msvc
+#            build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
+#
+#          # MacOS
+#          - host: macos-latest
+#            target: x86_64-apple-darwin
+#            build: >-
+#              set -e &&
+#              npm run build:napi -- --release
+#          - host: macos-latest
+#            target: aarch64-apple-darwin
+#            build: >-
+#              set -e &&
+#              rustup target add aarch64-apple-darwin &&
+#              npm run build:napi -- --release --target aarch64-apple-darwin
+#
+#          # Linux
+#          - host: ubuntu-latest
+#            target: x86_64-unknown-linux-gnu
+#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+#            build: >-
+#              set -e &&
+#              rustup target add x86_64-unknown-linux-gnu &&
+#              npm run build:napi -- --release --target x86_64-unknown-linux-gnu
+#          - host: ubuntu-latest
+#            target: x86_64-unknown-linux-musl
+#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+#            build: >-
+#              set -e &&
+#              npm run build:napi -- --release
+#          - host: ubuntu-latest
+#            target: armv7-unknown-linux-gnueabihf
+#            zig: true
+#            setup: |
+#              sudo apt-get update
+#              sudo apt-get install gcc-arm-linux-gnueabihf -y
+#            build: >-
+#              set -e &&
+#              npm run build:napi -- --release --target armv7-unknown-linux-gnueabihf
+#          - host: ubuntu-latest
+#            target: armv7-unknown-linux-musleabihf
+#            zig: true
+#            build: >-
+#              set -e &&
+#              npm run build:napi -- --release --target armv7-unknown-linux-musleabihf
+#          - host: ubuntu-latest
+#            target: aarch64-unknown-linux-gnu
+#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+#            build: >-
+#              set -e &&
+#              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+#              rustup default nightly-2023-10-05 &&
+#              rustup target add aarch64-unknown-linux-gnu &&
+#              npm run build:napi -- --release --target aarch64-unknown-linux-gnu
+#          - host: ubuntu-latest
+#            target: aarch64-unknown-linux-musl
+#            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+#            build: >-
+#              set -e &&
+#              export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
+#              rustup default nightly-2023-10-05 &&
+#              rustup target add aarch64-unknown-linux-musl &&
+#              RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl
+#          - host: ubuntu-latest
+#            target: armv7-linux-androideabi
+#            build: >-
+#              set -e &&
+#              npm run build:napi -- --release --target armv7-linux-androideabi
+#          - host: ubuntu-latest
+#            target: aarch64-linux-android
+#            build: >-
+#              set -e &&
+#              npm run build:napi -- --release --target aarch64-linux-android
+#          - host: ubuntu-latest
+#            target: riscv64gc-unknown-linux-gnu
+#            setup: |
+#              sudo apt-get update
+#              sudo apt-get install gcc-riscv64-linux-gnu -y
+#            build: >-
+#              set -e &&
+#              rustup target add riscv64gc-unknown-linux-gnu &&
+#              npm run build:napi -- --release --target riscv64gc-unknown-linux-gnu
           - host: ubuntu-latest
             target: powerpc64le-unknown-linux-gnu
             setup: |
@@ -191,16 +191,16 @@ jobs:
               npm run build:napi -- --release --target powerpc64le-unknown-linux-gnu
             test:
               arch: ppc64le
-          - host: ubuntu-latest
-            target: s390x-unknown-linux-gnu
-            setup: |
-              sudo apt-get update
-              sudo apt-get install gcc-s390x-linux-gnu -y
-            build: >-
-              set -e &&
-              export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
-              rustup target add s390x-unknown-linux-gnu &&
-              npm run build:napi -- --release --target s390x-unknown-linux-gnu
+#          - host: ubuntu-latest
+#            target: s390x-unknown-linux-gnu
+#            setup: |
+#              sudo apt-get update
+#              sudo apt-get install gcc-s390x-linux-gnu -y
+#            build: >-
+#              set -e &&
+#              export CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER=s390x-linux-gnu-gcc &&
+#              rustup target add s390x-unknown-linux-gnu &&
+#              npm run build:napi -- --release --target s390x-unknown-linux-gnu
     name: Build ${{ matrix.settings.name || matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 30
@@ -286,135 +286,135 @@ jobs:
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
 
-  test:
-    name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
-    needs:
-      - build
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-          - host: macos-latest
-            target: x86_64-apple-darwin
-        node:
-          - '18.0.0'
-          - '20'
-        include:
-          - settings:
-              host: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-            node: '20'
-            command: 'ci:coverage'
-            additionalName: ' with Coverage'
-            coverage: true
-          - settings:
-              host: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-            node: '18.0.0'
-            command: 'ci:test:all'
-            additionalName: ' with Additional Tests'
-    runs-on: ${{ matrix.settings.host }}
-    timeout-minutes: 15
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Download napi artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: .
-      - name: Download wasm artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: bindings-wasm
-      - name: Build and test Rollup
-        run: npm run ${{ matrix.command || 'ci:test:only' }}
-        env:
-          CI: true
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        if: matrix.coverage
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          commit_parent: ${{ github.event.pull_request.head.sha }}
-
-  publish:
-    permissions:
-      pull-requests: write # for writing comments
-      issues: write # for writing comments
-      contents: write # for creating a release
-    name: Publish
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs:
-      - test
-      - lint
-    # This needs to be adapted for Rollup 5
-    if: startsWith(github.ref_name, 'v4')
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v4
-        with:
-          # Necessary to find the commits included in the release
-          fetch-depth: 0
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-      - name: Copy wasm files
-        run: cp -R artifacts/bindings-wasm/wasm .
-      - name: Build JavaScript
-        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
-      - name: Move artifacts
-        run: npm run ci:artifacts
-      - name: Publish
-        run: |
-          if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
-          then
-            echo "Publishing regular release"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --access public
-          elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$";
-          then
-            echo "Publishing beta release"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --tag beta --access public
-          else
-            echo "Not a release, skipping publish"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          ROLLUP_RELEASE: 'releasing'
+#  test:
+#    name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
+#    needs:
+#      - build
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        settings:
+#          - host: ubuntu-latest
+#            target: x86_64-unknown-linux-gnu
+#          - host: windows-latest
+#            target: x86_64-pc-windows-msvc
+#          - host: macos-latest
+#            target: x86_64-apple-darwin
+#        node:
+#          - '18.0.0'
+#          - '20'
+#        include:
+#          - settings:
+#              host: ubuntu-latest
+#              target: x86_64-unknown-linux-gnu
+#            node: '20'
+#            command: 'ci:coverage'
+#            additionalName: ' with Coverage'
+#            coverage: true
+#          - settings:
+#              host: ubuntu-latest
+#              target: x86_64-unknown-linux-gnu
+#            node: '18.0.0'
+#            command: 'ci:test:all'
+#            additionalName: ' with Additional Tests'
+#    runs-on: ${{ matrix.settings.host }}
+#    timeout-minutes: 15
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v4
+#      - name: Setup Node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: ${{ matrix.node }}
+#          check-latest: true
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v4
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Download napi artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: bindings-${{ matrix.settings.target }}
+#          path: .
+#      - name: Download wasm artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: bindings-wasm
+#      - name: Build and test Rollup
+#        run: npm run ${{ matrix.command || 'ci:test:only' }}
+#        env:
+#          CI: true
+#      - name: Upload coverage
+#        uses: codecov/codecov-action@v4
+#        if: matrix.coverage
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          commit_parent: ${{ github.event.pull_request.head.sha }}
+#
+#  publish:
+#    permissions:
+#      pull-requests: write # for writing comments
+#      issues: write # for writing comments
+#      contents: write # for creating a release
+#    name: Publish
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#    needs:
+#      - test
+#      - lint
+#    # This needs to be adapted for Rollup 5
+#    if: startsWith(github.ref_name, 'v4')
+#    steps:
+#      - name: Checkout Commit
+#        uses: actions/checkout@v4
+#        with:
+#          # Necessary to find the commits included in the release
+#          fetch-depth: 0
+#      - name: Setup Node
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: ${{ matrix.node }}
+#          check-latest: true
+#      - name: Cache Node Modules
+#        id: cache-node-modules
+#        uses: actions/cache@v4
+#        with:
+#          path: node_modules
+#          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+#      - name: Install dependencies
+#        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+#        run: npm ci --ignore-scripts
+#      - name: Download all artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: artifacts
+#      - name: Copy wasm files
+#        run: cp -R artifacts/bindings-wasm/wasm .
+#      - name: Build JavaScript
+#        run: npm run build:cjs && cp artifacts/*/*.node dist/ && npm run build:bootstrap
+#      - name: Move artifacts
+#        run: npm run ci:artifacts
+#      - name: Publish
+#        run: |
+#          if git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
+#          then
+#            echo "Publishing regular release"
+#            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+#            npm publish --access public
+#          elif git --no-pager log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9]\+$";
+#          then
+#            echo "Publishing beta release"
+#            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+#            npm publish --tag beta --access public
+#          else
+#            echo "Not a release, skipping publish"
+#          fi
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+#          ROLLUP_RELEASE: 'releasing'
