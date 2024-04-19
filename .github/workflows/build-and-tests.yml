@@ -377,6 +377,7 @@ jobs:
             mv package.json renamed-package.json &&
             npm install shx @rollup/plugin-typescript --omit=optional &&
             mv renamed-package.json package.json &&
+            chmod +x dist/bin/rollup &&
             dist/bin/rollup --version &&
             npm run build:bootstrap
 
