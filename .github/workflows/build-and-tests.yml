@@ -374,18 +374,18 @@ jobs:
                 ls -la $HOME
                 ;;
               alpine*)
+                touch .bashrc
                 apk add nodejs npm
                 ;;
             esac
           run: >-
             set -e &&
+            source .bashrc &&
             echo $HOME &&
             ls -la $HOME &&
             echo "Node: $(node -v)" &&
             echo "npm: $(npm -v)" &&
-            mv package.json renamed-package.json &&
-            npm install shx @rollup/plugin-typescript tslib @types/node rollup @rollup/plugin-replace --omit=optional &&
-            mv renamed-package.json package.json &&
+            npm install --ignore-scripts --omit=optional &&
             chmod +x dist/bin/rollup &&
             dist/bin/rollup --version &&
             npm run build:bootstrap &&
