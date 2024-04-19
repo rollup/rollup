@@ -309,7 +309,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: .
+          path: dist/
 #      - name: Download wasm artifacts
 #        uses: actions/download-artifact@v4
 #        with:
@@ -341,10 +341,9 @@ jobs:
             set -e &&
             node -v &&
             npm -v &&
-            ls &&
-            rm package.json &&
-            npm install rollup --omit=optional &&
-            mkdir dist &&
+            mv package.json renamed-package.json &&
+            npm install rollup shx --omit=optional &&
+            mv renamed-package.json package.json &&
             cp -r node_modules/rollup/dist/* dist/ &&
             dist/bin/rollup --version &&
             npm run build:bootstrap
