@@ -382,6 +382,7 @@ jobs:
             fi
             echo "Node: $(node -v)"
             echo "npm: $(npm -v)"
+            git config --global --add safe.directory /home/runner/work/rollup/rollup
             npm install --ignore-scripts --omit=optional
             chmod +x dist/bin/rollup
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
