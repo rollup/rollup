@@ -270,6 +270,100 @@ jobs:
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
 
+  # smoke test for some architectures that do not receive the full test suite
+  smoke-test:
+    permissions:
+      packages: write # for caching container images
+    name: Smoke Test ${{ matrix.settings.target }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - arch: aarch64
+            distro: ubuntu_latest
+            target: aarch64-unknown-linux-gnu
+          - arch: aarch64
+            distro: alpine_latest
+            target: aarch64-unknown-linux-musl
+          - arch: armv7
+            distro: ubuntu_latest
+            target: armv7-unknown-linux-gnueabihf
+# There is a bug that hangs the build when running npm
+#          - arch: armv7
+#            distro: alpine_latest
+#            target: armv7-unknown-linux-musleabihf
+          - arch: ppc64le
+            distro: ubuntu_latest
+            target: powerpc64le-unknown-linux-gnu
+            use-nvm: true
+          - arch: s390x
+            distro: ubuntu_latest
+            target: s390x-unknown-linux-gnu
+            use-nvm: true
+# I could not find a way to install Node without compiling from source
+#          - arch: riscv64
+#            distro: ubuntu_latest
+#            target: riscv64gc-unknown-linux-gnu
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+      - name: Build JS
+        run: npm run build:cjs
+      - name: Download napi artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: dist/
+      - name: Run Smoke Test
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.settings.arch }}
+          distro: ${{ matrix.settings.distro }}
+          githubToken: ${{ github.token }}
+          install: |
+            case "${{ matrix.settings.distro }}" in
+              ubuntu*)
+                apt-get update -y
+                apt-get install -y curl git
+                if [[ -z "${{ matrix.settings.use-nvm }}" ]]; then
+                  curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+                  apt-get install -y nodejs
+                fi
+                ;;
+              alpine*)
+                apk add nodejs npm git
+                ;;
+            esac
+          run: |
+            set -e
+            if [[ -n "${{ matrix.settings.use-nvm }}" ]]; then
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+              source ~/.nvm/nvm.sh
+              nvm install --lts
+            fi
+            echo "Node: $(node -v)"
+            echo "npm: $(npm -v)"
+            git config --global --add safe.directory /home/runner/work/rollup/rollup
+            chmod +x dist/bin/rollup
+            dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
+            mv dist dist-build
+            node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit
+            cp dist-build/rollup.*.node dist/
+            dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
+
   test:
     name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
     needs:
@@ -349,8 +443,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs:
-      - test
       - lint
+      - test
+      - smoke-test
     # This needs to be adapted for Rollup 5
     if: startsWith(github.ref_name, 'v4')
     steps:
