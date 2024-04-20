@@ -58,35 +58,6 @@ jobs:
           npm run build:ast-converters
           git diff HEAD --exit-code --ignore-space-at-eol
 
-  build-js-for-smoke-tests:
-    name: Build JavaScript For Smoke Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
-      - name: Build
-        run: npm run build:cjs
-      - name: Upload Dist Folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: rollup-dist-folder
-          path: dist/
-          if-no-files-found: error
-
   build:
     strategy:
       fail-fast: false
@@ -306,7 +277,6 @@ jobs:
     name: Smoke Test ${{ matrix.settings.target }}
     needs:
       - build
-      - build-js-for-smoke-tests
     strategy:
       fail-fast: false
       matrix:
@@ -341,13 +311,17 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
-      - name: Download dist folder
-        uses: actions/download-artifact@v4
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v4
         with:
-          name: rollup-dist-folder
-          path: dist/
-      - name: Verify dist folder
-        run: ls -la dist/
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+      - name: Build JS
+        run: npm run build:cjs
       - name: Download napi artifacts
         uses: actions/download-artifact@v4
         with:
@@ -383,13 +357,12 @@ jobs:
             echo "Node: $(node -v)"
             echo "npm: $(npm -v)"
             git config --global --add safe.directory /home/runner/work/rollup/rollup
-            npm install --ignore-scripts --omit=optional
             chmod +x dist/bin/rollup
             dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
             mv dist dist-build
             node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit
             cp dist-build/rollup.*.node dist/
-            dist/bin/rollup --version | grep -E 'rollup vX[0-9]+\.[0-9]+\.[0-9]+'
+            dist/bin/rollup --version | grep -E 'rollup v[0-9]+\.[0-9]+\.[0-9]+'
 
   test:
     name: Test${{ matrix.additionalName || '' }} Node ${{ matrix.node }} (${{ matrix.settings.target }})
