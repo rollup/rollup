@@ -252,6 +252,11 @@ export const useOptions = defineStore('options2', () => {
 		defaultValue: true,
 		name: 'output.hoistTransitiveImports'
 	});
+	const optionOutputImportAttributesKey = getSelect({
+		defaultValue: 'assert',
+		name: 'output.importAttributesKey',
+		options: () => ['with', 'assert']
+	});
 	const optionOutputIndent = getBoolean({
 		available: () => ['amd', 'iife', 'umd', 'system'].includes(optionOutputFormat.value.value!),
 		defaultValue: true,
@@ -445,6 +450,7 @@ export const useOptions = defineStore('options2', () => {
 		optionOutputGlobals,
 		optionOutputHashCharacters,
 		optionOutputHoistTransitiveImports,
+		optionOutputImportAttributesKey,
 		optionOutputIndent,
 		optionOutputInlineDynamicImports,
 		optionOutputInterop,

@@ -930,6 +930,16 @@ This determines the character set that Rollup is allowed to use in file hashes.
 
 By default, when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](../faqs/index.md#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`output.preserveModules`](#output-preservemodules) option as here, imports will never be hoisted.
 
+### output.importAttributesKey
+
+|          |                                |
+| -------: | :----------------------------- |
+|    Type: | `"with" \| "assert"`           |
+|     CLI: | `--importAttributesKey <name>` |
+| Default: | `"assert"`                     |
+
+This determines the keyword set that Rollup will use for import attributes.
+
 ### output.inlineDynamicImports
 
 |          |                                                      |
