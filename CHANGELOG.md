@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.15.0
+
+_2024-04-20_
+
+### Features
+
+- Add output.importAttributesKey option to select whether to use "with" or "assert" for import attributes (#5474)
+
+### Pull Requests
+
+- [#5474](https://github.com/rollup/rollup/pull/5474): Add ImportAttributesKey to choose keyword ("with" | "assert") (@doubleaa93, @lukastaegert)
+- [#5475](https://github.com/rollup/rollup/pull/5475): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5477](https://github.com/rollup/rollup/pull/5477): Try to run emulated smoke tests for Linux environments (@lukastaegert)
+
 ## 4.14.3
 
 _2024-04-15_
