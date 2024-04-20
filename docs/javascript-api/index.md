@@ -196,6 +196,7 @@ const outputOptions = {
 	generatedCode,
 	hashCharacters,
 	hoistTransitiveImports,
+	importAttributesKey,
 	inlineDynamicImports,
 	interop,
 	intro,

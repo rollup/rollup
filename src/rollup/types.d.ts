@@ -623,6 +623,7 @@ export interface NormalizedInputOptions {
 }
 
 export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';
+export type ImportAttributesKey = 'with' | 'assert';
 
 export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' | 'systemjs';
 
@@ -712,6 +713,7 @@ export interface OutputOptions {
 	globals?: GlobalsOption;
 	hashCharacters?: HashCharacters;
 	hoistTransitiveImports?: boolean;
+	importAttributesKey?: ImportAttributesKey;
 	indent?: string | boolean;
 	inlineDynamicImports?: boolean;
 	interop?: InteropType | GetInterop;
@@ -764,6 +766,7 @@ export interface NormalizedOutputOptions {
 	globals: GlobalsOption;
 	hashCharacters: HashCharacters;
 	hoistTransitiveImports: boolean;
+	importAttributesKey: ImportAttributesKey;
 	indent: true | string;
 	inlineDynamicImports: boolean;
 	interop: GetInterop;

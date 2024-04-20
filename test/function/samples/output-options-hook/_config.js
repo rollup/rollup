@@ -46,6 +46,7 @@ module.exports = defineTest({
 						globals: {},
 						hashCharacters: 'base64',
 						hoistTransitiveImports: true,
+						importAttributesKey: 'assert',
 						indent: true,
 						inlineDynamicImports: false,
 						manualChunks: {},
