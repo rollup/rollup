@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.16.0
+
+_2024-04-21_
+
+### Features
+
+- Track function call arguments to optimize functions only called once or with the same literal values (#5443)
+
+### Pull Requests
+
+- [#5443](https://github.com/rollup/rollup/pull/5443): feat: improve tree-shaking by propagate const parameter (@liuly0322, @lukastaegert)
+
 ## 4.15.0
 
 _2024-04-20_
