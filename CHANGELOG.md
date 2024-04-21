@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.16.1
+
+_2024-04-21_
+
+### Bug Fixes
+
+- Fix crash when rendering logical or conditional expressions (#5481)
+
+### Pull Requests
+
+- [#5481](https://github.com/rollup/rollup/pull/5481): fix: conditional/logical expression should request a new tree-shaking (@liuly0322)
+
 ## 4.16.0
 
 _2024-04-21_
