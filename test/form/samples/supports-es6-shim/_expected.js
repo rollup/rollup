@@ -2057,7 +2057,7 @@ var es6Shim = {exports: {}};
 	  };
 
 	  var withinULPDistance = function withinULPDistance(result, expected, distance) {
-	    return _abs(1 - (result / expected)) / Number.EPSILON < (distance || 8);
+	    return _abs(1 - (result / expected)) / Number.EPSILON < (8);
 	  };
 
 	  defineProperties(Math, MathShims);

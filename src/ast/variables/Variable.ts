@@ -4,8 +4,11 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
+import type CallExpression from '../nodes/CallExpression';
 import type Identifier from '../nodes/Identifier';
+import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import type { NodeBase } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type { ObjectPath } from '../utils/PathTracker';
 
@@ -16,13 +19,17 @@ export default class Variable extends ExpressionEntity {
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
 	declare isNamespace?: boolean;
-	isReassigned = false;
 	kind: VariableKind | null = null;
 	declare module?: Module | ExternalModule;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
 
 	private renderedLikeHoisted?: Variable;
+
+	readonly isReassigned = false;
+	markReassigned() {
+		(this as { isReassigned: boolean }).isReassigned = true;
+	}
 
 	constructor(public name: string) {
 		super();
@@ -33,6 +40,29 @@ export default class Variable extends ExpressionEntity {
 	 * Necessary to be able to change variable names.
 	 */
 	addReference(_identifier: Identifier): void {}
+
+	private onlyFunctionCallUsed = true;
+	/**
+	 * Check if the identifier variable is only used as function call
+	 * Forward the check to the export default variable if it is only used once
+	 * @returns true if the variable is only used as function call
+	 */
+	getOnlyFunctionCallUsed(): boolean {
+		return this.onlyFunctionCallUsed;
+	}
+
+	/**
+	 * Collect the places where the identifier variable is used
+	 * @param usedPlace Where the variable is used
+	 */
+	addUsedPlace(usedPlace: NodeBase): void {
+		const isFunctionCall =
+			usedPlace.parent.type === NodeType.CallExpression &&
+			(usedPlace.parent as CallExpression).callee === usedPlace;
+		if (!isFunctionCall && usedPlace.parent.type !== NodeType.ExportDefaultDeclaration) {
+			this.onlyFunctionCallUsed = false;
+		}
+	}
 
 	/**
 	 * Prevent this variable from being renamed to this name to avoid name
