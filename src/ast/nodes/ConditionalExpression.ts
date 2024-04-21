@@ -46,12 +46,23 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	deoptimizeCache(): void {
-		this.isBranchResolutionAnalysed = false;
-		const { expressionsToBeDeoptimized } = this;
-		this.expressionsToBeDeoptimized = [];
-		for (const expression of expressionsToBeDeoptimized) {
-			expression.deoptimizeCache();
+		if (
+			this.usedBranch ||
+			this.isBranchResolutionAnalysed ||
+			this.expressionsToBeDeoptimized.length > 0
+		) {
+			const {
+				scope: { context },
+				expressionsToBeDeoptimized
+			} = this;
+			this.expressionsToBeDeoptimized = [];
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+			// Request another pass because we need to ensure "include" runs again if it is rendered
+			context.requestTreeshakingPass();
 		}
+		this.isBranchResolutionAnalysed = false;
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
