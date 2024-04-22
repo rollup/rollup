@@ -161,11 +161,11 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		if (this.deoptimizedFields.has(UnknownKey)) {
-			return;
-		}
 		if (path.length === 0) {
 			this.markReassigned();
+			return;
+		}
+		if (this.deoptimizedFields.has(UnknownKey)) {
 			return;
 		}
 		const key = path[0];
