@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.16.2
+
+_2024-04-22_
+
+### Bug Fixes
+
+- Resolve a situation condition where reassignments of function parameters were not tracked properly (#5482)
+- Make sure that for armv7 packages, only one package is downloaded for the user (musl or gnu) (#5479)
+
+### Pull Requests
+
+- [#5479](https://github.com/rollup/rollup/pull/5479): Add libc field to armv7 packages (@sapphi-red)
+- [#5482](https://github.com/rollup/rollup/pull/5482): fix: function parameter reassigned update (@liuly0322)
+
 ## 4.16.1
 
 _2024-04-21_
