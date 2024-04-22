@@ -15,5 +15,8 @@
   "homepage": "https://rollupjs.org/",
   "license": "MIT",
   "repository": "rollup/rollup",
+  "libc": [
+    "glibc"
+  ],
   "main": "./rollup.linux-arm-gnueabihf.node"
 }
