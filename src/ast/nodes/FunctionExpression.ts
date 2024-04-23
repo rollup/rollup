@@ -30,7 +30,7 @@ export default class FunctionExpression extends FunctionNode {
 		const isIIFE =
 			this.parent.type === NodeType.CallExpression &&
 			(this.parent as CallExpression).callee === this &&
-			!this.id;
+			(this.id === null || this.id.variable.getOnlyFunctionCallUsed());
 		return isIIFE || super.onlyFunctionCallUsed();
 	}
 
