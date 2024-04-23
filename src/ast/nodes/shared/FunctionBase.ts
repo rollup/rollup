@@ -316,7 +316,7 @@ export default abstract class FunctionBase extends NodeBase {
 
 	private functionParametersOptimized = false;
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		const shoulOptimizeFunctionParameters = this.onlyFunctionCallUsed();
+		const shouldOptimizeFunctionParameters = this.onlyFunctionCallUsed();
 		if (shoulOptimizeFunctionParameters) {
 			this.applyFunctionParameterOptimization();
 		} else if (this.functionParametersOptimized) {
