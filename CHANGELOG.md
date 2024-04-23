@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.16.3
+
+_2024-04-23_
+
+### Bug Fixes
+
+- Do not optimize IIFEs that have a name and are again referenced inside their definition (#5486)
+
+### Pull Requests
+
+- [#5486](https://github.com/rollup/rollup/pull/5486): fix: only optimize annoymous iife (@liuly0322)
+
 ## 4.16.2
 
 _2024-04-22_
