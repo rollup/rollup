@@ -19,7 +19,6 @@ import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
-import type CallExpression from '../CallExpression';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
@@ -317,10 +316,7 @@ export default abstract class FunctionBase extends NodeBase {
 
 	private functionParametersOptimized = false;
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		const isIIFE =
-			this.parent.type === NodeType.CallExpression &&
-			(this.parent as CallExpression).callee === this;
-		const shoulOptimizeFunctionParameters = isIIFE || this.onlyFunctionCallUsed();
+		const shoulOptimizeFunctionParameters = this.onlyFunctionCallUsed();
 		if (shoulOptimizeFunctionParameters) {
 			this.applyFunctionParameterOptimization();
 		} else if (this.functionParametersOptimized) {
