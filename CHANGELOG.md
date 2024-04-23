@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.16.4
+
+_2024-04-23_
+
+### Bug Fixes
+
+- Revert function parameter tracking logic introduced in 4.16.0 to work on some remaining issues (#5487)
+
+### Pull Requests
+
+- [#5487](https://github.com/rollup/rollup/pull/5487): Revert function parameter tracking logic for now (@lukastaegert)
+
 ## 4.16.3
 
 _2024-04-23_
