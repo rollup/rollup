@@ -11,6 +11,5 @@
 	}
 
 	assert.equal( isUsed( true ), 2 );
-	assert.equal( isUsed( false ), 1 );
 
 }));

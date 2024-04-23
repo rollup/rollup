@@ -7,7 +7,6 @@ define((function () { 'use strict';
 	}
 
 	foo();
-	foo(true);
 
 	var main = 42;
 

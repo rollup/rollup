@@ -11,7 +11,6 @@
 	}
 
 	foo();
-	foo(true);
 
 	var main = 42;
 

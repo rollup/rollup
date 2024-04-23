@@ -6,11 +6,13 @@ const mutated = {};
 
 function test(callback) {
 	try {
+		callback();
 		mutate(mutated);
 	} catch {}
 }
 
-test();
+test(() => {
+});
 
 try {} finally {
 	console.log('retained');
