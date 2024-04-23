@@ -13,12 +13,9 @@ import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
-	constructor(name: string) {
-		super(name);
-		// Ensure we use live-bindings for globals as we do not know if they have
-		// been reassigned
-		this.markReassigned();
-	}
+	// Ensure we use live-bindings for globals as we do not know if they have
+	// been reassigned
+	isReassigned = true;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
