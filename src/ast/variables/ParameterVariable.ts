@@ -5,7 +5,7 @@ import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import type Identifier from '../nodes/Identifier';
+import Identifier from '../nodes/Identifier';
 import type { ExpressionEntity, LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import {
 	deoptimizeInteraction,
@@ -15,6 +15,7 @@ import {
 } from '../nodes/shared/Expression';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
+	EMPTY_PATH,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
@@ -38,7 +39,7 @@ export default class ParameterVariable extends LocalVariable {
 	private deoptimizations = new PathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
-	private knownExpressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private expressionsUseTheKnownValue: DeoptimizableEntity[] = [];
 
 	constructor(
 		name: string,
@@ -80,30 +81,73 @@ export default class ParameterVariable extends LocalVariable {
 			return;
 		}
 		super.markReassigned();
-		for (const expression of this.knownExpressionsToBeDeoptimized) {
+		for (const expression of this.expressionsUseTheKnownValue) {
 			expression.deoptimizeCache();
 		}
-		this.knownExpressionsToBeDeoptimized = [];
+		this.expressionsUseTheKnownValue = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 	}
 
-	private knownValue: ExpressionEntity = UNKNOWN_EXPRESSION;
+	deoptimizeCache(): void {
+		this.markReassigned();
+	}
+
+	private knownValue: ExpressionEntity | null = null;
+	private knownValueLiteral: LiteralValueOrUnknown = UnknownValue;
 	/**
-	 * If we are sure about the value of this parameter, we can set it here.
-	 * It can be a literal or the only possible value of the parameter.
-	 * an undefined value means that the parameter is not known.
-	 * @param value The known value of the parameter to be set.
+	 * Update the known value of the parameter variable.
+	 * Must be called for every function call, so it can track all the arguments,
+	 * and deoptimizeCache itself to mark reassigned if the argument is changed.
+	 * @param argument The argument of the function call
 	 */
-	setKnownValue(value: ExpressionEntity): void {
+	updateKnownValue(argument: ExpressionEntity) {
 		if (this.isReassigned) {
 			return;
 		}
-		if (this.knownValue !== value) {
-			for (const expression of this.knownExpressionsToBeDeoptimized) {
-				expression.deoptimizeCache();
-			}
-			this.knownExpressionsToBeDeoptimized = [];
+
+		if (this.knownValue === null) {
+			this.knownValue = argument;
+			this.knownValueLiteral = argument.getLiteralValueAtPath(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				this
+			);
+			return;
 		}
-		this.knownValue = value;
+
+		// the same literal or identifier, do nothing
+		if (
+			this.knownValue === argument ||
+			(this.knownValue instanceof Identifier &&
+				argument instanceof Identifier &&
+				this.knownValue.variable === argument.variable)
+		) {
+			return;
+		}
+
+		const oldValue = this.knownValueLiteral;
+		if (typeof oldValue === 'symbol') {
+			this.markReassigned();
+			return;
+		}
+		// add tracking for the new argument
+		const newValue = argument.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
+		if (newValue !== oldValue) {
+			this.markReassigned();
+		}
+	}
+
+	private frozenValue: ExpressionEntity | null = null;
+	/**
+	 * This function freezes the known value of the parameter variable,
+	 * so the optimization starts with a certain ExpressionEntity.
+	 * The optimization can be undone by calling `markReassigned`.
+	 * @returns the frozen value
+	 */
+	private getKnownValue(): ExpressionEntity {
+		if (this.frozenValue === null) {
+			this.frozenValue = this.knownValue || UNKNOWN_EXPRESSION;
+		}
+		return this.frozenValue;
 	}
 
 	getLiteralValueAtPath(
@@ -114,11 +158,12 @@ export default class ParameterVariable extends LocalVariable {
 		if (this.isReassigned) {
 			return UnknownValue;
 		}
-		this.knownExpressionsToBeDeoptimized.push(origin);
+		const knownValue = this.getKnownValue();
+		this.expressionsUseTheKnownValue.push(origin);
 		return recursionTracker.withTrackedEntityAtPath(
 			path,
-			this.knownValue,
-			() => this.knownValue!.getLiteralValueAtPath(path, recursionTracker, origin),
+			knownValue,
+			() => knownValue.getLiteralValueAtPath(path, recursionTracker, origin),
 			UnknownValue
 		);
 	}
@@ -128,10 +173,11 @@ export default class ParameterVariable extends LocalVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		// assigned is a bit different, since the value has a new name (the parameter)
-		return interaction.type === INTERACTION_ASSIGNED
-			? super.hasEffectsOnInteractionAtPath(path, interaction, context)
-			: this.knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
+		if (this.isReassigned || interaction.type === INTERACTION_ASSIGNED) {
+			return super.hasEffectsOnInteractionAtPath(path, interaction, context);
+		}
+		const knownValue = this.getKnownValue();
+		return knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {

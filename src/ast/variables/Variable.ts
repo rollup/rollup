@@ -44,7 +44,6 @@ export default class Variable extends ExpressionEntity {
 	private onlyFunctionCallUsed = true;
 	/**
 	 * Check if the identifier variable is only used as function call
-	 * Forward the check to the export default variable if it is only used once
 	 * @returns true if the variable is only used as function call
 	 */
 	getOnlyFunctionCallUsed(): boolean {
