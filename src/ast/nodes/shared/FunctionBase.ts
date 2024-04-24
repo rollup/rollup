@@ -9,12 +9,22 @@ import {
 } from '../../NodeInteractions';
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH,
+	UnknownKey
+} from '../../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
+import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
+import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
+import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
+import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
@@ -26,6 +36,13 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
+
+type InteractionCalledArguments = NodeInteractionCalled['args'];
+
+// This handler does nothing.
+// Since we always re-evaluate argument values in a new tree-shaking pass,
+// we don't need to get notified if it is deoptimized.
+const EMPTY_DEOPTIMIZABLE_HANDLER = { deoptimizeCache() {} };
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -57,6 +74,107 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
+	private knownParameterValues: (ExpressionEntity | undefined)[] = [];
+	private allArguments: InteractionCalledArguments[] = [];
+	/**
+	 * update knownParameterValues when a call is made to this function
+	 * @param newArguments arguments of the call
+	 */
+	private updateKnownParameterValues(newArguments: InteractionCalledArguments): void {
+		for (let position = 0; position < this.params.length; position++) {
+			// only the "this" argument newArguments[0] can be null
+			// it's possible that some arguments are empty, so the value is undefined
+			const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
+			const parameter = this.params[position];
+			// RestElement can be, and can only be, the last parameter
+			if (parameter instanceof RestElement) {
+				return;
+			}
+
+			const knownParameterValue = this.knownParameterValues[position];
+			if (knownParameterValue === undefined) {
+				this.knownParameterValues[position] = argument;
+				continue;
+			}
+			if (
+				knownParameterValue === UNKNOWN_EXPRESSION ||
+				knownParameterValue === argument ||
+				(knownParameterValue instanceof Identifier &&
+					argument instanceof Identifier &&
+					knownParameterValue.variable === argument.variable)
+			) {
+				continue;
+			}
+
+			const oldValue = knownParameterValue.getLiteralValueAtPath(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				EMPTY_DEOPTIMIZABLE_HANDLER
+			);
+			const newValue = argument.getLiteralValueAtPath(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				EMPTY_DEOPTIMIZABLE_HANDLER
+			);
+			if (oldValue !== newValue || typeof oldValue === 'symbol') {
+				this.knownParameterValues[position] = UNKNOWN_EXPRESSION;
+			} // else both are the same literal, no need to update
+		}
+	}
+
+	private forwardArgumentsForFunctionCalledOnce(newArguments: InteractionCalledArguments): void {
+		for (let position = 0; position < this.params.length; position++) {
+			const parameter = this.params[position];
+			if (parameter instanceof Identifier) {
+				const ParameterVariable = parameter.variable as ParameterVariable | null;
+				const argument = newArguments[position + 1] ?? UNDEFINED_EXPRESSION;
+				ParameterVariable?.setKnownValue(argument);
+			}
+		}
+	}
+
+	/**
+	 * each time tree-shake starts, this method should be called to reoptimize the parameters
+	 * a parameter's state will change at most twice:
+	 *   `undefined` (no call is made) -> an expression -> `UnknownArgument`
+	 * we are sure it will converge, and can use state from last iteration
+	 */
+	private applyFunctionParameterOptimization() {
+		if (this.allArguments.length === 0) {
+			return;
+		}
+
+		if (this.allArguments.length === 1) {
+			// we are sure what knownParameterValues will be, so skip it and do setKnownValue
+			this.forwardArgumentsForFunctionCalledOnce(this.allArguments[0]);
+			return;
+		}
+
+		// reoptimize all arguments, that's why we save them
+		for (const argumentsList of this.allArguments) {
+			this.updateKnownParameterValues(argumentsList);
+		}
+		for (let position = 0; position < this.params.length; position++) {
+			const parameter = this.params[position];
+			// Parameters without default values
+			if (parameter instanceof Identifier) {
+				const parameterVariable = parameter.variable as ParameterVariable | null;
+				// Only the RestElement may be undefined
+				const knownParameterValue = this.knownParameterValues[position]!;
+				parameterVariable?.setKnownValue(knownParameterValue);
+			}
+		}
+	}
+
+	private deoptimizeFunctionParameters() {
+		for (const parameter of this.params) {
+			if (parameter instanceof Identifier) {
+				const parameterVariable = parameter.variable as ParameterVariable | null;
+				parameterVariable?.markReassigned();
+			}
+		}
+	}
+
 	protected objectEntity: ObjectEntity | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -84,6 +202,7 @@ export default abstract class FunctionBase extends NodeBase {
 					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
+			this.allArguments.push(args);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
@@ -102,6 +221,7 @@ export default abstract class FunctionBase extends NodeBase {
 			for (const parameterList of this.scope.parameters) {
 				for (const parameter of parameterList) {
 					parameter.deoptimizePath(UNKNOWN_PATH);
+					parameter.markReassigned();
 				}
 			}
 		}
@@ -180,7 +300,30 @@ export default abstract class FunctionBase extends NodeBase {
 		return false;
 	}
 
+	/**
+	 * If the function (expression or declaration) is only used as function calls
+	 */
+	protected onlyFunctionCallUsed(): boolean {
+		let variable: Variable | null = null;
+		if (this.parent.type === NodeType.VariableDeclarator) {
+			variable = (this.parent as VariableDeclarator).id.variable ?? null;
+		}
+		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
+			variable = (this.parent as ExportDefaultDeclaration).variable;
+		}
+		return variable?.getOnlyFunctionCallUsed() ?? false;
+	}
+
+	private functionParametersOptimized = false;
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		const shouldOptimizeFunctionParameters = this.onlyFunctionCallUsed();
+		if (shouldOptimizeFunctionParameters) {
+			this.applyFunctionParameterOptimization();
+		} else if (this.functionParametersOptimized) {
+			this.deoptimizeFunctionParameters();
+		}
+		this.functionParametersOptimized = shouldOptimizeFunctionParameters;
+
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;

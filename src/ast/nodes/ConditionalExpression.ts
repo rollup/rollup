@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
+import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import {
 	findFirstOccurrenceOutsideComment,
@@ -46,15 +46,26 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	deoptimizeCache(): void {
+		if (
+			this.usedBranch ||
+			this.isBranchResolutionAnalysed ||
+			this.expressionsToBeDeoptimized.length > 0
+		) {
+			// Request another pass because we need to ensure "include" runs again if it is rendered
+			this.scope.context.requestTreeshakingPass();
+		}
+		const { expressionsToBeDeoptimized } = this;
+		if (expressionsToBeDeoptimized.length > 0) {
+			this.expressionsToBeDeoptimized = [];
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+		}
+		this.isBranchResolutionAnalysed = false;
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
-			const { expressionsToBeDeoptimized } = this;
-			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
-			for (const expression of expressionsToBeDeoptimized) {
-				expression.deoptimizeCache();
-			}
 		}
 	}
 
@@ -73,9 +84,9 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		this.expressionsToBeDeoptimized.push(origin);
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch) return UnknownValue;
-		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 

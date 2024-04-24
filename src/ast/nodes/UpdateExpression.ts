@@ -87,7 +87,7 @@ export default class UpdateExpression extends NodeBase {
 		this.argument.deoptimizePath(EMPTY_PATH);
 		if (this.argument instanceof Identifier) {
 			const variable = this.scope.findVariable(this.argument.name);
-			variable.isReassigned = true;
+			variable.markReassigned();
 		}
 		this.scope.context.requestTreeshakingPass();
 	}

@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
+import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -57,21 +57,26 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	deoptimizeCache(): void {
+		if (
+			this.usedBranch ||
+			this.isBranchResolutionAnalysed ||
+			this.expressionsToBeDeoptimized.length > 0
+		) {
+			// Request another pass because we need to ensure "include" runs again if it is rendered
+			this.scope.context.requestTreeshakingPass();
+		}
+		const { expressionsToBeDeoptimized } = this;
+		if (expressionsToBeDeoptimized.length > 0) {
+			this.expressionsToBeDeoptimized = [];
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+		}
+		this.isBranchResolutionAnalysed = false;
 		if (this.usedBranch) {
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
 			unusedBranch.deoptimizePath(UNKNOWN_PATH);
-			const {
-				scope: { context },
-				expressionsToBeDeoptimized
-			} = this;
-			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
-			for (const expression of expressionsToBeDeoptimized) {
-				expression.deoptimizeCache();
-			}
-			// Request another pass because we need to ensure "include" runs again if
-			// it is rendered
-			context.requestTreeshakingPass();
 		}
 	}
 
@@ -90,9 +95,9 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		this.expressionsToBeDeoptimized.push(origin);
 		const usedBranch = this.getUsedBranch();
 		if (!usedBranch) return UnknownValue;
-		this.expressionsToBeDeoptimized.push(origin);
 		return usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
