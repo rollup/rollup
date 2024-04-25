@@ -24,8 +24,24 @@ export default new (class ReportCollector {
 		if (process.env.CI) {
 			return writeFile(
 				fileURLToPath(new URL('../../_benchmark/internal-report.md', import.meta.url)),
-				this.#messageList.join('\n')
+				removeAnsiStyles(this.#messageList.join('\n'))
 			);
 		}
 	}
 })();
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function removeAnsiStyles(text) {
+	const ansiRegex = new RegExp(
+		[
+			'[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\\u0007)',
+			'(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))'
+		].join('|'),
+		'g'
+	);
+
+	return text.replace(ansiRegex, '');
+}

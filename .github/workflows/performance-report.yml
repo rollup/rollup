@@ -129,10 +129,10 @@ jobs:
             'node _benchmark/current/bin/rollup -i ./perf/entry.js -o _benchmark/result/current.js'
       - name: Combine bechmark reports
         run: |
-          echo "# Performance report!\n" > _benchmark/result.md
-          echo "## Rough benchmark\n" >> _benchmark/result.md
+          echo "# Performance report!" > _benchmark/result.md
+          echo "## Rough benchmark" >> _benchmark/result.md
           cat _benchmark/rough-report.md >> _benchmark/result.md
-          echo "## Internal benchmark\n" >> _benchmark/result.md
+          echo "## Internal benchmark" >> _benchmark/result.md
           cat _benchmark/internal-report.md >> _benchmark/result.md
       - name: Find Performance report
         uses: peter-evans/find-comment@v3
