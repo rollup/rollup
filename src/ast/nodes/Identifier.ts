@@ -299,6 +299,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 		if (this.isReferenceVariable) {
 			this.variable!.addUsedPlace(this);
+			this.scope.context.requestTreeshakingPass();
 		}
 	}
 
