@@ -1,14 +1,13 @@
 name: Performance Report
 env:
-    BUILD_BOOTSTRAP_CJS: mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit && rm -rf dist-build
-    BUILD_COMMAND_OTPION: --config rollup.config.ts --configPlugin typescript --configTest --forceExit
+  BUILD_BOOTSTRAP_CJS: mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit && rm -rf dist-build
 
 on:
-    pull_request:
-      types:
-        - synchronize
-        - opened
-        - reopened
+  pull_request:
+    types:
+      - synchronize
+      - opened
+      - reopened
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -28,7 +27,7 @@ jobs:
             ref: ${{github.event.pull_request.base.ref}}
     name: Build ${{matrix.settings.name}} artefact
     runs-on: ubuntu-latest
-    steps: 
+    steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
         with:
@@ -81,7 +80,7 @@ jobs:
       - name: Checkout Commit
         uses: actions/checkout@v4
         with:
-          ref: ${{github.event.pull_request.base.ref}}
+          ref: refs/pull/${{ github.event.number }}/merge
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -115,14 +114,26 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: _benchmark
-      - name: Create benchmark directory
-        run: mkdir -p _benchmark
+      - name: Change rollup import in internal benchmark
+        run: |
+          echo "export { rollup as previousRollup, VERSION as previousVersion } from '../../_benchmark/previous/rollup.js';" > ./scripts/perf-report/rollup-artefacts.js
+          echo "export { rollup as newRollup } from '../../_benchmark/current/rollup.js';" >> ./scripts/perf-report/rollup-artefacts.js
+      - name: Run internal benchmark
+        run: node --expose-gc scripts/perf-report/index.js
       - name: Install benchmark tool
         run: cargo install --locked hyperfine
-      - name: Run benchmark
-        run: hyperfine --warmup 1 --export-markdown _benchmark/result.md --show-output --runs 3 'node _benchmark/previous/bin/rollup ${{env.BUILD_COMMAND_OTPION}}' 'node _benchmark/current/bin/rollup ${{env.BUILD_COMMAND_OTPION}}'
-      - name: Modify benchmark result file
-        run: sed -i '1s;^;### Performance report!\n\n;' _benchmark/result.md
+      - name: Run Rough benchmark
+        run: |
+          hyperfine --warmup 1 --export-markdown _benchmark/rough-report.md --show-output --runs 3 \
+            'node _benchmark/previous/bin/rollup -i ./perf/entry.js -o _benchmark/result/previous.js' \
+            'node _benchmark/current/bin/rollup -i ./perf/entry.js -o _benchmark/result/current.js'
+      - name: Combine bechmark reports
+        run: |
+          echo "# Performance report!\n" > _benchmark/result.md
+          echo "## Rough benchmark\n" >> _benchmark/result.md
+          cat _benchmark/rough-report.md >> _benchmark/result.md
+          echo "## Internal benchmark\n" >> _benchmark/result.md
+          cat _benchmark/internal-report.md >> _benchmark/result.md
       - name: Find Performance report
         uses: peter-evans/find-comment@v3
         id: findPerformanceReport

@@ -5,10 +5,9 @@ import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { createColors } from 'colorette';
 import prettyBytes from 'pretty-bytes';
-import { rollup as previousRollup, VERSION as previousVersion } from 'rollup';
-// eslint-disable-next-line import/no-unresolved
-import { rollup as newRollup } from '../dist/rollup.js';
-import { runWithEcho } from './helpers.js';
+import { runWithEcho } from '../helpers.js';
+import reportCollector from './report-collector.js';
+import { newRollup, previousRollup, previousVersion } from './rollup-artefacts.js';
 
 /**
  * @typedef {Record<string,{memory:number,time:number}>} CollectedTimings
@@ -18,7 +17,7 @@ import { runWithEcho } from './helpers.js';
  * @typedef {Record<string, [number, number, number][]>} AccumulatedTimings
  */
 
-const PERF_DIRECTORY = new URL('../perf/', import.meta.url);
+const PERF_DIRECTORY = new URL('../../perf/', import.meta.url);
 const ENTRY = new URL('entry.js', PERF_DIRECTORY);
 const THREEJS_COPIES = 10;
 const { bold, underline, cyan, red, green } = createColors();
@@ -91,10 +90,12 @@ async function calculatePrintAndPersistTimings() {
 		);
 		clearLines(numberOfLinesToClear);
 	}
+	reportCollector.startRecord();
 	printMeasurements(
 		getAverage(accumulatedNewTimings, RUNS_TO_AVERAGE),
 		getAverage(accumulatedPreviousTimings, RUNS_TO_AVERAGE)
 	);
+	await reportCollector.outputMsg();
 }
 
 /**
@@ -185,14 +186,12 @@ function printMeasurements(newAverage, previousAverage, filter = /.*/) {
 				color = underline;
 			}
 		}
-		console.info(
-			color(
-				`${label}: ${getFormattedTime(
-					newAverage[label].time,
-					previousAverage[label]?.time
-				)}, ${getFormattedMemory(newAverage[label].memory, previousAverage[label]?.memory)}`
-			)
-		);
+		const text = `${label}: ${getFormattedTime(
+			newAverage[label].time,
+			previousAverage[label]?.time
+		)}, ${getFormattedMemory(newAverage[label].memory, previousAverage[label]?.memory)}`;
+		reportCollector.push(text);
+		console.info(color(text));
 	}
 	return printedLabels.length + 2;
 }
