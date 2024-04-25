@@ -173,9 +173,16 @@ function getSingleAverage(times, runs, discarded) {
  * @return {number}
  */
 function printMeasurements(newAverage, previousAverage, filter = /.*/) {
-	const printedLabels = Object.keys(newAverage).filter(label => filter.test(label));
-	console.info('');
-	for (const label of printedLabels) {
+	const newPrintedLabels = Object.keys(newAverage).filter(predicateLabel);
+	const previousPrintedLabels = Object.keys(previousAverage).filter(predicateLabel);
+
+	const newTreeShakings = newPrintedLabels.filter(isTreeShakingLabel);
+	const oldTreeShakings = previousPrintedLabels.filter(isTreeShakingLabel);
+
+	const addedTreeShaking = newTreeShakings.length - oldTreeShakings.length;
+	let treeShakingCount = 0;
+
+	for (const label of newPrintedLabels) {
 		/**
 		 * @type {function(string): string}
 		 */
@@ -186,14 +193,54 @@ function printMeasurements(newAverage, previousAverage, filter = /.*/) {
 				color = underline;
 			}
 		}
-		const text = `${label}: ${getFormattedTime(
+		const texts = [];
+		if (isTreeShakingLabel(label)) {
+			treeShakingCount++;
+			if (addedTreeShaking < 0 && treeShakingCount === newTreeShakings.length) {
+				texts.push(generateSingleReport(label));
+				for (const label of oldTreeShakings.slice(addedTreeShaking)) {
+					const { time, memory } = previousAverage[label];
+					texts.push(`${label}: ${time.toFixed(0)}ms, ${prettyBytes(memory)}, removed stage`);
+				}
+			} else if (addedTreeShaking > 0 && treeShakingCount > oldTreeShakings.length) {
+				texts.push(generateSingleReport(label, ', new stage'));
+			} else {
+				texts.push(generateSingleReport(label));
+			}
+		} else {
+			texts.push(generateSingleReport(label));
+		}
+		for (const text of texts) {
+			reportCollector.push(text);
+			console.info(color(text));
+		}
+	}
+	return Math.max(newPrintedLabels.length, previousPrintedLabels.length) + 2;
+
+	/**
+	 * @param {string} label
+	 */
+	function predicateLabel(label) {
+		return filter.test(label);
+	}
+
+	/**
+	 * @param {string} label
+	 * @param {string} addon
+	 */
+	function generateSingleReport(label, addon = '') {
+		return `${label}: ${getFormattedTime(
 			newAverage[label].time,
 			previousAverage[label]?.time
-		)}, ${getFormattedMemory(newAverage[label].memory, previousAverage[label]?.memory)}`;
-		reportCollector.push(text);
-		console.info(color(text));
+		)}, ${getFormattedMemory(newAverage[label].memory, previousAverage[label]?.memory)}${addon}`;
 	}
-	return printedLabels.length + 2;
+}
+
+/**
+ * @param {string} label
+ */
+function isTreeShakingLabel(label) {
+	return label.startsWith('treeshaking pass');
 }
 
 /**
