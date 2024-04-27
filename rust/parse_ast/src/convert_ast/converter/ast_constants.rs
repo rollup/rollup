@@ -74,11 +74,11 @@ pub const TYPE_TEMPLATE_LITERAL: [u8; 4] = 69u32.to_ne_bytes();
 pub const TYPE_THIS_EXPRESSION: [u8; 4] = 70u32.to_ne_bytes();
 pub const TYPE_THROW_STATEMENT: [u8; 4] = 71u32.to_ne_bytes();
 pub const TYPE_TRY_STATEMENT: [u8; 4] = 72u32.to_ne_bytes();
-pub const TYPE_T_S_INTERFACE_BODY: [u8; 4] = 73u32.to_ne_bytes();
-pub const TYPE_T_S_INTERFACE_DECLARATION: [u8; 4] = 74u32.to_ne_bytes();
-pub const TYPE_T_S_NUMBER_KEYWORD: [u8; 4] = 75u32.to_ne_bytes();
-pub const TYPE_T_S_PROPERTY_SIGNATURE: [u8; 4] = 76u32.to_ne_bytes();
-pub const TYPE_T_S_TYPE_ANNOTATION: [u8; 4] = 77u32.to_ne_bytes();
+pub const TYPE_TS_INTERFACE_BODY: [u8; 4] = 73u32.to_ne_bytes();
+pub const TYPE_TS_INTERFACE_DECLARATION: [u8; 4] = 74u32.to_ne_bytes();
+pub const TYPE_TS_NUMBER_KEYWORD: [u8; 4] = 75u32.to_ne_bytes();
+pub const TYPE_TS_PROPERTY_SIGNATURE: [u8; 4] = 76u32.to_ne_bytes();
+pub const TYPE_TS_TYPE_ANNOTATION: [u8; 4] = 77u32.to_ne_bytes();
 pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 78u32.to_ne_bytes();
 pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 79u32.to_ne_bytes();
 pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 80u32.to_ne_bytes();
@@ -380,25 +380,25 @@ pub const TRY_STATEMENT_BLOCK_OFFSET: usize = 4;
 pub const TRY_STATEMENT_HANDLER_OFFSET: usize = 8;
 pub const TRY_STATEMENT_FINALIZER_OFFSET: usize = 12;
 
-pub const T_S_INTERFACE_BODY_RESERVED_BYTES: usize = 8;
-pub const T_S_INTERFACE_BODY_BODY_OFFSET: usize = 4;
+pub const TS_INTERFACE_BODY_RESERVED_BYTES: usize = 8;
+pub const TS_INTERFACE_BODY_BODY_OFFSET: usize = 4;
 
-pub const T_S_INTERFACE_DECLARATION_RESERVED_BYTES: usize = 8;
-pub const T_S_INTERFACE_DECLARATION_BODY_OFFSET: usize = 4;
+pub const TS_INTERFACE_DECLARATION_RESERVED_BYTES: usize = 8;
+pub const TS_INTERFACE_DECLARATION_BODY_OFFSET: usize = 4;
 
-pub const T_S_NUMBER_KEYWORD_RESERVED_BYTES: usize = 4;
+pub const TS_NUMBER_KEYWORD_RESERVED_BYTES: usize = 4;
 
-pub const T_S_PROPERTY_SIGNATURE_RESERVED_BYTES: usize = 16;
-pub const T_S_PROPERTY_SIGNATURE_FLAGS_OFFSET: usize = 4;
-pub const T_S_PROPERTY_SIGNATURE_STATIC_FLAG: u32 = 1;
-pub const T_S_PROPERTY_SIGNATURE_COMPUTED_FLAG: u32 = 2;
-pub const T_S_PROPERTY_SIGNATURE_OPTIONAL_FLAG: u32 = 4;
-pub const T_S_PROPERTY_SIGNATURE_READONLY_FLAG: u32 = 8;
-pub const T_S_PROPERTY_SIGNATURE_KEY_OFFSET: usize = 8;
-pub const T_S_PROPERTY_SIGNATURE_TYPE_ANNOTATION_OFFSET: usize = 12;
+pub const TS_PROPERTY_SIGNATURE_RESERVED_BYTES: usize = 16;
+pub const TS_PROPERTY_SIGNATURE_FLAGS_OFFSET: usize = 4;
+pub const TS_PROPERTY_SIGNATURE_STATIC_FLAG: u32 = 1;
+pub const TS_PROPERTY_SIGNATURE_COMPUTED_FLAG: u32 = 2;
+pub const TS_PROPERTY_SIGNATURE_OPTIONAL_FLAG: u32 = 4;
+pub const TS_PROPERTY_SIGNATURE_READONLY_FLAG: u32 = 8;
+pub const TS_PROPERTY_SIGNATURE_KEY_OFFSET: usize = 8;
+pub const TS_PROPERTY_SIGNATURE_TYPE_ANNOTATION_OFFSET: usize = 12;
 
-pub const T_S_TYPE_ANNOTATION_RESERVED_BYTES: usize = 8;
-pub const T_S_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET: usize = 4;
+pub const TS_TYPE_ANNOTATION_RESERVED_BYTES: usize = 8;
+pub const TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET: usize = 4;
 
 pub const UNARY_EXPRESSION_RESERVED_BYTES: usize = 12;
 pub const UNARY_EXPRESSION_OPERATOR_OFFSET: usize = 4;
