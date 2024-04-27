@@ -106,7 +106,7 @@ jobs:
             target: x86_64-apple-darwin
             build: >-
               set -e &&
-              npm run build:napi -- --release
+              npm run build:napi -- --release --target x86_64-apple-darwin
           - host: macos-latest
             target: aarch64-apple-darwin
             build: >-
