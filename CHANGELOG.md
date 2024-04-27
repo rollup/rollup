@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 4.17.0
+
+_2024-04-27_
+
+### Features
+
+- Track function call arguments to optimize functions only called once or with the same literal values (re-release from 4.16.0) (#5483)
+
+### Bug Fixes
+
+- Reduce browser WASM size to a fraction by changing optimization settings (#5494)
+
+### Pull Requests
+
+- [#5483](https://github.com/rollup/rollup/pull/5483): feature(fix): function parameter tracking (@liuly0322)
+- [#5488](https://github.com/rollup/rollup/pull/5488): Report performance in CI (@TrickyPi)
+- [#5489](https://github.com/rollup/rollup/pull/5489): Create FUNDING.json (@BenJam)
+- [#5492](https://github.com/rollup/rollup/pull/5492): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5493](https://github.com/rollup/rollup/pull/5493): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5494](https://github.com/rollup/rollup/pull/5494): Use opt-level=z for browser wasm (@sapphi-red)
+
 ## 4.16.4
 
 _2024-04-23_
