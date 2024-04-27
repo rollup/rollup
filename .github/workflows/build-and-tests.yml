@@ -1,7 +1,6 @@
 name: CI
 env:
   DEBUG: napi:*
-  APP_NAME: rollup
   MACOSX_DEPLOYMENT_TARGET: '10.13'
 
 on:
@@ -262,11 +261,14 @@ jobs:
           path: ${{ matrix.settings.path }}
           if-no-files-found: error
         if: ${{ matrix.settings.is-wasm-build }}
+      - name: List napi artifacts
+        run: ls -l rollup.*.node
+        if: ${{ !matrix.settings.is-wasm-build }}
       - name: Upload napi artifact
         uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
+          path: rollup.*.node
           if-no-files-found: error
         if: ${{ !matrix.settings.is-wasm-build }}
 
