@@ -396,6 +396,10 @@ export default class MemberExpression
 			);
 			this.scope.context.requestTreeshakingPass();
 		}
+		if (this.variable) {
+			this.variable.addUsedPlace(this);
+			this.scope.context.requestTreeshakingPass();
+		}
 	}
 
 	private applyAssignmentDeoptimization(): void {

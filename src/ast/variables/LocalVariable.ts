@@ -91,7 +91,7 @@ export default class LocalVariable extends Variable {
 			return;
 		}
 		if (path.length === 0) {
-			this.isReassigned = true;
+			this.markReassigned();
 			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
 			this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 			for (const expression of expressionsToBeDeoptimized) {
@@ -222,7 +222,7 @@ export default class LocalVariable extends Variable {
 		if (this.additionalInitializers === null) {
 			this.additionalInitializers = [this.init];
 			this.init = UNKNOWN_EXPRESSION;
-			this.isReassigned = true;
+			this.markReassigned();
 		}
 		return this.additionalInitializers;
 	}

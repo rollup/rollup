@@ -10,11 +10,16 @@ import {
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
+import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
+import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
+import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import type SpreadElement from '../SpreadElement';
+import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
@@ -26,6 +31,8 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
+
+type InteractionCalledArguments = NodeInteractionCalled['args'];
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -57,6 +64,27 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
+	private updateParameterVariableValues(_arguments: InteractionCalledArguments): void {
+		for (let position = 0; position < this.params.length; position++) {
+			const parameter = this.params[position];
+			if (!(parameter instanceof Identifier)) {
+				continue;
+			}
+			const parameterVariable = parameter.variable as ParameterVariable;
+			const argument = _arguments[position + 1] ?? UNDEFINED_EXPRESSION;
+			parameterVariable.updateKnownValue(argument);
+		}
+	}
+
+	private deoptimizeParameterVariableValues() {
+		for (const parameter of this.params) {
+			if (parameter instanceof Identifier) {
+				const parameterVariable = parameter.variable as ParameterVariable;
+				parameterVariable.markReassigned();
+			}
+		}
+	}
+
 	protected objectEntity: ObjectEntity | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -84,6 +112,7 @@ export default abstract class FunctionBase extends NodeBase {
 					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
+			this.updateParameterVariableValues(args);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
@@ -102,6 +131,7 @@ export default abstract class FunctionBase extends NodeBase {
 			for (const parameterList of this.scope.parameters) {
 				for (const parameter of parameterList) {
 					parameter.deoptimizePath(UNKNOWN_PATH);
+					parameter.markReassigned();
 				}
 			}
 		}
@@ -180,7 +210,26 @@ export default abstract class FunctionBase extends NodeBase {
 		return false;
 	}
 
+	/**
+	 * If the function (expression or declaration) is only used as function calls
+	 */
+	protected onlyFunctionCallUsed(): boolean {
+		let variable: Variable | null = null;
+		if (this.parent.type === NodeType.VariableDeclarator) {
+			variable = (this.parent as VariableDeclarator).id.variable ?? null;
+		}
+		if (this.parent.type === NodeType.ExportDefaultDeclaration) {
+			variable = (this.parent as ExportDefaultDeclaration).variable;
+		}
+		return variable?.getOnlyFunctionCallUsed() ?? false;
+	}
+
+	private parameterVariableValuesDeoptimized = false;
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.parameterVariableValuesDeoptimized && !this.onlyFunctionCallUsed()) {
+			this.parameterVariableValuesDeoptimized = true;
+			this.deoptimizeParameterVariableValues();
+		}
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;

@@ -60,10 +60,12 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
+	private isReferenceVariable = false;
 	bind(): void {
 		if (!this.variable && isReference(this, this.parent as NodeWithFieldDefinition)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
+			this.isReferenceVariable = true;
 		}
 	}
 
@@ -293,6 +295,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.deoptimized = true;
 		if (this.variable instanceof LocalVariable) {
 			this.variable.consolidateInitializers();
+			this.scope.context.requestTreeshakingPass();
+		}
+		if (this.isReferenceVariable) {
+			this.variable!.addUsedPlace(this);
 			this.scope.context.requestTreeshakingPass();
 		}
 	}
