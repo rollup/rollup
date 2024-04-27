@@ -5,10 +5,9 @@ import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { createColors } from 'colorette';
 import prettyBytes from 'pretty-bytes';
-import { rollup as previousRollup, VERSION as previousVersion } from 'rollup';
-// eslint-disable-next-line import/no-unresolved
-import { rollup as newRollup } from '../dist/rollup.js';
-import { runWithEcho } from './helpers.js';
+import { runWithEcho } from '../helpers.js';
+import reportCollector from './report-collector.js';
+import { newRollup, previousRollup, previousVersion } from './rollup-artefacts.js';
 
 /**
  * @typedef {Record<string,{memory:number,time:number}>} CollectedTimings
@@ -18,7 +17,7 @@ import { runWithEcho } from './helpers.js';
  * @typedef {Record<string, [number, number, number][]>} AccumulatedTimings
  */
 
-const PERF_DIRECTORY = new URL('../perf/', import.meta.url);
+const PERF_DIRECTORY = new URL('../../perf/', import.meta.url);
 const ENTRY = new URL('entry.js', PERF_DIRECTORY);
 const THREEJS_COPIES = 10;
 const { bold, underline, cyan, red, green } = createColors();
@@ -91,10 +90,12 @@ async function calculatePrintAndPersistTimings() {
 		);
 		clearLines(numberOfLinesToClear);
 	}
+	reportCollector.startRecord();
 	printMeasurements(
 		getAverage(accumulatedNewTimings, RUNS_TO_AVERAGE),
 		getAverage(accumulatedPreviousTimings, RUNS_TO_AVERAGE)
 	);
+	await reportCollector.outputMsg();
 }
 
 /**
@@ -172,9 +173,16 @@ function getSingleAverage(times, runs, discarded) {
  * @return {number}
  */
 function printMeasurements(newAverage, previousAverage, filter = /.*/) {
-	const printedLabels = Object.keys(newAverage).filter(label => filter.test(label));
-	console.info('');
-	for (const label of printedLabels) {
+	const newPrintedLabels = Object.keys(newAverage).filter(predicateLabel);
+	const previousPrintedLabels = Object.keys(previousAverage).filter(predicateLabel);
+
+	const newTreeShakings = newPrintedLabels.filter(isTreeShakingLabel);
+	const oldTreeShakings = previousPrintedLabels.filter(isTreeShakingLabel);
+
+	const addedTreeShaking = newTreeShakings.length - oldTreeShakings.length;
+	let treeShakingCount = 0;
+
+	for (const label of newPrintedLabels) {
 		/**
 		 * @type {function(string): string}
 		 */
@@ -185,16 +193,54 @@ function printMeasurements(newAverage, previousAverage, filter = /.*/) {
 				color = underline;
 			}
 		}
-		console.info(
-			color(
-				`${label}: ${getFormattedTime(
-					newAverage[label].time,
-					previousAverage[label]?.time
-				)}, ${getFormattedMemory(newAverage[label].memory, previousAverage[label]?.memory)}`
-			)
-		);
+		const texts = [];
+		if (isTreeShakingLabel(label)) {
+			treeShakingCount++;
+			if (addedTreeShaking < 0 && treeShakingCount === newTreeShakings.length) {
+				texts.push(generateSingleReport(label));
+				for (const label of oldTreeShakings.slice(addedTreeShaking)) {
+					const { time, memory } = previousAverage[label];
+					texts.push(`${label}: ${time.toFixed(0)}ms, ${prettyBytes(memory)}, removed stage`);
+				}
+			} else if (addedTreeShaking > 0 && treeShakingCount > oldTreeShakings.length) {
+				texts.push(generateSingleReport(label, ', new stage'));
+			} else {
+				texts.push(generateSingleReport(label));
+			}
+		} else {
+			texts.push(generateSingleReport(label));
+		}
+		for (const text of texts) {
+			reportCollector.push(text);
+			console.info(color(text));
+		}
 	}
-	return printedLabels.length + 2;
+	return Math.max(newPrintedLabels.length, previousPrintedLabels.length) + 2;
+
+	/**
+	 * @param {string} label
+	 */
+	function predicateLabel(label) {
+		return filter.test(label);
+	}
+
+	/**
+	 * @param {string} label
+	 * @param {string} addon
+	 */
+	function generateSingleReport(label, addon = '') {
+		return `${label}: ${getFormattedTime(
+			newAverage[label].time,
+			previousAverage[label]?.time
+		)}, ${getFormattedMemory(newAverage[label].memory, previousAverage[label]?.memory)}${addon}`;
+	}
+}
+
+/**
+ * @param {string} label
+ */
+function isTreeShakingLabel(label) {
+	return label.startsWith('treeshaking pass');
 }
 
 /**

@@ -1,0 +1,151 @@
+name: Performance Report
+env:
+  BUILD_BOOTSTRAP_CJS: mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit && rm -rf dist-build
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - opened
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-artefacts:
+    strategy:
+      matrix:
+        settings:
+          - name: current
+            ref: refs/pull/${{ github.event.number }}/merge
+          - name: previous
+            ref: ${{github.event.pull_request.base.ref}}
+    name: Build ${{matrix.settings.name}} artefact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{matrix.settings.ref}}
+      - name: Install Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly-2023-10-05
+          targets: x86_64-unknown-linux-gnu
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: cargo-cache
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+      - name: Build artefacts 123
+        run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && ${{env.BUILD_BOOTSTRAP_CJS}} && npm run build:copy-native
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.settings.name }}
+          path: dist/
+          if-no-files-found: error
+
+  report:
+    needs: build-artefacts
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-latest
+    name: Report Performance
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.number }}/merge
+      - name: Install Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly-2023-10-05
+          targets: x86_64-unknown-linux-gnu
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            rust/target/
+          key: cargo-cache-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: cargo-cache
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: _benchmark
+      - name: Change rollup import in internal benchmark
+        run: |
+          echo "export { rollup as previousRollup, VERSION as previousVersion } from '../../_benchmark/previous/rollup.js';" > ./scripts/perf-report/rollup-artefacts.js
+          echo "export { rollup as newRollup } from '../../_benchmark/current/rollup.js';" >> ./scripts/perf-report/rollup-artefacts.js
+      - name: Run internal benchmark
+        run: node --expose-gc scripts/perf-report/index.js
+      - name: Install benchmark tool
+        run: cargo install --locked hyperfine
+      - name: Run Rough benchmark
+        run: |
+          hyperfine --warmup 1 --export-markdown _benchmark/rough-report.md --show-output --runs 3 \
+            'node _benchmark/previous/bin/rollup -i ./perf/entry.js -o _benchmark/result/previous.js' \
+            'node _benchmark/current/bin/rollup -i ./perf/entry.js -o _benchmark/result/current.js'
+      - name: Combine bechmark reports
+        run: |
+          echo "# Performance report!" > _benchmark/result.md
+          echo "## Rough benchmark" >> _benchmark/result.md
+          cat _benchmark/rough-report.md >> _benchmark/result.md
+          echo "## Internal benchmark" >> _benchmark/result.md
+          cat _benchmark/internal-report.md >> _benchmark/result.md
+      - name: Find Performance report
+        uses: peter-evans/find-comment@v3
+        id: findPerformanceReport
+        with:
+          issue-number: ${{ github.event.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Performance report'
+      - name: Create or update Performance report
+        uses: peter-evans/create-or-update-comment@v4
+        id: createOrUpdatePerformanceReport
+        with:
+          comment-id: ${{ steps.findPerformanceReport.outputs.comment-id }}
+          issue-number: ${{ github.event.number }}
+          edit-mode: replace
+          body-path: _benchmark/result.md
