@@ -40,16 +40,17 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportExpression from './ImportExpression';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import ImportSpecifier from './ImportSpecifier';
-import JsxAttribute from './JsxAttribute';
-import JsxClosingFragment from './JsxClosingFragment';
-import JsxElement from './JsxElement';
-import JsxEmptyExpr from './JsxEmptyExpr';
-import JsxExprContainer from './JsxExprContainer';
-import JsxFragment from './JsxFragment';
-import JsxIdentifier from './JsxIdentifier';
-import JsxOpeningElement from './JsxOpeningElement';
-import JsxOpeningFragment from './JsxOpeningFragment';
-import JsxText from './JsxText';
+import JSXAttribute from './JSXAttribute';
+import JSXClosingElement from './JSXClosingElement';
+import JSXClosingFragment from './JSXClosingFragment';
+import JSXElement from './JSXElement';
+import JSXEmptyExpression from './JSXEmptyExpression';
+import JSXExpressionContainer from './JSXExpressionContainer';
+import JSXFragment from './JSXFragment';
+import JSXIdentifier from './JSXIdentifier';
+import JSXOpeningElement from './JSXOpeningElement';
+import JSXOpeningFragment from './JSXOpeningFragment';
+import JSXText from './JSXText';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
@@ -128,16 +129,17 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	ImportExpression,
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
-	JsxAttribute,
-	JsxClosingFragment,
-	JsxElement,
-	JsxEmptyExpr,
-	JsxExprContainer,
-	JsxFragment,
-	JsxIdentifier,
-	JsxOpeningElement,
-	JsxOpeningFragment,
-	JsxText,
+	JSXAttribute,
+	JSXClosingElement,
+	JSXClosingFragment,
+	JSXElement,
+	JSXEmptyExpression,
+	JSXExpressionContainer,
+	JSXFragment,
+	JSXIdentifier,
+	JSXOpeningElement,
+	JSXOpeningFragment,
+	JSXText,
 	LabeledStatement,
 	Literal,
 	LogicalExpression,

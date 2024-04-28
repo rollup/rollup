@@ -450,25 +450,35 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			local
 		};
 	},
-	function jsxAttribute(position, buffer): JsxAttributeNode {
+	function jsxAttribute(position, buffer): JSXAttributeNode {
+		const valuePosition = buffer[position + 3];
 		return {
-			type: 'JsxAttribute',
+			type: 'JSXAttribute',
+			start: buffer[position],
+			end: buffer[position + 1],
+			name: convertNode(buffer[position + 2], buffer),
+			value: valuePosition === 0 ? null : convertNode(valuePosition, buffer)
+		};
+	},
+	function jsxClosingElement(position, buffer): JSXClosingElementNode {
+		return {
+			type: 'JSXClosingElement',
 			start: buffer[position],
 			end: buffer[position + 1],
 			name: convertNode(buffer[position + 2], buffer)
 		};
 	},
-	function jsxClosingFragment(position, buffer): JsxClosingFragmentNode {
+	function jsxClosingFragment(position, buffer): JSXClosingFragmentNode {
 		return {
-			type: 'JsxClosingFragment',
+			type: 'JSXClosingFragment',
 			start: buffer[position],
 			end: buffer[position + 1]
 		};
 	},
-	function jsxElement(position, buffer): JsxElementNode {
+	function jsxElement(position, buffer): JSXElementNode {
 		const closingElementPosition = buffer[position + 3];
 		return {
-			type: 'JsxElement',
+			type: 'JSXElement',
 			start: buffer[position],
 			end: buffer[position + 1],
 			openingElement: convertNode(buffer[position + 2], buffer),
@@ -477,24 +487,24 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			children: convertNodeList(buffer[position + 4], buffer)
 		};
 	},
-	function jsxEmptyExpr(position, buffer): JsxEmptyExprNode {
+	function jsxEmptyExpression(position, buffer): JSXEmptyExpressionNode {
 		return {
-			type: 'JsxEmptyExpr',
+			type: 'JSXEmptyExpression',
 			start: buffer[position],
 			end: buffer[position + 1]
 		};
 	},
-	function jsxExprContainer(position, buffer): JsxExprContainerNode {
+	function jsxExpressionContainer(position, buffer): JSXExpressionContainerNode {
 		return {
-			type: 'JsxExprContainer',
+			type: 'JSXExpressionContainer',
 			start: buffer[position],
 			end: buffer[position + 1],
 			expression: convertNode(buffer[position + 2], buffer)
 		};
 	},
-	function jsxFragment(position, buffer): JsxFragmentNode {
+	function jsxFragment(position, buffer): JSXFragmentNode {
 		return {
-			type: 'JsxFragment',
+			type: 'JSXFragment',
 			start: buffer[position],
 			end: buffer[position + 1],
 			openingFragment: convertNode(buffer[position + 2], buffer),
@@ -502,18 +512,18 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			children: convertNodeList(buffer[position + 4], buffer)
 		};
 	},
-	function jsxIdentifier(position, buffer): JsxIdentifierNode {
+	function jsxIdentifier(position, buffer): JSXIdentifierNode {
 		return {
-			type: 'JsxIdentifier',
+			type: 'JSXIdentifier',
 			start: buffer[position],
 			end: buffer[position + 1],
 			name: buffer.convertString(buffer[position + 2])
 		};
 	},
-	function jsxOpeningElement(position, buffer): JsxOpeningElementNode {
+	function jsxOpeningElement(position, buffer): JSXOpeningElementNode {
 		const flags = buffer[position + 2];
 		return {
-			type: 'JsxOpeningElement',
+			type: 'JSXOpeningElement',
 			start: buffer[position],
 			end: buffer[position + 1],
 			selfClosing: (flags & 1) === 1,
@@ -521,19 +531,22 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			attributes: convertNodeList(buffer[position + 4], buffer)
 		};
 	},
-	function jsxOpeningFragment(position, buffer): JsxOpeningFragmentNode {
+	function jsxOpeningFragment(position, buffer): JSXOpeningFragmentNode {
 		return {
-			type: 'JsxOpeningFragment',
-			start: buffer[position],
-			end: buffer[position + 1]
-		};
-	},
-	function jsxText(position, buffer): JsxTextNode {
-		return {
-			type: 'JsxText',
+			type: 'JSXOpeningFragment',
 			start: buffer[position],
 			end: buffer[position + 1],
-			value: buffer.convertString(buffer[position + 2])
+			attributes: [],
+			selfClosing: false
+		};
+	},
+	function jsxText(position, buffer): JSXTextNode {
+		return {
+			type: 'JSXText',
+			start: buffer[position],
+			end: buffer[position + 1],
+			value: buffer.convertString(buffer[position + 2]),
+			raw: buffer.convertString(buffer[position + 3])
 		};
 	},
 	function labeledStatement(position, buffer): LabeledStatementNode {
@@ -981,16 +994,17 @@ export type ImportExpressionNode = RollupAstNode<
 >;
 export type ImportNamespaceSpecifierNode = RollupAstNode<estree.ImportNamespaceSpecifier>;
 export type ImportSpecifierNode = RollupAstNode<estree.ImportSpecifier>;
-export type JsxAttributeNode = RollupAstNode<any>;
-export type JsxClosingFragmentNode = RollupAstNode<any>;
-export type JsxElementNode = RollupAstNode<any>;
-export type JsxEmptyExprNode = RollupAstNode<any>;
-export type JsxExprContainerNode = RollupAstNode<any>;
-export type JsxFragmentNode = RollupAstNode<any>;
-export type JsxIdentifierNode = RollupAstNode<any>;
-export type JsxOpeningElementNode = RollupAstNode<any>;
-export type JsxOpeningFragmentNode = RollupAstNode<any>;
-export type JsxTextNode = RollupAstNode<any>;
+export type JSXAttributeNode = RollupAstNode<any>;
+export type JSXClosingElementNode = RollupAstNode<any>;
+export type JSXClosingFragmentNode = RollupAstNode<any>;
+export type JSXElementNode = RollupAstNode<any>;
+export type JSXEmptyExpressionNode = RollupAstNode<any>;
+export type JSXExpressionContainerNode = RollupAstNode<any>;
+export type JSXFragmentNode = RollupAstNode<any>;
+export type JSXIdentifierNode = RollupAstNode<any>;
+export type JSXOpeningElementNode = RollupAstNode<any>;
+export type JSXOpeningFragmentNode = RollupAstNode<any>;
+export type JSXTextNode = RollupAstNode<any>;
 export type LabeledStatementNode = RollupAstNode<estree.LabeledStatement>;
 export type LiteralBigIntNode = RollupAstNode<estree.BigIntLiteral>;
 export type LiteralBooleanNode = RollupAstNode<estree.SimpleLiteral & { value: boolean }>;

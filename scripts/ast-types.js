@@ -388,20 +388,25 @@ export const AST_NODES = {
 			imported: 'local'
 		}
 	},
-	JsxAttribute: {
+	JSXAttribute: {
 		estreeType: 'any',
 		fields: [
-			['name', 'Node']
-			// ['value', 'OptionalString']
+			['name', 'Node'],
+			['value', 'OptionalNode']
 		],
 		useMacro: false
 	},
-	JsxClosingFragment: {
+	JSXClosingElement: {
+		estreeType: 'any',
+		fields: [['name', 'Node']],
+		useMacro: false
+	},
+	JSXClosingFragment: {
 		estreeType: 'any',
 		fields: [],
 		useMacro: false
 	},
-	JsxElement: {
+	JSXElement: {
 		estreeType: 'any',
 		fields: [
 			['openingElement', 'Node'],
@@ -410,16 +415,16 @@ export const AST_NODES = {
 		],
 		useMacro: false
 	},
-	JsxEmptyExpr: {
+	JSXEmptyExpression: {
 		estreeType: 'any',
 		useMacro: false
 	},
-	JsxExprContainer: {
+	JSXExpressionContainer: {
 		estreeType: 'any',
 		fields: [['expression', 'Node']],
 		useMacro: false
 	},
-	JsxFragment: {
+	JSXFragment: {
 		estreeType: 'any',
 		fields: [
 			['openingFragment', 'Node'],
@@ -428,12 +433,12 @@ export const AST_NODES = {
 		],
 		useMacro: false
 	},
-	JsxIdentifier: {
+	JSXIdentifier: {
 		estreeType: 'any',
 		fields: [['name', 'String']],
 		useMacro: false
 	},
-	JsxOpeningElement: {
+	JSXOpeningElement: {
 		estreeType: 'any',
 		fields: [
 			['name', 'Node'],
@@ -442,14 +447,20 @@ export const AST_NODES = {
 		flags: ['selfClosing'],
 		useMacro: false
 	},
-	JsxOpeningFragment: {
+	JSXOpeningFragment: {
+		additionalFields: {
+			attributes: '[]',
+			selfClosing: 'false'
+		},
 		estreeType: 'any',
-		fields: [],
 		useMacro: false
 	},
-	JsxText: {
+	JSXText: {
 		estreeType: 'any',
-		fields: [['value', 'String']],
+		fields: [
+			['value', 'String'],
+			['raw', 'String']
+		],
 		useMacro: false
 	},
 	LabeledStatement: {
