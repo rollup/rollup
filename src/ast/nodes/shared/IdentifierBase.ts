@@ -128,9 +128,14 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	includePath(): void {
+	includePath(path?: ObjectPath): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (!this.included) {
+		if (this.included) {
+			if (path?.length && !this.includedPaths.has(path[0])) {
+				this.includedPaths.add(path[0]);
+				this.variable?.includePath(path);
+			}
+		} else {
 			this.included = true;
 			if (this.variable !== null) {
 				this.scope.context.includeVariableInModule(this.variable);

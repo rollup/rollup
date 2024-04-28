@@ -12,7 +12,7 @@ import {
 import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UnknownKey } from '../utils/PathTracker';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import AwaitExpression from './AwaitExpression';
@@ -43,6 +43,8 @@ export default class ImportExpression extends NodeBase {
 	declare type: NodeType.tImportExpression;
 	declare sourceAstNode: AstNode;
 
+	private hasUnknownAccessedKey = false;
+	private accessedPropKey = new Set<string>();
 	private attributes: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
@@ -80,12 +82,16 @@ export default class ImportExpression extends NodeBase {
 				return EMPTY_ARRAY;
 			}
 
-			// Case 1: const { foo } = await import('bar')
+			// Case 1: const { foo } / module = await import('bar')
 			if (parent2 instanceof VariableDeclarator) {
 				const declaration = parent2.id;
-				return declaration instanceof ObjectPattern
-					? getDeterministicObjectDestructure(declaration)
-					: undefined;
+				if (declaration instanceof Identifier) {
+					if (this.hasUnknownAccessedKey) return undefined;
+					return this.accessedPropKey.size > 0 ? [...this.accessedPropKey] : undefined;
+				}
+				if (declaration instanceof ObjectPattern) {
+					return getDeterministicObjectDestructure(declaration);
+				}
 			}
 
 			// Case 2: (await import('bar')).foo
@@ -161,8 +167,16 @@ export default class ImportExpression extends NodeBase {
 			this.included = true;
 			this.scope.context.includeDynamicImport(this);
 			this.scope.addAccessedDynamicImport(this);
+			this.source.includePath(path, context, includeChildrenRecursively);
 		}
-		this.source.includePath(path, context, includeChildrenRecursively);
+		if (this.hasUnknownAccessedKey) return;
+		if (path[0] === UnknownKey) {
+			this.hasUnknownAccessedKey = true;
+			this.scope.context.includeDynamicImport(this);
+		} else if (typeof path[0] === 'string') {
+			this.accessedPropKey.add(path[0]);
+			this.scope.context.includeDynamicImport(this);
+		}
 	}
 
 	initialise(): void {

@@ -221,6 +221,7 @@ export default class Module {
 	readonly dynamicDependencies = new Set<Module | ExternalModule>();
 	readonly dynamicImporters: string[] = [];
 	readonly dynamicImports: DynamicImport[] = [];
+	private dynamicDependenciesIncludeAllExports = new Set<Module>();
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	hasTreeShakingPassStarted = false;
@@ -695,6 +696,12 @@ export default class Module {
 
 	hasEffects(): boolean {
 		return this.info.moduleSideEffects === 'no-treeshake' || this.ast!.hasCachedEffects();
+	}
+
+	includeDynamicDependenciesIncludeAllExports() {
+		for (const dynamicDependencies of this.dynamicDependenciesIncludeAllExports) {
+			dynamicDependencies.includeAllExports(true);
+		}
 	}
 
 	include(): void {
@@ -1350,23 +1357,23 @@ export default class Module {
 	}
 
 	private includeDynamicImport(node: ImportExpression): void {
-		const resolution = (
-			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
-				resolution: string | Module | ExternalModule | undefined;
-			}
-		).resolution;
+		const resolution = this.dynamicImports.find(
+			dynamicImport => dynamicImport.node === node
+		)!.resolution;
 
 		if (resolution instanceof Module) {
-			resolution.includedDynamicImporters.push(this);
+			!resolution.includedDynamicImporters.includes(this) &&
+				resolution.includedDynamicImporters.push(this);
 
 			const importedNames = this.options.treeshake
 				? node.getDeterministicImportedNames()
 				: undefined;
 
 			if (importedNames) {
+				this.dynamicDependenciesIncludeAllExports.delete(resolution);
 				resolution.includeExportsByNames(importedNames);
 			} else {
-				resolution.includeAllExports(true);
+				this.dynamicDependenciesIncludeAllExports.add(resolution);
 			}
 		}
 	}
