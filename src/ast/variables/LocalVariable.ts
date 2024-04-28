@@ -28,6 +28,7 @@ import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
+
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
 	readonly kind: VariableKind;
@@ -181,8 +182,13 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includePath(): void {
-		if (!this.included) {
+	includePath(path?: ObjectPath): void {
+		if (this.included) {
+			if (path?.length && !this.includedPaths.has(path[0])) {
+				this.includedPaths.add(path[0]);
+				this.init.includePath(path, createInclusionContext(), false);
+			}
+		} else {
 			super.includePath();
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
