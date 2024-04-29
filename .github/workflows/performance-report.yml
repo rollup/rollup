@@ -1,6 +1,4 @@
 name: Performance Report
-env:
-  BUILD_BOOTSTRAP_CJS: mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit && rm -rf dist-build
 
 on:
   pull_request:
@@ -62,7 +60,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts 123
-        run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && ${{env.BUILD_BOOTSTRAP_CJS}} && npm run build:copy-native
+        run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap:cjs && npm run build:copy-native
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
