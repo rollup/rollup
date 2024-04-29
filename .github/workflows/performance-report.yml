@@ -1,11 +1,12 @@
 name: Performance Report
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - synchronize
       - opened
       - reopened
+      - labeled
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -16,6 +17,7 @@ permissions:
 
 jobs:
   build-artefacts:
+    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
     strategy:
       matrix:
         settings:
@@ -71,7 +73,7 @@ jobs:
   report:
     needs: build-artefacts
     permissions:
-      pull-requests: write
+      pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
     runs-on: ubuntu-latest
     name: Report Performance
     steps:
