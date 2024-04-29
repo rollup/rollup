@@ -6,9 +6,9 @@ import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
-import type Identifier from '../nodes/Identifier';
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import { deoptimizeInteraction, UnknownValue } from '../nodes/shared/Expression';
+import type IdentifierBase from '../nodes/shared/IdentifierBase';
 import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { SymbolToStringTag } from '../utils/PathTracker';
@@ -22,7 +22,7 @@ export default class NamespaceVariable extends Variable {
 	private memberVariables: Record<string, Variable> | null = null;
 	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
-	private references: Identifier[] = [];
+	private references: IdentifierBase[] = [];
 
 	constructor(context: AstContext) {
 		super(context.getModuleName());
@@ -30,7 +30,7 @@ export default class NamespaceVariable extends Variable {
 		this.module = context.module;
 	}
 
-	addReference(identifier: Identifier): void {
+	addReference(identifier: IdentifierBase): void {
 		this.references.push(identifier);
 		this.name = identifier.name;
 	}

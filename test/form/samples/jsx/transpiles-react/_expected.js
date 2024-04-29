@@ -1,4 +1,6 @@
 import React from "react";
 
 const Foo = () => {};
-export const result = React.createElement(Foo, null);
+const result = /*#__PURE__*/React.createElement(Foo, null);
+
+export { result };

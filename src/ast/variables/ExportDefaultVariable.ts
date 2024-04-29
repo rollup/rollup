@@ -3,6 +3,7 @@ import ClassDeclaration from '../nodes/ClassDeclaration';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier, { type IdentifierWithVariable } from '../nodes/Identifier';
+import type IdentifierBase from '../nodes/shared/IdentifierBase';
 import type { NodeBase } from '../nodes/shared/Node';
 import LocalVariable from './LocalVariable';
 import UndefinedVariable from './UndefinedVariable';
@@ -32,7 +33,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	addReference(identifier: Identifier): void {
+	addReference(identifier: IdentifierBase): void {
 		if (!this.hasId) {
 			this.name = identifier.name;
 		}
