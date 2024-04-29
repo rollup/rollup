@@ -15,8 +15,14 @@ export default new (class ReportCollector {
 	 */
 	push(message) {
 		if (!this.#isRecording) return;
-		if (message.startsWith('#')) {
-			message = '##' + message;
+		if (message.startsWith('# ')) {
+			message = message.replace(/^# /, '- ');
+		} else if (message.startsWith('## ')) {
+			message = message.replace(/^## /, '  - ');
+		} else if (message.startsWith('- ')) {
+			message = '      ' + message;
+		} else {
+			message = '    - ' + message;
 		}
 		this.#messageList.push(message);
 	}

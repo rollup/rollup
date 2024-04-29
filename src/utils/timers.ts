@@ -18,7 +18,9 @@ interface Timer {
 
 let timers = new Map<string, Timer>();
 
-function getPersistedLabel(label: string, level: number): string {
+type LabelLevel = 1 | 2 | 3 | 4;
+
+function getPersistedLabel(label: string, level: LabelLevel): string {
 	switch (level) {
 		case 1: {
 			return `# ${label}`;
@@ -30,12 +32,12 @@ function getPersistedLabel(label: string, level: number): string {
 			return label;
 		}
 		default: {
-			return `${'  '.repeat(level - 4)}- ${label}`;
+			return `- ${label}`;
 		}
 	}
 }
 
-function timeStartImpl(label: string, level = 3): void {
+function timeStartImpl(label: string, level: LabelLevel = 3): void {
 	label = getPersistedLabel(label, level);
 
 	const startMemory = process.memoryUsage().heapUsed;
@@ -57,7 +59,7 @@ function timeStartImpl(label: string, level = 3): void {
 	}
 }
 
-function timeEndImpl(label: string, level = 3): void {
+function timeEndImpl(label: string, level: LabelLevel = 3): void {
 	label = getPersistedLabel(label, level);
 
 	const timer = timers.get(label);
@@ -79,8 +81,8 @@ export function getTimings(): SerializedTimings {
 	return newTimings;
 }
 
-export let timeStart: (label: string, level?: number) => void = doNothing;
-export let timeEnd: (label: string, level?: number) => void = doNothing;
+export let timeStart: (label: string, level?: LabelLevel) => void = doNothing;
+export let timeEnd: (label: string, level?: LabelLevel) => void = doNothing;
 
 const TIMED_PLUGIN_HOOKS: readonly (keyof PluginHooks)[] = [
 	'augmentChunkHash',
