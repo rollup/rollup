@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.17.1
+
+_2024-04-29_
+
+### Bug Fixes
+
+- Prevent infinite recursions for certain constructor invocations (#5500)
+
+### Pull Requests
+
+- [#5500](https://github.com/rollup/rollup/pull/5500): fix: parameter variable infinite recursion error (@liuly0322)
+
 ## 4.17.0
 
 _2024-04-27_
