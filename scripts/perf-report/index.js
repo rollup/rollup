@@ -24,8 +24,9 @@ const { bold, underline, cyan, red, green } = createColors();
 const MIN_ABSOLUTE_TIME_DEVIATION = 10;
 const MIN_RELATIVE_DEVIATION_PERCENT = 2;
 const RELATIVE_DEVIATION_PERCENT_FOR_COLORING = 5;
-const RUNS_TO_AVERAGE = 5;
-const DISCARDED_RESULTS = 2;
+const RUNS_TO_AVERAGE = 7;
+const DISCARDED_LARGE_RESULTS = 2;
+const DISCARDED_SMALL_RESULTS = 1;
 
 await ensureBenchmarkExists();
 await calculatePrintAndPersistTimings();
@@ -63,8 +64,8 @@ async function calculatePrintAndPersistTimings() {
 	console.info(
 		bold(
 			`Comparing against rollup@${previousVersion}.\nCalculating the average of ${cyan(RUNS_TO_AVERAGE)} runs discarding the ${cyan(
-				DISCARDED_RESULTS
-			)} largest results.`
+				DISCARDED_LARGE_RESULTS
+			)} largest and the ${cyan(DISCARDED_SMALL_RESULTS)}s smallest results.`
 		)
 	);
 	chdir(fileURLToPath(PERF_DIRECTORY));
@@ -137,12 +138,14 @@ function getAverage(accumulatedMeasurements, runs) {
 			memory: getSingleAverage(
 				accumulatedMeasurements[label].map(timing => timing[2]),
 				runs,
-				DISCARDED_RESULTS
+				DISCARDED_LARGE_RESULTS,
+				DISCARDED_SMALL_RESULTS
 			),
 			time: getSingleAverage(
 				accumulatedMeasurements[label].map(timing => timing[0]),
 				runs,
-				DISCARDED_RESULTS
+				DISCARDED_LARGE_RESULTS,
+				DISCARDED_SMALL_RESULTS
 			)
 		};
 	}
@@ -152,16 +155,19 @@ function getAverage(accumulatedMeasurements, runs) {
 /**
  * @param {number[]} times
  * @param {number} runs
- * @param {number} discarded
+ * @param {number} discardedLarge
+ * @param {number} discardedSmall
  * @return {number}
  */
-function getSingleAverage(times, runs, discarded) {
-	const actualDiscarded = Math.min(discarded, runs - 1);
+function getSingleAverage(times, runs, discardedLarge, discardedSmall) {
+	const actualDiscarded = Math.min(discardedLarge + discardedSmall, runs - 1);
+	const actualDiscardedSmall = Math.max(actualDiscarded - discardedLarge, 0);
+	const actualDiscardedLarge = actualDiscarded - actualDiscardedSmall;
 	return (
 		times
 			.sort()
 			.reverse()
-			.slice(actualDiscarded)
+			.slice(actualDiscardedLarge, runs - actualDiscardedSmall)
 			.reduce((sum, time) => sum + time, 0) /
 		(runs - actualDiscarded)
 	);
