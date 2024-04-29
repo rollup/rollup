@@ -1,3 +1,5 @@
+let created = false;
+
 class Test {
 	constructor ( name, opts ) {
 		opts = opts || {};
@@ -10,7 +12,9 @@ class Test {
 
 		this.name = name;
 		this.opts = opts;
+		created = true;
 	}
 }
 
 new Test( 'a', {} );
+assert.equal( created, true );

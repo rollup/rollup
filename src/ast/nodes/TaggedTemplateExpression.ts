@@ -34,17 +34,14 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		try {
-			for (const argument of this.quasi.expressions) {
-				if (argument.hasEffects(context)) return true;
-			}
-			return (
-				this.tag.hasEffects(context) ||
-				this.tag.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
-			);
-		} finally {
-			if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.deoptimized) this.applyDeoptimizations();
+		for (const argument of this.quasi.expressions) {
+			if (argument.hasEffects(context)) return true;
 		}
+		return (
+			this.tag.hasEffects(context) ||
+			this.tag.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
+		);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

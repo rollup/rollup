@@ -19,20 +19,17 @@ export default class NewExpression extends NodeBase {
 	declare annotationPure?: boolean;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		try {
-			for (const argument of this.arguments) {
-				if (argument.hasEffects(context)) return true;
-			}
-			if (this.annotationPure) {
-				return false;
-			}
-			return (
-				this.callee.hasEffects(context) ||
-				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
-			);
-		} finally {
-			if (!this.deoptimized) this.applyDeoptimizations();
+		if (!this.deoptimized) this.applyDeoptimizations();
+		for (const argument of this.arguments) {
+			if (argument.hasEffects(context)) return true;
 		}
+		if (this.annotationPure) {
+			return false;
+		}
+		return (
+			this.callee.hasEffects(context) ||
+			this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
+		);
 	}
 
 	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
