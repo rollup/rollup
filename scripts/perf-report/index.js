@@ -22,7 +22,8 @@ const ENTRY = new URL('entry.js', PERF_DIRECTORY);
 const THREEJS_COPIES = 10;
 const { bold, underline, cyan, red, green } = createColors();
 const MIN_ABSOLUTE_TIME_DEVIATION = 10;
-const RELATIVE_DEVIATION_FOR_COLORING = 5;
+const MIN_RELATIVE_DEVIATION_PERCENT = 2;
+const RELATIVE_DEVIATION_PERCENT_FOR_COLORING = 5;
 const RUNS_TO_AVERAGE = 5;
 const DISCARDED_RESULTS = 2;
 
@@ -255,13 +256,16 @@ function getFormattedTime(measuredTime, baseTime = measuredTime) {
 	let color = identity,
 		formattedTime = `${measuredTime.toFixed(0)}ms`;
 	const absoluteDeviation = Math.abs(measuredTime - baseTime);
-	if (absoluteDeviation > MIN_ABSOLUTE_TIME_DEVIATION) {
+	const relativeDeviation = 100 * (absoluteDeviation / baseTime);
+	if (
+		absoluteDeviation > MIN_ABSOLUTE_TIME_DEVIATION &&
+		relativeDeviation > MIN_RELATIVE_DEVIATION_PERCENT
+	) {
 		const sign = measuredTime >= baseTime ? '+' : '-';
-		const relativeDeviation = 100 * (absoluteDeviation / baseTime);
 		formattedTime += ` (${sign}${absoluteDeviation.toFixed(
 			0
 		)}ms, ${sign}${relativeDeviation.toFixed(1)}%)`;
-		if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
+		if (relativeDeviation > RELATIVE_DEVIATION_PERCENT_FOR_COLORING) {
 			color = measuredTime >= baseTime ? red : green;
 		}
 	}
@@ -280,11 +284,13 @@ function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
 	let color = identity,
 		formattedMemory = prettyBytes(currentMemory);
 	const absoluteDeviation = Math.abs(currentMemory - persistedMemory);
-	const sign = currentMemory >= persistedMemory ? '+' : '-';
 	const relativeDeviation = 100 * (absoluteDeviation / persistedMemory);
-	if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
+	if (relativeDeviation > MIN_RELATIVE_DEVIATION_PERCENT) {
+		const sign = currentMemory >= persistedMemory ? '+' : '-';
 		formattedMemory += ` (${sign}${relativeDeviation.toFixed(0)}%)`;
-		color = currentMemory >= persistedMemory ? red : green;
+		if (relativeDeviation > RELATIVE_DEVIATION_PERCENT_FOR_COLORING) {
+			color = currentMemory >= persistedMemory ? red : green;
+		}
 	}
 	return color(formattedMemory);
 }
