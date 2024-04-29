@@ -12,6 +12,7 @@ class Test {
 
 		this.name = name;
 		this.opts = opts;
+		// to make the function call not pure
 		created = true;
 	}
 }

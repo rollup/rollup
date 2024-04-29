@@ -12,7 +12,7 @@ function Test(options) {
 
 function Test2(options) {
 	if (!this) {
-		return new Test(options);
+		return new Test2(options);
 	}
 	if (options.x) {
 		return 0;
