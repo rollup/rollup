@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.17.2
+
+_2024-04-30_
+
+### Bug Fixes
+
+- Fix tree-shaking problems when using spread arguments (#5503)
+
+### Pull Requests
+
+- [#5501](https://github.com/rollup/rollup/pull/5501): Slightly improve perf report (@lukastaegert)
+- [#5503](https://github.com/rollup/rollup/pull/5503): fix: rest element should deoptimize parameter values (@liuly0322)
+
 ## 4.17.1
 
 _2024-04-29_
