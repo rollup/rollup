@@ -22,9 +22,11 @@ const ENTRY = new URL('entry.js', PERF_DIRECTORY);
 const THREEJS_COPIES = 10;
 const { bold, underline, cyan, red, green } = createColors();
 const MIN_ABSOLUTE_TIME_DEVIATION = 10;
-const RELATIVE_DEVIATION_FOR_COLORING = 5;
-const RUNS_TO_AVERAGE = 5;
-const DISCARDED_RESULTS = 2;
+const MIN_RELATIVE_DEVIATION_PERCENT = 2;
+const RELATIVE_DEVIATION_PERCENT_FOR_COLORING = 5;
+const RUNS_TO_AVERAGE = 7;
+const DISCARDED_LARGE_RESULTS = 2;
+const DISCARDED_SMALL_RESULTS = 1;
 
 await ensureBenchmarkExists();
 await calculatePrintAndPersistTimings();
@@ -62,8 +64,8 @@ async function calculatePrintAndPersistTimings() {
 	console.info(
 		bold(
 			`Comparing against rollup@${previousVersion}.\nCalculating the average of ${cyan(RUNS_TO_AVERAGE)} runs discarding the ${cyan(
-				DISCARDED_RESULTS
-			)} largest results.`
+				DISCARDED_LARGE_RESULTS
+			)} largest and the ${cyan(DISCARDED_SMALL_RESULTS)}s smallest results.`
 		)
 	);
 	chdir(fileURLToPath(PERF_DIRECTORY));
@@ -136,12 +138,14 @@ function getAverage(accumulatedMeasurements, runs) {
 			memory: getSingleAverage(
 				accumulatedMeasurements[label].map(timing => timing[2]),
 				runs,
-				DISCARDED_RESULTS
+				DISCARDED_LARGE_RESULTS,
+				DISCARDED_SMALL_RESULTS
 			),
 			time: getSingleAverage(
 				accumulatedMeasurements[label].map(timing => timing[0]),
 				runs,
-				DISCARDED_RESULTS
+				DISCARDED_LARGE_RESULTS,
+				DISCARDED_SMALL_RESULTS
 			)
 		};
 	}
@@ -151,16 +155,19 @@ function getAverage(accumulatedMeasurements, runs) {
 /**
  * @param {number[]} times
  * @param {number} runs
- * @param {number} discarded
+ * @param {number} discardedLarge
+ * @param {number} discardedSmall
  * @return {number}
  */
-function getSingleAverage(times, runs, discarded) {
-	const actualDiscarded = Math.min(discarded, runs - 1);
+function getSingleAverage(times, runs, discardedLarge, discardedSmall) {
+	const actualDiscarded = Math.min(discardedLarge + discardedSmall, runs - 1);
+	const actualDiscardedSmall = Math.max(actualDiscarded - discardedLarge, 0);
+	const actualDiscardedLarge = actualDiscarded - actualDiscardedSmall;
 	return (
 		times
 			.sort()
 			.reverse()
-			.slice(actualDiscarded)
+			.slice(actualDiscardedLarge, runs - actualDiscardedSmall)
 			.reduce((sum, time) => sum + time, 0) /
 		(runs - actualDiscarded)
 	);
@@ -255,13 +262,16 @@ function getFormattedTime(measuredTime, baseTime = measuredTime) {
 	let color = identity,
 		formattedTime = `${measuredTime.toFixed(0)}ms`;
 	const absoluteDeviation = Math.abs(measuredTime - baseTime);
-	if (absoluteDeviation > MIN_ABSOLUTE_TIME_DEVIATION) {
+	const relativeDeviation = 100 * (absoluteDeviation / baseTime);
+	if (
+		absoluteDeviation > MIN_ABSOLUTE_TIME_DEVIATION &&
+		relativeDeviation > MIN_RELATIVE_DEVIATION_PERCENT
+	) {
 		const sign = measuredTime >= baseTime ? '+' : '-';
-		const relativeDeviation = 100 * (absoluteDeviation / baseTime);
 		formattedTime += ` (${sign}${absoluteDeviation.toFixed(
 			0
 		)}ms, ${sign}${relativeDeviation.toFixed(1)}%)`;
-		if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
+		if (relativeDeviation > RELATIVE_DEVIATION_PERCENT_FOR_COLORING) {
 			color = measuredTime >= baseTime ? red : green;
 		}
 	}
@@ -280,11 +290,13 @@ function getFormattedMemory(currentMemory, persistedMemory = currentMemory) {
 	let color = identity,
 		formattedMemory = prettyBytes(currentMemory);
 	const absoluteDeviation = Math.abs(currentMemory - persistedMemory);
-	const sign = currentMemory >= persistedMemory ? '+' : '-';
 	const relativeDeviation = 100 * (absoluteDeviation / persistedMemory);
-	if (relativeDeviation > RELATIVE_DEVIATION_FOR_COLORING) {
+	if (relativeDeviation > MIN_RELATIVE_DEVIATION_PERCENT) {
+		const sign = currentMemory >= persistedMemory ? '+' : '-';
 		formattedMemory += ` (${sign}${relativeDeviation.toFixed(0)}%)`;
-		color = currentMemory >= persistedMemory ? red : green;
+		if (relativeDeviation > RELATIVE_DEVIATION_PERCENT_FOR_COLORING) {
+			color = currentMemory >= persistedMemory ? red : green;
+		}
 	}
 	return color(formattedMemory);
 }

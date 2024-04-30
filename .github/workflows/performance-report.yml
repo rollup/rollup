@@ -1,13 +1,12 @@
 name: Performance Report
-env:
-  BUILD_BOOTSTRAP_CJS: mv dist dist-build && node dist-build/bin/rollup --config rollup.config.ts --configPlugin typescript --configTest --forceExit && rm -rf dist-build
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - synchronize
       - opened
       - reopened
+      - labeled
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -18,6 +17,7 @@ permissions:
 
 jobs:
   build-artefacts:
+    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
     strategy:
       matrix:
         settings:
@@ -62,7 +62,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
       - name: Build artefacts 123
-        run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && ${{env.BUILD_BOOTSTRAP_CJS}} && npm run build:copy-native
+        run: npm exec -- concurrently -c green,blue 'npm:build:napi -- --release' 'npm:build:cjs' && npm run build:copy-native && npm run build:bootstrap:cjs && npm run build:copy-native
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -73,7 +73,7 @@ jobs:
   report:
     needs: build-artefacts
     permissions:
-      pull-requests: write
+      pull-requests: write # for peter-evans/find-comment and peter-evans/create-or-update-comment
     runs-on: ubuntu-latest
     name: Report Performance
     steps:
