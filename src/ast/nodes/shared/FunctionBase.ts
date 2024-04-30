@@ -18,7 +18,7 @@ import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
-import type SpreadElement from '../SpreadElement';
+import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
@@ -100,6 +100,9 @@ export default abstract class FunctionBase extends NodeBase {
 				const parameter = this.params[position];
 				// Only the "this" argument arg[0] can be null
 				const argument = args[position + 1]!;
+				if (argument instanceof SpreadElement) {
+					this.deoptimizeParameterVariableValues();
+				}
 				if (hasRest || parameter instanceof RestElement) {
 					hasRest = true;
 					argument.deoptimizePath(UNKNOWN_PATH);
