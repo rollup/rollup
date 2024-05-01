@@ -436,7 +436,7 @@ impl<'a> AstConverter<'a> {
   fn convert_jsx_attribute_name(&mut self, jsx_attribute_name: &JSXAttrName) {
     match jsx_attribute_name {
       JSXAttrName::Ident(identifier) => {
-        self.store_jsx_identifier(identifier);
+        self.store_jsx_identifier(&identifier.span, &identifier.sym);
       }
       JSXAttrName::JSXNamespacedName(_jsx_namespaced_name) => {
         unimplemented!("JSXElementName::JSXNamespacedName")
@@ -488,7 +488,9 @@ impl<'a> AstConverter<'a> {
 
   fn convert_jsx_element_name(&mut self, jsx_element_name: &JSXElementName) {
     match jsx_element_name {
-      JSXElementName::Ident(identifier) => self.store_jsx_identifier(identifier),
+      JSXElementName::Ident(identifier) => {
+        self.store_jsx_identifier(&identifier.span, &identifier.sym)
+      }
       JSXElementName::JSXMemberExpr(_jsx_member_expression) => {
         unimplemented!("JSXElementName::JSXMemberExpr")
       }
@@ -940,7 +942,6 @@ impl<'a> AstConverter<'a> {
     // end
     self.add_end(end_position, &jsx_text.span);
   }
-
 }
 
 pub fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation) {

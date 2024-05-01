@@ -476,15 +476,15 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 		};
 	},
 	function jsxElement(position, buffer): JSXElementNode {
-		const closingElementPosition = buffer[position + 3];
+		const closingElementPosition = buffer[position + 4];
 		return {
 			type: 'JSXElement',
 			start: buffer[position],
 			end: buffer[position + 1],
 			openingElement: convertNode(buffer[position + 2], buffer),
+			children: convertNodeList(buffer[position + 3], buffer),
 			closingElement:
-				closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer),
-			children: convertNodeList(buffer[position + 4], buffer)
+				closingElementPosition === 0 ? null : convertNode(closingElementPosition, buffer)
 		};
 	},
 	function jsxEmptyExpression(position, buffer): JSXEmptyExpressionNode {
@@ -508,8 +508,8 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			start: buffer[position],
 			end: buffer[position + 1],
 			openingFragment: convertNode(buffer[position + 2], buffer),
-			closingFragment: convertNode(buffer[position + 3], buffer),
-			children: convertNodeList(buffer[position + 4], buffer)
+			children: convertNodeList(buffer[position + 3], buffer),
+			closingFragment: convertNode(buffer[position + 4], buffer)
 		};
 	},
 	function jsxIdentifier(position, buffer): JSXIdentifierNode {

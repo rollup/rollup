@@ -1,9 +1,19 @@
+import type JSXClosingElement from './JSXClosingElement';
+import type JSXExpressionContainer from './JSXExpressionContainer';
+import type JSXFragment from './JSXFragment';
+import type JSXOpeningElement from './JSXOpeningElement';
+import type JSXText from './JSXText';
 import type * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 export default class JSXElement extends NodeBase {
-	declare closingElement: unknown;
-	declare openingElement: unknown;
-	declare type: NodeType.tJSXElement;
-	declare children: ExpressionNode[];
+	type!: NodeType.tJSXElement;
+	openingElement!: JSXOpeningElement;
+	closingElement!: JSXClosingElement | null;
+	children!: (
+		| JSXText
+		| JSXExpressionContainer
+		| JSXElement
+		| JSXFragment
+	) /* TODO | JSXSpreadChild */[];
 }
