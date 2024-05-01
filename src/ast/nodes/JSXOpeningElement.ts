@@ -5,7 +5,7 @@ import { NodeBase } from './shared/Node';
 
 export default class JSXOpeningElement extends NodeBase {
 	type!: NodeType.tJSXOpeningElement;
-	selfClosing!: boolean;
 	name!: JSXIdentifier;
-	attributes!: JSXAttribute[];
+	attributes!: JSXAttribute /* TODO | JSXSpreadAttribute */[];
+	selfClosing!: boolean;
 }

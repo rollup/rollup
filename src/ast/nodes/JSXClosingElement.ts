@@ -4,5 +4,5 @@ import { NodeBase } from './shared/Node';
 
 export default class JSXClosingElement extends NodeBase {
 	type!: NodeType.tJSXClosingElement;
-	name!: JSXIdentifier;
+	name!: JSXIdentifier /* TODO | JSXMemberExpression | JSXNamespacedName */;
 }

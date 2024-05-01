@@ -610,12 +610,12 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	function jsxElement(node: JSXElement, position, buffer) {
 		const { scope } = node;
 		node.openingElement = convertNode(node, scope, buffer[position], buffer);
-		const closingElementPosition = buffer[position + 1];
+		node.children = convertNodeList(node, scope, buffer[position + 1], buffer);
+		const closingElementPosition = buffer[position + 2];
 		node.closingElement =
 			closingElementPosition === 0
 				? null
 				: convertNode(node, scope, closingElementPosition, buffer);
-		node.children = convertNodeList(node, scope, buffer[position + 2], buffer);
 	},
 	function jsxEmptyExpression() {},
 	function jsxExpressionContainer(node: JSXExpressionContainer, position, buffer) {
@@ -625,8 +625,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	function jsxFragment(node: JSXFragment, position, buffer) {
 		const { scope } = node;
 		node.openingFragment = convertNode(node, scope, buffer[position], buffer);
-		node.closingFragment = convertNode(node, scope, buffer[position + 1], buffer);
-		node.children = convertNodeList(node, scope, buffer[position + 2], buffer);
+		node.children = convertNodeList(node, scope, buffer[position + 1], buffer);
+		node.closingFragment = convertNode(node, scope, buffer[position + 2], buffer);
 	},
 	function jsxIdentifier(node: JSXIdentifier, position, buffer) {
 		node.name = buffer.convertString(buffer[position]);
