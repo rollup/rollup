@@ -15,6 +15,7 @@ import type { ObjectPath } from '../utils/PathTracker';
 export default class Variable extends ExpressionEntity {
 	alwaysRendered = false;
 	forbiddenNames: Set<string> | null = null;
+	globalName: string | null = null;
 	initReached = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
@@ -84,6 +85,9 @@ export default class Variable extends ExpressionEntity {
 		getPropertyAccess: (name: string) => string,
 		useOriginalName?: RenderOptions['useOriginalName']
 	): string {
+		if (this.globalName) {
+			return this.globalName;
+		}
 		if (useOriginalName?.(this)) {
 			return this.name;
 		}

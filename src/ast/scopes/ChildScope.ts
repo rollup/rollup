@@ -106,6 +106,12 @@ export default class ChildScope extends Scope {
 		return (this.parent as ChildScope).findLexicalBoundary();
 	}
 
+	findGlobal(name: string): Variable {
+		const variable = this.parent.findVariable(name);
+		this.accessedOutsideVariables.set(name, variable);
+		return variable;
+	}
+
 	findVariable(name: string): Variable {
 		const knownVariable = this.variables.get(name) || this.accessedOutsideVariables.get(name);
 		if (knownVariable) {
