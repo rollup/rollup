@@ -863,8 +863,10 @@ const bufferParsers: ((
 	},
 	function variableDeclarator(node: VariableDeclarator, position, buffer, readString) {
 		const { scope } = node;
-		node.id = convertNode(node, scope, buffer[position], buffer, readString);
-		const initPosition = buffer[position + 1];
+		const flags = buffer[position];
+		node.definite = (flags & 1) === 1;
+		node.id = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		const initPosition = buffer[position + 2];
 		node.init =
 			initPosition === 0 ? null : convertNode(node, scope, initPosition, buffer, readString);
 	},

@@ -659,10 +659,12 @@ export const AST_NODES = {
 		}
 	},
 	VariableDeclarator: {
+		estreeType: 'any',
 		fields: [
 			['id', 'Node'],
 			['init', 'OptionalNode']
-		]
+		],
+		flags: ['definite']
 	},
 	WhileStatement: {
 		fields: [

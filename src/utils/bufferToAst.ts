@@ -1180,6 +1180,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function variableDeclarator(position, buffer, readString): VariableDeclaratorNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const flags = buffer[position++];
+		const definite = (flags & 1) === 1;
 		const id = convertNode(buffer[position++], buffer, readString);
 		const initPosition = buffer[position];
 		const init = initPosition === 0 ? null : convertNode(initPosition, buffer, readString);
@@ -1187,6 +1189,7 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			type: 'VariableDeclarator',
 			start,
 			end,
+			definite,
 			id,
 			init
 		};
@@ -1334,7 +1337,7 @@ export type TSTypeAnnotationNode = RollupAstNode<any>;
 export type UnaryExpressionNode = RollupAstNode<estree.UnaryExpression> & { prefix: true };
 export type UpdateExpressionNode = RollupAstNode<estree.UpdateExpression>;
 export type VariableDeclarationNode = RollupAstNode<estree.VariableDeclaration>;
-export type VariableDeclaratorNode = RollupAstNode<estree.VariableDeclarator>;
+export type VariableDeclaratorNode = RollupAstNode<any>;
 export type WhileStatementNode = RollupAstNode<estree.WhileStatement>;
 export type YieldExpressionNode = RollupAstNode<estree.YieldExpression>;
 

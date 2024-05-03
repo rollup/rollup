@@ -21,8 +21,7 @@ const {
 } = require('node:fs');
 const path = require('node:path');
 const { platform, version } = require('node:process');
-const { Parser } = require('acorn');
-const { importAssertions } = require('acorn-import-assertions');
+const { parse } = require('@typescript-eslint/typescript-estree');
 const fixturify = require('fixturify');
 
 if (!globalThis.defineTest) {
@@ -451,37 +450,34 @@ exports.replaceDirectoryInStringifiedObject = function replaceDirectoryInStringi
 /** @type {boolean} */
 exports.hasEsBuild = existsSync(path.join(__dirname, '../dist/es'));
 
-const acornParser = Parser.extend(importAssertions);
-
 exports.verifyAstPlugin = {
 	name: 'verify-ast',
 	moduleParsed: ({ ast, code }) => {
-		const acornAst = acornParser.parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+		const eslintAst = parse(code, {
+			errorOnUnknownASTType: true,
+			jsx: true,
+			range: true
+		});
 		assert.deepStrictEqual(
 			JSON.parse(JSON.stringify(ast, replaceStringifyValues), reviveStringifyValues),
-			JSON.parse(JSON.stringify(acornAst, replaceStringifyValues), reviveStringifyValues)
+			JSON.parse(JSON.stringify(eslintAst, replaceStringifyValues), reviveStringifyValues)
 		);
 	}
 };
 
 const replaceStringifyValues = (key, value) => {
-	switch (value?.type) {
-		case 'ImportDeclaration':
-		case 'ExportNamedDeclaration':
-		case 'ExportAllDeclaration': {
-			const { attributes, ...nonAttributesProperties } = value;
-			return {
-				...nonAttributesProperties,
-				...(attributes?.length > 0 ? { assertions: attributes } : {})
-			};
+	const type = value?.type;
+	if (type) {
+		const range = value.range;
+		if (range) {
+			const properties = { ...value, start: range[0], end: range[1] };
+			delete properties.range;
+			return properties;
 		}
-		case 'ImportExpression': {
-			const { options, ...nonOptionsProperties } = value;
-			return { ...nonOptionsProperties, ...(options ? { arguments: [options] } : {}) };
-		}
+		return value;
 	}
 
-	return key.startsWith('_')
+	return key.startsWith('_') || key === 'sourceType'
 		? undefined
 		: typeof value == 'bigint'
 			? `~BigInt${value.toString()}`
