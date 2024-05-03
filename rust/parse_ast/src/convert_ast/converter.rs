@@ -1084,8 +1084,22 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_ts_keyword_type_kind(&self, keyword_type_kind: &TsKeywordTypeKind) {
-    todo!("missing implementation")
+  fn convert_ts_keyword_type_kind(&mut self, keyword_type_kind: &TsKeywordTypeKind, span: &Span) {
+    match keyword_type_kind {
+        TsKeywordTypeKind::TsAnyKeyword       => todo!("TsKeywordTypeKind::TsAnyKeyword"),
+        TsKeywordTypeKind::TsUnknownKeyword   => todo!("TsKeywordTypeKind::TsUnknownKeyword"),
+        TsKeywordTypeKind::TsNumberKeyword    => self.convert_ts_number_keyword(span),
+        TsKeywordTypeKind::TsObjectKeyword    => todo!("TsKeywordTypeKind::TsObjectKeyword"),
+        TsKeywordTypeKind::TsBooleanKeyword   => todo!("TsKeywordTypeKind::TsBooleanKeyword"),
+        TsKeywordTypeKind::TsBigIntKeyword    => todo!("TsKeywordTypeKind::TsBigIntKeyword"),
+        TsKeywordTypeKind::TsStringKeyword    => todo!("TsKeywordTypeKind::TsStringKeyword"),
+        TsKeywordTypeKind::TsSymbolKeyword    => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
+        TsKeywordTypeKind::TsVoidKeyword      => todo!("TsKeywordTypeKind::TsVoidKeyword"),
+        TsKeywordTypeKind::TsUndefinedKeyword => todo!("TsKeywordTypeKind::TsUndefinedKeyword"),
+        TsKeywordTypeKind::TsNullKeyword      => todo!("TsKeywordTypeKind::TsNullKeyword"),
+        TsKeywordTypeKind::TsNeverKeyword     => todo!("TsKeywordTypeKind::TsNeverKeyword"),
+        TsKeywordTypeKind::TsIntrinsicKeyword => todo!("TsKeywordTypeKind::TsIntrinsicKeyword"),
+    }
   }
 
   fn convert_variable_declaration_or_expression(
@@ -3087,9 +3101,16 @@ impl<'a> AstConverter<'a> {
     );
     // typeAnnotation
     self.update_reference_position(end_position + TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET);
-    self.convert_ts_keyword_type_kind(&keyword_type.kind);
+    self.convert_ts_keyword_type_kind(&keyword_type.kind, &keyword_type.span);
     // end
     self.add_end(end_position, &keyword_type.span);
+  }
+
+  fn convert_ts_number_keyword(&mut self, span: &Span) {
+    let end_position = self.add_type_and_start(&TYPE_TS_NUMBER_KEYWORD, span, TS_NUMBER_KEYWORD_RESERVED_BYTES, false);
+
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {
