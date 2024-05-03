@@ -1096,7 +1096,7 @@ impl<'a> AstConverter<'a> {
         TsKeywordTypeKind::TsSymbolKeyword    => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
         TsKeywordTypeKind::TsVoidKeyword      => todo!("TsKeywordTypeKind::TsVoidKeyword"),
         TsKeywordTypeKind::TsUndefinedKeyword => todo!("TsKeywordTypeKind::TsUndefinedKeyword"),
-        TsKeywordTypeKind::TsNullKeyword      => todo!("TsKeywordTypeKind::TsNullKeyword"),
+        TsKeywordTypeKind::TsNullKeyword      => self.convert_ts_null_keyword(span),
         TsKeywordTypeKind::TsNeverKeyword     => todo!("TsKeywordTypeKind::TsNeverKeyword"),
         TsKeywordTypeKind::TsIntrinsicKeyword => todo!("TsKeywordTypeKind::TsIntrinsicKeyword"),
     }
@@ -3104,6 +3104,14 @@ impl<'a> AstConverter<'a> {
     self.convert_ts_keyword_type_kind(&keyword_type.kind, &keyword_type.span);
     // end
     self.add_end(end_position, &keyword_type.span);
+  }
+
+  fn convert_ts_null_keyword(&mut self, span: &Span) {
+    // TODO: check if TYPE_LITERAL_NULL and LITERAL_NULL_RESERVED_BYTES are the correct constants, here
+    let end_position = self.add_type_and_start(&TYPE_LITERAL_NULL, span, LITERAL_NULL_RESERVED_BYTES, false);
+
+    // end
+    self.add_end(end_position, span);
   }
 
   fn convert_ts_number_keyword(&mut self, span: &Span) {
