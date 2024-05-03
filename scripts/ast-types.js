@@ -1,6 +1,6 @@
 /**
  * This file contains the AST node descriptions for the ESTree AST.
- * From this file, "npm run build:ast:converters" will generate
+ * From this file, "npm run build:ast-converters" will generate
  * - /rust/parse_ast/src/convert_ast/converter/ast_constants.rs:
  *   Constants that describe how the AST nodes are encoded in Rust.
  * - /src/utils/bufferToAst.ts:
