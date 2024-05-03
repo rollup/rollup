@@ -3107,8 +3107,7 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_ts_null_keyword(&mut self, span: &Span) {
-    // TODO: check if TYPE_LITERAL_NULL and LITERAL_NULL_RESERVED_BYTES are the correct constants, here
-    let end_position = self.add_type_and_start(&TYPE_LITERAL_NULL, span, LITERAL_NULL_RESERVED_BYTES, false);
+    let end_position = self.add_type_and_start(&TYPE_TS_NULL_KEYWORD, span, TS_NULL_KEYWORD_RESERVED_BYTES, false);
 
     // end
     self.add_end(end_position, span);
