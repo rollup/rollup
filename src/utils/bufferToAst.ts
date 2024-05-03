@@ -374,9 +374,10 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 		const sourcePosition = buffer[position++];
 		const source = sourcePosition === 0 ? null : convertNode(sourcePosition, buffer, readString);
 		const attributes = convertNodeList(buffer[position++], buffer, readString);
-		const declarationPosition = buffer[position];
+		const declarationPosition = buffer[position++];
 		const declaration =
 			declarationPosition === 0 ? null : convertNode(declarationPosition, buffer, readString);
+		const exportKind = FIXED_STRINGS[buffer[position]] as any;
 		return {
 			type: 'ExportNamedDeclaration',
 			start,
@@ -384,7 +385,8 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			specifiers,
 			source,
 			attributes,
-			declaration
+			declaration,
+			exportKind
 		};
 	},
 	function exportSpecifier(position, buffer, readString): ExportSpecifierNode {
@@ -1260,9 +1262,7 @@ export type ExportAllDeclarationNode = RollupAstNode<
 	estree.ExportAllDeclaration & { attributes: ImportAttributeNode[] }
 >;
 export type ExportDefaultDeclarationNode = RollupAstNode<estree.ExportDefaultDeclaration>;
-export type ExportNamedDeclarationNode = RollupAstNode<
-	estree.ExportNamedDeclaration & { attributes: ImportAttributeNode[] }
->;
+export type ExportNamedDeclarationNode = RollupAstNode<any>;
 export type ExportSpecifierNode = RollupAstNode<estree.ExportSpecifier>;
 export type ExpressionStatementNode = RollupAstNode<estree.ExpressionStatement>;
 export type ForInStatementNode = RollupAstNode<estree.ForInStatement>;

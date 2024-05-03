@@ -476,6 +476,7 @@ const bufferParsers: ((
 			declarationPosition === 0
 				? null
 				: convertNode(node, scope, declarationPosition, buffer, readString);
+		node.exportKind = FIXED_STRINGS[buffer[position + 4]] as any;
 	},
 	function exportSpecifier(node: ExportSpecifier, position, buffer, readString) {
 		const { scope } = node;

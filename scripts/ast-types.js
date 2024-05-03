@@ -231,13 +231,17 @@ export const AST_NODES = {
 		fields: [['declaration', 'Node']]
 	},
 	ExportNamedDeclaration: {
-		estreeType: 'estree.ExportNamedDeclaration & { attributes: ImportAttributeNode[] }',
+		estreeType: 'any',
 		fields: [
 			['specifiers', 'NodeList'],
 			['source', 'OptionalNode'],
 			['attributes', 'NodeList'],
-			['declaration', 'OptionalNode']
-		]
+			['declaration', 'OptionalNode'],
+			['exportKind', 'FixedString']
+		],
+		fieldTypes: {
+			exportKind: 'any'
+		}
 	},
 	ExportSpecifier: {
 		fields: [

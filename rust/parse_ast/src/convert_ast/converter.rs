@@ -1,6 +1,24 @@
 use swc_atoms::JsWord;
 use swc_common::Span;
-use swc_ecma_ast::{ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AssignTarget, AssignTargetPat, AwaitExpr, BigInt, BinaryOp, BindingIdent, BinExpr, BlockStmt, BlockStmtOrExpr, Bool, BreakStmt, Callee, CallExpr, CatchClause, Class, ClassDecl, ClassExpr, ClassMember, ClassMethod, ClassProp, ComputedPropName, CondExpr, Constructor, ContinueStmt, DebuggerStmt, Decl, DefaultDecl, DoWhileStmt, EmptyStmt, ExportAll, ExportDecl, ExportDefaultDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr, ForHead, ForInStmt, ForOfStmt, ForStmt, Function, GetterProp, Ident, IfStmt, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, ImportStarAsSpecifier, KeyValuePatProp, KeyValueProp, LabeledStmt, Lit, MemberExpr, MemberProp, MetaPropExpr, MetaPropKind, MethodKind, MethodProp, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, NewExpr, Null, Number, ObjectLit, ObjectPat, ObjectPatProp, OptCall, OptChainBase, OptChainExpr, ParamOrTsParamProp, ParenExpr, Pat, PrivateMethod, PrivateName, PrivateProp, Program, Prop, PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget, SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt, TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, TsKeywordType, TsKeywordTypeKind, TsType, TsTypeAnn, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, UsingDecl, VarDecl, VarDeclarator, VarDeclKind, VarDeclOrExpr, WhileStmt, YieldExpr};
+use swc_ecma_ast::{
+  ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AssignTarget,
+  AssignTargetPat, AwaitExpr, BigInt, BinaryOp, BindingIdent, BinExpr, BlockStmt, BlockStmtOrExpr,
+  Bool, BreakStmt, Callee, CallExpr, CatchClause, Class, ClassDecl, ClassExpr, ClassMember,
+  ClassMethod, ClassProp, ComputedPropName, CondExpr, Constructor, ContinueStmt, DebuggerStmt,
+  Decl, DefaultDecl, DoWhileStmt, EmptyStmt, ExportAll, ExportDecl, ExportDefaultDecl,
+  ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr,
+  ForHead, ForInStmt, ForOfStmt, ForStmt, Function, GetterProp, Ident, IfStmt, ImportDecl,
+  ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, ImportStarAsSpecifier,
+  KeyValuePatProp, KeyValueProp, LabeledStmt, Lit, MemberExpr, MemberProp, MetaPropExpr,
+  MetaPropKind, MethodKind, MethodProp, ModuleDecl, ModuleExportName, ModuleItem, NamedExport,
+  NewExpr, Null, Number, ObjectLit, ObjectPat, ObjectPatProp, OptCall, OptChainBase, OptChainExpr,
+  ParamOrTsParamProp, ParenExpr, Pat, PrivateMethod, PrivateName, PrivateProp, Program, Prop,
+  PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget,
+  SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
+  TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, TsKeywordType, TsKeywordTypeKind,
+  TsType, TsTypeAnn, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, UsingDecl, VarDecl, VarDeclarator,
+  VarDeclKind, VarDeclOrExpr, WhileStmt, YieldExpr,
+};
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
@@ -201,8 +219,7 @@ impl<'a> AstConverter<'a> {
       self.convert_type_annotation(type_annotation);
       // end
       self.add_end(end_position, &type_annotation.span);
-    }
-    else {
+    } else {
       // end
       self.add_end(end_position, &binding_identifier.span);
     }
@@ -309,6 +326,7 @@ impl<'a> AstConverter<'a> {
       None,
       Some(&export_declaration.decl),
       &None,
+      false,
     );
   }
 
@@ -345,13 +363,24 @@ impl<'a> AstConverter<'a> {
           &export_named_declaration.with,
           Some(&export_namespace_specifier.name),
         ),
-      None | Some(ExportSpecifier::Named(_)) => self.store_export_named_declaration(
-        &export_named_declaration.span,
-        &export_named_declaration.specifiers,
-        export_named_declaration.src.as_deref(),
-        None,
-        &export_named_declaration.with,
-      ),
+      None => self
+        .store_export_named_declaration(
+          &export_named_declaration.span,
+          &export_named_declaration.specifiers,
+          export_named_declaration.src.as_deref(),
+          None,
+          &export_named_declaration.with,
+          false,
+        ),
+      Some(ExportSpecifier::Named(export_named_specifier)) => self
+        .store_export_named_declaration(
+          &export_named_declaration.span,
+          &export_named_declaration.specifiers,
+          export_named_declaration.src.as_deref(),
+          None,
+          &export_named_declaration.with,
+          export_named_specifier.is_type_only,
+        ),
       Some(ExportSpecifier::Default(_)) => panic!("Unexpected default export specifier"),
     }
   }
@@ -1086,19 +1115,19 @@ impl<'a> AstConverter<'a> {
 
   fn convert_ts_keyword_type_kind(&mut self, keyword_type_kind: &TsKeywordTypeKind, span: &Span) {
     match keyword_type_kind {
-        TsKeywordTypeKind::TsAnyKeyword       => todo!("TsKeywordTypeKind::TsAnyKeyword"),
-        TsKeywordTypeKind::TsUnknownKeyword   => todo!("TsKeywordTypeKind::TsUnknownKeyword"),
-        TsKeywordTypeKind::TsNumberKeyword    => self.convert_ts_number_keyword(span),
-        TsKeywordTypeKind::TsObjectKeyword    => todo!("TsKeywordTypeKind::TsObjectKeyword"),
-        TsKeywordTypeKind::TsBooleanKeyword   => todo!("TsKeywordTypeKind::TsBooleanKeyword"),
-        TsKeywordTypeKind::TsBigIntKeyword    => todo!("TsKeywordTypeKind::TsBigIntKeyword"),
-        TsKeywordTypeKind::TsStringKeyword    => todo!("TsKeywordTypeKind::TsStringKeyword"),
-        TsKeywordTypeKind::TsSymbolKeyword    => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
-        TsKeywordTypeKind::TsVoidKeyword      => todo!("TsKeywordTypeKind::TsVoidKeyword"),
-        TsKeywordTypeKind::TsUndefinedKeyword => todo!("TsKeywordTypeKind::TsUndefinedKeyword"),
-        TsKeywordTypeKind::TsNullKeyword      => self.convert_ts_null_keyword(span),
-        TsKeywordTypeKind::TsNeverKeyword     => todo!("TsKeywordTypeKind::TsNeverKeyword"),
-        TsKeywordTypeKind::TsIntrinsicKeyword => todo!("TsKeywordTypeKind::TsIntrinsicKeyword"),
+      TsKeywordTypeKind::TsAnyKeyword => todo!("TsKeywordTypeKind::TsAnyKeyword"),
+      TsKeywordTypeKind::TsUnknownKeyword => todo!("TsKeywordTypeKind::TsUnknownKeyword"),
+      TsKeywordTypeKind::TsNumberKeyword => self.convert_ts_number_keyword(span),
+      TsKeywordTypeKind::TsObjectKeyword => todo!("TsKeywordTypeKind::TsObjectKeyword"),
+      TsKeywordTypeKind::TsBooleanKeyword => todo!("TsKeywordTypeKind::TsBooleanKeyword"),
+      TsKeywordTypeKind::TsBigIntKeyword => todo!("TsKeywordTypeKind::TsBigIntKeyword"),
+      TsKeywordTypeKind::TsStringKeyword => todo!("TsKeywordTypeKind::TsStringKeyword"),
+      TsKeywordTypeKind::TsSymbolKeyword => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
+      TsKeywordTypeKind::TsVoidKeyword => todo!("TsKeywordTypeKind::TsVoidKeyword"),
+      TsKeywordTypeKind::TsUndefinedKeyword => todo!("TsKeywordTypeKind::TsUndefinedKeyword"),
+      TsKeywordTypeKind::TsNullKeyword => self.convert_ts_null_keyword(span),
+      TsKeywordTypeKind::TsNeverKeyword => todo!("TsKeywordTypeKind::TsNeverKeyword"),
+      TsKeywordTypeKind::TsIntrinsicKeyword => todo!("TsKeywordTypeKind::TsIntrinsicKeyword"),
     }
   }
 
@@ -1723,6 +1752,7 @@ impl<'a> AstConverter<'a> {
     src: Option<&Str>,
     declaration: Option<&Decl>,
     with: &Option<Box<ObjectLit>>,
+    is_type_only: bool,
   ) {
     let end_position = self.add_type_and_start(
       &TYPE_EXPORT_NAMED_DECLARATION,
@@ -1734,6 +1764,13 @@ impl<'a> AstConverter<'a> {
         _ => false,
       },
     );
+    // exportKind
+    let export_kind_position = end_position + EXPORT_NAMED_DECLARATION_EXPORT_KIND_OFFSET;
+    self.buffer[export_kind_position..export_kind_position + 4].copy_from_slice(if is_type_only {
+      &STRING_TYPE
+    } else {
+      &STRING_VALUE
+    });
     // specifiers
     self.convert_item_list(
       specifiers,
@@ -3107,14 +3144,24 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_ts_null_keyword(&mut self, span: &Span) {
-    let end_position = self.add_type_and_start(&TYPE_TS_NULL_KEYWORD, span, TS_NULL_KEYWORD_RESERVED_BYTES, false);
+    let end_position = self.add_type_and_start(
+      &TYPE_TS_NULL_KEYWORD,
+      span,
+      TS_NULL_KEYWORD_RESERVED_BYTES,
+      false,
+    );
 
     // end
     self.add_end(end_position, span);
   }
 
   fn convert_ts_number_keyword(&mut self, span: &Span) {
-    let end_position = self.add_type_and_start(&TYPE_TS_NUMBER_KEYWORD, span, TS_NUMBER_KEYWORD_RESERVED_BYTES, false);
+    let end_position = self.add_type_and_start(
+      &TYPE_TS_NUMBER_KEYWORD,
+      span,
+      TS_NUMBER_KEYWORD_RESERVED_BYTES,
+      false,
+    );
 
     // end
     self.add_end(end_position, span);
@@ -3177,28 +3224,29 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
-    let (kind, span, decls, declare): (&[u8; 4], Span, &Vec<VarDeclarator>, bool) = match variable_declaration {
-      VariableDeclaration::Var(value) => (
-        match value.kind {
-          VarDeclKind::Var => &STRING_VAR,
-          VarDeclKind::Let => &STRING_LET,
-          VarDeclKind::Const => &STRING_CONST,
-        },
-        value.span,
-        &value.decls,
-        value.declare,
-      ),
-      &VariableDeclaration::Using(value) => (
-        if value.is_await {
-          &STRING_AWAIT_USING
-        } else {
-          &STRING_USING
-        },
-        value.span,
-        &value.decls,
-        false
-      ),
-    };
+    let (kind, span, decls, declare): (&[u8; 4], Span, &Vec<VarDeclarator>, bool) =
+      match variable_declaration {
+        VariableDeclaration::Var(value) => (
+          match value.kind {
+            VarDeclKind::Var => &STRING_VAR,
+            VarDeclKind::Let => &STRING_LET,
+            VarDeclKind::Const => &STRING_CONST,
+          },
+          value.span,
+          &value.decls,
+          value.declare,
+        ),
+        &VariableDeclaration::Using(value) => (
+          if value.is_await {
+            &STRING_AWAIT_USING
+          } else {
+            &STRING_USING
+          },
+          value.span,
+          &value.decls,
+          false,
+        ),
+      };
     let end_position = self.add_type_and_start(
       &TYPE_VARIABLE_DECLARATION,
       &span,

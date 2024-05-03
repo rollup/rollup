@@ -64,3 +64,5 @@ pub const STRING_NOSIDEEFFECTS: [u8; 4] = 59u32.to_ne_bytes(); // noSideEffects
 pub const STRING_SOURCEMAP: [u8; 4] = 60u32.to_ne_bytes(); // sourcemap
 pub const STRING_USING: [u8; 4] = 61u32.to_ne_bytes(); // using
 pub const STRING_AWAIT_USING: [u8; 4] = 62u32.to_ne_bytes(); // await using
+pub const STRING_VALUE: [u8; 4] = 63u32.to_ne_bytes(); // value
+pub const STRING_TYPE: [u8; 4] = 64u32.to_ne_bytes(); // type

@@ -72,7 +72,9 @@ const stringConstantsTemplate = [
 	['STRING_NOSIDEEFFECTS', 'noSideEffects'],
 	['STRING_SOURCEMAP', 'sourcemap'],
 	['STRING_USING', 'using'],
-	['STRING_AWAIT_USING', 'await using']
+	['STRING_AWAIT_USING', 'await using'],
+	['STRING_VALUE', 'value'],
+	['STRING_TYPE', 'type']
 ];
 
 const rustCode =
