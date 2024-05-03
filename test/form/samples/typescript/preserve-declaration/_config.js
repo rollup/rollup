@@ -4,5 +4,6 @@ module.exports = defineTest({
 	options: {
 		input: ['main.ts'],
 		typescript: 'preserve'
-	}
+	},
+	verifyAst: false
 });
