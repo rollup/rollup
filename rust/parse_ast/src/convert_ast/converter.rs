@@ -1,6 +1,24 @@
 use swc_atoms::JsWord;
 use swc_common::Span;
-use swc_ecma_ast::{ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AssignTarget, AssignTargetPat, AwaitExpr, BigInt, BinExpr, BinaryOp, BindingIdent, BlockStmt, BlockStmtOrExpr, Bool, BreakStmt, CallExpr, Callee, CatchClause, Class, ClassDecl, ClassExpr, ClassMember, ClassMethod, ClassProp, ComputedPropName, CondExpr, Constructor, ContinueStmt, DebuggerStmt, Decl, DefaultDecl, DoWhileStmt, EmptyStmt, ExportAll, ExportDecl, ExportDefaultDecl, ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr, ForHead, ForInStmt, ForOfStmt, ForStmt, Function, GetterProp, Ident, IfStmt, ImportDecl, ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, ImportStarAsSpecifier, KeyValuePatProp, KeyValueProp, LabeledStmt, Lit, MemberExpr, MemberProp, MetaPropExpr, MetaPropKind, MethodKind, MethodProp, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, NewExpr, Null, Number, ObjectLit, ObjectPat, ObjectPatProp, OptCall, OptChainBase, OptChainExpr, ParamOrTsParamProp, ParenExpr, Pat, PrivateMethod, PrivateName, PrivateProp, Program, Prop, PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget, SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt, TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, UsingDecl, VarDecl, VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr, TsTypeAnn};
+use swc_ecma_ast::{
+  ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AssignTarget,
+  AssignTargetPat, AwaitExpr, BigInt, BinExpr, BinaryOp, BindingIdent, BlockStmt, BlockStmtOrExpr,
+  Bool, BreakStmt, CallExpr, Callee, CatchClause, Class, ClassDecl, ClassExpr, ClassMember,
+  ClassMethod, ClassProp, ComputedPropName, CondExpr, Constructor, ContinueStmt, DebuggerStmt,
+  Decl, DefaultDecl, DoWhileStmt, EmptyStmt, ExportAll, ExportDecl, ExportDefaultDecl,
+  ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr,
+  ForHead, ForInStmt, ForOfStmt, ForStmt, Function, GetterProp, Ident, IfStmt, ImportDecl,
+  ImportDefaultSpecifier, ImportNamedSpecifier, ImportSpecifier, ImportStarAsSpecifier,
+  KeyValuePatProp, KeyValueProp, LabeledStmt, Lit, MemberExpr, MemberProp, MetaPropExpr,
+  MetaPropKind, MethodKind, MethodProp, ModuleDecl, ModuleExportName, ModuleItem, NamedExport,
+  NewExpr, Null, Number, ObjectLit, ObjectPat, ObjectPatProp, OptCall, OptChainBase, OptChainExpr,
+  ParamOrTsParamProp, ParenExpr, Pat, PrivateMethod, PrivateName, PrivateProp, Program, Prop,
+  PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget,
+  SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
+  TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, TsType, TsTypeAnn, UnaryExpr, UnaryOp,
+  UpdateExpr, UpdateOp, UsingDecl, VarDecl, VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt,
+  YieldExpr,
+};
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
@@ -184,13 +202,20 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_binding_identifier(&mut self, binding_identifier: &BindingIdent) {
-    let end_position =
-        self.add_type_and_start(&TYPE_IDENTIFIER, &binding_identifier.span, IDENTIFIER_RESERVED_BYTES, false);
+    let end_position = self.add_type_and_start(
+      &TYPE_IDENTIFIER,
+      &binding_identifier.span,
+      IDENTIFIER_RESERVED_BYTES,
+      false,
+    );
     // name
-    self.convert_string(&binding_identifier.id.sym, end_position + IDENTIFIER_NAME_OFFSET);
+    self.convert_string(
+      &binding_identifier.id.sym,
+      end_position + IDENTIFIER_NAME_OFFSET,
+    );
     // typeAnnotation
     if let Some(type_annotation) = binding_identifier.type_ann.as_ref() {
-      self.update_reference_position(end_position+IDENTIFIER_TYPE_ANNOTATION_OFFSET);
+      self.update_reference_position(end_position + IDENTIFIER_TYPE_ANNOTATION_OFFSET);
       self.convert_type_annotation(type_annotation);
     }
     // end
@@ -1006,6 +1031,71 @@ impl<'a> AstConverter<'a> {
       },
       false,
     );
+  }
+
+  fn convert_type_annotation(&self, type_annotation: &TsTypeAnn) {
+    match &*type_annotation.type_ann {
+      TsType::TsKeywordType(_) => {
+        unimplemented!("TsKeywordType")
+      }
+      TsType::TsThisType(_) => {
+        unimplemented!("TsThisType")
+      }
+      TsType::TsFnOrConstructorType(_) => {
+        unimplemented!("TsFnOrConstructorType")
+      }
+      TsType::TsTypeRef(_) => {
+        unimplemented!("TsTypeRef")
+      }
+      TsType::TsTypeQuery(_) => {
+        unimplemented!("TsTypeQuery")
+      }
+      TsType::TsTypeLit(_) => {
+        unimplemented!("TsTypeLit")
+      }
+      TsType::TsArrayType(_) => {
+        unimplemented!("TsArrayType")
+      }
+      TsType::TsTupleType(_) => {
+        unimplemented!("TsTupleType")
+      }
+      TsType::TsOptionalType(_) => {
+        unimplemented!("TsOptionalType")
+      }
+      TsType::TsRestType(_) => {
+        unimplemented!("TsRestType")
+      }
+      TsType::TsUnionOrIntersectionType(_) => {
+        unimplemented!("TsUnionOrIntersectionType")
+      }
+      TsType::TsConditionalType(_) => {
+        unimplemented!("TsConditionalType")
+      }
+      TsType::TsInferType(_) => {
+        unimplemented!("TsInferType")
+      }
+      TsType::TsParenthesizedType(_) => {
+        unimplemented!("TsParenthesizedType")
+      }
+      TsType::TsTypeOperator(_) => {
+        unimplemented!("TsTypeOperator")
+      }
+      TsType::TsIndexedAccessType(_) => {
+        unimplemented!("TsIndexedAccessType")
+      }
+      TsType::TsMappedType(_) => {
+        unimplemented!("TsMappedType")
+      }
+      TsType::TsLitType(_) => {
+        unimplemented!("TsLitType")
+      }
+      TsType::TsTypePredicate(_) => {
+        unimplemented!("TsTypePredicate")
+      }
+      TsType::TsImportType(_) => {
+        unimplemented!("TsImportType")
+      }
+    }
   }
 
   fn convert_variable_declaration_or_expression(
@@ -3169,9 +3259,6 @@ impl<'a> AstConverter<'a> {
     });
     // end
     self.add_end(end_position, &yield_expression.span);
-  }
-  fn convert_type_annotation(&self, type_annotation: &TsTypeAnn) {
-    todo!("convert")
   }
 }
 
