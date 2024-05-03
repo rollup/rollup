@@ -64,6 +64,7 @@ import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
 import TSInterfaceBody from './TSInterfaceBody';
 import TSInterfaceDeclaration from './TSInterfaceDeclaration';
+import TSNullKeyword from './TSNullKeyword';
 import TSNumberKeyword from './TSNumberKeyword';
 import TSPropertySignature from './TSPropertySignature';
 import TSTypeAnnotation from './TSTypeAnnotation';
@@ -154,6 +155,7 @@ export const nodeConstructors: {
 	TryStatement,
 	TSInterfaceBody,
 	TSInterfaceDeclaration,
+	TSNullKeyword,
 	TSNumberKeyword,
 	TSPropertySignature,
 	TSTypeAnnotation,

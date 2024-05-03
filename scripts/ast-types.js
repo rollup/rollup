@@ -604,6 +604,10 @@ export const AST_NODES = {
 		estreeType: 'any',
 		fields: [['body', 'Node']]
 	},
+	TSNullKeyword: {
+		estreeType: 'any',
+		fields: []
+	},
 	TSNumberKeyword: {
 		estreeType: 'any',
 		fields: []

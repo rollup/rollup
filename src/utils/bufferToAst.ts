@@ -1081,6 +1081,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			body
 		};
 	},
+	function tSNullKeyword(position, buffer): TSNullKeywordNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'TSNullKeyword',
+			start,
+			end
+		};
+	},
 	function tSNumberKeyword(position, buffer): TSNumberKeywordNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -1318,6 +1327,7 @@ export type ThrowStatementNode = RollupAstNode<estree.ThrowStatement>;
 export type TryStatementNode = RollupAstNode<estree.TryStatement>;
 export type TSInterfaceBodyNode = RollupAstNode<any>;
 export type TSInterfaceDeclarationNode = RollupAstNode<any>;
+export type TSNullKeywordNode = RollupAstNode<any>;
 export type TSNumberKeywordNode = RollupAstNode<any>;
 export type TSPropertySignatureNode = RollupAstNode<any>;
 export type TSTypeAnnotationNode = RollupAstNode<any>;

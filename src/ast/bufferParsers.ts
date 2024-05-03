@@ -72,6 +72,7 @@ import SwitchCase from './nodes/SwitchCase';
 import SwitchStatement from './nodes/SwitchStatement';
 import TSInterfaceBody from './nodes/TSInterfaceBody';
 import TSInterfaceDeclaration from './nodes/TSInterfaceDeclaration';
+import TSNullKeyword from './nodes/TSNullKeyword';
 import TSNumberKeyword from './nodes/TSNumberKeyword';
 import TSPropertySignature from './nodes/TSPropertySignature';
 import TSTypeAnnotation from './nodes/TSTypeAnnotation';
@@ -184,6 +185,7 @@ const nodeTypeStrings = [
 	'TryStatement',
 	'TSInterfaceBody',
 	'TSInterfaceDeclaration',
+	'TSNullKeyword',
 	'TSNumberKeyword',
 	'TSPropertySignature',
 	'TSTypeAnnotation',
@@ -271,6 +273,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	TryStatement,
 	TSInterfaceBody,
 	TSInterfaceDeclaration,
+	TSNullKeyword,
 	TSNumberKeyword,
 	TSPropertySignature,
 	TSTypeAnnotation,
@@ -821,6 +824,7 @@ const bufferParsers: ((
 		const { scope } = node;
 		node.body = convertNode(node, scope, buffer[position], buffer, readString);
 	},
+	function tSNullKeyword() {},
 	function tSNumberKeyword() {},
 	function tSPropertySignature(node: TSPropertySignature, position, buffer, readString) {
 		const { scope } = node;
