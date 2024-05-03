@@ -1,22 +1,22 @@
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 
+use swc_common::{FileName, FilePathMapping, Globals, GLOBALS, SourceMap};
 use swc_common::sync::Lrc;
-use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
-use swc_compiler_base::parse_js;
 use swc_compiler_base::IsModule;
+use swc_compiler_base::parse_js;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsConfig, Syntax, TsConfig};
 
+use convert_ast::converter::{AstConverter, convert_string};
 use convert_ast::converter::ast_constants::{PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR};
-use convert_ast::converter::{convert_string, AstConverter};
 use error_emit::try_with_handler;
 
 use crate::convert_ast::annotations::SequentialComments;
 use crate::convert_ast::converter::ast_constants::PANIC_ERROR_MESSAGE_OFFSET;
 use crate::convert_ast::converter::update_reference_position;
 
+mod ast_nodes;
 mod convert_ast;
-
 mod error_emit;
 
 pub fn parse_ast(code: String, allow_return_outside_function: bool, preserve_typescript: bool) -> Vec<u8> {
