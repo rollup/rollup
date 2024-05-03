@@ -62,6 +62,11 @@ import StaticBlock from './StaticBlock';
 import Super from './Super';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
+import TSInterfaceBody from './TSInterfaceBody';
+import TSInterfaceDeclaration from './TSInterfaceDeclaration';
+import TSNumberKeyword from './TSNumberKeyword';
+import TSPropertySignature from './TSPropertySignature';
+import TSTypeAnnotation from './TSTypeAnnotation';
 import TaggedTemplateExpression from './TaggedTemplateExpression';
 import TemplateElement from './TemplateElement';
 import TemplateLiteral from './TemplateLiteral';
@@ -147,6 +152,11 @@ export const nodeConstructors: {
 	ThisExpression,
 	ThrowStatement,
 	TryStatement,
+	TSInterfaceBody,
+	TSInterfaceDeclaration,
+	TSNumberKeyword,
+	TSPropertySignature,
+	TSTypeAnnotation,
 	UnaryExpression,
 	UnknownNode,
 	UpdateExpression,

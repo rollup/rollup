@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { AST_NODES } from './ast-types.js';
-import { generateNotEditFilesComment, lintTsFile } from './helpers.js';
+import { compareIgnoringCase, generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
 const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
@@ -23,7 +23,7 @@ for (const [name, node] of Object.entries(AST_NODES)) {
 const childNodeKeys = `${notEditFilesComment}
 export const childNodeKeys: Record<string, string[]> = {
   ${Object.entries(childNodeKeysByAstType)
-		.sort(([astType1], [astType2]) => astType1.localeCompare(astType2))
+		.sort(([astType1], [astType2]) => compareIgnoringCase(astType1, astType2))
 		.map(([astType, keys]) => `${astType}: [${[...keys].map(key => `'${key}'`).join(', ')}]`)
 		.join(',\n  ')}
 };
