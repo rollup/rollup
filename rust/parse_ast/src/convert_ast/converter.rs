@@ -204,7 +204,7 @@ impl<'a> AstConverter<'a> {
   fn convert_binding_identifier(&mut self, binding_identifier: &BindingIdent) {
     let end_position = self.add_type_and_start(
       &TYPE_IDENTIFIER,
-      &binding_identifier.span,
+      &binding_identifier.id.span,
       IDENTIFIER_RESERVED_BYTES,
       false,
     );
@@ -363,24 +363,22 @@ impl<'a> AstConverter<'a> {
           &export_named_declaration.with,
           Some(&export_namespace_specifier.name),
         ),
-      None => self
-        .store_export_named_declaration(
-          &export_named_declaration.span,
-          &export_named_declaration.specifiers,
-          export_named_declaration.src.as_deref(),
-          None,
-          &export_named_declaration.with,
-          false,
-        ),
-      Some(ExportSpecifier::Named(export_named_specifier)) => self
-        .store_export_named_declaration(
-          &export_named_declaration.span,
-          &export_named_declaration.specifiers,
-          export_named_declaration.src.as_deref(),
-          None,
-          &export_named_declaration.with,
-          export_named_specifier.is_type_only,
-        ),
+      None => self.store_export_named_declaration(
+        &export_named_declaration.span,
+        &export_named_declaration.specifiers,
+        export_named_declaration.src.as_deref(),
+        None,
+        &export_named_declaration.with,
+        false,
+      ),
+      Some(ExportSpecifier::Named(export_named_specifier)) => self.store_export_named_declaration(
+        &export_named_declaration.span,
+        &export_named_declaration.specifiers,
+        export_named_declaration.src.as_deref(),
+        None,
+        &export_named_declaration.with,
+        export_named_specifier.is_type_only,
+      ),
       Some(ExportSpecifier::Default(_)) => panic!("Unexpected default export specifier"),
     }
   }
@@ -1051,7 +1049,7 @@ impl<'a> AstConverter<'a> {
   fn convert_type_annotation(&mut self, type_annotation: &TsTypeAnn) {
     match &*type_annotation.type_ann {
       TsType::TsKeywordType(keyword_type) => {
-        self.convert_ts_keyword_type(keyword_type);
+        self.convert_ts_keyword_type(keyword_type, &type_annotation.span)
       }
       TsType::TsThisType(_) => {
         unimplemented!("TsThisType")
@@ -3129,10 +3127,10 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &try_statement.span);
   }
 
-  fn convert_ts_keyword_type(&mut self, keyword_type: &TsKeywordType) {
+  fn convert_ts_keyword_type(&mut self, keyword_type: &TsKeywordType, span: &Span) {
     let end_position = self.add_type_and_start(
       &TYPE_TS_TYPE_ANNOTATION,
-      &keyword_type.span,
+      span,
       TS_TYPE_ANNOTATION_RESERVED_BYTES,
       false,
     );

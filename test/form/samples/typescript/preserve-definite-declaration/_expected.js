@@ -1,3 +1,3 @@
-const x: number = 42;
+let x!: number;
 
 export { x };
