@@ -201,7 +201,12 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_binding_identifier(&mut self, binding_identifier: &BindingIdent) {
-    self.convert_identifier(&binding_identifier.id);
+    let end_position =
+        self.add_type_and_start(&TYPE_IDENTIFIER, &binding_identifier.span, IDENTIFIER_RESERVED_BYTES, false);
+    // name
+    self.convert_string(&binding_identifier.id.sym, end_position + IDENTIFIER_NAME_OFFSET);
+    // end
+    self.add_end(end_position, &binding_identifier.span);
   }
 
   fn convert_call_expression(
