@@ -858,8 +858,10 @@ const bufferParsers: ((
 	},
 	function variableDeclaration(node: VariableDeclaration, position, buffer, readString) {
 		const { scope } = node;
-		node.kind = FIXED_STRINGS[buffer[position]] as estree.VariableDeclaration['kind'];
-		node.declarations = convertNodeList(node, scope, buffer[position + 1], buffer, readString);
+		const flags = buffer[position];
+		node.declare = (flags & 1) === 1;
+		node.kind = FIXED_STRINGS[buffer[position + 1]] as estree.VariableDeclaration['kind'];
+		node.declarations = convertNodeList(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function variableDeclarator(node: VariableDeclarator, position, buffer, readString) {
 		const { scope } = node;

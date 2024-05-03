@@ -3177,7 +3177,7 @@ impl<'a> AstConverter<'a> {
   }
 
   fn convert_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
-    let (kind, span, decls): (&[u8; 4], Span, &Vec<VarDeclarator>) = match variable_declaration {
+    let (kind, span, decls, declare): (&[u8; 4], Span, &Vec<VarDeclarator>, bool) = match variable_declaration {
       VariableDeclaration::Var(value) => (
         match value.kind {
           VarDeclKind::Var => &STRING_VAR,
@@ -3186,6 +3186,7 @@ impl<'a> AstConverter<'a> {
         },
         value.span,
         &value.decls,
+        value.declare,
       ),
       &VariableDeclaration::Using(value) => (
         if value.is_await {
@@ -3195,6 +3196,7 @@ impl<'a> AstConverter<'a> {
         },
         value.span,
         &value.decls,
+        false
       ),
     };
     let end_position = self.add_type_and_start(
@@ -3203,6 +3205,13 @@ impl<'a> AstConverter<'a> {
       VARIABLE_DECLARATION_RESERVED_BYTES,
       kind == &STRING_CONST,
     );
+    // flags
+    let mut flags = 0u32;
+    if declare {
+      flags |= VARIABLE_DECLARATION_DECLARE_FLAG;
+    }
+    let flags_position = end_position + YIELD_EXPRESSION_FLAGS_OFFSET;
+    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // declarations
     self.convert_item_list(
       decls,

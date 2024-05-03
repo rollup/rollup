@@ -650,13 +650,15 @@ export const AST_NODES = {
 		flags: ['prefix']
 	},
 	VariableDeclaration: {
+		estreeType: 'any',
 		fields: [
 			['kind', 'FixedString'],
 			['declarations', 'NodeList']
 		],
 		fieldTypes: {
 			kind: "estree.VariableDeclaration['kind']"
-		}
+		},
+		flags: ['declare']
 	},
 	VariableDeclarator: {
 		estreeType: 'any',

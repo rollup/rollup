@@ -472,12 +472,16 @@ const replaceStringifyValues = (key, value) => {
 		if (range) {
 			const properties = { ...value, start: range[0], end: range[1] };
 			delete properties.range;
+			if (type === 'Identifier') {
+				// TODO not sure in which cases identifiers can have decorators, ignore for now
+				delete properties.decorators;
+			}
 			return properties;
 		}
 		return value;
 	}
 
-	return key.startsWith('_') || key === 'sourceType'
+	return key.startsWith('_') || key === 'sourceType' || (key === 'optional' && value === false)
 		? undefined
 		: typeof value == 'bigint'
 			? `~BigInt${value.toString()}`

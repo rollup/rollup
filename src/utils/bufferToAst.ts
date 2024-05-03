@@ -1167,12 +1167,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function variableDeclaration(position, buffer, readString): VariableDeclarationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const flags = buffer[position++];
+		const declare = (flags & 1) === 1;
 		const kind = FIXED_STRINGS[buffer[position++]] as estree.VariableDeclaration['kind'];
 		const declarations = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'VariableDeclaration',
 			start,
 			end,
+			declare,
 			kind,
 			declarations
 		};
@@ -1336,7 +1339,7 @@ export type TSPropertySignatureNode = RollupAstNode<any>;
 export type TSTypeAnnotationNode = RollupAstNode<any>;
 export type UnaryExpressionNode = RollupAstNode<estree.UnaryExpression> & { prefix: true };
 export type UpdateExpressionNode = RollupAstNode<estree.UpdateExpression>;
-export type VariableDeclarationNode = RollupAstNode<estree.VariableDeclaration>;
+export type VariableDeclarationNode = RollupAstNode<any>;
 export type VariableDeclaratorNode = RollupAstNode<any>;
 export type WhileStatementNode = RollupAstNode<estree.WhileStatement>;
 export type YieldExpressionNode = RollupAstNode<estree.YieldExpression>;
