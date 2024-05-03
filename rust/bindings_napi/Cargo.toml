@@ -16,10 +16,10 @@ parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
-mimalloc-rust = { version = "0.2" }
+mimalloc-rust = { version = "0.2.1" }
 
 [target.'cfg(all(target_os = "linux", not(all(target_env = "musl", target_arch = "aarch64"))))'.dependencies]
-mimalloc-rust = { version = "0.2", features = ["local-dynamic-tls"] }
+mimalloc-rust = { version = "0.2.1", features = ["local-dynamic-tls"] }
 
 [build-dependencies]
 napi-build = "2.1.3"
