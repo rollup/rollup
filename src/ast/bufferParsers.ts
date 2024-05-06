@@ -70,6 +70,7 @@ import StaticBlock from './nodes/StaticBlock';
 import Super from './nodes/Super';
 import SwitchCase from './nodes/SwitchCase';
 import SwitchStatement from './nodes/SwitchStatement';
+import TSBooleanKeyword from './nodes/TSBooleanKeyword';
 import TSInterfaceBody from './nodes/TSInterfaceBody';
 import TSInterfaceDeclaration from './nodes/TSInterfaceDeclaration';
 import TSNullKeyword from './nodes/TSNullKeyword';
@@ -183,6 +184,7 @@ const nodeTypeStrings = [
 	'ThisExpression',
 	'ThrowStatement',
 	'TryStatement',
+	'TSBooleanKeyword',
 	'TSInterfaceBody',
 	'TSInterfaceDeclaration',
 	'TSNullKeyword',
@@ -271,6 +273,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	ThisExpression,
 	ThrowStatement,
 	TryStatement,
+	TSBooleanKeyword,
 	TSInterfaceBody,
 	TSInterfaceDeclaration,
 	TSNullKeyword,
@@ -817,6 +820,7 @@ const bufferParsers: ((
 				? null
 				: convertNode(node, scope, finalizerPosition, buffer, readString);
 	},
+	function tSBooleanKeyword() {},
 	function tSInterfaceBody(node: TSInterfaceBody, position, buffer, readString) {
 		const { scope } = node;
 		node.body = convertNodeList(node, scope, buffer[position], buffer, readString);

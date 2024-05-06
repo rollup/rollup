@@ -1061,6 +1061,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			finalizer
 		};
 	},
+	function tSBooleanKeyword(position, buffer): TSBooleanKeywordNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		return {
+			type: 'TSBooleanKeyword',
+			start,
+			end
+		};
+	},
 	function tSInterfaceBody(position, buffer, readString): TSInterfaceBodyNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -1331,6 +1340,7 @@ export type TemplateLiteralNode = RollupAstNode<estree.TemplateLiteral>;
 export type ThisExpressionNode = RollupAstNode<estree.ThisExpression>;
 export type ThrowStatementNode = RollupAstNode<estree.ThrowStatement>;
 export type TryStatementNode = RollupAstNode<estree.TryStatement>;
+export type TSBooleanKeywordNode = RollupAstNode<any>;
 export type TSInterfaceBodyNode = RollupAstNode<any>;
 export type TSInterfaceDeclarationNode = RollupAstNode<any>;
 export type TSNullKeywordNode = RollupAstNode<any>;

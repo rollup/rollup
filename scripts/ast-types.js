@@ -600,6 +600,10 @@ export const AST_NODES = {
 			['finalizer', 'OptionalNode']
 		]
 	},
+	TSBooleanKeyword: {
+		estreeType: 'any',
+		fields: []
+	},
 	TSInterfaceBody: {
 		estreeType: 'any',
 		fields: [['body', 'NodeList']]

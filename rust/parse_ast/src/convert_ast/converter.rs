@@ -2,8 +2,8 @@ use swc_atoms::JsWord;
 use swc_common::Span;
 use swc_ecma_ast::{
   ArrayLit, ArrayPat, ArrowExpr, AssignExpr, AssignOp, AssignPat, AssignPatProp, AssignTarget,
-  AssignTargetPat, AwaitExpr, BigInt, BinaryOp, BindingIdent, BinExpr, BlockStmt, BlockStmtOrExpr,
-  Bool, BreakStmt, Callee, CallExpr, CatchClause, Class, ClassDecl, ClassExpr, ClassMember,
+  AssignTargetPat, AwaitExpr, BigInt, BinExpr, BinaryOp, BindingIdent, BlockStmt, BlockStmtOrExpr,
+  Bool, BreakStmt, CallExpr, Callee, CatchClause, Class, ClassDecl, ClassExpr, ClassMember,
   ClassMethod, ClassProp, ComputedPropName, CondExpr, Constructor, ContinueStmt, DebuggerStmt,
   Decl, DefaultDecl, DoWhileStmt, EmptyStmt, ExportAll, ExportDecl, ExportDefaultDecl,
   ExportDefaultExpr, ExportNamedSpecifier, ExportSpecifier, Expr, ExprOrSpread, ExprStmt, FnExpr,
@@ -16,8 +16,8 @@ use swc_ecma_ast::{
   PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget,
   SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
   TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, TsKeywordType, TsKeywordTypeKind,
-  TsType, TsTypeAnn, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, UsingDecl, VarDecl, VarDeclarator,
-  VarDeclKind, VarDeclOrExpr, WhileStmt, YieldExpr,
+  TsType, TsTypeAnn, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, UsingDecl, VarDecl, VarDeclKind,
+  VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
@@ -1117,7 +1117,7 @@ impl<'a> AstConverter<'a> {
       TsKeywordTypeKind::TsUnknownKeyword => todo!("TsKeywordTypeKind::TsUnknownKeyword"),
       TsKeywordTypeKind::TsNumberKeyword => self.convert_ts_number_keyword(span),
       TsKeywordTypeKind::TsObjectKeyword => todo!("TsKeywordTypeKind::TsObjectKeyword"),
-      TsKeywordTypeKind::TsBooleanKeyword => todo!("TsKeywordTypeKind::TsBooleanKeyword"),
+      TsKeywordTypeKind::TsBooleanKeyword => self.convert_ts_boolean_keyword(span),
       TsKeywordTypeKind::TsBigIntKeyword => todo!("TsKeywordTypeKind::TsBigIntKeyword"),
       TsKeywordTypeKind::TsStringKeyword => todo!("TsKeywordTypeKind::TsStringKeyword"),
       TsKeywordTypeKind::TsSymbolKeyword => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
@@ -3125,6 +3125,18 @@ impl<'a> AstConverter<'a> {
     }
     // end
     self.add_end(end_position, &try_statement.span);
+  }
+
+  fn convert_ts_boolean_keyword(&mut self, span: &Span) {
+    let end_position = self.add_type_and_start(
+      &TYPE_TS_BOOLEAN_KEYWORD,
+      span,
+      TS_BOOLEAN_KEYWORD_RESERVED_BYTES,
+      false,
+    );
+
+    //end
+    self.add_end(end_position, span)
   }
 
   fn convert_ts_keyword_type(&mut self, keyword_type: &TsKeywordType, span: &Span) {

@@ -62,6 +62,7 @@ import StaticBlock from './StaticBlock';
 import Super from './Super';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
+import TSBooleanKeyword from './TSBooleanKeyword';
 import TSInterfaceBody from './TSInterfaceBody';
 import TSInterfaceDeclaration from './TSInterfaceDeclaration';
 import TSNullKeyword from './TSNullKeyword';
@@ -153,6 +154,7 @@ export const nodeConstructors: {
 	ThisExpression,
 	ThrowStatement,
 	TryStatement,
+	TSBooleanKeyword,
 	TSInterfaceBody,
 	TSInterfaceDeclaration,
 	TSNullKeyword,

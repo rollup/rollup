@@ -69,6 +69,7 @@ export const childNodeKeys: Record<string, string[]> = {
 	ThisExpression: [],
 	ThrowStatement: ['argument'],
 	TryStatement: ['block', 'handler', 'finalizer'],
+	TSBooleanKeyword: [],
 	TSInterfaceBody: ['body'],
 	TSInterfaceDeclaration: ['body'],
 	TSNullKeyword: [],
