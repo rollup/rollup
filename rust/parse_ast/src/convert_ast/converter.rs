@@ -1,25 +1,20 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  AssignPat, AssignPatProp, AssignTarget, AssignTargetPat, BindingIdent, Callee, CallExpr,
-  ClassMember, ClassMethod, ClassProp, Decl, DefaultDecl, ExportAll, ExportDecl, ExportDefaultDecl,
-  ExportDefaultExpr, ExportSpecifier, Expr, ExprOrSpread, ForHead, GetterProp, Ident,
-  ImportSpecifier, KeyValuePatProp, KeyValueProp, Lit, MemberExpr, MemberProp, ModuleDecl,
-  ModuleExportName, ModuleItem, NamedExport, ObjectLit, ObjectPatProp, OptCall, OptChainBase,
-  ParenExpr, Pat, PrivateMethod, PrivateProp, Program, Prop, PropName, PropOrSpread, SetterProp,
-  SimpleAssignTarget, SpreadElement, Stmt, SuperProp, SuperPropExpr, VarDeclOrExpr,
+  AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
+  ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
+  NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
+  SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
-use crate::ast_nodes::assignment_pattern::PatternOrIdentifier;
 use crate::ast_nodes::call_expression::StoredCallee;
-use crate::ast_nodes::export_default_declaration::StoredDefaultExportExpression;
-use crate::ast_nodes::member_expression::{ExpressionOrSuper, MemberOrSuperProp};
-use crate::ast_nodes::method_definition::PropOrPrivateName;
-use crate::ast_nodes::program::ModuleItemsOrStatements;
-use crate::ast_nodes::property::PatternOrExpression;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
-use crate::convert_ast::converter::ast_constants::{TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION};
-use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SET, STRING_SOURCEMAP};
+use crate::convert_ast::converter::ast_constants::{
+  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
+};
+use crate::convert_ast::converter::string_constants::{
+  STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
+};
 use crate::convert_ast::converter::utf16_positions::{
   ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
 };
@@ -184,27 +179,7 @@ impl<'a> AstConverter<'a> {
       .copy_from_slice(&insert_position.to_ne_bytes());
   }
 
-  // === enums
-  fn convert_assignment_pattern(&mut self, assignment_pattern: &AssignPat) {
-    self.store_assignment_pattern_and_get_left_position(
-      &assignment_pattern.span,
-      PatternOrIdentifier::Pattern(&assignment_pattern.left),
-      &assignment_pattern.right,
-    );
-  }
-
-  fn convert_assignment_pattern_property(&mut self, assignment_pattern_property: &AssignPatProp) {
-    self.store_shorthand_property(
-      &assignment_pattern_property.span,
-      &assignment_pattern_property.key,
-      &assignment_pattern_property.value,
-    );
-  }
-
-  fn convert_binding_identifier(&mut self, binding_identifier: &BindingIdent) {
-    self.convert_identifier(&binding_identifier.id);
-  }
-
+  // === shared enums
   pub fn convert_call_expression(
     &mut self,
     call_expression: &CallExpr,
@@ -248,16 +223,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_class_property(&mut self, class_property: &ClassProp) {
-    self.store_property_definition(
-      &class_property.span,
-      matches!(&class_property.key, PropName::Computed(_)),
-      class_property.is_static,
-      PropOrPrivateName::PropName(&class_property.key),
-      &class_property.value.as_deref(),
-    );
-  }
-
   pub(crate) fn convert_declaration(&mut self, declaration: &Decl) {
     match declaration {
       Decl::Var(variable_declaration) => {
@@ -277,44 +242,6 @@ impl<'a> AstConverter<'a> {
       Decl::TsEnum(_) => unimplemented!("Cannot convert Decl::TsEnum"),
       Decl::TsModule(_) => unimplemented!("Cannot convert Decl::TsModule"),
     }
-  }
-
-  fn convert_export_all(&mut self, export_all: &ExportAll) {
-    self.store_export_all_declaration(&export_all.span, &export_all.src, &export_all.with, None);
-  }
-
-  fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
-    self.store_export_named_declaration(
-      &export_declaration.span,
-      &[],
-      None,
-      Some(&export_declaration.decl),
-      &None,
-    );
-  }
-
-  fn convert_export_default_declaration(&mut self, export_default_declaration: &ExportDefaultDecl) {
-    self.store_export_default_declaration(
-      &export_default_declaration.span,
-      match &export_default_declaration.decl {
-        DefaultDecl::Class(class_expression) => {
-          StoredDefaultExportExpression::Class(class_expression)
-        }
-        DefaultDecl::Fn(function_expression) => {
-          StoredDefaultExportExpression::Function(function_expression)
-        }
-        DefaultDecl::TsInterfaceDecl(_) => {
-          unimplemented!("Cannot convert ExportDefaultDeclaration with TsInterfaceDecl")
-        }
-      },
-    );
-  }
-
-  fn convert_export_default_expression(&mut self, export_default_expression: &ExportDefaultExpr) {
-    self.store_export_default_declaration(
-      &export_default_expression.span,
-      StoredDefaultExportExpression::Expression(&export_default_expression.expr),
-    );
   }
 
   fn convert_export_named_declaration(&mut self, export_named_declaration: &NamedExport) {
@@ -543,50 +470,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_getter_property(&mut self, getter_property: &GetterProp) {
-    self.store_getter_setter_property(
-      &getter_property.span,
-      &STRING_GET,
-      &getter_property.key,
-      &getter_property.body,
-      None,
-    );
-  }
-
-  pub(crate) fn convert_identifier(&mut self, identifier: &Ident) {
-    self.store_identifier(
-      identifier.span.lo.0 - 1,
-      identifier.span.hi.0 - 1,
-      &identifier.sym,
-    );
-  }
-
-  pub(crate) fn store_import_attributes(
-    &mut self,
-    with: &Option<Box<ObjectLit>>,
-    reference_position: usize,
-  ) {
-    match with {
-      Some(ref with) => {
-        self.convert_item_list(
-          &with.props,
-          reference_position,
-          |ast_converter, prop| match prop {
-            PropOrSpread::Prop(prop) => match &**prop {
-              Prop::KeyValue(key_value_property) => {
-                ast_converter.store_import_attribute(key_value_property);
-                true
-              }
-              _ => panic!("Non key-value property in import declaration attributes"),
-            },
-            PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
-          },
-        );
-      }
-      None => self.buffer.resize(self.buffer.len() + 4, 0),
-    }
-  }
-
   pub(crate) fn convert_import_specifier(&mut self, import_specifier: &ImportSpecifier) {
     match import_specifier {
       ImportSpecifier::Named(import_named_specifier) => {
@@ -599,20 +482,6 @@ impl<'a> AstConverter<'a> {
         self.store_import_namespace_specifier(import_namespace_specifier)
       }
     }
-  }
-
-  fn convert_key_value_pattern_property(&mut self, key_value_pattern_property: &KeyValuePatProp) {
-    self.store_key_value_property(
-      &key_value_pattern_property.key,
-      PatternOrExpression::Pattern(&key_value_pattern_property.value),
-    );
-  }
-
-  fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
-    self.store_key_value_property(
-      &key_value_property.key,
-      PatternOrExpression::Expression(&key_value_property.value),
-    );
   }
 
   fn convert_literal(&mut self, literal: &Lit) {
@@ -635,36 +504,6 @@ impl<'a> AstConverter<'a> {
       }
       Lit::JSXText(_) => unimplemented!("Lit::JSXText"),
     }
-  }
-
-  pub fn convert_member_expression(
-    &mut self,
-    member_expression: &MemberExpr,
-    is_optional: bool,
-    is_chained: bool,
-  ) {
-    self.store_member_expression(
-      &member_expression.span,
-      is_optional,
-      &ExpressionOrSuper::Expression(&member_expression.obj),
-      match &member_expression.prop {
-        MemberProp::Ident(identifier) => MemberOrSuperProp::Identifier(identifier),
-        MemberProp::PrivateName(private_name) => MemberOrSuperProp::PrivateName(private_name),
-        MemberProp::Computed(computed) => MemberOrSuperProp::Computed(computed),
-      },
-      is_chained,
-    );
-  }
-
-  fn convert_method(&mut self, method: &ClassMethod) {
-    self.store_method_definition(
-      &method.span,
-      &method.kind,
-      method.is_static,
-      PropOrPrivateName::PropName(&method.key),
-      matches!(method.key, PropName::Computed(_)),
-      &method.function,
-    );
   }
 
   fn convert_module_declaration(&mut self, module_declaration: &ModuleDecl) {
@@ -720,21 +559,6 @@ impl<'a> AstConverter<'a> {
       }
       ObjectPatProp::Rest(rest_pattern) => self.store_rest_element(rest_pattern),
     }
-  }
-
-  fn convert_optional_call(
-    &mut self,
-    optional_call: &OptCall,
-    is_optional: bool,
-    is_chained: bool,
-  ) {
-    self.store_call_expression(
-      &optional_call.span,
-      is_optional,
-      &StoredCallee::Expression(&optional_call.callee),
-      &optional_call.args,
-      is_chained,
-    );
   }
 
   pub(crate) fn convert_optional_chain_base(
@@ -850,49 +674,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_private_method(&mut self, private_method: &PrivateMethod) {
-    self.store_method_definition(
-      &private_method.span,
-      &private_method.kind,
-      private_method.is_static,
-      PropOrPrivateName::PrivateName(&private_method.key),
-      false,
-      &private_method.function,
-    );
-  }
-
-  fn convert_private_property(&mut self, private_property: &PrivateProp) {
-    self.store_property_definition(
-      &private_property.span,
-      false,
-      private_property.is_static,
-      PropOrPrivateName::PrivateName(&private_property.key),
-      &private_property.value.as_deref(),
-    );
-  }
-
-  fn convert_program(&mut self, node: &Program) {
-    match node {
-      Program::Module(module) => {
-        self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body));
-      }
-      Program::Script(script) => {
-        self.store_program(ModuleItemsOrStatements::Statements(&script.body));
-      }
-    }
-  }
-
-  fn convert_property(&mut self, property: &Prop) {
-    match property {
-      Prop::Getter(getter_property) => self.convert_getter_property(getter_property),
-      Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
-      Prop::Method(method_property) => self.convert_method_property(method_property),
-      Prop::Setter(setter_property) => self.convert_setter_property(setter_property),
-      Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
-      Prop::Assign(_) => unimplemented!("Cannot convert Prop::Assign"),
-    }
-  }
-
   pub(crate) fn convert_property_name(&mut self, property_name: &PropName) -> Option<(u32, u32)> {
     match property_name {
       PropName::Computed(computed_property_name) => {
@@ -934,24 +715,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_setter_property(&mut self, setter_property: &SetterProp) {
-    self.store_getter_setter_property(
-      &setter_property.span,
-      &STRING_SET,
-      &setter_property.key,
-      &setter_property.body,
-      Some(&*setter_property.param),
-    );
-  }
-
-  fn convert_shorthand_property(&mut self, identifier: &Ident) {
-    self.store_shorthand_property(&identifier.span, identifier, &None);
-  }
-
-  fn convert_spread_element(&mut self, spread_element: &SpreadElement) {
-    self.store_spread_element(&spread_element.dot3_token, &spread_element.expr);
-  }
-
   pub fn convert_statement(&mut self, statement: &Stmt) {
     match statement {
       Stmt::Break(break_statement) => self.store_break_statement(break_statement),
@@ -974,21 +737,6 @@ impl<'a> AstConverter<'a> {
       Stmt::While(while_statement) => self.store_while_statement(while_statement),
       Stmt::With(_) => unimplemented!("Cannot convert Stmt::With"),
     }
-  }
-
-  fn convert_super_property(&mut self, super_property: &SuperPropExpr) {
-    self.store_member_expression(
-      &super_property.span,
-      false,
-      &ExpressionOrSuper::Super(&super_property.obj),
-      match &super_property.prop {
-        SuperProp::Ident(identifier) => MemberOrSuperProp::Identifier(identifier),
-        SuperProp::Computed(computed_property_name) => {
-          MemberOrSuperProp::Computed(computed_property_name)
-        }
-      },
-      false,
-    );
   }
 
   pub(crate) fn convert_variable_declaration_or_expression(

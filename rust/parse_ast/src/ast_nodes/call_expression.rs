@@ -1,5 +1,5 @@
 use swc_common::Span;
-use swc_ecma_ast::{Expr, ExprOrSpread, Super};
+use swc_ecma_ast::{Expr, ExprOrSpread, OptCall, Super};
 
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::{AstConverter, convert_annotation};
@@ -73,6 +73,21 @@ impl<'a> AstConverter<'a> {
     );
     // end
     self.add_end(end_position, span);
+  }
+
+  pub fn convert_optional_call(
+    &mut self,
+    optional_call: &OptCall,
+    is_optional: bool,
+    is_chained: bool,
+  ) {
+    self.store_call_expression(
+      &optional_call.span,
+      is_optional,
+      &StoredCallee::Expression(&optional_call.callee),
+      &optional_call.args,
+      is_chained,
+    );
   }
 }
 

@@ -1,5 +1,5 @@
 use swc_common::Span;
-use swc_ecma_ast::{ClassExpr, Expr, FnExpr};
+use swc_ecma_ast::{ClassExpr, DefaultDecl, ExportDefaultDecl, ExportDefaultExpr, Expr, FnExpr};
 
 use crate::convert_ast::converter::ast_constants::{
   EXPORT_DEFAULT_DECLARATION_DECLARATION_OFFSET, EXPORT_DEFAULT_DECLARATION_RESERVED_BYTES,
@@ -40,6 +40,36 @@ impl<'a> AstConverter<'a> {
     }
     // end
     self.add_end(end_position, span);
+  }
+
+  pub fn convert_export_default_declaration(
+    &mut self,
+    export_default_declaration: &ExportDefaultDecl,
+  ) {
+    self.store_export_default_declaration(
+      &export_default_declaration.span,
+      match &export_default_declaration.decl {
+        DefaultDecl::Class(class_expression) => {
+          StoredDefaultExportExpression::Class(class_expression)
+        }
+        DefaultDecl::Fn(function_expression) => {
+          StoredDefaultExportExpression::Function(function_expression)
+        }
+        DefaultDecl::TsInterfaceDecl(_) => {
+          unimplemented!("Cannot convert ExportDefaultDeclaration with TsInterfaceDecl")
+        }
+      },
+    );
+  }
+
+  pub fn convert_export_default_expression(
+    &mut self,
+    export_default_expression: &ExportDefaultExpr,
+  ) {
+    self.store_export_default_declaration(
+      &export_default_expression.span,
+      StoredDefaultExportExpression::Expression(&export_default_expression.expr),
+    );
   }
 }
 

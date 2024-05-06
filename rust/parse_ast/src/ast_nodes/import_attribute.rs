@@ -1,8 +1,8 @@
-use swc_ecma_ast::KeyValueProp;
+use swc_ecma_ast::{KeyValueProp, ObjectLit, Prop, PropOrSpread};
 
 use crate::convert_ast::converter::ast_constants::{
-    IMPORT_ATTRIBUTE_KEY_OFFSET, IMPORT_ATTRIBUTE_RESERVED_BYTES, IMPORT_ATTRIBUTE_VALUE_OFFSET,
-    TYPE_IMPORT_ATTRIBUTE,
+  IMPORT_ATTRIBUTE_KEY_OFFSET, IMPORT_ATTRIBUTE_RESERVED_BYTES, IMPORT_ATTRIBUTE_VALUE_OFFSET,
+  TYPE_IMPORT_ATTRIBUTE,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -44,5 +44,31 @@ impl<'a> AstConverter<'a> {
       }
     };
     self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
+  }
+
+  pub fn store_import_attributes(
+    &mut self,
+    with: &Option<Box<ObjectLit>>,
+    reference_position: usize,
+  ) {
+    match with {
+      Some(ref with) => {
+        self.convert_item_list(
+          &with.props,
+          reference_position,
+          |ast_converter, prop| match prop {
+            PropOrSpread::Prop(prop) => match &**prop {
+              Prop::KeyValue(key_value_property) => {
+                ast_converter.store_import_attribute(key_value_property);
+                true
+              }
+              _ => panic!("Non key-value property in import declaration attributes"),
+            },
+            PropOrSpread::Spread(_) => panic!("Spread in import declaration attributes"),
+          },
+        );
+      }
+      None => self.buffer.resize(self.buffer.len() + 4, 0),
+    }
   }
 }

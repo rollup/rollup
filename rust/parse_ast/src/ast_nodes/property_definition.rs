@@ -1,5 +1,5 @@
 use swc_common::Span;
-use swc_ecma_ast::Expr;
+use swc_ecma_ast::{ClassProp, Expr, PrivateProp, PropName};
 
 use crate::ast_nodes::method_definition::PropOrPrivateName;
 use crate::convert_ast::converter::ast_constants::{PROPERTY_DEFINITION_COMPUTED_FLAG, PROPERTY_DEFINITION_FLAGS_OFFSET, PROPERTY_DEFINITION_KEY_OFFSET, PROPERTY_DEFINITION_RESERVED_BYTES, PROPERTY_DEFINITION_STATIC_FLAG, PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION};
@@ -45,5 +45,25 @@ impl<'a> AstConverter<'a> {
     });
     // end
     self.add_end(end_position, span);
+  }
+
+  pub fn convert_class_property(&mut self, class_property: &ClassProp) {
+    self.store_property_definition(
+      &class_property.span,
+      matches!(&class_property.key, PropName::Computed(_)),
+      class_property.is_static,
+      PropOrPrivateName::PropName(&class_property.key),
+      &class_property.value.as_deref(),
+    );
+  }
+
+  pub fn convert_private_property(&mut self, private_property: &PrivateProp) {
+    self.store_property_definition(
+      &private_property.span,
+      false,
+      private_property.is_static,
+      PropOrPrivateName::PrivateName(&private_property.key),
+      &private_property.value.as_deref(),
+    );
   }
 }

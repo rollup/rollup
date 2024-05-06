@@ -1,4 +1,4 @@
-use swc_ecma_ast::{Expr, Lit, ModuleItem, Stmt};
+use swc_ecma_ast::{Expr, Lit, ModuleItem, Program, Stmt};
 
 use crate::convert_ast::converter::{AstConverter, convert_annotation};
 use crate::convert_ast::converter::ast_constants::{PROGRAM_BODY_OFFSET, PROGRAM_INVALID_ANNOTATIONS_OFFSET, PROGRAM_RESERVED_BYTES, TYPE_PROGRAM};
@@ -66,6 +66,17 @@ impl<'a> AstConverter<'a> {
           true
         },
       );
+    }
+  }
+
+  pub fn convert_program(&mut self, node: &Program) {
+    match node {
+      Program::Module(module) => {
+        self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body));
+      }
+      Program::Script(script) => {
+        self.store_program(ModuleItemsOrStatements::Statements(&script.body));
+      }
     }
   }
 }

@@ -1,10 +1,13 @@
 use swc_common::Span;
-use swc_ecma_ast::{ComputedPropName, Expr, Ident, PrivateName, Super};
+use swc_ecma_ast::{
+  ComputedPropName, Expr, Ident, MemberExpr, MemberProp, PrivateName, Super, SuperProp,
+  SuperPropExpr,
+};
 
 use crate::convert_ast::converter::ast_constants::{
-    MEMBER_EXPRESSION_COMPUTED_FLAG, MEMBER_EXPRESSION_FLAGS_OFFSET, MEMBER_EXPRESSION_OBJECT_OFFSET,
-    MEMBER_EXPRESSION_OPTIONAL_FLAG, MEMBER_EXPRESSION_PROPERTY_OFFSET,
-    MEMBER_EXPRESSION_RESERVED_BYTES, TYPE_MEMBER_EXPRESSION,
+  MEMBER_EXPRESSION_COMPUTED_FLAG, MEMBER_EXPRESSION_FLAGS_OFFSET, MEMBER_EXPRESSION_OBJECT_OFFSET,
+  MEMBER_EXPRESSION_OPTIONAL_FLAG, MEMBER_EXPRESSION_PROPERTY_OFFSET,
+  MEMBER_EXPRESSION_RESERVED_BYTES, TYPE_MEMBER_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -61,6 +64,40 @@ impl<'a> AstConverter<'a> {
     }
     // end
     self.add_end(end_position, span);
+  }
+
+  pub fn convert_member_expression(
+    &mut self,
+    member_expression: &MemberExpr,
+    is_optional: bool,
+    is_chained: bool,
+  ) {
+    self.store_member_expression(
+      &member_expression.span,
+      is_optional,
+      &ExpressionOrSuper::Expression(&member_expression.obj),
+      match &member_expression.prop {
+        MemberProp::Ident(identifier) => MemberOrSuperProp::Identifier(identifier),
+        MemberProp::PrivateName(private_name) => MemberOrSuperProp::PrivateName(private_name),
+        MemberProp::Computed(computed) => MemberOrSuperProp::Computed(computed),
+      },
+      is_chained,
+    );
+  }
+
+  pub fn convert_super_property(&mut self, super_property: &SuperPropExpr) {
+    self.store_member_expression(
+      &super_property.span,
+      false,
+      &ExpressionOrSuper::Super(&super_property.obj),
+      match &super_property.prop {
+        SuperProp::Ident(identifier) => MemberOrSuperProp::Identifier(identifier),
+        SuperProp::Computed(computed_property_name) => {
+          MemberOrSuperProp::Computed(computed_property_name)
+        }
+      },
+      false,
+    );
   }
 }
 

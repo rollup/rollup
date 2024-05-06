@@ -1,10 +1,10 @@
 use swc_common::Span;
-use swc_ecma_ast::{ModuleExportName, ObjectLit, Str};
+use swc_ecma_ast::{ExportAll, ModuleExportName, ObjectLit, Str};
 
 use crate::convert_ast::converter::ast_constants::{
-    EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET, EXPORT_ALL_DECLARATION_EXPORTED_OFFSET,
-    EXPORT_ALL_DECLARATION_RESERVED_BYTES, EXPORT_ALL_DECLARATION_SOURCE_OFFSET,
-    TYPE_EXPORT_ALL_DECLARATION,
+  EXPORT_ALL_DECLARATION_ATTRIBUTES_OFFSET, EXPORT_ALL_DECLARATION_EXPORTED_OFFSET,
+  EXPORT_ALL_DECLARATION_RESERVED_BYTES, EXPORT_ALL_DECLARATION_SOURCE_OFFSET,
+  TYPE_EXPORT_ALL_DECLARATION,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -37,5 +37,9 @@ impl<'a> AstConverter<'a> {
     );
     // end
     self.add_end(end_position, span);
+  }
+
+  pub fn convert_export_all(&mut self, export_all: &ExportAll) {
+    self.store_export_all_declaration(&export_all.span, &export_all.src, &export_all.with, None);
   }
 }

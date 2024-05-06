@@ -1,5 +1,8 @@
 use swc_common::Span;
-use swc_ecma_ast::{BlockStmt, Expr, Ident, MethodProp, Pat, PropName};
+use swc_ecma_ast::{
+  AssignPatProp, BlockStmt, Expr, GetterProp, Ident, KeyValuePatProp, KeyValueProp, MethodProp,
+  Pat, Prop, PropName, SetterProp,
+};
 
 use crate::ast_nodes::assignment_pattern::PatternOrIdentifier;
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
@@ -9,10 +12,42 @@ use crate::convert_ast::converter::ast_constants::{
   TYPE_FUNCTION_EXPRESSION, TYPE_PROPERTY,
 };
 use crate::convert_ast::converter::AstConverter;
-use crate::convert_ast::converter::string_constants::STRING_INIT;
+use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, STRING_SET};
 
 impl<'a> AstConverter<'a> {
-  pub fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
+  pub fn convert_property(&mut self, property: &Prop) {
+    match property {
+      Prop::Getter(getter_property) => self.convert_getter_property(getter_property),
+      Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
+      Prop::Method(method_property) => self.convert_method_property(method_property),
+      Prop::Setter(setter_property) => self.convert_setter_property(setter_property),
+      Prop::Shorthand(identifier) => self.convert_shorthand_property(identifier),
+      Prop::Assign(_) => unimplemented!("Cannot convert Prop::Assign"),
+    }
+  }
+
+  pub fn convert_assignment_pattern_property(
+    &mut self,
+    assignment_pattern_property: &AssignPatProp,
+  ) {
+    self.store_shorthand_property(
+      &assignment_pattern_property.span,
+      &assignment_pattern_property.key,
+      &assignment_pattern_property.value,
+    );
+  }
+
+  pub fn convert_key_value_pattern_property(
+    &mut self,
+    key_value_pattern_property: &KeyValuePatProp,
+  ) {
+    self.store_key_value_property(
+      &key_value_pattern_property.key,
+      PatternOrExpression::Pattern(&key_value_pattern_property.value),
+    );
+  }
+
+  fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
     let end_position = self.add_type_and_explicit_start(
       &TYPE_PROPERTY,
       self.get_property_name_span(property_name).lo.0 - 1,
@@ -52,7 +87,7 @@ impl<'a> AstConverter<'a> {
     self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
   }
 
-  pub fn store_getter_setter_property(
+  fn store_getter_setter_property(
     &mut self,
     span: &Span,
     kind: &[u8; 4],
@@ -98,7 +133,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_method_property(&mut self, method_property: &MethodProp) {
+  fn convert_method_property(&mut self, method_property: &MethodProp) {
     let end_position = self.add_type_and_start(
       &TYPE_PROPERTY,
       &method_property.function.span,
@@ -139,7 +174,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &method_property.function.span);
   }
 
-  pub fn store_shorthand_property(
+  fn store_shorthand_property(
     &mut self,
     span: &Span,
     key: &Ident,
@@ -175,6 +210,37 @@ impl<'a> AstConverter<'a> {
     self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
     // end
     self.add_end(end_position, span);
+  }
+
+  fn convert_getter_property(&mut self, getter_property: &GetterProp) {
+    self.store_getter_setter_property(
+      &getter_property.span,
+      &STRING_GET,
+      &getter_property.key,
+      &getter_property.body,
+      None,
+    );
+  }
+
+  fn convert_key_value_property(&mut self, key_value_property: &KeyValueProp) {
+    self.store_key_value_property(
+      &key_value_property.key,
+      PatternOrExpression::Expression(&key_value_property.value),
+    );
+  }
+
+  fn convert_setter_property(&mut self, setter_property: &SetterProp) {
+    self.store_getter_setter_property(
+      &setter_property.span,
+      &STRING_SET,
+      &setter_property.key,
+      &setter_property.body,
+      Some(&*setter_property.param),
+    );
+  }
+
+  fn convert_shorthand_property(&mut self, identifier: &Ident) {
+    self.store_shorthand_property(&identifier.span, identifier, &None);
   }
 }
 

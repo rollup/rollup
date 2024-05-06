@@ -1,5 +1,5 @@
 use swc_common::Span;
-use swc_ecma_ast::{Expr, Ident, Pat};
+use swc_ecma_ast::{AssignPat, Expr, Ident, Pat};
 
 use crate::convert_ast::converter::ast_constants::{
   ASSIGNMENT_PATTERN_LEFT_OFFSET, ASSIGNMENT_PATTERN_RESERVED_BYTES,
@@ -35,6 +35,14 @@ impl<'a> AstConverter<'a> {
     // end
     self.add_end(end_position, span);
     left_position
+  }
+
+  pub fn convert_assignment_pattern(&mut self, assignment_pattern: &AssignPat) {
+    self.store_assignment_pattern_and_get_left_position(
+      &assignment_pattern.span,
+      PatternOrIdentifier::Pattern(&assignment_pattern.left),
+      &assignment_pattern.right,
+    );
   }
 }
 

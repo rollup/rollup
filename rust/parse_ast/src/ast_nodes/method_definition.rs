@@ -1,17 +1,15 @@
 use swc_common::Span;
-use swc_ecma_ast::{
-    Constructor, Function, MethodKind, ParamOrTsParamProp, Pat, PrivateName, PropName,
-};
+use swc_ecma_ast::{ClassMethod, Constructor, Function, MethodKind, ParamOrTsParamProp, Pat, PrivateMethod, PrivateName, PropName};
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-    METHOD_DEFINITION_COMPUTED_FLAG, METHOD_DEFINITION_FLAGS_OFFSET, METHOD_DEFINITION_KEY_OFFSET,
-    METHOD_DEFINITION_KIND_OFFSET, METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_STATIC_FLAG,
-    METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION, TYPE_METHOD_DEFINITION,
+  METHOD_DEFINITION_COMPUTED_FLAG, METHOD_DEFINITION_FLAGS_OFFSET, METHOD_DEFINITION_KEY_OFFSET,
+  METHOD_DEFINITION_KIND_OFFSET, METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_STATIC_FLAG,
+  METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION, TYPE_METHOD_DEFINITION,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::convert_ast::converter::string_constants::{
-    STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
+  STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
 };
 
 impl<'a> AstConverter<'a> {
@@ -126,6 +124,28 @@ impl<'a> AstConverter<'a> {
     }
     // end
     self.add_end(end_position, &constructor.span);
+  }
+
+  pub fn convert_method(&mut self, method: &ClassMethod) {
+    self.store_method_definition(
+      &method.span,
+      &method.kind,
+      method.is_static,
+      PropOrPrivateName::PropName(&method.key),
+      matches!(method.key, PropName::Computed(_)),
+      &method.function,
+    );
+  }
+
+  pub fn convert_private_method(&mut self, private_method: &PrivateMethod) {
+    self.store_method_definition(
+      &private_method.span,
+      &private_method.kind,
+      private_method.is_static,
+      PropOrPrivateName::PrivateName(&private_method.key),
+      false,
+      &private_method.function,
+    );
   }
 }
 

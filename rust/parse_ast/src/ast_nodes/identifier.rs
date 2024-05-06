@@ -1,3 +1,5 @@
+use swc_ecma_ast::{BindingIdent, Ident};
+
 use crate::convert_ast::converter::ast_constants::{IDENTIFIER_NAME_OFFSET, IDENTIFIER_RESERVED_BYTES, TYPE_IDENTIFIER};
 use crate::convert_ast::converter::AstConverter;
 
@@ -9,5 +11,17 @@ impl<'a> AstConverter<'a> {
     self.convert_string(name, end_position + IDENTIFIER_NAME_OFFSET);
     // end
     self.add_explicit_end(end_position, end);
+  }
+
+  pub fn convert_binding_identifier(&mut self, binding_identifier: &BindingIdent) {
+    self.convert_identifier(&binding_identifier.id);
+  }
+
+  pub fn convert_identifier(&mut self, identifier: &Ident) {
+    self.store_identifier(
+      identifier.span.lo.0 - 1,
+      identifier.span.hi.0 - 1,
+      &identifier.sym,
+    );
   }
 }

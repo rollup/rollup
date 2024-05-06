@@ -1,5 +1,5 @@
 use swc_common::Span;
-use swc_ecma_ast::{Decl, ExportSpecifier, ObjectLit, Str, VarDeclKind};
+use swc_ecma_ast::{Decl, ExportDecl, ExportSpecifier, ObjectLit, Str, VarDeclKind};
 
 use crate::convert_ast::converter::ast_constants::{
   EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET, EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET,
@@ -53,5 +53,15 @@ impl<'a> AstConverter<'a> {
     );
     // end
     self.add_end(end_position, span);
+  }
+
+  pub(crate) fn convert_export_declaration(&mut self, export_declaration: &ExportDecl) {
+    self.store_export_named_declaration(
+      &export_declaration.span,
+      &[],
+      None,
+      Some(&export_declaration.decl),
+      &None,
+    );
   }
 }
