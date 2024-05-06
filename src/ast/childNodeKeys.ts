@@ -75,6 +75,7 @@ export const childNodeKeys: Record<string, string[]> = {
 	TSNullKeyword: [],
 	TSNumberKeyword: [],
 	TSPropertySignature: ['key', 'typeAnnotation'],
+	TSStringKeyword: [],
 	TSTypeAnnotation: ['typeAnnotation'],
 	UnaryExpression: ['argument'],
 	UpdateExpression: ['argument'],

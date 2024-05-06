@@ -76,6 +76,7 @@ import TSInterfaceDeclaration from './nodes/TSInterfaceDeclaration';
 import TSNullKeyword from './nodes/TSNullKeyword';
 import TSNumberKeyword from './nodes/TSNumberKeyword';
 import TSPropertySignature from './nodes/TSPropertySignature';
+import TSStringKeyword from './nodes/TSStringKeyword';
 import TSTypeAnnotation from './nodes/TSTypeAnnotation';
 import TaggedTemplateExpression from './nodes/TaggedTemplateExpression';
 import TemplateElement from './nodes/TemplateElement';
@@ -190,6 +191,7 @@ const nodeTypeStrings = [
 	'TSNullKeyword',
 	'TSNumberKeyword',
 	'TSPropertySignature',
+	'TSStringKeyword',
 	'TSTypeAnnotation',
 	'UnaryExpression',
 	'UpdateExpression',
@@ -279,6 +281,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	TSNullKeyword,
 	TSNumberKeyword,
 	TSPropertySignature,
+	TSStringKeyword,
 	TSTypeAnnotation,
 	UnaryExpression,
 	UpdateExpression,
@@ -845,6 +848,7 @@ const bufferParsers: ((
 				? null
 				: convertNode(node, scope, typeAnnotationPosition, buffer, readString);
 	},
+	function tSStringKeyword() {},
 	function tSTypeAnnotation(node: TSTypeAnnotation, position, buffer, readString) {
 		const { scope } = node;
 		node.typeAnnotation = convertNode(node, scope, buffer[position], buffer, readString);

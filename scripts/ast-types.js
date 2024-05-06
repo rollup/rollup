@@ -631,6 +631,10 @@ export const AST_NODES = {
 			static: 'isStatic'
 		}
 	},
+	TSStringKeyword: {
+		estreeType: 'any',
+		fields: []
+	},
 	TSTypeAnnotation: {
 		estreeType: 'any',
 		fields: [['typeAnnotation', 'Node']]

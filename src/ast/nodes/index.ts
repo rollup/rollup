@@ -68,6 +68,7 @@ import TSInterfaceDeclaration from './TSInterfaceDeclaration';
 import TSNullKeyword from './TSNullKeyword';
 import TSNumberKeyword from './TSNumberKeyword';
 import TSPropertySignature from './TSPropertySignature';
+import TSStringKeyword from './TSStringKeyword';
 import TSTypeAnnotation from './TSTypeAnnotation';
 import TaggedTemplateExpression from './TaggedTemplateExpression';
 import TemplateElement from './TemplateElement';
@@ -160,6 +161,7 @@ export const nodeConstructors: {
 	TSNullKeyword,
 	TSNumberKeyword,
 	TSPropertySignature,
+	TSStringKeyword,
 	TSTypeAnnotation,
 	UnaryExpression,
 	UnknownNode,

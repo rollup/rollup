@@ -80,13 +80,14 @@ pub const TYPE_TS_INTERFACE_DECLARATION: [u8; 4] = 75u32.to_ne_bytes();
 pub const TYPE_TS_NULL_KEYWORD: [u8; 4] = 76u32.to_ne_bytes();
 pub const TYPE_TS_NUMBER_KEYWORD: [u8; 4] = 77u32.to_ne_bytes();
 pub const TYPE_TS_PROPERTY_SIGNATURE: [u8; 4] = 78u32.to_ne_bytes();
-pub const TYPE_TS_TYPE_ANNOTATION: [u8; 4] = 79u32.to_ne_bytes();
-pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 80u32.to_ne_bytes();
-pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 81u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 82u32.to_ne_bytes();
-pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 83u32.to_ne_bytes();
-pub const TYPE_WHILE_STATEMENT: [u8; 4] = 84u32.to_ne_bytes();
-pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 85u32.to_ne_bytes();
+pub const TYPE_TS_STRING_KEYWORD: [u8; 4] = 79u32.to_ne_bytes();
+pub const TYPE_TS_TYPE_ANNOTATION: [u8; 4] = 80u32.to_ne_bytes();
+pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 81u32.to_ne_bytes();
+pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 82u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 83u32.to_ne_bytes();
+pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 84u32.to_ne_bytes();
+pub const TYPE_WHILE_STATEMENT: [u8; 4] = 85u32.to_ne_bytes();
+pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 86u32.to_ne_bytes();
 
 pub const PANIC_ERROR_RESERVED_BYTES: usize = 8;
 pub const PANIC_ERROR_MESSAGE_OFFSET: usize = 4;
@@ -403,6 +404,8 @@ pub const TS_PROPERTY_SIGNATURE_OPTIONAL_FLAG: u32 = 4;
 pub const TS_PROPERTY_SIGNATURE_READONLY_FLAG: u32 = 8;
 pub const TS_PROPERTY_SIGNATURE_KEY_OFFSET: usize = 8;
 pub const TS_PROPERTY_SIGNATURE_TYPE_ANNOTATION_OFFSET: usize = 12;
+
+pub const TS_STRING_KEYWORD_RESERVED_BYTES: usize = 4;
 
 pub const TS_TYPE_ANNOTATION_RESERVED_BYTES: usize = 8;
 pub const TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET: usize = 4;

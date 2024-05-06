@@ -1119,7 +1119,7 @@ impl<'a> AstConverter<'a> {
       TsKeywordTypeKind::TsObjectKeyword => todo!("TsKeywordTypeKind::TsObjectKeyword"),
       TsKeywordTypeKind::TsBooleanKeyword => self.convert_ts_boolean_keyword(span),
       TsKeywordTypeKind::TsBigIntKeyword => todo!("TsKeywordTypeKind::TsBigIntKeyword"),
-      TsKeywordTypeKind::TsStringKeyword => todo!("TsKeywordTypeKind::TsStringKeyword"),
+      TsKeywordTypeKind::TsStringKeyword => self.convert_ts_string_keyword(span),
       TsKeywordTypeKind::TsSymbolKeyword => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
       TsKeywordTypeKind::TsVoidKeyword => todo!("TsKeywordTypeKind::TsVoidKeyword"),
       TsKeywordTypeKind::TsUndefinedKeyword => todo!("TsKeywordTypeKind::TsUndefinedKeyword"),
@@ -3175,6 +3175,18 @@ impl<'a> AstConverter<'a> {
 
     // end
     self.add_end(end_position, span);
+  }
+  
+  fn convert_ts_string_keyword(&mut self, span: &Span) {
+    let end_position = self.add_type_and_start(
+      &TYPE_TS_STRING_KEYWORD,
+      span,
+      TS_STRING_KEYWORD_RESERVED_BYTES,
+      false
+    );
+    
+    // end
+    self.add_end(end_position, span)
   }
 
   fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {
