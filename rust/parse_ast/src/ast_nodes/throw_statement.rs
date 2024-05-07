@@ -1,6 +1,8 @@
 use swc_ecma_ast::ThrowStmt;
 
-use crate::convert_ast::converter::ast_constants::{THROW_STATEMENT_ARGUMENT_OFFSET, THROW_STATEMENT_RESERVED_BYTES, TYPE_THROW_STATEMENT};
+use crate::convert_ast::converter::ast_constants::{
+  THROW_STATEMENT_ARGUMENT_OFFSET, THROW_STATEMENT_RESERVED_BYTES, TYPE_THROW_STATEMENT,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

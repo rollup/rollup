@@ -1,7 +1,9 @@
 use swc_common::Span;
 use swc_ecma_ast::{Expr, SpreadElement};
 
-use crate::convert_ast::converter::ast_constants::{SPREAD_ELEMENT_ARGUMENT_OFFSET, SPREAD_ELEMENT_RESERVED_BYTES, TYPE_SPREAD_ELEMENT};
+use crate::convert_ast::converter::ast_constants::{
+  SPREAD_ELEMENT_ARGUMENT_OFFSET, SPREAD_ELEMENT_RESERVED_BYTES, TYPE_SPREAD_ELEMENT,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

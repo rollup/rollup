@@ -2,12 +2,12 @@ use swc_common::Span;
 use swc_ecma_ast::{Expr, ExprOrSpread, OptCall, Super};
 
 use crate::convert_ast::annotations::AnnotationKind;
-use crate::convert_ast::converter::{AstConverter, convert_annotation};
 use crate::convert_ast::converter::ast_constants::{
   CALL_EXPRESSION_ANNOTATIONS_OFFSET, CALL_EXPRESSION_ARGUMENTS_OFFSET,
   CALL_EXPRESSION_CALLEE_OFFSET, CALL_EXPRESSION_FLAGS_OFFSET, CALL_EXPRESSION_OPTIONAL_FLAG,
   CALL_EXPRESSION_RESERVED_BYTES, TYPE_CALL_EXPRESSION,
 };
+use crate::convert_ast::converter::{convert_annotation, AstConverter};
 
 impl<'a> AstConverter<'a> {
   pub fn store_call_expression(

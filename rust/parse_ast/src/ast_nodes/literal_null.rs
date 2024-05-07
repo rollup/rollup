@@ -1,6 +1,8 @@
 use swc_ecma_ast::Null;
 
-use crate::convert_ast::converter::ast_constants::{LITERAL_NULL_RESERVED_BYTES, TYPE_LITERAL_NULL};
+use crate::convert_ast::converter::ast_constants::{
+  LITERAL_NULL_RESERVED_BYTES, TYPE_LITERAL_NULL,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

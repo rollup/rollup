@@ -1,6 +1,8 @@
 use swc_ecma_ast::{BindingIdent, Ident};
 
-use crate::convert_ast::converter::ast_constants::{IDENTIFIER_NAME_OFFSET, IDENTIFIER_RESERVED_BYTES, TYPE_IDENTIFIER};
+use crate::convert_ast::converter::ast_constants::{
+  IDENTIFIER_NAME_OFFSET, IDENTIFIER_RESERVED_BYTES, TYPE_IDENTIFIER,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

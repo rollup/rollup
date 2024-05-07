@@ -11,8 +11,8 @@ use crate::convert_ast::converter::ast_constants::{
   PROPERTY_METHOD_FLAG, PROPERTY_RESERVED_BYTES, PROPERTY_SHORTHAND_FLAG, PROPERTY_VALUE_OFFSET,
   TYPE_FUNCTION_EXPRESSION, TYPE_PROPERTY,
 };
-use crate::convert_ast::converter::AstConverter;
 use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, STRING_SET};
+use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
   pub fn convert_property(&mut self, property: &Prop) {

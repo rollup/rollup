@@ -1,6 +1,9 @@
 use swc_ecma_ast::Number;
 
-use crate::convert_ast::converter::ast_constants::{LITERAL_NUMBER_RAW_OFFSET, LITERAL_NUMBER_RESERVED_BYTES, LITERAL_NUMBER_VALUE_OFFSET, TYPE_LITERAL_NUMBER};
+use crate::convert_ast::converter::ast_constants::{
+  LITERAL_NUMBER_RAW_OFFSET, LITERAL_NUMBER_RESERVED_BYTES, LITERAL_NUMBER_VALUE_OFFSET,
+  TYPE_LITERAL_NUMBER,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

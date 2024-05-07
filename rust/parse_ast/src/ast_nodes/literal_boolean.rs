@@ -1,6 +1,9 @@
 use swc_ecma_ast::Bool;
 
-use crate::convert_ast::converter::ast_constants::{LITERAL_BOOLEAN_FLAGS_OFFSET, LITERAL_BOOLEAN_RESERVED_BYTES, LITERAL_BOOLEAN_VALUE_FLAG, TYPE_LITERAL_BOOLEAN};
+use crate::convert_ast::converter::ast_constants::{
+  LITERAL_BOOLEAN_FLAGS_OFFSET, LITERAL_BOOLEAN_RESERVED_BYTES, LITERAL_BOOLEAN_VALUE_FLAG,
+  TYPE_LITERAL_BOOLEAN,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

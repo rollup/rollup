@@ -1,8 +1,8 @@
 use swc_ecma_ast::CatchClause;
 
 use crate::convert_ast::converter::ast_constants::{
-    CATCH_CLAUSE_BODY_OFFSET, CATCH_CLAUSE_PARAM_OFFSET, CATCH_CLAUSE_RESERVED_BYTES,
-    TYPE_CATCH_CLAUSE,
+  CATCH_CLAUSE_BODY_OFFSET, CATCH_CLAUSE_PARAM_OFFSET, CATCH_CLAUSE_RESERVED_BYTES,
+  TYPE_CATCH_CLAUSE,
 };
 use crate::convert_ast::converter::AstConverter;
 

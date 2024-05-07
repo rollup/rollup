@@ -1,6 +1,9 @@
 use swc_ecma_ast::SeqExpr;
 
-use crate::convert_ast::converter::ast_constants::{SEQUENCE_EXPRESSION_EXPRESSIONS_OFFSET, SEQUENCE_EXPRESSION_RESERVED_BYTES, TYPE_SEQUENCE_EXPRESSION};
+use crate::convert_ast::converter::ast_constants::{
+  SEQUENCE_EXPRESSION_EXPRESSIONS_OFFSET, SEQUENCE_EXPRESSION_RESERVED_BYTES,
+  TYPE_SEQUENCE_EXPRESSION,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

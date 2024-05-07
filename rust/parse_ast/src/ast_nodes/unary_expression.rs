@@ -1,8 +1,13 @@
 use swc_ecma_ast::{UnaryExpr, UnaryOp};
 
-use crate::convert_ast::converter::ast_constants::{TYPE_UNARY_EXPRESSION, UNARY_EXPRESSION_ARGUMENT_OFFSET, UNARY_EXPRESSION_OPERATOR_OFFSET, UNARY_EXPRESSION_RESERVED_BYTES};
+use crate::convert_ast::converter::ast_constants::{
+  TYPE_UNARY_EXPRESSION, UNARY_EXPRESSION_ARGUMENT_OFFSET, UNARY_EXPRESSION_OPERATOR_OFFSET,
+  UNARY_EXPRESSION_RESERVED_BYTES,
+};
+use crate::convert_ast::converter::string_constants::{
+  STRING_BANG, STRING_DELETE, STRING_MINUS, STRING_PLUS, STRING_TILDE, STRING_TYPEOF, STRING_VOID,
+};
 use crate::convert_ast::converter::AstConverter;
-use crate::convert_ast::converter::string_constants::{STRING_BANG, STRING_DELETE, STRING_MINUS, STRING_PLUS, STRING_TILDE, STRING_TYPEOF, STRING_VOID};
 
 impl<'a> AstConverter<'a> {
   pub fn store_unary_expression(&mut self, unary_expression: &UnaryExpr) {

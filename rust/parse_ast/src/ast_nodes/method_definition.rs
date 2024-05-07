@@ -1,5 +1,8 @@
 use swc_common::Span;
-use swc_ecma_ast::{ClassMethod, Constructor, Function, MethodKind, ParamOrTsParamProp, Pat, PrivateMethod, PrivateName, PropName};
+use swc_ecma_ast::{
+  ClassMethod, Constructor, Function, MethodKind, ParamOrTsParamProp, Pat, PrivateMethod,
+  PrivateName, PropName,
+};
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
@@ -7,10 +10,10 @@ use crate::convert_ast::converter::ast_constants::{
   METHOD_DEFINITION_KIND_OFFSET, METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_STATIC_FLAG,
   METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION, TYPE_METHOD_DEFINITION,
 };
-use crate::convert_ast::converter::AstConverter;
 use crate::convert_ast::converter::string_constants::{
   STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
 };
+use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
   pub fn store_method_definition(

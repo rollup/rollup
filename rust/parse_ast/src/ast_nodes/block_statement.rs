@@ -1,7 +1,7 @@
 use swc_ecma_ast::{BlockStmt, Expr, Lit, Stmt};
 
 use crate::convert_ast::converter::ast_constants::{
-    BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, TYPE_BLOCK_STATEMENT,
+  BLOCK_STATEMENT_BODY_OFFSET, BLOCK_STATEMENT_RESERVED_BYTES, TYPE_BLOCK_STATEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 

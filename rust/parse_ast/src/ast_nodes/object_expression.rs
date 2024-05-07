@@ -1,6 +1,8 @@
 use swc_ecma_ast::ObjectLit;
 
-use crate::convert_ast::converter::ast_constants::{OBJECT_EXPRESSION_PROPERTIES_OFFSET, OBJECT_EXPRESSION_RESERVED_BYTES, TYPE_OBJECT_EXPRESSION};
+use crate::convert_ast::converter::ast_constants::{
+  OBJECT_EXPRESSION_PROPERTIES_OFFSET, OBJECT_EXPRESSION_RESERVED_BYTES, TYPE_OBJECT_EXPRESSION,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

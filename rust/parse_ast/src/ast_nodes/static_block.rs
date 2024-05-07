@@ -1,7 +1,7 @@
 use swc_ecma_ast::StaticBlock;
 
 use crate::convert_ast::converter::ast_constants::{
-    STATIC_BLOCK_BODY_OFFSET, STATIC_BLOCK_RESERVED_BYTES, TYPE_STATIC_BLOCK,
+  STATIC_BLOCK_BODY_OFFSET, STATIC_BLOCK_RESERVED_BYTES, TYPE_STATIC_BLOCK,
 };
 use crate::convert_ast::converter::AstConverter;
 

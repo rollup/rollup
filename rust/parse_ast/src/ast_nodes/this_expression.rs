@@ -1,7 +1,7 @@
 use swc_ecma_ast::ThisExpr;
 
 use crate::convert_ast::converter::ast_constants::{
-    THIS_EXPRESSION_RESERVED_BYTES, TYPE_THIS_EXPRESSION,
+  THIS_EXPRESSION_RESERVED_BYTES, TYPE_THIS_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 

@@ -2,8 +2,8 @@ use swc_common::Span;
 use swc_ecma_ast::ExprOrSpread;
 
 use crate::convert_ast::converter::ast_constants::{
-    IMPORT_EXPRESSION_OPTIONS_OFFSET, IMPORT_EXPRESSION_RESERVED_BYTES,
-    IMPORT_EXPRESSION_SOURCE_OFFSET, TYPE_IMPORT_EXPRESSION,
+  IMPORT_EXPRESSION_OPTIONS_OFFSET, IMPORT_EXPRESSION_RESERVED_BYTES,
+  IMPORT_EXPRESSION_SOURCE_OFFSET, TYPE_IMPORT_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 

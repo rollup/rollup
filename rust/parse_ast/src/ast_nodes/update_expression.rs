@@ -1,8 +1,12 @@
 use swc_ecma_ast::{UpdateExpr, UpdateOp};
 
-use crate::convert_ast::converter::ast_constants::{TYPE_UPDATE_EXPRESSION, UPDATE_EXPRESSION_ARGUMENT_OFFSET, UPDATE_EXPRESSION_FLAGS_OFFSET, UPDATE_EXPRESSION_OPERATOR_OFFSET, UPDATE_EXPRESSION_PREFIX_FLAG, UPDATE_EXPRESSION_RESERVED_BYTES};
-use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::ast_constants::{
+  TYPE_UPDATE_EXPRESSION, UPDATE_EXPRESSION_ARGUMENT_OFFSET, UPDATE_EXPRESSION_FLAGS_OFFSET,
+  UPDATE_EXPRESSION_OPERATOR_OFFSET, UPDATE_EXPRESSION_PREFIX_FLAG,
+  UPDATE_EXPRESSION_RESERVED_BYTES,
+};
 use crate::convert_ast::converter::string_constants::{STRING_MINUSMINUS, STRING_PLUSPLUS};
+use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
   pub fn store_update_expression(&mut self, update_expression: &UpdateExpr) {

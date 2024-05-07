@@ -1,6 +1,9 @@
 use swc_ecma_ast::SwitchCase;
 
-use crate::convert_ast::converter::ast_constants::{SWITCH_CASE_CONSEQUENT_OFFSET, SWITCH_CASE_RESERVED_BYTES, SWITCH_CASE_TEST_OFFSET, TYPE_SWITCH_CASE};
+use crate::convert_ast::converter::ast_constants::{
+  SWITCH_CASE_CONSEQUENT_OFFSET, SWITCH_CASE_RESERVED_BYTES, SWITCH_CASE_TEST_OFFSET,
+  TYPE_SWITCH_CASE,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

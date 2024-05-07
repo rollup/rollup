@@ -1,8 +1,8 @@
 use swc_ecma_ast::Regex;
 
 use crate::convert_ast::converter::ast_constants::{
-    LITERAL_REG_EXP_FLAGS_OFFSET, LITERAL_REG_EXP_PATTERN_OFFSET, LITERAL_REG_EXP_RESERVED_BYTES,
-    TYPE_LITERAL_REG_EXP,
+  LITERAL_REG_EXP_FLAGS_OFFSET, LITERAL_REG_EXP_PATTERN_OFFSET, LITERAL_REG_EXP_RESERVED_BYTES,
+  TYPE_LITERAL_REG_EXP,
 };
 use crate::convert_ast::converter::AstConverter;
 

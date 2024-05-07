@@ -1,8 +1,8 @@
 use swc_ecma_ast::ImportNamedSpecifier;
 
 use crate::convert_ast::converter::ast_constants::{
-    IMPORT_SPECIFIER_IMPORTED_OFFSET, IMPORT_SPECIFIER_LOCAL_OFFSET, IMPORT_SPECIFIER_RESERVED_BYTES,
-    TYPE_IMPORT_SPECIFIER,
+  IMPORT_SPECIFIER_IMPORTED_OFFSET, IMPORT_SPECIFIER_LOCAL_OFFSET, IMPORT_SPECIFIER_RESERVED_BYTES,
+  TYPE_IMPORT_SPECIFIER,
 };
 use crate::convert_ast::converter::AstConverter;
 

@@ -1,6 +1,9 @@
 use swc_ecma_ast::ForInStmt;
 
-use crate::convert_ast::converter::ast_constants::{FOR_IN_STATEMENT_BODY_OFFSET, FOR_IN_STATEMENT_LEFT_OFFSET, FOR_IN_STATEMENT_RESERVED_BYTES, FOR_IN_STATEMENT_RIGHT_OFFSET, TYPE_FOR_IN_STATEMENT};
+use crate::convert_ast::converter::ast_constants::{
+  FOR_IN_STATEMENT_BODY_OFFSET, FOR_IN_STATEMENT_LEFT_OFFSET, FOR_IN_STATEMENT_RESERVED_BYTES,
+  FOR_IN_STATEMENT_RIGHT_OFFSET, TYPE_FOR_IN_STATEMENT,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

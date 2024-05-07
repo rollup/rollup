@@ -1,6 +1,8 @@
 use swc_ecma_ast::Super;
 
-use crate::convert_ast::converter::ast_constants::{SUPER_ELEMENT_RESERVED_BYTES, TYPE_SUPER_ELEMENT};
+use crate::convert_ast::converter::ast_constants::{
+  SUPER_ELEMENT_RESERVED_BYTES, TYPE_SUPER_ELEMENT,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

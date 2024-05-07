@@ -1,6 +1,9 @@
 use swc_ecma_ast::LabeledStmt;
 
-use crate::convert_ast::converter::ast_constants::{LABELED_STATEMENT_BODY_OFFSET, LABELED_STATEMENT_LABEL_OFFSET, LABELED_STATEMENT_RESERVED_BYTES, TYPE_LABELED_STATEMENT};
+use crate::convert_ast::converter::ast_constants::{
+  LABELED_STATEMENT_BODY_OFFSET, LABELED_STATEMENT_LABEL_OFFSET, LABELED_STATEMENT_RESERVED_BYTES,
+  TYPE_LABELED_STATEMENT,
+};
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {

@@ -1,8 +1,8 @@
 use swc_ecma_ast::BigInt;
 
 use crate::convert_ast::converter::ast_constants::{
-    LITERAL_BIG_INT_BIGINT_OFFSET, LITERAL_BIG_INT_RAW_OFFSET, LITERAL_BIG_INT_RESERVED_BYTES,
-    TYPE_LITERAL_BIG_INT,
+  LITERAL_BIG_INT_BIGINT_OFFSET, LITERAL_BIG_INT_RAW_OFFSET, LITERAL_BIG_INT_RESERVED_BYTES,
+  TYPE_LITERAL_BIG_INT,
 };
 use crate::convert_ast::converter::AstConverter;
 

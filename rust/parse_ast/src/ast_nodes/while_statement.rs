@@ -1,8 +1,8 @@
 use swc_ecma_ast::WhileStmt;
 
 use crate::convert_ast::converter::ast_constants::{
-    TYPE_WHILE_STATEMENT, WHILE_STATEMENT_BODY_OFFSET, WHILE_STATEMENT_RESERVED_BYTES,
-    WHILE_STATEMENT_TEST_OFFSET,
+  TYPE_WHILE_STATEMENT, WHILE_STATEMENT_BODY_OFFSET, WHILE_STATEMENT_RESERVED_BYTES,
+  WHILE_STATEMENT_TEST_OFFSET,
 };
 use crate::convert_ast::converter::AstConverter;
 

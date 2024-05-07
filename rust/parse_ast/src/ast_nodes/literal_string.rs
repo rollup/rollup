@@ -1,8 +1,8 @@
 use swc_ecma_ast::Str;
 
 use crate::convert_ast::converter::ast_constants::{
-    LITERAL_STRING_RAW_OFFSET, LITERAL_STRING_RESERVED_BYTES, LITERAL_STRING_VALUE_OFFSET,
-    TYPE_LITERAL_STRING,
+  LITERAL_STRING_RAW_OFFSET, LITERAL_STRING_RESERVED_BYTES, LITERAL_STRING_VALUE_OFFSET,
+  TYPE_LITERAL_STRING,
 };
 use crate::convert_ast::converter::AstConverter;
 
