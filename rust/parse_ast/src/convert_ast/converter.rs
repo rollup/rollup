@@ -1051,10 +1051,9 @@ impl<'a> AstConverter<'a> {
   fn convert_type_annotation(&mut self, type_annotation: &TsTypeAnn) {
     match &*type_annotation.type_ann {
       TsType::TsKeywordType(keyword_type) => {
-        let span = &type_annotation.span;
         let end_position = self.add_type_and_start(
           &TYPE_TS_TYPE_ANNOTATION,
-          span,
+          &type_annotation.span,
           TS_TYPE_ANNOTATION_RESERVED_BYTES,
           false,
         );
@@ -1062,7 +1061,7 @@ impl<'a> AstConverter<'a> {
         self.update_reference_position(end_position + TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET);
         self.convert_ts_keyword_type_kind(&keyword_type.kind, &keyword_type.span);
         // end
-        self.add_end(end_position, &keyword_type.span);
+        self.add_end(end_position, &type_annotation.span);
       }
       TsType::TsThisType(_) => {
         unimplemented!("TsThisType")
