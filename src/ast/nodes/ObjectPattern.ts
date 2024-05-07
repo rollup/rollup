@@ -4,7 +4,7 @@ import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker'
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import Property from './Property';
+import type Property from './Property';
 import RestElement from './RestElement';
 import VariableDeclarator from './VariableDeclarator';
 import type { ExpressionEntity, InclusionOptions } from './shared/Expression';
@@ -57,12 +57,11 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	): void {
 		super.includePath(path, context, includeChildrenRecursively, options);
 		if (this.parent instanceof VariableDeclarator) {
-			for (const p of this.properties) {
-				if (p instanceof Property) {
+			if (this.properties[this.properties.length - 1] instanceof RestElement) {
+				this.parent.init?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively, options);
+			} else {
+				for (const p of this.properties as Property[]) {
 					this.parent.init?.includePath([p.key.name], context, includeChildrenRecursively, options);
-				}
-				if (p instanceof RestElement) {
-					this.parent.init?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively, options);
 				}
 			}
 		}
