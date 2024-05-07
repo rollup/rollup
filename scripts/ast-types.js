@@ -635,6 +635,13 @@ export const AST_NODES = {
 		estreeType: 'any',
 		fields: []
 	},
+	TSTypeAliasDeclaration: {
+		estreeType: 'any',
+		fields: [
+			['id', 'Node'],
+			['typeAnnotation', 'Node']
+		]
+	},
 	TSTypeAnnotation: {
 		estreeType: 'any',
 		fields: [['typeAnnotation', 'Node']]

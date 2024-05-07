@@ -1143,6 +1143,19 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			end
 		};
 	},
+	function tSTypeAliasDeclaration(position, buffer, readString): TSTypeAliasDeclarationNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const id = convertNode(buffer[position++], buffer, readString);
+		const typeAnnotation = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'TSTypeAliasDeclaration',
+			start,
+			end,
+			id,
+			typeAnnotation
+		};
+	},
 	function tSTypeAnnotation(position, buffer, readString): TSTypeAnnotationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -1356,6 +1369,7 @@ export type TSNullKeywordNode = RollupAstNode<any>;
 export type TSNumberKeywordNode = RollupAstNode<any>;
 export type TSPropertySignatureNode = RollupAstNode<any>;
 export type TSStringKeywordNode = RollupAstNode<any>;
+export type TSTypeAliasDeclarationNode = RollupAstNode<any>;
 export type TSTypeAnnotationNode = RollupAstNode<any>;
 export type UnaryExpressionNode = RollupAstNode<estree.UnaryExpression> & { prefix: true };
 export type UpdateExpressionNode = RollupAstNode<estree.UpdateExpression>;

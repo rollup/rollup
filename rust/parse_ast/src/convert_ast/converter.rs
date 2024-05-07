@@ -16,8 +16,8 @@ use swc_ecma_ast::{
   PropName, PropOrSpread, Regex, RestPat, ReturnStmt, SeqExpr, SetterProp, SimpleAssignTarget,
   SpreadElement, StaticBlock, Stmt, Str, Super, SuperProp, SuperPropExpr, SwitchCase, SwitchStmt,
   TaggedTpl, ThisExpr, ThrowStmt, Tpl, TplElement, TryStmt, TsKeywordType, TsKeywordTypeKind,
-  TsType, TsTypeAnn, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, UsingDecl, VarDecl, VarDeclKind,
-  VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
+  TsType, TsTypeAliasDecl, TsTypeAnn, UnaryExpr, UnaryOp, UpdateExpr, UpdateOp, UsingDecl, VarDecl,
+  VarDeclKind, VarDeclOrExpr, VarDeclarator, WhileStmt, YieldExpr,
 };
 
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
@@ -214,7 +214,7 @@ impl<'a> AstConverter<'a> {
       end_position + IDENTIFIER_NAME_OFFSET,
     );
     // typeAnnotation
-    if let Some(type_annotation) = binding_identifier.type_ann.as_ref() {
+    if let Some(ref type_annotation) = binding_identifier.type_ann {
       self.update_reference_position(end_position + IDENTIFIER_TYPE_ANNOTATION_OFFSET);
       self.convert_type_annotation(type_annotation);
       // end
@@ -309,7 +309,9 @@ impl<'a> AstConverter<'a> {
         self.convert_variable_declaration(&VariableDeclaration::Using(using_declaration))
       }
       Decl::TsInterface(_) => unimplemented!("Cannot convert Decl::TsInterface"),
-      Decl::TsTypeAlias(_) => unimplemented!("Cannot convert Decl::TsTypeAlias"),
+      Decl::TsTypeAlias(ts_type_alias_declaration) => {
+        self.convert_ts_type_alias_declaration(ts_type_alias_declaration)
+      }
       Decl::TsEnum(_) => unimplemented!("Cannot convert Decl::TsEnum"),
       Decl::TsModule(_) => unimplemented!("Cannot convert Decl::TsModule"),
     }
@@ -3176,17 +3178,36 @@ impl<'a> AstConverter<'a> {
     // end
     self.add_end(end_position, span);
   }
-  
+
   fn convert_ts_string_keyword(&mut self, span: &Span) {
     let end_position = self.add_type_and_start(
       &TYPE_TS_STRING_KEYWORD,
       span,
       TS_STRING_KEYWORD_RESERVED_BYTES,
-      false
+      false,
     );
-    
+
     // end
     self.add_end(end_position, span)
+  }
+
+  fn convert_ts_type_alias_declaration(&mut self, ts_type_alias_declaration: &TsTypeAliasDecl) {
+    let end_position = self.add_type_and_start(
+      &TYPE_TS_TYPE_ALIAS_DECLARATION,
+      &ts_type_alias_declaration.span,
+      TS_TYPE_ALIAS_DECLARATION_RESERVED_BYTES,
+      false,
+    );
+    // name
+    self.update_reference_position(end_position + TS_TYPE_ALIAS_DECLARATION_ID_OFFSET);
+    self.convert_identifier(&ts_type_alias_declaration.id);
+
+    // type annotation
+    self.update_reference_position(end_position + TS_TYPE_ALIAS_DECLARATION_TYPE_ANNOTATION_OFFSET);
+    todo!("type annotation");
+
+    // end
+    self.add_end(end_position, &ts_type_alias_declaration.span);
   }
 
   fn convert_unary_expression(&mut self, unary_expression: &UnaryExpr) {
