@@ -1058,68 +1058,8 @@ impl<'a> AstConverter<'a> {
     
     // typeAnnotation
     self.update_reference_position(end_position + TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET);
-    match &*type_annotation.type_ann {
-      TsType::TsKeywordType(keyword_type) => {
-        self.convert_ts_keyword_type_kind(&keyword_type.kind, &keyword_type.span);
-      }
-      TsType::TsThisType(_) => {
-        unimplemented!("TsThisType")
-      }
-      TsType::TsFnOrConstructorType(_) => {
-        unimplemented!("TsFnOrConstructorType")
-      }
-      TsType::TsTypeRef(_) => {
-        unimplemented!("TsTypeRef")
-      }
-      TsType::TsTypeQuery(_) => {
-        unimplemented!("TsTypeQuery")
-      }
-      TsType::TsTypeLit(_) => {
-        unimplemented!("TsTypeLit")
-      }
-      TsType::TsArrayType(_) => {
-        unimplemented!("TsArrayType")
-      }
-      TsType::TsTupleType(_) => {
-        unimplemented!("TsTupleType")
-      }
-      TsType::TsOptionalType(_) => {
-        unimplemented!("TsOptionalType")
-      }
-      TsType::TsRestType(_) => {
-        unimplemented!("TsRestType")
-      }
-      TsType::TsUnionOrIntersectionType(_) => {
-        unimplemented!("TsUnionOrIntersectionType")
-      }
-      TsType::TsConditionalType(_) => {
-        unimplemented!("TsConditionalType")
-      }
-      TsType::TsInferType(_) => {
-        unimplemented!("TsInferType")
-      }
-      TsType::TsParenthesizedType(_) => {
-        unimplemented!("TsParenthesizedType")
-      }
-      TsType::TsTypeOperator(_) => {
-        unimplemented!("TsTypeOperator")
-      }
-      TsType::TsIndexedAccessType(_) => {
-        unimplemented!("TsIndexedAccessType")
-      }
-      TsType::TsMappedType(_) => {
-        unimplemented!("TsMappedType")
-      }
-      TsType::TsLitType(_) => {
-        unimplemented!("TsLitType")
-      }
-      TsType::TsTypePredicate(_) => {
-        unimplemented!("TsTypePredicate")
-      }
-      TsType::TsImportType(_) => {
-        unimplemented!("TsImportType")
-      }
-    }
+    self.convert_ts_type(&type_annotation.type_ann);
+    
     // end
     self.add_end(end_position, &type_annotation.span);
   }
@@ -3186,6 +3126,71 @@ impl<'a> AstConverter<'a> {
 
     // end
     self.add_end(end_position, span)
+  }
+
+  fn convert_ts_type(&mut self, ts_type: &TsType) {
+    match ts_type {
+      TsType::TsKeywordType(keyword_type) => {
+        self.convert_ts_keyword_type_kind(&keyword_type.kind, &keyword_type.span);
+      }
+      TsType::TsThisType(_) => {
+        unimplemented!("TsThisType")
+      }
+      TsType::TsFnOrConstructorType(_) => {
+        unimplemented!("TsFnOrConstructorType")
+      }
+      TsType::TsTypeRef(_) => {
+        unimplemented!("TsTypeRef")
+      }
+      TsType::TsTypeQuery(_) => {
+        unimplemented!("TsTypeQuery")
+      }
+      TsType::TsTypeLit(_) => {
+        unimplemented!("TsTypeLit")
+      }
+      TsType::TsArrayType(_) => {
+        unimplemented!("TsArrayType")
+      }
+      TsType::TsTupleType(_) => {
+        unimplemented!("TsTupleType")
+      }
+      TsType::TsOptionalType(_) => {
+        unimplemented!("TsOptionalType")
+      }
+      TsType::TsRestType(_) => {
+        unimplemented!("TsRestType")
+      }
+      TsType::TsUnionOrIntersectionType(_) => {
+        unimplemented!("TsUnionOrIntersectionType")
+      }
+      TsType::TsConditionalType(_) => {
+        unimplemented!("TsConditionalType")
+      }
+      TsType::TsInferType(_) => {
+        unimplemented!("TsInferType")
+      }
+      TsType::TsParenthesizedType(_) => {
+        unimplemented!("TsParenthesizedType")
+      }
+      TsType::TsTypeOperator(_) => {
+        unimplemented!("TsTypeOperator")
+      }
+      TsType::TsIndexedAccessType(_) => {
+        unimplemented!("TsIndexedAccessType")
+      }
+      TsType::TsMappedType(_) => {
+        unimplemented!("TsMappedType")
+      }
+      TsType::TsLitType(_) => {
+        unimplemented!("TsLitType")
+      }
+      TsType::TsTypePredicate(_) => {
+        unimplemented!("TsTypePredicate")
+      }
+      TsType::TsImportType(_) => {
+        unimplemented!("TsImportType")
+      }
+    }
   }
 
   fn convert_ts_type_alias_declaration(&mut self, ts_type_alias_declaration: &TsTypeAliasDecl) {
