@@ -2,12 +2,7 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { WritableEntity } from '../../Entity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
-import type {
-	ObjectPath,
-	ObjectPathKey,
-	PathTracker,
-	SymbolToStringTag
-} from '../../utils/PathTracker';
+import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
 import type SpreadElement from '../SpreadElement';
@@ -33,8 +28,6 @@ export interface InclusionOptions {
 
 export class ExpressionEntity implements WritableEntity {
 	protected flags = 0;
-
-	includedPaths = new Set<ObjectPathKey>();
 
 	get included(): boolean {
 		return isFlagSet(this.flags, Flag.included);

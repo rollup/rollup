@@ -27,7 +27,7 @@ const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'awai
 export default class IdentifierBase extends NodeBase {
 	name!: string;
 	variable: Variable | null = null;
-
+	includedPaths!: ObjectPath[] | null;
 	protected isVariableReference = false;
 
 	private get isTDZAccess(): boolean | null {
@@ -128,18 +128,32 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
+	private hasOrAddIncludedPaths(path: ObjectPath) {
+		if (!this.includedPaths) {
+			this.includedPaths = [];
+		}
+		for (const includedPath of this.includedPaths) {
+			if (
+				path.length === includedPath.length &&
+				path.every((key, index) => key === includedPath[index])
+			) {
+				return true;
+			}
+		}
+		this.includedPaths.push(path);
+		return false;
+	}
+
 	includePath(path?: ObjectPath): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (this.included) {
-			if (path?.length && !this.includedPaths.has(path[0])) {
-				this.includedPaths.add(path[0]);
-				this.variable?.includePath(path);
-			}
-		} else {
+		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
 				this.scope.context.includeVariableInModule(this.variable);
 			}
+		}
+		if (path?.length && !this.hasOrAddIncludedPaths(path)) {
+			this.variable?.includePath(path);
 		}
 	}
 
