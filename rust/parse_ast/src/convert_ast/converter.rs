@@ -3206,7 +3206,7 @@ impl<'a> AstConverter<'a> {
 
     // type annotation
     self.update_reference_position(end_position + TS_TYPE_ALIAS_DECLARATION_TYPE_ANNOTATION_OFFSET);
-    todo!("type annotation");
+    self.convert_ts_type(&ts_type_alias_declaration.type_ann);
 
     // end
     self.add_end(end_position, &ts_type_alias_declaration.span);
