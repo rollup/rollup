@@ -1,3 +1,4 @@
 const foo = () => {};
+const bar = () => {};
 
-export { foo };
+export { bar, foo };
