@@ -119,7 +119,6 @@ const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {
 const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
 	const configJsx = config.jsx;
 	if (!configJsx) return false;
-	if (configJsx === 'preserve') return 'preserve';
 	const configWithPreset = getOptionWithPreset(
 		configJsx,
 		jsxPresets,
@@ -127,11 +126,17 @@ const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
 		URL_JSX,
 		'false, "preserve", '
 	);
-	return {
-		factory: configWithPreset.factory || 'React.createElement',
-		fragmentFactory: configWithPreset.fragmentFactory || 'React.Fragment',
-		importSource: configWithPreset.importSource || null
-	};
+	return configWithPreset.preserve
+		? {
+				factoryGlobals: configWithPreset.factoryGlobals || EMPTY_ARRAY,
+				preserve: true
+			}
+		: {
+				factory: configWithPreset.factory || 'React.createElement',
+				fragmentFactory: configWithPreset.fragmentFactory || 'React.Fragment',
+				importSource: configWithPreset.importSource || null,
+				preserve: false
+			};
 };
 
 const getMaxParallelFileOps = (

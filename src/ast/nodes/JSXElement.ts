@@ -21,13 +21,15 @@ export default class JSXElement extends NodeBase {
 		| JSXElement
 		| JSXFragment
 	) /* TODO | JSXSpreadChild */[];
-	private factoryVariable: Variable | null = null;
+	private factoryVariables = new Map<string, Variable>();
 
 	bind() {
 		super.bind();
-		if (this.scope.context.options.jsx === 'preserve') {
-			// And also make sure it is always called "react"
-			this.factoryVariable = this.scope.findVariable('React');
+		const { jsx } = this.scope.context.options;
+		if (jsx && jsx.preserve) {
+			for (const name of jsx.factoryGlobals) {
+				this.factoryVariables.set(name, this.scope.findVariable(name));
+			}
 		}
 	}
 
@@ -37,24 +39,31 @@ export default class JSXElement extends NodeBase {
 		options?: InclusionOptions
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (!this.included && this.factoryVariable !== null) {
-			// TODO can we rework this so that we throw when different JSX elements would use different React variables?
-			//  This should probably rely on using a different way of specifying "preserve" mode with factory variables
-			// This pretends we are accessing a global variable of the same name
-			this.scope.findGlobal('React');
-			// This excludes this variable from renaming
-			this.factoryVariable.globalName = 'React';
-			this.scope.context.includeVariableInModule(this.factoryVariable);
+		if (!this.included) {
+			const { jsx } = this.scope.context.options;
+			if (jsx && jsx.preserve) {
+				// TODO can we rework this so that we throw when different JSX elements would use different React variables?
+				for (const [name, factoryVariable] of this.factoryVariables) {
+					// This pretends we are accessing an included global variable of the same name
+					const globalVariable = this.scope.findGlobal(name);
+					globalVariable.include();
+					// This excludes this variable from renaming
+					factoryVariable.globalName = name;
+					this.scope.context.includeVariableInModule(factoryVariable);
+				}
+			}
 		}
 		super.include(context, includeChildrenRecursively, options);
 	}
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		if (this.factoryVariable instanceof LocalVariable) {
-			this.factoryVariable.consolidateInitializers();
-			this.factoryVariable.addUsedPlace(this);
-			this.scope.context.requestTreeshakingPass();
+		for (const factoryVariable of this.factoryVariables.values()) {
+			if (factoryVariable instanceof LocalVariable) {
+				factoryVariable.consolidateInitializers();
+				factoryVariable.addUsedPlace(this);
+				this.scope.context.requestTreeshakingPass();
+			}
 		}
 	}
 }
