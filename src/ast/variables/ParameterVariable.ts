@@ -28,6 +28,7 @@ interface DeoptimizationInteraction {
 	path: ObjectPath;
 }
 
+const MAX_TRACKED_ARGUMENTS = 7;
 const MAX_TRACKED_INTERACTIONS = 20;
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
@@ -91,6 +92,7 @@ export default class ParameterVariable extends LocalVariable {
 		this.markReassigned();
 	}
 
+	private trackedArguments = new Set<ExpressionEntity>();
 	private knownValue: ExpressionEntity | null = null;
 	private knownValueLiteral: LiteralValueOrUnknown = UnknownValue;
 	/**
@@ -100,6 +102,9 @@ export default class ParameterVariable extends LocalVariable {
 	 * @param argument The argument of the function call
 	 */
 	updateKnownValue(argument: ExpressionEntity) {
+		if (this.trackedArguments.size <= MAX_TRACKED_ARGUMENTS) {
+			this.trackedArguments.add(argument);
+		}
 		if (this.isReassigned) {
 			return;
 		}
@@ -182,8 +187,10 @@ export default class ParameterVariable extends LocalVariable {
 
 	includePath(path?: ObjectPath): void {
 		super.includePath(path);
-		if (this.knownValue && path) {
-			this.knownValue.includePath(path, createInclusionContext(), false);
+		if (path) {
+			for (const trackedArgument of this.trackedArguments) {
+				trackedArgument.includePath(path, createInclusionContext(), false);
+			}
 		}
 	}
 
