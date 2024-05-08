@@ -184,7 +184,7 @@ export default class LocalVariable extends Variable {
 
 	includePath(path?: ObjectPath): void {
 		if (!this.included) {
-			super.includePath();
+			super.includePath(path);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
 				if (!declaration.included)

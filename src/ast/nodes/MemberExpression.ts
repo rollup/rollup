@@ -505,7 +505,7 @@ export default class MemberExpression
 			}
 		}
 		this.object.includePath(path, context, includeChildrenRecursively);
-		this.property.includePath(path, context, includeChildrenRecursively);
+		this.property.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 	}
 }
 

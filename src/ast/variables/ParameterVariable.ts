@@ -1,7 +1,7 @@
 import type { AstContext } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import { createInclusionContext, type HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
@@ -178,6 +178,13 @@ export default class ParameterVariable extends LocalVariable {
 		}
 		const knownValue = this.getKnownValue();
 		return knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
+	}
+
+	includePath(path?: ObjectPath): void {
+		super.includePath(path);
+		if (this.knownValue && path) {
+			this.knownValue.includePath(path, createInclusionContext(), false);
+		}
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {
