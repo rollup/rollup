@@ -523,17 +523,25 @@ export interface Plugin<A = any> extends OutputPlugin, Partial<PluginHooks> {
 	api?: A;
 }
 
-export type JsxPreset = 'react' | 'react-jsx';
+export type JsxPreset = 'react' | 'react-jsx' | 'preserve' | 'preserve-react';
 
-export interface NormalizedJsxOptions {
+export type NormalizedJsxOptions = NormalizedJsxPreserveOptions | NormalizedJsxTranspileOptions;
+
+interface NormalizedJsxTranspileOptions {
 	factory: string;
 	fragmentFactory: string;
 	importSource: string | null;
+	preserve: false;
 }
 
-export interface JsxOptions extends Partial<NormalizedJsxOptions> {
-	preset?: JsxPreset;
+interface NormalizedJsxPreserveOptions {
+	factoryGlobals: string[];
+	preserve: true;
 }
+
+export type JsxOptions = Partial<NormalizedJsxOptions> & {
+	preset?: JsxPreset;
+};
 
 export type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 
@@ -605,7 +613,7 @@ export interface InputOptions {
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
 	input?: InputOption;
-	jsx?: false | 'preserve' | JsxOptions;
+	jsx?: false | JsxOptions;
 	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	maxParallelFileOps?: number;
@@ -633,7 +641,7 @@ export interface NormalizedInputOptions {
 	experimentalLogSideEffects: boolean;
 	external: IsExternal;
 	input: string[] | Record<string, string>;
-	jsx: false | 'preserve' | NormalizedJsxOptions;
+	jsx: false | NormalizedJsxOptions;
 	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	maxParallelFileOps: number;

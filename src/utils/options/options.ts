@@ -140,15 +140,25 @@ export const treeshakePresets: {
 export const jsxPresets: {
 	[key in NonNullable<ObjectValue<InputOptions['jsx']>['preset']>]: NormalizedJsxOptions;
 } = {
+	preserve: {
+		factoryGlobals: EMPTY_ARRAY as never[],
+		preserve: true
+	},
+	'preserve-react': {
+		factoryGlobals: ['React'],
+		preserve: true
+	},
 	react: {
 		factory: 'React.createElement',
 		fragmentFactory: 'React.Fragment',
-		importSource: null
+		importSource: null,
+		preserve: false
 	},
 	'react-jsx': {
 		factory: 'jsx',
 		fragmentFactory: 'Fragment',
-		importSource: 'react'
+		importSource: 'react',
+		preserve: false
 	}
 };
 
