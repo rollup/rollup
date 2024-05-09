@@ -40,6 +40,8 @@ import type {
 	ModuleJSON,
 	ModuleOptions,
 	NormalizedInputOptions,
+	NormalizedJsxOptions,
+	NormalizedJsxTranspileOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
 	ResolvedId,
@@ -113,11 +115,13 @@ export interface AstContext {
 	) => void;
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
+	addJsx: () => void;
 	code: string;
 	deoptimizationTracker: PathTracker;
 	error: (properties: RollupLog, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];
+	getImportedJsxFactoryVariable: (baseName: string, pos: number) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getNodeConstructor: (name: string) => typeof NodeBase;
@@ -869,11 +873,13 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
+			addJsx: this.addJsx.bind(this),
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
 			getExports: this.getExports.bind(this),
+			getImportedJsxFactoryVariable: this.getImportedJsxFactoryVariable.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
@@ -1147,6 +1153,13 @@ export default class Module {
 		}
 	}
 
+	private addJsx(): void {
+		const jsx = this.options.jsx as NormalizedJsxOptions;
+		if (!jsx.preserve && jsx.importSource && !this.sourcesWithAttributes.has(jsx.importSource)) {
+			this.sourcesWithAttributes.set(jsx.importSource, EMPTY_OBJECT);
+		}
+	}
+
 	private addImportMeta(node: MetaProperty): void {
 		this.importMetas.push(node);
 	}
@@ -1231,6 +1244,18 @@ export default class Module {
 		} else {
 			this.sourcesWithAttributes.set(source, parsedAttributes);
 		}
+	}
+
+	private getImportedJsxFactoryVariable(baseName: string, nodeStart: number): Variable {
+		const { importSource } = this.scope.context.options.jsx as NormalizedJsxTranspileOptions;
+		const { id } = this.resolvedIds[importSource!];
+		const module = this.graph.modulesById.get(id)!;
+		const [variable] = module.getVariableForExportName(baseName);
+		if (!variable) {
+			// TODO proper error
+			throw new Error('TODO ' + nodeStart);
+		}
+		return variable;
 	}
 
 	private getVariableFromNamespaceReexports(
