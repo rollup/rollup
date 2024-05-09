@@ -65,7 +65,9 @@ const getPropertyKey = (property: Property | SpreadElement | ImportAttribute): L
 	);
 };
 
-export function getAttributesFromImportExportDeclaration(attributes: ImportAttribute[]) {
+export function getAttributesFromImportExportDeclaration(
+	attributes: ImportAttribute[]
+): Record<string, string> {
 	return attributes?.length
 		? Object.fromEntries(
 				attributes.map(assertion => [getPropertyKey(assertion), assertion.value.value])
