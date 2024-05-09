@@ -24,26 +24,7 @@ export default class JSXElement extends NodeBase {
 		| JSXElement
 		| JSXFragment
 	) /* TODO | JSXSpreadChild */[];
-	private factoryVariables = new Map<string, Variable>();
-
-	bind() {
-		super.bind();
-		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (jsx.preserve) {
-			for (const name of jsx.factoryGlobals) {
-				this.factoryVariables.set(name, this.scope.findVariable(name));
-			}
-		} else if (jsx.importSource) {
-			const factoryBaseName = jsx.factory.split('.')[0];
-			this.factoryVariables.set(
-				factoryBaseName,
-				this.scope.context.getImportedJsxFactoryVariable(factoryBaseName, this.start)
-			);
-		} else {
-			// TODO handle non-imported
-			throw new Error('TODO');
-		}
-	}
+	private factoryVariable: Variable | null = null;
 
 	include(
 		context: InclusionContext,
@@ -52,24 +33,31 @@ export default class JSXElement extends NodeBase {
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
-			const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
-			if (jsx.preserve) {
-				// TODO can we rework this so that we throw when different JSX elements would use different React variables?
-				for (const [name, factoryVariable] of this.factoryVariables) {
-					// This pretends we are accessing an included global variable of the same name
-					const globalVariable = this.scope.findGlobal(name);
-					globalVariable.include();
-					// This excludes this variable from renaming
-					factoryVariable.globalName = name;
-					this.scope.context.includeVariableInModule(factoryVariable);
+			const { factory, importSource, preserve } = this.scope.context.options
+				.jsx as NormalizedJsxOptions;
+			if (factory != null) {
+				const [baseName, nestedName] = factory.split('.');
+				if (importSource) {
+					this.factoryVariable = this.scope.context.getImportedJsxFactoryVariable(
+						nestedName ? 'default' : baseName,
+						this.start
+					);
+					if (preserve) {
+						// This pretends we are accessing an included global variable of the same name
+						const globalVariable = this.scope.findGlobal(baseName);
+						globalVariable.include();
+						// This excludes this variable from renaming
+						this.factoryVariable.globalName = baseName;
+					}
+				} else {
+					this.factoryVariable = this.scope.findGlobal(baseName);
 				}
-			} else if (jsx.importSource) {
-				for (const factoryVariable of this.factoryVariables.values()) {
-					this.scope.context.includeVariableInModule(factoryVariable);
+				this.scope.context.includeVariableInModule(this.factoryVariable);
+				if (this.factoryVariable instanceof LocalVariable) {
+					this.factoryVariable.consolidateInitializers();
+					this.factoryVariable.addUsedPlace(this);
+					this.scope.context.requestTreeshakingPass();
 				}
-			} else {
-				// TODO handle non-imported
-				throw new Error('TODO');
 			}
 		}
 		super.include(context, includeChildrenRecursively, options);
@@ -80,25 +68,21 @@ export default class JSXElement extends NodeBase {
 		this.scope.context.addJsx();
 	}
 
-	protected applyDeoptimizations(): void {
-		this.deoptimized = true;
-		for (const factoryVariable of this.factoryVariables.values()) {
-			if (factoryVariable instanceof LocalVariable) {
-				factoryVariable.consolidateInitializers();
-				factoryVariable.addUsedPlace(this);
-				this.scope.context.requestTreeshakingPass();
-			}
-		}
-	}
-
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
-		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!jsx.preserve) {
-			// TODO import
-			code.overwrite(this.start, this.openingElement.name.start, `/*#__PURE__*/${jsx.factory}(`, {
-				contentOnly: true
-			});
+		const {
+			snippets: { getPropertyAccess },
+			useOriginalName
+		} = options;
+		const { factory, preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (!preserve) {
+			const [, ...nestedName] = factory.split('.');
+			code.overwrite(
+				this.start,
+				this.openingElement.name.start,
+				`/*#__PURE__*/${[this.factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`,
+				{ contentOnly: true }
+			);
 			code.overwrite(this.openingElement.name.end, this.end, `, null)`, { contentOnly: true });
 		}
 	}

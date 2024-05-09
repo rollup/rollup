@@ -128,7 +128,9 @@ const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
 	);
 	return configWithPreset.preserve
 		? {
-				factoryGlobals: configWithPreset.factoryGlobals || EMPTY_ARRAY,
+				factory: configWithPreset.factory || null,
+				fragmentFactory: configWithPreset.fragmentFactory || null,
+				importSource: configWithPreset.importSource || null,
 				preserve: true
 			}
 		: {
