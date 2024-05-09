@@ -535,7 +535,9 @@ interface NormalizedJsxTranspileOptions {
 }
 
 interface NormalizedJsxPreserveOptions {
-	factoryGlobals: string[];
+	factory: string | null;
+	fragmentFactory: string | null;
+	importSource: string | null;
 	preserve: true;
 }
 

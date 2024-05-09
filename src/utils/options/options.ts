@@ -141,17 +141,21 @@ export const jsxPresets: {
 	[key in NonNullable<ObjectValue<InputOptions['jsx']>['preset']>]: NormalizedJsxOptions;
 } = {
 	preserve: {
-		factoryGlobals: EMPTY_ARRAY as never[],
+		factory: null,
+		fragmentFactory: null,
+		importSource: null,
 		preserve: true
 	},
 	'preserve-react': {
-		factoryGlobals: ['React'],
+		factory: 'React.createElement',
+		fragmentFactory: 'React.Fragment',
+		importSource: 'react',
 		preserve: true
 	},
 	react: {
 		factory: 'React.createElement',
 		fragmentFactory: 'React.Fragment',
-		importSource: null,
+		importSource: 'react',
 		preserve: false
 	},
 	'react-jsx': {
