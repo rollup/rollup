@@ -71,6 +71,7 @@ import {
 	logInvalidSourcemapForError,
 	logMissingEntryExport,
 	logMissingExport,
+	logMissingJsxExport,
 	logModuleParseError,
 	logNamespaceConflict,
 	logRedeclarationError,
@@ -1155,7 +1156,7 @@ export default class Module {
 
 	private addJsx(): void {
 		const jsx = this.options.jsx as NormalizedJsxOptions;
-		if (!jsx.preserve && jsx.importSource && !this.sourcesWithAttributes.has(jsx.importSource)) {
+		if (jsx.importSource && !this.sourcesWithAttributes.has(jsx.importSource)) {
 			this.sourcesWithAttributes.set(jsx.importSource, EMPTY_OBJECT);
 		}
 	}
@@ -1252,8 +1253,7 @@ export default class Module {
 		const module = this.graph.modulesById.get(id)!;
 		const [variable] = module.getVariableForExportName(baseName);
 		if (!variable) {
-			// TODO proper error
-			throw new Error('TODO ' + nodeStart);
+			return this.error(logMissingJsxExport(baseName, id, this.id), nodeStart);
 		}
 		return variable;
 	}
