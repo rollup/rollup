@@ -8,7 +8,7 @@ wasm-bindgen = "0.2.92"
 parse_ast = { path = "../parse_ast" }
 xxhash = { path = "../xxhash" }
 js-sys = "0.3.69"
-getrandom = { version = "0.2.14", features = ["js"] }
+getrandom = { version = "0.2.15", features = ["js"] }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
