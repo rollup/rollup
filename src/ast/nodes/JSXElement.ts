@@ -5,7 +5,8 @@ import type { InclusionContext } from '../ExecutionContext';
 import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type JSXClosingElement from './JSXClosingElement';
-import type JSXExpressionContainer from './JSXExpressionContainer';
+import JSXEmptyExpression from './JSXEmptyExpression';
+import JSXExpressionContainer from './JSXExpressionContainer';
 import type JSXFragment from './JSXFragment';
 import type JSXOpeningElement from './JSXOpeningElement';
 import type JSXText from './JSXText';
@@ -83,7 +84,21 @@ export default class JSXElement extends NodeBase {
 				`/*#__PURE__*/${[this.factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`,
 				{ contentOnly: true }
 			);
-			code.overwrite(this.openingElement.name.end, this.end, `, null)`, { contentOnly: true });
+			let insertPostion = this.openingElement.name.end;
+			// TODO do this in the opening element
+			code.appendLeft(insertPostion, `, null`);
+			for (const child of this.children) {
+				if (
+					child instanceof JSXExpressionContainer &&
+					child.expression instanceof JSXEmptyExpression
+				) {
+					code.remove(insertPostion, child.end);
+				} else {
+					code.overwrite(insertPostion, child.start, `, `, { contentOnly: true });
+					insertPostion = child.end;
+				}
+			}
+			code.overwrite(insertPostion, this.end, `)`, { contentOnly: true });
 		}
 	}
 }

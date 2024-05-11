@@ -1,4 +1,4 @@
-import { jsx as jsx$2 } from 'react';
+import { jsx as jsx$2 } from 'react/jsx-runtime';
 
 const Foo$2 = 'wrong Foo 1';
 const jsx$1 = 'wrong jsx 1';

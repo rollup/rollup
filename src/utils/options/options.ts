@@ -161,7 +161,7 @@ export const jsxPresets: {
 	'react-jsx': {
 		factory: 'jsx',
 		fragmentFactory: 'Fragment',
-		importSource: 'react',
+		importSource: 'react/jsx-runtime',
 		preserve: false
 	}
 };

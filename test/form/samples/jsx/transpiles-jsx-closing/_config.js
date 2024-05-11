@@ -1,8 +1,8 @@
 module.exports = defineTest({
 	solo: true,
-	description: 'preserves JSX text',
+	description: 'transpiles JSX closing element',
 	options: {
 		external: ['react'],
-		jsx: 'preserve'
+		jsx: 'react'
 	}
 });
