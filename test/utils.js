@@ -490,6 +490,11 @@ const replaceStringifyValues = (key, value) => {
 			const { decorators, ...rest } = value;
 			return rest;
 		}
+		case 'JSXText': {
+			// raw text is encoded differently in acorn
+			const { raw, ...nonRawProperties } = value;
+			return nonRawProperties;
+		}
 	}
 
 	return key.startsWith('_')
