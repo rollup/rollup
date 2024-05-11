@@ -1,2 +1,2 @@
 const Foo = () => {};
-export const result = <Foo>some-text&nbsp;</Foo>;
+export const result = <Foo>some&amp;\text</Foo>;
