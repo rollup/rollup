@@ -1,6 +1,6 @@
 module.exports = defineTest({
 	solo: true,
-	description: 'preserves JSX output',
+	description: 'preserves JSX children',
 	options: {
 		external: ['react'],
 		jsx: 'preserve'

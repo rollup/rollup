@@ -1,2 +1,0 @@
-const Foo = () => {};
-export const result = <Foo>{'test'}</Foo>;
