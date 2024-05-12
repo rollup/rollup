@@ -1,4 +1,5 @@
 const Foo = () => {};
-const result = <Foo>some&amp;\text</Foo>;
+const element = <Foo>some&amp;\text</Foo>;
+const fragment = <>other&amp;\text</>;
 
-export { result };
+export { element, fragment };
