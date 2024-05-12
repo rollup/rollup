@@ -862,10 +862,9 @@ impl<'a> AstConverter<'a> {
     self.convert_item_list(
       &jsx_fragment.children,
       end_position + JSX_FRAGMENT_CHILDREN_OFFSET,
-      |_ast_converter, _jsx_fragment_child| {
-        unimplemented!("Convert JSXFragmentChild");
-        // ast_converter.convert_jsx_fragment_child(jsx_fragment_child);
-        // true
+      |ast_converter, jsx_element_child| {
+        ast_converter.convert_jsx_element_child(jsx_element_child);
+        true
       },
     );
     // closingFragment
