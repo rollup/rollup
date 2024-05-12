@@ -2,18 +2,17 @@ import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
-import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
 import type { InclusionOptions } from './shared/Expression';
-import { type IncludeChildren, NodeBase } from './shared/Node';
+import JSXOpeningBase from './shared/JSXOpeningBase';
+import { type IncludeChildren } from './shared/Node';
 
-export default class JSXOpeningFragment extends NodeBase {
+export default class JSXOpeningFragment extends JSXOpeningBase {
 	type!: NodeType.tJSXOpeningElement;
 	attributes!: never[];
 	selfClosing!: false;
 
-	private factoryVariable: Variable | null = null;
 	private fragmentVariable: Variable | null = null;
 
 	include(
@@ -21,13 +20,9 @@ export default class JSXOpeningFragment extends NodeBase {
 		includeChildrenRecursively: IncludeChildren,
 		options?: InclusionOptions
 	): void {
-		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
-			const { factory, fragmentFactory, importSource, preserve } = this.scope.context.options
+			const { fragmentFactory, importSource, preserve } = this.scope.context.options
 				.jsx as NormalizedJsxOptions;
-			if (factory != null) {
-				this.factoryVariable = this.getAndIncludeFactoryVariable(factory, preserve, importSource);
-			}
 			if (fragmentFactory != null) {
 				this.fragmentVariable = this.getAndIncludeFactoryVariable(
 					fragmentFactory,
@@ -37,11 +32,6 @@ export default class JSXOpeningFragment extends NodeBase {
 			}
 		}
 		super.include(context, includeChildrenRecursively, options);
-	}
-
-	initialise(): void {
-		super.initialise();
-		this.scope.context.addJsx();
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
@@ -62,36 +52,5 @@ export default class JSXOpeningFragment extends NodeBase {
 				{ contentOnly: true }
 			);
 		}
-	}
-
-	private getAndIncludeFactoryVariable(
-		factory: string,
-		preserve: boolean,
-		importSource: string | null
-	): Variable {
-		const [baseName, nestedName] = factory.split('.');
-		let factoryVariable: Variable;
-		if (importSource) {
-			factoryVariable = this.scope.context.getImportedJsxFactoryVariable(
-				nestedName ? 'default' : baseName,
-				this.start
-			);
-			if (preserve) {
-				// This pretends we are accessing an included global variable of the same name
-				const globalVariable = this.scope.findGlobal(baseName);
-				globalVariable.include();
-				// This excludes this variable from renaming
-				factoryVariable.globalName = baseName;
-			}
-		} else {
-			factoryVariable = this.scope.findGlobal(baseName);
-		}
-		this.scope.context.includeVariableInModule(factoryVariable);
-		if (factoryVariable instanceof LocalVariable) {
-			factoryVariable.consolidateInitializers();
-			factoryVariable.addUsedPlace(this);
-			this.scope.context.requestTreeshakingPass();
-		}
-		return factoryVariable;
 	}
 }
