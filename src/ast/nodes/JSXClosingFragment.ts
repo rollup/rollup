@@ -1,15 +1,6 @@
-import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
 import type * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import JSXClosingBase from './shared/JSXClosingBase';
 
-export default class JSXClosingFragment extends NodeBase {
+export default class JSXClosingFragment extends JSXClosingBase {
 	type!: NodeType.tJSXClosingFragment;
-
-	render(code: MagicString): void {
-		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!preserve) {
-			code.overwrite(this.start, this.end, ')', { contentOnly: true });
-		}
-	}
 }
