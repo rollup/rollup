@@ -1,5 +1,6 @@
 import type MagicString from 'magic-string';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import type JSXMemberExpression from './JSXMemberExpression';
 import type JSXOpeningElement from './JSXOpeningElement';
 import type * as NodeType from './NodeType';
 import IdentifierBase from './shared/IdentifierBase';
@@ -36,6 +37,9 @@ export default class JSXIdentifier extends IdentifierBase {
 			case 'JSXOpeningElement':
 			case 'JSXClosingElement': {
 				return (this.parent as JSXOpeningElement).name === this;
+			}
+			case 'JSXMemberExpression': {
+				return (this.parent as JSXMemberExpression).object === this;
 			}
 			case 'JSXAttribute':
 			case 'JSXNamespacedName': {

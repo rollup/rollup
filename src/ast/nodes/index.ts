@@ -48,6 +48,7 @@ import JSXEmptyExpression from './JSXEmptyExpression';
 import JSXExpressionContainer from './JSXExpressionContainer';
 import JSXFragment from './JSXFragment';
 import JSXIdentifier from './JSXIdentifier';
+import JSXMemberExpression from './JSXMemberExpression';
 import JSXNamespacedName from './JSXNamespacedName';
 import JSXOpeningElement from './JSXOpeningElement';
 import JSXOpeningFragment from './JSXOpeningFragment';
@@ -138,6 +139,7 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	JSXExpressionContainer,
 	JSXFragment,
 	JSXIdentifier,
+	JSXMemberExpression,
 	JSXNamespacedName,
 	JSXOpeningElement,
 	JSXOpeningFragment,

@@ -520,6 +520,15 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			name: buffer.convertString(buffer[position + 2])
 		};
 	},
+	function jsxMemberExpression(position, buffer): JSXMemberExpressionNode {
+		return {
+			type: 'JSXMemberExpression',
+			start: buffer[position],
+			end: buffer[position + 1],
+			object: convertNode(buffer[position + 2], buffer),
+			property: convertNode(buffer[position + 3], buffer)
+		};
+	},
 	function jsxNamespacedName(position, buffer): JSXNamespacedNameNode {
 		return {
 			type: 'JSXNamespacedName',
@@ -1011,6 +1020,7 @@ export type JSXEmptyExpressionNode = RollupAstNode<any>;
 export type JSXExpressionContainerNode = RollupAstNode<any>;
 export type JSXFragmentNode = RollupAstNode<any>;
 export type JSXIdentifierNode = RollupAstNode<any>;
+export type JSXMemberExpressionNode = RollupAstNode<any>;
 export type JSXNamespacedNameNode = RollupAstNode<any>;
 export type JSXOpeningElementNode = RollupAstNode<any>;
 export type JSXOpeningFragmentNode = RollupAstNode<any>;
