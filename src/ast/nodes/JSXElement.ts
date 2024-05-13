@@ -6,6 +6,7 @@ import JSXEmptyExpression from './JSXEmptyExpression';
 import JSXExpressionContainer from './JSXExpressionContainer';
 import type JSXFragment from './JSXFragment';
 import type JSXOpeningElement from './JSXOpeningElement';
+import type JSXSpreadChild from './JSXSpreadChild';
 import type JSXText from './JSXText';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -14,12 +15,7 @@ export default class JSXElement extends NodeBase {
 	type!: NodeType.tJSXElement;
 	openingElement!: JSXOpeningElement;
 	closingElement!: JSXClosingElement | null;
-	children!: (
-		| JSXText
-		| JSXExpressionContainer
-		| JSXElement
-		| JSXFragment
-	) /* TODO | JSXSpreadChild */[];
+	children!: (JSXText | JSXExpressionContainer | JSXElement | JSXFragment | JSXSpreadChild)[];
 
 	render(code: MagicString, options: RenderOptions): void {
 		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;

@@ -3,23 +3,25 @@ import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type JSXAttribute from './JSXAttribute';
 import type JSXIdentifier from './JSXIdentifier';
+import type JSXMemberExpression from './JSXMemberExpression';
+import type JSXNamespacedName from './JSXNamespacedName';
 import type * as NodeType from './NodeType';
 import JSXOpeningBase from './shared/JSXOpeningBase';
 
 export default class JSXOpeningElement extends JSXOpeningBase {
 	type!: NodeType.tJSXOpeningElement;
-	name!: JSXIdentifier; /* TODO | JSXMemberExpression | JSXNamespacedName; */
+	name!: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
 	attributes!: JSXAttribute /* TODO | JSXSpreadAttribute */[];
 	selfClosing!: boolean;
 
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
-		const {
-			snippets: { getPropertyAccess },
-			useOriginalName
-		} = options;
 		const { factory, preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
 		if (!preserve) {
+			const {
+				snippets: { getPropertyAccess },
+				useOriginalName
+			} = options;
 			const [, ...nestedName] = factory.split('.');
 			code.overwrite(
 				this.start,

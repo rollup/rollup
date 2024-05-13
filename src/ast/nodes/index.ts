@@ -52,6 +52,7 @@ import JSXMemberExpression from './JSXMemberExpression';
 import JSXNamespacedName from './JSXNamespacedName';
 import JSXOpeningElement from './JSXOpeningElement';
 import JSXOpeningFragment from './JSXOpeningFragment';
+import JSXSpreadChild from './JSXSpreadChild';
 import JSXText from './JSXText';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
@@ -145,6 +146,7 @@ export const nodeConstructors: {
 	JSXNamespacedName,
 	JSXOpeningElement,
 	JSXOpeningFragment,
+	JSXSpreadChild,
 	JSXText,
 	LabeledStatement,
 	Literal,

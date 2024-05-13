@@ -4,9 +4,9 @@ use swc_ecma_ast::{
   ExprOrSpread, ForHead, ImportSpecifier, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue,
   JSXClosingElement, JSXClosingFragment, JSXElement, JSXElementChild, JSXElementName, JSXEmptyExpr,
   JSXExpr, JSXExprContainer, JSXFragment, JSXMemberExpr, JSXNamespacedName, JSXObject,
-  JSXOpeningElement, JSXOpeningFragment, JSXText, Lit, ModuleDecl, ModuleExportName, ModuleItem,
-  NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
-  SimpleAssignTarget, Stmt, VarDeclOrExpr,
+  JSXOpeningElement, JSXOpeningFragment, JSXSpreadChild, JSXText, Lit, ModuleDecl,
+  ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program,
+  PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
@@ -26,13 +26,14 @@ use crate::convert_ast::converter::ast_constants::{
   JSX_NAMESPACED_NAME_NAME_OFFSET, JSX_NAMESPACED_NAME_NAMESPACE_OFFSET,
   JSX_NAMESPACED_NAME_RESERVED_BYTES, JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
   JSX_OPENING_ELEMENT_NAME_OFFSET, JSX_OPENING_ELEMENT_RESERVED_BYTES,
-  JSX_OPENING_FRAGMENT_RESERVED_BYTES, JSX_TEXT_RAW_OFFSET, JSX_TEXT_RESERVED_BYTES,
+  JSX_OPENING_FRAGMENT_RESERVED_BYTES, JSX_SPREAD_CHILD_EXPRESSION_OFFSET,
+  JSX_SPREAD_CHILD_RESERVED_BYTES, JSX_TEXT_RAW_OFFSET, JSX_TEXT_RESERVED_BYTES,
   JSX_TEXT_VALUE_OFFSET, TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION,
   TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ATTRIBUTE, TYPE_JSX_CLOSING_ELEMENT,
   TYPE_JSX_CLOSING_FRAGMENT, TYPE_JSX_ELEMENT, TYPE_JSX_EMPTY_EXPRESSION,
   TYPE_JSX_EXPRESSION_CONTAINER, TYPE_JSX_FRAGMENT, TYPE_JSX_IDENTIFIER,
   TYPE_JSX_MEMBER_EXPRESSION, TYPE_JSX_NAMESPACED_NAME, TYPE_JSX_OPENING_ELEMENT,
-  TYPE_JSX_OPENING_FRAGMENT, TYPE_JSX_TEXT,
+  TYPE_JSX_OPENING_FRAGMENT, TYPE_JSX_SPREAD_CHILD, TYPE_JSX_TEXT,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
@@ -479,8 +480,8 @@ impl<'a> AstConverter<'a> {
       JSXElementChild::JSXExprContainer(jsx_expr_container) => {
         self.convert_jsx_expression_container(jsx_expr_container);
       }
-      JSXElementChild::JSXSpreadChild(_jsx_spread_child) => {
-        unimplemented!("JSXElementChild::JSXSpreadChild")
+      JSXElementChild::JSXSpreadChild(jsx_spread_child) => {
+        self.convert_jsx_spread_child(jsx_spread_child);
       }
       JSXElementChild::JSXFragment(jsx_fragment) => {
         self.convert_jsx_fragment(jsx_fragment);
@@ -981,6 +982,20 @@ impl<'a> AstConverter<'a> {
     );
     // end
     self.add_end(end_position, &jsxopening_fragment.span);
+  }
+
+  fn convert_jsx_spread_child(&mut self, jsx_spread_child: &JSXSpreadChild) {
+    let end_position = self.add_type_and_start(
+      &TYPE_JSX_SPREAD_CHILD,
+      &jsx_spread_child.span,
+      JSX_SPREAD_CHILD_RESERVED_BYTES,
+      false,
+    );
+    // expression
+    self.update_reference_position(end_position + JSX_SPREAD_CHILD_EXPRESSION_OFFSET);
+    self.convert_expression(&jsx_spread_child.expr);
+    // end
+    self.add_end(end_position, &jsx_spread_child.span);
   }
 
   fn convert_jsx_text(&mut self, jsx_text: &JSXText) {

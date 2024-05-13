@@ -60,6 +60,7 @@ import JSXMemberExpression from './nodes/JSXMemberExpression';
 import JSXNamespacedName from './nodes/JSXNamespacedName';
 import JSXOpeningElement from './nodes/JSXOpeningElement';
 import JSXOpeningFragment from './nodes/JSXOpeningFragment';
+import JSXSpreadChild from './nodes/JSXSpreadChild';
 import JSXText from './nodes/JSXText';
 import LabeledStatement from './nodes/LabeledStatement';
 import Literal from './nodes/Literal';
@@ -166,6 +167,7 @@ const nodeTypeStrings = [
 	'JSXNamespacedName',
 	'JSXOpeningElement',
 	'JSXOpeningFragment',
+	'JSXSpreadChild',
 	'JSXText',
 	'LabeledStatement',
 	'Literal',
@@ -262,6 +264,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	JSXNamespacedName,
 	JSXOpeningElement,
 	JSXOpeningFragment,
+	JSXSpreadChild,
 	JSXText,
 	LabeledStatement,
 	Literal,
@@ -657,6 +660,10 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	function jsxOpeningFragment(node: JSXOpeningFragment) {
 		node.attributes = [];
 		node.selfClosing = false;
+	},
+	function jsxSpreadChild(node: JSXSpreadChild, position, buffer) {
+		const { scope } = node;
+		node.expression = convertNode(node, scope, buffer[position], buffer);
 	},
 	function jsxText(node: JSXText, position, buffer) {
 		node.value = buffer.convertString(buffer[position]);
