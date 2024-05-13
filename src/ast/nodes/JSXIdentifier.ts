@@ -37,7 +37,8 @@ export default class JSXIdentifier extends IdentifierBase {
 			case 'JSXClosingElement': {
 				return (this.parent as JSXOpeningElement).name === this;
 			}
-			case 'JSXAttribute': {
+			case 'JSXAttribute':
+			case 'JSXNamespacedName': {
 				return false;
 			}
 			default: {
