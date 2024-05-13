@@ -56,6 +56,7 @@ import JSXEmptyExpression from './nodes/JSXEmptyExpression';
 import JSXExpressionContainer from './nodes/JSXExpressionContainer';
 import JSXFragment from './nodes/JSXFragment';
 import JSXIdentifier from './nodes/JSXIdentifier';
+import JSXNamespacedName from './nodes/JSXNamespacedName';
 import JSXOpeningElement from './nodes/JSXOpeningElement';
 import JSXOpeningFragment from './nodes/JSXOpeningFragment';
 import JSXText from './nodes/JSXText';
@@ -160,6 +161,7 @@ const nodeTypeStrings = [
 	'JSXExpressionContainer',
 	'JSXFragment',
 	'JSXIdentifier',
+	'JSXNamespacedName',
 	'JSXOpeningElement',
 	'JSXOpeningFragment',
 	'JSXText',
@@ -254,6 +256,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	JSXExpressionContainer,
 	JSXFragment,
 	JSXIdentifier,
+	JSXNamespacedName,
 	JSXOpeningElement,
 	JSXOpeningFragment,
 	JSXText,
@@ -630,6 +633,11 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	},
 	function jsxIdentifier(node: JSXIdentifier, position, buffer) {
 		node.name = buffer.convertString(buffer[position]);
+	},
+	function jsxNamespacedName(node: JSXNamespacedName, position, buffer) {
+		const { scope } = node;
+		node.namespace = convertNode(node, scope, buffer[position], buffer);
+		node.name = convertNode(node, scope, buffer[position + 1], buffer);
 	},
 	function jsxOpeningElement(node: JSXOpeningElement, position, buffer) {
 		const { scope } = node;

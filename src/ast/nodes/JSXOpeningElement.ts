@@ -8,7 +8,7 @@ import JSXOpeningBase from './shared/JSXOpeningBase';
 
 export default class JSXOpeningElement extends JSXOpeningBase {
 	type!: NodeType.tJSXOpeningElement;
-	name!: JSXIdentifier;
+	name!: JSXIdentifier; /* TODO | JSXMemberExpression | JSXNamespacedName; */
 	attributes!: JSXAttribute /* TODO | JSXSpreadAttribute */[];
 	selfClosing!: boolean;
 
