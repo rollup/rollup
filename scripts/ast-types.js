@@ -439,6 +439,14 @@ export const AST_NODES = {
 		fields: [['name', 'String']],
 		useMacro: false
 	},
+	JSXMemberExpression: {
+		estreeType: 'any',
+		fields: [
+			['object', 'Node'],
+			['property', 'Node']
+		],
+		useMacro: false
+	},
 	JSXNamespacedName: {
 		estreeType: 'any',
 		fields: [
