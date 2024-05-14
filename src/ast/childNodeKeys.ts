@@ -53,6 +53,7 @@ export const childNodeKeys: Record<string, string[]> = {
 	JSXNamespacedName: ['namespace', 'name'],
 	JSXOpeningElement: ['name', 'attributes'],
 	JSXOpeningFragment: [],
+	JSXSpreadAttribute: ['argument'],
 	JSXSpreadChild: ['expression'],
 	JSXText: [],
 	LabeledStatement: ['label', 'body'],

@@ -52,6 +52,7 @@ import JSXMemberExpression from './JSXMemberExpression';
 import JSXNamespacedName from './JSXNamespacedName';
 import JSXOpeningElement from './JSXOpeningElement';
 import JSXOpeningFragment from './JSXOpeningFragment';
+import JSXSpreadAttribute from './JSXSpreadAttribute';
 import JSXSpreadChild from './JSXSpreadChild';
 import JSXText from './JSXText';
 import LabeledStatement from './LabeledStatement';
@@ -144,6 +145,7 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	JSXNamespacedName,
 	JSXOpeningElement,
 	JSXOpeningFragment,
+	JSXSpreadAttribute,
 	JSXSpreadChild,
 	JSXText,
 	LabeledStatement,
