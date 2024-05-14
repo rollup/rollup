@@ -558,6 +558,14 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			selfClosing: false
 		};
 	},
+	function jsxSpreadAttribute(position, buffer): JSXSpreadAttributeNode {
+		return {
+			type: 'JSXSpreadAttribute',
+			start: buffer[position],
+			end: buffer[position + 1],
+			argument: convertNode(buffer[position + 2], buffer)
+		};
+	},
 	function jsxSpreadChild(position, buffer): JSXSpreadChildNode {
 		return {
 			type: 'JSXSpreadChild',
@@ -1032,6 +1040,7 @@ export type JSXMemberExpressionNode = RollupAstNode<any>;
 export type JSXNamespacedNameNode = RollupAstNode<any>;
 export type JSXOpeningElementNode = RollupAstNode<any>;
 export type JSXOpeningFragmentNode = RollupAstNode<any>;
+export type JSXSpreadAttributeNode = RollupAstNode<any>;
 export type JSXSpreadChildNode = RollupAstNode<any>;
 export type JSXTextNode = RollupAstNode<any>;
 export type LabeledStatementNode = RollupAstNode<estree.LabeledStatement>;

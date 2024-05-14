@@ -1,4 +1,4 @@
-use swc_common::Span;
+use swc_common::{Span, Spanned};
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
   ExprOrSpread, ForHead, ImportSpecifier, JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue,
@@ -6,12 +6,13 @@ use swc_ecma_ast::{
   JSXExpr, JSXExprContainer, JSXFragment, JSXMemberExpr, JSXNamespacedName, JSXObject,
   JSXOpeningElement, JSXOpeningFragment, JSXSpreadChild, JSXText, Lit, ModuleDecl,
   ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program,
-  PropName, PropOrSpread, SimpleAssignTarget, Stmt, VarDeclOrExpr,
+  PropName, PropOrSpread, SimpleAssignTarget, SpreadElement, Stmt, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
+use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
   JSX_ATTRIBUTE_NAME_OFFSET, JSX_ATTRIBUTE_RESERVED_BYTES, JSX_ATTRIBUTE_VALUE_OFFSET,
   JSX_CLOSING_ELEMENT_NAME_OFFSET, JSX_CLOSING_ELEMENT_RESERVED_BYTES,
@@ -26,14 +27,15 @@ use crate::convert_ast::converter::ast_constants::{
   JSX_NAMESPACED_NAME_NAME_OFFSET, JSX_NAMESPACED_NAME_NAMESPACE_OFFSET,
   JSX_NAMESPACED_NAME_RESERVED_BYTES, JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
   JSX_OPENING_ELEMENT_NAME_OFFSET, JSX_OPENING_ELEMENT_RESERVED_BYTES,
-  JSX_OPENING_FRAGMENT_RESERVED_BYTES, JSX_SPREAD_CHILD_EXPRESSION_OFFSET,
+  JSX_OPENING_FRAGMENT_RESERVED_BYTES, JSX_SPREAD_ATTRIBUTE_ARGUMENT_OFFSET,
+  JSX_SPREAD_ATTRIBUTE_RESERVED_BYTES, JSX_SPREAD_CHILD_EXPRESSION_OFFSET,
   JSX_SPREAD_CHILD_RESERVED_BYTES, JSX_TEXT_RAW_OFFSET, JSX_TEXT_RESERVED_BYTES,
   JSX_TEXT_VALUE_OFFSET, TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION,
   TYPE_FUNCTION_EXPRESSION, TYPE_JSX_ATTRIBUTE, TYPE_JSX_CLOSING_ELEMENT,
   TYPE_JSX_CLOSING_FRAGMENT, TYPE_JSX_ELEMENT, TYPE_JSX_EMPTY_EXPRESSION,
   TYPE_JSX_EXPRESSION_CONTAINER, TYPE_JSX_FRAGMENT, TYPE_JSX_IDENTIFIER,
   TYPE_JSX_MEMBER_EXPRESSION, TYPE_JSX_NAMESPACED_NAME, TYPE_JSX_OPENING_ELEMENT,
-  TYPE_JSX_OPENING_FRAGMENT, TYPE_JSX_SPREAD_CHILD, TYPE_JSX_TEXT,
+  TYPE_JSX_OPENING_FRAGMENT, TYPE_JSX_SPREAD_ATTRIBUTE, TYPE_JSX_SPREAD_CHILD, TYPE_JSX_TEXT,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
@@ -450,13 +452,17 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_jsx_attribute_or_spread(&mut self, jsx_attribute_or_spread: &JSXAttrOrSpread) {
+  fn convert_jsx_attribute_or_spread(
+    &mut self,
+    jsx_attribute_or_spread: &JSXAttrOrSpread,
+    previous_element_end: u32,
+  ) {
     match jsx_attribute_or_spread {
       JSXAttrOrSpread::JSXAttr(jsx_attribute) => {
         self.convert_jsx_attribute(jsx_attribute);
       }
-      JSXAttrOrSpread::SpreadElement(_spread_element) => {
-        unimplemented!("JSXAttrOrSpread::SpreadElement")
+      JSXAttrOrSpread::SpreadElement(spread_element) => {
+        self.convert_jsx_spread_element(spread_element, previous_element_end);
       }
     }
   }
@@ -961,11 +967,14 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + JSX_OPENING_ELEMENT_NAME_OFFSET);
     self.convert_jsx_element_name(&jsx_opening_element.name);
     // attributes
-    self.convert_item_list(
+    let mut previous_element_end = jsx_opening_element.name.span().hi.0;
+    self.convert_item_list_with_state(
       &jsx_opening_element.attrs,
+      &mut previous_element_end,
       end_position + JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET,
-      |ast_converter, jsx_attribute| {
-        ast_converter.convert_jsx_attribute_or_spread(jsx_attribute);
+      |ast_converter, jsx_attribute, previous_end| {
+        ast_converter.convert_jsx_attribute_or_spread(jsx_attribute, *previous_end);
+        *previous_end = jsx_attribute.span().hi.0;
         true
       },
     );
@@ -996,6 +1005,27 @@ impl<'a> AstConverter<'a> {
     self.convert_expression(&jsx_spread_child.expr);
     // end
     self.add_end(end_position, &jsx_spread_child.span);
+  }
+
+  fn convert_jsx_spread_element(
+    &mut self,
+    spread_element: &SpreadElement,
+    previous_element_end: u32,
+  ) {
+    let end_position = self.add_type_and_explicit_start(
+      &TYPE_JSX_SPREAD_ATTRIBUTE,
+      find_first_occurrence_outside_comment(self.code, b'{', previous_element_end),
+      JSX_SPREAD_ATTRIBUTE_RESERVED_BYTES,
+    );
+    // argument
+    self.update_reference_position(end_position + JSX_SPREAD_ATTRIBUTE_ARGUMENT_OFFSET);
+    self.convert_expression(&spread_element.expr);
+    // end
+    self.add_explicit_end(
+      end_position,
+      find_first_occurrence_outside_comment(self.code, b'}', spread_element.expr.span().hi.0 - 1)
+        + 1,
+    );
   }
 
   fn convert_jsx_text(&mut self, jsx_text: &JSXText) {

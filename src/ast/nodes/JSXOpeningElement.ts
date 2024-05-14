@@ -5,13 +5,14 @@ import type JSXAttribute from './JSXAttribute';
 import type JSXIdentifier from './JSXIdentifier';
 import type JSXMemberExpression from './JSXMemberExpression';
 import type JSXNamespacedName from './JSXNamespacedName';
+import JSXSpreadAttribute from './JSXSpreadAttribute';
 import type * as NodeType from './NodeType';
 import JSXOpeningBase from './shared/JSXOpeningBase';
 
 export default class JSXOpeningElement extends JSXOpeningBase {
 	type!: NodeType.tJSXOpeningElement;
 	name!: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
-	attributes!: JSXAttribute /* TODO | JSXSpreadAttribute */[];
+	attributes!: (JSXAttribute | JSXSpreadAttribute)[];
 	selfClosing!: boolean;
 
 	render(code: MagicString, options: RenderOptions): void {
@@ -22,28 +23,70 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 				snippets: { getPropertyAccess },
 				useOriginalName
 			} = options;
+			const {
+				attributes,
+				end,
+				factoryVariable,
+				name: { start: nameStart, end: nameEnd },
+				selfClosing,
+				start
+			} = this;
 			const [, ...nestedName] = factory.split('.');
 			code.overwrite(
-				this.start,
-				this.name.start,
-				`/*#__PURE__*/${[this.factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`,
+				start,
+				nameStart,
+				`/*#__PURE__*/${[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`,
 				{ contentOnly: true }
 			);
-			if (this.attributes.length > 0) {
-				code.overwrite(this.name.end, this.attributes[0].start, ', { ', { contentOnly: true });
-				for (let index = 0; index < this.attributes.length - 1; index++) {
-					code.appendLeft(this.attributes[index].end, ', ');
+			if (attributes.some(attribute => attribute instanceof JSXSpreadAttribute)) {
+				if (attributes.length === 1) {
+					code.appendLeft(nameEnd, ',');
+					code.overwrite(attributes[0].end, end, '', { contentOnly: true });
+				} else {
+					code.appendLeft(nameEnd, ', Object.assign(');
+					let inObject = false;
+					if (!(attributes[0] instanceof JSXSpreadAttribute)) {
+						code.appendLeft(nameEnd, '{');
+						inObject = true;
+					}
+					for (let index = 1; index < attributes.length; index++) {
+						const attribute = attributes[index];
+						if (attribute instanceof JSXSpreadAttribute) {
+							if (inObject) {
+								code.prependRight(attribute.start, '}, ');
+								inObject = false;
+							} else {
+								code.appendLeft(attributes[index - 1].end, ',');
+							}
+						} else {
+							if (inObject) {
+								code.appendLeft(attributes[index - 1].end, ',');
+							} else {
+								code.appendLeft(attributes[index - 1].end, ', {');
+								inObject = true;
+							}
+						}
+					}
+					if (inObject) {
+						code.appendLeft(attributes.at(-1)!.end, ' }');
+					}
+					code.overwrite(attributes.at(-1)!.end, end, ')', { contentOnly: true });
 				}
-				code.overwrite(this.attributes.at(-1)!.end, this.end, ' }', {
+			} else if (attributes.length > 0) {
+				code.appendLeft(nameEnd, ', {');
+				for (let index = 0; index < attributes.length - 1; index++) {
+					code.appendLeft(attributes[index].end, ', ');
+				}
+				code.overwrite(attributes.at(-1)!.end, end, ' }', {
 					contentOnly: true
 				});
 			} else {
-				code.overwrite(this.name.end, this.end, `, null`, {
+				code.overwrite(nameEnd, end, `, null`, {
 					contentOnly: true
 				});
 			}
-			if (this.selfClosing) {
-				code.appendLeft(this.end, ')');
+			if (selfClosing) {
+				code.appendLeft(end, ')');
 			}
 		}
 	}
