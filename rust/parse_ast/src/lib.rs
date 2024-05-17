@@ -7,16 +7,14 @@ use swc_compiler_base::IsModule;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsConfig, Syntax};
 
-use convert_ast::converter::ast_constants::{PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR};
-use convert_ast::converter::{convert_string, AstConverter};
+use crate::ast_nodes::panic_error::get_panic_error_buffer;
+use convert_ast::converter::AstConverter;
 use error_emit::try_with_handler;
 
 use crate::convert_ast::annotations::SequentialComments;
-use crate::convert_ast::converter::ast_constants::PANIC_ERROR_MESSAGE_OFFSET;
-use crate::convert_ast::converter::update_reference_position;
 
+mod ast_nodes;
 mod convert_ast;
-
 mod error_emit;
 
 pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
@@ -63,15 +61,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
       } else {
         "Unknown rust panic message"
       };
-      // type
-      let mut buffer = TYPE_PANIC_ERROR.to_vec();
-      // reserve for start and end even though they are unused
-      let end_position = buffer.len() + 4;
-      buffer.resize(end_position + PANIC_ERROR_RESERVED_BYTES, 0);
-      // message
-      update_reference_position(&mut buffer, end_position + PANIC_ERROR_MESSAGE_OFFSET);
-      convert_string(&mut buffer, msg);
-      buffer
+      get_panic_error_buffer(msg)
     })
   })
 }
