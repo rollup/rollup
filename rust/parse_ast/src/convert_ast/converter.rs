@@ -3,7 +3,7 @@ use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
   ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
   NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
-  SimpleAssignTarget, Stmt, TsKeywordTypeKind, TsType, TsTypeAliasDecl, TsTypeAnn,
+  SimpleAssignTarget, Stmt, TsKeywordType, TsKeywordTypeKind, TsType, TsTypeAliasDecl, TsTypeAnn,
   VarDeclOrExpr,
 };
 
@@ -11,20 +11,15 @@ use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  TS_BOOLEAN_KEYWORD_RESERVED_BYTES, TS_NULL_KEYWORD_RESERVED_BYTES,
-  TS_NUMBER_KEYWORD_RESERVED_BYTES, TS_STRING_KEYWORD_RESERVED_BYTES,
-  TS_TYPE_ALIAS_DECLARATION_ID_OFFSET, TS_TYPE_ALIAS_DECLARATION_RESERVED_BYTES,
-  TS_TYPE_ALIAS_DECLARATION_TYPE_ANNOTATION_OFFSET, TS_TYPE_ANNOTATION_RESERVED_BYTES,
-  TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET, TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION,
-  TYPE_FUNCTION_EXPRESSION, TYPE_TS_BOOLEAN_KEYWORD, TYPE_TS_NULL_KEYWORD, TYPE_TS_NUMBER_KEYWORD,
-  TYPE_TS_STRING_KEYWORD, TYPE_TS_TYPE_ALIAS_DECLARATION, TYPE_TS_TYPE_ANNOTATION
-
-
-  ,
+  TS_BOOLEAN_KEYWORD_RESERVED_BYTES, TS_TYPE_ALIAS_DECLARATION_ID_OFFSET,
+  TS_TYPE_ALIAS_DECLARATION_RESERVED_BYTES, TS_TYPE_ALIAS_DECLARATION_TYPE_ANNOTATION_OFFSET,
+  TS_TYPE_ANNOTATION_RESERVED_BYTES, TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET,
+  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
+  TYPE_TS_BOOLEAN_KEYWORD, TYPE_TS_NULL_KEYWORD, TYPE_TS_NUMBER_KEYWORD, TYPE_TS_STRING_KEYWORD,
+  TYPE_TS_TYPE_ALIAS_DECLARATION, TYPE_TS_TYPE_ANNOTATION,
 };
 use crate::convert_ast::converter::string_constants::{
-  STRING_NOSIDEEFFECTS, STRING_PURE,
-  STRING_SOURCEMAP,
+  STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
 };
 use crate::convert_ast::converter::utf16_positions::{
   ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
@@ -777,22 +772,30 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &type_annotation.span);
   }
 
-  fn convert_ts_keyword_type_kind(&mut self, keyword_type_kind: &TsKeywordTypeKind, span: &Span) {
-    match keyword_type_kind {
-      TsKeywordTypeKind::TsAnyKeyword => todo!("TsKeywordTypeKind::TsAnyKeyword"),
-      TsKeywordTypeKind::TsUnknownKeyword => todo!("TsKeywordTypeKind::TsUnknownKeyword"),
-      TsKeywordTypeKind::TsNumberKeyword => self.convert_ts_number_keyword(span),
-      TsKeywordTypeKind::TsObjectKeyword => todo!("TsKeywordTypeKind::TsObjectKeyword"),
-      TsKeywordTypeKind::TsBooleanKeyword => self.convert_ts_boolean_keyword(span),
-      TsKeywordTypeKind::TsBigIntKeyword => todo!("TsKeywordTypeKind::TsBigIntKeyword"),
-      TsKeywordTypeKind::TsStringKeyword => self.convert_ts_string_keyword(span),
-      TsKeywordTypeKind::TsSymbolKeyword => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
-      TsKeywordTypeKind::TsVoidKeyword => todo!("TsKeywordTypeKind::TsVoidKeyword"),
-      TsKeywordTypeKind::TsUndefinedKeyword => todo!("TsKeywordTypeKind::TsUndefinedKeyword"),
-      TsKeywordTypeKind::TsNullKeyword => self.convert_ts_null_keyword(span),
-      TsKeywordTypeKind::TsNeverKeyword => todo!("TsKeywordTypeKind::TsNeverKeyword"),
-      TsKeywordTypeKind::TsIntrinsicKeyword => todo!("TsKeywordTypeKind::TsIntrinsicKeyword"),
-    }
+  fn convert_ts_keyword_type(&mut self, keyword_type: &TsKeywordType) {
+    let end_position = self.add_type_and_start(
+      match keyword_type.kind {
+        TsKeywordTypeKind::TsAnyKeyword => todo!("TsKeywordTypeKind::TsAnyKeyword"),
+        TsKeywordTypeKind::TsUnknownKeyword => todo!("TsKeywordTypeKind::TsUnknownKeyword"),
+        TsKeywordTypeKind::TsNumberKeyword => &TYPE_TS_NUMBER_KEYWORD,
+        TsKeywordTypeKind::TsObjectKeyword => todo!("TsKeywordTypeKind::TsObjectKeyword"),
+        TsKeywordTypeKind::TsBooleanKeyword => &TYPE_TS_BOOLEAN_KEYWORD,
+        TsKeywordTypeKind::TsBigIntKeyword => todo!("TsKeywordTypeKind::TsBigIntKeyword"),
+        TsKeywordTypeKind::TsStringKeyword => &TYPE_TS_STRING_KEYWORD,
+        TsKeywordTypeKind::TsSymbolKeyword => todo!("TsKeywordTypeKind::TsSymbolKeyword"),
+        TsKeywordTypeKind::TsVoidKeyword => todo!("TsKeywordTypeKind::TsVoidKeyword"),
+        TsKeywordTypeKind::TsUndefinedKeyword => todo!("TsKeywordTypeKind::TsUndefinedKeyword"),
+        TsKeywordTypeKind::TsNullKeyword => &TYPE_TS_NULL_KEYWORD,
+        TsKeywordTypeKind::TsNeverKeyword => todo!("TsKeywordTypeKind::TsNeverKeyword"),
+        TsKeywordTypeKind::TsIntrinsicKeyword => todo!("TsKeywordTypeKind::TsIntrinsicKeyword"),
+      },
+      &keyword_type.span,
+      TS_BOOLEAN_KEYWORD_RESERVED_BYTES,
+      false,
+    );
+
+    // end
+    self.add_end(end_position, &keyword_type.span);
   }
 
   pub(crate) fn convert_variable_declaration_or_expression(
@@ -810,58 +813,10 @@ impl<'a> AstConverter<'a> {
   }
 
   // === nodes
-  fn convert_ts_boolean_keyword(&mut self, span: &Span) {
-    let end_position = self.add_type_and_start(
-      &TYPE_TS_BOOLEAN_KEYWORD,
-      span,
-      TS_BOOLEAN_KEYWORD_RESERVED_BYTES,
-      false,
-    );
-
-    //end
-    self.add_end(end_position, span)
-  }
-
-  fn convert_ts_null_keyword(&mut self, span: &Span) {
-    let end_position = self.add_type_and_start(
-      &TYPE_TS_NULL_KEYWORD,
-      span,
-      TS_NULL_KEYWORD_RESERVED_BYTES,
-      false,
-    );
-
-    // end
-    self.add_end(end_position, span);
-  }
-
-  fn convert_ts_number_keyword(&mut self, span: &Span) {
-    let end_position = self.add_type_and_start(
-      &TYPE_TS_NUMBER_KEYWORD,
-      span,
-      TS_NUMBER_KEYWORD_RESERVED_BYTES,
-      false,
-    );
-
-    // end
-    self.add_end(end_position, span);
-  }
-
-  fn convert_ts_string_keyword(&mut self, span: &Span) {
-    let end_position = self.add_type_and_start(
-      &TYPE_TS_STRING_KEYWORD,
-      span,
-      TS_STRING_KEYWORD_RESERVED_BYTES,
-      false,
-    );
-
-    // end
-    self.add_end(end_position, span)
-  }
-
   fn convert_ts_type(&mut self, ts_type: &TsType) {
     match ts_type {
       TsType::TsKeywordType(keyword_type) => {
-        self.convert_ts_keyword_type_kind(&keyword_type.kind, &keyword_type.span);
+        self.convert_ts_keyword_type(&keyword_type);
       }
       TsType::TsThisType(_) => {
         unimplemented!("TsThisType")

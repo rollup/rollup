@@ -601,8 +601,7 @@ export const AST_NODES = {
 		]
 	},
 	TSBooleanKeyword: {
-		estreeType: 'any',
-		fields: []
+		estreeType: 'any'
 	},
 	TSInterfaceBody: {
 		estreeType: 'any',
@@ -614,11 +613,11 @@ export const AST_NODES = {
 	},
 	TSNullKeyword: {
 		estreeType: 'any',
-		fields: []
+		hasSameFieldsAs: 'TSBooleanKeyword'
 	},
 	TSNumberKeyword: {
 		estreeType: 'any',
-		fields: []
+		hasSameFieldsAs: 'TSBooleanKeyword'
 	},
 	TSPropertySignature: {
 		estreeType: 'any',
@@ -633,7 +632,7 @@ export const AST_NODES = {
 	},
 	TSStringKeyword: {
 		estreeType: 'any',
-		fields: []
+		hasSameFieldsAs: 'TSBooleanKeyword'
 	},
 	TSTypeAliasDeclaration: {
 		estreeType: 'any',
