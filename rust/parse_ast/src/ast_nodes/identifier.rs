@@ -31,7 +31,7 @@ impl<'a> AstConverter<'a> {
     // typeAnnotation
     if let Some(ref type_annotation) = binding_identifier.type_ann {
       self.update_reference_position(end_position + IDENTIFIER_TYPE_ANNOTATION_OFFSET);
-      self.convert_type_annotation(type_annotation);
+      self.store_type_annotation(type_annotation);
       // end
       self.add_end(end_position, &type_annotation.span);
     } else {

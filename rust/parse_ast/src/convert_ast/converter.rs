@@ -3,20 +3,16 @@ use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
   ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
   NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
-  SimpleAssignTarget, Stmt, TsKeywordType, TsKeywordTypeKind, TsType, TsTypeAliasDecl, TsTypeAnn,
-  VarDeclOrExpr,
+  SimpleAssignTarget, Stmt, TsKeywordType, TsKeywordTypeKind, TsType, VarDeclOrExpr,
 };
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::converter::ast_constants::{
-  TS_BOOLEAN_KEYWORD_RESERVED_BYTES, TS_TYPE_ALIAS_DECLARATION_ID_OFFSET,
-  TS_TYPE_ALIAS_DECLARATION_RESERVED_BYTES, TS_TYPE_ALIAS_DECLARATION_TYPE_ANNOTATION_OFFSET,
-  TS_TYPE_ANNOTATION_RESERVED_BYTES, TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET,
-  TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION, TYPE_FUNCTION_EXPRESSION,
-  TYPE_TS_BOOLEAN_KEYWORD, TYPE_TS_NULL_KEYWORD, TYPE_TS_NUMBER_KEYWORD, TYPE_TS_STRING_KEYWORD,
-  TYPE_TS_TYPE_ALIAS_DECLARATION, TYPE_TS_TYPE_ANNOTATION,
+  TS_BOOLEAN_KEYWORD_RESERVED_BYTES, TYPE_CLASS_EXPRESSION, TYPE_FUNCTION_DECLARATION,
+  TYPE_FUNCTION_EXPRESSION, TYPE_TS_BOOLEAN_KEYWORD, TYPE_TS_NULL_KEYWORD, TYPE_TS_NUMBER_KEYWORD,
+  TYPE_TS_STRING_KEYWORD,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_NOSIDEEFFECTS, STRING_PURE, STRING_SOURCEMAP,
@@ -245,7 +241,7 @@ impl<'a> AstConverter<'a> {
       }
       Decl::TsInterface(_) => unimplemented!("Cannot convert Decl::TsInterface"),
       Decl::TsTypeAlias(ts_type_alias_declaration) => {
-        self.convert_ts_type_alias_declaration(ts_type_alias_declaration)
+        self.store_ts_type_alias_declaration(ts_type_alias_declaration)
       }
       Decl::TsEnum(_) => unimplemented!("Cannot convert Decl::TsEnum"),
       Decl::TsModule(_) => unimplemented!("Cannot convert Decl::TsModule"),
@@ -756,22 +752,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub(crate) fn convert_type_annotation(&mut self, type_annotation: &TsTypeAnn) {
-    let end_position = self.add_type_and_start(
-      &TYPE_TS_TYPE_ANNOTATION,
-      &type_annotation.span,
-      TS_TYPE_ANNOTATION_RESERVED_BYTES,
-      false,
-    );
-
-    // typeAnnotation
-    self.update_reference_position(end_position + TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET);
-    self.convert_ts_type(&type_annotation.type_ann);
-
-    // end
-    self.add_end(end_position, &type_annotation.span);
-  }
-
   fn convert_ts_keyword_type(&mut self, keyword_type: &TsKeywordType) {
     let end_position = self.add_type_and_start(
       match keyword_type.kind {
@@ -798,25 +778,10 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &keyword_type.span);
   }
 
-  pub(crate) fn convert_variable_declaration_or_expression(
-    &mut self,
-    variable_declaration_or_expression: &VarDeclOrExpr,
-  ) {
-    match variable_declaration_or_expression {
-      VarDeclOrExpr::VarDecl(variable_declaration) => {
-        self.store_variable_declaration(&VariableDeclaration::Var(variable_declaration));
-      }
-      VarDeclOrExpr::Expr(expression) => {
-        self.convert_expression(expression);
-      }
-    }
-  }
-
-  // === nodes
-  fn convert_ts_type(&mut self, ts_type: &TsType) {
+  pub(crate) fn convert_ts_type(&mut self, ts_type: &TsType) {
     match ts_type {
       TsType::TsKeywordType(keyword_type) => {
-        self.convert_ts_keyword_type(&keyword_type);
+        self.convert_ts_keyword_type(keyword_type);
       }
       TsType::TsThisType(_) => {
         unimplemented!("TsThisType")
@@ -878,23 +843,18 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_ts_type_alias_declaration(&mut self, ts_type_alias_declaration: &TsTypeAliasDecl) {
-    let end_position = self.add_type_and_start(
-      &TYPE_TS_TYPE_ALIAS_DECLARATION,
-      &ts_type_alias_declaration.span,
-      TS_TYPE_ALIAS_DECLARATION_RESERVED_BYTES,
-      false,
-    );
-    // name
-    self.update_reference_position(end_position + TS_TYPE_ALIAS_DECLARATION_ID_OFFSET);
-    self.convert_identifier(&ts_type_alias_declaration.id);
-
-    // type annotation
-    self.update_reference_position(end_position + TS_TYPE_ALIAS_DECLARATION_TYPE_ANNOTATION_OFFSET);
-    self.convert_ts_type(&ts_type_alias_declaration.type_ann);
-
-    // end
-    self.add_end(end_position, &ts_type_alias_declaration.span);
+  pub(crate) fn convert_variable_declaration_or_expression(
+    &mut self,
+    variable_declaration_or_expression: &VarDeclOrExpr,
+  ) {
+    match variable_declaration_or_expression {
+      VarDeclOrExpr::VarDecl(variable_declaration) => {
+        self.store_variable_declaration(&VariableDeclaration::Var(variable_declaration));
+      }
+      VarDeclOrExpr::Expr(expression) => {
+        self.convert_expression(expression);
+      }
+    }
   }
 }
 
