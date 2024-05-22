@@ -9,6 +9,8 @@ const fileName = `test.txt`;
 
 function validateImportMeta(importMeta) {
 	assert.strictEqual(importMeta.url, import.meta.url);
+	assert.strictEqual(importMeta.filename, import.meta.filename);
+	assert.strictEqual(importMeta.dirname, import.meta.dirname);
 }
 
 validateImportMeta(import.meta);
