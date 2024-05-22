@@ -7,7 +7,7 @@ import {
 	type RenderOptions
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
@@ -39,17 +39,17 @@ export default class VariableDeclarator extends NodeBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		const { deoptimized, id, init } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		init?.includePath(path, context, includeChildrenRecursively);
+		init?.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 		id.markDeclarationReached();
 		if (includeChildrenRecursively || id.shouldBeIncluded(context)) {
-			id.includePath(path, context, includeChildrenRecursively);
+			id.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 		}
 	}
 

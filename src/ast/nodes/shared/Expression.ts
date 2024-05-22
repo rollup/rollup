@@ -3,7 +3,7 @@ import type { WritableEntity } from '../../Entity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import type { ObjectPath, PathTracker, SymbolToStringTag } from '../../utils/PathTracker';
-import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
+import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
 import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
@@ -90,7 +90,7 @@ export class ExpressionEntity implements WritableEntity {
 		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		for (const argument of parameters) {
-			argument.includePath(EMPTY_PATH, context, false);
+			argument.includePath(UNKNOWN_PATH, context, false);
 		}
 	}
 

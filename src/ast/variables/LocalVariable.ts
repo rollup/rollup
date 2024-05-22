@@ -210,7 +210,7 @@ export default class LocalVariable extends Variable {
 	): void {
 		if (this.isReassigned || context.includedCallArguments.has(this.init)) {
 			for (const argument of parameters) {
-				argument.includePath(EMPTY_PATH, context, false);
+				argument.includePath(UNKNOWN_PATH, context, false);
 			}
 		} else {
 			context.includedCallArguments.add(this.init);

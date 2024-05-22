@@ -10,7 +10,7 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
@@ -68,7 +68,7 @@ export default class SequenceExpression extends NodeBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -80,7 +80,7 @@ export default class SequenceExpression extends NodeBase {
 				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
 				expression.shouldBeIncluded(context)
 			)
-				expression.includePath(path, context, includeChildrenRecursively);
+				expression.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		}
 	}
 

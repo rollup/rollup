@@ -17,6 +17,7 @@ import BlockStatement from '../BlockStatement';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
+import ObjectPattern from '../ObjectPattern';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
@@ -42,6 +43,7 @@ export default abstract class FunctionBase extends NodeBase {
 
 	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
 	declare annotationNoSideEffects?: boolean;
+	takenArguments: ExpressionEntity[][] = [];
 
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);
@@ -96,6 +98,7 @@ export default abstract class FunctionBase extends NodeBase {
 			const { parameters } = this.scope;
 			const { args } = interaction;
 			let hasRest = false;
+			const takenArguments = [];
 			for (let position = 0; position < args.length - 1; position++) {
 				const parameter = this.params[position];
 				// Only the "this" argument arg[0] can be null
@@ -114,7 +117,9 @@ export default abstract class FunctionBase extends NodeBase {
 				} else {
 					this.addArgumentToBeDeoptimized(argument);
 				}
+				takenArguments.push(argument);
 			}
+			this.takenArguments.push(takenArguments);
 			this.updateParameterVariableValues(args);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
@@ -230,7 +235,7 @@ export default abstract class FunctionBase extends NodeBase {
 	private parameterVariableValuesDeoptimized = false;
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -242,7 +247,15 @@ export default abstract class FunctionBase extends NodeBase {
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.includePath(path, context, includeChildrenRecursively);
+		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		for (let index = 0; index < this.params.length; index++) {
+			const parameter = this.params[index];
+			if (parameter instanceof ObjectPattern) {
+				for (const arguments_ of this.takenArguments) {
+					arguments_[index]?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+				}
+			}
+		}
 		context.brokenFlow = brokenFlow;
 	}
 

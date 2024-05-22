@@ -1,6 +1,6 @@
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import type CatchClause from './CatchClause';
 import type * as NodeType from './NodeType';
@@ -24,7 +24,7 @@ export default class TryStatement extends StatementBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -36,7 +36,7 @@ export default class TryStatement extends StatementBase {
 			this.included = true;
 			this.directlyIncluded = true;
 			this.block.includePath(
-				path,
+				UNKNOWN_PATH,
 				context,
 				tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
 			);
@@ -50,9 +50,9 @@ export default class TryStatement extends StatementBase {
 			}
 		}
 		if (this.handler !== null) {
-			this.handler.includePath(path, context, includeChildrenRecursively);
+			this.handler.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			context.brokenFlow = brokenFlow;
 		}
-		this.finalizer?.includePath(path, context, includeChildrenRecursively);
+		this.finalizer?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 }

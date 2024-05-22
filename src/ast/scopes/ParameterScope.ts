@@ -3,7 +3,7 @@ import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { EMPTY_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
 import ChildScope from './ChildScope';
@@ -60,7 +60,7 @@ export default class ParameterScope extends ChildScope {
 		for (const checkedArgument of parameters) {
 			if (checkedArgument instanceof SpreadElement) {
 				for (const argument of parameters) {
-					argument.includePath(EMPTY_PATH, context, false);
+					argument.includePath(UNKNOWN_PATH, context, false);
 				}
 				break;
 			}

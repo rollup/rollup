@@ -1,5 +1,5 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import {
 	type ExpressionNode,
@@ -20,12 +20,12 @@ export default class DoWhileStatement extends StatementBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		this.included = true;
-		this.test.includePath(path, context, includeChildrenRecursively);
+		this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);
 	}
 }

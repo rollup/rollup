@@ -3,6 +3,7 @@ import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
+import { checkEffectForNodes } from '../../utils/checkEffectForNodes';
 import {
 	EMPTY_PATH,
 	type ObjectPath,
@@ -11,7 +12,6 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
-import { checkEffectForNodes } from '../../utils/checkEffectForNodes';
 import type ClassBody from '../ClassBody';
 import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
@@ -100,14 +100,14 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		this.superClass?.includePath(path, context, includeChildrenRecursively);
-		this.body.includePath(path, context, includeChildrenRecursively);
+		this.superClass?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		for (const decorator of this.decorators)
 			decorator.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		if (this.id) {

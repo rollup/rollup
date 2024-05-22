@@ -28,7 +28,6 @@ interface DeoptimizationInteraction {
 	path: ObjectPath;
 }
 
-const MAX_TRACKED_ARGUMENTS = 7;
 const MAX_TRACKED_INTERACTIONS = 20;
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
@@ -102,9 +101,8 @@ export default class ParameterVariable extends LocalVariable {
 	 * @param argument The argument of the function call
 	 */
 	updateKnownValue(argument: ExpressionEntity) {
-		if (this.trackedArguments.size <= MAX_TRACKED_ARGUMENTS) {
-			this.trackedArguments.add(argument);
-		}
+		this.trackedArguments.add(argument);
+
 		if (this.isReassigned) {
 			return;
 		}

@@ -4,7 +4,7 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -140,13 +140,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private includeKnownTest(context: InclusionContext, testValue: LiteralValueOrUnknown) {
 		if (this.test.shouldBeIncluded(context)) {
-			this.test.includePath(EMPTY_PATH, context, false);
+			this.test.includePath(UNKNOWN_PATH, context, false);
 		}
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.includePath(EMPTY_PATH, context, false, { asSingleStatement: true });
+			this.consequent.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 		}
 		if (!testValue && this.alternate?.shouldBeIncluded(context)) {
-			this.alternate.includePath(EMPTY_PATH, context, false, { asSingleStatement: true });
+			this.alternate.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 		}
 	}
 
@@ -154,22 +154,22 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		includeChildrenRecursively: true | 'variables',
 		context: InclusionContext
 	) {
-		this.test.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-		this.consequent.includePath(EMPTY_PATH, context, includeChildrenRecursively);
-		this.alternate?.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.consequent.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.alternate?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 
 	private includeUnknownTest(context: InclusionContext) {
-		this.test.includePath(EMPTY_PATH, context, false);
+		this.test.includePath(UNKNOWN_PATH, context, false);
 		const { brokenFlow } = context;
 		let consequentBrokenFlow = false;
 		if (this.consequent.shouldBeIncluded(context)) {
-			this.consequent.includePath(EMPTY_PATH, context, false, { asSingleStatement: true });
+			this.consequent.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate?.shouldBeIncluded(context)) {
-			this.alternate.includePath(EMPTY_PATH, context, false, { asSingleStatement: true });
+			this.alternate.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 			context.brokenFlow = context.brokenFlow && consequentBrokenFlow;
 		}
 	}

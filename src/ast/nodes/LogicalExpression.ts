@@ -157,7 +157,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -168,10 +168,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			(usedBranch === this.right && this.left.shouldBeIncluded(context)) ||
 			!usedBranch
 		) {
-			this.left.includePath(path, context, includeChildrenRecursively);
-			this.right.includePath(path, context, includeChildrenRecursively);
+			this.left.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+			this.right.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		} else {
-			usedBranch.includePath(path, context, includeChildrenRecursively);
+			usedBranch.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		}
 	}
 
