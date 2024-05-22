@@ -3,7 +3,7 @@ import { type RenderOptions, renderStatementList } from '../../utils/renderHelpe
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -51,7 +51,7 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -61,7 +61,7 @@ export default class BlockStatement extends StatementBase {
 			if (this.deoptimizeBody) includeChildrenRecursively = true;
 			for (const node of this.body) {
 				if (includeChildrenRecursively || node.shouldBeIncluded(context))
-					node.includePath(path, context, includeChildrenRecursively);
+					node.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			}
 		}
 	}

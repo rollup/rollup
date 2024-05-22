@@ -219,7 +219,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
@@ -231,10 +231,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					child?.includePath(path, context, includeChildrenRecursively);
+					child?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 				}
 			} else {
-				value.includePath(path, context, includeChildrenRecursively);
+				value.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			}
 		}
 	}
@@ -244,7 +244,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		_deoptimizeAccess: boolean
 	) {
-		this.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		this.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 
 	/**

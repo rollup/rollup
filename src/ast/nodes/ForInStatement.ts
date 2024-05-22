@@ -4,7 +4,7 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import type MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
 import type VariableDeclaration from './VariableDeclaration';
@@ -36,7 +36,7 @@ export default class ForInStatement extends StatementBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -44,7 +44,7 @@ export default class ForInStatement extends StatementBase {
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
-		right.includePath(path, context, includeChildrenRecursively);
+		right.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		includeLoopBody(context, body, includeChildrenRecursively);
 	}
 

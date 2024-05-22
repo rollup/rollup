@@ -3,7 +3,7 @@ import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import FunctionScope from '../../scopes/FunctionScope';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import type { ExpressionEntity } from './Expression';
@@ -100,7 +100,7 @@ export default class FunctionNode extends FunctionBase {
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {
-				parameter.includePath(path, context, includeChildrenRecursively);
+				parameter.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			}
 		}
 	}

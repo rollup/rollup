@@ -6,7 +6,7 @@ import {
 	renderStatementList
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import {
 	type ExpressionNode,
@@ -31,15 +31,15 @@ export default class SwitchCase extends NodeBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		this.included = true;
-		this.test?.includePath(path, context, includeChildrenRecursively);
+		this.test?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		for (const node of this.consequent) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
-				node.includePath(path, context, includeChildrenRecursively);
+				node.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		}
 	}
 

@@ -1,5 +1,5 @@
 import type { InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';

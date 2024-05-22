@@ -5,7 +5,7 @@ import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
@@ -54,13 +54,13 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			super.includePath(path, context, includeChildrenRecursively);
 		} else {
 			this.included = true;
-			this.tag.includePath(path, context, includeChildrenRecursively);
-			this.quasi.includePath(path, context, includeChildrenRecursively);
+			this.tag.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+			this.quasi.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		}
 		this.tag.includeCallArguments(context, this.args);
 		const [returnExpression] = this.getReturnExpression();
 		if (!returnExpression.included) {
-			returnExpression.includePath(path, context, false);
+			returnExpression.includePath(UNKNOWN_PATH, context, false);
 		}
 	}
 

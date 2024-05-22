@@ -3,7 +3,7 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type ChildScope from '../scopes/ChildScope';
 import ReturnValueScope from '../scopes/ReturnValueScope';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import type CallExpression from './CallExpression';
 import Identifier from './Identifier';
@@ -76,14 +76,14 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
-		super.includePath(path, context, includeChildrenRecursively);
+		super.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {
-				parameter.includePath(path, context, includeChildrenRecursively);
+				parameter.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			}
 		}
 	}

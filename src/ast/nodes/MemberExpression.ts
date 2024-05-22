@@ -347,9 +347,9 @@ export default class MemberExpression
 	): void {
 		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		if (deoptimizeAccess) {
-			this.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+			this.includePath([this.getPropertyKey()], context, includeChildrenRecursively);
 		} else {
-			this.includeProperties(EMPTY_PATH, context, includeChildrenRecursively);
+			this.includeProperties([this.getPropertyKey()], context, includeChildrenRecursively);
 		}
 	}
 
@@ -505,7 +505,7 @@ export default class MemberExpression
 			}
 		}
 		this.object.includePath(path, context, includeChildrenRecursively);
-		this.property.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		this.property.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 }
 

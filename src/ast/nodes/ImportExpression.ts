@@ -86,8 +86,7 @@ export default class ImportExpression extends NodeBase {
 			if (parent2 instanceof VariableDeclarator) {
 				const declaration = parent2.id;
 				if (declaration instanceof Identifier) {
-					if (this.hasUnknownAccessedKey) return undefined;
-					return this.accessedPropKey.size > 0 ? [...this.accessedPropKey] : undefined;
+					return this.hasUnknownAccessedKey ? undefined : [...this.accessedPropKey];
 				}
 				if (declaration instanceof ObjectPattern) {
 					return getDeterministicObjectDestructure(declaration);

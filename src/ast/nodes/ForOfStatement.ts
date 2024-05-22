@@ -43,7 +43,7 @@ export default class ForOfStatement extends StatementBase {
 	}
 
 	includePath(
-		path: ObjectPath,
+		_path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -51,7 +51,7 @@ export default class ForOfStatement extends StatementBase {
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		left.includeAsAssignmentTarget(context, includeChildrenRecursively || true, false);
-		right.includePath(path, context, includeChildrenRecursively);
+		right.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		includeLoopBody(context, body, includeChildrenRecursively);
 	}
 
