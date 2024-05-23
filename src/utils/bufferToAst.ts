@@ -518,10 +518,19 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function identifier(position, buffer, readString): IdentifierNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const name = convertString(buffer[position], buffer, readString);
+		return {
+			type: 'Identifier',
+			start,
+			end,
+			name
+		};
+	},
+	function identifierWithType(position, buffer, readString): IdentifierWithTypeNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
 		const name = convertString(buffer[position++], buffer, readString);
-		const typeAnnotationPosition = buffer[position];
-		const typeAnnotation =
-			typeAnnotationPosition === 0 ? null : convertNode(typeAnnotationPosition, buffer, readString);
+		const typeAnnotation = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'Identifier',
 			start,
@@ -1146,12 +1155,15 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function tSTypeAliasDeclaration(position, buffer, readString): TSTypeAliasDeclarationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const flags = buffer[position++];
+		const declare = (flags & 1) === 1;
 		const id = convertNode(buffer[position++], buffer, readString);
 		const typeAnnotation = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'TSTypeAliasDeclaration',
 			start,
 			end,
+			declare,
 			id,
 			typeAnnotation
 		};
@@ -1307,7 +1319,8 @@ export type FunctionExpressionNode = RollupAstNode<estree.FunctionExpression> & 
 	[ANNOTATION_KEY]?: readonly RollupAnnotation[];
 	expression: false;
 };
-export type IdentifierNode = RollupAstNode<estree.Identifier & { typeAnnotation: any }>;
+export type IdentifierNode = RollupAstNode<estree.Identifier>;
+export type IdentifierWithTypeNode = RollupAstNode<estree.Identifier & { typeAnnotation: any }>;
 export type IfStatementNode = RollupAstNode<estree.IfStatement>;
 export type ImportAttributeNode = RollupAstNode<{
 	key: estree.Identifier | estree.Literal;

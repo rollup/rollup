@@ -4,7 +4,8 @@ import type TSNumberKeyword from './TSNumberKeyword';
 import { NodeBase } from './shared/Node';
 
 export default class TSTypeAliasDeclaration extends NodeBase {
-	declare id: Identifier;
-	declare type: NodeType.tTSTypeAliasDeclaration;
-	declare typeAnnotation: TSNumberKeyword;
+	id!: Identifier;
+	type!: NodeType.tTSTypeAliasDeclaration;
+	typeAnnotation!: TSNumberKeyword;
+	declare!: boolean;
 }

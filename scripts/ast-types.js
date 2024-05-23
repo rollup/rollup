@@ -319,10 +319,15 @@ export const AST_NODES = {
 		}
 	},
 	Identifier: {
+		estreeType: 'estree.Identifier',
+		fields: [['name', 'String']]
+	},
+	IdentifierWithType: {
+		astType: 'Identifier',
 		estreeType: 'estree.Identifier & { typeAnnotation: any }',
 		fields: [
 			['name', 'String'],
-			['typeAnnotation', 'OptionalNode']
+			['typeAnnotation', 'Node']
 		]
 	},
 	IfStatement: {
@@ -639,7 +644,8 @@ export const AST_NODES = {
 		fields: [
 			['id', 'Node'],
 			['typeAnnotation', 'Node']
-		]
+		],
+		flags: ['declare']
 	},
 	TSTypeAnnotation: {
 		estreeType: 'any',

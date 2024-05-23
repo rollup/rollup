@@ -147,6 +147,7 @@ const nodeTypeStrings = [
 	'FunctionDeclaration',
 	'FunctionExpression',
 	'Identifier',
+	'Identifier',
 	'IfStatement',
 	'ImportAttribute',
 	'ImportDeclaration',
@@ -237,6 +238,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	ForStatement,
 	FunctionDeclaration,
 	FunctionExpression,
+	Identifier,
 	Identifier,
 	IfStatement,
 	ImportAttribute,
@@ -580,13 +582,12 @@ const bufferParsers: ((
 		node.body = convertNode(node, scope.bodyScope, buffer[position + 4], buffer, readString);
 	},
 	function identifier(node: Identifier, position, buffer, readString) {
+		node.name = convertString(buffer[position], buffer, readString);
+	},
+	function identifierWithType(node: Identifier, position, buffer, readString) {
 		const { scope } = node;
 		node.name = convertString(buffer[position], buffer, readString);
-		const typeAnnotationPosition = buffer[position + 1];
-		node.typeAnnotation =
-			typeAnnotationPosition === 0
-				? null
-				: convertNode(node, scope, typeAnnotationPosition, buffer, readString);
+		node.typeAnnotation = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function ifStatement(node: IfStatement, position, buffer, readString) {
 		const { scope } = node;
@@ -854,8 +855,10 @@ const bufferParsers: ((
 	function tSStringKeyword() {},
 	function tSTypeAliasDeclaration(node: TSTypeAliasDeclaration, position, buffer, readString) {
 		const { scope } = node;
-		node.id = convertNode(node, scope, buffer[position], buffer, readString);
-		node.typeAnnotation = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		const flags = buffer[position];
+		node.declare = (flags & 1) === 1;
+		node.id = convertNode(node, scope, buffer[position + 1], buffer, readString);
+		node.typeAnnotation = convertNode(node, scope, buffer[position + 2], buffer, readString);
 	},
 	function tSTypeAnnotation(node: TSTypeAnnotation, position, buffer, readString) {
 		const { scope } = node;
