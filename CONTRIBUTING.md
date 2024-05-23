@@ -61,6 +61,10 @@ After applying this setting, you may need to reset your local branch to ensure t
 git reset --hard
 ```
 
+### Installing dependencies
+
+Running `npm install` will install the necessary dependencies. If it fails, it might be because the Rust toolchain is not yet set up for WebAssembly, see above.
+
 ### How to run one test on your local machine
 
 With `npm run test` you can run all tests together.
