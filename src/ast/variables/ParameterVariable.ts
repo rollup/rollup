@@ -91,7 +91,16 @@ export default class ParameterVariable extends LocalVariable {
 		this.markReassigned();
 	}
 
-	private trackedArguments = new Set<ExpressionEntity>();
+	trackArgument(argument: ExpressionEntity, path?: ObjectPathKey): void {
+		const existedPaths = this.trackedArguments.get(argument);
+		if (existedPaths) {
+			existedPaths.add(path);
+		} else {
+			this.trackedArguments.set(argument, new Set([path]));
+		}
+	}
+
+	private trackedArguments = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();
 	private knownValue: ExpressionEntity | null = null;
 	private knownValueLiteral: LiteralValueOrUnknown = UnknownValue;
 	/**
@@ -101,8 +110,6 @@ export default class ParameterVariable extends LocalVariable {
 	 * @param argument The argument of the function call
 	 */
 	updateKnownValue(argument: ExpressionEntity) {
-		this.trackedArguments.add(argument);
-
 		if (this.isReassigned) {
 			return;
 		}
@@ -186,8 +193,10 @@ export default class ParameterVariable extends LocalVariable {
 	includePath(path?: ObjectPath): void {
 		super.includePath(path);
 		if (path) {
-			for (const trackedArgument of this.trackedArguments) {
-				trackedArgument.includePath(path, createInclusionContext(), false);
+			for (const [trackedArgument, pathKeys] of this.trackedArguments) {
+				for (const pathKey of pathKeys) {
+					trackedArgument.includePath(pathKey ? [pathKey] : path, createInclusionContext(), false);
+				}
 			}
 		}
 	}
