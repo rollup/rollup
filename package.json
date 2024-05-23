@@ -81,7 +81,7 @@
     "test:all": "concurrently --kill-others-on-fail -c green,blue,magenta,cyan,red 'npm:test:only' 'npm:test:browser' 'npm:test:typescript' 'npm:test:package' 'npm:test:options'",
     "test:coverage": "npm run build:cjs && shx rm -rf coverage/* && nyc --reporter html mocha test/test.js",
     "test:coverage:browser": "npm run build && shx rm -rf coverage/* && nyc mocha test/browser/index.js",
-    "test:leak": "node --expose-gc test/leak/index.js",
+    "test:leak": "npm install --no-save weak-napi && node --expose-gc test/leak/index.js",
     "test:package": "node scripts/test-package.js",
     "test:options": "node scripts/test-options.js",
     "test:only": "mocha test/test.js",
@@ -194,7 +194,6 @@
     "vitepress": "^1.1.4",
     "vue": "^3.4.27",
     "wasm-pack": "^0.12.1",
-    "weak-napi": "^2.0.2",
     "yargs-parser": "^21.1.1"
   },
   "overrides": {
