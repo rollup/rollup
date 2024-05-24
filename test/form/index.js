@@ -22,7 +22,8 @@ runTestSuiteWithSamples(
 	 * @param {import('../types').TestConfigForm} config
 	 */
 	(directory, config) => {
-		const isSingleFormatTest = existsSync(directory + '/_expected.js');
+		const outputExtension = config.options?.typescript === 'preserve' ? 'ts' : 'js';
+		const isSingleFormatTest = existsSync(`${directory}/_expected.${outputExtension}`);
 		const itOrDescribe = isSingleFormatTest ? it : describe;
 		(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
 			path.basename(directory) + ': ' + config.description,
@@ -94,9 +95,19 @@ runTestSuiteWithSamples(
 				if (isSingleFormatTest) {
 					// We are running Rollup twice where the second time checks if it
 					// works the same when using the cache
-					return runRollupTest(`${directory}/_actual.js`, `${directory}/_expected.js`, 'es', false)
+					return runRollupTest(
+						`${directory}/_actual.${outputExtension}`,
+						`${directory}/_expected.${outputExtension}`,
+						'es',
+						false
+					)
 						.then(() =>
-							runRollupTest(`${directory}/_actual.js`, `${directory}/_expected.js`, 'es', true)
+							runRollupTest(
+								`${directory}/_actual.${outputExtension}`,
+								`${directory}/_expected.${outputExtension}`,
+								'es',
+								true
+							)
 						)
 						.then(() => config.logs && compareLogs(logs, config.logs));
 				}
@@ -106,8 +117,8 @@ runTestSuiteWithSamples(
 
 					it(`generates ${format}`, () =>
 						runRollupTest(
-							`${directory}/_actual/${format}.js`,
-							`${directory}/_expected/${format}.js`,
+							`${directory}/_actual/${format}.${outputExtension}`,
+							`${directory}/_expected/${format}.${outputExtension}`,
 							format,
 							false
 						));
@@ -116,8 +127,8 @@ runTestSuiteWithSamples(
 				const format = (config.formats || FORMATS)[0];
 				it(`generates ${format} from the cache`, () =>
 					runRollupTest(
-						`${directory}/_actual/${format}.js`,
-						`${directory}/_expected/${format}.js`,
+						`${directory}/_actual/${format}.${outputExtension}`,
+						`${directory}/_expected/${format}.${outputExtension}`,
 						format,
 						false
 					));

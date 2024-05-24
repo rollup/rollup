@@ -5,7 +5,7 @@ cache
 dist
 dist-build
 _actual
-_actual.js
+_actual.*
 coverage
 .commithash
 .idea
