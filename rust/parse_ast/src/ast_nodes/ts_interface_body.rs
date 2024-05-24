@@ -17,7 +17,7 @@ impl<'a> AstConverter<'a> {
     self.convert_item_list(
       &interface_body.body,
       end_position + TS_INTERFACE_BODY_BODY_OFFSET,
-      |_ast, node| true,
+      |_ast, _node| true,
     );
 
     // end

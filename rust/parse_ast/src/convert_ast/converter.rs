@@ -1,5 +1,11 @@
 use swc_common::Span;
-use swc_ecma_ast::{AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt, TsInterfaceDecl, TsKeywordType, TsKeywordTypeKind, TsType, VarDeclOrExpr};
+use swc_ecma_ast::{
+  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
+  ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
+  NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
+  SimpleAssignTarget, Stmt, TsKeywordType, TsKeywordTypeKind, TsType,
+  VarDeclOrExpr,
+};
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
@@ -236,7 +242,7 @@ impl<'a> AstConverter<'a> {
       }
       Decl::TsInterface(interface_declaration) => {
         self.store_ts_interface_declaration(interface_declaration)
-      },
+      }
       Decl::TsTypeAlias(ts_type_alias_declaration) => {
         self.store_ts_type_alias_declaration(ts_type_alias_declaration)
       }

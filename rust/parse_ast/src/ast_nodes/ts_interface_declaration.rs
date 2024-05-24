@@ -4,7 +4,7 @@ use crate::convert_ast::converter::ast_constants::{
   TS_INTERFACE_DECLARATION_RESERVED_BYTES, TYPE_TS_INTERFACE_DECLARATION,
 };
 use crate::convert_ast::converter::AstConverter;
-use swc_ecma_ast::{TsInterfaceBody, TsInterfaceDecl};
+use swc_ecma_ast::{TsInterfaceDecl};
 
 impl<'a> AstConverter<'a> {
   pub fn store_ts_interface_declaration(&mut self, interface_declaration: &Box<TsInterfaceDecl>) {

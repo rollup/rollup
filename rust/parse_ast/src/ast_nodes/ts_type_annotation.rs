@@ -1,8 +1,8 @@
 use swc_ecma_ast::TsTypeAnn;
 
 use crate::convert_ast::converter::ast_constants::{
-    TS_TYPE_ANNOTATION_RESERVED_BYTES, TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET,
-    TYPE_TS_TYPE_ANNOTATION,
+  TS_TYPE_ANNOTATION_RESERVED_BYTES, TS_TYPE_ANNOTATION_TYPE_ANNOTATION_OFFSET,
+  TYPE_TS_TYPE_ANNOTATION,
 };
 use crate::convert_ast::converter::AstConverter;
 
