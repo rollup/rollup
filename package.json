@@ -191,7 +191,7 @@
     "tslib": "^2.6.2",
     "typescript": "^5.4.5",
     "vite": "^5.2.11",
-    "vitepress": "^1.2.1",
+    "vitepress": "^1.2.2",
     "vue": "^3.4.27",
     "wasm-pack": "^0.12.1",
     "yargs-parser": "^21.1.1"
