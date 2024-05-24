@@ -65,6 +65,7 @@ import SwitchStatement from './SwitchStatement';
 import TSBooleanKeyword from './TSBooleanKeyword';
 import TSInterfaceBody from './TSInterfaceBody';
 import TSInterfaceDeclaration from './TSInterfaceDeclaration';
+import TSInterfaceHeritage from './TSInterfaceHeritage';
 import TSNullKeyword from './TSNullKeyword';
 import TSNumberKeyword from './TSNumberKeyword';
 import TSPropertySignature from './TSPropertySignature';
@@ -159,6 +160,7 @@ export const nodeConstructors: {
 	TSBooleanKeyword,
 	TSInterfaceBody,
 	TSInterfaceDeclaration,
+	TSInterfaceHeritage,
 	TSNullKeyword,
 	TSNumberKeyword,
 	TSPropertySignature,

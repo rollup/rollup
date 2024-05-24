@@ -74,6 +74,7 @@ pub mod throw_statement;
 pub mod try_statement;
 pub mod ts_interface_body;
 pub mod ts_interface_declaration;
+pub mod ts_interface_heritage;
 pub mod ts_number_keyword;
 pub mod ts_property_signature;
 pub mod ts_type_alias_declaration;

@@ -1108,6 +1108,17 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 			extends: doesExtend
 		};
 	},
+	function tSInterfaceHeritage(position, buffer, readString): TSInterfaceHeritageNode {
+		const start = buffer[position++];
+		const end = buffer[position++];
+		const expression = convertNode(buffer[position], buffer, readString);
+		return {
+			type: 'TSInterfaceHeritage',
+			start,
+			end,
+			expression
+		};
+	},
 	function tSNullKeyword(position, buffer): TSNullKeywordNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
@@ -1385,6 +1396,7 @@ export type TryStatementNode = RollupAstNode<estree.TryStatement>;
 export type TSBooleanKeywordNode = RollupAstNode<any>;
 export type TSInterfaceBodyNode = RollupAstNode<any>;
 export type TSInterfaceDeclarationNode = RollupAstNode<any>;
+export type TSInterfaceHeritageNode = RollupAstNode<any>;
 export type TSNullKeywordNode = RollupAstNode<any>;
 export type TSNumberKeywordNode = RollupAstNode<any>;
 export type TSPropertySignatureNode = RollupAstNode<any>;

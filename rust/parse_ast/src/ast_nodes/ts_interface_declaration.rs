@@ -1,10 +1,11 @@
 use crate::convert_ast::converter::ast_constants::{
   TS_INTERFACE_DECLARATION_BODY_OFFSET, TS_INTERFACE_DECLARATION_DECLARE_FLAG,
-  TS_INTERFACE_DECLARATION_FLAGS_OFFSET, TS_INTERFACE_DECLARATION_ID_OFFSET,
-  TS_INTERFACE_DECLARATION_RESERVED_BYTES, TYPE_TS_INTERFACE_DECLARATION,
+  TS_INTERFACE_DECLARATION_EXTENDS_OFFSET, TS_INTERFACE_DECLARATION_FLAGS_OFFSET,
+  TS_INTERFACE_DECLARATION_ID_OFFSET, TS_INTERFACE_DECLARATION_RESERVED_BYTES,
+  TYPE_TS_INTERFACE_DECLARATION,
 };
 use crate::convert_ast::converter::AstConverter;
-use swc_ecma_ast::{TsInterfaceDecl};
+use swc_ecma_ast::{TsExprWithTypeArgs, TsInterfaceDecl};
 
 impl<'a> AstConverter<'a> {
   pub fn store_ts_interface_declaration(&mut self, interface_declaration: &Box<TsInterfaceDecl>) {
@@ -25,6 +26,16 @@ impl<'a> AstConverter<'a> {
     // id
     self.update_reference_position(end_position + TS_INTERFACE_DECLARATION_ID_OFFSET);
     self.convert_identifier(&interface_declaration.id);
+
+    // extends
+    self.convert_item_list(
+      &interface_declaration.extends,
+      end_position + TS_INTERFACE_DECLARATION_EXTENDS_OFFSET,
+      |ast_converter, heritage| {
+        ast_converter.store_ts_interface_heritage(heritage);
+        true
+      },
+    );
 
     // body
     self.update_reference_position(end_position + TS_INTERFACE_DECLARATION_BODY_OFFSET);

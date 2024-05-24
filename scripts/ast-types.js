@@ -624,6 +624,10 @@ export const AST_NODES = {
 			extends: 'doesExtend'
 		}
 	},
+	TSInterfaceHeritage: {
+		estreeType: 'any',
+		fields: [['expression', 'Node']]
+	},
 	TSNullKeyword: {
 		estreeType: 'any',
 		hasSameFieldsAs: 'TSBooleanKeyword'

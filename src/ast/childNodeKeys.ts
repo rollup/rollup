@@ -72,6 +72,7 @@ export const childNodeKeys: Record<string, string[]> = {
 	TSBooleanKeyword: [],
 	TSInterfaceBody: ['body'],
 	TSInterfaceDeclaration: ['id', 'body', 'extends'],
+	TSInterfaceHeritage: ['expression'],
 	TSNullKeyword: [],
 	TSNumberKeyword: [],
 	TSPropertySignature: ['key', 'typeAnnotation'],

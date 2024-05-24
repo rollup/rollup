@@ -73,6 +73,7 @@ import SwitchStatement from './nodes/SwitchStatement';
 import TSBooleanKeyword from './nodes/TSBooleanKeyword';
 import TSInterfaceBody from './nodes/TSInterfaceBody';
 import TSInterfaceDeclaration from './nodes/TSInterfaceDeclaration';
+import TSInterfaceHeritage from './nodes/TSInterfaceHeritage';
 import TSNullKeyword from './nodes/TSNullKeyword';
 import TSNumberKeyword from './nodes/TSNumberKeyword';
 import TSPropertySignature from './nodes/TSPropertySignature';
@@ -190,6 +191,7 @@ const nodeTypeStrings = [
 	'TSBooleanKeyword',
 	'TSInterfaceBody',
 	'TSInterfaceDeclaration',
+	'TSInterfaceHeritage',
 	'TSNullKeyword',
 	'TSNumberKeyword',
 	'TSPropertySignature',
@@ -282,6 +284,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	TSBooleanKeyword,
 	TSInterfaceBody,
 	TSInterfaceDeclaration,
+	TSInterfaceHeritage,
 	TSNullKeyword,
 	TSNumberKeyword,
 	TSPropertySignature,
@@ -839,6 +842,10 @@ const bufferParsers: ((
 		node.id = convertNode(node, scope, buffer[position + 1], buffer, readString);
 		node.body = convertNode(node, scope, buffer[position + 2], buffer, readString);
 		node.extends = convertNodeList(node, scope, buffer[position + 3], buffer, readString);
+	},
+	function tSInterfaceHeritage(node: TSInterfaceHeritage, position, buffer, readString) {
+		const { scope } = node;
+		node.expression = convertNode(node, scope, buffer[position], buffer, readString);
 	},
 	function tSNullKeyword() {},
 	function tSNumberKeyword() {},
