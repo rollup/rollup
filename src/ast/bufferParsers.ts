@@ -834,7 +834,8 @@ const bufferParsers: ((
 	},
 	function tSInterfaceDeclaration(node: TSInterfaceDeclaration, position, buffer, readString) {
 		const { scope } = node;
-		node.body = convertNode(node, scope, buffer[position], buffer, readString);
+		node.id = convertNode(node, scope, buffer[position], buffer, readString);
+		node.body = convertNode(node, scope, buffer[position + 1], buffer, readString);
 	},
 	function tSNullKeyword() {},
 	function tSNumberKeyword() {},

@@ -1093,11 +1093,13 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function tSInterfaceDeclaration(position, buffer, readString): TSInterfaceDeclarationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const id = convertNode(buffer[position++], buffer, readString);
 		const body = convertNode(buffer[position], buffer, readString);
 		return {
 			type: 'TSInterfaceDeclaration',
 			start,
 			end,
+			id,
 			body
 		};
 	},

@@ -614,7 +614,10 @@ export const AST_NODES = {
 	},
 	TSInterfaceDeclaration: {
 		estreeType: 'any',
-		fields: [['body', 'Node']]
+		fields: [
+			['id', 'Node'],
+			['body', 'Node']
+		]
 	},
 	TSNullKeyword: {
 		estreeType: 'any',
