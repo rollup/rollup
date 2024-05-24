@@ -1093,14 +1093,19 @@ const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadS
 	function tSInterfaceDeclaration(position, buffer, readString): TSInterfaceDeclarationNode {
 		const start = buffer[position++];
 		const end = buffer[position++];
+		const flags = buffer[position++];
+		const declare = (flags & 1) === 1;
 		const id = convertNode(buffer[position++], buffer, readString);
-		const body = convertNode(buffer[position], buffer, readString);
+		const body = convertNode(buffer[position++], buffer, readString);
+		const doesExtend = convertNodeList(buffer[position], buffer, readString);
 		return {
 			type: 'TSInterfaceDeclaration',
 			start,
 			end,
+			declare,
 			id,
-			body
+			body,
+			extends: doesExtend
 		};
 	},
 	function tSNullKeyword(position, buffer): TSNullKeywordNode {

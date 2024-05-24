@@ -1,3 +1,3 @@
-const bool: boolean = true;
+interface Foo {}
 
-export { bool };
+declare interface Bar {}

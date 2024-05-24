@@ -71,7 +71,7 @@ export const childNodeKeys: Record<string, string[]> = {
 	TryStatement: ['block', 'handler', 'finalizer'],
 	TSBooleanKeyword: [],
 	TSInterfaceBody: ['body'],
-	TSInterfaceDeclaration: ['id', 'body'],
+	TSInterfaceDeclaration: ['id', 'body', 'extends'],
 	TSNullKeyword: [],
 	TSNumberKeyword: [],
 	TSPropertySignature: ['key', 'typeAnnotation'],

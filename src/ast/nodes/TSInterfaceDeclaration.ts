@@ -7,4 +7,6 @@ export default class TSInterfaceDeclaration extends NodeBase {
 	declare id: Identifier;
 	declare body: TSInterfaceBody;
 	declare type: NodeType.tTSInterfaceDeclaration;
+	declare extends: unknown[];
+	declare declare: boolean;
 }

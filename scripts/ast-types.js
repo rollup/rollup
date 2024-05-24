@@ -616,8 +616,13 @@ export const AST_NODES = {
 		estreeType: 'any',
 		fields: [
 			['id', 'Node'],
-			['body', 'Node']
-		]
+			['body', 'Node'],
+			['extends', 'NodeList']
+		],
+		flags: ['declare'],
+		variableNames: {
+			extends: 'doesExtend'
+		}
 	},
 	TSNullKeyword: {
 		estreeType: 'any',
