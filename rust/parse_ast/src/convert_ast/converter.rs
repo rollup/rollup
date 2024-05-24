@@ -1,5 +1,10 @@
 use swc_common::Span;
-use swc_ecma_ast::{AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr, ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem, NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread, SimpleAssignTarget, Stmt, TsKeywordType, TsKeywordTypeKind, TsType, VarDeclOrExpr, TsTypeElement};
+use swc_ecma_ast::{
+  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
+  ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
+  NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
+  SimpleAssignTarget, Stmt, TsKeywordType, TsKeywordTypeKind, TsType, TsTypeElement, VarDeclOrExpr,
+};
 
 use crate::ast_nodes::call_expression::StoredCallee;
 use crate::ast_nodes::variable_declaration::VariableDeclaration;
@@ -842,13 +847,27 @@ impl<'a> AstConverter<'a> {
 
   pub fn convert_ts_type_element(&mut self, ts_type_element: &TsTypeElement) {
     match ts_type_element {
-      TsTypeElement::TsCallSignatureDecl(_) => {todo!("TsTypeElement::TsCallSignatureDecl")}
-      TsTypeElement::TsConstructSignatureDecl(_) => {todo!("TsTypeElement::TsConstructSignatureDecl")}
-      TsTypeElement::TsPropertySignature(_) => {todo!("TsTypeElement::TsPropertySignature")}
-      TsTypeElement::TsGetterSignature(_) => {todo!("TsTypeElement::TsGetterSignature")}
-      TsTypeElement::TsSetterSignature(_) => {todo!("TsTypeElement::TsSetterSignature")}
-      TsTypeElement::TsMethodSignature(_) => {todo!("TsTypeElement::TsMethodSignature")}
-      TsTypeElement::TsIndexSignature(_) => {todo!("TsTypeElement::TsIndexSignature")}
+      TsTypeElement::TsCallSignatureDecl(_) => {
+        todo!("TsTypeElement::TsCallSignatureDecl")
+      }
+      TsTypeElement::TsConstructSignatureDecl(_) => {
+        todo!("TsTypeElement::TsConstructSignatureDecl")
+      }
+      TsTypeElement::TsPropertySignature(signature) => {
+        self.convert_property_signature(signature);
+      }
+      TsTypeElement::TsGetterSignature(_) => {
+        todo!("TsTypeElement::TsGetterSignature")
+      }
+      TsTypeElement::TsSetterSignature(_) => {
+        todo!("TsTypeElement::TsSetterSignature")
+      }
+      TsTypeElement::TsMethodSignature(_) => {
+        todo!("TsTypeElement::TsMethodSignature")
+      }
+      TsTypeElement::TsIndexSignature(_) => {
+        todo!("TsTypeElement::TsIndexSignature")
+      }
     }
   }
 

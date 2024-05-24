@@ -17,13 +17,13 @@ impl<'a> AstConverter<'a> {
     self.convert_item_list(
       &interface_body.body,
       end_position + TS_INTERFACE_BODY_BODY_OFFSET,
-      |ast_converter, node| { 
+      |ast_converter, node| {
         ast_converter.convert_ts_type_element(node);
-        true },
+        true
+      },
     );
 
     // end
     self.add_end(end_position, &interface_body.span);
   }
-
 }

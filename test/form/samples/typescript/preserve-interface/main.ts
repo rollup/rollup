@@ -1,5 +1,4 @@
-interface Foo {
-}
+interface Foo {}
 
 declare interface Bar {}
 
