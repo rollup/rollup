@@ -910,7 +910,7 @@ exports.foo = foo;
 
 |          |                                 |
 | -------: | :------------------------------ |
-|    Type: | `"base64" \| "base32" \| "hex"` |
+|    Type: | `"base64" \| "base36" \| "hex"` |
 |     CLI: | `--hashCharacters <name>`       |
 | Default: | `"base64"`                      |
 

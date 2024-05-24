@@ -118,8 +118,14 @@ async function loadTranspiledConfigFile(
 					if (property === 'url') {
 						return `'${pathToFileURL(moduleId).href}'`;
 					}
+					if (property == 'filename') {
+						return `'${moduleId}'`;
+					}
+					if (property == 'dirname') {
+						return `'${path.dirname(moduleId)}'`;
+					}
 					if (property == null) {
-						return `{url:'${pathToFileURL(moduleId).href}'}`;
+						return `{url:'${pathToFileURL(moduleId).href}', filename: '${moduleId}', dirname: '${path.dirname(moduleId)}'}`;
 					}
 				}
 			}

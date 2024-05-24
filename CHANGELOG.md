@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 4.18.0
+
+_2024-05-22_
+
+### Features
+
+- Resolve import.meta.filename and .dirname in transpiled plugins (#5520)
+
+### Pull Requests
+
+- [#5504](https://github.com/rollup/rollup/pull/5504): Auto generate node index (@lukastaegert)
+- [#5507](https://github.com/rollup/rollup/pull/5507): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5508](https://github.com/rollup/rollup/pull/5508): chore(deps): lock file maintenance (@renovate[bot])
+- [#5510](https://github.com/rollup/rollup/pull/5510): Split up converter.rs into AST nodes (@lukastaegert)
+- [#5512](https://github.com/rollup/rollup/pull/5512): chore(deps): update dependency builtin-modules to v4 (@renovate[bot], @lukastaegert)
+- [#5514](https://github.com/rollup/rollup/pull/5514): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5518](https://github.com/rollup/rollup/pull/5518): chore(deps): update dependency eslint-plugin-unicorn to v53 (@renovate[bot], @lukastaegert)
+- [#5519](https://github.com/rollup/rollup/pull/5519): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5520](https://github.com/rollup/rollup/pull/5520): Resolve import.meta.{filename,dirname} in files imported from config (@BPScott)
+- [#5521](https://github.com/rollup/rollup/pull/5521): docs: correct base32 to base36 in documentation (@highcastlee)
+
 ## 4.17.2
 
 _2024-04-30_
