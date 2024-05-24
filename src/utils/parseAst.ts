@@ -5,16 +5,16 @@ import getReadStringFunction from './getReadStringFunction';
 
 export const parseAst: ParseAst = (
 	input,
-	{ allowReturnOutsideFunction = false, preserveTypescript = false } = {}
+	{ allowReturnOutsideFunction = false, typescript = false } = {}
 ) => {
-	const astBuffer = parse(input, allowReturnOutsideFunction, preserveTypescript);
+	const astBuffer = parse(input, allowReturnOutsideFunction, typescript);
 	return convertProgram(astBuffer.buffer, getReadStringFunction(astBuffer));
 };
 
 export const parseAstAsync: ParseAstAsync = async (
 	input,
-	{ allowReturnOutsideFunction = false, preserveTypescript = false, signal } = {}
+	{ allowReturnOutsideFunction = false, typescript = false, signal } = {}
 ) => {
-	const astBuffer = await parseAsync(input, allowReturnOutsideFunction, preserveTypescript, signal);
+	const astBuffer = await parseAsync(input, allowReturnOutsideFunction, typescript, signal);
 	return convertProgram(astBuffer.buffer, getReadStringFunction(astBuffer));
 };

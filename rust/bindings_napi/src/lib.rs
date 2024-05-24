@@ -1,5 +1,6 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+
 use parse_ast::parse_ast;
 
 #[cfg(all(
@@ -12,7 +13,7 @@ static ALLOC: mimalloc_rust::GlobalMiMalloc = mimalloc_rust::GlobalMiMalloc;
 pub struct ParseTask {
   pub code: String,
   pub allow_return_outside_function: bool,
-  pub preserve_typescript: bool,
+  pub typescript: bool,
 }
 
 #[napi]
@@ -21,7 +22,14 @@ impl Task for ParseTask {
   type JsValue = Buffer;
 
   fn compute(&mut self) -> Result<Self::Output> {
-    Ok(parse_ast(self.code.clone(), self.allow_return_outside_function, self.preserve_typescript).into())
+    Ok(
+      parse_ast(
+        self.code.clone(),
+        self.allow_return_outside_function,
+        self.typescript,
+      )
+      .into(),
+    )
   }
 
   fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
@@ -30,22 +38,22 @@ impl Task for ParseTask {
 }
 
 #[napi]
-pub fn parse(code: String, allow_return_outside_function: bool, preserve_typescript: bool) -> Buffer {
-  parse_ast(code, allow_return_outside_function, preserve_typescript).into()
+pub fn parse(code: String, allow_return_outside_function: bool, typescript: bool) -> Buffer {
+  parse_ast(code, allow_return_outside_function, typescript).into()
 }
 
 #[napi]
 pub fn parse_async(
   code: String,
   allow_return_outside_function: bool,
-  preserve_typescript: bool,
+  typescript: bool,
   signal: Option<AbortSignal>,
 ) -> AsyncTask<ParseTask> {
   AsyncTask::with_optional_signal(
     ParseTask {
       code,
       allow_return_outside_function,
-      preserve_typescript,
+      typescript,
     },
     signal,
   )

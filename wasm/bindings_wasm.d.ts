@@ -3,10 +3,10 @@
 /**
 * @param {string} code
 * @param {boolean} allow_return_outside_function
-* @param {boolean} preserve_typescript
+* @param {boolean} typescript
 * @returns {Uint8Array}
 */
-export function parse(code: string, allow_return_outside_function: boolean, preserve_typescript: boolean): Uint8Array;
+export function parse(code: string, allow_return_outside_function: boolean, typescript: boolean): Uint8Array;
 /**
 * @param {Uint8Array} input
 * @returns {string}

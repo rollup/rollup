@@ -7,20 +7,20 @@ use swc_compiler_base::parse_js;
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::{EsConfig, Syntax, TsConfig};
 
-use crate::ast_nodes::panic_error::get_panic_error_buffer;
 use convert_ast::converter::AstConverter;
 use error_emit::try_with_handler;
 
+use crate::ast_nodes::panic_error::get_panic_error_buffer;
 use crate::convert_ast::annotations::SequentialComments;
 
 mod ast_nodes;
 mod convert_ast;
 mod error_emit;
 
-pub fn parse_ast(code: String, allow_return_outside_function: bool, preserve_typescript: bool) -> Vec<u8> {
+pub fn parse_ast(code: String, allow_return_outside_function: bool, typescript: bool) -> Vec<u8> {
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
-  let syntax= if true {
+  let syntax = if typescript {
     Syntax::Typescript(TsConfig {
       tsx: false,
       decorators: false,
@@ -32,7 +32,8 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool, preserve_typ
     Syntax::Es(EsConfig {
       allow_return_outside_function,
       import_attributes: true,
-      explicit_resource_management: true,..Default::default()
+      explicit_resource_management: true,
+      ..Default::default()
     })
   };
 

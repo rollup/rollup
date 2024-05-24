@@ -1386,7 +1386,7 @@ export default class Module {
 
 	private tryParse() {
 		try {
-			return parseAst(this.info.code!);
+			return parseAst(this.info.code!, { typescript: !!this.options.typescript });
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}

@@ -1,10 +1,11 @@
 use js_sys::Uint8Array;
-use parse_ast::parse_ast;
 use wasm_bindgen::prelude::*;
 
+use parse_ast::parse_ast;
+
 #[wasm_bindgen]
-pub fn parse(code: String, allow_return_outside_function: bool, preserve_typescript: bool) -> Vec<u8> {
-  parse_ast(code, allow_return_outside_function, preserve_typescript)
+pub fn parse(code: String, allow_return_outside_function: bool, typescript: bool) -> Vec<u8> {
+  parse_ast(code, allow_return_outside_function, typescript)
 }
 
 #[wasm_bindgen(js_name=xxhashBase64Url)]

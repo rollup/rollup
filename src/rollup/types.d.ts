@@ -205,7 +205,7 @@ type LoggingFunctionWithPosition = (
 
 export type ParseAst = (
 	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; preserveTypescript?: boolean }
+	options?: { allowReturnOutsideFunction?: boolean; typescript?: boolean }
 ) => ProgramNode;
 
 // declare AbortSignal here for environments without DOM lib or @types/node
@@ -217,7 +217,7 @@ export type ParseAstAsync = (
 	input: string,
 	options?: {
 		allowReturnOutsideFunction?: boolean;
-		preserveTypescript?: boolean;
+		typescript?: boolean;
 		signal?: AbortSignal;
 	}
 ) => Promise<ProgramNode>;
