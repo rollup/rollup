@@ -1,6 +1,6 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
+  AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
   ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
   NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
   SimpleAssignTarget, Stmt, VarDeclOrExpr,
@@ -407,55 +407,6 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub(crate) fn get_expression_span(&mut self, expression: &Expr) -> Span {
-    match expression {
-      Expr::Array(array_literal) => array_literal.span,
-      Expr::Arrow(arrow_expression) => arrow_expression.span,
-      Expr::Assign(assignment_expression) => assignment_expression.span,
-      Expr::Await(await_expression) => await_expression.span,
-      Expr::Bin(binary_expression) => binary_expression.span,
-      Expr::Call(call_expression) => call_expression.span,
-      Expr::Class(class_expression) => class_expression.class.span,
-      Expr::Cond(conditional_expression) => conditional_expression.span,
-      Expr::Fn(function_expression) => function_expression.function.span,
-      Expr::Ident(identifier) => identifier.span,
-      Expr::Lit(Lit::Str(literal)) => literal.span,
-      Expr::Lit(Lit::Bool(literal)) => literal.span,
-      Expr::Lit(Lit::Null(literal)) => literal.span,
-      Expr::Lit(Lit::Num(literal)) => literal.span,
-      Expr::Lit(Lit::BigInt(literal)) => literal.span,
-      Expr::Lit(Lit::Regex(literal)) => literal.span,
-      Expr::Member(member_expression) => member_expression.span,
-      Expr::MetaProp(meta_property) => meta_property.span,
-      Expr::New(new_expression) => new_expression.span,
-      Expr::Object(object_literal) => object_literal.span,
-      Expr::OptChain(optional_chain_expression) => optional_chain_expression.span,
-      Expr::Paren(parenthesized_expression) => parenthesized_expression.span,
-      Expr::PrivateName(private_name) => private_name.span,
-      Expr::Seq(sequence_expression) => sequence_expression.span,
-      Expr::SuperProp(super_property) => super_property.span,
-      Expr::TaggedTpl(tagged_template_expression) => tagged_template_expression.span,
-      Expr::This(this_expression) => this_expression.span,
-      Expr::Tpl(template_literal) => template_literal.span,
-      Expr::Unary(unary_expression) => unary_expression.span,
-      Expr::Update(update_expression) => update_expression.span,
-      Expr::Yield(yield_expression) => yield_expression.span,
-      Expr::JSXMember(_) => unimplemented!("Cannot convert Expr::JSXMember"),
-      Expr::JSXNamespacedName(_) => unimplemented!("Cannot convert Expr::JSXNamespacedName"),
-      Expr::JSXEmpty(_) => unimplemented!("Cannot convert Expr::JSXEmpty"),
-      Expr::JSXElement(_) => unimplemented!("Cannot convert Expr::JSXElement"),
-      Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
-      Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
-      Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
-      Expr::TsNonNull(_) => unimplemented!("Cannot convert Expr::TsNonNull"),
-      Expr::TsAs(_) => unimplemented!("Cannot convert Expr::TsAs"),
-      Expr::TsInstantiation(_) => unimplemented!("Cannot convert Expr::TsInstantiation"),
-      Expr::TsSatisfies(_) => unimplemented!("Cannot convert Expr::TsSatisfies"),
-      Expr::Invalid(_) => unimplemented!("Cannot convert Expr::Invalid"),
-      Expr::Lit(Lit::JSXText(_)) => unimplemented!("Cannot convert Lit::JSXText"),
-    }
-  }
-
   pub(crate) fn convert_for_head(&mut self, for_head: &ForHead) {
     match for_head {
       ForHead::VarDecl(variable_declaration) => {
@@ -695,16 +646,6 @@ impl<'a> AstConverter<'a> {
         self.store_literal_bigint(bigint);
         None
       }
-    }
-  }
-
-  pub(crate) fn get_property_name_span(&self, property_name: &PropName) -> Span {
-    match property_name {
-      PropName::Computed(computed_property_name) => computed_property_name.span,
-      PropName::Ident(ident) => ident.span,
-      PropName::Str(string) => string.span,
-      PropName::Num(number) => number.span,
-      PropName::BigInt(bigint) => bigint.span,
     }
   }
 

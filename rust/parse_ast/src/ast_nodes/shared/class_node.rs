@@ -1,3 +1,4 @@
+use swc_common::Spanned;
 use swc_ecma_ast::{Class, Ident};
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
@@ -31,7 +32,7 @@ impl<'a> AstConverter<'a> {
     if let Some(super_class) = class.super_class.as_ref() {
       self.update_reference_position(end_position + CLASS_DECLARATION_SUPER_CLASS_OFFSET);
       self.convert_expression(super_class);
-      body_start_search = self.get_expression_span(super_class).hi.0 - 1;
+      body_start_search = super_class.span().hi.0 - 1;
     }
     // body
     self.update_reference_position(end_position + CLASS_DECLARATION_BODY_OFFSET);

@@ -1,4 +1,4 @@
-use swc_common::Span;
+use swc_common::{Span, Spanned};
 use swc_ecma_ast::{
   ClassMethod, Constructor, Function, MethodKind, ParamOrTsParamProp, Pat, PrivateMethod,
   PrivateName, PropName,
@@ -10,10 +10,10 @@ use crate::convert_ast::converter::ast_constants::{
   METHOD_DEFINITION_KIND_OFFSET, METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_STATIC_FLAG,
   METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION, TYPE_METHOD_DEFINITION,
 };
+use crate::convert_ast::converter::AstConverter;
 use crate::convert_ast::converter::string_constants::{
   STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
 };
-use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
   pub fn store_method_definition(
@@ -53,7 +53,7 @@ impl<'a> AstConverter<'a> {
     let key_end = match key {
       PropOrPrivateName::PropName(prop_name) => {
         self.convert_property_name(prop_name);
-        self.get_property_name_span(prop_name).hi.0 - 1
+        prop_name.span().hi.0 - 1
       }
       PropOrPrivateName::PrivateName(private_name) => {
         self.store_private_identifier(private_name);
@@ -99,7 +99,7 @@ impl<'a> AstConverter<'a> {
     match &constructor.body {
       Some(block_statement) => {
         self.update_reference_position(end_position + METHOD_DEFINITION_VALUE_OFFSET);
-        let key_end = self.get_property_name_span(&constructor.key).hi.0 - 1;
+        let key_end = constructor.key.span().hi.0 - 1;
         let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
         let parameters: Vec<&Pat> = constructor
           .params

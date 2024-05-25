@@ -1,4 +1,4 @@
-use swc_common::Span;
+use swc_common::{Span, Spanned};
 use swc_ecma_ast::{
   AssignPatProp, BlockStmt, Expr, GetterProp, Ident, KeyValuePatProp, KeyValueProp, MethodProp,
   Pat, Prop, PropName, SetterProp,
@@ -11,8 +11,8 @@ use crate::convert_ast::converter::ast_constants::{
   PROPERTY_METHOD_FLAG, PROPERTY_RESERVED_BYTES, PROPERTY_SHORTHAND_FLAG, PROPERTY_VALUE_OFFSET,
   TYPE_FUNCTION_EXPRESSION, TYPE_PROPERTY,
 };
-use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, STRING_SET};
 use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, STRING_SET};
 
 impl<'a> AstConverter<'a> {
   pub fn convert_property(&mut self, property: &Prop) {
@@ -50,7 +50,7 @@ impl<'a> AstConverter<'a> {
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
     let end_position = self.add_type_and_explicit_start(
       &TYPE_PROPERTY,
-      self.get_property_name_span(property_name).lo.0 - 1,
+      &property_name.span().lo.0 - 1,
       PROPERTY_RESERVED_BYTES,
     );
     // key
@@ -100,7 +100,7 @@ impl<'a> AstConverter<'a> {
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(key);
-    let key_end = self.get_property_name_span(key).hi.0 - 1;
+    let key_end = key.span().hi.0 - 1;
     // flags, method and shorthand are always false
     let mut flags = 0u32;
     if matches!(key, PropName::Computed(_)) {
@@ -143,7 +143,7 @@ impl<'a> AstConverter<'a> {
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(&method_property.key);
-    let key_end = self.get_property_name_span(&method_property.key).hi.0 - 1;
+    let key_end = &method_property.key.span().hi.0 - 1;
     let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     // flags, shorthand is always false
     let mut flags = PROPERTY_METHOD_FLAG;
