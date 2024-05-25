@@ -68,7 +68,7 @@ export default class AssignmentExpression extends NodeBase {
 	}
 
 	includePath(
-		_path: ObjectPath,
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
@@ -83,7 +83,7 @@ export default class AssignmentExpression extends NodeBase {
 		) {
 			left.includeAsAssignmentTarget(context, includeChildrenRecursively, operator !== '=');
 		}
-		right.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		right.includePath(path, context, includeChildrenRecursively);
 	}
 
 	initialise(): void {

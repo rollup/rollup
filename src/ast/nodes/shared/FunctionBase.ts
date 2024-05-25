@@ -18,7 +18,6 @@ import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
 import ObjectPattern from '../ObjectPattern';
-import Property from '../Property';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
@@ -101,12 +100,10 @@ export default abstract class FunctionBase extends NodeBase {
 					hasRestElement = true;
 				}
 				for (const element of parameter.properties) {
-					console.log(element);
 					if (element instanceof RestElement) {
 						(element.argument.variable as ParameterVariable).trackArgument(argument, UnknownKey);
 						continue rootIter;
-					}
-					if (element instanceof Property) {
+					} else {
 						if (element.value instanceof Identifier) {
 							const path = hasRestElement ? UnknownKey : element.value.name;
 							(element.value.variable as ParameterVariable)?.trackArgument(argument, path);
@@ -122,7 +119,7 @@ export default abstract class FunctionBase extends NodeBase {
 				(parameter.variable as ParameterVariable).trackArgument(argument);
 				continue rootIter;
 			}
-			if (parameter instanceof SpreadElement) {
+			if (parameter instanceof RestElement) {
 				for (const remainArgument of arguments_.slice(position + 1)) {
 					this.argumentsToBeIncludedAll.add(remainArgument!);
 				}
