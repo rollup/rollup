@@ -58,6 +58,10 @@ async function entry() {
   await Promise.resolve().then(function () { return bail9$1; });
 
   Promise.resolve().then(function () { return bail10$1; }).then(({ [foo]: bar }) => {});
+
+  {
+    await Promise.resolve().then(function () { return bail11$1; });
+  }
 }
 
 function foo1() {
@@ -234,6 +238,15 @@ var bail10$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   default: bail10,
   named10: named10
+});
+
+var bail11 = '@included-bail-11';
+const named11 = 'bail11';
+
+var bail11$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: bail11,
+  named11: named11
 });
 
 export { entry };
