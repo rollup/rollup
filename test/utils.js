@@ -268,8 +268,8 @@ function getFileNamesAndRemoveOutput(directory) {
 				});
 				return false;
 			}
-			if (fileName === '_actual.js') {
-				unlinkSync(path.join(directory, '_actual.js'));
+			if (fileName.startsWith('_actual.')) {
+				unlinkSync(path.join(directory, fileName));
 				return false;
 			}
 			return true;
