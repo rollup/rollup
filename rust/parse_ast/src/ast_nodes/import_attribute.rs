@@ -1,3 +1,4 @@
+use swc_common::Spanned;
 use swc_ecma_ast::{KeyValueProp, ObjectLit, Prop, PropOrSpread};
 
 use crate::convert_ast::converter::ast_constants::{
@@ -9,41 +10,19 @@ use crate::convert_ast::converter::AstConverter;
 impl<'a> AstConverter<'a> {
   pub fn store_import_attribute(&mut self, key_value_property: &KeyValueProp) {
     // type
-    self.buffer.extend_from_slice(&TYPE_IMPORT_ATTRIBUTE);
-    let start_position = self.buffer.len();
-    let end_position = start_position + 4;
-    // reserved bytes
-    self
-      .buffer
-      .resize(end_position + IMPORT_ATTRIBUTE_RESERVED_BYTES, 0);
+    let end_position = self.add_type_and_start(
+      &TYPE_IMPORT_ATTRIBUTE,
+      &key_value_property.span(),
+      IMPORT_ATTRIBUTE_RESERVED_BYTES,
+      false,
+    );
     // key
     self.update_reference_position(end_position + IMPORT_ATTRIBUTE_KEY_OFFSET);
-    let key_position = self.buffer.len();
-    let key_boundaries = self.convert_property_name(&key_value_property.key);
-    let start_bytes: [u8; 4] = match key_boundaries {
-      Some((start, _)) => start.to_ne_bytes(),
-      None => {
-        let key_start: [u8; 4] = self.buffer[key_position + 4..key_position + 8]
-          .try_into()
-          .unwrap();
-        key_start
-      }
-    };
-    self.buffer[start_position..start_position + 4].copy_from_slice(&start_bytes);
+    self.convert_property_name(&key_value_property.key);
     // value
     self.update_reference_position(end_position + IMPORT_ATTRIBUTE_VALUE_OFFSET);
-    let value_position = self.buffer.len();
-    let value_boundaries = self.convert_expression(&key_value_property.value);
-    let end_bytes: [u8; 4] = match value_boundaries {
-      Some((_, end)) => end.to_ne_bytes(),
-      None => {
-        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12]
-          .try_into()
-          .unwrap();
-        value_end
-      }
-    };
-    self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
+    self.convert_expression(&key_value_property.value);
+    self.add_end(end_position, &key_value_property.span());
   }
 
   pub fn store_import_attributes(
