@@ -14,10 +14,10 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // argument
-    return_statement.arg.as_ref().map(|argument| {
+    if let Some(argument) = return_statement.arg.as_ref() {
       self.update_reference_position(end_position + RETURN_STATEMENT_ARGUMENT_OFFSET);
       self.convert_expression(argument)
-    });
+    }
     // end
     self.add_end(end_position, &return_statement.span);
   }

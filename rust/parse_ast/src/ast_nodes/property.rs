@@ -1,4 +1,4 @@
-use swc_common::Span;
+use swc_common::{Span, Spanned};
 use swc_ecma_ast::{
   AssignPatProp, BlockStmt, Expr, GetterProp, Ident, KeyValuePatProp, KeyValueProp, MethodProp,
   Pat, Prop, PropName, SetterProp,
@@ -48,10 +48,11 @@ impl<'a> AstConverter<'a> {
   }
 
   fn store_key_value_property(&mut self, property_name: &PropName, value: PatternOrExpression) {
-    let end_position = self.add_type_and_explicit_start(
+    let end_position = self.add_type_and_start(
       &TYPE_PROPERTY,
-      self.get_property_name_span(property_name).lo.0 - 1,
+      &property_name.span(),
       PROPERTY_RESERVED_BYTES,
+      false,
     );
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
@@ -68,23 +69,12 @@ impl<'a> AstConverter<'a> {
     self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
     // value
     self.update_reference_position(end_position + PROPERTY_VALUE_OFFSET);
-    let value_position = self.buffer.len();
-    let value_boundaries = match value {
+    match value {
       PatternOrExpression::Pattern(pattern) => self.convert_pattern(pattern),
       PatternOrExpression::Expression(expression) => self.convert_expression(expression),
     };
     // end
-    let end_bytes: [u8; 4] = match value_boundaries {
-      Some((_, end)) => end.to_ne_bytes(),
-      None => {
-        let value_end: [u8; 4] = self.buffer[value_position + 8..value_position + 12]
-          .try_into()
-          .unwrap();
-        value_end
-      }
-    };
-    // TODO SWC avoid copying positions around but use span getters instead
-    self.buffer[end_position..end_position + 4].copy_from_slice(&end_bytes);
+    self.add_end(end_position, &value.span());
   }
 
   fn store_getter_setter_property(
@@ -100,7 +90,7 @@ impl<'a> AstConverter<'a> {
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(key);
-    let key_end = self.get_property_name_span(key).hi.0 - 1;
+    let key_end = key.span().hi.0 - 1;
     // flags, method and shorthand are always false
     let mut flags = 0u32;
     if matches!(key, PropName::Computed(_)) {
@@ -143,7 +133,7 @@ impl<'a> AstConverter<'a> {
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(&method_property.key);
-    let key_end = self.get_property_name_span(&method_property.key).hi.0 - 1;
+    let key_end = &method_property.key.span().hi.0 - 1;
     let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
     // flags, shorthand is always false
     let mut flags = PROPERTY_METHOD_FLAG;
@@ -244,6 +234,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
+#[derive(Spanned)]
 pub enum PatternOrExpression<'a> {
   Pattern(&'a Pat),
   Expression(&'a Expr),

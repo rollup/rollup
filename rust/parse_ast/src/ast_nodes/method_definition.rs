@@ -1,4 +1,4 @@
-use swc_common::Span;
+use swc_common::{Span, Spanned};
 use swc_ecma_ast::{
   ClassMethod, Constructor, Function, MethodKind, ParamOrTsParamProp, Pat, PrivateMethod,
   PrivateName, PropName,
@@ -53,7 +53,7 @@ impl<'a> AstConverter<'a> {
     let key_end = match key {
       PropOrPrivateName::PropName(prop_name) => {
         self.convert_property_name(prop_name);
-        self.get_property_name_span(prop_name).hi.0 - 1
+        prop_name.span().hi.0 - 1
       }
       PropOrPrivateName::PrivateName(private_name) => {
         self.store_private_identifier(private_name);
@@ -99,7 +99,7 @@ impl<'a> AstConverter<'a> {
     match &constructor.body {
       Some(block_statement) => {
         self.update_reference_position(end_position + METHOD_DEFINITION_VALUE_OFFSET);
-        let key_end = self.get_property_name_span(&constructor.key).hi.0 - 1;
+        let key_end = constructor.key.span().hi.0 - 1;
         let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
         let parameters: Vec<&Pat> = constructor
           .params

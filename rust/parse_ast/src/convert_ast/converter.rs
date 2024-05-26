@@ -274,39 +274,31 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_expression(&mut self, expression: &Expr) -> Option<(u32, u32)> {
+  pub fn convert_expression(&mut self, expression: &Expr) {
     match expression {
       Expr::Array(array_literal) => {
         self.store_array_expression(array_literal);
-        None
       }
       Expr::Arrow(arrow_expression) => {
         self.store_arrow_function_expression(arrow_expression);
-        None
       }
       Expr::Assign(assignment_expression) => {
         self.store_assignment_expression(assignment_expression);
-        None
       }
       Expr::Await(await_expression) => {
         self.store_await_expression(await_expression);
-        None
       }
       Expr::Bin(binary_expression) => {
         self.store_binary_expression(binary_expression);
-        None
       }
       Expr::Call(call_expression) => {
         self.convert_call_expression(call_expression, false, false);
-        None
       }
       Expr::Class(class_expression) => {
         self.store_class_expression(class_expression, &TYPE_CLASS_EXPRESSION);
-        None
       }
       Expr::Cond(conditional_expression) => {
         self.store_conditional_expression(conditional_expression);
-        None
       }
       Expr::Fn(function_expression) => {
         self.convert_function(
@@ -314,74 +306,57 @@ impl<'a> AstConverter<'a> {
           &TYPE_FUNCTION_EXPRESSION,
           function_expression.ident.as_ref(),
         );
-        None
       }
       Expr::Ident(identifier) => {
         self.convert_identifier(identifier);
-        None
       }
       Expr::Lit(literal) => {
         self.convert_literal(literal);
-        None
       }
       Expr::Member(member_expression) => {
         self.convert_member_expression(member_expression, false, false);
-        None
       }
       Expr::MetaProp(meta_property) => {
         self.store_meta_property(meta_property);
-        None
       }
       Expr::New(new_expression) => {
         self.store_new_expression(new_expression);
-        None
       }
       Expr::Object(object_literal) => {
         self.store_object_expression(object_literal);
-        None
       }
       Expr::OptChain(optional_chain_expression) => {
         self.store_chain_expression(optional_chain_expression, false);
-        None
       }
       Expr::Paren(parenthesized_expression) => {
-        Some(self.convert_parenthesized_expression(parenthesized_expression))
+        self.convert_parenthesized_expression(parenthesized_expression)
       }
       Expr::PrivateName(private_name) => {
         self.store_private_identifier(private_name);
-        None
       }
       Expr::Seq(sequence_expression) => {
         self.store_sequence_expression(sequence_expression);
-        None
       }
       Expr::SuperProp(super_property) => {
         self.convert_super_property(super_property);
-        None
       }
       Expr::TaggedTpl(tagged_template_expression) => {
         self.store_tagged_template_expression(tagged_template_expression);
-        None
       }
       Expr::This(this_expression) => {
         self.store_this_expression(this_expression);
-        None
       }
       Expr::Tpl(template_literal) => {
         self.store_template_literal(template_literal);
-        None
       }
       Expr::Unary(unary_expression) => {
         self.store_unary_expression(unary_expression);
-        None
       }
       Expr::Update(update_expression) => {
         self.store_update_expression(update_expression);
-        None
       }
       Expr::Yield(yield_expression) => {
         self.store_yield_expression(yield_expression);
-        None
       }
       Expr::JSXMember(_) => unimplemented!("Cannot convert Expr::JSXMember"),
       Expr::JSXNamespacedName(_) => unimplemented!("Cannot convert Expr::JSXNamespacedName"),
@@ -404,55 +379,6 @@ impl<'a> AstConverter<'a> {
       None => {
         self.convert_expression(&expression_or_spread.expr);
       }
-    }
-  }
-
-  pub(crate) fn get_expression_span(&mut self, expression: &Expr) -> Span {
-    match expression {
-      Expr::Array(array_literal) => array_literal.span,
-      Expr::Arrow(arrow_expression) => arrow_expression.span,
-      Expr::Assign(assignment_expression) => assignment_expression.span,
-      Expr::Await(await_expression) => await_expression.span,
-      Expr::Bin(binary_expression) => binary_expression.span,
-      Expr::Call(call_expression) => call_expression.span,
-      Expr::Class(class_expression) => class_expression.class.span,
-      Expr::Cond(conditional_expression) => conditional_expression.span,
-      Expr::Fn(function_expression) => function_expression.function.span,
-      Expr::Ident(identifier) => identifier.span,
-      Expr::Lit(Lit::Str(literal)) => literal.span,
-      Expr::Lit(Lit::Bool(literal)) => literal.span,
-      Expr::Lit(Lit::Null(literal)) => literal.span,
-      Expr::Lit(Lit::Num(literal)) => literal.span,
-      Expr::Lit(Lit::BigInt(literal)) => literal.span,
-      Expr::Lit(Lit::Regex(literal)) => literal.span,
-      Expr::Member(member_expression) => member_expression.span,
-      Expr::MetaProp(meta_property) => meta_property.span,
-      Expr::New(new_expression) => new_expression.span,
-      Expr::Object(object_literal) => object_literal.span,
-      Expr::OptChain(optional_chain_expression) => optional_chain_expression.span,
-      Expr::Paren(parenthesized_expression) => parenthesized_expression.span,
-      Expr::PrivateName(private_name) => private_name.span,
-      Expr::Seq(sequence_expression) => sequence_expression.span,
-      Expr::SuperProp(super_property) => super_property.span,
-      Expr::TaggedTpl(tagged_template_expression) => tagged_template_expression.span,
-      Expr::This(this_expression) => this_expression.span,
-      Expr::Tpl(template_literal) => template_literal.span,
-      Expr::Unary(unary_expression) => unary_expression.span,
-      Expr::Update(update_expression) => update_expression.span,
-      Expr::Yield(yield_expression) => yield_expression.span,
-      Expr::JSXMember(_) => unimplemented!("Cannot convert Expr::JSXMember"),
-      Expr::JSXNamespacedName(_) => unimplemented!("Cannot convert Expr::JSXNamespacedName"),
-      Expr::JSXEmpty(_) => unimplemented!("Cannot convert Expr::JSXEmpty"),
-      Expr::JSXElement(_) => unimplemented!("Cannot convert Expr::JSXElement"),
-      Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
-      Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
-      Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
-      Expr::TsNonNull(_) => unimplemented!("Cannot convert Expr::TsNonNull"),
-      Expr::TsAs(_) => unimplemented!("Cannot convert Expr::TsAs"),
-      Expr::TsInstantiation(_) => unimplemented!("Cannot convert Expr::TsInstantiation"),
-      Expr::TsSatisfies(_) => unimplemented!("Cannot convert Expr::TsSatisfies"),
-      Expr::Invalid(_) => unimplemented!("Cannot convert Expr::Invalid"),
-      Expr::Lit(Lit::JSXText(_)) => unimplemented!("Cannot convert Lit::JSXText"),
     }
   }
 
@@ -576,11 +502,9 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  fn convert_parenthesized_expression(
-    &mut self,
-    parenthesized_expression: &ParenExpr,
-  ) -> (u32, u32) {
-    let start = self.index_converter.convert(
+  fn convert_parenthesized_expression(&mut self, parenthesized_expression: &ParenExpr) {
+    // We are doing this for the side effect of keeping annotations for call expressions
+    self.index_converter.convert(
       parenthesized_expression.span.lo.0 - 1,
       matches!(
         &*parenthesized_expression.expr,
@@ -588,34 +512,25 @@ impl<'a> AstConverter<'a> {
       ),
     );
     self.convert_expression(&parenthesized_expression.expr);
-    let end = self
-      .index_converter
-      .convert(parenthesized_expression.span.hi.0 - 1, false);
-    (start, end)
   }
 
-  pub fn convert_pattern(&mut self, pattern: &Pat) -> Option<(u32, u32)> {
+  pub fn convert_pattern(&mut self, pattern: &Pat) {
     match pattern {
       Pat::Array(array_pattern) => {
         self.store_array_pattern(array_pattern);
-        None
       }
       Pat::Assign(assignment_pattern) => {
         self.convert_assignment_pattern(assignment_pattern);
-        None
       }
       Pat::Expr(expression) => self.convert_expression(expression),
       Pat::Ident(binding_identifier) => {
         self.convert_binding_identifier(binding_identifier);
-        None
       }
       Pat::Object(object) => {
         self.store_object_pattern(object);
-        None
       }
       Pat::Rest(rest_pattern) => {
         self.store_rest_element(rest_pattern);
-        None
       }
       Pat::Invalid(_) => unimplemented!("Cannot convert Pat::Invalid"),
     }
@@ -674,37 +589,23 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub(crate) fn convert_property_name(&mut self, property_name: &PropName) -> Option<(u32, u32)> {
+  pub(crate) fn convert_property_name(&mut self, property_name: &PropName) {
     match property_name {
       PropName::Computed(computed_property_name) => {
         self.convert_expression(computed_property_name.expr.as_ref())
       }
       PropName::Ident(ident) => {
         self.convert_identifier(ident);
-        None
       }
       PropName::Str(string) => {
         self.store_literal_string(string);
-        None
       }
       PropName::Num(number) => {
         self.store_literal_number(number);
-        None
       }
       PropName::BigInt(bigint) => {
         self.store_literal_bigint(bigint);
-        None
       }
-    }
-  }
-
-  pub(crate) fn get_property_name_span(&self, property_name: &PropName) -> Span {
-    match property_name {
-      PropName::Computed(computed_property_name) => computed_property_name.span,
-      PropName::Ident(ident) => ident.span,
-      PropName::Str(string) => string.span,
-      PropName::Num(number) => number.span,
-      PropName::BigInt(bigint) => bigint.span,
     }
   }
 
