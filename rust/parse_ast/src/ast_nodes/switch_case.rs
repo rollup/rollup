@@ -15,10 +15,10 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // test
-    switch_case.test.as_ref().map(|expression| {
+    if let Some(expression) = switch_case.test.as_ref() {
       self.update_reference_position(end_position + SWITCH_CASE_TEST_OFFSET);
       self.convert_expression(expression)
-    });
+    }
     // consequent
     self.convert_item_list(
       &switch_case.cons,

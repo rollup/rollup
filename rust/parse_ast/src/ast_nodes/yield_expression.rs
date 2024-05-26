@@ -22,10 +22,10 @@ impl<'a> AstConverter<'a> {
     let flags_position = end_position + YIELD_EXPRESSION_FLAGS_OFFSET;
     self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
     // argument
-    yield_expression.arg.as_ref().map(|expression| {
+    if let Some(expression) = yield_expression.arg.as_ref() {
       self.update_reference_position(end_position + YIELD_EXPRESSION_ARGUMENT_OFFSET);
       self.convert_expression(expression)
-    });
+    }
     // end
     self.add_end(end_position, &yield_expression.span);
   }
