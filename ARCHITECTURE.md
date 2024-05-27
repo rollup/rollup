@@ -4,7 +4,7 @@
 
 - The [`rollup`](https://www.npmjs.com/package/rollup) npm package contains both Rollup's Node.js JavaScript interface and the command-line-interface (CLI).
 - There is a separate browser build available as [`@rollup/browser`](https://www.npmjs.com/package/@rollup/browser). It exposes the same JavaScript interface as the Node.js build but does not include the CLI and also requires writing a plugin to encapsulate file reading. Instead of native code dependencies, this build has a bundled WASM artifact included that can be loaded in the browser. This is what the [Rollup REPL](https://rollupjs.org/repl) uses.
-- For every supported platform-architecture combination, there is a separate pacakge containing the native code. These are not listed in the committed `package.json` file but are added dynamically during publishing as `optionalDependencies`. The `README.md` and `package.json` files for those dependencies can be found in the [`npm`](npm) folder. The corresponding binaries are built and published from [GitHub Actions](.github/workflows/build-and-tests.yml) whenever a new release version tag is pushed. The actual loading of the native code is handled by [`native.js`](native.js) which is copied into the output folder during build. So to add a new platform-architecture combination, you need to
+- For every supported platform-architecture combination, there is a separate package containing the native code. These are not listed in the committed `package.json` file but are added dynamically during publishing as `optionalDependencies`. The `README.md` and `package.json` files for those dependencies can be found in the [`npm`](npm) folder. The corresponding binaries are built and published from [GitHub Actions](.github/workflows/build-and-tests.yml) whenever a new release version tag is pushed. The actual loading of the native code is handled by [`native.js`](native.js) which is copied into the output folder during build. So to add a new platform-architecture combination, you need to
   - add a new package in the `npm` folder
   - update the `native.js` file
   - add the corresponding triple to the [`package.json`](package.json) file as napi-rs depends on this
@@ -24,7 +24,7 @@
   - The entry point for the Node.js build is [`node-entry.ts`](src/node-entry.ts) while the browser build uses [`browser-entry.ts`](src/browser-entry.ts). Those are mostly identical except that the browser build does not expose the watch mode interface.
 - The CLI is a wrapper around the JavaScript interface.
   - It resides in the [`cli` folder](cli) with the entry point [cli.ts](cli/cli.ts).
-  - The logic to read configuration files resides in [locaConfigFile.ts](cli/run/loadConfigFile.ts) and is exposed as a separate export via `import { loadConfigFile } from "rollup/loadConfigFile"`.
+  - The logic to read configuration files resides in [loadConfigFile.ts](cli/run/loadConfigFile.ts) and is exposed as a separate export via `import { loadConfigFile } from "rollup/loadConfigFile"`.
   - Only the CLI is able to handle arrays of configurations. Those are handled sequentially in [`run/index.ts`](cli/run/index.ts).
   - The CLI handles several CLI-only options that are specific to the Node.js environment like setting environment variables or handling std-in, see [Command line flags](docs/command-line-interface/index.md#command-line-flags).
 
@@ -42,7 +42,7 @@ The Rust entrypoints are [`bindings_napi/src/lib.rs`](rust/bindings_napi/src/lib
 
 Building an output has two phases
 
-- The "build" phase builds a module graph form the input files and decides, which code should be included in the output
+- The "build" phase builds a module graph from the input files and decides, which code should be included in the output
   - It is triggered by calling the `rollup(inputOptions)` function exported by the JavaScript interface
   - It returns a "bundle" object that has `generate` and `write` methods
 - The "generate" phase generates the output files from the bundle by calling `.generate(outputOptions)` or `.write(outputOptions)`
@@ -96,14 +96,14 @@ To understand this phase from a plugin perspective, have a look at [Build Hooks]
 
 To understand this phase from a plugin perspective, have a look at [Output Generation Hooks](https://rollupjs.org/plugin-development/#output-generation-hooks), which again contains a graph to show in which order these hooks are executed. In detail `Bundle.generate` performs the following steps
 
-- Assign modules to chunks via [`chunkAssigment.ts`](src/utils/chunkAssignment.ts)
+- Assign modules to chunks via [`chunkAssignment.ts`](src/utils/chunkAssignment.ts)
 - Determine the exports for each chunk by tracing the included inter-module dependencies
 - Render the chunks, which is orchestrated by the [`renderChunks`](src/utils/renderChunks.ts) helper
   - Render the chunks with placeholders for chunk hashes by calling `Chunk.render()`
     - Determine how dynamic imports and `import.meta` references should be resolved and store this on the corresponding AST nodes.
     - Determine the final deconflicted variable names and store those on the AST nodes as well in [`deconflictChunk.ts`](src/utils/deconflictChunk.ts)
     - Render each module by calling the `.render` methods of their AST nodes. This is also where tree-shaken nodes are removed from the output.
-    - Render the format specific wrapper with imports and exports for this chunk by calling the corresponding [finalizer](src/finalisers).
+    - Render the format specific wrapper with imports and exports for this chunk by calling the corresponding [finaliser](src/finalisers).
   - Transform the rendered chunks via the [`renderChunk`](https://rollupjs.org/plugin-development/#renderchunk) plugin hook
   - Determine the final chunk hashes based on the actual rendered content and the chunk dependency graph and replace the placeholders
 
