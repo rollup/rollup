@@ -1,12 +1,12 @@
 use swc_ecma_ast::{UpdateExpr, UpdateOp};
 
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_UPDATE_EXPRESSION, UPDATE_EXPRESSION_ARGUMENT_OFFSET, UPDATE_EXPRESSION_FLAGS_OFFSET,
-  UPDATE_EXPRESSION_OPERATOR_OFFSET, UPDATE_EXPRESSION_PREFIX_FLAG,
+  TYPE_UPDATE_EXPRESSION, UPDATE_EXPRESSION_ARGUMENT_OFFSET, UPDATE_EXPRESSION_OPERATOR_OFFSET,
   UPDATE_EXPRESSION_RESERVED_BYTES,
 };
 use crate::convert_ast::converter::string_constants::{STRING_MINUSMINUS, STRING_PLUSPLUS};
 use crate::convert_ast::converter::AstConverter;
+use crate::store_update_expression_flags;
 
 impl<'a> AstConverter<'a> {
   pub fn store_update_expression(&mut self, update_expression: &UpdateExpr) {
@@ -20,12 +20,7 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + UPDATE_EXPRESSION_ARGUMENT_OFFSET);
     self.convert_expression(&update_expression.arg);
     // flags
-    let mut flags = 0u32;
-    if update_expression.prefix {
-      flags |= UPDATE_EXPRESSION_PREFIX_FLAG;
-    }
-    let flags_position = end_position + UPDATE_EXPRESSION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    store_update_expression_flags!(self, end_position, prefix => update_expression.prefix);
     // operator
     let operator_position = end_position + UPDATE_EXPRESSION_OPERATOR_OFFSET;
     self.buffer[operator_position..operator_position + 4].copy_from_slice(

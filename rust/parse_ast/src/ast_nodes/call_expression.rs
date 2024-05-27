@@ -4,10 +4,10 @@ use swc_ecma_ast::{Expr, ExprOrSpread, OptCall, Super};
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
   CALL_EXPRESSION_ANNOTATIONS_OFFSET, CALL_EXPRESSION_ARGUMENTS_OFFSET,
-  CALL_EXPRESSION_CALLEE_OFFSET, CALL_EXPRESSION_FLAGS_OFFSET, CALL_EXPRESSION_OPTIONAL_FLAG,
-  CALL_EXPRESSION_RESERVED_BYTES, TYPE_CALL_EXPRESSION,
+  CALL_EXPRESSION_CALLEE_OFFSET, CALL_EXPRESSION_RESERVED_BYTES, TYPE_CALL_EXPRESSION,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::store_call_expression_flags;
 
 impl<'a> AstConverter<'a> {
   pub fn store_call_expression(
@@ -39,12 +39,7 @@ impl<'a> AstConverter<'a> {
       );
     }
     // flags
-    let mut flags = 0u32;
-    if is_optional {
-      flags |= CALL_EXPRESSION_OPTIONAL_FLAG;
-    };
-    let flags_position = end_position + CALL_EXPRESSION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    store_call_expression_flags!(self, end_position, optional => is_optional);
     // callee
     self.update_reference_position(end_position + CALL_EXPRESSION_CALLEE_OFFSET);
     match callee {

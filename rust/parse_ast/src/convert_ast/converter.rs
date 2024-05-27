@@ -24,6 +24,7 @@ pub mod string_constants;
 mod utf16_positions;
 
 pub mod ast_constants;
+mod ast_macros;
 
 pub struct AstConverter<'a> {
   pub buffer: Vec<u8>,
