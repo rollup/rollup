@@ -35,10 +35,10 @@ impl<'a> AstConverter<'a> {
     // flags
     store_property_definition_flags!(self, end_position, static => is_static, computed => is_computed);
     // value
-    value.map(|expression| {
+    if let Some(expression) = value {
       self.update_reference_position(end_position + PROPERTY_DEFINITION_VALUE_OFFSET);
       self.convert_expression(expression);
-    });
+    }
     // end
     self.add_end(end_position, span);
   }
