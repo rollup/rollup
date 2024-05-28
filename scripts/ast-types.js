@@ -107,8 +107,7 @@ export const AST_NODES = {
 		],
 		fieldTypes: {
 			operator: 'estree.AssignmentOperator'
-		},
-		useMacro: false
+		}
 	},
 	AssignmentPattern: {
 		fields: [
