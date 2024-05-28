@@ -11,7 +11,6 @@ pub const TYPE_ASSIGNMENT_PATTERN: [u8; 4] = 6u32.to_ne_bytes();
 pub const TYPE_AWAIT_EXPRESSION: [u8; 4] = 7u32.to_ne_bytes();
 pub const TYPE_BINARY_EXPRESSION: [u8; 4] = 8u32.to_ne_bytes();
 pub const TYPE_BLOCK_STATEMENT: [u8; 4] = 9u32.to_ne_bytes();
-pub const TYPE_BREAK_STATEMENT: [u8; 4] = 10u32.to_ne_bytes();
 pub const TYPE_CALL_EXPRESSION: [u8; 4] = 11u32.to_ne_bytes();
 pub const TYPE_CATCH_CLAUSE: [u8; 4] = 12u32.to_ne_bytes();
 pub const TYPE_CHAIN_EXPRESSION: [u8; 4] = 13u32.to_ne_bytes();
@@ -19,11 +18,8 @@ pub const TYPE_CLASS_BODY: [u8; 4] = 14u32.to_ne_bytes();
 pub const TYPE_CLASS_DECLARATION: [u8; 4] = 15u32.to_ne_bytes();
 pub const TYPE_CLASS_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
 pub const TYPE_CONDITIONAL_EXPRESSION: [u8; 4] = 17u32.to_ne_bytes();
-pub const TYPE_CONTINUE_STATEMENT: [u8; 4] = 18u32.to_ne_bytes();
-pub const TYPE_DEBUGGER_STATEMENT: [u8; 4] = 19u32.to_ne_bytes();
 pub const TYPE_DIRECTIVE: [u8; 4] = 20u32.to_ne_bytes();
 pub const TYPE_DO_WHILE_STATEMENT: [u8; 4] = 21u32.to_ne_bytes();
-pub const TYPE_EMPTY_STATEMENT: [u8; 4] = 22u32.to_ne_bytes();
 pub const TYPE_EXPORT_ALL_DECLARATION: [u8; 4] = 23u32.to_ne_bytes();
 pub const TYPE_EXPORT_DEFAULT_DECLARATION: [u8; 4] = 24u32.to_ne_bytes();
 pub const TYPE_EXPORT_NAMED_DECLARATION: [u8; 4] = 25u32.to_ne_bytes();
@@ -61,7 +57,6 @@ pub const TYPE_PROGRAM: [u8; 4] = 56u32.to_ne_bytes();
 pub const TYPE_PROPERTY: [u8; 4] = 57u32.to_ne_bytes();
 pub const TYPE_PROPERTY_DEFINITION: [u8; 4] = 58u32.to_ne_bytes();
 pub const TYPE_REST_ELEMENT: [u8; 4] = 59u32.to_ne_bytes();
-pub const TYPE_RETURN_STATEMENT: [u8; 4] = 60u32.to_ne_bytes();
 pub const TYPE_SEQUENCE_EXPRESSION: [u8; 4] = 61u32.to_ne_bytes();
 pub const TYPE_SPREAD_ELEMENT: [u8; 4] = 62u32.to_ne_bytes();
 pub const TYPE_STATIC_BLOCK: [u8; 4] = 63u32.to_ne_bytes();
@@ -71,7 +66,6 @@ pub const TYPE_SWITCH_STATEMENT: [u8; 4] = 66u32.to_ne_bytes();
 pub const TYPE_TAGGED_TEMPLATE_EXPRESSION: [u8; 4] = 67u32.to_ne_bytes();
 pub const TYPE_TEMPLATE_ELEMENT: [u8; 4] = 68u32.to_ne_bytes();
 pub const TYPE_TEMPLATE_LITERAL: [u8; 4] = 69u32.to_ne_bytes();
-pub const TYPE_THIS_EXPRESSION: [u8; 4] = 70u32.to_ne_bytes();
 pub const TYPE_THROW_STATEMENT: [u8; 4] = 71u32.to_ne_bytes();
 pub const TYPE_TRY_STATEMENT: [u8; 4] = 72u32.to_ne_bytes();
 pub const TYPE_UNARY_EXPRESSION: [u8; 4] = 73u32.to_ne_bytes();
@@ -79,7 +73,6 @@ pub const TYPE_UPDATE_EXPRESSION: [u8; 4] = 74u32.to_ne_bytes();
 pub const TYPE_VARIABLE_DECLARATION: [u8; 4] = 75u32.to_ne_bytes();
 pub const TYPE_VARIABLE_DECLARATOR: [u8; 4] = 76u32.to_ne_bytes();
 pub const TYPE_WHILE_STATEMENT: [u8; 4] = 77u32.to_ne_bytes();
-pub const TYPE_YIELD_EXPRESSION: [u8; 4] = 78u32.to_ne_bytes();
 
 pub const PANIC_ERROR_RESERVED_BYTES: usize = 8;
 pub const PANIC_ERROR_MESSAGE_OFFSET: usize = 4;
@@ -118,9 +111,6 @@ pub const BINARY_EXPRESSION_RIGHT_OFFSET: usize = 12;
 pub const BLOCK_STATEMENT_RESERVED_BYTES: usize = 8;
 pub const BLOCK_STATEMENT_BODY_OFFSET: usize = 4;
 
-pub const BREAK_STATEMENT_RESERVED_BYTES: usize = 8;
-pub const BREAK_STATEMENT_LABEL_OFFSET: usize = 4;
-
 pub const CALL_EXPRESSION_RESERVED_BYTES: usize = 20;
 pub const CALL_EXPRESSION_ANNOTATIONS_OFFSET: usize = 8;
 pub const CALL_EXPRESSION_CALLEE_OFFSET: usize = 12;
@@ -146,11 +136,6 @@ pub const CONDITIONAL_EXPRESSION_TEST_OFFSET: usize = 4;
 pub const CONDITIONAL_EXPRESSION_CONSEQUENT_OFFSET: usize = 8;
 pub const CONDITIONAL_EXPRESSION_ALTERNATE_OFFSET: usize = 12;
 
-pub const CONTINUE_STATEMENT_RESERVED_BYTES: usize = 8;
-pub const CONTINUE_STATEMENT_LABEL_OFFSET: usize = 4;
-
-pub const DEBUGGER_STATEMENT_RESERVED_BYTES: usize = 4;
-
 pub const DIRECTIVE_RESERVED_BYTES: usize = 12;
 pub const DIRECTIVE_DIRECTIVE_OFFSET: usize = 4;
 pub const DIRECTIVE_EXPRESSION_OFFSET: usize = 8;
@@ -158,8 +143,6 @@ pub const DIRECTIVE_EXPRESSION_OFFSET: usize = 8;
 pub const DO_WHILE_STATEMENT_RESERVED_BYTES: usize = 12;
 pub const DO_WHILE_STATEMENT_BODY_OFFSET: usize = 4;
 pub const DO_WHILE_STATEMENT_TEST_OFFSET: usize = 8;
-
-pub const EMPTY_STATEMENT_RESERVED_BYTES: usize = 4;
 
 pub const EXPORT_ALL_DECLARATION_RESERVED_BYTES: usize = 16;
 pub const EXPORT_ALL_DECLARATION_EXPORTED_OFFSET: usize = 4;
@@ -302,9 +285,6 @@ pub const PROPERTY_DEFINITION_VALUE_OFFSET: usize = 12;
 pub const REST_ELEMENT_RESERVED_BYTES: usize = 8;
 pub const REST_ELEMENT_ARGUMENT_OFFSET: usize = 4;
 
-pub const RETURN_STATEMENT_RESERVED_BYTES: usize = 8;
-pub const RETURN_STATEMENT_ARGUMENT_OFFSET: usize = 4;
-
 pub const SEQUENCE_EXPRESSION_RESERVED_BYTES: usize = 8;
 pub const SEQUENCE_EXPRESSION_EXPRESSIONS_OFFSET: usize = 4;
 
@@ -336,8 +316,6 @@ pub const TEMPLATE_LITERAL_RESERVED_BYTES: usize = 12;
 pub const TEMPLATE_LITERAL_QUASIS_OFFSET: usize = 4;
 pub const TEMPLATE_LITERAL_EXPRESSIONS_OFFSET: usize = 8;
 
-pub const THIS_EXPRESSION_RESERVED_BYTES: usize = 4;
-
 pub const THROW_STATEMENT_RESERVED_BYTES: usize = 8;
 pub const THROW_STATEMENT_ARGUMENT_OFFSET: usize = 4;
 
@@ -365,6 +343,3 @@ pub const VARIABLE_DECLARATOR_INIT_OFFSET: usize = 8;
 pub const WHILE_STATEMENT_RESERVED_BYTES: usize = 12;
 pub const WHILE_STATEMENT_TEST_OFFSET: usize = 4;
 pub const WHILE_STATEMENT_BODY_OFFSET: usize = 8;
-
-pub const YIELD_EXPRESSION_RESERVED_BYTES: usize = 12;
-pub const YIELD_EXPRESSION_ARGUMENT_OFFSET: usize = 8;

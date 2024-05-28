@@ -12,16 +12,17 @@ const astConstantsFile = new URL(
 );
 
 const nodeTypes = astNodeNamesWithFieldOrder
-	.map(
-		({ name }, index) =>
-			`pub const TYPE_${toScreamingSnakeCase(name)}: [u8; 4] = ${index}u32.to_ne_bytes();`
+	.map(({ name, node: { useMacro } }, index) =>
+		useMacro === false
+			? `pub const TYPE_${toScreamingSnakeCase(name)}: [u8; 4] = ${index}u32.to_ne_bytes();\n`
+			: ''
 	)
-	.join('\n');
+	.join('');
 
 const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
-	.map(({ name, fields }) => {
+	.map(({ name, fields, node: { useMacro } }) => {
 		const { flags, hasSameFieldsAs } = AST_NODES[name];
-		if (hasSameFieldsAs) {
+		if (hasSameFieldsAs || useMacro !== false) {
 			return '';
 		}
 		/** @type {string[]} */

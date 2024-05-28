@@ -11,6 +11,69 @@ const astMacrosFile = new URL(
 	import.meta.url
 );
 
+const astMacros = astNodeNamesWithFieldOrder
+	.map(({ name, fields, node: { flags, useMacro } }, nodeIndex) => {
+		if (useMacro === false) {
+			return '';
+		}
+		let reservedBytes = BYTES_PER_U32;
+		let valuesInput = '';
+		let flagConverter = '';
+		if (flags?.length) {
+			reservedBytes += BYTES_PER_U32;
+			let flagsInput = '';
+			for (const flag of flags) {
+				valuesInput += `, ${flag} => $${flag}_value:expr`;
+				flagsInput += `, ${flag} => $${flag}_value`;
+			}
+			flagConverter = `
+    // flags
+    store_${toSnakeCase(name)}_flags!($self, end_position${flagsInput});`;
+		}
+		let fieldConverters = '';
+		for (const [fieldName, fieldType] of fields) {
+			valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
+			fieldConverters += `
+    // ${fieldName}`;
+			switch (fieldType) {
+				case 'Float': {
+					// TODO
+					reservedBytes += BYTES_PER_U32;
+					break;
+				}
+				case 'OptionalNode': {
+					fieldConverters += `
+    if let Some(value) = $${fieldName}_value {
+      $self.update_reference_position(end_position + ${reservedBytes});
+      $self.$${fieldName}_converter(value)
+    }`;
+					break;
+				}
+				default: {
+					throw new Error(`Unhandled field type ${fieldType}`);
+				}
+			}
+			reservedBytes += BYTES_PER_U32;
+		}
+		return `#[macro_export]
+macro_rules! store_${toSnakeCase(name)} {
+  ($self:expr, span => $span:expr${valuesInput}) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(
+      &${nodeIndex}u32.to_ne_bytes(),
+      &$span,
+      ${reservedBytes},
+      false,
+    );${flagConverter}${fieldConverters}
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+`;
+	})
+	.join('');
+
 const flagMacros = astNodeNamesWithFieldOrder
 	.map(({ name, originalNode: { flags, hasSameFieldsAs } }) => {
 		if (hasSameFieldsAs || !flags?.length) {
@@ -37,6 +100,7 @@ macro_rules! store_${toSnakeCase(name)}_flags {
 	.join('');
 
 const astConstants = `${notEditFilesComment}
+${astMacros}
 ${flagMacros}`;
 
 await writeFile(astMacrosFile, astConstants);
