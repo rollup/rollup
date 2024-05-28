@@ -49,6 +49,25 @@ macro_rules! store_break_statement {
 }
 
 #[macro_export]
+macro_rules! store_conditional_expression {
+  ($self:expr, span => $span:expr, test => [$test_value:expr, $test_converter:ident], consequent => [$consequent_value:expr, $consequent_converter:ident], alternate => [$alternate_value:expr, $alternate_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&17u32.to_ne_bytes(), &$span, 16, false);
+    // test
+    $self.update_reference_position(end_position + 4);
+    $self.$test_converter(&$test_value);
+    // consequent
+    $self.update_reference_position(end_position + 8);
+    $self.$consequent_converter(&$consequent_value);
+    // alternate
+    $self.update_reference_position(end_position + 12);
+    $self.$alternate_converter(&$alternate_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
 macro_rules! store_continue_statement {
   ($self:expr, span => $span:expr, label => [$label_value:expr, $label_converter:ident]) => {
     let _: &mut AstConverter = $self;
@@ -68,6 +87,21 @@ macro_rules! store_debugger_statement {
   ($self:expr, span => $span:expr) => {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&19u32.to_ne_bytes(), &$span, 4, false);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_directive {
+  ($self:expr, span => $span:expr, directive => $directive_value:expr, expression => [$expression_value:expr, $expression_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&20u32.to_ne_bytes(), &$span, 12, false);
+    // directive
+    $self.convert_string($directive_value, end_position + 4);
+    // expression
+    $self.update_reference_position(end_position + 8);
+    $self.$expression_converter(&$expression_value);
     // end
     $self.add_end(end_position, &$span);
   };

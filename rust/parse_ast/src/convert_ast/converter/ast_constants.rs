@@ -15,8 +15,6 @@ pub const TYPE_CHAIN_EXPRESSION: [u8; 4] = 13u32.to_ne_bytes();
 pub const TYPE_CLASS_BODY: [u8; 4] = 14u32.to_ne_bytes();
 pub const TYPE_CLASS_DECLARATION: [u8; 4] = 15u32.to_ne_bytes();
 pub const TYPE_CLASS_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
-pub const TYPE_CONDITIONAL_EXPRESSION: [u8; 4] = 17u32.to_ne_bytes();
-pub const TYPE_DIRECTIVE: [u8; 4] = 20u32.to_ne_bytes();
 pub const TYPE_DO_WHILE_STATEMENT: [u8; 4] = 21u32.to_ne_bytes();
 pub const TYPE_EXPORT_ALL_DECLARATION: [u8; 4] = 23u32.to_ne_bytes();
 pub const TYPE_EXPORT_DEFAULT_DECLARATION: [u8; 4] = 24u32.to_ne_bytes();
@@ -119,15 +117,6 @@ pub const CLASS_DECLARATION_RESERVED_BYTES: usize = 16;
 pub const CLASS_DECLARATION_ID_OFFSET: usize = 4;
 pub const CLASS_DECLARATION_SUPER_CLASS_OFFSET: usize = 8;
 pub const CLASS_DECLARATION_BODY_OFFSET: usize = 12;
-
-pub const CONDITIONAL_EXPRESSION_RESERVED_BYTES: usize = 16;
-pub const CONDITIONAL_EXPRESSION_TEST_OFFSET: usize = 4;
-pub const CONDITIONAL_EXPRESSION_CONSEQUENT_OFFSET: usize = 8;
-pub const CONDITIONAL_EXPRESSION_ALTERNATE_OFFSET: usize = 12;
-
-pub const DIRECTIVE_RESERVED_BYTES: usize = 12;
-pub const DIRECTIVE_DIRECTIVE_OFFSET: usize = 4;
-pub const DIRECTIVE_EXPRESSION_OFFSET: usize = 8;
 
 pub const DO_WHILE_STATEMENT_RESERVED_BYTES: usize = 12;
 pub const DO_WHILE_STATEMENT_BODY_OFFSET: usize = 4;

@@ -213,8 +213,7 @@ export const AST_NODES = {
 			['test', 'Node'],
 			['consequent', 'Node'],
 			['alternate', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	ContinueStatement: {
 		fields: [['label', 'OptionalNode']]
@@ -226,8 +225,7 @@ export const AST_NODES = {
 		fields: [
 			['directive', 'String'],
 			['expression', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	DoWhileStatement: {
 		fields: [

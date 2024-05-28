@@ -74,6 +74,12 @@ const astMacros = astNodeNamesWithFieldOrder
     }`;
 					break;
 				}
+				case 'String': {
+					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
+					fieldConverters += `
+    $self.convert_string($${fieldName}_value, end_position + ${reservedBytes});`;
+					break;
+				}
 				default: {
 					throw new Error(`Unhandled field type ${fieldType}`);
 				}
