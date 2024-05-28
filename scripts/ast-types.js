@@ -118,8 +118,7 @@ export const AST_NODES = {
 		useMacro: false
 	},
 	AwaitExpression: {
-		fields: [['argument', 'Node']],
-		useMacro: false
+		fields: [['argument', 'Node']]
 	},
 	BinaryExpression: {
 		fields: [

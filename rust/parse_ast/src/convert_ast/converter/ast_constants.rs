@@ -8,7 +8,6 @@ pub const TYPE_ARRAY_PATTERN: [u8; 4] = 3u32.to_ne_bytes();
 pub const TYPE_ARROW_FUNCTION_EXPRESSION: [u8; 4] = 4u32.to_ne_bytes();
 pub const TYPE_ASSIGNMENT_EXPRESSION: [u8; 4] = 5u32.to_ne_bytes();
 pub const TYPE_ASSIGNMENT_PATTERN: [u8; 4] = 6u32.to_ne_bytes();
-pub const TYPE_AWAIT_EXPRESSION: [u8; 4] = 7u32.to_ne_bytes();
 pub const TYPE_BINARY_EXPRESSION: [u8; 4] = 8u32.to_ne_bytes();
 pub const TYPE_BLOCK_STATEMENT: [u8; 4] = 9u32.to_ne_bytes();
 pub const TYPE_CALL_EXPRESSION: [u8; 4] = 11u32.to_ne_bytes();
@@ -98,9 +97,6 @@ pub const ASSIGNMENT_EXPRESSION_RIGHT_OFFSET: usize = 12;
 pub const ASSIGNMENT_PATTERN_RESERVED_BYTES: usize = 12;
 pub const ASSIGNMENT_PATTERN_LEFT_OFFSET: usize = 4;
 pub const ASSIGNMENT_PATTERN_RIGHT_OFFSET: usize = 8;
-
-pub const AWAIT_EXPRESSION_RESERVED_BYTES: usize = 8;
-pub const AWAIT_EXPRESSION_ARGUMENT_OFFSET: usize = 4;
 
 pub const BINARY_EXPRESSION_RESERVED_BYTES: usize = 16;
 pub const BINARY_EXPRESSION_OPERATOR_OFFSET: usize = 4;

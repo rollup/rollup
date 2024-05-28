@@ -43,12 +43,19 @@ const astMacros = astNodeNamesWithFieldOrder
 					reservedBytes += BYTES_PER_U32;
 					break;
 				}
+				case 'Node': {
+					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
+					fieldConverters += `
+    $self.update_reference_position(end_position + ${reservedBytes});
+    $self.$${fieldName}_converter(&$${fieldName}_value);`;
+					break;
+				}
 				case 'OptionalNode': {
 					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
 					fieldConverters += `
     if let Some(value) = $${fieldName}_value.as_ref() {
       $self.update_reference_position(end_position + ${reservedBytes});
-      $self.$${fieldName}_converter(value)
+      $self.$${fieldName}_converter(value);
     }`;
 					break;
 				}
