@@ -7,7 +7,7 @@ macro_rules! store_break_statement {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&10u32.to_ne_bytes(), &$span, 8, false);
     // label
-    if let Some(value) = $label_value {
+    if let Some(value) = $label_value.as_ref() {
       $self.update_reference_position(end_position + 4);
       $self.$label_converter(value)
     }
@@ -22,7 +22,7 @@ macro_rules! store_continue_statement {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&18u32.to_ne_bytes(), &$span, 8, false);
     // label
-    if let Some(value) = $label_value {
+    if let Some(value) = $label_value.as_ref() {
       $self.update_reference_position(end_position + 4);
       $self.$label_converter(value)
     }
@@ -52,12 +52,29 @@ macro_rules! store_empty_statement {
 }
 
 #[macro_export]
+macro_rules! store_literal_number {
+  ($self:expr, span => $span:expr, raw => $raw_value:expr, value => $value_value:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&45u32.to_ne_bytes(), &$span, 16, false);
+    // raw
+    if let Some(value) = $raw_value.as_ref() {
+      $self.convert_string(value, end_position + 4);
+    }
+    // value
+    let value_position = end_position + 8;
+    $self.buffer[value_position..value_position + 8].copy_from_slice(&$value_value.to_le_bytes());
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
 macro_rules! store_return_statement {
   ($self:expr, span => $span:expr, argument => [$argument_value:expr, $argument_converter:ident]) => {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&60u32.to_ne_bytes(), &$span, 8, false);
     // argument
-    if let Some(value) = $argument_value {
+    if let Some(value) = $argument_value.as_ref() {
       $self.update_reference_position(end_position + 4);
       $self.$argument_converter(value)
     }
@@ -89,7 +106,7 @@ macro_rules! store_yield_expression {
     // flags
     store_yield_expression_flags!($self, end_position, delegate => $delegate_value);
     // argument
-    if let Some(value) = $argument_value {
+    if let Some(value) = $argument_value.as_ref() {
       $self.update_reference_position(end_position + 8);
       $self.$argument_converter(value)
     }

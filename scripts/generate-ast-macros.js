@@ -32,20 +32,31 @@ const astMacros = astNodeNamesWithFieldOrder
 		}
 		let fieldConverters = '';
 		for (const [fieldName, fieldType] of fields) {
-			valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
 			fieldConverters += `
     // ${fieldName}`;
 			switch (fieldType) {
 				case 'Float': {
-					// TODO
+					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
+					fieldConverters += `
+    let ${fieldName}_position = end_position + ${reservedBytes};
+    $self.buffer[${fieldName}_position..${fieldName}_position + ${2 * BYTES_PER_U32}].copy_from_slice(&$${fieldName}_value.to_le_bytes());`;
 					reservedBytes += BYTES_PER_U32;
 					break;
 				}
 				case 'OptionalNode': {
+					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
 					fieldConverters += `
-    if let Some(value) = $${fieldName}_value {
+    if let Some(value) = $${fieldName}_value.as_ref() {
       $self.update_reference_position(end_position + ${reservedBytes});
       $self.$${fieldName}_converter(value)
+    }`;
+					break;
+				}
+				case 'OptionalString': {
+					valuesInput += `, ${fieldName} => $${fieldName}_value:expr`;
+					fieldConverters += `
+    if let Some(value) = $${fieldName}_value.as_ref() {
+      $self.convert_string(value, end_position + ${reservedBytes});
     }`;
 					break;
 				}
@@ -91,7 +102,7 @@ macro_rules! store_${toSnakeCase(name)}_flags {
     let mut flags = 0u32;
     ${setFlags}
     let flags_position = $end_position + ${BYTES_PER_U32};
-    $self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    $self.buffer[flags_position..flags_position + ${BYTES_PER_U32}].copy_from_slice(&flags.to_ne_bytes());
   };
 }
 

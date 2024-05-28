@@ -8,7 +8,7 @@ impl<'a> AstConverter<'a> {
     store_continue_statement!(
       self,
       span => continue_statement.span,
-      label => [continue_statement.label.as_ref(), convert_identifier]
+      label => [continue_statement.label, convert_identifier]
     );
   }
 }

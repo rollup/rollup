@@ -9,7 +9,7 @@ impl<'a> AstConverter<'a> {
       self,
       span => yield_expression.span,
       delegate => yield_expression.delegate,
-      argument => [yield_expression.arg.as_ref(), convert_expression]
+      argument => [yield_expression.arg, convert_expression]
     );
   }
 }

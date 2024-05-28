@@ -8,7 +8,7 @@ impl<'a> AstConverter<'a> {
     store_return_statement!(
       self,
       span => return_statement.span,
-      argument => [return_statement.arg.as_ref(), convert_expression]
+      argument => [return_statement.arg, convert_expression]
     );
   }
 }

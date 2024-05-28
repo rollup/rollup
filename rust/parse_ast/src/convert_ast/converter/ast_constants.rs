@@ -42,7 +42,6 @@ pub const TYPE_LABELED_STATEMENT: [u8; 4] = 41u32.to_ne_bytes();
 pub const TYPE_LITERAL_BIG_INT: [u8; 4] = 42u32.to_ne_bytes();
 pub const TYPE_LITERAL_BOOLEAN: [u8; 4] = 43u32.to_ne_bytes();
 pub const TYPE_LITERAL_NULL: [u8; 4] = 44u32.to_ne_bytes();
-pub const TYPE_LITERAL_NUMBER: [u8; 4] = 45u32.to_ne_bytes();
 pub const TYPE_LITERAL_REG_EXP: [u8; 4] = 46u32.to_ne_bytes();
 pub const TYPE_LITERAL_STRING: [u8; 4] = 47u32.to_ne_bytes();
 pub const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 48u32.to_ne_bytes();
@@ -229,10 +228,6 @@ pub const LITERAL_BIG_INT_RAW_OFFSET: usize = 8;
 pub const LITERAL_BOOLEAN_RESERVED_BYTES: usize = 8;
 
 pub const LITERAL_NULL_RESERVED_BYTES: usize = 4;
-
-pub const LITERAL_NUMBER_RESERVED_BYTES: usize = 16;
-pub const LITERAL_NUMBER_RAW_OFFSET: usize = 4;
-pub const LITERAL_NUMBER_VALUE_OFFSET: usize = 8;
 
 pub const LITERAL_REG_EXP_RESERVED_BYTES: usize = 12;
 pub const LITERAL_REG_EXP_FLAGS_OFFSET: usize = 4;

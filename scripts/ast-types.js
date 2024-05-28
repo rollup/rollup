@@ -455,8 +455,7 @@ export const AST_NODES = {
 		fields: [
 			['raw', 'OptionalString'],
 			['value', 'Float']
-		],
-		useMacro: false
+		]
 	},
 	LiteralRegExp: {
 		additionalFields: {

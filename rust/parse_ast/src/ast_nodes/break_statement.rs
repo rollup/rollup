@@ -8,7 +8,7 @@ impl<'a> AstConverter<'a> {
     store_break_statement!(
       self,
       span => break_statement.span,
-      label => [break_statement.label.as_ref(), convert_identifier]
+      label => [break_statement.label, convert_identifier]
     );
   }
 }
