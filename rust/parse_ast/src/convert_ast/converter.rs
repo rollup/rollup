@@ -1,6 +1,6 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
+  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
   ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
   NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
   SimpleAssignTarget, Stmt, VarDeclOrExpr,
