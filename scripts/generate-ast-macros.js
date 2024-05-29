@@ -57,6 +57,19 @@ const astMacros = astNodeNamesWithFieldOrder
     $self.$${fieldName}_converter(&$${fieldName}_value);`;
 					break;
 				}
+				case 'NodeList': {
+					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
+					fieldConverters += `
+    $self.convert_item_list(
+      &$${fieldName}_value,
+			end_position + ${reservedBytes},
+			|ast_converter, node| {
+			  ast_converter.$${fieldName}_converter(node);
+			  true
+			}
+		);`;
+					break;
+				}
 				case 'OptionalNode': {
 					valuesInput += `, ${fieldName} => [$${fieldName}_value:expr, $${fieldName}_converter:ident]`;
 					fieldConverters += `

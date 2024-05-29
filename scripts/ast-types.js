@@ -419,8 +419,7 @@ export const AST_NODES = {
 		astType: 'Literal',
 		baseForAdditionalFields: ['value'],
 		estreeType: 'estree.SimpleLiteral & {value: boolean}',
-		flags: ['value'],
-		useMacro: false
+		flags: ['value']
 	},
 	LiteralNull: {
 		additionalFields: {
@@ -430,8 +429,7 @@ export const AST_NODES = {
 		estreeType: 'estree.SimpleLiteral & {value: null}',
 		fixed: {
 			raw: 'null'
-		},
-		useMacro: false
+		}
 	},
 	LiteralNumber: {
 		astType: 'Literal',
@@ -454,8 +452,7 @@ export const AST_NODES = {
 			['flags', 'String'],
 			['pattern', 'String']
 		],
-		hiddenFields: ['flags', 'pattern'],
-		useMacro: false
+		hiddenFields: ['flags', 'pattern']
 	},
 	LiteralString: {
 		astType: 'Literal',
@@ -463,8 +460,7 @@ export const AST_NODES = {
 		fields: [
 			['value', 'String'],
 			['raw', 'OptionalString']
-		],
-		useMacro: false
+		]
 	},
 	LogicalExpression: {
 		fieldTypes: {
@@ -516,8 +512,7 @@ export const AST_NODES = {
 		}
 	},
 	ObjectExpression: {
-		fields: [['properties', 'NodeList']],
-		useMacro: false
+		fields: [['properties', 'NodeList']]
 	},
 	ObjectPattern: {
 		fields: [['properties', 'NodeList']],

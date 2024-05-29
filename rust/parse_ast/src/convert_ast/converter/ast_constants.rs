@@ -24,16 +24,11 @@ pub const TYPE_IDENTIFIER: [u8; 4] = 33u32.to_ne_bytes();
 pub const TYPE_IMPORT_ATTRIBUTE: [u8; 4] = 35u32.to_ne_bytes();
 pub const TYPE_IMPORT_DECLARATION: [u8; 4] = 36u32.to_ne_bytes();
 pub const TYPE_IMPORT_EXPRESSION: [u8; 4] = 38u32.to_ne_bytes();
-pub const TYPE_LITERAL_BOOLEAN: [u8; 4] = 43u32.to_ne_bytes();
-pub const TYPE_LITERAL_NULL: [u8; 4] = 44u32.to_ne_bytes();
-pub const TYPE_LITERAL_REG_EXP: [u8; 4] = 46u32.to_ne_bytes();
-pub const TYPE_LITERAL_STRING: [u8; 4] = 47u32.to_ne_bytes();
 pub const TYPE_LOGICAL_EXPRESSION: [u8; 4] = 48u32.to_ne_bytes();
 pub const TYPE_MEMBER_EXPRESSION: [u8; 4] = 49u32.to_ne_bytes();
 pub const TYPE_META_PROPERTY: [u8; 4] = 50u32.to_ne_bytes();
 pub const TYPE_METHOD_DEFINITION: [u8; 4] = 51u32.to_ne_bytes();
 pub const TYPE_NEW_EXPRESSION: [u8; 4] = 52u32.to_ne_bytes();
-pub const TYPE_OBJECT_EXPRESSION: [u8; 4] = 53u32.to_ne_bytes();
 pub const TYPE_OBJECT_PATTERN: [u8; 4] = 54u32.to_ne_bytes();
 pub const TYPE_PRIVATE_IDENTIFIER: [u8; 4] = 55u32.to_ne_bytes();
 pub const TYPE_PROGRAM: [u8; 4] = 56u32.to_ne_bytes();
@@ -142,18 +137,6 @@ pub const IMPORT_EXPRESSION_RESERVED_BYTES: usize = 12;
 pub const IMPORT_EXPRESSION_SOURCE_OFFSET: usize = 4;
 pub const IMPORT_EXPRESSION_OPTIONS_OFFSET: usize = 8;
 
-pub const LITERAL_BOOLEAN_RESERVED_BYTES: usize = 8;
-
-pub const LITERAL_NULL_RESERVED_BYTES: usize = 4;
-
-pub const LITERAL_REG_EXP_RESERVED_BYTES: usize = 12;
-pub const LITERAL_REG_EXP_FLAGS_OFFSET: usize = 4;
-pub const LITERAL_REG_EXP_PATTERN_OFFSET: usize = 8;
-
-pub const LITERAL_STRING_RESERVED_BYTES: usize = 12;
-pub const LITERAL_STRING_VALUE_OFFSET: usize = 4;
-pub const LITERAL_STRING_RAW_OFFSET: usize = 8;
-
 pub const MEMBER_EXPRESSION_RESERVED_BYTES: usize = 16;
 pub const MEMBER_EXPRESSION_OBJECT_OFFSET: usize = 8;
 pub const MEMBER_EXPRESSION_PROPERTY_OFFSET: usize = 12;
@@ -171,9 +154,6 @@ pub const NEW_EXPRESSION_RESERVED_BYTES: usize = 16;
 pub const NEW_EXPRESSION_ANNOTATIONS_OFFSET: usize = 4;
 pub const NEW_EXPRESSION_CALLEE_OFFSET: usize = 8;
 pub const NEW_EXPRESSION_ARGUMENTS_OFFSET: usize = 12;
-
-pub const OBJECT_EXPRESSION_RESERVED_BYTES: usize = 8;
-pub const OBJECT_EXPRESSION_PROPERTIES_OFFSET: usize = 4;
 
 pub const OBJECT_PATTERN_RESERVED_BYTES: usize = 8;
 pub const OBJECT_PATTERN_PROPERTIES_OFFSET: usize = 4;
