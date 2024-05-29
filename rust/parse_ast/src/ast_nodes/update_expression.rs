@@ -1,35 +1,20 @@
 use swc_ecma_ast::{UpdateExpr, UpdateOp};
 
-use crate::convert_ast::converter::ast_constants::{
-  TYPE_UPDATE_EXPRESSION, UPDATE_EXPRESSION_ARGUMENT_OFFSET, UPDATE_EXPRESSION_OPERATOR_OFFSET,
-  UPDATE_EXPRESSION_RESERVED_BYTES,
-};
-use crate::convert_ast::converter::string_constants::{STRING_MINUSMINUS, STRING_PLUSPLUS};
+use crate::{store_update_expression, store_update_expression_flags};
 use crate::convert_ast::converter::AstConverter;
-use crate::store_update_expression_flags;
+use crate::convert_ast::converter::string_constants::{STRING_MINUSMINUS, STRING_PLUSPLUS};
 
 impl<'a> AstConverter<'a> {
   pub fn store_update_expression(&mut self, update_expression: &UpdateExpr) {
-    let end_position = self.add_type_and_start(
-      &TYPE_UPDATE_EXPRESSION,
-      &update_expression.span,
-      UPDATE_EXPRESSION_RESERVED_BYTES,
-      false,
-    );
-    // argument
-    self.update_reference_position(end_position + UPDATE_EXPRESSION_ARGUMENT_OFFSET);
-    self.convert_expression(&update_expression.arg);
-    // flags
-    store_update_expression_flags!(self, end_position, prefix => update_expression.prefix);
-    // operator
-    let operator_position = end_position + UPDATE_EXPRESSION_OPERATOR_OFFSET;
-    self.buffer[operator_position..operator_position + 4].copy_from_slice(
-      match update_expression.op {
+    store_update_expression!(
+      self,
+      span => &update_expression.span,
+      prefix => update_expression.prefix,
+      operator => match update_expression.op {
         UpdateOp::PlusPlus => &STRING_PLUSPLUS,
         UpdateOp::MinusMinus => &STRING_MINUSMINUS,
       },
+      argument => [update_expression.arg, convert_expression]
     );
-    // end
-    self.add_end(end_position, &update_expression.span);
   }
 }

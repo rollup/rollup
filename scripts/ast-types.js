@@ -515,12 +515,10 @@ export const AST_NODES = {
 		fields: [['properties', 'NodeList']]
 	},
 	ObjectPattern: {
-		fields: [['properties', 'NodeList']],
-		useMacro: false
+		fields: [['properties', 'NodeList']]
 	},
 	PrivateIdentifier: {
-		fields: [['name', 'String']],
-		useMacro: false
+		fields: [['name', 'String']]
 	},
 	Program: {
 		fields: [
@@ -565,28 +563,24 @@ export const AST_NODES = {
 		fields: [['argument', 'OptionalNode']]
 	},
 	SequenceExpression: {
-		fields: [['expressions', 'NodeList']],
-		useMacro: false
+		fields: [['expressions', 'NodeList']]
 	},
 	SpreadElement: {
 		fields: [['argument', 'Node']],
 		useMacro: false
 	},
 	StaticBlock: {
-		fields: [['body', 'NodeList']],
-		useMacro: false
+		fields: [['body', 'NodeList']]
 	},
 	SuperElement: {
 		astType: 'Super',
-		estreeType: 'estree.Super',
-		useMacro: false
+		estreeType: 'estree.Super'
 	},
 	SwitchCase: {
 		fields: [
 			['test', 'OptionalNode'],
 			['consequent', 'NodeList']
-		],
-		useMacro: false
+		]
 	},
 	SwitchStatement: {
 		fields: [
@@ -595,15 +589,13 @@ export const AST_NODES = {
 		],
 		scopes: {
 			discriminant: 'node.parentScope'
-		},
-		useMacro: false
+		}
 	},
 	TaggedTemplateExpression: {
 		fields: [
 			['tag', 'Node'],
 			['quasi', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	TemplateElement: {
 		additionalFields: {
@@ -615,8 +607,7 @@ export const AST_NODES = {
 			['raw', 'String']
 		],
 		flags: ['tail'],
-		hiddenFields: ['cooked', 'raw'],
-		useMacro: false
+		hiddenFields: ['cooked', 'raw']
 	},
 	TemplateLiteral: {
 		fields: [
@@ -627,8 +618,7 @@ export const AST_NODES = {
 	},
 	ThisExpression: {},
 	ThrowStatement: {
-		fields: [['argument', 'Node']],
-		useMacro: false
+		fields: [['argument', 'Node']]
 	},
 	TryStatement: {
 		fields: [
@@ -648,8 +638,7 @@ export const AST_NODES = {
 		},
 		fixed: {
 			prefix: true
-		},
-		useMacro: false
+		}
 	},
 	UpdateExpression: {
 		fields: [
@@ -659,8 +648,7 @@ export const AST_NODES = {
 		fieldTypes: {
 			operator: 'estree.UpdateOperator'
 		},
-		flags: ['prefix'],
-		useMacro: false
+		flags: ['prefix']
 	},
 	VariableDeclaration: {
 		fields: [
@@ -683,8 +671,7 @@ export const AST_NODES = {
 		fields: [
 			['test', 'Node'],
 			['body', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	YieldExpression: {
 		fields: [['argument', 'OptionalNode']],

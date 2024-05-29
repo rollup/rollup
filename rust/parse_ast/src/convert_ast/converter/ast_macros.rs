@@ -426,6 +426,37 @@ macro_rules! store_object_expression {
 }
 
 #[macro_export]
+macro_rules! store_object_pattern {
+  ($self:expr, span => $span:expr, properties => [$properties_value:expr, $properties_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&54u32.to_ne_bytes(), &$span, 8, false);
+    // properties
+    $self.convert_item_list(
+      &$properties_value,
+      end_position + 4,
+      |ast_converter, node| {
+        ast_converter.$properties_converter(node);
+        true
+      },
+    );
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_private_identifier {
+  ($self:expr, span => $span:expr, name => $name_value:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&55u32.to_ne_bytes(), &$span, 8, false);
+    // name
+    $self.convert_string($name_value, end_position + 4);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
 macro_rules! store_return_statement {
   ($self:expr, span => $span:expr, argument => [$argument_value:expr, $argument_converter:ident]) => {
     let _: &mut AstConverter = $self;
@@ -441,10 +472,203 @@ macro_rules! store_return_statement {
 }
 
 #[macro_export]
+macro_rules! store_sequence_expression {
+  ($self:expr, span => $span:expr, expressions => [$expressions_value:expr, $expressions_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&61u32.to_ne_bytes(), &$span, 8, false);
+    // expressions
+    $self.convert_item_list(
+      &$expressions_value,
+      end_position + 4,
+      |ast_converter, node| {
+        ast_converter.$expressions_converter(node);
+        true
+      },
+    );
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_static_block {
+  ($self:expr, span => $span:expr, body => [$body_value:expr, $body_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&63u32.to_ne_bytes(), &$span, 8, false);
+    // body
+    $self.convert_item_list(&$body_value, end_position + 4, |ast_converter, node| {
+      ast_converter.$body_converter(node);
+      true
+    });
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_super_element {
+  ($self:expr, span => $span:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&64u32.to_ne_bytes(), &$span, 4, false);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_switch_case {
+  ($self:expr, span => $span:expr, test => [$test_value:expr, $test_converter:ident], consequent => [$consequent_value:expr, $consequent_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&65u32.to_ne_bytes(), &$span, 12, false);
+    // test
+    if let Some(value) = $test_value.as_ref() {
+      $self.update_reference_position(end_position + 4);
+      $self.$test_converter(value);
+    }
+    // consequent
+    $self.convert_item_list(
+      &$consequent_value,
+      end_position + 8,
+      |ast_converter, node| {
+        ast_converter.$consequent_converter(node);
+        true
+      },
+    );
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_switch_statement {
+  ($self:expr, span => $span:expr, discriminant => [$discriminant_value:expr, $discriminant_converter:ident], cases => [$cases_value:expr, $cases_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&66u32.to_ne_bytes(), &$span, 12, false);
+    // discriminant
+    $self.update_reference_position(end_position + 4);
+    $self.$discriminant_converter(&$discriminant_value);
+    // cases
+    $self.convert_item_list(&$cases_value, end_position + 8, |ast_converter, node| {
+      ast_converter.$cases_converter(node);
+      true
+    });
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_tagged_template_expression {
+  ($self:expr, span => $span:expr, tag => [$tag_value:expr, $tag_converter:ident], quasi => [$quasi_value:expr, $quasi_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&67u32.to_ne_bytes(), &$span, 12, false);
+    // tag
+    $self.update_reference_position(end_position + 4);
+    $self.$tag_converter(&$tag_value);
+    // quasi
+    $self.update_reference_position(end_position + 8);
+    $self.$quasi_converter(&$quasi_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_template_element {
+  ($self:expr, span => $span:expr, tail => $tail_value:expr, cooked => $cooked_value:expr, raw => $raw_value:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(
+      &68u32.to_ne_bytes(),
+      &$span,
+      16,
+      false,
+    );
+    // flags
+    store_template_element_flags!($self, end_position, tail => $tail_value);
+    // cooked
+    if let Some(value) = $cooked_value.as_ref() {
+      $self.convert_string(value, end_position + 8);
+    }
+    // raw
+    $self.convert_string($raw_value, end_position + 12);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
 macro_rules! store_this_expression {
   ($self:expr, span => $span:expr) => {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&70u32.to_ne_bytes(), &$span, 4, false);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_throw_statement {
+  ($self:expr, span => $span:expr, argument => [$argument_value:expr, $argument_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&71u32.to_ne_bytes(), &$span, 8, false);
+    // argument
+    $self.update_reference_position(end_position + 4);
+    $self.$argument_converter(&$argument_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_unary_expression {
+  ($self:expr, span => $span:expr, operator => $operator_value:expr, argument => [$argument_value:expr, $argument_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&73u32.to_ne_bytes(), &$span, 12, false);
+    // operator
+    let operator_position = end_position + 4;
+    $self.buffer[operator_position..operator_position + 4].copy_from_slice($operator_value);
+    // argument
+    $self.update_reference_position(end_position + 8);
+    $self.$argument_converter(&$argument_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_update_expression {
+  ($self:expr, span => $span:expr, prefix => $prefix_value:expr, operator => $operator_value:expr, argument => [$argument_value:expr, $argument_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(
+      &74u32.to_ne_bytes(),
+      &$span,
+      16,
+      false,
+    );
+    // flags
+    store_update_expression_flags!($self, end_position, prefix => $prefix_value);
+    // operator
+    let operator_position = end_position + 8;
+    $self.buffer[operator_position..operator_position + 4].copy_from_slice($operator_value);
+    // argument
+    $self.update_reference_position(end_position + 12);
+    $self.$argument_converter(&$argument_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_while_statement {
+  ($self:expr, span => $span:expr, test => [$test_value:expr, $test_converter:ident], body => [$body_value:expr, $body_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&77u32.to_ne_bytes(), &$span, 12, false);
+    // test
+    $self.update_reference_position(end_position + 4);
+    $self.$test_converter(&$test_value);
+    // body
+    $self.update_reference_position(end_position + 8);
+    $self.$body_converter(&$body_value);
     // end
     $self.add_end(end_position, &$span);
   };
