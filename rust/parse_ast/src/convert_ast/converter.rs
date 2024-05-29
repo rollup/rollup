@@ -1,6 +1,6 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
+  AssignTarget, AssignTargetPat, Callee, CallExpr, ClassMember, Decl, ExportSpecifier, Expr,
   ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
   NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
   SimpleAssignTarget, Stmt, VarDeclOrExpr,
@@ -268,7 +268,7 @@ impl<'a> AstConverter<'a> {
   pub(crate) fn convert_export_specifier(&mut self, export_specifier: &ExportSpecifier) {
     match export_specifier {
       ExportSpecifier::Named(export_named_specifier) => {
-        self.store_export_named_specifier(export_named_specifier)
+        self.store_export_specifier(export_named_specifier)
       }
       ExportSpecifier::Namespace(_) => unimplemented!("Cannot convert ExportSpecifier::Namespace"),
       ExportSpecifier::Default(_) => unimplemented!("Cannot convert ExportSpecifier::Default"),

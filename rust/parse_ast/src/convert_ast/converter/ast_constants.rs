@@ -15,27 +15,15 @@ pub const TYPE_CHAIN_EXPRESSION: [u8; 4] = 13u32.to_ne_bytes();
 pub const TYPE_CLASS_BODY: [u8; 4] = 14u32.to_ne_bytes();
 pub const TYPE_CLASS_DECLARATION: [u8; 4] = 15u32.to_ne_bytes();
 pub const TYPE_CLASS_EXPRESSION: [u8; 4] = 16u32.to_ne_bytes();
-pub const TYPE_DO_WHILE_STATEMENT: [u8; 4] = 21u32.to_ne_bytes();
 pub const TYPE_EXPORT_ALL_DECLARATION: [u8; 4] = 23u32.to_ne_bytes();
 pub const TYPE_EXPORT_DEFAULT_DECLARATION: [u8; 4] = 24u32.to_ne_bytes();
 pub const TYPE_EXPORT_NAMED_DECLARATION: [u8; 4] = 25u32.to_ne_bytes();
-pub const TYPE_EXPORT_SPECIFIER: [u8; 4] = 26u32.to_ne_bytes();
-pub const TYPE_EXPRESSION_STATEMENT: [u8; 4] = 27u32.to_ne_bytes();
-pub const TYPE_FOR_IN_STATEMENT: [u8; 4] = 28u32.to_ne_bytes();
-pub const TYPE_FOR_OF_STATEMENT: [u8; 4] = 29u32.to_ne_bytes();
-pub const TYPE_FOR_STATEMENT: [u8; 4] = 30u32.to_ne_bytes();
 pub const TYPE_FUNCTION_DECLARATION: [u8; 4] = 31u32.to_ne_bytes();
 pub const TYPE_FUNCTION_EXPRESSION: [u8; 4] = 32u32.to_ne_bytes();
 pub const TYPE_IDENTIFIER: [u8; 4] = 33u32.to_ne_bytes();
-pub const TYPE_IF_STATEMENT: [u8; 4] = 34u32.to_ne_bytes();
 pub const TYPE_IMPORT_ATTRIBUTE: [u8; 4] = 35u32.to_ne_bytes();
 pub const TYPE_IMPORT_DECLARATION: [u8; 4] = 36u32.to_ne_bytes();
-pub const TYPE_IMPORT_DEFAULT_SPECIFIER: [u8; 4] = 37u32.to_ne_bytes();
 pub const TYPE_IMPORT_EXPRESSION: [u8; 4] = 38u32.to_ne_bytes();
-pub const TYPE_IMPORT_NAMESPACE_SPECIFIER: [u8; 4] = 39u32.to_ne_bytes();
-pub const TYPE_IMPORT_SPECIFIER: [u8; 4] = 40u32.to_ne_bytes();
-pub const TYPE_LABELED_STATEMENT: [u8; 4] = 41u32.to_ne_bytes();
-pub const TYPE_LITERAL_BIG_INT: [u8; 4] = 42u32.to_ne_bytes();
 pub const TYPE_LITERAL_BOOLEAN: [u8; 4] = 43u32.to_ne_bytes();
 pub const TYPE_LITERAL_NULL: [u8; 4] = 44u32.to_ne_bytes();
 pub const TYPE_LITERAL_REG_EXP: [u8; 4] = 46u32.to_ne_bytes();
@@ -118,10 +106,6 @@ pub const CLASS_DECLARATION_ID_OFFSET: usize = 4;
 pub const CLASS_DECLARATION_SUPER_CLASS_OFFSET: usize = 8;
 pub const CLASS_DECLARATION_BODY_OFFSET: usize = 12;
 
-pub const DO_WHILE_STATEMENT_RESERVED_BYTES: usize = 12;
-pub const DO_WHILE_STATEMENT_BODY_OFFSET: usize = 4;
-pub const DO_WHILE_STATEMENT_TEST_OFFSET: usize = 8;
-
 pub const EXPORT_ALL_DECLARATION_RESERVED_BYTES: usize = 16;
 pub const EXPORT_ALL_DECLARATION_EXPORTED_OFFSET: usize = 4;
 pub const EXPORT_ALL_DECLARATION_SOURCE_OFFSET: usize = 8;
@@ -136,29 +120,6 @@ pub const EXPORT_NAMED_DECLARATION_SOURCE_OFFSET: usize = 8;
 pub const EXPORT_NAMED_DECLARATION_ATTRIBUTES_OFFSET: usize = 12;
 pub const EXPORT_NAMED_DECLARATION_DECLARATION_OFFSET: usize = 16;
 
-pub const EXPORT_SPECIFIER_RESERVED_BYTES: usize = 12;
-pub const EXPORT_SPECIFIER_LOCAL_OFFSET: usize = 4;
-pub const EXPORT_SPECIFIER_EXPORTED_OFFSET: usize = 8;
-
-pub const EXPRESSION_STATEMENT_RESERVED_BYTES: usize = 8;
-pub const EXPRESSION_STATEMENT_EXPRESSION_OFFSET: usize = 4;
-
-pub const FOR_IN_STATEMENT_RESERVED_BYTES: usize = 16;
-pub const FOR_IN_STATEMENT_LEFT_OFFSET: usize = 4;
-pub const FOR_IN_STATEMENT_RIGHT_OFFSET: usize = 8;
-pub const FOR_IN_STATEMENT_BODY_OFFSET: usize = 12;
-
-pub const FOR_OF_STATEMENT_RESERVED_BYTES: usize = 20;
-pub const FOR_OF_STATEMENT_LEFT_OFFSET: usize = 8;
-pub const FOR_OF_STATEMENT_RIGHT_OFFSET: usize = 12;
-pub const FOR_OF_STATEMENT_BODY_OFFSET: usize = 16;
-
-pub const FOR_STATEMENT_RESERVED_BYTES: usize = 20;
-pub const FOR_STATEMENT_INIT_OFFSET: usize = 4;
-pub const FOR_STATEMENT_TEST_OFFSET: usize = 8;
-pub const FOR_STATEMENT_UPDATE_OFFSET: usize = 12;
-pub const FOR_STATEMENT_BODY_OFFSET: usize = 16;
-
 pub const FUNCTION_DECLARATION_RESERVED_BYTES: usize = 24;
 pub const FUNCTION_DECLARATION_ANNOTATIONS_OFFSET: usize = 8;
 pub const FUNCTION_DECLARATION_ID_OFFSET: usize = 12;
@@ -167,11 +128,6 @@ pub const FUNCTION_DECLARATION_BODY_OFFSET: usize = 20;
 
 pub const IDENTIFIER_RESERVED_BYTES: usize = 8;
 pub const IDENTIFIER_NAME_OFFSET: usize = 4;
-
-pub const IF_STATEMENT_RESERVED_BYTES: usize = 16;
-pub const IF_STATEMENT_TEST_OFFSET: usize = 4;
-pub const IF_STATEMENT_CONSEQUENT_OFFSET: usize = 8;
-pub const IF_STATEMENT_ALTERNATE_OFFSET: usize = 12;
 
 pub const IMPORT_ATTRIBUTE_RESERVED_BYTES: usize = 12;
 pub const IMPORT_ATTRIBUTE_KEY_OFFSET: usize = 4;
@@ -182,27 +138,9 @@ pub const IMPORT_DECLARATION_SPECIFIERS_OFFSET: usize = 4;
 pub const IMPORT_DECLARATION_SOURCE_OFFSET: usize = 8;
 pub const IMPORT_DECLARATION_ATTRIBUTES_OFFSET: usize = 12;
 
-pub const IMPORT_DEFAULT_SPECIFIER_RESERVED_BYTES: usize = 8;
-pub const IMPORT_DEFAULT_SPECIFIER_LOCAL_OFFSET: usize = 4;
-
 pub const IMPORT_EXPRESSION_RESERVED_BYTES: usize = 12;
 pub const IMPORT_EXPRESSION_SOURCE_OFFSET: usize = 4;
 pub const IMPORT_EXPRESSION_OPTIONS_OFFSET: usize = 8;
-
-pub const IMPORT_NAMESPACE_SPECIFIER_RESERVED_BYTES: usize = 8;
-pub const IMPORT_NAMESPACE_SPECIFIER_LOCAL_OFFSET: usize = 4;
-
-pub const IMPORT_SPECIFIER_RESERVED_BYTES: usize = 12;
-pub const IMPORT_SPECIFIER_IMPORTED_OFFSET: usize = 4;
-pub const IMPORT_SPECIFIER_LOCAL_OFFSET: usize = 8;
-
-pub const LABELED_STATEMENT_RESERVED_BYTES: usize = 12;
-pub const LABELED_STATEMENT_LABEL_OFFSET: usize = 4;
-pub const LABELED_STATEMENT_BODY_OFFSET: usize = 8;
-
-pub const LITERAL_BIG_INT_RESERVED_BYTES: usize = 12;
-pub const LITERAL_BIG_INT_BIGINT_OFFSET: usize = 4;
-pub const LITERAL_BIG_INT_RAW_OFFSET: usize = 8;
 
 pub const LITERAL_BOOLEAN_RESERVED_BYTES: usize = 8;
 

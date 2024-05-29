@@ -231,8 +231,7 @@ export const AST_NODES = {
 		fields: [
 			['body', 'Node'],
 			['test', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	EmptyStatement: {},
 	ExportAllDeclaration: {
@@ -265,20 +264,17 @@ export const AST_NODES = {
 		],
 		optionalFallback: {
 			exported: 'local'
-		},
-		useMacro: false
+		}
 	},
 	ExpressionStatement: {
-		fields: [['expression', 'Node']],
-		useMacro: false
+		fields: [['expression', 'Node']]
 	},
 	ForInStatement: {
 		fields: [
 			['left', 'Node'],
 			['right', 'Node'],
 			['body', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	ForOfStatement: {
 		fields: [
@@ -287,7 +283,6 @@ export const AST_NODES = {
 			['body', 'Node']
 		],
 		flags: ['await'],
-		useMacro: false,
 		variableNames: {
 			await: 'awaited'
 		}
@@ -298,8 +293,7 @@ export const AST_NODES = {
 			['test', 'OptionalNode'],
 			['update', 'OptionalNode'],
 			['body', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	FunctionDeclaration: {
 		fields: [
@@ -353,8 +347,7 @@ export const AST_NODES = {
 		scopes: {
 			alternate: '(node.alternateScope = new TrackingScope(scope))',
 			consequent: '(node.consequentScope = new TrackingScope(scope))'
-		},
-		useMacro: false
+		}
 	},
 	ImportAttribute: {
 		estreeType:
@@ -375,8 +368,7 @@ export const AST_NODES = {
 		useMacro: false
 	},
 	ImportDefaultSpecifier: {
-		fields: [['local', 'Node']],
-		useMacro: false
+		fields: [['local', 'Node']]
 	},
 	ImportExpression: {
 		estreeType: 'estree.ImportExpression & { options: estree.Expression | null }',
@@ -391,8 +383,7 @@ export const AST_NODES = {
 		useMacro: false
 	},
 	ImportNamespaceSpecifier: {
-		fields: [['local', 'Node']],
-		useMacro: false
+		fields: [['local', 'Node']]
 	},
 	ImportSpecifier: {
 		fields: [
@@ -401,15 +392,13 @@ export const AST_NODES = {
 		],
 		optionalFallback: {
 			imported: 'local'
-		},
-		useMacro: false
+		}
 	},
 	LabeledStatement: {
 		fields: [
 			['label', 'Node'],
 			['body', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	LiteralBigInt: {
 		additionalFields: {
@@ -421,8 +410,7 @@ export const AST_NODES = {
 		fields: [
 			['bigint', 'String'],
 			['raw', 'String']
-		],
-		useMacro: false
+		]
 	},
 	LiteralBoolean: {
 		additionalFields: {
