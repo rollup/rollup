@@ -4,6 +4,14 @@ const INVALID_CHAR_REGEX = /[\u0000-\u001F"#$&*+,:;<=>?[\]^`{|}\u007F]/g;
 const DRIVE_LETTER_REGEX = /^[a-z]:/i;
 const PERCENT_REGEX = /%/g;
 
+// define internal functions to prevent being tree-shaken.
+const decodeURIComponentInternal =
+	typeof decodeURIComponent === 'undefined'
+		? () => {
+				throw new Error('decodeURIComponent is not defined.');
+			}
+		: decodeURIComponent;
+
 export function sanitizeFileName(name: string): string {
 	// A `:` is only allowed as part of a windows drive letter (ex: C:\foo)
 	// Otherwise, avoid them because they can refer to NTFS alternate data streams.
@@ -14,7 +22,7 @@ export function sanitizeFileName(name: string): string {
 	// Replace % with _ if % is used as an invalid escape sequence
 	if (path.includes('%')) {
 		try {
-			decodeURIComponent(path);
+			decodeURIComponentInternal(path);
 		} catch {
 			path = path.replace(PERCENT_REGEX, '_');
 		}
