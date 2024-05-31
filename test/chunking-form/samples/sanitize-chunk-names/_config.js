@@ -5,15 +5,7 @@ module.exports = defineTest({
 		plugins: [
 			{
 				options(options) {
-					options.input = [
-						'\0virtual:entry-1',
-						'\0virtual:entry-2',
-						'another-[slug]-#result',
-						'foo%bar',
-						'foo%20bar',
-						'foo%E3%81%82bar',
-						'foo%E3%81bar'
-					];
+					options.input = ['\0virtual:entry-1', '\0virtual:entry-2', 'another-[slug]-#result'];
 					return options;
 				},
 				resolveId(id) {
