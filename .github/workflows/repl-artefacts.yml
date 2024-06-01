@@ -114,7 +114,7 @@ jobs:
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
-            Notice: Ensure you the latest stable Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
+            Notice: Ensure you have installed the latest stable Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
 
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.number }}
@@ -139,7 +139,7 @@ jobs:
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
-            Notice: Ensure you the latest stable Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
+            Notice: Ensure you have installed the latest stable Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
 
             or load it into the REPL:
             ${{ steps.waitForVercel.outputs.url }}/repl/?pr=${{ github.event.number }}
