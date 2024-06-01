@@ -35,7 +35,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: nightly-2023-10-05
+          toolchain: stable
           targets: x86_64-unknown-linux-gnu
       - name: Cache cargo
         uses: actions/cache@v4
@@ -84,7 +84,7 @@ jobs:
       - name: Install Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: nightly-2023-10-05
+          toolchain: stable
           targets: x86_64-unknown-linux-gnu
       - name: Cache cargo
         uses: actions/cache@v4
