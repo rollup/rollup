@@ -1,8 +1,8 @@
 'use strict';
 
-const lazy1 = Promise.resolve().then(function () { return require('./generated-foo%20bar.js'); });
+const lazy1 = Promise.resolve().then(function () { return require('./generated-foo_20bar.js'); });
 const lazy2 = Promise.resolve().then(function () { return require('./generated-foo_bar.js'); });
-const lazy3 = Promise.resolve().then(function () { return require('./generated-foo%E3%81%82bar.js'); });
+const lazy3 = Promise.resolve().then(function () { return require('./generated-foo_E3_81_82bar.js'); });
 const lazy4 = Promise.resolve().then(function () { return require('./generated-foo_E3_81bar.js'); });
 
 exports.lazy1 = lazy1;

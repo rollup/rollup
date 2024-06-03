@@ -1,6 +1,5 @@
 module.exports = defineTest({
 	description: 'make sure illegal percent encoding is sanitized for virtual entry points',
-	solo: true,
 	options: {
 		input: ['main'],
 		plugins: [

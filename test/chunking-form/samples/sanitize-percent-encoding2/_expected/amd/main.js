@@ -1,8 +1,8 @@
 define(['require', 'exports'], (function (require, exports) { 'use strict';
 
-	const lazy1 = new Promise(function (resolve, reject) { require(['./generated-foo%20bar'], resolve, reject); });
+	const lazy1 = new Promise(function (resolve, reject) { require(['./generated-foo_20bar'], resolve, reject); });
 	const lazy2 = new Promise(function (resolve, reject) { require(['./generated-foo_bar'], resolve, reject); });
-	const lazy3 = new Promise(function (resolve, reject) { require(['./generated-foo%E3%81%82bar'], resolve, reject); });
+	const lazy3 = new Promise(function (resolve, reject) { require(['./generated-foo_E3_81_82bar'], resolve, reject); });
 	const lazy4 = new Promise(function (resolve, reject) { require(['./generated-foo_E3_81bar'], resolve, reject); });
 
 	exports.lazy1 = lazy1;
