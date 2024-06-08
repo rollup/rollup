@@ -6,14 +6,14 @@ use swc_ecma_ast::{
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-  METHOD_DEFINITION_COMPUTED_FLAG, METHOD_DEFINITION_FLAGS_OFFSET, METHOD_DEFINITION_KEY_OFFSET,
-  METHOD_DEFINITION_KIND_OFFSET, METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_STATIC_FLAG,
+  METHOD_DEFINITION_KEY_OFFSET, METHOD_DEFINITION_KIND_OFFSET, METHOD_DEFINITION_RESERVED_BYTES,
   METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION, TYPE_METHOD_DEFINITION,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
 };
 use crate::convert_ast::converter::AstConverter;
+use crate::store_method_definition_flags;
 
 impl<'a> AstConverter<'a> {
   pub fn store_method_definition(
@@ -32,15 +32,7 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    let mut flags = 0u32;
-    if is_static {
-      flags |= METHOD_DEFINITION_STATIC_FLAG
-    };
-    if is_computed {
-      flags |= METHOD_DEFINITION_COMPUTED_FLAG;
-    }
-    let flags_position = end_position + METHOD_DEFINITION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    store_method_definition_flags!(self, end_position, static => is_static, computed => is_computed);
     // kind
     let kind_position = end_position + METHOD_DEFINITION_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(match kind {
@@ -89,9 +81,8 @@ impl<'a> AstConverter<'a> {
     // key
     self.update_reference_position(end_position + METHOD_DEFINITION_KEY_OFFSET);
     self.convert_property_name(&constructor.key);
-    // flags, method definitions are neither static nor computed
-    let flags_position = end_position + METHOD_DEFINITION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&0u32.to_ne_bytes());
+    // flags
+    store_method_definition_flags!(self, end_position, static => false, computed => false);
     // kind
     let kind_position = end_position + METHOD_DEFINITION_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_CONSTRUCTOR);

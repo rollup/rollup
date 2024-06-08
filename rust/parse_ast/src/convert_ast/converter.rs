@@ -24,6 +24,7 @@ pub mod string_constants;
 mod utf16_positions;
 
 pub mod ast_constants;
+mod ast_macros;
 
 pub struct AstConverter<'a> {
   pub buffer: Vec<u8>,
@@ -267,7 +268,7 @@ impl<'a> AstConverter<'a> {
   pub(crate) fn convert_export_specifier(&mut self, export_specifier: &ExportSpecifier) {
     match export_specifier {
       ExportSpecifier::Named(export_named_specifier) => {
-        self.store_export_named_specifier(export_named_specifier)
+        self.store_export_specifier(export_named_specifier)
       }
       ExportSpecifier::Namespace(_) => unimplemented!("Cannot convert ExportSpecifier::Namespace"),
       ExportSpecifier::Default(_) => unimplemented!("Cannot convert ExportSpecifier::Default"),

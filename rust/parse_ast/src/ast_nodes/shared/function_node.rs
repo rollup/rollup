@@ -2,12 +2,12 @@ use swc_ecma_ast::{BlockStmt, Function, Ident, Pat};
 
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
-  FUNCTION_DECLARATION_ANNOTATIONS_OFFSET, FUNCTION_DECLARATION_ASYNC_FLAG,
-  FUNCTION_DECLARATION_BODY_OFFSET, FUNCTION_DECLARATION_FLAGS_OFFSET,
-  FUNCTION_DECLARATION_GENERATOR_FLAG, FUNCTION_DECLARATION_ID_OFFSET,
-  FUNCTION_DECLARATION_PARAMS_OFFSET, FUNCTION_DECLARATION_RESERVED_BYTES,
+  FUNCTION_DECLARATION_ANNOTATIONS_OFFSET, FUNCTION_DECLARATION_BODY_OFFSET,
+  FUNCTION_DECLARATION_ID_OFFSET, FUNCTION_DECLARATION_PARAMS_OFFSET,
+  FUNCTION_DECLARATION_RESERVED_BYTES,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::store_function_declaration_flags;
 
 impl<'a> AstConverter<'a> {
   pub(crate) fn convert_function(
@@ -46,15 +46,12 @@ impl<'a> AstConverter<'a> {
     let end_position =
       self.add_type_and_explicit_start(node_type, start, FUNCTION_DECLARATION_RESERVED_BYTES);
     // flags
-    let mut flags = 0u32;
-    if is_async {
-      flags |= FUNCTION_DECLARATION_ASYNC_FLAG
-    };
-    if is_generator {
-      flags |= FUNCTION_DECLARATION_GENERATOR_FLAG;
-    }
-    let flags_position = end_position + FUNCTION_DECLARATION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    store_function_declaration_flags!(
+      self,
+      end_position,
+      async => is_async,
+      generator => is_generator
+    );
     // annotations
     if observe_annotations {
       let annotations = self

@@ -5,11 +5,11 @@ use swc_ecma_ast::{
 };
 
 use crate::convert_ast::converter::ast_constants::{
-  MEMBER_EXPRESSION_COMPUTED_FLAG, MEMBER_EXPRESSION_FLAGS_OFFSET, MEMBER_EXPRESSION_OBJECT_OFFSET,
-  MEMBER_EXPRESSION_OPTIONAL_FLAG, MEMBER_EXPRESSION_PROPERTY_OFFSET,
+  MEMBER_EXPRESSION_OBJECT_OFFSET, MEMBER_EXPRESSION_PROPERTY_OFFSET,
   MEMBER_EXPRESSION_RESERVED_BYTES, TYPE_MEMBER_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
+use crate::store_member_expression_flags;
 
 impl<'a> AstConverter<'a> {
   pub fn store_member_expression(
@@ -44,15 +44,12 @@ impl<'a> AstConverter<'a> {
       ExpressionOrSuper::Super(super_token) => self.store_super_element(super_token),
     }
     // flags
-    let mut flags = 0u32;
-    if is_optional {
-      flags |= MEMBER_EXPRESSION_OPTIONAL_FLAG;
-    }
-    if matches!(property, MemberOrSuperProp::Computed(_)) {
-      flags |= MEMBER_EXPRESSION_COMPUTED_FLAG;
-    }
-    let flags_position = end_position + MEMBER_EXPRESSION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    store_member_expression_flags!(
+      self,
+      end_position,
+      computed => matches!(property, MemberOrSuperProp::Computed(_)),
+      optional => is_optional
+    );
     // property
     self.update_reference_position(end_position + MEMBER_EXPRESSION_PROPERTY_OFFSET);
     match property {
