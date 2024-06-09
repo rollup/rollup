@@ -16,9 +16,11 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 		: '';
 	/** @type {string[]} */
 	const definitions = [];
+	let offset = 2;
 	if (node.flags) {
+		offset++;
 		definitions.push(
-			'const flags = buffer[position++];\n',
+			'const flags = buffer[position + 2];\n',
 			...node.flags.map(
 				(name, index) =>
 					`const ${node.variableNames?.[name] || name} = (flags & ${1 << index}) === ${1 << index};`
@@ -26,9 +28,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 		);
 	}
 	for (const [index, field] of fields.entries()) {
-		definitions.push(
-			`${getFieldDefinition(field, node, originalNode, index === fields.length - 1)}\n`
-		);
+		definitions.push(`${getFieldDefinition(field, node, originalNode, index + offset)}\n`);
 	}
 	/** @type {string[]} */
 	const properties = [
@@ -45,8 +45,8 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	return `function ${firstLetterLowercase(
 		name
 	)} (position, buffer${readStringArgument}): ${name}Node {
-    const start = buffer[position++];
-    const end = buffer[position++];
+    const start = buffer[position];
+    const end = buffer[position + 1];
     ${definitions.join('')}return {
       type: '${node.astType || name}',
       start,
@@ -60,14 +60,14 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
  * @param {import("./ast-types.js").FieldWithType} field
  * @param {import("./ast-types.js").NodeDescription} node
  * @param {import("./ast-types.js").NodeDescription} originalNode
- * @param {boolean} isLastField
+ * @param {number} offset
  * @returns {string}
  */
-function getFieldDefinition([fieldName, fieldType], node, originalNode, isLastField) {
+function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) {
 	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
 	const typeCastString = typeCast ? ` as ${typeCast}` : '';
-	const getAndUpdatePosition = isLastField ? 'position' : 'position++';
-	const dataStart = `buffer[${getAndUpdatePosition}]`;
+	const position = `position + ${offset}`;
+	const dataStart = `buffer[${position}]`;
 	const variableName = node.variableNames?.[fieldName] || fieldName;
 	switch (fieldType) {
 		case 'Node': {
@@ -97,7 +97,7 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, isLastFi
 			return `const ${variableName} = FIXED_STRINGS[${dataStart}]${typeCastString};`;
 		}
 		case 'Float': {
-			return `const ${variableName} = new DataView(buffer.buffer).getFloat64(${getAndUpdatePosition} << 2, true);`;
+			return `const ${variableName} = new DataView(buffer.buffer).getFloat64(${position} << 2, true);`;
 		}
 		default: {
 			throw new Error(`Unknown field type: ${fieldType}`);
