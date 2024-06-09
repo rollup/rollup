@@ -45,12 +45,10 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	return `function ${firstLetterLowercase(
 		name
 	)} (position, buffer${readStringArgument}): ${name}Node {
-    const start = buffer[position];
-    const end = buffer[position + 1];
     ${definitions.join('')}return {
       type: '${node.astType || name}',
-      start,
-      end,
+      start: buffer[position],
+      end: buffer[position + 1],
       ${properties.join(',\n')}
     };
   }`;
