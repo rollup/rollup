@@ -177,8 +177,7 @@ export const AST_NODES = {
                 node,
                 (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
                 nodePosition,
-                buffer,
-                readString
+                buffer
               )
             );
           }
@@ -370,8 +369,8 @@ export const AST_NODES = {
 			['options', 'OptionalNode']
 		],
 		scriptedFields: {
-			source: `node.source = convertNode(node, scope, $position, buffer, readString);
-			  node.sourceAstNode = convertJsonNode($position, buffer, readString);`
+			source: `node.source = convertNode(node, scope, $position, buffer);
+			  node.sourceAstNode = convertJsonNode($position, buffer);`
 		},
 		useMacro: false
 	},

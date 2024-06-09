@@ -7,13 +7,6 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url);
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, originalNode }) => {
-	const readStringArgument = fields.some(([, fieldType]) =>
-		['Node', 'OptionalNode', 'NodeList', 'String', 'FixedString', 'OptionalString'].includes(
-			fieldType
-		)
-	)
-		? ', readString'
-		: '';
 	/** @type {string[]} */
 	const definitions = [];
 	let offset = 2;
@@ -45,9 +38,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 		...getFixedProperties(node),
 		...Object.entries(node.additionalFields || []).map(([key, value]) => `${key}: ${value}`)
 	];
-	return `function ${firstLetterLowercase(
-		name
-	)} (position, buffer${readStringArgument}): ${name}Node {
+	return `function ${firstLetterLowercase(name)} (position, buffer): ${name}Node {
     ${definitions.join('')}return {
       type: '${node.astType || name}',
       start: buffer[position],
@@ -146,20 +137,20 @@ function getFieldPropertyBase([fieldName, fieldType], node, originalNode, offset
 	const dataStart = `buffer[${position}]`;
 	switch (fieldType) {
 		case 'Node': {
-			return `convertNode(${dataStart}, buffer, readString)${typeCastString}`;
+			return `convertNode(${dataStart}, buffer)${typeCastString}`;
 		}
 		case 'OptionalNode': {
 			const fallback = node.optionalFallback?.[fieldName];
-			return `${fieldName}Position === 0 ? ${fallback ? `{ ...${fallback} }` : null} : convertNode(${fieldName}Position, buffer, readString)${typeCastString}`;
+			return `${fieldName}Position === 0 ? ${fallback ? `{ ...${fallback} }` : null} : convertNode(${fieldName}Position, buffer)${typeCastString}`;
 		}
 		case 'NodeList': {
-			return `convertNodeList(${dataStart}, buffer, readString)${typeCastString}`;
+			return `convertNodeList(${dataStart}, buffer)${typeCastString}`;
 		}
 		case 'String': {
-			return `convertString(${dataStart}, buffer, readString)${typeCastString}`;
+			return `buffer.convertString(${dataStart})${typeCastString}`;
 		}
 		case 'OptionalString': {
-			return `${fieldName}Position === 0 ? undefined : convertString(${fieldName}Position, buffer, readString)${typeCastString}`;
+			return `${fieldName}Position === 0 ? undefined : buffer.convertString(${fieldName}Position)${typeCastString}`;
 		}
 		case 'FixedString': {
 			return `FIXED_STRINGS[${dataStart}]${typeCastString}`;
@@ -206,19 +197,14 @@ const bufferToJsAst = `${notEditFilesComment}
 import type * as estree from 'estree';
 import { PanicError, ParseError } from '../ast/nodes/NodeType';import type { RollupAstNode } from '../rollup/types';
 import type { RollupAnnotation } from './astConverterHelpers';
-import {
-  ANNOTATION_KEY,
-  convertAnnotations,
-  convertString,
-  INVALID_ANNOTATION_KEY
-} from './astConverterHelpers';
+import { ANNOTATION_KEY, convertAnnotations, INVALID_ANNOTATION_KEY } from './astConverterHelpers';
 import { EMPTY_ARRAY } from './blank';
 import FIXED_STRINGS from './convert-ast-strings';
-import type { ReadString } from './getReadStringFunction';
+import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-export function convertProgram(buffer: ArrayBuffer, readString: ReadString): ProgramNode {
-  const node = convertNode(0, new Uint32Array(buffer), readString);
+export function convertProgram(buffer: AstBuffer): ProgramNode {
+  const node = convertNode(0, buffer);
   switch (node.type) {
     case PanicError: {
       return error(getRollupError(logParseError(node.message)));
@@ -233,13 +219,13 @@ export function convertProgram(buffer: ArrayBuffer, readString: ReadString): Pro
 }
 
 /* eslint-disable sort-keys */
-const nodeConverters: ((position: number, buffer: Uint32Array, readString: ReadString) => any)[] = [
+const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
   ${jsConverters.join(',\n')}
 ];
 
 ${types.join('\n')}
 
-export function convertNode(position: number, buffer: Uint32Array, readString: ReadString): any {
+export function convertNode(position: number, buffer: AstBuffer): any {
   const nodeType = buffer[position];
   const converter = nodeConverters[nodeType];
   /* istanbul ignore if: This should never be executed but is a safeguard against faulty buffers */
@@ -247,16 +233,16 @@ export function convertNode(position: number, buffer: Uint32Array, readString: R
     console.trace();
     throw new Error(\`Unknown node type: \${nodeType}\`);
   }
-  return converter(position + 1, buffer, readString);
+  return converter(position + 1, buffer);
 }
 
-function convertNodeList(position: number, buffer: Uint32Array, readString: ReadString): any[] {
+function convertNodeList(position: number, buffer: AstBuffer): any[] {
   if (position === 0) return EMPTY_ARRAY as never[];
   const length = buffer[position++];
   const list: any[] = [];
   for (let index = 0; index < length; index++) {
     const nodePosition = buffer[position++];
-    list.push(nodePosition ? convertNode(nodePosition, buffer, readString) : null);
+    list.push(nodePosition ? convertNode(nodePosition, buffer) : null);
   }
   return list;
 }
