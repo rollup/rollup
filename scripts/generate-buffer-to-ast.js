@@ -19,23 +19,23 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	let offset = 2;
 	if (node.flags) {
 		offset++;
-		definitions.push(
-			'const flags = buffer[position + 2];\n',
-			...node.flags.map(
-				(name, index) =>
-					`const ${node.variableNames?.[name] || name} = (flags & ${1 << index}) === ${1 << index};`
-			)
-		);
+		definitions.push('const flags = buffer[position + 2];\n');
+		for (const [index, flag] of node.flags.entries()) {
+			if (node.baseForAdditionalFields?.includes(flag)) {
+				definitions.push(`const ${flag} = (flags & ${1 << index}) === ${1 << index};`);
+			}
+		}
 	}
 	for (const [index, field] of fields.entries()) {
 		definitions.push(`${getFieldDefinition(field, node, originalNode, index + offset)}\n`);
 	}
 	/** @type {string[]} */
 	const properties = [
-		...(node.flags || []).map(name => {
-			const alternativeVariableName = node.variableNames?.[name];
-			return alternativeVariableName ? `${name}: ${alternativeVariableName}` : name;
-		}),
+		...(node.flags || []).map((name, index) =>
+			node.baseForAdditionalFields?.includes(name)
+				? name
+				: `${name}: (flags & ${1 << index}) === ${1 << index}`
+		),
 		...fields
 			.filter(([fieldName]) => !node.hiddenFields?.includes(fieldName))
 			.map(field => getFieldProperty(field, node)),

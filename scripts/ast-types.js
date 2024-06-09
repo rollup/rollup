@@ -282,10 +282,7 @@ export const AST_NODES = {
 			['right', 'Node'],
 			['body', 'Node']
 		],
-		flags: ['await'],
-		variableNames: {
-			await: 'awaited'
-		}
+		flags: ['await']
 	},
 	ForStatement: {
 		fields: [
@@ -495,10 +492,7 @@ export const AST_NODES = {
 		},
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
-		useMacro: false,
-		variableNames: {
-			static: 'isStatic'
-		}
+		useMacro: false
 	},
 	NewExpression: {
 		fields: [
@@ -550,10 +544,7 @@ export const AST_NODES = {
 		],
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
-		useMacro: false,
-		variableNames: {
-			static: 'isStatic'
-		}
+		useMacro: false
 	},
 	RestElement: {
 		fields: [['argument', 'Node']],
