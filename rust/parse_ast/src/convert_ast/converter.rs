@@ -33,7 +33,7 @@ pub struct AstConverter<'a> {
 }
 
 impl<'a> AstConverter<'a> {
-  pub fn new(code: &'a str, annotations: &'a Vec<AnnotationWithType>) -> Self {
+  pub fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
     Self {
       // This is just a wild guess and should be revisited from time to time
       buffer: Vec::with_capacity(20 * code.len()),
