@@ -677,7 +677,7 @@ pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   buffer.resize(buffer.len() + additional_length, 0);
 }
 
-pub fn update_reference_position(buffer: &mut Vec<u8>, reference_position: usize) {
+pub fn update_reference_position(buffer: &mut [u8], reference_position: usize) {
   let insert_position = (buffer.len() as u32) >> 2;
   buffer[reference_position..reference_position + 4]
     .copy_from_slice(&insert_position.to_ne_bytes());
