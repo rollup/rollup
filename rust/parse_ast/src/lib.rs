@@ -5,12 +5,12 @@ use swc_common::{FileName, FilePathMapping, Globals, SourceMap, GLOBALS};
 use swc_compiler_base::parse_js;
 use swc_compiler_base::IsModule;
 use swc_ecma_ast::EsVersion;
-use swc_ecma_parser::{EsConfig, Syntax};
+use swc_ecma_parser::{EsSyntax, Syntax};
 
-use crate::ast_nodes::panic_error::get_panic_error_buffer;
 use convert_ast::converter::AstConverter;
 use error_emit::try_with_handler;
 
+use crate::ast_nodes::panic_error::get_panic_error_buffer;
 use crate::convert_ast::annotations::SequentialComments;
 
 mod ast_nodes;
@@ -20,7 +20,7 @@ mod error_emit;
 pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
   let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
   let target = EsVersion::EsNext;
-  let syntax = Syntax::Es(EsConfig {
+  let syntax = Syntax::Es(EsSyntax {
     allow_return_outside_function,
     import_attributes: true,
     explicit_resource_management: true,
