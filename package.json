@@ -198,7 +198,11 @@
   },
   "overrides": {
     "axios": "^1.7.2",
-    "semver": "^7.6.2"
+    "semver": "^7.6.2",
+    "ws": "^8.17.1"
+  },
+  "overrides_comments": {
+    "ws": "mermaid requires an older 8.13.0 version via puppeteer with vulnerabilities"
   },
   "files": [
     "dist/*.node",
