@@ -40,7 +40,6 @@
  *    additionalFields?: Record<string,string>, // Derived fields can be specified as arbitrary strings here
  *    baseForAdditionalFields?: string[], // Fields needed to define additional fields
  *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
- *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
  *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
  *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
  *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
@@ -145,10 +144,7 @@ export const AST_NODES = {
 			['arguments', 'NodeList']
 		],
 		flags: ['optional'],
-		useMacro: false,
-		variableNames: {
-			arguments: 'callArguments'
-		}
+		useMacro: false
 	},
 	CatchClause: {
 		fields: [
@@ -181,8 +177,7 @@ export const AST_NODES = {
                 node,
                 (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
                 nodePosition,
-                buffer,
-                readString
+                buffer
               )
             );
           }
@@ -282,10 +277,7 @@ export const AST_NODES = {
 			['right', 'Node'],
 			['body', 'Node']
 		],
-		flags: ['await'],
-		variableNames: {
-			await: 'awaited'
-		}
+		flags: ['await']
 	},
 	ForStatement: {
 		fields: [
@@ -377,8 +369,8 @@ export const AST_NODES = {
 			['options', 'OptionalNode']
 		],
 		scriptedFields: {
-			source: `node.source = convertNode(node, scope, $position, buffer, readString);
-			  node.sourceAstNode = convertJsonNode($position, buffer, readString);`
+			source: `node.source = convertNode(node, scope, $position, buffer);
+			  node.sourceAstNode = convertJsonNode($position, buffer);`
 		},
 		useMacro: false
 	},
@@ -495,10 +487,7 @@ export const AST_NODES = {
 		},
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
-		useMacro: false,
-		variableNames: {
-			static: 'isStatic'
-		}
+		useMacro: false
 	},
 	NewExpression: {
 		fields: [
@@ -506,10 +495,7 @@ export const AST_NODES = {
 			['callee', 'Node'],
 			['arguments', 'NodeList']
 		],
-		useMacro: false,
-		variableNames: {
-			arguments: 'callArguments'
-		}
+		useMacro: false
 	},
 	ObjectExpression: {
 		fields: [['properties', 'NodeList']]
@@ -550,10 +536,7 @@ export const AST_NODES = {
 		],
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
-		useMacro: false,
-		variableNames: {
-			static: 'isStatic'
-		}
+		useMacro: false
 	},
 	RestElement: {
 		fields: [['argument', 'Node']],
