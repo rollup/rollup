@@ -696,7 +696,7 @@ export default class Module {
 
 	include(): void {
 		const context = createInclusionContext();
-		if (this.ast!.shouldBeIncluded(context)) this.ast!.include(context, false);
+		if (this.ast!.shouldBeIncluded(context)) this.ast!.includePath(UNKNOWN_PATH, context, false);
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
@@ -737,7 +737,7 @@ export default class Module {
 	}
 
 	includeAllInBundle(): void {
-		this.ast!.include(createInclusionContext(), true);
+		this.ast!.includePath(UNKNOWN_PATH, createInclusionContext(), true);
 		this.includeAllExports(false);
 	}
 
@@ -1311,12 +1311,12 @@ export default class Module {
 		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const [externalVariable] = module.getVariableForExportName('*');
-				externalVariable.include();
+				externalVariable.includePath();
 				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
-				syntheticNamespace.include();
+				syntheticNamespace.includePath();
 				this.includedImports.add(syntheticNamespace);
 				syntheticNamespaces.add(syntheticNamespace);
 			}
@@ -1325,14 +1325,13 @@ export default class Module {
 	}
 
 	private includeDynamicImport(node: ImportExpression): void {
-		const resolution = (
-			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
-				resolution: string | Module | ExternalModule | undefined;
-			}
-		).resolution;
+		const resolution = this.dynamicImports.find(
+			dynamicImport => dynamicImport.node === node
+		)!.resolution;
 
 		if (resolution instanceof Module) {
-			resolution.includedDynamicImporters.push(this);
+			!resolution.includedDynamicImporters.includes(this) &&
+				resolution.includedDynamicImporters.push(this);
 
 			const importedNames = this.options.treeshake
 				? node.getDeterministicImportedNames()
@@ -1353,7 +1352,7 @@ export default class Module {
 				getAndExtendSideEffectModules(variable, this);
 			}
 		} else {
-			variable.include();
+			variable.includePath();
 			this.graph.needsTreeshakingPass = true;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {

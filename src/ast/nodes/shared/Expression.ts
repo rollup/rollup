@@ -76,7 +76,8 @@ export class ExpressionEntity implements WritableEntity {
 		return true;
 	}
 
-	include(
+	includePath(
+		_path: ObjectPath,
 		_context: InclusionContext,
 		_includeChildrenRecursively: IncludeChildren,
 		_options?: InclusionOptions
@@ -89,7 +90,7 @@ export class ExpressionEntity implements WritableEntity {
 		parameters: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		for (const argument of parameters) {
-			argument.include(context, false);
+			argument.includePath(UNKNOWN_PATH, context, false);
 		}
 	}
 

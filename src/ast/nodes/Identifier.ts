@@ -38,6 +38,8 @@ const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'awai
 export default class Identifier extends NodeBase implements PatternNode {
 	declare name: string;
 	declare type: NodeType.tIdentifier;
+	declare includedPaths: ObjectPath[] | null;
+
 	variable: Variable | null = null;
 
 	private get isTDZAccess(): boolean | null {
@@ -193,13 +195,32 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	include(): void {
+	private hasOrAddIncludedPaths(path: ObjectPath) {
+		if (!this.includedPaths) {
+			this.includedPaths = [];
+		}
+		for (const includedPath of this.includedPaths) {
+			if (
+				path.length === includedPath.length &&
+				path.every((key, index) => key === includedPath[index])
+			) {
+				return true;
+			}
+		}
+		this.includedPaths.push(path);
+		return false;
+	}
+
+	includePath(path?: ObjectPath): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
 				this.scope.context.includeVariableInModule(this.variable);
 			}
+		}
+		if (path?.length && !this.hasOrAddIncludedPaths(path)) {
+			this.variable?.includePath(path);
 		}
 	}
 

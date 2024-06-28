@@ -17,6 +17,7 @@ import BlockStatement from '../BlockStatement';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
+import ObjectPattern from '../ObjectPattern';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
@@ -86,6 +87,47 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	protected objectEntity: ObjectEntity | null = null;
+	private argumentsToBeIncludedAll = new Set<ExpressionEntity>();
+
+	trackArguments(arguments_: InteractionCalledArguments) {
+		rootIter: for (let position = 0; position < this.params.length; position++) {
+			const parameter = this.params[position];
+			const argument = arguments_[position + 1];
+			if (!argument) return;
+			if (parameter instanceof ObjectPattern) {
+				let hasRestElement = false;
+				if (parameter.properties.at(-1) instanceof RestElement) {
+					hasRestElement = true;
+				}
+				for (const element of parameter.properties) {
+					if (element instanceof RestElement) {
+						(element.argument.variable as ParameterVariable).trackArgument(argument, UnknownKey);
+						continue rootIter;
+					} else {
+						if (element.value instanceof Identifier) {
+							const path = hasRestElement ? UnknownKey : element.value.name;
+							(element.value.variable as ParameterVariable)?.trackArgument(argument, path);
+						} else {
+							this.argumentsToBeIncludedAll.add(argument);
+							continue rootIter;
+						}
+					}
+				}
+				continue rootIter;
+			}
+			if (parameter instanceof Identifier) {
+				(parameter.variable as ParameterVariable).trackArgument(argument);
+				continue rootIter;
+			}
+			if (parameter instanceof RestElement) {
+				for (const remainArgument of arguments_.slice(position + 1)) {
+					this.argumentsToBeIncludedAll.add(remainArgument!);
+				}
+				continue rootIter;
+			}
+			this.argumentsToBeIncludedAll.add(argument);
+		}
+	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
@@ -115,6 +157,7 @@ export default abstract class FunctionBase extends NodeBase {
 					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
+			this.trackArguments(args);
 			this.updateParameterVariableValues(args);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
@@ -228,7 +271,12 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	private parameterVariableValuesDeoptimized = false;
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+
+	includePath(
+		_path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.parameterVariableValuesDeoptimized && !this.onlyFunctionCallUsed()) {
 			this.parameterVariableValuesDeoptimized = true;
 			this.deoptimizeParameterVariableValues();
@@ -237,7 +285,10 @@ export default abstract class FunctionBase extends NodeBase {
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.include(context, includeChildrenRecursively);
+		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		for (const argument of this.argumentsToBeIncludedAll) {
+			argument.includePath(UNKNOWN_PATH, context, false);
+		}
 		context.brokenFlow = brokenFlow;
 	}
 
