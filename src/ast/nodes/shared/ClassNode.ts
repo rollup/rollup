@@ -15,6 +15,7 @@ import type ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
+import { isStaticBlock } from '../StaticBlock';
 import { type ExpressionEntity, type LiteralValueOrUnknown } from './Expression';
 import { type ExpressionNode, type IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, type ObjectProperty } from './ObjectEntity';
@@ -123,7 +124,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		for (const definition of this.body.body) {
 			if (
 				!(
-					definition.static ||
+					(!isStaticBlock(definition) && definition.static) ||
 					(definition instanceof MethodDefinition && definition.kind === 'constructor')
 				)
 			) {
@@ -141,6 +142,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		const staticProperties: ObjectProperty[] = [];
 		const dynamicMethods: ObjectProperty[] = [];
 		for (const definition of this.body.body) {
+			if (isStaticBlock(definition)) continue;
 			const properties = definition.static ? staticProperties : dynamicMethods;
 			const definitionKind = (definition as MethodDefinition | { kind: undefined }).kind;
 			// Note that class fields do not end up on the prototype

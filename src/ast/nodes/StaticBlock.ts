@@ -7,7 +7,7 @@ import {
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import type * as NodeType from './NodeType';
+import * as NodeType from './NodeType';
 import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
 
 export default class StaticBlock extends StatementBase {
@@ -42,4 +42,8 @@ export default class StaticBlock extends StatementBase {
 			super.render(code, options);
 		}
 	}
+}
+
+export function isStaticBlock(statement: StatementNode): statement is StaticBlock {
+	return statement.type === NodeType.StaticBlock;
 }
