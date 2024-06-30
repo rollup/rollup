@@ -24,6 +24,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
     allow_return_outside_function,
     import_attributes: true,
     explicit_resource_management: true,
+    decorators: true,
     ..Default::default()
   });
 

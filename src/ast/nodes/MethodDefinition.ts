@@ -1,3 +1,4 @@
+import type Decorator from './Decorator';
 import type FunctionExpression from './FunctionExpression';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -10,6 +11,7 @@ export default class MethodDefinition extends MethodBase {
 	declare static: boolean;
 	declare type: NodeType.tMethodDefinition;
 	declare value: FunctionExpression;
+	declare decorators: Decorator[];
 
 	protected applyDeoptimizations() {}
 }

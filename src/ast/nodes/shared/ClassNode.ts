@@ -12,6 +12,7 @@ import {
 	UnknownKey
 } from '../../utils/PathTracker';
 import type ClassBody from '../ClassBody';
+import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
 import type Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
@@ -26,6 +27,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	declare body: ClassBody;
 	declare id: Identifier | null;
 	declare superClass: ExpressionNode | null;
+	declare decorators: Decorator[];
 	private declare classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 

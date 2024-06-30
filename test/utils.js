@@ -479,6 +479,13 @@ const replaceStringifyValues = (key, value) => {
 			const { options, ...nonOptionsProperties } = value;
 			return { ...nonOptionsProperties, ...(options ? { arguments: [options] } : {}) };
 		}
+		case 'ClassDeclaration':
+		case 'ClassExpression':
+		case 'PropertyDefinition':
+		case 'MethodDefinition': {
+			const { decorators, ...rest } = value;
+			return rest;
+		}
 	}
 
 	return key.startsWith('_')

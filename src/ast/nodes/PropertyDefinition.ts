@@ -2,6 +2,7 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type Decorator from './Decorator';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -18,6 +19,7 @@ export default class PropertyDefinition extends NodeBase {
 	declare static: boolean;
 	declare type: NodeType.tPropertyDefinition;
 	declare value: ExpressionNode | null;
+	declare decorators: Decorator[];
 
 	get computed(): boolean {
 		return isFlagSet(this.flags, Flag.computed);

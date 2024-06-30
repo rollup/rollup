@@ -6,8 +6,9 @@ use swc_ecma_ast::{
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-  METHOD_DEFINITION_KEY_OFFSET, METHOD_DEFINITION_KIND_OFFSET, METHOD_DEFINITION_RESERVED_BYTES,
-  METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION, TYPE_METHOD_DEFINITION,
+  METHOD_DEFINITION_DECORATORS_OFFSET, METHOD_DEFINITION_KEY_OFFSET, METHOD_DEFINITION_KIND_OFFSET,
+  METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION,
+  TYPE_METHOD_DEFINITION,
 };
 use crate::convert_ast::converter::string_constants::{
   STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
@@ -33,6 +34,15 @@ impl<'a> AstConverter<'a> {
     );
     // flags
     store_method_definition_flags!(self, end_position, static => is_static, computed => is_computed);
+    // decorators
+    self.convert_item_list(
+      &function.decorators,
+      end_position + METHOD_DEFINITION_DECORATORS_OFFSET,
+      |ast_convertor, decorator| {
+        ast_convertor.store_decorator(decorator);
+        true
+      },
+    );
     // kind
     let kind_position = end_position + METHOD_DEFINITION_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(match kind {

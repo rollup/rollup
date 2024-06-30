@@ -27,6 +27,7 @@ import ClassExpression from './nodes/ClassExpression';
 import ConditionalExpression from './nodes/ConditionalExpression';
 import ContinueStatement from './nodes/ContinueStatement';
 import DebuggerStatement from './nodes/DebuggerStatement';
+import Decorator from './nodes/Decorator';
 import DoWhileStatement from './nodes/DoWhileStatement';
 import EmptyStatement from './nodes/EmptyStatement';
 import ExportAllDeclaration from './nodes/ExportAllDeclaration';
@@ -118,6 +119,7 @@ const nodeTypeStrings = [
 	'ConditionalExpression',
 	'ContinueStatement',
 	'DebuggerStatement',
+	'Decorator',
 	'ExpressionStatement',
 	'DoWhileStatement',
 	'EmptyStatement',
@@ -200,6 +202,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	ConditionalExpression,
 	ContinueStatement,
 	DebuggerStatement,
+	Decorator,
 	ExpressionStatement,
 	DoWhileStatement,
 	EmptyStatement,
@@ -364,22 +367,24 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	},
 	function classDeclaration(node: ClassDeclaration, position, buffer) {
 		const { scope } = node;
-		const idPosition = buffer[position];
+		node.decorators = convertNodeList(node, scope, buffer[position], buffer);
+		const idPosition = buffer[position + 1];
 		node.id =
 			idPosition === 0 ? null : convertNode(node, scope.parent as ChildScope, idPosition, buffer);
-		const superClassPosition = buffer[position + 1];
+		const superClassPosition = buffer[position + 2];
 		node.superClass =
 			superClassPosition === 0 ? null : convertNode(node, scope, superClassPosition, buffer);
-		node.body = convertNode(node, scope, buffer[position + 2], buffer);
+		node.body = convertNode(node, scope, buffer[position + 3], buffer);
 	},
 	function classExpression(node: ClassExpression, position, buffer) {
 		const { scope } = node;
-		const idPosition = buffer[position];
+		node.decorators = convertNodeList(node, scope, buffer[position], buffer);
+		const idPosition = buffer[position + 1];
 		node.id = idPosition === 0 ? null : convertNode(node, scope, idPosition, buffer);
-		const superClassPosition = buffer[position + 1];
+		const superClassPosition = buffer[position + 2];
 		node.superClass =
 			superClassPosition === 0 ? null : convertNode(node, scope, superClassPosition, buffer);
-		node.body = convertNode(node, scope, buffer[position + 2], buffer);
+		node.body = convertNode(node, scope, buffer[position + 3], buffer);
 	},
 	function conditionalExpression(node: ConditionalExpression, position, buffer) {
 		const { scope } = node;
@@ -393,6 +398,10 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.label = labelPosition === 0 ? null : convertNode(node, scope, labelPosition, buffer);
 	},
 	function debuggerStatement() {},
+	function decorator(node: Decorator, position, buffer) {
+		const { scope } = node;
+		node.expression = convertNode(node, scope, buffer[position], buffer);
+	},
 	function directive(node: ExpressionStatement, position, buffer) {
 		const { scope } = node;
 		node.directive = buffer.convertString(buffer[position]);
@@ -613,9 +622,10 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const flags = buffer[position];
 		node.static = (flags & 1) === 1;
 		node.computed = (flags & 2) === 2;
-		node.key = convertNode(node, scope, buffer[position + 1], buffer);
-		node.value = convertNode(node, scope, buffer[position + 2], buffer);
-		node.kind = FIXED_STRINGS[buffer[position + 3]] as estree.MethodDefinition['kind'];
+		node.decorators = convertNodeList(node, scope, buffer[position + 1], buffer);
+		node.key = convertNode(node, scope, buffer[position + 2], buffer);
+		node.value = convertNode(node, scope, buffer[position + 3], buffer);
+		node.kind = FIXED_STRINGS[buffer[position + 4]] as estree.MethodDefinition['kind'];
 	},
 	function newExpression(node: NewExpression, position, buffer) {
 		const { scope } = node;
@@ -655,8 +665,9 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		const flags = buffer[position];
 		node.static = (flags & 1) === 1;
 		node.computed = (flags & 2) === 2;
-		node.key = convertNode(node, scope, buffer[position + 1], buffer);
-		const valuePosition = buffer[position + 2];
+		node.decorators = convertNodeList(node, scope, buffer[position + 1], buffer);
+		node.key = convertNode(node, scope, buffer[position + 2], buffer);
+		const valuePosition = buffer[position + 3];
 		node.value = valuePosition === 0 ? null : convertNode(node, scope, valuePosition, buffer);
 	},
 	function restElement(node: RestElement, position, buffer) {
