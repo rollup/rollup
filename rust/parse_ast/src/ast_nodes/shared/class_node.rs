@@ -3,8 +3,8 @@ use swc_ecma_ast::{Class, Ident};
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-  CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_ID_OFFSET, CLASS_DECLARATION_RESERVED_BYTES,
-  CLASS_DECLARATION_SUPER_CLASS_OFFSET,
+  CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
+  CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SUPER_CLASS_OFFSET,
 };
 use crate::convert_ast::converter::AstConverter;
 
@@ -22,6 +22,18 @@ impl<'a> AstConverter<'a> {
       false,
     );
     let mut body_start_search = class.span.lo.0 - 1;
+    // decorators
+    self.convert_item_list(
+      &class.decorators,
+      end_position + CLASS_DECLARATION_DECORATORS_OFFSET,
+      |ast_converter, decorator| {
+        ast_converter.store_decorator(decorator);
+        true
+      },
+    );
+    if !class.decorators.is_empty() {
+      body_start_search = class.decorators.last().unwrap().span.hi.0 - 1;
+    }
     // id
     if let Some(identifier) = identifier {
       self.update_reference_position(end_position + CLASS_DECLARATION_ID_OFFSET);

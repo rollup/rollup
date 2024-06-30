@@ -1,6 +1,6 @@
 /**
  * This file contains the AST node descriptions for the ESTree AST.
- * From this file, "npm run build:ast:converters" will generate
+ * From this file, "npm run build:ast-converters" will generate
  * - /rust/parse_ast/src/convert_ast/converter/ast_constants.rs:
  *   Constants that describe how the AST nodes are encoded in Rust.
  * - /src/utils/bufferToAst.ts:
@@ -187,6 +187,7 @@ export const AST_NODES = {
 	},
 	ClassDeclaration: {
 		fields: [
+			['decorators', 'NodeList'],
 			['id', 'OptionalNode'],
 			['superClass', 'OptionalNode'],
 			['body', 'Node']
@@ -214,6 +215,7 @@ export const AST_NODES = {
 		fields: [['label', 'OptionalNode']]
 	},
 	DebuggerStatement: {},
+	Decorator: { fields: [['expression', 'Node']] },
 	Directive: {
 		astType: 'ExpressionStatement',
 		estreeType: 'estree.Directive',
@@ -478,6 +480,7 @@ export const AST_NODES = {
 	},
 	MethodDefinition: {
 		fields: [
+			['decorators', 'NodeList'],
 			['key', 'Node'],
 			['value', 'Node'],
 			['kind', 'FixedString']
@@ -531,6 +534,7 @@ export const AST_NODES = {
 	},
 	PropertyDefinition: {
 		fields: [
+			['decorators', 'NodeList'],
 			['key', 'Node'],
 			['value', 'OptionalNode']
 		],

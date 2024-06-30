@@ -19,6 +19,7 @@ import ClassExpression from './ClassExpression';
 import ConditionalExpression from './ConditionalExpression';
 import ContinueStatement from './ContinueStatement';
 import DebuggerStatement from './DebuggerStatement';
+import Decorator from './Decorator';
 import DoWhileStatement from './DoWhileStatement';
 import EmptyStatement from './EmptyStatement';
 import ExportAllDeclaration from './ExportAllDeclaration';
@@ -98,6 +99,7 @@ export const nodeConstructors: {
 	ConditionalExpression,
 	ContinueStatement,
 	DebuggerStatement,
+	Decorator,
 	DoWhileStatement,
 	EmptyStatement,
 	ExportAllDeclaration,
