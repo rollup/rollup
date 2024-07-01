@@ -123,8 +123,9 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.deoptimized = true;
 		for (const definition of this.body.body) {
 			if (
+				!isStaticBlock(definition) &&
 				!(
-					(!isStaticBlock(definition) && definition.static) ||
+					definition.static ||
 					(definition instanceof MethodDefinition && definition.kind === 'constructor')
 				)
 			) {
