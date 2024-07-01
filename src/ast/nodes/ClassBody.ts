@@ -5,11 +5,12 @@ import ClassBodyScope from '../scopes/ClassBodyScope';
 import type MethodDefinition from './MethodDefinition';
 import type * as NodeType from './NodeType';
 import type PropertyDefinition from './PropertyDefinition';
+import type StaticBlock from './StaticBlock';
 import type ClassNode from './shared/ClassNode';
 import { type GenericEsTreeNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
-	declare body: (MethodDefinition | PropertyDefinition)[];
+	declare body: (MethodDefinition | PropertyDefinition | StaticBlock)[];
 	declare scope: ClassBodyScope;
 	declare type: NodeType.tClassBody;
 
