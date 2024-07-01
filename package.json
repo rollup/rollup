@@ -155,7 +155,7 @@
     "date-time": "^4.0.0",
     "es5-shim": "^4.6.7",
     "es6-shim": "^0.35.8",
-    "eslint": "^8.57.0",
+    "eslint": "^9.6.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^5.1.3",
