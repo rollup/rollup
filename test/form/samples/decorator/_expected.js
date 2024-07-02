@@ -1,3 +1,5 @@
+function decorator() {}
+
 @decorator
 @decorator2
 class Test {

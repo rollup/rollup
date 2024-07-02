@@ -691,6 +691,9 @@ export default class Module {
 	}
 
 	hasEffects(): boolean {
+		if (!this.ast) {
+			console.log(this);
+		}
 		return this.info.moduleSideEffects === 'no-treeshake' || this.ast!.hasCachedEffects();
 	}
 
