@@ -16,6 +16,7 @@ pub mod class_expression;
 pub mod conditional_expression;
 pub mod continue_statement;
 pub mod debugger_statement;
+pub mod decorator;
 pub mod directive;
 pub mod do_while_statement;
 pub mod empty_statement;

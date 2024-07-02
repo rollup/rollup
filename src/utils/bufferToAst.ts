@@ -170,27 +170,29 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 		};
 	},
 	function classDeclaration(position, buffer): ClassDeclarationNode {
-		const idPosition = buffer[position + 2];
-		const superClassPosition = buffer[position + 3];
+		const idPosition = buffer[position + 3];
+		const superClassPosition = buffer[position + 4];
 		return {
 			type: 'ClassDeclaration',
 			start: buffer[position],
 			end: buffer[position + 1],
+			decorators: convertNodeList(buffer[position + 2], buffer),
 			id: idPosition === 0 ? null : convertNode(idPosition, buffer),
 			superClass: superClassPosition === 0 ? null : convertNode(superClassPosition, buffer),
-			body: convertNode(buffer[position + 4], buffer)
+			body: convertNode(buffer[position + 5], buffer)
 		};
 	},
 	function classExpression(position, buffer): ClassExpressionNode {
-		const idPosition = buffer[position + 2];
-		const superClassPosition = buffer[position + 3];
+		const idPosition = buffer[position + 3];
+		const superClassPosition = buffer[position + 4];
 		return {
 			type: 'ClassExpression',
 			start: buffer[position],
 			end: buffer[position + 1],
+			decorators: convertNodeList(buffer[position + 2], buffer),
 			id: idPosition === 0 ? null : convertNode(idPosition, buffer),
 			superClass: superClassPosition === 0 ? null : convertNode(superClassPosition, buffer),
-			body: convertNode(buffer[position + 4], buffer)
+			body: convertNode(buffer[position + 5], buffer)
 		};
 	},
 	function conditionalExpression(position, buffer): ConditionalExpressionNode {
@@ -217,6 +219,14 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			type: 'DebuggerStatement',
 			start: buffer[position],
 			end: buffer[position + 1]
+		};
+	},
+	function decorator(position, buffer): DecoratorNode {
+		return {
+			type: 'Decorator',
+			start: buffer[position],
+			end: buffer[position + 1],
+			expression: convertNode(buffer[position + 2], buffer)
 		};
 	},
 	function directive(position, buffer): DirectiveNode {
@@ -551,9 +561,10 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			end: buffer[position + 1],
 			static: (flags & 1) === 1,
 			computed: (flags & 2) === 2,
-			key: convertNode(buffer[position + 3], buffer),
-			value: convertNode(buffer[position + 4], buffer),
-			kind: FIXED_STRINGS[buffer[position + 5]] as estree.MethodDefinition['kind']
+			decorators: convertNodeList(buffer[position + 3], buffer),
+			key: convertNode(buffer[position + 4], buffer),
+			value: convertNode(buffer[position + 5], buffer),
+			kind: FIXED_STRINGS[buffer[position + 6]] as estree.MethodDefinition['kind']
 		};
 	},
 	function newExpression(position, buffer): NewExpressionNode {
@@ -620,14 +631,15 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 	},
 	function propertyDefinition(position, buffer): PropertyDefinitionNode {
 		const flags = buffer[position + 2];
-		const valuePosition = buffer[position + 4];
+		const valuePosition = buffer[position + 5];
 		return {
 			type: 'PropertyDefinition',
 			start: buffer[position],
 			end: buffer[position + 1],
 			static: (flags & 1) === 1,
 			computed: (flags & 2) === 2,
-			key: convertNode(buffer[position + 3], buffer),
+			decorators: convertNodeList(buffer[position + 3], buffer),
+			key: convertNode(buffer[position + 4], buffer),
 			value: valuePosition === 0 ? null : convertNode(valuePosition, buffer)
 		};
 	},
@@ -843,6 +855,7 @@ export type ClassExpressionNode = RollupAstNode<estree.ClassExpression>;
 export type ConditionalExpressionNode = RollupAstNode<estree.ConditionalExpression>;
 export type ContinueStatementNode = RollupAstNode<estree.ContinueStatement>;
 export type DebuggerStatementNode = RollupAstNode<estree.DebuggerStatement>;
+export type DecoratorNode = RollupAstNode<estree.Decorator>;
 export type DirectiveNode = RollupAstNode<estree.Directive>;
 export type DoWhileStatementNode = RollupAstNode<estree.DoWhileStatement>;
 export type EmptyStatementNode = RollupAstNode<estree.EmptyStatement>;
