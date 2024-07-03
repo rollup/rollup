@@ -24,7 +24,7 @@ module.exports = defineTest({
 					assert.deepStrictEqual(bundle['main.js'].referencedFiles, [
 						'assets/asset.txt',
 						'chunks/ref.js',
-						'chunks/My%2FFile.js'
+						'chunks/My_2FFile.js'
 					]);
 				}
 			}
@@ -42,7 +42,7 @@ module.exports = defineTest({
 		assert.deepStrictEqual(exports, {
 			asset: `${directoryURL}/assets/asset.txt`,
 			chunk: `${directoryURL}/chunks/ref.js`,
-			urlEncoding: `${directoryURL}/chunks/My%252FFile.js`
+			urlEncoding: `${directoryURL}/chunks/My_2FFile.js`
 		});
 	}
 });
