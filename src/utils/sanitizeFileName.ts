@@ -1,6 +1,6 @@
 // https://datatracker.ietf.org/doc/html/rfc2396
 // eslint-disable-next-line no-control-regex
-const INVALID_CHAR_REGEX = /[\u0000-\u001F"#$&*+,:;<=>?[\]^`{|}\u007F]/g;
+const INVALID_CHAR_REGEX = /[\u0000-\u001F"#&*+,:;<=>?[\]^`{|}\u007F]/g;
 const DRIVE_LETTER_REGEX = /^[a-z]:/i;
 
 export function sanitizeFileName(name: string): string {
@@ -9,5 +9,12 @@ export function sanitizeFileName(name: string): string {
 
 	// A `:` is only allowed as part of a windows drive letter (ex: C:\foo)
 	// Otherwise, avoid them because they can refer to NTFS alternate data streams.
-	return driveLetter + name.slice(driveLetter.length).replace(INVALID_CHAR_REGEX, '_');
+	return (
+		driveLetter +
+		name
+			.slice(driveLetter.length)
+			.replace(INVALID_CHAR_REGEX, '_')
+			// only convert `$xxx` to `_xxx`, except for `$`, `a$`
+			.replace(/\$(\w)/, '_$1')
+	);
 }
