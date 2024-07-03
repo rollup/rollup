@@ -220,7 +220,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (path.length === 1) {
 			if (key === UnknownInteger) {
 				return this.deoptimizeIntegerProperties();
-			}else if (typeof key !== 'string') {
+			} else if (typeof key !== 'string') {
 				return this.deoptimizeAllProperties(key === UnknownNonAccessorKey);
 			}
 			if (!this.deoptimizedPaths[key]) {
