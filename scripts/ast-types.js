@@ -40,29 +40,33 @@
  *    additionalFields?: Record<string,string>, // Derived fields can be specified as arbitrary strings here
  *    baseForAdditionalFields?: string[], // Fields needed to define additional fields
  *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
- *    variableNames?: Record<string,string>, // If the field name is not a valid identifier, specify the variable name here
  *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
  *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
  *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
  *    scriptedFields?: Record<string,string> // If fields are parsed via custom logic, $position references the node position
+ *    useMacro?: boolean // Generate a Rust macro instead of separate constants
  *  }} NodeDescription */
 
 /** @type {Record<string, NodeDescription>} */
 export const AST_NODES = {
 	PanicError: {
 		estreeType: "{ type: 'PanicError', message: string }",
-		fields: [['message', 'String']]
+		fields: [['message', 'String']],
+		useMacro: false
 	},
 	ParseError: {
 		estreeType: "{ type: 'ParseError', message: string }",
-		fields: [['message', 'String']]
+		fields: [['message', 'String']],
+		useMacro: false
 	},
 	// eslint-disable-next-line sort-keys
 	ArrayExpression: {
-		fields: [['elements', 'NodeList']]
+		fields: [['elements', 'NodeList']],
+		useMacro: false
 	},
 	ArrayPattern: {
-		fields: [['elements', 'NodeList']]
+		fields: [['elements', 'NodeList']],
+		useMacro: false
 	},
 	ArrowFunctionExpression: {
 		fields: [
@@ -91,7 +95,8 @@ export const AST_NODES = {
 		},
 		scopes: {
 			body: 'scope.bodyScope'
-		}
+		},
+		useMacro: false
 	},
 	AssignmentExpression: {
 		fields: [
@@ -107,7 +112,8 @@ export const AST_NODES = {
 		fields: [
 			['left', 'Node'],
 			['right', 'Node']
-		]
+		],
+		useMacro: false
 	},
 	AwaitExpression: {
 		fields: [['argument', 'Node']]
@@ -120,10 +126,12 @@ export const AST_NODES = {
 		],
 		fieldTypes: {
 			operator: 'estree.BinaryOperator'
-		}
+		},
+		useMacro: false
 	},
 	BlockStatement: {
-		fields: [['body', 'NodeList']]
+		fields: [['body', 'NodeList']],
+		useMacro: false
 	},
 	BreakStatement: {
 		fields: [['label', 'OptionalNode']]
@@ -136,9 +144,7 @@ export const AST_NODES = {
 			['arguments', 'NodeList']
 		],
 		flags: ['optional'],
-		variableNames: {
-			arguments: 'callArguments'
-		}
+		useMacro: false
 	},
 	CatchClause: {
 		fields: [
@@ -150,10 +156,12 @@ export const AST_NODES = {
 		},
 		scopes: {
 			body: 'scope.bodyScope'
-		}
+		},
+		useMacro: false
 	},
 	ChainExpression: {
-		fields: [['expression', 'Node']]
+		fields: [['expression', 'Node']],
+		useMacro: false
 	},
 	ClassBody: {
 		fields: [['body', 'NodeList']],
@@ -169,13 +177,13 @@ export const AST_NODES = {
                 node,
                 (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
                 nodePosition,
-                buffer,
-                readString
+                buffer
               )
             );
           }
         }`
-		}
+		},
+		useMacro: false
 	},
 	ClassDeclaration: {
 		fields: [
@@ -185,13 +193,15 @@ export const AST_NODES = {
 		],
 		scopes: {
 			id: 'scope.parent as ChildScope'
-		}
+		},
+		useMacro: false
 	},
 	ClassExpression: {
 		hasSameFieldsAs: 'ClassDeclaration',
 		scopes: {
 			id: 'scope'
-		}
+		},
+		useMacro: false
 	},
 	ConditionalExpression: {
 		fields: [
@@ -225,10 +235,12 @@ export const AST_NODES = {
 			['exported', 'OptionalNode'],
 			['source', 'Node'],
 			['attributes', 'NodeList']
-		]
+		],
+		useMacro: false
 	},
 	ExportDefaultDeclaration: {
-		fields: [['declaration', 'Node']]
+		fields: [['declaration', 'Node']],
+		useMacro: false
 	},
 	ExportNamedDeclaration: {
 		estreeType: 'estree.ExportNamedDeclaration & { attributes: ImportAttributeNode[] }',
@@ -237,7 +249,8 @@ export const AST_NODES = {
 			['source', 'OptionalNode'],
 			['attributes', 'NodeList'],
 			['declaration', 'OptionalNode']
-		]
+		],
+		useMacro: false
 	},
 	ExportSpecifier: {
 		fields: [
@@ -264,10 +277,7 @@ export const AST_NODES = {
 			['right', 'Node'],
 			['body', 'Node']
 		],
-		flags: ['await'],
-		variableNames: {
-			await: 'awaited'
-		}
+		flags: ['await']
 	},
 	ForStatement: {
 		fields: [
@@ -306,16 +316,19 @@ export const AST_NODES = {
 		scopes: {
 			body: 'scope.bodyScope',
 			id: 'scope.parent as ChildScope'
-		}
+		},
+		useMacro: false
 	},
 	FunctionExpression: {
 		hasSameFieldsAs: 'FunctionDeclaration',
 		scopes: {
 			id: 'node.idScope'
-		}
+		},
+		useMacro: false
 	},
 	Identifier: {
-		fields: [['name', 'String']]
+		fields: [['name', 'String']],
+		useMacro: false
 	},
 	IfStatement: {
 		fields: [
@@ -334,7 +347,8 @@ export const AST_NODES = {
 		fields: [
 			['key', 'Node'],
 			['value', 'Node']
-		]
+		],
+		useMacro: false
 	},
 	ImportDeclaration: {
 		estreeType: 'estree.ImportDeclaration & { attributes: ImportAttributeNode[] }',
@@ -342,7 +356,8 @@ export const AST_NODES = {
 			['specifiers', 'NodeList'],
 			['source', 'Node'],
 			['attributes', 'NodeList']
-		]
+		],
+		useMacro: false
 	},
 	ImportDefaultSpecifier: {
 		fields: [['local', 'Node']]
@@ -354,9 +369,10 @@ export const AST_NODES = {
 			['options', 'OptionalNode']
 		],
 		scriptedFields: {
-			source: `node.source = convertNode(node, scope, $position, buffer, readString);
-			  node.sourceAstNode = convertJsonNode($position, buffer, readString);`
-		}
+			source: `node.source = convertNode(node, scope, $position, buffer);
+			  node.sourceAstNode = convertJsonNode($position, buffer);`
+		},
+		useMacro: false
 	},
 	ImportNamespaceSpecifier: {
 		fields: [['local', 'Node']]
@@ -442,20 +458,23 @@ export const AST_NODES = {
 		fieldTypes: {
 			operator: 'estree.LogicalOperator'
 		},
-		hasSameFieldsAs: 'BinaryExpression'
+		hasSameFieldsAs: 'BinaryExpression',
+		useMacro: false
 	},
 	MemberExpression: {
 		fields: [
 			['object', 'Node'],
 			['property', 'Node']
 		],
-		flags: ['computed', 'optional']
+		flags: ['computed', 'optional'],
+		useMacro: false
 	},
 	MetaProperty: {
 		fields: [
 			['meta', 'Node'],
 			['property', 'Node']
-		]
+		],
+		useMacro: false
 	},
 	MethodDefinition: {
 		fields: [
@@ -468,9 +487,7 @@ export const AST_NODES = {
 		},
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
-		variableNames: {
-			static: 'isStatic'
-		}
+		useMacro: false
 	},
 	NewExpression: {
 		fields: [
@@ -478,9 +495,7 @@ export const AST_NODES = {
 			['callee', 'Node'],
 			['arguments', 'NodeList']
 		],
-		variableNames: {
-			arguments: 'callArguments'
-		}
+		useMacro: false
 	},
 	ObjectExpression: {
 		fields: [['properties', 'NodeList']]
@@ -498,7 +513,8 @@ export const AST_NODES = {
 		],
 		fixed: {
 			sourceType: 'module'
-		}
+		},
+		useMacro: false
 	},
 	Property: {
 		fields: [
@@ -510,7 +526,8 @@ export const AST_NODES = {
 		flags: ['method', 'shorthand', 'computed'],
 		optionalFallback: {
 			key: 'value'
-		}
+		},
+		useMacro: false
 	},
 	PropertyDefinition: {
 		fields: [
@@ -519,12 +536,11 @@ export const AST_NODES = {
 		],
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
-		variableNames: {
-			static: 'isStatic'
-		}
+		useMacro: false
 	},
 	RestElement: {
-		fields: [['argument', 'Node']]
+		fields: [['argument', 'Node']],
+		useMacro: false
 	},
 	ReturnStatement: {
 		fields: [['argument', 'OptionalNode']]
@@ -533,7 +549,8 @@ export const AST_NODES = {
 		fields: [['expressions', 'NodeList']]
 	},
 	SpreadElement: {
-		fields: [['argument', 'Node']]
+		fields: [['argument', 'Node']],
+		useMacro: false
 	},
 	StaticBlock: {
 		fields: [['body', 'NodeList']]
@@ -579,7 +596,8 @@ export const AST_NODES = {
 		fields: [
 			['quasis', 'NodeList'],
 			['expressions', 'NodeList']
-		]
+		],
+		useMacro: false
 	},
 	ThisExpression: {},
 	ThrowStatement: {
@@ -590,7 +608,8 @@ export const AST_NODES = {
 			['block', 'Node'],
 			['handler', 'OptionalNode'],
 			['finalizer', 'OptionalNode']
-		]
+		],
+		useMacro: false
 	},
 	UnaryExpression: {
 		fields: [
@@ -621,13 +640,15 @@ export const AST_NODES = {
 		],
 		fieldTypes: {
 			kind: "estree.VariableDeclaration['kind']"
-		}
+		},
+		useMacro: false
 	},
 	VariableDeclarator: {
 		fields: [
 			['id', 'Node'],
 			['init', 'OptionalNode']
-		]
+		],
+		useMacro: false
 	},
 	WhileStatement: {
 		fields: [

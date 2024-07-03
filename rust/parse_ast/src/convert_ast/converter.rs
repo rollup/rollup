@@ -24,6 +24,7 @@ pub mod string_constants;
 mod utf16_positions;
 
 pub mod ast_constants;
+mod ast_macros;
 
 pub struct AstConverter<'a> {
   pub buffer: Vec<u8>,
@@ -32,7 +33,7 @@ pub struct AstConverter<'a> {
 }
 
 impl<'a> AstConverter<'a> {
-  pub fn new(code: &'a str, annotations: &'a Vec<AnnotationWithType>) -> Self {
+  pub fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
     Self {
       // This is just a wild guess and should be revisited from time to time
       buffer: Vec::with_capacity(20 * code.len()),
@@ -267,7 +268,7 @@ impl<'a> AstConverter<'a> {
   pub(crate) fn convert_export_specifier(&mut self, export_specifier: &ExportSpecifier) {
     match export_specifier {
       ExportSpecifier::Named(export_named_specifier) => {
-        self.store_export_named_specifier(export_named_specifier)
+        self.store_export_specifier(export_named_specifier)
       }
       ExportSpecifier::Namespace(_) => unimplemented!("Cannot convert ExportSpecifier::Namespace"),
       ExportSpecifier::Default(_) => unimplemented!("Cannot convert ExportSpecifier::Default"),
@@ -676,7 +677,7 @@ pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   buffer.resize(buffer.len() + additional_length, 0);
 }
 
-pub fn update_reference_position(buffer: &mut Vec<u8>, reference_position: usize) {
+pub fn update_reference_position(buffer: &mut [u8], reference_position: usize) {
   let insert_position = (buffer.len() as u32) >> 2;
   buffer[reference_position..reference_position + 4]
     .copy_from_slice(&insert_position.to_ne_bytes());

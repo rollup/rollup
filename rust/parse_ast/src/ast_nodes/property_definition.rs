@@ -3,11 +3,11 @@ use swc_ecma_ast::{ClassProp, Expr, PrivateProp, PropName};
 
 use crate::ast_nodes::method_definition::PropOrPrivateName;
 use crate::convert_ast::converter::ast_constants::{
-  PROPERTY_DEFINITION_COMPUTED_FLAG, PROPERTY_DEFINITION_FLAGS_OFFSET,
   PROPERTY_DEFINITION_KEY_OFFSET, PROPERTY_DEFINITION_RESERVED_BYTES,
-  PROPERTY_DEFINITION_STATIC_FLAG, PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
+  PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
 };
 use crate::convert_ast::converter::AstConverter;
+use crate::store_property_definition_flags;
 
 impl<'a> AstConverter<'a> {
   pub fn store_property_definition(
@@ -33,20 +33,12 @@ impl<'a> AstConverter<'a> {
       PropOrPrivateName::PrivateName(private_name) => self.store_private_identifier(private_name),
     }
     // flags
-    let mut flags = 0u32;
-    if is_static {
-      flags |= PROPERTY_DEFINITION_STATIC_FLAG;
-    }
-    if is_computed {
-      flags |= PROPERTY_DEFINITION_COMPUTED_FLAG;
-    }
-    let flags_position = end_position + PROPERTY_DEFINITION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    store_property_definition_flags!(self, end_position, static => is_static, computed => is_computed);
     // value
-    value.map(|expression| {
+    if let Some(expression) = value {
       self.update_reference_position(end_position + PROPERTY_DEFINITION_VALUE_OFFSET);
       self.convert_expression(expression);
-    });
+    }
     // end
     self.add_end(end_position, span);
   }

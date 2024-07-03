@@ -24,7 +24,7 @@ pub struct ConvertedAnnotation {
 }
 
 impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
-  pub fn new(code: &'a str, annotations: &'a Vec<AnnotationWithType>) -> Self {
+  pub fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
     let mut annotation_iterator = annotations.iter();
     let current_annotation = annotation_iterator.next();
     Self {

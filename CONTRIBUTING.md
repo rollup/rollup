@@ -18,13 +18,13 @@ Working on your first Pull Request? You can learn how from this _free_ course, [
 
 ### Setting up the Rust toolchain
 
-Rollup now includes some Rust code. To compile it, you need to set up Rust nightly. If you haven't installed it yet, please first see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust, then see https://rust-lang.github.io/rustup/concepts/channels.html to learn how to install Rust nightly.
+Rollup now includes some Rust code. To compile it, you need to set up the Rust toolchain. If you haven't installed it yet, please see https://www.rust-lang.org/tools/install to learn how to download Rustup and install Rust.
 
-Make sure you use the same nightly version as specified in the `/rust/rust-toolchain.toml` file. You should be able to install it with the following commands:
+Make sure you use the same toolchain version as specified in the `/rust/rust-toolchain.toml` file. You should be able to install it with the following commands:
 
 ```shell
-rustup toolchain install nightly-2023-10-05
-rustup default nightly-2023-10-05
+rustup toolchain install stable
+rustup default stable
 ```
 
 You should also install the `wasm32-unknown-unknown` target:

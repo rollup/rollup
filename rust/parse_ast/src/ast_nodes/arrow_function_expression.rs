@@ -2,13 +2,12 @@ use swc_ecma_ast::{ArrowExpr, BlockStmtOrExpr};
 
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
-  ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET, ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG,
-  ARROW_FUNCTION_EXPRESSION_BODY_OFFSET, ARROW_FUNCTION_EXPRESSION_EXPRESSION_FLAG,
-  ARROW_FUNCTION_EXPRESSION_FLAGS_OFFSET, ARROW_FUNCTION_EXPRESSION_GENERATOR_FLAG,
+  ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET, ARROW_FUNCTION_EXPRESSION_BODY_OFFSET,
   ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET, ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
   TYPE_ARROW_FUNCTION_EXPRESSION,
 };
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
+use crate::store_arrow_function_expression_flags;
 
 impl<'a> AstConverter<'a> {
   pub fn store_arrow_function_expression(&mut self, arrow_expression: &ArrowExpr) {
@@ -33,18 +32,13 @@ impl<'a> AstConverter<'a> {
       );
     }
     // flags
-    let mut flags = 0u32;
-    if arrow_expression.is_async {
-      flags |= ARROW_FUNCTION_EXPRESSION_ASYNC_FLAG;
-    }
-    if arrow_expression.is_generator {
-      flags |= ARROW_FUNCTION_EXPRESSION_GENERATOR_FLAG;
-    }
-    if let BlockStmtOrExpr::Expr(_) = &*arrow_expression.body {
-      flags |= ARROW_FUNCTION_EXPRESSION_EXPRESSION_FLAG;
-    }
-    let flags_position = end_position + ARROW_FUNCTION_EXPRESSION_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    store_arrow_function_expression_flags!(
+      self,
+      end_position,
+      async => arrow_expression.is_async,
+      expression => matches!(&*arrow_expression.body, BlockStmtOrExpr::Expr(_)),
+      generator => arrow_expression.is_generator
+    );
     // params
     self.convert_item_list(
       &arrow_expression.params,

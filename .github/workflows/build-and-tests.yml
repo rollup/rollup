@@ -149,7 +149,7 @@ jobs:
             build: >-
               set -e &&
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default nightly-2023-10-05 &&
+              rustup default stable &&
               rustup target add aarch64-unknown-linux-gnu &&
               npm run build:napi -- --release --target aarch64-unknown-linux-gnu
           - host: ubuntu-latest
@@ -158,7 +158,7 @@ jobs:
             build: >-
               set -e &&
               export JEMALLOC_SYS_WITH_LG_PAGE=16 &&
-              rustup default nightly-2023-10-05 &&
+              rustup default stable &&
               rustup target add aarch64-unknown-linux-musl &&
               RUSTFLAGS='-C target-feature=-crt-static -C linker=aarch64-linux-musl-gcc' npm run build:napi -- --release --target aarch64-unknown-linux-musl
           - host: ubuntu-latest
@@ -214,7 +214,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: nightly-2023-10-05
+          toolchain: stable
           targets: ${{ matrix.settings.target }}
       - name: Cache cargo
         uses: actions/cache@v4

@@ -7,12 +7,12 @@ use swc_ecma_ast::{
 use crate::ast_nodes::assignment_pattern::PatternOrIdentifier;
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-  PROPERTY_COMPUTED_FLAG, PROPERTY_FLAGS_OFFSET, PROPERTY_KEY_OFFSET, PROPERTY_KIND_OFFSET,
-  PROPERTY_METHOD_FLAG, PROPERTY_RESERVED_BYTES, PROPERTY_SHORTHAND_FLAG, PROPERTY_VALUE_OFFSET,
+  PROPERTY_KEY_OFFSET, PROPERTY_KIND_OFFSET, PROPERTY_RESERVED_BYTES, PROPERTY_VALUE_OFFSET,
   TYPE_FUNCTION_EXPRESSION, TYPE_PROPERTY,
 };
 use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, STRING_SET};
 use crate::convert_ast::converter::AstConverter;
+use crate::store_property_flags;
 
 impl<'a> AstConverter<'a> {
   pub fn convert_property(&mut self, property: &Prop) {
@@ -57,13 +57,14 @@ impl<'a> AstConverter<'a> {
     // key
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(property_name);
-    // flags, method and shorthand are always false
-    let mut flags = 0u32;
-    if matches!(property_name, PropName::Computed(_)) {
-      flags |= PROPERTY_COMPUTED_FLAG
-    };
-    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // flags
+    store_property_flags!(
+      self,
+      end_position,
+      method => false,
+      shorthand => false,
+      computed => matches!(property_name, PropName::Computed(_))
+    );
     // kind
     let kind_position = end_position + PROPERTY_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
@@ -91,13 +92,14 @@ impl<'a> AstConverter<'a> {
     self.update_reference_position(end_position + PROPERTY_KEY_OFFSET);
     self.convert_property_name(key);
     let key_end = key.span().hi.0 - 1;
-    // flags, method and shorthand are always false
-    let mut flags = 0u32;
-    if matches!(key, PropName::Computed(_)) {
-      flags |= PROPERTY_COMPUTED_FLAG;
-    };
-    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // flags
+    store_property_flags!(
+      self,
+      end_position,
+      method => false,
+      shorthand => false,
+      computed => matches!(key, PropName::Computed(_))
+    );
     // kind
     let kind_position = end_position + PROPERTY_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(kind);
@@ -135,13 +137,14 @@ impl<'a> AstConverter<'a> {
     self.convert_property_name(&method_property.key);
     let key_end = &method_property.key.span().hi.0 - 1;
     let function_start = find_first_occurrence_outside_comment(self.code, b'(', key_end);
-    // flags, shorthand is always false
-    let mut flags = PROPERTY_METHOD_FLAG;
-    if matches!(&method_property.key, PropName::Computed(_)) {
-      flags |= PROPERTY_COMPUTED_FLAG
-    };
-    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4].copy_from_slice(&flags.to_ne_bytes());
+    // flags
+    store_property_flags!(
+      self,
+      end_position,
+      method => true,
+      shorthand => false,
+      computed => matches!(&method_property.key, PropName::Computed(_))
+    );
     // kind
     let kind_position = end_position + PROPERTY_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
@@ -192,9 +195,13 @@ impl<'a> AstConverter<'a> {
       }
     }
     // flags
-    let flags_position = end_position + PROPERTY_FLAGS_OFFSET;
-    self.buffer[flags_position..flags_position + 4]
-      .copy_from_slice(&PROPERTY_SHORTHAND_FLAG.to_ne_bytes());
+    store_property_flags!(
+      self,
+      end_position,
+      method => false,
+      shorthand => true,
+      computed => false
+    );
     // kind
     let kind_position = end_position + PROPERTY_KIND_OFFSET;
     self.buffer[kind_position..kind_position + 4].copy_from_slice(&STRING_INIT);
