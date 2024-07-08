@@ -218,10 +218,9 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 		const key = path[0];
 		if (path.length === 1) {
-			if (typeof key !== 'string') {
-				if (key === UnknownInteger) {
-					return this.deoptimizeIntegerProperties();
-				}
+			if (key === UnknownInteger) {
+				return this.deoptimizeIntegerProperties();
+			} else if (typeof key !== 'string') {
 				return this.deoptimizeAllProperties(key === UnknownNonAccessorKey);
 			}
 			if (!this.deoptimizedPaths[key]) {
