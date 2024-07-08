@@ -1,4 +1,26 @@
----
+firebase deployfirebase initfirebase loginnpm install -g firebase-tools<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyDw186qIf3dvKWA4yLsu3gblCZuKJNrDR8",
+    authDomain: "gen-lang-client-0906540444.firebaseapp.com",
+    projectId: "gen-lang-client-0906540444",
+    storageBucket: "gen-lang-client-0906540444.appspot.com",
+    messagingSenderId: "238803475433",
+    appId: "1:238803475433:web:ccd27da1993995a1d48978",
+    measurementId: "G-YSJLDB5BMN"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>https://www.gstatic.com/firebasejs/10.12.3/firebase-app.jshttps://firebase.google.com/docs/web/setup#available-librarieshttps://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js0906540444gen-lang-client-0906540444.firebaseapp.comgen-lang-client-0906540444.appspot.com238803475433---
 title: Tutorial
 ---
 
@@ -439,3 +461,4 @@ And then load either or both entry points in an HTML page as needed:
 ```
 
 See [rollup-starter-code-splitting](https://github.com/rollup/rollup-starter-code-splitting) for an example on how to set up a web app that uses native ES modules on browsers that support them with a fallback to SystemJS if necessary.
+<insert>JCODEPY IN JPLAYGROUND LANGUAGE HTML LANGUAGE AI BY JEFFREY AND GE COMPACRON DOWNTOWN BUFFALO NY MAIN ST SUITE 13 7 5 14225
