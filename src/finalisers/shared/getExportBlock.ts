@@ -43,7 +43,7 @@ export function getExportBlock(
 			reexports
 		} of dependencies) {
 			if (!reexports) {
-				continue
+				continue;
 			}
 
 			for (const specifier of reexports) {
@@ -105,7 +105,7 @@ export function getExportBlock(
 	if (namedExportsMode) {
 		for (const { name, reexports } of dependencies) {
 			if (!reexports) {
-				continue
+				continue;
 			}
 			for (const specifier of reexports) {
 				if (specifier.reexported === '*') {
