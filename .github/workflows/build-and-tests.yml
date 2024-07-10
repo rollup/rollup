@@ -102,7 +102,7 @@ jobs:
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
 
           # MacOS
-          - host: macos-13
+          - host: macos-latest
             target: x86_64-apple-darwin
             build: >-
               set -e &&
@@ -240,7 +240,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-${{ matrix.settings.target }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
@@ -316,7 +316,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-${{ matrix.settings.target }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
@@ -376,8 +376,8 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-          - host: macos-13
-            target: x86_64-apple-darwin
+          - host: macos-latest
+            target: aarch64-apple-darwin
         node:
           - '18.0.0'
           - '20'
@@ -410,7 +410,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-${{ matrix.settings.target }}-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
