@@ -102,7 +102,7 @@ jobs:
             build: npm run build:napi -- --release --target aarch64-pc-windows-msvc
 
           # MacOS
-          - host: macos-latest
+          - host: macos-13
             target: x86_64-apple-darwin
             build: >-
               set -e &&
