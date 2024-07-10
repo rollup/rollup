@@ -32,16 +32,20 @@ export function getExportBlock(
 
 	let exportBlock = '';
 
-	for (const {
-		defaultVariableName,
-		importPath,
-		isChunk,
-		name,
-		namedExportsMode: depNamedExportsMode,
-		namespaceVariableName,
-		reexports
-	} of dependencies) {
-		if (reexports && namedExportsMode) {
+	if (namedExportsMode) {
+		for (const {
+			defaultVariableName,
+			importPath,
+			isChunk,
+			name,
+			namedExportsMode: depNamedExportsMode,
+			namespaceVariableName,
+			reexports
+		} of dependencies) {
+			if (!reexports) {
+				continue;
+			}
+
 			for (const specifier of reexports) {
 				if (specifier.reexported !== '*') {
 					const importName = getReexportedImportName(
@@ -98,8 +102,11 @@ export function getExportBlock(
 		}
 	}
 
-	for (const { name, reexports } of dependencies) {
-		if (reexports && namedExportsMode) {
+	if (namedExportsMode) {
+		for (const { name, reexports } of dependencies) {
+			if (!reexports) {
+				continue;
+			}
 			for (const specifier of reexports) {
 				if (specifier.reexported === '*') {
 					if (exportBlock) exportBlock += n;
