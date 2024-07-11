@@ -1,0 +1,10 @@
+{
+  "decisions": {
+    "1098122|requirejs": {
+      "decision": "ignore",
+      "madeAt": 1720680883374
+    }
+  },
+  "rules": {},
+  "version": 1
+}
