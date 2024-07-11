@@ -566,11 +566,19 @@ See [`onLog`](#onlog) for more information.
 
 ### output.assetFileNames
 
-|          |                                               |
-| -------: | :-------------------------------------------- |
-|    Type: | `string\| ((assetInfo: AssetInfo) => string)` |
-|     CLI: | `--assetFileNames <pattern>`                  |
-| Default: | `"assets/[name]-[hash][extname]"`             |
+|          |                                                      |
+| -------: | :--------------------------------------------------- |
+|    Type: | `string\| ((assetInfo: PreRenderedAsset) => string)` |
+|     CLI: | `--assetFileNames <pattern>`                         |
+| Default: | `"assets/[name]-[hash][extname]"`                    |
+
+```typescript
+interface PreRenderedAsset {
+	name?: string;
+	source: string | Uint8Array;
+	type: 'asset';
+}
+```
 
 The pattern to use for naming custom emitted assets to include in the build output, or a function that is called per asset to return such a pattern. Patterns support the following placeholders:
 
@@ -579,18 +587,20 @@ The pattern to use for naming custom emitted assets to include in the build outp
 - `[hash]`: A hash based on the content of the asset. You can also set a specific hash length via e.g. `[hash:10]`. By default, it will create a base-64 hash. If you need a reduced character sets, see [`output.hashCharacters`](#output-hashcharacters)
 - `[name]`: The file name of the asset excluding any extension.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#output-chunkfilenames), [`output.entryFileNames`](#output-entryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `PreRenderedAsset` is a reduced version of the `OutputAsset` type in [`generateBundle`](../plugin-development/index.md#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](#output-chunkfilenames), [`output.entryFileNames`](#output-entryfilenames).
 
 ### output.banner/output.footer
 
-|       |                                                              |
-| ----: | :----------------------------------------------------------- |
-| Type: | `string \| ((chunk: ChunkInfo) => string\| Promise<string>)` |
-|  CLI: | `--banner`/`--footer <text>`                                 |
+|       |                                                                  |
+| ----: | :--------------------------------------------------------------- |
+| Type: | `string \| ((chunk: RenderedChunk) => string\| Promise<string>)` |
+|  CLI: | `--banner`/`--footer <text>`                                     |
+
+See the [`renderChunk`](../plugin-development/index.md#renderchunk) hook for the `RenderedChunk` type.
 
 A string to prepend/append to the bundle. You can also supply a function that returns a `Promise` that resolves to a `string` to generate it asynchronously (Note: `banner` and `footer` options will not break sourcemaps).
 
-If you supply a function, `chunk` contains additional information about the chunk using the same `ChunkInfo` type as the [`generateBundle`](../plugin-development/index.md#generatebundle) hook with the following differences:
+If you supply a function, `chunk` contains additional information about the chunk using a `RenderedChunk` type that is a reduced version of the `OutputChunk` type used in [`generateBundle`](../plugin-development/index.md#generatebundle) hook with the following differences:
 
 - `code` and `map` are not set as the chunk has not been rendered yet.
 - all referenced chunk file names that would contain hashes will contain hash placeholders instead. This includes `fileName`, `imports`, `importedBindings`, `dynamicImports` and `implicitlyLoadedBefore`. When you use such a placeholder file name or part of it in the code returned from this option, Rollup will replace the placeholder with the actual hash before `generateBundle`, making sure the hash reflects the actual content of the final generated chunk including all referenced file hashes.
@@ -616,11 +626,24 @@ See also [`output.intro/output.outro`](#output-intro-output-outro).
 
 ### output.chunkFileNames
 
-|          |                                                |
-| -------: | :--------------------------------------------- |
-|    Type: | `string \| ((chunkInfo: ChunkInfo) => string)` |
-|     CLI: | `--chunkFileNames <pattern>`                   |
-| Default: | `"[name]-[hash].js"`                           |
+|          |                                                       |
+| -------: | :---------------------------------------------------- |
+|    Type: | `string \| ((chunkInfo: PreRenderedChunk) => string)` |
+|     CLI: | `--chunkFileNames <pattern>`                          |
+| Default: | `"[name]-[hash].js"`                                  |
+
+```typescript
+interface PreRenderedChunk {
+	exports: string[];
+	facadeModuleId: string | null;
+	isDynamicEntry: boolean;
+	isEntry: boolean;
+	isImplicitEntry: boolean;
+	moduleIds: string[];
+	name: string;
+	type: 'chunk';
+}
+```
 
 The pattern to use for naming shared chunks created when code-splitting, or a function that is called per chunk to return such a pattern. Patterns support the following placeholders:
 
@@ -628,7 +651,7 @@ The pattern to use for naming shared chunks created when code-splitting, or a fu
 - `[hash]`: A hash based only on the content of the final generated chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`. By default, it will create a base-64 hash. If you need a reduced character sets, see [`output.hashCharacters`](#output-hashcharacters)
 - `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](#output-manualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](../plugin-development/index.md#this-emitfile). Otherwise, it will be derived from the chunk contents.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.entryFileNames`](#output-entryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `PreRenderedChunk` is a reduced version of the `OutputChunk` type in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.entryFileNames`](#output-entryfilenames).
 
 ### output.compact
 
@@ -692,11 +715,13 @@ Promise.resolve()
 
 ### output.entryFileNames
 
-|          |                                                |
-| -------: | :--------------------------------------------- |
-|    Type: | `string \| ((chunkInfo: ChunkInfo) => string)` |
-|     CLI: | `--entryFileNames <pattern>`                   |
-| Default: | `"[name].js"`                                  |
+|          |                                                       |
+| -------: | :---------------------------------------------------- |
+|    Type: | `string \| ((chunkInfo: PreRenderedChunk) => string)` |
+|     CLI: | `--entryFileNames <pattern>`                          |
+| Default: | `"[name].js"`                                         |
+
+See [`output.chunkFileNames`](#output-chunkfilenames) for the `PreRenderedChunk` type.
 
 The pattern to use for chunks created from entry points, or a function that is called per entry chunk to return such a pattern. Patterns support the following placeholders:
 
@@ -704,7 +729,7 @@ The pattern to use for chunks created from entry points, or a function that is c
 - `[hash]`: A hash based only on the content of the final generated entry chunk, including transformations in [`renderChunk`](../plugin-development/index.md#renderchunk) and any referenced file hashes. You can also set a specific hash length via e.g. `[hash:10]`. By default, it will create a base-64 hash. If you need a reduced character sets, see [`output.hashCharacters`](#output-hashcharacters)
 - `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
-Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.chunkFileNames`](#output-chunkfilenames).
+Forward slashes `/` can be used to place files in sub-directories. When using a function, `PreRenderedChunk` is a reduced version of the `OutputChunk` type in [`generateBundle`](../plugin-development/index.md#generatebundle) without properties that depend on file names and no information about the rendered modules as rendering only happens after file names have been generated. You can however access a list of included `moduleIds`. See also [`output.assetFileNames`](#output-assetfilenames), [`output.chunkFileNames`](#output-chunkfilenames).
 
 This pattern will also be used for every file when setting the [`output.preserveModules`](#output-preservemodules) option. Note that in this case, `[name]` will include the relative path from the output root and possibly the original file extension if it was not one of `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, or `.cts`.
 
@@ -1213,10 +1238,10 @@ There are some additional options that have an effect on the generated interop c
 
 ### output.intro/output.outro
 
-|       |                                                              |
-| ----: | :----------------------------------------------------------- |
-| Type: | `string \| ((chunk: ChunkInfo) => string\| Promise<string>)` |
-|  CLI: | `--intro`/`--outro <text>`                                   |
+|       |                                                                  |
+| ----: | :--------------------------------------------------------------- |
+| Type: | `string \| ((chunk: RenderedChunk) => string\| Promise<string>)` |
+|  CLI: | `--intro`/`--outro <text>`                                       |
 
 Similar to [`output.banner/output.footer`](#output-banner-output-footer), except that the code goes _inside_ any format-specific wrapper.
 
@@ -1565,10 +1590,12 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 
 ### output.sourcemapFileNames
 
-|       |                                                |
-| ----: | :--------------------------------------------- |
-| Type: | `string \| ((chunkInfo: ChunkInfo) => string)` |
-|  CLI: | `--sourcemapFileNames <pattern>`               |
+|       |                                                       |
+| ----: | :---------------------------------------------------- |
+| Type: | `string \| ((chunkInfo: PreRenderedChunk) => string)` |
+|  CLI: | `--sourcemapFileNames <pattern>`                      |
+
+See [`output.chunkFileNames`](#output-chunkfilenames) for the `PreRenderedChunk` type.
 
 The pattern to use for sourcemaps, or a function that is called per sourcemap to return such a pattern. Patterns support the following placeholders:
 
