@@ -199,7 +199,7 @@ function getDummyLogSection(headline, pr) {
 async function installDependenciesAndLint() {
 	await Promise.all([
 		runWithEcho('npm', ['ci', '--ignore-scripts']),
-		runWithEcho('npm', ['audit'])
+		runWithEcho('npm', ['run', 'check-audit'])
 	]);
 	await runWithEcho('npm', ['run', 'ci:lint']);
 }
