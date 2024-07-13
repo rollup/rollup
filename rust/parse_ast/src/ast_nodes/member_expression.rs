@@ -1,6 +1,6 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-  ComputedPropName, Expr, Ident, MemberExpr, MemberProp, PrivateName, Super, SuperProp,
+  ComputedPropName, Expr, IdentName, MemberExpr, MemberProp, PrivateName, Super, SuperProp,
   SuperPropExpr,
 };
 
@@ -53,7 +53,7 @@ impl<'a> AstConverter<'a> {
     // property
     self.update_reference_position(end_position + MEMBER_EXPRESSION_PROPERTY_OFFSET);
     match property {
-      MemberOrSuperProp::Identifier(ident) => self.convert_identifier(ident),
+      MemberOrSuperProp::Identifier(ident) => self.convert_identifier_name(ident),
       MemberOrSuperProp::Computed(computed) => {
         self.convert_expression(&computed.expr);
       }
@@ -99,7 +99,7 @@ impl<'a> AstConverter<'a> {
 }
 
 pub enum MemberOrSuperProp<'a> {
-  Identifier(&'a Ident),
+  Identifier(&'a IdentName),
   PrivateName(&'a PrivateName),
   Computed(&'a ComputedPropName),
 }
