@@ -1,4 +1,4 @@
-use swc_ecma_ast::{BindingIdent, Ident};
+use swc_ecma_ast::{BindingIdent, Ident, IdentName};
 
 use crate::convert_ast::converter::ast_constants::{
   IDENTIFIER_NAME_OFFSET, IDENTIFIER_RESERVED_BYTES, TYPE_IDENTIFIER,
@@ -20,6 +20,13 @@ impl<'a> AstConverter<'a> {
   }
 
   pub fn convert_identifier(&mut self, identifier: &Ident) {
+    self.store_identifier(
+      identifier.span.lo.0 - 1,
+      identifier.span.hi.0 - 1,
+      &identifier.sym,
+    );
+  }
+  pub fn convert_identifier_name(&mut self, identifier: &IdentName) {
     self.store_identifier(
       identifier.span.lo.0 - 1,
       identifier.span.hi.0 - 1,

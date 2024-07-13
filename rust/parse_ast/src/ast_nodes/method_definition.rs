@@ -49,7 +49,7 @@ impl<'a> AstConverter<'a> {
       }
       PropOrPrivateName::PrivateName(private_name) => {
         self.store_private_identifier(private_name);
-        private_name.id.span.hi.0 - 1
+        private_name.span.hi.0 - 1
       }
     };
     // value

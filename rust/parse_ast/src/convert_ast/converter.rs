@@ -595,8 +595,8 @@ impl<'a> AstConverter<'a> {
       PropName::Computed(computed_property_name) => {
         self.convert_expression(computed_property_name.expr.as_ref())
       }
-      PropName::Ident(ident) => {
-        self.convert_identifier(ident);
+      PropName::Ident(identifier_name) => {
+        self.convert_identifier_name(identifier_name);
       }
       PropName::Str(string) => {
         self.store_literal_string(string);

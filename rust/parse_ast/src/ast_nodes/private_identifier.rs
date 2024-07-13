@@ -8,7 +8,7 @@ impl<'a> AstConverter<'a> {
     store_private_identifier!(
       self,
       span => &private_name.span,
-      name => &private_name.id.sym
+      name => &private_name.name
     );
   }
 }

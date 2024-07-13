@@ -28,7 +28,7 @@ pub fn parse_ast(code: String, allow_return_outside_function: bool) -> Vec<u8> {
   });
 
   let filename = FileName::Anon;
-  let file = cm.new_source_file(filename, code);
+  let file = cm.new_source_file(filename.into(), code);
   let code_reference = Lrc::clone(&file.src);
   let comments = SequentialComments::default();
   GLOBALS.set(&Globals::default(), || {
