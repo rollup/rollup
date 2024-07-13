@@ -222,6 +222,7 @@ async function waitForChangelogUpdate(version) {
 		console.log(cyan('You generated the following changelog entry:\n') + changelogEntry);
 		await inquirer.prompt([
 			{
+				/** @type {any[]} */
 				choices: ['ok'],
 				message: `Please edit the changelog or confirm the changelog is acceptable to continue to release "${version}".`,
 				name: 'ok',
