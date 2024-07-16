@@ -3,7 +3,7 @@
   "typescript.format.insertSpaceAfterConstructor": true,
   "typescript.format.enable": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "references.preferredLocation": "peek",
   "vue.features.codeActions.enable": false
