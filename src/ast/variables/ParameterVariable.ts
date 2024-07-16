@@ -190,7 +190,7 @@ export default class ParameterVariable extends LocalVariable {
 		return knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(path?: ObjectPath): void {
+	includePath(path: ObjectPath): void {
 		super.includePath(path);
 		if (path) {
 			for (const [trackedArgument, pathKeys] of this.trackedArguments) {

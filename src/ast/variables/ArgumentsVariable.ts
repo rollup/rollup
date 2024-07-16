@@ -26,8 +26,8 @@ export default class ArgumentsVariable extends LocalVariable {
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
-	includePath() {
-		super.includePath();
+	includePath(path: ObjectPath) {
+		super.includePath(path);
 		for (const argument of this.deoptimizedArguments) {
 			argument.deoptimizePath(UNKNOWN_PATH);
 		}

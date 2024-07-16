@@ -1,5 +1,6 @@
 import type Module from '../../Module';
 import type { AstContext } from '../../Module';
+import type { ObjectPath } from '../utils/PathTracker';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
@@ -44,8 +45,8 @@ export default class SyntheticNamedExportVariable extends Variable {
 		return `${this.syntheticNamespace.getName(getPropertyAccess)}${getPropertyAccess(this.name)}`;
 	}
 
-	includePath(): void {
-		super.includePath();
+	includePath(path: ObjectPath): void {
+		super.includePath(path);
 		this.context.includeVariableInModule(this.syntheticNamespace);
 	}
 

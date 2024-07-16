@@ -113,8 +113,8 @@ export default class NamespaceVariable extends Variable {
 		);
 	}
 
-	includePath(): void {
-		super.includePath();
+	includePath(path: ObjectPath): void {
+		super.includePath(path);
 		this.context.includeAllExports();
 	}
 

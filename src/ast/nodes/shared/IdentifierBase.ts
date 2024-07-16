@@ -144,7 +144,7 @@ export default class IdentifierBase extends NodeBase {
 		return false;
 	}
 
-	includePath(path?: ObjectPath): void {
+	includePath(path: ObjectPath): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
@@ -152,7 +152,7 @@ export default class IdentifierBase extends NodeBase {
 				this.scope.context.includeVariableInModule(this.variable);
 			}
 		}
-		if (path?.length && !this.hasOrAddIncludedPaths(path)) {
+		if (path.length > 0 && !this.hasOrAddIncludedPaths(path)) {
 			this.variable?.includePath(path);
 		}
 	}
