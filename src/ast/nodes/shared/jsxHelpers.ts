@@ -1,3 +1,4 @@
+import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
 import type JSXElement from '../JSXElement';
@@ -35,7 +36,7 @@ export function getAndIncludeFactoryVariable(
 		if (preserve) {
 			// This pretends we are accessing an included global variable of the same name
 			const globalVariable = node.scope.findGlobal(baseName);
-			globalVariable.includePath();
+			globalVariable.includePath(UNKNOWN_PATH);
 			// This excludes this variable from renaming
 			factoryVariable.globalName = baseName;
 		}

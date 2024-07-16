@@ -96,7 +96,7 @@ export default class FunctionNode extends FunctionBase {
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		super.includePath(path, context, includeChildrenRecursively);
-		this.id?.includePath();
+		this.id?.includePath(UNKNOWN_PATH);
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {

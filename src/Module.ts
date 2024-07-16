@@ -20,7 +20,7 @@ import type Program from './ast/nodes/Program';
 import type { NodeBase } from './ast/nodes/shared/Node';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
+import { EMPTY_PATH, type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -1336,12 +1336,12 @@ export default class Module {
 		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const [externalVariable] = module.getVariableForExportName('*');
-				externalVariable.includePath();
+				externalVariable.includePath(EMPTY_PATH);
 				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
-				syntheticNamespace.includePath();
+				syntheticNamespace.includePath(EMPTY_PATH);
 				this.includedImports.add(syntheticNamespace);
 				syntheticNamespaces.add(syntheticNamespace);
 			}
@@ -1377,7 +1377,7 @@ export default class Module {
 				getAndExtendSideEffectModules(variable, this);
 			}
 		} else {
-			variable.includePath();
+			variable.includePath(EMPTY_PATH);
 			this.graph.needsTreeshakingPass = true;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {

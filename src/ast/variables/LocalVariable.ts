@@ -182,7 +182,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includePath(path?: ObjectPath): void {
+	includePath(path: ObjectPath): void {
 		if (!this.included) {
 			super.includePath(path);
 			for (const declaration of this.declarations) {
@@ -199,7 +199,7 @@ export default class LocalVariable extends Variable {
 				}
 			}
 		}
-		if (path?.length) {
+		if (path.length > 0) {
 			this.init.includePath(path, createInclusionContext(), false);
 		}
 	}
