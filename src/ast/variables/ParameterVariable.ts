@@ -1,5 +1,6 @@
 import type { AstContext } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
+import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, type HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
@@ -91,13 +92,8 @@ export default class ParameterVariable extends LocalVariable {
 		this.markReassigned();
 	}
 
-	trackArgument(argument: ExpressionEntity, path?: ObjectPathKey): void {
-		const existedPaths = this.trackedArguments.get(argument);
-		if (existedPaths) {
-			existedPaths.add(path);
-		} else {
-			this.trackedArguments.set(argument, new Set([path]));
-		}
+	trackArgument(argument: ExpressionEntity, pathKey?: ObjectPathKey): void {
+		getOrCreate(this.trackedArguments, argument, getNewSet).add(pathKey);
 	}
 
 	private trackedArguments = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();

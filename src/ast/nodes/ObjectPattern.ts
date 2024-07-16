@@ -3,6 +3,7 @@ import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
+import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import type Property from './Property';
 import RestElement from './RestElement';
@@ -61,7 +62,12 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 				this.parent.init?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively, options);
 			} else {
 				for (const p of this.properties as Property[]) {
-					this.parent.init?.includePath([p.key.name], context, includeChildrenRecursively, options);
+					this.parent.init?.includePath(
+						[(p.key as Identifier).name],
+						context,
+						includeChildrenRecursively,
+						options
+					);
 				}
 			}
 		}
