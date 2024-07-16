@@ -2,6 +2,7 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { checkEffectForNodes } from '../utils/checkEffectForNodes';
 import type Decorator from './Decorator';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -62,7 +63,11 @@ export default class PropertyDefinition extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		return this.key.hasEffects(context) || (this.static && !!this.value?.hasEffects(context));
+		return (
+			this.key.hasEffects(context) ||
+			(this.static && !!this.value?.hasEffects(context)) ||
+			checkEffectForNodes(this.decorators, context)
+		);
 	}
 
 	hasEffectsOnInteractionAtPath(

@@ -11,6 +11,7 @@ import {
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../../utils/PathTracker';
+import { checkEffectForNodes } from '../../utils/checkEffectForNodes';
 import type ClassBody from '../ClassBody';
 import type Decorator from '../Decorator';
 import Identifier from '../Identifier';
@@ -81,7 +82,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		const initEffect = this.superClass?.hasEffects(context) || this.body.hasEffects(context);
 		this.id?.markDeclarationReached();
-		return initEffect || super.hasEffects(context);
+		return initEffect || super.hasEffects(context) || checkEffectForNodes(this.decorators, context);
 	}
 
 	hasEffectsOnInteractionAtPath(
@@ -103,6 +104,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.included = true;
 		this.superClass?.include(context, includeChildrenRecursively);
 		this.body.include(context, includeChildrenRecursively);
+		for (const decorator of this.decorators) decorator.include(context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
 			this.id.include();
