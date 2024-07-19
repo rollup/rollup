@@ -374,7 +374,7 @@ const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOpt
 		return '';
 	}
 	const configIndent = config.indent;
-	return configIndent === false ? '' : configIndent ?? true;
+	return configIndent === false ? '' : (configIndent ?? true);
 };
 
 const ALLOWED_INTEROP_TYPES: ReadonlySet<string | boolean> = new Set([
