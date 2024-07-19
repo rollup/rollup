@@ -1,12 +1,12 @@
 function fooDecorator$1() {
-	console.log('effect');
+	console.log('first effect');
 }
 
-@fooDecorator$1
-class Foo$1 {}
+let Foo$1 = @fooDecorator$1
+class Foo {};
 
 function fooDecorator() {
-	console.log('effect');
+	console.log('second effect');
 }
 
 @fooDecorator

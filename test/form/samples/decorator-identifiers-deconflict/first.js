@@ -1,5 +1,5 @@
 function fooDecorator() {
-	console.log('effect');
+	console.log('first effect');
 }
 
 @fooDecorator
