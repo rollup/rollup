@@ -3,6 +3,7 @@ import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
+import FunctionBase from '../nodes/shared/FunctionBase';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
@@ -89,6 +90,13 @@ export default class ParameterScope extends ChildScope {
 			}
 			if (argumentIncluded) {
 				argument.includePath(EMPTY_PATH, context, calledFromTryStatement);
+			}
+		}
+		for (const functionEntity of context.includedCallArguments) {
+			if (functionEntity instanceof FunctionBase) {
+				for (const argument of functionEntity.argumentsToBeIncludedAll) {
+					argument.includePath(UNKNOWN_PATH, context, false);
+				}
 			}
 		}
 	}

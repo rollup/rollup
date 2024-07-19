@@ -114,7 +114,8 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	protected objectEntity: ObjectEntity | null = null;
-	private argumentsToBeIncludedAll = new Set<ExpressionEntity>();
+
+	argumentsToBeIncludedAll = new Set<ExpressionEntity>();
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
@@ -272,9 +273,6 @@ export default abstract class FunctionBase extends NodeBase {
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
 		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
-		for (const argument of this.argumentsToBeIncludedAll) {
-			argument.includePath(UNKNOWN_PATH, context, false);
-		}
 		context.brokenFlow = brokenFlow;
 	}
 
