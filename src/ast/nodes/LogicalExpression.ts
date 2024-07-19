@@ -185,12 +185,12 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}: NodeRenderOptions = BLANK
 	): void {
 		if (!this.left.included || !this.right.included) {
-			const operatorPos = findFirstOccurrenceOutsideComment(
-				code.original,
-				this.operator,
-				this.left.end
-			);
 			if (this.right.included) {
+				const operatorPos = findFirstOccurrenceOutsideComment(
+					code.original,
+					this.operator,
+					this.left.end
+				);
 				const removePos = findNonWhiteSpace(code.original, operatorPos + 2);
 				code.remove(this.start, removePos);
 				if (preventASI) {
@@ -198,7 +198,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				}
 				this.left.removeAnnotations(code);
 			} else {
-				code.remove(operatorPos, this.end);
+				code.remove(this.left.end, this.end);
 			}
 			this.getUsedBranch()!.render(code, options, {
 				isCalleeOfRenderedParent,

@@ -9,9 +9,9 @@ System.register([], (function () {
 
 			console.log(getStringA());
 
-			console.log(false );
+			console.log(false);
 
-			console.log(true );
+			console.log(true);
 
 			function getStringD() {
 				return 'D';
