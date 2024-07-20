@@ -22,14 +22,14 @@ define((function () { 'use strict';
 	(null).foo = 1;
 
 	// effect
-	(true )();
-	(false )();
+	(true)();
+	(false)();
 	((() => console.log( 'effect' )))();
 	((() => console.log( 'effect' )))();
 
 	// effect
-	(true )()();
-	(false )()();
+	(true)()();
+	(false)()();
 	((() => () => console.log( 'effect' )))()();
 	((() => () => console.log( 'effect' )))()();
 

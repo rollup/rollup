@@ -1,6 +1,6 @@
 let isFirstReassigned = false;
 
-const result1 = (foo(), isFirstReassigned );
+const result1 = (foo(), isFirstReassigned);
 console.log(result1);
 
 let isSecondReassigned = false;
