@@ -670,7 +670,7 @@ interface SourceDescription {
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used [`this.parse`](#this-parse) to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise, you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
-Note that in watch mode or when using the cache explicitly, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
+Note that in watch mode or when using the cache explicitly, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` or `this.emitFile` the last time the hook was triggered for this module.
 
 In all other cases, the [`shouldTransformCachedModule`](#shouldtransformcachedmodule) hook is triggered instead, which gives access to the cached module. Returning `true` from `shouldTransformCachedModule` will remove the module from cache and instead call `transform` again.
 
@@ -908,8 +908,9 @@ Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-ban
 ```typescript
 interface OutputAsset {
 	fileName: string;
-	name?: string;
+	name: string | undefined;
 	needsCodeReference: boolean;
+	originalFileName: string | null;
 	source: string | Uint8Array;
 	type: 'asset';
 }
@@ -1244,6 +1245,8 @@ A number of utility functions and informational bits can be accessed from within
 
 Adds additional files to be monitored in watch mode so that changes to these files will trigger rebuilds. `id` can be an absolute path to a file or directory or a path relative to the current working directory. This context function can be used in all plugin hooks except `closeBundle`. However, it will not have an effect when used in [output generation hooks](#output-generation-hooks) if [`watch.skipWrite`](../configuration-options/index.md#watch-skipwrite) is set to `true`.
 
+Note that when emitting assets that correspond to an existing file, it is recommended to set the `originalFileName` property in the [`this.emitFile`](#this-emitfile) call instead as that will not only watch the file but also make the connection transparent to other plugins.
+
 **Note:** Usually in watch mode to improve rebuild speed, the `transform` hook will only be triggered for a given module if its contents actually changed. Using `this.addWatchFile` from within the `transform` hook will make sure the `transform` hook is also reevaluated for this module if the watched file changes.
 
 In general, it is recommended to use `this.addWatchFile` from within the hook that depends on the watched file.
@@ -1305,6 +1308,7 @@ interface EmittedAsset {
 	type: 'asset';
 	name?: string;
 	needsCodeReference?: boolean;
+	originalFileName?: string;
 	fileName?: string;
 	source?: string | Uint8Array;
 }
@@ -1445,7 +1449,11 @@ import { foo } from './my-prebuilt-chunk.js';
 
 Currently, emitting a prebuilt chunk is a basic feature. Looking forward to your feedback.
 
-If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](#this-setassetsource) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If an asset without a `fileName` is not deduplicated, the [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) name pattern will be used. If `needsCodeReference` is set to `true` and this asset is not referenced by any code in the output via `import.meta.ROLLUP_FILE_URL_referenceId`, then Rollup will not emit it. This also respects references removed via tree-shaking, i.e. if the corresponding `import.meta.ROLLUP_FILE_URL_referenceId` is part of the source code but is not actually used and the reference is removed by tree-shaking, then the asset is not emitted.
+If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](#this-setassetsource) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If an asset without a `fileName` is not deduplicated, the [`output.assetFileNames`](../configuration-options/index.md#output-assetfilenames) name pattern will be used.
+
+If this asset corresponds to an actual file on disk, then `originalFileName` should be set to the absolute path of the file. In that case, this property will be passed on to subsequent plugin hooks that receive a `PreRenderedAsset` or an `OutputAsset` like [`generateBundle`](#generatebundle). In watch mode, Rollup will also automatically watch this file for changes and trigger a rebuild if it changes. Therefore, it is not necessary to call `this.addWatchFile` for this file.
+
+If `needsCodeReference` is set to `true` and this asset is not referenced by any code in the output via `import.meta.ROLLUP_FILE_URL_referenceId`, then Rollup will not emit it. This also respects references removed via tree-shaking, i.e. if the corresponding `import.meta.ROLLUP_FILE_URL_referenceId` is part of the source code but is not actually used and the reference is removed by tree-shaking, then the asset is not emitted.
 
 ### this.error
 
