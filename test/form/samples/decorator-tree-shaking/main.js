@@ -59,3 +59,12 @@ function decorator7() {
 }
 @decorator7()
 class Main7 {}
+
+// retained
+function decorator8() {
+	console.log('effect');
+	return () => {};
+}
+
+@(false || decorator8())
+class Main8 {}
