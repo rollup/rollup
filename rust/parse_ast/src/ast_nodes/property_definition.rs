@@ -1,10 +1,10 @@
 use swc_common::Span;
-use swc_ecma_ast::{ClassProp, Expr, PrivateProp, PropName};
+use swc_ecma_ast::{ClassProp, Decorator, Expr, PrivateProp, PropName};
 
 use crate::ast_nodes::method_definition::PropOrPrivateName;
 use crate::convert_ast::converter::ast_constants::{
-  PROPERTY_DEFINITION_KEY_OFFSET, PROPERTY_DEFINITION_RESERVED_BYTES,
-  PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
+  PROPERTY_DEFINITION_DECORATORS_OFFSET, PROPERTY_DEFINITION_KEY_OFFSET,
+  PROPERTY_DEFINITION_RESERVED_BYTES, PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::store_property_definition_flags;
@@ -17,12 +17,24 @@ impl<'a> AstConverter<'a> {
     is_static: bool,
     key: PropOrPrivateName,
     value: &Option<&Expr>,
+    decorators: &[Decorator],
   ) {
     let end_position = self.add_type_and_start(
       &TYPE_PROPERTY_DEFINITION,
       span,
       PROPERTY_DEFINITION_RESERVED_BYTES,
       false,
+    );
+    // flags
+    store_property_definition_flags!(self, end_position, static => is_static, computed => is_computed);
+    // decorators
+    self.convert_item_list(
+      decorators,
+      end_position + PROPERTY_DEFINITION_DECORATORS_OFFSET,
+      |ast_converter, decorator| {
+        ast_converter.store_decorator(decorator);
+        true
+      },
     );
     // key
     self.update_reference_position(end_position + PROPERTY_DEFINITION_KEY_OFFSET);
@@ -32,8 +44,6 @@ impl<'a> AstConverter<'a> {
       }
       PropOrPrivateName::PrivateName(private_name) => self.store_private_identifier(private_name),
     }
-    // flags
-    store_property_definition_flags!(self, end_position, static => is_static, computed => is_computed);
     // value
     if let Some(expression) = value {
       self.update_reference_position(end_position + PROPERTY_DEFINITION_VALUE_OFFSET);
@@ -50,6 +60,7 @@ impl<'a> AstConverter<'a> {
       class_property.is_static,
       PropOrPrivateName::PropName(&class_property.key),
       &class_property.value.as_deref(),
+      &class_property.decorators,
     );
   }
 
@@ -60,6 +71,7 @@ impl<'a> AstConverter<'a> {
       private_property.is_static,
       PropOrPrivateName::PrivateName(&private_property.key),
       &private_property.value.as_deref(),
+      &private_property.decorators,
     );
   }
 }

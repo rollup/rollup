@@ -41,6 +41,7 @@ export default class ClassDeclaration extends ClassNode {
 			}
 			const renderedVariable = variable.getName(getPropertyAccess);
 			if (renderedVariable !== name) {
+				this.decorators.map(decorator => decorator.render(code, options));
 				this.superClass?.render(code, options);
 				this.body.render(code, {
 					...options,

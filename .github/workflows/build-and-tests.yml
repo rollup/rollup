@@ -377,7 +377,7 @@ jobs:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
           - host: macos-latest
-            target: x86_64-apple-darwin
+            target: aarch64-apple-darwin
         node:
           - '18.0.0'
           - '20'
