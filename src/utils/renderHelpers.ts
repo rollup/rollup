@@ -68,6 +68,21 @@ export function findNonWhiteSpace(code: string, index: number): number {
 	return result.index;
 }
 
+const WHITESPACE = /\s/;
+
+export function findLastWhiteSpaceReverse(code: string, start: number, end: number): number {
+	while (true) {
+		if (start >= end) {
+			return end;
+		}
+		if (WHITESPACE.test(code[end - 1])) {
+			end--;
+		} else {
+			return end;
+		}
+	}
+}
+
 // This assumes "code" only contains white-space and comments
 // Returns position of line-comment if applicable
 export function findFirstLineBreakOutsideComment(code: string): [number, number] {

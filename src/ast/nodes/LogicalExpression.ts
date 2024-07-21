@@ -2,6 +2,7 @@ import type MagicString from 'magic-string';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
+	findLastWhiteSpaceReverse,
 	findNonWhiteSpace,
 	type NodeRenderOptions,
 	removeLineBreaks,
@@ -185,12 +186,12 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}: NodeRenderOptions = BLANK
 	): void {
 		if (!this.left.included || !this.right.included) {
+			const operatorPos = findFirstOccurrenceOutsideComment(
+				code.original,
+				this.operator,
+				this.left.end
+			);
 			if (this.right.included) {
-				const operatorPos = findFirstOccurrenceOutsideComment(
-					code.original,
-					this.operator,
-					this.left.end
-				);
 				const removePos = findNonWhiteSpace(code.original, operatorPos + 2);
 				code.remove(this.start, removePos);
 				if (preventASI) {
@@ -198,7 +199,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				}
 				this.left.removeAnnotations(code);
 			} else {
-				code.remove(this.left.end, this.end);
+				code.remove(findLastWhiteSpaceReverse(code.original, this.left.end, operatorPos), this.end);
 			}
 			this.getUsedBranch()!.render(code, options, {
 				isCalleeOfRenderedParent,
