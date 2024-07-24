@@ -26,26 +26,24 @@ Rollup can be used either through a [command line interface](../command-line-int
 
 These commands assume the entry point to your application is named `main.js`, and that you'd like all imports compiled into a single file named `bundle.js`.
 
-For browsers:
+::: code-group
 
-```shell
+```shell [For browsers:]
 # compile to a <script> containing a self-executing function ('iife')
-rollup main.js --file bundle.js --format iife
+$ rollup main.js --file bundle.js --format iife
 ```
 
-For Node.js:
-
-```shell
+```shell [For Node.js:]
 # compile to a CommonJS module ('cjs')
-rollup main.js --file bundle.js --format cjs
+$ rollup main.js --file bundle.js --format cjs
 ```
 
-For both browsers and Node.js:
-
-```shell
+```shell [For both browsers and Node.js:]
 # UMD format requires a bundle name
-rollup main.js --file bundle.js --format umd --name "myBundle"
+$ rollup main.js --file bundle.js --format umd --name "myBundle"
 ```
+
+:::
 
 ## The Why
 
