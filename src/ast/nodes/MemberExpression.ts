@@ -233,38 +233,22 @@ export default class MemberExpression
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain {
-		if (this.variable) {
-			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
-		}
-		if (this.isUndefined) {
-			return undefined;
-		}
-		// TODO refine this logic, also in other places: We are skipping if
-		// - the object is a ChainElement and
-		//   - the value is SKIPPED_CHAIN or
-		//   - the value is null/undefined and we are optional
-		// - we are optional and the object value is null/undefined
-		const objectValue =
-			'getLiteralValueAtPathAsChainElement' in this.object
-				? (this.object as ChainElement).getLiteralValueAtPathAsChainElement(
-						EMPTY_PATH,
-						SHARED_RECURSION_TRACKER,
-						origin
-					)
-				: this.object.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin);
-		// TODO does it make sense to call the other logic here?
-		if (objectValue === IS_SKIPPED_CHAIN || (this.optional && objectValue == null)) {
-			return IS_SKIPPED_CHAIN;
-		}
-		if (this.propertyKey !== UnknownKey && path.length < MAX_PATH_DEPTH) {
-			this.expressionsToBeDeoptimized.push(origin);
-			return this.object.getLiteralValueAtPath(
-				[this.getPropertyKey(), ...path],
-				recursionTracker,
+		if ('getLiteralValueAtPathAsChainElement' in this.object) {
+			const objectValue = (this.object as ChainElement).getLiteralValueAtPathAsChainElement(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
 				origin
 			);
+			if (objectValue === IS_SKIPPED_CHAIN || (this.optional && objectValue == null)) {
+				return IS_SKIPPED_CHAIN;
+			}
+		} else if (
+			this.optional &&
+			this.object.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null
+		) {
+			return IS_SKIPPED_CHAIN;
 		}
-		return UnknownValue;
+		return this.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(

@@ -69,15 +69,19 @@ export default class CallExpression
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain {
-		const calleeValue =
-			'getLiteralValueAtPathAsChainElement' in this.callee
-				? (this.callee as ChainElement).getLiteralValueAtPathAsChainElement(
-						EMPTY_PATH,
-						SHARED_RECURSION_TRACKER,
-						origin
-					)
-				: this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin);
-		if (calleeValue === IS_SKIPPED_CHAIN || (this.optional && calleeValue == null)) {
+		if ('getLiteralValueAtPathAsChainElement' in this.callee) {
+			const calleeValue = (this.callee as ChainElement).getLiteralValueAtPathAsChainElement(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				origin
+			);
+			if (calleeValue === IS_SKIPPED_CHAIN || (this.optional && calleeValue == null)) {
+				return IS_SKIPPED_CHAIN;
+			}
+		} else if (
+			this.optional &&
+			this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null
+		) {
 			return IS_SKIPPED_CHAIN;
 		}
 		return this.getLiteralValueAtPath(path, recursionTracker, origin);
