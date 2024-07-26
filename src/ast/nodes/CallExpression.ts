@@ -21,6 +21,7 @@ import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expressio
 import { UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN } from './shared/Node';
+import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 
 export default class CallExpression
 	extends CallExpressionBase
@@ -69,22 +70,7 @@ export default class CallExpression
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain {
-		if ('getLiteralValueAtPathAsChainElement' in this.callee) {
-			const calleeValue = (this.callee as ChainElement).getLiteralValueAtPathAsChainElement(
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER,
-				origin
-			);
-			if (calleeValue === IS_SKIPPED_CHAIN || (this.optional && calleeValue == null)) {
-				return IS_SKIPPED_CHAIN;
-			}
-		} else if (
-			this.optional &&
-			this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null
-		) {
-			return IS_SKIPPED_CHAIN;
-		}
-		return this.getLiteralValueAtPath(path, recursionTracker, origin);
+		return getChainElementLiteralValueAtPath(this, this.callee, path, recursionTracker, origin);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

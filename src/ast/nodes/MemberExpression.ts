@@ -45,6 +45,7 @@ import {
 } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
+import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -233,22 +234,7 @@ export default class MemberExpression
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain {
-		if ('getLiteralValueAtPathAsChainElement' in this.object) {
-			const objectValue = (this.object as ChainElement).getLiteralValueAtPathAsChainElement(
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER,
-				origin
-			);
-			if (objectValue === IS_SKIPPED_CHAIN || (this.optional && objectValue == null)) {
-				return IS_SKIPPED_CHAIN;
-			}
-		} else if (
-			this.optional &&
-			this.object.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null
-		) {
-			return IS_SKIPPED_CHAIN;
-		}
-		return this.getLiteralValueAtPath(path, recursionTracker, origin);
+		return getChainElementLiteralValueAtPath(this, this.object, path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
