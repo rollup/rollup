@@ -35,4 +35,6 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	removeAnnotations(code: MagicString) {
 		this.expression.removeAnnotations(code);
 	}
+
+	protected applyDeoptimizations() {}
 }
