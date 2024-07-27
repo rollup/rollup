@@ -16,12 +16,17 @@ import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
 import { childNodeKeys } from '../../childNodeKeys';
 import type ChildScope from '../../scopes/ChildScope';
-import { EMPTY_PATH, UNKNOWN_PATH } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	type PathTracker,
+	UNKNOWN_PATH
+} from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
 import type Program from '../Program';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
-import type { InclusionOptions } from './Expression';
+import type { InclusionOptions, LiteralValueOrUnknown } from './Expression';
 import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode extends AstNode {
@@ -117,13 +122,18 @@ export interface Node extends Entity {
 
 export type StatementNode = Node;
 
-export interface ExpressionNode extends ExpressionEntity, Node {
-	isSkippedAsOptional?(origin: DeoptimizableEntity): boolean;
-}
+export const IS_SKIPPED_CHAIN = Symbol('IS_SKIPPED_CHAIN');
+export type SkippedChain = typeof IS_SKIPPED_CHAIN;
 
-export interface ChainElement extends ExpressionNode {
-	optional: boolean;
-	isSkippedAsOptional(origin: DeoptimizableEntity): boolean;
+export interface ExpressionNode extends ExpressionEntity, Node, Partial<ChainElement> {}
+
+export interface ChainElement {
+	getLiteralValueAtPathAsChainElement(
+		path: ObjectPath,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown | SkippedChain;
+	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain;
 }
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {

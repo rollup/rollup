@@ -43,8 +43,9 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
-import { NodeBase } from './shared/Node';
+import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
+import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
+import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -228,6 +229,14 @@ export default class MemberExpression
 		return UnknownValue;
 	}
 
+	getLiteralValueAtPathAsChainElement(
+		path: ObjectPath,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown | SkippedChain {
+		return getChainElementLiteralValueAtPath(this, this.object, path, recursionTracker, origin);
+	}
+
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
@@ -264,6 +273,24 @@ export default class MemberExpression
 			this.object.hasEffects(context) ||
 			this.hasAccessEffect(context)
 		);
+	}
+
+	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain {
+		if (this.variable || this.isUndefined) return this.hasEffects(context);
+		const objectHasEffects =
+			'hasEffectsAsChainElement' in this.object
+				? (this.object as ChainElement).hasEffectsAsChainElement(context)
+				: this.object.hasEffects(context);
+		if (objectHasEffects === IS_SKIPPED_CHAIN) return IS_SKIPPED_CHAIN;
+		if (
+			this.optional &&
+			this.object.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this) == null
+		) {
+			return objectHasEffects || IS_SKIPPED_CHAIN;
+		}
+		// We only apply deoptimizations lazily once we know we are not skipping
+		if (!this.deoptimized) this.applyDeoptimizations();
+		return this.property.hasEffects(context) || this.hasAccessEffect(context);
 	}
 
 	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean {
@@ -331,16 +358,6 @@ export default class MemberExpression
 		super.initialise();
 		this.propertyKey = getResolvablePropertyKey(this);
 		this.accessInteraction = { args: [this.object], type: INTERACTION_ACCESSED };
-	}
-
-	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
-		return (
-			!this.variable &&
-			!this.isUndefined &&
-			((this.object as ExpressionNode).isSkippedAsOptional?.(origin) ||
-				(this.optional &&
-					this.object.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null))
-		);
 	}
 
 	render(

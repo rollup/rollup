@@ -8,7 +8,8 @@ import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHe
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import { EMPTY_PATH, type PathTracker, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -16,9 +17,11 @@ import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
-import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
-import { INCLUDE_PARAMETERS } from './shared/Node';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
+import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
+import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN } from './shared/Node';
+import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 
 export default class CallExpression
 	extends CallExpressionBase
@@ -62,6 +65,14 @@ export default class CallExpression
 		};
 	}
 
+	getLiteralValueAtPathAsChainElement(
+		path: ObjectPath,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown | SkippedChain {
+		return getChainElementLiteralValueAtPath(this, this.callee, path, recursionTracker, origin);
+	}
+
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const argument of this.arguments) {
@@ -72,6 +83,29 @@ export default class CallExpression
 		}
 		return (
 			this.callee.hasEffects(context) ||
+			this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
+		);
+	}
+
+	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain {
+		const calleeHasEffects =
+			'hasEffectsAsChainElement' in this.callee
+				? (this.callee as ChainElement).hasEffectsAsChainElement(context)
+				: this.callee.hasEffects(context);
+		if (calleeHasEffects === IS_SKIPPED_CHAIN) return IS_SKIPPED_CHAIN;
+		if (
+			this.optional &&
+			this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this) == null
+		) {
+			return (!this.annotationPure && calleeHasEffects) || IS_SKIPPED_CHAIN;
+		}
+		// We only apply deoptimizations lazily once we know we are not skipping
+		if (!this.deoptimized) this.applyDeoptimizations();
+		for (const argument of this.arguments) {
+			if (argument.hasEffects(context)) return true;
+		}
+		return (
+			!this.annotationPure &&
 			this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
 		);
 	}
@@ -102,14 +136,6 @@ export default class CallExpression
 		) {
 			this.annotationPure = this.annotations.some(comment => comment.type === 'pure');
 		}
-	}
-
-	isSkippedAsOptional(origin: DeoptimizableEntity): boolean {
-		return (
-			(this.callee as ExpressionNode).isSkippedAsOptional?.(origin) ||
-			(this.optional &&
-				this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null)
-		);
 	}
 
 	render(
