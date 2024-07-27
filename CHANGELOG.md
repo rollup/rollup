@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.19.1
+
+_2024-07-27_
+
+### Bug Fixes
+
+- Do not remove parantheses when tree-shaking logical expressions (#5584)
+- Do not ignore side effects in calls left of an optional chaining operator (#5589)
+
+### Pull Requests
+
+- [#5584](https://github.com/rollup/rollup/pull/5584): fix: find whitespace from operator position to start (@TrickyPi)
+- [#5587](https://github.com/rollup/rollup/pull/5587): docs: improve command by code-group (@thinkasany, @lukastaegert)
+- [#5589](https://github.com/rollup/rollup/pull/5589): Fix side effect detection in optional chains (@lukastaegert)
+- [#5592](https://github.com/rollup/rollup/pull/5592): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5593](https://github.com/rollup/rollup/pull/5593): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5594](https://github.com/rollup/rollup/pull/5594): chore(deps): lock file maintenance (@renovate[bot])
+- [#5595](https://github.com/rollup/rollup/pull/5595): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.19.0
 
 _2024-07-20_
