@@ -87,9 +87,9 @@ export class ExpressionEntity implements WritableEntity {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		for (const argument of parameters) {
+		for (const argument of arguments_) {
 			argument.includePath(UNKNOWN_PATH, context, false);
 		}
 	}

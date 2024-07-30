@@ -355,12 +355,12 @@ export default class MemberExpression
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, parameters);
+			this.variable.includeCallArguments(context, arguments_);
 		} else {
-			super.includeCallArguments(context, parameters);
+			super.includeCallArguments(context, arguments_);
 		}
 	}
 

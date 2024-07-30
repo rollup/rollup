@@ -155,14 +155,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch) {
-			usedBranch.includeCallArguments(context, parameters);
+			usedBranch.includeCallArguments(context, arguments_);
 		} else {
-			this.consequent.includeCallArguments(context, parameters);
-			this.alternate.includeCallArguments(context, parameters);
+			this.consequent.includeCallArguments(context, arguments_);
+			this.alternate.includeCallArguments(context, arguments_);
 		}
 	}
 
