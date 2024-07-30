@@ -65,10 +65,10 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
-	private updateParameterVariableValues(_arguments: InteractionCalledArguments) {
+	private updateParameterVariableValues(arguments_: InteractionCalledArguments) {
 		nextParameter: for (let position = 0; position < this.params.length; position++) {
 			const parameter = this.params[position];
-			const argument = _arguments[position + 1];
+			const argument = arguments_[position + 1];
 			if (parameter instanceof Identifier) {
 				const parameterVariable = parameter.variable as ParameterVariable;
 				parameterVariable.updateKnownValue(argument ?? UNDEFINED_EXPRESSION);
@@ -95,7 +95,7 @@ export default abstract class FunctionBase extends NodeBase {
 				continue;
 			}
 			if (parameter instanceof RestElement) {
-				for (const remainArgument of _arguments.slice(position + 1)) {
+				for (const remainArgument of arguments_.slice(position + 1)) {
 					this.argumentsToBeIncludedAll.add(remainArgument!);
 				}
 				continue;
@@ -278,9 +278,9 @@ export default abstract class FunctionBase extends NodeBase {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.scope.includeCallArguments(context, parameters);
+		this.scope.includeCallArguments(context, arguments_);
 	}
 
 	initialise(): void {

@@ -53,22 +53,22 @@ export default class ParameterScope extends ChildScope {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		let calledFromTryStatement = false;
 		let argumentIncluded = false;
 		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
-		for (const checkedArgument of parameters) {
+		for (const checkedArgument of arguments_) {
 			if (checkedArgument instanceof SpreadElement) {
-				for (const argument of parameters) {
+				for (const argument of arguments_) {
 					argument.includePath(UNKNOWN_PATH, context, false);
 				}
 				break;
 			}
 		}
-		for (let index = parameters.length - 1; index >= 0; index--) {
+		for (let index = arguments_.length - 1; index >= 0; index--) {
 			const parameterVariables = this.parameters[index] || restParameter;
-			const argument = parameters[index];
+			const argument = arguments_[index];
 			if (parameterVariables) {
 				calledFromTryStatement = false;
 				if (parameterVariables.length === 0) {

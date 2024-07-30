@@ -206,15 +206,15 @@ export default class LocalVariable extends Variable {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.isReassigned || context.includedCallArguments.has(this.init)) {
-			for (const argument of parameters) {
+			for (const argument of arguments_) {
 				argument.includePath(UNKNOWN_PATH, context, false);
 			}
 		} else {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, parameters);
+			this.init.includeCallArguments(context, arguments_);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

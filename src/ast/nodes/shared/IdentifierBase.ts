@@ -159,9 +159,9 @@ export default class IdentifierBase extends NodeBase {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.variable!.includeCallArguments(context, parameters);
+		this.variable!.includeCallArguments(context, arguments_);
 	}
 
 	isPossibleTDZ(): boolean {
