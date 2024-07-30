@@ -74,9 +74,16 @@ export interface Node extends Entity {
 	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean;
 
 	/**
-	 * Includes the node in the bundle. If the flag is not set, children are
-	 * usually included if they are necessary for this node (e.g. a function body)
-	 * or if they have effects. Necessary variables need to be included as well.
+	 * Includes the given path of the Node in the bundle. If
+	 * "includeChildrenRecursively" is true, children of this path are included
+	 * unconditionally. Otherwise, including a given path means that the value of
+	 * this path is needed, but not necessarily its children if it is an object.
+	 * Example:
+	 *   if (x.a.b) { ... }
+	 * would include the path ['a','b'] of the variable x but none of its children
+	 * because those are not needed to get the literal value.
+	 * On the other hand to include all children, we extend the path with
+	 * "UnknownNode".
 	 */
 	includePath(
 		path: ObjectPath,
