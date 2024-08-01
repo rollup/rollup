@@ -234,6 +234,12 @@ export default class MemberExpression
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain {
+		if (this.variable) {
+			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
+		}
+		if (this.isUndefined) {
+			return undefined;
+		}
 		return getChainElementLiteralValueAtPath(this, this.object, path, recursionTracker, origin);
 	}
 
