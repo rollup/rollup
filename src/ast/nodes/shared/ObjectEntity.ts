@@ -1,5 +1,5 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext } from '../../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
 import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
@@ -20,6 +20,7 @@ import {
 	UnknownTruthyValue,
 	UnknownValue
 } from './Expression';
+import type { IncludeChildren } from './Node';
 
 export interface ObjectProperty {
 	key: ObjectPathKey;
@@ -347,6 +348,26 @@ export class ObjectEntity extends ExpressionEntity {
 			return this.prototypeExpression.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		return false;
+	}
+
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	) {
+		this.included = true;
+		const [key, ...subPath] = path;
+		const resolvedMember = key != null && this.getMemberExpression(key);
+		const includeAll = includeChildrenRecursively || resolvedMember === UNKNOWN_EXPRESSION;
+		const includedPath = includeAll ? UNKNOWN_PATH : subPath;
+		for (const property of this.allProperties) {
+			if (includeAll || property === resolvedMember || property.shouldBeIncluded(context)) {
+				property.includePath(includedPath, context, includeChildrenRecursively);
+			}
+		}
+		if (this.prototypeExpression && (!resolvedMember || resolvedMember === UNKNOWN_EXPRESSION)) {
+			this.prototypeExpression.includePath(path, context, includeChildrenRecursively);
+		}
 	}
 
 	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {

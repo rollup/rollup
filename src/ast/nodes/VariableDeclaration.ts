@@ -12,6 +12,7 @@ import {
 	getSystemExportStatement,
 	renderSystemExportExpression
 } from '../../utils/systemJsRendering';
+import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -185,8 +186,7 @@ export default class VariableDeclaration extends NodeBase {
 		);
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included) {
-				code.remove(start, end);
-				node.removeAnnotations(code);
+				treeshakeNode(node, code, start, end);
 				continue;
 			}
 			node.render(code, options);

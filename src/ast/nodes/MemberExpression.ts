@@ -332,12 +332,12 @@ export default class MemberExpression
 	}
 
 	includePath(
-		_: ObjectPath,
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties([this.getPropertyKey()], context, includeChildrenRecursively);
+		this.includeProperties([this.getPropertyKey(), ...path], context, includeChildrenRecursively);
 	}
 
 	includeAsAssignmentTarget(
