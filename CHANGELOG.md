@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.19.2
+
+_2024-08-01_
+
+### Bug Fixes
+
+- Avoid "cannot get value of null" error when using optional chaining with namespaces (#5597)
+
+### Pull Requests
+
+- [#5597](https://github.com/rollup/rollup/pull/5597): Fix retrieval of literal values for chained namespaces (@lukastaegert)
+
 ## 4.19.1
 
 _2024-07-27_
