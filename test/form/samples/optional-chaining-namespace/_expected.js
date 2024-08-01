@@ -1,4 +1,4 @@
-const foo = { nullVal: null };
+const foo = { };
 
 foo?.x.x; // retained
 
