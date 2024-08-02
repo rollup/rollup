@@ -23,6 +23,7 @@ export default class JSXElement extends NodeBase {
 			super.render(code, options);
 		} else {
 			this.openingElement.render(code, options);
+			let prependComma = mode === 'classic';
 			for (const child of this.children) {
 				if (
 					child instanceof JSXExpressionContainer &&
@@ -31,7 +32,11 @@ export default class JSXElement extends NodeBase {
 					code.remove(child.start, child.end);
 				} else {
 					child.render(code, options);
-					code.appendRight(child.start, `, `);
+					if (prependComma) {
+						code.appendLeft(child.start, `, `);
+					} else {
+						prependComma = true;
+					}
 				}
 			}
 			this.closingElement?.render(code);
