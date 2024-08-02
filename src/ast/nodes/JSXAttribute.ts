@@ -23,9 +23,7 @@ export default class JSXAttribute extends NodeBase {
 			const { name, value } = this;
 			const key =
 				name instanceof JSXIdentifier ? name.name : `${name.namespace.name}:${name.name.name}`;
-			if (mode === 'automatic' && key === 'key') {
-				code.remove(name.start, value?.start || name.end);
-			} else {
+			if (!(mode === 'automatic' && key === 'key')) {
 				const safeKey = stringifyObjectKeyIfNeeded(key);
 				if (key !== safeKey) {
 					code.overwrite(name.start, name.end, safeKey, { contentOnly: true });

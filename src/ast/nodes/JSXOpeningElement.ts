@@ -1,9 +1,5 @@
 import type MagicString from 'magic-string';
-import type {
-	NormalizedJsxAutomaticOptions,
-	NormalizedJsxClassicOptions,
-	NormalizedJsxOptions
-} from '../../rollup/types';
+import type { NormalizedJsxClassicOptions, NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type JSXAttribute from './JSXAttribute';
 import type JSXIdentifier from './JSXIdentifier';
@@ -28,7 +24,7 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 				break;
 			}
 			case 'automatic': {
-				this.renderAutomaticMode(code, options, jsx);
+				this.renderAutomaticMode(code, options);
 				break;
 			}
 		}
@@ -110,11 +106,7 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 		}
 	}
 
-	private renderAutomaticMode(
-		code: MagicString,
-		options: RenderOptions,
-		jsx: NormalizedJsxAutomaticOptions
-	) {
+	private renderAutomaticMode(code: MagicString, options: RenderOptions) {
 		const {
 			snippets: { getPropertyAccess },
 			useOriginalName
@@ -133,99 +125,137 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 			`/*#__PURE__*/${factoryVariable!.getName(getPropertyAccess, useOriginalName)}(`,
 			{ contentOnly: true }
 		);
-		const [regularAttributes, hasSpread, keyAttribute] = analyzeAttributes(jsx.mode, attributes);
-		if (hasSpread) {
-			if (regularAttributes.length === 1) {
-				code.appendLeft(nameEnd, ',');
-				code.overwrite(attributes.at(-1)!.end, end, '', { contentOnly: true });
+		let keyAttribute: JSXAttribute | null = null;
+		let hasSpread = false;
+		let inObject = true;
+		let previousEnd = nameEnd;
+		let hasAttributes = false;
+		for (const attribute of attributes) {
+			if (attribute instanceof JSXSpreadAttribute) {
+				if (inObject) {
+					if (hasAttributes) {
+						code.appendLeft(previousEnd, ' ');
+					}
+					code.appendLeft(previousEnd, '},');
+					inObject = false;
+				} else if (hasAttributes) {
+					code.appendLeft(previousEnd, ',');
+				}
+				previousEnd = attribute.end;
+				hasAttributes = true;
+				hasSpread = true;
+			} else if (attribute.name.name === 'key') {
+				keyAttribute = attribute;
+				code.remove(previousEnd, attribute.value?.start || attribute.end);
 			} else {
-				code.appendLeft(nameEnd, ', Object.assign(');
-				let inObject = false;
-				if (!(regularAttributes[0] instanceof JSXSpreadAttribute)) {
-					code.appendLeft(nameEnd, '{');
+				if (hasAttributes) {
+					code.appendLeft(previousEnd, ',');
+				}
+				if (!inObject) {
+					code.appendLeft(previousEnd, ' {');
 					inObject = true;
 				}
-				for (let index = 1; index < regularAttributes.length; index++) {
-					const attribute = regularAttributes[index];
-					if (attribute instanceof JSXSpreadAttribute) {
-						if (inObject) {
-							code.prependRight(attribute.start, '}, ');
-							inObject = false;
-						} else {
-							code.appendLeft(regularAttributes[index - 1].end, ',');
-						}
-					} else {
-						if (inObject) {
-							code.appendLeft(regularAttributes[index - 1].end, ',');
-						} else {
-							code.appendLeft(regularAttributes[index - 1].end, ', {');
-							inObject = true;
-						}
-					}
-				}
-				if (inObject) {
-					code.appendLeft(attributes.at(-1)!.end, ' }');
-				}
-				code.overwrite(attributes.at(-1)!.end, end, ')', { contentOnly: true });
+				previousEnd = attribute.end;
+				hasAttributes = true;
 			}
-		} else if (regularAttributes.length > 0) {
-			code.appendLeft(nameEnd, ', {');
-			for (let index = 0; index < regularAttributes.length - 1; index++) {
-				code.appendLeft(regularAttributes[index].end, ', ');
-			}
-			code.overwrite(attributes.at(-1)!.end, end, ' }', {
-				contentOnly: true
-			});
-		} else if (keyAttribute) {
-			code.remove(nameEnd, keyAttribute.start);
-			code.overwrite(keyAttribute.end, end, `, {}`, {
-				contentOnly: true
-			});
-		} else {
-			code.overwrite(nameEnd, end, `, {}`, {
-				contentOnly: true
-			});
 		}
-		if (selfClosing) {
-			if (keyAttribute) {
-				const { value } = keyAttribute;
-				// This will appear to the left of the moved code...
-				code.appendLeft(end, ', ');
-				if (value) {
-					// ...and this will appear to the right
-					code.appendLeft(value.end, ')');
-					code.move(value.start, value.end, end);
-				} else {
-					code.appendLeft(end, 'true)');
-				}
-			} else {
+		code.prependLeft(nameEnd, hasSpread ? ', Object.assign({' : ', {');
+		if (inObject) {
+			if (hasAttributes) {
+				code.appendLeft(previousEnd, ' ');
+			}
+			code.update(attributes.at(-1)?.end || previousEnd, end, '}');
+			if (hasSpread) {
 				code.appendLeft(end, ')');
 			}
-		}
-	}
-}
-
-function analyzeAttributes(
-	mode: 'automatic' | 'classic',
-	attributes: (JSXAttribute | JSXSpreadAttribute)[]
-): [
-	regularAttributes: (JSXAttribute | JSXSpreadAttribute)[],
-	hasSpread: boolean,
-	keyAttribute: JSXAttribute | null
-] {
-	const extractKey = mode === 'automatic';
-	const regularAttributes: (JSXAttribute | JSXSpreadAttribute)[] = [];
-	let keyAttribute: JSXAttribute | null = null;
-	let hasSpread = false;
-	for (const attribute of attributes) {
-		if (attribute instanceof JSXSpreadAttribute) {
-			hasSpread = true;
-			regularAttributes.push(attribute);
-		} else if (extractKey && attribute.name.name === 'key') {
-			keyAttribute = attribute;
 		} else {
-			regularAttributes.push(attribute);
+			code.update(previousEnd, end, ')');
 		}
+		// TODO Lukas this should be relative to the parent if there are children
+		if (keyAttribute) {
+			const { value } = keyAttribute;
+			// This will appear to the left of the moved code...
+			code.appendLeft(end, ', ');
+			if (value) {
+				if (selfClosing) {
+					// ...and this will appear to the right
+					code.appendLeft(value.end, ')');
+				}
+				code.move(value.start, value.end, end);
+			} else {
+				code.appendLeft(end, 'true)');
+			}
+		} else if (selfClosing) {
+			code.appendLeft(end, ')');
+		}
+
+		// if (hasSpread) {
+		// 	if (regularAttributes.length === 1) {
+		// 		code.appendLeft(nameEnd, ',');
+		// 		code.overwrite(attributes.at(-1)!.end, end, '', { contentOnly: true });
+		// 	} else {
+		// 		code.appendLeft(nameEnd, ', Object.assign(');
+		// 		let inObject = false;
+		// 		if (!(regularAttributes[0] instanceof JSXSpreadAttribute)) {
+		// 			code.appendLeft(nameEnd, '{');
+		// 			inObject = true;
+		// 		}
+		// 		for (let index = 1; index < regularAttributes.length; index++) {
+		// 			const attribute = regularAttributes[index];
+		// 			if (attribute instanceof JSXSpreadAttribute) {
+		// 				if (inObject) {
+		// 					code.prependRight(attribute.start, '}, ');
+		// 					inObject = false;
+		// 				} else {
+		// 					code.appendLeft(regularAttributes[index - 1].end, ',');
+		// 				}
+		// 			} else {
+		// 				if (inObject) {
+		// 					code.appendLeft(regularAttributes[index - 1].end, ',');
+		// 				} else {
+		// 					code.appendLeft(regularAttributes[index - 1].end, ', {');
+		// 					inObject = true;
+		// 				}
+		// 			}
+		// 		}
+		// 		if (inObject) {
+		// 			code.appendLeft(attributes.at(-1)!.end, ' }');
+		// 		}
+		// 		code.overwrite(attributes.at(-1)!.end, end, ')', { contentOnly: true });
+		// 	}
+		// } else if (regularAttributes.length > 0) {
+		// 	code.appendLeft(nameEnd, ', {');
+		// 	for (let index = 0; index < regularAttributes.length - 1; index++) {
+		// 		code.appendLeft(regularAttributes[index].end, ', ');
+		// 	}
+		// 	code.overwrite(attributes.at(-1)!.end, end, ' }', {
+		// 		contentOnly: true
+		// 	});
+		// } else if (keyAttribute) {
+		// 	code.remove(nameEnd, keyAttribute.start);
+		// 	code.overwrite(keyAttribute.end, end, `, {}`, {
+		// 		contentOnly: true
+		// 	});
+		// } else {
+		// 	code.overwrite(nameEnd, end, `, {}`, {
+		// 		contentOnly: true
+		// 	});
+		// }
+		// if (selfClosing) {
+		// 	if (keyAttribute) {
+		// 		const { value } = keyAttribute;
+		// 		// This will appear to the left of the moved code...
+		// 		code.appendLeft(end, ', ');
+		// 		if (value) {
+		// 			// ...and this will appear to the right
+		// 			code.appendLeft(value.end, ')');
+		// 			code.move(value.start, value.end, end);
+		// 		} else {
+		// 			code.appendLeft(end, 'true)');
+		// 		}
+		// 	} else {
+		// 		code.appendLeft(end, ')');
+		// 	}
+		// }
 	}
-	return [regularAttributes, hasSpread, keyAttribute];
 }
