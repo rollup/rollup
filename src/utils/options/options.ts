@@ -142,27 +142,25 @@ export const jsxPresets: {
 } = {
 	preserve: {
 		factory: null,
-		fragmentFactory: null,
+		fragment: null,
 		importSource: null,
-		preserve: true
+		mode: 'preserve'
 	},
 	'preserve-react': {
 		factory: 'React.createElement',
-		fragmentFactory: 'React.Fragment',
+		fragment: 'React.Fragment',
 		importSource: 'react',
-		preserve: true
+		mode: 'preserve'
 	},
 	react: {
 		factory: 'React.createElement',
-		fragmentFactory: 'React.Fragment',
+		fragment: 'React.Fragment',
 		importSource: 'react',
-		preserve: false
+		mode: 'classic'
 	},
 	'react-jsx': {
-		factory: 'jsx',
-		fragmentFactory: 'Fragment',
 		importSource: 'react/jsx-runtime',
-		preserve: false
+		mode: 'automatic'
 	}
 };
 

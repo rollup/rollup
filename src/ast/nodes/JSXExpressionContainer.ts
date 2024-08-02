@@ -11,8 +11,8 @@ export default class JSXExpressionContainer extends NodeBase {
 	expression!: ExpressionNode | JSXEmptyExpression;
 
 	render(code: MagicString, options: RenderOptions): void {
-		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!preserve) {
+		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (mode !== 'preserve') {
 			code.remove(this.start, this.expression.start);
 			code.remove(this.expression.end, this.end);
 		}

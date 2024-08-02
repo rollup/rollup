@@ -41,7 +41,6 @@ import type {
 	ModuleOptions,
 	NormalizedInputOptions,
 	NormalizedJsxOptions,
-	NormalizedJsxTranspileOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
 	ResolvedId,
@@ -1248,7 +1247,7 @@ export default class Module {
 	}
 
 	private getImportedJsxFactoryVariable(baseName: string, nodeStart: number): Variable {
-		const { importSource } = this.scope.context.options.jsx as NormalizedJsxTranspileOptions;
+		const { importSource } = this.scope.context.options.jsx as NormalizedJsxOptions;
 		const { id } = this.resolvedIds[importSource!];
 		const module = this.graph.modulesById.get(id)!;
 		const [variable] = module.getVariableForExportName(baseName);

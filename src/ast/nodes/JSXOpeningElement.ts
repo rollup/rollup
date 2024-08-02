@@ -17,8 +17,8 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
-		const { factory, preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!preserve) {
+		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (jsx.mode !== 'preserve') {
 			const {
 				snippets: { getPropertyAccess },
 				useOriginalName
@@ -31,38 +31,39 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 				selfClosing,
 				start
 			} = this;
-			const [, ...nestedName] = factory.split('.');
+			const [, ...nestedName] = jsx.mode === 'classic' ? jsx.factory.split('.') : [];
 			code.overwrite(
 				start,
 				nameStart,
 				`/*#__PURE__*/${[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`,
 				{ contentOnly: true }
 			);
-			if (attributes.some(attribute => attribute instanceof JSXSpreadAttribute)) {
-				if (attributes.length === 1) {
+			const [regularAttributes, hasSpread, keyAttribute] = analyzeAttributes(jsx.mode, attributes);
+			if (hasSpread) {
+				if (regularAttributes.length === 1) {
 					code.appendLeft(nameEnd, ',');
-					code.overwrite(attributes[0].end, end, '', { contentOnly: true });
+					code.overwrite(attributes.at(-1)!.end, end, '', { contentOnly: true });
 				} else {
 					code.appendLeft(nameEnd, ', Object.assign(');
 					let inObject = false;
-					if (!(attributes[0] instanceof JSXSpreadAttribute)) {
+					if (!(regularAttributes[0] instanceof JSXSpreadAttribute)) {
 						code.appendLeft(nameEnd, '{');
 						inObject = true;
 					}
-					for (let index = 1; index < attributes.length; index++) {
-						const attribute = attributes[index];
+					for (let index = 1; index < regularAttributes.length; index++) {
+						const attribute = regularAttributes[index];
 						if (attribute instanceof JSXSpreadAttribute) {
 							if (inObject) {
 								code.prependRight(attribute.start, '}, ');
 								inObject = false;
 							} else {
-								code.appendLeft(attributes[index - 1].end, ',');
+								code.appendLeft(regularAttributes[index - 1].end, ',');
 							}
 						} else {
 							if (inObject) {
-								code.appendLeft(attributes[index - 1].end, ',');
+								code.appendLeft(regularAttributes[index - 1].end, ',');
 							} else {
-								code.appendLeft(attributes[index - 1].end, ', {');
+								code.appendLeft(regularAttributes[index - 1].end, ', {');
 								inObject = true;
 							}
 						}
@@ -72,22 +73,65 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 					}
 					code.overwrite(attributes.at(-1)!.end, end, ')', { contentOnly: true });
 				}
-			} else if (attributes.length > 0) {
+			} else if (regularAttributes.length > 0) {
 				code.appendLeft(nameEnd, ', {');
-				for (let index = 0; index < attributes.length - 1; index++) {
-					code.appendLeft(attributes[index].end, ', ');
+				for (let index = 0; index < regularAttributes.length - 1; index++) {
+					code.appendLeft(regularAttributes[index].end, ', ');
 				}
 				code.overwrite(attributes.at(-1)!.end, end, ' }', {
 					contentOnly: true
 				});
+			} else if (keyAttribute) {
+				code.remove(nameEnd, keyAttribute.start);
+				code.overwrite(keyAttribute.end, end, `, {}`, {
+					contentOnly: true
+				});
 			} else {
-				code.overwrite(nameEnd, end, `, null`, {
+				code.overwrite(nameEnd, end, `, ${jsx.mode === 'classic' ? 'null' : '{}'}`, {
 					contentOnly: true
 				});
 			}
 			if (selfClosing) {
-				code.appendLeft(end, ')');
+				if (keyAttribute) {
+					const { value } = keyAttribute;
+					// This will appear to the left of the moved code...
+					code.appendLeft(end, ', ');
+					if (value) {
+						// ...and this will appear to the right
+						code.appendLeft(value.end, ')');
+						code.move(value.start, value.end, end);
+					} else {
+						code.appendLeft(end, 'true)');
+					}
+				} else {
+					code.appendLeft(end, ')');
+				}
 			}
 		}
 	}
+}
+
+function analyzeAttributes(
+	mode: 'automatic' | 'classic',
+	attributes: (JSXAttribute | JSXSpreadAttribute)[]
+): [
+	regularAttributes: (JSXAttribute | JSXSpreadAttribute)[],
+	hasSpread: boolean,
+	keyAttribute: JSXAttribute | null
+] {
+	const extractKey = mode === 'automatic';
+	const regularAttributes: (JSXAttribute | JSXSpreadAttribute)[] = [];
+	let keyAttribute: JSXAttribute | null = null;
+	let hasSpread = false;
+	for (const attribute of attributes) {
+		if (attribute instanceof JSXSpreadAttribute) {
+			hasSpread = true;
+			regularAttributes.push(attribute);
+		} else if (extractKey && attribute.name.name === 'key') {
+			keyAttribute = attribute;
+		} else {
+			regularAttributes.push(attribute);
+		}
+	}
+	return [regularAttributes, hasSpread, keyAttribute];
 }

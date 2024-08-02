@@ -2,10 +2,15 @@ import type { NormalizedJsxOptions } from '../../../rollup/types';
 import type { InclusionContext } from '../../ExecutionContext';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
+import type JSXAttribute from '../JSXAttribute';
+import type JSXElement from '../JSXElement';
+import type JSXFragment from '../JSXFragment';
+import JSXSpreadAttribute from '../JSXSpreadAttribute';
 import type { InclusionOptions } from './Expression';
 import { type IncludeChildren, NodeBase } from './Node';
 
 export default class JSXOpeningBase extends NodeBase {
+	attributes!: (JSXAttribute | JSXSpreadAttribute)[];
 	protected factoryVariable: Variable | null = null;
 
 	include(
@@ -15,10 +20,26 @@ export default class JSXOpeningBase extends NodeBase {
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
-			const { factory, importSource, preserve } = this.scope.context.options
-				.jsx as NormalizedJsxOptions;
-			if (factory != null) {
-				this.factoryVariable = this.getAndIncludeFactoryVariable(factory, preserve, importSource);
+			const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
+			switch (jsx.mode) {
+				case 'preserve':
+				case 'classic': {
+					if (jsx.factory) {
+						this.factoryVariable = this.getAndIncludeFactoryVariable(
+							jsx.factory,
+							jsx.mode === 'preserve',
+							jsx.importSource
+						);
+					}
+					break;
+				}
+				case 'automatic': {
+					this.factoryVariable = this.getAndIncludeFactoryVariable(
+						this.getAutomaticJsxFactoryName(),
+						false,
+						jsx.importSource
+					);
+				}
 			}
 		}
 		super.include(context, includeChildrenRecursively, options);
@@ -58,5 +79,18 @@ export default class JSXOpeningBase extends NodeBase {
 			this.scope.context.requestTreeshakingPass();
 		}
 		return factoryVariable;
+	}
+
+	private getAutomaticJsxFactoryName() {
+		let hasSpread = false;
+		for (const attribute of this.attributes) {
+			if (attribute instanceof JSXSpreadAttribute) {
+				hasSpread = true;
+			} else if (hasSpread && attribute.name.name === 'key') {
+				return 'createElement';
+			}
+		}
+		const parent = this.parent as JSXElement | JSXFragment;
+		return parent.children.length > 1 ? 'jsxs' : 'jsx';
 	}
 }

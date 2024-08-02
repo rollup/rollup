@@ -11,8 +11,8 @@ export default class JSXSpreadAttribute extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		this.argument.render(code, options);
-		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!preserve) {
+		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (mode !== 'preserve') {
 			code.overwrite(this.start, this.argument.start, '', { contentOnly: true });
 			code.overwrite(this.argument.end, this.end, '', { contentOnly: true });
 		}

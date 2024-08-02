@@ -525,20 +525,29 @@ export interface Plugin<A = any> extends OutputPlugin, Partial<PluginHooks> {
 
 export type JsxPreset = 'react' | 'react-jsx' | 'preserve' | 'preserve-react';
 
-export type NormalizedJsxOptions = NormalizedJsxPreserveOptions | NormalizedJsxTranspileOptions;
-
-interface NormalizedJsxTranspileOptions {
-	factory: string;
-	fragmentFactory: string;
-	importSource: string | null;
-	preserve: false;
-}
+export type NormalizedJsxOptions =
+	| NormalizedJsxPreserveOptions
+	| NormalizedJsxClassicOptions
+	| NormalizedJsxAutomaticOptions;
 
 interface NormalizedJsxPreserveOptions {
 	factory: string | null;
-	fragmentFactory: string | null;
+	fragment: string | null;
 	importSource: string | null;
-	preserve: true;
+	mode: 'preserve';
+}
+
+interface NormalizedJsxClassicOptions {
+	factory: string;
+	fragment: string;
+	importSource: string | null;
+	mode: 'classic';
+}
+
+// TODO Lukas createElement must be imported from "react" at the moment -> jsxImportSource for jsx(s) and Fragment, importSource + factory for createElement
+interface NormalizedJsxAutomaticOptions {
+	importSource: string;
+	mode: 'automatic';
 }
 
 export type JsxOptions = Partial<NormalizedJsxOptions> & {

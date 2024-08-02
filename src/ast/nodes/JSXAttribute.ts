@@ -18,19 +18,23 @@ export default class JSXAttribute extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
-		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!preserve) {
+		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (mode !== 'preserve') {
 			const { name, value } = this;
 			const key =
 				name instanceof JSXIdentifier ? name.name : `${name.namespace.name}:${name.name.name}`;
-			const safeKey = stringifyObjectKeyIfNeeded(key);
-			if (key !== safeKey) {
-				code.overwrite(name.start, name.end, safeKey, { contentOnly: true });
-			}
-			if (value) {
-				code.overwrite(name.end, value.start, ': ', { contentOnly: true });
+			if (mode === 'automatic' && key === 'key') {
+				code.remove(name.start, value?.start || name.end);
 			} else {
-				code.appendLeft(name.end, ': true');
+				const safeKey = stringifyObjectKeyIfNeeded(key);
+				if (key !== safeKey) {
+					code.overwrite(name.start, name.end, safeKey, { contentOnly: true });
+				}
+				if (value) {
+					code.overwrite(name.end, value.start, ': ', { contentOnly: true });
+				} else {
+					code.appendLeft(name.end, ': true');
+				}
 			}
 		}
 	}

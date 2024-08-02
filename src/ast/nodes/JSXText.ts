@@ -9,8 +9,8 @@ export default class JSXText extends NodeBase {
 	raw!: string;
 
 	render(code: MagicString) {
-		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!preserve) {
+		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (mode !== 'preserve') {
 			code.overwrite(this.start, this.end, JSON.stringify(this.value), {
 				contentOnly: true
 			});
