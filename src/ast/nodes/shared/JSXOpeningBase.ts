@@ -1,4 +1,5 @@
 import type { NormalizedJsxOptions } from '../../../rollup/types';
+import { getRenderedJsxChildren } from '../../../utils/jsx';
 import type { InclusionContext } from '../../ExecutionContext';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
@@ -91,6 +92,6 @@ export default class JSXOpeningBase extends NodeBase {
 			}
 		}
 		const parent = this.parent as JSXElement | JSXFragment;
-		return parent.children.length > 1 ? 'jsxs' : 'jsx';
+		return getRenderedJsxChildren(parent.children) > 1 ? 'jsxs' : 'jsx';
 	}
 }

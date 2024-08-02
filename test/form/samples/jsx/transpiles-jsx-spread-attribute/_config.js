@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	solo: true, //x,
+	//solo: true, //x,
 	description: 'transpiles JSX spread attributes',
 	options: {
 		external: ['react'],
