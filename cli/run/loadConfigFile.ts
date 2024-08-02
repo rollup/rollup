@@ -97,8 +97,7 @@ async function loadTranspiledConfigFile(
 	const { bundleConfigAsCjs, configPlugin, silent } = commandOptions;
 	const warnings = batchWarnings(commandOptions);
 	const inputOptions = {
-		external: (id: string) =>
-			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
+		external: (id: string) => (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
 		plugins: [],
