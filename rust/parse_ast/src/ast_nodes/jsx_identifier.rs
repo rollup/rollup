@@ -1,21 +1,14 @@
 use swc_common::Span;
 
-use crate::convert_ast::converter::ast_constants::{
-    JSX_IDENTIFIER_NAME_OFFSET, JSX_IDENTIFIER_RESERVED_BYTES, TYPE_JSX_IDENTIFIER,
-};
 use crate::convert_ast::converter::AstConverter;
+use crate::store_jsx_identifier;
 
 impl<'a> AstConverter<'a> {
   pub(crate) fn store_jsx_identifier(&mut self, span: &Span, name: &str) {
-    let end_position = self.add_type_and_start(
-      &TYPE_JSX_IDENTIFIER,
-      span,
-      JSX_IDENTIFIER_RESERVED_BYTES,
-      false,
+    store_jsx_identifier!(
+      self,
+      span => span,
+      name => name
     );
-    // name
-    self.convert_string(name, end_position + JSX_IDENTIFIER_NAME_OFFSET);
-    // end
-    self.add_end(end_position, span);
   }
 }

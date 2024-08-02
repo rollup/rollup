@@ -1,19 +1,13 @@
 use swc_ecma_ast::JSXClosingFragment;
 
-use crate::convert_ast::converter::ast_constants::{
-    JSX_CLOSING_FRAGMENT_RESERVED_BYTES, TYPE_JSX_CLOSING_FRAGMENT,
-};
 use crate::convert_ast::converter::AstConverter;
+use crate::store_jsx_closing_fragment;
 
 impl<'a> AstConverter<'a> {
   pub(crate) fn store_jsx_closing_fragment(&mut self, jsx_closing_fragment: &JSXClosingFragment) {
-    let end_position = self.add_type_and_start(
-      &TYPE_JSX_CLOSING_FRAGMENT,
-      &jsx_closing_fragment.span,
-      JSX_CLOSING_FRAGMENT_RESERVED_BYTES,
-      false,
+    store_jsx_closing_fragment!(
+      self,
+      span => jsx_closing_fragment.span
     );
-    // end
-    self.add_end(end_position, &jsx_closing_fragment.span);
   }
 }

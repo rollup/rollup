@@ -394,18 +394,15 @@ export const AST_NODES = {
 		fields: [
 			['name', 'Node'],
 			['value', 'OptionalNode']
-		],
-		useMacro: false
+		]
 	},
 	JSXClosingElement: {
 		estreeType: 'any',
-		fields: [['name', 'Node']],
-		useMacro: false
+		fields: [['name', 'Node']]
 	},
 	JSXClosingFragment: {
 		estreeType: 'any',
-		fields: [],
-		useMacro: false
+		fields: []
 	},
 	JSXElement: {
 		estreeType: 'any',
@@ -413,8 +410,7 @@ export const AST_NODES = {
 			['openingElement', 'Node'],
 			['children', 'NodeList'],
 			['closingElement', 'OptionalNode']
-		],
-		useMacro: false
+		]
 	},
 	JSXEmptyExpression: {
 		estreeType: 'any',
@@ -431,13 +427,11 @@ export const AST_NODES = {
 			['openingFragment', 'Node'],
 			['children', 'NodeList'],
 			['closingFragment', 'Node']
-		],
-		useMacro: false
+		]
 	},
 	JSXIdentifier: {
 		estreeType: 'any',
-		fields: [['name', 'String']],
-		useMacro: false
+		fields: [['name', 'String']]
 	},
 	JSXMemberExpression: {
 		estreeType: 'any',
@@ -469,8 +463,7 @@ export const AST_NODES = {
 			attributes: '[]',
 			selfClosing: 'false'
 		},
-		estreeType: 'any',
-		useMacro: false
+		estreeType: 'any'
 	},
 	JSXSpreadAttribute: {
 		estreeType: 'any',
@@ -479,16 +472,14 @@ export const AST_NODES = {
 	},
 	JSXSpreadChild: {
 		estreeType: 'any',
-		fields: [['expression', 'Node']],
-		useMacro: false
+		fields: [['expression', 'Node']]
 	},
 	JSXText: {
 		estreeType: 'any',
 		fields: [
 			['value', 'String'],
 			['raw', 'String']
-		],
-		useMacro: false
+		]
 	},
 	LabeledStatement: {
 		fields: [

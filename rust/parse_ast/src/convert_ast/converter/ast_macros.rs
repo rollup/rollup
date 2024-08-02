@@ -316,6 +316,140 @@ macro_rules! store_import_specifier {
 }
 
 #[macro_export]
+macro_rules! store_jsx_attribute {
+  ($self:expr, span => $span:expr, name => [$name_value:expr, $name_converter:ident], value => [$value_value:expr, $value_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&42u32.to_ne_bytes(), &$span, 12, false);
+    // name
+    $self.update_reference_position(end_position + 4);
+    $self.$name_converter(&$name_value);
+    // value
+    if let Some(value) = $value_value.as_ref() {
+      $self.update_reference_position(end_position + 8);
+      $self.$value_converter(value);
+    }
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_closing_element {
+  ($self:expr, span => $span:expr, name => [$name_value:expr, $name_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&43u32.to_ne_bytes(), &$span, 8, false);
+    // name
+    $self.update_reference_position(end_position + 4);
+    $self.$name_converter(&$name_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_closing_fragment {
+  ($self:expr, span => $span:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&44u32.to_ne_bytes(), &$span, 4, false);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_element {
+  ($self:expr, span => $span:expr, openingElement => [$openingElement_value:expr, $openingElement_converter:ident], children => [$children_value:expr, $children_converter:ident], closingElement => [$closingElement_value:expr, $closingElement_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&45u32.to_ne_bytes(), &$span, 16, false);
+    // openingElement
+    $self.update_reference_position(end_position + 4);
+    $self.$openingElement_converter(&$openingElement_value);
+    // children
+    $self.convert_item_list(&$children_value, end_position + 8, |ast_converter, node| {
+      ast_converter.$children_converter(node);
+      true
+    });
+    // closingElement
+    if let Some(value) = $closingElement_value.as_ref() {
+      $self.update_reference_position(end_position + 12);
+      $self.$closingElement_converter(value);
+    }
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_fragment {
+  ($self:expr, span => $span:expr, openingFragment => [$openingFragment_value:expr, $openingFragment_converter:ident], children => [$children_value:expr, $children_converter:ident], closingFragment => [$closingFragment_value:expr, $closingFragment_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&48u32.to_ne_bytes(), &$span, 16, false);
+    // openingFragment
+    $self.update_reference_position(end_position + 4);
+    $self.$openingFragment_converter(&$openingFragment_value);
+    // children
+    $self.convert_item_list(&$children_value, end_position + 8, |ast_converter, node| {
+      ast_converter.$children_converter(node);
+      true
+    });
+    // closingFragment
+    $self.update_reference_position(end_position + 12);
+    $self.$closingFragment_converter(&$closingFragment_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_identifier {
+  ($self:expr, span => $span:expr, name => $name_value:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&49u32.to_ne_bytes(), &$span, 8, false);
+    // name
+    $self.convert_string($name_value, end_position + 4);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_opening_fragment {
+  ($self:expr, span => $span:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&53u32.to_ne_bytes(), &$span, 4, false);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_spread_child {
+  ($self:expr, span => $span:expr, expression => [$expression_value:expr, $expression_converter:ident]) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&55u32.to_ne_bytes(), &$span, 8, false);
+    // expression
+    $self.update_reference_position(end_position + 4);
+    $self.$expression_converter(&$expression_value);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
+macro_rules! store_jsx_text {
+  ($self:expr, span => $span:expr, value => $value_value:expr, raw => $raw_value:expr) => {
+    let _: &mut AstConverter = $self;
+    let end_position = $self.add_type_and_start(&56u32.to_ne_bytes(), &$span, 12, false);
+    // value
+    $self.convert_string($value_value, end_position + 4);
+    // raw
+    $self.convert_string($raw_value, end_position + 8);
+    // end
+    $self.add_end(end_position, &$span);
+  };
+}
+
+#[macro_export]
 macro_rules! store_labeled_statement {
   ($self:expr, span => $span:expr, label => [$label_value:expr, $label_converter:ident], body => [$body_value:expr, $body_converter:ident]) => {
     let _: &mut AstConverter = $self;
