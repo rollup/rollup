@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_class_body(&mut self, class_members: &[ClassMember], start: u32, end: u32) {
+  pub(crate) fn store_class_body(&mut self, class_members: &[ClassMember], start: u32, end: u32) {
     let end_position =
       self.add_type_and_explicit_start(&TYPE_CLASS_BODY, start, CLASS_BODY_RESERVED_BYTES);
     let class_members_filtered: Vec<&ClassMember> = class_members

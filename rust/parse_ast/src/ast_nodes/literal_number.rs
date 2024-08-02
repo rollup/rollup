@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_literal_number;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_literal_number(&mut self, literal: &Number) {
+  pub(crate) fn store_literal_number(&mut self, literal: &Number) {
     store_literal_number!(
       self,
       span => &literal.span,

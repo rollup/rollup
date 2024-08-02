@@ -5,7 +5,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::{store_update_expression, store_update_expression_flags};
 
 impl<'a> AstConverter<'a> {
-  pub fn store_update_expression(&mut self, update_expression: &UpdateExpr) {
+  pub(crate) fn store_update_expression(&mut self, update_expression: &UpdateExpr) {
     store_update_expression!(
       self,
       span => &update_expression.span,

@@ -3,14 +3,14 @@ use swc_ecma_ast::{ClassProp, Decorator, Expr, PrivateProp, PropName};
 
 use crate::ast_nodes::method_definition::PropOrPrivateName;
 use crate::convert_ast::converter::ast_constants::{
-  PROPERTY_DEFINITION_DECORATORS_OFFSET, PROPERTY_DEFINITION_KEY_OFFSET,
-  PROPERTY_DEFINITION_RESERVED_BYTES, PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
+    PROPERTY_DEFINITION_DECORATORS_OFFSET, PROPERTY_DEFINITION_KEY_OFFSET,
+    PROPERTY_DEFINITION_RESERVED_BYTES, PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::store_property_definition_flags;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_property_definition(
+  pub(crate) fn store_property_definition(
     &mut self,
     span: &Span,
     is_computed: bool,
@@ -53,7 +53,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_class_property(&mut self, class_property: &ClassProp) {
+  pub(crate) fn convert_class_property(&mut self, class_property: &ClassProp) {
     self.store_property_definition(
       &class_property.span,
       matches!(&class_property.key, PropName::Computed(_)),
@@ -64,7 +64,7 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  pub fn convert_private_property(&mut self, private_property: &PrivateProp) {
+  pub(crate) fn convert_private_property(&mut self, private_property: &PrivateProp) {
     self.store_property_definition(
       &private_property.span,
       false,

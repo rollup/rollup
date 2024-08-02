@@ -1,13 +1,13 @@
 use swc_ecma_ast::ImportDecl;
 
 use crate::convert_ast::converter::ast_constants::{
-  IMPORT_DECLARATION_ATTRIBUTES_OFFSET, IMPORT_DECLARATION_RESERVED_BYTES,
-  IMPORT_DECLARATION_SOURCE_OFFSET, IMPORT_DECLARATION_SPECIFIERS_OFFSET, TYPE_IMPORT_DECLARATION,
+    IMPORT_DECLARATION_ATTRIBUTES_OFFSET, IMPORT_DECLARATION_RESERVED_BYTES,
+    IMPORT_DECLARATION_SOURCE_OFFSET, IMPORT_DECLARATION_SPECIFIERS_OFFSET, TYPE_IMPORT_DECLARATION,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_import_declaration(&mut self, import_declaration: &ImportDecl) {
+  pub(crate) fn store_import_declaration(&mut self, import_declaration: &ImportDecl) {
     let end_position = self.add_type_and_start(
       &TYPE_IMPORT_DECLARATION,
       &import_declaration.span,

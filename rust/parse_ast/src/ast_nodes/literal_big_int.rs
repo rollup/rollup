@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_literal_big_int;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_literal_bigint(&mut self, bigint: &BigInt) {
+  pub(crate) fn store_literal_bigint(&mut self, bigint: &BigInt) {
     store_literal_big_int!(
       self,
       span => &bigint.span,

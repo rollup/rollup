@@ -5,7 +5,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_directive;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_directive(&mut self, expression_statement: &ExprStmt, directive: &JsWord) {
+  pub(crate) fn store_directive(&mut self, expression_statement: &ExprStmt, directive: &JsWord) {
     store_directive!(
       self,
       span => expression_statement.span,

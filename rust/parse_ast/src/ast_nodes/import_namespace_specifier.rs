@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_import_namespace_specifier;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_import_namespace_specifier(
+  pub(crate) fn store_import_namespace_specifier(
     &mut self,
     import_namespace_specifier: &ImportStarAsSpecifier,
   ) {

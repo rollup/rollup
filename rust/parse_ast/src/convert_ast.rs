@@ -1,2 +1,2 @@
-pub mod annotations;
-pub mod converter;
+pub(crate) mod annotations;
+pub(crate) mod converter;

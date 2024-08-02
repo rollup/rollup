@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_for_statement;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_for_statement(&mut self, for_statement: &ForStmt) {
+  pub(crate) fn store_for_statement(&mut self, for_statement: &ForStmt) {
     store_for_statement!(
       self,
       span => &for_statement.span,

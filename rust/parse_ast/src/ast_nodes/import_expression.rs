@@ -2,13 +2,13 @@ use swc_common::Span;
 use swc_ecma_ast::ExprOrSpread;
 
 use crate::convert_ast::converter::ast_constants::{
-  IMPORT_EXPRESSION_OPTIONS_OFFSET, IMPORT_EXPRESSION_RESERVED_BYTES,
-  IMPORT_EXPRESSION_SOURCE_OFFSET, TYPE_IMPORT_EXPRESSION,
+    IMPORT_EXPRESSION_OPTIONS_OFFSET, IMPORT_EXPRESSION_RESERVED_BYTES,
+    IMPORT_EXPRESSION_SOURCE_OFFSET, TYPE_IMPORT_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_import_expression(&mut self, span: &Span, arguments: &[ExprOrSpread]) {
+  pub(crate) fn store_import_expression(&mut self, span: &Span, arguments: &[ExprOrSpread]) {
     let end_position = self.add_type_and_start(
       &TYPE_IMPORT_EXPRESSION,
       span,

@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_do_while_statement;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_do_while_statement(&mut self, do_while_statement: &DoWhileStmt) {
+  pub(crate) fn store_do_while_statement(&mut self, do_while_statement: &DoWhileStmt) {
     store_do_while_statement!(
       self,
       span => do_while_statement.span,

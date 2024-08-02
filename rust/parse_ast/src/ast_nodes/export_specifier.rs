@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_export_specifier;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_export_specifier(&mut self, export_named_specifier: &ExportNamedSpecifier) {
+  pub(crate) fn store_export_specifier(&mut self, export_named_specifier: &ExportNamedSpecifier) {
     store_export_specifier!(
       self,
       span => &export_named_specifier.span,

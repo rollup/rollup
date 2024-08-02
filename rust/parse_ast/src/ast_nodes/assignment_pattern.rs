@@ -8,7 +8,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_assignment_pattern_and_get_left_position(
+  pub(crate) fn store_assignment_pattern_and_get_left_position(
     &mut self,
     span: &Span,
     left: PatternOrIdentifier,
@@ -37,7 +37,7 @@ impl<'a> AstConverter<'a> {
     left_position
   }
 
-  pub fn convert_assignment_pattern(&mut self, assignment_pattern: &AssignPat) {
+  pub(crate) fn convert_assignment_pattern(&mut self, assignment_pattern: &AssignPat) {
     self.store_assignment_pattern_and_get_left_position(
       &assignment_pattern.span,
       PatternOrIdentifier::Pattern(&assignment_pattern.left),
@@ -46,7 +46,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum PatternOrIdentifier<'a> {
+pub(crate) enum PatternOrIdentifier<'a> {
   Pattern(&'a Pat),
   Identifier(&'a Ident),
 }

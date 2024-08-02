@@ -1,4 +1,8 @@
-pub fn find_first_occurrence_outside_comment(code: &[u8], search_byte: u8, start: u32) -> u32 {
+pub(crate) fn find_first_occurrence_outside_comment(
+  code: &[u8],
+  search_byte: u8,
+  start: u32,
+) -> u32 {
   let mut search_pos = start as usize;
   let mut comment_type = CommentType::None;
   loop {

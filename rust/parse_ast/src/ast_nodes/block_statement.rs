@@ -6,7 +6,11 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_block_statement(&mut self, block_statement: &BlockStmt, check_directive: bool) {
+  pub(crate) fn store_block_statement(
+    &mut self,
+    block_statement: &BlockStmt,
+    check_directive: bool,
+  ) {
     let end_position = self.add_type_and_start(
       &TYPE_BLOCK_STATEMENT,
       &block_statement.span,
