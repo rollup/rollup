@@ -119,26 +119,36 @@ const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {
 const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
 	const configJsx = config.jsx;
 	if (!configJsx) return false;
-	const configWithPreset = getOptionWithPreset(
-		configJsx,
-		jsxPresets,
-		'jsx',
-		URL_JSX,
-		'false, "preserve", '
-	);
-	return configWithPreset.preserve
-		? {
-				factory: configWithPreset.factory || null,
-				fragmentFactory: configWithPreset.fragmentFactory || null,
-				importSource: configWithPreset.importSource || null,
-				preserve: true
-			}
-		: {
-				factory: configWithPreset.factory || 'React.createElement',
-				fragmentFactory: configWithPreset.fragmentFactory || 'React.Fragment',
-				importSource: configWithPreset.importSource || null,
-				preserve: false
+	const configWithPreset = getOptionWithPreset(configJsx, jsxPresets, 'jsx', URL_JSX, 'false, ');
+	switch (configWithPreset.mode) {
+		case 'automatic': {
+			return {
+				importSource: configWithPreset.importSource || 'react/jsx-runtime',
+				mode: 'automatic'
 			};
+		}
+		case 'preserve': {
+			// TODO Lukas throw if there is an importSource but neither factory nor fragment
+			// TODO Lukas throw if there is no importSource but a fragment or factory that is not a valid identifier (with optional ".")
+			return {
+				factory: configWithPreset.factory || null,
+				fragment: configWithPreset.fragment || null,
+				importSource: configWithPreset.importSource || null,
+				mode: 'preserve'
+			};
+		}
+		// case 'classic':
+		default: {
+			// TODO Lukas throw if there is no importSource but a fragment or factory that is not a valid identifier
+			// TODO Lukas throw for unexpected mode
+			return {
+				factory: configWithPreset.factory || 'React.createElement',
+				fragment: configWithPreset.fragment || 'React.Fragment',
+				importSource: configWithPreset.importSource || null,
+				mode: 'classic'
+			};
+		}
+	}
 };
 
 const getMaxParallelFileOps = (

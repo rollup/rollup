@@ -21,13 +21,13 @@ export default class JSXOpeningFragment extends JSXOpeningBase {
 		options?: InclusionOptions
 	): void {
 		if (!this.included) {
-			const { fragmentFactory, importSource, preserve } = this.scope.context.options
-				.jsx as NormalizedJsxOptions;
-			if (fragmentFactory != null) {
+			const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
+			const fragment = jsx.mode === 'automatic' ? 'Fragment' : jsx.fragment;
+			if (fragment != null) {
 				this.fragmentVariable = this.getAndIncludeFactoryVariable(
-					fragmentFactory,
-					preserve,
-					importSource
+					fragment,
+					jsx.mode === 'preserve',
+					jsx.importSource
 				);
 			}
 		}
@@ -40,11 +40,10 @@ export default class JSXOpeningFragment extends JSXOpeningBase {
 			snippets: { getPropertyAccess },
 			useOriginalName
 		} = options;
-		const { factory, fragmentFactory, preserve } = this.scope.context.options
-			.jsx as NormalizedJsxOptions;
-		if (!preserve) {
-			const [, ...nestedFactory] = factory.split('.');
-			const [, ...nestedFragment] = fragmentFactory.split('.');
+		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (jsx.mode !== 'preserve') {
+			const [, ...nestedFactory] = jsx.mode === 'classic' ? jsx.factory.split('.') : [];
+			const [, ...nestedFragment] = jsx.mode === 'classic' ? jsx.fragment.split('.') : [];
 			code.overwrite(
 				this.start,
 				this.end,

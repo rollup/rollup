@@ -5,22 +5,21 @@ import type JSXClosingFragment from './JSXClosingFragment';
 import type JSXElement from './JSXElement';
 import JSXEmptyExpression from './JSXEmptyExpression';
 import JSXExpressionContainer from './JSXExpressionContainer';
-import type JSXFragment from './JSXFragment';
 import type JSXOpeningFragment from './JSXOpeningFragment';
 import type JSXSpreadChild from './JSXSpreadChild';
 import type JSXText from './JSXText';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-export default class JsxElement extends NodeBase {
+export default class JSXFragment extends NodeBase {
 	type!: NodeType.tJSXElement;
 	openingFragment!: JSXOpeningFragment;
 	children!: (JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment)[];
 	closingFragment!: JSXClosingFragment;
 
 	render(code: MagicString, options: RenderOptions): void {
-		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (preserve) {
+		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (mode === 'preserve') {
 			super.render(code, options);
 		} else {
 			this.openingFragment.render(code, options);

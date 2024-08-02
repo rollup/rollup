@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	solo: true,
+	// solo: true,
 	description: 'preserves self-closing JSX elements',
 	options: {
 		jsx: 'preserve'

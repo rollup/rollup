@@ -11,8 +11,8 @@ export default class JSXSpreadChild extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
-		const { preserve } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (!preserve) {
+		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
+		if (mode !== 'preserve') {
 			code.overwrite(this.start, this.expression.start, '...', { contentOnly: true });
 			code.overwrite(this.expression.end, this.end, '', { contentOnly: true });
 		}
