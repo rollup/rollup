@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	// solo: true,
+	solo: true, //x,
 	description: 'preserves React variable when preserving JSX output',
 	options: {
 		jsx: {

@@ -1,5 +1,5 @@
 module.exports = defineTest({
-	// solo: true,
+	solo: true, //x,
 	description: 'preserves JSX closing element',
 	options: {
 		external: ['react'],
