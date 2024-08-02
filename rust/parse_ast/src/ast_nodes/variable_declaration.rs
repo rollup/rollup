@@ -1,17 +1,17 @@
 use swc_common::Span;
-use swc_ecma_ast::{UsingDecl, VarDecl, VarDeclKind, VarDeclarator};
+use swc_ecma_ast::{UsingDecl, VarDecl, VarDeclarator, VarDeclKind};
 
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_VARIABLE_DECLARATION, VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
-  VARIABLE_DECLARATION_KIND_OFFSET, VARIABLE_DECLARATION_RESERVED_BYTES,
-};
-use crate::convert_ast::converter::string_constants::{
-  STRING_AWAIT_USING, STRING_CONST, STRING_LET, STRING_USING, STRING_VAR,
+    TYPE_VARIABLE_DECLARATION, VARIABLE_DECLARATION_DECLARATIONS_OFFSET,
+    VARIABLE_DECLARATION_KIND_OFFSET, VARIABLE_DECLARATION_RESERVED_BYTES,
 };
 use crate::convert_ast::converter::AstConverter;
+use crate::convert_ast::converter::string_constants::{
+    STRING_AWAIT_USING, STRING_CONST, STRING_LET, STRING_USING, STRING_VAR,
+};
 
 impl<'a> AstConverter<'a> {
-  pub fn store_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
+  pub(crate) fn store_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
     let (kind, span, decls): (&[u8; 4], Span, &Vec<VarDeclarator>) = match variable_declaration {
       VariableDeclaration::Var(value) => (
         match value.kind {
@@ -55,7 +55,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum VariableDeclaration<'a> {
+pub(crate) enum VariableDeclaration<'a> {
   Var(&'a VarDecl),
   Using(&'a UsingDecl),
 }

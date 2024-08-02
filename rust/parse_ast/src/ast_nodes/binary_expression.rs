@@ -1,20 +1,20 @@
-use swc_ecma_ast::{BinExpr, BinaryOp};
+use swc_ecma_ast::{BinaryOp, BinExpr};
 
 use crate::convert_ast::converter::ast_constants::{
   BINARY_EXPRESSION_LEFT_OFFSET, BINARY_EXPRESSION_OPERATOR_OFFSET,
   BINARY_EXPRESSION_RESERVED_BYTES, BINARY_EXPRESSION_RIGHT_OFFSET, TYPE_BINARY_EXPRESSION,
   TYPE_LOGICAL_EXPRESSION,
 };
+use crate::convert_ast::converter::AstConverter;
 use crate::convert_ast::converter::string_constants::{
   STRING_ADD, STRING_BITAND, STRING_BITOR, STRING_BITXOR, STRING_DIV, STRING_EQEQ, STRING_EQEQEQ,
   STRING_EXP, STRING_GT, STRING_GTEQ, STRING_IN, STRING_INSTANCEOF, STRING_LOGICALAND,
   STRING_LOGICALOR, STRING_LSHIFT, STRING_LT, STRING_LTEQ, STRING_MOD, STRING_MUL, STRING_NOTEQ,
   STRING_NOTEQEQ, STRING_NULLISHCOALESCING, STRING_RSHIFT, STRING_SUB, STRING_ZEROFILLRSHIFT,
 };
-use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_binary_expression(&mut self, binary_expression: &BinExpr) {
+  pub(crate) fn store_binary_expression(&mut self, binary_expression: &BinExpr) {
     let end_position = self.add_type_and_start(
       match binary_expression.op {
         BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => {

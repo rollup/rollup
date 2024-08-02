@@ -2,13 +2,13 @@ use swc_ecma_ast::{Expr, VarDeclarator};
 
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
-  TYPE_VARIABLE_DECLARATOR, VARIABLE_DECLARATOR_ID_OFFSET, VARIABLE_DECLARATOR_INIT_OFFSET,
-  VARIABLE_DECLARATOR_RESERVED_BYTES,
+    TYPE_VARIABLE_DECLARATOR, VARIABLE_DECLARATOR_ID_OFFSET, VARIABLE_DECLARATOR_INIT_OFFSET,
+    VARIABLE_DECLARATOR_RESERVED_BYTES,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
+  pub(crate) fn store_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
     let end_position = self.add_type_and_start(
       &TYPE_VARIABLE_DECLARATOR,
       &variable_declarator.span,

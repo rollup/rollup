@@ -9,7 +9,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_export_all_declaration(
+  pub(crate) fn store_export_all_declaration(
     &mut self,
     span: &Span,
     source: &Str,
@@ -39,7 +39,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_export_all(&mut self, export_all: &ExportAll) {
+  pub(crate) fn convert_export_all(&mut self, export_all: &ExportAll) {
     self.store_export_all_declaration(&export_all.span, &export_all.src, &export_all.with, None);
   }
 }

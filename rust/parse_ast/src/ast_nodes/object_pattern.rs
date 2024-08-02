@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_object_pattern;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_object_pattern(&mut self, object_pattern: &ObjectPat) {
+  pub(crate) fn store_object_pattern(&mut self, object_pattern: &ObjectPat) {
     store_object_pattern!(
       self,
       span => &object_pattern.span,

@@ -2,13 +2,13 @@ use swc_common::Spanned;
 use swc_ecma_ast::{KeyValueProp, ObjectLit, Prop, PropOrSpread};
 
 use crate::convert_ast::converter::ast_constants::{
-  IMPORT_ATTRIBUTE_KEY_OFFSET, IMPORT_ATTRIBUTE_RESERVED_BYTES, IMPORT_ATTRIBUTE_VALUE_OFFSET,
-  TYPE_IMPORT_ATTRIBUTE,
+    IMPORT_ATTRIBUTE_KEY_OFFSET, IMPORT_ATTRIBUTE_RESERVED_BYTES, IMPORT_ATTRIBUTE_VALUE_OFFSET,
+    TYPE_IMPORT_ATTRIBUTE,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_import_attribute(&mut self, key_value_property: &KeyValueProp) {
+  pub(crate) fn store_import_attribute(&mut self, key_value_property: &KeyValueProp) {
     // type
     let end_position = self.add_type_and_start(
       &TYPE_IMPORT_ATTRIBUTE,
@@ -25,7 +25,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &key_value_property.span());
   }
 
-  pub fn store_import_attributes(
+  pub(crate) fn store_import_attributes(
     &mut self,
     with: &Option<Box<ObjectLit>>,
     reference_position: usize,

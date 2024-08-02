@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_switch_statement;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_switch_statement(&mut self, switch_statement: &SwitchStmt) {
+  pub(crate) fn store_switch_statement(&mut self, switch_statement: &SwitchStmt) {
     store_switch_statement!(
       self,
       span => &switch_statement.span,

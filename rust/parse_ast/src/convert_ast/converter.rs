@@ -21,20 +21,20 @@ use crate::convert_ast::converter::utf16_positions::{
 };
 
 pub(crate) mod analyze_code;
-pub mod string_constants;
+pub(crate) mod string_constants;
 mod utf16_positions;
 
-pub mod ast_constants;
+pub(crate) mod ast_constants;
 mod ast_macros;
 
-pub struct AstConverter<'a> {
-  pub buffer: Vec<u8>,
-  pub code: &'a [u8],
-  pub index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
+pub(crate) struct AstConverter<'a> {
+  pub(crate) buffer: Vec<u8>,
+  pub(crate) code: &'a [u8],
+  pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
 }
 
 impl<'a> AstConverter<'a> {
-  pub fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
+  pub(crate) fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
     Self {
       // This is just a wild guess and should be revisited from time to time
       buffer: Vec::with_capacity(20 * code.len()),
@@ -43,14 +43,14 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
+  pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
     self.buffer.shrink_to_fit();
     self.buffer
   }
 
   // === helpers
-  pub fn add_type_and_start(
+  pub(crate) fn add_type_and_start(
     &mut self,
     node_type: &[u8; 4],
     span: &Span,
@@ -90,7 +90,7 @@ impl<'a> AstConverter<'a> {
     end_position
   }
 
-  pub fn add_end(&mut self, end_position: usize, span: &Span) {
+  pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
     self.buffer[end_position..end_position + 4].copy_from_slice(
       &self
         .index_converter
@@ -104,7 +104,7 @@ impl<'a> AstConverter<'a> {
       .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
 
-  pub fn convert_item_list<T, F>(
+  pub(crate) fn convert_item_list<T, F>(
     &mut self,
     item_list: &[T],
     reference_position: usize,
@@ -136,7 +136,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_item_list_with_state<T, S, F>(
+  pub(crate) fn convert_item_list_with_state<T, S, F>(
     &mut self,
     item_list: &[T],
     state: &mut S,
@@ -175,14 +175,14 @@ impl<'a> AstConverter<'a> {
     convert_string(&mut self.buffer, string);
   }
 
-  pub fn update_reference_position(&mut self, reference_position: usize) {
+  pub(crate) fn update_reference_position(&mut self, reference_position: usize) {
     let insert_position = (self.buffer.len() as u32) >> 2;
     self.buffer[reference_position..reference_position + 4]
       .copy_from_slice(&insert_position.to_ne_bytes());
   }
 
   // === shared enums
-  pub fn convert_call_expression(
+  pub(crate) fn convert_call_expression(
     &mut self,
     call_expression: &CallExpr,
     is_optional: bool,
@@ -276,7 +276,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_expression(&mut self, expression: &Expr) {
+  pub(crate) fn convert_expression(&mut self, expression: &Expr) {
     match expression {
       Expr::Array(array_literal) => {
         self.store_array_expression(array_literal);
@@ -379,7 +379,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
+  pub(crate) fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
     match expression_or_spread.spread {
       Some(spread_span) => self.store_spread_element(&spread_span, &expression_or_spread.expr),
       None => {
@@ -602,7 +602,7 @@ impl<'a> AstConverter<'a> {
     self.convert_expression(&parenthesized_expression.expr);
   }
 
-  pub fn convert_pattern(&mut self, pattern: &Pat) {
+  pub(crate) fn convert_pattern(&mut self, pattern: &Pat) {
     match pattern {
       Pat::Array(array_pattern) => {
         self.store_array_pattern(array_pattern);
@@ -624,7 +624,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_pattern_or_expression(&mut self, pattern_or_expression: &AssignTarget) {
+  pub(crate) fn convert_pattern_or_expression(&mut self, pattern_or_expression: &AssignTarget) {
     match pattern_or_expression {
       AssignTarget::Pat(assignment_target_pattern) => {
         self.convert_assignment_target_pattern(assignment_target_pattern);
@@ -704,7 +704,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_statement(&mut self, statement: &Stmt) {
+  pub(crate) fn convert_statement(&mut self, statement: &Stmt) {
     match statement {
       Stmt::Break(break_statement) => self.store_break_statement(break_statement),
       Stmt::Block(block_statement) => self.store_block_statement(block_statement, false),
@@ -743,7 +743,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation) {
+pub(crate) fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation) {
   // start
   buffer.extend_from_slice(&annotation.start.to_ne_bytes());
   // end
@@ -756,7 +756,7 @@ pub fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation
   });
 }
 
-pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
+pub(crate) fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   let length = string.len();
   let additional_length = ((length + 3) & !3) - length;
   buffer.extend_from_slice(&(length as u32).to_ne_bytes());
@@ -764,7 +764,7 @@ pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   buffer.resize(buffer.len() + additional_length, 0);
 }
 
-pub fn update_reference_position(buffer: &mut [u8], reference_position: usize) {
+pub(crate) fn update_reference_position(buffer: &mut [u8], reference_position: usize) {
   let insert_position = (buffer.len() as u32) >> 2;
   buffer[reference_position..reference_position + 4]
     .copy_from_slice(&insert_position.to_ne_bytes());

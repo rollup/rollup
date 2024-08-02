@@ -1,12 +1,12 @@
 use swc_ecma_ast::{BlockStmt, Function, Ident, Pat};
 
 use crate::convert_ast::annotations::AnnotationKind;
+use crate::convert_ast::converter::{AstConverter, convert_annotation};
 use crate::convert_ast::converter::ast_constants::{
   FUNCTION_DECLARATION_ANNOTATIONS_OFFSET, FUNCTION_DECLARATION_BODY_OFFSET,
   FUNCTION_DECLARATION_ID_OFFSET, FUNCTION_DECLARATION_PARAMS_OFFSET,
   FUNCTION_DECLARATION_RESERVED_BYTES,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_function_declaration_flags;
 
 impl<'a> AstConverter<'a> {
@@ -31,7 +31,7 @@ impl<'a> AstConverter<'a> {
   }
 
   #[allow(clippy::too_many_arguments)]
-  pub fn store_function_node(
+  pub(crate) fn store_function_node(
     &mut self,
     node_type: &[u8; 4],
     start: u32,

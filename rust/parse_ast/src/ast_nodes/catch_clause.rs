@@ -7,7 +7,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_catch_clause(&mut self, catch_clause: &CatchClause) {
+  pub(crate) fn store_catch_clause(&mut self, catch_clause: &CatchClause) {
     let end_position = self.add_type_and_start(
       &TYPE_CATCH_CLAUSE,
       &catch_clause.span,

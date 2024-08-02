@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_conditional_expression;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_conditional_expression(&mut self, conditional_expression: &CondExpr) {
+  pub(crate) fn store_conditional_expression(&mut self, conditional_expression: &CondExpr) {
     store_conditional_expression!(
       self,
       span => conditional_expression.span,

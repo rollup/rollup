@@ -1,13 +1,13 @@
 use swc_ecma_ast::TryStmt;
 
 use crate::convert_ast::converter::ast_constants::{
-  TRY_STATEMENT_BLOCK_OFFSET, TRY_STATEMENT_FINALIZER_OFFSET, TRY_STATEMENT_HANDLER_OFFSET,
-  TRY_STATEMENT_RESERVED_BYTES, TYPE_TRY_STATEMENT,
+    TRY_STATEMENT_BLOCK_OFFSET, TRY_STATEMENT_FINALIZER_OFFSET, TRY_STATEMENT_HANDLER_OFFSET,
+    TRY_STATEMENT_RESERVED_BYTES, TYPE_TRY_STATEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_try_statement(&mut self, try_statement: &TryStmt) {
+  pub(crate) fn store_try_statement(&mut self, try_statement: &TryStmt) {
     let end_position = self.add_type_and_start(
       &TYPE_TRY_STATEMENT,
       &try_statement.span,

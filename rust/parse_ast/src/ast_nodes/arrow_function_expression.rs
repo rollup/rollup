@@ -1,16 +1,16 @@
 use swc_ecma_ast::{ArrowExpr, BlockStmtOrExpr};
 
 use crate::convert_ast::annotations::AnnotationKind;
+use crate::convert_ast::converter::{AstConverter, convert_annotation};
 use crate::convert_ast::converter::ast_constants::{
   ARROW_FUNCTION_EXPRESSION_ANNOTATIONS_OFFSET, ARROW_FUNCTION_EXPRESSION_BODY_OFFSET,
   ARROW_FUNCTION_EXPRESSION_PARAMS_OFFSET, ARROW_FUNCTION_EXPRESSION_RESERVED_BYTES,
   TYPE_ARROW_FUNCTION_EXPRESSION,
 };
-use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_arrow_function_expression_flags;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_arrow_function_expression(&mut self, arrow_expression: &ArrowExpr) {
+  pub(crate) fn store_arrow_function_expression(&mut self, arrow_expression: &ArrowExpr) {
     let end_position = self.add_type_and_start(
       &TYPE_ARROW_FUNCTION_EXPRESSION,
       &arrow_expression.span,
