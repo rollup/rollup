@@ -43,7 +43,7 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::utf16_positions::{
   ConvertedAnnotation, Utf8ToUtf16ByteIndexConverterAndAnnotationHandler,
 };
-use crate::store_j_s_x_opening_element_flags;
+use crate::store_jsx_opening_element_flags;
 
 pub(crate) mod analyze_code;
 pub mod string_constants;
@@ -959,7 +959,7 @@ impl<'a> AstConverter<'a> {
       false,
     );
     // flags
-    store_j_s_x_opening_element_flags!(
+    store_jsx_opening_element_flags!(
       self,
       end_position,
       selfClosing => jsx_opening_element.self_closing

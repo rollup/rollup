@@ -775,7 +775,7 @@ macro_rules! store_function_declaration_flags {
 }
 
 #[macro_export]
-macro_rules! store_j_s_x_opening_element_flags {
+macro_rules! store_jsx_opening_element_flags {
   ($self:expr, $end_position:expr, selfClosing => $selfClosing_value:expr) => {
     let _: &mut AstConverter = $self;
     let _: usize = $end_position;

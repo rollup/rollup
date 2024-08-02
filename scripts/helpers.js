@@ -114,7 +114,7 @@ export function firstLettersLowercase(string) {
  * @returns {string}
  */
 export function toSnakeCase(string) {
-	return string.replace(/(?<!^)([A-Z])/g, '_$1').toLowerCase();
+	return string.replace(/(?<!^)([A-Z])([a-z])/g, '_$1$2').toLowerCase();
 }
 
 /**
