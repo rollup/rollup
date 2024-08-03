@@ -3,8 +3,7 @@ import type { NormalizedJsxClassicOptions, NormalizedJsxOptions } from '../../ro
 import { getRenderedJsxChildren } from '../../utils/jsx';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type JSXAttribute from './JSXAttribute';
-import JSXElement from './JSXElement';
-import type JSXFragment from './JSXFragment';
+import type JSXElement from './JSXElement';
 import type JSXIdentifier from './JSXIdentifier';
 import type JSXMemberExpression from './JSXMemberExpression';
 import type JSXNamespacedName from './JSXNamespacedName';
@@ -51,16 +50,15 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 			start
 		} = this;
 		const [, ...nestedName] = factory.split('.');
-		code.overwrite(
+		code.update(
 			start,
 			nameStart,
-			`/*#__PURE__*/${[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`,
-			{ contentOnly: true }
+			`/*#__PURE__*/${[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`
 		);
 		if (attributes.some(attribute => attribute instanceof JSXSpreadAttribute)) {
 			if (attributes.length === 1) {
 				code.appendLeft(nameEnd, ',');
-				code.overwrite(attributes[0].end, end, '', { contentOnly: true });
+				code.update(attributes[0].end, end, '');
 			} else {
 				code.appendLeft(nameEnd, ', Object.assign(');
 				let inObject = false;
@@ -89,20 +87,16 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 				if (inObject) {
 					code.appendLeft(attributes.at(-1)!.end, ' }');
 				}
-				code.overwrite(attributes.at(-1)!.end, end, ')', { contentOnly: true });
+				code.update(attributes.at(-1)!.end, end, ')');
 			}
 		} else if (attributes.length > 0) {
 			code.appendLeft(nameEnd, ', {');
 			for (let index = 0; index < attributes.length - 1; index++) {
 				code.appendLeft(attributes[index].end, ', ');
 			}
-			code.overwrite(attributes.at(-1)!.end, end, ' }', {
-				contentOnly: true
-			});
+			code.update(attributes.at(-1)!.end, end, ' }');
 		} else {
-			code.overwrite(nameEnd, end, ', null', {
-				contentOnly: true
-			});
+			code.update(nameEnd, end, ', null');
 		}
 		if (selfClosing) {
 			code.appendLeft(end, ')');
@@ -122,11 +116,10 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 			selfClosing,
 			start
 		} = this;
-		code.overwrite(
+		code.update(
 			start,
 			nameStart,
-			`/*#__PURE__*/${factoryVariable!.getName(getPropertyAccess, useOriginalName)}(`,
-			{ contentOnly: true }
+			`/*#__PURE__*/${factoryVariable!.getName(getPropertyAccess, useOriginalName)}(`
 		);
 		let keyAttribute: JSXAttribute | null = null;
 		let hasSpread = false;
@@ -164,7 +157,7 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 		}
 		code.prependLeft(nameEnd, hasSpread ? ', Object.assign({' : ', {');
 		const closeObjectAssign = hasSpread ? ')' : '';
-		const parent = this.parent as JSXElement | JSXFragment;
+		const parent = this.parent as JSXElement;
 		const renderedChildren = getRenderedJsxChildren(parent.children);
 		if (renderedChildren > 0) {
 			if (hasAttributes) {
@@ -179,20 +172,21 @@ export default class JSXOpeningElement extends JSXOpeningBase {
 				` children: ${renderedChildren > 1 ? '[' : ''}`
 			);
 			const childrenClose = renderedChildren > 1 ? ']' : '';
-			const closingElementStart =
-				parent instanceof JSXElement ? parent.closingElement!.start : parent.closingFragment!.start;
 			if (keyAttribute) {
 				const { value } = keyAttribute;
 				if (value) {
 					code.prependRight(value.start, `${childrenClose} }${closeObjectAssign}, `);
-					code.move(value.start, value.end, closingElementStart);
+					code.move(value.start, value.end, parent.closingElement!.start);
 				} else {
-					code.prependRight(closingElementStart, `${childrenClose} }${closeObjectAssign}, true`);
+					code.prependRight(
+						parent.closingElement!.start,
+						`${childrenClose} }${closeObjectAssign}, true`
+					);
 				}
 			} else {
 				// We need to attach to the right as children are not rendered yet and
 				// this appendLeft will not append to things appended by the children
-				code.prependRight(closingElementStart, `${childrenClose} }${closeObjectAssign}`);
+				code.prependRight(parent.closingElement!.start, `${childrenClose} }${closeObjectAssign}`);
 			}
 		} else {
 			if (inObject) {
