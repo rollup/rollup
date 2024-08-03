@@ -1,7 +1,6 @@
 const path = require('node:path');
 
 module.exports = defineTest({
-	//solo: true, //x,
 	description: 'preserves internal React variable when preserving JSX output',
 	options: {
 		jsx: {

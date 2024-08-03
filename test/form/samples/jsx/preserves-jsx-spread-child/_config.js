@@ -1,5 +1,4 @@
 module.exports = defineTest({
-	//solo: true, //x,
 	description: 'preserves JSX spread children',
 	options: {
 		external: ['react'],
