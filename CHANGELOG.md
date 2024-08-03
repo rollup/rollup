@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 4.20.0
+
+_2024-08-03_
+
+### Features
+
+- Allow plugins to specify the original file name when emitting assets (#5596)
+
+### Pull Requests
+
+- [#5596](https://github.com/rollup/rollup/pull/5596): Add originalFIleName property to emitted assets (@lukastaegert)
+- [#5599](https://github.com/rollup/rollup/pull/5599): chore(deps): update dependency eslint-plugin-unicorn to v55 (@renovate[bot], @lukastaegert)
+- [#5600](https://github.com/rollup/rollup/pull/5600): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+
 ## 4.19.2
 
 _2024-08-01_
