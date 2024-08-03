@@ -4,7 +4,6 @@ const ID_REACT = path.join(__dirname, 'react.js');
 const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = defineTest({
-	//solo: true, //x,
 	description: 'throws when the JSX factory is not exported',
 	options: {
 		jsx: {
