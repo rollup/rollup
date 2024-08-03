@@ -38,6 +38,7 @@ module.exports = defineTest({
 					fileInfo,
 					{
 						name: 'test.txt',
+						originalFileName: null,
 						source: 'hello world',
 						type: 'asset'
 					},

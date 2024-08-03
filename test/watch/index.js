@@ -1397,6 +1397,51 @@ describe('rollup.watch', function () {
 		]);
 	});
 
+	it('watches the original file name of emitted files', async () => {
+		await copy(path.join(SAMPLES_DIR, 'watch-files'), INPUT_DIR);
+		const WATCHED_ID = path.join(INPUT_DIR, 'watched');
+		const OUTPUT_FILE_NAME = 'watched.txt';
+		const OUTPUT_ID = path.join(OUTPUT_DIR, OUTPUT_FILE_NAME);
+		watcher = rollup.watch({
+			input: ENTRY_FILE,
+			output: {
+				file: BUNDLE_FILE,
+				format: 'cjs',
+				exports: 'auto'
+			},
+			plugins: [
+				{
+					name: 'test',
+					buildStart() {
+						this.emitFile({
+							type: 'asset',
+							fileName: OUTPUT_FILE_NAME,
+							originalFileName: WATCHED_ID,
+							source: readFileSync(WATCHED_ID).toString().trim()
+						});
+					}
+				}
+			]
+		});
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(readFileSync(OUTPUT_ID).toString().trim(), 'initial');
+				atomicWriteFileSync(WATCHED_ID, 'next');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(readFileSync(OUTPUT_ID).toString().trim(), 'next');
+			}
+		]);
+	});
+
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', async () => {
 			const watchChangeIds = new Set();
