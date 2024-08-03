@@ -1336,12 +1336,12 @@ export default class Module {
 		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const [externalVariable] = module.getVariableForExportName('*');
-				externalVariable.includePath(EMPTY_PATH);
+				externalVariable.includePath(UNKNOWN_PATH);
 				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
-				syntheticNamespace.includePath(EMPTY_PATH);
+				syntheticNamespace.includePath(UNKNOWN_PATH);
 				this.includedImports.add(syntheticNamespace);
 				syntheticNamespaces.add(syntheticNamespace);
 			}
