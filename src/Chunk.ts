@@ -1075,7 +1075,9 @@ export default class Chunk {
 				? idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[/\\]/, '')
 				: relative(this.inputBase, idWithoutExtension);
 		} else {
-			return `_virtual/${basename(idWithoutExtension)}`;
+			return (
+				this.outputOptions.virtualDirname.replace(/\/$/, '') + '/' + basename(idWithoutExtension)
+			);
 		}
 	}
 

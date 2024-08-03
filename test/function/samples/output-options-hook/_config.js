@@ -60,7 +60,8 @@ module.exports = defineTest({
 						sourcemapExcludeSources: false,
 						strict: true,
 						systemNullSetters: true,
-						validate: false
+						validate: false,
+						virtualDirname: '_virtual'
 					});
 					assert.strictEqual(options.banner(), 'exports.bar = 43;');
 					assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));

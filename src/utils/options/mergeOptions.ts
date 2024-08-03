@@ -279,7 +279,8 @@ async function mergeOutputOptions(
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict'),
 		systemNullSetters: getOption('systemNullSetters'),
-		validate: getOption('validate')
+		validate: getOption('validate'),
+		virtualDirname: getOption('virtualDirname')
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', log);
