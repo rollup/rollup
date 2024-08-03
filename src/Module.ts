@@ -121,7 +121,7 @@ export interface AstContext {
 	error: (properties: RollupLog, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];
-	getImportedJsxFactoryVariable: (baseName: string, pos: number) => Variable;
+	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getNodeConstructor: (name: string) => typeof NodeBase;
@@ -1158,6 +1158,10 @@ export default class Module {
 		if (jsx.importSource && !this.sourcesWithAttributes.has(jsx.importSource)) {
 			this.sourcesWithAttributes.set(jsx.importSource, EMPTY_OBJECT);
 		}
+		// TODO Lukas is this needed?
+		if (jsx.mode === 'automatic' && !this.sourcesWithAttributes.has(jsx.jsxImportSource)) {
+			this.sourcesWithAttributes.set(jsx.jsxImportSource, EMPTY_OBJECT);
+		}
 	}
 
 	private addImportMeta(node: MetaProperty): void {
@@ -1246,8 +1250,11 @@ export default class Module {
 		}
 	}
 
-	private getImportedJsxFactoryVariable(baseName: string, nodeStart: number): Variable {
-		const { importSource } = this.scope.context.options.jsx as NormalizedJsxOptions;
+	private getImportedJsxFactoryVariable(
+		baseName: string,
+		nodeStart: number,
+		importSource: string
+	): Variable {
 		const { id } = this.resolvedIds[importSource!];
 		const module = this.graph.modulesById.get(id)!;
 		const [variable] = module.getVariableForExportName(baseName);
