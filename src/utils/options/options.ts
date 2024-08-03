@@ -159,7 +159,9 @@ export const jsxPresets: {
 		mode: 'classic'
 	},
 	'react-jsx': {
-		importSource: 'react/jsx-runtime',
+		factory: 'React.createElement',
+		importSource: 'react',
+		jsxImportSource: 'react/jsx-runtime',
 		mode: 'automatic'
 	}
 };

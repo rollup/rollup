@@ -22,25 +22,19 @@ export default class JSXOpeningBase extends NodeBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
-			switch (jsx.mode) {
-				case 'preserve':
-				case 'classic': {
-					if (jsx.factory) {
-						this.factoryVariable = this.getAndIncludeFactoryVariable(
-							jsx.factory,
-							jsx.mode === 'preserve',
-							jsx.importSource
-						);
-					}
-					break;
-				}
-				case 'automatic': {
-					this.factoryVariable = this.getAndIncludeFactoryVariable(
-						this.getAutomaticJsxFactoryName(),
-						false,
-						jsx.importSource
-					);
-				}
+			const automaticFactory = jsx.mode === 'automatic' && this.getAutomaticJsxFactoryName();
+			if (automaticFactory) {
+				this.factoryVariable = this.getAndIncludeFactoryVariable(
+					automaticFactory,
+					false,
+					jsx.jsxImportSource
+				);
+			} else if (jsx.factory) {
+				this.factoryVariable = this.getAndIncludeFactoryVariable(
+					jsx.factory,
+					jsx.mode === 'preserve',
+					jsx.importSource
+				);
 			}
 		}
 		super.include(context, includeChildrenRecursively, options);
@@ -61,7 +55,8 @@ export default class JSXOpeningBase extends NodeBase {
 		if (importSource) {
 			factoryVariable = this.scope.context.getImportedJsxFactoryVariable(
 				nestedName ? 'default' : baseName,
-				this.start
+				this.start,
+				importSource
 			);
 			if (preserve) {
 				// This pretends we are accessing an included global variable of the same name
@@ -88,7 +83,7 @@ export default class JSXOpeningBase extends NodeBase {
 			if (attribute instanceof JSXSpreadAttribute) {
 				hasSpread = true;
 			} else if (hasSpread && attribute.name.name === 'key') {
-				return 'createElement';
+				return null;
 			}
 		}
 		const parent = this.parent as JSXElement | JSXFragment;

@@ -24,12 +24,15 @@ export default class JSXOpeningFragment extends JSXOpeningBase {
 	): void {
 		if (!this.included) {
 			const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
-			const fragment = jsx.mode === 'automatic' ? 'Fragment' : jsx.fragment;
+			const [fragment, importSource] =
+				jsx.mode === 'automatic'
+					? ['Fragment', jsx.jsxImportSource]
+					: [jsx.fragment, jsx.importSource];
 			if (fragment != null) {
 				this.fragmentVariable = this.getAndIncludeFactoryVariable(
 					fragment,
 					jsx.mode === 'preserve',
-					jsx.importSource
+					importSource
 				);
 			}
 		}

@@ -544,9 +544,10 @@ interface NormalizedJsxClassicOptions {
 	mode: 'classic';
 }
 
-// TODO Lukas createElement must be imported from "react" at the moment -> jsxImportSource for jsx(s) and Fragment, importSource + factory for createElement
 interface NormalizedJsxAutomaticOptions {
-	importSource: string;
+	factory: string;
+	importSource: string | null;
+	jsxImportSource: string;
 	mode: 'automatic';
 }
 
