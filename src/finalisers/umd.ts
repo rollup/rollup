@@ -97,7 +97,8 @@ export default function umd(
 				`${
 					extend ? `${globalProperty(name!, globalVariable, getPropertyAccess)}${_}||${_}` : ''
 				}{}`,
-				snippets
+				snippets,
+				log
 			)
 		);
 
@@ -125,7 +126,8 @@ export default function umd(
 				globalVariable,
 				globals,
 				`${factoryVariable}(${globalDeps.join(`,${_}`)})`,
-				snippets
+				snippets,
+				log
 			)};`;
 		} else {
 			const module = globalDeps.shift();
@@ -150,7 +152,7 @@ export default function umd(
 	} else {
 		iifeExport = `${factoryVariable}(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
-			iifeExport = assignToDeepVariable(name!, globalVariable, globals, iifeExport, snippets);
+			iifeExport = assignToDeepVariable(name!, globalVariable, globals, iifeExport, snippets, log);
 		}
 	}
 
