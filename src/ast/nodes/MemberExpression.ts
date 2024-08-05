@@ -331,7 +331,11 @@ export default class MemberExpression
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties([this.getPropertyKey(), ...path], context, includeChildrenRecursively);
+		this.includeProperties(
+			[this.getPropertyKey(), ...path.slice(0, 10)],
+			context,
+			includeChildrenRecursively
+		);
 	}
 
 	includeAsAssignmentTarget(
