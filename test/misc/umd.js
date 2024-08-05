@@ -214,3 +214,20 @@ for (const name of ['bundle', 'my.@nested/value.bundle'])
 					}));
 			});
 	}
+
+describe('The UMD wrapper with output name as reserved keyword', () => {
+	it('Set output name as toString.value', () => {
+		getUmdCode('export const x = 42;', { name: 'toString.value' }).then(code => {
+			assert.deepEqual(
+				code,
+				'this.toString = this.toString || {};\n' +
+					'this.toString.value = (function (exports) {\n' +
+					"'use strict';\n\n" +
+					'const x = 42;\n\n' +
+					'exports.x = x;\n\n' +
+					'return exports;\n\n' +
+					'})({});'
+			);
+		});
+	});
+});
