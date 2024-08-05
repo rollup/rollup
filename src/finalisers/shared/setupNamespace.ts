@@ -1,15 +1,24 @@
+import { LogHandler } from 'rollup';
 import type { GlobalsOption } from '../../rollup/types';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import { logReservedNamespace } from '../../utils/logs';
+import { LOGLEVEL_WARN } from '../../utils/logging';
 
 export default function setupNamespace(
 	name: string,
 	root: string,
 	globals: GlobalsOption,
 	{ _, getPropertyAccess, s }: GenerateCodeSnippets,
-	compact: boolean | undefined
+	compact: boolean | undefined,
+	log?: LogHandler
 ): string {
 	const parts = name.split('.');
-	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : globals[parts[0]]) || parts[0];
+	// Check if the key is exist in the prototype of the object
+	const isReserved = parts[0] in {};
+	if(log && isReserved) {
+		log(LOGLEVEL_WARN, logReservedNamespace(parts[0]));
+	}
+	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : !isReserved ? globals[parts[0]] : null) || parts[0];
 	parts.pop();
 
 	let propertyPath = root;
@@ -28,10 +37,16 @@ export function assignToDeepVariable(
 	root: string,
 	globals: GlobalsOption,
 	assignment: string,
-	{ _, getPropertyAccess }: GenerateCodeSnippets
+	{ _, getPropertyAccess }: GenerateCodeSnippets,
+	log?: LogHandler
 ): string {
 	const parts = deepName.split('.');
-	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : globals[parts[0]]) || parts[0];
+	// Check if the key is exist in the prototype of the object
+	const isReserved = parts[0] in {};
+	if(log && isReserved) {
+		log(LOGLEVEL_WARN, logReservedNamespace(parts[0]));
+	}
+	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : !isReserved ? globals[parts[0]] : null) || parts[0];
 	const last = parts.pop()!;
 
 	let propertyPath = root;

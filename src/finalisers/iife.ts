@@ -101,7 +101,7 @@ export default function iife(
 				`${_}=${_}${wrapperIntro}`;
 		}
 		if (isNamespaced) {
-			wrapperIntro = setupNamespace(name!, 'this', globals, snippets, compact) + wrapperIntro;
+			wrapperIntro = setupNamespace(name!, 'this', globals, snippets, compact, log) + wrapperIntro;
 		}
 	}
 
