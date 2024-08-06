@@ -11,17 +11,15 @@ module.exports = defineTest({
 	},
 	generateError: {
 		code: 'CHUNK_INVALID',
-		message: 'main.js (5:0): Chunk "main.js" is not valid JavaScript: Unterminated block comment.',
+		message: 'main.js (6:0): Chunk "main.js" is not valid JavaScript: Unterminated block comment.',
 		frame: `
-3: throw new Error('Not executed');
 4:
-5: /*
-   ^`,
+5: /*`,
 		loc: {
 			column: 0,
 			file: 'main.js',
-			line: 5
+			line: 6
 		},
-		pos: 49
+		pos: 52
 	}
 });

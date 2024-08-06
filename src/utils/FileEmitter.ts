@@ -37,6 +37,7 @@ import { makeUnique, renderNamePattern } from './renderNamePattern';
 function generateAssetFileName(
 	name: string | undefined,
 	source: string | Uint8Array,
+	originalFileName: string | null,
 	sourceHash: string,
 	outputOptions: NormalizedOutputOptions,
 	bundle: OutputBundleWithPlaceholders
@@ -45,7 +46,7 @@ function generateAssetFileName(
 	return makeUnique(
 		renderNamePattern(
 			typeof outputOptions.assetFileNames === 'function'
-				? outputOptions.assetFileNames({ name, source, type: 'asset' })
+				? outputOptions.assetFileNames({ name, originalFileName, source, type: 'asset' })
 				: outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
@@ -80,6 +81,7 @@ type ConsumedPrebuiltChunk = EmittedPrebuiltChunk & {
 
 type ConsumedAsset = EmittedAsset & {
 	needsCodeReference: boolean;
+	originalFileName: string | null;
 	referenceId: string;
 };
 
@@ -91,6 +93,7 @@ interface EmittedFile {
 	[key: string]: unknown;
 	fileName?: string;
 	name?: string;
+	originalFileName?: string | null;
 	type: EmittedFileType;
 }
 
@@ -336,10 +339,15 @@ export class FileEmitter {
 			emittedAsset.source === undefined
 				? undefined
 				: getValidSource(emittedAsset.source, emittedAsset, null);
+		const originalFileName = emittedAsset.originalFileName || null;
+		if (typeof originalFileName === 'string') {
+			this.graph.watchFiles[originalFileName] = true;
+		}
 		const consumedAsset: ConsumedAsset = {
 			fileName: emittedAsset.fileName,
 			name: emittedAsset.name,
 			needsCodeReference: !!emittedAsset.needsCodeReference,
+			originalFileName,
 			referenceId: '',
 			source,
 			type: 'asset'
@@ -445,7 +453,7 @@ export class FileEmitter {
 		source: string | Uint8Array,
 		{ bundle, fileNamesBySource, getHash, outputOptions }: FileEmitterOutput
 	): void {
-		let { fileName, needsCodeReference, referenceId } = consumedFile;
+		let { fileName, needsCodeReference, originalFileName, referenceId } = consumedFile;
 
 		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
@@ -455,6 +463,7 @@ export class FileEmitter {
 				fileName = generateAssetFileName(
 					consumedFile.name,
 					source,
+					originalFileName,
 					sourceHash,
 					outputOptions,
 					bundle
@@ -475,6 +484,7 @@ export class FileEmitter {
 				fileName,
 				name: consumedFile.name,
 				needsCodeReference,
+				originalFileName,
 				source,
 				type: 'asset'
 			};
@@ -494,6 +504,7 @@ export class FileEmitter {
 			const assetFileName = generateAssetFileName(
 				consumedFile.name,
 				consumedFile.source!,
+				consumedFile.originalFileName,
 				sourceHash,
 				outputOptions,
 				bundle
@@ -519,6 +530,7 @@ export class FileEmitter {
 			fileName,
 			name: usedConsumedFile!.name,
 			needsCodeReference,
+			originalFileName: usedConsumedFile!.originalFileName,
 			source: usedConsumedFile!.source!,
 			type: 'asset'
 		};

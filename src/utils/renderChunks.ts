@@ -388,7 +388,12 @@ function emitSourceMapAndGetComment(
 		url = sourcemapBaseUrl
 			? new URL(sourcemapFileName, sourcemapBaseUrl).toString()
 			: sourcemapFileName;
-		pluginDriver.emitFile({ fileName, source: map.toString(), type: 'asset' });
+		pluginDriver.emitFile({
+			fileName,
+			originalFileName: null,
+			source: map.toString(),
+			type: 'asset'
+		});
 	}
 	return sourcemap === 'hidden' ? '' : `//# ${SOURCEMAPPING_URL}=${url}\n`;
 }

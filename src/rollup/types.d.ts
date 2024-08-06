@@ -161,6 +161,7 @@ export interface EmittedAsset {
 	fileName?: string;
 	name?: string;
 	needsCodeReference?: boolean;
+	originalFileName?: string | null;
 	source?: string | Uint8Array;
 	type: 'asset';
 }
@@ -821,6 +822,7 @@ export interface SerializedTimings {
 
 export interface PreRenderedAsset {
 	name: string | undefined;
+	originalFileName: string | null;
 	source: string | Uint8Array;
 	type: 'asset';
 }

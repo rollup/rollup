@@ -22,6 +22,7 @@ module.exports = main;
 						fileName: 'main.js.map',
 						name: undefined,
 						needsCodeReference: false,
+						originalFileName: null,
 						source:
 							'{"version":3,"file":"main.js","sources":["main.js"],"sourcesContent":["export default 42;\\n"],"names":[],"mappings":";;AAAA,WAAe,EAAE;;;;"}',
 						type: 'asset'
