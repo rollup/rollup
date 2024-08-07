@@ -22,7 +22,12 @@ import type Program from './ast/nodes/Program';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import type { NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { EMPTY_PATH, type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type ObjectPath,
+	type PathTracker,
+	UNKNOWN_PATH
+} from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -125,7 +130,7 @@ export interface AstContext {
 	importDescriptions: Map<string, ImportDescription>;
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeVariableInModule: (variable: Variable) => void;
+	includeVariableInModule: (variable: Variable, path?: ObjectPath) => void;
 	log: (level: LogLevel, properties: RollupLog, pos: number) => void;
 	magicString: MagicString;
 	manualPureFunctions: PureFunctions;
@@ -754,7 +759,7 @@ export default class Module {
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
-					this.includeVariable(variable);
+					this.includeVariable(variable, EMPTY_PATH);
 				}
 			}
 
@@ -1345,14 +1350,14 @@ export default class Module {
 		}
 	}
 
-	private includeVariable(variable: Variable): void {
+	private includeVariable(variable: Variable, path = UNKNOWN_PATH): void {
 		const variableModule = variable.module;
 		if (variable.included) {
 			if (variableModule instanceof Module && variableModule !== this) {
 				getAndExtendSideEffectModules(variable, this);
 			}
 		} else {
-			variable.includePath(EMPTY_PATH);
+			variable.includePath(path);
 			this.graph.needsTreeshakingPass = true;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
@@ -1370,8 +1375,8 @@ export default class Module {
 		}
 	}
 
-	private includeVariableInModule(variable: Variable): void {
-		this.includeVariable(variable);
+	private includeVariableInModule(variable: Variable, path = UNKNOWN_PATH): void {
+		this.includeVariable(variable, path);
 		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {
 			this.includedImports.add(variable);

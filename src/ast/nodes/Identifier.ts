@@ -216,7 +216,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.scope.context.includeVariableInModule(this.variable);
+				this.scope.context.includeVariableInModule(this.variable, path);
 			}
 		}
 		if (path.length > 0 && !this.hasOrAddIncludedPaths(path)) {
