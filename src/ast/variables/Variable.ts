@@ -108,9 +108,9 @@ export default class Variable extends ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	include(): void {
+	includePath(path: ObjectPath): void {
 		this.included = true;
-		this.renderedLikeHoisted?.include();
+		this.renderedLikeHoisted?.includePath(path);
 	}
 
 	/**

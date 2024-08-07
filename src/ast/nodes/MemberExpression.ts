@@ -331,9 +331,17 @@ export default class MemberExpression
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties(context, includeChildrenRecursively);
+		this.includeProperties(
+			[this.getPropertyKey(), ...path.slice(0, 10)],
+			context,
+			includeChildrenRecursively
+		);
 	}
 
 	includeAsAssignmentTarget(
@@ -343,20 +351,20 @@ export default class MemberExpression
 	): void {
 		if (!this.assignmentDeoptimized) this.applyAssignmentDeoptimization();
 		if (deoptimizeAccess) {
-			this.include(context, includeChildrenRecursively);
+			this.includePath([this.getPropertyKey()], context, includeChildrenRecursively);
 		} else {
-			this.includeProperties(context, includeChildrenRecursively);
+			this.includeProperties([this.getPropertyKey()], context, includeChildrenRecursively);
 		}
 	}
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, parameters);
+			this.variable.includeCallArguments(context, arguments_);
 		} else {
-			super.includeCallArguments(context, parameters);
+			super.includeCallArguments(context, arguments_);
 		}
 	}
 
@@ -490,17 +498,18 @@ export default class MemberExpression
 	}
 
 	private includeProperties(
+		path: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable) {
-				this.scope.context.includeVariableInModule(this.variable);
+				this.scope.context.includeVariableInModule(this.variable, path.slice(1));
 			}
 		}
-		this.object.include(context, includeChildrenRecursively);
-		this.property.include(context, includeChildrenRecursively);
+		this.object.includePath(path, context, includeChildrenRecursively);
+		this.property.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 }
 

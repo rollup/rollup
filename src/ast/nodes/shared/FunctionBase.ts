@@ -17,6 +17,7 @@ import BlockStatement from '../BlockStatement';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
+import ObjectPattern from '../ObjectPattern';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
@@ -64,15 +65,42 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
-	private updateParameterVariableValues(_arguments: InteractionCalledArguments): void {
-		for (let position = 0; position < this.params.length; position++) {
+	private updateParameterVariableValues(arguments_: InteractionCalledArguments) {
+		nextParameter: for (let position = 0; position < this.params.length; position++) {
 			const parameter = this.params[position];
-			if (!(parameter instanceof Identifier)) {
+			const argument = arguments_[position + 1];
+			if (parameter instanceof Identifier) {
+				const parameterVariable = parameter.variable as ParameterVariable;
+				parameterVariable.updateKnownValue(argument ?? UNDEFINED_EXPRESSION);
+			}
+			if (!argument) continue;
+			if (parameter instanceof ObjectPattern) {
+				const hasRestElement = parameter.properties.at(-1) instanceof RestElement;
+				for (const element of parameter.properties) {
+					if (element instanceof RestElement) {
+						(element.argument.variable as ParameterVariable).trackArgument(argument, UnknownKey);
+						continue nextParameter;
+					} else if (element.value instanceof Identifier) {
+						const path = hasRestElement ? UnknownKey : element.value.name;
+						(element.value.variable as ParameterVariable)?.trackArgument(argument, path);
+					} else {
+						this.argumentsToBeIncludedAll.add(argument);
+						continue nextParameter;
+					}
+				}
 				continue;
 			}
-			const parameterVariable = parameter.variable as ParameterVariable;
-			const argument = _arguments[position + 1] ?? UNDEFINED_EXPRESSION;
-			parameterVariable.updateKnownValue(argument);
+			if (parameter instanceof Identifier) {
+				(parameter.variable as ParameterVariable).trackArgument(argument);
+				continue;
+			}
+			if (parameter instanceof RestElement) {
+				for (const remainArgument of arguments_.slice(position + 1)) {
+					this.argumentsToBeIncludedAll.add(remainArgument!);
+				}
+				continue;
+			}
+			this.argumentsToBeIncludedAll.add(argument);
 		}
 	}
 
@@ -86,6 +114,8 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	protected objectEntity: ObjectEntity | null = null;
+
+	argumentsToBeIncludedAll = new Set<ExpressionEntity>();
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
@@ -228,7 +258,12 @@ export default abstract class FunctionBase extends NodeBase {
 	}
 
 	private parameterVariableValuesDeoptimized = false;
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+
+	includePath(
+		_path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.parameterVariableValuesDeoptimized && !this.onlyFunctionCallUsed()) {
 			this.parameterVariableValuesDeoptimized = true;
 			this.deoptimizeParameterVariableValues();
@@ -237,15 +272,15 @@ export default abstract class FunctionBase extends NodeBase {
 		this.included = true;
 		const { brokenFlow } = context;
 		context.brokenFlow = false;
-		this.body.include(context, includeChildrenRecursively);
+		this.body.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		context.brokenFlow = brokenFlow;
 	}
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
-		this.scope.includeCallArguments(context, parameters);
+		this.scope.includeCallArguments(context, arguments_);
 	}
 
 	initialise(): void {

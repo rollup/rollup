@@ -1,14 +1,15 @@
 import type MagicString from 'magic-string';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
-import { UnknownKey } from '../utils/PathTracker';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
-import type { ExpressionNode } from './shared/Node';
+import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
@@ -49,6 +50,16 @@ export default class Property extends MethodBase implements PatternNode {
 			this.key.hasEffects(context) ||
 			this.value.hasEffects(context)
 		);
+	}
+
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	) {
+		this.included = true;
+		this.key.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		this.value.includePath(path, context, includeChildrenRecursively);
 	}
 
 	markDeclarationReached(): void {

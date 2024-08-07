@@ -1,7 +1,8 @@
 import type { AstContext } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
+import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import { createInclusionContext, type HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
@@ -91,6 +92,11 @@ export default class ParameterVariable extends LocalVariable {
 		this.markReassigned();
 	}
 
+	trackArgument(argument: ExpressionEntity, pathKey?: ObjectPathKey): void {
+		getOrCreate(this.trackedArguments, argument, getNewSet).add(pathKey);
+	}
+
+	private trackedArguments = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();
 	private knownValue: ExpressionEntity | null = null;
 	private knownValueLiteral: LiteralValueOrUnknown = UnknownValue;
 	/**
@@ -178,6 +184,17 @@ export default class ParameterVariable extends LocalVariable {
 		}
 		const knownValue = this.getKnownValue();
 		return knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
+	}
+
+	includePath(path: ObjectPath): void {
+		super.includePath(path);
+		if (path) {
+			for (const [trackedArgument, pathKeys] of this.trackedArguments) {
+				for (const pathKey of pathKeys) {
+					trackedArgument.includePath(pathKey ? [pathKey] : path, createInclusionContext(), false);
+				}
+			}
+		}
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {

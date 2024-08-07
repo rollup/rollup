@@ -3,9 +3,7 @@ console.log('retained');
 const obj2 = {
 	noMutationEffect() {
 		console.log('effect');
-	},
-	prop: true
-};
+	}};
 obj2.noMutationEffect();
 console.log('retained');
 
