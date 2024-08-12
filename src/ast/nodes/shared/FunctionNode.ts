@@ -1,4 +1,8 @@
-import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
+import {
+	createInclusionContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
@@ -96,7 +100,7 @@ export default class FunctionNode extends FunctionBase {
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		super.includePath(path, context, includeChildrenRecursively);
-		this.id?.includePath(UNKNOWN_PATH);
+		this.id?.includePath(UNKNOWN_PATH, createInclusionContext());
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {

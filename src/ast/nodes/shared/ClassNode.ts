@@ -1,5 +1,9 @@
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import {
+	createInclusionContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import ChildScope from '../../scopes/ChildScope';
@@ -112,7 +116,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			decorator.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		if (this.id) {
 			this.id.markDeclarationReached();
-			this.id.includePath(UNKNOWN_PATH);
+			this.id.includePath(UNKNOWN_PATH, createInclusionContext());
 		}
 	}
 

@@ -2,7 +2,6 @@ import type { AstContext, default as Module } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createInclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -181,13 +180,12 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includePath(path: ObjectPath): void {
+	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) {
-			super.includePath(path);
+			super.includePath(path, context);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included)
-					declaration.includePath(EMPTY_PATH, createInclusionContext(), false);
+				if (!declaration.included) declaration.includePath(EMPTY_PATH, context, false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
@@ -201,10 +199,10 @@ export default class LocalVariable extends Variable {
 		if (path.length > 0) {
 			if (this.kind === 'var') {
 				for (const init of this.additionalInitializers || []) {
-					init.includePath(path, createInclusionContext(), false);
+					init.includePath(path, context, false);
 				}
 			}
-			this.init.includePath(path, createInclusionContext(), false);
+			this.init.includePath(path, context, false);
 		}
 	}
 

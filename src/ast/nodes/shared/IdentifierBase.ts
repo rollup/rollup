@@ -148,7 +148,7 @@ export default class IdentifierBase extends NodeBase {
 		return false;
 	}
 
-	includePath(path: ObjectPath): void {
+	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
@@ -157,7 +157,7 @@ export default class IdentifierBase extends NodeBase {
 			}
 		}
 		if (this.variable && path.length > 0 && !this.hasOrAddIncludedPaths(path)) {
-			this.variable.includePath(path);
+			this.variable.includePath(path, context);
 			if (this.variable.kind === 'parameter') {
 				this.clearCachedIncludedPaths();
 			}

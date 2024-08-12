@@ -1341,12 +1341,12 @@ export default class Module {
 		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const [externalVariable] = module.getVariableForExportName('*');
-				externalVariable.includePath(UNKNOWN_PATH);
+				externalVariable.includePath(UNKNOWN_PATH, createInclusionContext());
 				this.includedImports.add(externalVariable);
 				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
-				syntheticNamespace.includePath(UNKNOWN_PATH);
+				syntheticNamespace.includePath(UNKNOWN_PATH, createInclusionContext());
 				this.includedImports.add(syntheticNamespace);
 				syntheticNamespaces.add(syntheticNamespace);
 			}
@@ -1382,7 +1382,7 @@ export default class Module {
 				getAndExtendSideEffectModules(variable, this);
 			}
 		} else {
-			variable.includePath(path);
+			variable.includePath(path, createInclusionContext());
 			this.graph.needsTreeshakingPass = true;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
