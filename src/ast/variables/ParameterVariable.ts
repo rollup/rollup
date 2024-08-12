@@ -2,7 +2,7 @@ import type { AstContext } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { createInclusionContext, type HasEffectsContext } from '../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
@@ -186,12 +186,12 @@ export default class ParameterVariable extends LocalVariable {
 		return knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(path: ObjectPath): void {
-		super.includePath(path);
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		super.includePath(path, context);
 		if (path) {
 			for (const [trackedArgument, pathKeys] of this.trackedArguments) {
 				for (const pathKey of pathKeys) {
-					trackedArgument.includePath(pathKey ? [pathKey] : path, createInclusionContext(), false);
+					trackedArgument.includePath(pathKey ? [pathKey] : path, context, false);
 				}
 			}
 		}

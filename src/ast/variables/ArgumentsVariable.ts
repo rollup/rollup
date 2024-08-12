@@ -1,4 +1,5 @@
 import type { AstContext } from '../../Module';
+import type { InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
@@ -26,8 +27,8 @@ export default class ArgumentsVariable extends LocalVariable {
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 
-	includePath(path: ObjectPath) {
-		super.includePath(path);
+	includePath(path: ObjectPath, context: InclusionContext) {
+		super.includePath(path, context);
 		for (const argument of this.deoptimizedArguments) {
 			argument.deoptimizePath(UNKNOWN_PATH);
 		}

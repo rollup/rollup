@@ -3,7 +3,7 @@ import { stringifyObjectKeyIfNeeded } from '../../utils/identifierHelpers';
 import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
@@ -113,8 +113,8 @@ export default class NamespaceVariable extends Variable {
 		);
 	}
 
-	includePath(path: ObjectPath): void {
-		super.includePath(path);
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		super.includePath(path, context);
 		this.context.includeAllExports();
 	}
 
