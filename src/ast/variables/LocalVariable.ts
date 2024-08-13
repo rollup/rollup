@@ -63,7 +63,6 @@ export default class LocalVariable extends Variable {
 			for (const initializer of this.additionalInitializers) {
 				initializer.deoptimizePath(UNKNOWN_PATH);
 			}
-			this.additionalInitializers = null;
 		}
 	}
 
@@ -200,6 +199,11 @@ export default class LocalVariable extends Variable {
 			}
 		}
 		if (path.length > 0) {
+			if (this.kind === 'var') {
+				for (const init of this.additionalInitializers || []) {
+					init.includePath(path, createInclusionContext(), false);
+				}
+			}
 			this.init.includePath(path, createInclusionContext(), false);
 		}
 	}
