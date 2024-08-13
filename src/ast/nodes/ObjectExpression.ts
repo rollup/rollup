@@ -96,33 +96,32 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		options: RenderOptions,
 		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
-		if (this.properties.length === 0) {
-			return;
-		}
-		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
-			this.properties,
-			code,
-			this.start + 1,
-			this.end - 1
-		);
-		let lastSeparatorPos: number | null = null;
-		for (const { node, separator, start, end } of separatedNodes) {
-			if (!node.included) {
-				treeshakeNode(node, code, start, end);
-				continue;
-			}
-			lastSeparatorPos = separator;
-			node.render(code, options);
-		}
-		if (lastSeparatorPos) {
-			code.remove(lastSeparatorPos, this.end - 1);
-		}
 		if (
 			renderedSurroundingElement === NodeType.ExpressionStatement ||
 			renderedSurroundingElement === NodeType.ArrowFunctionExpression
 		) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');
+		}
+		if (this.properties.length > 0) {
+			const separatedNodes = getCommaSeparatedNodesWithBoundaries(
+				this.properties,
+				code,
+				this.start + 1,
+				this.end - 1
+			);
+			let lastSeparatorPos: number | null = null;
+			for (const { node, separator, start, end } of separatedNodes) {
+				if (!node.included) {
+					treeshakeNode(node, code, start, end);
+					continue;
+				}
+				lastSeparatorPos = separator;
+				node.render(code, options);
+			}
+			if (lastSeparatorPos) {
+				code.remove(lastSeparatorPos, this.end - 1);
+			}
 		}
 	}
 
