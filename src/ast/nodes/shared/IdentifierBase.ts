@@ -128,6 +128,10 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
+	private clearCachedIncludedPaths() {
+		this.includedPaths = null;
+	}
+
 	private hasOrAddIncludedPaths(path: ObjectPath) {
 		if (!this.includedPaths) {
 			this.includedPaths = [];
@@ -152,8 +156,11 @@ export default class IdentifierBase extends NodeBase {
 				this.scope.context.includeVariableInModule(this.variable, path);
 			}
 		}
-		if (path.length > 0 && !this.hasOrAddIncludedPaths(path)) {
-			this.variable?.includePath(path);
+		if (this.variable && path.length > 0 && !this.hasOrAddIncludedPaths(path)) {
+			this.variable.includePath(path);
+			if (this.variable.kind === 'parameter') {
+				this.clearCachedIncludedPaths();
+			}
 		}
 	}
 
