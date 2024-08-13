@@ -359,9 +359,13 @@ export class ObjectEntity extends ExpressionEntity {
 		const [key, ...subPath] = path;
 		const resolvedMember = key != null && this.getMemberExpression(key);
 		const includeAll = includeChildrenRecursively || resolvedMember === UNKNOWN_EXPRESSION;
-		const includedPath = includeAll ? UNKNOWN_PATH : subPath;
+		let includedPath = includeAll ? UNKNOWN_PATH : subPath;
 		for (const property of this.allProperties) {
-			if (includeAll || property === resolvedMember || property.shouldBeIncluded(context)) {
+			const isResolvedToProperty = property === resolvedMember;
+			if (includeAll || isResolvedToProperty || property.shouldBeIncluded(context)) {
+				if (isResolvedToProperty && includedPath.length === 0) {
+					includedPath = UNKNOWN_PATH;
+				}
 				property.includePath(includedPath, context, includeChildrenRecursively);
 			}
 		}
