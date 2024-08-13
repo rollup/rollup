@@ -187,11 +187,20 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		super.includePath(path, context);
-		if (path) {
-			for (const [trackedArgument, pathKeys] of this.trackedArguments) {
-				for (const pathKey of pathKeys) {
-					trackedArgument.includePath(pathKey ? [pathKey] : path, context, false);
+		if (context.currentIncludedParameter !== this) {
+			super.includePath(path, context);
+			if (path) {
+				for (const [trackedArgument, pathKeys] of this.trackedArguments) {
+					for (const pathKey of pathKeys) {
+						trackedArgument.includePath(
+							pathKey ? [pathKey, ...path] : path,
+							{
+								...context,
+								currentIncludedParameter: this
+							},
+							false
+						);
+					}
 				}
 			}
 		}
