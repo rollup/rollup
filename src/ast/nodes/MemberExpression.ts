@@ -501,7 +501,7 @@ export default class MemberExpression
 		if (!this.included) {
 			this.included = true;
 			if (this.variable) {
-				this.scope.context.includeVariableInModule(this.variable);
+				this.scope.context.includeVariableInModule(this.variable, path.slice(1));
 			}
 		}
 		this.object.includePath(path, context, includeChildrenRecursively);

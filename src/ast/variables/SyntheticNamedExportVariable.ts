@@ -1,6 +1,6 @@
 import type Module from '../../Module';
 import type { AstContext } from '../../Module';
-import type { ObjectPath } from '../utils/PathTracker';
+import { type ObjectPath } from '../utils/PathTracker';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
