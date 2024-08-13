@@ -20,6 +20,7 @@ interface ControlFlowContext {
 
 export interface InclusionContext extends ControlFlowContext {
 	includedCallArguments: Set<Entity>;
+	currentIncludedParameter?: ExpressionEntity;
 }
 
 export interface HasEffectsContext extends ControlFlowContext {
