@@ -108,7 +108,8 @@ export async function normalizeOutputOptions(
 			| undefined,
 		strict: config.strict ?? true,
 		systemNullSetters: config.systemNullSetters ?? true,
-		validate: config.validate || false
+		validate: config.validate || false,
+		virtualDirname: config.virtualDirname || '_virtual'
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onLog);

@@ -756,6 +756,7 @@ export interface OutputOptions {
 	strict?: boolean;
 	systemNullSetters?: boolean;
 	validate?: boolean;
+	virtualDirname?: string;
 }
 
 export interface NormalizedOutputOptions {
@@ -809,6 +810,7 @@ export interface NormalizedOutputOptions {
 	strict: boolean;
 	systemNullSetters: boolean;
 	validate: boolean;
+	virtualDirname: string;
 }
 
 export type WarningHandlerWithDefault = (
