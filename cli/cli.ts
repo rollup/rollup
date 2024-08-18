@@ -17,7 +17,7 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 	console.log(`rollup v${version}`);
 } else {
 	try {
-		// eslint-disable-next-line unicorn/prefer-module
+		// eslint-disable-next-line unicorn/prefer-module, @typescript-eslint/no-require-imports
 		require('source-map-support').install();
 	} catch {
 		// do nothing

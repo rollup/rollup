@@ -27,7 +27,9 @@ export default class RestElement extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		path.length === 0 && this.argument.deoptimizePath(EMPTY_PATH);
+		if (path.length === 0) {
+			this.argument.deoptimizePath(EMPTY_PATH);
+		}
 	}
 
 	hasEffectsOnInteractionAtPath(

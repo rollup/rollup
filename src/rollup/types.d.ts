@@ -227,6 +227,7 @@ export type ParseAst = (
 
 // declare AbortSignal here for environments without DOM lib or @types/node
 declare global {
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 	interface AbortSignal {}
 }
 
@@ -395,7 +396,6 @@ export type WatchChangeHook = (
  * const myPlugin: PluginImpl<Options> = (options = {}) => { ... }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type PluginImpl<O extends object = object, A = any> = (options?: O) => Plugin<A>;
 
 export interface OutputBundle {
@@ -505,13 +505,13 @@ type MakeAsync<Function_> = Function_ extends (
 	? (this: This, ...parameters: Arguments) => Return | Promise<Return>
 	: never;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type ObjectHook<T, O = {}> = T | ({ handler: T; order?: 'pre' | 'post' | null } & O);
 
 export type PluginHooks = {
 	[K in keyof FunctionPluginHooks]: ObjectHook<
 		K extends AsyncPluginHooks ? MakeAsync<FunctionPluginHooks[K]> : FunctionPluginHooks[K],
-		// eslint-disable-next-line @typescript-eslint/ban-types
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 		K extends ParallelPluginHooks ? { sequential?: boolean } : {}
 	>;
 };

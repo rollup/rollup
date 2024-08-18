@@ -408,7 +408,9 @@ export default class Module {
 	}
 
 	error(properties: RollupError, pos: number | undefined): never {
-		pos !== undefined && this.addLocationToLogProps(properties, pos);
+		if (pos !== undefined) {
+			this.addLocationToLogProps(properties, pos);
+		}
 		return error(properties);
 	}
 

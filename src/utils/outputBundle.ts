@@ -40,13 +40,17 @@ export const removeUnreferencedAssets = (outputBundle: OutputBundleWithPlacehold
 	const bundleEntries = Object.values(outputBundle);
 
 	for (const asset of bundleEntries) {
-		asset.type === 'asset' && asset.needsCodeReference && unreferencedAssets.add(asset.fileName);
+		if (asset.type === 'asset' && asset.needsCodeReference) {
+			unreferencedAssets.add(asset.fileName);
+		}
 	}
 
 	for (const chunk of bundleEntries) {
 		if (chunk.type === 'chunk') {
 			for (const referencedFile of chunk.referencedFiles) {
-				unreferencedAssets.has(referencedFile) && unreferencedAssets.delete(referencedFile);
+				if (unreferencedAssets.has(referencedFile)) {
+					unreferencedAssets.delete(referencedFile);
+				}
 			}
 		}
 	}
