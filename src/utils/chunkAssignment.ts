@@ -650,10 +650,11 @@ function getOptimizedChunks(
 		timeEnd('optimize chunks', 3);
 		return chunks; // the actual modules
 	}
-	minChunkSize > 1 &&
+	if (minChunkSize > 1) {
 		log('info', logOptimizeChunkStatus(chunks.length, chunkPartition.small.size, 'Initially'));
+	}
 	mergeChunks(chunkPartition, minChunkSize, sideEffectAtoms, sizeByAtom);
-	minChunkSize > 1 &&
+	if (minChunkSize > 1) {
 		log(
 			'info',
 			logOptimizeChunkStatus(
@@ -662,6 +663,7 @@ function getOptimizedChunks(
 				'After merging chunks'
 			)
 		);
+	}
 	timeEnd('optimize chunks', 3);
 	return [...chunkPartition.small, ...chunkPartition.big];
 }

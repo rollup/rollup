@@ -29,7 +29,9 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		path.length === 0 && this.left.deoptimizePath(path);
+		if (path.length === 0) {
+			this.left.deoptimizePath(path);
+		}
 	}
 
 	hasEffectsOnInteractionAtPath(

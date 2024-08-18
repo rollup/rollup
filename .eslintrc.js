@@ -34,6 +34,7 @@ module.exports = {
 			files: ['*.js'],
 			rules: {
 				'@typescript-eslint/explicit-module-boundary-types': 'off',
+				'@typescript-eslint/no-require-imports': 'off',
 				'unicorn/no-process-exit': 'off',
 				'unicorn/prefer-module': 'off'
 			}

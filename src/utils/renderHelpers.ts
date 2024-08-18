@@ -133,12 +133,14 @@ export function renderStatementList(
 					code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
 				)[1];
 			if (currentNode.included) {
-				currentNodeNeedsBoundaries
-					? currentNode.render(code, options, {
-							end: nextNodeStart,
-							start: currentNodeStart
-						})
-					: currentNode.render(code, options);
+				if (currentNodeNeedsBoundaries) {
+					currentNode.render(code, options, {
+						end: nextNodeStart,
+						start: currentNodeStart
+					});
+				} else {
+					currentNode.render(code, options);
+				}
 			} else {
 				treeshakeNode(currentNode, code, currentNodeStart!, nextNodeStart);
 			}

@@ -332,7 +332,7 @@ export class PluginDriver {
 				if (typeof handler !== 'function') {
 					return handler;
 				}
-				// eslint-disable-next-line @typescript-eslint/ban-types
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 				const hookResult = (handler as Function).apply(context, parameters);
 
 				if (!hookResult?.then) {
@@ -388,7 +388,7 @@ export class PluginDriver {
 		}
 
 		try {
-			// eslint-disable-next-line @typescript-eslint/ban-types
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 			return (handler as Function).apply(context, parameters);
 		} catch (error_: any) {
 			return error(logPluginError(error_, plugin.name, { hook: hookName }));

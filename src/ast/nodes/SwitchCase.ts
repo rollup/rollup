@@ -40,7 +40,9 @@ export default class SwitchCase extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		if (this.consequent.length > 0) {
-			this.test && this.test.render(code, options);
+			if (this.test) {
+				this.test.render(code, options);
+			}
 			const testEnd = this.test
 				? this.test.end
 				: findFirstOccurrenceOutsideComment(code.original, 'default', this.start) + 7;
