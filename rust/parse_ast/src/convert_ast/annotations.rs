@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
-use swc_common::BytePos;
 use swc_common::comments::{Comment, Comments};
+use swc_common::BytePos;
 
 #[derive(Default)]
 pub(crate) struct SequentialComments {

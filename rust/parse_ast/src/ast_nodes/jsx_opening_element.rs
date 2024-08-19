@@ -2,8 +2,8 @@ use swc_common::Spanned;
 use swc_ecma_ast::JSXOpeningElement;
 
 use crate::convert_ast::converter::ast_constants::{
-    JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET, JSX_OPENING_ELEMENT_NAME_OFFSET,
-    JSX_OPENING_ELEMENT_RESERVED_BYTES, TYPE_JSX_OPENING_ELEMENT,
+  JSX_OPENING_ELEMENT_ATTRIBUTES_OFFSET, JSX_OPENING_ELEMENT_NAME_OFFSET,
+  JSX_OPENING_ELEMENT_RESERVED_BYTES, TYPE_JSX_OPENING_ELEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::store_jsx_opening_element_flags;

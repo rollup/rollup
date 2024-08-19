@@ -10,10 +10,10 @@ use crate::convert_ast::converter::ast_constants::{
   METHOD_DEFINITION_RESERVED_BYTES, METHOD_DEFINITION_VALUE_OFFSET, TYPE_FUNCTION_EXPRESSION,
   TYPE_METHOD_DEFINITION,
 };
-use crate::convert_ast::converter::AstConverter;
 use crate::convert_ast::converter::string_constants::{
   STRING_CONSTRUCTOR, STRING_GET, STRING_METHOD, STRING_SET,
 };
+use crate::convert_ast::converter::AstConverter;
 use crate::store_method_definition_flags;
 
 impl<'a> AstConverter<'a> {

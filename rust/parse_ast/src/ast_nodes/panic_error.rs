@@ -1,7 +1,7 @@
-use crate::convert_ast::converter::{convert_string, update_reference_position};
 use crate::convert_ast::converter::ast_constants::{
-    PANIC_ERROR_MESSAGE_OFFSET, PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR,
+  PANIC_ERROR_MESSAGE_OFFSET, PANIC_ERROR_RESERVED_BYTES, TYPE_PANIC_ERROR,
 };
+use crate::convert_ast::converter::{convert_string, update_reference_position};
 
 pub(crate) fn get_panic_error_buffer(message: &str) -> Vec<u8> {
   // type

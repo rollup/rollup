@@ -1,7 +1,7 @@
 use swc_ecma_ast::RestPat;
 
 use crate::convert_ast::converter::ast_constants::{
-    REST_ELEMENT_ARGUMENT_OFFSET, REST_ELEMENT_RESERVED_BYTES, TYPE_REST_ELEMENT,
+  REST_ELEMENT_ARGUMENT_OFFSET, REST_ELEMENT_RESERVED_BYTES, TYPE_REST_ELEMENT,
 };
 use crate::convert_ast::converter::AstConverter;
 

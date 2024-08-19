@@ -1,8 +1,8 @@
 use std::slice::Iter;
 use std::str::Chars;
 
-use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 use crate::convert_ast::annotations::CommentKind::Annotation;
+use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 
 pub(crate) struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   current_utf8_index: u32,

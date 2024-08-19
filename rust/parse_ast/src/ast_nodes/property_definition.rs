@@ -3,8 +3,8 @@ use swc_ecma_ast::{ClassProp, Decorator, Expr, PrivateProp, PropName};
 
 use crate::ast_nodes::method_definition::PropOrPrivateName;
 use crate::convert_ast::converter::ast_constants::{
-    PROPERTY_DEFINITION_DECORATORS_OFFSET, PROPERTY_DEFINITION_KEY_OFFSET,
-    PROPERTY_DEFINITION_RESERVED_BYTES, PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
+  PROPERTY_DEFINITION_DECORATORS_OFFSET, PROPERTY_DEFINITION_KEY_OFFSET,
+  PROPERTY_DEFINITION_RESERVED_BYTES, PROPERTY_DEFINITION_VALUE_OFFSET, TYPE_PROPERTY_DEFINITION,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::store_property_definition_flags;

@@ -1,8 +1,8 @@
 use swc_ecma_ast::{MetaPropExpr, MetaPropKind};
 
 use crate::convert_ast::converter::ast_constants::{
-    META_PROPERTY_META_OFFSET, META_PROPERTY_PROPERTY_OFFSET, META_PROPERTY_RESERVED_BYTES,
-    TYPE_META_PROPERTY,
+  META_PROPERTY_META_OFFSET, META_PROPERTY_PROPERTY_OFFSET, META_PROPERTY_RESERVED_BYTES,
+  TYPE_META_PROPERTY,
 };
 use crate::convert_ast::converter::AstConverter;
 

@@ -3,8 +3,8 @@ use swc_ecma_ast::{Class, Ident};
 
 use crate::convert_ast::converter::analyze_code::find_first_occurrence_outside_comment;
 use crate::convert_ast::converter::ast_constants::{
-    CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
-    CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SUPER_CLASS_OFFSET,
+  CLASS_DECLARATION_BODY_OFFSET, CLASS_DECLARATION_DECORATORS_OFFSET, CLASS_DECLARATION_ID_OFFSET,
+  CLASS_DECLARATION_RESERVED_BYTES, CLASS_DECLARATION_SUPER_CLASS_OFFSET,
 };
 use crate::convert_ast::converter::AstConverter;
 

@@ -1,11 +1,11 @@
 use swc_ecma_ast::NewExpr;
 
 use crate::convert_ast::annotations::AnnotationKind;
-use crate::convert_ast::converter::{AstConverter, convert_annotation};
 use crate::convert_ast::converter::ast_constants::{
-    NEW_EXPRESSION_ANNOTATIONS_OFFSET, NEW_EXPRESSION_ARGUMENTS_OFFSET, NEW_EXPRESSION_CALLEE_OFFSET,
-    NEW_EXPRESSION_RESERVED_BYTES, TYPE_NEW_EXPRESSION,
+  NEW_EXPRESSION_ANNOTATIONS_OFFSET, NEW_EXPRESSION_ARGUMENTS_OFFSET, NEW_EXPRESSION_CALLEE_OFFSET,
+  NEW_EXPRESSION_RESERVED_BYTES, TYPE_NEW_EXPRESSION,
 };
+use crate::convert_ast::converter::{convert_annotation, AstConverter};
 
 impl<'a> AstConverter<'a> {
   pub(crate) fn store_new_expression(&mut self, new_expression: &NewExpr) {

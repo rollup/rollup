@@ -1,12 +1,12 @@
 use swc_common::Span;
 use swc_ecma_ast::{
-    ComputedPropName, Expr, IdentName, MemberExpr, MemberProp, PrivateName, Super, SuperProp,
-    SuperPropExpr,
+  ComputedPropName, Expr, IdentName, MemberExpr, MemberProp, PrivateName, Super, SuperProp,
+  SuperPropExpr,
 };
 
 use crate::convert_ast::converter::ast_constants::{
-    MEMBER_EXPRESSION_OBJECT_OFFSET, MEMBER_EXPRESSION_PROPERTY_OFFSET,
-    MEMBER_EXPRESSION_RESERVED_BYTES, TYPE_MEMBER_EXPRESSION,
+  MEMBER_EXPRESSION_OBJECT_OFFSET, MEMBER_EXPRESSION_PROPERTY_OFFSET,
+  MEMBER_EXPRESSION_RESERVED_BYTES, TYPE_MEMBER_EXPRESSION,
 };
 use crate::convert_ast::converter::AstConverter;
 use crate::store_member_expression_flags;

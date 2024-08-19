@@ -1,5 +1,5 @@
 use crate::convert_ast::converter::ast_constants::{
-    PARSE_ERROR_MESSAGE_OFFSET, PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR,
+  PARSE_ERROR_MESSAGE_OFFSET, PARSE_ERROR_RESERVED_BYTES, TYPE_PARSE_ERROR,
 };
 use crate::convert_ast::converter::update_reference_position;
 

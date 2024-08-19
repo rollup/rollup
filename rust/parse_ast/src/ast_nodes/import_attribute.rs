@@ -2,8 +2,8 @@ use swc_common::Spanned;
 use swc_ecma_ast::{KeyValueProp, ObjectLit, Prop, PropOrSpread};
 
 use crate::convert_ast::converter::ast_constants::{
-    IMPORT_ATTRIBUTE_KEY_OFFSET, IMPORT_ATTRIBUTE_RESERVED_BYTES, IMPORT_ATTRIBUTE_VALUE_OFFSET,
-    TYPE_IMPORT_ATTRIBUTE,
+  IMPORT_ATTRIBUTE_KEY_OFFSET, IMPORT_ATTRIBUTE_RESERVED_BYTES, IMPORT_ATTRIBUTE_VALUE_OFFSET,
+  TYPE_IMPORT_ATTRIBUTE,
 };
 use crate::convert_ast::converter::AstConverter;
 

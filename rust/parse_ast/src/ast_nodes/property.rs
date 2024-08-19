@@ -10,8 +10,8 @@ use crate::convert_ast::converter::ast_constants::{
   PROPERTY_KEY_OFFSET, PROPERTY_KIND_OFFSET, PROPERTY_RESERVED_BYTES, PROPERTY_VALUE_OFFSET,
   TYPE_FUNCTION_EXPRESSION, TYPE_PROPERTY,
 };
-use crate::convert_ast::converter::AstConverter;
 use crate::convert_ast::converter::string_constants::{STRING_GET, STRING_INIT, STRING_SET};
+use crate::convert_ast::converter::AstConverter;
 use crate::store_property_flags;
 
 impl<'a> AstConverter<'a> {

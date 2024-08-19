@@ -2,8 +2,8 @@ use swc_ecma_ast::{Expr, VarDeclarator};
 
 use crate::convert_ast::annotations::AnnotationKind;
 use crate::convert_ast::converter::ast_constants::{
-    TYPE_VARIABLE_DECLARATOR, VARIABLE_DECLARATOR_ID_OFFSET, VARIABLE_DECLARATOR_INIT_OFFSET,
-    VARIABLE_DECLARATOR_RESERVED_BYTES,
+  TYPE_VARIABLE_DECLARATOR, VARIABLE_DECLARATOR_ID_OFFSET, VARIABLE_DECLARATOR_INIT_OFFSET,
+  VARIABLE_DECLARATOR_RESERVED_BYTES,
 };
 use crate::convert_ast::converter::AstConverter;
 
