@@ -13,5 +13,6 @@
 				"proseWrap": "never"
 			}
 		}
-	]
+	],
+	"plugins": ["prettier-plugin-organize-imports"]
 }

@@ -25,16 +25,14 @@ export interface MemberDescription {
 	returns: ExpressionEntity;
 }
 
-export interface MemberDescriptions {
-	[key: string]: MemberDescription;
-}
+export type MemberDescriptions = Record<string, MemberDescription>;
 
 interface RawMemberDescription {
 	value: MemberDescription;
 }
 
 function assembleMemberDescriptions(
-	memberDescriptions: { [key: string]: RawMemberDescription },
+	memberDescriptions: Record<string, RawMemberDescription>,
 	inheritedDescriptions: MemberDescriptions | null = null
 ): MemberDescriptions {
 	return Object.create(inheritedDescriptions, memberDescriptions);

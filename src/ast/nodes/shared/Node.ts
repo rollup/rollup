@@ -5,6 +5,7 @@ import type { AstNode } from '../../../rollup/types';
 import type { RollupAnnotation } from '../../../utils/astConverterHelpers';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
+import { childNodeKeys } from '../../childNodeKeys';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { Entity } from '../../Entity';
 import {
@@ -14,7 +15,6 @@ import {
 } from '../../ExecutionContext';
 import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
-import { childNodeKeys } from '../../childNodeKeys';
 import type ChildScope from '../../scopes/ChildScope';
 import {
 	EMPTY_PATH,
@@ -29,6 +29,7 @@ import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { InclusionOptions, LiteralValueOrUnknown } from './Expression';
 import { ExpressionEntity } from './Expression';
 
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 export interface GenericEsTreeNode extends AstNode {
 	[key: string]: any;
 }

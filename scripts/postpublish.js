@@ -1,6 +1,6 @@
+import GitHub from 'github-api';
 import { readFile } from 'node:fs/promises';
 import { env } from 'node:process';
-import GitHub from 'github-api';
 import semverPreRelease from 'semver/functions/prerelease.js';
 import { cyan } from './colors.js';
 import { runWithEcho } from './helpers.js';

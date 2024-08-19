@@ -3,7 +3,7 @@
 	<article class="module" :class="{ 'entry-module': module.isEntry }">
 		<header>
 			<span v-if="editableHeader">
-				<input ref="input" v-model="module.name" @focus="selectName" placeholder="foo.js" />
+				<input ref="input" v-model="module.name" placeholder="foo.js" @focus="selectName" />
 				<button class="repl-button remove" @click="emit('remove')">
 					<span class="label">remove</span>
 					<span class="repl-icon-cancel"></span>
@@ -19,7 +19,7 @@
 				<span v-if="module.isEntry" class="entry-module-label">(entry module)</span>
 			</span>
 		</header>
-		<ReplEditor v-model:code="module.code" :moduleName="module.name" :readonly="!editable" />
+		<ReplEditor v-model:code="module.code" :module-name="module.name" :readonly="!editable" />
 	</article>
 </template>
 
@@ -34,8 +34,7 @@ defineProps<{
 	module: Module;
 	showHeader: boolean;
 }>();
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const emit = defineEmits<{ (event: 'remove'): void }>();
+const emit = defineEmits<(event: 'remove') => void>();
 const input = ref<HTMLInputElement | null>(null);
 
 const selectName = (event: FocusEvent) => {

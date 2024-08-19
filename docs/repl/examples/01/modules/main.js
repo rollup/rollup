@@ -13,5 +13,5 @@ function baz() {
 	return bar();
 }
 
-export { baz };
 export * from './qux';
+export { baz };

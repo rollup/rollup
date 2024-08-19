@@ -19,7 +19,7 @@ export default class NamespaceVariable extends Variable {
 	declare isNamespace: true;
 	readonly module: Module;
 
-	private memberVariables: { [name: string]: Variable } | null = null;
+	private memberVariables: Record<string, Variable> | null = null;
 	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
@@ -70,12 +70,12 @@ export default class NamespaceVariable extends Variable {
 		return UnknownValue;
 	}
 
-	getMemberVariables(): { [name: string]: Variable } {
+	getMemberVariables(): Record<string, Variable> {
 		if (this.memberVariables) {
 			return this.memberVariables;
 		}
 
-		const memberVariables: { [name: string]: Variable } = Object.create(null);
+		const memberVariables: Record<string, Variable> = Object.create(null);
 		const sortedExports = [...this.context.getExports(), ...this.context.getReexports()].sort();
 
 		for (const name of sortedExports) {

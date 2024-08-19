@@ -1,6 +1,6 @@
+import type { RollupReplaceOptions } from '@rollup/plugin-replace';
 import { readFile } from 'node:fs/promises';
 import { exit } from 'node:process';
-import type { RollupReplaceOptions } from '@rollup/plugin-replace';
 
 const FSEVENTS_HANDLER = 'node_modules/chokidar/lib/fsevents-handler.js';
 const FSEVENTS_REQUIRE = "require('fsevents')";

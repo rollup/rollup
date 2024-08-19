@@ -193,9 +193,7 @@ export default class Chunk {
 	private preliminarySourcemapFileName: PreliminaryFileName | null = null;
 	private renderedChunkInfo: RenderedChunk | null = null;
 	private renderedDependencies: Map<Chunk | ExternalChunk, ChunkDependency> | null = null;
-	private readonly renderedModules: {
-		[moduleId: string]: RenderedModule;
-	} = Object.create(null);
+	private readonly renderedModules: Record<string, RenderedModule> = Object.create(null);
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
 
@@ -406,7 +404,6 @@ export default class Chunk {
 			}
 		}
 		for (const module of entryModules) {
-			// eslint-disable-next-line unicorn/prefer-spread
 			const requiredFacades: FacadeName[] = Array.from(
 				new Set(
 					module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)
@@ -419,7 +416,7 @@ export default class Chunk {
 			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
 				requiredFacades.push({});
 			}
-			// eslint-disable-next-line unicorn/prefer-spread
+
 			requiredFacades.push(...Array.from(module.chunkFileNames, fileName => ({ fileName })));
 			if (requiredFacades.length === 0) {
 				requiredFacades.push({});
@@ -590,13 +587,13 @@ export default class Chunk {
 			...this.getPreRenderedChunkInfo(),
 			dynamicImports: this.getDynamicDependencies().map(resolveFileName),
 			fileName: this.getFileName(),
-			// eslint-disable-next-line unicorn/prefer-spread
+
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, resolveFileName),
 			importedBindings: getImportedBindingsPerDependency(
 				this.getRenderedDependencies(),
 				resolveFileName
 			),
-			// eslint-disable-next-line unicorn/prefer-spread
+
 			imports: Array.from(this.dependencies, resolveFileName),
 			modules: this.renderedModules,
 			referencedFiles: this.getReferencedFiles()
@@ -661,7 +658,6 @@ export default class Chunk {
 				}
 				if (format === 'es') {
 					renderedDependency.reexports = reexports.filter(
-						// eslint-disable-next-line unicorn/prefer-array-some
 						({ reexported }) => !renderedExports.find(({ exported }) => exported === reexported)
 					);
 				}
@@ -1248,7 +1244,6 @@ export default class Chunk {
 					!renderOptions.accessedDocumentCurrentScript &&
 					formatsMaybeAccessDocumentCurrentScript.includes(format)
 				) {
-					// eslint-disable-next-line unicorn/consistent-destructuring
 					this.accessedGlobalsByScope.get(module.scope)?.delete(DOCUMENT_CURRENT_SCRIPT);
 				}
 				renderOptions.accessedDocumentCurrentScript = false;
@@ -1288,7 +1283,6 @@ export default class Chunk {
 
 		if (hoistedSource) magicString.prepend(hoistedSource + n + n);
 
-		// eslint-disable-next-line unicorn/consistent-destructuring
 		if (this.needsExportsShim) {
 			magicString.prepend(`${n}${cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`);
 		}
@@ -1503,10 +1497,8 @@ function getPredefinedChunkNameFromModule(module: Module): string {
 function getImportedBindingsPerDependency(
 	renderedDependencies: RenderedDependencies,
 	resolveFileName: (dependency: Chunk | ExternalChunk) => string
-): {
-	[imported: string]: string[];
-} {
-	const importedBindingsPerDependency: { [imported: string]: string[] } = {};
+): Record<string, string[]> {
+	const importedBindingsPerDependency: Record<string, string[]> = {};
 	for (const [dependency, declaration] of renderedDependencies) {
 		const specifiers = new Set<string>();
 		if (declaration.imports) {

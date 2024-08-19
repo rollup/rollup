@@ -1,5 +1,5 @@
 <template>
-	<div class="codemirror-container" ref="editorContainer"></div>
+	<div ref="editorContainer" class="codemirror-container"></div>
 </template>
 
 <script setup lang="ts">
@@ -17,18 +17,16 @@ const properties = defineProps<{
 	moduleName?: string;
 	readonly?: boolean;
 }>();
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const emit = defineEmits<{ (event: 'update:code', code: string): void }>();
+const emit = defineEmits<(event: 'update:code', code: string) => void>();
 let addLogsEffect: AddLogs;
 let editor: EditorView;
-// eslint-disable-next-line vue/no-setup-props-destructure
+
 let previousCode = properties.code;
 
 onMounted(async () => {
 	const { createEditor, addLogs } = await import('../helpers/editor');
 	addLogsEffect = addLogs;
 	editor = createEditor(
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		editorContainer.value!,
 		properties.code,
 		({ changedRanges, state: { doc } }) => {

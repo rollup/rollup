@@ -1,8 +1,8 @@
-import { readFile } from 'node:fs/promises';
-import process from 'node:process';
 import type { FSWatcher } from 'chokidar';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
+import { readFile } from 'node:fs/promises';
+import process from 'node:process';
 import ms from 'pretty-ms';
 import { onExit } from 'signal-exit';
 import * as rollup from '../../src/node-entry';

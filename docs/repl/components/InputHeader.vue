@@ -11,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import examplesById from 'examples.json';
 import { useModules } from '../stores/modules';
 import { useOptions } from '../stores/options';
 

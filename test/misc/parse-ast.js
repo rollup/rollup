@@ -37,7 +37,6 @@ describe('parseAst', () => {
 
 	if (hasEsBuild) {
 		it('works as an ES module', async () => {
-			// eslint-disable-next-line import/no-unresolved
 			const { parseAst: parseEsm } = await import('../../dist/es/parseAst.js');
 			assert.deepStrictEqual(parseEsm('console.log("ok")'), {
 				type: 'Program',

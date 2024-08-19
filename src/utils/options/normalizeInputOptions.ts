@@ -23,7 +23,7 @@ import {
 export interface CommandConfigObject {
 	[key: string]: unknown;
 	external: (string | RegExp)[];
-	globals: { [id: string]: string } | undefined;
+	globals: Record<string, string> | undefined;
 }
 
 export async function normalizeInputOptions(
@@ -79,7 +79,7 @@ const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
 		? undefined
 		: (config.cache as unknown as RollupBuild)?.cache || config.cache;
 
-const getIdMatcher = <T extends Array<any>>(
+const getIdMatcher = <T extends any[]>(
 	option:
 		| undefined
 		| boolean
@@ -134,9 +134,7 @@ const getModuleContext = (
 		return id => configModuleContext(id) ?? context;
 	}
 	if (configModuleContext) {
-		const contextByModuleId: {
-			[key: string]: string;
-		} = Object.create(null);
+		const contextByModuleId: Record<string, string> = Object.create(null);
 		for (const [key, moduleContext] of Object.entries(configModuleContext)) {
 			contextByModuleId[resolve(key)] = moduleContext;
 		}

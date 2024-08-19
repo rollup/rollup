@@ -1,6 +1,6 @@
+import { createFilter } from '@rollup/pluginutils';
 import path from 'node:path';
 import process from 'node:process';
-import { createFilter } from '@rollup/pluginutils';
 import { rollupInternal } from '../rollup/rollup';
 import type {
 	ChangeEvent,

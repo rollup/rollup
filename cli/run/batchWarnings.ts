@@ -92,9 +92,7 @@ export default function batchWarnings(command: Record<string, any>): BatchWarnin
 	};
 }
 
-const immediateHandlers: {
-	[code: string]: (warning: RollupLog) => void;
-} = {
+const immediateHandlers: Record<string, (warning: RollupLog) => void> = {
 	MISSING_NODE_BUILTINS(warning) {
 		title(`Missing shims for Node.js built-ins`);
 
@@ -111,9 +109,7 @@ const immediateHandlers: {
 	}
 };
 
-const deferredHandlers: {
-	[code: string]: (warnings: RollupLog[]) => void;
-} = {
+const deferredHandlers: Record<string, (warnings: RollupLog[]) => void> = {
 	CIRCULAR_DEPENDENCY(warnings) {
 		title(`Circular dependenc${warnings.length > 1 ? 'ies' : 'y'}`);
 		const displayed = warnings.length > 5 ? warnings.slice(0, 3) : warnings;

@@ -20,9 +20,7 @@ import { LOGLEVEL_DEBUG, LOGLEVEL_ERROR, LOGLEVEL_WARN, logLevelPriority } from 
 import { error, logInvalidOption, logUnknownOption } from '../logs';
 import { printQuotedStringList } from '../printStringList';
 
-export interface GenericConfigObject {
-	[key: string]: unknown;
-}
+export type GenericConfigObject = Record<string, unknown>;
 
 export const getOnLog = (
 	config: InputOptions,

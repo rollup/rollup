@@ -1,6 +1,6 @@
 import type { AwaitedEventListener, AwaitingEventEmitter } from '../rollup/types';
 
-export class WatchEmitter<T extends { [event: string]: (...parameters: any) => any }>
+export class WatchEmitter<T extends Record<string, (...parameters: any) => any>>
 	implements AwaitingEventEmitter<T>
 {
 	private currentHandlers: {
