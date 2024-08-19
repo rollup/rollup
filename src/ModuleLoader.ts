@@ -577,7 +577,6 @@ export class ModuleLoader {
 	}
 
 	private getResolveStaticDependencyPromises(module: Module): ResolveStaticDependencyPromise[] {
-		// eslint-disable-next-line unicorn/prefer-spread
 		return Array.from(
 			module.sourcesWithAttributes,
 			async ([source, attributes]) =>

@@ -7,13 +7,13 @@ import {
 	logIllegalIdentifierAsName,
 	logMissingNameOptionForIifeExport
 } from '../utils/logs';
+import type { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import setupNamespace from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import type { FinaliserOptions } from './index';
 
 export default function iife(
 	magicString: MagicStringBundle,

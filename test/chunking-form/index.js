@@ -84,7 +84,6 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, c
 	if (outputOptions.format === 'amd' && config.runAmd) {
 		try {
 			const exports = await new Promise((resolve, reject) => {
-				// @ts-expect-error global
 				global.assert = require('node:assert');
 				const requirejs = require('requirejs');
 				requirejs.config({ baseUrl: outputOptions.dir });
@@ -95,9 +94,7 @@ async function generateAndTestBundle(bundle, outputOptions, expectedDirectory, c
 			}
 		} finally {
 			delete require.cache[require.resolve('requirejs')];
-			// @ts-expect-error global
 			delete global.requirejsVars;
-			// @ts-expect-error global
 			delete global.assert;
 		}
 	}

@@ -4,7 +4,7 @@ module.exports = defineTest({
 		// override require here, making "foo" appear as a global module
 		require(name) {
 			if (name === 'foo') {
-				// @ts-expect-error test file
+				// @ts-expect-error test file is not included in project
 				return require('./foo');
 			}
 			return require(name);

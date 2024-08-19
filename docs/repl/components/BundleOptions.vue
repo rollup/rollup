@@ -35,8 +35,8 @@
 					@input="optionsStore.set(option.name, Number($event.target.value))"
 				/>
 				<div
-					v-else-if="option.type === 'string-mapping'"
 					v-for="imported in option.keys"
+					v-else-if="option.type === 'string-mapping'"
 					:key="imported"
 					class="input-with-label"
 				>

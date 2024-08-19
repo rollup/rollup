@@ -1,8 +1,8 @@
+import { ESLint } from 'eslint';
 import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ESLint } from 'eslint';
 import { blue, bold, cyan, green, magenta, red, yellow } from './colors.js';
 
 const colors = [cyan, yellow, blue, red, green, magenta];
@@ -86,7 +86,7 @@ export async function lintTsFile(file) {
 	const results = await eslint.lintFiles([fileURLToPath(file)]);
 	await ESLint.outputFixes(results);
 	const formatter = await eslint.loadFormatter('stylish');
-	const resultText = formatter.format(results);
+	const resultText = formatter.format(results, { cwd: process.cwd(), rulesMeta: {} });
 	console.log(resultText);
 }
 

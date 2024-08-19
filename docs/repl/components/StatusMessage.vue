@@ -7,7 +7,7 @@
 		{{ message.message }}
 		<a
 			v-if="isGuideUrl(message.url)"
-			:href="message.url.slice(websitePrefix.length)"
+			:href="message.url!.slice(websitePrefix.length)"
 			class="link"
 			:class="{ error: isError }"
 			>(<span class="link-text">link</span>)</a
@@ -35,7 +35,7 @@ const frame = computed(() => {
 	return '';
 });
 
-const isGuideUrl = (url: string) => url && url.startsWith(websitePrefix);
+const isGuideUrl = (url: string | undefined) => url && url.startsWith(websitePrefix);
 </script>
 
 <style scoped>

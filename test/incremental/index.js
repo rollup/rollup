@@ -154,7 +154,6 @@ describe('incremental', () => {
 		let cache;
 		modules.foo = `import p from 'external'; export default p;`;
 
-		// eslint-disable-next-line unicorn/consistent-function-scoping
 		const require = id => id === 'external' && 43;
 
 		return rollup

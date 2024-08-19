@@ -1,6 +1,4 @@
-interface Task<T> {
-	(): Promise<T>;
-}
+type Task<T> = () => Promise<T>;
 
 interface QueueItem {
 	reject: (reason?: unknown) => void;

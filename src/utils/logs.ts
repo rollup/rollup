@@ -778,7 +778,6 @@ export function logMissingNodeBuiltins(externalBuiltins: string[]): RollupLog {
 	};
 }
 
-// eslint-disable-next-line unicorn/prevent-abbreviations
 export function logMissingFileOrDirOption(): RollupLog {
 	return {
 		code: MISSING_OPTION,

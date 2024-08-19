@@ -13,11 +13,9 @@ export async function getConfigPath(commandConfig: string | true): Promise<strin
 	if (commandConfig.slice(0, 5) === 'node:') {
 		const packageName = commandConfig.slice(5);
 		try {
-			// eslint-disable-next-line unicorn/prefer-module
 			return require.resolve(`rollup-config-${packageName}`, { paths: [cwd()] });
 		} catch {
 			try {
-				// eslint-disable-next-line unicorn/prefer-module
 				return require.resolve(packageName, { paths: [cwd()] });
 			} catch (error: any) {
 				if (error.code === 'MODULE_NOT_FOUND') {

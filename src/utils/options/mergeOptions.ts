@@ -24,7 +24,7 @@ import {
 	warnUnknownOptions
 } from './options';
 
-export const commandAliases: { [key: string]: string } = {
+export const commandAliases: Record<string, string> = {
 	c: 'config',
 	d: 'dir',
 	e: 'external',

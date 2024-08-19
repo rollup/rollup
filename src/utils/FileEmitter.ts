@@ -97,7 +97,7 @@ interface EmittedFile {
 	type: EmittedFileType;
 }
 
-const emittedFileTypes: Set<EmittedFileType> = new Set(['chunk', 'asset', 'prebuilt-chunk']);
+const emittedFileTypes = new Set<EmittedFileType>(['chunk', 'asset', 'prebuilt-chunk']);
 
 function hasValidType(emittedFile: unknown): emittedFile is {
 	[key: string]: unknown;
@@ -492,7 +492,7 @@ export class FileEmitter {
 	}
 
 	private finalizeAssetsWithSameSource(
-		consumedFiles: ReadonlyArray<ConsumedAsset>,
+		consumedFiles: readonly ConsumedAsset[],
 		sourceHash: string,
 		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
 	): void {

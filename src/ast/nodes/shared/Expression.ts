@@ -27,7 +27,7 @@ export interface InclusionOptions {
 }
 
 export class ExpressionEntity implements WritableEntity {
-	protected flags: number = 0;
+	protected flags = 0;
 
 	get included(): boolean {
 		return isFlagSet(this.flags, Flag.included);

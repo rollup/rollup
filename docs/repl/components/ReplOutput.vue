@@ -5,8 +5,8 @@
 	<div v-if="!rollupOutputStore.output.error">
 		<ReplModule
 			v-for="chunk in chunkModules"
-			:module="chunk"
 			:key="chunk.name"
+			:module="chunk"
 			:show-header="rollupOutputStore.output.output.length > 1"
 		/>
 	</div>
