@@ -13,9 +13,9 @@ import type {
 	PartialNull,
 	Plugin,
 	ResolvedId,
-	ResolveIdResult
+	ResolveIdResult,
+	RollupError
 } from './rollup/types';
-import type { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
 import { readFile } from './utils/fs';
 import { LOGLEVEL_WARN } from './utils/logging';
@@ -39,6 +39,7 @@ import {
 	getAttributesFromImportExpression
 } from './utils/parseImportAttributes';
 import { isAbsolute, isRelative, resolve } from './utils/path';
+import type { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import transform from './utils/transform';
@@ -415,18 +416,30 @@ export class ModuleLoader {
 			attributes
 		);
 		this.modulesById.set(id, module);
-		const loadPromise: LoadModulePromise = this.addModuleSource(id, importer, module).then(() => [
-			this.getResolveStaticDependencyPromises(module),
-			this.getResolveDynamicImportPromises(module),
-			loadAndResolveDependenciesPromise
-		]);
+		// We need to set the load promise before calling addModuleSource to ensure
+		// it is set before the load plugin hook can invoke `this.load()`
+		let resolveLoadPromise: (value: Awaited<LoadModulePromise>) => void;
+		let rejectLoadPromise: (reason: RollupError) => void;
+		const loadPromise: LoadModulePromise = new Promise((resolve, reject) => {
+			resolveLoadPromise = resolve;
+			rejectLoadPromise = reject;
+		});
+		this.moduleLoadPromises.set(module, loadPromise);
+		this.addModuleSource(id, importer, module).then(
+			() =>
+				resolveLoadPromise([
+					this.getResolveStaticDependencyPromises(module),
+					this.getResolveDynamicImportPromises(module),
+					loadAndResolveDependenciesPromise
+				]),
+			rejectLoadPromise!
+		);
 		const loadAndResolveDependenciesPromise = waitForDependencyResolution(loadPromise).then(() =>
 			this.pluginDriver.hookParallel('moduleParsed', [module.info])
 		);
 		loadAndResolveDependenciesPromise.catch(() => {
 			/* avoid unhandled promise rejections */
 		});
-		this.moduleLoadPromises.set(module, loadPromise);
 		const resolveDependencyPromises = await loadPromise;
 		if (!isPreload) {
 			await this.fetchModuleDependencies(module, ...resolveDependencyPromises);

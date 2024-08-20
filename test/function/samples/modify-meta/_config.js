@@ -15,11 +15,13 @@ module.exports = defineTest({
 					initialMeta = this.getModuleInfo(ID_MAIN).meta;
 					initialMeta.buildStart = true;
 				},
-				load(id) {
+				async load(id) {
 					assert.strictEqual(id, ID_MAIN);
 					const meta = this.getModuleInfo(ID_MAIN).meta;
-					assert.deepStrictEqual(meta, { buildStart: true }, 'load');
+					// Finish buildStart before continuing
+					await Promise.resolve();
 					assert.strictEqual(meta, initialMeta);
+					assert.deepStrictEqual(meta, { buildStart: true }, 'load');
 					meta.load1a = true;
 					return { code: `assert.ok(true);`, meta: { load1b: true } };
 				},

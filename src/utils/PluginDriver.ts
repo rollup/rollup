@@ -19,7 +19,6 @@ import type {
 	SyncPluginHooks
 } from '../rollup/types';
 import { FileEmitter } from './FileEmitter';
-import { getPluginContext } from './PluginContext';
 import { getOrCreate } from './getOrCreate';
 import { LOGLEVEL_WARN } from './logging';
 import {
@@ -30,6 +29,7 @@ import {
 	logPluginError
 } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
+import { getPluginContext } from './PluginContext';
 
 /**
  * Coerce a promise union to always be a promise.
@@ -311,7 +311,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext | null
 	): Promise<ReturnType<FunctionPluginHooks[H]>>;
 	// Implementation signature
-	private runHook<H extends AsyncPluginHooks | AddonHooks>(
+	private async runHook<H extends AsyncPluginHooks | AddonHooks>(
 		hookName: H,
 		parameters: unknown[],
 		plugin: Plugin,
@@ -327,43 +327,40 @@ export class PluginDriver {
 		}
 
 		let action: [string, string, Parameters<any>] | null = null;
-		return Promise.resolve()
-			.then(() => {
-				if (typeof handler !== 'function') {
-					return handler;
-				}
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-				const hookResult = (handler as Function).apply(context, parameters);
+		try {
+			const hookResult =
+				typeof handler === 'function'
+					? // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+						(handler as Function).apply(context, parameters)
+					: handler;
+			if (!hookResult?.then) {
+				// short circuit for non-thenables and non-Promises
+				return hookResult;
+			}
 
-				if (!hookResult?.then) {
-					// short circuit for non-thenables and non-Promises
-					return hookResult;
-				}
-
-				// Track pending hook actions to properly error out when
-				// unfulfilled promises cause rollup to abruptly and confusingly
-				// exit with a successful 0 return code but without producing any
-				// output, errors or warnings.
-				action = [plugin.name, hookName, parameters];
-				this.unfulfilledActions.add(action);
-
-				// Although it would be more elegant to just return hookResult here
-				// and put the .then() handler just above the .catch() handler below,
-				// doing so would subtly change the defacto async event dispatch order
-				// which at least one test and some plugins in the wild may depend on.
-				return Promise.resolve(hookResult).then(result => {
-					// action was fulfilled
-					this.unfulfilledActions.delete(action!);
-					return result;
-				});
-			})
-			.catch(error_ => {
-				if (action !== null) {
-					// action considered to be fulfilled since error being handled
-					this.unfulfilledActions.delete(action);
-				}
-				return error(logPluginError(error_, plugin.name, { hook: hookName }));
-			});
+			// Track pending hook actions to properly error out when
+			// unfulfilled promises cause rollup to abruptly and confusingly
+			// exit with a successful 0 return code but without producing any
+			// output, errors or warnings.
+			action = [plugin.name, hookName, parameters];
+			this.unfulfilledActions.add(action);
+			const result = await hookResult;
+			// action was fulfilled
+			this.unfulfilledActions.delete(action!);
+			return result;
+		} catch (error_) {
+			if (action !== null) {
+				// action considered to be fulfilled since error being handled
+				this.unfulfilledActions.delete(action);
+			}
+			return error(
+				logPluginError(
+					error_ && typeof error_ === 'object' ? (error_ as Error) : { message: String(error_) },
+					plugin.name,
+					{ hook: hookName }
+				)
+			);
+		}
 	}
 
 	/**
