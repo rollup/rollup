@@ -708,6 +708,11 @@ export default class Chunk {
 		}
 		if (footer) magicString.append(footer);
 
+		for (const variable of this.renderBaseNameResetSet) {
+			variable.renderBaseName = null;
+		}
+		this.renderBaseNameResetSet.clear();
+
 		return {
 			chunk: this,
 			magicString,
@@ -1292,10 +1297,6 @@ export default class Chunk {
 		if (isEmpty && this.getExportNames().length === 0 && dependencies.size === 0) {
 			onLog(LOGLEVEL_WARN, logEmptyChunk(this.getChunkName()));
 		}
-		for (const variable of this.renderBaseNameResetSet) {
-			variable.renderBaseName = null;
-		}
-		this.renderBaseNameResetSet.clear();
 		return { accessedGlobals, indent, magicString, renderedSource, usedModules, usesTopLevelAwait };
 	}
 
