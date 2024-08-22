@@ -32,7 +32,8 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 		externalLiveBindings: boolean,
 		chunkByModule: ReadonlyMap<Module, Chunk>,
 		externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>,
-		syntheticExports: ReadonlySet<SyntheticNamedExportVariable>
+		syntheticExports: ReadonlySet<SyntheticNamedExportVariable>,
+		renderBaseNameResetSet: Set<Variable>
 	) => void;
 } = {
 	amd: deconflictImportsOther,
@@ -57,7 +58,8 @@ export function deconflictChunk(
 	syntheticExports: ReadonlySet<SyntheticNamedExportVariable>,
 	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 	accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>,
-	includedNamespaces: ReadonlySet<Module>
+	includedNamespaces: ReadonlySet<Module>,
+	renderBaseNameResetSet: Set<Variable>
 ): void {
 	const reversedModules = [...modules].reverse();
 	for (const module of reversedModules) {
@@ -78,7 +80,8 @@ export function deconflictChunk(
 		externalLiveBindings,
 		chunkByModule,
 		externalChunkByModule,
-		syntheticExports
+		syntheticExports,
+		renderBaseNameResetSet
 	);
 
 	for (const module of reversedModules) {
@@ -147,7 +150,9 @@ function deconflictImportsOther(
 	preserveModules: boolean,
 	externalLiveBindings: boolean,
 	chunkByModule: ReadonlyMap<Module, Chunk>,
-	externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>
+	externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>,
+	_unused: ReadonlySet<SyntheticNamedExportVariable>,
+	renderBaseNameResetSet: Set<Variable>
 ): void {
 	for (const chunk of dependencies) {
 		chunk.variableName = getSafeName(chunk.suggestedVariableName, usedNames, null);
@@ -206,6 +211,9 @@ function deconflictImportsOther(
 					chunk.variableName,
 					chunk.getVariableExportName(variable) as string | null
 				);
+				if (renderBaseNameResetSet) {
+					renderBaseNameResetSet.add(variable);
+				}
 			}
 		}
 	}
