@@ -1,4 +1,5 @@
-import { jsx, jsxs, Fragment, createElement } from 'react/jsx-runtime';
+import { jsx, Fragment, jsxs } from 'react/jsx-runtime';
+import react from 'react';
 
 const Foo = () => {};
 const obj = { key: '2' };
@@ -11,7 +12,7 @@ console.log(/*#__PURE__*/jsx(Foo, { x: "1" }));
 console.log(/*#__PURE__*/jsx(Foo, {}, true));
 console.log(/*#__PURE__*/jsx(Foo, {}, "1"));
 console.log(/*#__PURE__*/jsx(Foo, {}, "1"));
-console.log(/*#__PURE__*/jsx(Foo, Object.assign({}, obj)));
+console.log(/*#__PURE__*/jsx(Foo, obj));
 console.log(/*#__PURE__*/jsx(Foo, Object.assign({}, obj, { x: "1" })));
 console.log(/*#__PURE__*/jsx(Foo, Object.assign({}, obj), "1"));
 console.log(/*#__PURE__*/jsx(Foo, Object.assign({}, obj), true));
@@ -57,11 +58,10 @@ console.log(/*#__PURE__*/jsxs(Foo, Object.assign({ x: "1", y: "1" }, obj, obj, {
 console.log(/*#__PURE__*/jsxs(Fragment, { children: [/*#__PURE__*/jsx(Foo, {}), /*#__PURE__*/jsx(Foo, {})] }));
 
 // createElement
-console.log(_createElement(Foo, Object.assign({}, obj, { key: "1" })));
-console.log(_createElement(Foo, Object.assign({}, obj, { key: true })));
-console.log(_createElement(Foo, Object.assign({}, obj, obj, { x: "1", key: "1", y: "1" })));
-console.log(_createElement(Foo, Object.assign({}, obj, obj, { x: "1", key: true, y: "1" })));
-console.log(_createElement(Foo, Object.assign({}, obj, { key: "1" })));
-console.log(_createElement(Foo, Object.assign({}, obj, { key: "1" }),
-    /*#__PURE__*/jsx(Foo, {})));
+console.log(/*#__PURE__*/react.createElement(Foo, Object.assign({}, obj, { key: "1" })));
+console.log(/*#__PURE__*/react.createElement(Foo, Object.assign({}, obj, { key: true })));
+console.log(/*#__PURE__*/react.createElement(Foo, Object.assign({}, obj, obj, { x: "1", key: "1", y: "1" })));
+console.log(/*#__PURE__*/react.createElement(Foo, Object.assign({}, obj, obj, { x: "1", key: true, y: "1" })));
+console.log(/*#__PURE__*/react.createElement(Foo, Object.assign({}, obj, { key: "1" })));
+console.log(/*#__PURE__*/react.createElement(Foo, Object.assign({}, obj, { key: "1" }), /*#__PURE__*/jsx(Foo, {})));
 

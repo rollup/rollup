@@ -1,7 +1,6 @@
 import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
 import { stringifyObjectKeyIfNeeded } from '../../utils/identifierHelpers';
-import type { RenderOptions } from '../../utils/renderHelpers';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type JSXElement from './JSXElement';
 import type JSXExpressionContainer from './JSXExpressionContainer';
 import type JSXFragment from './JSXFragment';
@@ -16,14 +15,17 @@ export default class JSXAttribute extends NodeBase {
 	name!: JSXIdentifier | JSXNamespacedName;
 	value!: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
 
-	render(code: MagicString, options: RenderOptions): void {
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ jsxMode = 'preserve' }: NodeRenderOptions = {}
+	): void {
 		super.render(code, options);
-		const { mode } = this.scope.context.options.jsx as NormalizedJsxOptions;
-		if (mode !== 'preserve') {
+		if (jsxMode !== 'preserve') {
 			const { name, value } = this;
 			const key =
 				name instanceof JSXIdentifier ? name.name : `${name.namespace.name}:${name.name.name}`;
-			if (!(mode === 'automatic' && key === 'key')) {
+			if (!(jsxMode === 'automatic' && key === 'key')) {
 				const safeKey = stringifyObjectKeyIfNeeded(key);
 				if (key !== safeKey) {
 					code.overwrite(name.start, name.end, safeKey, { contentOnly: true });

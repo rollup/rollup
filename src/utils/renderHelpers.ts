@@ -2,8 +2,8 @@ import type MagicString from 'magic-string';
 import type { Node, StatementNode } from '../ast/nodes/shared/Node';
 import type Variable from '../ast/variables/Variable';
 import type { InternalModuleFormat } from '../rollup/types';
-import type { PluginDriver } from './PluginDriver';
 import type { GenerateCodeSnippets } from './generateCodeSnippets';
+import type { PluginDriver } from './PluginDriver';
 import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {
@@ -23,6 +23,7 @@ export interface NodeRenderOptions {
 	isCalleeOfRenderedParent?: boolean;
 	isNoStatement?: boolean;
 	isShorthandProperty?: boolean;
+	jsxMode?: 'preserve' | 'classic' | 'automatic';
 	preventASI?: boolean;
 	/* Indicates if the direct parent of an element changed.
 	Necessary for determining the "this" context of callees. */
