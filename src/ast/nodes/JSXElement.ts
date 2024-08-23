@@ -126,46 +126,57 @@ export default class JSXElement extends JSXElementBase {
 			`/*#__PURE__*/${[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`
 		);
 		this.openingElement.render(code, options, { jsxMode: this.jsxMode.mode });
-		if (attributes.some(attribute => attribute instanceof JSXSpreadAttribute)) {
-			if (attributes.length === 1) {
-				code.appendLeft(nameEnd, ',');
-				code.update(attributes[0].end, end, '');
+
+		let hasSpread = false;
+		let inObject = false;
+		let previousEnd = nameEnd;
+		let hasAttributes = false;
+		for (const attribute of attributes) {
+			if (attribute instanceof JSXSpreadAttribute) {
+				if (inObject) {
+					if (hasAttributes) {
+						code.appendLeft(previousEnd, ' ');
+					}
+					code.appendLeft(previousEnd, '},');
+					inObject = false;
+				} else {
+					code.appendLeft(previousEnd, ',');
+				}
+				previousEnd = attribute.end;
+				hasSpread = true;
 			} else {
-				code.appendLeft(nameEnd, ', Object.assign(');
-				let inObject = false;
-				if (!(attributes[0] instanceof JSXSpreadAttribute)) {
-					code.appendLeft(nameEnd, '{');
+				code.appendLeft(previousEnd, ',');
+				if (!inObject) {
+					code.prependRight(attribute.start, '{ ');
 					inObject = true;
 				}
-				for (let index = 1; index < attributes.length; index++) {
-					const attribute = attributes[index];
-					if (attribute instanceof JSXSpreadAttribute) {
-						if (inObject) {
-							code.prependRight(attribute.start, '}, ');
-							inObject = false;
-						} else {
-							code.appendLeft(attributes[index - 1].end, ',');
-						}
-					} else if (inObject) {
-						code.appendLeft(attributes[index - 1].end, ',');
-					} else {
-						code.appendLeft(attributes[index - 1].end, ', {');
-						inObject = true;
-					}
+				previousEnd = attribute.end;
+			}
+			hasAttributes = true;
+		}
+		if (hasSpread) {
+			if (attributes.length > 1) {
+				const { start } = attributes[0];
+				if (attributes[0] instanceof JSXSpreadAttribute) {
+					code.prependRight(start, '{}, ');
 				}
+				code.prependRight(start, 'Object.assign(');
 				if (inObject) {
-					code.appendLeft(attributes.at(-1)!.end, ' }');
+					code.appendLeft(previousEnd, ' }');
 				}
-				code.update(attributes.at(-1)!.end, end, ')');
+				code.update(previousEnd, this.openingElement.end, ')');
+			} else {
+				code.update(previousEnd, this.openingElement.end, '');
 			}
-		} else if (attributes.length > 0) {
-			code.appendLeft(nameEnd, ', {');
-			for (let index = 0; index < attributes.length - 1; index++) {
-				code.appendLeft(attributes[index].end, ', ');
-			}
-			code.update(attributes.at(-1)!.end, end, ' }');
 		} else {
-			code.update(nameEnd, end, ', null');
+			if (hasAttributes) {
+				if (inObject) {
+					code.appendLeft(previousEnd, ' }');
+				}
+				code.update(previousEnd, this.openingElement.end, '');
+			} else {
+				code.update(previousEnd, this.openingElement.end, ', null');
+			}
 		}
 		if (selfClosing) {
 			code.appendLeft(end, ')');

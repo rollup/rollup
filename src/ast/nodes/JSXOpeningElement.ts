@@ -19,6 +19,7 @@ export default class JSXOpeningElement extends NodeBase {
 		options: RenderOptions,
 		{ jsxMode = 'preserve' }: NodeRenderOptions = {}
 	): void {
+		this.name.render(code, options);
 		for (const attribute of this.attributes) {
 			attribute.render(code, options, { jsxMode });
 		}

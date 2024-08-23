@@ -11,11 +11,11 @@ console.log(obj);
 
 const Foo = () => {};
 const result1 = /*#__PURE__*/react.createElement(Foo, obj$1);
-const result2 = /*#__PURE__*/react.createElement(Foo, Object.assign( obj$1, { prop: true }));
-const result3 = /*#__PURE__*/react.createElement(Foo, Object.assign({
-  prop1: true,
-  prop2: true
-  }, obj$1,
+const result2 = /*#__PURE__*/react.createElement(Foo, Object.assign({}, obj$1, { prop: true }));
+const result3 = /*#__PURE__*/react.createElement(Foo,
+  Object.assign({ prop1: true,
+  prop2: true },
+  obj$1,
   obj$1));
 
 export { result1, result2, result3 };
