@@ -1069,9 +1069,15 @@ export default class Chunk {
 			? sanitizedId.slice(0, -extensionName.length)
 			: sanitizedId;
 		if (isAbsolute(idWithoutExtension)) {
-			return preserveModulesRoot && resolve(idWithoutExtension).startsWith(preserveModulesRoot)
-				? idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[/\\]/, '')
-				: relative(this.inputBase, idWithoutExtension);
+			if (preserveModulesRoot && resolve(idWithoutExtension).startsWith(preserveModulesRoot)) {
+				return idWithoutExtension.slice(preserveModulesRoot.length).replace(/^[/\\]/, '');
+			} else {
+				// handle edge case in Windows
+				if (this.inputBase === '/' && !idWithoutExtension.startsWith('/')) {
+					return relative(this.inputBase, idWithoutExtension.replace(/^[a-zA-Z]:[/\\]/, '/'));
+				}
+				return relative(this.inputBase, idWithoutExtension);
+			}
 		} else {
 			return (
 				this.outputOptions.virtualDirname.replace(/\/$/, '') + '/' + basename(idWithoutExtension)
