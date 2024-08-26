@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 4.21.1
+
+_2024-08-26_
+
+### Bug Fixes
+
+- Ensure `closeWatcher` hook is called when watch mode is aborted via Ctrl+C (#5618)
+- Do not produce invalid code for `import.meta.url` in compact mode (#5624)
+- Do not throw when generating chunk names when preserving modules in Windows (#5625)
+
+### Pull Requests
+
+- [#5591](https://github.com/rollup/rollup/pull/5591): chore(deps): update dependency @types/eslint to v9 (@renovate[bot], @lukastaegert)
+- [#5618](https://github.com/rollup/rollup/pull/5618): preload the WASM file even though the version is undefined. (@TrickyPi)
+- [#5619](https://github.com/rollup/rollup/pull/5619): Call and await closeWatcher hooks on exit signals (@lukastaegert)
+- [#5622](https://github.com/rollup/rollup/pull/5622): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5624](https://github.com/rollup/rollup/pull/5624): fix: add space for DOCUMENT_CURRENT_SCRIPT template (@TrickyPi)
+- [#5625](https://github.com/rollup/rollup/pull/5625): fix: get the right chunk name for preserve modules in Windows (@TrickyPi, @lukastaegert)
+
 ## 4.21.0
 
 _2024-08-18_
