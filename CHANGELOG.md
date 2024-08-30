@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 4.21.2
+
+_2024-08-30_
+
+### Bug Fixes
+
+- Handle IIFE/UMD namespace definitions conflicting with a builtin property (#5605)
+
+### Pull Requests
+
+- [#5605](https://github.com/rollup/rollup/pull/5605): fix: Wrong namespace property definition (@thirumurugan-git, @lukastaegert)
+- [#5630](https://github.com/rollup/rollup/pull/5630): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5631](https://github.com/rollup/rollup/pull/5631): chore(deps): lock file maintenance (@renovate[bot])
+- [#5632](https://github.com/rollup/rollup/pull/5632): chore(deps): lock file maintenance (@renovate[bot])
+
 ## 4.21.1
 
 _2024-08-26_
