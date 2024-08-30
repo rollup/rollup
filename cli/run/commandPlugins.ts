@@ -114,7 +114,7 @@ function getCamelizedPluginBaseName(pluginText: string): string {
 
 async function requireOrImport(pluginPath: string): Promise<any> {
 	try {
-		// eslint-disable-next-line unicorn/prefer-module
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		return require(pluginPath);
 	} catch {
 		return import(pluginPath);

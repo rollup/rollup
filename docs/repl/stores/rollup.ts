@@ -37,8 +37,12 @@ function getRollupJsUrl({ type, version }: RollupRequest) {
 function getRollupWasmFileUrl({ type, version }: RollupRequest) {
 	if (type === 'pr') {
 		return getFullUrlFromAWS(version, ROLLUP_WASM_FILE);
-	} else if (type === 'version' && version && isRollupVersionAtLeast(version, 4, 0)) {
-		return getFullUrlFromUnpkg(version, ROLLUP_WASM_FILE);
+	} else if (type === 'version') {
+		if (!version) {
+			return getFullUrlFromUnpkg(undefined, ROLLUP_WASM_FILE);
+		} else if (isRollupVersionAtLeast(version, 4, 0)) {
+			return getFullUrlFromUnpkg(version, ROLLUP_WASM_FILE);
+		}
 	}
 }
 
@@ -53,7 +57,9 @@ async function loadRollup(rollupRequest: RollupRequest): Promise<typeof Rollup> 
 		const script = document.createElement('script');
 		script.src = url;
 		script.addEventListener('load', async () => {
-			preloadRollupWasmFile && (await preloadRollupWasmFile);
+			if (preloadRollupWasmFile) {
+				await preloadRollupWasmFile;
+			}
 			fulfil((window as any).rollup);
 		});
 		script.addEventListener('error', () => {

@@ -194,7 +194,7 @@ function getCollapsedSourcemap(
 
 export function collapseSourcemaps(
 	file: string,
-	map: Omit<DecodedSourceMap, 'sourcesContent'> & { sourcesContent: Array<string | null> },
+	map: Omit<DecodedSourceMap, 'sourcesContent'> & { sourcesContent: (string | null)[] },
 	modules: readonly Module[],
 	bundleSourcemapChain: readonly DecodedSourceMapOrMissing[],
 	excludeContent: boolean | undefined,

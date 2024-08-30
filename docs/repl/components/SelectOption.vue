@@ -14,8 +14,7 @@
 
 <script setup lang="ts">
 defineProps<{ selected: unknown; values: unknown[] }>();
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const emit = defineEmits<{ (event: 'select', selected: unknown): void }>();
+const emit = defineEmits<(event: 'select', selected: unknown) => void>();
 </script>
 
 <style scoped>

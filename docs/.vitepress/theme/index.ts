@@ -1,8 +1,6 @@
-// eslint-disable-next-line import/no-unresolved
 import TwoslashFloatingVue from '@shikijs/vitepress-twoslash/client';
 import '@shikijs/vitepress-twoslash/style.css';
 import { createPinia } from 'pinia';
-// eslint-disable-next-line import/no-unresolved
 import defaultTheme from 'vitepress/theme';
 import './custom.css';
 

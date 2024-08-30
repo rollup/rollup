@@ -1,6 +1,6 @@
+import GitHub from 'github-api';
 import { readFile } from 'node:fs/promises';
 import { exit } from 'node:process';
-import GitHub from 'github-api';
 import { runAndGetStdout } from './helpers.js';
 
 /**

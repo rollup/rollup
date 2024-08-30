@@ -60,18 +60,19 @@ export const getHelpersBlock = (
 	).join('');
 };
 
-const HELPER_GENERATORS: {
-	[variable: string]: (
+const HELPER_GENERATORS: Record<
+	string,
+	(
 		indent: string,
 		snippets: GenerateCodeSnippets,
 		liveBindings: boolean,
 		freeze: boolean,
 		symbols: boolean,
 		usedHelpers: ReadonlySet<string>
-	) => string;
-} = {
+	) => string
+> = {
 	[DOCUMENT_CURRENT_SCRIPT](_t, { _, n }) {
-		return `var${_}${DOCUMENT_CURRENT_SCRIPT}${_}=${_}typeof${_}document${_}!==${_}'undefined'${_}?${_}document.currentScript${_}:${_}null;${n}`;
+		return `var ${DOCUMENT_CURRENT_SCRIPT}${_}=${_}typeof document${_}!==${_}'undefined'${_}?${_}document.currentScript${_}:${_}null;${n}`;
 	},
 	[INTEROP_DEFAULT_COMPAT_VARIABLE](_t, snippets, liveBindings) {
 		const { _, getDirectReturnFunction, n } = snippets;

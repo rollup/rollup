@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
+import inquirer from 'inquirer';
 import { readFile, writeFile } from 'node:fs/promises';
 import { chdir, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import inquirer from 'inquirer';
 import semverInc from 'semver/functions/inc.js';
 import semverParse from 'semver/functions/parse.js';
 import semverPreRelease from 'semver/functions/prerelease.js';

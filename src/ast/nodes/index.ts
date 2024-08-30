@@ -78,9 +78,7 @@ import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
 import type { NodeBase } from './shared/Node';
 
-export const nodeConstructors: {
-	[name: string]: typeof NodeBase;
-} = {
+export const nodeConstructors: Record<string, typeof NodeBase> = {
 	ArrayExpression,
 	ArrayPattern,
 	ArrowFunctionExpression,

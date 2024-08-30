@@ -1,7 +1,7 @@
 <template>
 	<InputHeader />
 
-	<div class="modules" ref="modulesReference">
+	<div ref="modulesReference" class="modules">
 		<ReplModule
 			v-for="(module, i) in modulesStore.modules"
 			:key="i"

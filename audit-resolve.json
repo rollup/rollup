@@ -1,8 +1,19 @@
 {
   "decisions": {
-    "1098122|requirejs": {
+    "1098615|@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>globby>fast-glob>micromatch": {
       "decision": "ignore",
-      "madeAt": 1720680883374
+      "madeAt": 1724393590964,
+      "expiresAt": 1726985560078
+    },
+    "1098615|lint-staged>micromatch": {
+      "decision": "ignore",
+      "madeAt": 1724393590964,
+      "expiresAt": 1726985560078
+    },
+    "1098615|typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>globby>fast-glob>micromatch": {
+      "decision": "ignore",
+      "madeAt": 1724393590964,
+      "expiresAt": 1726985560078
     }
   },
   "rules": {},

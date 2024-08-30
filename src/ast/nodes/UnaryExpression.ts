@@ -10,9 +10,7 @@ import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
-const unaryOperators: {
-	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
-} = {
+const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnknown> = {
 	'!': value => !value,
 	'+': value => +(value as NonNullable<LiteralValue>),
 	'-': value => -(value as NonNullable<LiteralValue>),

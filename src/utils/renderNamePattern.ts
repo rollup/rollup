@@ -7,7 +7,7 @@ import { isPathFragment } from './relativeId';
 export function renderNamePattern(
 	pattern: string,
 	patternName: string,
-	replacements: { [name: string]: (size?: number) => string }
+	replacements: Record<string, (size?: number) => string>
 ): string {
 	if (isPathFragment(pattern))
 		return error(

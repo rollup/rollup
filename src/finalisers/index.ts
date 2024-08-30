@@ -33,6 +33,4 @@ export type Finaliser = (
 	options: NormalizedOutputOptions
 ) => void;
 
-export default { amd, cjs, es, iife, system, umd } as {
-	[format: string]: Finaliser;
-};
+export default { amd, cjs, es, iife, system, umd } as Record<string, Finaliser>;

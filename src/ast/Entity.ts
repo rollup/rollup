@@ -2,7 +2,7 @@ import type { HasEffectsContext } from './ExecutionContext';
 import type { NodeInteractionAssigned } from './NodeInteractions';
 import type { ObjectPath } from './utils/PathTracker';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Entity {}
 
 export interface WritableEntity extends Entity {

@@ -1,9 +1,9 @@
 /* global gc */
 
+import { createColors } from 'colorette';
 import { mkdir, symlink, writeFile } from 'node:fs/promises';
 import { chdir } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { createColors } from 'colorette';
 import prettyBytes from 'pretty-bytes';
 import { runWithEcho } from '../helpers.js';
 import reportCollector from './report-collector.js';

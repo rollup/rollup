@@ -297,7 +297,7 @@ export const useOptions = defineStore('options2', () => {
 	});
 	const optionOutputNoConflict = getBoolean({
 		available: () => optionOutputFormat.value.value === 'umd',
-		name: 'output.noConflice'
+		name: 'output.noConflict'
 	});
 	const optionOutputName = getString({
 		available: isIifeFormat,

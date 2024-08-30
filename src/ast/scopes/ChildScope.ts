@@ -47,7 +47,9 @@ export default class ChildScope extends Scope {
 	}
 
 	addReturnExpression(expression: ExpressionEntity): void {
-		this.parent instanceof ChildScope && this.parent.addReturnExpression(expression);
+		if (this.parent instanceof ChildScope) {
+			this.parent.addReturnExpression(expression);
+		}
 	}
 
 	addUsedOutsideNames(

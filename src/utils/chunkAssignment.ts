@@ -150,7 +150,7 @@ interface ChunkPartition {
  * another round of chunks.
  */
 export function getChunkAssignments(
-	entries: ReadonlyArray<Module>,
+	entries: readonly Module[],
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number,
 	log: LogHandler
@@ -235,13 +235,13 @@ function addStaticDependenciesToManualChunk(
 }
 
 function analyzeModuleGraph(entries: Iterable<Module>): {
-	allEntries: ReadonlyArray<Module>;
+	allEntries: readonly Module[];
 	dependentEntriesByModule: Map<Module, Set<number>>;
-	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>;
+	dynamicImportsByEntry: readonly ReadonlySet<number>[];
 	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>;
 } {
 	const dynamicEntryModules = new Set<Module>();
-	const dependentEntriesByModule: Map<Module, Set<number>> = new Map();
+	const dependentEntriesByModule = new Map<Module, Set<number>>();
 	const dynamicImportModulesByEntry: Set<Module>[] = [];
 	const allEntriesSet = new Set(entries);
 	let entryIndex = 0;
@@ -321,9 +321,9 @@ function getDynamicEntries(
 function getDynamicallyDependentEntriesByDynamicEntry(
 	dependentEntriesByModule: ReadonlyMap<Module, ReadonlySet<number>>,
 	dynamicEntries: ReadonlySet<number>,
-	allEntries: ReadonlyArray<Module>
+	allEntries: readonly Module[]
 ): Map<number, Set<number>> {
-	const dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>> = new Map();
+	const dynamicallyDependentEntriesByDynamicEntry = new Map<number, Set<number>>();
 	for (const dynamicEntryIndex of dynamicEntries) {
 		const dynamicallyDependentEntries = getOrCreate(
 			dynamicallyDependentEntriesByDynamicEntry,
@@ -346,9 +346,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 function getChunksWithSameDependentEntries(
 	modulesWithDependentEntries: Iterable<ModulesWithDependentEntries>
 ): ModulesWithDependentEntries[] {
-	const chunkModules: {
-		[signature: string]: ModulesWithDependentEntries;
-	} = Object.create(null);
+	const chunkModules: Record<string, ModulesWithDependentEntries> = Object.create(null);
 	for (const { dependentEntries, modules } of modulesWithDependentEntries) {
 		let chunkSignature = 0n;
 		for (const entryIndex of dependentEntries) {
@@ -374,7 +372,7 @@ function* getModulesWithDependentEntries(
 }
 
 function getStaticDependencyAtomsByEntry(
-	allEntries: ReadonlyArray<Module>,
+	allEntries: readonly Module[],
 	chunkAtoms: ModulesWithDependentEntries[]
 ) {
 	// The indices correspond to the indices in allEntries. The atoms correspond
@@ -396,8 +394,8 @@ function getStaticDependencyAtomsByEntry(
 function getAlreadyLoadedAtomsByEntry(
 	staticDependencyAtomsByEntry: bigint[],
 	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>,
-	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>,
-	allEntries: ReadonlyArray<Module>
+	dynamicImportsByEntry: readonly ReadonlySet<number>[],
+	allEntries: readonly Module[]
 ) {
 	// Dynamic entries have all atoms as already loaded initially because we then
 	// intersect with the static dependency atoms of all dynamic importers.
@@ -464,9 +462,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 	alreadyLoadedAtomsByEntry: bigint[],
 	minChunkSize: number
 ) {
-	const chunksBySignature: {
-		[signature: string]: ChunkDescription;
-	} = Object.create(null);
+	const chunksBySignature: Record<string, ChunkDescription> = Object.create(null);
 	const chunkByModule = new Map<Module, ChunkDescription>();
 	const sizeByAtom: number[] = [];
 	let sideEffectAtoms = 0n;
@@ -650,10 +646,11 @@ function getOptimizedChunks(
 		timeEnd('optimize chunks', 3);
 		return chunks; // the actual modules
 	}
-	minChunkSize > 1 &&
+	if (minChunkSize > 1) {
 		log('info', logOptimizeChunkStatus(chunks.length, chunkPartition.small.size, 'Initially'));
+	}
 	mergeChunks(chunkPartition, minChunkSize, sideEffectAtoms, sizeByAtom);
-	minChunkSize > 1 &&
+	if (minChunkSize > 1) {
 		log(
 			'info',
 			logOptimizeChunkStatus(
@@ -662,6 +659,7 @@ function getOptimizedChunks(
 				'After merging chunks'
 			)
 		);
+	}
 	timeEnd('optimize chunks', 3);
 	return [...chunkPartition.small, ...chunkPartition.big];
 }

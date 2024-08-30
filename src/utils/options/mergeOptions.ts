@@ -24,7 +24,7 @@ import {
 	warnUnknownOptions
 } from './options';
 
-export const commandAliases: { [key: string]: string } = {
+export const commandAliases: Record<string, string> = {
 	c: 'config',
 	d: 'dir',
 	e: 'external',
@@ -279,7 +279,8 @@ async function mergeOutputOptions(
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict'),
 		systemNullSetters: getOption('systemNullSetters'),
-		validate: getOption('validate')
+		validate: getOption('validate'),
+		virtualDirname: getOption('virtualDirname')
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', log);

@@ -7,14 +7,14 @@ import type {
 	PluginContext,
 	SerializablePluginCache
 } from '../rollup/types';
-import type { FileEmitter } from './FileEmitter';
-import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { BLANK, EMPTY_OBJECT } from './blank';
-import { getLogHandler } from './logHandler';
+import type { FileEmitter } from './FileEmitter';
 import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN } from './logging';
+import { getLogHandler } from './logHandler';
 import { error, logPluginError } from './logs';
 import { normalizeLog } from './options/options';
 import { parseAst } from './parseAst';
+import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 
 export function getPluginContext(
