@@ -108,24 +108,27 @@ export default class JSXElement extends JSXElementBase {
 			snippets: { getPropertyAccess },
 			useOriginalName
 		} = options;
-		// TODO Lukas extract more this values
 		const {
+			children,
+			end,
+			factory,
+			jsxMode: { mode },
 			openingElement: {
 				attributes,
 				name: { start: nameStart, end: nameEnd },
 				selfClosing,
-				end,
-				start
+				end: openingEnd,
+				start: openingStart
 			},
 			factoryVariable
 		} = this;
-		const [, ...nestedName] = this.factory!.split('.');
+		const [, ...nestedName] = factory!.split('.');
 		code.update(
-			start,
+			openingStart,
 			nameStart,
 			`/*#__PURE__*/${[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`
 		);
-		this.openingElement.render(code, options, { jsxMode: this.jsxMode.mode });
+		this.openingElement.render(code, options, { jsxMode: mode });
 
 		let hasSpread = false;
 		let inObject = false;
@@ -151,47 +154,44 @@ export default class JSXElement extends JSXElementBase {
 					inObject = true;
 				}
 				previousEnd = attribute.end;
+				hasAttributes = true;
 			}
-			hasAttributes = true;
+		}
+		if (inObject) {
+			code.appendLeft(previousEnd, ' }');
 		}
 		if (hasSpread) {
-			if (attributes.length > 1) {
+			if (hasAttributes) {
 				const { start } = attributes[0];
 				if (attributes[0] instanceof JSXSpreadAttribute) {
 					code.prependRight(start, '{}, ');
 				}
 				code.prependRight(start, 'Object.assign(');
-				if (inObject) {
-					code.appendLeft(previousEnd, ' }');
-				}
-				code.update(previousEnd, this.openingElement.end, ')');
+				code.update(previousEnd, openingEnd, ')');
 			} else {
-				code.update(previousEnd, this.openingElement.end, '');
+				code.update(previousEnd, openingEnd, '');
 			}
+		} else if (hasAttributes) {
+			code.update(previousEnd, openingEnd, '');
 		} else {
-			if (hasAttributes) {
-				if (inObject) {
-					code.appendLeft(previousEnd, ' }');
-				}
-				code.update(previousEnd, this.openingElement.end, '');
+			code.update(previousEnd, openingEnd, ', null');
+		}
+		previousEnd = openingEnd;
+		for (const child of children) {
+			if (
+				child instanceof JSXExpressionContainer &&
+				child.expression instanceof JSXEmptyExpression
+			) {
+				code.remove(previousEnd, child.end);
 			} else {
-				code.update(previousEnd, this.openingElement.end, ', null');
+				code.appendLeft(previousEnd, `, `);
+				child.render(code, options);
 			}
+			previousEnd = child.end;
 		}
 		if (selfClosing) {
 			code.appendLeft(end, ')');
 		} else {
-			for (const child of this.children) {
-				if (
-					child instanceof JSXExpressionContainer &&
-					child.expression instanceof JSXEmptyExpression
-				) {
-					code.remove(child.start, child.end);
-				} else {
-					child.render(code, options);
-					code.appendLeft(child.start, `, `);
-				}
-			}
 			this.closingElement!.render(code);
 		}
 	}
