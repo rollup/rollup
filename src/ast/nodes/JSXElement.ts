@@ -203,29 +203,26 @@ export default class JSXElement extends JSXElementBase {
 		} = options;
 		// TODO Lukas extract more this values
 		const {
+			end,
 			factoryVariable,
 			openingElement: {
 				attributes,
-				end,
-				start,
+				end: openingEnd,
+				start: openingStart,
 				name: { start: nameStart, end: nameEnd },
 				selfClosing
 			}
 		} = this;
 		code.update(
-			start,
+			openingStart,
 			nameStart,
 			`/*#__PURE__*/${factoryVariable!.getName(getPropertyAccess, useOriginalName)}(`
 		);
 		this.openingElement.render(code, options, { jsxMode: this.jsxMode.mode });
-		// TODO Lukas
-		// - render children first
-		// - if we have a spread and either regular attributes, a key attribute or children, then we need Object.assign
-		// - if we only have a single spread, we just print the object
-		// - otherwise we print a regular object
 		let keyAttribute: JSXAttribute | null = null;
 		let hasSpread = false;
-		let inObject = true;
+		let startsWithSpread = false;
+		let inObject = false;
 		let previousEnd = nameEnd;
 		let hasAttributes = false;
 		for (const attribute of attributes) {
@@ -236,32 +233,33 @@ export default class JSXElement extends JSXElementBase {
 					}
 					code.appendLeft(previousEnd, '},');
 					inObject = false;
-				} else if (hasAttributes) {
+				} else {
 					code.appendLeft(previousEnd, ',');
 				}
 				previousEnd = attribute.end;
-				hasAttributes = true;
+				if (!hasAttributes) {
+					startsWithSpread = true;
+				}
 				hasSpread = true;
 			} else if (attribute.name.name === 'key') {
 				keyAttribute = attribute;
 				code.remove(previousEnd, attribute.value?.start || attribute.end);
 			} else {
-				if (hasAttributes) {
-					code.appendLeft(previousEnd, ',');
-				}
+				// TODO Lukas this is also what should happen for children
+				code.appendLeft(previousEnd, ',');
 				if (!inObject) {
-					code.appendLeft(previousEnd, ' {');
+					code.prependRight(attribute.start, '{ ');
 					inObject = true;
 				}
 				previousEnd = attribute.end;
 				hasAttributes = true;
 			}
 		}
-		code.prependLeft(nameEnd, hasSpread ? ', Object.assign({' : ', {');
-		const closeObjectAssign = hasSpread ? ')' : '';
-		const renderedChildren = getRenderedJsxChildren(this.children);
-		let prependComma = false;
-		// TODO Lukas can we handle commas differently?
+		// TODO Lukas or code.remove?
+		code.update(attributes.at(-1)?.end || previousEnd, openingEnd, '');
+		let hasChildren = false;
+		let hasMultipleChildren = false;
+		let childrenStart = 0;
 		for (const child of this.children) {
 			if (
 				child instanceof JSXExpressionContainer &&
@@ -270,72 +268,129 @@ export default class JSXElement extends JSXElementBase {
 				code.remove(child.start, child.end);
 			} else {
 				child.render(code, options);
-				if (prependComma) {
+				if (hasChildren) {
 					code.appendLeft(child.start, `, `);
+					hasMultipleChildren = true;
 				} else {
-					prependComma = true;
+					hasChildren = true;
+					childrenStart = child.start;
 				}
 			}
 		}
-		if (renderedChildren > 0) {
-			if (hasAttributes) {
-				code.appendLeft(previousEnd, ',');
-			}
+		// Wrap the children now and update previousEnd before continuing
+		if (hasChildren) {
+			code.appendLeft(previousEnd, ',');
+			code.prependRight(childrenStart, ` children: ${hasMultipleChildren ? '[' : ''}`);
 			if (!inObject) {
-				code.appendLeft(previousEnd, ' {');
+				code.prependRight(childrenStart, ' {');
+				inObject = true;
 			}
-			code.update(
-				attributes.at(-1)?.end || previousEnd,
-				end,
-				` children: ${renderedChildren > 1 ? '[' : ''}`
-			);
-			const childrenClose = renderedChildren > 1 ? ']' : '';
-			if (keyAttribute) {
-				const { value } = keyAttribute;
-				if (value) {
-					code.prependRight(value.start, `${childrenClose} }${closeObjectAssign}, `);
-					code.move(value.start, value.end, this.closingElement!.start);
-				} else {
-					code.prependRight(
-						this.closingElement!.start,
-						`${childrenClose} }${closeObjectAssign}, true`
-					);
-				}
-			} else {
-				// We need to attach to the right as children are not rendered yet and
-				// this appendLeft will not append to things appended by the children
-				code.prependRight(this.closingElement!.start, `${childrenClose} }${closeObjectAssign}`);
-			}
-		} else {
-			if (inObject) {
-				if (hasAttributes) {
-					code.appendLeft(previousEnd, ' ');
-				}
-				code.update(attributes.at(-1)?.end || previousEnd, end, '}' + closeObjectAssign);
-			} else {
-				code.update(previousEnd, end, ')');
-			}
-			if (keyAttribute) {
-				const { value } = keyAttribute;
-				// This will appear to the left of the moved code...
-				code.appendLeft(end, ', ');
-				if (value) {
-					if (selfClosing) {
-						// ...and this will appear to the right
-						code.appendLeft(value.end, ')');
-					}
-					code.move(value.start, value.end, end);
-				} else {
-					code.appendLeft(end, 'true');
-					if (selfClosing) {
-						code.appendLeft(end, ')');
-					}
-				}
-			} else if (selfClosing) {
-				code.appendLeft(end, ')');
+			previousEnd = this.closingElement!.start;
+			if (hasMultipleChildren) {
+				code.appendLeft(previousEnd, ']');
 			}
 		}
-		// TODO Lukas inline removal?
-		this.closingElement?.render(code);
+		// This is the outside wrapping
+		if (inObject) {
+			code.appendLeft(previousEnd, ' }');
+		}
+		if (hasSpread) {
+			// This is the only case where we need Object.assign
+			if (hasAttributes || hasChildren) {
+				// TODO Lukas this should be the start of the first non-key-attriburte
+				const { start } = attributes[0];
+				if (startsWithSpread) {
+					code.prependRight(start, '{}, ');
+				}
+				code.prependRight(start, 'Object.assign(');
+				code.appendLeft(previousEnd, ')');
+			}
+		} else if (!(hasAttributes || hasChildren)) {
+			code.appendLeft(previousEnd, ', {}');
+		}
+
+		if (keyAttribute) {
+			const { value } = keyAttribute;
+			// This will appear to the left of the moved code...
+			code.appendLeft(previousEnd, ', ');
+			if (value) {
+				// if (selfClosing) {
+				// 	// ...and this will appear to the right
+				// 	code.appendLeft(value.end, ')');
+				// }
+				code.move(value.start, value.end, previousEnd);
+			} else {
+				code.appendLeft(previousEnd, 'true');
+				// if (selfClosing) {
+				// 	code.appendLeft(openingEnd, ')');
+				// }
+			}
+		}
+
+		if (selfClosing) {
+			// Moving the key attribute will
+			code.appendLeft(keyAttribute?.value?.end || end, ')');
+		} else {
+			this.closingElement!.render(code);
+		}
+
+		// if (hasChildren) {
+		// 	if (hasAttributes) {
+		// 		code.appendLeft(previousEnd, ',');
+		// 	}
+		// 	if (!inObject) {
+		// 		code.appendLeft(previousEnd, ' {');
+		// 	}
+		// 	code.update(
+		// 		attributes.at(-1)?.end || previousEnd,
+		// 		openingEnd,
+		// 		` children: ${renderedChildren > 1 ? '[' : ''}`
+		// 	);
+		// 	const childrenClose = renderedChildren > 1 ? ']' : '';
+		// 	if (keyAttribute) {
+		// 		const { value } = keyAttribute;
+		// 		if (value) {
+		// 			code.prependRight(value.start, `${childrenClose} }${closeObjectAssign}, `);
+		// 			code.move(value.start, value.end, this.closingElement!.start);
+		// 		} else {
+		// 			code.prependRight(
+		// 				this.closingElement!.start,
+		// 				`${childrenClose} }${closeObjectAssign}, true`
+		// 			);
+		// 		}
+		// 	} else {
+		// 		// We need to attach to the right as children are not rendered yet and
+		// 		// this appendLeft will not append to things appended by the children
+		// 		code.prependRight(this.closingElement!.start, `${childrenClose} }${closeObjectAssign}`);
+		// 	}
+		// } else {
+		// 	if (inObject) {
+		// 		if (hasAttributes) {
+		// 			code.appendLeft(previousEnd, ' ');
+		// 		}
+		// 		code.update(attributes.at(-1)?.end || previousEnd, openingEnd, '}' + closeObjectAssign);
+		// 	} else {
+		// 		code.update(previousEnd, openingEnd, ')');
+		// 	}
+		// 	if (keyAttribute) {
+		// 		const { value } = keyAttribute;
+		// 		// This will appear to the left of the moved code...
+		// 		code.appendLeft(openingEnd, ', ');
+		// 		if (value) {
+		// 			if (selfClosing) {
+		// 				// ...and this will appear to the right
+		// 				code.appendLeft(value.end, ')');
+		// 			}
+		// 			code.move(value.start, value.end, openingEnd);
+		// 		} else {
+		// 			code.appendLeft(openingEnd, 'true');
+		// 			if (selfClosing) {
+		// 				code.appendLeft(openingEnd, ')');
+		// 			}
+		// 		}
+		// 	} else if (selfClosing) {
+		// 		code.appendLeft(openingEnd, ')');
+		// 	}
+		// }
 	}
 }
