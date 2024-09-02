@@ -111,63 +111,24 @@ export default class JSXElement extends JSXElementBase {
 			closingElement,
 			end,
 			factory,
-			jsxMode: { mode },
-			openingElement: {
-				attributes,
-				name: { start: nameStart, end: nameEnd },
-				selfClosing,
-				end: openingEnd,
-				start: openingStart
-			},
-			factoryVariable
+			factoryVariable,
+			openingElement: { end: openingEnd, selfClosing }
 		} = this;
 		const [, ...nestedName] = factory!.split('.');
-		code.update(
-			openingStart,
-			nameStart,
-			`/*#__PURE__*/${[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.')}(`
+		let { firstAttribute, hasAttributes, hasSpread, inObject, previousEnd } = this.renderAttributes(
+			code,
+			options,
+			[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.'),
+			false
 		);
-		this.openingElement.render(code, options, { jsxMode: mode });
-
-		let hasSpread = false;
-		let inObject = false;
-		let previousEnd = nameEnd;
-		let hasAttributes = false;
-		let firstAttribute: JSXAttribute | JSXSpreadAttribute | null = null;
-		for (const attribute of attributes) {
-			if (attribute instanceof JSXAttribute) {
-				code.appendLeft(previousEnd, ',');
-				if (!inObject) {
-					code.prependRight(attribute.start, '{ ');
-					inObject = true;
-				}
-				hasAttributes = true;
-			} else {
-				if (inObject) {
-					if (hasAttributes) {
-						code.appendLeft(previousEnd, ' ');
-					}
-					code.appendLeft(previousEnd, '},');
-					inObject = false;
-				} else {
-					code.appendLeft(previousEnd, ',');
-				}
-				hasSpread = true;
-			}
-			previousEnd = attribute.end;
-			if (!firstAttribute) {
-				firstAttribute = attribute;
-			}
-		}
-		code.remove(attributes.at(-1)?.end || previousEnd, openingEnd);
 
 		if (inObject) {
 			code.appendLeft(previousEnd, ' }');
 		}
 		if (hasSpread) {
 			if (hasAttributes) {
-				const { start } = attributes[0];
-				if (attributes[0] instanceof JSXSpreadAttribute) {
+				const { start } = firstAttribute!;
+				if (firstAttribute instanceof JSXSpreadAttribute) {
 					code.prependRight(start, '{}, ');
 				}
 				code.prependRight(start, 'Object.assign(');
@@ -208,58 +169,15 @@ export default class JSXElement extends JSXElementBase {
 			closingElement,
 			end,
 			factoryVariable,
-			jsxMode: { mode },
-			openingElement: {
-				attributes,
-				end: openingEnd,
-				start: openingStart,
-				name: { start: nameStart, end: nameEnd },
-				selfClosing
-			}
+			openingElement: { end: openingEnd, selfClosing }
 		} = this;
-		code.update(
-			openingStart,
-			nameStart,
-			`/*#__PURE__*/${factoryVariable!.getName(getPropertyAccess, useOriginalName)}(`
-		);
-		this.openingElement.render(code, options, { jsxMode: mode });
-		let keyAttribute: JSXAttribute | null = null;
-		let hasSpread = false;
-		let inObject = false;
-		let previousEnd = nameEnd;
-		let hasAttributes = false;
-		let firstAttribute: JSXAttribute | JSXSpreadAttribute | null = null;
-		for (const attribute of attributes) {
-			if (attribute instanceof JSXAttribute) {
-				if (attribute.name.name === 'key') {
-					keyAttribute = attribute;
-					code.remove(previousEnd, attribute.value?.start || attribute.end);
-					continue;
-				}
-				code.appendLeft(previousEnd, ',');
-				if (!inObject) {
-					code.prependRight(attribute.start, '{ ');
-					inObject = true;
-				}
-				hasAttributes = true;
-			} else {
-				if (inObject) {
-					if (hasAttributes) {
-						code.appendLeft(previousEnd, ' ');
-					}
-					code.appendLeft(previousEnd, '},');
-					inObject = false;
-				} else {
-					code.appendLeft(previousEnd, ',');
-				}
-				hasSpread = true;
-			}
-			previousEnd = attribute.end;
-			if (!firstAttribute) {
-				firstAttribute = attribute;
-			}
-		}
-		code.remove(attributes.at(-1)?.end || previousEnd, openingEnd);
+		let { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd } =
+			this.renderAttributes(
+				code,
+				options,
+				factoryVariable!.getName(getPropertyAccess, useOriginalName),
+				true
+			);
 		let hasChildren = false;
 		let hasMultipleChildren = false;
 		let childrenStart = 0;
@@ -329,5 +247,63 @@ export default class JSXElement extends JSXElementBase {
 		} else {
 			closingElement!.render(code);
 		}
+	}
+
+	private renderAttributes(
+		code: MagicString,
+		options: RenderOptions,
+		factoryName: string,
+		extractKeyAttribute: boolean
+	) {
+		const {
+			jsxMode: { mode },
+			openingElement
+		} = this;
+		const {
+			attributes,
+			end: openingEnd,
+			start: openingStart,
+			name: { start: nameStart, end: nameEnd }
+		} = openingElement;
+		code.update(openingStart, nameStart, `/*#__PURE__*/${factoryName}(`);
+		openingElement.render(code, options, { jsxMode: mode });
+		let keyAttribute: JSXAttribute | null = null;
+		let hasSpread = false;
+		let inObject = false;
+		let previousEnd = nameEnd;
+		let hasAttributes = false;
+		let firstAttribute: JSXAttribute | JSXSpreadAttribute | null = null;
+		for (const attribute of attributes) {
+			if (attribute instanceof JSXAttribute) {
+				if (extractKeyAttribute && attribute.name.name === 'key') {
+					keyAttribute = attribute;
+					code.remove(previousEnd, attribute.value?.start || attribute.end);
+					continue;
+				}
+				code.appendLeft(previousEnd, ',');
+				if (!inObject) {
+					code.prependRight(attribute.start, '{ ');
+					inObject = true;
+				}
+				hasAttributes = true;
+			} else {
+				if (inObject) {
+					if (hasAttributes) {
+						code.appendLeft(previousEnd, ' ');
+					}
+					code.appendLeft(previousEnd, '},');
+					inObject = false;
+				} else {
+					code.appendLeft(previousEnd, ',');
+				}
+				hasSpread = true;
+			}
+			previousEnd = attribute.end;
+			if (!firstAttribute) {
+				firstAttribute = attribute;
+			}
+		}
+		code.remove(attributes.at(-1)?.end || previousEnd, openingEnd);
+		return { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd };
 	}
 }
