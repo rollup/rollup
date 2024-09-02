@@ -24,12 +24,13 @@ type JsxMode =
 			importSource: string | null;
 	  }
 	| { mode: 'automatic'; factory: string; importSource: string };
+type JsxChild = JSXText | JSXExpressionContainer | JSXElement | JSXFragment | JSXSpreadChild;
 
 export default class JSXElement extends JSXElementBase {
 	type!: NodeType.tJSXElement;
 	openingElement!: JSXOpeningElement;
 	closingElement!: JSXClosingElement | null;
-	children!: (JSXText | JSXExpressionContainer | JSXElement | JSXFragment | JSXSpreadChild)[];
+	children!: JsxChild[];
 
 	private factoryVariable: Variable | null = null;
 	private factory: string | null = null;
@@ -107,50 +108,32 @@ export default class JSXElement extends JSXElementBase {
 			useOriginalName
 		} = options;
 		const {
-			children,
 			closingElement,
 			end,
 			factory,
 			factoryVariable,
-			openingElement: { end: openingEnd, selfClosing }
+			openingElement: { selfClosing }
 		} = this;
 		const [, ...nestedName] = factory!.split('.');
-		let { firstAttribute, hasAttributes, hasSpread, inObject, previousEnd } = this.renderAttributes(
+		const { firstAttribute, hasAttributes, hasSpread, inObject, previousEnd } =
+			this.renderAttributes(
+				code,
+				options,
+				[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.'),
+				false
+			);
+
+		this.wrapAttributes(
 			code,
-			options,
-			[factoryVariable!.getName(getPropertyAccess, useOriginalName), ...nestedName].join('.'),
-			false
+			inObject,
+			hasAttributes,
+			hasSpread,
+			firstAttribute,
+			'null',
+			previousEnd
 		);
 
-		if (inObject) {
-			code.appendLeft(previousEnd, ' }');
-		}
-		if (hasSpread) {
-			if (hasAttributes) {
-				const { start } = firstAttribute!;
-				if (firstAttribute instanceof JSXSpreadAttribute) {
-					code.prependRight(start, '{}, ');
-				}
-				code.prependRight(start, 'Object.assign(');
-				code.appendLeft(previousEnd, ')');
-			}
-		} else if (!hasAttributes) {
-			code.appendLeft(previousEnd, ', null');
-		}
-
-		previousEnd = openingEnd;
-		for (const child of children) {
-			if (
-				child instanceof JSXExpressionContainer &&
-				child.expression instanceof JSXEmptyExpression
-			) {
-				code.remove(previousEnd, child.end);
-			} else {
-				code.appendLeft(previousEnd, ', ');
-				child.render(code, options);
-			}
-			previousEnd = child.end;
-		}
+		this.renderChildren(code, options);
 
 		if (selfClosing) {
 			code.appendLeft(end, ')');
@@ -165,11 +148,10 @@ export default class JSXElement extends JSXElementBase {
 			useOriginalName
 		} = options;
 		const {
-			children,
 			closingElement,
 			end,
 			factoryVariable,
-			openingElement: { end: openingEnd, selfClosing }
+			openingElement: { selfClosing }
 		} = this;
 		let { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd } =
 			this.renderAttributes(
@@ -178,33 +160,13 @@ export default class JSXElement extends JSXElementBase {
 				factoryVariable!.getName(getPropertyAccess, useOriginalName),
 				true
 			);
-		let hasChildren = false;
-		let hasMultipleChildren = false;
-		let childrenStart = 0;
-		previousEnd = openingEnd;
-		for (const child of children) {
-			if (
-				child instanceof JSXExpressionContainer &&
-				child.expression instanceof JSXEmptyExpression
-			) {
-				code.remove(previousEnd, child.end);
-			} else {
-				code.appendLeft(previousEnd, ', ');
-				child.render(code, options);
-				if (hasChildren) {
-					hasMultipleChildren = true;
-				} else {
-					hasChildren = true;
-					childrenStart = child.start;
-				}
-			}
-			previousEnd = child.end;
-		}
-		// Wrap the children now and update previousEnd before continuing
-		if (hasChildren) {
-			code.prependRight(childrenStart, `children: ${hasMultipleChildren ? '[' : ''}`);
+
+		const { firstChild, hasMultipleChildren, childrenEnd } = this.renderChildren(code, options);
+
+		if (firstChild) {
+			code.prependRight(firstChild.start, `children: ${hasMultipleChildren ? '[' : ''}`);
 			if (!inObject) {
-				code.prependRight(childrenStart, '{ ');
+				code.prependRight(firstChild.start, '{ ');
 				inObject = true;
 			}
 			previousEnd = closingElement!.start;
@@ -212,32 +174,25 @@ export default class JSXElement extends JSXElementBase {
 				code.appendLeft(previousEnd, ']');
 			}
 		}
-		// This is the outside wrapping
-		if (inObject) {
-			code.appendLeft(previousEnd, ' }');
-		}
-		if (hasSpread) {
-			// This is the only case where we need Object.assign
-			if (hasAttributes || hasChildren) {
-				const start = firstAttribute?.start || childrenStart;
-				if (firstAttribute instanceof JSXSpreadAttribute) {
-					code.prependRight(start, '{}, ');
-				}
-				code.prependRight(start, 'Object.assign(');
-				code.appendLeft(previousEnd, ')');
-			}
-		} else if (!(hasAttributes || hasChildren)) {
-			code.appendLeft(previousEnd, ', {}');
-		}
+
+		this.wrapAttributes(
+			code,
+			inObject,
+			hasAttributes || !!firstChild,
+			hasSpread,
+			firstAttribute || firstChild,
+			'{}',
+			childrenEnd
+		);
 
 		if (keyAttribute) {
 			const { value } = keyAttribute;
 			// This will appear to the left of the moved code...
-			code.appendLeft(previousEnd, ', ');
+			code.appendLeft(childrenEnd, ', ');
 			if (value) {
-				code.move(value.start, value.end, previousEnd);
+				code.move(value.start, value.end, childrenEnd);
 			} else {
-				code.appendLeft(previousEnd, 'true');
+				code.appendLeft(childrenEnd, 'true');
 			}
 		}
 
@@ -254,7 +209,14 @@ export default class JSXElement extends JSXElementBase {
 		options: RenderOptions,
 		factoryName: string,
 		extractKeyAttribute: boolean
-	) {
+	): {
+		firstAttribute: JSXAttribute | JSXSpreadAttribute | JsxChild | null;
+		hasAttributes: boolean;
+		hasSpread: boolean;
+		inObject: boolean;
+		keyAttribute: JSXAttribute | null;
+		previousEnd: number;
+	} {
 		const {
 			jsxMode: { mode },
 			openingElement
@@ -305,5 +267,59 @@ export default class JSXElement extends JSXElementBase {
 		}
 		code.remove(attributes.at(-1)?.end || previousEnd, openingEnd);
 		return { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd };
+	}
+
+	private renderChildren(code: MagicString, options: RenderOptions) {
+		const {
+			children,
+			openingElement: { end: openingEnd }
+		} = this;
+		let hasMultipleChildren = false;
+		let childrenEnd = openingEnd;
+		let firstChild: JsxChild | null = null;
+		for (const child of children) {
+			if (
+				child instanceof JSXExpressionContainer &&
+				child.expression instanceof JSXEmptyExpression
+			) {
+				code.remove(childrenEnd, child.end);
+			} else {
+				code.appendLeft(childrenEnd, ', ');
+				child.render(code, options);
+				if (firstChild) {
+					hasMultipleChildren = true;
+				} else {
+					firstChild = child;
+				}
+			}
+			childrenEnd = child.end;
+		}
+		return { childrenEnd, firstChild, hasMultipleChildren };
+	}
+
+	private wrapAttributes(
+		code: MagicString,
+		inObject: boolean,
+		hasAttributes: boolean,
+		hasSpread: boolean,
+		firstAttribute: JSXAttribute | JSXSpreadAttribute | JsxChild | null,
+		missingAttributesFallback: string,
+		attributesEnd: number
+	) {
+		if (inObject) {
+			code.appendLeft(attributesEnd, ' }');
+		}
+		if (hasSpread) {
+			if (hasAttributes) {
+				const { start } = firstAttribute!;
+				if (firstAttribute instanceof JSXSpreadAttribute) {
+					code.prependRight(start, '{}, ');
+				}
+				code.prependRight(start, 'Object.assign(');
+				code.appendLeft(attributesEnd, ')');
+			}
+		} else if (!hasAttributes) {
+			code.appendLeft(attributesEnd, `, ${missingAttributesFallback}`);
+		}
 	}
 }
