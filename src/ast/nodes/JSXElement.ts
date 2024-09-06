@@ -2,8 +2,6 @@ import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
 import { getRenderedJsxChildren } from '../../utils/jsx';
 import type { RenderOptions } from '../../utils/renderHelpers';
-import type { InclusionContext } from '../ExecutionContext';
-import type Variable from '../variables/Variable';
 import JSXAttribute from './JSXAttribute';
 import type JSXClosingElement from './JSXClosingElement';
 import JSXEmptyExpression from './JSXEmptyExpression';
@@ -15,7 +13,6 @@ import type JSXSpreadChild from './JSXSpreadChild';
 import type JSXText from './JSXText';
 import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
-import type { IncludeChildren } from './shared/Node';
 
 type JsxMode =
 	| {
@@ -31,36 +28,6 @@ export default class JSXElement extends JSXElementBase {
 	openingElement!: JSXOpeningElement;
 	closingElement!: JSXClosingElement | null;
 	children!: JsxChild[];
-
-	private factoryVariable: Variable | null = null;
-	private factory: string | null = null;
-	private declare jsxMode: JsxMode;
-
-	initialise() {
-		super.initialise();
-		const { importSource } = (this.jsxMode = this.getRenderingMode());
-		if (importSource) {
-			this.scope.context.addImportSource(importSource);
-		}
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.included) {
-			const { factory, importSource, mode } = this.jsxMode;
-			if (importSource) {
-				this.scope.context.addImportSource(importSource);
-			}
-			if (factory) {
-				this.factory = factory;
-				this.factoryVariable = this.getAndIncludeFactoryVariable(
-					factory,
-					mode === 'preserve',
-					importSource
-				);
-			}
-		}
-		super.include(context, includeChildrenRecursively);
-	}
 
 	render(code: MagicString, options: RenderOptions): void {
 		switch (this.jsxMode.mode) {
@@ -78,7 +45,7 @@ export default class JSXElement extends JSXElementBase {
 		}
 	}
 
-	private getRenderingMode(): JsxMode {
+	protected getRenderingMode(): JsxMode {
 		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
 		const { mode, factory, importSource } = jsx;
 		if (mode === 'automatic') {

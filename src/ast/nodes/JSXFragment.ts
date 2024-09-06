@@ -15,36 +15,43 @@ import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
 import { type IncludeChildren } from './shared/Node';
 
+type JsxModeWithFragment =
+	| {
+			mode: 'preserve' | 'classic';
+			factory: string | null;
+			fragment: string | null;
+			importSource: string | null;
+	  }
+	| { mode: 'automatic'; factory: string; fragment: string; importSource: string };
+
 export default class JSXFragment extends JSXElementBase {
 	type!: NodeType.tJSXElement;
 	openingFragment!: JSXOpeningFragment;
 	children!: (JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment)[];
 	closingFragment!: JSXClosingFragment;
 
-	private factory: string | null = null;
 	private fragment: string | null = null;
-	private factoryVariable: Variable | null = null;
 	private fragmentVariable: Variable | null = null;
+	protected declare jsxMode: JsxModeWithFragment;
 
-	// TODO Lukas add import source here
 	initialise() {
 		super.initialise();
+		const { importSource } = (this.jsxMode = this.getRenderingMode());
+		if (importSource) {
+			this.scope.context.addImportSource(importSource);
+		}
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
-			const { factory, fragment, importSource, mode } = this.getRenderingMode();
-			if (importSource) {
-				this.scope.context.addImportSource(importSource);
-			}
-			const preserve = mode === 'preserve';
-			if (factory) {
-				this.factory = factory;
-				this.factoryVariable = this.getAndIncludeFactoryVariable(factory, preserve, importSource);
-			}
+			const { fragment, importSource, mode } = this.jsxMode;
 			if (fragment != null) {
 				this.fragment = fragment;
-				this.fragmentVariable = this.getAndIncludeFactoryVariable(fragment, preserve, importSource);
+				this.fragmentVariable = this.getAndIncludeFactoryVariable(
+					fragment,
+					mode === 'preserve',
+					importSource
+				);
 			}
 		}
 		super.include(context, includeChildrenRecursively);
@@ -111,12 +118,7 @@ export default class JSXFragment extends JSXElementBase {
 		}
 	}
 
-	private getRenderingMode(): {
-		mode: 'preserve' | 'classic' | 'automatic';
-		factory: string | null;
-		fragment: string | null;
-		importSource: string | null;
-	} {
+	protected getRenderingMode(): JsxModeWithFragment {
 		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
 		const { mode, factory, importSource } = jsx;
 		if (mode === 'automatic') {
