@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type JSXAttribute from './JSXAttribute';
 import type JSXIdentifier from './JSXIdentifier';
@@ -17,7 +18,9 @@ export default class JSXOpeningElement extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ jsxMode = 'preserve' }: NodeRenderOptions = {}
+		{
+			jsxMode = (this.scope.context.options.jsx as NormalizedJsxOptions).mode
+		}: NodeRenderOptions = {}
 	): void {
 		this.name.render(code, options);
 		for (const attribute of this.attributes) {

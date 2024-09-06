@@ -1,33 +1,21 @@
 import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../rollup/types';
-import { getRenderedJsxChildren } from '../../utils/jsx';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import JSXAttribute from './JSXAttribute';
 import type JSXClosingElement from './JSXClosingElement';
 import JSXEmptyExpression from './JSXEmptyExpression';
 import JSXExpressionContainer from './JSXExpressionContainer';
-import type JSXFragment from './JSXFragment';
 import type JSXOpeningElement from './JSXOpeningElement';
 import JSXSpreadAttribute from './JSXSpreadAttribute';
-import type JSXSpreadChild from './JSXSpreadChild';
-import type JSXText from './JSXText';
 import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
-
-type JsxMode =
-	| {
-			mode: 'preserve' | 'classic';
-			factory: string | null;
-			importSource: string | null;
-	  }
-	| { mode: 'automatic'; factory: string; importSource: string };
-type JsxChild = JSXText | JSXExpressionContainer | JSXElement | JSXFragment | JSXSpreadChild;
+import type { JSXChild, JsxMode } from './shared/jsxHelpers';
 
 export default class JSXElement extends JSXElementBase {
 	type!: NodeType.tJSXElement;
 	openingElement!: JSXOpeningElement;
 	closingElement!: JSXClosingElement | null;
-	children!: JsxChild[];
+	children!: JSXChild[];
 
 	render(code: MagicString, options: RenderOptions): void {
 		switch (this.jsxMode.mode) {
@@ -60,13 +48,8 @@ export default class JSXElement extends JSXElementBase {
 					return { factory, importSource, mode: 'classic' };
 				}
 			}
-			return {
-				factory: getRenderedJsxChildren(this.children) > 1 ? 'jsxs' : 'jsx',
-				importSource: jsx.jsxImportSource,
-				mode
-			};
 		}
-		return { factory, importSource, mode };
+		return super.getRenderingMode();
 	}
 
 	private renderClassicMode(code: MagicString, options: RenderOptions) {
@@ -177,7 +160,7 @@ export default class JSXElement extends JSXElementBase {
 		factoryName: string,
 		extractKeyAttribute: boolean
 	): {
-		firstAttribute: JSXAttribute | JSXSpreadAttribute | JsxChild | null;
+		firstAttribute: JSXAttribute | JSXSpreadAttribute | JSXChild | null;
 		hasAttributes: boolean;
 		hasSpread: boolean;
 		inObject: boolean;
@@ -243,7 +226,7 @@ export default class JSXElement extends JSXElementBase {
 		} = this;
 		let hasMultipleChildren = false;
 		let childrenEnd = openingEnd;
-		let firstChild: JsxChild | null = null;
+		let firstChild: JSXChild | null = null;
 		for (const child of children) {
 			if (
 				child instanceof JSXExpressionContainer &&
@@ -269,7 +252,7 @@ export default class JSXElement extends JSXElementBase {
 		inObject: boolean,
 		hasAttributes: boolean,
 		hasSpread: boolean,
-		firstAttribute: JSXAttribute | JSXSpreadAttribute | JsxChild | null,
+		firstAttribute: JSXAttribute | JSXSpreadAttribute | JSXChild | null,
 		missingAttributesFallback: string,
 		attributesEnd: number
 	) {

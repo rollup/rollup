@@ -1,18 +1,15 @@
+import type { NormalizedJsxOptions } from '../../../rollup/types';
+import { getRenderedJsxChildren } from '../../../utils/jsx';
 import type { InclusionContext } from '../../ExecutionContext';
-import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
+import type { JSXChild, JsxMode } from './jsxHelpers';
+import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
 import { NodeBase } from './Node';
 
-type JsxMode =
-	| {
-			mode: 'preserve' | 'classic';
-			factory: string | null;
-			importSource: string | null;
-	  }
-	| { mode: 'automatic'; factory: string; importSource: string };
+export default class JSXElementBase extends NodeBase {
+	children!: JSXChild[];
 
-export default abstract class JSXElementBase extends NodeBase {
 	protected factoryVariable: Variable | null = null;
 	protected factory: string | null = null;
 	protected declare jsxMode: JsxMode;
@@ -30,49 +27,29 @@ export default abstract class JSXElementBase extends NodeBase {
 			const { factory, importSource, mode } = this.jsxMode;
 			if (factory) {
 				this.factory = factory;
-				this.factoryVariable = this.getAndIncludeFactoryVariable(
+				this.factoryVariable = getAndIncludeFactoryVariable(
 					factory,
 					mode === 'preserve',
-					importSource
+					importSource,
+					this
 				);
 			}
 		}
 		super.include(context, includeChildrenRecursively);
 	}
 
-	protected getAndIncludeFactoryVariable(
-		factory: string,
-		preserve: boolean,
-		importSource: string | null
-	): Variable {
-		const [baseName, nestedName] = factory.split('.');
-		let factoryVariable: Variable;
-		if (importSource) {
-			factoryVariable = this.scope.context.getImportedJsxFactoryVariable(
-				nestedName ? 'default' : baseName,
-				this.start,
-				importSource
-			);
-			if (preserve) {
-				// This pretends we are accessing an included global variable of the same name
-				const globalVariable = this.scope.findGlobal(baseName);
-				globalVariable.include();
-				// This excludes this variable from renaming
-				factoryVariable.globalName = baseName;
-			}
-		} else {
-			factoryVariable = this.scope.findGlobal(baseName);
-		}
-		this.scope.context.includeVariableInModule(factoryVariable);
-		if (factoryVariable instanceof LocalVariable) {
-			factoryVariable.consolidateInitializers();
-			factoryVariable.addUsedPlace(this);
-			this.scope.context.requestTreeshakingPass();
-		}
-		return factoryVariable;
-	}
-
 	protected applyDeoptimizations() {}
 
-	protected abstract getRenderingMode(): JsxMode;
+	protected getRenderingMode(): JsxMode {
+		const jsx = this.scope.context.options.jsx as NormalizedJsxOptions;
+		const { mode, factory, importSource } = jsx;
+		if (mode === 'automatic') {
+			return {
+				factory: getRenderedJsxChildren(this.children) > 1 ? 'jsxs' : 'jsx',
+				importSource: jsx.jsxImportSource,
+				mode
+			};
+		}
+		return { factory, importSource, mode };
+	}
 }
