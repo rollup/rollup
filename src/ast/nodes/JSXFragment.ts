@@ -47,7 +47,7 @@ export default class JSXFragment extends JSXElementBase {
 
 		this.renderChildren(code, options, openingFragment.end);
 
-		closingFragment.render(code);
+		closingFragment.render(code, options);
 	}
 
 	private renderAutomaticMode(code: MagicString, options: RenderOptions) {
@@ -78,6 +78,6 @@ export default class JSXFragment extends JSXElementBase {
 			code.appendLeft(openingFragment.end, ', {}');
 		}
 
-		closingFragment.render(code);
+		closingFragment.render(code, options);
 	}
 }

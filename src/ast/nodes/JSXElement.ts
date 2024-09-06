@@ -86,7 +86,7 @@ export default class JSXElement extends JSXElementBase {
 		if (selfClosing) {
 			code.appendLeft(end, ')');
 		} else {
-			closingElement!.render(code);
+			closingElement!.render(code, options);
 		}
 	}
 
@@ -152,7 +152,7 @@ export default class JSXElement extends JSXElementBase {
 			// Moving the key attribute will also move the parenthesis to the right position
 			code.appendLeft(keyAttribute?.value?.end || end, ')');
 		} else {
-			closingElement!.render(code);
+			closingElement!.render(code, options);
 		}
 	}
 
