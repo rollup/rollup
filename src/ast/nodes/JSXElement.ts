@@ -3,8 +3,6 @@ import type { NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import JSXAttribute from './JSXAttribute';
 import type JSXClosingElement from './JSXClosingElement';
-import JSXEmptyExpression from './JSXEmptyExpression';
-import JSXExpressionContainer from './JSXExpressionContainer';
 import type JSXOpeningElement from './JSXOpeningElement';
 import JSXSpreadAttribute from './JSXSpreadAttribute';
 import type * as NodeType from './NodeType';
@@ -62,7 +60,7 @@ export default class JSXElement extends JSXElementBase {
 			end,
 			factory,
 			factoryVariable,
-			openingElement: { selfClosing }
+			openingElement: { end: openingEnd, selfClosing }
 		} = this;
 		const [, ...nestedName] = factory!.split('.');
 		const { firstAttribute, hasAttributes, hasSpread, inObject, previousEnd } =
@@ -83,7 +81,7 @@ export default class JSXElement extends JSXElementBase {
 			previousEnd
 		);
 
-		this.renderChildren(code, options);
+		this.renderChildren(code, options, openingEnd);
 
 		if (selfClosing) {
 			code.appendLeft(end, ')');
@@ -101,7 +99,7 @@ export default class JSXElement extends JSXElementBase {
 			closingElement,
 			end,
 			factoryVariable,
-			openingElement: { selfClosing }
+			openingElement: { end: openindEnd, selfClosing }
 		} = this;
 		let { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd } =
 			this.renderAttributes(
@@ -111,7 +109,11 @@ export default class JSXElement extends JSXElementBase {
 				true
 			);
 
-		const { firstChild, hasMultipleChildren, childrenEnd } = this.renderChildren(code, options);
+		const { firstChild, hasMultipleChildren, childrenEnd } = this.renderChildren(
+			code,
+			options,
+			openindEnd
+		);
 
 		if (firstChild) {
 			code.prependRight(firstChild.start, `children: ${hasMultipleChildren ? '[' : ''}`);
@@ -147,7 +149,7 @@ export default class JSXElement extends JSXElementBase {
 		}
 
 		if (selfClosing) {
-			// Moving the key attribute will
+			// Moving the key attribute will also move the parenthesis to the right position
 			code.appendLeft(keyAttribute?.value?.end || end, ')');
 		} else {
 			closingElement!.render(code);
@@ -217,34 +219,6 @@ export default class JSXElement extends JSXElementBase {
 		}
 		code.remove(attributes.at(-1)?.end || previousEnd, openingEnd);
 		return { firstAttribute, hasAttributes, hasSpread, inObject, keyAttribute, previousEnd };
-	}
-
-	private renderChildren(code: MagicString, options: RenderOptions) {
-		const {
-			children,
-			openingElement: { end: openingEnd }
-		} = this;
-		let hasMultipleChildren = false;
-		let childrenEnd = openingEnd;
-		let firstChild: JSXChild | null = null;
-		for (const child of children) {
-			if (
-				child instanceof JSXExpressionContainer &&
-				child.expression instanceof JSXEmptyExpression
-			) {
-				code.remove(childrenEnd, child.end);
-			} else {
-				code.appendLeft(childrenEnd, ', ');
-				child.render(code, options);
-				if (firstChild) {
-					hasMultipleChildren = true;
-				} else {
-					firstChild = child;
-				}
-			}
-			childrenEnd = child.end;
-		}
-		return { childrenEnd, firstChild, hasMultipleChildren };
 	}
 
 	private wrapAttributes(

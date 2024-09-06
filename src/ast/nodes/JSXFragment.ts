@@ -1,9 +1,6 @@
 import type MagicString from 'magic-string';
-import { getRenderedJsxChildren } from '../../utils/jsx';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type JSXClosingFragment from './JSXClosingFragment';
-import JSXEmptyExpression from './JSXEmptyExpression';
-import JSXExpressionContainer from './JSXExpressionContainer';
 import type JSXOpeningFragment from './JSXOpeningFragment';
 import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
@@ -16,55 +13,71 @@ export default class JSXFragment extends JSXElementBase {
 	closingFragment!: JSXClosingFragment;
 
 	render(code: MagicString, options: RenderOptions): void {
-		const { mode } = this.jsxMode;
-		if (mode === 'preserve') {
-			super.render(code, options);
-		} else {
-			const {
-				snippets: { getPropertyAccess },
-				useOriginalName
-			} = options;
-			const [, ...nestedFactory] = this.factory!.split('.');
-			const factory = [
-				this.factoryVariable!.getName(getPropertyAccess, useOriginalName),
-				...nestedFactory
-			].join('.');
-			this.openingFragment.render(code, options);
-			code.prependRight(this.start, `/*#__PURE__*/${factory}(`);
-			code.appendLeft(this.openingFragment.end, ', ');
-			if (mode === 'classic') {
-				code.appendLeft(this.openingFragment.end, 'null');
-			} else {
-				code.appendLeft(this.openingFragment.end, '{');
-				const renderedChildren = getRenderedJsxChildren(this.children);
-				if (renderedChildren > 0) {
-					code.appendLeft(
-						this.openingFragment.end,
-						` children: ${renderedChildren > 1 ? '[' : ''}`
-					);
-				}
-				code.prependRight(
-					this.closingFragment.start,
-					`${renderedChildren > 1 ? '] ' : renderedChildren > 0 ? ' ' : ''}}`
-				);
+		switch (this.jsxMode.mode) {
+			case 'classic': {
+				this.renderClassicMode(code, options);
+				break;
 			}
-			let prependComma = mode === 'classic';
-			for (const child of this.children) {
-				if (
-					child instanceof JSXExpressionContainer &&
-					child.expression instanceof JSXEmptyExpression
-				) {
-					code.remove(child.start, child.end);
-				} else {
-					child.render(code, options);
-					if (prependComma) {
-						code.appendLeft(child.start, `, `);
-					} else {
-						prependComma = true;
-					}
-				}
+			case 'automatic': {
+				this.renderAutomaticMode(code, options);
+				break;
 			}
-			this.closingFragment?.render(code);
+			default: {
+				super.render(code, options);
+			}
 		}
+	}
+
+	private renderClassicMode(code: MagicString, options: RenderOptions) {
+		const {
+			snippets: { getPropertyAccess },
+			useOriginalName
+		} = options;
+		const { closingFragment, factory, factoryVariable, openingFragment, start } = this;
+		const [, ...nestedName] = factory!.split('.');
+		openingFragment.render(code, options);
+		code.prependRight(
+			start,
+			`/*#__PURE__*/${[
+				factoryVariable!.getName(getPropertyAccess, useOriginalName),
+				...nestedName
+			].join('.')}(`
+		);
+		code.appendLeft(openingFragment.end, ', null');
+
+		this.renderChildren(code, options, openingFragment.end);
+
+		closingFragment.render(code);
+	}
+
+	private renderAutomaticMode(code: MagicString, options: RenderOptions) {
+		const {
+			snippets: { getPropertyAccess },
+			useOriginalName
+		} = options;
+		const { closingFragment, factoryVariable, openingFragment, start } = this;
+		openingFragment.render(code, options);
+		code.prependRight(
+			start,
+			`/*#__PURE__*/${factoryVariable!.getName(getPropertyAccess, useOriginalName)}(`
+		);
+
+		const { firstChild, hasMultipleChildren, childrenEnd } = this.renderChildren(
+			code,
+			options,
+			openingFragment.end
+		);
+
+		if (firstChild) {
+			code.prependRight(firstChild.start, `{ children: ${hasMultipleChildren ? '[' : ''}`);
+			if (hasMultipleChildren) {
+				code.appendLeft(closingFragment.start, ']');
+			}
+			code.appendLeft(childrenEnd, ' }');
+		} else {
+			code.appendLeft(openingFragment.end, ', {}');
+		}
+
+		closingFragment.render(code);
 	}
 }

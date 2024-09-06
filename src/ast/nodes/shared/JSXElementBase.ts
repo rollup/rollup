@@ -1,7 +1,11 @@
+import type MagicString from 'magic-string';
 import type { NormalizedJsxOptions } from '../../../rollup/types';
 import { getRenderedJsxChildren } from '../../../utils/jsx';
+import type { RenderOptions } from '../../../utils/renderHelpers';
 import type { InclusionContext } from '../../ExecutionContext';
 import type Variable from '../../variables/Variable';
+import JSXEmptyExpression from '../JSXEmptyExpression';
+import JSXExpressionContainer from '../JSXExpressionContainer';
 import type { JSXChild, JsxMode } from './jsxHelpers';
 import { getAndIncludeFactoryVariable } from './jsxHelpers';
 import type { IncludeChildren } from './Node';
@@ -51,5 +55,30 @@ export default class JSXElementBase extends NodeBase {
 			};
 		}
 		return { factory, importSource, mode };
+	}
+
+	protected renderChildren(code: MagicString, options: RenderOptions, openingEnd: number) {
+		const { children } = this;
+		let hasMultipleChildren = false;
+		let childrenEnd = openingEnd;
+		let firstChild: JSXChild | null = null;
+		for (const child of children) {
+			if (
+				child instanceof JSXExpressionContainer &&
+				child.expression instanceof JSXEmptyExpression
+			) {
+				code.remove(childrenEnd, child.end);
+			} else {
+				code.appendLeft(childrenEnd, ', ');
+				child.render(code, options);
+				if (firstChild) {
+					hasMultipleChildren = true;
+				} else {
+					firstChild = child;
+				}
+			}
+			childrenEnd = child.end;
+		}
+		return { childrenEnd, firstChild, hasMultipleChildren };
 	}
 }
