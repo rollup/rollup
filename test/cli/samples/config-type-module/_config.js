@@ -8,7 +8,7 @@ module.exports = defineTest({
 	stderr: stderr => {
 		assertIncludes(
 			stderr,
-			'ReferenceError: module is not defined in ES module scope\n' +
+			'Original error: module is not defined in ES module scope\n' +
 				"This file is being treated as an ES module because it has a '.js' file extension and"
 		);
 		assertIncludes(
