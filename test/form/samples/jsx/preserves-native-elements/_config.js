@@ -1,7 +1,6 @@
 module.exports = defineTest({
-	description: 'preserves JSX children',
+	description: 'preserves native JSX elements',
 	options: {
-		external: ['react'],
 		jsx: 'preserve'
 	}
 });
