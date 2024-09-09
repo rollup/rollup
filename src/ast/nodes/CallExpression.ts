@@ -106,7 +106,8 @@ export default class CallExpression
 		}
 		return (
 			!this.annotationPure &&
-			this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
+			(calleeHasEffects ||
+				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context))
 		);
 	}
 
