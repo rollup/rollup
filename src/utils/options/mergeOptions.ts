@@ -18,6 +18,7 @@ import {
 	generatedCodePresets,
 	type GenericConfigObject,
 	getOnLog,
+	jsxPresets,
 	normalizePluginOption,
 	objectifyOption,
 	objectifyOptionWithPresets,
@@ -140,7 +141,7 @@ function mergeInputOptions(
 			overrides,
 			'jsx',
 			['preserve'],
-			objectifyOptionWithPresets(treeshakePresets, 'jsx', URL_JSX, 'false, ')
+			objectifyOptionWithPresets(jsxPresets, 'jsx', URL_JSX, 'false, ')
 		),
 		logLevel: getOption('logLevel'),
 		makeAbsoluteExternalsRelative: getOption('makeAbsoluteExternalsRelative'),
