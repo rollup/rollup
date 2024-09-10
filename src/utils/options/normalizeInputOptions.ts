@@ -120,33 +120,49 @@ const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
 	const configJsx = config.jsx;
 	if (!configJsx) return false;
 	const configWithPreset = getOptionWithPreset(configJsx, jsxPresets, 'jsx', URL_JSX, 'false, ');
-	switch (configWithPreset.mode) {
+	const { factory, importSource, mode } = configWithPreset;
+	switch (mode) {
 		case 'automatic': {
 			return {
-				factory: configWithPreset.factory || 'React.createElement',
-				importSource: configWithPreset.importSource || null,
+				factory: factory || 'React.createElement',
+				importSource: importSource || null,
 				jsxImportSource: configWithPreset.jsxImportSource || 'react/jsx-runtime',
 				mode: 'automatic'
 			};
 		}
 		case 'preserve': {
-			// TODO Lukas throw if there is an importSource but neither factory nor fragment
-			// TODO Lukas throw if there is no importSource but a fragment or factory that is not a valid identifier (with optional ".")
+			if (importSource && !(factory || configWithPreset.fragment)) {
+				error(
+					logInvalidOption(
+						'jsx',
+						URL_JSX,
+						'when preserving JSX and specifying an importSource, you also need to specify a factory or fragment'
+					)
+				);
+			}
 			return {
-				factory: configWithPreset.factory || null,
+				factory: factory || null,
 				fragment: configWithPreset.fragment || null,
-				importSource: configWithPreset.importSource || null,
+				importSource: importSource || null,
 				mode: 'preserve'
 			};
 		}
 		// case 'classic':
 		default: {
-			// TODO Lukas throw if there is no importSource but a fragment or factory that is not a valid identifier
-			// TODO Lukas throw for unexpected mode
+			if (mode && mode !== 'classic') {
+				error(
+					logInvalidOption(
+						'jsx.mode',
+						URL_JSX,
+						'mode must be "automatic", "classic" or "preserve"',
+						mode
+					)
+				);
+			}
 			return {
-				factory: configWithPreset.factory || 'React.createElement',
+				factory: factory || 'React.createElement',
 				fragment: configWithPreset.fragment || 'React.Fragment',
-				importSource: configWithPreset.importSource || null,
+				importSource: importSource || null,
 				mode: 'classic'
 			};
 		}
