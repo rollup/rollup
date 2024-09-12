@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 4.21.3
+
+_2024-09-12_
+
+### Bug Fixes
+
+- Always respect side effects in left-hand side of optional chain (#5642)
+- Update stack trace for augmented errors to not hide relevant information (#5640)
+
+### Pull Requests
+
+- [#5636](https://github.com/rollup/rollup/pull/5636): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5637](https://github.com/rollup/rollup/pull/5637): chore(deps): lock file maintenance (@renovate[bot])
+- [#5640](https://github.com/rollup/rollup/pull/5640): fix: keep the message of stack up-to-date (@TrickyPi)
+- [#5642](https://github.com/rollup/rollup/pull/5642): fix: include left-side effect of optional chaining in the end of hasEffectsAsChainElement (@TrickyPi)
+
 ## 4.21.2
 
 _2024-08-30_
