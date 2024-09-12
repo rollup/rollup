@@ -93,8 +93,9 @@ export function augmentLogMessage(log: AugmentedRollupLog): void {
 		const position = log.loc ? ` (${log.loc.line}:${log.loc.column})` : '';
 		prefix += `${relativeId(id)}${position}: `;
 	}
-
+	const oldMessage = log.message;
 	log.message = prefix + log.message;
+	tweakStackMessage(log, oldMessage);
 }
 
 // Error codes should be sorted alphabetically while errors should be sorted by
@@ -513,34 +514,51 @@ export function logCannotAssignModuleToChunk(
 	};
 }
 
+function tweakStackMessage(error: RollupLog, oldMessage: string): RollupLog {
+	if (!error.stack) {
+		return error;
+	}
+	error.stack = error.stack.replace(oldMessage, error.message);
+	return error;
+}
+
 export function logCannotBundleConfigAsEsm(originalError: Error): RollupLog {
-	return {
-		cause: originalError,
-		code: INVALID_CONFIG_MODULE_FORMAT,
-		message: `Rollup transpiled your configuration to an  ES module even though it appears to contain CommonJS elements. To resolve this, you can pass the "--bundleConfigAsCjs" flag to Rollup or change your configuration to only contain valid ESM code.\n\nOriginal error: ${originalError.message}`,
-		stack: originalError.stack,
-		url: getRollupUrl(URL_BUNDLE_CONFIG_AS_CJS)
-	};
+	return tweakStackMessage(
+		{
+			cause: originalError,
+			code: INVALID_CONFIG_MODULE_FORMAT,
+			message: `Rollup transpiled your configuration to an  ES module even though it appears to contain CommonJS elements. To resolve this, you can pass the "--bundleConfigAsCjs" flag to Rollup or change your configuration to only contain valid ESM code.\n\nOriginal error: ${originalError.message}`,
+			stack: originalError.stack,
+			url: getRollupUrl(URL_BUNDLE_CONFIG_AS_CJS)
+		},
+		originalError.message
+	);
 }
 
 export function logCannotLoadConfigAsCjs(originalError: Error): RollupLog {
-	return {
-		cause: originalError,
-		code: INVALID_CONFIG_MODULE_FORMAT,
-		message: `Node tried to load your configuration file as CommonJS even though it is likely an ES module. To resolve this, change the extension of your configuration to ".mjs", set "type": "module" in your package.json file or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
-		stack: originalError.stack,
-		url: getRollupUrl(URL_BUNDLE_CONFIG_AS_CJS)
-	};
+	return tweakStackMessage(
+		{
+			cause: originalError,
+			code: INVALID_CONFIG_MODULE_FORMAT,
+			message: `Node tried to load your configuration file as CommonJS even though it is likely an ES module. To resolve this, change the extension of your configuration to ".mjs", set "type": "module" in your package.json file or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
+			stack: originalError.stack,
+			url: getRollupUrl(URL_BUNDLE_CONFIG_AS_CJS)
+		},
+		originalError.message
+	);
 }
 
 export function logCannotLoadConfigAsEsm(originalError: Error): RollupLog {
-	return {
-		cause: originalError,
-		code: INVALID_CONFIG_MODULE_FORMAT,
-		message: `Node tried to load your configuration as an ES module even though it is likely CommonJS. To resolve this, change the extension of your configuration to ".cjs" or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
-		stack: originalError.stack,
-		url: getRollupUrl(URL_BUNDLE_CONFIG_AS_CJS)
-	};
+	return tweakStackMessage(
+		{
+			cause: originalError,
+			code: INVALID_CONFIG_MODULE_FORMAT,
+			message: `Node tried to load your configuration as an ES module even though it is likely CommonJS. To resolve this, change the extension of your configuration to ".cjs" or pass the "--bundleConfigAsCjs" flag.\n\nOriginal error: ${originalError.message}`,
+			stack: originalError.stack,
+			url: getRollupUrl(URL_BUNDLE_CONFIG_AS_CJS)
+		},
+		originalError.message
+	);
 }
 
 export function logInvalidExportOptionValue(optionValue: string): RollupLog {
@@ -891,13 +909,16 @@ export function logModuleParseError(error: Error, moduleId: string): RollupLog {
 	} else if (!moduleId.endsWith('.js')) {
 		message += ' (Note that you need plugins to import files that are not JavaScript)';
 	}
-	return {
-		cause: error,
-		code: PARSE_ERROR,
-		id: moduleId,
-		message,
-		stack: error.stack
-	};
+	return tweakStackMessage(
+		{
+			cause: error,
+			code: PARSE_ERROR,
+			id: moduleId,
+			message,
+			stack: error.stack
+		},
+		error.message
+	);
 }
 
 export function logPluginError(
