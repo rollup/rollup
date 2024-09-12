@@ -296,7 +296,7 @@ export default class MemberExpression
 		}
 		// We only apply deoptimizations lazily once we know we are not skipping
 		if (!this.deoptimized) this.applyDeoptimizations();
-		return this.property.hasEffects(context) || this.hasAccessEffect(context);
+		return objectHasEffects || this.property.hasEffects(context) || this.hasAccessEffect(context);
 	}
 
 	hasEffectsAsAssignmentTarget(context: HasEffectsContext, checkAccess: boolean): boolean {
