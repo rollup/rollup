@@ -169,6 +169,7 @@ const knownGlobals: GlobalDescription = {
 		isView: PF,
 		prototype: O
 	},
+	AggregateError: PC_WITH_ARRAY,
 	Atomics: O,
 	BigInt: C,
 	BigInt64Array: C,
@@ -192,6 +193,7 @@ const knownGlobals: GlobalDescription = {
 	escape: PF,
 	eval: O,
 	EvalError: PC,
+	FinalizationRegistry: C,
 	Float32Array: ARRAY_TYPE,
 	Float64Array: ARRAY_TYPE,
 	Function: C,
@@ -342,6 +344,7 @@ const knownGlobals: GlobalDescription = {
 	URIError: PC,
 	valueOf: O,
 	WeakMap: PC_WITH_ARRAY,
+	WeakRef: C,
 	WeakSet: PC_WITH_ARRAY,
 
 	// Additional globals shared by Node and Browser that are not strictly part of the language
