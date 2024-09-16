@@ -195,6 +195,7 @@
     "vite": "^5.4.3",
     "vitepress": "^1.3.4",
     "vue": "^3.5.3",
+    "vue-tsc": "^2.1.6",
     "wasm-pack": "^0.13.0",
     "yargs-parser": "^21.1.1"
   },
@@ -203,7 +204,8 @@
     "semver": "^7.6.3",
     "ws": "^8.18.0"
   },
-  "overrides_comments": {
+  "comments": {
+    "vue-tsc": "This is necessary so that prettier-plugin-organize-imports works correctly in Vue templatges",
     "ws": "mermaid requires an older 8.13.0 version via puppeteer with vulnerabilities"
   },
   "files": [
