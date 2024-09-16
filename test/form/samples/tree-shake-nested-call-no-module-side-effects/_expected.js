@@ -1,4 +1,0 @@
-const main = () => {
-};
-
-export { main };
