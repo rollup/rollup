@@ -19,6 +19,7 @@ export default class Variable extends ExpressionEntity {
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
 	declare isNamespace?: boolean;
+	declare isReassignedInInitialization?: boolean;
 	kind: VariableKind | null = null;
 	declare module?: Module | ExternalModule;
 	renderBaseName: string | null = null;
@@ -29,6 +30,9 @@ export default class Variable extends ExpressionEntity {
 	readonly isReassigned = false;
 	markReassigned() {
 		(this as { isReassigned: boolean }).isReassigned = true;
+	}
+	markReassignedInInitialization() {
+		this.isReassignedInInitialization = true;
 	}
 
 	constructor(public name: string) {

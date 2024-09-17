@@ -89,6 +89,7 @@ export default class AssignmentExpression extends NodeBase {
 			if (variable?.kind === 'const') {
 				this.scope.context.error(logConstVariableReassignError(), this.left.start);
 			}
+			this.scope.findVariable(this.left.name)?.markReassignedInInitialization();
 		}
 		this.left.setAssignedValue(this.right);
 	}

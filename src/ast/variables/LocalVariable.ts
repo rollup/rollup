@@ -108,7 +108,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.isReassigned) {
+		if (this.isReassigned || this.isReassignedInInitialization) {
 			return UnknownValue;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
