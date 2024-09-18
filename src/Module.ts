@@ -2,10 +2,8 @@ import { extractAssignedNames } from '@rollup/pluginutils';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import { parseAsync } from '../native';
-import ExternalModule from './ExternalModule';
-import type Graph from './Graph';
-import { createInclusionContext } from './ast/ExecutionContext';
 import { convertProgram } from './ast/bufferParsers';
+import { createInclusionContext } from './ast/ExecutionContext';
 import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -19,8 +17,8 @@ import Literal from './ast/nodes/Literal';
 import type MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import type Program from './ast/nodes/Program';
-import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import type { NodeBase } from './ast/nodes/shared/Node';
+import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
@@ -29,6 +27,8 @@ import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
+import ExternalModule from './ExternalModule';
+import type Graph from './Graph';
 import type {
 	AstNode,
 	CustomPluginOptions,
@@ -220,6 +220,7 @@ export default class Module {
 	readonly dynamicImports: DynamicImport[] = [];
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
+	hasTreeShakingPassStarted = false;
 	readonly implicitlyLoadedAfter = new Set<Module>();
 	readonly implicitlyLoadedBefore = new Set<Module>();
 	readonly importDescriptions = new Map<string, ImportDescription>();
