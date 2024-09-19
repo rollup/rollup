@@ -20,7 +20,6 @@ import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import type SpreadElement from './SpreadElement';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
 	type ExpressionEntity,
@@ -30,6 +29,7 @@ import {
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
+import type SpreadElement from './SpreadElement';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
@@ -220,9 +220,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 				this.variable instanceof LocalVariable &&
 				this.variable.kind &&
 				tdzVariableKinds.has(this.variable.kind) &&
-				// we ignore possible TDZs due to circular module dependencies as
-				// otherwise we get many false positives
-				this.variable.module === this.scope.context.module
+				// We ignore modules that did not receive a treeshaking pass yet as that
+				// causes many false positives due to circular dependencies or disabled
+				// moduleSideEffects.
+				this.variable.module.hasTreeShakingPassStarted
 			)
 		) {
 			return (this.isTDZAccess = false);
@@ -241,9 +242,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return (this.isTDZAccess = true);
 		}
 
-		// We ignore the case where the module is not yet executed because
-		// moduleSideEffects are false.
-		if (!this.variable.initReached && this.scope.context.module.isExecuted) {
+		if (!this.variable.initReached) {
 			// Either a const/let TDZ violation or
 			// var use before declaration was encountered.
 			return (this.isTDZAccess = true);
@@ -294,6 +293,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.variable instanceof LocalVariable) {
+			// When accessing a variable from a module without side effects, this
+			// means we use an export of that module and therefore need to potentially
+			// include it in the bundle.
+			this.variable.module.isExecuted = true;
 			this.variable.consolidateInitializers();
 			this.scope.context.requestTreeshakingPass();
 		}
