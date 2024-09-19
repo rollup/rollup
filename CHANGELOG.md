@@ -1,5 +1,29 @@
 # rollup changelog
 
+## 4.22.0
+
+_2024-09-19_
+
+### Features
+
+- Add additional known global values to avoid access side effects (#5651)
+
+### Bug Fixes
+
+- Ensure deterministic chunk hash generation despite async renderChunk hook (#5644)
+- Improve side effect detection when using "smallest" treeshaking preset when imports are optimized away (#5658)
+
+### Pull Requests
+
+- [#5644](https://github.com/rollup/rollup/pull/5644): fix: apply final hashes deterministically with stable placeholders set (@mattkubej, @lukastaegert)
+- [#5646](https://github.com/rollup/rollup/pull/5646): chore(deps): update dependency @mermaid-js/mermaid-cli to v11 (@renovate[bot])
+- [#5647](https://github.com/rollup/rollup/pull/5647): chore(deps): update dependency concurrently to v9 (@renovate[bot])
+- [#5648](https://github.com/rollup/rollup/pull/5648): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5651](https://github.com/rollup/rollup/pull/5651): feat: add `AggregateError`, `FinalizationRegistry`, `WeakRef` to knownGlobals (@re-taro)
+- [#5653](https://github.com/rollup/rollup/pull/5653): Fix example selection in REPL (@lukastaegert)
+- [#5657](https://github.com/rollup/rollup/pull/5657): chore(deps): update dependency vite to v5.4.6 [security] (@renovate[bot])
+- [#5658](https://github.com/rollup/rollup/pull/5658): Detect variable reassignments in modules without side effects (@lukastaegert)
+
 ## 4.21.3
 
 _2024-09-12_
