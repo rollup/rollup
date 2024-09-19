@@ -55,10 +55,11 @@ export async function renderChunks(
 	const getHash = hasherByType[outputOptions.hashCharacters];
 	const chunkGraph = getChunkGraph(chunks);
 	const {
+		hashDependenciesByPlaceholder,
 		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
-		renderedChunksByPlaceholder,
-		hashDependenciesByPlaceholder
+		placeholders,
+		renderedChunksByPlaceholder
 	} = await transformChunksAndGenerateContentHashes(
 		renderedChunks,
 		chunkGraph,
@@ -71,6 +72,7 @@ export async function renderChunks(
 		renderedChunksByPlaceholder,
 		hashDependenciesByPlaceholder,
 		initialHashesByPlaceholder,
+		placeholders,
 		bundle,
 		getHash
 	);
@@ -283,6 +285,7 @@ async function transformChunksAndGenerateContentHashes(
 		hashDependenciesByPlaceholder,
 		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
+		placeholders,
 		renderedChunksByPlaceholder
 	};
 }
@@ -291,11 +294,13 @@ function generateFinalHashes(
 	renderedChunksByPlaceholder: Map<string, RenderedChunkWithPlaceholders>,
 	hashDependenciesByPlaceholder: Map<string, HashResult>,
 	initialHashesByPlaceholder: Map<string, string>,
+	placeholders: Set<string>,
 	bundle: OutputBundleWithPlaceholders,
 	getHash: GetHash
 ) {
 	const hashesByPlaceholder = new Map<string, string>(initialHashesByPlaceholder);
-	for (const [placeholder, { fileName }] of renderedChunksByPlaceholder) {
+	for (const placeholder of placeholders) {
+		const { fileName } = renderedChunksByPlaceholder.get(placeholder)!;
 		let contentToHash = '';
 		const hashDependencyPlaceholders = new Set<string>([placeholder]);
 		for (const dependencyPlaceholder of hashDependencyPlaceholders) {

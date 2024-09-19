@@ -114,6 +114,64 @@ describe('misc', () => {
 			});
 	});
 
+	it('applies consistent hashes regardless of chunk transform order', async () => {
+		const FILES = {
+			main: `
+            import('folder1/dupe').then(({dupe}) => console.log(dupe));
+            import('folder2/dupe').then(({dupe}) => console.log(dupe));
+        `,
+			'folder1/dupe': `export const dupe = 'dupe content';`,
+			'folder2/dupe': `export const dupe = 'dupe content';`
+		};
+
+		async function buildBundle(delayedChunk) {
+			const bundle = await rollup.rollup({
+				input: 'main',
+				plugins: [
+					loader(FILES),
+					{
+						name: 'delay-chunk',
+						async renderChunk(_, chunk) {
+							if (chunk.facadeModuleId === delayedChunk) {
+								await new Promise(resolve => setTimeout(resolve, 100));
+							}
+							return null;
+						}
+					}
+				]
+			});
+			return bundle.generate({
+				format: 'es',
+				chunkFileNames: '[name]-[hash].js'
+			});
+		}
+
+		const { output: output1 } = await buildBundle('folder1/dupe');
+		const { output: output2 } = await buildBundle('folder2/dupe');
+
+		assert.strictEqual(
+			output1.length,
+			output2.length,
+			'Both outputs should have the same number of chunks'
+		);
+
+		const sortedOutput1 = output1.sort((a, b) => a.fileName.localeCompare(b.fileName));
+		const sortedOutput2 = output2.sort((a, b) => a.fileName.localeCompare(b.fileName));
+
+		for (let index = 0; index < sortedOutput1.length; index++) {
+			assert.strictEqual(
+				sortedOutput1[index].fileName,
+				sortedOutput2[index].fileName,
+				`Chunk ${index} should have the same filename in both outputs`
+			);
+			assert.strictEqual(
+				sortedOutput1[index].code,
+				sortedOutput2[index].code,
+				`Chunk ${index} should have the same code in both outputs`
+			);
+		}
+	});
+
 	it('ignores falsy plugins', () =>
 		rollup.rollup({
 			input: 'x',
