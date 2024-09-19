@@ -34,9 +34,7 @@
         "@types/node"
       ],
       "matchUpdateTypes": [
-        "major",
-        "minor",
-        "lockFileMaintenance"
+        "major"
       ],
       "enabled": false
     }
