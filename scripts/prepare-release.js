@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import inquirer from 'inquirer';
+import { select } from '@inquirer/prompts';
 import { readFile, writeFile } from 'node:fs/promises';
 import { chdir, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -95,24 +95,17 @@ async function getNewVersion(mainPackage, isMainBranch) {
 			? ['prerelease']
 			: ['premajor', 'preminor', 'prepatch'];
 
-	/** @type {any} The inquirer types appear to be seriously broken */
-	const questions = [
-		{
-			choices: availableIncrements.map(increment => {
-				const value = semverInc(version, increment);
-				return {
-					name: `${increment} (${value})`,
-					short: increment,
-					value
-				};
-			}),
-			message: `Select type of release (currently "${version}" on branch "${currentBranch}"):`,
-			name: 'newVersion',
-			type: 'list'
-		}
-	];
-	const { newVersion } = await inquirer.prompt(questions);
-	return newVersion;
+	return await select({
+		choices: availableIncrements.map(increment => {
+			const value = /** @type {string} */ (semverInc(version, increment));
+			return {
+				name: `${increment} (${value})`,
+				short: increment,
+				value
+			};
+		}),
+		message: `Select type of release (currently "${version}" on branch "${currentBranch}"):`
+	});
 }
 
 /**
@@ -222,17 +215,10 @@ async function waitForChangelogUpdate(version) {
 		}
 		changelogEntry = newEntry;
 		console.log(cyan('You generated the following changelog entry:\n') + changelogEntry);
-		/** @type {any} The inquirer types appear to be seriously broken */
-		const questions = [
-			{
-				/** @type {any[]} */
-				choices: ['ok'],
-				message: `Please edit the changelog or confirm the changelog is acceptable to continue to release "${version}".`,
-				name: 'ok',
-				type: 'list'
-			}
-		];
-		await inquirer.prompt(questions);
+		await select({
+			choices: ['ok'],
+			message: `Please edit the changelog or confirm the changelog is acceptable to continue to release "${version}".`
+		});
 	}
 }
 
