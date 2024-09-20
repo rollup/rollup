@@ -127,7 +127,7 @@ jobs:
           hyperfine --warmup 1 --export-markdown _benchmark/rough-report.md --show-output --runs 3 \
             'node _benchmark/previous/bin/rollup -i ./perf/entry.js -o _benchmark/result/previous.js' \
             'node _benchmark/current/bin/rollup -i ./perf/entry.js -o _benchmark/result/current.js'
-      - name: Combine bechmark reports
+      - name: Combine benchmark reports
         run: |
           echo "# Performance report!" > _benchmark/result.md
           echo "## Rough benchmark" >> _benchmark/result.md
