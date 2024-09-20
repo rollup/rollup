@@ -164,7 +164,7 @@
     "github-api": "^3.4.0",
     "globals": "^15.9.0",
     "husky": "^9.1.6",
-    "inquirer": "^10.2.2",
+    "inquirer": "^11.0.1",
     "is-reference": "^3.0.2",
     "lint-staged": "^15.2.10",
     "locate-character": "^3.0.0",
