@@ -114,8 +114,7 @@ describe('misc', () => {
 			});
 	});
 
-	// Skipped until potential issues are fixed, see #5659
-	it.skip('applies consistent hashes regardless of chunk transform order', async () => {
+	it('applies consistent hashes regardless of chunk transform order', async () => {
 		const FILES = {
 			main: `
             import('folder1/dupe').then(({dupe}) => console.log(dupe));
