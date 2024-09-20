@@ -7,7 +7,6 @@ import type {
 	NormalizedOutputOptions,
 	RenderedChunk
 } from '../rollup/types';
-import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemaps } from './collapseSourcemaps';
 import type { GetHash } from './crypto';
 import { hasherByType } from './crypto';
@@ -21,6 +20,7 @@ import { error, logFailedValidation } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { basename, normalize, resolve } from './path';
+import type { PluginDriver } from './PluginDriver';
 import { SOURCEMAPPING_URL } from './sourceMappingURL';
 import { timeEnd, timeStart } from './timers';
 
@@ -55,11 +55,10 @@ export async function renderChunks(
 	const getHash = hasherByType[outputOptions.hashCharacters];
 	const chunkGraph = getChunkGraph(chunks);
 	const {
-		hashDependenciesByPlaceholder,
 		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
-		placeholders,
-		renderedChunksByPlaceholder
+		renderedChunksByPlaceholder,
+		hashDependenciesByPlaceholder
 	} = await transformChunksAndGenerateContentHashes(
 		renderedChunks,
 		chunkGraph,
@@ -72,7 +71,6 @@ export async function renderChunks(
 		renderedChunksByPlaceholder,
 		hashDependenciesByPlaceholder,
 		initialHashesByPlaceholder,
-		placeholders,
 		bundle,
 		getHash
 	);
@@ -285,7 +283,6 @@ async function transformChunksAndGenerateContentHashes(
 		hashDependenciesByPlaceholder,
 		initialHashesByPlaceholder,
 		nonHashedChunksWithPlaceholders,
-		placeholders,
 		renderedChunksByPlaceholder
 	};
 }
@@ -294,13 +291,11 @@ function generateFinalHashes(
 	renderedChunksByPlaceholder: Map<string, RenderedChunkWithPlaceholders>,
 	hashDependenciesByPlaceholder: Map<string, HashResult>,
 	initialHashesByPlaceholder: Map<string, string>,
-	placeholders: Set<string>,
 	bundle: OutputBundleWithPlaceholders,
 	getHash: GetHash
 ) {
 	const hashesByPlaceholder = new Map<string, string>(initialHashesByPlaceholder);
-	for (const placeholder of placeholders) {
-		const { fileName } = renderedChunksByPlaceholder.get(placeholder)!;
+	for (const [placeholder, { fileName }] of renderedChunksByPlaceholder) {
 		let contentToHash = '';
 		const hashDependencyPlaceholders = new Set<string>([placeholder]);
 		for (const dependencyPlaceholder of hashDependencyPlaceholders) {
