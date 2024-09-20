@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.22.2
+
+_2024-09-20_
+
+### Bug Fixes
+
+- Revert fix for side effect free modules until other issues are investigated (#5667)
+
+### Pull Requests
+
+- [#5667](https://github.com/rollup/rollup/pull/5667): Partially revert #5658 and re-apply #5644 (@lukastaegert)
+
 ## 4.22.1
 
 _2024-09-20_
