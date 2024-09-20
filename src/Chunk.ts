@@ -1,8 +1,5 @@
 import MagicString, { Bundle as MagicStringBundle, type SourceMap } from 'magic-string';
 import { relative } from '../browser/src/path';
-import ExternalChunk from './ExternalChunk';
-import ExternalModule from './ExternalModule';
-import Module from './Module';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import type ImportExpression from './ast/nodes/ImportExpression';
@@ -13,7 +10,10 @@ import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import type Variable from './ast/variables/Variable';
+import ExternalChunk from './ExternalChunk';
+import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
+import Module from './Module';
 import type {
 	GetInterop,
 	GlobalsOption,
@@ -26,7 +26,6 @@ import type {
 	RenderedChunk,
 	RenderedModule
 } from './rollup/types';
-import type { PluginDriver } from './utils/PluginDriver';
 import { createAddons } from './utils/addons';
 import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import { escapeId } from './utils/escapeId';
@@ -58,6 +57,7 @@ import {
 import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { FILE_PLACEHOLDER } from './utils/outputBundle';
 import { basename, extname, isAbsolute, normalize, resolve } from './utils/path';
+import type { PluginDriver } from './utils/PluginDriver';
 import { getAliasName, getImportPath } from './utils/relativeId';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';

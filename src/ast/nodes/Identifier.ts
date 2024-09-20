@@ -5,6 +5,7 @@ import { BLANK } from '../../utils/blank';
 import { logIllegalImportReassignment } from '../../utils/logs';
 import { PureFunctionKey } from '../../utils/pureFunctions';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
@@ -220,9 +221,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 				this.variable instanceof LocalVariable &&
 				this.variable.kind &&
 				tdzVariableKinds.has(this.variable.kind) &&
-				// we ignore possible TDZs due to circular module dependencies as
-				// otherwise we get many false positives
-				this.variable.module === this.scope.context.module
+				// We ignore modules that did not receive a treeshaking pass yet as that
+				// causes many false positives due to circular dependencies or disabled
+				// moduleSideEffects.
+				this.variable.module.hasTreeShakingPassStarted
 			)
 		) {
 			return (this.isTDZAccess = false);
@@ -241,9 +243,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return (this.isTDZAccess = true);
 		}
 
-		// We ignore the case where the module is not yet executed because
-		// moduleSideEffects are false.
-		if (!this.variable.initReached && this.scope.context.module.isExecuted) {
+		if (!this.variable.initReached) {
 			// Either a const/let TDZ violation or
 			// var use before declaration was encountered.
 			return (this.isTDZAccess = true);
@@ -294,6 +294,12 @@ export default class Identifier extends NodeBase implements PatternNode {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.variable instanceof LocalVariable) {
+			// When accessing a variable from a module without side effects, this
+			// means we use an export of that module and therefore need to potentially
+			// include it in the bundle.
+			if (!this.variable.module.isExecuted) {
+				markModuleAndImpureDependenciesAsExecuted(this.variable.module);
+			}
 			this.variable.consolidateInitializers();
 			this.scope.context.requestTreeshakingPass();
 		}
