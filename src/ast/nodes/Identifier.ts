@@ -220,10 +220,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 				this.variable instanceof LocalVariable &&
 				this.variable.kind &&
 				tdzVariableKinds.has(this.variable.kind) &&
-				// We ignore modules that did not receive a treeshaking pass yet as that
-				// causes many false positives due to circular dependencies or disabled
-				// moduleSideEffects.
-				this.variable.module.hasTreeShakingPassStarted
+				// we ignore possible TDZs due to circular module dependencies as
+				// otherwise we get many false positives
+				this.variable.module === this.scope.context.module
 			)
 		) {
 			return (this.isTDZAccess = false);
@@ -242,7 +241,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return (this.isTDZAccess = true);
 		}
 
-		if (!this.variable.initReached) {
+		// We ignore the case where the module is not yet executed because
+		// moduleSideEffects are false.
+		if (!this.variable.initReached && this.scope.context.module.isExecuted) {
 			// Either a const/let TDZ violation or
 			// var use before declaration was encountered.
 			return (this.isTDZAccess = true);
@@ -293,10 +294,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.variable instanceof LocalVariable) {
-			// When accessing a variable from a module without side effects, this
-			// means we use an export of that module and therefore need to potentially
-			// include it in the bundle.
-			this.variable.module.isExecuted = true;
 			this.variable.consolidateInitializers();
 			this.scope.context.requestTreeshakingPass();
 		}

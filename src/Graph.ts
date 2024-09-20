@@ -172,7 +172,6 @@ export default class Graph {
 				this.needsTreeshakingPass = false;
 				for (const module of this.modules) {
 					if (module.isExecuted) {
-						module.hasTreeShakingPassStarted = true;
 						if (module.info.moduleSideEffects === 'no-treeshake') {
 							module.includeAllInBundle();
 						} else {
