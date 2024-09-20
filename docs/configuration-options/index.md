@@ -12,7 +12,7 @@ title: Configuration Options
 
 |  |  |
 | --: | :-- |
-| Type: | `(string \| RegExp)[]\| RegExp\| string\| (id: string, parentId: string, isResolved: boolean) => boolean` |
+| Type: | `(string \| RegExp)[] \| RegExp \| string \| (id: string, parentId: string, isResolved: boolean) => boolean` |
 | CLI: | `-e`/`--external <external-id,another-external-id,...>` |
 
 Either a function that takes an `id` and returns `true` (external) or `false` (not external), or an `Array` of module IDs, or regular expressions to match module IDs, that should remain external to the bundle. Can also be just a single ID or regular expression. The matched IDs should be either:
@@ -85,10 +85,10 @@ The conversion back to a relative import is done as if `output.file` or `output.
 
 ### input
 
-|       |                                                         |
-| ----: | :------------------------------------------------------ |
-| Type: | `string \| string []\| { [entryName: string]: string }` |
-|  CLI: | `-i`/`--input <filename>`                               |
+|       |                                                          |
+| ----: | :------------------------------------------------------- |
+| Type: | `string \| string [] \| { [entryName: string]: string }` |
+|  CLI: | `-i`/`--input <filename>`                                |
 
 The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](#output-file) option is used, generated chunk names will follow the [`output.entryFileNames`](#output-entryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
 
@@ -171,11 +171,179 @@ rollup "main entry"="src/entry 1.js" "src/other entry.js" --format es
 
 ### jsx
 
-|          |                                                  |
-| -------: | :----------------------------------------------- |
-|    Type: | `false \| "preserve" \| JsxPreset \| JsxOptions` |
-|     CLI: | `--jsx <preset>`/`--no-jsx`                      |
-| Default: | `false`                                          |
+|          |                                    |
+| -------: | :--------------------------------- |
+|    Type: | `false \| JsxPreset \| JsxOptions` |
+|     CLI: | `--jsx <preset>`/`--no-jsx`        |
+| Default: | `false`                            |
+
+```typescript
+type JsxPreset = 'react' | 'react-jsx' | 'preserve' | 'preserve-react';
+
+type JsxOptions =
+	| {
+			mode: 'preserve';
+			factory: string | null;
+			fragment: string | null;
+			importSource: string | null;
+			preset: JsxPreset | null;
+	  }
+	| {
+			mode: 'classic';
+			factory: string;
+			fragment: string;
+			importSource: string | null;
+			preset: JsxPreset | null;
+	  }
+	| {
+			mode: 'automatic';
+			factory: string;
+			importSource: string;
+			jsxImportSource: string;
+			preset: JsxPreset | null;
+	  };
+```
+
+Allows Rollup to process JSX syntax to either preserve or transform it depending on the [`jsx.mode`](#jsx-mode). If set to `false`, an error will be thrown if JSX syntax is encountered. You may also choose a preset that will set all options together:
+
+- `"react"`: For transpiling JSX to `React.createElement` calls, where `React` is the default import from `"react"`. This is the same as setting `"jsx": "react"` in the TypeScript compiler options.
+  ```js
+  ({
+  	mode: 'classic',
+  	factory: 'React.createElement',
+  	fragment: 'React.Fragment',
+  	importSource: 'react'
+  });
+  ```
+- `"react-jsx"`: This will use the new optimized React transformation introduced with React 17 and is similar to setting `"jsx": "react-jsx"` in the TypeScript compiler options.
+  ```js
+  ({
+  	mode: 'automatic',
+  	factory: 'React.createElement',
+  	importSource: 'react',
+  	jsxImportSource: 'react/jsx-runtime'
+  });
+  ```
+- `"preserve"`: This will preserve JSX in the output. This will still tree-shake unused JSX code and may rename JSX identifiers if there are conflicts in the output.
+  ```js
+  ({
+  	mode: 'preserve',
+  	factory: null,
+  	fragment: null,
+  	importSource: null
+  });
+  ```
+- `"preserve-react"`: This will preserve JSX in the output but ensure that the default export of `"react"` is in scope as the `React` variable.
+  ```js
+  ({
+  	mode: 'preserve',
+  	factory: 'React.createElement',
+  	fragment: 'React.Fragment',
+  	importSource: 'react'
+  });
+  ```
+
+#### jsx.mode
+
+|          |                                          |
+| -------: | :--------------------------------------- |
+|    Type: | `"preserve" \| "classic" \| "automatic"` |
+|     CLI: | `--jsx.mode <mode>`                      |
+| Default: | `"classic"`                              |
+
+This will determine how JSX is processed:
+
+- `"preserve"`: Will keep JSX syntax in the output.
+- `"classic"`: This will perform a JSX transformation as it is needed by older React versions or other frameworks like for instance [Preact](https://preactjs.com). As an example, here is how you would configure jsx for Preact:
+
+  ```js
+  ({
+  	mode: 'classic',
+  	factory: 'h',
+  	fragment: 'Fragment',
+  	importSource: 'preact'
+  });
+  ```
+
+  This would perform the following transformation:
+
+  ```jsx
+  // input
+  console.log(<div>hello</div>);
+
+  // output
+  import { h } from 'preact';
+  console.log(/*#__PURE__*/ h('div', null, 'hello'));
+  ```
+
+- `"automatic"`: This will perform a JSX transformation using the [new JSX transform](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html) introduced with React 17. In this mode, Rollup will try to use helpers from the [`jsx.jsxImportSource`](#jsx-jsximportsource) to transform JSX. As there are certain edge cases, this mode may still fall back to using the classic transformations when [using the `key` property together with spread attributes](https://github.com/facebook/react/issues/20031#issuecomment-710346866). To this end, you can still specify `jsx.importSource`, `jsx.factory`, and `jsx.fragment` to configure classic mode.
+
+#### jsx.factory
+
+|          |                                   |
+| -------: | :-------------------------------- |
+|    Type: | `string \| null`                  |
+|     CLI: | `--jsx.factory <factory>`         |
+| Default: | `"React.createElement"` or `null` |
+
+The function Rollup uses to create JSX elements in `"classic"` mode or as a fallback in `"automatic"` mode. This is usually `React.createElement` for React or `h` for other frameworks. In `"preserve"` mode, this will ensure that the factory is present if a [`jsx.importSource`](#jsx-importsource) is specified, or otherwise not overridden by local variables. Only in `"preserve"` mode it is possible to set this value to `null`, in which case Rollup will not take care to keep any particular factory function in scope.
+
+If the value contains a `"."` like `React.createElement` and an `jsx.importSource` is specified, Rollup will assume that the left part, e.g. `React`, refers to the default export of the `jsx.importSource`. Otherwise, Rollup assumes it is a named export.
+
+#### jsx.fragment
+
+|          |                              |
+| -------: | :--------------------------- |
+|    Type: | `string \| null`             |
+|     CLI: | `--jsx.fragment <fragment>`  |
+| Default: | `"React.Fragment"` or `null` |
+
+The element function Rollup uses to create JSX fragments. This is usually `React.Fragment` for React or `Fragment` for other frameworks. In `"preserve"` mode, this will ensure that the fragment is present as an import if an [`jsx.importSource`](#jsx-importsource) is specified, or otherwise not overridden by local variables. Only in `"preserve"` mode it is possible to set this value to `null`, in which case Rollup will not take care to keep any particular fragment function in scope.
+
+If the value contains a `"."` like `React.Fragment` and an `jsx.importSource` is specified, Rollup will assume that the left part, e.g. `React`, refers to the default export of the `jsx.importSource`. Otherwise, Rollup assumes it is a named export.
+
+#### jsx.importSource
+
+|          |                                |
+| -------: | :----------------------------- |
+|    Type: | `string \| null`               |
+|     CLI: | `--jsx.importSource <library>` |
+| Default: | `null`                         |
+
+Where to import the element factory function and/or the fragment element from. If left to `null`, Rollup will assume that `factory` and `fragment` refer to global variables and make sure they are not shadowed by local variables.
+
+#### jsx.jsxImportSource
+
+|          |                                   |
+| -------: | :-------------------------------- |
+|    Type: | `string`                          |
+|     CLI: | `--jsx.jsxImportSource <library>` |
+| Default: | `"react/jsx-runtime"`             |
+
+When using `"automatic"` mode, this will specify from where to import the `jsx`, `jsxs` and `Fragment` helpers needed for that transformation. It is not possible to get those from a global variable.
+
+#### jsx.preset
+
+|       |                        |
+| ----: | :--------------------- |
+| Type: | JsxPreset              |
+|  CLI: | `--jsx.preset <value>` |
+
+Allows choosing one of the presets listed above while overriding some options.
+
+```js twoslash
+// ---cut-start---
+/** @type {import('rollup').RollupOptions} */
+// ---cut-end---
+export default {
+	jsx: {
+		preset: 'react',
+		importSource: 'preact',
+		factory: 'h'
+	}
+	// ...
+};
+```
 
 ### output.dir
 
@@ -216,7 +384,7 @@ Specifies the format of the generated bundle. One of the following:
 
 |  |  |
 | --: | :-- |
-| Type: | `{ [id: string]: string }\| ((id: string) => string)` |
+| Type: | `{ [id: string]: string } \| ((id: string) => string)` |
 | CLI: | `-g`/`--globals <external-id:variableName,another-external-id:anotherVariableName,...>` |
 
 Specifies `id: variableName` pairs necessary for external imports in `umd`/`iife` bundles. For example, in a case like this…
@@ -447,7 +615,7 @@ When using the CLI, errors will still be printed to the console as they are not 
 
 |  |  |
 | --: | :-- |
-| Type: | `boolean\| "ifRelativeSource"` |
+| Type: | `boolean \| "ifRelativeSource"` |
 | CLI: | `--makeAbsoluteExternalsRelative`/`--no-makeAbsoluteExternalsRelative` |
 | Default: | `"ifRelativeSource"` |
 
@@ -574,11 +742,11 @@ See [`onLog`](#onlog) for more information.
 
 ### output.assetFileNames
 
-|          |                                                      |
-| -------: | :--------------------------------------------------- |
-|    Type: | `string\| ((assetInfo: PreRenderedAsset) => string)` |
-|     CLI: | `--assetFileNames <pattern>`                         |
-| Default: | `"assets/[name]-[hash][extname]"`                    |
+|          |                                                       |
+| -------: | :---------------------------------------------------- |
+|    Type: | `string \| ((assetInfo: PreRenderedAsset) => string)` |
+|     CLI: | `--assetFileNames <pattern>`                          |
+| Default: | `"assets/[name]-[hash][extname]"`                     |
 
 ```typescript
 interface PreRenderedAsset {
@@ -600,10 +768,10 @@ Forward slashes `/` can be used to place files in sub-directories. When using a 
 
 ### output.banner/output.footer
 
-|       |                                                                  |
-| ----: | :--------------------------------------------------------------- |
-| Type: | `string \| ((chunk: RenderedChunk) => string\| Promise<string>)` |
-|  CLI: | `--banner`/`--footer <text>`                                     |
+|  |  |
+| --: | :-- |
+| Type: | `string \| ((chunk: RenderedChunk) => string \| Promise<string>)` |
+| CLI: | `--banner`/`--footer <text>` |
 
 See the [`renderChunk`](../plugin-development/index.md#renderchunk) hook for the `RenderedChunk` type.
 
@@ -766,7 +934,7 @@ Whether to add import attributes to external imports in the output if the output
 
 |  |  |
 | --: | :-- |
-| Type: | `"es5" \| "es2015"\| { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5"\| "es2015", reservedNamesAsProps?: boolean, symbols?: boolean }` |
+| Type: | `"es5" \| "es2015" \| { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" \| "es2015", reservedNamesAsProps?: boolean, symbols?: boolean }` |
 | CLI: | `--generatedCode <preset>` |
 | Default: | `"es5"` |
 
@@ -988,7 +1156,7 @@ This will inline dynamic imports instead of creating new chunks to create a sing
 
 |  |  |
 | --: | :-- |
-| Type: | `"compat" \| "auto"\| "esModule"\| "default"\| "defaultOnly"\| ((id: string) => "compat"\| "auto"\| "esModule"\| "default"\| "defaultOnly")` |
+| Type: | `"compat" \| "auto" \| "esModule" \| "default" \| "defaultOnly" \| ((id: string) => "compat" \| "auto" \| "esModule" \| "default" \| "defaultOnly")` |
 | CLI: | `--interop <value>` |
 | Default: | `"default"` |
 
@@ -1247,10 +1415,10 @@ There are some additional options that have an effect on the generated interop c
 
 ### output.intro/output.outro
 
-|       |                                                                  |
-| ----: | :--------------------------------------------------------------- |
-| Type: | `string \| ((chunk: RenderedChunk) => string\| Promise<string>)` |
-|  CLI: | `--intro`/`--outro <text>`                                       |
+|  |  |
+| --: | :-- |
+| Type: | `string \| ((chunk: RenderedChunk) => string \| Promise<string>)` |
+| CLI: | `--intro`/`--outro <text>` |
 
 Similar to [`output.banner/output.footer`](#output-banner-output-footer), except that the code goes _inside_ any format-specific wrapper.
 
@@ -1561,7 +1729,7 @@ This option is particularly useful while using plugins such as `@rollup/plugin-n
 
 |          |                                     |
 | -------: | :---------------------------------- |
-|    Type: | `boolean \| 'inline'\| 'hidden'`    |
+|    Type: | `boolean \| 'inline' \| 'hidden'`   |
 |     CLI: | `-m`/`--sourcemap`/`--no-sourcemap` |
 | Default: | `false`                             |
 
@@ -1704,7 +1872,7 @@ This option specifies the directory name for "virtual" files that might be emitt
 
 |  |  |
 | --: | :-- |
-| Type: | `"strict" \| "allow-extension" \| "exports-only"\| false` |
+| Type: | `"strict" \| "allow-extension" \| "exports-only" \| false` |
 | CLI: | `--preserveEntrySignatures <strict \| allow-extension>`/`--no-preserveEntrySignatures` |
 | Default: | `"exports-only"` |
 
@@ -1983,11 +2151,11 @@ See also [`output.interop`](#output-interop).
 
 ### output.exports
 
-|          |                                          |
-| -------: | :--------------------------------------- |
-|    Type: | `"auto" \| "default"\| "named"\| "none"` |
-|     CLI: | `--exports <exportMode>`                 |
-| Default: | `'auto'`                                 |
+|          |                                            |
+| -------: | :----------------------------------------- |
+|    Type: | `"auto" \| "default" \| "named" \| "none"` |
+|     CLI: | `--exports <exportMode>`                   |
+| Default: | `'auto'`                                   |
 
 What export mode to use. Defaults to `auto`, which guesses your intentions based on what the `input` module exports:
 
@@ -2240,7 +2408,7 @@ If this option is provided, bundling will not fail if bindings are imported from
 |          |                                                      |
 | -------: | :--------------------------------------------------- |
 |    Type: | `boolean \| TreeshakingPreset \| TreeshakingOptions` |
-|     CLI: | `--treeshake`/`--no-treeshake`                       |
+|     CLI: | `--treeshake <preset>`/`--no-treeshake`              |
 | Default: | `true`                                               |
 
 ```typescript
@@ -2406,7 +2574,7 @@ styled().div(); // removed
 
 |  |  |
 | --: | :-- |
-| Type: | `boolean\| "no-external"\| string[]\| (id: string, external: boolean) => boolean` |
+| Type: | `boolean \| "no-external" \| string[] \| (id: string, external: boolean) => boolean` |
 | CLI: | `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external` |
 | Default: | `true` |
 
@@ -2494,10 +2662,10 @@ Note that despite the name, this option does not "add" side effects to modules t
 
 #### treeshake.preset
 
-|       |                                          |
-| ----: | :--------------------------------------- |
-| Type: | `"smallest" \| "safest"\| "recommended"` |
-|  CLI: | `--treeshake <value>`<br>                |
+|       |                                           |
+| ----: | :---------------------------------------- |
+| Type: | `"smallest" \| "safest" \| "recommended"` |
+|  CLI: | `--treeshake <value>`<br>                 |
 
 Allows choosing one of the presets listed above while overriding some options.
 
@@ -2518,7 +2686,7 @@ export default {
 
 |  |  |
 | --: | :-- |
-| Type: | `boolean\| 'always'` |
+| Type: | `boolean \| 'always'` |
 | CLI: | `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects` |
 | Default: | `true` |
 
@@ -2741,10 +2909,10 @@ Whether to clear the screen when a rebuild is triggered.
 
 ### watch.exclude
 
-|       |                                          |
-| ----: | :--------------------------------------- |
-| Type: | `string \| RegExp\| (string\| RegExp)[]` |
-|  CLI: | `--watch.exclude <files>`                |
+|       |                                            |
+| ----: | :----------------------------------------- |
+| Type: | `string \| RegExp \| (string \| RegExp)[]` |
+|  CLI: | `--watch.exclude <files>`                  |
 
 Prevent files from being watched:
 
@@ -2763,10 +2931,10 @@ export default {
 
 ### watch.include
 
-|       |                                          |
-| ----: | :--------------------------------------- |
-| Type: | `string \| RegExp\| (string\| RegExp)[]` |
-|  CLI: | `--watch.include <files>`                |
+|       |                                            |
+| ----: | :----------------------------------------- |
+| Type: | `string \| RegExp \| (string \| RegExp)[]` |
+|  CLI: | `--watch.include <files>`                  |
 
 Limit the file-watching to certain files. Note that this only filters the module graph but does not allow adding additional watch files:
 
