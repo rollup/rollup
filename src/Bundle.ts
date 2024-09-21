@@ -10,7 +10,6 @@ import type {
 	NormalizedOutputOptions,
 	OutputBundle
 } from './rollup/types';
-import type { PluginDriver } from './utils/PluginDriver';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
 import { sortByExecutionOrder } from './utils/executionOrder';
@@ -28,6 +27,7 @@ import type { OutputBundleWithPlaceholders } from './utils/outputBundle';
 import { getOutputBundle, removeUnreferencedAssets } from './utils/outputBundle';
 import { parseAst } from './utils/parseAst';
 import { isAbsolute } from './utils/path';
+import type { PluginDriver } from './utils/PluginDriver';
 import { renderChunks } from './utils/renderChunks';
 import { timeEnd, timeStart } from './utils/timers';
 import {
