@@ -13,14 +13,18 @@ export default function setupNamespace(
 	log?: LogHandler
 ): string {
 	const parts = name.split('.');
-	// Check if the key is exist in the prototype of the object
-	const isReserved = parts[0] in {};
+	// Check if the key exists in the object's prototype.
+	const isReserved = parts[0] in Object.prototype;
 	if (log && isReserved) {
 		log(LOGLEVEL_WARN, logReservedNamespace(parts[0]));
 	}
 	parts[0] =
-		(typeof globals === 'function' ? globals(parts[0]) : isReserved ? null : globals[parts[0]]) ||
-		parts[0];
+		(typeof globals === 'function'
+			? globals(parts[0])
+			: isReserved
+				? parts[0]
+				: globals[parts[0]]) || parts[0];
+
 	parts.pop();
 
 	let propertyPath = root;
@@ -43,14 +47,18 @@ export function assignToDeepVariable(
 	log?: LogHandler
 ): string {
 	const parts = deepName.split('.');
-	// Check if the key is exist in the prototype of the object
-	const isReserved = parts[0] in {};
+	// Check if the key exists in the object's prototype.
+	const isReserved = parts[0] in Object.prototype;
 	if (log && isReserved) {
 		log(LOGLEVEL_WARN, logReservedNamespace(parts[0]));
 	}
 	parts[0] =
-		(typeof globals === 'function' ? globals(parts[0]) : isReserved ? null : globals[parts[0]]) ||
-		parts[0];
+		(typeof globals === 'function'
+			? globals(parts[0])
+			: isReserved
+				? parts[0]
+				: globals[parts[0]]) || parts[0];
+
 	const last = parts.pop()!;
 
 	let propertyPath = root;
