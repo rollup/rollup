@@ -4,6 +4,6 @@ var asset1 = 'chunkId=cjs.js:moduleId=solved:fileName=assets/asset-solved-230eca
 
 var asset2 = 'resolved';
 
-var asset3 = (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__dirname + '/assets/asset-unresolved-f4c1e86c.txt').href : new URL('assets/asset-unresolved-f4c1e86c.txt', document.currentScript && document.currentScript.src || document.baseURI).href);
+var asset3 = (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__dirname + '/assets/asset-unresolved-f4c1e86c.txt').href : new URL('assets/asset-unresolved-f4c1e86c.txt', document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI).href);
 
 console.log(asset1, asset2, asset3);
