@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.22.3
+
+_2024-09-21_
+
+### Bug Fixes
+
+- Ensure that mutations in modules without side effects are observed while properly handling transitive dependencies (#5669)
+
+### Pull Requests
+
+- [#5669](https://github.com/rollup/rollup/pull/5669): Ensure impure dependencies of pure modules are added (@lukastaegert)
+
 ## 4.22.2
 
 _2024-09-20_
