@@ -22,7 +22,7 @@
 
 	import('external').then(console.log);
 	exports.default = 0;
-	console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.src || new URL('umd.js', document.baseURI).href)));
+	console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('umd.js', document.baseURI).href)));
 
 	function nested1() {
 		const _interopDefault = 1;
@@ -36,7 +36,7 @@
 
 		import('external').then(console.log);
 		exports.default = 1;
-		console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.src || new URL('umd.js', document.baseURI).href)));
+		console.log((typeof document === 'undefined' && typeof location === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : typeof document === 'undefined' ? location.href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('umd.js', document.baseURI).href)));
 	}
 
 	nested1();

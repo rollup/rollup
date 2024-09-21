@@ -1,10 +1,10 @@
 import type MagicString from 'magic-string';
 import type { InternalModuleFormat } from '../../rollup/types';
-import type { PluginDriver } from '../../utils/PluginDriver';
 import { escapeId } from '../../utils/escapeId';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { DOCUMENT_CURRENT_SCRIPT } from '../../utils/interopHelpers';
 import { dirname, normalize, relative } from '../../utils/path';
+import type { PluginDriver } from '../../utils/PluginDriver';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
@@ -158,7 +158,7 @@ const getRelativeUrlFromDocument = (relativePath: string, umd = false) =>
 	getResolveUrl(
 		`'${escapeId(relativePath)}', ${
 			umd ? `typeof document === 'undefined' ? location.href : ` : ''
-		}document.currentScript && document.currentScript.src || document.baseURI`
+		}document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI`
 	);
 
 const getGenericImportMetaMechanism =
@@ -180,7 +180,7 @@ const getFileUrlFromRelativePath = (path: string) =>
 const getUrlFromDocument = (chunkId: string, umd = false) =>
 	`${
 		umd ? `typeof document === 'undefined' ? location.href : ` : ''
-	}(${DOCUMENT_CURRENT_SCRIPT} && ${DOCUMENT_CURRENT_SCRIPT}.src || new URL('${escapeId(
+	}(${DOCUMENT_CURRENT_SCRIPT} && ${DOCUMENT_CURRENT_SCRIPT}.tagName.toUpperCase() === 'SCRIPT' && ${DOCUMENT_CURRENT_SCRIPT}.src || new URL('${escapeId(
 		chunkId
 	)}', document.baseURI).href)`;
 

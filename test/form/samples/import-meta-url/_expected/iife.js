@@ -10,6 +10,6 @@
 		}
 	}
 
-	log((_documentCurrentScript && _documentCurrentScript.src || new URL('iife.js', document.baseURI).href));
+	log((_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('iife.js', document.baseURI).href));
 
 })();
