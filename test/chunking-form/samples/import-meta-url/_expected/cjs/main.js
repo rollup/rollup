@@ -9,7 +9,7 @@ function log(url) {
 	}
 }
 
-log('main: ' + (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.src || new URL('main.js', document.baseURI).href)));
+log('main: ' + (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('main.js', document.baseURI).href)));
 Promise.resolve().then(function () { return require('./nested/chunk.js'); });
 
 exports.log = log;

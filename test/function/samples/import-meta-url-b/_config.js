@@ -7,7 +7,8 @@ module.exports = defineTest({
 	context: {
 		document: {
 			currentScript: {
-				src: source
+				src: source,
+				tagName: 'SCRIPT'
 			}
 		}
 	},
