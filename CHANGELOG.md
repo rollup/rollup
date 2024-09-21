@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 4.22.4
+
+_2024-09-21_
+
+### Bug Fixes
+
+- Fix a vulnerability in generated code that affects IIFE, UMD and CJS bundles when run in a browser context (#5671)
+
+### Pull Requests
+
+- [#5670](https://github.com/rollup/rollup/pull/5670): refactor: Use object.prototype to check for reserved properties (@YuHyeonWook)
+- [#5671](https://github.com/rollup/rollup/pull/5671): Fix DOM Clobbering CVE (@lukastaegert)
+
 ## 4.22.3
 
 _2024-09-21_
