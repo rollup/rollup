@@ -192,7 +192,7 @@ const getRelativeUrlFromDocument = (relativePath: string, umd = false) =>
 	getResolveUrl(
 		`'${relativePath}', ${
 			umd ? `typeof document === 'undefined' ? location.href : ` : ''
-		}document.currentScript && document.currentScript.src || document.baseURI`
+		}document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI`
 	);
 
 const getGenericImportMetaMechanism =
@@ -209,7 +209,7 @@ const getGenericImportMetaMechanism =
 const getUrlFromDocument = (chunkId: string, umd = false) =>
 	`${
 		umd ? `typeof document === 'undefined' ? location.href : ` : ''
-	}(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
+	}(document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
 
 const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string) => string> = {
 	amd: relativePath => {

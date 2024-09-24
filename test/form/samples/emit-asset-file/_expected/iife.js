@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	var logo = new URL('assets/logo-25585ac1.svg', document.currentScript && document.currentScript.src || document.baseURI).href;
+	var logo = new URL('assets/logo-25585ac1.svg', document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI).href;
 
 	function showImage(url) {
 		console.log(url);

@@ -9,6 +9,6 @@
 		}
 	}
 
-	log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
+	log((document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || new URL('iife.js', document.baseURI).href));
 
 })();
