@@ -18,7 +18,7 @@ var bundle = (function (external) {
 
 	import('external').then(console.log);
 	exports["default"] = 0;
-	console.log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
+	console.log((document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || new URL('iife.js', document.baseURI).href));
 
 	function nested1() {
 		const _interopDefault = 1;
@@ -32,7 +32,7 @@ var bundle = (function (external) {
 
 		import('external').then(console.log);
 		exports["default"] = 1;
-		console.log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
+		console.log((document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || new URL('iife.js', document.baseURI).href));
 	}
 
 	nested1();
