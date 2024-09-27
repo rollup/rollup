@@ -208,7 +208,7 @@ Repository: jorgebucaran/colorette
 ## date-time
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/date-time.git
+Repository: sindresorhus/date-time
 
 > MIT License
 > 
@@ -271,7 +271,7 @@ Repository: lukeed/flru
 ## glob-parent
 License: ISC
 By: Gulp Team, Elan Shanker, Blaine Bublitz
-Repository: git+https://github.com/gulpjs/glob-parent.git
+Repository: gulpjs/glob-parent
 
 > The ISC License
 > 
@@ -294,7 +294,7 @@ Repository: git+https://github.com/gulpjs/glob-parent.git
 ## is-binary-path
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/is-binary-path.git
+Repository: sindresorhus/is-binary-path
 
 > MIT License
 > 
@@ -311,7 +311,7 @@ Repository: git+https://github.com/sindresorhus/is-binary-path.git
 ## is-extglob
 License: MIT
 By: Jon Schlinkert
-Repository: git+https://github.com/jonschlinkert/is-extglob.git
+Repository: jonschlinkert/is-extglob
 
 > The MIT License (MIT)
 > 
@@ -340,7 +340,7 @@ Repository: git+https://github.com/jonschlinkert/is-extglob.git
 ## is-glob
 License: MIT
 By: Jon Schlinkert, Brian Woodward, Daniel Perez
-Repository: git+https://github.com/micromatch/is-glob.git
+Repository: micromatch/is-glob
 
 > The MIT License (MIT)
 > 
@@ -369,7 +369,7 @@ Repository: git+https://github.com/micromatch/is-glob.git
 ## is-number
 License: MIT
 By: Jon Schlinkert, Olsten Larck, Rouven Weßling
-Repository: git+https://github.com/jonschlinkert/is-number.git
+Repository: jonschlinkert/is-number
 
 > The MIT License (MIT)
 > 
@@ -427,7 +427,7 @@ Repository: https://github.com/rich-harris/magic-string
 ## normalize-path
 License: MIT
 By: Jon Schlinkert, Blaine Bublitz
-Repository: git+https://github.com/jonschlinkert/normalize-path.git
+Repository: jonschlinkert/normalize-path
 
 > The MIT License (MIT)
 > 
@@ -589,7 +589,7 @@ Repository: https://github.com/tapjs/signal-exit.git
 ## time-zone
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/time-zone.git
+Repository: sindresorhus/time-zone
 
 > MIT License
 > 
@@ -606,7 +606,7 @@ Repository: git+https://github.com/sindresorhus/time-zone.git
 ## to-regex-range
 License: MIT
 By: Jon Schlinkert, Rouven Weßling
-Repository: git+https://github.com/micromatch/to-regex-range.git
+Repository: micromatch/to-regex-range
 
 > The MIT License (MIT)
 > 
