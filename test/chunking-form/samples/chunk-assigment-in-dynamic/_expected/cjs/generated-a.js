@@ -3,7 +3,7 @@
 var c = require('./generated-c.js');
 
 function A() {
-	return { icon: c.c.faPrint };
+	return { icon: c.cExports.faPrint };
 }
 
 exports.A = A;

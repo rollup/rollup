@@ -1,11 +1,19 @@
-define(['../../../_virtual/index'], (function (index) { 'use strict';
+define(['exports', '../../../_virtual/index'], (function (exports, index) { 'use strict';
 
-	Object.defineProperty(index.__exports, '__esModule', { value: true });
+	var hasRequiredMyBasePkg;
 
-	var hello = 'world';
+	function requireMyBasePkg () {
+		if (hasRequiredMyBasePkg) return index.__exports;
+		hasRequiredMyBasePkg = 1;
 
-	index.__exports.hello = hello;
+		Object.defineProperty(index.__exports, '__esModule', { value: true });
 
-	return index.__exports;
+		var hello = 'world';
+
+		index.__exports.hello = hello;
+		return index.__exports;
+	}
+
+	exports.__require = requireMyBasePkg;
 
 }));

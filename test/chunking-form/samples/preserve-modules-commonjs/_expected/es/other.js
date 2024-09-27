@@ -1,5 +1,12 @@
 import { __exports as other } from './_virtual/other.js';
 
-other.value = 43;
+var hasRequiredOther;
 
-export { other as default };
+function requireOther () {
+	if (hasRequiredOther) return other;
+	hasRequiredOther = 1;
+	other.value = 43;
+	return other;
+}
+
+export { requireOther as __require };

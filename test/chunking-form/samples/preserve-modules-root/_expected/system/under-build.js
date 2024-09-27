@@ -1,12 +1,16 @@
-System.register(['./under-build2.js'], (function (exports) {
+System.register(['./_virtual/_commonjsHelpers.js', './under-build2.js'], (function (exports) {
 	'use strict';
+	var getDefaultExportFromCjs, requireUnderBuild;
 	return {
 		setters: [function (module) {
-			exports("default", module.default);
+			getDefaultExportFromCjs = module.getDefaultExportFromCjs;
+		}, function (module) {
+			requireUnderBuild = module.__require;
 		}],
 		execute: (function () {
 
-
+			var underBuildExports = requireUnderBuild();
+			var underBuild = exports("default", /*@__PURE__*/getDefaultExportFromCjs(underBuildExports));
 
 		})
 	};

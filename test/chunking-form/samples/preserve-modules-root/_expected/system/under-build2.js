@@ -1,21 +1,27 @@
-System.register(['./_virtual/_commonjsHelpers.js', './custom_modules/@my-scope/my-base-pkg/index.js', './_virtual/index.js'], (function (exports) {
+System.register(['./custom_modules/@my-scope/my-base-pkg/index.js'], (function (exports) {
 	'use strict';
-	var getDefaultExportFromCjs, myBasePkg;
+	var requireMyBasePkg;
 	return {
 		setters: [function (module) {
-			getDefaultExportFromCjs = module.getDefaultExportFromCjs;
-		}, null, function (module) {
-			myBasePkg = module.__exports;
+			requireMyBasePkg = module.__require;
 		}],
 		execute: (function () {
 
-			const base = myBasePkg;
+			exports("__require", requireUnderBuild);
 
-			var underBuild = {
-				base
-			};
+			var underBuild;
+			var hasRequiredUnderBuild;
 
-			var underBuild$1 = exports("default", /*@__PURE__*/getDefaultExportFromCjs(underBuild));
+			function requireUnderBuild () {
+				if (hasRequiredUnderBuild) return underBuild;
+				hasRequiredUnderBuild = 1;
+				const base = requireMyBasePkg();
+
+				underBuild = {
+					base
+				};
+				return underBuild;
+			}
 
 		})
 	};

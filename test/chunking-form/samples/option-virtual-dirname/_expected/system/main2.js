@@ -1,15 +1,19 @@
-System.register(['./rollup_virtual/_commonjsHelpers.js'], (function (exports) {
+System.register([], (function (exports) {
 	'use strict';
-	var getDefaultExportFromCjs;
 	return {
-		setters: [function (module) {
-			getDefaultExportFromCjs = module.getDefaultExportFromCjs;
-		}],
 		execute: (function () {
 
-			var main = true;
+			exports("__require", requireMain);
 
-			var main$1 = exports("default", /*@__PURE__*/getDefaultExportFromCjs(main));
+			var main;
+			var hasRequiredMain;
+
+			function requireMain () {
+				if (hasRequiredMain) return main;
+				hasRequiredMain = 1;
+				main = true;
+				return main;
+			}
 
 		})
 	};

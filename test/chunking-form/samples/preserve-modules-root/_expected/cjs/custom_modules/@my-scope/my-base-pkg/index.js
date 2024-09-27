@@ -2,10 +2,18 @@
 
 var index = require('../../../_virtual/index.js');
 
-Object.defineProperty(index.__exports, '__esModule', { value: true });
+var hasRequiredMyBasePkg;
 
-var hello = 'world';
+function requireMyBasePkg () {
+	if (hasRequiredMyBasePkg) return index.__exports;
+	hasRequiredMyBasePkg = 1;
 
-index.__exports.hello = hello;
+	Object.defineProperty(index.__exports, '__esModule', { value: true });
 
-module.exports = index.__exports;
+	var hello = 'world';
+
+	index.__exports.hello = hello;
+	return index.__exports;
+}
+
+exports.__require = requireMyBasePkg;

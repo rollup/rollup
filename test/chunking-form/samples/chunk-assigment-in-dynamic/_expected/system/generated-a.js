@@ -1,16 +1,16 @@
 System.register(['./generated-c.js'], (function (exports) {
 	'use strict';
-	var c;
+	var cExports;
 	return {
 		setters: [function (module) {
-			c = module.c;
+			cExports = module.c;
 		}],
 		execute: (function () {
 
 			exports("A", A);
 
 			function A() {
-				return { icon: c.faPrint };
+				return { icon: cExports.faPrint };
 			}
 
 		})

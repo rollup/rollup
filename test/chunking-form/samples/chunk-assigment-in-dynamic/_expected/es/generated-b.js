@@ -1,7 +1,7 @@
-import { c } from './generated-c.js';
+import { c as cExports } from './generated-c.js';
 
 function B() {
-	return { icon: c.faPrint };
+	return { icon: cExports.faPrint };
 }
 
 export { B };

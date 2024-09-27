@@ -1,9 +1,15 @@
-define(['./rollup_virtual/_commonjsHelpers'], (function (_commonjsHelpers) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
-	var main = true;
+	var main;
+	var hasRequiredMain;
 
-	var main$1 = /*@__PURE__*/_commonjsHelpers.getDefaultExportFromCjs(main);
+	function requireMain () {
+		if (hasRequiredMain) return main;
+		hasRequiredMain = 1;
+		main = true;
+		return main;
+	}
 
-	return main$1;
+	exports.__require = requireMain;
 
 }));

@@ -1,13 +1,19 @@
-define(['./_virtual/_commonjsHelpers', './custom_modules/@my-scope/my-base-pkg/index', './_virtual/index'], (function (_commonjsHelpers, index$1, index) { 'use strict';
+define(['exports', './custom_modules/@my-scope/my-base-pkg/index'], (function (exports, index) { 'use strict';
 
-	const base = index.__exports;
+	var underBuild;
+	var hasRequiredUnderBuild;
 
-	var underBuild = {
-		base
-	};
+	function requireUnderBuild () {
+		if (hasRequiredUnderBuild) return underBuild;
+		hasRequiredUnderBuild = 1;
+		const base = index.__require();
 
-	var underBuild$1 = /*@__PURE__*/_commonjsHelpers.getDefaultExportFromCjs(underBuild);
+		underBuild = {
+			base
+		};
+		return underBuild;
+	}
 
-	return underBuild$1;
+	exports.__require = requireUnderBuild;
 
 }));
