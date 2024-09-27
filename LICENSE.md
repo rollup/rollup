@@ -208,7 +208,7 @@ Repository: jorgebucaran/colorette
 ## date-time
 License: MIT
 By: Sindre Sorhus
-Repository: sindresorhus/date-time
+Repository: git+https://github.com/sindresorhus/date-time.git
 
 > MIT License
 > 
@@ -271,7 +271,7 @@ Repository: lukeed/flru
 ## glob-parent
 License: ISC
 By: Gulp Team, Elan Shanker, Blaine Bublitz
-Repository: gulpjs/glob-parent
+Repository: git+https://github.com/gulpjs/glob-parent.git
 
 > The ISC License
 > 
@@ -294,7 +294,7 @@ Repository: gulpjs/glob-parent
 ## is-binary-path
 License: MIT
 By: Sindre Sorhus
-Repository: sindresorhus/is-binary-path
+Repository: git+https://github.com/sindresorhus/is-binary-path.git
 
 > MIT License
 > 
@@ -311,7 +311,7 @@ Repository: sindresorhus/is-binary-path
 ## is-extglob
 License: MIT
 By: Jon Schlinkert
-Repository: jonschlinkert/is-extglob
+Repository: git+https://github.com/jonschlinkert/is-extglob.git
 
 > The MIT License (MIT)
 > 
@@ -340,7 +340,7 @@ Repository: jonschlinkert/is-extglob
 ## is-glob
 License: MIT
 By: Jon Schlinkert, Brian Woodward, Daniel Perez
-Repository: micromatch/is-glob
+Repository: git+https://github.com/micromatch/is-glob.git
 
 > The MIT License (MIT)
 > 
@@ -369,7 +369,7 @@ Repository: micromatch/is-glob
 ## is-number
 License: MIT
 By: Jon Schlinkert, Olsten Larck, Rouven Weßling
-Repository: jonschlinkert/is-number
+Repository: git+https://github.com/jonschlinkert/is-number.git
 
 > The MIT License (MIT)
 > 
@@ -427,7 +427,7 @@ Repository: https://github.com/rich-harris/magic-string
 ## normalize-path
 License: MIT
 By: Jon Schlinkert, Blaine Bublitz
-Repository: jonschlinkert/normalize-path
+Repository: git+https://github.com/jonschlinkert/normalize-path.git
 
 > The MIT License (MIT)
 > 
@@ -589,7 +589,7 @@ Repository: https://github.com/tapjs/signal-exit.git
 ## time-zone
 License: MIT
 By: Sindre Sorhus
-Repository: sindresorhus/time-zone
+Repository: git+https://github.com/sindresorhus/time-zone.git
 
 > MIT License
 > 
@@ -606,7 +606,7 @@ Repository: sindresorhus/time-zone
 ## to-regex-range
 License: MIT
 By: Jon Schlinkert, Rouven Weßling
-Repository: micromatch/to-regex-range
+Repository: git+https://github.com/micromatch/to-regex-range.git
 
 > The MIT License (MIT)
 > 

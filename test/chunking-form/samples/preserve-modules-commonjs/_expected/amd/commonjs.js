@@ -1,14 +1,20 @@
-define(['./_virtual/_commonjsHelpers', 'external', './other', './_virtual/other'], (function (_commonjsHelpers, require$$0, other$1, other) { 'use strict';
+define(['exports', 'external', './other'], (function (exports, require$$0, other) { 'use strict';
 
-	const external = require$$0;
-	const { value } = other.__exports;
+	var commonjs;
+	var hasRequiredCommonjs;
 
-	console.log(external, value);
+	function requireCommonjs () {
+		if (hasRequiredCommonjs) return commonjs;
+		hasRequiredCommonjs = 1;
+		const external = require$$0;
+		const { value } = other.__require();
 
-	var commonjs = 42;
+		console.log(external, value);
 
-	var value$1 = /*@__PURE__*/_commonjsHelpers.getDefaultExportFromCjs(commonjs);
+		commonjs = 42;
+		return commonjs;
+	}
 
-	return value$1;
+	exports.__require = requireCommonjs;
 
 }));

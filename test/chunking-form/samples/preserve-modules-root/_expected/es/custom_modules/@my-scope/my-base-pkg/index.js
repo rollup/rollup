@@ -1,9 +1,17 @@
 import { __exports as myBasePkg } from '../../../_virtual/index.js';
 
-Object.defineProperty(myBasePkg, '__esModule', { value: true });
+var hasRequiredMyBasePkg;
 
-var hello = 'world';
+function requireMyBasePkg () {
+	if (hasRequiredMyBasePkg) return myBasePkg;
+	hasRequiredMyBasePkg = 1;
 
-myBasePkg.hello = hello;
+	Object.defineProperty(myBasePkg, '__esModule', { value: true });
 
-export { myBasePkg as default };
+	var hello = 'world';
+
+	myBasePkg.hello = hello;
+	return myBasePkg;
+}
+
+export { requireMyBasePkg as __require };

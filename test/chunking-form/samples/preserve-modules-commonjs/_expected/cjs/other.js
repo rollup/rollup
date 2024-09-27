@@ -2,6 +2,13 @@
 
 var other = require('./_virtual/other.js');
 
-other.__exports.value = 43;
+var hasRequiredOther;
 
-module.exports = other.__exports;
+function requireOther () {
+	if (hasRequiredOther) return other.__exports;
+	hasRequiredOther = 1;
+	other.__exports.value = 43;
+	return other.__exports;
+}
+
+exports.__require = requireOther;

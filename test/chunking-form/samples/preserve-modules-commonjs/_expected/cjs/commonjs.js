@@ -1,17 +1,21 @@
 'use strict';
 
-var _commonjsHelpers = require('./_virtual/_commonjsHelpers.js');
 var require$$0 = require('external');
-require('./other.js');
-var other = require('./_virtual/other.js');
+var other = require('./other.js');
 
-const external = require$$0;
-const { value } = other.__exports;
+var commonjs;
+var hasRequiredCommonjs;
 
-console.log(external, value);
+function requireCommonjs () {
+	if (hasRequiredCommonjs) return commonjs;
+	hasRequiredCommonjs = 1;
+	const external = require$$0;
+	const { value } = other.__require();
 
-var commonjs = 42;
+	console.log(external, value);
 
-var value$1 = /*@__PURE__*/_commonjsHelpers.getDefaultExportFromCjs(commonjs);
+	commonjs = 42;
+	return commonjs;
+}
 
-module.exports = value$1;
+exports.__require = requireCommonjs;

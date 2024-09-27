@@ -1,7 +1,11 @@
-import { getDefaultExportFromCjs } from './rollup_virtual/_commonjsHelpers.js';
+var main;
+var hasRequiredMain;
 
-var main = true;
+function requireMain () {
+	if (hasRequiredMain) return main;
+	hasRequiredMain = 1;
+	main = true;
+	return main;
+}
 
-var main$1 = /*@__PURE__*/getDefaultExportFromCjs(main);
-
-export { main$1 as default };
+export { requireMain as __require };

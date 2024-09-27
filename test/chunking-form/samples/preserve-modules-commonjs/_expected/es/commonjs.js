@@ -1,15 +1,19 @@
-import { getDefaultExportFromCjs } from './_virtual/_commonjsHelpers.js';
 import require$$0 from 'external';
-import './other.js';
-import { __exports as other } from './_virtual/other.js';
+import { __require as requireOther } from './other.js';
 
-const external = require$$0;
-const { value } = other;
+var commonjs;
+var hasRequiredCommonjs;
 
-console.log(external, value);
+function requireCommonjs () {
+	if (hasRequiredCommonjs) return commonjs;
+	hasRequiredCommonjs = 1;
+	const external = require$$0;
+	const { value } = requireOther();
 
-var commonjs = 42;
+	console.log(external, value);
 
-var value$1 = /*@__PURE__*/getDefaultExportFromCjs(commonjs);
+	commonjs = 42;
+	return commonjs;
+}
 
-export { value$1 as default };
+export { requireCommonjs as __require };

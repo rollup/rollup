@@ -1,4 +1,4 @@
-System.register(['./commonjs.js', 'external'], (function () {
+System.register(['./_virtual/commonjs.js', 'external'], (function () {
 	'use strict';
 	var value, require$$0;
 	return {
