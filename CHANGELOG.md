@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 4.22.5
+
+_2024-09-27_
+
+### Bug Fixes
+
+- Allow parsing of certain unicode characters again (#5674)
+
+### Pull Requests
+
+- [#5674](https://github.com/rollup/rollup/pull/5674): Fix panic with unicode characters (@sapphi-red, @lukastaegert)
+- [#5675](https://github.com/rollup/rollup/pull/5675): chore(deps): update dependency rollup to v4.22.4 [security] (@renovate[bot])
+- [#5680](https://github.com/rollup/rollup/pull/5680): chore(deps): update dependency @rollup/plugin-commonjs to v28 (@renovate[bot], @lukastaegert)
+- [#5681](https://github.com/rollup/rollup/pull/5681): chore(deps): update dependency @rollup/plugin-replace to v6 (@renovate[bot])
+- [#5682](https://github.com/rollup/rollup/pull/5682): chore(deps): update dependency @rollup/plugin-typescript to v12 (@renovate[bot])
+- [#5684](https://github.com/rollup/rollup/pull/5684): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+
 ## 4.22.4
 
 _2024-09-21_
