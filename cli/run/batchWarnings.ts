@@ -32,9 +32,9 @@ export default function batchWarnings(command: Record<string, any>): BatchWarnin
 		warningOccurred = true;
 
 		if (silent) return;
-		if (warning.code! in deferredHandlers) {
-			getOrCreate(deferredWarnings, warning.code!, getNewArray).push(warning);
-		} else if (warning.code! in immediateHandlers) {
+		if ((warning.code as string) in deferredHandlers) {
+			getOrCreate(deferredWarnings, warning.code, getNewArray).push(warning);
+		} else if ((warning.code as string) in immediateHandlers) {
 			immediateHandlers[warning.code!](warning);
 		} else {
 			title(warning.message);
