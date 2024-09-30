@@ -3,6 +3,8 @@ const assert = require('node:assert');
 module.exports = defineTest({
 	description: 'emits sourcemaps before generateBundle hook',
 	options: {
+		// TODO should be removed with next major as deprecated properties become non-enumerable
+		strictDeprecations: false,
 		plugins: [
 			{
 				name: 'test',
@@ -21,8 +23,10 @@ module.exports = main;
 					assert.deepStrictEqual(bundle['main.js.map'], {
 						fileName: 'main.js.map',
 						name: undefined,
+						names: [],
 						needsCodeReference: false,
 						originalFileName: null,
+						originalFileNames: [],
 						source:
 							'{"version":3,"file":"main.js","sources":["main.js"],"sourcesContent":["export default 42;\\n"],"names":[],"mappings":";;AAAA,WAAe,EAAE;;;;"}',
 						type: 'asset'

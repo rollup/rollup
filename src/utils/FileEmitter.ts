@@ -26,27 +26,57 @@ import {
 	logFileNameConflict,
 	logFileReferenceIdNotFoundForFilename,
 	logInvalidRollupPhaseForChunkEmission,
-	logNoAssetSourceSet
+	logNoAssetSourceSet,
+	warnDeprecation
 } from './logs';
 import type { OutputBundleWithPlaceholders } from './outputBundle';
 import { FILE_PLACEHOLDER, lowercaseBundleKeys } from './outputBundle';
 import { extname } from './path';
 import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
+import { URL_GENERATEBUNDLE } from './urls';
 
 function generateAssetFileName(
 	name: string | undefined,
+	names: string[],
 	source: string | Uint8Array,
 	originalFileName: string | null,
+	originalFileNames: string[],
 	sourceHash: string,
 	outputOptions: NormalizedOutputOptions,
-	bundle: OutputBundleWithPlaceholders
+	bundle: OutputBundleWithPlaceholders,
+	inputOptions: NormalizedInputOptions
 ): string {
 	const emittedName = outputOptions.sanitizeFileName(name || 'asset');
 	return makeUnique(
 		renderNamePattern(
 			typeof outputOptions.assetFileNames === 'function'
-				? outputOptions.assetFileNames({ name, originalFileName, source, type: 'asset' })
+				? outputOptions.assetFileNames({
+						// Additionally, this should be non-enumerable in the next major
+						get name() {
+							warnDeprecation(
+								'Accessing the "name" property of emitted assets when generating the file name is deprecated. Use the "names" property instead.',
+								URL_GENERATEBUNDLE,
+								false,
+								inputOptions
+							);
+							return name;
+						},
+						names,
+						// Additionally, this should be non-enumerable in the next major
+						get originalFileName() {
+							warnDeprecation(
+								'Accessing the "originalFileName" property of emitted assets when generating the file name is deprecated. Use the "originalFileNames" property instead.',
+								URL_GENERATEBUNDLE,
+								false,
+								inputOptions
+							);
+							return originalFileName;
+						},
+						originalFileNames,
+						source,
+						type: 'asset'
+					})
 				: outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
@@ -157,7 +187,7 @@ function getChunkFileName(
 
 interface FileEmitterOutput {
 	bundle: OutputBundleWithPlaceholders;
-	fileNamesBySource: Map<string, string>;
+	fileNamesBySourceHash: Map<string, string>;
 	outputOptions: NormalizedOutputOptions;
 	getHash: GetHash;
 }
@@ -262,7 +292,7 @@ export class FileEmitter {
 		const getHash = hasherByType[outputOptions.hashCharacters];
 		const output = (this.output = {
 			bundle,
-			fileNamesBySource: new Map<string, string>(),
+			fileNamesBySourceHash: new Map<string, string>(),
 			getHash,
 			outputOptions
 		});
@@ -451,24 +481,27 @@ export class FileEmitter {
 	private finalizeAdditionalAsset(
 		consumedFile: Readonly<ConsumedAsset>,
 		source: string | Uint8Array,
-		{ bundle, fileNamesBySource, getHash, outputOptions }: FileEmitterOutput
+		{ bundle, fileNamesBySourceHash, getHash, outputOptions }: FileEmitterOutput
 	): void {
-		let { fileName, needsCodeReference, originalFileName, referenceId } = consumedFile;
+		let { fileName, name, needsCodeReference, originalFileName, referenceId } = consumedFile;
 
 		// Deduplicate assets if an explicit fileName is not provided
 		if (!fileName) {
 			const sourceHash = getHash(source);
-			fileName = fileNamesBySource.get(sourceHash);
+			fileName = fileNamesBySourceHash.get(sourceHash);
 			if (!fileName) {
 				fileName = generateAssetFileName(
-					consumedFile.name,
+					name,
+					name ? [name] : [],
 					source,
 					originalFileName,
+					originalFileName ? [originalFileName] : [],
 					sourceHash,
 					outputOptions,
-					bundle
+					bundle,
+					this.options
 				);
-				fileNamesBySource.set(sourceHash, fileName);
+				fileNamesBySourceHash.set(sourceHash, fileName);
 			}
 		}
 
@@ -479,12 +512,39 @@ export class FileEmitter {
 		const existingAsset = bundle[fileName];
 		if (existingAsset?.type === 'asset') {
 			existingAsset.needsCodeReference &&= needsCodeReference;
+			if (name) {
+				existingAsset.names.push(name);
+			}
+			if (originalFileName) {
+				existingAsset.originalFileNames.push(originalFileName);
+			}
 		} else {
+			const { options } = this;
 			bundle[fileName] = {
 				fileName,
-				name: consumedFile.name,
+				get name() {
+					// Additionally, this should be non-enumerable in the next major
+					warnDeprecation(
+						'Accessing the "name" property of emitted assets in the bundle is deprecated. Use the "names" property instead.',
+						URL_GENERATEBUNDLE,
+						false,
+						options
+					);
+					return name;
+				},
+				names: name ? [name] : [],
 				needsCodeReference,
-				originalFileName,
+				get originalFileName() {
+					// Additionally, this should be non-enumerable in the next major
+					warnDeprecation(
+						'Accessing the "originalFileName" property of emitted assets in the bundle is deprecated. Use the "originalFileNames" property instead.',
+						URL_GENERATEBUNDLE,
+						false,
+						options
+					);
+					return originalFileName;
+				},
+				originalFileNames: originalFileName ? [originalFileName] : [],
 				source,
 				type: 'asset'
 			};
@@ -494,8 +554,9 @@ export class FileEmitter {
 	private finalizeAssetsWithSameSource(
 		consumedFiles: readonly ConsumedAsset[],
 		sourceHash: string,
-		{ bundle, fileNamesBySource, outputOptions }: FileEmitterOutput
+		{ bundle, fileNamesBySourceHash, outputOptions }: FileEmitterOutput
 	): void {
+		const { names, originalFileNames } = getNamesFromAssets(consumedFiles);
 		let fileName = '';
 		let usedConsumedFile: ConsumedAsset;
 		let needsCodeReference = true;
@@ -503,11 +564,14 @@ export class FileEmitter {
 			needsCodeReference &&= consumedFile.needsCodeReference;
 			const assetFileName = generateAssetFileName(
 				consumedFile.name,
+				names,
 				consumedFile.source!,
 				consumedFile.originalFileName,
+				originalFileNames,
 				sourceHash,
 				outputOptions,
-				bundle
+				bundle,
+				this.options
 			);
 			if (
 				!fileName ||
@@ -518,7 +582,7 @@ export class FileEmitter {
 				usedConsumedFile = consumedFile;
 			}
 		}
-		fileNamesBySource.set(sourceHash, fileName);
+		fileNamesBySourceHash.set(sourceHash, fileName);
 
 		for (const consumedFile of consumedFiles) {
 			// We must not modify the original assets to avoid interaction between outputs
@@ -526,13 +590,55 @@ export class FileEmitter {
 			this.filesByReferenceId.set(consumedFile.referenceId, assetWithFileName);
 		}
 
+		const { options } = this;
 		bundle[fileName] = {
 			fileName,
-			name: usedConsumedFile!.name,
+			get name() {
+				// Additionally, this should be non-enumerable in the next major
+				warnDeprecation(
+					'Accessing the "name" property of emitted assets in the bundle is deprecated. Use the "names" property instead.',
+					URL_GENERATEBUNDLE,
+					false,
+					options
+				);
+				return usedConsumedFile!.name;
+			},
+			names,
 			needsCodeReference,
-			originalFileName: usedConsumedFile!.originalFileName,
+			get originalFileName() {
+				// Additionally, this should be non-enumerable in the next major
+				warnDeprecation(
+					'Accessing the "originalFileName" property of emitted assets in the bundle is deprecated. Use the "originalFileNames" property instead.',
+					URL_GENERATEBUNDLE,
+					false,
+					options
+				);
+				return usedConsumedFile!.originalFileName;
+			},
+			originalFileNames,
 			source: usedConsumedFile!.source!,
 			type: 'asset'
 		};
 	}
+}
+
+function getNamesFromAssets(consumedFiles: readonly ConsumedAsset[]): {
+	names: string[];
+	originalFileNames: string[];
+} {
+	const names: string[] = [];
+	const originalFileNames: string[] = [];
+	for (const { name, originalFileName } of consumedFiles) {
+		if (typeof name === 'string') {
+			names.push(name);
+		}
+		if (originalFileName) {
+			originalFileNames.push(originalFileName);
+		}
+	}
+	originalFileNames.sort();
+	// Sort by length first and then alphabetically so that the order is stable
+	// and the shortest names come first
+	names.sort((a, b) => a.length - b.length || (a > b ? 1 : a === b ? 0 : -1));
+	return { names, originalFileNames };
 }

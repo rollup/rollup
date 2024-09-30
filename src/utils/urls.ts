@@ -41,6 +41,7 @@ export const URL_CONFIGURATION_FILES = 'command-line-interface/#configuration-fi
 
 // plugin-development
 export const URL_A_SIMPLE_EXAMPLE = 'plugin-development/#a-simple-example';
+export const URL_GENERATEBUNDLE = 'plugin-development/#generatebundle';
 export const URL_RENDERDYNAMICIMPORT = 'plugin-development/#renderdynamicimport';
 export const URL_THIS_GETMODULEIDS = 'plugin-development/#this-getmoduleids';
 export const URL_THIS_GETMODULEINFO = 'plugin-development/#this-getmoduleinfo';

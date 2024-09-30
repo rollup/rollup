@@ -140,6 +140,7 @@
     "@types/node": "^18.19.50",
     "@types/semver": "^7.5.8",
     "@types/yargs-parser": "^21.0.3",
+    "@vue/language-server": "^2.1.6",
     "acorn": "^8.12.1",
     "acorn-import-assertions": "^1.9.0",
     "buble": "^0.20.0",

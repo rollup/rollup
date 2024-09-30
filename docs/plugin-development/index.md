@@ -908,9 +908,9 @@ Cf. [`output.banner/output.footer`](../configuration-options/index.md#output-ban
 ```typescript
 interface OutputAsset {
 	fileName: string;
-	name: string | undefined;
+	names: string[];
 	needsCodeReference: boolean;
-	originalFileName: string | null;
+	originalFileNames: string[];
 	source: string | Uint8Array;
 	type: 'asset';
 }

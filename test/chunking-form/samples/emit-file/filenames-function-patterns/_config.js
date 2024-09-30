@@ -7,11 +7,19 @@ const ID_DEB = path.join(__dirname, 'deb.js');
 module.exports = defineTest({
 	description: 'supports using a function that returns a pattern for FileNames',
 	options: {
+		// TODO should be removed with next major as deprecated properties become non-enumerable
+		strictDeprecations: false,
 		input: ['main.js'],
 		plugins: {
 			name: 'test-plugin',
-			transform() {
-				this.emitFile({ type: 'asset', name: 'test.txt', source: 'hello world' });
+			transform(code, id) {
+				const baseName = path.basename(id);
+				this.emitFile({
+					type: 'asset',
+					name: `${baseName}.txt`,
+					originalFileName: baseName,
+					source: 'hello world'
+				});
 				return null;
 			}
 		},
@@ -34,11 +42,16 @@ module.exports = defineTest({
 				return `entry-[name]-[hash]-[format].js`;
 			},
 			assetFileNames: fileInfo => {
+				const originalFileName = fileInfo.originalFileName;
+				const originalFileNames = ['deb.js', 'main.js'];
+				assert.ok(originalFileNames.includes(originalFileName), 'original file name');
 				assert.deepStrictEqual(
 					fileInfo,
 					{
-						name: 'test.txt',
-						originalFileName: null,
+						name: `${originalFileName}.txt`,
+						names: ['deb.js.txt', 'main.js.txt'],
+						originalFileName,
+						originalFileNames,
 						source: 'hello world',
 						type: 'asset'
 					},
