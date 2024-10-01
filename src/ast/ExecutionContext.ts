@@ -20,7 +20,7 @@ interface ControlFlowContext {
 
 export interface InclusionContext extends ControlFlowContext {
 	includedCallArguments: Set<Entity>;
-	currentIncludedParameter?: ExpressionEntity;
+	currentIncludedParameter: Set<ExpressionEntity>;
 }
 
 export interface HasEffectsContext extends ControlFlowContext {
@@ -36,6 +36,7 @@ export interface HasEffectsContext extends ControlFlowContext {
 export function createInclusionContext(): InclusionContext {
 	return {
 		brokenFlow: false,
+		currentIncludedParameter: new Set(),
 		hasBreak: false,
 		hasContinue: false,
 		includedCallArguments: new Set(),

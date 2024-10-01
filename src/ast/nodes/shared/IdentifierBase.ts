@@ -11,6 +11,7 @@ import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../../NodeInteractions';
+import { hasOrAddIncludedPaths } from '../../utils/hasOrAddIncludedPaths';
 import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { EMPTY_PATH } from '../../utils/PathTracker';
 import GlobalVariable from '../../variables/GlobalVariable';
@@ -27,7 +28,7 @@ const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'awai
 export default class IdentifierBase extends NodeBase {
 	name!: string;
 	variable: Variable | null = null;
-	includedPaths!: ObjectPath[] | null;
+	includedPaths!: Set<ObjectPath> | null;
 	protected isVariableReference = false;
 
 	private get isTDZAccess(): boolean | null {
@@ -128,24 +129,12 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	private clearCachedIncludedPaths() {
-		this.includedPaths = null;
-	}
-
-	private hasOrAddIncludedPaths(path: ObjectPath) {
+	private hasOrAddIncludedPathss(path: ObjectPath) {
 		if (!this.includedPaths) {
-			this.includedPaths = [];
+			this.includedPaths = new Set([path]);
+			return false;
 		}
-		for (const includedPath of this.includedPaths) {
-			if (
-				path.length === includedPath.length &&
-				path.every((key, index) => key === includedPath[index])
-			) {
-				return true;
-			}
-		}
-		this.includedPaths.push(path);
-		return false;
+		return hasOrAddIncludedPaths(this.includedPaths, path);
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
@@ -156,11 +145,12 @@ export default class IdentifierBase extends NodeBase {
 				this.scope.context.includeVariableInModule(this.variable, path);
 			}
 		}
-		if (this.variable && path.length > 0 && !this.hasOrAddIncludedPaths(path)) {
+		if (
+			this.variable &&
+			path.length > 0 &&
+			(!this.hasOrAddIncludedPathss(path) || this.variable.kind === 'parameter')
+		) {
 			this.variable.includePath(path, context);
-			if (this.variable.kind === 'parameter') {
-				this.clearCachedIncludedPaths();
-			}
 		}
 	}
 

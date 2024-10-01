@@ -14,6 +14,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
+import { hasOrAddIncludedPaths } from '../utils/hasOrAddIncludedPaths';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
@@ -97,6 +98,21 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	private trackedArguments = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();
+	private trackedArgumentsIncludedPaths = new Map<ExpressionEntity, Set<ObjectPath>>();
+
+	private hasOrAddIncludedPathsToTrackedArguments(
+		trackedArgument: ExpressionEntity,
+		path: ObjectPath
+	) {
+		if (!this.trackedArgumentsIncludedPaths.has(trackedArgument)) {
+			this.trackedArgumentsIncludedPaths.set(trackedArgument, new Set([path]));
+			return false;
+		} else {
+			const includedPaths = this.trackedArgumentsIncludedPaths.get(trackedArgument)!;
+			return hasOrAddIncludedPaths(includedPaths, path);
+		}
+	}
+
 	private knownValue: ExpressionEntity | null = null;
 	private knownValueLiteral: LiteralValueOrUnknown = UnknownValue;
 	/**
@@ -187,22 +203,19 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (context.currentIncludedParameter !== this) {
+		if (!context.currentIncludedParameter.has(this)) {
+			context.currentIncludedParameter.add(this);
 			super.includePath(path, context);
 			if (path) {
 				for (const [trackedArgument, pathKeys] of this.trackedArguments) {
 					for (const pathKey of pathKeys) {
-						trackedArgument.includePath(
-							pathKey ? [pathKey, ...path] : path,
-							{
-								...context,
-								currentIncludedParameter: this
-							},
-							false
-						);
+						if (!this.hasOrAddIncludedPathsToTrackedArguments(trackedArgument, path)) {
+							trackedArgument.includePath(pathKey ? [pathKey, ...path] : path, context, false);
+						}
 					}
 				}
 			}
+			context.currentIncludedParameter.delete(this);
 		}
 	}
 
