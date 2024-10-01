@@ -40,8 +40,11 @@ module.exports = defineTest({
 					});
 				},
 				generateBundle(options, bundle) {
+					assert.strictEqual(bundle['with_original.txt'].name, 'with_original.txt');
 					assert.strictEqual(bundle['with_original.txt'].originalFileName, ORIGINAL_FILE_NAME);
+					assert.strictEqual(bundle['with_original_null.txt'].name, 'with_original_null.txt');
 					assert.strictEqual(bundle['with_original_null.txt'].originalFileName, null);
+					assert.strictEqual(bundle['without_original.txt'].name, 'without_original.txt');
 					assert.strictEqual(bundle['without_original.txt'].originalFileName, null);
 				}
 			}
