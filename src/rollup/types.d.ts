@@ -815,8 +815,12 @@ export type WarningHandlerWithDefault = (
 export type SerializedTimings = Record<string, [number, number, number]>;
 
 export interface PreRenderedAsset {
+	/** @deprecated Use "names" instead. */
 	name: string | undefined;
+	names: string[];
+	/** @deprecated Use "originalFileNames" instead. */
 	originalFileName: string | null;
+	originalFileNames: string[];
 	source: string | Uint8Array;
 	type: 'asset';
 }

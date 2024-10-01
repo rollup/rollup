@@ -86,14 +86,14 @@ function normaliseError(error) {
  * @param {RollupError} expected
  */
 exports.compareError = function compareError(actual, expected) {
-	if (actual.stack) {
-		assert.ok(actual.stack.includes(expected.message));
-	}
 	actual = normaliseError(actual);
 	if (expected.frame) {
 		expected.frame = deindent(expected.frame);
 	}
 	assert.deepEqual(actual, expected);
+	if (actual.stack) {
+		assert.ok(actual.stack.includes(expected.message));
+	}
 };
 
 /**

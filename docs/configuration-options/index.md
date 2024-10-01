@@ -574,8 +574,8 @@ See [`onLog`](#onlog) for more information.
 
 ```typescript
 interface PreRenderedAsset {
-	name: string | undefined;
-	originalFileName: string | null;
+	names: string[];
+	originalFileNames: string[];
 	source: string | Uint8Array;
 	type: 'asset';
 }
