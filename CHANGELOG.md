@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.23.0
+
+_2024-10-01_
+
+### Features
+
+- Collect all emitted names and originalFileNames for assets (#5686)
+
+### Pull Requests
+
+- [#5686](https://github.com/rollup/rollup/pull/5686): Add names and originalFileNames to assets (@lukastaegert)
+
 ## 4.22.5
 
 _2024-09-27_
