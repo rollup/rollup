@@ -125,7 +125,7 @@ const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
 		case 'automatic': {
 			return {
 				factory: factory || 'React.createElement',
-				importSource: importSource || null,
+				importSource: importSource || 'react',
 				jsxImportSource: configWithPreset.jsxImportSource || 'react/jsx-runtime',
 				mode: 'automatic'
 			};

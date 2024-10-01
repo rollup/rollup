@@ -11,10 +11,6 @@ export default class GlobalScope extends Scope {
 		this.variables.set('undefined', new UndefinedVariable());
 	}
 
-	findGlobal(name: string): Variable {
-		return this.findVariable(name);
-	}
-
 	findVariable(name: string): Variable {
 		let variable = this.variables.get(name);
 		if (!variable) {

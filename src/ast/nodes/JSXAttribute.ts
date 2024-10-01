@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
 import { stringifyObjectKeyIfNeeded } from '../../utils/identifierHelpers';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type JSXElement from './JSXElement';
@@ -15,13 +16,9 @@ export default class JSXAttribute extends NodeBase {
 	name!: JSXIdentifier | JSXNamespacedName;
 	value!: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
 
-	render(
-		code: MagicString,
-		options: RenderOptions,
-		{ jsxMode = 'preserve' }: NodeRenderOptions = {}
-	): void {
+	render(code: MagicString, options: RenderOptions, { jsxMode }: NodeRenderOptions = BLANK): void {
 		super.render(code, options);
-		if (jsxMode !== 'preserve') {
+		if ((['classic', 'automatic'] as (string | undefined)[]).includes(jsxMode)) {
 			const { name, value } = this;
 			const key =
 				name instanceof JSXIdentifier ? name.name : `${name.namespace.name}:${name.name.name}`;
