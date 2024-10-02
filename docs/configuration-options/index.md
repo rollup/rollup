@@ -206,7 +206,7 @@ type JsxOptions =
 
 Allows Rollup to process JSX syntax to either preserve or transform it depending on the [`jsx.mode`](#jsx-mode). If set to `false`, an error will be thrown if JSX syntax is encountered. You may also choose a preset that will set all options together:
 
-- `"react"`: For transpiling JSX to `React.createElement` calls, where `React` is the default import from `"react"`. This is the same as setting `"jsx": "react"` in the TypeScript compiler options.
+- `"react"`: For transpiling JSX to `React.createElement` calls, where `React` is the default import from `"react"`. This is similar to setting `"jsx": "react"` in TypeScript compiler options.
   ```js
   ({
   	mode: 'classic',
@@ -215,7 +215,7 @@ Allows Rollup to process JSX syntax to either preserve or transform it depending
   	importSource: 'react'
   });
   ```
-- `"react-jsx"`: This will use the new optimized React transformation introduced with React 17 and is similar to setting `"jsx": "react-jsx"` in the TypeScript compiler options.
+- `"react-jsx"`: This will use the new optimized React transformation introduced with React 17 and is similar to setting `"jsx": "react-jsx"` in TypeScript compiler options.
   ```js
   ({
   	mode: 'automatic',
@@ -233,7 +233,7 @@ Allows Rollup to process JSX syntax to either preserve or transform it depending
   	importSource: null
   });
   ```
-- `"preserve-react"`: This will preserve JSX in the output but ensure that the default export of `"react"` is in scope as the `React` variable.
+- `"preserve-react"`: This will preserve JSX in the output but ensure that the default export of `"react"` is in scope as a variable named `React`.
   ```js
   ({
   	mode: 'preserve',
@@ -276,7 +276,7 @@ This will determine how JSX is processed:
   console.log(/*#__PURE__*/ h('div', null, 'hello'));
   ```
 
-- `"automatic"`: This will perform a JSX transformation using the [new JSX transform](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html) introduced with React 17. In this mode, Rollup will try to use helpers from the [`jsx.jsxImportSource`](#jsx-jsximportsource) to transform JSX. As there are certain edge cases, this mode may still fall back to using the classic transformations when [using the `key` property together with spread attributes](https://github.com/facebook/react/issues/20031#issuecomment-710346866). To this end, you can still specify `jsx.importSource`, `jsx.factory`, and `jsx.fragment` to configure classic mode.
+- `"automatic"`: This will perform a JSX transformation using the [new JSX transform](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html) introduced with React 17. In this mode, Rollup will try to import helpers from [`jsx.jsxImportSource`](#jsx-jsximportsource) to transform JSX. As there are certain edge cases, this mode may still fall back to using the classic transformations when [using the `key` property together with spread attributes](https://github.com/facebook/react/issues/20031#issuecomment-710346866). To this end, you can still specify `jsx.importSource`, `jsx.factory`, and `jsx.fragment` to configure classic mode.
 
 #### jsx.factory
 
@@ -286,7 +286,7 @@ This will determine how JSX is processed:
 |     CLI: | `--jsx.factory <factory>`         |
 | Default: | `"React.createElement"` or `null` |
 
-The function Rollup uses to create JSX elements in `"classic"` mode or as a fallback in `"automatic"` mode. This is usually `React.createElement` for React or `h` for other frameworks. In `"preserve"` mode, this will ensure that the factory is present if a [`jsx.importSource`](#jsx-importsource) is specified, or otherwise not overridden by local variables. Only in `"preserve"` mode it is possible to set this value to `null`, in which case Rollup will not take care to keep any particular factory function in scope.
+The function Rollup uses to create JSX elements in `"classic"` mode or as a fallback in `"automatic"` mode. This is usually `React.createElement` for React or `h` for other frameworks. In `"preserve"` mode, this will ensure that the factory is in scope if [`jsx.importSource`](#jsx-importsource) is specified, or otherwise that a global variable of the same name would not be overridden by local variables. Only in `"preserve"` mode it is possible to set this value to `null`, in which case Rollup will not take care to keep any particular factory function in scope.
 
 If the value contains a `"."` like `React.createElement` and an `jsx.importSource` is specified, Rollup will assume that the left part, e.g. `React`, refers to the default export of the `jsx.importSource`. Otherwise, Rollup assumes it is a named export.
 
@@ -298,7 +298,7 @@ If the value contains a `"."` like `React.createElement` and an `jsx.importSourc
 |     CLI: | `--jsx.fragment <fragment>`  |
 | Default: | `"React.Fragment"` or `null` |
 
-The element function Rollup uses to create JSX fragments. This is usually `React.Fragment` for React or `Fragment` for other frameworks. In `"preserve"` mode, this will ensure that the fragment is present as an import if an [`jsx.importSource`](#jsx-importsource) is specified, or otherwise not overridden by local variables. Only in `"preserve"` mode it is possible to set this value to `null`, in which case Rollup will not take care to keep any particular fragment function in scope.
+The element function Rollup uses to create JSX fragments. This is usually `React.Fragment` for React or `Fragment` for other frameworks. In `"preserve"` mode, this will ensure that the fragment is in scope if [`jsx.importSource`](#jsx-importsource) is specified, or otherwise that a global variable of the same name would not be overridden by local variables. Only in `"preserve"` mode it is possible to set this value to `null`, in which case Rollup will not take care to keep any particular fragment function in scope.
 
 If the value contains a `"."` like `React.Fragment` and an `jsx.importSource` is specified, Rollup will assume that the left part, e.g. `React`, refers to the default export of the `jsx.importSource`. Otherwise, Rollup assumes it is a named export.
 
@@ -310,7 +310,7 @@ If the value contains a `"."` like `React.Fragment` and an `jsx.importSource` is
 |     CLI: | `--jsx.importSource <library>` |
 | Default: | `null`                         |
 
-Where to import the element factory function and/or the fragment element from. If left to `null`, Rollup will assume that `factory` and `fragment` refer to global variables and make sure they are not shadowed by local variables.
+Where to import the element factory function and/or the fragment element from. If left to `null`, Rollup will assume that [`jsx.factory`](#jsx-factory) and [`jsx.fragment`](#jsx-fragment) refer to global variables and makes sure they are not shadowed by local variables.
 
 #### jsx.jsxImportSource
 
