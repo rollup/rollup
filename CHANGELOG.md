@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.24.0
+
+_2024-10-02_
+
+### Features
+
+- Support preserving and transpiling JSX syntax (#5668)
+
+### Pull Requests
+
+- [#5668](https://github.com/rollup/rollup/pull/5668): Introduce JSX support (@lukastaegert, @Martin-Idel, @felixhuttmann, @AlexDroll, @tiptr)
+
 ## 4.23.0
 
 _2024-10-01_
