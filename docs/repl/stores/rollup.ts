@@ -117,6 +117,7 @@ export const useRollup = defineStore('rollup', () => {
 				instance
 			};
 		} catch (error) {
+			console.error(error);
 			loaded.value = {
 				error: error as Error,
 				instance: null
