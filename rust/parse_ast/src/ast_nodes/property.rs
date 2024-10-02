@@ -15,7 +15,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_property_flags;
 
 impl<'a> AstConverter<'a> {
-  pub fn convert_property(&mut self, property: &Prop) {
+  pub(crate) fn convert_property(&mut self, property: &Prop) {
     match property {
       Prop::Getter(getter_property) => self.convert_getter_property(getter_property),
       Prop::KeyValue(key_value_property) => self.convert_key_value_property(key_value_property),
@@ -26,7 +26,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_assignment_pattern_property(
+  pub(crate) fn convert_assignment_pattern_property(
     &mut self,
     assignment_pattern_property: &AssignPatProp,
   ) {
@@ -37,7 +37,7 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  pub fn convert_key_value_pattern_property(
+  pub(crate) fn convert_key_value_pattern_property(
     &mut self,
     key_value_pattern_property: &KeyValuePatProp,
   ) {
@@ -242,7 +242,7 @@ impl<'a> AstConverter<'a> {
 }
 
 #[derive(Spanned)]
-pub enum PatternOrExpression<'a> {
+pub(crate) enum PatternOrExpression<'a> {
   Pattern(&'a Pat),
   Expression(&'a Expr),
 }

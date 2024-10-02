@@ -17,7 +17,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_method_definition_flags;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_method_definition(
+  pub(crate) fn store_method_definition(
     &mut self,
     span: &Span,
     kind: &MethodKind,
@@ -81,7 +81,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_constructor(&mut self, constructor: &Constructor) {
+  pub(crate) fn convert_constructor(&mut self, constructor: &Constructor) {
     let end_position = self.add_type_and_start(
       &TYPE_METHOD_DEFINITION,
       &constructor.span,
@@ -130,7 +130,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &constructor.span);
   }
 
-  pub fn convert_method(&mut self, method: &ClassMethod) {
+  pub(crate) fn convert_method(&mut self, method: &ClassMethod) {
     self.store_method_definition(
       &method.span,
       &method.kind,
@@ -141,7 +141,7 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  pub fn convert_private_method(&mut self, private_method: &PrivateMethod) {
+  pub(crate) fn convert_private_method(&mut self, private_method: &PrivateMethod) {
     self.store_method_definition(
       &private_method.span,
       &private_method.kind,
@@ -153,7 +153,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum PropOrPrivateName<'a> {
+pub(crate) enum PropOrPrivateName<'a> {
   PropName(&'a PropName),
   PrivateName(&'a PrivateName),
 }

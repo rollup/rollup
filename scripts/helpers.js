@@ -99,11 +99,14 @@ export function lintRustFile(file) {
 }
 
 /**
+ * Replace the first letters with lowercase while maintaining camel casing
  * @param {string} string
  * @returns {string}
  */
-export function firstLetterLowercase(string) {
-	return string[0].toLowerCase() + string.slice(1);
+export function firstLettersLowercase(string) {
+	return string.replace(/^[A-Z]+/, match =>
+		match.length === 1 ? match.toLowerCase() : match.slice(0, -1).toLowerCase() + match.slice(-1)
+	);
 }
 
 /**
@@ -111,7 +114,7 @@ export function firstLetterLowercase(string) {
  * @returns {string}
  */
 export function toSnakeCase(string) {
-	return string.replace(/(?<!^)([A-Z])/g, '_$1').toLowerCase();
+	return string.replace(/(?<!^)([A-Z])([a-z])/g, '_$1$2').toLowerCase();
 }
 
 /**
@@ -119,7 +122,7 @@ export function toSnakeCase(string) {
  * @returns {string}
  */
 export function toScreamingSnakeCase(string) {
-	return string.replace(/(?<!^)([A-Z])/g, '_$1').toUpperCase();
+	return string.replace(/(?<!^)([A-Z])([a-z])/g, '_$1$2').toUpperCase();
 }
 
 /**

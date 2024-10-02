@@ -1,9 +1,6 @@
 {
-	"title": "Named exports",
+	"title": "Tree-shaking",
 	"options": {
-		"output": {
-			"exports": "auto",
-			"esModule": "if-default-prop"
-		}
+		"treeshake": true
 	}
 }

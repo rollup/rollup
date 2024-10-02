@@ -10,7 +10,7 @@ use crate::convert_ast::converter::{convert_annotation, AstConverter};
 use crate::store_call_expression_flags;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_call_expression(
+  pub(crate) fn store_call_expression(
     &mut self,
     span: &Span,
     is_optional: bool,
@@ -70,7 +70,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_optional_call(
+  pub(crate) fn convert_optional_call(
     &mut self,
     optional_call: &OptCall,
     is_optional: bool,
@@ -86,7 +86,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum StoredCallee<'a> {
+pub(crate) enum StoredCallee<'a> {
   Expression(&'a Expr),
   Super(&'a Super),
 }

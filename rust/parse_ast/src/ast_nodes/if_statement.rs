@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_if_statement;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_if_statement(&mut self, if_statement: &IfStmt) {
+  pub(crate) fn store_if_statement(&mut self, if_statement: &IfStmt) {
     store_if_statement!(
       self,
       span => &if_statement.span,

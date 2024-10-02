@@ -7,7 +7,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_try_statement(&mut self, try_statement: &TryStmt) {
+  pub(crate) fn store_try_statement(&mut self, try_statement: &TryStmt) {
     let end_position = self.add_type_and_start(
       &TYPE_TRY_STATEMENT,
       &try_statement.span,

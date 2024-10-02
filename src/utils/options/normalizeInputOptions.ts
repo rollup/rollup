@@ -11,10 +11,11 @@ import { getLogger } from '../logger';
 import { LOGLEVEL_INFO } from '../logging';
 import { error, logInvalidOption } from '../logs';
 import { resolve } from '../path';
-import { URL_TREESHAKE, URL_TREESHAKE_MODULESIDEEFFECTS } from '../urls';
+import { URL_JSX, URL_TREESHAKE, URL_TREESHAKE_MODULESIDEEFFECTS } from '../urls';
 import {
 	getOnLog,
 	getOptionWithPreset,
+	jsxPresets,
 	normalizePluginOption,
 	treeshakePresets,
 	warnUnknownOptions
@@ -50,6 +51,7 @@ export async function normalizeInputOptions(
 		experimentalLogSideEffects: config.experimentalLogSideEffects || false,
 		external: getIdMatcher(config.external),
 		input: getInput(config),
+		jsx: getJsx(config),
 		logLevel,
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? 'ifRelativeSource',
 		maxParallelFileOps,
@@ -112,6 +114,59 @@ const getIdMatcher = <T extends any[]>(
 const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {
 	const configInput = config.input;
 	return configInput == null ? [] : typeof configInput === 'string' ? [configInput] : configInput;
+};
+
+const getJsx = (config: InputOptions): NormalizedInputOptions['jsx'] => {
+	const configJsx = config.jsx;
+	if (!configJsx) return false;
+	const configWithPreset = getOptionWithPreset(configJsx, jsxPresets, 'jsx', URL_JSX, 'false, ');
+	const { factory, importSource, mode } = configWithPreset;
+	switch (mode) {
+		case 'automatic': {
+			return {
+				factory: factory || 'React.createElement',
+				importSource: importSource || 'react',
+				jsxImportSource: configWithPreset.jsxImportSource || 'react/jsx-runtime',
+				mode: 'automatic'
+			};
+		}
+		case 'preserve': {
+			if (importSource && !(factory || configWithPreset.fragment)) {
+				error(
+					logInvalidOption(
+						'jsx',
+						URL_JSX,
+						'when preserving JSX and specifying an importSource, you also need to specify a factory or fragment'
+					)
+				);
+			}
+			return {
+				factory: factory || null,
+				fragment: configWithPreset.fragment || null,
+				importSource: importSource || null,
+				mode: 'preserve'
+			};
+		}
+		// case 'classic':
+		default: {
+			if (mode && mode !== 'classic') {
+				error(
+					logInvalidOption(
+						'jsx.mode',
+						URL_JSX,
+						'mode must be "automatic", "classic" or "preserve"',
+						mode
+					)
+				);
+			}
+			return {
+				factory: factory || 'React.createElement',
+				fragment: configWithPreset.fragment || 'React.Fragment',
+				importSource: importSource || null,
+				mode: 'classic'
+			};
+		}
+	}
 };
 
 const getMaxParallelFileOps = (

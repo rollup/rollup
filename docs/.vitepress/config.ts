@@ -7,6 +7,7 @@ import replaceBrowserModules from '../../build-plugins/replace-browser-modules';
 import '../declarations.d';
 import { examplesPlugin } from './create-examples';
 import { renderMermaidGraphsPlugin } from './mermaid';
+import { replacePathPicomatch } from './replace-path-picomatch';
 import { transposeTables } from './transpose-tables';
 import { buildEnd, callback, transformPageData } from './verify-anchors';
 
@@ -157,7 +158,10 @@ export default defineConfig({
 	title: 'Rollup',
 	transformPageData,
 	vite: {
+		optimizeDeps: { exclude: ['@rollup/pluginutils'] },
 		plugins: [
+			replacePathPicomatch(),
+			replaceBrowserModules(),
 			renderMermaidGraphsPlugin(),
 			replaceBrowserModules(),
 			{

@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_object_expression;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_object_expression(&mut self, object_literal: &ObjectLit) {
+  pub(crate) fn store_object_expression(&mut self, object_literal: &ObjectLit) {
     store_object_expression!(
       self,
       span => &object_literal.span,

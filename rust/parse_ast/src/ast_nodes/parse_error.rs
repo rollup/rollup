@@ -3,7 +3,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::update_reference_position;
 
-pub fn get_parse_error_buffer(error_buffer: &[u8], utf_16_pos: &u32) -> Vec<u8> {
+pub(crate) fn get_parse_error_buffer(error_buffer: &[u8], utf_16_pos: &u32) -> Vec<u8> {
   // type
   let mut buffer = TYPE_PARSE_ERROR.to_vec();
   // start

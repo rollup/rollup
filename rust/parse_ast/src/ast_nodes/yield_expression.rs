@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::{store_yield_expression, store_yield_expression_flags};
 
 impl<'a> AstConverter<'a> {
-  pub fn store_yield_expression(&mut self, yield_expression: &YieldExpr) {
+  pub(crate) fn store_yield_expression(&mut self, yield_expression: &YieldExpr) {
     store_yield_expression!(
       self,
       span => yield_expression.span,

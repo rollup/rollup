@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_switch_case;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_switch_case(&mut self, switch_case: &SwitchCase) {
+  pub(crate) fn store_switch_case(&mut self, switch_case: &SwitchCase) {
     store_switch_case!(
       self,
       span => &switch_case.span,

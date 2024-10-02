@@ -1,7 +1,8 @@
 use swc_common::Span;
 use swc_ecma_ast::{
   AssignTarget, AssignTargetPat, CallExpr, Callee, ClassMember, Decl, ExportSpecifier, Expr,
-  ExprOrSpread, ForHead, ImportSpecifier, Lit, ModuleDecl, ModuleExportName, ModuleItem,
+  ExprOrSpread, ForHead, ImportSpecifier, JSXAttrName, JSXAttrOrSpread, JSXAttrValue,
+  JSXElementChild, JSXElementName, JSXObject, Lit, ModuleDecl, ModuleExportName, ModuleItem,
   NamedExport, ObjectPatProp, OptChainBase, ParenExpr, Pat, Program, PropName, PropOrSpread,
   SimpleAssignTarget, Stmt, VarDeclOrExpr,
 };
@@ -20,20 +21,20 @@ use crate::convert_ast::converter::utf16_positions::{
 };
 
 pub(crate) mod analyze_code;
-pub mod string_constants;
+pub(crate) mod string_constants;
 mod utf16_positions;
 
-pub mod ast_constants;
+pub(crate) mod ast_constants;
 mod ast_macros;
 
-pub struct AstConverter<'a> {
-  pub buffer: Vec<u8>,
-  pub code: &'a [u8],
-  pub index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
+pub(crate) struct AstConverter<'a> {
+  pub(crate) buffer: Vec<u8>,
+  pub(crate) code: &'a [u8],
+  pub(crate) index_converter: Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a>,
 }
 
 impl<'a> AstConverter<'a> {
-  pub fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
+  pub(crate) fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
     Self {
       // This is just a wild guess and should be revisited from time to time
       buffer: Vec::with_capacity(20 * code.len()),
@@ -42,14 +43,14 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
+  pub(crate) fn convert_ast_to_buffer(mut self, node: &Program) -> Vec<u8> {
     self.convert_program(node);
     self.buffer.shrink_to_fit();
     self.buffer
   }
 
   // === helpers
-  pub fn add_type_and_start(
+  pub(crate) fn add_type_and_start(
     &mut self,
     node_type: &[u8; 4],
     span: &Span,
@@ -89,7 +90,7 @@ impl<'a> AstConverter<'a> {
     end_position
   }
 
-  pub fn add_end(&mut self, end_position: usize, span: &Span) {
+  pub(crate) fn add_end(&mut self, end_position: usize, span: &Span) {
     self.buffer[end_position..end_position + 4].copy_from_slice(
       &self
         .index_converter
@@ -103,7 +104,7 @@ impl<'a> AstConverter<'a> {
       .copy_from_slice(&self.index_converter.convert(end, false).to_ne_bytes());
   }
 
-  pub fn convert_item_list<T, F>(
+  pub(crate) fn convert_item_list<T, F>(
     &mut self,
     item_list: &[T],
     reference_position: usize,
@@ -135,7 +136,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_item_list_with_state<T, S, F>(
+  pub(crate) fn convert_item_list_with_state<T, S, F>(
     &mut self,
     item_list: &[T],
     state: &mut S,
@@ -174,14 +175,14 @@ impl<'a> AstConverter<'a> {
     convert_string(&mut self.buffer, string);
   }
 
-  pub fn update_reference_position(&mut self, reference_position: usize) {
+  pub(crate) fn update_reference_position(&mut self, reference_position: usize) {
     let insert_position = (self.buffer.len() as u32) >> 2;
     self.buffer[reference_position..reference_position + 4]
       .copy_from_slice(&insert_position.to_ne_bytes());
   }
 
   // === shared enums
-  pub fn convert_call_expression(
+  pub(crate) fn convert_call_expression(
     &mut self,
     call_expression: &CallExpr,
     is_optional: bool,
@@ -275,7 +276,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_expression(&mut self, expression: &Expr) {
+  pub(crate) fn convert_expression(&mut self, expression: &Expr) {
     match expression {
       Expr::Array(array_literal) => {
         self.store_array_expression(array_literal);
@@ -362,8 +363,12 @@ impl<'a> AstConverter<'a> {
       Expr::JSXMember(_) => unimplemented!("Cannot convert Expr::JSXMember"),
       Expr::JSXNamespacedName(_) => unimplemented!("Cannot convert Expr::JSXNamespacedName"),
       Expr::JSXEmpty(_) => unimplemented!("Cannot convert Expr::JSXEmpty"),
-      Expr::JSXElement(_) => unimplemented!("Cannot convert Expr::JSXElement"),
-      Expr::JSXFragment(_) => unimplemented!("Cannot convert Expr::JSXFragment"),
+      Expr::JSXElement(jsx_element) => {
+        self.store_jsx_element(jsx_element);
+      }
+      Expr::JSXFragment(jsx_fragment) => {
+        self.store_jsx_fragment(jsx_fragment);
+      }
       Expr::TsTypeAssertion(_) => unimplemented!("Cannot convert Expr::TsTypeAssertion"),
       Expr::TsConstAssertion(_) => unimplemented!("Cannot convert Expr::TsConstAssertion"),
       Expr::TsNonNull(_) => unimplemented!("Cannot convert Expr::TsNonNull"),
@@ -374,7 +379,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
+  pub(crate) fn convert_expression_or_spread(&mut self, expression_or_spread: &ExprOrSpread) {
     match expression_or_spread.spread {
       Some(spread_span) => self.store_spread_element(&spread_span, &expression_or_spread.expr),
       None => {
@@ -411,6 +416,88 @@ impl<'a> AstConverter<'a> {
     }
   }
 
+  pub(crate) fn convert_jsx_attribute_name(&mut self, jsx_attribute_name: &JSXAttrName) {
+    match jsx_attribute_name {
+      JSXAttrName::Ident(identifier) => {
+        self.store_jsx_identifier(&identifier.span, &identifier.sym);
+      }
+      JSXAttrName::JSXNamespacedName(jsx_namespaced_name) => {
+        self.store_jsx_namespaced_name(jsx_namespaced_name);
+      }
+    }
+  }
+
+  pub(crate) fn convert_jsx_attribute_or_spread(
+    &mut self,
+    jsx_attribute_or_spread: &JSXAttrOrSpread,
+    previous_element_end: u32,
+  ) {
+    match jsx_attribute_or_spread {
+      JSXAttrOrSpread::JSXAttr(jsx_attribute) => {
+        self.store_jsx_attribute(jsx_attribute);
+      }
+      JSXAttrOrSpread::SpreadElement(spread_element) => {
+        self.store_jsx_spread_attribute(spread_element, previous_element_end);
+      }
+    }
+  }
+
+  pub(crate) fn convert_jsx_attribute_value(&mut self, jsx_attribute_value: &JSXAttrValue) {
+    match jsx_attribute_value {
+      JSXAttrValue::Lit(literal) => self.convert_literal(literal),
+      JSXAttrValue::JSXExprContainer(expression_container) => {
+        self.store_jsx_expression_container(expression_container)
+      }
+      JSXAttrValue::JSXElement(jsx_element) => self.store_jsx_element(jsx_element),
+      JSXAttrValue::JSXFragment(jsx_fragment) => self.store_jsx_fragment(jsx_fragment),
+    }
+  }
+
+  pub(crate) fn convert_jsx_element_child(&mut self, jsx_element_child: &JSXElementChild) {
+    match jsx_element_child {
+      JSXElementChild::JSXText(jsx_text) => {
+        self.store_jsx_text(jsx_text);
+      }
+      JSXElementChild::JSXExprContainer(jsx_expr_container) => {
+        self.store_jsx_expression_container(jsx_expr_container);
+      }
+      JSXElementChild::JSXSpreadChild(jsx_spread_child) => {
+        self.store_jsx_spread_child(jsx_spread_child);
+      }
+      JSXElementChild::JSXFragment(jsx_fragment) => {
+        self.store_jsx_fragment(jsx_fragment);
+      }
+      JSXElementChild::JSXElement(jsx_element) => {
+        self.store_jsx_element(jsx_element);
+      }
+    }
+  }
+
+  pub(crate) fn convert_jsx_element_name(&mut self, jsx_element_name: &JSXElementName) {
+    match jsx_element_name {
+      JSXElementName::Ident(identifier) => {
+        self.store_jsx_identifier(&identifier.span, &identifier.sym)
+      }
+      JSXElementName::JSXMemberExpr(jsx_member_expression) => {
+        self.store_jsx_member_expression(jsx_member_expression);
+      }
+      JSXElementName::JSXNamespacedName(_jsx_namespaced_name) => {
+        unimplemented!("JSXElementName::JSXNamespacedName")
+      }
+    }
+  }
+
+  pub(crate) fn convert_jsx_object(&mut self, jsx_object: &JSXObject) {
+    match jsx_object {
+      JSXObject::JSXMemberExpr(jsx_member_expression) => {
+        self.store_jsx_member_expression(jsx_member_expression);
+      }
+      JSXObject::Ident(identifier) => {
+        self.store_jsx_identifier(&identifier.span, &identifier.sym);
+      }
+    }
+  }
+
   fn convert_literal(&mut self, literal: &Lit) {
     match literal {
       Lit::BigInt(bigint_literal) => self.store_literal_bigint(bigint_literal),
@@ -429,7 +516,7 @@ impl<'a> AstConverter<'a> {
       Lit::Str(string_literal) => {
         self.store_literal_string(string_literal);
       }
-      Lit::JSXText(_) => unimplemented!("Lit::JSXText"),
+      Lit::JSXText(_) => unimplemented!("Lit::JsxText"),
     }
   }
 
@@ -515,7 +602,7 @@ impl<'a> AstConverter<'a> {
     self.convert_expression(&parenthesized_expression.expr);
   }
 
-  pub fn convert_pattern(&mut self, pattern: &Pat) {
+  pub(crate) fn convert_pattern(&mut self, pattern: &Pat) {
     match pattern {
       Pat::Array(array_pattern) => {
         self.store_array_pattern(array_pattern);
@@ -537,7 +624,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_pattern_or_expression(&mut self, pattern_or_expression: &AssignTarget) {
+  pub(crate) fn convert_pattern_or_expression(&mut self, pattern_or_expression: &AssignTarget) {
     match pattern_or_expression {
       AssignTarget::Pat(assignment_target_pattern) => {
         self.convert_assignment_target_pattern(assignment_target_pattern);
@@ -617,7 +704,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_statement(&mut self, statement: &Stmt) {
+  pub(crate) fn convert_statement(&mut self, statement: &Stmt) {
     match statement {
       Stmt::Break(break_statement) => self.store_break_statement(break_statement),
       Stmt::Block(block_statement) => self.store_block_statement(block_statement, false),
@@ -656,7 +743,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation) {
+pub(crate) fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation) {
   // start
   buffer.extend_from_slice(&annotation.start.to_ne_bytes());
   // end
@@ -669,7 +756,7 @@ pub fn convert_annotation(buffer: &mut Vec<u8>, annotation: &ConvertedAnnotation
   });
 }
 
-pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
+pub(crate) fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   let length = string.len();
   let additional_length = ((length + 3) & !3) - length;
   buffer.extend_from_slice(&(length as u32).to_ne_bytes());
@@ -677,7 +764,7 @@ pub fn convert_string(buffer: &mut Vec<u8>, string: &str) {
   buffer.resize(buffer.len() + additional_length, 0);
 }
 
-pub fn update_reference_position(buffer: &mut [u8], reference_position: usize) {
+pub(crate) fn update_reference_position(buffer: &mut [u8], reference_position: usize) {
   let insert_position = (buffer.len() as u32) >> 2;
   buffer[reference_position..reference_position + 4]
     .copy_from_slice(&insert_position.to_ne_bytes());

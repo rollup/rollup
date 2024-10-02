@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_rest_element(&mut self, rest_pattern: &RestPat) {
+  pub(crate) fn store_rest_element(&mut self, rest_pattern: &RestPat) {
     let end_position = self.add_type_and_start(
       &TYPE_REST_ELEMENT,
       &rest_pattern.dot3_token,

@@ -4,7 +4,7 @@ use std::str::Chars;
 use crate::convert_ast::annotations::CommentKind::Annotation;
 use crate::convert_ast::annotations::{AnnotationKind, AnnotationWithType};
 
-pub struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
+pub(crate) struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   current_utf8_index: u32,
   current_utf16_index: u32,
   character_iterator: Chars<'a>,
@@ -17,14 +17,14 @@ pub struct Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
 }
 
 #[derive(Debug)]
-pub struct ConvertedAnnotation {
-  pub start: u32,
-  pub end: u32,
-  pub kind: AnnotationKind,
+pub(crate) struct ConvertedAnnotation {
+  pub(crate) start: u32,
+  pub(crate) end: u32,
+  pub(crate) kind: AnnotationKind,
 }
 
 impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
-  pub fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
+  pub(crate) fn new(code: &'a str, annotations: &'a [AnnotationWithType]) -> Self {
     let mut annotation_iterator = annotations.iter();
     let current_annotation = annotation_iterator.next();
     Self {
@@ -62,7 +62,7 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
   ///   non-whitespace from the annotation, `keep_annotations_for_next` will
   ///   prevent annotations from being invalidated when the next position is
   ///   converted.
-  pub fn convert(&mut self, utf8_index: u32, keep_annotations_for_next: bool) -> u32 {
+  pub(crate) fn convert(&mut self, utf8_index: u32, keep_annotations_for_next: bool) -> u32 {
     if self.current_utf8_index > utf8_index {
       panic!(
         "Cannot convert positions backwards: {} < {}",
@@ -108,7 +108,10 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     self.current_utf16_index
   }
 
-  pub fn take_collected_annotations(&mut self, kind: AnnotationKind) -> Vec<ConvertedAnnotation> {
+  pub(crate) fn take_collected_annotations(
+    &mut self,
+    kind: AnnotationKind,
+  ) -> Vec<ConvertedAnnotation> {
     let mut relevant_annotations = Vec::new();
     for annotation in self.collected_annotations.drain(..) {
       if annotation.kind == kind {
@@ -120,18 +123,18 @@ impl<'a> Utf8ToUtf16ByteIndexConverterAndAnnotationHandler<'a> {
     relevant_annotations
   }
 
-  pub fn add_collected_annotations(&mut self, annotations: Vec<ConvertedAnnotation>) {
+  pub(crate) fn add_collected_annotations(&mut self, annotations: Vec<ConvertedAnnotation>) {
     self.collected_annotations.extend(annotations);
     self.keep_annotations = true;
   }
 
-  pub fn invalidate_collected_annotations(&mut self) {
+  pub(crate) fn invalidate_collected_annotations(&mut self) {
     self
       .invalid_annotations
       .append(&mut self.collected_annotations);
   }
 
-  pub fn take_invalid_annotations(&mut self) -> Vec<ConvertedAnnotation> {
+  pub(crate) fn take_invalid_annotations(&mut self) -> Vec<ConvertedAnnotation> {
     std::mem::take(&mut self.invalid_annotations)
   }
 }

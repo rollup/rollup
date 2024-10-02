@@ -40,6 +40,21 @@ import ImportDefaultSpecifier from './ImportDefaultSpecifier';
 import ImportExpression from './ImportExpression';
 import ImportNamespaceSpecifier from './ImportNamespaceSpecifier';
 import ImportSpecifier from './ImportSpecifier';
+import JSXAttribute from './JSXAttribute';
+import JSXClosingElement from './JSXClosingElement';
+import JSXClosingFragment from './JSXClosingFragment';
+import JSXElement from './JSXElement';
+import JSXEmptyExpression from './JSXEmptyExpression';
+import JSXExpressionContainer from './JSXExpressionContainer';
+import JSXFragment from './JSXFragment';
+import JSXIdentifier from './JSXIdentifier';
+import JSXMemberExpression from './JSXMemberExpression';
+import JSXNamespacedName from './JSXNamespacedName';
+import JSXOpeningElement from './JSXOpeningElement';
+import JSXOpeningFragment from './JSXOpeningFragment';
+import JSXSpreadAttribute from './JSXSpreadAttribute';
+import JSXSpreadChild from './JSXSpreadChild';
+import JSXText from './JSXText';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
@@ -118,6 +133,21 @@ export const nodeConstructors: Record<string, typeof NodeBase> = {
 	ImportExpression,
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
+	JSXAttribute,
+	JSXClosingElement,
+	JSXClosingFragment,
+	JSXElement,
+	JSXEmptyExpression,
+	JSXExpressionContainer,
+	JSXFragment,
+	JSXIdentifier,
+	JSXMemberExpression,
+	JSXNamespacedName,
+	JSXOpeningElement,
+	JSXOpeningFragment,
+	JSXSpreadAttribute,
+	JSXSpreadChild,
+	JSXText,
 	LabeledStatement,
 	Literal,
 	LogicalExpression,

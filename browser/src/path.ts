@@ -85,3 +85,7 @@ export function resolve(...paths: string[]): string {
 
 	return resolvedParts.join('/');
 }
+
+// Used for running the browser build locally in Vite
+export const win32 = {};
+export const posix = {};

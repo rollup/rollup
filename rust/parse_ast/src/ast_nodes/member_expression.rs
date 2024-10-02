@@ -12,7 +12,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_member_expression_flags;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_member_expression(
+  pub(crate) fn store_member_expression(
     &mut self,
     span: &Span,
     is_optional: bool,
@@ -63,7 +63,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_member_expression(
+  pub(crate) fn convert_member_expression(
     &mut self,
     member_expression: &MemberExpr,
     is_optional: bool,
@@ -82,7 +82,7 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  pub fn convert_super_property(&mut self, super_property: &SuperPropExpr) {
+  pub(crate) fn convert_super_property(&mut self, super_property: &SuperPropExpr) {
     self.store_member_expression(
       &super_property.span,
       false,
@@ -98,13 +98,13 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum MemberOrSuperProp<'a> {
+pub(crate) enum MemberOrSuperProp<'a> {
   Identifier(&'a IdentName),
   PrivateName(&'a PrivateName),
   Computed(&'a ComputedPropName),
 }
 
-pub enum ExpressionOrSuper<'a> {
+pub(crate) enum ExpressionOrSuper<'a> {
   Expression(&'a Expr),
   Super(&'a Super),
 }

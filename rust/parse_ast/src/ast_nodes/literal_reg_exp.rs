@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_literal_reg_exp;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_literal_regex(&mut self, regex: &Regex) {
+  pub(crate) fn store_literal_regex(&mut self, regex: &Regex) {
     store_literal_reg_exp!(
       self,
       span => &regex.span,

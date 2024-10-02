@@ -18,6 +18,7 @@ import {
 	URL_AVOIDING_EVAL,
 	URL_BUNDLE_CONFIG_AS_CJS,
 	URL_CONFIGURATION_FILES,
+	URL_JSX,
 	URL_NAME_IS_NOT_EXPORTED,
 	URL_OUTPUT_DIR,
 	URL_OUTPUT_EXPORTS,
@@ -154,6 +155,7 @@ const ADDON_ERROR = 'ADDON_ERROR',
 	MISSING_EXTERNAL_CONFIG = 'MISSING_EXTERNAL_CONFIG',
 	MISSING_GLOBAL_NAME = 'MISSING_GLOBAL_NAME',
 	MISSING_IMPLICIT_DEPENDANT = 'MISSING_IMPLICIT_DEPENDANT',
+	MISSING_JSX_EXPORT = 'MISSING_JSX_EXPORT',
 	MISSING_NAME_OPTION_FOR_IIFE_EXPORT = 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
 	MISSING_NODE_BUILTINS = 'MISSING_NODE_BUILTINS',
 	MISSING_OPTION = 'MISSING_OPTION',
@@ -767,6 +769,17 @@ export function logImplicitDependantIsNotIncluded(module: Module): RollupLog {
 		)}" that should be implicitly loaded before ${printQuotedStringList(
 			implicitDependencies
 		)} is not included in the module graph. Either it was not imported by an included module or only via a tree-shaken dynamic import, or no imported bindings were used and it had otherwise no side-effects.`
+	};
+}
+
+export function logMissingJsxExport(name: string, exporter: string, importer: string): RollupLog {
+	return {
+		code: MISSING_JSX_EXPORT,
+		exporter,
+		id: importer,
+		message: `Export "${name}" is not defined in module "${relativeId(exporter)}" even though it is needed in "${relativeId(importer)}" to provide JSX syntax. Please check your "jsx" option.`,
+		names: [name],
+		url: getRollupUrl(URL_JSX)
 	};
 }
 

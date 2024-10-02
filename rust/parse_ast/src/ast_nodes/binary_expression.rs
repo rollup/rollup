@@ -14,7 +14,7 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_binary_expression(&mut self, binary_expression: &BinExpr) {
+  pub(crate) fn store_binary_expression(&mut self, binary_expression: &BinExpr) {
     let end_position = self.add_type_and_start(
       match binary_expression.op {
         BinaryOp::LogicalOr | BinaryOp::LogicalAnd | BinaryOp::NullishCoalescing => {

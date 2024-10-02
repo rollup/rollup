@@ -7,7 +7,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_unary_expression;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_unary_expression(&mut self, unary_expression: &UnaryExpr) {
+  pub(crate) fn store_unary_expression(&mut self, unary_expression: &UnaryExpr) {
     store_unary_expression!(
       self,
       span => &unary_expression.span,

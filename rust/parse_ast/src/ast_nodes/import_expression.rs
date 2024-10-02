@@ -8,7 +8,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_import_expression(&mut self, span: &Span, arguments: &[ExprOrSpread]) {
+  pub(crate) fn store_import_expression(&mut self, span: &Span, arguments: &[ExprOrSpread]) {
     let end_position = self.add_type_and_start(
       &TYPE_IMPORT_EXPRESSION,
       span,

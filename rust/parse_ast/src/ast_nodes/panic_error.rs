@@ -3,7 +3,7 @@ use crate::convert_ast::converter::ast_constants::{
 };
 use crate::convert_ast::converter::{convert_string, update_reference_position};
 
-pub fn get_panic_error_buffer(message: &str) -> Vec<u8> {
+pub(crate) fn get_panic_error_buffer(message: &str) -> Vec<u8> {
   // type
   let mut buffer = TYPE_PANIC_ERROR.to_vec();
   // reserve for start and end even though they are unused

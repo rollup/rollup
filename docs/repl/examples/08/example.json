@@ -1,0 +1,8 @@
+{
+	"title": "JSX",
+	"options": {
+		"jsx": {
+          "mode": "preserve"
+        }
+	}
+}

@@ -220,7 +220,7 @@ type LoggingFunctionWithPosition = (
 
 export type ParseAst = (
 	input: string,
-	options?: { allowReturnOutsideFunction?: boolean }
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean }
 ) => ProgramNode;
 
 // declare AbortSignal here for environments without DOM lib or @types/node
@@ -231,7 +231,7 @@ declare global {
 
 export type ParseAstAsync = (
 	input: string,
-	options?: { allowReturnOutsideFunction?: boolean; signal?: AbortSignal }
+	options?: { allowReturnOutsideFunction?: boolean; jsx?: boolean; signal?: AbortSignal }
 ) => Promise<ProgramNode>;
 
 export interface PluginContext extends MinimalPluginContext {
@@ -523,6 +523,38 @@ export interface Plugin<A = any> extends OutputPlugin, Partial<PluginHooks> {
 	api?: A;
 }
 
+export type JsxPreset = 'react' | 'react-jsx' | 'preserve' | 'preserve-react';
+
+export type NormalizedJsxOptions =
+	| NormalizedJsxPreserveOptions
+	| NormalizedJsxClassicOptions
+	| NormalizedJsxAutomaticOptions;
+
+interface NormalizedJsxPreserveOptions {
+	factory: string | null;
+	fragment: string | null;
+	importSource: string | null;
+	mode: 'preserve';
+}
+
+interface NormalizedJsxClassicOptions {
+	factory: string;
+	fragment: string;
+	importSource: string | null;
+	mode: 'classic';
+}
+
+interface NormalizedJsxAutomaticOptions {
+	factory: string;
+	importSource: string | null;
+	jsxImportSource: string;
+	mode: 'automatic';
+}
+
+export type JsxOptions = Partial<NormalizedJsxOptions> & {
+	preset?: JsxPreset;
+};
+
 export type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 
 export interface NormalizedTreeshakingOptions {
@@ -545,6 +577,7 @@ interface ManualChunkMeta {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
+
 export type GetManualChunk = (id: string, meta: ManualChunkMeta) => string | NullValue;
 
 export type ExternalOption =
@@ -592,6 +625,7 @@ export interface InputOptions {
 	experimentalLogSideEffects?: boolean;
 	external?: ExternalOption;
 	input?: InputOption;
+	jsx?: false | JsxPreset | JsxOptions;
 	logLevel?: LogLevelOption;
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	maxParallelFileOps?: number;
@@ -619,6 +653,7 @@ export interface NormalizedInputOptions {
 	experimentalLogSideEffects: boolean;
 	external: IsExternal;
 	input: string[] | Record<string, string>;
+	jsx: false | NormalizedJsxOptions;
 	logLevel: LogLevelOption;
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	maxParallelFileOps: number;

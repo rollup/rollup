@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_array_expression(&mut self, array_literal: &ArrayLit) {
+  pub(crate) fn store_array_expression(&mut self, array_literal: &ArrayLit) {
     let end_position = self.add_type_and_start(
       &TYPE_ARRAY_EXPRESSION,
       &array_literal.span,

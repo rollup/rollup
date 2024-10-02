@@ -23,6 +23,7 @@
  * For encoded non-JavaScript AST nodes like TypeScript or JSX, we try to follow
  * the format of typescript-eslint, which can be derived from their playground
  * https://typescript-eslint.io/play/#showAST=es&fileType=.tsx
+ * For JSX, see also https://github.com/facebook/jsx/blob/main/AST.md
  */
 
 /** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"Float"} FieldType */
@@ -387,6 +388,98 @@ export const AST_NODES = {
 		optionalFallback: {
 			imported: 'local'
 		}
+	},
+	JSXAttribute: {
+		estreeType: 'any',
+		fields: [
+			['name', 'Node'],
+			['value', 'OptionalNode']
+		]
+	},
+	JSXClosingElement: {
+		estreeType: 'any',
+		fields: [['name', 'Node']]
+	},
+	JSXClosingFragment: {
+		estreeType: 'any',
+		fields: []
+	},
+	JSXElement: {
+		estreeType: 'any',
+		fields: [
+			['openingElement', 'Node'],
+			['children', 'NodeList'],
+			['closingElement', 'OptionalNode']
+		]
+	},
+	JSXEmptyExpression: {
+		estreeType: 'any',
+		useMacro: false
+	},
+	JSXExpressionContainer: {
+		estreeType: 'any',
+		fields: [['expression', 'Node']],
+		useMacro: false
+	},
+	JSXFragment: {
+		estreeType: 'any',
+		fields: [
+			['openingFragment', 'Node'],
+			['children', 'NodeList'],
+			['closingFragment', 'Node']
+		]
+	},
+	JSXIdentifier: {
+		estreeType: 'any',
+		fields: [['name', 'String']]
+	},
+	JSXMemberExpression: {
+		estreeType: 'any',
+		fields: [
+			['object', 'Node'],
+			['property', 'Node']
+		],
+		useMacro: false
+	},
+	JSXNamespacedName: {
+		estreeType: 'any',
+		fields: [
+			['namespace', 'Node'],
+			['name', 'Node']
+		],
+		useMacro: false
+	},
+	JSXOpeningElement: {
+		estreeType: 'any',
+		fields: [
+			['name', 'Node'],
+			['attributes', 'NodeList']
+		],
+		flags: ['selfClosing'],
+		useMacro: false
+	},
+	JSXOpeningFragment: {
+		additionalFields: {
+			attributes: '[]',
+			selfClosing: 'false'
+		},
+		estreeType: 'any'
+	},
+	JSXSpreadAttribute: {
+		estreeType: 'any',
+		fields: [['argument', 'Node']],
+		useMacro: false
+	},
+	JSXSpreadChild: {
+		estreeType: 'any',
+		fields: [['expression', 'Node']]
+	},
+	JSXText: {
+		estreeType: 'any',
+		fields: [
+			['value', 'String'],
+			['raw', 'String']
+		]
 	},
 	LabeledStatement: {
 		fields: [

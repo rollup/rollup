@@ -10,7 +10,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_property_definition_flags;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_property_definition(
+  pub(crate) fn store_property_definition(
     &mut self,
     span: &Span,
     is_computed: bool,
@@ -53,7 +53,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_class_property(&mut self, class_property: &ClassProp) {
+  pub(crate) fn convert_class_property(&mut self, class_property: &ClassProp) {
     self.store_property_definition(
       &class_property.span,
       matches!(&class_property.key, PropName::Computed(_)),
@@ -64,7 +64,7 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  pub fn convert_private_property(&mut self, private_property: &PrivateProp) {
+  pub(crate) fn convert_private_property(&mut self, private_property: &PrivateProp) {
     self.store_property_definition(
       &private_property.span,
       false,

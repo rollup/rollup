@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::{convert_annotation, AstConverter};
 
 impl<'a> AstConverter<'a> {
-  pub fn store_program(&mut self, body: ModuleItemsOrStatements) {
+  pub(crate) fn store_program(&mut self, body: ModuleItemsOrStatements) {
     let end_position =
       self.add_type_and_explicit_start(&TYPE_PROGRAM, 0u32, PROGRAM_RESERVED_BYTES);
     // body
@@ -71,7 +71,7 @@ impl<'a> AstConverter<'a> {
     }
   }
 
-  pub fn convert_program(&mut self, node: &Program) {
+  pub(crate) fn convert_program(&mut self, node: &Program) {
     match node {
       Program::Module(module) => {
         self.store_program(ModuleItemsOrStatements::ModuleItems(&module.body));
@@ -83,7 +83,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum ModuleItemsOrStatements<'a> {
+pub(crate) enum ModuleItemsOrStatements<'a> {
   ModuleItems(&'a Vec<ModuleItem>),
   Statements(&'a Vec<Stmt>),
 }

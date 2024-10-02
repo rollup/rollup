@@ -4,7 +4,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::{store_template_element, store_template_element_flags};
 
 impl<'a> AstConverter<'a> {
-  pub fn store_template_element(&mut self, template_element: &TplElement) {
+  pub(crate) fn store_template_element(&mut self, template_element: &TplElement) {
     store_template_element!(
       self,
       span => &template_element.span,

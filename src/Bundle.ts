@@ -150,7 +150,7 @@ export default class Bundle {
 			for (const file of Object.values(bundle)) {
 				if ('code' in file) {
 					try {
-						parseAst(file.code);
+						parseAst(file.code, { jsx: this.inputOptions.jsx !== false });
 					} catch (error_: any) {
 						this.inputOptions.onLog(LOGLEVEL_WARN, logChunkInvalid(file, error_));
 					}

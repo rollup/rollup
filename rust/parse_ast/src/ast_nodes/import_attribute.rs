@@ -8,7 +8,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_import_attribute(&mut self, key_value_property: &KeyValueProp) {
+  pub(crate) fn store_import_attribute(&mut self, key_value_property: &KeyValueProp) {
     // type
     let end_position = self.add_type_and_start(
       &TYPE_IMPORT_ATTRIBUTE,
@@ -25,7 +25,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, &key_value_property.span());
   }
 
-  pub fn store_import_attributes(
+  pub(crate) fn store_import_attributes(
     &mut self,
     with: &Option<Box<ObjectLit>>,
     reference_position: usize,

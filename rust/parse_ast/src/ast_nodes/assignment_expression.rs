@@ -10,7 +10,7 @@ use crate::convert_ast::converter::AstConverter;
 use crate::store_assignment_expression;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
+  pub(crate) fn store_assignment_expression(&mut self, assignment_expression: &AssignExpr) {
     store_assignment_expression!(
       self,
       span => assignment_expression.span,

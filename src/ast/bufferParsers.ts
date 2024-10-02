@@ -48,6 +48,21 @@ import ImportDefaultSpecifier from './nodes/ImportDefaultSpecifier';
 import ImportExpression from './nodes/ImportExpression';
 import ImportNamespaceSpecifier from './nodes/ImportNamespaceSpecifier';
 import ImportSpecifier from './nodes/ImportSpecifier';
+import JSXAttribute from './nodes/JSXAttribute';
+import JSXClosingElement from './nodes/JSXClosingElement';
+import JSXClosingFragment from './nodes/JSXClosingFragment';
+import JSXElement from './nodes/JSXElement';
+import JSXEmptyExpression from './nodes/JSXEmptyExpression';
+import JSXExpressionContainer from './nodes/JSXExpressionContainer';
+import JSXFragment from './nodes/JSXFragment';
+import JSXIdentifier from './nodes/JSXIdentifier';
+import JSXMemberExpression from './nodes/JSXMemberExpression';
+import JSXNamespacedName from './nodes/JSXNamespacedName';
+import JSXOpeningElement from './nodes/JSXOpeningElement';
+import JSXOpeningFragment from './nodes/JSXOpeningFragment';
+import JSXSpreadAttribute from './nodes/JSXSpreadAttribute';
+import JSXSpreadChild from './nodes/JSXSpreadChild';
+import JSXText from './nodes/JSXText';
 import LabeledStatement from './nodes/LabeledStatement';
 import Literal from './nodes/Literal';
 import LogicalExpression from './nodes/LogicalExpression';
@@ -141,6 +156,21 @@ const nodeTypeStrings = [
 	'ImportExpression',
 	'ImportNamespaceSpecifier',
 	'ImportSpecifier',
+	'JSXAttribute',
+	'JSXClosingElement',
+	'JSXClosingFragment',
+	'JSXElement',
+	'JSXEmptyExpression',
+	'JSXExpressionContainer',
+	'JSXFragment',
+	'JSXIdentifier',
+	'JSXMemberExpression',
+	'JSXNamespacedName',
+	'JSXOpeningElement',
+	'JSXOpeningFragment',
+	'JSXSpreadAttribute',
+	'JSXSpreadChild',
+	'JSXText',
 	'LabeledStatement',
 	'Literal',
 	'Literal',
@@ -224,6 +254,21 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	ImportExpression,
 	ImportNamespaceSpecifier,
 	ImportSpecifier,
+	JSXAttribute,
+	JSXClosingElement,
+	JSXClosingFragment,
+	JSXElement,
+	JSXEmptyExpression,
+	JSXExpressionContainer,
+	JSXFragment,
+	JSXIdentifier,
+	JSXMemberExpression,
+	JSXNamespacedName,
+	JSXOpeningElement,
+	JSXOpeningFragment,
+	JSXSpreadAttribute,
+	JSXSpreadChild,
+	JSXText,
 	LabeledStatement,
 	Literal,
 	Literal,
@@ -562,6 +607,74 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.local = convertNode(node, scope, buffer[position + 1], buffer);
 		node.imported =
 			importedPosition === 0 ? node.local : convertNode(node, scope, importedPosition, buffer);
+	},
+	function jsxAttribute(node: JSXAttribute, position, buffer) {
+		const { scope } = node;
+		node.name = convertNode(node, scope, buffer[position], buffer);
+		const valuePosition = buffer[position + 1];
+		node.value = valuePosition === 0 ? null : convertNode(node, scope, valuePosition, buffer);
+	},
+	function jsxClosingElement(node: JSXClosingElement, position, buffer) {
+		const { scope } = node;
+		node.name = convertNode(node, scope, buffer[position], buffer);
+	},
+	function jsxClosingFragment() {},
+	function jsxElement(node: JSXElement, position, buffer) {
+		const { scope } = node;
+		node.openingElement = convertNode(node, scope, buffer[position], buffer);
+		node.children = convertNodeList(node, scope, buffer[position + 1], buffer);
+		const closingElementPosition = buffer[position + 2];
+		node.closingElement =
+			closingElementPosition === 0
+				? null
+				: convertNode(node, scope, closingElementPosition, buffer);
+	},
+	function jsxEmptyExpression() {},
+	function jsxExpressionContainer(node: JSXExpressionContainer, position, buffer) {
+		const { scope } = node;
+		node.expression = convertNode(node, scope, buffer[position], buffer);
+	},
+	function jsxFragment(node: JSXFragment, position, buffer) {
+		const { scope } = node;
+		node.openingFragment = convertNode(node, scope, buffer[position], buffer);
+		node.children = convertNodeList(node, scope, buffer[position + 1], buffer);
+		node.closingFragment = convertNode(node, scope, buffer[position + 2], buffer);
+	},
+	function jsxIdentifier(node: JSXIdentifier, position, buffer) {
+		node.name = buffer.convertString(buffer[position]);
+	},
+	function jsxMemberExpression(node: JSXMemberExpression, position, buffer) {
+		const { scope } = node;
+		node.object = convertNode(node, scope, buffer[position], buffer);
+		node.property = convertNode(node, scope, buffer[position + 1], buffer);
+	},
+	function jsxNamespacedName(node: JSXNamespacedName, position, buffer) {
+		const { scope } = node;
+		node.namespace = convertNode(node, scope, buffer[position], buffer);
+		node.name = convertNode(node, scope, buffer[position + 1], buffer);
+	},
+	function jsxOpeningElement(node: JSXOpeningElement, position, buffer) {
+		const { scope } = node;
+		const flags = buffer[position];
+		node.selfClosing = (flags & 1) === 1;
+		node.name = convertNode(node, scope, buffer[position + 1], buffer);
+		node.attributes = convertNodeList(node, scope, buffer[position + 2], buffer);
+	},
+	function jsxOpeningFragment(node: JSXOpeningFragment) {
+		node.attributes = [];
+		node.selfClosing = false;
+	},
+	function jsxSpreadAttribute(node: JSXSpreadAttribute, position, buffer) {
+		const { scope } = node;
+		node.argument = convertNode(node, scope, buffer[position], buffer);
+	},
+	function jsxSpreadChild(node: JSXSpreadChild, position, buffer) {
+		const { scope } = node;
+		node.expression = convertNode(node, scope, buffer[position], buffer);
+	},
+	function jsxText(node: JSXText, position, buffer) {
+		node.value = buffer.convertString(buffer[position]);
+		node.raw = buffer.convertString(buffer[position + 1]);
 	},
 	function labeledStatement(node: LabeledStatement, position, buffer) {
 		const { scope } = node;

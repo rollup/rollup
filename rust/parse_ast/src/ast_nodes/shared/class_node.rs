@@ -9,7 +9,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_class_node(
+  pub(crate) fn store_class_node(
     &mut self,
     node_type: &[u8; 4],
     identifier: Option<&Ident>,

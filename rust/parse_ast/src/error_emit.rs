@@ -24,7 +24,7 @@ impl Write for Writer {
   }
 }
 
-pub struct ErrorEmitter {
+pub(crate) struct ErrorEmitter {
   wr: Box<Writer>,
 }
 
@@ -44,7 +44,7 @@ impl Emitter for ErrorEmitter {
   }
 }
 
-pub fn try_with_handler<F>(code: &str, op: F) -> Result<Program, Vec<u8>>
+pub(crate) fn try_with_handler<F>(code: &str, op: F) -> Result<Program, Vec<u8>>
 where
   F: FnOnce(&Handler) -> Result<Program, Error>,
 {

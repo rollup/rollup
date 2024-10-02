@@ -69,6 +69,7 @@ import {
 	logInvalidSourcemapForError,
 	logMissingEntryExport,
 	logMissingExport,
+	logMissingJsxExport,
 	logModuleParseError,
 	logNamespaceConflict,
 	logRedeclarationError,
@@ -113,11 +114,13 @@ export interface AstContext {
 	) => void;
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
+	addImportSource: (importSource: string) => void;
 	code: string;
 	deoptimizationTracker: PathTracker;
 	error: (properties: RollupLog, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];
+	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getNodeConstructor: (name: string) => typeof NodeBase;
@@ -869,11 +872,13 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
+			addImportSource: this.addImportSource.bind(this),
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
 			getExports: this.getExports.bind(this),
+			getImportedJsxFactoryVariable: this.getImportedJsxFactoryVariable.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
@@ -906,7 +911,7 @@ export default class Module {
 		} else {
 			// Measuring asynchronous code does not provide reasonable results
 			timeEnd('generate ast', 3);
-			const astBuffer = await parseAsync(code, false);
+			const astBuffer = await parseAsync(code, false, this.options.jsx !== false);
 			timeStart('generate ast', 3);
 			this.ast = convertProgram(astBuffer, programParent, this.scope);
 			// Make lazy and apply LRU cache to not hog the memory
@@ -1147,6 +1152,12 @@ export default class Module {
 		}
 	}
 
+	private addImportSource(importSource: string): void {
+		if (importSource && !this.sourcesWithAttributes.has(importSource)) {
+			this.sourcesWithAttributes.set(importSource, EMPTY_OBJECT);
+		}
+	}
+
 	private addImportMeta(node: MetaProperty): void {
 		this.importMetas.push(node);
 	}
@@ -1231,6 +1242,20 @@ export default class Module {
 		} else {
 			this.sourcesWithAttributes.set(source, parsedAttributes);
 		}
+	}
+
+	private getImportedJsxFactoryVariable(
+		baseName: string,
+		nodeStart: number,
+		importSource: string
+	): Variable {
+		const { id } = this.resolvedIds[importSource!];
+		const module = this.graph.modulesById.get(id)!;
+		const [variable] = module.getVariableForExportName(baseName);
+		if (!variable) {
+			return this.error(logMissingJsxExport(baseName, id, this.id), nodeStart);
+		}
+		return variable;
 	}
 
 	private getVariableFromNamespaceReexports(
@@ -1386,7 +1411,7 @@ export default class Module {
 
 	private tryParse() {
 		try {
-			return parseAst(this.info.code!);
+			return parseAst(this.info.code!, { jsx: this.options.jsx !== false });
 		} catch (error_: any) {
 			return this.error(logModuleParseError(error_, this.id), error_.pos);
 		}

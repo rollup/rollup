@@ -8,7 +8,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_export_default_declaration(
+  pub(crate) fn store_export_default_declaration(
     &mut self,
     span: &Span,
     expression: StoredDefaultExportExpression,
@@ -42,7 +42,7 @@ impl<'a> AstConverter<'a> {
     self.add_end(end_position, span);
   }
 
-  pub fn convert_export_default_declaration(
+  pub(crate) fn convert_export_default_declaration(
     &mut self,
     export_default_declaration: &ExportDefaultDecl,
   ) {
@@ -62,7 +62,7 @@ impl<'a> AstConverter<'a> {
     );
   }
 
-  pub fn convert_export_default_expression(
+  pub(crate) fn convert_export_default_expression(
     &mut self,
     export_default_expression: &ExportDefaultExpr,
   ) {
@@ -73,7 +73,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum StoredDefaultExportExpression<'a> {
+pub(crate) enum StoredDefaultExportExpression<'a> {
   Expression(&'a Expr),
   Class(&'a ClassExpr),
   Function(&'a FnExpr),

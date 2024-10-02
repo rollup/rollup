@@ -11,7 +11,7 @@ use crate::convert_ast::converter::string_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
+  pub(crate) fn store_variable_declaration(&mut self, variable_declaration: &VariableDeclaration) {
     let (kind, span, decls): (&[u8; 4], Span, &Vec<VarDeclarator>) = match variable_declaration {
       VariableDeclaration::Var(value) => (
         match value.kind {
@@ -55,7 +55,7 @@ impl<'a> AstConverter<'a> {
   }
 }
 
-pub enum VariableDeclaration<'a> {
+pub(crate) enum VariableDeclaration<'a> {
   Var(&'a VarDecl),
   Using(&'a UsingDecl),
 }

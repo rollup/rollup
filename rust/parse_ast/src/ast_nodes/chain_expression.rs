@@ -6,7 +6,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_chain_expression(
+  pub(crate) fn store_chain_expression(
     &mut self,
     optional_chain_expression: &OptChainExpr,
     is_chained: bool,

@@ -31,7 +31,7 @@ impl<'a> AstConverter<'a> {
   }
 
   #[allow(clippy::too_many_arguments)]
-  pub fn store_function_node(
+  pub(crate) fn store_function_node(
     &mut self,
     node_type: &[u8; 4],
     start: u32,

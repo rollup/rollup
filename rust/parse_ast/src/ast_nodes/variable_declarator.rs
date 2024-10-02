@@ -8,7 +8,7 @@ use crate::convert_ast::converter::ast_constants::{
 use crate::convert_ast::converter::AstConverter;
 
 impl<'a> AstConverter<'a> {
-  pub fn store_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
+  pub(crate) fn store_variable_declarator(&mut self, variable_declarator: &VarDeclarator) {
     let end_position = self.add_type_and_start(
       &TYPE_VARIABLE_DECLARATOR,
       &variable_declarator.span,
