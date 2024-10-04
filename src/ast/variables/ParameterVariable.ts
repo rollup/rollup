@@ -195,6 +195,11 @@ export default class ParameterVariable extends LocalVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (context.parametersBeingCheckedForEffectsOnInteractionAtPath.has(this)) {
+			context.parametersBeingCheckedForEffectsOnInteractionAtPath.delete(this);
+			return true;
+		}
+		context.parametersBeingCheckedForEffectsOnInteractionAtPath.add(this);
 		if (this.isReassigned || interaction.type === INTERACTION_ASSIGNED) {
 			return super.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
