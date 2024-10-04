@@ -25,8 +25,7 @@ const reservedBytesAndOffsets = astNodeNamesWithFieldOrder
 		if (hasSameFieldsAs || useMacro !== false) {
 			return '';
 		}
-		/** @type {string[]} */
-		const lines = [];
+		const lines: string[] = [];
 		// reservedBytes is the number of bytes reserved for
 		// - end position
 		// - flags if present

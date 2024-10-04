@@ -6,8 +6,7 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
 const childNodeKeysFile = new URL('../src/ast/childNodeKeys.ts', import.meta.url);
 
-/** @type {Record<string, Set<string>>} */
-const childNodeKeysByAstType = {};
+const childNodeKeysByAstType: Record<string, Set<string>> = {};
 for (const [name, node] of Object.entries(AST_NODES)) {
 	const astType = node.astType || name;
 	const keySet = (childNodeKeysByAstType[astType] ||= new Set());

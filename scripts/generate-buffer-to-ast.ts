@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises';
+import type { FieldWithType, NodeDescription } from './ast-types.js';
 import { astNodeNamesWithFieldOrder } from './ast-types.js';
 import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
@@ -7,8 +8,7 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url);
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, originalNode }) => {
-	/** @type {string[]} */
-	const definitions = [];
+	const definitions: string[] = [];
 	let offset = 2;
 	if (node.flags) {
 		offset++;
@@ -27,8 +27,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 			);
 		}
 	}
-	/** @type {string[]} */
-	const properties = [
+	const properties: string[] = [
 		...(node.flags || []).map((name, index) =>
 			isHoistedField(name, node) ? name : `${name}: (flags & ${1 << index}) === ${1 << index}`
 		),
@@ -48,26 +47,19 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
   }`;
 });
 
-/**
- * @param {string} name
- * @param {import("./ast-types.js").NodeDescription} node
- * @returns {boolean|undefined}
- */
-function isHoistedField(name, node) {
+function isHoistedField(name: string, node: NodeDescription): boolean | undefined {
 	return (
 		node.baseForAdditionalFields?.includes(name) ||
 		(node.optionalFallback && Object.values(node.optionalFallback).includes(name))
 	);
 }
 
-/**
- * @param {import("./ast-types.js").FieldWithType} field
- * @param {import("./ast-types.js").NodeDescription} node
- * @param {import("./ast-types.js").NodeDescription} originalNode
- * @param {number} offset
- * @returns {string}
- */
-function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) {
+function getFieldDefinition(
+	[fieldName, fieldType]: FieldWithType,
+	node: NodeDescription,
+	originalNode: NodeDescription,
+	offset: number
+): string {
 	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
 	const typeCastString = typeCast ? ` as ${typeCast}` : '';
 	const position = `position + ${offset}`;
@@ -96,14 +88,12 @@ function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) 
 	}
 }
 
-/**
- * @param {import("./ast-types.js").FieldWithType} field
- * @param {import("./ast-types.js").NodeDescription} node
- * @param {import("./ast-types.js").NodeDescription} originalNode
- * @param {number} offset
- * @returns {string}
- */
-function getFieldProperty([fieldName, fieldType], node, originalNode, offset) {
+function getFieldProperty(
+	[fieldName, fieldType]: FieldWithType,
+	node: NodeDescription,
+	originalNode: NodeDescription,
+	offset: number
+): string {
 	if (node.hiddenFields?.includes(fieldName)) {
 		return '';
 	}
@@ -123,14 +113,12 @@ function getFieldProperty([fieldName, fieldType], node, originalNode, offset) {
 	}
 }
 
-/**
- * @param {import("./ast-types.js").FieldWithType} field
- * @param {import("./ast-types.js").NodeDescription} node
- * @param {import("./ast-types.js").NodeDescription} originalNode
- * @param {number} offset
- * @returns {string}
- */
-function getFieldPropertyBase([fieldName, fieldType], node, originalNode, offset) {
+function getFieldPropertyBase(
+	[fieldName, fieldType]: FieldWithType,
+	node: NodeDescription,
+	originalNode: NodeDescription,
+	offset: number
+): string {
 	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
 	const typeCastString = typeCast ? ` as ${typeCast}` : '';
 	const position = `position + ${offset}`;
@@ -164,18 +152,13 @@ function getFieldPropertyBase([fieldName, fieldType], node, originalNode, offset
 	}
 }
 
-/**
- * @param {import("./ast-types.js").NodeDescription} node
- * @return {string[]}
- */
-function getFixedProperties(node) {
+function getFixedProperties(node: NodeDescription): string[] {
 	return Object.entries(node.fixed || {}).map(([key, value]) => `${key}: ${JSON.stringify(value)}`);
 }
 
 const types = astNodeNamesWithFieldOrder.map(({ name, node }) => {
 	let typeDefinition = `export type ${name}Node = RollupAstNode<${node.estreeType || `estree.${name}`}>`;
-	/** @type {string[]} */
-	const additionalFieldTypes = [];
+	const additionalFieldTypes: string[] = [];
 	if ((node.fields || []).some(([, fieldType]) => fieldType === 'Annotations')) {
 		additionalFieldTypes.push('[ANNOTATION_KEY]?: readonly RollupAnnotation[]');
 	}

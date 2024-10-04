@@ -26,30 +26,38 @@
  * For JSX, see also https://github.com/facebook/jsx/blob/main/AST.md
  */
 
-/** @typedef {"Node"|"OptionalNode"|"NodeList"|"Annotations"|"InvalidAnnotations"|"String"|"FixedString"|"OptionalString"|"Float"} FieldType */
+type FieldType =
+	| 'Node'
+	| 'OptionalNode'
+	| 'NodeList'
+	| 'Annotations'
+	| 'InvalidAnnotations'
+	| 'String'
+	| 'FixedString'
+	| 'OptionalString'
+	| 'Float';
 
-/** @typedef {[name:string, type:FieldType]} FieldWithType */
+export type FieldWithType = [name: string, type: FieldType];
 
-/** @typedef {{
- *    astType?: string; // If several converters produce the same type, specify the actual type here
- *    estreeType?: string, // If the extended ESTree type is different from the AST type
- *    hasSameFieldsAs?: string, // If this node uses the same Rust converter as another one, specify the name here. This will skip Rust field constant generation.
- *    fields?: FieldWithType[],  // The non-boolean fields of the node, sorted by parse order
- *    flags?: string[], // The boolean fields of the node
- *    fixed?: Record<string,unknown>, // Any fields with fixed values
- *    fieldTypes?: Record<string,string>, // Add a type cast to a field
- *    additionalFields?: Record<string,string>, // Derived fields can be specified as arbitrary strings here
- *    baseForAdditionalFields?: string[], // Fields needed to define additional fields
- *    hiddenFields?: string[], // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
- *    optionalFallback?: Record<string,string> // If an optional variable should not have "null" as fallback, but the value of another field,
- *    postProcessFields?: Record<string,[variableName:string, code:string]>, // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
- *    scopes?: Record<string, string> // If the field gets a parent scope other than node.scope
- *    scriptedFields?: Record<string,string> // If fields are parsed via custom logic, $position references the node position
- *    useMacro?: boolean // Generate a Rust macro instead of separate constants
- *  }} NodeDescription */
+export interface NodeDescription {
+	astType?: string; // If several converters produce the same type, specify the actual type here
+	estreeType?: string; // If the extended ESTree type is different from the AST type
+	hasSameFieldsAs?: string; // If this node uses the same Rust converter as another one, specify the name here. This will skip Rust field constant generation.
+	fields?: FieldWithType[]; // The non-boolean fields of the node, sorted by parse order
+	flags?: string[]; // The boolean fields of the node
+	fixed?: Record<string, unknown>; // Any fields with fixed values
+	fieldTypes?: Record<string, string>; // Add a type cast to a field
+	additionalFields?: Record<string, string>; // Derived fields can be specified as arbitrary strings here
+	baseForAdditionalFields?: string[]; // Fields needed to define additional fields
+	hiddenFields?: string[]; // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
+	optionalFallback?: Record<string, string>; // If an optional variable should not have "null" as fallback, but the value of another field,
+	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
+	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope
+	scriptedFields?: Record<string, string>; // If fields are parsed via custom logic, $position references the node position
+	useMacro?: boolean; // Generate a Rust macro instead of separate constants
+}
 
-/** @type {Record<string, NodeDescription>} */
-export const AST_NODES = {
+export const AST_NODES: Record<string, NodeDescription> = {
 	PanicError: {
 		estreeType: "{ type: 'PanicError', message: string }",
 		fields: [['message', 'String']],
@@ -759,8 +767,12 @@ export const AST_NODES = {
 	}
 };
 
-/** @type { {name: string; fields: FieldWithType[]; node: NodeDescription; originalNode: NodeDescription;}[] } */
-export const astNodeNamesWithFieldOrder = Object.entries(AST_NODES).map(([name, originalNode]) => {
+export const astNodeNamesWithFieldOrder: {
+	name: string;
+	fields: FieldWithType[];
+	node: NodeDescription;
+	originalNode: NodeDescription;
+}[] = Object.entries(AST_NODES).map(([name, originalNode]) => {
 	const node = originalNode.hasSameFieldsAs
 		? AST_NODES[originalNode.hasSameFieldsAs]
 		: originalNode;

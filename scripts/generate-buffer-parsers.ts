@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises';
+import type { FieldWithType, NodeDescription } from './ast-types.js';
 import { astNodeNamesWithFieldOrder } from './ast-types.js';
 import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
@@ -12,8 +13,7 @@ const nodeTypeImports = nodeTypes.map(name => `import ${name} from './nodes/${na
 const nodeTypeStrings = nodeTypes.map(name => `\t'${name}'`);
 
 const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, originalNode }) => {
-	/** @type {string[]} */
-	const definitions = [];
+	const definitions: string[] = [];
 	let offset = 0;
 	let needsBuffer = false;
 	let needsScope = false;
@@ -52,8 +52,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 	if (needsScope) {
 		definitions.unshift('const {scope} = node;');
 	}
-	/** @type {string[]} */
-	const parameters = [];
+	const parameters: string[] = [];
 	if (definitions.length > 0) {
 		parameters.push(`node: ${node.astType || name}`);
 		if (needsBuffer) {
@@ -64,14 +63,12 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
     ${definitions.join('')}}`;
 });
 
-/**
- * @param {import("./ast-types.js").FieldWithType} field
- * @param {import("./ast-types.js").NodeDescription} node
- * @param {import("./ast-types.js").NodeDescription} originalNode
- * @param {number} offset
- * @returns {{definition: string, needsScope: boolean}}
- */
-function getFieldDefinition([fieldName, fieldType], node, originalNode, offset) {
+function getFieldDefinition(
+	[fieldName, fieldType]: FieldWithType,
+	node: NodeDescription,
+	originalNode: NodeDescription,
+	offset: number
+): { definition: string; needsScope: boolean } {
 	const getPosition = offset > 0 ? `position + ${offset}` : 'position';
 	const dataStart = `buffer[${getPosition}]`;
 	if (node.scriptedFields?.[fieldName]) {
