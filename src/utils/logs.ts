@@ -1,12 +1,12 @@
 import { locate } from 'locate-character';
 import type Module from '../Module';
 import type {
+	ast,
 	InternalModuleFormat,
 	LogHandler,
 	NormalizedInputOptions,
 	RollupLog
 } from '../rollup/types';
-import type { AnnotationType } from './astConverterHelpers';
 import getCodeFrame from './getCodeFrame';
 import { LOGLEVEL_WARN } from './logging';
 import { extname } from './path';
@@ -485,7 +485,11 @@ const formatAttributes = (attributes: Record<string, string>): string => {
 	return entries.map(([key, value]) => `"${key}": "${value}"`).join(', ');
 };
 
-export function logInvalidAnnotation(comment: string, id: string, type: AnnotationType): RollupLog {
+export function logInvalidAnnotation(
+	comment: string,
+	id: string,
+	type: ast.AnnotationType
+): RollupLog {
 	return {
 		code: INVALID_ANNOTATION,
 		id,

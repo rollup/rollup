@@ -1,21 +1,14 @@
+import type { ast } from '../rollup/types';
 import { EMPTY_ARRAY } from './blank';
 import FIXED_STRINGS from './convert-ast-strings';
 
-export const ANNOTATION_KEY = '_rollupAnnotations';
-export const INVALID_ANNOTATION_KEY = '_rollupRemoved';
-
-export type AnnotationType = 'pure' | 'noSideEffects';
-
-export interface RollupAnnotation {
-	start: number;
-	end: number;
-	type: AnnotationType;
-}
+export const ANNOTATION_KEY = 'annotations';
+export const INVALID_ANNOTATION_KEY = 'invalidAnnotations';
 
 export const convertAnnotations = (
 	position: number,
 	buffer: Uint32Array
-): readonly RollupAnnotation[] => {
+): readonly ast.Annotation[] => {
 	if (position === 0) return EMPTY_ARRAY;
 	const length = buffer[position++];
 	const list: any[] = new Array(length);
@@ -25,9 +18,9 @@ export const convertAnnotations = (
 	return list;
 };
 
-const convertAnnotation = (position: number, buffer: Uint32Array): RollupAnnotation => {
+const convertAnnotation = (position: number, buffer: Uint32Array): ast.Annotation => {
 	const start = buffer[position++];
 	const end = buffer[position++];
-	const type = FIXED_STRINGS[buffer[position]] as AnnotationType;
+	const type = FIXED_STRINGS[buffer[position]] as ast.AnnotationType;
 	return { end, start, type };
 };

@@ -1,5 +1,5 @@
 import { writeFile } from 'node:fs/promises';
-import type { FieldWithType, NodeDescription } from './ast-types.js';
+import type { FieldDescription, NodeDescription } from './ast-types.js';
 import { astNodeNamesWithFieldOrder } from './ast-types.js';
 import { firstLettersLowercase, generateNotEditFilesComment, lintTsFile } from './helpers.js';
 
@@ -7,7 +7,7 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
 const bufferToJsAstFile = new URL('../src/utils/bufferToAst.ts', import.meta.url);
 
-const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, originalNode }) => {
+const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => {
 	const definitions: string[] = [];
 	let offset = 2;
 	if (node.flags) {
@@ -20,10 +20,10 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 		}
 	}
 	for (const [index, field] of fields.entries()) {
-		definitions.push(getFieldDefinition(field, node, originalNode, index + offset));
-		if (isHoistedField(field[0], node)) {
+		definitions.push(getFieldDefinition(field, index + offset));
+		if (isHoistedField(field.name, node)) {
 			definitions.push(
-				`const ${field[0]} = ${getFieldPropertyBase(field, node, originalNode, index + offset)};`
+				`const ${field.name} = ${getFieldPropertyBase(field, name, node, index + offset)};`
 			);
 		}
 	}
@@ -32,12 +32,12 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 			isHoistedField(name, node) ? name : `${name}: (flags & ${1 << index}) === ${1 << index}`
 		),
 		...fields
-			.map((field, index) => getFieldProperty(field, node, originalNode, index + offset))
+			.map((field, index) => getFieldProperty(field, name, node, index + offset))
 			.filter(Boolean),
 		...getFixedProperties(node),
-		...Object.entries(node.additionalFields || []).map(([key, value]) => `${key}: ${value}`)
+		...Object.entries(node.additionalFields || []).map(([key, { value }]) => `${key}: ${value}`)
 	];
-	return `function ${firstLettersLowercase(name)} (position, buffer): ${name}Node {
+	return `function ${firstLettersLowercase(name)} (position, buffer): ast.${name} {
     ${definitions.join('')}return {
       type: '${node.astType || name}',
       start: buffer[position],
@@ -54,139 +54,103 @@ function isHoistedField(name: string, node: NodeDescription): boolean | undefine
 	);
 }
 
-function getFieldDefinition(
-	[fieldName, fieldType]: FieldWithType,
-	node: NodeDescription,
-	originalNode: NodeDescription,
-	offset: number
-): string {
-	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
-	const typeCastString = typeCast ? ` as ${typeCast}` : '';
+function getFieldDefinition(field: FieldDescription, offset: number): string {
 	const position = `position + ${offset}`;
 	const dataStart = `buffer[${position}]`;
-	switch (fieldType) {
-		case 'Node':
+	switch (field.type) {
 		case 'NodeList':
-		case 'String':
 		case 'FixedString':
 		case 'Float': {
 			return '';
 		}
-		case 'OptionalNode': {
-			return `const ${fieldName}Position = ${dataStart};\n`;
+		case 'Node': {
+			return field.allowNull ? `const ${field.name}Position = ${dataStart};\n` : '';
 		}
-		case 'Annotations':
-		case 'InvalidAnnotations': {
-			return `const ${fieldName} = convertAnnotations(${dataStart}, buffer)${typeCastString};\n`;
+		case 'Annotations': {
+			return `const ${field.name} = convertAnnotations(${dataStart}, buffer);\n`;
 		}
-		case 'OptionalString': {
-			return `const ${fieldName}Position = ${dataStart};\n`;
+		case 'String': {
+			return field.optional ? `const ${field.name}Position = ${dataStart};\n` : '';
 		}
 		default: {
-			throw new Error(`Unknown field type: ${fieldType}`);
+			throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 		}
 	}
 }
 
 function getFieldProperty(
-	[fieldName, fieldType]: FieldWithType,
+	field: FieldDescription,
+	nodeName: string,
 	node: NodeDescription,
-	originalNode: NodeDescription,
 	offset: number
 ): string {
-	if (node.hiddenFields?.includes(fieldName)) {
+	if (node.hiddenFields?.includes(field.name)) {
 		return '';
 	}
-	if (isHoistedField(fieldName, node)) {
-		return fieldName;
+	if (isHoistedField(field.name, node)) {
+		return field.name;
 	}
-	switch (fieldType) {
+	switch (field.type) {
 		case 'Annotations': {
-			return `...(${fieldName}.length > 0 ? { [ANNOTATION_KEY]: ${fieldName} } : {})`;
-		}
-		case 'InvalidAnnotations': {
-			return `...(${fieldName}.length > 0 ? { [INVALID_ANNOTATION_KEY]: ${fieldName} } : {})`;
+			return `...(${field.name}.length > 0 ? { ${field.name} } : {})`;
 		}
 		default: {
-			return `${fieldName}: ${getFieldPropertyBase([fieldName, fieldType], node, originalNode, offset)}`;
+			return `${field.name}: ${getFieldPropertyBase(field, nodeName, node, offset)}`;
 		}
 	}
 }
 
 function getFieldPropertyBase(
-	[fieldName, fieldType]: FieldWithType,
+	field: FieldDescription,
+	nodeName: string,
 	node: NodeDescription,
-	originalNode: NodeDescription,
 	offset: number
 ): string {
-	const typeCast = originalNode.fieldTypes?.[fieldName] || node.fieldTypes?.[fieldName];
-	const typeCastString = typeCast ? ` as ${typeCast}` : '';
 	const position = `position + ${offset}`;
 	const dataStart = `buffer[${position}]`;
-	switch (fieldType) {
+	switch (field.type) {
 		case 'Node': {
-			return `convertNode(${dataStart}, buffer)${typeCastString}`;
-		}
-		case 'OptionalNode': {
-			const fallback = node.optionalFallback?.[fieldName];
-			return `${fieldName}Position === 0 ? ${fallback ? `{ ...${fallback} }` : null} : convertNode(${fieldName}Position, buffer)${typeCastString}`;
+			if (field.allowNull) {
+				const fallback = node.optionalFallback?.[field.name];
+				return `${field.name}Position === 0 ? ${fallback ? `{ ...${fallback} }` : null} : convertNode(${field.name}Position, buffer)`;
+			}
+			return `convertNode(${dataStart}, buffer)`;
 		}
 		case 'NodeList': {
-			return `convertNodeList(${dataStart}, buffer)${typeCastString}`;
+			return `convertNodeList(${dataStart}, buffer)`;
 		}
 		case 'String': {
-			return `buffer.convertString(${dataStart})${typeCastString}`;
-		}
-		case 'OptionalString': {
-			return `${fieldName}Position === 0 ? undefined : buffer.convertString(${fieldName}Position)${typeCastString}`;
+			return field.optional
+				? `${field.name}Position === 0 ? undefined : buffer.convertString(${field.name}Position)`
+				: `buffer.convertString(${dataStart})`;
 		}
 		case 'FixedString': {
-			return `FIXED_STRINGS[${dataStart}]${typeCastString}`;
+			return `FIXED_STRINGS[${dataStart}] as ast.${nodeName}['${field.name}']`;
 		}
 		case 'Float': {
 			return `new DataView(buffer.buffer).getFloat64(${position} << 2, true)`;
 		}
 		default: {
-			throw new Error(`Cannot get field property base for: ${fieldType}`);
+			throw new Error(`Unhandled field type ${(field as { type: string }).type}`);
 		}
 	}
 }
 
 function getFixedProperties(node: NodeDescription): string[] {
-	return Object.entries(node.fixed || {}).map(([key, value]) => `${key}: ${JSON.stringify(value)}`);
+	return Object.entries(node.fixed || {}).map(([key, value]) => `${key}: ${value}`);
 }
 
-const types = astNodeNamesWithFieldOrder.map(({ name, node }) => {
-	let typeDefinition = `export type ${name}Node = RollupAstNode<${node.estreeType || `estree.${name}`}>`;
-	const additionalFieldTypes: string[] = [];
-	if ((node.fields || []).some(([, fieldType]) => fieldType === 'Annotations')) {
-		additionalFieldTypes.push('[ANNOTATION_KEY]?: readonly RollupAnnotation[]');
-	}
-	if ((node.fields || []).some(([, fieldType]) => fieldType === 'InvalidAnnotations')) {
-		additionalFieldTypes.push('[INVALID_ANNOTATION_KEY]?: readonly RollupAnnotation[]');
-	}
-	const fixedProperties = getFixedProperties(node);
-	if (fixedProperties.length > 0) {
-		additionalFieldTypes.push(...getFixedProperties(node));
-	}
-	if (additionalFieldTypes.length > 0) {
-		typeDefinition += ` & { ${additionalFieldTypes.join('; ')} }`;
-	}
-	typeDefinition += ';';
-	return typeDefinition;
-});
-
 const bufferToJsAst = `${notEditFilesComment}
-import type * as estree from 'estree';
 import { PanicError, ParseError } from '../ast/nodes/NodeType';import type { RollupAstNode } from '../rollup/types';
+import type { ast } from '../rollup/types';
 import type { RollupAnnotation } from './astConverterHelpers';
-import { ANNOTATION_KEY, convertAnnotations, INVALID_ANNOTATION_KEY } from './astConverterHelpers';
+import { convertAnnotations } from './astConverterHelpers';
 import { EMPTY_ARRAY } from './blank';
 import FIXED_STRINGS from './convert-ast-strings';
 import type { AstBuffer } from './getAstBuffer';
 import { error, getRollupError, logParseError } from './logs';
 
-export function convertProgram(buffer: AstBuffer): ProgramNode {
+export function convertProgram(buffer: AstBuffer): ast.Program {
   const node = convertNode(0, buffer);
   switch (node.type) {
     case PanicError: {
@@ -205,8 +169,6 @@ export function convertProgram(buffer: AstBuffer): ProgramNode {
 const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
   ${jsConverters.join(',\n')}
 ];
-
-${types.join('\n')}
 
 export function convertNode(position: number, buffer: AstBuffer): any {
   const nodeType = buffer[position];

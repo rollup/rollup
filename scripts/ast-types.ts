@@ -21,70 +21,264 @@
  * as "type: Literal" in the JSON AST).
  *
  * For encoded non-JavaScript AST nodes like TypeScript or JSX, we try to follow
- * the format of typescript-eslint, which can be derived from their playground
- * https://typescript-eslint.io/play/#showAST=es&fileType=.tsx
- * For JSX, see also https://github.com/facebook/jsx/blob/main/AST.md
+ * the format of typescript-eslint, which can be derived from
+ * @typescript-eslint/types/dist/generated/ast-spec.d.ts
  */
 
-type FieldType =
-	| 'Node'
-	| 'OptionalNode'
-	| 'NodeList'
-	| 'Annotations'
-	| 'InvalidAnnotations'
-	| 'String'
-	| 'FixedString'
-	| 'OptionalString'
-	| 'Float';
+type AstNodeName =
+	| 'PanicError'
+	| 'ParseError'
+	| 'ArrayExpression'
+	| 'ArrayPattern'
+	| 'ArrowFunctionExpression'
+	| 'AssignmentExpression'
+	| 'AssignmentPattern'
+	| 'AwaitExpression'
+	| 'BinaryExpression'
+	| 'BlockStatement'
+	| 'BreakStatement'
+	| 'CallExpression'
+	| 'CatchClause'
+	| 'ChainExpression'
+	| 'ClassBody'
+	| 'ClassDeclaration'
+	| 'ClassExpression'
+	| 'ConditionalExpression'
+	| 'ContinueStatement'
+	| 'DebuggerStatement'
+	| 'Decorator'
+	| 'Directive'
+	| 'DoWhileStatement'
+	| 'EmptyStatement'
+	| 'ExportAllDeclaration'
+	| 'ExportDefaultDeclaration'
+	| 'ExportNamedDeclaration'
+	| 'ExportSpecifier'
+	| 'ExpressionStatement'
+	| 'ForInStatement'
+	| 'ForOfStatement'
+	| 'ForStatement'
+	| 'FunctionDeclaration'
+	| 'FunctionExpression'
+	| 'Identifier'
+	| 'IfStatement'
+	| 'ImportAttribute'
+	| 'ImportDeclaration'
+	| 'ImportDefaultSpecifier'
+	| 'ImportExpression'
+	| 'ImportNamespaceSpecifier'
+	| 'ImportSpecifier'
+	| 'JSXAttribute'
+	| 'JSXClosingElement'
+	| 'JSXClosingFragment'
+	| 'JSXElement'
+	| 'JSXEmptyExpression'
+	| 'JSXExpressionContainer'
+	| 'JSXFragment'
+	| 'JSXIdentifier'
+	| 'JSXMemberExpression'
+	| 'JSXNamespacedName'
+	| 'JSXOpeningElement'
+	| 'JSXOpeningFragment'
+	| 'JSXSpreadAttribute'
+	| 'JSXSpreadChild'
+	| 'JSXText'
+	| 'LabeledStatement'
+	| 'LiteralBigInt'
+	| 'LiteralBoolean'
+	| 'LiteralNull'
+	| 'LiteralNumber'
+	| 'LiteralRegExp'
+	| 'LiteralString'
+	| 'LogicalExpression'
+	| 'MemberExpression'
+	| 'MetaProperty'
+	| 'MethodDefinition'
+	| 'NewExpression'
+	| 'ObjectExpression'
+	| 'ObjectPattern'
+	| 'PrivateIdentifier'
+	| 'Program'
+	| 'Property'
+	| 'PropertyDefinition'
+	| 'RestElement'
+	| 'ReturnStatement'
+	| 'SequenceExpression'
+	| 'SpreadElement'
+	| 'StaticBlock'
+	| 'SuperElement'
+	| 'SwitchCase'
+	| 'SwitchStatement'
+	| 'TaggedTemplateExpression'
+	| 'TemplateElement'
+	| 'TemplateLiteral'
+	| 'ThisExpression'
+	| 'ThrowStatement'
+	| 'TryStatement'
+	| 'UnaryExpression'
+	| 'UpdateExpression'
+	| 'VariableDeclaration'
+	| 'VariableDeclarator'
+	| 'WhileStatement'
+	| 'YieldExpression';
 
-export type FieldWithType = [name: string, type: FieldType];
+type NodeInterface =
+	| 'BindingName'
+	| 'BindingPattern'
+	| 'ChainElement'
+	| 'ClassElement'
+	| 'Declaration'
+	| 'DestructuringPattern'
+	| 'Expression'
+	| 'JSXTagNameExpression'
+	| 'JSXChild'
+	| 'LeftHandSideExpression'
+	| 'Literal'
+	| 'LiteralExpression'
+	| 'ModuleDeclaration'
+	| 'Parameter'
+	| 'Statement'
+	| 'Super';
 
-export interface NodeDescription {
-	astType?: string; // If several converters produce the same type, specify the actual type here
-	estreeType?: string; // If the extended ESTree type is different from the AST type
-	hasSameFieldsAs?: string; // If this node uses the same Rust converter as another one, specify the name here. This will skip Rust field constant generation.
-	fields?: FieldWithType[]; // The non-boolean fields of the node, sorted by parse order
-	flags?: string[]; // The boolean fields of the node
-	fixed?: Record<string, unknown>; // Any fields with fixed values
-	fieldTypes?: Record<string, string>; // Add a type cast to a field
-	additionalFields?: Record<string, string>; // Derived fields can be specified as arbitrary strings here
-	baseForAdditionalFields?: string[]; // Fields needed to define additional fields
-	hiddenFields?: string[]; // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
-	optionalFallback?: Record<string, string>; // If an optional variable should not have "null" as fallback, but the value of another field,
-	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
-	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope
-	scriptedFields?: Record<string, string>; // If fields are parsed via custom logic, $position references the node position
-	useMacro?: boolean; // Generate a Rust macro instead of separate constants
-}
+export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterface)[]> = {
+	BindingName: ['BindingPattern', 'Identifier'],
+	BindingPattern: ['ArrayPattern', 'ObjectPattern'],
+	ChainElement: ['CallExpression', 'MemberExpression'],
+	ClassElement: ['MethodDefinition', 'PropertyDefinition', 'StaticBlock'],
+	Declaration: ['FunctionDeclaration', 'VariableDeclaration', 'ClassDeclaration'],
+	DestructuringPattern: [
+		'ArrayPattern',
+		'AssignmentPattern',
+		'Identifier',
+		'MemberExpression',
+		'ObjectPattern',
+		'RestElement'
+	],
+	Expression: [
+		'ArrayExpression',
+		'ArrowFunctionExpression',
+		'AssignmentExpression',
+		'AwaitExpression',
+		'BinaryExpression',
+		'CallExpression',
+		'ChainExpression',
+		'ClassExpression',
+		'ConditionalExpression',
+		'FunctionExpression',
+		'Identifier',
+		'ImportExpression',
+		'Literal',
+		'LogicalExpression',
+		'MemberExpression',
+		'MetaProperty',
+		'NewExpression',
+		'ObjectExpression',
+		'SequenceExpression',
+		'TaggedTemplateExpression',
+		'TemplateLiteral',
+		'ThisExpression',
+		'UnaryExpression',
+		'UpdateExpression',
+		'YieldExpression'
+	],
+	JSXChild: ['JSXElement', 'JSXExpressionContainer', 'JSXSpreadChild', 'JSXFragment', 'JSXText'],
+	JSXTagNameExpression: ['JSXMemberExpression', 'JSXIdentifier', 'JSXNamespacedName'],
+	LeftHandSideExpression: [
+		'ArrayExpression',
+		'ArrayPattern',
+		'ArrowFunctionExpression',
+		'CallExpression',
+		'ClassExpression',
+		'FunctionExpression',
+		'Identifier',
+		'JSXElement',
+		'JSXFragment',
+		'LiteralExpression',
+		'MemberExpression',
+		'MetaProperty',
+		'ObjectExpression',
+		'ObjectPattern',
+		'SequenceExpression',
+		'Super',
+		'TaggedTemplateExpression',
+		'ThisExpression'
+	],
+	Literal: [
+		'LiteralBigInt',
+		'LiteralBoolean',
+		'LiteralNull',
+		'LiteralNumber',
+		'LiteralRegExp',
+		'LiteralString'
+	],
+	LiteralExpression: ['Literal', 'TemplateLiteral'],
+	ModuleDeclaration: [
+		'ExportAllDeclaration',
+		'ExportDefaultDeclaration',
+		'ExportNamedDeclaration',
+		'ImportDeclaration'
+	],
+	Parameter: ['ArrayPattern', 'AssignmentPattern', 'Identifier', 'ObjectPattern', 'RestElement'],
+	Statement: [
+		'ExpressionStatement',
+		'BlockStatement',
+		'StaticBlock',
+		'EmptyStatement',
+		'DebuggerStatement',
+		'ReturnStatement',
+		'LabeledStatement',
+		'BreakStatement',
+		'ContinueStatement',
+		'IfStatement',
+		'SwitchStatement',
+		'ThrowStatement',
+		'TryStatement',
+		'WhileStatement',
+		'DoWhileStatement',
+		'ForStatement',
+		'ForInStatement',
+		'ForOfStatement',
+		'Declaration'
+	],
+	Super: ['SuperElement']
+};
 
-export const AST_NODES: Record<string, NodeDescription> = {
+export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	PanicError: {
-		estreeType: "{ type: 'PanicError', message: string }",
-		fields: [['message', 'String']],
+		fields: [{ name: 'message', type: 'String' }],
 		useMacro: false
 	},
 	ParseError: {
-		estreeType: "{ type: 'ParseError', message: string }",
-		fields: [['message', 'String']],
+		fields: [{ name: 'message', type: 'String' }],
 		useMacro: false
 	},
 	// eslint-disable-next-line sort-keys
 	ArrayExpression: {
-		fields: [['elements', 'NodeList']],
+		fields: [
+			{
+				allowNull: true,
+				name: 'elements',
+				nodeTypes: ['Expression', 'SpreadElement'],
+				type: 'NodeList'
+			}
+		],
 		useMacro: false
 	},
 	ArrayPattern: {
-		fields: [['elements', 'NodeList']],
+		fields: [
+			{ allowNull: true, name: 'elements', nodeTypes: ['DestructuringPattern'], type: 'NodeList' }
+		],
 		useMacro: false
 	},
 	ArrowFunctionExpression: {
 		fields: [
-			['annotations', 'Annotations'],
-			['params', 'NodeList'],
-			['body', 'Node']
+			{ name: 'annotations', type: 'Annotations', valid: true },
+			{ name: 'params', nodeTypes: ['Parameter'], type: 'NodeList' },
+			{ name: 'body', nodeTypes: ['BlockStatement', 'Expression'], type: 'Node' }
 		],
 		fixed: {
-			id: null
+			// TODO Lukas remove
+			id: 'null'
 		},
 		flags: ['async', 'expression', 'generator'],
 		postProcessFields: {
@@ -109,56 +303,96 @@ export const AST_NODES: Record<string, NodeDescription> = {
 	},
 	AssignmentExpression: {
 		fields: [
-			['operator', 'FixedString'],
-			['left', 'Node'],
-			['right', 'Node']
-		],
-		fieldTypes: {
-			operator: 'estree.AssignmentOperator'
-		}
+			{
+				name: 'operator',
+				type: 'FixedString',
+				values: [
+					'=',
+					'+=',
+					'-=',
+					'*=',
+					'/=',
+					'%=',
+					'**=',
+					'<<=',
+					'>>=',
+					'>>>=',
+					'|=',
+					'^=',
+					'&=',
+					'||=',
+					'&&=',
+					'??='
+				]
+			},
+			{ name: 'left', nodeTypes: ['DestructuringPattern'], type: 'Node' },
+			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' }
+		]
 	},
 	AssignmentPattern: {
 		fields: [
-			['left', 'Node'],
-			['right', 'Node']
+			{ name: 'left', nodeTypes: ['BindingName'], type: 'Node' },
+			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' }
 		],
 		useMacro: false
 	},
 	AwaitExpression: {
-		fields: [['argument', 'Node']]
+		fields: [{ name: 'argument', nodeTypes: ['Expression'], type: 'Node' }]
 	},
 	BinaryExpression: {
 		fields: [
-			['operator', 'FixedString'],
-			['left', 'Node'],
-			['right', 'Node']
+			{
+				name: 'operator',
+				type: 'FixedString',
+				values: [
+					'==',
+					'!=',
+					'===',
+					'!==',
+					'<',
+					'<=',
+					'>',
+					'>=',
+					'<<',
+					'>>',
+					'>>>',
+					'+',
+					'-',
+					'*',
+					'/',
+					'%',
+					'**',
+					'^',
+					'&',
+					'in',
+					'instanceof'
+				]
+			},
+			{ name: 'left', nodeTypes: ['Expression', 'PrivateIdentifier'], type: 'Node' },
+			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' }
 		],
-		fieldTypes: {
-			operator: 'estree.BinaryOperator'
-		},
 		useMacro: false
 	},
 	BlockStatement: {
-		fields: [['body', 'NodeList']],
+		fields: [{ name: 'body', nodeTypes: ['Statement'], type: 'NodeList' }],
 		useMacro: false
 	},
 	BreakStatement: {
-		fields: [['label', 'OptionalNode']]
+		fields: [{ allowNull: true, name: 'label', nodeTypes: ['Identifier'], type: 'Node' }]
 	},
 	CallExpression: {
-		estreeType: 'estree.SimpleCallExpression',
 		fields: [
-			['annotations', 'Annotations'],
-			['callee', 'Node'],
-			['arguments', 'NodeList']
+			{ name: 'annotations', type: 'Annotations', valid: true },
+			{ name: 'callee', nodeTypes: ['Expression', 'Super'], type: 'Node' },
+			{ name: 'arguments', nodeTypes: ['Expression', 'SpreadElement'], type: 'NodeList' }
 		],
 		flags: ['optional'],
 		useMacro: false
 	},
 	CatchClause: {
 		fields: [
-			['param', 'OptionalNode'],
-			['body', 'Node']
+			{ allowNull: true, name: 'param', nodeTypes: ['BindingName'], type: 'Node' },
+			{ name: 'body', nodeTypes: ['BlockStatement'], type: 'Node' }
 		],
 		postProcessFields: {
 			param: ['parameter', "parameter?.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION)"]
@@ -169,11 +403,17 @@ export const AST_NODES: Record<string, NodeDescription> = {
 		useMacro: false
 	},
 	ChainExpression: {
-		fields: [['expression', 'Node']],
+		fields: [{ name: 'expression', nodeTypes: ['ChainElement'], type: 'Node' }],
 		useMacro: false
 	},
 	ClassBody: {
-		fields: [['body', 'NodeList']],
+		fields: [
+			{
+				name: 'body',
+				nodeTypes: ['ClassElement'],
+				type: 'NodeList'
+			}
+		],
 		scriptedFields: {
 			body: ` const bodyPosition = $position;
 			  if (bodyPosition) {
@@ -196,10 +436,10 @@ export const AST_NODES: Record<string, NodeDescription> = {
 	},
 	ClassDeclaration: {
 		fields: [
-			['decorators', 'NodeList'],
-			['id', 'OptionalNode'],
-			['superClass', 'OptionalNode'],
-			['body', 'Node']
+			{ name: 'decorators', nodeTypes: ['Decorator'], type: 'NodeList' },
+			{ allowNull: true, name: 'id', nodeTypes: ['Identifier'], type: 'Node' },
+			{ allowNull: true, name: 'superClass', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'body', nodeTypes: ['ClassBody'], type: 'Node' }
 		],
 		scopes: {
 			id: 'scope.parent as ChildScope'
@@ -215,98 +455,119 @@ export const AST_NODES: Record<string, NodeDescription> = {
 	},
 	ConditionalExpression: {
 		fields: [
-			['test', 'Node'],
-			['consequent', 'Node'],
-			['alternate', 'Node']
+			{ name: 'test', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'consequent', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'alternate', nodeTypes: ['Expression'], type: 'Node' }
 		]
 	},
 	ContinueStatement: {
-		fields: [['label', 'OptionalNode']]
+		fields: [{ allowNull: true, name: 'label', nodeTypes: ['Identifier'], type: 'Node' }]
 	},
 	DebuggerStatement: {},
-	Decorator: { fields: [['expression', 'Node']] },
+	Decorator: {
+		fields: [{ name: 'expression', nodeTypes: ['LeftHandSideExpression'], type: 'Node' }]
+	},
 	Directive: {
 		astType: 'ExpressionStatement',
-		estreeType: 'estree.Directive',
 		fields: [
-			['directive', 'String'],
-			['expression', 'Node']
+			{ name: 'directive', type: 'String' },
+			{ name: 'expression', nodeTypes: ['LiteralString'], type: 'Node' }
 		]
 	},
 	DoWhileStatement: {
 		fields: [
-			['body', 'Node'],
-			['test', 'Node']
+			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' },
+			{ name: 'test', nodeTypes: ['Expression'], type: 'Node' }
 		]
 	},
 	EmptyStatement: {},
 	ExportAllDeclaration: {
-		estreeType: 'estree.ExportAllDeclaration & { attributes: ImportAttributeNode[] }',
 		fields: [
-			['exported', 'OptionalNode'],
-			['source', 'Node'],
-			['attributes', 'NodeList']
+			{ allowNull: true, name: 'exported', nodeTypes: ['Identifier'], type: 'Node' },
+			{ name: 'source', nodeTypes: ['LiteralString'], type: 'Node' },
+			{ name: 'attributes', nodeTypes: ['ImportAttribute'], type: 'NodeList' }
 		],
 		useMacro: false
 	},
 	ExportDefaultDeclaration: {
-		fields: [['declaration', 'Node']],
+		fields: [
+			{
+				name: 'declaration',
+				nodeTypes: ['FunctionDeclaration', 'ClassDeclaration', 'Expression'],
+				type: 'Node'
+			}
+		],
 		useMacro: false
 	},
 	ExportNamedDeclaration: {
-		estreeType: 'estree.ExportNamedDeclaration & { attributes: ImportAttributeNode[] }',
 		fields: [
-			['specifiers', 'NodeList'],
-			['source', 'OptionalNode'],
-			['attributes', 'NodeList'],
-			['declaration', 'OptionalNode']
+			{ name: 'specifiers', nodeTypes: ['ExportSpecifier'], type: 'NodeList' },
+			{ allowNull: true, name: 'source', nodeTypes: ['Literal'], type: 'Node' },
+			{ name: 'attributes', nodeTypes: ['ImportAttribute'], type: 'NodeList' },
+			{
+				allowNull: true,
+				name: 'declaration',
+				nodeTypes: ['FunctionDeclaration', 'VariableDeclaration', 'ClassDeclaration'],
+				type: 'Node'
+			}
 		],
 		useMacro: false
 	},
 	ExportSpecifier: {
 		fields: [
-			['local', 'Node'],
-			['exported', 'OptionalNode']
+			{ name: 'local', nodeTypes: ['Identifier', 'LiteralString'], type: 'Node' },
+			{
+				allowNull: true,
+				name: 'exported',
+				nodeTypes: ['Identifier', 'LiteralString'],
+				type: 'Node'
+			}
 		],
 		optionalFallback: {
 			exported: 'local'
 		}
 	},
 	ExpressionStatement: {
-		fields: [['expression', 'Node']]
+		fields: [{ name: 'expression', nodeTypes: ['Expression'], type: 'Node' }]
 	},
 	ForInStatement: {
 		fields: [
-			['left', 'Node'],
-			['right', 'Node'],
-			['body', 'Node']
+			{ name: 'left', nodeTypes: ['VariableDeclaration', 'DestructuringPattern'], type: 'Node' },
+			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
 		]
 	},
 	ForOfStatement: {
 		fields: [
-			['left', 'Node'],
-			['right', 'Node'],
-			['body', 'Node']
+			{ name: 'left', nodeTypes: ['VariableDeclaration', 'DestructuringPattern'], type: 'Node' },
+			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
 		],
 		flags: ['await']
 	},
 	ForStatement: {
 		fields: [
-			['init', 'OptionalNode'],
-			['test', 'OptionalNode'],
-			['update', 'OptionalNode'],
-			['body', 'Node']
+			{
+				allowNull: true,
+				name: 'init',
+				nodeTypes: ['Expression', 'VariableDeclaration'],
+				type: 'Node'
+			},
+			{ allowNull: true, name: 'test', nodeTypes: ['Expression'], type: 'Node' },
+			{ allowNull: true, name: 'update', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
 		]
 	},
 	FunctionDeclaration: {
 		fields: [
-			['annotations', 'Annotations'],
-			['id', 'OptionalNode'],
-			['params', 'NodeList'],
-			['body', 'Node']
+			{ name: 'annotations', type: 'Annotations', valid: true },
+			{ allowNull: true, name: 'id', nodeTypes: ['Identifier'], type: 'Node' },
+			{ name: 'params', nodeTypes: ['Parameter'], type: 'NodeList' },
+			{ name: 'body', nodeTypes: ['BlockStatement'], type: 'Node' }
 		],
 		fixed: {
-			expression: false
+			// TODO Lukas remove
+			expression: 'false'
 		},
 		flags: ['async', 'generator'],
 		postProcessFields: {
@@ -338,14 +599,14 @@ export const AST_NODES: Record<string, NodeDescription> = {
 		useMacro: false
 	},
 	Identifier: {
-		fields: [['name', 'String']],
+		fields: [{ name: 'name', type: 'String' }],
 		useMacro: false
 	},
 	IfStatement: {
 		fields: [
-			['test', 'Node'],
-			['consequent', 'Node'],
-			['alternate', 'OptionalNode']
+			{ name: 'test', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'consequent', nodeTypes: ['Statement'], type: 'Node' },
+			{ allowNull: true, name: 'alternate', nodeTypes: ['Statement'], type: 'Node' }
 		],
 		scopes: {
 			alternate: '(node.alternateScope = new TrackingScope(scope))',
@@ -353,31 +614,32 @@ export const AST_NODES: Record<string, NodeDescription> = {
 		}
 	},
 	ImportAttribute: {
-		estreeType:
-			"{ key: estree.Identifier | estree.Literal; type: 'ImportAttribute'; value: estree.Literal; }",
 		fields: [
-			['key', 'Node'],
-			['value', 'Node']
+			{ name: 'key', nodeTypes: ['Identifier', 'Literal'], type: 'Node' },
+			{ name: 'value', nodeTypes: ['Literal'], type: 'Node' }
 		],
 		useMacro: false
 	},
 	ImportDeclaration: {
-		estreeType: 'estree.ImportDeclaration & { attributes: ImportAttributeNode[] }',
 		fields: [
-			['specifiers', 'NodeList'],
-			['source', 'Node'],
-			['attributes', 'NodeList']
+			{
+				name: 'specifiers',
+				nodeTypes: ['ImportDefaultSpecifier', 'ImportNamespaceSpecifier', 'ImportSpecifier'],
+				type: 'NodeList'
+			},
+			{ name: 'source', nodeTypes: ['LiteralString'], type: 'Node' },
+			{ name: 'attributes', nodeTypes: ['ImportAttribute'], type: 'NodeList' }
 		],
 		useMacro: false
 	},
 	ImportDefaultSpecifier: {
-		fields: [['local', 'Node']]
+		fields: [{ name: 'local', nodeTypes: ['Identifier'], type: 'Node' }]
 	},
 	ImportExpression: {
-		estreeType: 'estree.ImportExpression & { options: estree.Expression | null }',
 		fields: [
-			['source', 'Node'],
-			['options', 'OptionalNode']
+			{ name: 'source', nodeTypes: ['Expression'], type: 'Node' },
+			// TODO Lukas this should be "attributes"
+			{ allowNull: true, name: 'options', nodeTypes: ['Expression'], type: 'Node' }
 		],
 		scriptedFields: {
 			source: `node.source = convertNode(node, scope, $position, buffer);
@@ -386,247 +648,244 @@ export const AST_NODES: Record<string, NodeDescription> = {
 		useMacro: false
 	},
 	ImportNamespaceSpecifier: {
-		fields: [['local', 'Node']]
+		fields: [{ name: 'local', nodeTypes: ['Identifier'], type: 'Node' }]
 	},
 	ImportSpecifier: {
 		fields: [
-			['imported', 'OptionalNode'],
-			['local', 'Node']
+			{ allowNull: true, name: 'imported', nodeTypes: ['Identifier', 'Literal'], type: 'Node' },
+			{ name: 'local', nodeTypes: ['Identifier'], type: 'Node' }
 		],
 		optionalFallback: {
 			imported: 'local'
 		}
 	},
 	JSXAttribute: {
-		estreeType: 'any',
 		fields: [
-			['name', 'Node'],
-			['value', 'OptionalNode']
+			{ name: 'name', nodeTypes: ['JSXIdentifier', 'JSXNamespacedName'], type: 'Node' },
+			{
+				allowNull: true,
+				name: 'value',
+				nodeTypes: ['JSXElement', 'JSXExpressionContainer', 'JSXSpreadChild', 'Literal'],
+				type: 'Node'
+			}
 		]
 	},
 	JSXClosingElement: {
-		estreeType: 'any',
-		fields: [['name', 'Node']]
+		fields: [{ name: 'name', nodeTypes: ['JSXTagNameExpression'], type: 'Node' }]
 	},
 	JSXClosingFragment: {
-		estreeType: 'any',
 		fields: []
 	},
 	JSXElement: {
-		estreeType: 'any',
 		fields: [
-			['openingElement', 'Node'],
-			['children', 'NodeList'],
-			['closingElement', 'OptionalNode']
+			{ name: 'openingElement', nodeTypes: ['JSXOpeningElement'], type: 'Node' },
+			{ name: 'children', nodeTypes: ['JSXChild'], type: 'NodeList' },
+			{ allowNull: true, name: 'closingElement', nodeTypes: ['JSXClosingElement'], type: 'Node' }
 		]
 	},
 	JSXEmptyExpression: {
-		estreeType: 'any',
 		useMacro: false
 	},
 	JSXExpressionContainer: {
-		estreeType: 'any',
-		fields: [['expression', 'Node']],
+		fields: [{ name: 'expression', nodeTypes: ['Expression', 'JSXEmptyExpression'], type: 'Node' }],
 		useMacro: false
 	},
 	JSXFragment: {
-		estreeType: 'any',
 		fields: [
-			['openingFragment', 'Node'],
-			['children', 'NodeList'],
-			['closingFragment', 'Node']
+			{ name: 'openingFragment', nodeTypes: ['JSXOpeningFragment'], type: 'Node' },
+			{ name: 'children', nodeTypes: ['JSXChild'], type: 'NodeList' },
+			{ name: 'closingFragment', nodeTypes: ['JSXClosingFragment'], type: 'Node' }
 		]
 	},
 	JSXIdentifier: {
-		estreeType: 'any',
-		fields: [['name', 'String']]
+		fields: [{ name: 'name', type: 'String' }]
 	},
 	JSXMemberExpression: {
-		estreeType: 'any',
 		fields: [
-			['object', 'Node'],
-			['property', 'Node']
+			{ name: 'object', nodeTypes: ['JSXTagNameExpression'], type: 'Node' },
+			{ name: 'property', nodeTypes: ['JSXIdentifier'], type: 'Node' }
 		],
 		useMacro: false
 	},
 	JSXNamespacedName: {
-		estreeType: 'any',
 		fields: [
-			['namespace', 'Node'],
-			['name', 'Node']
+			{ name: 'namespace', nodeTypes: ['JSXIdentifier'], type: 'Node' },
+			{ name: 'name', nodeTypes: ['JSXIdentifier'], type: 'Node' }
 		],
 		useMacro: false
 	},
 	JSXOpeningElement: {
-		estreeType: 'any',
 		fields: [
-			['name', 'Node'],
-			['attributes', 'NodeList']
+			{ name: 'name', nodeTypes: ['JSXTagNameExpression'], type: 'Node' },
+			{ name: 'attributes', nodeTypes: ['JSXAttribute', 'JSXSpreadAttribute'], type: 'NodeList' }
 		],
 		flags: ['selfClosing'],
 		useMacro: false
 	},
 	JSXOpeningFragment: {
 		additionalFields: {
-			attributes: '[]',
-			selfClosing: 'false'
-		},
-		estreeType: 'any'
+			attributes: { type: 'never[]', value: '[]' },
+			selfClosing: { type: 'false', value: 'false' }
+		}
 	},
 	JSXSpreadAttribute: {
-		estreeType: 'any',
-		fields: [['argument', 'Node']],
+		fields: [{ name: 'argument', nodeTypes: ['Expression'], type: 'Node' }],
 		useMacro: false
 	},
 	JSXSpreadChild: {
-		estreeType: 'any',
-		fields: [['expression', 'Node']]
+		fields: [{ name: 'expression', nodeTypes: ['Expression', 'JSXEmptyExpression'], type: 'Node' }]
 	},
 	JSXText: {
-		estreeType: 'any',
 		fields: [
-			['value', 'String'],
-			['raw', 'String']
+			{ name: 'value', type: 'String' },
+			{ name: 'raw', type: 'String' }
 		]
 	},
 	LabeledStatement: {
 		fields: [
-			['label', 'Node'],
-			['body', 'Node']
+			{ name: 'label', nodeTypes: ['Identifier'], type: 'Node' },
+			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
 		]
 	},
 	LiteralBigInt: {
 		additionalFields: {
-			value: 'BigInt(bigint)'
+			value: { type: 'bigint', value: 'BigInt(bigint)' }
 		},
 		astType: 'Literal',
 		baseForAdditionalFields: ['bigint'],
-		estreeType: 'estree.BigIntLiteral',
 		fields: [
-			['bigint', 'String'],
-			['raw', 'String']
+			{ name: 'bigint', type: 'String' },
+			{ name: 'raw', type: 'String' }
 		]
 	},
 	LiteralBoolean: {
 		additionalFields: {
-			raw: 'value ? "true" : "false"'
+			raw: { type: 'string', value: 'value ? "true" : "false"' }
 		},
 		astType: 'Literal',
 		baseForAdditionalFields: ['value'],
-		estreeType: 'estree.SimpleLiteral & {value: boolean}',
 		flags: ['value']
 	},
 	LiteralNull: {
 		additionalFields: {
-			value: 'null'
+			value: { type: 'null', value: 'null' }
 		},
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral & {value: null}',
 		fixed: {
-			raw: 'null'
+			raw: '"null"'
 		}
 	},
 	LiteralNumber: {
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral & {value: number}',
 		fields: [
-			['raw', 'OptionalString'],
-			['value', 'Float']
+			{ name: 'raw', optional: true, type: 'String' },
+			{ name: 'value', type: 'Float' }
 		]
 	},
 	LiteralRegExp: {
 		additionalFields: {
-			raw: '`/${pattern}/${flags}`',
-			regex: '{ flags, pattern }',
-			value: 'new RegExp(pattern, flags)'
+			raw: { type: 'string', value: '`/${pattern}/${flags}`' },
+			regex: { type: '{ flags: string; pattern: string; }', value: '{ flags, pattern }' },
+			value: { type: 'RegExp', value: 'new RegExp(pattern, flags)' }
 		},
 		astType: 'Literal',
 		baseForAdditionalFields: ['flags', 'pattern'],
-		estreeType: 'estree.RegExpLiteral',
 		fields: [
-			['flags', 'String'],
-			['pattern', 'String']
+			{ name: 'flags', type: 'String' },
+			{ name: 'pattern', type: 'String' }
 		],
 		hiddenFields: ['flags', 'pattern']
 	},
 	LiteralString: {
 		astType: 'Literal',
-		estreeType: 'estree.SimpleLiteral & {value: string}',
 		fields: [
-			['value', 'String'],
-			['raw', 'OptionalString']
+			{ name: 'value', type: 'String' },
+			{ name: 'raw', optional: true, type: 'String' }
 		]
 	},
 	LogicalExpression: {
-		fieldTypes: {
-			operator: 'estree.LogicalOperator'
-		},
 		hasSameFieldsAs: 'BinaryExpression',
+		hasSameFieldsOverrides: {
+			operator: {
+				name: 'operator',
+				type: 'FixedString',
+				values: ['||', '&&', '??']
+			}
+		},
 		useMacro: false
 	},
 	MemberExpression: {
 		fields: [
-			['object', 'Node'],
-			['property', 'Node']
+			{ name: 'object', nodeTypes: ['Expression', 'Super'], type: 'Node' },
+			{ name: 'property', nodeTypes: ['Expression', 'PrivateIdentifier'], type: 'Node' }
 		],
 		flags: ['computed', 'optional'],
 		useMacro: false
 	},
 	MetaProperty: {
 		fields: [
-			['meta', 'Node'],
-			['property', 'Node']
+			{ name: 'meta', nodeTypes: ['Identifier'], type: 'Node' },
+			{ name: 'property', nodeTypes: ['Identifier'], type: 'Node' }
 		],
 		useMacro: false
 	},
 	MethodDefinition: {
 		fields: [
-			['decorators', 'NodeList'],
-			['key', 'Node'],
-			['value', 'Node'],
-			['kind', 'FixedString']
+			{ name: 'decorators', nodeTypes: ['Decorator'], type: 'NodeList' },
+			{ name: 'key', nodeTypes: ['Expression', 'PrivateIdentifier'], type: 'Node' },
+			{ name: 'value', nodeTypes: ['FunctionExpression'], type: 'Node' },
+			{ name: 'kind', type: 'FixedString', values: ['constructor', 'method', 'get', 'set'] }
 		],
-		fieldTypes: {
-			kind: "estree.MethodDefinition['kind']"
-		},
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
 		useMacro: false
 	},
 	NewExpression: {
 		fields: [
-			['annotations', 'Annotations'],
-			['callee', 'Node'],
-			['arguments', 'NodeList']
+			{ name: 'annotations', type: 'Annotations', valid: true },
+			{ name: 'callee', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'arguments', nodeTypes: ['Expression', 'SpreadElement'], type: 'NodeList' }
 		],
 		useMacro: false
 	},
 	ObjectExpression: {
-		fields: [['properties', 'NodeList']]
+		fields: [{ name: 'properties', nodeTypes: ['Property', 'SpreadElement'], type: 'NodeList' }]
 	},
 	ObjectPattern: {
-		fields: [['properties', 'NodeList']]
+		fields: [{ name: 'properties', nodeTypes: ['Property', 'RestElement'], type: 'NodeList' }]
 	},
 	PrivateIdentifier: {
-		fields: [['name', 'String']]
+		fields: [{ name: 'name', type: 'String' }]
 	},
 	Program: {
 		fields: [
-			['body', 'NodeList'],
-			['invalidAnnotations', 'InvalidAnnotations']
+			{
+				name: 'body',
+				nodeTypes: ['Statement', 'Directive', 'ModuleDeclaration'],
+				type: 'NodeList'
+			},
+			{ name: 'invalidAnnotations', type: 'Annotations', valid: false }
 		],
 		fixed: {
-			sourceType: 'module'
+			sourceType: '"module"'
 		},
 		useMacro: false
 	},
 	Property: {
 		fields: [
-			['key', 'OptionalNode'],
-			['value', 'Node'],
-			['kind', 'FixedString']
+			{
+				allowNull: true,
+				name: 'key',
+				nodeTypes: ['Expression', 'DestructuringPattern'],
+				type: 'Node'
+			},
+			{
+				name: 'value',
+				nodeTypes: ['Expression'],
+				type: 'Node'
+			},
+			{ name: 'kind', type: 'FixedString', values: ['init', 'get', 'set'] }
 		],
-		fieldTypes: { kind: "estree.Property['kind']" },
 		flags: ['method', 'shorthand', 'computed'],
 		optionalFallback: {
 			key: 'value'
@@ -635,45 +894,44 @@ export const AST_NODES: Record<string, NodeDescription> = {
 	},
 	PropertyDefinition: {
 		fields: [
-			['decorators', 'NodeList'],
-			['key', 'Node'],
-			['value', 'OptionalNode']
+			{ name: 'decorators', nodeTypes: ['Decorator'], type: 'NodeList' },
+			{ name: 'key', nodeTypes: ['Expression', 'PrivateIdentifier'], type: 'Node' },
+			{ allowNull: true, name: 'value', nodeTypes: ['Expression'], type: 'Node' }
 		],
 		// "static" needs to come first as ClassBody depends on it
 		flags: ['static', 'computed'],
 		useMacro: false
 	},
 	RestElement: {
-		fields: [['argument', 'Node']],
+		fields: [{ name: 'argument', nodeTypes: ['DestructuringPattern'], type: 'Node' }],
 		useMacro: false
 	},
 	ReturnStatement: {
-		fields: [['argument', 'OptionalNode']]
+		fields: [{ allowNull: true, name: 'argument', nodeTypes: ['Expression'], type: 'Node' }]
 	},
 	SequenceExpression: {
-		fields: [['expressions', 'NodeList']]
+		fields: [{ name: 'expressions', nodeTypes: ['Expression'], type: 'NodeList' }]
 	},
 	SpreadElement: {
-		fields: [['argument', 'Node']],
+		fields: [{ name: 'argument', nodeTypes: ['Expression'], type: 'Node' }],
 		useMacro: false
 	},
 	StaticBlock: {
-		fields: [['body', 'NodeList']]
+		fields: [{ name: 'body', nodeTypes: ['Statement'], type: 'NodeList' }]
 	},
 	SuperElement: {
-		astType: 'Super',
-		estreeType: 'estree.Super'
+		astType: 'Super'
 	},
 	SwitchCase: {
 		fields: [
-			['test', 'OptionalNode'],
-			['consequent', 'NodeList']
+			{ allowNull: true, name: 'test', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'consequent', nodeTypes: ['Statement'], type: 'NodeList' }
 		]
 	},
 	SwitchStatement: {
 		fields: [
-			['discriminant', 'Node'],
-			['cases', 'NodeList']
+			{ name: 'discriminant', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'cases', nodeTypes: ['SwitchCase'], type: 'NodeList' }
 		],
 		scopes: {
 			discriminant: 'node.parentScope'
@@ -681,104 +939,167 @@ export const AST_NODES: Record<string, NodeDescription> = {
 	},
 	TaggedTemplateExpression: {
 		fields: [
-			['tag', 'Node'],
-			['quasi', 'Node']
+			{ name: 'tag', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'quasi', nodeTypes: ['TemplateLiteral'], type: 'Node' }
 		]
 	},
 	TemplateElement: {
 		additionalFields: {
-			value: '{ cooked, raw}'
+			value: { type: '{ cooked?: string; raw: string; }', value: '{ cooked, raw}' }
 		},
 		baseForAdditionalFields: ['cooked', 'raw'],
 		fields: [
-			['cooked', 'OptionalString'],
-			['raw', 'String']
+			{ name: 'cooked', optional: true, type: 'String' },
+			{ name: 'raw', type: 'String' }
 		],
 		flags: ['tail'],
 		hiddenFields: ['cooked', 'raw']
 	},
 	TemplateLiteral: {
 		fields: [
-			['quasis', 'NodeList'],
-			['expressions', 'NodeList']
+			{ name: 'quasis', nodeTypes: ['TemplateElement'], type: 'NodeList' },
+			{ name: 'expressions', nodeTypes: ['Expression'], type: 'NodeList' }
 		],
 		useMacro: false
 	},
 	ThisExpression: {},
 	ThrowStatement: {
-		fields: [['argument', 'Node']]
+		fields: [{ name: 'argument', nodeTypes: ['Expression'], type: 'Node' }]
 	},
 	TryStatement: {
 		fields: [
-			['block', 'Node'],
-			['handler', 'OptionalNode'],
-			['finalizer', 'OptionalNode']
+			{ name: 'block', nodeTypes: ['BlockStatement'], type: 'Node' },
+			{ allowNull: true, name: 'handler', nodeTypes: ['CatchClause'], type: 'Node' },
+			{ allowNull: true, name: 'finalizer', nodeTypes: ['BlockStatement'], type: 'Node' }
 		],
 		useMacro: false
 	},
 	UnaryExpression: {
 		fields: [
-			['operator', 'FixedString'],
-			['argument', 'Node']
+			{
+				name: 'operator',
+				type: 'FixedString',
+				values: ['-', '+', '!', '~', 'typeof', 'void', 'delete']
+			},
+			{ name: 'argument', nodeTypes: ['Expression'], type: 'Node' }
 		],
-		fieldTypes: {
-			operator: 'estree.UnaryOperator'
-		},
 		fixed: {
-			prefix: true
+			prefix: 'true'
 		}
 	},
 	UpdateExpression: {
 		fields: [
-			['operator', 'FixedString'],
-			['argument', 'Node']
+			{ name: 'operator', type: 'FixedString', values: ['++', '--'] },
+			{ name: 'argument', nodeTypes: ['Expression'], type: 'Node' }
 		],
-		fieldTypes: {
-			operator: 'estree.UpdateOperator'
-		},
 		flags: ['prefix']
 	},
 	VariableDeclaration: {
 		fields: [
-			['kind', 'FixedString'],
-			['declarations', 'NodeList']
+			{ name: 'kind', type: 'FixedString', values: ['var', 'let', 'const'] },
+			{ name: 'declarations', nodeTypes: ['VariableDeclarator'], type: 'NodeList' }
 		],
-		fieldTypes: {
-			kind: "estree.VariableDeclaration['kind']"
-		},
 		useMacro: false
 	},
 	VariableDeclarator: {
 		fields: [
-			['id', 'Node'],
-			['init', 'OptionalNode']
+			{ name: 'id', nodeTypes: ['BindingName'], type: 'Node' },
+			{ allowNull: true, name: 'init', nodeTypes: ['Expression'], type: 'Node' }
 		],
 		useMacro: false
 	},
 	WhileStatement: {
 		fields: [
-			['test', 'Node'],
-			['body', 'Node']
+			{ name: 'test', nodeTypes: ['Expression'], type: 'Node' },
+			{ name: 'body', nodeTypes: ['Statement'], type: 'Node' }
 		]
 	},
 	YieldExpression: {
-		fields: [['argument', 'OptionalNode']],
+		fields: [{ allowNull: true, name: 'argument', nodeTypes: ['Expression'], type: 'Node' }],
 		flags: ['delegate']
 	}
 };
 
-export const astNodeNamesWithFieldOrder: {
+interface NodeFieldDescription {
+	type: 'Node';
 	name: string;
-	fields: FieldWithType[];
+	nodeTypes: (AstNodeName | NodeInterface)[];
+	allowNull?: true;
+}
+
+interface NodeListFieldDescription {
+	type: 'NodeList';
+	name: string;
+	nodeTypes: (AstNodeName | NodeInterface)[];
+	allowNull?: true;
+}
+
+interface StringFieldDescription {
+	type: 'String';
+	name: string;
+	optional?: true;
+}
+
+interface FixedStringFieldDescription {
+	type: 'FixedString';
+	name: string;
+	values: string[];
+}
+
+interface FloatFieldDescription {
+	type: 'Float';
+	name: string;
+}
+
+interface AnnotationFieldDescription {
+	type: 'Annotations';
+	name: string;
+	valid: boolean;
+}
+
+export type FieldDescription =
+	| NodeFieldDescription
+	| NodeListFieldDescription
+	| StringFieldDescription
+	| FixedStringFieldDescription
+	| FloatFieldDescription
+	| AnnotationFieldDescription;
+
+export interface NodeDescription {
+	astType?: AstNodeName | NodeInterface; // If several converters produce the same type, specify the actual type here
+	hasSameFieldsAs?: AstNodeName; // If this node uses the same Rust converter as another one, specify the name here. This will skip Rust field constant generation.
+	hasSameFieldsOverrides?: Record<string, FieldDescription>; // If hasSameFields is used, this can specify overrides by field.
+	fields?: FieldDescription[]; // The non-boolean fields of the node, sorted by parse order
+	flags?: string[]; // The boolean fields of the node
+	fixed?: Record<string, string>; // Any fields with fixed values
+	additionalFields?: Record<string, { value: string; type: string }>; // Derived fields can be specified as arbitrary strings here
+	baseForAdditionalFields?: string[]; // Fields needed to define additional fields
+	hiddenFields?: string[]; // Fields that are added in Rust but are not part of the AST, usually together with additionalFields
+	optionalFallback?: Record<string, string>; // If an optional variable should not have "null" as fallback, but the value of another field,
+	postProcessFields?: Record<string, [variableName: string, code: string]>; // If this is specified, the field will be extracted into a variable and this code is injected after the field is assigned
+	scopes?: Record<string, string>; // If the field gets a parent scope other than node.scope
+	scriptedFields?: Record<string, string>; // If fields are parsed via custom logic, $position references the node position
+	useMacro?: boolean; // Generate a Rust macro instead of separate constants
+}
+
+export const astNodeNamesWithFieldOrder: {
+	name: AstNodeName;
+	fields: FieldDescription[];
 	node: NodeDescription;
 	originalNode: NodeDescription;
 }[] = Object.entries(AST_NODES).map(([name, originalNode]) => {
-	const node = originalNode.hasSameFieldsAs
-		? AST_NODES[originalNode.hasSameFieldsAs]
-		: originalNode;
+	let node = originalNode;
+	let fields = originalNode.fields || [];
+	if (originalNode.hasSameFieldsAs) {
+		node = AST_NODES[originalNode.hasSameFieldsAs];
+		fields = (node.fields || []).map(field => {
+			const override = originalNode.hasSameFieldsOverrides?.[field.name];
+			return override || field;
+		});
+	}
 	return {
-		fields: node.fields || [],
-		name,
+		fields,
+		name: name as AstNodeName,
 		node,
 		originalNode
 	};

@@ -1,8 +1,7 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
-import type { AstNode } from '../../../rollup/types';
-import type { RollupAnnotation } from '../../../utils/astConverterHelpers';
+import type { ast } from '../../../rollup/types';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { childNodeKeys } from '../../childNodeKeys';
@@ -30,7 +29,7 @@ import type { InclusionOptions, LiteralValueOrUnknown } from './Expression';
 import { ExpressionEntity } from './Expression';
 
 // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-export interface GenericEsTreeNode extends AstNode {
+export interface GenericEsTreeNode extends ast.BaseNode {
 	[key: string]: any;
 }
 
@@ -38,7 +37,7 @@ export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
-	annotations?: readonly RollupAnnotation[];
+	annotations?: readonly ast.Annotation[];
 	end: number;
 	included: boolean;
 	needsBoundaries?: boolean;
@@ -151,7 +150,7 @@ export interface ChainElement {
 }
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	declare annotations?: readonly RollupAnnotation[];
+	declare annotations?: readonly ast.Annotation[];
 	declare end: number;
 	parent: Node | { context: AstContext; type: string };
 	declare scope: ChildScope;
@@ -294,24 +293,23 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 			// in bitfields. Those are still assigned from the value in the esTreeNode.
 			if (this.hasOwnProperty(key)) continue;
 
-			if (key.charCodeAt(0) === 95 /* _ */) {
-				if (key === ANNOTATION_KEY) {
-					this.annotations = value as RollupAnnotation[];
-				} else if (key === INVALID_ANNOTATION_KEY) {
-					(this as unknown as Program).invalidAnnotations = value as RollupAnnotation[];
-				}
-			} else if (typeof value !== 'object' || value === null) {
+			if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {
-				(this as GenericEsTreeNode)[key] = new Array(value.length);
-				let index = 0;
-				for (const child of value) {
-					(this as GenericEsTreeNode)[key][index++] =
-						child === null
-							? null
-							: new (this.scope.context.getNodeConstructor(child.type))(this, this.scope).parseNode(
-									child
-								);
+				if (key === ANNOTATION_KEY || key === INVALID_ANNOTATION_KEY) {
+					(this as unknown as Program)[key] = value;
+				} else {
+					(this as GenericEsTreeNode)[key] = new Array(value.length);
+					let index = 0;
+					for (const child of value) {
+						(this as GenericEsTreeNode)[key][index++] =
+							child === null
+								? null
+								: new (this.scope.context.getNodeConstructor(child.type))(
+										this,
+										this.scope
+									).parseNode(child);
+					}
 				}
 			} else {
 				(this as GenericEsTreeNode)[key] = new (this.scope.context.getNodeConstructor(value.type))(

@@ -33,7 +33,7 @@ import type Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import type {
-	AstNode,
+	ast,
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -52,7 +52,6 @@ import type {
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
-import type { LiteralStringNode, TemplateLiteralNode } from './utils/bufferToAst';
 import { BuildPhase } from './utils/buildPhase';
 import { decodedSourcemap, resetSourcemapCache } from './utils/decodedSourcemap';
 import { getId } from './utils/getId';
@@ -150,7 +149,7 @@ export interface AstContext {
 }
 
 export interface DynamicImport {
-	argument: string | AstNode;
+	argument: string | ast.Expression;
 	id: string | null;
 	node: ImportExpression;
 	resolution: Module | ExternalModule | string | null;
@@ -1034,19 +1033,13 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: ImportExpression) {
-		let argument: AstNode | string = node.sourceAstNode;
+		let argument: ast.Expression | string = node.sourceAstNode;
 		if (argument.type === NodeType.TemplateLiteral) {
-			if (
-				(argument as TemplateLiteralNode).quasis.length === 1 &&
-				typeof (argument as TemplateLiteralNode).quasis[0].value.cooked === 'string'
-			) {
-				argument = (argument as TemplateLiteralNode).quasis[0].value.cooked!;
+			if (argument.quasis.length === 1 && typeof argument.quasis[0].value.cooked === 'string') {
+				argument = argument.quasis[0].value.cooked!;
 			}
-		} else if (
-			argument.type === NodeType.Literal &&
-			typeof (argument as LiteralStringNode).value === 'string'
-		) {
-			argument = (argument as LiteralStringNode).value!;
+		} else if (argument.type === NodeType.Literal && typeof argument.value === 'string') {
+			argument = argument.value!;
 		}
 		this.dynamicImports.push({ argument, id: null, node, resolution: null });
 	}

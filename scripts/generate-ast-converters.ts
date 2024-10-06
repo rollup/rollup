@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import './generate-ast-macros.js';
+import './generate-ast-types.js';
 import './generate-buffer-parsers.js';
 import './generate-buffer-to-ast.js';
 import './generate-child-node-keys.js';

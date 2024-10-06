@@ -7,10 +7,10 @@ import type ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import type {
+	ast,
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
-	ProgramNode,
 	RollupCache,
 	RollupWatcher,
 	SerializablePluginCache,
@@ -54,7 +54,7 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	readonly astLru = flru<ProgramNode>(5);
+	readonly astLru = flru<ast.Program>(5);
 	readonly cachedModules = new Map<string, ModuleJSON>();
 	readonly deoptimizationTracker = new EntityPathTracker();
 	entryModules: Module[] = [];

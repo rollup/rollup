@@ -4,7 +4,7 @@ import ExternalChunk from '../../ExternalChunk';
 import ExternalModule from '../../ExternalModule';
 import type Module from '../../Module';
 import type {
-	AstNode,
+	ast,
 	DynamicImportTargetChunk,
 	GetInterop,
 	NormalizedOutputOptions,
@@ -58,7 +58,7 @@ export default class ImportExpression extends NodeBase {
 	inlineNamespace: NamespaceVariable | null = null;
 	declare source: ExpressionNode;
 	declare type: NodeType.tImportExpression;
-	declare sourceAstNode: AstNode;
+	declare sourceAstNode: ast.Expression;
 
 	private hasUnknownAccessedKey = false;
 	private accessedPropKey = new Set<string>();

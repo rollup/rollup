@@ -468,7 +468,7 @@ Like the [`onLog`](#onlog) hook, this hook does not have access to most [plugin 
 
 ```typescript
 type ResolveDynamicImportHook = (
-	specifier: string | AstNode,
+	specifier: string | ast.Expression,
 	importer: string,
 	options: { attributes: Record<string, string> }
 ) => ResolveIdResult;
@@ -666,7 +666,7 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 
 ```typescript
 type ShouldTransformCachedModuleHook = (options: {
-	ast: AstNode;
+	ast: ast.Program;
 	code: string;
 	id: string;
 	meta: { [plugin: string]: any };
