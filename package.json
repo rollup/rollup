@@ -106,9 +106,6 @@
     "url": "https://github.com/rollup/rollup/issues"
   },
   "homepage": "https://rollupjs.org/",
-  "dependencies": {
-    "@types/estree": "1.0.8"
-  },
   "devDependenciesComments": {
     "core-js": "We only update manually as every update requires a snapshot update"
   },

@@ -1,4 +1,4 @@
-import isReference, { type NodeWithFieldDefinition } from 'is-reference';
+import isReference from 'is-reference';
 import type MagicString from 'magic-string';
 import '../../../typings/declarations';
 import type { NormalizedTreeshakingOptions } from '../../rollup/types';
@@ -45,7 +45,7 @@ export default class Identifier extends IdentifierBase implements DeclarationPat
 	}
 
 	bind(): void {
-		if (!this.variable && isReference(this, this.parent as NodeWithFieldDefinition)) {
+		if (!this.variable && isReference(this, this.parent as Parameters<typeof isReference>[1])) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 			this.isVariableReference = true;
