@@ -98,7 +98,7 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	private trackedArguments = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();
-	private trackedArgumentsIncludedPaths = new Map<ExpressionEntity, Set<ObjectPath>>();
+	trackedArgumentsIncludedPaths = new Map<ExpressionEntity, Set<ObjectPath>>();
 
 	private hasOrAddIncludedPathsToTrackedArguments(
 		trackedArgument: ExpressionEntity,

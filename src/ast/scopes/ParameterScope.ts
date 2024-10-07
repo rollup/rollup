@@ -69,6 +69,7 @@ export default class ParameterScope extends ChildScope {
 		for (let index = arguments_.length - 1; index >= 0; index--) {
 			const parameterVariables = this.parameters[index] || restParameter;
 			const argument = arguments_[index];
+			let parameterHasTrackedArgument = false;
 			if (parameterVariables) {
 				calledFromTryStatement = false;
 				if (parameterVariables.length === 0) {
@@ -76,6 +77,9 @@ export default class ParameterScope extends ChildScope {
 					argumentIncluded = true;
 				} else {
 					for (const variable of parameterVariables) {
+						if (variable.trackedArgumentsIncludedPaths.size > 0) {
+							parameterHasTrackedArgument = true;
+						}
 						if (variable.included) {
 							argumentIncluded = true;
 						}
@@ -89,7 +93,11 @@ export default class ParameterScope extends ChildScope {
 				argumentIncluded = true;
 			}
 			if (argumentIncluded) {
-				argument.includePath(EMPTY_PATH, context, calledFromTryStatement);
+				argument.includePath(
+					parameterHasTrackedArgument ? EMPTY_PATH : UNKNOWN_PATH,
+					context,
+					calledFromTryStatement
+				);
 			}
 		}
 		for (const functionEntity of context.includedCallArguments) {
