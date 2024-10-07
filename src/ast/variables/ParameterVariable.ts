@@ -1,7 +1,8 @@
 import type { AstContext } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
+import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
+import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
@@ -13,6 +14,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
+import { hasOrAddIncludedPaths } from '../utils/hasOrAddIncludedPaths';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
@@ -89,6 +91,26 @@ export default class ParameterVariable extends LocalVariable {
 
 	deoptimizeCache(): void {
 		this.markReassigned();
+	}
+
+	trackArgument(argument: ExpressionEntity, pathKey?: ObjectPathKey): void {
+		getOrCreate(this.trackedArguments, argument, getNewSet).add(pathKey);
+	}
+
+	private trackedArguments = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();
+	trackedArgumentsIncludedPaths = new Map<ExpressionEntity, Set<ObjectPath>>();
+
+	private hasOrAddIncludedPathsToTrackedArguments(
+		trackedArgument: ExpressionEntity,
+		path: ObjectPath
+	) {
+		if (!this.trackedArgumentsIncludedPaths.has(trackedArgument)) {
+			this.trackedArgumentsIncludedPaths.set(trackedArgument, new Set([path]));
+			return false;
+		} else {
+			const includedPaths = this.trackedArgumentsIncludedPaths.get(trackedArgument)!;
+			return hasOrAddIncludedPaths(includedPaths, path);
+		}
 	}
 
 	private knownValue: ExpressionEntity | null = null;
@@ -173,11 +195,33 @@ export default class ParameterVariable extends LocalVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
+		if (context.parametersBeingCheckedForEffectsOnInteractionAtPath.has(this)) {
+			context.parametersBeingCheckedForEffectsOnInteractionAtPath.delete(this);
+			return true;
+		}
+		context.parametersBeingCheckedForEffectsOnInteractionAtPath.add(this);
 		if (this.isReassigned || interaction.type === INTERACTION_ASSIGNED) {
 			return super.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
 		const knownValue = this.getKnownValue();
 		return knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext): void {
+		if (!context.currentIncludedParameter.has(this)) {
+			context.currentIncludedParameter.add(this);
+			super.includePath(path, context);
+			if (path) {
+				for (const [trackedArgument, pathKeys] of this.trackedArguments) {
+					for (const pathKey of pathKeys) {
+						if (!this.hasOrAddIncludedPathsToTrackedArguments(trackedArgument, path)) {
+							trackedArgument.includePath(pathKey ? [pathKey, ...path] : path, context, false);
+						}
+					}
+				}
+			}
+			context.currentIncludedParameter.delete(this);
+		}
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(interaction: NodeInteraction, path: ObjectPath): void {

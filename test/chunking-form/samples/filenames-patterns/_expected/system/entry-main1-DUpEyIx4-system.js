@@ -1,10 +1,10 @@
 System.register(['./chunk-main2-BRXsWtDg-system.js'], (function () {
 	'use strict';
-	var log, dep;
+	var dep, log;
 	return {
 		setters: [function (module) {
-			log = module.l;
 			dep = module.d;
+			log = module.l;
 		}],
 		execute: (function () {
 

@@ -2,7 +2,6 @@ import type { AstContext, default as Module } from '../../Module';
 import { EMPTY_ARRAY } from '../../utils/blank';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createInclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
 import {
 	INTERACTION_ACCESSED,
@@ -23,11 +22,12 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
+
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
 	readonly kind: VariableKind;
@@ -62,7 +62,6 @@ export default class LocalVariable extends Variable {
 			for (const initializer of this.additionalInitializers) {
 				initializer.deoptimizePath(UNKNOWN_PATH);
 			}
-			this.additionalInitializers = null;
 		}
 	}
 
@@ -181,12 +180,12 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	include(): void {
+	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) {
-			super.include();
+			super.includePath(path, context);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include(createInclusionContext(), false);
+				if (!declaration.included) declaration.includePath(EMPTY_PATH, context, false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
@@ -197,19 +196,27 @@ export default class LocalVariable extends Variable {
 				}
 			}
 		}
+		if (path.length > 0) {
+			if (this.kind === 'var') {
+				for (const init of this.additionalInitializers || []) {
+					init.includePath(path, context, false);
+				}
+			}
+			this.init.includePath(path, context, false);
+		}
 	}
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		if (this.isReassigned || context.includedCallArguments.has(this.init)) {
-			for (const argument of parameters) {
-				argument.include(context, false);
+			for (const argument of arguments_) {
+				argument.includePath(UNKNOWN_PATH, context, false);
 			}
 		} else {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, parameters);
+			this.init.includeCallArguments(context, arguments_);
 			context.includedCallArguments.delete(this.init);
 		}
 	}
