@@ -3,7 +3,7 @@ import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
-import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
+import { UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
@@ -58,7 +58,7 @@ export default class Property extends MethodBase implements PatternNode {
 		includeChildrenRecursively: IncludeChildren
 	) {
 		this.included = true;
-		this.key.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		this.key.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		this.value.includePath(path, context, includeChildrenRecursively);
 	}
 
