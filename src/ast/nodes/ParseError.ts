@@ -3,8 +3,8 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ParseError extends NodeBase {
-	declare type: NodeType.tParseError;
-	declare message: string;
+	type!: NodeType.tParseError;
+	message!: string;
 
 	initialise() {
 		const pos = this.start;

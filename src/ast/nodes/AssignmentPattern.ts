@@ -13,9 +13,9 @@ import type { DeclarationPatternNode, PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
 export default class AssignmentPattern extends NodeBase implements DeclarationPatternNode {
-	declare left: PatternNode;
-	declare right: ExpressionNode;
-	declare type: NodeType.tAssignmentPattern;
+	left!: PatternNode;
+	right!: ExpressionNode;
+	type!: NodeType.tAssignmentPattern;
 
 	addExportedVariables(
 		variables: readonly Variable[],

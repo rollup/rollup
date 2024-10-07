@@ -6,8 +6,8 @@ import FunctionNode from './shared/FunctionNode';
 import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from './shared/Node';
 
 export default class AwaitExpression extends NodeBase {
-	declare argument: ExpressionNode;
-	declare type: NodeType.tAwaitExpression;
+	argument!: ExpressionNode;
+	type!: NodeType.tAwaitExpression;
 
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

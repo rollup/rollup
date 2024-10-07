@@ -37,9 +37,9 @@ const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnkn
 const UNASSIGNED = Symbol('Unassigned');
 
 export default class UnaryExpression extends NodeBase {
-	declare argument: ExpressionNode;
-	declare operator: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
-	declare type: NodeType.tUnaryExpression;
+	argument!: ExpressionNode;
+	operator!: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
+	type!: NodeType.tUnaryExpression;
 	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
 
 	get prefix(): boolean {

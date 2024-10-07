@@ -16,7 +16,7 @@ import ChildScope from './ChildScope';
 import type GlobalScope from './GlobalScope';
 
 export default class ModuleScope extends ChildScope {
-	declare parent: GlobalScope;
+	parent!: GlobalScope;
 
 	constructor(parent: GlobalScope, context: AstContext) {
 		super(parent, context);

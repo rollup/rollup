@@ -12,8 +12,8 @@ import type * as NodeType from './NodeType';
 import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SpreadElement extends NodeBase {
-	declare argument: ExpressionNode;
-	declare type: NodeType.tSpreadElement;
+	argument!: ExpressionNode;
+	type!: NodeType.tSpreadElement;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,

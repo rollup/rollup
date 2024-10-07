@@ -3,8 +3,8 @@ import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ImportNamespaceSpecifier extends NodeBase {
-	declare local: Identifier;
-	declare type: NodeType.tImportNamespaceSpecifier;
+	local!: Identifier;
+	type!: NodeType.tImportNamespaceSpecifier;
 }
 
 ImportNamespaceSpecifier.prototype.includeNode = onlyIncludeSelfNoDeoptimize;

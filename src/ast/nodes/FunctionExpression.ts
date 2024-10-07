@@ -10,8 +10,8 @@ import FunctionNode from './shared/FunctionNode';
 import type { GenericEsTreeNode } from './shared/Node';
 
 export default class FunctionExpression extends FunctionNode {
-	declare type: NodeType.tFunctionExpression;
-	declare idScope: ChildScope;
+	type!: NodeType.tFunctionExpression;
+	idScope!: ChildScope;
 
 	createScope(parentScope: ChildScope) {
 		super.createScope((this.idScope = new ChildScope(parentScope, parentScope.context)));

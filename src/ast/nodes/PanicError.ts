@@ -3,8 +3,8 @@ import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class PanicError extends NodeBase {
-	declare type: NodeType.tPanicError;
-	declare message: string;
+	type!: NodeType.tPanicError;
+	message!: string;
 
 	initialise() {
 		const id = this.scope.context.module.id;

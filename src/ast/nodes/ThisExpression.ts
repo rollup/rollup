@@ -17,9 +17,9 @@ import Property from './Property';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase {
-	declare type: NodeType.tThisExpression;
-	declare variable: Variable;
-	declare private alias: string | null;
+	type!: NodeType.tThisExpression;
+	variable!: Variable;
+	private alias!: string | null;
 
 	bind(): void {
 		this.variable = this.scope.findVariable('this');

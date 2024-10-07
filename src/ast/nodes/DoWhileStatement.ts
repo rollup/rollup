@@ -11,9 +11,9 @@ import {
 } from './shared/Node';
 
 export default class DoWhileStatement extends StatementBase {
-	declare body: StatementNode;
-	declare test: ExpressionNode;
-	declare type: NodeType.tDoWhileStatement;
+	body!: StatementNode;
+	test!: ExpressionNode;
+	type!: NodeType.tDoWhileStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;

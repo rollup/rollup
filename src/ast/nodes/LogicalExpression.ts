@@ -41,10 +41,10 @@ import {
 export type LogicalOperator = '||' | '&&' | '??';
 
 export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
-	declare left: ExpressionNode;
-	declare operator: LogicalOperator;
-	declare right: ExpressionNode;
-	declare type: NodeType.tLogicalExpression;
+	left!: ExpressionNode;
+	operator!: LogicalOperator;
+	right!: ExpressionNode;
+	type!: NodeType.tLogicalExpression;
 
 	//private isBranchResolutionAnalysed = false;
 	private get isBranchResolutionAnalysed(): boolean {

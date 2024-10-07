@@ -17,10 +17,10 @@ import type { PatternNode } from './shared/Pattern';
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ForInStatement extends StatementBase {
-	declare body: StatementNode;
-	declare left: VariableDeclaration | PatternNode;
-	declare right: ExpressionNode;
-	declare type: NodeType.tForInStatement;
+	body!: StatementNode;
+	left!: VariableDeclaration | PatternNode;
+	right!: ExpressionNode;
+	type!: NodeType.tForInStatement;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new BlockScope(parentScope);

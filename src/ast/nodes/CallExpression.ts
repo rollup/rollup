@@ -27,11 +27,11 @@ export default class CallExpression
 	extends CallExpressionBase
 	implements DeoptimizableEntity, ChainElement
 {
-	declare arguments: (ExpressionNode | SpreadElement)[];
-	declare callee: ExpressionNode | Super;
-	declare type: NodeType.tCallExpression;
+	arguments!: (ExpressionNode | SpreadElement)[];
+	callee!: ExpressionNode | Super;
+	type!: NodeType.tCallExpression;
 	/** Marked with #__PURE__ annotation */
-	declare annotationPure?: boolean;
+	annotationPure?: boolean;
 
 	private get hasCheckedForWarnings(): boolean {
 		return isFlagSet(this.flags, Flag.checkedForWarnings);

@@ -17,9 +17,9 @@ import { type ExpressionNode, NodeBase } from './shared/Node';
 import type TemplateElement from './TemplateElement';
 
 export default class TemplateLiteral extends NodeBase {
-	declare expressions: ExpressionNode[];
-	declare quasis: TemplateElement[];
-	declare type: NodeType.tTemplateLiteral;
+	expressions!: ExpressionNode[];
+	quasis!: TemplateElement[];
+	type!: NodeType.tTemplateLiteral;
 
 	deoptimizeArgumentsOnInteractionAtPath(): void {}
 

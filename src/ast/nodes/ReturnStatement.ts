@@ -12,8 +12,8 @@ import {
 } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
-	declare argument: ExpressionNode | null;
-	declare type: NodeType.tReturnStatement;
+	argument!: ExpressionNode | null;
+	type!: NodeType.tReturnStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!context.ignore.returnYield || this.argument?.hasEffects(context)) return true;

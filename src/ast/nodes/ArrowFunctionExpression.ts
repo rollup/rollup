@@ -16,11 +16,11 @@ import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import type { DeclarationPatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends FunctionBase {
-	declare body: BlockStatement | ExpressionNode;
-	declare params: DeclarationPatternNode[];
-	declare preventChildBlockScope: true;
-	declare scope: ReturnValueScope;
-	declare type: NodeType.tArrowFunctionExpression;
+	body!: BlockStatement | ExpressionNode;
+	params!: DeclarationPatternNode[];
+	preventChildBlockScope!: true;
+	scope!: ReturnValueScope;
+	type!: NodeType.tArrowFunctionExpression;
 	protected objectEntity: ObjectEntity | null = null;
 
 	get expression(): boolean {

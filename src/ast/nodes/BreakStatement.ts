@@ -9,8 +9,8 @@ import {
 } from './shared/Node';
 
 export default class BreakStatement extends StatementBase {
-	declare label: Identifier | null;
-	declare type: NodeType.tBreakStatement;
+	label!: Identifier | null;
+	type!: NodeType.tBreakStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.label) {

@@ -16,7 +16,7 @@ import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
 	readonly context: AstContext;
-	declare isNamespace: true;
+	isNamespace!: true;
 	readonly module: Module;
 
 	private memberVariables: Record<string, Variable> | null = null;

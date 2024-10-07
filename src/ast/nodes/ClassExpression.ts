@@ -5,7 +5,7 @@ import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 
 export default class ClassExpression extends ClassNode {
-	declare type: NodeType.tClassExpression;
+	type!: NodeType.tClassExpression;
 
 	render(
 		code: MagicString,

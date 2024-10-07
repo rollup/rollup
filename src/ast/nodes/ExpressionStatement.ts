@@ -12,8 +12,8 @@ import {
 } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
-	declare directive?: string;
-	declare expression: ExpressionNode;
+	directive?: string;
+	expression!: ExpressionNode;
 
 	initialise(): void {
 		super.initialise();

@@ -19,9 +19,9 @@ const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 const IMPORT = 'import';
 
 export default class MetaProperty extends NodeBase {
-	declare meta: Identifier;
-	declare property: Identifier;
-	declare type: NodeType.tMetaProperty;
+	meta!: Identifier;
+	property!: Identifier;
+	type!: NodeType.tMetaProperty;
 
 	private metaProperty: string | null = null;
 	private preliminaryChunkId: string | null = null;

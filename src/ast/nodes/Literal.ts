@@ -28,16 +28,16 @@ export type LiteralValueOrBigInt = LiteralValue | bigint;
 export default class Literal<
 	T extends LiteralValueOrBigInt = LiteralValueOrBigInt
 > extends NodeBase {
-	declare bigint?: string;
-	declare raw?: string;
-	declare regex?: {
+	bigint?: string;
+	raw?: string;
+	regex?: {
 		flags: string;
 		pattern: string;
 	};
-	declare type: NodeType.tLiteral;
-	declare value: T;
+	type!: NodeType.tLiteral;
+	value!: T;
 
-	declare private members: Record<string, MemberDescription>;
+	private members!: Record<string, MemberDescription>;
 
 	deoptimizeArgumentsOnInteractionAtPath(): void {}
 

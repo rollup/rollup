@@ -17,10 +17,10 @@ import {
 } from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
-	declare consequent: readonly StatementNode[];
-	declare needsBoundaries: true;
-	declare test: ExpressionNode | null;
-	declare type: NodeType.tSwitchCase;
+	consequent!: readonly StatementNode[];
+	needsBoundaries!: true;
+	test!: ExpressionNode | null;
+	type!: NodeType.tSwitchCase;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test?.hasEffects(context)) return true;

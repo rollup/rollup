@@ -7,11 +7,11 @@ import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ExportAllDeclaration extends NodeBase {
-	declare attributes: ImportAttribute[];
-	declare exported: Identifier | Literal<string> | null;
-	declare needsBoundaries: true;
-	declare source: Literal<string>;
-	declare type: NodeType.tExportAllDeclaration;
+	attributes!: ImportAttribute[];
+	exported!: Identifier | Literal<string> | null;
+	needsBoundaries!: true;
+	source!: Literal<string>;
+	type!: NodeType.tExportAllDeclaration;
 
 	hasEffects(): boolean {
 		return false;

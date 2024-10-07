@@ -16,11 +16,11 @@ import {
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ForStatement extends StatementBase {
-	declare body: StatementNode;
-	declare init: VariableDeclaration | ExpressionNode | null;
-	declare test: ExpressionNode | null;
-	declare type: NodeType.tForStatement;
-	declare update: ExpressionNode | null;
+	body!: StatementNode;
+	init!: VariableDeclaration | ExpressionNode | null;
+	test!: ExpressionNode | null;
+	type!: NodeType.tForStatement;
+	update!: ExpressionNode | null;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new BlockScope(parentScope);

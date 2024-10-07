@@ -48,10 +48,10 @@ function areAllDeclarationsIncludedAndNotExported(
 }
 
 export default class VariableDeclaration extends NodeBase {
-	declare declarations: readonly VariableDeclarator[];
-	declare kind: VariableDeclarationKind;
-	declare type: NodeType.tVariableDeclaration;
-	declare isUsingDeclaration: boolean;
+	declarations!: readonly VariableDeclarator[];
+	kind!: VariableDeclarationKind;
+	type!: NodeType.tVariableDeclaration;
+	isUsingDeclaration!: boolean;
 
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {

@@ -26,8 +26,8 @@ import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
-	declare properties: readonly (Property | SpreadElement)[];
-	declare type: NodeType.tObjectExpression;
+	properties!: readonly (Property | SpreadElement)[];
+	type!: NodeType.tObjectExpression;
 	private objectEntity: ObjectEntity | null = null;
 	private protoProp: Property | null = null;
 

@@ -33,13 +33,13 @@ import type { ObjectEntity } from './ObjectEntity';
 import type { DeclarationPatternNode } from './Pattern';
 
 export default abstract class FunctionBase extends NodeBase {
-	declare body: BlockStatement | ExpressionNode;
-	declare params: DeclarationPatternNode[];
-	declare preventChildBlockScope: true;
-	declare scope: ReturnValueScope;
+	body!: BlockStatement | ExpressionNode;
+	params!: DeclarationPatternNode[];
+	preventChildBlockScope!: true;
+	scope!: ReturnValueScope;
 
 	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
-	declare annotationNoSideEffects?: boolean;
+	annotationNoSideEffects?: boolean;
 
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);

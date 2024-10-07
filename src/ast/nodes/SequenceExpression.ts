@@ -23,8 +23,8 @@ import {
 } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
-	declare expressions: ExpressionNode[];
-	declare type: NodeType.tSequenceExpression;
+	expressions!: ExpressionNode[];
+	type!: NodeType.tSequenceExpression;
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,

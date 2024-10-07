@@ -18,10 +18,10 @@ import { onlyIncludeSelf } from './shared/Node';
 import type TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
-	declare quasi: TemplateLiteral;
-	declare tag: ExpressionNode;
-	declare type: NodeType.tTaggedTemplateExpression;
-	declare private args: ExpressionEntity[];
+	quasi!: TemplateLiteral;
+	tag!: ExpressionNode;
+	type!: NodeType.tTaggedTemplateExpression;
+	private args!: ExpressionEntity[];
 
 	private get hasCheckedForWarnings(): boolean {
 		return isFlagSet(this.flags, Flag.checkedForWarnings);

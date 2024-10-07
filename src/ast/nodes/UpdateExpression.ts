@@ -16,11 +16,11 @@ import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
-	declare argument: ExpressionNode;
-	declare operator: '++' | '--';
-	declare prefix: boolean;
-	declare type: NodeType.tUpdateExpression;
-	declare private interaction: NodeInteractionAssigned;
+	argument!: ExpressionNode;
+	operator!: '++' | '--';
+	prefix!: boolean;
+	type!: NodeType.tUpdateExpression;
+	private interaction!: NodeInteractionAssigned;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

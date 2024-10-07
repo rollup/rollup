@@ -16,8 +16,8 @@ import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
-	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
-	declare type: NodeType.tArrayExpression;
+	elements!: readonly (ExpressionNode | SpreadElement | null)[];
+	type!: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizeArgumentsOnInteractionAtPath(

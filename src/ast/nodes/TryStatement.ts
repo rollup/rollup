@@ -12,10 +12,10 @@ import {
 } from './shared/Node';
 
 export default class TryStatement extends StatementBase {
-	declare block: BlockStatement;
-	declare finalizer: BlockStatement | null;
-	declare handler: CatchClause | null;
-	declare type: NodeType.tTryStatement;
+	block!: BlockStatement;
+	finalizer!: BlockStatement | null;
+	handler!: CatchClause | null;
+	type!: NodeType.tTryStatement;
 
 	private directlyIncluded = false;
 	private includedLabelsAfterBlock: string[] | null = null;

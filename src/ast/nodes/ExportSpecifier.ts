@@ -4,9 +4,9 @@ import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ExportSpecifier extends NodeBase {
-	declare exported: Identifier | Literal<string>;
-	declare local: Identifier | Literal<string>;
-	declare type: NodeType.tExportSpecifier;
+	exported!: Identifier | Literal<string>;
+	local!: Identifier | Literal<string>;
+	type!: NodeType.tExportSpecifier;
 }
 
 ExportSpecifier.prototype.includeNode = onlyIncludeSelfNoDeoptimize;

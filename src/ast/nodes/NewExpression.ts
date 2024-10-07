@@ -16,12 +16,12 @@ import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
-	declare arguments: ExpressionNode[];
-	declare callee: ExpressionNode;
-	declare type: NodeType.tNewExpression;
-	declare private interaction: NodeInteractionCalled;
+	arguments!: ExpressionNode[];
+	callee!: ExpressionNode;
+	type!: NodeType.tNewExpression;
+	private interaction!: NodeInteractionCalled;
 	/** Marked with #__PURE__ annotation */
-	declare annotationPure?: boolean;
+	annotationPure?: boolean;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

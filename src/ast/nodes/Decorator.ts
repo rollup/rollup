@@ -5,8 +5,8 @@ import type * as NodeType from './NodeType';
 import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class Decorator extends NodeBase {
-	declare type: NodeType.tDecorator;
-	declare expression: ExpressionNode;
+	type!: NodeType.tDecorator;
+	expression!: ExpressionNode;
 	hasEffects(context: HasEffectsContext): boolean {
 		return (
 			this.expression.hasEffects(context) ||

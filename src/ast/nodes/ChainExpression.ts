@@ -14,8 +14,8 @@ import {
 } from './shared/Node';
 
 export default class ChainExpression extends NodeBase implements DeoptimizableEntity {
-	declare expression: CallExpression | MemberExpression;
-	declare type: NodeType.tChainExpression;
+	expression!: CallExpression | MemberExpression;
+	type!: NodeType.tChainExpression;
 
 	// deoptimizations are not relevant as we are not caching values
 	deoptimizeCache(): void {}

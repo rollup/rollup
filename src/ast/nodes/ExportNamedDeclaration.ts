@@ -11,12 +11,12 @@ import { doNotDeoptimize, type Node, NodeBase, onlyIncludeSelfNoDeoptimize } fro
 import type VariableDeclaration from './VariableDeclaration';
 
 export default class ExportNamedDeclaration extends NodeBase {
-	declare attributes: ImportAttribute[];
-	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
-	declare needsBoundaries: true;
-	declare source: Literal<string> | null;
-	declare specifiers: readonly ExportSpecifier[];
-	declare type: NodeType.tExportNamedDeclaration;
+	attributes!: ImportAttribute[];
+	declaration!: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
+	needsBoundaries!: true;
+	source!: Literal<string> | null;
+	specifiers!: readonly ExportSpecifier[];
+	type!: NodeType.tExportNamedDeclaration;
 
 	bind(): void {
 		// Do not bind specifiers

@@ -8,11 +8,11 @@ import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node
 import type { DeclarationPatternNode } from './shared/Pattern';
 
 export default class CatchClause extends NodeBase {
-	declare body: BlockStatement;
-	declare param: DeclarationPatternNode | null;
-	declare preventChildBlockScope: true;
-	declare scope: ParameterScope;
-	declare type: NodeType.tCatchClause;
+	body!: BlockStatement;
+	param!: DeclarationPatternNode | null;
+	preventChildBlockScope!: true;
+	scope!: ParameterScope;
+	type!: NodeType.tCatchClause;
 
 	createScope(parentScope: ChildScope): void {
 		this.scope = new ParameterScope(parentScope, true);

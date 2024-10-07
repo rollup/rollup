@@ -150,16 +150,16 @@ export interface ChainElement {
 }
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	declare annotations?: readonly ast.Annotation[];
-	declare end: number;
+	annotations?: readonly ast.Annotation[];
+	end!: number;
 	parent: Node | { context: AstContext; type: string };
-	declare scope: ChildScope;
-	declare start: number;
-	declare type: keyof typeof NodeType;
+	scope!: ChildScope;
+	start!: number;
+	type!: keyof typeof NodeType;
 	/**
 	 * This will be populated during initialise if setAssignedValue is called.
 	 */
-	declare protected assignmentInteraction: NodeInteractionAssigned;
+	protected assignmentInteraction!: NodeInteractionAssigned;
 
 	/**
 	 * Nodes can apply custom deoptimizations once they become part of the

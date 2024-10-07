@@ -5,7 +5,7 @@ import FunctionNode from './shared/FunctionNode';
 import type { GenericEsTreeNode } from './shared/Node';
 
 export default class FunctionDeclaration extends FunctionNode {
-	declare type: NodeType.tFunctionDeclaration;
+	type!: NodeType.tFunctionDeclaration;
 
 	initialise(): void {
 		super.initialise();

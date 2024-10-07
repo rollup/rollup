@@ -11,9 +11,9 @@ import {
 } from './shared/Node';
 
 export default class WhileStatement extends StatementBase {
-	declare body: StatementNode;
-	declare test: ExpressionNode;
-	declare type: NodeType.tWhileStatement;
+	body!: StatementNode;
+	test!: ExpressionNode;
+	type!: NodeType.tWhileStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;

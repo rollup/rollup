@@ -54,11 +54,11 @@ function getChunkInfoWithPath(chunk: Chunk): PreRenderedChunkWithFileName {
 }
 
 export default class ImportExpression extends NodeBase {
-	declare options: ExpressionNode | null;
+	options!: ExpressionNode | null;
 	inlineNamespace: NamespaceVariable | null = null;
-	declare source: ExpressionNode;
-	declare type: NodeType.tImportExpression;
-	declare sourceAstNode: ast.Expression;
+	source!: ExpressionNode;
+	type!: NodeType.tImportExpression;
+	sourceAstNode!: ast.Expression;
 
 	private hasUnknownAccessedKey = false;
 	private accessedPropKey = new Set<string>();

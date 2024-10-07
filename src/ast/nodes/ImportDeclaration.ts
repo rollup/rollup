@@ -9,11 +9,11 @@ import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
-	declare attributes: ImportAttribute[];
-	declare needsBoundaries: true;
-	declare source: Literal<string>;
-	declare specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
-	declare type: NodeType.tImportDeclaration;
+	attributes!: ImportAttribute[];
+	needsBoundaries!: true;
+	source!: Literal<string>;
+	specifiers!: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
+	type!: NodeType.tImportDeclaration;
 
 	// Do not bind specifiers or attributes
 	bind(): void {}

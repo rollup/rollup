@@ -3,8 +3,8 @@ import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type GenericEsTreeNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class TemplateElement extends NodeBase {
-	declare type: NodeType.tTemplateElement;
-	declare value: {
+	type!: NodeType.tTemplateElement;
+	value!: {
 		cooked: string | undefined;
 		raw: string;
 	};
