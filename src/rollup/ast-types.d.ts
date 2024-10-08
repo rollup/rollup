@@ -174,7 +174,7 @@ export interface DebuggerStatement extends BaseNode {
 
 export interface Decorator extends BaseNode {
 	type: 'Decorator';
-	expression: LeftHandSideExpression;
+	expression: Expression;
 }
 
 export interface Directive extends BaseNode {
@@ -670,27 +670,6 @@ export type Expression =
 export type JSXChild = JSXElement | JSXExpressionContainer | JSXSpreadChild | JSXFragment | JSXText;
 
 export type JSXTagNameExpression = JSXMemberExpression | JSXIdentifier | JSXNamespacedName;
-
-export type LeftHandSideExpression =
-	| ArrayExpression
-	| ArrayPattern
-	| ArrowFunctionExpression
-	| CallExpression
-	| ClassExpression
-	| FunctionExpression
-	| Identifier
-	| JSXElement
-	| JSXFragment
-	| Literal
-	| MemberExpression
-	| MetaProperty
-	| ObjectExpression
-	| ObjectPattern
-	| SequenceExpression
-	| Super
-	| TaggedTemplateExpression
-	| TemplateLiteral
-	| ThisExpression;
 
 export type Literal =
 	| LiteralBigInt

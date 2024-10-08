@@ -128,7 +128,6 @@ type NodeInterface =
 	| 'Expression'
 	| 'JSXTagNameExpression'
 	| 'JSXChild'
-	| 'LeftHandSideExpression'
 	| 'Literal'
 	| 'ModuleDeclaration'
 	| 'Parameter'
@@ -166,27 +165,6 @@ export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterfac
 	],
 	JSXChild: ['JSXElement', 'JSXExpressionContainer', 'JSXSpreadChild', 'JSXFragment', 'JSXText'],
 	JSXTagNameExpression: ['JSXMemberExpression', 'JSXIdentifier', 'JSXNamespacedName'],
-	LeftHandSideExpression: [
-		'ArrayExpression',
-		'ArrayPattern',
-		'ArrowFunctionExpression',
-		'CallExpression',
-		'ClassExpression',
-		'FunctionExpression',
-		'Identifier',
-		'JSXElement',
-		'JSXFragment',
-		'Literal',
-		'MemberExpression',
-		'MetaProperty',
-		'ObjectExpression',
-		'ObjectPattern',
-		'SequenceExpression',
-		'Super',
-		'TaggedTemplateExpression',
-		'TemplateLiteral',
-		'ThisExpression'
-	],
 	Literal: [
 		'LiteralBigInt',
 		'LiteralBoolean',
@@ -452,7 +430,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	DebuggerStatement: {},
 	Decorator: {
-		fields: [{ name: 'expression', nodeTypes: ['LeftHandSideExpression'], type: 'Node' }]
+		fields: [{ name: 'expression', nodeTypes: ['Expression'], type: 'Node' }]
 	},
 	Directive: {
 		astType: 'ExpressionStatement',
