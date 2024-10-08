@@ -11,12 +11,12 @@ import * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
+	NodeBase,
 	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
 	type StatementNode
 } from './shared/Node';
 
-export default class StaticBlock extends StatementBase {
+export default class StaticBlock extends NodeBase {
 	body!: readonly StatementNode[];
 	type!: NodeType.tStaticBlock;
 

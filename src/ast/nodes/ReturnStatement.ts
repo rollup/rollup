@@ -8,10 +8,10 @@ import {
 	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
-	StatementBase
+	NodeBase
 } from './shared/Node';
 
-export default class ReturnStatement extends StatementBase {
+export default class ReturnStatement extends NodeBase {
 	argument!: ExpressionNode | null;
 	type!: NodeType.tReturnStatement;
 

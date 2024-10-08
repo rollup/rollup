@@ -7,11 +7,11 @@ import {
 	doNotDeoptimize,
 	INCLUDE_PARAMETERS,
 	type IncludeChildren,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class TryStatement extends StatementBase {
+export default class TryStatement extends NodeBase {
 	block!: BlockStatement;
 	finalizer!: BlockStatement | null;
 	handler!: CatchClause | null;

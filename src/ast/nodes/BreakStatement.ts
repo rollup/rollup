@@ -4,11 +4,11 @@ import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class BreakStatement extends StatementBase {
+export default class BreakStatement extends NodeBase {
 	label!: Identifier | null;
 	type!: NodeType.tBreakStatement;
 

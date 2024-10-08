@@ -8,14 +8,9 @@ import { type HasEffectsContext, type InclusionContext } from '../ExecutionConte
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import type * as NodeType from './NodeType';
-import {
-	doNotDeoptimize,
-	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
+import { doNotDeoptimize, type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
 
-export default class LabeledStatement extends StatementBase {
+export default class LabeledStatement extends NodeBase {
 	body!: StatementNode;
 	label!: Identifier;
 	type!: NodeType.tLabeledStatement;

@@ -9,10 +9,10 @@ import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import type * as NodeType from './NodeType';
 import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
-import { doNotDeoptimize, onlyIncludeSelfNoDeoptimize, StatementBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type SwitchCase from './SwitchCase';
 
-export default class SwitchStatement extends StatementBase {
+export default class SwitchStatement extends NodeBase {
 	cases!: readonly SwitchCase[];
 	discriminant!: ExpressionNode;
 	type!: NodeType.tSwitchStatement;

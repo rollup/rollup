@@ -10,13 +10,13 @@ import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	type ExpressionNode,
 	type IncludeChildren,
-	StatementBase,
+	NodeBase,
 	type StatementNode
 } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForInStatement extends StatementBase {
+export default class ForInStatement extends NodeBase {
 	body!: StatementNode;
 	left!: VariableDeclaration | PatternNode;
 	right!: ExpressionNode;

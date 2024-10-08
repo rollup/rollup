@@ -7,11 +7,11 @@ import * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
 	type ExpressionNode,
-	onlyIncludeSelfNoDeoptimize,
-	StatementBase
+	NodeBase,
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class ExpressionStatement extends StatementBase {
+export default class ExpressionStatement extends NodeBase {
 	directive?: string;
 	expression!: ExpressionNode;
 

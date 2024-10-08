@@ -4,10 +4,7 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import {
-	INTERACTION_ACCESSED,
-	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
-} from '../NodeInteractions';
+import { INTERACTION_ACCESSED, NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,

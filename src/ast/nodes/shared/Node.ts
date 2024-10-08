@@ -376,8 +376,6 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 }
 
-export { NodeBase as StatementBase };
-
 function createChildNodeKeysForNode(esTreeNode: GenericEsTreeNode): string[] {
 	return Object.keys(esTreeNode).filter(
 		key => typeof esTreeNode[key] === 'object' && key.charCodeAt(0) !== 95 /* _ */

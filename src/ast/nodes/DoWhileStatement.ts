@@ -5,12 +5,12 @@ import {
 	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
+	NodeBase,
 	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
 	type StatementNode
 } from './shared/Node';
 
-export default class DoWhileStatement extends StatementBase {
+export default class DoWhileStatement extends NodeBase {
 	body!: StatementNode;
 	test!: ExpressionNode;
 	type!: NodeType.tDoWhileStatement;

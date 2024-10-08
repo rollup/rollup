@@ -9,13 +9,13 @@ import {
 	doNotDeoptimize,
 	type ExpressionNode,
 	type IncludeChildren,
+	NodeBase,
 	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
 	type StatementNode
 } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForStatement extends StatementBase {
+export default class ForStatement extends NodeBase {
 	body!: StatementNode;
 	init!: VariableDeclaration | ExpressionNode | null;
 	test!: ExpressionNode | null;

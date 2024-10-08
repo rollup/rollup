@@ -11,12 +11,12 @@ import {
 	doNotDeoptimize,
 	type IncludeChildren,
 	type Node,
+	NodeBase,
 	onlyIncludeSelfNoDeoptimize,
-	StatementBase,
 	type StatementNode
 } from './shared/Node';
 
-export default class BlockStatement extends StatementBase {
+export default class BlockStatement extends NodeBase {
 	body!: readonly StatementNode[];
 	type!: NodeType.tBlockStatement;
 
