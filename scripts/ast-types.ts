@@ -124,35 +124,19 @@ type AstNodeName =
 
 type NodeInterface =
 	| 'BindingName'
-	| 'BindingPattern'
-	| 'ChainElement'
-	| 'ClassElement'
-	| 'Declaration'
 	| 'DestructuringPattern'
 	| 'Expression'
 	| 'JSXTagNameExpression'
 	| 'JSXChild'
 	| 'LeftHandSideExpression'
 	| 'Literal'
-	| 'LiteralExpression'
 	| 'ModuleDeclaration'
 	| 'Parameter'
 	| 'Statement';
 
 export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterface)[]> = {
-	BindingName: ['BindingPattern', 'Identifier'],
-	BindingPattern: ['ArrayPattern', 'ObjectPattern'],
-	ChainElement: ['CallExpression', 'MemberExpression'],
-	ClassElement: ['MethodDefinition', 'PropertyDefinition', 'StaticBlock'],
-	Declaration: ['FunctionDeclaration', 'VariableDeclaration', 'ClassDeclaration'],
-	DestructuringPattern: [
-		'ArrayPattern',
-		'AssignmentPattern',
-		'Identifier',
-		'MemberExpression',
-		'ObjectPattern',
-		'RestElement'
-	],
+	BindingName: ['Identifier', 'ArrayPattern', 'ObjectPattern'],
+	DestructuringPattern: ['AssignmentPattern', 'BindingName', 'MemberExpression', 'RestElement'],
 	Expression: [
 		'ArrayExpression',
 		'ArrowFunctionExpression',
@@ -192,7 +176,7 @@ export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterfac
 		'Identifier',
 		'JSXElement',
 		'JSXFragment',
-		'LiteralExpression',
+		'Literal',
 		'MemberExpression',
 		'MetaProperty',
 		'ObjectExpression',
@@ -200,6 +184,7 @@ export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterfac
 		'SequenceExpression',
 		'Super',
 		'TaggedTemplateExpression',
+		'TemplateLiteral',
 		'ThisExpression'
 	],
 	Literal: [
@@ -210,7 +195,6 @@ export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterfac
 		'LiteralRegExp',
 		'LiteralString'
 	],
-	LiteralExpression: ['Literal', 'TemplateLiteral'],
 	ModuleDeclaration: [
 		'ExportAllDeclaration',
 		'ExportDefaultDeclaration',
@@ -219,25 +203,27 @@ export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterfac
 	],
 	Parameter: ['ArrayPattern', 'AssignmentPattern', 'Identifier', 'ObjectPattern', 'RestElement'],
 	Statement: [
-		'ExpressionStatement',
 		'BlockStatement',
-		'StaticBlock',
-		'EmptyStatement',
-		'DebuggerStatement',
-		'ReturnStatement',
-		'LabeledStatement',
 		'BreakStatement',
+		'ClassDeclaration',
 		'ContinueStatement',
+		'DebuggerStatement',
+		'DoWhileStatement',
+		'EmptyStatement',
+		'ExpressionStatement',
+		'ForInStatement',
+		'ForOfStatement',
+		'ForStatement',
+		'FunctionDeclaration',
 		'IfStatement',
+		'LabeledStatement',
+		'ReturnStatement',
+		'StaticBlock',
 		'SwitchStatement',
 		'ThrowStatement',
 		'TryStatement',
-		'WhileStatement',
-		'DoWhileStatement',
-		'ForStatement',
-		'ForInStatement',
-		'ForOfStatement',
-		'Declaration'
+		'VariableDeclaration',
+		'WhileStatement'
 	]
 };
 
@@ -402,14 +388,16 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 		useMacro: false
 	},
 	ChainExpression: {
-		fields: [{ name: 'expression', nodeTypes: ['ChainElement'], type: 'Node' }],
+		fields: [
+			{ name: 'expression', nodeTypes: ['CallExpression', 'MemberExpression'], type: 'Node' }
+		],
 		useMacro: false
 	},
 	ClassBody: {
 		fields: [
 			{
 				name: 'body',
-				nodeTypes: ['ClassElement'],
+				nodeTypes: ['MethodDefinition', 'PropertyDefinition', 'StaticBlock'],
 				type: 'NodeList'
 			}
 		],

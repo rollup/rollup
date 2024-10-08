@@ -132,12 +132,12 @@ export interface CatchClause extends BaseNode {
 
 export interface ChainExpression extends BaseNode {
 	type: 'ChainExpression';
-	expression: ChainElement;
+	expression: CallExpression | MemberExpression;
 }
 
 export interface ClassBody extends BaseNode {
 	type: 'ClassBody';
-	body: readonly ClassElement[];
+	body: readonly (MethodDefinition | PropertyDefinition | StaticBlock)[];
 }
 
 export interface ClassDeclaration extends BaseNode {
@@ -636,23 +636,9 @@ export interface YieldExpression extends BaseNode {
 	delegate: boolean;
 }
 
-export type BindingName = BindingPattern | Identifier;
+export type BindingName = Identifier | ArrayPattern | ObjectPattern;
 
-export type BindingPattern = ArrayPattern | ObjectPattern;
-
-export type ChainElement = CallExpression | MemberExpression;
-
-export type ClassElement = MethodDefinition | PropertyDefinition | StaticBlock;
-
-export type Declaration = FunctionDeclaration | VariableDeclaration | ClassDeclaration;
-
-export type DestructuringPattern =
-	| ArrayPattern
-	| AssignmentPattern
-	| Identifier
-	| MemberExpression
-	| ObjectPattern
-	| RestElement;
+export type DestructuringPattern = AssignmentPattern | BindingName | MemberExpression | RestElement;
 
 export type Expression =
 	| ArrayExpression
@@ -695,7 +681,7 @@ export type LeftHandSideExpression =
 	| Identifier
 	| JSXElement
 	| JSXFragment
-	| LiteralExpression
+	| Literal
 	| MemberExpression
 	| MetaProperty
 	| ObjectExpression
@@ -703,6 +689,7 @@ export type LeftHandSideExpression =
 	| SequenceExpression
 	| Super
 	| TaggedTemplateExpression
+	| TemplateLiteral
 	| ThisExpression;
 
 export type Literal =
@@ -713,8 +700,6 @@ export type Literal =
 	| LiteralRegExp
 	| LiteralString;
 
-export type LiteralExpression = Literal | TemplateLiteral;
-
 export type ModuleDeclaration =
 	| ExportAllDeclaration
 	| ExportDefaultDeclaration
@@ -724,22 +709,24 @@ export type ModuleDeclaration =
 export type Parameter = ArrayPattern | AssignmentPattern | Identifier | ObjectPattern | RestElement;
 
 export type Statement =
-	| ExpressionStatement
 	| BlockStatement
-	| StaticBlock
-	| EmptyStatement
-	| DebuggerStatement
-	| ReturnStatement
-	| LabeledStatement
 	| BreakStatement
+	| ClassDeclaration
 	| ContinueStatement
+	| DebuggerStatement
+	| DoWhileStatement
+	| EmptyStatement
+	| ExpressionStatement
+	| ForInStatement
+	| ForOfStatement
+	| ForStatement
+	| FunctionDeclaration
 	| IfStatement
+	| LabeledStatement
+	| ReturnStatement
+	| StaticBlock
 	| SwitchStatement
 	| ThrowStatement
 	| TryStatement
-	| WhileStatement
-	| DoWhileStatement
-	| ForStatement
-	| ForInStatement
-	| ForOfStatement
-	| Declaration;
+	| VariableDeclaration
+	| WhileStatement;
