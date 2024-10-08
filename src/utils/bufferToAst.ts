@@ -815,7 +815,7 @@ const nodeConverters: ((position: number, buffer: AstBuffer) => any)[] = [
 			body: convertNodeList(buffer[position + 2], buffer)
 		};
 	},
-	function superElement(position, buffer): ast.SuperElement {
+	function superElement(position, buffer): ast.Super {
 		return {
 			type: 'Super',
 			start: buffer[position],

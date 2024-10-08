@@ -548,7 +548,7 @@ export interface StaticBlock extends BaseNode {
 	body: readonly Statement[];
 }
 
-export interface SuperElement extends BaseNode {
+export interface Super extends BaseNode {
 	type: 'Super';
 }
 
@@ -743,5 +743,3 @@ export type Statement =
 	| ForInStatement
 	| ForOfStatement
 	| Declaration;
-
-export type Super = SuperElement;

@@ -59,7 +59,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node, origi
 			parameters.push('position, buffer');
 		}
 	}
-	return `function ${firstLettersLowercase(name)} (${parameters.join(', ')}) {
+	return `function ${node.converterFunction || firstLettersLowercase(name)} (${parameters.join(', ')}) {
     ${definitions.join('')}}`;
 });
 

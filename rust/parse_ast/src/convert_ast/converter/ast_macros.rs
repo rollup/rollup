@@ -653,7 +653,7 @@ macro_rules! store_static_block {
 }
 
 #[macro_export]
-macro_rules! store_super_element {
+macro_rules! store_super {
   ($self:expr, span => $span:expr) => {
     let _: &mut AstConverter = $self;
     let end_position = $self.add_type_and_start(&80u32.to_ne_bytes(), &$span, 4, false);

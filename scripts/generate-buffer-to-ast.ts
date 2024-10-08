@@ -37,7 +37,7 @@ const jsConverters = astNodeNamesWithFieldOrder.map(({ name, fields, node }) => 
 		...getFixedProperties(node),
 		...Object.entries(node.additionalFields || []).map(([key, { value }]) => `${key}: ${value}`)
 	];
-	return `function ${firstLettersLowercase(name)} (position, buffer): ast.${name} {
+	return `function ${node.converterFunction || firstLettersLowercase(name)} (position, buffer): ast.${name} {
     ${definitions.join('')}return {
       type: '${node.astType || name}',
       start: buffer[position],

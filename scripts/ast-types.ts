@@ -106,7 +106,7 @@ type AstNodeName =
 	| 'SequenceExpression'
 	| 'SpreadElement'
 	| 'StaticBlock'
-	| 'SuperElement'
+	| 'Super'
 	| 'SwitchCase'
 	| 'SwitchStatement'
 	| 'TaggedTemplateExpression'
@@ -137,8 +137,7 @@ type NodeInterface =
 	| 'LiteralExpression'
 	| 'ModuleDeclaration'
 	| 'Parameter'
-	| 'Statement'
-	| 'Super';
+	| 'Statement';
 
 export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterface)[]> = {
 	BindingName: ['BindingPattern', 'Identifier'],
@@ -239,8 +238,7 @@ export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterfac
 		'ForInStatement',
 		'ForOfStatement',
 		'Declaration'
-	],
-	Super: ['SuperElement']
+	]
 };
 
 export const AST_NODES: Record<AstNodeName, NodeDescription> = {
@@ -920,8 +918,8 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	StaticBlock: {
 		fields: [{ name: 'body', nodeTypes: ['Statement'], type: 'NodeList' }]
 	},
-	SuperElement: {
-		astType: 'Super'
+	Super: {
+		converterFunction: 'superElement'
 	},
 	SwitchCase: {
 		fields: [
@@ -1072,6 +1070,7 @@ export type FieldDescription =
 
 export interface NodeDescription {
 	astType?: AstNodeName | NodeInterface; // If several converters produce the same type, specify the actual type here
+	converterFunction?: string; // What function name to use in converters instead of the kebab case node name
 	hasSameFieldsAs?: AstNodeName; // If this node uses the same Rust converter as another one, specify the name here. This will skip Rust field constant generation.
 	hasSameFieldsOverrides?: Record<string, FieldDescription>; // If hasSameFields is used, this can specify overrides by field.
 	fields?: FieldDescription[]; // The non-boolean fields of the node, sorted by parse order
