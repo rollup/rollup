@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
@@ -38,11 +39,9 @@ import {
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export type LogicalOperator = '||' | '&&' | '??';
-
 export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
 	left!: ExpressionNode;
-	operator!: LogicalOperator;
+	operator!: ast.LogicalExpression['operator'];
 	right!: ExpressionNode;
 	type!: NodeType.tLogicalExpression;
 

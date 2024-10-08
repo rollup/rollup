@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import {
 	renderSystemExportExpression,
@@ -17,7 +18,7 @@ import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	argument!: ExpressionNode;
-	operator!: '++' | '--';
+	operator!: ast.UpdateExpression['operator'];
 	prefix!: boolean;
 	type!: NodeType.tUpdateExpression;
 	private interaction!: NodeInteractionAssigned;

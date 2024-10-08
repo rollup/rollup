@@ -1,9 +1,13 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
-import { INTERACTION_ACCESSED, NODE_INTERACTION_UNKNOWN_ASSIGNMENT } from '../NodeInteractions';
+import {
+	INTERACTION_ACCESSED,
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
+} from '../NodeInteractions';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
@@ -24,7 +28,10 @@ import {
 import type { IncludeChildren } from './shared/Node';
 import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
 
-const unaryOperators: Record<string, (value: LiteralValue) => LiteralValueOrUnknown> = {
+const unaryOperators: Record<
+	ast.UnaryExpression['operator'],
+	(value: LiteralValue) => LiteralValueOrUnknown
+> = {
 	'!': value => !value,
 	'+': value => +(value as NonNullable<LiteralValue>),
 	'-': value => -(value as NonNullable<LiteralValue>),
@@ -38,7 +45,7 @@ const UNASSIGNED = Symbol('Unassigned');
 
 export default class UnaryExpression extends NodeBase {
 	argument!: ExpressionNode;
-	operator!: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
+	operator!: ast.UnaryExpression['operator'];
 	type!: NodeType.tUnaryExpression;
 	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;
 

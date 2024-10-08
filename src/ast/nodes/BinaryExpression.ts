@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -18,32 +19,9 @@ import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { doNotDeoptimize, type ExpressionNode, NodeBase } from './shared/Node';
 
-type Operator =
-	| '!='
-	| '!=='
-	| '%'
-	| '&'
-	| '*'
-	| '**'
-	| '+'
-	| '-'
-	| '/'
-	| '<'
-	| '<<'
-	| '<='
-	| '=='
-	| '==='
-	| '>'
-	| '>='
-	| '>>'
-	| '>>>'
-	| '^'
-	| '|'
-	| 'in'
-	| 'instanceof';
-
-const binaryOperators: Partial<
-	Record<Operator, (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown>
+const binaryOperators: Record<
+	ast.BinaryExpression['operator'],
+	(left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown
 > = {
 	'!=': (left, right) => left != right,
 	'!==': (left, right) => left !== right,
@@ -65,15 +43,14 @@ const binaryOperators: Partial<
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
+	in: () => UnknownValue,
+	instanceof: () => UnknownValue,
 	'|': (left: any, right: any) => left | right
-	// We use the fallback for cases where we return something unknown
-	// in: () => UnknownValue,
-	// instanceof: () => UnknownValue,
 };
 
 export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
 	left!: ExpressionNode;
-	operator!: keyof typeof binaryOperators;
+	operator!: ast.BinaryExpression['operator'];
 	right!: ExpressionNode;
 	type!: NodeType.tBinaryExpression;
 
@@ -91,10 +68,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (typeof rightValue === 'symbol') return UnknownValue;
 
-		const operatorFunction = binaryOperators[this.operator];
-		if (!operatorFunction) return UnknownValue;
-
-		return operatorFunction(leftValue, rightValue);
+		return binaryOperators[this.operator](leftValue, rightValue);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

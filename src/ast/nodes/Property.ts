@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
@@ -18,7 +19,7 @@ import type { VariableKind } from './shared/VariableKinds';
 
 export default class Property extends MethodBase implements DeclarationPatternNode {
 	key!: ExpressionNode;
-	kind!: 'init' | 'get' | 'set';
+	kind!: ast.Property['kind'];
 	type!: NodeType.tProperty;
 
 	//method!: boolean;

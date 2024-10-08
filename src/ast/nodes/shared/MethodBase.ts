@@ -1,3 +1,4 @@
+import type { ast } from '../../../rollup/types';
 import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
@@ -30,7 +31,7 @@ import type { DeclarationPatternNode } from './Pattern';
 
 export default class MethodBase extends NodeBase implements DeoptimizableEntity {
 	key!: ExpressionNode | PrivateIdentifier;
-	kind!: 'constructor' | 'method' | 'init' | 'get' | 'set';
+	kind!: ast.MethodDefinition['kind'] | ast.Property['kind'];
 	value!: ExpressionNode | (ExpressionNode & DeclarationPatternNode);
 
 	get computed(): boolean {

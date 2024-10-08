@@ -1,3 +1,4 @@
+import type { ast } from '../../rollup/types';
 import type { HasEffectsContext } from '../ExecutionContext';
 import { checkEffectForNodes } from '../utils/checkEffectForNodes';
 import type Decorator from './Decorator';
@@ -9,7 +10,7 @@ import type { ExpressionNode } from './shared/Node';
 
 export default class MethodDefinition extends MethodBase {
 	key!: ExpressionNode | PrivateIdentifier;
-	kind!: 'constructor' | 'method' | 'get' | 'set';
+	kind!: ast.MethodDefinition['kind'];
 	static!: boolean;
 	type!: NodeType.tMethodDefinition;
 	value!: FunctionExpression;

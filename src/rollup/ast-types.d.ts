@@ -99,6 +99,7 @@ export interface BinaryExpression extends BaseNode {
 		| '**'
 		| '^'
 		| '&'
+		| '|'
 		| 'in'
 		| 'instanceof';
 	left: Expression | PrivateIdentifier;
@@ -613,7 +614,7 @@ export interface UpdateExpression extends BaseNode {
 
 export interface VariableDeclaration extends BaseNode {
 	type: 'VariableDeclaration';
-	kind: 'var' | 'let' | 'const';
+	kind: 'var' | 'let' | 'const' | 'using' | 'await using';
 	declarations: readonly VariableDeclarator[];
 }
 

@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { logConstVariableReassignError } from '../../utils/logs';
 import {
@@ -29,23 +30,7 @@ import type { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
 	left!: PatternNode;
-	operator!:
-		| '='
-		| '+='
-		| '-='
-		| '*='
-		| '/='
-		| '%='
-		| '<<='
-		| '>>='
-		| '>>>='
-		| '|='
-		| '^='
-		| '&='
-		| '**='
-		| '&&='
-		| '||='
-		| '??=';
+	operator!: ast.AssignmentExpression['operator'];
 	right!: ExpressionNode;
 	type!: NodeType.tAssignmentExpression;
 

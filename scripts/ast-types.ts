@@ -364,6 +364,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 					'**',
 					'^',
 					'&',
+					'|',
 					'in',
 					'instanceof'
 				]
@@ -996,7 +997,11 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	VariableDeclaration: {
 		fields: [
-			{ name: 'kind', type: 'FixedString', values: ['var', 'let', 'const'] },
+			{
+				name: 'kind',
+				type: 'FixedString',
+				values: ['var', 'let', 'const', 'using', 'await using']
+			},
 			{ name: 'declarations', nodeTypes: ['VariableDeclarator'], type: 'NodeList' }
 		],
 		useMacro: false
