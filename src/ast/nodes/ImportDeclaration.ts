@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type ImportAttribute from './ImportAttribute';
 import type ImportDefaultSpecifier from './ImportDefaultSpecifier';
@@ -8,7 +9,7 @@ import type Literal from './Literal';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ImportDeclaration extends NodeBase {
+export default class ImportDeclaration extends NodeBase<ast.ImportDeclaration> {
 	attributes!: ImportAttribute[];
 	needsBoundaries!: true;
 	source!: Literal<string>;

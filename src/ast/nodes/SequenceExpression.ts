@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
@@ -12,18 +13,18 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { type EntityPathTracker, type ObjectPath } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type { LiteralValueOrUnknown } from './shared/Expression';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class SequenceExpression extends NodeBase {
-	expressions!: ExpressionNode[];
+export default class SequenceExpression extends NodeBase<ast.SequenceExpression> {
+	expressions!: nodes.Expression[];
 	type!: NodeType.tSequenceExpression;
 
 	deoptimizeArgumentsOnInteractionAtPath(

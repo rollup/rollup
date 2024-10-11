@@ -1,9 +1,10 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getCommaSeparatedNodesWithBoundaries } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
+import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
@@ -15,12 +16,15 @@ import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared
 import type { DeclarationPatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class ObjectPattern extends NodeBase implements DeclarationPatternNode {
+export default class ObjectPattern
+	extends NodeBase<ast.ObjectPattern>
+	implements DeclarationPatternNode
+{
 	properties!: readonly (Property | RestElement)[];
 	type!: NodeType.tObjectPattern;
 
 	addExportedVariables(
-		variables: readonly Variable[],
+		variables: Variable[],
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const property of this.properties) {
@@ -62,7 +66,7 @@ export default class ObjectPattern extends NodeBase implements DeclarationPatter
 		// At the moment, this is only triggered for assignment left-hand sides,
 		// where the path is empty
 		_path: ObjectPath,
-		interaction: NodeInteractionAssigned,
+		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
 		for (const property of this.properties) {

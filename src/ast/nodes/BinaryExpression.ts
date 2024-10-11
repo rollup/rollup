@@ -15,9 +15,10 @@ import {
 } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import type { LiteralValue } from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { doNotDeoptimize, type ExpressionNode, NodeBase } from './shared/Node';
+import { doNotDeoptimize, NodeBase } from './shared/Node';
 
 const binaryOperators: Record<
 	ast.BinaryExpression['operator'],
@@ -48,10 +49,13 @@ const binaryOperators: Record<
 	'|': (left: any, right: any) => left | right
 };
 
-export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
-	left!: ExpressionNode;
+export default class BinaryExpression
+	extends NodeBase<ast.BinaryExpression>
+	implements DeoptimizableEntity
+{
+	left!: nodes.Expression;
 	operator!: ast.BinaryExpression['operator'];
-	right!: ExpressionNode;
+	right!: nodes.Expression;
 	type!: NodeType.tBinaryExpression;
 
 	deoptimizeCache(): void {}

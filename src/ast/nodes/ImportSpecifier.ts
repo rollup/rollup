@@ -1,9 +1,10 @@
+import type { ast } from '../../rollup/types';
 import type Identifier from './Identifier';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
 import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 
-export default class ImportSpecifier extends NodeBase {
+export default class ImportSpecifier extends NodeBase<ast.ImportSpecifier> {
 	imported!: Identifier | Literal<string>;
 	local!: Identifier;
 	type!: NodeType.tImportSpecifier;

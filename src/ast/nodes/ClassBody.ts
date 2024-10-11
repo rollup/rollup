@@ -1,28 +1,27 @@
+import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type ChildScope from '../scopes/ChildScope';
 import ClassBodyScope from '../scopes/ClassBodyScope';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
-
 import type MethodDefinition from './MethodDefinition';
 import type * as NodeType from './NodeType';
 import type PropertyDefinition from './PropertyDefinition';
 import type ClassNode from './shared/ClassNode';
 import {
 	doNotDeoptimize,
-	type GenericEsTreeNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 import type StaticBlock from './StaticBlock';
 
-export default class ClassBody extends NodeBase {
+export default class ClassBody extends NodeBase<ast.ClassBody> {
 	body!: (MethodDefinition | PropertyDefinition | StaticBlock)[];
 	scope!: ClassBodyScope;
 	type!: NodeType.tClassBody;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode);
+		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode<any>);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
@@ -33,13 +32,17 @@ export default class ClassBody extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
-		const body: NodeBase[] = (this.body = new Array(esTreeNode.body.length));
+	parseNode(esTreeNode: ast.ClassBody): this {
+		const body: (MethodDefinition | PropertyDefinition | StaticBlock)[] = (this.body = new Array(
+			esTreeNode.body.length
+		));
 		let index = 0;
 		for (const definition of esTreeNode.body) {
-			body[index++] = new (this.scope.context.getNodeConstructor(definition.type))(
+			body[index++] = new (this.scope.context.getNodeConstructor<any>(definition.type))(
 				this,
-				definition.static ? this.scope : this.scope.instanceScope
+				(definition as MethodDefinition | PropertyDefinition).static
+					? this.scope
+					: this.scope.instanceScope
 			).parseNode(definition);
 		}
 		return super.parseNode(esTreeNode);

@@ -1,12 +1,14 @@
+import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import type JSXIdentifier from './JSXIdentifier';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
-export default class JSXMemberExpression extends NodeBase {
+export default class JSXMemberExpression extends NodeBase<ast.JSXMemberExpression> {
 	type!: NodeType.tJSXMemberExpression;
-	object!: JSXMemberExpression | JSXIdentifier;
+	object!: nodes.JSXTagNameExpression;
 	property!: JSXIdentifier;
 
 	includeNode(context: InclusionContext) {

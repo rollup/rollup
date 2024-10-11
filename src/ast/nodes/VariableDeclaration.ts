@@ -47,7 +47,7 @@ function areAllDeclarationsIncludedAndNotExported(
 	return true;
 }
 
-export default class VariableDeclaration extends NodeBase {
+export default class VariableDeclaration extends NodeBase<ast.VariableDeclaration> {
 	declarations!: readonly VariableDeclarator[];
 	kind!: ast.VariableDeclaration['kind'];
 	type!: NodeType.tVariableDeclaration;
@@ -207,7 +207,7 @@ export default class VariableDeclaration extends NodeBase {
 				}
 				isInDeclaration = false;
 			} else {
-				if (singleSystemExport && singleSystemExport === node.id.variable) {
+				if (singleSystemExport && singleSystemExport === (node.id as Identifier).variable) {
 					const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
 					renderSystemExportExpression(
 						singleSystemExport,

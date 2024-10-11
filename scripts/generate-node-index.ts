@@ -15,9 +15,7 @@ const nodeIndex = `${notEditFilesComment}
 ${astTypes.map(astType => `import ${astType} from './${astType}';`).join('\n')}
 import type { NodeBase } from './shared/Node';
 
-export const nodeConstructors: {
-	[name: string]: typeof NodeBase;
-} = {
+export const nodeConstructors = {
 	${astTypes.join(',\n\t')}
 };
 `;

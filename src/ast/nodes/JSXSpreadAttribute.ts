@@ -1,13 +1,13 @@
 import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
+import type { ast, NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import type { ExpressionNode } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
-export default class JSXSpreadAttribute extends NodeBase {
+export default class JSXSpreadAttribute extends NodeBase<ast.JSXSpreadAttribute> {
 	type!: NodeType.tJSXSpreadAttribute;
-	argument!: ExpressionNode;
+	argument!: nodes.Expression;
 
 	render(code: MagicString, options: RenderOptions): void {
 		this.argument.render(code, options);

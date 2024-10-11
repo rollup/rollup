@@ -1,16 +1,16 @@
 import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
+import type { ast, NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type JSXEmptyExpression from './JSXEmptyExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import type { ExpressionNode } from './shared/Node';
 import { NodeBase } from './shared/Node';
 
-export default class JSXExpressionContainer extends NodeBase {
+export default class JSXExpressionContainer extends NodeBase<ast.JSXExpressionContainer> {
 	type!: NodeType.tJSXExpressionContainer;
-	expression!: ExpressionNode | JSXEmptyExpression;
+	expression!: nodes.Expression | JSXEmptyExpression;
 
 	includeNode(context: InclusionContext) {
 		this.included = true;

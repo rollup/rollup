@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
@@ -6,20 +7,20 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { EntityPathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
-import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
 import { onlyIncludeSelf } from './shared/Node';
 import type TemplateLiteral from './TemplateLiteral';
 
-export default class TaggedTemplateExpression extends CallExpressionBase {
+export default class TaggedTemplateExpression extends CallExpressionBase<ast.TaggedTemplateExpression> {
 	quasi!: TemplateLiteral;
-	tag!: ExpressionNode;
+	tag!: nodes.Expression;
 	type!: NodeType.tTaggedTemplateExpression;
 	private args!: ExpressionEntity[];
 
@@ -76,7 +77,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 		if (!this.hasCheckedForWarnings && this.tag.type === NodeType.Identifier) {
 			this.hasCheckedForWarnings = true;
 
-			const name = (this.tag as Identifier).name;
+			const { name } = this.tag;
 			const variable = this.scope.findVariable(name);
 
 			if (variable.isNamespace) {

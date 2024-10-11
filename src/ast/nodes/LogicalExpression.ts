@@ -21,6 +21,7 @@ import {
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { tryCastLiteralValueToBoolean } from '../utils/tryCastLiteralValueToBoolean';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import {
@@ -33,16 +34,18 @@ import {
 import { MultiExpression } from './shared/MultiExpression';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
 	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
-	left!: ExpressionNode;
+export default class LogicalExpression
+	extends NodeBase<ast.LogicalExpression>
+	implements DeoptimizableEntity
+{
+	left!: nodes.Expression;
 	operator!: ast.LogicalExpression['operator'];
-	right!: ExpressionNode;
+	right!: nodes.Expression;
 	type!: NodeType.tLogicalExpression;
 
 	//private isBranchResolutionAnalysed = false;
@@ -55,7 +58,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	// We collect deoptimization information if usedBranch !== null
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private usedBranch: ExpressionNode | null = null;
+	private usedBranch: nodes.Expression | null = null;
 
 	private get hasDeoptimizedCache(): boolean {
 		return isFlagSet(this.flags, Flag.hasDeoptimizedCache);

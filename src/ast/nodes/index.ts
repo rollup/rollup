@@ -91,9 +91,8 @@ import VariableDeclaration from './VariableDeclaration';
 import VariableDeclarator from './VariableDeclarator';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
-import type { NodeBase } from './shared/Node';
 
-export const nodeConstructors: Record<string, typeof NodeBase> = {
+export const nodeConstructors = {
 	ArrayExpression,
 	ArrayPattern,
 	ArrowFunctionExpression,

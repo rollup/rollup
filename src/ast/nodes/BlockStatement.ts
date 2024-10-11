@@ -1,9 +1,11 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import ExpressionStatement from './ExpressionStatement';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -12,12 +14,11 @@ import {
 	type IncludeChildren,
 	type Node,
 	NodeBase,
-	onlyIncludeSelfNoDeoptimize,
-	type StatementNode
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class BlockStatement extends NodeBase {
-	body!: readonly StatementNode[];
+export default class BlockStatement extends NodeBase<ast.BlockStatement> {
+	body!: readonly nodes.Statement[];
 	type!: NodeType.tBlockStatement;
 
 	private get deoptimizeBody(): boolean {

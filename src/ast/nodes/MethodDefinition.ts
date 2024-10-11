@@ -3,13 +3,13 @@ import type { HasEffectsContext } from '../ExecutionContext';
 import { checkEffectForNodes } from '../utils/checkEffectForNodes';
 import type Decorator from './Decorator';
 import type FunctionExpression from './FunctionExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
-import MethodBase from './shared/MethodBase';
-import type { ExpressionNode } from './shared/Node';
+import PropertyBase from './shared/PropertyBase';
 
-export default class MethodDefinition extends MethodBase {
-	key!: ExpressionNode | PrivateIdentifier;
+export default class MethodDefinition extends PropertyBase<ast.MethodDefinition> {
+	key!: nodes.Expression | PrivateIdentifier;
 	kind!: ast.MethodDefinition['kind'];
 	static!: boolean;
 	type!: NodeType.tMethodDefinition;

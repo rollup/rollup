@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext } from '../ExecutionContext';
 import ClassDeclaration from './ClassDeclaration';
@@ -7,10 +8,10 @@ import type FunctionDeclaration from './FunctionDeclaration';
 import type ImportAttribute from './ImportAttribute';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
-import { doNotDeoptimize, type Node, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
+import { doNotDeoptimize, NodeBase, onlyIncludeSelfNoDeoptimize } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ExportNamedDeclaration extends NodeBase {
+export default class ExportNamedDeclaration extends NodeBase<ast.ExportNamedDeclaration> {
 	attributes!: ImportAttribute[];
 	declaration!: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	needsBoundaries!: true;
@@ -53,7 +54,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 				}
 			}
 			code.remove(this.start, endBoundary);
-			(this.declaration as Node).render(code, options, { end, start });
+			this.declaration.render(code, options, { end, start });
 		}
 	}
 }

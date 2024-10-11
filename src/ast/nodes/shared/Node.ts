@@ -1,6 +1,7 @@
 import { locate, type Location } from 'locate-character';
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../../Module';
+import type { AstNode } from '../../../rollup/ast-types';
 import type { ast } from '../../../rollup/types';
 import { ANNOTATION_KEY, INVALID_ANNOTATION_KEY } from '../../../utils/astConverterHelpers';
 import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
@@ -23,7 +24,6 @@ import {
 } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
-import type Program from '../Program';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { InclusionOptions, LiteralValueOrUnknown } from './Expression';
 import { ExpressionEntity } from './Expression';
@@ -49,7 +49,7 @@ export interface Node extends Entity {
 	variable?: Variable | null;
 
 	addExportedVariables(
-		variables: readonly Variable[],
+		variables: Variable[],
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void;
 
@@ -149,7 +149,7 @@ export interface ChainElement {
 	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain;
 }
 
-export class NodeBase extends ExpressionEntity implements ExpressionNode {
+export class NodeBase<T extends AstNode> extends ExpressionEntity implements ExpressionNode {
 	annotations?: readonly ast.Annotation[];
 	end!: number;
 	parent: Node | { context: AstContext; type: string };
@@ -183,7 +183,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	addExportedVariables(
-		_variables: readonly Variable[],
+		_variables: Variable[],
 		_exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {}
 
@@ -285,7 +285,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		this.scope.context.magicString.addSourcemapLocation(this.end);
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
+	parseNode(esTreeNode: T): this {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// Skip properties defined on the class already.
 			// This way, we can override this function to add custom initialisation and then call super.parseNode
@@ -297,7 +297,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {
 				if (key === ANNOTATION_KEY || key === INVALID_ANNOTATION_KEY) {
-					(this as unknown as Program)[key] = value;
+					(this as GenericEsTreeNode)[key] = value;
 				} else {
 					(this as GenericEsTreeNode)[key] = new Array(value.length);
 					let index = 0;
@@ -405,15 +405,15 @@ export function logNode(node: Node | ExpressionEntity): string {
 	return node.constructor.name;
 }
 
-export function onlyIncludeSelf(this: NodeBase) {
+export function onlyIncludeSelf(this: NodeBase<AstNode>) {
 	this.included = true;
 	if (!this.deoptimized) this.applyDeoptimizations();
 }
 
-export function onlyIncludeSelfNoDeoptimize(this: NodeBase) {
+export function onlyIncludeSelfNoDeoptimize(this: NodeBase<AstNode>) {
 	this.included = true;
 }
 
-export function doNotDeoptimize(this: NodeBase) {
+export function doNotDeoptimize(this: NodeBase<AstNode>) {
 	this.deoptimized = true;
 }

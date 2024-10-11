@@ -13,6 +13,7 @@ import {
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import type { LiteralValue } from './Literal';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { InclusionOptions } from './shared/Expression';
@@ -23,7 +24,7 @@ import {
 	UnknownValue
 } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
-import { type ExpressionNode, NodeBase, onlyIncludeSelf } from './shared/Node';
+import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
 const unaryOperators: Record<
 	ast.UnaryExpression['operator'],
@@ -40,8 +41,8 @@ const unaryOperators: Record<
 
 const UNASSIGNED = Symbol('Unassigned');
 
-export default class UnaryExpression extends NodeBase {
-	argument!: ExpressionNode;
+export default class UnaryExpression extends NodeBase<ast.UnaryExpression> {
+	argument!: nodes.Expression;
 	operator!: ast.UnaryExpression['operator'];
 	type!: NodeType.tUnaryExpression;
 	renderedLiteralValue: string | typeof UnknownValue | typeof UNASSIGNED = UNASSIGNED;

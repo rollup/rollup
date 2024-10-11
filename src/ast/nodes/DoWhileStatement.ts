@@ -1,18 +1,18 @@
+import type { ast } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
 import {
 	doNotDeoptimize,
-	type ExpressionNode,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelfNoDeoptimize,
-	type StatementNode
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class DoWhileStatement extends NodeBase {
-	body!: StatementNode;
-	test!: ExpressionNode;
+export default class DoWhileStatement extends NodeBase<ast.DoWhileStatement> {
+	body!: nodes.Statement;
+	test!: nodes.Expression;
 	type!: NodeType.tDoWhileStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {

@@ -25,7 +25,7 @@
  * @typescript-eslint/types/dist/generated/ast-spec.d.ts
  */
 
-type AstNodeName =
+export type AstNodeName =
 	| 'PanicError'
 	| 'ParseError'
 	| 'ArrayExpression'
@@ -123,7 +123,7 @@ type AstNodeName =
 	| 'YieldExpression';
 
 type NodeInterface =
-	| 'BindingName'
+	| 'BindingPattern'
 	| 'DestructuringPattern'
 	| 'Expression'
 	| 'JSXTagNameExpression'
@@ -134,8 +134,11 @@ type NodeInterface =
 	| 'Statement';
 
 export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterface)[]> = {
-	BindingName: ['Identifier', 'ArrayPattern', 'ObjectPattern'],
-	DestructuringPattern: ['AssignmentPattern', 'BindingName', 'MemberExpression', 'RestElement'],
+	// Everything that can be used to declare bindings
+	BindingPattern: ['Identifier', 'ArrayPattern', 'ObjectPattern'],
+	// Everything that can be used for destructuring; MemberExpression is included
+	// here because it can be used in destructuring assignments
+	DestructuringPattern: ['AssignmentPattern', 'BindingPattern', 'MemberExpression', 'RestElement'],
 	Expression: [
 		'ArrayExpression',
 		'ArrowFunctionExpression',
@@ -179,7 +182,7 @@ export const NODE_UNION_TYPES: Record<NodeInterface, (AstNodeName | NodeInterfac
 		'ExportNamedDeclaration',
 		'ImportDeclaration'
 	],
-	Parameter: ['ArrayPattern', 'AssignmentPattern', 'Identifier', 'ObjectPattern', 'RestElement'],
+	Parameter: ['BindingPattern', 'AssignmentPattern', 'RestElement'],
 	Statement: [
 		'BlockStatement',
 		'BreakStatement',
@@ -293,7 +296,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	AssignmentPattern: {
 		fields: [
-			{ name: 'left', nodeTypes: ['BindingName'], type: 'Node' },
+			{ name: 'left', nodeTypes: ['BindingPattern'], type: 'Node' },
 			{ name: 'right', nodeTypes: ['Expression'], type: 'Node' }
 		],
 		useMacro: false
@@ -354,7 +357,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	CatchClause: {
 		fields: [
-			{ allowNull: true, name: 'param', nodeTypes: ['BindingName'], type: 'Node' },
+			{ allowNull: true, name: 'param', nodeTypes: ['BindingPattern'], type: 'Node' },
 			{ name: 'body', nodeTypes: ['BlockStatement'], type: 'Node' }
 		],
 		postProcessFields: {
@@ -841,12 +844,12 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 			{
 				allowNull: true,
 				name: 'key',
-				nodeTypes: ['Expression', 'DestructuringPattern'],
+				nodeTypes: ['Expression'],
 				type: 'Node'
 			},
 			{
 				name: 'value',
-				nodeTypes: ['Expression'],
+				nodeTypes: ['Expression', 'DestructuringPattern'],
 				type: 'Node'
 			},
 			{ name: 'kind', type: 'FixedString', values: ['init', 'get', 'set'] }
@@ -972,7 +975,7 @@ export const AST_NODES: Record<AstNodeName, NodeDescription> = {
 	},
 	VariableDeclarator: {
 		fields: [
-			{ name: 'id', nodeTypes: ['BindingName'], type: 'Node' },
+			{ name: 'id', nodeTypes: ['BindingPattern'], type: 'Node' },
 			{ allowNull: true, name: 'init', nodeTypes: ['Expression'], type: 'Node' }
 		],
 		useMacro: false

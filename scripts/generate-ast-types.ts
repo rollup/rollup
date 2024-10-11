@@ -7,11 +7,13 @@ const notEditFilesComment = generateNotEditFilesComment(import.meta.url);
 
 const astTypesFile = new URL('../src/rollup/ast-types.d.ts', import.meta.url);
 
-function getFieldType(field: FieldDescription): string {
+function getFieldType(field: FieldDescription, node: NodeDescription): string {
 	switch (field.type) {
 		case 'Node': {
 			const baseType = field.nodeTypes.join(' | ');
-			return field.allowNull ? `${baseType} | null` : baseType;
+			return field.allowNull && !node.optionalFallback?.[field.name]
+				? `${baseType} | null`
+				: baseType;
 		}
 		case 'NodeList': {
 			const baseTypes: string[] = [...field.nodeTypes];
@@ -58,7 +60,7 @@ function getNodeType(name: string, node: NodeDescription, nodeFields: FieldDescr
 	const flags = node.flags?.map(flag => `${flag}: boolean;`);
 	const fields = nodeFields
 		?.filter(field => !node.hiddenFields?.includes(field.name))
-		.map(field => `${field.name}${isOptional(field) ? '?' : ''}: ${getFieldType(field)};`);
+		.map(field => `${field.name}${isOptional(field) ? '?' : ''}: ${getFieldType(field, node)};`);
 	const additionalFields = Object.entries(node.additionalFields || {}).map(
 		([name, { type }]) => `${name}: ${type};`
 	);
@@ -86,6 +88,8 @@ ${astNodeNamesWithFieldOrder.map(({ name, node, fields }) => getNodeType(name, n
 ${Object.entries(NODE_UNION_TYPES)
 	.map(([name, fields]) => `export type ${name} = ${fields.join(' | ')};`)
 	.join('\n\n')}
+
+export type AstNode = ${astNodeNamesWithFieldOrder.map(({ name }) => `${name}`).join(' | ')};
 `;
 
 await writeFile(astTypesFile, astTypes);

@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
@@ -12,19 +12,14 @@ import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ClassExpression from './ClassExpression';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
-import {
-	doNotDeoptimize,
-	type ExpressionNode,
-	type IncludeChildren,
-	NodeBase
-} from './shared/Node';
-import type { DeclarationPatternNode } from './shared/Pattern';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 import type { VariableKind } from './shared/VariableKinds';
 
-export default class VariableDeclarator extends NodeBase {
-	id!: DeclarationPatternNode;
-	init!: ExpressionNode | null;
+export default class VariableDeclarator extends NodeBase<ast.VariableDeclarator> {
+	id!: nodes.BindingPattern;
+	init!: nodes.Expression | null;
 	type!: NodeType.tVariableDeclarator;
 	isUsingDeclaration!: boolean;
 

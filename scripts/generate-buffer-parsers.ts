@@ -188,9 +188,9 @@ const nodeTypeStrings = [
   ${nodeTypeStrings.join(',\n')}
 ] as const;
 
-const nodeConstructors: (typeof NodeBase)[] = [
+const nodeConstructors = [
   ${nodeTypes.join(',\n')}
-];
+] as const;
 
 const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[] = [
   ${jsConverters.join(',\n')}

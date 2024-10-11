@@ -23,15 +23,15 @@ import type { NodeInteraction } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class AssignmentExpression extends NodeBase {
-	left!: PatternNode;
+export default class AssignmentExpression extends NodeBase<ast.AssignmentExpression> {
+	left!: nodes.DestructuringPattern;
 	operator!: ast.AssignmentExpression['operator'];
-	right!: ExpressionNode;
+	right!: nodes.Expression;
 	type!: NodeType.tAssignmentExpression;
 
 	hasEffects(context: HasEffectsContext): boolean {

@@ -1,3 +1,4 @@
+import type { ast } from '../../rollup/types';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_CALLED } from '../NodeInteractions';
@@ -7,17 +8,17 @@ import { type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import type BlockStatement from './BlockStatement';
 import type CallExpression from './CallExpression';
 import Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import FunctionBase from './shared/FunctionBase';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type { IncludeChildren } from './shared/Node';
 import { ObjectEntity } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
-import type { DeclarationPatternNode } from './shared/Pattern';
 
-export default class ArrowFunctionExpression extends FunctionBase {
-	body!: BlockStatement | ExpressionNode;
-	params!: DeclarationPatternNode[];
+export default class ArrowFunctionExpression extends FunctionBase<ast.ArrowFunctionExpression> {
+	body!: BlockStatement | nodes.Expression;
+	params!: nodes.Parameter[];
 	preventChildBlockScope!: true;
 	scope!: ReturnValueScope;
 	type!: NodeType.tArrowFunctionExpression;

@@ -1,25 +1,21 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
-import {
-	type ExpressionNode,
-	type IncludeChildren,
-	NodeBase,
-	type StatementNode
-} from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import { type IncludeChildren, NodeBase } from './shared/Node';
 import type VariableDeclaration from './VariableDeclaration';
 
-export default class ForInStatement extends NodeBase {
-	body!: StatementNode;
-	left!: VariableDeclaration | PatternNode;
-	right!: ExpressionNode;
+export default class ForInStatement extends NodeBase<ast.ForInStatement> {
+	body!: nodes.Statement;
+	left!: VariableDeclaration | nodes.DestructuringPattern;
+	right!: nodes.Expression;
 	type!: NodeType.tForInStatement;
 
 	createScope(parentScope: ChildScope): void {

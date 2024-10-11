@@ -40,7 +40,7 @@ export default class Variable extends ExpressionEntity {
 	 * Binds identifiers that reference this variable to this variable.
 	 * Necessary to be able to change variable names.
 	 */
-	addReference(_identifier: IdentifierBase): void {}
+	addReference(_identifier: IdentifierBase<any>): void {}
 
 	private onlyFunctionCallUsed = true;
 	/**
@@ -55,7 +55,7 @@ export default class Variable extends ExpressionEntity {
 	 * Collect the places where the identifier variable is used
 	 * @param usedPlace Where the variable is used
 	 */
-	addUsedPlace(usedPlace: NodeBase): void {
+	addUsedPlace(usedPlace: NodeBase<any>): void {
 		const isFunctionCall =
 			usedPlace.parent.type === NodeType.CallExpression &&
 			(usedPlace.parent as CallExpression).callee === usedPlace;

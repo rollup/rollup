@@ -1,9 +1,9 @@
 import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
+import type { ast, NormalizedJsxOptions } from '../../rollup/types';
 import type * as NodeType from './NodeType';
 import { NodeBase, onlyIncludeSelf } from './shared/Node';
 
-export default class JSXText extends NodeBase {
+export default class JSXText extends NodeBase<ast.JSXText> {
 	type!: NodeType.tJSXText;
 	value!: string;
 	raw!: string;

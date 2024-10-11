@@ -19,7 +19,6 @@ import type MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import type Program from './ast/nodes/Program';
 import type { ExpressionEntity } from './ast/nodes/shared/Expression';
-import type { NodeBase } from './ast/nodes/shared/Node';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import type { ObjectPath } from './ast/utils/PathTracker';
@@ -125,7 +124,10 @@ export interface AstContext {
 	getImportedJsxFactoryVariable: (baseName: string, pos: number, importSource: string) => Variable;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
-	getNodeConstructor: (name: string) => typeof NodeBase;
+	// TODO Lukas this should be the type corresponding
+	getNodeConstructor: <T extends keyof typeof nodeConstructors>(
+		name: T
+	) => (typeof nodeConstructors)[T];
 	getReexports: () => string[];
 	importDescriptions: Map<string, ImportDescription>;
 	includeAllExports: () => void;
@@ -888,7 +890,7 @@ export default class Module {
 			getImportedJsxFactoryVariable: this.getImportedJsxFactoryVariable.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
-			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
+			getNodeConstructor: name => nodeConstructors[name] || nodeConstructors.UnknownNode,
 			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
 			includeAllExports: () => this.includeAllExports(true),

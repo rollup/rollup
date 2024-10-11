@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -7,11 +8,12 @@ import {
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
-import { doNotDeoptimize, type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
+import { doNotDeoptimize, type IncludeChildren, NodeBase } from './shared/Node';
 
-export default class LabeledStatement extends NodeBase {
-	body!: StatementNode;
+export default class LabeledStatement extends NodeBase<ast.LabeledStatement> {
+	body!: nodes.Statement;
 	label!: Identifier;
 	type!: NodeType.tLabeledStatement;
 

@@ -1,21 +1,22 @@
 import type MagicString from 'magic-string';
-import type { NormalizedJsxOptions } from '../../rollup/types';
+import type { ast, NormalizedJsxOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { InclusionContext } from '../ExecutionContext';
 import JSXAttribute from './JSXAttribute';
 import type JSXClosingElement from './JSXClosingElement';
 import type JSXOpeningElement from './JSXOpeningElement';
 import JSXSpreadAttribute from './JSXSpreadAttribute';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import JSXElementBase from './shared/JSXElementBase';
-import type { JSXChild, JsxMode } from './shared/jsxHelpers';
+import type { JsxMode } from './shared/jsxHelpers';
 import type { IncludeChildren } from './shared/Node';
 
-export default class JSXElement extends JSXElementBase {
+export default class JSXElement extends JSXElementBase<ast.JSXElement> {
 	type!: NodeType.tJSXElement;
 	openingElement!: JSXOpeningElement;
 	closingElement!: JSXClosingElement | null;
-	children!: JSXChild[];
+	children!: nodes.JSXChild[];
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		super.include(context, includeChildrenRecursively);
@@ -170,7 +171,7 @@ export default class JSXElement extends JSXElementBase {
 		factoryName: string,
 		extractKeyAttribute: boolean
 	): {
-		firstAttribute: JSXAttribute | JSXSpreadAttribute | JSXChild | null;
+		firstAttribute: JSXAttribute | JSXSpreadAttribute | nodes.JSXChild | null;
 		hasAttributes: boolean;
 		hasSpread: boolean;
 		inObject: boolean;
@@ -234,7 +235,7 @@ export default class JSXElement extends JSXElementBase {
 		inObject: boolean,
 		hasAttributes: boolean,
 		hasSpread: boolean,
-		firstAttribute: JSXAttribute | JSXSpreadAttribute | JSXChild | null,
+		firstAttribute: JSXAttribute | JSXSpreadAttribute | nodes.JSXChild | null,
 		missingAttributesFallback: string,
 		attributesEnd: number
 	) {

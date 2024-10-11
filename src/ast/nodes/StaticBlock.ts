@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import {
 	findFirstOccurrenceOutsideComment,
 	type RenderOptions,
@@ -7,17 +8,17 @@ import {
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import type ChildScope from '../scopes/ChildScope';
-import * as NodeType from './NodeType';
+import type * as nodes from './node-unions';
+import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelfNoDeoptimize,
-	type StatementNode
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class StaticBlock extends NodeBase {
-	body!: readonly StatementNode[];
+export default class StaticBlock extends NodeBase<ast.StaticBlock> {
+	body!: readonly nodes.Statement[];
 	type!: NodeType.tStaticBlock;
 
 	createScope(parentScope: ChildScope): void {
@@ -52,7 +53,3 @@ export default class StaticBlock extends NodeBase {
 
 StaticBlock.prototype.includeNode = onlyIncludeSelfNoDeoptimize;
 StaticBlock.prototype.applyDeoptimizations = doNotDeoptimize;
-
-export function isStaticBlock(statement: StatementNode): statement is StaticBlock {
-	return statement.type === NodeType.StaticBlock;
-}

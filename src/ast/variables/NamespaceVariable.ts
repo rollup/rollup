@@ -22,7 +22,7 @@ export default class NamespaceVariable extends Variable {
 	private memberVariables: Record<string, Variable> | null = null;
 	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
-	private references: IdentifierBase[] = [];
+	private references: IdentifierBase<any>[] = [];
 
 	constructor(context: AstContext) {
 		super(context.getModuleName());
@@ -30,7 +30,7 @@ export default class NamespaceVariable extends Variable {
 		this.module = context.module;
 	}
 
-	addReference(identifier: IdentifierBase): void {
+	addReference(identifier: IdentifierBase<any>): void {
 		this.references.push(identifier);
 		this.name = identifier.name;
 	}

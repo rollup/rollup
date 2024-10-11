@@ -1,4 +1,5 @@
 import type MagicString from 'magic-string';
+import type { ast } from '../../rollup/types';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logThisIsUndefined } from '../../utils/logs';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -16,7 +17,7 @@ import ObjectExpression from './ObjectExpression';
 import Property from './Property';
 import { NodeBase } from './shared/Node';
 
-export default class ThisExpression extends NodeBase {
+export default class ThisExpression extends NodeBase<ast.ThisExpression> {
 	type!: NodeType.tThisExpression;
 	variable!: Variable;
 	private alias!: string | null;

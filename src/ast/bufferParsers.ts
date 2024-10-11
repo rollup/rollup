@@ -99,7 +99,7 @@ import VariableDeclarator from './nodes/VariableDeclarator';
 import WhileStatement from './nodes/WhileStatement';
 import YieldExpression from './nodes/YieldExpression';
 import { UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
-import type { Node, NodeBase } from './nodes/shared/Node';
+import type { Node } from './nodes/shared/Node';
 import type ChildScope from './scopes/ChildScope';
 import type ModuleScope from './scopes/ModuleScope';
 import TrackingScope from './scopes/TrackingScope';
@@ -212,7 +212,7 @@ const nodeTypeStrings = [
 	'YieldExpression'
 ] as const;
 
-const nodeConstructors: (typeof NodeBase)[] = [
+const nodeConstructors = [
 	PanicError,
 	ParseError,
 	ArrayExpression,
@@ -308,7 +308,7 @@ const nodeConstructors: (typeof NodeBase)[] = [
 	VariableDeclarator,
 	WhileStatement,
 	YieldExpression
-];
+] as const;
 
 const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[] = [
 	function panicError(node: PanicError, position, buffer) {

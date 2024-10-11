@@ -10,17 +10,17 @@ import {
 } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { createHasEffectsContext } from '../ExecutionContext';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import {
 	doNotDeoptimize,
 	type IncludeChildren,
 	NodeBase,
-	onlyIncludeSelfNoDeoptimize,
-	type StatementNode
+	onlyIncludeSelfNoDeoptimize
 } from './shared/Node';
 
-export default class Program extends NodeBase {
-	body!: readonly StatementNode[];
+export default class Program extends NodeBase<ast.Program> {
+	body!: readonly (nodes.Statement | nodes.ModuleDeclaration)[];
 	sourceType!: 'module';
 	type!: NodeType.tProgram;
 	invalidAnnotations?: readonly ast.Annotation[];

@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logCannotCallNamespace, logEval } from '../../utils/logs';
@@ -12,23 +12,24 @@ import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import CallExpressionBase from './shared/CallExpressionBase';
 import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
+import type { ChainElement, IncludeChildren, SkippedChain } from './shared/Node';
 import { INCLUDE_PARAMETERS, IS_SKIPPED_CHAIN } from './shared/Node';
 import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 
 export default class CallExpression
-	extends CallExpressionBase
+	extends CallExpressionBase<ast.CallExpression>
 	implements DeoptimizableEntity, ChainElement
 {
-	arguments!: (ExpressionNode | SpreadElement)[];
-	callee!: ExpressionNode | Super;
+	arguments!: (nodes.Expression | SpreadElement)[];
+	callee!: nodes.Expression | Super;
 	type!: NodeType.tCallExpression;
 	/** Marked with #__PURE__ annotation */
 	annotationPure?: boolean;
@@ -86,7 +87,7 @@ export default class CallExpression
 	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain {
 		const calleeHasEffects =
 			'hasEffectsAsChainElement' in this.callee
-				? (this.callee as ChainElement).hasEffectsAsChainElement(context)
+				? this.callee.hasEffectsAsChainElement(context)
 				: this.callee.hasEffects(context);
 		if (calleeHasEffects === IS_SKIPPED_CHAIN) return IS_SKIPPED_CHAIN;
 		if (

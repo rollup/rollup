@@ -1,6 +1,6 @@
 import type MagicString from 'magic-string';
 import type { AstContext } from '../../Module';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { ast, NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK, EMPTY_ARRAY } from '../../utils/blank';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logIllegalImportReassignment, logMissingExport } from '../../utils/logs';
@@ -39,7 +39,8 @@ import type NamespaceVariable from '../variables/NamespaceVariable';
 import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
-import type * as NodeType from './NodeType';
+import type * as nodes from './node-unions';
+import * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { getChainElementLiteralValueAtPath } from './shared/chainElements';
@@ -52,7 +53,7 @@ import {
 	UNKNOWN_RETURN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
+import type { ChainElement, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type Super from './Super';
@@ -63,7 +64,9 @@ function getResolvablePropertyKey(memberExpression: MemberExpression): string | 
 		: (memberExpression.property as Identifier).name;
 }
 
-function getResolvableComputedPropertyKey(propertyKey: ExpressionNode): string | null {
+function getResolvableComputedPropertyKey(
+	propertyKey: nodes.Expression | PrivateIdentifier
+): string | null {
 	if (propertyKey instanceof Literal) {
 		return String(propertyKey.value);
 	}
@@ -101,11 +104,11 @@ function getStringFromPath(path: PathWithPositions): string {
 }
 
 export default class MemberExpression
-	extends NodeBase
+	extends NodeBase<ast.MemberExpression>
 	implements DeoptimizableEntity, ChainElement, PatternNode
 {
-	object!: ExpressionNode | Super;
-	property!: ExpressionNode | PrivateIdentifier;
+	object!: nodes.Expression | Super;
+	property!: nodes.Expression | PrivateIdentifier;
 	propertyKey!: ObjectPathKey;
 	type!: NodeType.tMemberExpression;
 	variable: Variable | null = null;
@@ -302,7 +305,7 @@ export default class MemberExpression
 		if (this.variable || this.isUndefined) return this.hasEffects(context);
 		const objectHasEffects =
 			'hasEffectsAsChainElement' in this.object
-				? (this.object as ChainElement).hasEffectsAsChainElement(context)
+				? this.object.hasEffectsAsChainElement(context)
 				: this.object.hasEffects(context);
 		if (objectHasEffects === IS_SKIPPED_CHAIN) return IS_SKIPPED_CHAIN;
 		if (
@@ -421,17 +424,19 @@ export default class MemberExpression
 		if (this.variable) {
 			this.variable.includeCallArguments(interaction, context);
 		} else {
+			const { object } = this;
 			if (
-				isImportExpressionNode(this.object) ||
+				object.type === NodeType.ImportExpression ||
 				/**
 				 * const c = await import('foo')
 				 * c.foo();
 				 */
-				(this.object.variable &&
-					!this.object.variable.isReassigned &&
-					this.object.variable instanceof LocalVariable &&
-					isAwaitExpressionNode(this.object.variable.init) &&
-					isImportExpressionNode(this.object.variable.init.argument))
+				('variable' in object &&
+					object.variable &&
+					!object.variable.isReassigned &&
+					object.variable instanceof LocalVariable &&
+					isAwaitExpressionNode(object.variable.init) &&
+					isImportExpressionNode(object.variable.init.argument))
 			) {
 				includeInteractionWithoutThis(interaction, context);
 			} else {

@@ -1,12 +1,14 @@
+import type { ast } from '../../rollup/types';
 import type { InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
+import type * as nodes from './node-unions';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
-import { type ExpressionNode, type IncludeChildren, type Node, NodeBase } from './shared/Node';
+import { type IncludeChildren, type Node, NodeBase } from './shared/Node';
 
-export default class AwaitExpression extends NodeBase {
-	argument!: ExpressionNode;
+export default class AwaitExpression extends NodeBase<ast.AwaitExpression> {
+	argument!: nodes.Expression;
 	type!: NodeType.tAwaitExpression;
 
 	hasEffects(): boolean {

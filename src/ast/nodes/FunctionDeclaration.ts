@@ -1,10 +1,10 @@
+import type { ast } from '../../rollup/types';
 import type ChildScope from '../scopes/ChildScope';
 import Identifier, { type IdentifierWithVariable } from './Identifier';
 import type * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
-import type { GenericEsTreeNode } from './shared/Node';
 
-export default class FunctionDeclaration extends FunctionNode {
+export default class FunctionDeclaration extends FunctionNode<ast.FunctionDeclaration> {
 	type!: NodeType.tFunctionDeclaration;
 
 	initialise(): void {
@@ -19,7 +19,7 @@ export default class FunctionDeclaration extends FunctionNode {
 		return this.id?.variable.getOnlyFunctionCallUsed() ?? super.onlyFunctionCallUsed();
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode): this {
+	parseNode(esTreeNode: ast.FunctionDeclaration): this {
 		if (esTreeNode.id !== null) {
 			this.id = new Identifier(this, this.scope.parent as ChildScope).parseNode(
 				esTreeNode.id
