@@ -2,7 +2,7 @@ const retained1 = { x: {} };
 retained1.y = 1;
 retained1.x.y = 2;
 
-const retained2 = { x: {} };
+const retained2 = { };
 retained2.y.z = 1;
 
 const retained3 = { x: {} };

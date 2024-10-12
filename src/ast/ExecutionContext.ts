@@ -20,12 +20,14 @@ interface ControlFlowContext {
 
 export interface InclusionContext extends ControlFlowContext {
 	includedCallArguments: Set<Entity>;
+	currentIncludedParameter: Set<ExpressionEntity>;
 }
 
 export interface HasEffectsContext extends ControlFlowContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
 	brokenFlow: boolean;
+	parametersBeingCheckedForEffectsOnInteractionAtPath: Set<ExpressionEntity>;
 	called: DiscriminatedPathTracker;
 	ignore: ExecutionContextIgnore;
 	instantiated: DiscriminatedPathTracker;
@@ -35,6 +37,7 @@ export interface HasEffectsContext extends ControlFlowContext {
 export function createInclusionContext(): InclusionContext {
 	return {
 		brokenFlow: false,
+		currentIncludedParameter: new Set(),
 		hasBreak: false,
 		hasContinue: false,
 		includedCallArguments: new Set(),
@@ -59,6 +62,7 @@ export function createHasEffectsContext(): HasEffectsContext {
 		},
 		includedLabels: new Set(),
 		instantiated: new DiscriminatedPathTracker(),
+		parametersBeingCheckedForEffectsOnInteractionAtPath: new Set(),
 		replacedVariableInits: new Map()
 	};
 }

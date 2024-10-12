@@ -1,9 +1,13 @@
-import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
+import {
+	createInclusionContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../../ExecutionContext';
 import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import FunctionScope from '../../scopes/FunctionScope';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import type { ExpressionEntity } from './Expression';
@@ -90,13 +94,17 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		super.include(context, includeChildrenRecursively);
-		this.id?.include();
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
+		super.includePath(path, context, includeChildrenRecursively);
+		this.id?.includePath(UNKNOWN_PATH, createInclusionContext());
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier) || hasArguments) {
-				parameter.include(context, includeChildrenRecursively);
+				parameter.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			}
 		}
 	}

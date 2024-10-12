@@ -3,6 +3,7 @@ import type { NormalizedJsxOptions } from '../../../rollup/types';
 import { getRenderedJsxChildren } from '../../../utils/jsx';
 import type { RenderOptions } from '../../../utils/renderHelpers';
 import type { InclusionContext } from '../../ExecutionContext';
+import type { ObjectPath } from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import JSXEmptyExpression from '../JSXEmptyExpression';
 import JSXExpressionContainer from '../JSXExpressionContainer';
@@ -26,7 +27,11 @@ export default class JSXElementBase extends NodeBase {
 		}
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	) {
 		if (!this.included) {
 			const { factory, importSource, mode } = this.jsxMode;
 			if (factory) {
@@ -39,7 +44,7 @@ export default class JSXElementBase extends NodeBase {
 				);
 			}
 		}
-		super.include(context, includeChildrenRecursively);
+		super.includePath(path, context, includeChildrenRecursively);
 	}
 
 	protected applyDeoptimizations() {}
