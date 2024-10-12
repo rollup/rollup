@@ -1,1 +1,1 @@
-{"version":3,"file":"main.js","sources":["../../main.js"],"sourcesContent":["import('./dynamic.js');\nimport('./dynamic-hashed.js');\n"],"names":[],"mappings":";;AAAA,mDAAO,oBAAc,uBAAC,CAAC;AACvB,mDAAO,2BAAqB,uBAAC;;;;;;"}
+{"version":3,"file":"main.js","sources":["../../main.js"],"sourcesContent":["import('./dynamic.js');\nimport('./dynamic-hashed.js');\n"],"names":[],"mappings":";;AAAA,mDAAO,oBAAc,uBAAC;AACtB,mDAAO,2BAAqB,uBAAC;;;;;;"}
