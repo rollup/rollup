@@ -25,7 +25,8 @@
         "node",
         "npm",
         "fsevents",
-        "core-js"
+        "core-js",
+        "unicode-width"
       ],
       "enabled": false
     },
