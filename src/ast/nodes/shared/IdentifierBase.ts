@@ -28,8 +28,9 @@ const tdzVariableKinds = new Set(['class', 'const', 'let', 'var', 'using', 'awai
 export default class IdentifierBase extends NodeBase {
 	name!: string;
 	variable: Variable | null = null;
-	includedPaths!: Set<ObjectPath> | null;
+
 	protected isVariableReference = false;
+	private includedPaths!: Set<ObjectPath> | null;
 
 	private get isTDZAccess(): boolean | null {
 		if (!isFlagSet(this.flags, Flag.tdzAccessDefined)) {
@@ -129,14 +130,6 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	private hasOrAddIncludedPathss(path: ObjectPath) {
-		if (!this.includedPaths) {
-			this.includedPaths = new Set([path]);
-			return false;
-		}
-		return hasOrAddIncludedPaths(this.includedPaths, path);
-	}
-
 	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
@@ -148,7 +141,7 @@ export default class IdentifierBase extends NodeBase {
 		if (
 			this.variable &&
 			path.length > 0 &&
-			(!this.hasOrAddIncludedPathss(path) || this.variable.kind === 'parameter')
+			(!this.hasOrAddIncludedPaths(path) || this.variable.kind === 'parameter')
 		) {
 			this.variable.includePath(path, context);
 		}
@@ -232,6 +225,14 @@ export default class IdentifierBase extends NodeBase {
 			return UNKNOWN_EXPRESSION;
 		}
 		return this.variable;
+	}
+
+	private hasOrAddIncludedPaths(path: ObjectPath) {
+		if (!this.includedPaths) {
+			this.includedPaths = new Set([path]);
+			return false;
+		}
+		return hasOrAddIncludedPaths(this.includedPaths, path);
 	}
 
 	private isPureFunction(path: ObjectPath) {
