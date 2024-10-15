@@ -33,9 +33,8 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
-import type SpreadElement from './SpreadElement';
-import type Super from './Super';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
+import { getChainElementLiteralValueAtPath } from './shared/chainElements';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
@@ -45,7 +44,8 @@ import {
 } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
-import { getChainElementLiteralValueAtPath } from './shared/chainElements';
+import type SpreadElement from './SpreadElement';
+import type Super from './Super';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -453,7 +453,7 @@ export default class MemberExpression
 			const variable = this.scope.findVariable(this.object.name);
 			if (variable.isNamespace) {
 				if (this.variable) {
-					this.scope.context.includeVariableInModule(this.variable);
+					this.scope.context.includeVariableInModule(this.variable, UNKNOWN_PATH);
 				}
 				this.scope.context.log(
 					LOGLEVEL_WARN,
@@ -503,6 +503,8 @@ export default class MemberExpression
 			if (this.variable) {
 				this.scope.context.includeVariableInModule(this.variable, path.slice(1));
 			}
+		} else {
+			this.variable?.includePath(path.slice(1), context);
 		}
 		this.object.includePath(path, context, includeChildrenRecursively);
 		this.property.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
