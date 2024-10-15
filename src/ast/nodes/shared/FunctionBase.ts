@@ -44,6 +44,9 @@ export default abstract class FunctionBase extends NodeBase {
 	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
 	declare annotationNoSideEffects?: boolean;
 
+	argumentsToBeIncludedAll = new Set<ExpressionEntity>();
+	protected objectEntity: ObjectEntity | null = null;
+
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);
 	}
@@ -68,6 +71,7 @@ export default abstract class FunctionBase extends NodeBase {
 	private updateParameterVariableValues(arguments_: InteractionCalledArguments) {
 		nextParameter: for (let position = 0; position < this.params.length; position++) {
 			const parameter = this.params[position];
+			// Indices are off because the first argument is the "this" argument
 			const argument = arguments_[position + 1];
 			if (parameter instanceof Identifier) {
 				const parameterVariable = parameter.variable as ParameterVariable;
@@ -82,7 +86,7 @@ export default abstract class FunctionBase extends NodeBase {
 						continue nextParameter;
 					} else if (element.value instanceof Identifier) {
 						const path = hasRestElement ? UnknownKey : element.value.name;
-						(element.value.variable as ParameterVariable)?.trackArgument(argument, path);
+						(element.value.variable as ParameterVariable).trackArgument(argument, path);
 					} else {
 						this.argumentsToBeIncludedAll.add(argument);
 						continue nextParameter;
@@ -112,10 +116,6 @@ export default abstract class FunctionBase extends NodeBase {
 			}
 		}
 	}
-
-	protected objectEntity: ObjectEntity | null = null;
-
-	argumentsToBeIncludedAll = new Set<ExpressionEntity>();
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
