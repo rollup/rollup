@@ -18,12 +18,12 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import type Property from './Property';
-import SpreadElement from './SpreadElement';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
+import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	declare properties: readonly (Property | SpreadElement)[];
