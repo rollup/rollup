@@ -11,7 +11,6 @@ import {
 import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
-import type SpreadElement from '../nodes/SpreadElement';
 import {
 	deoptimizeInteraction,
 	type ExpressionEntity,
@@ -22,7 +21,14 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import { EMPTY_PATH, type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
+import type SpreadElement from '../nodes/SpreadElement';
+import {
+	EMPTY_PATH,
+	IncludedPathTracker,
+	type ObjectPath,
+	type PathTracker,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
@@ -36,6 +42,7 @@ export default class LocalVariable extends Variable {
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
 	protected deoptimizationTracker: PathTracker;
+	protected includedPathTracker = new IncludedPathTracker();
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -181,7 +188,7 @@ export default class LocalVariable extends Variable {
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
-		if (!this.included) {
+		if (!this.includedPathTracker.includePathAndGetIfIncluded(path)) {
 			super.includePath(path, context);
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
@@ -195,14 +202,12 @@ export default class LocalVariable extends Variable {
 					node = node.parent as Node;
 				}
 			}
-		}
-		if (path.length > 0) {
-			if (this.kind === 'var') {
-				for (const init of this.additionalInitializers || []) {
-					init.includePath(path, context, false);
-				}
+			if (path.length > 0) {
+				this.init.includePath(path, context, false);
+				this.additionalInitializers?.forEach(initializer =>
+					initializer.includePath(path, context, false)
+				);
 			}
-			this.init.includePath(path, context, false);
 		}
 	}
 

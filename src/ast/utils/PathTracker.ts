@@ -63,9 +63,9 @@ export class PathTracker {
 	private getEntities(path: ObjectPath): Set<Entity> {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
-			currentPaths = currentPaths[pathSegment] =
-				currentPaths[pathSegment] ||
-				Object.create(null, { [EntitiesKey]: { value: new Set<Entity>() } });
+			currentPaths = currentPaths[pathSegment] ||= Object.create(null, {
+				[EntitiesKey]: { value: new Set<Entity>() }
+			});
 		}
 		return currentPaths[EntitiesKey];
 	}
@@ -94,9 +94,9 @@ export class DiscriminatedPathTracker {
 	): boolean {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
-			currentPaths = currentPaths[pathSegment] =
-				currentPaths[pathSegment] ||
-				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<unknown>>() } });
+			currentPaths = currentPaths[pathSegment] ||= Object.create(null, {
+				[EntitiesKey]: { value: new Map<unknown, Set<unknown>>() }
+			});
 		}
 		const trackedEntities = getOrCreate(
 			currentPaths[EntitiesKey],
@@ -106,5 +106,30 @@ export class DiscriminatedPathTracker {
 		if (trackedEntities.has(entity)) return true;
 		trackedEntities.add(entity);
 		return false;
+	}
+}
+
+interface IncludedPaths {
+	[pathSegment: string]: IncludedPaths;
+	[SymbolToStringTag]?: IncludedPaths;
+	[UnknownInteger]?: IncludedPaths;
+	[UnknownKey]?: IncludedPaths;
+	[UnknownNonAccessorKey]?: IncludedPaths;
+}
+
+export class IncludedPathTracker {
+	private includedPaths: IncludedPaths | null = null;
+
+	includePathAndGetIfIncluded(path: ObjectPath): boolean {
+		let included = true;
+		let currentPaths = (this.includedPaths ||= ((included = false), Object.create(null)));
+		for (const pathSegment of path) {
+			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
+			// Including UnknownKey automatically includes all nested paths
+			if (pathSegment === UnknownKey) {
+				return included;
+			}
+		}
+		return included;
 	}
 }
