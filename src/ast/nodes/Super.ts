@@ -1,3 +1,4 @@
+import type { InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import type Variable from '../variables/Variable';
@@ -24,10 +25,12 @@ export default class Super extends NodeBase {
 		this.variable.deoptimizePath(path);
 	}
 
-	includePath(): void {
+	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) {
 			this.included = true;
-			this.scope.context.includeVariableInModule(this.variable);
+			this.scope.context.includeVariableInModule(this.variable, path);
+		} else {
+			this.variable.includePath(path, context);
 		}
 	}
 }

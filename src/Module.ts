@@ -133,7 +133,7 @@ export interface AstContext {
 	importDescriptions: Map<string, ImportDescription>;
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeVariableInModule: (variable: Variable, path?: ObjectPath) => void;
+	includeVariableInModule: (variable: Variable, path: ObjectPath) => void;
 	log: (level: LogLevel, properties: RollupLog, pos: number) => void;
 	magicString: MagicString;
 	manualPureFunctions: PureFunctions;
@@ -704,7 +704,7 @@ export default class Module {
 
 	include(): void {
 		const context = createInclusionContext();
-		if (this.ast!.shouldBeIncluded(context)) this.ast!.includePath(UNKNOWN_PATH, context, false);
+		if (this.ast!.shouldBeIncluded(context)) this.ast!.includePath(EMPTY_PATH, context, false);
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
@@ -721,7 +721,7 @@ export default class Module {
 				}
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
-					this.includeVariable(variable);
+					this.includeVariable(variable, UNKNOWN_PATH);
 				}
 			}
 		}
@@ -731,7 +731,7 @@ export default class Module {
 			if (variable) {
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
-					this.includeVariable(variable);
+					this.includeVariable(variable, UNKNOWN_PATH);
 				}
 				if (variable instanceof ExternalVariable) {
 					variable.module.reexported = true;
@@ -1375,14 +1375,13 @@ export default class Module {
 		}
 	}
 
-	private includeVariable(variable: Variable, path = UNKNOWN_PATH): void {
+	private includeVariable(variable: Variable, path: ObjectPath): void {
 		const variableModule = variable.module;
 		if (variable.included) {
 			if (variableModule instanceof Module && variableModule !== this) {
 				getAndExtendSideEffectModules(variable, this);
 			}
 		} else {
-			variable.includePath(path, createInclusionContext());
 			this.graph.needsTreeshakingPass = true;
 			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
@@ -1398,9 +1397,10 @@ export default class Module {
 				}
 			}
 		}
+		variable.includePath(path, createInclusionContext());
 	}
 
-	private includeVariableInModule(variable: Variable, path = UNKNOWN_PATH): void {
+	private includeVariableInModule(variable: Variable, path: ObjectPath): void {
 		this.includeVariable(variable, path);
 		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {

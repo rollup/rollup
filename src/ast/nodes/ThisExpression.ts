@@ -1,7 +1,7 @@
 import type MagicString from 'magic-string';
 import { LOGLEVEL_WARN } from '../../utils/logging';
 import { logThisIsUndefined } from '../../utils/logs';
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction } from '../NodeInteractions';
 import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import ModuleScope from '../scopes/ModuleScope';
@@ -42,10 +42,12 @@ export default class ThisExpression extends NodeBase {
 		return this.variable.hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	includePath(): void {
+	includePath(path: ObjectPath, context: InclusionContext): void {
 		if (!this.included) {
 			this.included = true;
-			this.scope.context.includeVariableInModule(this.variable);
+			this.scope.context.includeVariableInModule(this.variable, path);
+		} else {
+			this.variable.includePath(path, context);
 		}
 	}
 

@@ -47,9 +47,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
-		super.includePath(path, context, includeChildrenRecursively);
+		this.included = true;
+		this.declaration.includePath(path, context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
-			this.scope.context.includeVariableInModule(this.variable);
+			this.scope.context.includeVariableInModule(this.variable, path);
 		}
 	}
 
