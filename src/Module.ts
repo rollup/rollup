@@ -720,9 +720,7 @@ export default class Module {
 					return error(logMissingEntryExport(exportName, this.id));
 				}
 				variable.deoptimizePath(UNKNOWN_PATH);
-				if (!variable.included) {
-					this.includeVariable(variable, UNKNOWN_PATH);
-				}
+				this.includeVariable(variable, UNKNOWN_PATH);
 			}
 		}
 

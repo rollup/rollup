@@ -46,7 +46,7 @@ export default class ThisExpression extends NodeBase {
 		if (!this.included) {
 			this.included = true;
 			this.scope.context.includeVariableInModule(this.variable, path);
-		} else {
+		} else if (path.length > 0) {
 			this.variable.includePath(path, context);
 		}
 	}
