@@ -337,7 +337,12 @@ export default class MemberExpression
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties([this.getPropertyKey(), ...path], context, includeChildrenRecursively);
+		this.includeProperties(
+			path,
+			[this.getPropertyKey(), ...path],
+			context,
+			includeChildrenRecursively
+		);
 	}
 
 	includeAsAssignmentTarget(
@@ -349,7 +354,12 @@ export default class MemberExpression
 		if (deoptimizeAccess) {
 			this.includePath([this.getPropertyKey()], context, includeChildrenRecursively);
 		} else {
-			this.includeProperties([this.getPropertyKey()], context, includeChildrenRecursively);
+			this.includeProperties(
+				EMPTY_PATH,
+				[this.getPropertyKey()],
+				context,
+				includeChildrenRecursively
+			);
 		}
 	}
 
@@ -494,19 +504,20 @@ export default class MemberExpression
 	}
 
 	private includeProperties(
-		path: ObjectPath,
+		includedPath: ObjectPath,
+		objectPath: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable) {
-				this.scope.context.includeVariableInModule(this.variable, path.slice(1));
+				this.scope.context.includeVariableInModule(this.variable, includedPath);
 			}
-		} else {
-			this.variable?.includePath(path.slice(1), context);
+		} else if (includedPath.length > 0) {
+			this.variable?.includePath(includedPath, context);
 		}
-		this.object.includePath(path, context, includeChildrenRecursively);
+		this.object.includePath(objectPath, context, includeChildrenRecursively);
 		this.property.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 }
