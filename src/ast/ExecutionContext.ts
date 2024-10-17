@@ -27,7 +27,6 @@ export interface HasEffectsContext extends ControlFlowContext {
 	accessed: EntityPathTracker;
 	assigned: EntityPathTracker;
 	brokenFlow: boolean;
-	parametersBeingCheckedForEffectsOnInteractionAtPath: Set<ExpressionEntity>;
 	called: DiscriminatedPathTracker;
 	ignore: ExecutionContextIgnore;
 	instantiated: DiscriminatedPathTracker;
@@ -62,7 +61,6 @@ export function createHasEffectsContext(): HasEffectsContext {
 		},
 		includedLabels: new Set(),
 		instantiated: new DiscriminatedPathTracker(),
-		parametersBeingCheckedForEffectsOnInteractionAtPath: new Set(),
 		replacedVariableInits: new Map()
 	};
 }

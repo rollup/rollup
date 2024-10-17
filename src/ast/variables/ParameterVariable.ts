@@ -195,16 +195,19 @@ export default class ParameterVariable extends LocalVariable {
 		interaction: NodeInteraction,
 		context: HasEffectsContext
 	): boolean {
-		if (context.parametersBeingCheckedForEffectsOnInteractionAtPath.has(this)) {
-			context.parametersBeingCheckedForEffectsOnInteractionAtPath.delete(this);
-			return true;
-		}
-		context.parametersBeingCheckedForEffectsOnInteractionAtPath.add(this);
-		if (this.isReassigned || interaction.type === INTERACTION_ASSIGNED) {
+		const { type } = interaction;
+		if (this.isReassigned || type === INTERACTION_ASSIGNED) {
 			return super.hasEffectsOnInteractionAtPath(path, interaction, context);
 		}
-		const knownValue = this.getKnownValue();
-		return knownValue.hasEffectsOnInteractionAtPath(path, interaction, context);
+		return (
+			!(type === INTERACTION_CALLED
+				? (interaction.withNew
+						? context.instantiated
+						: context.called
+					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this)
+				: context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) &&
+			this.getKnownValue().hasEffectsOnInteractionAtPath(path, interaction, context)
+		);
 	}
 
 	includePath(path: ObjectPath, context: InclusionContext): void {
