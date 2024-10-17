@@ -18,7 +18,7 @@ import { hasOrAddIncludedPaths } from '../utils/hasOrAddIncludedPaths';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
-	PathTracker,
+	EntityPathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
 	UnknownKey
@@ -33,12 +33,12 @@ interface DeoptimizationInteraction {
 const MAX_TRACKED_INTERACTIONS = 20;
 const NO_INTERACTIONS = EMPTY_ARRAY as unknown as DeoptimizationInteraction[];
 const UNKNOWN_DEOPTIMIZED_FIELD = new Set<ObjectPathKey>([UnknownKey]);
-const EMPTY_PATH_TRACKER = new PathTracker();
+const EMPTY_PATH_TRACKER = new EntityPathTracker();
 const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION]);
 
 export default class ParameterVariable extends LocalVariable {
 	private deoptimizationInteractions: DeoptimizationInteraction[] = [];
-	private deoptimizations = new PathTracker();
+	private deoptimizations = new EntityPathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
 	private expressionsUseTheKnownValue: DeoptimizableEntity[] = [];
@@ -174,7 +174,7 @@ export default class ParameterVariable extends LocalVariable {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.isReassigned) {

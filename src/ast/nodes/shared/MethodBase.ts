@@ -9,8 +9,8 @@ import {
 } from '../../NodeInteractions';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER
 } from '../../utils/PathTracker';
 import type PrivateIdentifier from '../PrivateIdentifier';
@@ -40,7 +40,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		if (interaction.type === INTERACTION_ACCESSED && this.kind === 'get' && path.length === 0) {
 			return this.value.deoptimizeArgumentsOnInteractionAtPath(
@@ -81,7 +81,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getAccessedValue()[0].getLiteralValueAtPath(path, recursionTracker, origin);
@@ -90,7 +90,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getAccessedValue()[0].getReturnExpressionWhenCalledAtPath(

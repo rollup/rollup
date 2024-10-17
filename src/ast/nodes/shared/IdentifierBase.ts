@@ -11,7 +11,7 @@ import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS
 } from '../../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH } from '../../utils/PathTracker';
 import GlobalVariable from '../../variables/GlobalVariable';
 import LocalVariable from '../../variables/LocalVariable';
@@ -45,7 +45,7 @@ export default class IdentifierBase extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.variable!.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 	}
@@ -61,7 +61,7 @@ export default class IdentifierBase extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getVariableRespectingTDZ()!.getLiteralValueAtPath(path, recursionTracker, origin);
@@ -70,7 +70,7 @@ export default class IdentifierBase extends NodeBase {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const [expression, isPure] =
