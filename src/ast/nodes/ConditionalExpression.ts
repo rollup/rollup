@@ -9,7 +9,7 @@ import {
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
 import type SpreadElement from './SpreadElement';
@@ -39,7 +39,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.consequent.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		this.alternate.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
@@ -70,7 +70,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		const usedBranch = this.getUsedBranch();
@@ -82,7 +82,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		const usedBranch = this.getUsedBranch();

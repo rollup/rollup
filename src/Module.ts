@@ -22,8 +22,8 @@ import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	UNKNOWN_PATH
 } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
@@ -121,7 +121,7 @@ export interface AstContext {
 	addImportMeta: (node: MetaProperty) => void;
 	addImportSource: (importSource: string) => void;
 	code: string;
-	deoptimizationTracker: PathTracker;
+	deoptimizationTracker: EntityPathTracker;
 	error: (properties: RollupLog, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];

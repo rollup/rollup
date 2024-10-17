@@ -4,7 +4,7 @@ import { logCannotCallNamespace } from '../../utils/logs';
 import { type RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
@@ -93,7 +93,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 	}
 
 	protected getReturnExpression(
-		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER
+		recursionTracker: EntityPathTracker = SHARED_RECURSION_TRACKER
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
 			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;

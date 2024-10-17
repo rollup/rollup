@@ -34,7 +34,7 @@ interface EntityPaths {
 	[UnknownNonAccessorKey]?: EntityPaths;
 }
 
-export class PathTracker {
+export class EntityPathTracker {
 	private entityPaths: EntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Set<Entity>() }
 	});
@@ -71,7 +71,7 @@ export class PathTracker {
 	}
 }
 
-export const SHARED_RECURSION_TRACKER = new PathTracker();
+export const SHARED_RECURSION_TRACKER = new EntityPathTracker();
 
 interface DiscriminatedEntityPaths {
 	[pathSegment: string]: DiscriminatedEntityPaths;

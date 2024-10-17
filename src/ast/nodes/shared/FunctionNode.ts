@@ -7,7 +7,7 @@ import type { NodeInteraction } from '../../NodeInteractions';
 import { INTERACTION_CALLED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
 import FunctionScope from '../../scopes/FunctionScope';
-import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
+import { type EntityPathTracker, type ObjectPath, UNKNOWN_PATH } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import type { ExpressionEntity } from './Expression';
@@ -38,7 +38,7 @@ export default class FunctionNode extends FunctionBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		if (interaction.type === INTERACTION_CALLED && path.length === 0 && interaction.args[0]) {

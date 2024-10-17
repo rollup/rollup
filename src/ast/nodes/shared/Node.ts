@@ -16,8 +16,12 @@ import {
 import type { NodeInteractionAssigned } from '../../NodeInteractions';
 import { INTERACTION_ASSIGNED } from '../../NodeInteractions';
 import type ChildScope from '../../scopes/ChildScope';
-import type { ObjectPath } from '../../utils/PathTracker';
-import { EMPTY_PATH, type PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	type EntityPathTracker,
+	type ObjectPath,
+	UNKNOWN_PATH
+} from '../../utils/PathTracker';
 import type Variable from '../../variables/Variable';
 import type * as NodeType from '../NodeType';
 import type Program from '../Program';
@@ -135,7 +139,7 @@ export interface ExpressionNode extends ExpressionEntity, Node, Partial<ChainEle
 export interface ChainElement {
 	getLiteralValueAtPathAsChainElement(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain;
 	hasEffectsAsChainElement(context: HasEffectsContext): boolean | SkippedChain;

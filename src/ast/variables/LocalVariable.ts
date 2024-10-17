@@ -24,9 +24,9 @@ import type { VariableKind } from '../nodes/shared/VariableKinds';
 import type SpreadElement from '../nodes/SpreadElement';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	IncludedPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import Variable from './Variable';
@@ -41,7 +41,7 @@ export default class LocalVariable extends Variable {
 	protected additionalInitializers: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
-	protected deoptimizationTracker: PathTracker;
+	protected deoptimizationTracker: EntityPathTracker;
 	protected includedPathTracker = new IncludedPathTracker();
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
@@ -75,7 +75,7 @@ export default class LocalVariable extends Variable {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		if (this.isReassigned) {
 			deoptimizeInteraction(interaction);
@@ -111,7 +111,7 @@ export default class LocalVariable extends Variable {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.isReassigned) {
@@ -131,7 +131,7 @@ export default class LocalVariable extends Variable {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.isReassigned) {

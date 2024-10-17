@@ -16,9 +16,9 @@ import type {
 import { INTERACTION_ACCESSED, INTERACTION_ASSIGNED } from '../NodeInteractions';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
 	type ObjectPathKey,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	SymbolToStringTag,
 	UNKNOWN_PATH,
@@ -167,7 +167,7 @@ export default class MemberExpression
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		if (this.variable) {
 			this.variable.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
@@ -209,7 +209,7 @@ export default class MemberExpression
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.variable) {
@@ -231,7 +231,7 @@ export default class MemberExpression
 
 	getLiteralValueAtPathAsChainElement(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown | SkippedChain {
 		if (this.variable) {
@@ -246,7 +246,7 @@ export default class MemberExpression
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.variable) {

@@ -10,8 +10,8 @@ import ChildScope from '../../scopes/ChildScope';
 import { checkEffectForNodes } from '../../utils/checkEffectForNodes';
 import {
 	EMPTY_PATH,
+	type EntityPathTracker,
 	type ObjectPath,
-	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
 	UnknownKey
@@ -43,7 +43,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
@@ -62,7 +62,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
@@ -71,7 +71,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(

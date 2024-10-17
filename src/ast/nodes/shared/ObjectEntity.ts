@@ -2,7 +2,7 @@ import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
-import type { ObjectPath, ObjectPathKey, PathTracker } from '../../utils/PathTracker';
+import type { EntityPathTracker, ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
 import {
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
@@ -112,7 +112,7 @@ export class ObjectEntity extends ExpressionEntity {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: EntityPathTracker
 	): void {
 		const [key, ...subPath] = path;
 		const { args, type } = interaction;
@@ -250,7 +250,7 @@ export class ObjectEntity extends ExpressionEntity {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length === 0) {
@@ -273,7 +273,7 @@ export class ObjectEntity extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
-		recursionTracker: PathTracker,
+		recursionTracker: EntityPathTracker,
 		origin: DeoptimizableEntity
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length === 0) {
