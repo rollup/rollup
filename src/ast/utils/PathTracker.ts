@@ -1,3 +1,4 @@
+import { EMPTY_OBJECT } from '../../utils/blank';
 import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { Entity } from '../Entity';
 
@@ -122,13 +123,20 @@ export class IncludedPathTracker {
 
 	includePathAndGetIfIncluded(path: ObjectPath): boolean {
 		let included = true;
-		let currentPaths = (this.includedPaths ||= ((included = false), Object.create(null)));
+		let currentPaths: IncludedPaths = (this.includedPaths ||=
+			((included = false), Object.create(null)));
 		for (const pathSegment of path) {
-			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
-			// Including UnknownKey automatically includes all nested paths
-			if (pathSegment === UnknownKey) {
-				return included;
+			// This means from here, all paths are included
+			if (currentPaths[UnknownKey]) {
+				return true;
 			}
+			// Including UnknownKey automatically includes all nested paths.
+			// From above, we know that UnknownKey is not included yet.
+			if (typeof pathSegment === 'symbol') {
+				currentPaths[UnknownKey] = EMPTY_OBJECT;
+				return false;
+			}
+			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
 		}
 		return included;
 	}
