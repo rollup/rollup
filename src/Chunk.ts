@@ -196,6 +196,7 @@ export default class Chunk {
 	private readonly renderedModules: Record<string, RenderedModule> = Object.create(null);
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
+	private renderBaseNameResetSet = new Set<Variable>();
 
 	constructor(
 		private readonly orderedModules: readonly Module[],
@@ -706,6 +707,11 @@ export default class Chunk {
 			}
 		}
 		if (footer) magicString.append(footer);
+
+		for (const variable of this.renderBaseNameResetSet) {
+			variable.renderBaseName = null;
+		}
+		this.renderBaseNameResetSet.clear();
 
 		return {
 			chunk: this,
@@ -1416,7 +1422,8 @@ export default class Chunk {
 			syntheticExports,
 			this.exportNamesByVariable,
 			this.accessedGlobalsByScope,
-			this.includedNamespaces
+			this.includedNamespaces,
+			this.renderBaseNameResetSet
 		);
 	}
 
