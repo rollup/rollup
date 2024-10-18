@@ -2,7 +2,6 @@ import { logDuplicateArgumentNameError } from '../../utils/logs';
 import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
-import FunctionBase from '../nodes/shared/FunctionBase';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -26,17 +25,13 @@ export default class ParameterScope extends ChildScope {
 	 * Adds a parameter to this scope. Parameters must be added in the correct
 	 * order, i.e. from left to right.
 	 */
-	addParameterDeclaration(
-		identifier: Identifier,
-		// TODO Lukas use this to handle destructuring
-		_includedInitPath: ObjectPath
-	): ParameterVariable {
+	addParameterDeclaration(identifier: Identifier, argumentPath: ObjectPath): ParameterVariable {
 		const { name, start } = identifier;
 		const existingParameter = this.variables.get(name);
 		if (existingParameter) {
 			return this.context.error(logDuplicateArgumentNameError(name), start);
 		}
-		const variable = new ParameterVariable(name, identifier, this.context);
+		const variable = new ParameterVariable(name, identifier, argumentPath, this.context);
 		this.variables.set(name, variable);
 		// We also add it to the body scope to detect name conflicts with local
 		// variables. We still need the intermediate scope, though, as parameter
@@ -74,42 +69,34 @@ export default class ParameterScope extends ChildScope {
 		for (let index = arguments_.length - 1; index >= 0; index--) {
 			const parameterVariables = this.parameters[index] || restParameter;
 			const argument = arguments_[index];
-			let parameterHasTrackedArgument = false;
 			if (parameterVariables) {
 				calledFromTryStatement = false;
 				if (parameterVariables.length === 0) {
-					// handle empty destructuring
+					// handle empty destructuring to avoid destructuring undefined
 					argumentIncluded = true;
 				} else {
 					for (const variable of parameterVariables) {
-						if (variable.trackedArgumentsIncludedPaths.size > 0) {
-							parameterHasTrackedArgument = true;
+						if (variable.calledFromTryStatement) {
+							calledFromTryStatement = true;
 						}
 						if (variable.included) {
 							argumentIncluded = true;
-						}
-						if (variable.calledFromTryStatement) {
-							calledFromTryStatement = true;
+							if (calledFromTryStatement) {
+								argument.includePath(UNKNOWN_PATH, context, true);
+							} else {
+								// TODO Lukas as this is repeated over and over (check), we
+								// should think about only including call arguments once and
+								// then only include additional paths or arguments as needed.
+								// TODO Lukas what about SpreadElements?
+								variable.includeArgumentPaths(argument, context);
+							}
 						}
 					}
 				}
 			}
-			if (!argumentIncluded && argument.shouldBeIncluded(context)) {
+			if (!argument.included && (argumentIncluded || argument.shouldBeIncluded(context))) {
 				argumentIncluded = true;
-			}
-			if (argumentIncluded) {
-				argument.includePath(
-					parameterHasTrackedArgument ? EMPTY_PATH : UNKNOWN_PATH,
-					context,
-					calledFromTryStatement
-				);
-			}
-		}
-		for (const functionEntity of context.includedCallArguments) {
-			if (functionEntity instanceof FunctionBase) {
-				for (const argument of functionEntity.argumentsToBeIncludedAll) {
-					argument.includePath(UNKNOWN_PATH, context, false);
-				}
+				argument.includePath(EMPTY_PATH, context, calledFromTryStatement);
 			}
 		}
 	}
