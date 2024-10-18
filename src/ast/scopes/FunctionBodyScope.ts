@@ -31,7 +31,7 @@ export default class FunctionBodyScope extends ChildScope {
 				(kind === 'var' || kind === 'function') &&
 				(existingKind === 'var' || existingKind === 'function' || existingKind === 'parameter')
 			) {
-				existingVariable.addDeclaration(identifier, init, includedInitPath);
+				existingVariable.addDeclaration(identifier, init);
 				return existingVariable;
 			}
 			context.error(logRedeclarationError(name), identifier.start);

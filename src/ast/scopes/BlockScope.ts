@@ -28,7 +28,7 @@ export default class BlockScope extends ChildScope {
 					existingVariable.kind === 'var' ||
 					(kind === 'var' && existingVariable.kind === 'parameter')
 				) {
-					existingVariable.addDeclaration(identifier, init, includedInitPath);
+					existingVariable.addDeclaration(identifier, init);
 					return existingVariable;
 				}
 				return context.error(logRedeclarationError(name), identifier.start);

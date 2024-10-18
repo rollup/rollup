@@ -38,7 +38,6 @@ export default class LocalVariable extends Variable {
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
 
-	// TODO Lukas include paths here?
 	protected additionalInitializers: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
@@ -61,12 +60,7 @@ export default class LocalVariable extends Variable {
 		this.module = context.module;
 	}
 
-	addDeclaration(
-		identifier: Identifier,
-		init: ExpressionEntity,
-		// TODO Lukas use this to handle destructuring
-		_includedInitPath: ObjectPath
-	): void {
+	addDeclaration(identifier: Identifier, init: ExpressionEntity): void {
 		this.declarations.push(identifier);
 		this.markInitializersForDeoptimization().push(init);
 	}
@@ -94,7 +88,6 @@ export default class LocalVariable extends Variable {
 			() =>
 				this.init.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
-					// TODO Lukas test this
 					[...this.initPath, ...path],
 					recursionTracker
 				),
@@ -135,7 +128,6 @@ export default class LocalVariable extends Variable {
 			this.init,
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
-				// TODO Lukas test this
 				return this.init.getLiteralValueAtPath(
 					[...this.initPath, ...path],
 					recursionTracker,
@@ -160,7 +152,6 @@ export default class LocalVariable extends Variable {
 			this.init,
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
-				// TODO Lukas test this
 				return this.init.getReturnExpressionWhenCalledAtPath(
 					[...this.initPath, ...path],
 					interaction,
@@ -182,7 +173,6 @@ export default class LocalVariable extends Variable {
 				if (this.isReassigned) return true;
 				return (
 					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-					// TODO Lukas test this
 					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
@@ -192,7 +182,6 @@ export default class LocalVariable extends Variable {
 				if (this.isReassigned) return true;
 				return (
 					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-					// TODO Lukas test this
 					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
@@ -202,7 +191,6 @@ export default class LocalVariable extends Variable {
 					!(
 						interaction.withNew ? context.instantiated : context.called
 					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
-					// TODO Lukas test this
 					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}

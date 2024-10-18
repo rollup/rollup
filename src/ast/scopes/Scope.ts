@@ -37,7 +37,7 @@ export default class Scope {
 			this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable);
 		if (existingVariable) {
 			if (kind === 'var' && existingVariable.kind === 'var') {
-				existingVariable.addDeclaration(identifier, init, includedInitPath);
+				existingVariable.addDeclaration(identifier, init);
 				return existingVariable;
 			}
 			context.error(logRedeclarationError(name), identifier.start);
