@@ -3,12 +3,16 @@ import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type FunctionScope from '../scopes/FunctionScope';
+import { hasOrAddIncludedPaths } from '../utils/hasOrAddIncludedPaths';
+import type { ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { type ExpressionEntity } from './shared/Expression';
 import IdentifierBase from './shared/IdentifierBase';
 import type { PatternNode } from './shared/Pattern';
+
+import type { InclusionContext } from '../ExecutionContext';
 import type { VariableKind } from './shared/VariableKinds';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
@@ -17,6 +21,7 @@ export default class Identifier extends IdentifierBase implements PatternNode {
 	name!: string;
 	type!: NodeType.tIdentifier;
 	variable: Variable | null = null;
+	includedPaths!: Set<ObjectPath> | null;
 
 	addExportedVariables(
 		variables: Variable[],
@@ -32,6 +37,25 @@ export default class Identifier extends IdentifierBase implements PatternNode {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 			this.isVariableReference = true;
+		}
+	}
+
+	private hasOrAddIncludedPaths(path: ObjectPath) {
+		if (!this.includedPaths) {
+			this.includedPaths = new Set([path]);
+			return false;
+		}
+		return hasOrAddIncludedPaths(this.includedPaths, path);
+	}
+
+	includePath(path: ObjectPath, context: InclusionContext) {
+		super.includePath(path, context);
+		if (
+			this.variable &&
+			path.length > 0 &&
+			(!this.hasOrAddIncludedPaths(path) || this.variable.kind === 'parameter')
+		) {
+			this.variable.includePath(path, context);
 		}
 	}
 

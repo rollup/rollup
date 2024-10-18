@@ -3,7 +3,8 @@ import type { RenderOptions } from '../../utils/renderHelpers';
 import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -50,7 +51,11 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		return testValue ? this.consequent.hasEffects(context) : !!this.alternate?.hasEffects(context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		_: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
@@ -135,13 +140,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private includeKnownTest(context: InclusionContext, testValue: LiteralValueOrUnknown) {
 		if (this.test.shouldBeIncluded(context)) {
-			this.test.include(context, false);
+			this.test.includePath(UNKNOWN_PATH, context, false);
 		}
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false, { asSingleStatement: true });
+			this.consequent.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 		}
 		if (!testValue && this.alternate?.shouldBeIncluded(context)) {
-			this.alternate.include(context, false, { asSingleStatement: true });
+			this.alternate.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 		}
 	}
 
@@ -149,22 +154,22 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		includeChildrenRecursively: true | 'variables',
 		context: InclusionContext
 	) {
-		this.test.include(context, includeChildrenRecursively);
-		this.consequent.include(context, includeChildrenRecursively);
-		this.alternate?.include(context, includeChildrenRecursively);
+		this.test.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.consequent.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.alternate?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 	}
 
 	private includeUnknownTest(context: InclusionContext) {
-		this.test.include(context, false);
+		this.test.includePath(UNKNOWN_PATH, context, false);
 		const { brokenFlow } = context;
 		let consequentBrokenFlow = false;
 		if (this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false, { asSingleStatement: true });
+			this.consequent.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate?.shouldBeIncluded(context)) {
-			this.alternate.include(context, false, { asSingleStatement: true });
+			this.alternate.includePath(UNKNOWN_PATH, context, false, { asSingleStatement: true });
 			context.brokenFlow = context.brokenFlow && consequentBrokenFlow;
 		}
 	}

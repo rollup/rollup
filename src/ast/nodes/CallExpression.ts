@@ -9,7 +9,7 @@ import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { INTERACTION_CALLED } from '../NodeInteractions';
 import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import type * as NodeType from './NodeType';
@@ -111,10 +111,14 @@ export default class CallExpression
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	includePath(
+		path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
-			super.include(context, includeChildrenRecursively);
+			super.includePath(path, context, includeChildrenRecursively);
 			if (
 				includeChildrenRecursively === INCLUDE_PARAMETERS &&
 				this.callee instanceof Identifier &&
@@ -124,7 +128,7 @@ export default class CallExpression
 			}
 		} else {
 			this.included = true;
-			this.callee.include(context, false);
+			this.callee.includePath(UNKNOWN_PATH, context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
 	}

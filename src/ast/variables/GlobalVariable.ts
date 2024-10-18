@@ -9,7 +9,7 @@ import {
 import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
 import { UnknownValue } from '../nodes/shared/Expression';
 import { getGlobalAtPath } from '../nodes/shared/knownGlobals';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {

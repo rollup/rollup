@@ -3,6 +3,8 @@ import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
+import FunctionBase from '../nodes/shared/FunctionBase';
+import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
 import ChildScope from './ChildScope';
@@ -51,22 +53,23 @@ export default class ParameterScope extends ChildScope {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		arguments_: readonly (ExpressionEntity | SpreadElement)[]
 	): void {
 		let calledFromTryStatement = false;
 		let argumentIncluded = false;
 		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
-		for (const checkedArgument of parameters) {
+		for (const checkedArgument of arguments_) {
 			if (checkedArgument instanceof SpreadElement) {
-				for (const argument of parameters) {
-					argument.include(context, false);
+				for (const argument of arguments_) {
+					argument.includePath(UNKNOWN_PATH, context, false);
 				}
 				break;
 			}
 		}
-		for (let index = parameters.length - 1; index >= 0; index--) {
+		for (let index = arguments_.length - 1; index >= 0; index--) {
 			const parameterVariables = this.parameters[index] || restParameter;
-			const argument = parameters[index];
+			const argument = arguments_[index];
+			let parameterHasTrackedArgument = false;
 			if (parameterVariables) {
 				calledFromTryStatement = false;
 				if (parameterVariables.length === 0) {
@@ -74,6 +77,9 @@ export default class ParameterScope extends ChildScope {
 					argumentIncluded = true;
 				} else {
 					for (const variable of parameterVariables) {
+						if (variable.trackedArgumentsIncludedPaths.size > 0) {
+							parameterHasTrackedArgument = true;
+						}
 						if (variable.included) {
 							argumentIncluded = true;
 						}
@@ -87,7 +93,18 @@ export default class ParameterScope extends ChildScope {
 				argumentIncluded = true;
 			}
 			if (argumentIncluded) {
-				argument.include(context, calledFromTryStatement);
+				argument.includePath(
+					parameterHasTrackedArgument ? EMPTY_PATH : UNKNOWN_PATH,
+					context,
+					calledFromTryStatement
+				);
+			}
+		}
+		for (const functionEntity of context.includedCallArguments) {
+			if (functionEntity instanceof FunctionBase) {
+				for (const argument of functionEntity.argumentsToBeIncludedAll) {
+					argument.includePath(UNKNOWN_PATH, context, false);
+				}
 			}
 		}
 	}
