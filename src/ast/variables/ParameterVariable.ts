@@ -37,11 +37,14 @@ const EMPTY_PATH_TRACKER = new EntityPathTracker();
 const UNKNOWN_DEOPTIMIZED_ENTITY = new Set<ExpressionEntity>([UNKNOWN_EXPRESSION]);
 
 export default class ParameterVariable extends LocalVariable {
+	private argumentsWithExposedPaths = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();
 	private deoptimizationInteractions: DeoptimizationInteraction[] = [];
 	private deoptimizations = new EntityPathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
 	private expressionsUseTheKnownValue: DeoptimizableEntity[] = [];
+
+	trackedArgumentsIncludedPaths = new Map<ExpressionEntity, Set<ObjectPath>>();
 
 	constructor(
 		name: string,
@@ -94,11 +97,8 @@ export default class ParameterVariable extends LocalVariable {
 	}
 
 	trackArgument(argument: ExpressionEntity, pathKey?: ObjectPathKey): void {
-		getOrCreate(this.trackedArguments, argument, getNewSet).add(pathKey);
+		getOrCreate(this.argumentsWithExposedPaths, argument, getNewSet).add(pathKey);
 	}
-
-	private trackedArguments = new Map<ExpressionEntity, Set<ObjectPathKey | undefined>>();
-	trackedArgumentsIncludedPaths = new Map<ExpressionEntity, Set<ObjectPath>>();
 
 	private hasOrAddIncludedPathsToTrackedArguments(
 		trackedArgument: ExpressionEntity,
@@ -215,7 +215,7 @@ export default class ParameterVariable extends LocalVariable {
 			context.currentIncludedParameter.add(this);
 			super.includePath(path, context);
 			if (path) {
-				for (const [trackedArgument, pathKeys] of this.trackedArguments) {
+				for (const [trackedArgument, pathKeys] of this.argumentsWithExposedPaths) {
 					for (const pathKey of pathKeys) {
 						if (!this.hasOrAddIncludedPathsToTrackedArguments(trackedArgument, path)) {
 							trackedArgument.includePath(pathKey ? [pathKey, ...path] : path, context, false);
