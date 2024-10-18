@@ -56,7 +56,7 @@ export default class CatchBodyScope extends ChildScope {
 					return declaredVariable;
 				}
 				if (existingKind === 'var') {
-					existingVariable.addDeclaration(identifier, init, includedInitPath);
+					existingVariable.addDeclaration(identifier, init);
 					return existingVariable;
 				}
 				return context.error(logRedeclarationError(name), identifier.start);
