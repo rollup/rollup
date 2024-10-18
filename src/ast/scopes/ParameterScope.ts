@@ -1,9 +1,10 @@
 import { logDuplicateArgumentNameError } from '../../utils/logs';
 import type { InclusionContext } from '../ExecutionContext';
 import type Identifier from '../nodes/Identifier';
-import SpreadElement from '../nodes/SpreadElement';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import FunctionBase from '../nodes/shared/FunctionBase';
+import SpreadElement from '../nodes/SpreadElement';
+import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import ParameterVariable from '../variables/ParameterVariable';
 import CatchBodyScope from './CatchBodyScope';
@@ -25,7 +26,11 @@ export default class ParameterScope extends ChildScope {
 	 * Adds a parameter to this scope. Parameters must be added in the correct
 	 * order, i.e. from left to right.
 	 */
-	addParameterDeclaration(identifier: Identifier): ParameterVariable {
+	addParameterDeclaration(
+		identifier: Identifier,
+		// TODO Lukas use this to handle destructuring
+		_includedInitPath: ObjectPath
+	): ParameterVariable {
 		const { name, start } = identifier;
 		const existingParameter = this.variables.get(name);
 		if (existingParameter) {

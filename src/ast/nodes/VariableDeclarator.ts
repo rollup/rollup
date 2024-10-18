@@ -24,7 +24,7 @@ export default class VariableDeclarator extends NodeBase {
 
 	declareDeclarator(kind: VariableKind, isUsingDeclaration: boolean): void {
 		this.isUsingDeclaration = isUsingDeclaration;
-		this.id.declare(kind, this.init || UNDEFINED_EXPRESSION);
+		this.id.declare(kind, EMPTY_PATH, this.init || UNDEFINED_EXPRESSION);
 	}
 
 	deoptimizePath(path: ObjectPath): void {

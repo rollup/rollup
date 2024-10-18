@@ -5,6 +5,8 @@ import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
 import { UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
+import Identifier from './Identifier';
+import type Literal from './Literal';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -35,9 +37,23 @@ export default class Property extends MethodBase implements PatternNode {
 		this.flags = setFlag(this.flags, Flag.shorthand, value);
 	}
 
-	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
+	declare(
+		kind: VariableKind,
+		includedInitPath: ObjectPath,
+		init: ExpressionEntity
+	): LocalVariable[] {
 		this.declarationInit = init;
-		return (this.value as PatternNode).declare(kind, UNKNOWN_EXPRESSION);
+		const pathInProperty: ObjectPath =
+			includedInitPath.at(-1) === UnknownKey
+				? includedInitPath
+				: // For now, we only consider static path as we do not know how to
+					// deoptimize the path in the dynamic case.
+					this.computed
+					? [...includedInitPath, UnknownKey]
+					: this.key instanceof Identifier
+						? [...includedInitPath, this.key.name]
+						: [...includedInitPath, String((this.key as Literal).value)];
+		return (this.value as PatternNode).declare(kind, pathInProperty, UNKNOWN_EXPRESSION);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

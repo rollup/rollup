@@ -122,7 +122,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	initialise(): void {
 		super.initialise();
-		this.id?.declare('class', this);
+		this.id?.declare('class', EMPTY_PATH, this);
 		for (const method of this.body.body) {
 			if (method instanceof MethodDefinition && method.kind === 'constructor') {
 				this.classConstructor = method;

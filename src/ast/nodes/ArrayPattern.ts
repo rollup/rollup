@@ -1,6 +1,6 @@
 import type { HasEffectsContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH, type ObjectPath, UnknownInteger, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
@@ -22,11 +22,15 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	declare(kind: VariableKind): LocalVariable[] {
+	declare(kind: VariableKind, includedInitPath: ObjectPath): LocalVariable[] {
 		const variables: LocalVariable[] = [];
+		const includedPatternPath: ObjectPath =
+			includedInitPath.at(-1) === UnknownKey
+				? includedInitPath
+				: [...includedInitPath, UnknownInteger];
 		for (const element of this.elements) {
 			if (element !== null) {
-				variables.push(...element.declare(kind, UNKNOWN_EXPRESSION));
+				variables.push(...element.declare(kind, includedPatternPath, UNKNOWN_EXPRESSION));
 			}
 		}
 		return variables;

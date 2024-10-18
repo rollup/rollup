@@ -59,7 +59,12 @@ export default class LocalVariable extends Variable {
 		this.kind = kind;
 	}
 
-	addDeclaration(identifier: Identifier, init: ExpressionEntity): void {
+	addDeclaration(
+		identifier: Identifier,
+		init: ExpressionEntity,
+		// TODO Lukas use this to handle destructuring
+		_includedInitPath: ObjectPath
+	): void {
 		this.declarations.push(identifier);
 		this.markInitializersForDeoptimization().push(init);
 	}

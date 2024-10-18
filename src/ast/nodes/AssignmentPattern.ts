@@ -24,8 +24,12 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
 	}
 
-	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
-		return this.left.declare(kind, init);
+	declare(
+		kind: VariableKind,
+		includedInitPath: ObjectPath,
+		init: ExpressionEntity
+	): LocalVariable[] {
+		return this.left.declare(kind, includedInitPath, init);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
