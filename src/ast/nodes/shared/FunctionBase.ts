@@ -17,7 +17,6 @@ import BlockStatement from '../BlockStatement';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
-import ObjectPattern from '../ObjectPattern';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
@@ -68,43 +67,17 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
+	// TODO Lukas this should work for all variable types. Should we move this to the ParameterScope?
+	// note that we cannot merge this with includeCallArguments as it needs to happen much earlier
 	private updateParameterVariableValues(arguments_: InteractionCalledArguments) {
-		nextParameter: for (let position = 0; position < this.params.length; position++) {
+		for (let position = 0; position < this.params.length; position++) {
 			const parameter = this.params[position];
-			// Indices are off because the first argument is the "this" argument
-			const argument = arguments_[position + 1];
-			if (parameter instanceof Identifier) {
-				const parameterVariable = parameter.variable as ParameterVariable;
-				parameterVariable.updateKnownValue(argument ?? UNDEFINED_EXPRESSION);
-			}
-			if (!argument) continue;
-			if (parameter instanceof ObjectPattern) {
-				const hasRestElement = parameter.properties.at(-1) instanceof RestElement;
-				for (const element of parameter.properties) {
-					if (element instanceof RestElement) {
-						(element.argument.variable as ParameterVariable).trackArgument(argument, UnknownKey);
-						continue nextParameter;
-					} else if (element.value instanceof Identifier) {
-						const path = hasRestElement ? UnknownKey : element.value.name;
-						(element.value.variable as ParameterVariable).trackArgument(argument, path);
-					} else {
-						this.argumentsToBeIncludedAll.add(argument);
-						continue nextParameter;
-					}
-				}
+			if (!(parameter instanceof Identifier)) {
 				continue;
 			}
-			if (parameter instanceof Identifier) {
-				(parameter.variable as ParameterVariable).trackArgument(argument);
-				continue;
-			}
-			if (parameter instanceof RestElement) {
-				for (const remainArgument of arguments_.slice(position + 1)) {
-					this.argumentsToBeIncludedAll.add(remainArgument!);
-				}
-				continue;
-			}
-			this.argumentsToBeIncludedAll.add(argument);
+			const parameterVariable = parameter.variable as ParameterVariable;
+			const argument = arguments_[position + 1] ?? UNDEFINED_EXPRESSION;
+			parameterVariable.updateKnownValue(argument);
 		}
 	}
 

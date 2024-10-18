@@ -1,6 +1,8 @@
 import { EMPTY_OBJECT } from '../../utils/blank';
 import { getNewSet, getOrCreate } from '../../utils/getOrCreate';
 import type { Entity } from '../Entity';
+import type { InclusionContext } from '../ExecutionContext';
+import type { ExpressionEntity } from '../nodes/shared/Expression';
 
 export const UnknownKey = Symbol('Unknown Key');
 export const UnknownNonAccessorKey = Symbol('Unknown Non-Accessor Key');
@@ -112,10 +114,7 @@ export class DiscriminatedPathTracker {
 
 interface IncludedPaths {
 	[pathSegment: string]: IncludedPaths;
-	[SymbolToStringTag]?: IncludedPaths;
-	[UnknownInteger]?: IncludedPaths;
 	[UnknownKey]?: IncludedPaths;
-	[UnknownNonAccessorKey]?: IncludedPaths;
 }
 
 export class IncludedPathTracker {
@@ -139,5 +138,30 @@ export class IncludedPathTracker {
 			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
 		}
 		return included;
+	}
+
+	includeAllPaths(entity: ExpressionEntity, context: InclusionContext, basePath: ObjectPath) {
+		const { includedPaths } = this;
+		if (includedPaths) {
+			includeAllPaths(entity, context, basePath, includedPaths);
+		}
+	}
+}
+
+function includeAllPaths(
+	entity: ExpressionEntity,
+	context: InclusionContext,
+	basePath: ObjectPath,
+	currentPaths: IncludedPaths
+): void {
+	if (currentPaths[UnknownKey]) {
+		return entity.includePath([...basePath, UnknownKey], context, false);
+	}
+	const keys = Object.keys(currentPaths);
+	if (keys.length === 0) {
+		return entity.includePath(basePath, context, false);
+	}
+	for (const key of keys) {
+		includeAllPaths(entity, context, [...basePath, key], currentPaths[key]);
 	}
 }

@@ -50,7 +50,7 @@ export default class LocalVariable extends Variable {
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		private init: ExpressionEntity,
 		/** if this is non-empty, the actual init is this path of this.init */
-		private initPath: ObjectPath,
+		protected initPath: ObjectPath,
 		context: AstContext,
 		readonly kind: VariableKind
 	) {
