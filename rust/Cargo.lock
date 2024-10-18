@@ -363,9 +363,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.159"
+version = "0.2.161"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "561d97a539a36e26a9a5fad1ea11a3039a67714694aaa379433e580854bc3dc5"
+checksum = "8e9489c2807c139ffd9c1794f4af0ebe86a828db53ecdc7fea2111d0fed085d1"
 
 [[package]]
 name = "libloading"
@@ -421,9 +421,9 @@ dependencies = [
 
 [[package]]
 name = "napi"
-version = "2.16.11"
+version = "2.16.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53575dfa17f208dd1ce3a2da2da4659aae393b256a472f2738a8586a6c4107fd"
+checksum = "3a84fdaf64da2b2d86b1be5db1b81963353bf00f7bef4b9e2668bbe6f72e8eb3"
 dependencies = [
  "bitflags",
  "ctor",
@@ -641,9 +641,9 @@ checksum = "bda66fc9667c18cb2758a2ac84d1167245054bcf85d5d1aaa6923f45801bdd02"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.87"
+version = "1.0.88"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3e4daa0dcf6feba26f985457cdf104d4b4256fc5a09547140f3631bb076b19a"
+checksum = "7c3a7fc5db1e57d5a779a352c8cdb57b29aa4c40cc69c3a68a7fedc815fbf2f9"
 dependencies = [
  "unicode-ident",
 ]
@@ -833,9 +833,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.128"
+version = "1.0.129"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
+checksum = "6dbcf9b78a125ee667ae19388837dd12294b858d101fdd393cb9d5501ef09eb2"
 dependencies = [
  "itoa",
  "memchr",
@@ -1078,9 +1078,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_codegen"
-version = "0.158.3"
+version = "0.158.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f165ad337476063bd66aca63a46bcde88ccfb772ee6a748f57afe52cc543fa8"
+checksum = "e2549dd7b0f4db0b127fe286958f749b4e2d5467cb6739a78ac887df4f33dcef"
 dependencies = [
  "memchr",
  "num-bigint",
@@ -1110,9 +1110,9 @@ dependencies = [
 
 [[package]]
 name = "swc_ecma_minifier"
-version = "0.209.1"
+version = "0.209.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa35b96d91b65651b79915ea48cef73cd2d81239eeb5b4fdd6492fe923e145fc"
+checksum = "b9f3b070a1169d5dd032055886598557b6ad866cdd3e9db77a37dd1f55d230be"
 dependencies = [
  "arrayvec",
  "indexmap",
@@ -1459,9 +1459,9 @@ checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unicode-width"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0336d538f7abc86d282a4189614dfaa90810dfc2c6f6427eaf88e16311dd225d"
+checksum = "7dd6e30e90baa6f72411720665d41d89b9a3d039dc45b8faea1ddd07f617f6af"
 
 [[package]]
 name = "url"
@@ -1476,9 +1476,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.10.0"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81dfa00651efa65069b0b6b651f4aaa31ba9e3c3ce0137aaad053604ee7e0314"
+checksum = "f8c5f0a0af699448548ad1a2fbf920fb4bee257eae39953ba95cb84891a0446a"
 
 [[package]]
 name = "version_check"
