@@ -36,7 +36,14 @@ export default class FunctionBodyScope extends ChildScope {
 			}
 			context.error(logRedeclarationError(name), identifier.start);
 		}
-		const newVariable = new LocalVariable(identifier.name, identifier, init, context, kind);
+		const newVariable = new LocalVariable(
+			identifier.name,
+			identifier,
+			init,
+			includedInitPath,
+			context,
+			kind
+		);
 		this.variables.set(name, newVariable);
 		return newVariable;
 	}

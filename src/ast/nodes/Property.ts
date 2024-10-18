@@ -3,13 +3,13 @@ import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { ObjectPath } from '../utils/PathTracker';
-import { UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import { EMPTY_PATH, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import Identifier from './Identifier';
 import type Literal from './Literal';
 import type * as NodeType from './NodeType';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
+import { type ExpressionEntity } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
@@ -19,7 +19,6 @@ export default class Property extends MethodBase implements PatternNode {
 	declare key: ExpressionNode;
 	declare kind: 'init' | 'get' | 'set';
 	declare type: NodeType.tProperty;
-	private declarationInit: ExpressionEntity | null = null;
 
 	//declare method: boolean;
 	get method(): boolean {
@@ -42,7 +41,6 @@ export default class Property extends MethodBase implements PatternNode {
 		includedInitPath: ObjectPath,
 		init: ExpressionEntity
 	): LocalVariable[] {
-		this.declarationInit = init;
 		const pathInProperty: ObjectPath =
 			includedInitPath.at(-1) === UnknownKey
 				? includedInitPath
@@ -53,7 +51,7 @@ export default class Property extends MethodBase implements PatternNode {
 					: this.key instanceof Identifier
 						? [...includedInitPath, this.key.name]
 						: [...includedInitPath, String((this.key as Literal).value)];
-		return (this.value as PatternNode).declare(kind, pathInProperty, UNKNOWN_EXPRESSION);
+		return (this.value as PatternNode).declare(kind, pathInProperty, init);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -74,7 +72,7 @@ export default class Property extends MethodBase implements PatternNode {
 		includeChildrenRecursively: IncludeChildren
 	) {
 		this.included = true;
-		this.key.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
+		this.key.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 		this.value.includePath(path, context, includeChildrenRecursively);
 	}
 
@@ -89,11 +87,5 @@ export default class Property extends MethodBase implements PatternNode {
 		this.value.render(code, options, { isShorthandProperty: this.shorthand });
 	}
 
-	protected applyDeoptimizations(): void {
-		this.deoptimized = true;
-		if (this.declarationInit !== null) {
-			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
-			this.scope.context.requestTreeshakingPass();
-		}
-	}
+	protected applyDeoptimizations(): void {}
 }

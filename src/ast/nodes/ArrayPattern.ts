@@ -4,7 +4,7 @@ import { EMPTY_PATH, type ObjectPath, UnknownInteger, UnknownKey } from '../util
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
+import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
@@ -22,7 +22,11 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	declare(kind: VariableKind, includedInitPath: ObjectPath): LocalVariable[] {
+	declare(
+		kind: VariableKind,
+		includedInitPath: ObjectPath,
+		init: ExpressionEntity
+	): LocalVariable[] {
 		const variables: LocalVariable[] = [];
 		const includedPatternPath: ObjectPath =
 			includedInitPath.at(-1) === UnknownKey
@@ -30,7 +34,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 				: [...includedInitPath, UnknownInteger];
 		for (const element of this.elements) {
 			if (element !== null) {
-				variables.push(...element.declare(kind, includedPatternPath, UNKNOWN_EXPRESSION));
+				variables.push(...element.declare(kind, includedPatternPath, init));
 			}
 		}
 		return variables;

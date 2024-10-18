@@ -36,14 +36,20 @@ export default class Scope {
 		const existingVariable =
 			this.hoistedVariables?.get(name) || (this.variables.get(name) as LocalVariable);
 		if (existingVariable) {
-			const existingKind = existingVariable.kind;
-			if (kind === 'var' && existingKind === 'var') {
+			if (kind === 'var' && existingVariable.kind === 'var') {
 				existingVariable.addDeclaration(identifier, init, includedInitPath);
 				return existingVariable;
 			}
 			context.error(logRedeclarationError(name), identifier.start);
 		}
-		const newVariable = new LocalVariable(identifier.name, identifier, init, context, kind);
+		const newVariable = new LocalVariable(
+			identifier.name,
+			identifier,
+			init,
+			includedInitPath,
+			context,
+			kind
+		);
 		this.variables.set(name, newVariable);
 		return newVariable;
 	}
