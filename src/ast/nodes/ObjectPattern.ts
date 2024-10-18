@@ -7,12 +7,12 @@ import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import type Property from './Property';
 import RestElement from './RestElement';
-import VariableDeclarator from './VariableDeclarator';
 import type { ExpressionEntity, InclusionOptions } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
+import VariableDeclarator from './VariableDeclarator';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	declare properties: readonly (Property | RestElement)[];
@@ -34,10 +34,14 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
+	declare(
+		kind: VariableKind,
+		includedInitPath: ObjectPath,
+		init: ExpressionEntity
+	): LocalVariable[] {
 		const variables: LocalVariable[] = [];
 		for (const property of this.properties) {
-			variables.push(...property.declare(kind, init));
+			variables.push(...property.declare(kind, includedInitPath, init));
 		}
 		return variables;
 	}

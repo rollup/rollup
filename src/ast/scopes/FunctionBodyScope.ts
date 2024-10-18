@@ -3,6 +3,7 @@ import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
+import type { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 import type ParameterScope from './ParameterScope';
@@ -18,6 +19,7 @@ export default class FunctionBodyScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
+		includedInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		const name = identifier.name;
@@ -29,7 +31,7 @@ export default class FunctionBodyScope extends ChildScope {
 				(kind === 'var' || kind === 'function') &&
 				(existingKind === 'var' || existingKind === 'function' || existingKind === 'parameter')
 			) {
-				existingVariable.addDeclaration(identifier, init);
+				existingVariable.addDeclaration(identifier, init, includedInitPath);
 				return existingVariable;
 			}
 			context.error(logRedeclarationError(name), identifier.start);

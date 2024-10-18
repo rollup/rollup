@@ -3,6 +3,7 @@ import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import type FunctionScope from '../scopes/FunctionScope';
+import type { ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -35,39 +36,20 @@ export default class Identifier extends IdentifierBase implements PatternNode {
 		}
 	}
 
-	declare(kind: VariableKind, init: ExpressionEntity): LocalVariable[] {
+	declare(
+		kind: VariableKind,
+		includedInitPath: ObjectPath,
+		init: ExpressionEntity
+	): LocalVariable[] {
 		let variable: LocalVariable;
 		const { treeshake } = this.scope.context.options;
-		switch (kind) {
-			case 'var': {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
-				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
-					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
-					variable.markInitializersForDeoptimization();
-				}
-				break;
-			}
-			case 'function': {
-				// in strict mode, functions are only hoisted within a scope but not across block scopes
-				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
-				break;
-			}
-			case 'let':
-			case 'const':
-			case 'using':
-			case 'await using':
-			case 'class': {
-				variable = this.scope.addDeclaration(this, this.scope.context, init, kind);
-				break;
-			}
-			case 'parameter': {
-				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
-				break;
-			}
-			/* istanbul ignore next */
-			default: {
-				/* istanbul ignore next */
-				throw new Error(`Internal Error: Unexpected identifier kind ${kind}.`);
+		if (kind === 'parameter') {
+			variable = (this.scope as FunctionScope).addParameterDeclaration(this, includedInitPath);
+		} else {
+			variable = this.scope.addDeclaration(this, this.scope.context, init, includedInitPath, kind);
+			if (kind === 'var' && treeshake && treeshake.correctVarValueBeforeDeclaration) {
+				// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
+				variable.markInitializersForDeoptimization();
 			}
 		}
 		return [(this.variable = variable)];

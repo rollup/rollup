@@ -3,6 +3,7 @@ import { logRedeclarationError } from '../../utils/logs';
 import type Identifier from '../nodes/Identifier';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
+import type { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type ChildScope from './ChildScope';
@@ -28,6 +29,7 @@ export default class Scope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
+		includedInitPath: ObjectPath,
 		kind: VariableKind
 	): LocalVariable {
 		const name = identifier.name;
@@ -36,7 +38,7 @@ export default class Scope {
 		if (existingVariable) {
 			const existingKind = existingVariable.kind;
 			if (kind === 'var' && existingKind === 'var') {
-				existingVariable.addDeclaration(identifier, init);
+				existingVariable.addDeclaration(identifier, init, includedInitPath);
 				return existingVariable;
 			}
 			context.error(logRedeclarationError(name), identifier.start);

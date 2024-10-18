@@ -9,7 +9,7 @@ import {
 } from '../../NodeInteractions';
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
-import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
@@ -315,7 +315,8 @@ export default abstract class FunctionBase extends NodeBase {
 		));
 		scope.addParameterVariables(
 			parameters.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+				parameter =>
+					parameter.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION) as ParameterVariable[]
 			),
 			parameters[parameters.length - 1] instanceof RestElement
 		);

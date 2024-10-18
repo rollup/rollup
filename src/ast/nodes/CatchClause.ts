@@ -1,5 +1,6 @@
 import type ChildScope from '../scopes/ChildScope';
 import ParameterScope from '../scopes/ParameterScope';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -25,7 +26,7 @@ export default class CatchClause extends NodeBase {
 				this,
 				this.scope
 			).parseNode(param) as unknown as PatternNode;
-			this.param!.declare('parameter', UNKNOWN_EXPRESSION);
+			this.param!.declare('parameter', EMPTY_PATH, UNKNOWN_EXPRESSION);
 		}
 		this.body = new BlockStatement(this, this.scope.bodyScope).parseNode(body);
 		return super.parseNode(esTreeNode);
