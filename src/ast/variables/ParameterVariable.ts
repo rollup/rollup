@@ -51,7 +51,7 @@ export default class ParameterVariable extends LocalVariable {
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		context: AstContext
 	) {
-		super(name, declarator, UNKNOWN_EXPRESSION, context, 'parameter');
+		super(name, declarator, UNKNOWN_EXPRESSION, EMPTY_PATH, context, 'parameter');
 	}
 
 	addEntityToBeDeoptimized(entity: ExpressionEntity): void {

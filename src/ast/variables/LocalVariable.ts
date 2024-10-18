@@ -27,7 +27,8 @@ import {
 	type EntityPathTracker,
 	IncludedPathTracker,
 	type ObjectPath,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
+	UnknownKey
 } from '../utils/PathTracker';
 import Variable from './Variable';
 
@@ -36,8 +37,8 @@ export default class LocalVariable extends Variable {
 
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
-	readonly kind: VariableKind;
 
+	// TODO Lukas include paths here?
 	protected additionalInitializers: ExpressionEntity[] | null = null;
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
@@ -49,14 +50,15 @@ export default class LocalVariable extends Variable {
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		private init: ExpressionEntity,
+		/** if this is non-empty, the actual init is this path of this.init */
+		private initPath: ObjectPath,
 		context: AstContext,
-		kind: VariableKind
+		readonly kind: VariableKind
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.deoptimizationTracker = context.deoptimizationTracker;
 		this.module = context.module;
-		this.kind = kind;
 	}
 
 	addDeclaration(
@@ -89,7 +91,13 @@ export default class LocalVariable extends Variable {
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() => this.init.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker),
+			() =>
+				this.init.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					// TODO Lukas test this
+					[...this.initPath, ...path],
+					recursionTracker
+				),
 			undefined
 		);
 	}
@@ -108,9 +116,9 @@ export default class LocalVariable extends Variable {
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
-			this.init.deoptimizePath(UNKNOWN_PATH);
+			this.init.deoptimizePath([...this.initPath, UnknownKey]);
 		} else {
-			this.init.deoptimizePath(path);
+			this.init.deoptimizePath([...this.initPath, ...path]);
 		}
 	}
 
@@ -127,7 +135,12 @@ export default class LocalVariable extends Variable {
 			this.init,
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
-				return this.init.getLiteralValueAtPath(path, recursionTracker, origin);
+				// TODO Lukas test this
+				return this.init.getLiteralValueAtPath(
+					[...this.initPath, ...path],
+					recursionTracker,
+					origin
+				);
 			},
 			UnknownValue
 		);
@@ -147,8 +160,9 @@ export default class LocalVariable extends Variable {
 			this.init,
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
+				// TODO Lukas test this
 				return this.init.getReturnExpressionWhenCalledAtPath(
-					path,
+					[...this.initPath, ...path],
 					interaction,
 					recursionTracker,
 					origin
@@ -168,7 +182,8 @@ export default class LocalVariable extends Variable {
 				if (this.isReassigned) return true;
 				return (
 					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					// TODO Lukas test this
+					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
 			case INTERACTION_ASSIGNED: {
@@ -177,7 +192,8 @@ export default class LocalVariable extends Variable {
 				if (this.isReassigned) return true;
 				return (
 					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					// TODO Lukas test this
+					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
 			case INTERACTION_CALLED: {
@@ -186,7 +202,8 @@ export default class LocalVariable extends Variable {
 					!(
 						interaction.withNew ? context.instantiated : context.called
 					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					// TODO Lukas test this
+					this.init.hasEffectsOnInteractionAtPath([...this.initPath, ...path], interaction, context)
 				);
 			}
 		}
@@ -207,8 +224,10 @@ export default class LocalVariable extends Variable {
 					node = node.parent as Node;
 				}
 			}
+			// We need to make sure we include the correct path of the init
+			// TODO Lukas what about path.length == 0?
 			if (path.length > 0) {
-				this.init.includePath(path, context, false);
+				this.init.includePath([...this.initPath, ...path], context, false);
 				this.additionalInitializers?.forEach(initializer =>
 					initializer.includePath(path, context, false)
 				);
@@ -216,6 +235,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
+	// TODO Lukas do we need to consider the initPath here?
 	includeCallArguments(
 		context: InclusionContext,
 		arguments_: readonly (ExpressionEntity | SpreadElement)[]

@@ -1,18 +1,16 @@
 import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
-import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import type Property from './Property';
-import RestElement from './RestElement';
-import type { ExpressionEntity, InclusionOptions } from './shared/Expression';
+import type RestElement from './RestElement';
+import type { ExpressionEntity } from './shared/Expression';
 import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
-import VariableDeclarator from './VariableDeclarator';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	declare properties: readonly (Property | RestElement)[];
@@ -54,29 +52,6 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	includePath(
-		path: ObjectPath,
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren,
-		options?: InclusionOptions | undefined
-	): void {
-		super.includePath(path, context, includeChildrenRecursively, options);
-		if (this.parent instanceof VariableDeclarator) {
-			if (this.properties[this.properties.length - 1] instanceof RestElement) {
-				this.parent.init?.includePath(UNKNOWN_PATH, context, includeChildrenRecursively, options);
-			} else {
-				for (const p of this.properties as Property[]) {
-					this.parent.init?.includePath(
-						[(p.key as Identifier).name],
-						context,
-						includeChildrenRecursively,
-						options
-					);
-				}
-			}
-		}
-	}
-
 	hasEffectsOnInteractionAtPath(
 		// At the moment, this is only triggered for assignment left-hand sides,
 		// where the path is empty
@@ -90,9 +65,26 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		return false;
 	}
 
+	includePath(
+		_path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	) {
+		this.included = true;
+		for (const property of this.properties) {
+			// Including a pattern should not deeply include its children as that
+			// would include all children of nested variable references. Their paths
+			// will be included via their usages instead, and we store the path in
+			// the pattern when declaring the variables.
+			property.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		}
+	}
+
 	markDeclarationReached(): void {
 		for (const property of this.properties) {
 			property.markDeclarationReached();
 		}
 	}
+
+	protected applyDeoptimizations() {}
 }

@@ -1,10 +1,11 @@
-import type { HasEffectsContext } from '../ExecutionContext';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import type { NodeInteractionAssigned } from '../NodeInteractions';
 import { EMPTY_PATH, type ObjectPath, UnknownKey } from '../utils/PathTracker';
 import type LocalVariable from '../variables/LocalVariable';
 import type Variable from '../variables/Variable';
 import type * as NodeType from './NodeType';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
+import { type ExpressionEntity } from './shared/Expression';
+import type { IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
 import type { PatternNode } from './shared/Pattern';
 import type { VariableKind } from './shared/VariableKinds';
@@ -30,7 +31,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 		return this.argument.declare(
 			kind,
 			includedInitPath.at(-1) === UnknownKey ? includedInitPath : [...includedInitPath, UnknownKey],
-			UNKNOWN_EXPRESSION
+			init
 		);
 	}
 
@@ -49,6 +50,17 @@ export default class RestElement extends NodeBase implements PatternNode {
 			path.length > 0 ||
 			this.argument.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)
 		);
+	}
+
+	includePath(
+		_path: ObjectPath,
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	) {
+		this.included = true;
+		// This should just include the identifier, its properties should be
+		// included where the variable is used.
+		this.argument.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 	}
 
 	markDeclarationReached(): void {

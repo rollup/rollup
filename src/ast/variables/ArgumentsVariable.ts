@@ -5,14 +5,14 @@ import { INTERACTION_ACCESSED } from '../NodeInteractions';
 import type { ExpressionEntity } from '../nodes/shared/Expression';
 import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import type { ObjectPath } from '../utils/PathTracker';
-import { UNKNOWN_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
 export default class ArgumentsVariable extends LocalVariable {
 	private deoptimizedArguments: ExpressionEntity[] = [];
 
 	constructor(context: AstContext) {
-		super('arguments', null, UNKNOWN_EXPRESSION, context, 'other');
+		super('arguments', null, UNKNOWN_EXPRESSION, EMPTY_PATH, context, 'other');
 	}
 
 	addArgumentToBeDeoptimized(argument: ExpressionEntity): void {
