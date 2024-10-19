@@ -22,10 +22,11 @@ jobs:
             architecture: arm64
             version: '13.3'
             target: aarch64-unknown-freebsd
+    name: Build ${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
-      - name: Build for ${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
+      - name: Build
         uses: cross-platform-actions/action@v0.25.0
         with:
           operating_system: ${{ matrix.settings.name }}
