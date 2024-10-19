@@ -1,0 +1,34 @@
+name: FreeBSD Build
+env:
+  DEBUG: napi:*
+  APP_NAME: rollup
+
+on:
+  push:
+    branches:
+      - freebsd-support
+
+jobs:
+  build-freebsd:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - name: freebsd
+            architecture: x86-64
+            version: '13.3'
+          - name: freebsd
+            architecture: arm64
+            version: '13.3'
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+      - name: Build
+        uses: cross-platform-actions/action@v0.25.0
+        with:
+          operating_system: freebsd
+          version: '13.3'
+          run: |
+            sudo pkg install -y rust node npm
+            npm ci --ignore-scripts
+            npm build:quick
