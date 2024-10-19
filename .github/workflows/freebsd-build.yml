@@ -10,7 +10,6 @@ on:
 
 jobs:
   build-freebsd:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -24,6 +23,7 @@ jobs:
             version: '13.3'
             target: aarch64-unknown-freebsd
     name: Build ${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
