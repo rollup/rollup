@@ -17,11 +17,11 @@ jobs:
           - name: freebsd
             architecture: x86-64
             version: '13.3'
-            rust_architecture: x86_64
+            target: x86_64-unknown-freebsd
           - name: freebsd
             architecture: arm64
             version: '13.3'
-            rust_architecture: aarch64
+            target: aarch64-unknown-freebsd
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
