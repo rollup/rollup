@@ -15,11 +15,13 @@ jobs:
       matrix:
         os:
           - name: freebsd
-            architecture: x86_64
+            architecture: x86-64
             version: '13.3'
+            rust_architecture: x86_64
           - name: freebsd
             architecture: arm64
             version: '13.3'
+            rust_architecture: aarch64
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
@@ -32,4 +34,4 @@ jobs:
           run: |
             sudo pkg install -y node npm rust
             npm ci --ignore-scripts
-            npm run build:napi -- --release --target ${{ matrix.os.architecture }}-unknown-${{ matrix.os.name }}
+            npm run build:napi -- --release --target ${{ matrix.os.rust_architecture }}-unknown-${{ matrix.os.name }}
