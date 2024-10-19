@@ -81,4 +81,8 @@ jobs:
           run: |
             sudo pkg install -y node npm
             npm ci --ignore-scripts
+            pwd
+            ls -lah
+            cp -f native.js node_modules/rollup/dist
+            cp -f ${{ env.APP_NAME }}.*.node node_modules/rollup/dist
             npm run ci:test:only
