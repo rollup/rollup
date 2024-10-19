@@ -34,7 +34,6 @@ jobs:
           operating_system: ${{ matrix.settings.name }}
           architecture: ${{ matrix.settings.architecture }}
           version: ${{ matrix.settings.version }}
-          cpu_count: 4
           memory: 8G
           run: |
             sudo pkg install -y node npm rust
