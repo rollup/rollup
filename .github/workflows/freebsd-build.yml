@@ -35,3 +35,9 @@ jobs:
             sudo pkg install -y node npm rust
             npm ci --ignore-scripts
             npm run build:napi -- --release --target ${{ matrix.settings.target }}
+      - name: Upload napi artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: ${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
