@@ -63,7 +63,7 @@ jobs:
             version: '14.1'
             target: aarch64-unknown-freebsd
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
