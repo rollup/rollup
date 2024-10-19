@@ -30,5 +30,6 @@ jobs:
           architecture: ${{ matrix.os.architecture }}
           version: ${{ matrix.os.version }}
           run: |
-            sudo pkg install -y rust node npm
+            sudo pkg install -y node npm rust
+            npm ci --ignore-scripts
             npm run build:napi -- --release --target ${{ matrix.os.architecture }}-unknown-${{ matrix.os.name }}
