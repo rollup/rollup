@@ -12,6 +12,7 @@ jobs:
   build-freebsd:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         settings:
           - name: freebsd
