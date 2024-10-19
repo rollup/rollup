@@ -15,7 +15,7 @@ jobs:
       matrix:
         os:
           - name: freebsd
-            architecture: x86-64
+            architecture: x86_64
             version: '13.3'
           - name: freebsd
             architecture: arm64
