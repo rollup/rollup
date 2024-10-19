@@ -18,10 +18,10 @@ jobs:
             architecture: x86-64
             version: '13.3'
             target: x86_64-unknown-freebsd
-          # - name: freebsd
-          #   architecture: arm64
-          #   version: '13.3'
-          #   target: aarch64-unknown-freebsd
+          - name: freebsd
+            architecture: arm64
+            version: '13.3'
+            target: aarch64-unknown-freebsd
     name: Build ${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -58,10 +58,10 @@ jobs:
             architecture: x86-64
             version: '14.1'
             target: x86_64-unknown-freebsd
-          # - name: freebsd
-          #   architecture: arm64
-          #   version: '14.1'
-          #   target: aarch64-unknown-freebsd
+          - name: freebsd
+            architecture: arm64
+            version: '14.1'
+            target: aarch64-unknown-freebsd
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
