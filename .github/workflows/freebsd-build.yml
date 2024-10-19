@@ -45,3 +45,40 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
           if-no-files-found: error
+
+  test-freebsd:
+    name: Test${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
+    needs:
+      - build-freebsd
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - name: freebsd
+            architecture: x86-64
+            version: '14.1'
+            target: x86_64-unknown-freebsd
+          - name: freebsd
+            architecture: arm64
+            version: '14.1'
+            target: aarch64-unknown-freebsd
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v4
+      - name: Download napi artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: .
+      - name: Test
+        uses: cross-platform-actions/action@v0.25.0
+        with:
+          operating_system: ${{ matrix.settings.name }}
+          architecture: ${{ matrix.settings.architecture }}
+          version: ${{ matrix.settings.version }}
+          run: |
+            sudo pkg install -y node npm
+            npm ci --ignore-scripts
+            npm run ci:test:only
