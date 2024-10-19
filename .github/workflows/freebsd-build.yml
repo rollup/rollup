@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os:
+        settings:
           - name: freebsd
             architecture: x86-64
             version: '13.3'
@@ -25,13 +25,13 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
-      - name: Build for ${{ matrix.os.name }} ${{ matrix.os.architecture }}
+      - name: Build for ${{ matrix.settings.name }} ${{ matrix.settings.architecture }}
         uses: cross-platform-actions/action@v0.25.0
         with:
-          operating_system: ${{ matrix.os.name }}
-          architecture: ${{ matrix.os.architecture }}
-          version: ${{ matrix.os.version }}
+          operating_system: ${{ matrix.settings.name }}
+          architecture: ${{ matrix.settings.architecture }}
+          version: ${{ matrix.settings.version }}
           run: |
             sudo pkg install -y node npm rust
             npm ci --ignore-scripts
-            npm run build:napi -- --release --target ${{ matrix.os.rust_architecture }}-unknown-${{ matrix.os.name }}
+            npm run build:napi -- --release --target ${{ matrix.settings.target }}
