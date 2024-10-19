@@ -254,7 +254,7 @@ export const useOptions = defineStore('options2', () => {
 		name: 'output.hoistTransitiveImports'
 	});
 	const optionOutputImportAttributesKey = getSelect({
-		defaultValue: 'assert',
+		defaultValue: 'with',
 		name: 'output.importAttributesKey',
 		options: () => ['with', 'assert']
 	});

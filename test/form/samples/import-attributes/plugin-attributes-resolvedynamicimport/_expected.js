@@ -1,4 +1,4 @@
-import('a', { assert: { type: 'changed' } });
-import('resolved-b', { assert: { type: 'changed', extra: 'changed' } });
+import('a', { with: { type: 'changed' } });
+import('resolved-b', { with: { type: 'changed', extra: 'changed' } });
 import('b');
 import('resolved-a');
