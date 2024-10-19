@@ -23,12 +23,12 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v4
-      - name: Build
+      - name: Build for ${{ matrix.os.name }} ${{ matrix.os.architecture }}
         uses: cross-platform-actions/action@v0.25.0
         with:
-          operating_system: freebsd
-          version: '13.3'
+          operating_system: ${{ matrix.os.name }}
+          architecture: ${{ matrix.os.architecture }}
+          version: ${{ matrix.os.version }}
           run: |
             sudo pkg install -y rust node npm
-            npm ci --ignore-scripts
-            npm build:quick
+            npm run build:napi -- --release --target ${{ matrix.os.architecture }}-unknown-${{ matrix.os.name }}
