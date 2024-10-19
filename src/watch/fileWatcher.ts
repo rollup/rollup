@@ -43,7 +43,7 @@ export class FileWatcher {
 
 	private createWatcher(transformWatcherId: string | null): FSWatcher {
 		const task = this.task;
-		const isLinux = platform() === 'linux';
+		const isLinux = (platform() === 'linux' || platform() === 'freebsd');
 		const isTransformDependency = transformWatcherId !== null;
 		const handleChange = (id: string, event: ChangeEvent) => {
 			const changedId = transformWatcherId || id;
