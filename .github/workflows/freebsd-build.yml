@@ -79,7 +79,7 @@ jobs:
           architecture: ${{ matrix.settings.architecture }}
           version: ${{ matrix.settings.version }}
           run: |
-            sudo pkg install -y node npm
+            sudo pkg install -y git node npm
             npm ci --ignore-scripts
             pwd
             ls -lah
