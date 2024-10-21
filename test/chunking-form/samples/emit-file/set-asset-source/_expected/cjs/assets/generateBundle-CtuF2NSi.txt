@@ -1,1 +1,0 @@
-generateBundle cjs with assets/generateBundle-format-D1nvefY4.txt

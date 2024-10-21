@@ -25,9 +25,9 @@ module.exports = defineTest({
 				generateBundle(options, outputBundle) {
 					const keys = Object.keys(outputBundle);
 					assert.strictEqual(keys.length, 3);
-					assert.strictEqual(keys[0], 'assets/logo-zDlmrXar.svg');
+					assert.strictEqual(keys[0], 'assets/logo-da3mn9ig.svg');
 					const asset = outputBundle[keys[0]];
-					assert.strictEqual(asset.fileName, 'assets/logo-zDlmrXar.svg');
+					assert.strictEqual(asset.fileName, 'assets/logo-da3mn9ig.svg');
 					if (asset.type !== 'asset') {
 						throw new Error(`Unexpected asset type ${asset.type}.`);
 					}

@@ -1,8 +1,8 @@
 define(['require'], (function (require) { 'use strict';
 
-	var logo = new URL(require.toUrl('./assets/logo-zDlmrXar.svg'), document.baseURI).href;
+	var logo = new URL(require.toUrl('./assets/logo-da3mn9ig.svg'), document.baseURI).href;
 
-	var logoReverse = new URL(require.toUrl('./assets/logo_reverse\'-DbGK2oiS.svg'), document.baseURI).href;
+	var logoReverse = new URL(require.toUrl('./assets/logo_reverse\'-m88qzsd0.svg'), document.baseURI).href;
 
 	function showImage(url) {
 		console.log(url);

@@ -1,9 +1,9 @@
 (function () {
 	'use strict';
 
-	var logo = new URL('assets/logo-zDlmrXar.svg', document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI).href;
+	var logo = new URL('assets/logo-da3mn9ig.svg', document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI).href;
 
-	var logoReverse = new URL('assets/logo_reverse\'-DbGK2oiS.svg', document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI).href;
+	var logoReverse = new URL('assets/logo_reverse\'-m88qzsd0.svg', document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT' && document.currentScript.src || document.baseURI).href;
 
 	function showImage(url) {
 		console.log(url);

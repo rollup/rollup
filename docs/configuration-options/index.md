@@ -1112,14 +1112,14 @@ exports.foo = foo;
 
 |          |                                 |
 | -------: | :------------------------------ |
-|    Type: | `"base64" \| "base36" \| "hex"` |
+|    Type: | `"base36" \| "base64" \| "hex"` |
 |     CLI: | `--hashCharacters <name>`       |
-| Default: | `"base64"`                      |
+| Default: | `"base36"`                      |
 
 This determines the character set that Rollup is allowed to use in file hashes.
 
-- the default `"base64"` will use url-safe base-64 hashes with potential characters `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_`.
-- `"base36"` will only use lower-case letters and numbers `abcdefghijklmnopqrstuvwxyz0123456789`.
+- the default `"base36"` will only use lower-case letters and numbers `abcdefghijklmnopqrstuvwxyz0123456789`.
+- `"base64"` will use url-safe base-64 hashes with potential characters `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_`.
 - `"hex"` will create hexadecimal hashes with characters `abcdef0123456789`.
 
 ### output.hoistTransitiveImports

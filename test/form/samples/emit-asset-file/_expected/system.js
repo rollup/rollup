@@ -3,9 +3,9 @@ System.register([], (function (exports, module) {
 	return {
 		execute: (function () {
 
-			var logo = new URL('assets/logo-zDlmrXar.svg', module.meta.url).href;
+			var logo = new URL('assets/logo-da3mn9ig.svg', module.meta.url).href;
 
-			var logoReverse = new URL('assets/logo_reverse\'-DbGK2oiS.svg', module.meta.url).href;
+			var logoReverse = new URL('assets/logo_reverse\'-m88qzsd0.svg', module.meta.url).href;
 
 			function showImage(url) {
 				console.log(url);

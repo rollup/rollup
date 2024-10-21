@@ -730,7 +730,7 @@ type AddonFunction = (chunk: RenderedChunk) => string | Promise<string>;
 
 type OutputPluginOption = MaybePromise<OutputPlugin | NullValue | false | OutputPluginOption[]>;
 
-type HashCharacters = 'base64' | 'base36' | 'hex';
+type HashCharacters = 'base36' | 'base64' | 'hex';
 
 export interface OutputOptions {
 	amd?: AmdOptions;

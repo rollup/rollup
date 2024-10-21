@@ -244,9 +244,9 @@ export const useOptions = defineStore('options2', () => {
 		required: () => true
 	});
 	const optionOutputHashCharacters = getSelect({
-		defaultValue: 'base64',
+		defaultValue: 'base36',
 		name: 'output.hashCharacters',
-		options: () => ['base64', 'base36', 'hex']
+		options: () => ['base36', 'base64', 'hex']
 	});
 	const optionOutputHoistTransitiveImports = getBoolean({
 		available: alwaysTrue,
