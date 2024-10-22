@@ -1,3 +1,6 @@
 const foo = () => {};
+const bar = () => {};
+const baz = () => {};
+const qux = () => {};
 
-export { foo };
+export { bar, baz, foo, qux };

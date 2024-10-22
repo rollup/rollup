@@ -9,11 +9,11 @@ import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/Pat
 import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
-import type TemplateLiteral from './TemplateLiteral';
 import CallExpressionBase from './shared/CallExpressionBase';
 import type { ExpressionEntity } from './shared/Expression';
 import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
 import type { ExpressionNode, IncludeChildren } from './shared/Node';
+import type TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends CallExpressionBase {
 	declare quasi: TemplateLiteral;
@@ -57,7 +57,7 @@ export default class TaggedTemplateExpression extends CallExpressionBase {
 			this.tag.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 			this.quasi.includePath(UNKNOWN_PATH, context, includeChildrenRecursively);
 		}
-		this.tag.includeCallArguments(context, this.args);
+		this.tag.includeCallArguments(context, this.interaction);
 		const [returnExpression] = this.getReturnExpression();
 		if (!returnExpression.included) {
 			returnExpression.includePath(UNKNOWN_PATH, context, false);

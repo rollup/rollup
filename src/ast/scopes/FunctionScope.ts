@@ -1,6 +1,5 @@
 import type { InclusionContext } from '../ExecutionContext';
-import type SpreadElement from '../nodes/SpreadElement';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
+import type { NodeInteractionCalled } from '../NodeInteractions';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
@@ -22,16 +21,12 @@ export default class FunctionScope extends ReturnValueScope {
 		return this;
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		super.includeCallArguments(context, arguments_);
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+		super.includeCallArguments(context, interaction);
 		if (this.argumentsVariable.included) {
-			for (const argument of arguments_) {
-				if (!argument.included) {
-					argument.includePath(UNKNOWN_PATH, context, false);
-				}
+			const { args } = interaction;
+			for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
+				args[argumentIndex]?.includePath(UNKNOWN_PATH, context, false);
 			}
 		}
 	}

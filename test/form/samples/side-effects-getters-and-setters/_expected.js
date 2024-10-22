@@ -24,6 +24,7 @@ const retained4 = {
 retained4['eff' + 'ect'] = 'retained';
 
 const retained7 = {
+	foo: () => {},
 	get foo() {
 		return 1;
 	}

@@ -1,7 +1,7 @@
 import { logDuplicateArgumentNameError } from '../../utils/logs';
 import type { InclusionContext } from '../ExecutionContext';
+import type { NodeInteractionCalled } from '../NodeInteractions';
 import type Identifier from '../nodes/Identifier';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
 import SpreadElement from '../nodes/SpreadElement';
 import type { ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -51,24 +51,23 @@ export default class ParameterScope extends ChildScope {
 		this.hasRest = hasRest;
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
 		let calledFromTryStatement = false;
 		let argumentIncluded = false;
 		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
-		for (const checkedArgument of arguments_) {
-			if (checkedArgument instanceof SpreadElement) {
-				for (const argument of arguments_) {
-					argument.includePath(UNKNOWN_PATH, context, false);
-				}
-				break;
+		const { args } = interaction;
+		let hasSpread = false;
+		for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
+			if (args[argumentIndex] instanceof SpreadElement) {
+				hasSpread = true;
+			}
+			if (hasSpread) {
+				args[argumentIndex]!.includePath(UNKNOWN_PATH, context, false);
 			}
 		}
-		for (let index = arguments_.length - 1; index >= 0; index--) {
-			const parameterVariables = this.parameters[index] || restParameter;
-			const argument = arguments_[index];
+		for (let index = args.length - 1; index >= 1; index--) {
+			const parameterVariables = this.parameters[index - 1] || restParameter;
+			const argument = args[index]!;
 			if (parameterVariables) {
 				calledFromTryStatement = false;
 				if (parameterVariables.length === 0) {

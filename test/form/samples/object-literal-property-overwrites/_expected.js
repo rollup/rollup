@@ -1,10 +1,14 @@
 const retained1 = {
+	foo: () => {},
 	foo: function () {this.x = 1;}
 };
 retained1.foo();
 
 const retained2 = {
-	['f' + 'oo']: function () {this.x = 1;}};
+	foo: () => {},
+	['f' + 'oo']: function () {this.x = 1;},
+	['b' + 'ar']: () => {}
+};
 retained2.foo();
 
 const retained3 = {

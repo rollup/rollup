@@ -249,11 +249,8 @@ export default abstract class FunctionBase extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		this.scope.includeCallArguments(context, arguments_);
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+		this.scope.includeCallArguments(context, interaction);
 	}
 
 	initialise(): void {

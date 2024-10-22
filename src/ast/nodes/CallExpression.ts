@@ -128,9 +128,17 @@ export default class CallExpression
 			}
 		} else {
 			this.included = true;
-			this.callee.includePath(UNKNOWN_PATH, context, false);
+			// If the callee is a member expression and does not have a variable, its
+			// object will already be included via the first argument of the
+			// interaction in includeCallArguments. Including it again can lead to
+			// severe performance problems.
+			if (this.callee instanceof MemberExpression && !this.callee.variable) {
+				this.callee.property.includePath(UNKNOWN_PATH, context, false);
+			} else {
+				this.callee.includePath(UNKNOWN_PATH, context, false);
+			}
+			this.callee.includeCallArguments(context, this.interaction);
 		}
-		this.callee.includeCallArguments(context, this.arguments);
 	}
 
 	initialise() {
