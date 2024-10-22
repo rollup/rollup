@@ -5,7 +5,6 @@ import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteracti
 import type { EntityPathTracker, ObjectPath, SymbolToStringTag } from '../../utils/PathTracker';
 import { UNKNOWN_PATH } from '../../utils/PathTracker';
 import type { LiteralValue } from '../Literal';
-import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { IncludeChildren } from './Node';
 
@@ -85,12 +84,9 @@ export class ExpressionEntity implements WritableEntity {
 		this.included = true;
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		for (const argument of arguments_) {
-			argument.includePath(UNKNOWN_PATH, context, false);
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+		for (const argument of interaction.args) {
+			argument?.includePath(UNKNOWN_PATH, context, false);
 		}
 	}
 

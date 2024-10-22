@@ -44,7 +44,6 @@ import {
 } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren, SkippedChain } from './shared/Node';
 import { IS_SKIPPED_CHAIN, NodeBase } from './shared/Node';
-import type SpreadElement from './SpreadElement';
 import type Super from './Super';
 
 // To avoid infinite recursions
@@ -363,14 +362,11 @@ export default class MemberExpression
 		}
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(context, arguments_);
+			this.variable.includeCallArguments(context, interaction);
 		} else {
-			super.includeCallArguments(context, arguments_);
+			super.includeCallArguments(context, interaction);
 		}
 	}
 

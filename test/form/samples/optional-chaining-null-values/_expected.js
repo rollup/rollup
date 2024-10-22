@@ -1,5 +1,6 @@
 const obj = {
 	nullValue: null,
+	undefinedValue: undefined,
 	method() {
 		return { nullValue: null };
 	}

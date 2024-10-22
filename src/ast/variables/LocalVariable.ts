@@ -21,7 +21,6 @@ import {
 } from '../nodes/shared/Expression';
 import type { Node } from '../nodes/shared/Node';
 import type { VariableKind } from '../nodes/shared/VariableKinds';
-import type SpreadElement from '../nodes/SpreadElement';
 import {
 	EMPTY_PATH,
 	type EntityPathTracker,
@@ -224,17 +223,14 @@ export default class LocalVariable extends Variable {
 	}
 
 	// TODO Lukas do we need to consider the initPath here?
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
 		if (this.isReassigned || context.includedCallArguments.has(this.init)) {
-			for (const argument of arguments_) {
-				argument.includePath(UNKNOWN_PATH, context, false);
+			for (const argument of interaction.args) {
+				argument?.includePath(UNKNOWN_PATH, context, false);
 			}
 		} else {
 			context.includedCallArguments.add(this.init);
-			this.init.includeCallArguments(context, arguments_);
+			this.init.includeCallArguments(context, interaction);
 			context.includedCallArguments.delete(this.init);
 		}
 	}

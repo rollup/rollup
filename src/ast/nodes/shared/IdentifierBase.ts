@@ -16,7 +16,6 @@ import { EMPTY_PATH } from '../../utils/PathTracker';
 import GlobalVariable from '../../variables/GlobalVariable';
 import LocalVariable from '../../variables/LocalVariable';
 import type Variable from '../../variables/Variable';
-import type SpreadElement from '../SpreadElement';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
@@ -140,11 +139,8 @@ export default class IdentifierBase extends NodeBase {
 		}
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
-		this.variable!.includeCallArguments(context, arguments_);
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
+		this.variable!.includeCallArguments(context, interaction);
 	}
 
 	isPossibleTDZ(): boolean {

@@ -12,7 +12,6 @@ import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions
 import type { EntityPathTracker, ObjectPath } from '../utils/PathTracker';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import type * as NodeType from './NodeType';
-import type SpreadElement from './SpreadElement';
 import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { UnknownValue } from './shared/Expression';
@@ -153,16 +152,13 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	includeCallArguments(
-		context: InclusionContext,
-		arguments_: readonly (ExpressionEntity | SpreadElement)[]
-	): void {
+	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch) {
-			usedBranch.includeCallArguments(context, arguments_);
+			usedBranch.includeCallArguments(context, interaction);
 		} else {
-			this.consequent.includeCallArguments(context, arguments_);
-			this.alternate.includeCallArguments(context, arguments_);
+			this.consequent.includeCallArguments(context, interaction);
+			this.alternate.includeCallArguments(context, interaction);
 		}
 	}
 

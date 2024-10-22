@@ -53,7 +53,7 @@ export default class NewExpression extends NodeBase {
 			this.included = true;
 			this.callee.includePath(UNKNOWN_PATH, context, false);
 		}
-		this.callee.includeCallArguments(context, this.arguments);
+		this.callee.includeCallArguments(context, this.interaction);
 	}
 
 	initialise(): void {
