@@ -4,6 +4,7 @@ import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteracti
 import { INTERACTION_ACCESSED, INTERACTION_CALLED } from '../../NodeInteractions';
 import type { EntityPathTracker, ObjectPath, ObjectPathKey } from '../../utils/PathTracker';
 import {
+	EMPTY_PATH,
 	UNKNOWN_INTEGER_PATH,
 	UNKNOWN_PATH,
 	UnknownInteger,
@@ -66,6 +67,7 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly unknownIntegerProps: ExpressionEntity[] = [];
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
 	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
+	private readonly unmatchablePropertiesAndSetters: ExpressionEntity[] = [];
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
 
 	// If a PropertyMap is used, this will be taken as propertiesAndGettersByKey
@@ -357,20 +359,30 @@ export class ObjectEntity extends ExpressionEntity {
 	) {
 		this.included = true;
 		const [key, ...subPath] = path;
-		const resolvedMember = key != null && this.getMemberExpression(key);
-		const includeAll = includeChildrenRecursively || resolvedMember === UNKNOWN_EXPRESSION;
-		let includedPath = includeAll ? UNKNOWN_PATH : subPath;
-		for (const property of this.allProperties) {
-			const isResolvedToProperty = property === resolvedMember;
-			if (includeAll || isResolvedToProperty || property.shouldBeIncluded(context)) {
-				if (isResolvedToProperty && includedPath.length === 0) {
-					includedPath = UNKNOWN_PATH;
+		if (key == null || includeChildrenRecursively) {
+			for (const property of this.allProperties) {
+				if (includeChildrenRecursively || property.shouldBeIncluded(context)) {
+					property.includePath(EMPTY_PATH, context, includeChildrenRecursively);
 				}
+			}
+			this.prototypeExpression?.includePath(EMPTY_PATH, context, includeChildrenRecursively);
+		} else {
+			const [includedMembers, includedPath] =
+				typeof key === 'string'
+					? [
+							[
+								...new Set([
+									...(this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters),
+									...(this.propertiesAndSettersByKey[key] || this.unmatchablePropertiesAndSetters)
+								])
+							],
+							subPath
+						]
+					: [this.allProperties, UNKNOWN_PATH];
+			for (const property of includedMembers) {
 				property.includePath(includedPath, context, includeChildrenRecursively);
 			}
-		}
-		if (this.prototypeExpression && (!resolvedMember || resolvedMember === UNKNOWN_EXPRESSION)) {
-			this.prototypeExpression.includePath(path, context, includeChildrenRecursively);
+			this.prototypeExpression?.includePath(path, context, includeChildrenRecursively);
 		}
 	}
 
@@ -383,10 +395,10 @@ export class ObjectEntity extends ExpressionEntity {
 			gettersByKey,
 			unknownIntegerProps,
 			unmatchablePropertiesAndGetters,
+			unmatchablePropertiesAndSetters,
 			unmatchableGetters,
 			unmatchableSetters
 		} = this;
-		const unmatchablePropertiesAndSetters: ExpressionEntity[] = [];
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);
@@ -471,7 +483,6 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 		return null;
 	}
-
 	private getMemberExpressionAndTrackDeopt(
 		key: ObjectPathKey,
 		origin: DeoptimizableEntity

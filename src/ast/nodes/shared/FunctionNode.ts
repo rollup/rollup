@@ -37,7 +37,7 @@ export default class FunctionNode extends FunctionBase {
 		this.constructedEntity = new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE);
 		// This makes sure that all deoptimizations of "this" are applied to the
 		// constructed entity.
-		this.scope.thisVariable.addEntityToBeDeoptimized(this.constructedEntity);
+		this.scope.thisVariable.addArgumentValue(this.constructedEntity);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
@@ -48,7 +48,7 @@ export default class FunctionNode extends FunctionBase {
 		super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
 		if (interaction.type === INTERACTION_CALLED && path.length === 0 && interaction.args[0]) {
 			// args[0] is the "this" argument
-			this.scope.thisVariable.addEntityToBeDeoptimized(interaction.args[0]);
+			this.scope.thisVariable.addArgumentValue(interaction.args[0]);
 		}
 	}
 
