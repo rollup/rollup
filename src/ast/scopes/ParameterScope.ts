@@ -56,16 +56,21 @@ export default class ParameterScope extends ChildScope {
 		let argumentIncluded = false;
 		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
 		const { args } = interaction;
-		let hasSpread = false;
+		let lastExplicitlyIncludedIndex = args.length - 1;
+		// If there is a SpreadElement, we need to include all arguments after it
+		// because we no longer know which argument corresponds to which parameter.
 		for (let argumentIndex = 1; argumentIndex < args.length; argumentIndex++) {
-			if (args[argumentIndex] instanceof SpreadElement) {
-				hasSpread = true;
+			if (args[argumentIndex] instanceof SpreadElement && !argumentIncluded) {
+				argumentIncluded = true;
+				lastExplicitlyIncludedIndex = argumentIndex - 1;
 			}
-			if (hasSpread) {
+			if (argumentIncluded) {
 				args[argumentIndex]!.includePath(UNKNOWN_PATH, context, false);
 			}
 		}
-		for (let index = args.length - 1; index >= 1; index--) {
+		// Now we go backwards either starting from the last argument or before the
+		// first SpreadElement to ensure all arguments before are included as needed
+		for (let index = lastExplicitlyIncludedIndex; index >= 1; index--) {
 			const parameterVariables = this.parameters[index - 1] || restParameter;
 			const argument = args[index]!;
 			if (parameterVariables) {
@@ -86,7 +91,6 @@ export default class ParameterScope extends ChildScope {
 								// TODO Lukas as this is repeated over and over (check), we
 								// should think about only including call arguments once and
 								// then only include additional paths or arguments as needed.
-								// TODO Lukas what about SpreadElements?
 								variable.includeArgumentPaths(argument, context);
 							}
 						}

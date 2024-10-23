@@ -216,7 +216,7 @@ export default class LocalVariable extends Variable {
 			if (path.length > 0) {
 				this.init.includePath([...this.initPath, ...path], context, false);
 				this.additionalInitializers?.forEach(initializer =>
-					initializer.includePath(path, context, false)
+					initializer.includePath(UNKNOWN_PATH, context, false)
 				);
 			}
 		}

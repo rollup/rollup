@@ -67,7 +67,7 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
-	// TODO Lukas this should work for all variable types. Should we move this to the ParameterScope?
+	// TODO Lukas this should work for all variable types. Should we move this to the ParameterScope? How do we handle SpreadElement and RestElement?
 	// note that we cannot merge this with includeCallArguments as it needs to happen much earlier
 	private updateParameterVariableValues(arguments_: InteractionCalledArguments) {
 		for (let position = 0; position < this.params.length; position++) {
@@ -78,15 +78,6 @@ export default abstract class FunctionBase extends NodeBase {
 			const parameterVariable = parameter.variable as ParameterVariable;
 			const argument = arguments_[position + 1] ?? UNDEFINED_EXPRESSION;
 			parameterVariable.updateKnownValue(argument);
-		}
-	}
-
-	private deoptimizeParameterVariableValues() {
-		for (const parameter of this.params) {
-			if (parameter instanceof Identifier) {
-				const parameterVariable = parameter.variable as ParameterVariable;
-				parameterVariable.markReassigned();
-			}
 		}
 	}
 
@@ -104,17 +95,22 @@ export default abstract class FunctionBase extends NodeBase {
 				// Only the "this" argument arg[0] can be null
 				const argument = args[position + 1]!;
 				if (argument instanceof SpreadElement) {
-					this.deoptimizeParameterVariableValues();
+					// This deoptimizes the current and remaining parameters and arguments
+					for (; position < parameters.length; position++) {
+						args[position + 1]?.deoptimizePath(UNKNOWN_PATH);
+						parameters[position].forEach(variable => variable.markReassigned());
+					}
+					break;
 				}
 				if (hasRest || parameter instanceof RestElement) {
 					hasRest = true;
 					argument.deoptimizePath(UNKNOWN_PATH);
-				} else if (parameter instanceof Identifier) {
-					parameters[position][0].addEntityToBeDeoptimized(argument);
-					this.addArgumentToBeDeoptimized(argument);
-				} else if (parameter) {
-					argument.deoptimizePath(UNKNOWN_PATH);
 				} else {
+					if (parameter) {
+						for (const variable of parameters[position]) {
+							variable.addArgumentValue(argument);
+						}
+					}
 					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
@@ -237,9 +233,14 @@ export default abstract class FunctionBase extends NodeBase {
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
-		if (!this.parameterVariableValuesDeoptimized && !this.onlyFunctionCallUsed()) {
+		if (!(this.parameterVariableValuesDeoptimized || this.onlyFunctionCallUsed())) {
 			this.parameterVariableValuesDeoptimized = true;
-			this.deoptimizeParameterVariableValues();
+			// TODO Lukas should this happen in the ParameterScope?
+			for (const parameter of this.scope.parameters) {
+				for (const variable of parameter) {
+					variable.markReassigned();
+				}
+			}
 		}
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;

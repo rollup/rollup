@@ -39,7 +39,7 @@ export default class ParameterVariable extends LocalVariable {
 	private deoptimizationInteractions: DeoptimizationInteraction[] = [];
 	private deoptimizations = new EntityPathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
-	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
+	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
 	private expressionsUseTheKnownValue: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -51,13 +51,14 @@ export default class ParameterVariable extends LocalVariable {
 		super(name, declarator, UNKNOWN_EXPRESSION, argumentPath, context, 'parameter');
 	}
 
-	addEntityToBeDeoptimized(entity: ExpressionEntity): void {
+	// TODO Lukas would this work for tracking known argument values?
+	addArgumentValue(entity: ExpressionEntity): void {
 		if (entity === UNKNOWN_EXPRESSION) {
 			// As unknown expressions fully deoptimize all interactions, we can clear
 			// the interaction cache at this point provided we keep this optimization
 			// in mind when adding new interactions
-			if (!this.entitiesToBeDeoptimized.has(UNKNOWN_EXPRESSION)) {
-				this.entitiesToBeDeoptimized.add(UNKNOWN_EXPRESSION);
+			if (!this.argumentsToBeDeoptimized.has(UNKNOWN_EXPRESSION)) {
+				this.argumentsToBeDeoptimized.add(UNKNOWN_EXPRESSION);
 				for (const { interaction } of this.deoptimizationInteractions) {
 					deoptimizeInteraction(interaction);
 				}
@@ -66,14 +67,18 @@ export default class ParameterVariable extends LocalVariable {
 		} else if (this.deoptimizedFields.has(UnknownKey)) {
 			// This means that we already deoptimized all interactions and no longer
 			// track them
-			entity.deoptimizePath(UNKNOWN_PATH);
-		} else if (!this.entitiesToBeDeoptimized.has(entity)) {
-			this.entitiesToBeDeoptimized.add(entity);
+			entity.deoptimizePath([...this.initPath, UnknownKey]);
+		} else if (!this.argumentsToBeDeoptimized.has(entity)) {
+			this.argumentsToBeDeoptimized.add(entity);
 			for (const field of this.deoptimizedFields) {
-				entity.deoptimizePath([field]);
+				entity.deoptimizePath([...this.initPath, field]);
 			}
 			for (const { interaction, path } of this.deoptimizationInteractions) {
-				entity.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
+				entity.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					[...this.initPath, ...path],
+					SHARED_RECURSION_TRACKER
+				);
 			}
 		}
 	}
@@ -194,7 +199,7 @@ export default class ParameterVariable extends LocalVariable {
 		// For performance reasons, we fully deoptimize all deeper interactions
 		if (
 			path.length >= 2 ||
-			this.entitiesToBeDeoptimized.has(UNKNOWN_EXPRESSION) ||
+			this.argumentsToBeDeoptimized.has(UNKNOWN_EXPRESSION) ||
 			this.deoptimizationInteractions.length >= MAX_TRACKED_INTERACTIONS ||
 			(path.length === 1 &&
 				(this.deoptimizedFields.has(UnknownKey) ||
@@ -204,10 +209,14 @@ export default class ParameterVariable extends LocalVariable {
 			return;
 		}
 		if (!this.deoptimizations.trackEntityAtPathAndGetIfTracked(path, interaction.args)) {
-			for (const entity of this.entitiesToBeDeoptimized) {
-				entity.deoptimizeArgumentsOnInteractionAtPath(interaction, path, SHARED_RECURSION_TRACKER);
+			for (const entity of this.argumentsToBeDeoptimized) {
+				entity.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					[...this.initPath, ...path],
+					SHARED_RECURSION_TRACKER
+				);
 			}
-			if (!this.entitiesToBeDeoptimized.has(UNKNOWN_EXPRESSION)) {
+			if (!this.argumentsToBeDeoptimized.has(UNKNOWN_EXPRESSION)) {
 				this.deoptimizationInteractions.push({
 					interaction,
 					path
@@ -229,17 +238,17 @@ export default class ParameterVariable extends LocalVariable {
 			return;
 		}
 		this.deoptimizedFields.add(key);
-		for (const entity of this.entitiesToBeDeoptimized) {
+		for (const entity of this.argumentsToBeDeoptimized) {
 			// We do not need a recursion tracker here as we already track whether
 			// this field is deoptimized
-			entity.deoptimizePath([key]);
+			entity.deoptimizePath([...this.initPath, key]);
 		}
 		if (key === UnknownKey) {
 			// save some memory
 			this.deoptimizationInteractions = NO_INTERACTIONS;
 			this.deoptimizations = EMPTY_PATH_TRACKER;
 			this.deoptimizedFields = UNKNOWN_DEOPTIMIZED_FIELD;
-			this.entitiesToBeDeoptimized = UNKNOWN_DEOPTIMIZED_ENTITY;
+			this.argumentsToBeDeoptimized = UNKNOWN_DEOPTIMIZED_ENTITY;
 		}
 	}
 
