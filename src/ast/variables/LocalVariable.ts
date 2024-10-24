@@ -212,7 +212,6 @@ export default class LocalVariable extends Variable {
 				}
 			}
 			// We need to make sure we include the correct path of the init
-			// TODO Lukas what about path.length == 0?
 			if (path.length > 0) {
 				this.init.includePath([...this.initPath, ...path], context, false);
 				this.additionalInitializers?.forEach(initializer =>
@@ -222,9 +221,14 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	// TODO Lukas do we need to consider the initPath here?
 	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		if (this.isReassigned || context.includedCallArguments.has(this.init)) {
+		if (
+			this.isReassigned ||
+			context.includedCallArguments.has(this.init) ||
+			// This can be removed again once we can include arguments when called at
+			// a specific path
+			this.initPath.length > 0
+		) {
 			for (const argument of interaction.args) {
 				argument?.includePath(UNKNOWN_PATH, context, false);
 			}
