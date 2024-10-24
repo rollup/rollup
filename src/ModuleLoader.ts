@@ -32,7 +32,8 @@ import {
 	logUnresolvedEntry,
 	logUnresolvedImplicitDependant,
 	logUnresolvedImport,
-	logUnresolvedImportTreatedAsExternal
+	logUnresolvedImportTreatedAsExternal,
+	warnDeprecationWithOptions
 } from './utils/logs';
 import {
 	doAttributesDiffer,
@@ -42,6 +43,7 @@ import { isAbsolute, isRelative, resolve } from './utils/path';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import transform from './utils/transform';
+import { URL_LOAD } from './utils/urls';
 
 export interface UnresolvedModule {
 	fileName: string | null;
@@ -278,8 +280,22 @@ export class ModuleLoader {
 		let source: LoadResult;
 		try {
 			source = await this.graph.fileOperationQueue.run(async () => {
-				const content = await this.pluginDriver.hookFirst('load', [id]);
-				if (content !== null) return content;
+				const content = await this.pluginDriver.hookFirst('load', [
+					id,
+					{ attributes: module.info.attributes }
+				]);
+				if (content !== null) {
+					if (typeof content === 'object' && content.attributes) {
+						warnDeprecationWithOptions(
+							'Returning attributes from the "load" hook is forbidden.',
+							URL_LOAD,
+							this.options.strictDeprecations,
+							this.options.onLog,
+							false
+						);
+					}
+					return content;
+				}
 				this.graph.watchFiles[id] = true;
 				return await readFile(id, 'utf8');
 			});
@@ -325,7 +341,7 @@ export class ModuleLoader {
 		} else {
 			module.updateOptions(sourceDescription);
 			await module.setSource(
-				await transform(sourceDescription, module, this.pluginDriver, this.options.onLog)
+				await transform(sourceDescription, module, this.pluginDriver, this.options)
 			);
 		}
 	}
