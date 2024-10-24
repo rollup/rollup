@@ -14,7 +14,7 @@ export default class ParameterScope extends ChildScope {
 	readonly bodyScope: ChildScope;
 	parameters: readonly ParameterVariable[][] = [];
 
-	private hasRest = false;
+	protected hasRest = false;
 
 	constructor(parent: ChildScope, isCatchScope: boolean) {
 		super(parent, parent.context);

@@ -15,7 +15,6 @@ import {
 } from '../../utils/PathTracker';
 import type BlockStatement from '../BlockStatement';
 import Identifier, { type IdentifierWithVariable } from '../Identifier';
-import type { ExpressionEntity } from './Expression';
 import { UNKNOWN_EXPRESSION } from './Expression';
 import FunctionBase from './FunctionBase';
 import { type IncludeChildren } from './Node';
@@ -117,10 +116,6 @@ export default class FunctionNode extends FunctionBase {
 	initialise(): void {
 		super.initialise();
 		this.id?.declare('function', EMPTY_PATH, this);
-	}
-
-	protected addArgumentToBeDeoptimized(argument: ExpressionEntity) {
-		this.scope.argumentsVariable.addArgumentToBeDeoptimized(argument);
 	}
 
 	protected getObjectEntity(): ObjectEntity {

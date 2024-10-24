@@ -10,14 +10,12 @@ import {
 import type ReturnValueScope from '../../scopes/ReturnValueScope';
 import type { EntityPathTracker, ObjectPath } from '../../utils/PathTracker';
 import { EMPTY_PATH, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
-import { UNDEFINED_EXPRESSION } from '../../values';
 import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
-import SpreadElement from '../SpreadElement';
 import type VariableDeclarator from '../VariableDeclarator';
 import { Flag, isFlagSet, setFlag } from './BitFlags';
 import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
@@ -69,40 +67,9 @@ export default abstract class FunctionBase extends NodeBase {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
-		if (interaction.type === INTERACTION_CALLED) {
-			const { parameters } = this.scope;
-			const { args } = interaction;
-			let hasRest = false;
-			let position = 0;
-			for (; position < args.length - 1; position++) {
-				const parameter = this.params[position];
-				// Only the "this" argument arg[0] can be null
-				const argument = args[position + 1]!;
-				if (argument instanceof SpreadElement) {
-					// This deoptimizes the current and remaining parameters and arguments
-					for (; position < parameters.length; position++) {
-						args[position + 1]?.deoptimizePath(UNKNOWN_PATH);
-						parameters[position].forEach(variable => variable.markReassigned());
-					}
-					break;
-				}
-				if (hasRest || parameter instanceof RestElement) {
-					hasRest = true;
-					argument.deoptimizePath(UNKNOWN_PATH);
-				} else {
-					if (parameter) {
-						for (const variable of parameters[position]) {
-							variable.addArgumentValue(argument);
-						}
-					}
-					this.addArgumentToBeDeoptimized(argument);
-				}
-			}
-			for (; position < parameters.length; position++) {
-				for (const variable of parameters[position]) {
-					variable.addArgumentValue(UNDEFINED_EXPRESSION);
-				}
-			}
+		// TODO Lukas test path length > 0
+		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
+			this.scope.deoptimizeArgumentsOnCall(interaction);
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
@@ -238,9 +205,7 @@ export default abstract class FunctionBase extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments(context: InclusionContext, interaction: NodeInteractionCalled): void {
-		this.scope.includeCallArguments(context, interaction);
-	}
+	includeCallArguments = this.scope.includeCallArguments.bind(this.scope);
 
 	initialise(): void {
 		super.initialise();
@@ -282,8 +247,6 @@ export default abstract class FunctionBase extends NodeBase {
 		this.body = new (context.getNodeConstructor(body.type))(this, bodyScope).parseNode(body);
 		return super.parseNode(esTreeNode);
 	}
-
-	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}
 
 	protected applyDeoptimizations() {}
 
