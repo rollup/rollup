@@ -16,7 +16,6 @@ import {
 } from '../nodes/shared/Expression';
 import type { ObjectPath, ObjectPathKey } from '../utils/PathTracker';
 import {
-	EMPTY_PATH,
 	EntityPathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
@@ -40,7 +39,7 @@ export default class ParameterVariable extends LocalVariable {
 	private deoptimizations = new EntityPathTracker();
 	private deoptimizedFields = new Set<ObjectPathKey>();
 	private argumentsToBeDeoptimized = new Set<ExpressionEntity>();
-	private expressionsUseTheKnownValue: DeoptimizableEntity[] = [];
+	private expressionsDependingOnKnownValue: DeoptimizableEntity[] = [];
 
 	constructor(
 		name: string,
@@ -51,8 +50,8 @@ export default class ParameterVariable extends LocalVariable {
 		super(name, declarator, UNKNOWN_EXPRESSION, argumentPath, context, 'parameter');
 	}
 
-	// TODO Lukas would this work for tracking known argument values?
 	addArgumentValue(entity: ExpressionEntity): void {
+		this.updateKnownValue(entity);
 		if (entity === UNKNOWN_EXPRESSION) {
 			// As unknown expressions fully deoptimize all interactions, we can clear
 			// the interaction cache at this point provided we keep this optimization
@@ -88,10 +87,10 @@ export default class ParameterVariable extends LocalVariable {
 			return;
 		}
 		super.markReassigned();
-		for (const expression of this.expressionsUseTheKnownValue) {
+		for (const expression of this.expressionsDependingOnKnownValue) {
 			expression.deoptimizeCache();
 		}
-		this.expressionsUseTheKnownValue = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+		this.expressionsDependingOnKnownValue = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 	}
 
 	deoptimizeCache(): void {
@@ -106,7 +105,7 @@ export default class ParameterVariable extends LocalVariable {
 	 * and deoptimizeCache itself to mark reassigned if the argument is changed.
 	 * @param argument The argument of the function call
 	 */
-	updateKnownValue(argument: ExpressionEntity) {
+	private updateKnownValue(argument: ExpressionEntity) {
 		if (this.isReassigned) {
 			return;
 		}
@@ -114,7 +113,7 @@ export default class ParameterVariable extends LocalVariable {
 		if (this.knownValue === null) {
 			this.knownValue = argument;
 			this.knownValueLiteral = argument.getLiteralValueAtPath(
-				EMPTY_PATH,
+				this.initPath,
 				SHARED_RECURSION_TRACKER,
 				this
 			);
@@ -137,7 +136,7 @@ export default class ParameterVariable extends LocalVariable {
 			return;
 		}
 		// add tracking for the new argument
-		const newValue = argument.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
+		const newValue = argument.getLiteralValueAtPath(this.initPath, SHARED_RECURSION_TRACKER, this);
 		if (newValue !== oldValue) {
 			this.markReassigned();
 		}
@@ -166,11 +165,11 @@ export default class ParameterVariable extends LocalVariable {
 			return UnknownValue;
 		}
 		const knownValue = this.getKnownValue();
-		this.expressionsUseTheKnownValue.push(origin);
+		this.expressionsDependingOnKnownValue.push(origin);
 		return recursionTracker.withTrackedEntityAtPath(
 			path,
 			knownValue,
-			() => knownValue.getLiteralValueAtPath(path, recursionTracker, origin),
+			() => knownValue.getLiteralValueAtPath([...this.initPath, ...path], recursionTracker, origin),
 			UnknownValue
 		);
 	}
@@ -191,7 +190,11 @@ export default class ParameterVariable extends LocalVariable {
 						: context.called
 					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this)
 				: context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) &&
-			this.getKnownValue().hasEffectsOnInteractionAtPath(path, interaction, context)
+			this.getKnownValue().hasEffectsOnInteractionAtPath(
+				[...this.initPath, ...path],
+				interaction,
+				context
+			)
 		);
 	}
 
