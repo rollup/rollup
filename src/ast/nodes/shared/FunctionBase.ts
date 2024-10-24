@@ -15,7 +15,6 @@ import type ParameterVariable from '../../variables/ParameterVariable';
 import type Variable from '../../variables/Variable';
 import BlockStatement from '../BlockStatement';
 import type ExportDefaultDeclaration from '../ExportDefaultDeclaration';
-import Identifier from '../Identifier';
 import * as NodeType from '../NodeType';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
@@ -31,8 +30,6 @@ import {
 } from './Node';
 import type { ObjectEntity } from './ObjectEntity';
 import type { PatternNode } from './Pattern';
-
-type InteractionCalledArguments = NodeInteractionCalled['args'];
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -67,20 +64,6 @@ export default abstract class FunctionBase extends NodeBase {
 		this.flags = setFlag(this.flags, Flag.generator, value);
 	}
 
-	// TODO Lukas this should work for all variable types. Should we move this to the ParameterScope? How do we handle SpreadElement and RestElement?
-	// note that we cannot merge this with includeCallArguments as it needs to happen much earlier
-	private updateParameterVariableValues(arguments_: InteractionCalledArguments) {
-		for (let position = 0; position < this.params.length; position++) {
-			const parameter = this.params[position];
-			if (!(parameter instanceof Identifier)) {
-				continue;
-			}
-			const parameterVariable = parameter.variable as ParameterVariable;
-			const argument = arguments_[position + 1] ?? UNDEFINED_EXPRESSION;
-			parameterVariable.updateKnownValue(argument);
-		}
-	}
-
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
@@ -90,7 +73,8 @@ export default abstract class FunctionBase extends NodeBase {
 			const { parameters } = this.scope;
 			const { args } = interaction;
 			let hasRest = false;
-			for (let position = 0; position < args.length - 1; position++) {
+			let position = 0;
+			for (; position < args.length - 1; position++) {
 				const parameter = this.params[position];
 				// Only the "this" argument arg[0] can be null
 				const argument = args[position + 1]!;
@@ -114,7 +98,11 @@ export default abstract class FunctionBase extends NodeBase {
 					this.addArgumentToBeDeoptimized(argument);
 				}
 			}
-			this.updateParameterVariableValues(args);
+			for (; position < parameters.length; position++) {
+				for (const variable of parameters[position]) {
+					variable.addArgumentValue(UNDEFINED_EXPRESSION);
+				}
+			}
 		} else {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
