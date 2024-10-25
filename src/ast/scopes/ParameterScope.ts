@@ -88,9 +88,6 @@ export default class ParameterScope extends ChildScope {
 							if (calledFromTryStatement) {
 								argument.includePath(UNKNOWN_PATH, context, true);
 							} else {
-								// TODO Lukas as this is repeated over and over (check), we
-								// should think about only including call arguments once and
-								// then only include additional paths or arguments as needed.
 								variable.includeArgumentPaths(argument, context);
 							}
 						}
