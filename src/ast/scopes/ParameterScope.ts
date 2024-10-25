@@ -12,9 +12,9 @@ import FunctionBodyScope from './FunctionBodyScope';
 
 export default class ParameterScope extends ChildScope {
 	readonly bodyScope: ChildScope;
-	parameters: readonly ParameterVariable[][] = [];
 
 	protected hasRest = false;
+	protected parameters: readonly ParameterVariable[][] = [];
 
 	constructor(parent: ChildScope, isCatchScope: boolean) {
 		super(parent, parent.context);

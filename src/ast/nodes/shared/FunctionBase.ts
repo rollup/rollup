@@ -85,12 +85,7 @@ export default abstract class FunctionBase extends NodeBase {
 			// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 			// which means the return expression and parameters need to be reassigned
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
-			for (const parameterList of this.scope.parameters) {
-				for (const parameter of parameterList) {
-					parameter.deoptimizePath(UNKNOWN_PATH);
-					parameter.markReassigned();
-				}
-			}
+			this.scope.deoptimizeAllParameters();
 		}
 	}
 
@@ -190,12 +185,7 @@ export default abstract class FunctionBase extends NodeBase {
 	): void {
 		if (!(this.parameterVariableValuesDeoptimized || this.onlyFunctionCallUsed())) {
 			this.parameterVariableValuesDeoptimized = true;
-			// TODO Lukas should this happen in the ParameterScope?
-			for (const parameter of this.scope.parameters) {
-				for (const variable of parameter) {
-					variable.markReassigned();
-				}
-			}
+			this.scope.reassignAllParameters();
 		}
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
