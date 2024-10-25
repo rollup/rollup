@@ -137,7 +137,6 @@ export default class CallExpression
 			} else {
 				this.callee.includePath(UNKNOWN_PATH, context, false);
 			}
-			// TODO Lukas only do this on first inclusion and track interactions where applicable?
 			this.callee.includeCallArguments(context, this.interaction);
 		}
 	}

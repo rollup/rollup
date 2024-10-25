@@ -67,7 +67,6 @@ export default abstract class FunctionBase extends NodeBase {
 		path: ObjectPath,
 		recursionTracker: EntityPathTracker
 	): void {
-		// TODO Lukas test path length > 0
 		if (interaction.type === INTERACTION_CALLED && path.length === 0) {
 			this.scope.deoptimizeArgumentsOnCall(interaction);
 		} else {
