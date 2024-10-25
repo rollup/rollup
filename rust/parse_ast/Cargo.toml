@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.89"
+anyhow = "1.0.91"
 swc_atoms = "2.0.0"
 swc_compiler_base = "1.0.0"
 swc_common = { version = "1.0.0", features = ["ahash", "parking_lot"] }
