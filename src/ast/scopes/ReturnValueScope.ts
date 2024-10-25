@@ -52,6 +52,23 @@ export default class ReturnValueScope extends ParameterScope {
 		return this.returnExpression!;
 	}
 
+	deoptimizeAllParameters() {
+		for (const parameter of this.parameters) {
+			for (const variable of parameter) {
+				variable.deoptimizePath(UNKNOWN_PATH);
+				variable.markReassigned();
+			}
+		}
+	}
+
+	reassignAllParameters() {
+		for (const parameter of this.parameters) {
+			for (const variable of parameter) {
+				variable.markReassigned();
+			}
+		}
+	}
+
 	protected addArgumentToBeDeoptimized(_argument: ExpressionEntity) {}
 
 	private updateReturnExpression() {

@@ -82,6 +82,9 @@ export default class ParameterVariable extends LocalVariable {
 		}
 	}
 
+	/** This says we should not make assumptions about the value of the parameter.
+	 *  This is different from deoptimization that will also cause argument values
+	 *  to be deoptimized. */
 	markReassigned(): void {
 		if (this.isReassigned) {
 			return;
