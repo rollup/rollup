@@ -1358,8 +1358,9 @@ export default class Module {
 		)!.resolution;
 
 		if (resolution instanceof Module) {
-			!resolution.includedDynamicImporters.includes(this) &&
+			if (!resolution.includedDynamicImporters.includes(this)) {
 				resolution.includedDynamicImporters.push(this);
+			}
 
 			const importedNames = this.options.treeshake
 				? node.getDeterministicImportedNames()
