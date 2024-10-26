@@ -483,6 +483,7 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 		return null;
 	}
+
 	private getMemberExpressionAndTrackDeopt(
 		key: ObjectPathKey,
 		origin: DeoptimizableEntity

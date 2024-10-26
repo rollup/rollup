@@ -38,9 +38,6 @@ export default abstract class FunctionBase extends NodeBase {
 	/** Marked with #__NO_SIDE_EFFECTS__ annotation */
 	declare annotationNoSideEffects?: boolean;
 
-	argumentsToBeIncludedAll = new Set<ExpressionEntity>();
-	protected objectEntity: ObjectEntity | null = null;
-
 	get async(): boolean {
 		return isFlagSet(this.flags, Flag.async);
 	}
