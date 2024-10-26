@@ -201,7 +201,6 @@ export function getChunkAssignments(
 function getChunkDefinitionsFromManualChunks(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
-	const chunkDefinitions: ChunkDefinitions = [];
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
@@ -211,8 +210,11 @@ function getChunkDefinitionsFromManualChunks(
 			modulesInManualChunks
 		);
 	}
-	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
-		chunkDefinitions.push({ alias, modules });
+	const manualChunks = Object.entries(manualChunkModulesByAlias);
+	const chunkDefinitions: ChunkDefinitions = new Array(manualChunks.length);
+	let index = 0;
+	for (const [alias, modules] of manualChunks) {
+		chunkDefinitions[index++] = { alias, modules };
 	}
 	return { chunkDefinitions, modulesInManualChunks };
 }
@@ -242,12 +244,12 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 } {
 	const dynamicEntryModules = new Set<Module>();
 	const dependentEntriesByModule = new Map<Module, Set<number>>();
-	const dynamicImportModulesByEntry: Set<Module>[] = [];
 	const allEntriesSet = new Set(entries);
+	const dynamicImportModulesByEntry: Set<Module>[] = new Array(allEntriesSet.size);
 	let entryIndex = 0;
 	for (const currentEntry of allEntriesSet) {
 		const dynamicImportsForCurrentEntry = new Set<Module>();
-		dynamicImportModulesByEntry.push(dynamicImportsForCurrentEntry);
+		dynamicImportModulesByEntry[entryIndex] = dynamicImportsForCurrentEntry;
 		const modulesToHandle = new Set([currentEntry]);
 		for (const module of modulesToHandle) {
 			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
@@ -307,13 +309,14 @@ function getDynamicEntries(
 			dynamicEntries.add(entryIndex);
 		}
 	}
-	const dynamicImportsByEntry: Set<number>[] = [];
+	const dynamicImportsByEntry: Set<number>[] = new Array(dynamicImportModulesByEntry.length);
+	let index = 0;
 	for (const dynamicImportModules of dynamicImportModulesByEntry) {
 		const dynamicImports = new Set<number>();
 		for (const dynamicEntry of dynamicImportModules) {
 			dynamicImports.add(entryIndexByModule.get(dynamicEntry)!);
 		}
-		dynamicImportsByEntry.push(dynamicImports);
+		dynamicImportsByEntry[index++] = dynamicImports;
 	}
 	return { dynamicEntries, dynamicImportsByEntry };
 }
@@ -464,9 +467,10 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 ) {
 	const chunksBySignature: Record<string, ChunkDescription> = Object.create(null);
 	const chunkByModule = new Map<Module, ChunkDescription>();
-	const sizeByAtom: number[] = [];
+	const sizeByAtom: number[] = new Array(chunkAtoms.length);
 	let sideEffectAtoms = 0n;
 	let atomMask = 1n;
+	let index = 0;
 	for (const { dependentEntries, modules } of chunkAtoms) {
 		let chunkSignature = 0n;
 		let correlatedAtoms = -1n;
@@ -505,7 +509,7 @@ function getChunksWithSameDependentEntriesAndCorrelatedAtoms(
 		if (!pure) {
 			sideEffectAtoms |= atomMask;
 		}
-		sizeByAtom.push(atomSize);
+		sizeByAtom[index++] = atomSize;
 
 		chunk.containedAtoms |= atomMask;
 		chunk.modules.push(...modules);

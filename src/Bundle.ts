@@ -178,18 +178,20 @@ export default class Bundle {
 			this.outputOptions,
 			inputBase
 		);
-		const chunks: Chunk[] = [];
+		const executableModule = inlineDynamicImports
+		? [{ alias: null, modules: includedModules }]
+		: preserveModules
+			? includedModules.map(module => ({ alias: null, modules: [module] }))
+			: getChunkAssignments(
+					this.graph.entryModules,
+					manualChunkAliasByEntry,
+					experimentalMinChunkSize,
+					this.inputOptions.onLog
+				)
+		const chunks: Chunk[] = new Array(executableModule.length);
 		const chunkByModule = new Map<Module, Chunk>();
-		for (const { alias, modules } of inlineDynamicImports
-			? [{ alias: null, modules: includedModules }]
-			: preserveModules
-				? includedModules.map(module => ({ alias: null, modules: [module] }))
-				: getChunkAssignments(
-						this.graph.entryModules,
-						manualChunkAliasByEntry,
-						experimentalMinChunkSize,
-						this.inputOptions.onLog
-					)) {
+		let index = 0
+		for (const { alias, modules } of executableModule) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
 				modules,
@@ -208,7 +210,7 @@ export default class Bundle {
 				inputBase,
 				snippets
 			);
-			chunks.push(chunk);
+			chunks[index++] = chunk;
 		}
 		for (const chunk of chunks) {
 			chunk.link();
