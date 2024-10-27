@@ -481,6 +481,7 @@ jobs:
     timeout-minutes: 15
     needs:
       - lint
+      - build-freebsd
       - test
       - smoke-test
     # This needs to be adapted for Rollup 5
