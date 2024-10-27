@@ -230,10 +230,10 @@ function convertNodeList(
 ): any[] {
   if (position === 0) return EMPTY_ARRAY as never[];
   const length = buffer[position++];
-  const list: any[] = [];
+  const list: any[] = new Array(length);
   for (let index = 0; index < length; index++) {
     const nodePosition = buffer[position++];
-    list.push(nodePosition ? convertNode(parent, parentScope, nodePosition, buffer) : null);
+    list[index] = nodePosition ? convertNode(parent, parentScope, nodePosition, buffer) : null;
   }
   return list;
 }
