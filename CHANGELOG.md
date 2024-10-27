@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 4.24.1
+
+_2024-10-27_
+
+### Bug Fixes
+
+- Support running Rollup natively on FreeBSD (#5698)
+
+### Pull Requests
+
+- [#5689](https://github.com/rollup/rollup/pull/5689): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5690](https://github.com/rollup/rollup/pull/5690): chore(deps): update dependency @inquirer/prompts to v7 (@renovate[bot])
+- [#5691](https://github.com/rollup/rollup/pull/5691): chore(deps): update dependency eslint-plugin-unicorn to v56 (@renovate[bot])
+- [#5692](https://github.com/rollup/rollup/pull/5692): chore(deps): lock file maintenance minor/patch updates (@renovate[bot], @lukastaegert)
+- [#5695](https://github.com/rollup/rollup/pull/5695): fix(deps): update swc monorepo (major) (@renovate[bot])
+- [#5696](https://github.com/rollup/rollup/pull/5696): chore(deps): lock file maintenance minor/patch updates (@renovate[bot])
+- [#5698](https://github.com/rollup/rollup/pull/5698): Add support for FreeBSD (x64 and arm64) (@tagattie, @lukastaegert)
+
 ## 4.24.0
 
 _2024-10-02_
