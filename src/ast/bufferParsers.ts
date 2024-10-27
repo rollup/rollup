@@ -408,6 +408,8 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 					)
 				;
 			}
+		} else {
+			node.body = []
 		}
 	},
 	function classDeclaration(node: ClassDeclaration, position, buffer) {
