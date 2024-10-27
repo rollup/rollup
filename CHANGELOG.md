@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.24.2
+
+_2024-10-27_
+
+### Bug Fixes
+
+- Add missing build dependency (#5705)
+
+### Pull Requests
+
+- [#5705](https://github.com/rollup/rollup/pull/5705): Fix "Couldn't find package" error when installing rollup using yarn (@tagattie)
+
 ## 4.24.1
 
 _2024-10-27_
