@@ -140,11 +140,10 @@ function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets
 		if (specifier.expression) {
 			exportBlock.push(`${cnst} ${specifier.local}${_}=${_}${specifier.expression};`);
 		}
-		exportDeclaration[index++] = 
+		exportDeclaration[index++] =
 			specifier.exported === specifier.local
 				? specifier.local
-				: `${specifier.local} as ${stringifyIdentifierIfNeeded(specifier.exported)}`
-		;
+				: `${specifier.local} as ${stringifyIdentifierIfNeeded(specifier.exported)}`;
 	}
 	if (exportDeclaration.length > 0) {
 		exportBlock.push(`export${_}{${_}${exportDeclaration.join(`,${_}`)}${_}};`);
