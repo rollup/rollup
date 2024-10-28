@@ -179,18 +179,18 @@ export default class Bundle {
 			inputBase
 		);
 		const executableModule = inlineDynamicImports
-		? [{ alias: null, modules: includedModules }]
-		: preserveModules
-			? includedModules.map(module => ({ alias: null, modules: [module] }))
-			: getChunkAssignments(
-					this.graph.entryModules,
-					manualChunkAliasByEntry,
-					experimentalMinChunkSize,
-					this.inputOptions.onLog
-				)
+			? [{ alias: null, modules: includedModules }]
+			: preserveModules
+				? includedModules.map(module => ({ alias: null, modules: [module] }))
+				: getChunkAssignments(
+						this.graph.entryModules,
+						manualChunkAliasByEntry,
+						experimentalMinChunkSize,
+						this.inputOptions.onLog
+					);
 		const chunks: Chunk[] = new Array(executableModule.length);
 		const chunkByModule = new Map<Module, Chunk>();
-		let index = 0
+		let index = 0;
 		for (const { alias, modules } of executableModule) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
