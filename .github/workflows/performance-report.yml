@@ -120,20 +120,6 @@ jobs:
           echo "export { rollup as newRollup } from '../../_benchmark/current/rollup.js';" >> ./scripts/perf-report/rollup-artefacts.js
       - name: Run internal benchmark
         run: node --expose-gc scripts/perf-report/index.js
-      - name: Install benchmark tool
-        run: cargo install --locked hyperfine
-      - name: Run Rough benchmark
-        run: |
-          hyperfine --warmup 1 --export-markdown _benchmark/rough-report.md --show-output --runs 3 \
-            'node _benchmark/previous/bin/rollup -i ./perf/entry.js -o _benchmark/result/previous.js' \
-            'node _benchmark/current/bin/rollup -i ./perf/entry.js -o _benchmark/result/current.js'
-      - name: Combine benchmark reports
-        run: |
-          echo "# Performance report!" > _benchmark/result.md
-          echo "## Rough benchmark" >> _benchmark/result.md
-          cat _benchmark/rough-report.md >> _benchmark/result.md
-          echo "## Internal benchmark" >> _benchmark/result.md
-          cat _benchmark/internal-report.md >> _benchmark/result.md
       - name: Find Performance report
         uses: peter-evans/find-comment@v3
         id: findPerformanceReport

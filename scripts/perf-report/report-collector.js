@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { appendFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 export default new (class ReportCollector {
@@ -28,10 +28,12 @@ export default new (class ReportCollector {
 	}
 	outputMsg() {
 		if (process.env.CI) {
-			return writeFile(
-				fileURLToPath(new URL('../../_benchmark/internal-report.md', import.meta.url)),
-				removeAnsiStyles(this.#messageList.join('\n'))
-			);
+			const result = `# Performance report
+${removeAnsiStyles(this.#messageList.join('\n'))}`;
+			return Promise.all([
+				writeFile(fileURLToPath(new URL('../../_benchmark/result.md', import.meta.url)), result),
+				process.env.GITHUB_STEP_SUMMARY && appendFile(process.env.GITHUB_STEP_SUMMARY, result)
+			]);
 		}
 	}
 })();
