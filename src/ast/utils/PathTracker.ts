@@ -117,11 +117,15 @@ interface IncludedPaths {
 	[UnknownKey]?: IncludedPaths;
 }
 
+const UNKNOWN_INCLUDED_PATH: IncludedPaths = Object.freeze({ [UnknownKey]: EMPTY_OBJECT });
+
 export class IncludedPathTracker {
 	private includedPaths: IncludedPaths | null = null;
 
 	includePathAndGetIfIncluded(path: ObjectPath): boolean {
 		let included = true;
+		let parent = this as unknown as IncludedPaths;
+		let parentSegment = 'includedPaths';
 		let currentPaths: IncludedPaths = (this.includedPaths ||=
 			((included = false), Object.create(null)));
 		for (const pathSegment of path) {
@@ -132,9 +136,13 @@ export class IncludedPathTracker {
 			// Including UnknownKey automatically includes all nested paths.
 			// From above, we know that UnknownKey is not included yet.
 			if (typeof pathSegment === 'symbol') {
-				currentPaths[UnknownKey] = EMPTY_OBJECT;
+				// Hopefully, this saves some memory over just setting
+				// currentPaths[UnknownKey] = EMPTY_OBJECT
+				parent[parentSegment] = UNKNOWN_INCLUDED_PATH;
 				return false;
 			}
+			parent = currentPaths;
+			parentSegment = pathSegment;
 			currentPaths = currentPaths[pathSegment] ||= ((included = false), Object.create(null));
 		}
 		return included;
