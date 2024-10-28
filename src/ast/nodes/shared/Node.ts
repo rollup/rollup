@@ -278,13 +278,12 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 				(this as GenericEsTreeNode)[key] = new Array(value.length);
 				let index = 0;
 				for (const child of value) {
-					(this as GenericEsTreeNode)[key][index++] = 
+					(this as GenericEsTreeNode)[key][index++] =
 						child === null
 							? null
 							: new (this.scope.context.getNodeConstructor(child.type))(this, this.scope).parseNode(
 									child
-								)
-					;
+								);
 				}
 			} else {
 				(this as GenericEsTreeNode)[key] = new (this.scope.context.getNodeConstructor(value.type))(
