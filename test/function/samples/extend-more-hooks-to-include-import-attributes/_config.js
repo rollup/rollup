@@ -35,16 +35,18 @@ module.exports = defineTest({
 							id: source
 						};
 					}
-					if (source.endsWith('lib.js')) {
-						return {
-							id: source,
-							external: true
-						};
-					}
 					if (source.endsWith('lib2.js')) {
 						return {
 							id: source
 						};
+					}
+					if (source.endsWith('lib4.js')) {
+						assert.deepEqual(options.importerAttributes, { type: 'javascript' });
+					}
+				},
+				resolveDynamicImport(specifier, _importer, options) {
+					if (specifier.endsWith('lib4.js')) {
+						assert.deepEqual(options.importerAttributes, { type: 'javascript' });
 					}
 				},
 				load(id, options) {
@@ -62,11 +64,13 @@ module.exports = defineTest({
 						return code;
 					}
 				},
-				renderDynamicImport(options) {
-					assert.deepEqual(options.targetModuleAttributes, { type: 'javascript' });
-				},
 				shouldTransformCachedModule({ attributes }) {
 					assert.deepEqual(attributes, { type: 'javascript' });
+				},
+				renderDynamicImport(options) {
+					if (options.targetModuleId.endsWith('lib3.js')) {
+						assert.deepEqual(options.targetModuleAttributes, { type: 'javascript' });
+					}
 				}
 			}
 		]
