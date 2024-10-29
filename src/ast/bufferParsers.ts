@@ -405,8 +405,6 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 					nodePosition,
 					buffer
 				);
-
-
 			}
 		} else {
 			node.body = [];
