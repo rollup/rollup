@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 4.24.3
+
+_2024-10-29_
+
+### Bug Fixes
+
+- Slightly reduce memory consumption by specifying fixed array sizes where possible (#5703)
+
+### Pull Requests
+
+- [#5703](https://github.com/rollup/rollup/pull/5703): perf: use pre-allocated arrays for known result sizes (@GalacticHypernova)
+
 ## 4.24.2
 
 _2024-10-27_
