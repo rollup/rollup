@@ -27,14 +27,13 @@ export default class ClassBody extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): this {
-		const body: NodeBase[] = (this.body = []);
+		const body: NodeBase[] = (this.body = new Array(esTreeNode.body.length));
+		let index = 0;
 		for (const definition of esTreeNode.body) {
-			body.push(
-				new (this.scope.context.getNodeConstructor(definition.type))(
-					this,
-					definition.static ? this.scope : this.scope.instanceScope
-				).parseNode(definition)
-			);
+			body[index++] = new (this.scope.context.getNodeConstructor(definition.type))(
+				this,
+				definition.static ? this.scope : this.scope.instanceScope
+			).parseNode(definition);
 		}
 		return super.parseNode(esTreeNode);
 	}

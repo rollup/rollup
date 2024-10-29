@@ -18,9 +18,9 @@ export const convertAnnotations = (
 ): readonly RollupAnnotation[] => {
 	if (position === 0) return EMPTY_ARRAY;
 	const length = buffer[position++];
-	const list: any[] = [];
+	const list: any[] = new Array(length);
 	for (let index = 0; index < length; index++) {
-		list.push(convertAnnotation(buffer[position++], buffer));
+		list[index] = convertAnnotation(buffer[position++], buffer);
 	}
 	return list;
 };

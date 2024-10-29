@@ -134,16 +134,16 @@ function getImportBlock(
 
 function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets): string[] {
 	const exportBlock: string[] = [];
-	const exportDeclaration: string[] = [];
+	const exportDeclaration: string[] = new Array(exports.length);
+	let index = 0;
 	for (const specifier of exports) {
 		if (specifier.expression) {
 			exportBlock.push(`${cnst} ${specifier.local}${_}=${_}${specifier.expression};`);
 		}
-		exportDeclaration.push(
+		exportDeclaration[index++] =
 			specifier.exported === specifier.local
 				? specifier.local
-				: `${specifier.local} as ${stringifyIdentifierIfNeeded(specifier.exported)}`
-		);
+				: `${specifier.local} as ${stringifyIdentifierIfNeeded(specifier.exported)}`;
 	}
 	if (exportDeclaration.length > 0) {
 		exportBlock.push(`export${_}{${_}${exportDeclaration.join(`,${_}`)}${_}};`);

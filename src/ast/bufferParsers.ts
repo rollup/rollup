@@ -394,20 +394,20 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 	function classBody(node: ClassBody, position, buffer) {
 		const { scope } = node;
 		const bodyPosition = buffer[position];
-		const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
 		if (bodyPosition) {
 			const length = buffer[bodyPosition];
+			const body: (MethodDefinition | PropertyDefinition)[] = (node.body = new Array(length));
 			for (let index = 0; index < length; index++) {
 				const nodePosition = buffer[bodyPosition + 1 + index];
-				body.push(
-					convertNode(
-						node,
-						(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-						nodePosition,
-						buffer
-					)
+				body[index] = convertNode(
+					node,
+					(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+					nodePosition,
+					buffer
 				);
 			}
+		} else {
+			node.body = [];
 		}
 	},
 	function classDeclaration(node: ClassDeclaration, position, buffer) {
@@ -917,10 +917,10 @@ function convertNodeList(
 ): any[] {
 	if (position === 0) return EMPTY_ARRAY as never[];
 	const length = buffer[position++];
-	const list: any[] = [];
+	const list: any[] = new Array(length);
 	for (let index = 0; index < length; index++) {
 		const nodePosition = buffer[position++];
-		list.push(nodePosition ? convertNode(parent, parentScope, nodePosition, buffer) : null);
+		list[index] = nodePosition ? convertNode(parent, parentScope, nodePosition, buffer) : null;
 	}
 	return list;
 }

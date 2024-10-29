@@ -168,20 +168,20 @@ export const AST_NODES = {
 		fields: [['body', 'NodeList']],
 		scriptedFields: {
 			body: ` const bodyPosition = $position;
-        const body: (MethodDefinition | PropertyDefinition)[] = (node.body = []);
 			  if (bodyPosition) {
 			    const length = buffer[bodyPosition];
+			    const body: (MethodDefinition | PropertyDefinition)[] = (node.body = new Array(length));
           for (let index = 0; index < length; index++) {
             const nodePosition = buffer[bodyPosition + 1 + index];
-            body.push(
-              convertNode(
+            body[index] = convertNode(
                 node,
                 (buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
                 nodePosition,
                 buffer
-              )
             );
           }
+        } else {
+          node.body = [];
         }`
 		},
 		useMacro: false
