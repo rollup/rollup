@@ -392,24 +392,24 @@ const bufferParsers: ((node: any, position: number, buffer: AstBuffer) => void)[
 		node.expression = convertNode(node, scope, buffer[position], buffer);
 	},
 	function classBody(node: ClassBody, position, buffer) {
+		const { scope } = node;
 		const bodyPosition = buffer[position];
 		if (bodyPosition) {
-			const { scope } = node;
 			const length = buffer[bodyPosition];
 			const body: (MethodDefinition | PropertyDefinition)[] = (node.body = new Array(length));
 			for (let index = 0; index < length; index++) {
 				const nodePosition = buffer[bodyPosition + 1 + index];
-				body[index] = 
-					convertNode(
-						node,
-						(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
-						nodePosition,
-						buffer
-					)
-				;
+				body[index] = convertNode(
+					node,
+					(buffer[nodePosition + 3] & 1) === 0 ? scope.instanceScope : scope,
+					nodePosition,
+					buffer
+				);
+
+
 			}
 		} else {
-			node.body = []
+			node.body = [];
 		}
 	},
 	function classDeclaration(node: ClassDeclaration, position, buffer) {
