@@ -57,6 +57,7 @@ module.exports = defineTest({
 						preserveModules: false,
 						reexportProtoFromExternal: true,
 						sourcemap: false,
+						sourcemapDebugIds: false,
 						sourcemapExcludeSources: false,
 						strict: true,
 						systemNullSetters: true,

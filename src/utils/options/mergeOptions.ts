@@ -279,6 +279,7 @@ async function mergeOutputOptions(
 		sanitizeFileName: getOption('sanitizeFileName'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapBaseUrl: getOption('sourcemapBaseUrl'),
+		sourcemapDebugIds: getOption('sourcemapDebugIds'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),
 		sourcemapFileNames: getOption('sourcemapFileNames'),
